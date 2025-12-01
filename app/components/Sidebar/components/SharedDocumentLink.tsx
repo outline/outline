@@ -8,7 +8,7 @@ import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import useStores from "~/hooks/useStores";
 import { sharedModelPath } from "~/utils/routeHelpers";
-import { descendants } from "~/utils/tree";
+import { descendants } from "@shared/utils/tree";
 import SidebarLink from "./SidebarLink";
 
 type Props = {
@@ -108,6 +108,7 @@ function DocumentLink(
     t("Untitled");
 
   const icon = node.icon ?? node.emoji;
+  const initial = title ? title.charAt(0).toUpperCase() : "?";
 
   return (
     <>
@@ -121,7 +122,9 @@ function DocumentLink(
         expanded={hasChildDocuments && depth !== 0 ? expanded : undefined}
         onDisclosureClick={handleDisclosureClick}
         onClickIntent={handlePrefetch}
-        icon={icon && <Icon value={icon} color={node.color} />}
+        icon={
+          icon && <Icon value={icon} color={node.color} initial={initial} />
+        }
         label={title}
         depth={depth}
         exact={false}

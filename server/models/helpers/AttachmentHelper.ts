@@ -2,6 +2,7 @@ import { addHours } from "date-fns";
 import { AttachmentPreset } from "@shared/types";
 import env from "@server/env";
 import { ValidateKey } from "@server/validation";
+import { AttachmentValidation } from "@shared/validations";
 
 export enum Buckets {
   public = "public",
@@ -109,6 +110,8 @@ export default class AttachmentHelper {
         return env.FILE_STORAGE_IMPORT_MAX_SIZE;
       case AttachmentPreset.WorkspaceImport:
         return env.FILE_STORAGE_WORKSPACE_IMPORT_MAX_SIZE;
+      case AttachmentPreset.Emoji:
+        return AttachmentValidation.emojiMaxFileSize;
       case AttachmentPreset.Avatar:
       case AttachmentPreset.DocumentAttachment:
       default:

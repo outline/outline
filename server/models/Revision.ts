@@ -85,10 +85,6 @@ class Revision extends ParanoidModel<
   content: ProsemirrorData | null;
 
   /** The icon at the time of the revision. */
-  @Length({
-    max: 50,
-    msg: `icon must be 50 characters or less`,
-  })
   @Column
   @SkipChangeset
   icon: string | null;

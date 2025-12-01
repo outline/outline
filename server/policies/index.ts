@@ -26,3 +26,4 @@ import "./team";
 import "./group";
 import "./webhookSubscription";
 import "./userMembership";
+import "./emoji";

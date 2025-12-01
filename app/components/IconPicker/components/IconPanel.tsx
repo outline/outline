@@ -5,16 +5,10 @@ import { IconType } from "@shared/types";
 import { IconLibrary } from "@shared/utils/IconLibrary";
 import Flex from "~/components/Flex";
 import InputSearch from "~/components/InputSearch";
-import usePersistedState from "~/hooks/usePersistedState";
-import {
-  FREQUENTLY_USED_COUNT,
-  DisplayCategory,
-  iconsFreqKey,
-  lastIconKey,
-  sortFrequencies,
-} from "../utils";
+import { DisplayCategory } from "../utils";
 import ColorPicker from "./ColorPicker";
 import GridTemplate, { DataNode } from "./GridTemplate";
+import { useIconState } from "../useIconState";
 
 const IconNames = Object.keys(IconLibrary.mapping);
 const TotalIcons = IconNames.length;
@@ -24,52 +18,6 @@ const TotalIcons = IconNames.length;
  * Calculated from the heights of TabPanel, ColorPicker and InputSearch.
  */
 const GRID_HEIGHT = 314;
-
-const useIconState = () => {
-  const [iconsFreq, setIconsFreq] = usePersistedState<Record<string, number>>(
-    iconsFreqKey,
-    {}
-  );
-  const [lastIcon, setLastIcon] = usePersistedState<string | undefined>(
-    lastIconKey,
-    undefined
-  );
-
-  const incrementIconCount = React.useCallback(
-    (icon: string) => {
-      iconsFreq[icon] = (iconsFreq[icon] ?? 0) + 1;
-      setIconsFreq({ ...iconsFreq });
-      setLastIcon(icon);
-    },
-    [iconsFreq, setIconsFreq, setLastIcon]
-  );
-
-  const getFreqIcons = React.useCallback(() => {
-    const freqs = Object.entries(iconsFreq);
-
-    if (freqs.length > FREQUENTLY_USED_COUNT.Track) {
-      sortFrequencies(freqs).splice(FREQUENTLY_USED_COUNT.Track);
-      setIconsFreq(Object.fromEntries(freqs));
-    }
-
-    const icons = sortFrequencies(freqs)
-      .slice(0, FREQUENTLY_USED_COUNT.Get)
-      .map(([icon, _]) => icon);
-
-    const isLastPresent = icons.includes(lastIcon ?? "");
-    if (lastIcon && !isLastPresent) {
-      icons.pop();
-      icons.push(lastIcon);
-    }
-
-    return icons;
-  }, [iconsFreq, setIconsFreq, lastIcon]);
-
-  return {
-    incrementIconCount,
-    getFreqIcons,
-  };
-};
 
 type Props = {
   panelWidth: number;
@@ -97,9 +45,9 @@ const IconPanel = ({
   const searchRef = React.useRef<HTMLInputElement | null>(null);
   const scrollableRef = React.useRef<HTMLDivElement | null>(null);
 
-  const { incrementIconCount, getFreqIcons } = useIconState();
+  const { incrementIconCount, getFrequentIcons } = useIconState(IconType.SVG);
 
-  const freqIcons = React.useMemo(() => getFreqIcons(), [getFreqIcons]);
+  const freqIcons = React.useMemo(() => getFrequentIcons(), [getFrequentIcons]);
   const totalFreqIcons = freqIcons.length;
 
   const filteredIcons = React.useMemo(

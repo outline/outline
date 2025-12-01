@@ -1,11 +1,9 @@
 import formidable from "formidable";
 import isEmpty from "lodash/isEmpty";
-import isUUID from "validator/lib/isUUID";
 import { z } from "zod";
 import { DocumentPermission, StatusFilter } from "@shared/types";
-import { UrlHelper } from "@shared/utils/UrlHelper";
 import { BaseSchema } from "@server/routes/api/schema";
-import { zodIconType, zodIdType } from "@server/utils/zod";
+import { zodIconType, zodIdType, zodShareIdType } from "@server/utils/zod";
 import { ValidateColor } from "@server/validation";
 
 const DocumentsSortParamsSchema = z.object({
@@ -57,10 +55,7 @@ const BaseSearchSchema = DateFilterSchema.extend({
   statusFilter: z.nativeEnum(StatusFilter).array().optional(),
 
   /** Filter results for the team derived from shareId */
-  shareId: z
-    .string()
-    .refine((val) => isUUID(val) || UrlHelper.SHARE_URL_SLUG_REGEX.test(val))
-    .optional(),
+  shareId: zodShareIdType().optional(),
 
   /** Min words to be shown in the results snippets */
   snippetMinWords: z.number().default(20),
@@ -146,11 +141,7 @@ export const DocumentsInfoSchema = BaseSchema.extend({
   body: z.object({
     id: zodIdType().optional(),
     /** Share Id, if available */
-    shareId: z
-      .string()
-      .refine((val) => isUUID(val) || UrlHelper.SHARE_URL_SLUG_REGEX.test(val))
-      .optional(),
-
+    shareId: zodShareIdType().optional(),
     /** @deprecated Version of the API to be used, remove in a few releases */
     apiVersion: z.number().optional(),
   }),
@@ -475,7 +466,7 @@ export type DocumentsMembershipsReq = z.infer<
 
 export const DocumentsSitemapSchema = BaseSchema.extend({
   query: z.object({
-    shareId: z.string(),
+    shareId: zodShareIdType().optional(),
   }),
 });
 

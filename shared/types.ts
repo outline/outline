@@ -102,6 +102,7 @@ export enum AttachmentPreset {
   WorkspaceImport = "workspaceImport",
   Import = "import",
   Avatar = "avatar",
+  Emoji = "emoji",
 }
 
 export enum IntegrationType {
@@ -564,6 +565,7 @@ export type ProsemirrorDoc = {
 export enum IconType {
   SVG = "svg",
   Emoji = "emoji",
+  Custom = "custom",
 }
 
 export enum EmojiCategory {
