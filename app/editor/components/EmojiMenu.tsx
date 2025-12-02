@@ -7,7 +7,8 @@ import SuggestionsMenu, {
   Props as SuggestionsMenuProps,
 } from "./SuggestionsMenu";
 import useStores from "~/hooks/useStores";
-import { isUUID } from "validator";
+import { determineIconType } from "@shared/utils/icon";
+import { IconType } from "@shared/types";
 
 type Emoji = {
   name: string;
@@ -40,13 +41,17 @@ const EmojiMenu = (props: Props) => {
           // avoid multiple formats being written into documents.
           // @ts-expect-error emojiMartToGemoji key
           const id = emojiMartToGemoji[item.id] || item.id;
-          const shortcode = isUUID(id) ? id : snakeCase(id);
+          const type = determineIconType(id);
+          const shortcode = type === IconType.Custom ? id : snakeCase(id);
           const emoji = item.value;
 
           return {
             name: "emoji",
             title: emoji,
-            description: capitalize(item.name.toLowerCase()),
+            description:
+              type === IconType.Custom
+                ? item.name
+                : capitalize(item.name.toLowerCase()),
             emoji,
             attrs: { markup: shortcode, "data-name": shortcode },
           };

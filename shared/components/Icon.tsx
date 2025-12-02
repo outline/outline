@@ -61,9 +61,9 @@ const Icon = ({
 
     if (iconType === IconType.Custom) {
       return (
-        <EmojiImageWrapper size={size} className={className}>
+        <Span size={size} className={className}>
           <CustomEmoji value={icon} size={size - size / 4} />
-        </EmojiImageWrapper>
+        </Span>
       );
     }
 
@@ -124,7 +124,7 @@ export const IconTitleWrapper = styled(Flex)<{ dir?: string }>`
     props.dir === "rtl" ? "right: -44px" : "left: -44px"};
 `;
 
-const EmojiImageWrapper = styled(Flex)<{ size: number }>`
+const Span = styled(Flex)<{ size: number }>`
   width: ${(props) => props.size}px;
   height: ${(props) => props.size}px;
   align-items: center;
