@@ -26,6 +26,7 @@ import {
   loadPublicShare,
   loadShareWithParent,
 } from "@server/commands/shareLoader";
+import shareDomains from "@server/middlewares/shareDomains";
 
 const router = new Router();
 
@@ -385,6 +386,7 @@ router.post(
 router.get(
   "shares.sitemap",
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
+  shareDomains(),
   validate(T.SharesSitemapSchema),
   async (ctx: APIContext<T.SharesSitemapReq>) => {
     const { id } = ctx.input.query;
@@ -403,10 +405,7 @@ router.get(
     const baseUrl = `${team?.url ?? process.env.URL}/s/${id}`;
 
     ctx.set("Content-Type", "application/xml");
-    ctx.body = navigationNodeToSitemap(
-      share.allowIndexing ? sharedTree : undefined,
-      baseUrl
-    );
+    ctx.body = navigationNodeToSitemap(sharedTree, baseUrl);
   }
 );
 
