@@ -15,10 +15,10 @@ export const Action = styled(Flex)`
   }
 `;
 
-export const Separator = styled.div<{ height?: number }>`
+export const Separator = styled.div`
   flex-shrink: 0;
   width: 1px;
-  height: ${(props) => props.height || 28}px;
+  height: 28px;
   background: ${s("divider")};
 `;
 
