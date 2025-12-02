@@ -5,7 +5,7 @@ import {
   NodeType,
   Schema,
 } from "prosemirror-model";
-import { Command, TextSelection } from "prosemirror-state";
+import { Command, Plugin, TextSelection } from "prosemirror-state";
 import { Primitive } from "utility-types";
 import Extension from "../lib/Extension";
 import { getEmojiFromName } from "../lib/emoji";
@@ -68,6 +68,40 @@ export default class Emoji extends Extension {
 
   get rulePlugins() {
     return [emojiRule];
+  }
+
+  get plugins() {
+    return [
+      new Plugin({
+        props: {
+          // Placing the caret infront of an emoji is tricky as click events directly
+          // on the emoji will not behave the same way as clicks on text characters, this
+          // plugin ensures that clicking on an emoji behaves more naturally.
+          handleClickOn: (view, _pos, node, nodePos, event) => {
+            if (node.type.name === this.name) {
+              const element = event.target as HTMLElement;
+              const rect = element.getBoundingClientRect();
+              const clickX = event.clientX - rect.left;
+              const side = clickX < rect.width / 2 ? -1 : 1;
+
+              // If the click is in the left half of the emoji, place the caret before it
+              const tr = view.state.tr.setSelection(
+                TextSelection.near(
+                  view.state.doc.resolve(
+                    side === -1 ? nodePos : nodePos + node.nodeSize
+                  ),
+                  side
+                )
+              );
+              view.dispatch(tr);
+              return true;
+            }
+
+            return false;
+          },
+        },
+      }),
+    ];
   }
 
   component = (props: ComponentProps) => {
