@@ -6,7 +6,7 @@ import ConfirmationDialog from "~/components/ConfirmationDialog";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
 import useStores from "~/hooks/useStores";
-import { createActionV2 } from "~/actions";
+import { createAction } from "~/actions";
 import { useMenuAction } from "~/hooks/useMenuAction";
 
 type Props = {
@@ -41,7 +41,7 @@ function OAuthAuthenticationMenu({ oauthAuthentication }: Props) {
 
   const actions = useMemo(
     () => [
-      createActionV2({
+      createAction({
         name: t("Revoke"),
         section: "OAuth",
         dangerous: true,

@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { InputIcon, SearchIcon } from "outline-icons";
-import { ActionV2Separator, createActionV2 } from "~/actions";
+import { ActionSeparator, createAction } from "~/actions";
 import {
   restoreDocument,
   unsubscribeDocument,
@@ -77,16 +77,16 @@ export function useDocumentMenuAction({
       unstarDocument,
       subscribeDocument,
       unsubscribeDocument,
-      createActionV2({
+      createAction({
         name: `${t("Find and replace")}…`,
         section: ActiveDocumentSection,
         icon: <SearchIcon />,
         visible: !!onFindAndReplace && isMobile,
         perform: () => onFindAndReplace?.(),
       }),
-      ActionV2Separator,
+      ActionSeparator,
       editDocument,
-      createActionV2({
+      createAction({
         name: `${t("Rename")}…`,
         section: ActiveDocumentSection,
         icon: <InputIcon />,
@@ -106,7 +106,7 @@ export function useDocumentMenuAction({
       applyTemplateFactory({ actions: templateMenuActions }),
       pinDocument,
       createDocumentFromTemplate,
-      ActionV2Separator,
+      ActionSeparator,
       openDocumentComments,
       openDocumentHistory,
       openDocumentInsights,
@@ -114,7 +114,7 @@ export function useDocumentMenuAction({
       copyDocument,
       printDocument,
       searchInDocument,
-      ActionV2Separator,
+      ActionSeparator,
       deleteDocument,
       permanentlyDeleteDocument,
       leaveDocument,

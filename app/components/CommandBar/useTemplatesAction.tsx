@@ -1,10 +1,7 @@
 import { NewDocumentIcon, ShapesIcon } from "outline-icons";
 import { useEffect, useMemo } from "react";
 import Icon from "@shared/components/Icon";
-import {
-  createActionV2WithChildren,
-  createInternalLinkActionV2,
-} from "~/actions";
+import { createActionWithChildren, createInternalLinkAction } from "~/actions";
 import {
   ActiveCollectionSection,
   DocumentSection,
@@ -23,7 +20,7 @@ const useTemplatesAction = () => {
   const actions = useMemo(
     () =>
       documents.templatesAlphabetical.map((template) =>
-        createInternalLinkActionV2({
+        createInternalLinkAction({
           name: template.titleWithDefault,
           analyticsName: "New document",
           section: template.isWorkspaceTemplate
@@ -70,7 +67,7 @@ const useTemplatesAction = () => {
 
   const newFromTemplate = useMemo(
     () =>
-      createActionV2WithChildren({
+      createActionWithChildren({
         id: "templates",
         name: ({ t }) => t("New from template"),
         placeholder: ({ t }) => t("Choose a template"),

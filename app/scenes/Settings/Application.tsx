@@ -29,7 +29,7 @@ import { ActionRow } from "./components/ActionRow";
 import { CopyButton } from "./components/CopyButton";
 import ImageInput from "./components/ImageInput";
 import SettingRow from "./components/SettingRow";
-import { createInternalLinkActionV2 } from "~/actions";
+import { createInternalLinkAction } from "~/actions";
 import { NavigationSection } from "~/actions/sections";
 
 type Props = {
@@ -81,7 +81,7 @@ const Application = observer(function Application({ oauthClient }: Props) {
 
   const breadcrumbActions = useMemo(
     () => [
-      createInternalLinkActionV2({
+      createInternalLinkAction({
         name: t("Applications"),
         section: NavigationSection,
         icon: <InternetIcon />,

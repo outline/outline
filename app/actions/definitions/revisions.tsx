@@ -3,7 +3,7 @@ import { LinkIcon, RestoreIcon, TrashIcon } from "outline-icons";
 import { matchPath } from "react-router-dom";
 import { toast } from "sonner";
 import stores from "~/stores";
-import { createActionV2 } from "~/actions";
+import { createAction } from "~/actions";
 import { RevisionSection } from "~/actions/sections";
 import history from "~/utils/history";
 import {
@@ -11,7 +11,7 @@ import {
   matchDocumentHistory,
 } from "~/utils/routeHelpers";
 
-export const restoreRevision = createActionV2({
+export const restoreRevision = createAction({
   name: ({ t }) => t("Restore"),
   analyticsName: "Restore revision",
   icon: <RestoreIcon />,
@@ -41,7 +41,7 @@ export const restoreRevision = createActionV2({
   },
 });
 
-export const deleteRevision = createActionV2({
+export const deleteRevision = createAction({
   name: ({ t }) => t("Delete"),
   analyticsName: "Delete revision",
   icon: <TrashIcon />,
@@ -73,7 +73,7 @@ export const deleteRevision = createActionV2({
   },
 });
 
-export const copyLinkToRevision = createActionV2({
+export const copyLinkToRevision = createAction({
   name: ({ t }) => t("Copy link"),
   analyticsName: "Copy link to revision",
   icon: <LinkIcon />,

@@ -11,7 +11,7 @@ import useClickIntent from "~/hooks/useClickIntent";
 import { undraggableOnDesktop } from "~/styles";
 import Disclosure from "./Disclosure";
 import NavLink, { Props as NavLinkProps } from "./NavLink";
-import { ActionV2WithChildren } from "~/types";
+import { ActionWithChildren } from "~/types";
 import { ContextMenu } from "~/components/Menu/ContextMenu";
 import { useTranslation } from "react-i18next";
 
@@ -55,7 +55,7 @@ type Props = Omit<NavLinkProps, "to"> & {
   /** Whether to automatically scroll this link into view if needed */
   scrollIntoViewIfNeeded?: boolean;
   /** Optional context menu action to display */
-  contextAction?: ActionV2WithChildren;
+  contextAction?: ActionWithChildren;
 };
 
 const activeDropStyle = {

@@ -28,9 +28,9 @@ import ConfirmationDialog from "~/components/ConfirmationDialog";
 import DynamicCollectionIcon from "~/components/Icons/CollectionIcon";
 import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
 import {
-  createActionV2,
-  createActionV2WithChildren,
-  createInternalLinkActionV2,
+  createAction,
+  createActionWithChildren,
+  createInternalLinkAction,
 } from "~/actions";
 import { ActiveCollectionSection, CollectionSection } from "~/actions/sections";
 import { setPersistedState } from "~/hooks/usePersistedState";
@@ -51,7 +51,7 @@ const SharePopover = lazyWithRetry(
   () => import("~/components/Sharing/Collection/SharePopover")
 );
 
-export const openCollection = createActionV2WithChildren({
+export const openCollection = createActionWithChildren({
   name: ({ t }) => t("Open collection"),
   analyticsName: "Open collection",
   section: CollectionSection,
@@ -60,7 +60,7 @@ export const openCollection = createActionV2WithChildren({
   children: ({ stores }) => {
     const collections = stores.collections.orderedData;
     return collections.map((collection) =>
-      createInternalLinkActionV2({
+      createInternalLinkAction({
         // Note: using url which includes the slug rather than id here to bust
         // cache if the collection is renamed
         id: collection.path,
@@ -73,7 +73,7 @@ export const openCollection = createActionV2WithChildren({
   },
 });
 
-export const createCollection = createActionV2({
+export const createCollection = createAction({
   name: ({ t }) => t("New collection"),
   analyticsName: "New collection",
   section: CollectionSection,
@@ -91,7 +91,7 @@ export const createCollection = createActionV2({
   },
 });
 
-export const editCollection = createActionV2({
+export const editCollection = createAction({
   name: ({ t, isMenu }) => (isMenu ? `${t("Edit")}…` : t("Edit collection")),
   analyticsName: "Edit collection",
   section: ActiveCollectionSection,
@@ -116,7 +116,7 @@ export const editCollection = createActionV2({
   },
 });
 
-export const editCollectionPermissions = createActionV2({
+export const editCollectionPermissions = createAction({
   name: ({ t, isMenu }) =>
     isMenu ? `${t("Permissions")}…` : t("Collection permissions"),
   analyticsName: "Collection permissions",
@@ -148,7 +148,7 @@ export const editCollectionPermissions = createActionV2({
   },
 });
 
-export const importDocument = createActionV2({
+export const importDocument = createAction({
   name: ({ t }) => t("Import document"),
   analyticsName: "Import document",
   section: ActiveCollectionSection,
@@ -189,7 +189,7 @@ export const importDocument = createActionV2({
   },
 });
 
-export const sortCollection = createActionV2WithChildren({
+export const sortCollection = createActionWithChildren({
   name: ({ t }) => t("Sort in sidebar"),
   section: ActiveCollectionSection,
   visible: ({ activeCollectionId, stores }) =>
@@ -211,7 +211,7 @@ export const sortCollection = createActionV2WithChildren({
     );
   },
   children: [
-    createActionV2({
+    createAction({
       name: ({ t }) => t("A-Z sort"),
       section: ActiveCollectionSection,
       selected: ({ activeCollectionId, stores }) => {
@@ -231,7 +231,7 @@ export const sortCollection = createActionV2WithChildren({
         });
       },
     }),
-    createActionV2({
+    createAction({
       name: ({ t }) => t("Z-A sort"),
       section: ActiveCollectionSection,
       selected: ({ activeCollectionId, stores }) => {
@@ -251,7 +251,7 @@ export const sortCollection = createActionV2WithChildren({
         });
       },
     }),
-    createActionV2({
+    createAction({
       name: ({ t }) => t("Manual sort"),
       section: ActiveCollectionSection,
       selected: ({ activeCollectionId, stores }) => {
@@ -271,7 +271,7 @@ export const sortCollection = createActionV2WithChildren({
   ],
 });
 
-export const searchInCollection = createInternalLinkActionV2({
+export const searchInCollection = createInternalLinkAction({
   name: ({ t }) => t("Search in collection"),
   analyticsName: "Search collection",
   section: ActiveCollectionSection,
@@ -302,7 +302,7 @@ export const searchInCollection = createInternalLinkActionV2({
   },
 });
 
-export const starCollection = createActionV2({
+export const starCollection = createAction({
   name: ({ t }) => t("Star"),
   analyticsName: "Star collection",
   section: ActiveCollectionSection,
@@ -329,7 +329,7 @@ export const starCollection = createActionV2({
   },
 });
 
-export const unstarCollection = createActionV2({
+export const unstarCollection = createAction({
   name: ({ t }) => t("Unstar"),
   analyticsName: "Unstar collection",
   section: ActiveCollectionSection,
@@ -355,7 +355,7 @@ export const unstarCollection = createActionV2({
   },
 });
 
-export const subscribeCollection = createActionV2({
+export const subscribeCollection = createAction({
   name: ({ t }) => t("Subscribe"),
   analyticsName: "Subscribe to collection",
   section: ActiveCollectionSection,
@@ -386,7 +386,7 @@ export const subscribeCollection = createActionV2({
   },
 });
 
-export const unsubscribeCollection = createActionV2({
+export const unsubscribeCollection = createAction({
   name: ({ t }) => t("Unsubscribe"),
   analyticsName: "Unsubscribe from collection",
   section: ActiveCollectionSection,
@@ -417,7 +417,7 @@ export const unsubscribeCollection = createActionV2({
   },
 });
 
-export const archiveCollection = createActionV2({
+export const archiveCollection = createAction({
   name: ({ t }) => `${t("Archive")}…`,
   analyticsName: "Archive collection",
   section: ActiveCollectionSection,
@@ -458,7 +458,7 @@ export const archiveCollection = createActionV2({
   },
 });
 
-export const restoreCollection = createActionV2({
+export const restoreCollection = createAction({
   name: ({ t }) => t("Restore"),
   analyticsName: "Restore collection",
   section: CollectionSection,
@@ -483,7 +483,7 @@ export const restoreCollection = createActionV2({
   },
 });
 
-export const deleteCollection = createActionV2({
+export const deleteCollection = createAction({
   name: ({ t }) => `${t("Delete")}…`,
   analyticsName: "Delete collection",
   section: ActiveCollectionSection,
@@ -517,7 +517,7 @@ export const deleteCollection = createActionV2({
   },
 });
 
-export const exportCollection = createActionV2({
+export const exportCollection = createAction({
   name: ({ t }) => `${t("Export")}…`,
   analyticsName: "Export collection",
   section: ActiveCollectionSection,
@@ -550,7 +550,7 @@ export const exportCollection = createActionV2({
   },
 });
 
-export const createDocument = createInternalLinkActionV2({
+export const createDocument = createInternalLinkAction({
   name: ({ t }) => t("New document"),
   analyticsName: "New document",
   section: ActiveCollectionSection,
@@ -572,7 +572,7 @@ export const createDocument = createInternalLinkActionV2({
   },
 });
 
-export const createTemplate = createInternalLinkActionV2({
+export const createTemplate = createInternalLinkAction({
   name: ({ t }) => t("New template"),
   analyticsName: "New template",
   section: ActiveCollectionSection,

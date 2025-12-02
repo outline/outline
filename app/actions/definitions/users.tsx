@@ -8,10 +8,10 @@ import {
   UserChangeRoleDialog,
   UserDeleteDialog,
 } from "~/components/UserDialogs";
-import { createActionV2 } from "~/actions";
+import { createAction } from "~/actions";
 import { UserSection } from "~/actions/sections";
 
-export const inviteUser = createActionV2({
+export const inviteUser = createAction({
   name: ({ t }) => `${t("Invite people")}…`,
   analyticsName: "Invite people",
   icon: <PlusIcon />,
@@ -29,7 +29,7 @@ export const inviteUser = createActionV2({
 });
 
 export const updateUserRoleActionFactory = (user: User, role: UserRole) =>
-  createActionV2({
+  createAction({
     name: ({ t }) =>
       UserRoleHelper.isRoleHigher(role, user!.role)
         ? `${t("Promote to {{ role }}", {
@@ -64,7 +64,7 @@ export const updateUserRoleActionFactory = (user: User, role: UserRole) =>
   });
 
 export const deleteUserActionFactory = (userId: string) =>
-  createActionV2({
+  createAction({
     name: ({ t }) => `${t("Delete user")}…`,
     analyticsName: "Delete user",
     keywords: "leave",

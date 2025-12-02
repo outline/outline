@@ -1,12 +1,12 @@
 import invariant from "invariant";
 import { observer } from "mobx-react";
-import { actionV2ToMenuItem } from "~/actions";
+import { actionToMenuItem } from "~/actions";
 import useActionContext from "~/hooks/useActionContext";
-import { ActionV2Variant, ActionV2WithChildren } from "~/types";
+import { ActionVariant, ActionWithChildren } from "~/types";
 import SidebarLink from "./SidebarLink";
 
 type Props = {
-  action: Exclude<ActionV2Variant, ActionV2WithChildren>;
+  action: Exclude<ActionVariant, ActionWithChildren>;
   depth?: number;
 };
 
@@ -17,7 +17,7 @@ function SidebarAction({ action, ...rest }: Props) {
     activeCollectionId: undefined,
     activeDocumentId: undefined,
   });
-  const menuItem = actionV2ToMenuItem(action, context);
+  const menuItem = actionToMenuItem(action, context);
   invariant(menuItem.type === "button", "passed action must be a button");
 
   if (!menuItem.visible) {

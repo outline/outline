@@ -12,7 +12,7 @@ import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { archivePath, settingsPath, trashPath } from "~/utils/routeHelpers";
-import { createInternalLinkActionV2 } from "~/actions";
+import { createInternalLinkAction } from "~/actions";
 import { ActiveDocumentSection } from "~/actions/sections";
 
 type Props = {
@@ -53,28 +53,28 @@ function DocumentBreadcrumb(
     }
 
     const outputActions = [
-      createInternalLinkActionV2({
+      createInternalLinkAction({
         name: t("Trash"),
         section: ActiveDocumentSection,
         icon: <TrashIcon />,
         visible: document.isDeleted,
         to: trashPath(),
       }),
-      createInternalLinkActionV2({
+      createInternalLinkAction({
         name: t("Archive"),
         section: ActiveDocumentSection,
         icon: <ArchiveIcon />,
         visible: document.isArchived,
         to: archivePath(),
       }),
-      createInternalLinkActionV2({
+      createInternalLinkAction({
         name: t("Templates"),
         section: ActiveDocumentSection,
         icon: <ShapesIcon />,
         visible: document.template,
         to: settingsPath("templates"),
       }),
-      createInternalLinkActionV2({
+      createInternalLinkAction({
         name: collection?.name,
         section: ActiveDocumentSection,
         icon: collection ? (
@@ -88,7 +88,7 @@ function DocumentBreadcrumb(
             }
           : "",
       }),
-      createInternalLinkActionV2({
+      createInternalLinkAction({
         name: t("Deleted Collection"),
         section: ActiveDocumentSection,
         visible: document.isCollectionDeleted,
@@ -96,7 +96,7 @@ function DocumentBreadcrumb(
       }),
       ...path.map((node) => {
         const title = node.title || t("Untitled");
-        return createInternalLinkActionV2({
+        return createInternalLinkAction({
           name: node.icon ? (
             <>
               <StyledIcon

@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useMenuAction } from "./useMenuAction";
-import { ActionV2Separator, createActionV2 } from "~/actions";
+import { ActionSeparator, createAction } from "~/actions";
 import {
   deleteCollection,
   editCollection,
@@ -44,11 +44,11 @@ export function useCollectionMenuAction({ collectionId, onRename }: Props) {
       unstarCollection,
       subscribeCollection,
       unsubscribeCollection,
-      ActionV2Separator,
+      ActionSeparator,
       createDocument,
       importDocument,
-      ActionV2Separator,
-      createActionV2({
+      ActionSeparator,
+      createAction({
         name: `${t("Rename")}…`,
         section: ActiveCollectionSection,
         icon: <InputIcon />,
@@ -62,7 +62,7 @@ export function useCollectionMenuAction({ collectionId, onRename }: Props) {
       exportCollection,
       archiveCollection,
       searchInCollection,
-      ActionV2Separator,
+      ActionSeparator,
       deleteCollection,
     ],
     [t, can.createDocument, can.update, onRename]

@@ -1,9 +1,6 @@
 import { SettingsIcon } from "outline-icons";
 import { useMemo } from "react";
-import {
-  createActionV2WithChildren,
-  createInternalLinkActionV2,
-} from "~/actions";
+import { createActionWithChildren, createInternalLinkAction } from "~/actions";
 import { NavigationSection } from "~/actions/sections";
 import useSettingsConfig from "~/hooks/useSettingsConfig";
 
@@ -13,7 +10,7 @@ const useSettingsAction = () => {
     () =>
       config.map((item) => {
         const Icon = item.icon;
-        return createInternalLinkActionV2({
+        return createInternalLinkAction({
           id: item.path,
           name: item.name,
           icon: <Icon />,
@@ -26,7 +23,7 @@ const useSettingsAction = () => {
 
   const navigateToSettings = useMemo(
     () =>
-      createActionV2WithChildren({
+      createActionWithChildren({
         id: "settings",
         name: ({ t }) => t("Settings"),
         section: NavigationSection,

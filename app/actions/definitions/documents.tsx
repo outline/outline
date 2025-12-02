@@ -53,10 +53,10 @@ import MarkdownIcon from "~/components/Icons/MarkdownIcon";
 import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
 import DocumentTemplatizeDialog from "~/components/TemplatizeDialog";
 import {
-  createActionV2,
-  createActionV2Group,
-  createActionV2WithChildren,
-  createInternalLinkActionV2,
+  createAction,
+  createActionGroup,
+  createActionWithChildren,
+  createInternalLinkAction,
 } from "~/actions";
 import {
   ActiveDocumentSection,
@@ -79,7 +79,7 @@ import {
 } from "~/utils/routeHelpers";
 import capitalize from "lodash/capitalize";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
-import { ActionV2, ActionV2Group, ActionV2Separator } from "~/types";
+import { Action, ActionGroup, ActionSeparator } from "~/types";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 
 const Insights = lazyWithRetry(
@@ -89,7 +89,7 @@ const SharePopover = lazyWithRetry(
   () => import("~/components/Sharing/Document/SharePopover")
 );
 
-export const openDocument = createActionV2WithChildren({
+export const openDocument = createActionWithChildren({
   name: ({ t }) => t("Open document"),
   analyticsName: "Open document",
   section: DocumentSection,
@@ -104,7 +104,7 @@ export const openDocument = createActionV2WithChildren({
     const documents = stores.documents.orderedData;
 
     return uniqBy([...documents, ...nodes], "id").map((item) =>
-      createInternalLinkActionV2({
+      createInternalLinkAction({
         // Note: using url which includes the slug rather than id here to bust
         // cache if the document is renamed
         id: item.url,
@@ -121,7 +121,7 @@ export const openDocument = createActionV2WithChildren({
   },
 });
 
-export const editDocument = createInternalLinkActionV2({
+export const editDocument = createInternalLinkAction({
   name: ({ t }) => t("Edit"),
   analyticsName: "Edit document",
   section: ActiveDocumentSection,
@@ -153,7 +153,7 @@ export const editDocument = createInternalLinkActionV2({
   },
 });
 
-export const createDocument = createInternalLinkActionV2({
+export const createDocument = createInternalLinkAction({
   name: ({ t }) => t("New document"),
   analyticsName: "New document",
   section: DocumentSection,
@@ -182,7 +182,7 @@ export const createDocument = createInternalLinkActionV2({
   },
 });
 
-export const createDraftDocument = createInternalLinkActionV2({
+export const createDraftDocument = createInternalLinkAction({
   name: ({ t }) => t("New draft"),
   analyticsName: "New document",
   section: DocumentSection,
@@ -196,7 +196,7 @@ export const createDraftDocument = createInternalLinkActionV2({
   }),
 });
 
-export const createDocumentFromTemplate = createInternalLinkActionV2({
+export const createDocumentFromTemplate = createInternalLinkAction({
   name: ({ t }) => t("New from template"),
   analyticsName: "New document",
   section: DocumentSection,
@@ -243,7 +243,7 @@ export const createDocumentFromTemplate = createInternalLinkActionV2({
   },
 });
 
-export const createNestedDocument = createInternalLinkActionV2({
+export const createNestedDocument = createInternalLinkAction({
   name: ({ t }) => t("New nested document"),
   analyticsName: "New document",
   section: ActiveDocumentSection,
@@ -266,7 +266,7 @@ export const createNestedDocument = createInternalLinkActionV2({
   },
 });
 
-export const starDocument = createActionV2({
+export const starDocument = createAction({
   name: ({ t }) => t("Star"),
   analyticsName: "Star document",
   section: ActiveDocumentSection,
@@ -292,7 +292,7 @@ export const starDocument = createActionV2({
   },
 });
 
-export const unstarDocument = createActionV2({
+export const unstarDocument = createAction({
   name: ({ t }) => t("Unstar"),
   analyticsName: "Unstar document",
   section: ActiveDocumentSection,
@@ -318,7 +318,7 @@ export const unstarDocument = createActionV2({
   },
 });
 
-export const publishDocument = createActionV2({
+export const publishDocument = createAction({
   name: ({ t }) => t("Publish"),
   analyticsName: "Publish document",
   section: ActiveDocumentSection,
@@ -360,7 +360,7 @@ export const publishDocument = createActionV2({
   },
 });
 
-export const unpublishDocument = createActionV2({
+export const unpublishDocument = createAction({
   name: ({ t }) => t("Unpublish"),
   analyticsName: "Unpublish document",
   section: ActiveDocumentSection,
@@ -391,7 +391,7 @@ export const unpublishDocument = createActionV2({
   },
 });
 
-export const subscribeDocument = createActionV2({
+export const subscribeDocument = createAction({
   name: ({ t }) => t("Subscribe"),
   analyticsName: "Subscribe to document",
   section: ActiveDocumentSection,
@@ -437,7 +437,7 @@ export const subscribeDocument = createActionV2({
   },
 });
 
-export const unsubscribeDocument = createActionV2({
+export const unsubscribeDocument = createAction({
   name: ({ t }) => t("Unsubscribe"),
   analyticsName: "Unsubscribe from document",
   section: ActiveDocumentSection,
@@ -485,7 +485,7 @@ export const unsubscribeDocument = createActionV2({
   },
 });
 
-export const shareDocument = createActionV2({
+export const shareDocument = createAction({
   name: ({ t }) => `${t("Permissions")}…`,
   analyticsName: "Share document",
   section: ActiveDocumentSection,
@@ -518,7 +518,7 @@ export const shareDocument = createActionV2({
   },
 });
 
-export const downloadDocumentAsHTML = createActionV2({
+export const downloadDocumentAsHTML = createAction({
   name: ({ t }) => t("HTML"),
   analyticsName: "Download document as HTML",
   section: ActiveDocumentSection,
@@ -537,7 +537,7 @@ export const downloadDocumentAsHTML = createActionV2({
   },
 });
 
-export const downloadDocumentAsPDF = createActionV2({
+export const downloadDocumentAsPDF = createAction({
   name: ({ t }) => t("PDF"),
   analyticsName: "Download document as PDF",
   section: ActiveDocumentSection,
@@ -563,7 +563,7 @@ export const downloadDocumentAsPDF = createActionV2({
   },
 });
 
-export const downloadDocumentAsMarkdown = createActionV2({
+export const downloadDocumentAsMarkdown = createAction({
   name: ({ t }) => t("Markdown"),
   analyticsName: "Download document as Markdown",
   section: ActiveDocumentSection,
@@ -582,7 +582,7 @@ export const downloadDocumentAsMarkdown = createActionV2({
   },
 });
 
-export const downloadDocument = createActionV2WithChildren({
+export const downloadDocument = createActionWithChildren({
   name: ({ t, isMenu }) => (isMenu ? t("Download") : t("Download document")),
   analyticsName: "Download document",
   section: ActiveDocumentSection,
@@ -597,7 +597,7 @@ export const downloadDocument = createActionV2WithChildren({
   ],
 });
 
-export const copyDocumentAsMarkdown = createActionV2({
+export const copyDocumentAsMarkdown = createAction({
   name: ({ t }) => t("Copy as Markdown"),
   section: ActiveDocumentSection,
   keywords: "clipboard",
@@ -619,7 +619,7 @@ export const copyDocumentAsMarkdown = createActionV2({
   },
 });
 
-export const copyDocumentAsPlainText = createActionV2({
+export const copyDocumentAsPlainText = createAction({
   name: ({ t }) => t("Copy as text"),
   section: ActiveDocumentSection,
   keywords: "clipboard",
@@ -641,7 +641,7 @@ export const copyDocumentAsPlainText = createActionV2({
   },
 });
 
-export const copyDocumentShareLink = createActionV2({
+export const copyDocumentShareLink = createAction({
   name: ({ t }) => t("Copy public link"),
   section: ActiveDocumentSection,
   keywords: "clipboard share",
@@ -662,7 +662,7 @@ export const copyDocumentShareLink = createActionV2({
   },
 });
 
-export const copyDocumentLink = createActionV2({
+export const copyDocumentLink = createAction({
   name: ({ t }) => t("Copy link"),
   section: ActiveDocumentSection,
   keywords: "clipboard",
@@ -680,7 +680,7 @@ export const copyDocumentLink = createActionV2({
   },
 });
 
-export const copyDocument = createActionV2WithChildren({
+export const copyDocument = createActionWithChildren({
   name: ({ t }) => t("Copy"),
   analyticsName: "Copy document",
   section: ActiveDocumentSection,
@@ -694,7 +694,7 @@ export const copyDocument = createActionV2WithChildren({
   ],
 });
 
-export const duplicateDocument = createActionV2({
+export const duplicateDocument = createAction({
   name: ({ t, isMenu }) => (isMenu ? t("Duplicate") : t("Duplicate document")),
   analyticsName: "Duplicate document",
   section: ActiveDocumentSection,
@@ -729,7 +729,7 @@ export const duplicateDocument = createActionV2({
  * Pin a document to a collection. Pinned documents will be displayed at the top
  * of the collection for all collection members to see.
  */
-export const pinDocumentToCollection = createActionV2({
+export const pinDocumentToCollection = createAction({
   name: ({ activeDocumentId = "", t, stores }) => {
     const selectedDocument = stores.documents.get(activeDocumentId);
     const collectionName = selectedDocument
@@ -774,7 +774,7 @@ export const pinDocumentToCollection = createActionV2({
  * Pin a document to team home. Pinned documents will be displayed at the top
  * of the home screen for all team members to see.
  */
-export const pinDocumentToHome = createActionV2({
+export const pinDocumentToHome = createAction({
   name: ({ t }) => t("Pin to home"),
   analyticsName: "Pin document to home",
   section: ActiveDocumentSection,
@@ -806,7 +806,7 @@ export const pinDocumentToHome = createActionV2({
   },
 });
 
-export const pinDocument = createActionV2WithChildren({
+export const pinDocument = createActionWithChildren({
   name: ({ t }) => t("Pin"),
   analyticsName: "Pin document",
   section: ActiveDocumentSection,
@@ -814,7 +814,7 @@ export const pinDocument = createActionV2WithChildren({
   children: [pinDocumentToCollection, pinDocumentToHome],
 });
 
-export const searchInDocument = createInternalLinkActionV2({
+export const searchInDocument = createInternalLinkAction({
   name: ({ t }) => t("Search in document"),
   analyticsName: "Search document",
   section: ActiveDocumentSection,
@@ -844,7 +844,7 @@ export const searchInDocument = createInternalLinkActionV2({
   },
 });
 
-export const printDocument = createActionV2({
+export const printDocument = createAction({
   name: ({ t, isMenu }) => (isMenu ? t("Print") : t("Print document")),
   analyticsName: "Print document",
   section: ActiveDocumentSection,
@@ -855,7 +855,7 @@ export const printDocument = createActionV2({
   },
 });
 
-export const importDocument = createActionV2({
+export const importDocument = createAction({
   name: ({ t }) => t("Import document"),
   analyticsName: "Import document",
   section: DocumentSection,
@@ -901,7 +901,7 @@ export const importDocument = createActionV2({
   },
 });
 
-export const createTemplateFromDocument = createActionV2({
+export const createTemplateFromDocument = createAction({
   name: ({ t }) => t("Templatize"),
   analyticsName: "Templatize document",
   section: ActiveDocumentSection,
@@ -932,7 +932,7 @@ export const createTemplateFromDocument = createActionV2({
   },
 });
 
-export const openRandomDocument = createActionV2({
+export const openRandomDocument = createAction({
   id: "random",
   name: ({ t }) => t(`Open random document`),
   analyticsName: "Open random document",
@@ -952,7 +952,7 @@ export const openRandomDocument = createActionV2({
 });
 
 export const searchDocumentsForQuery = (query: string) =>
-  createInternalLinkActionV2({
+  createInternalLinkAction({
     id: "search",
     name: ({ t }) =>
       t(`Search documents for "{{searchQuery}}"`, { searchQuery: query }),
@@ -963,7 +963,7 @@ export const searchDocumentsForQuery = (query: string) =>
     visible: ({ location }) => location.pathname !== searchPath(),
   });
 
-export const moveTemplateToWorkspace = createActionV2({
+export const moveTemplateToWorkspace = createAction({
   name: ({ t }) => t("Move to workspace"),
   analyticsName: "Move template to workspace",
   section: DocumentSection,
@@ -993,7 +993,7 @@ export const moveTemplateToWorkspace = createActionV2({
   },
 });
 
-export const moveDocumentToCollection = createActionV2({
+export const moveDocumentToCollection = createAction({
   name: ({ activeDocumentId, stores, t }) => {
     if (!activeDocumentId) {
       return t("Move");
@@ -1030,7 +1030,7 @@ export const moveDocumentToCollection = createActionV2({
   },
 });
 
-export const moveDocument = createActionV2({
+export const moveDocument = createAction({
   name: ({ t }) => t("Move"),
   analyticsName: "Move document",
   section: ActiveDocumentSection,
@@ -1049,7 +1049,7 @@ export const moveDocument = createActionV2({
   perform: moveDocumentToCollection.perform,
 });
 
-export const moveTemplate = createActionV2WithChildren({
+export const moveTemplate = createActionWithChildren({
   name: ({ t }) => t("Move"),
   analyticsName: "Move document",
   section: ActiveDocumentSection,
@@ -1068,7 +1068,7 @@ export const moveTemplate = createActionV2WithChildren({
   children: [moveTemplateToWorkspace, moveDocumentToCollection],
 });
 
-export const archiveDocument = createActionV2({
+export const archiveDocument = createAction({
   name: ({ t }) => `${t("Archive")}…`,
   analyticsName: "Archive document",
   section: ActiveDocumentSection,
@@ -1108,7 +1108,7 @@ export const archiveDocument = createActionV2({
   },
 });
 
-export const restoreDocument = createActionV2({
+export const restoreDocument = createAction({
   name: ({ t }) => `${t("Restore")}`,
   analyticsName: "Restore document",
   section: ActiveDocumentSection,
@@ -1148,7 +1148,7 @@ export const restoreDocument = createActionV2({
   },
 });
 
-export const restoreDocumentToCollection = createActionV2WithChildren({
+export const restoreDocumentToCollection = createActionWithChildren({
   name: ({ t }) => `${t("Restore")}…`,
   analyticsName: "Restore document",
   section: ActiveDocumentSection,
@@ -1183,7 +1183,7 @@ export const restoreDocumentToCollection = createActionV2WithChildren({
 
     const actions = collections.orderedData.map((collection) => {
       const can = policies.abilities(collection.id);
-      return createActionV2({
+      return createAction({
         name: collection.name,
         section: ActiveDocumentSection,
         icon: <CollectionIcon collection={collection} />,
@@ -1199,11 +1199,11 @@ export const restoreDocumentToCollection = createActionV2WithChildren({
       });
     });
 
-    return [createActionV2Group({ name: t("Choose a collection"), actions })];
+    return [createActionGroup({ name: t("Choose a collection"), actions })];
   },
 });
 
-export const deleteDocument = createActionV2({
+export const deleteDocument = createAction({
   name: ({ t }) => `${t("Delete")}…`,
   analyticsName: "Delete document",
   section: ActiveDocumentSection,
@@ -1237,7 +1237,7 @@ export const deleteDocument = createActionV2({
   },
 });
 
-export const permanentlyDeleteDocument = createActionV2({
+export const permanentlyDeleteDocument = createAction({
   name: ({ t }) => t("Permanently delete"),
   analyticsName: "Permanently delete document",
   section: ActiveDocumentSection,
@@ -1271,7 +1271,7 @@ export const permanentlyDeleteDocument = createActionV2({
   },
 });
 
-export const permanentlyDeleteDocumentsInTrash = createActionV2({
+export const permanentlyDeleteDocumentsInTrash = createAction({
   name: ({ t }) => t("Empty trash"),
   analyticsName: "Empty trash",
   section: TrashSection,
@@ -1292,7 +1292,7 @@ export const permanentlyDeleteDocumentsInTrash = createActionV2({
   },
 });
 
-export const openDocumentComments = createActionV2({
+export const openDocumentComments = createAction({
   name: ({ t }) => t("Comments"),
   analyticsName: "Open comments",
   section: ActiveDocumentSection,
@@ -1315,7 +1315,7 @@ export const openDocumentComments = createActionV2({
   },
 });
 
-export const openDocumentHistory = createInternalLinkActionV2({
+export const openDocumentHistory = createInternalLinkAction({
   name: ({ t }) => t("History"),
   analyticsName: "Open document history",
   section: ActiveDocumentSection,
@@ -1342,7 +1342,7 @@ export const openDocumentHistory = createInternalLinkActionV2({
   },
 });
 
-export const openDocumentInsights = createActionV2({
+export const openDocumentInsights = createAction({
   name: ({ t }) => t("Insights"),
   analyticsName: "Open document insights",
   section: ActiveDocumentSection,
@@ -1375,7 +1375,7 @@ export const openDocumentInsights = createActionV2({
   },
 });
 
-export const leaveDocument = createActionV2({
+export const leaveDocument = createAction({
   name: ({ t }) => t("Leave document"),
   analyticsName: "Leave document",
   section: ActiveDocumentSection,
@@ -1414,9 +1414,9 @@ export const leaveDocument = createActionV2({
 export const applyTemplateFactory = ({
   actions,
 }: {
-  actions: (ActionV2 | ActionV2Group | ActionV2Separator)[];
+  actions: (Action | ActionGroup | ActionSeparator)[];
 }) =>
-  createActionV2WithChildren({
+  createActionWithChildren({
     name: ({ t }) => t("Apply template"),
     analyticsName: "Apply template",
     section: ActiveDocumentSection,

@@ -20,9 +20,9 @@ import stores from "~/stores";
 import SearchQuery from "~/models/SearchQuery";
 import KeyboardShortcuts from "~/scenes/KeyboardShortcuts";
 import {
-  createActionV2,
-  createExternalLinkActionV2,
-  createInternalLinkActionV2,
+  createAction,
+  createExternalLinkAction,
+  createInternalLinkAction,
 } from "~/actions";
 import { NavigationSection, RecentSearchesSection } from "~/actions/sections";
 import Desktop from "~/utils/Desktop";
@@ -36,7 +36,7 @@ import {
   settingsPath,
 } from "~/utils/routeHelpers";
 
-export const navigateToHome = createInternalLinkActionV2({
+export const navigateToHome = createInternalLinkAction({
   name: ({ t }) => t("Home"),
   analyticsName: "Navigate to home",
   section: NavigationSection,
@@ -47,7 +47,7 @@ export const navigateToHome = createInternalLinkActionV2({
 });
 
 export const navigateToRecentSearchQuery = (searchQuery: SearchQuery) =>
-  createInternalLinkActionV2({
+  createInternalLinkAction({
     section: RecentSearchesSection,
     name: searchQuery.query,
     analyticsName: "Navigate to recent search query",
@@ -55,7 +55,7 @@ export const navigateToRecentSearchQuery = (searchQuery: SearchQuery) =>
     to: searchPath({ query: searchQuery.query }),
   });
 
-export const navigateToDrafts = createInternalLinkActionV2({
+export const navigateToDrafts = createInternalLinkAction({
   name: ({ t }) => t("Drafts"),
   analyticsName: "Navigate to drafts",
   section: NavigationSection,
@@ -64,7 +64,7 @@ export const navigateToDrafts = createInternalLinkActionV2({
   visible: ({ location }) => location.pathname !== draftsPath(),
 });
 
-export const navigateToSearch = createInternalLinkActionV2({
+export const navigateToSearch = createInternalLinkAction({
   name: ({ t }) => t("Search"),
   analyticsName: "Navigate to search",
   section: NavigationSection,
@@ -73,7 +73,7 @@ export const navigateToSearch = createInternalLinkActionV2({
   visible: ({ location }) => location.pathname !== searchPath(),
 });
 
-export const navigateToArchive = createInternalLinkActionV2({
+export const navigateToArchive = createInternalLinkAction({
   name: ({ t }) => t("Archive"),
   analyticsName: "Navigate to archive",
   section: NavigationSection,
@@ -83,7 +83,7 @@ export const navigateToArchive = createInternalLinkActionV2({
   visible: ({ location }) => location.pathname !== archivePath(),
 });
 
-export const navigateToTrash = createInternalLinkActionV2({
+export const navigateToTrash = createInternalLinkAction({
   name: ({ t }) => t("Trash"),
   analyticsName: "Navigate to trash",
   section: NavigationSection,
@@ -92,7 +92,7 @@ export const navigateToTrash = createInternalLinkActionV2({
   visible: ({ location }) => location.pathname !== trashPath(),
 });
 
-export const navigateToSettings = createInternalLinkActionV2({
+export const navigateToSettings = createInternalLinkAction({
   name: ({ t }) => t("Settings"),
   analyticsName: "Navigate to settings",
   section: NavigationSection,
@@ -102,7 +102,7 @@ export const navigateToSettings = createInternalLinkActionV2({
   to: settingsPath(),
 });
 
-export const navigateToWorkspaceSettings = createInternalLinkActionV2({
+export const navigateToWorkspaceSettings = createInternalLinkAction({
   name: ({ t }) => t("Settings"),
   analyticsName: "Navigate to workspace settings",
   section: NavigationSection,
@@ -111,7 +111,7 @@ export const navigateToWorkspaceSettings = createInternalLinkActionV2({
   to: settingsPath("details"),
 });
 
-export const navigateToProfileSettings = createInternalLinkActionV2({
+export const navigateToProfileSettings = createInternalLinkAction({
   name: ({ t }) => t("Profile"),
   analyticsName: "Navigate to profile settings",
   section: NavigationSection,
@@ -120,7 +120,7 @@ export const navigateToProfileSettings = createInternalLinkActionV2({
   to: settingsPath(),
 });
 
-export const navigateToTemplateSettings = createInternalLinkActionV2({
+export const navigateToTemplateSettings = createInternalLinkAction({
   name: ({ t }) => t("Templates"),
   analyticsName: "Navigate to template settings",
   section: NavigationSection,
@@ -129,7 +129,7 @@ export const navigateToTemplateSettings = createInternalLinkActionV2({
   to: settingsPath("templates"),
 });
 
-export const navigateToNotificationSettings = createInternalLinkActionV2({
+export const navigateToNotificationSettings = createInternalLinkAction({
   name: ({ t, isMenu }) =>
     isMenu ? t("Notification settings") : t("Notifications"),
   analyticsName: "Navigate to notification settings",
@@ -139,7 +139,7 @@ export const navigateToNotificationSettings = createInternalLinkActionV2({
   to: settingsPath("notifications"),
 });
 
-export const navigateToAccountPreferences = createInternalLinkActionV2({
+export const navigateToAccountPreferences = createInternalLinkAction({
   name: ({ t }) => t("Preferences"),
   analyticsName: "Navigate to account preferences",
   section: NavigationSection,
@@ -148,7 +148,7 @@ export const navigateToAccountPreferences = createInternalLinkActionV2({
   to: settingsPath("preferences"),
 });
 
-export const openDocumentation = createExternalLinkActionV2({
+export const openDocumentation = createExternalLinkAction({
   name: ({ t }) => t("Documentation"),
   analyticsName: "Open documentation",
   section: NavigationSection,
@@ -158,7 +158,7 @@ export const openDocumentation = createExternalLinkActionV2({
   target: "_blank",
 });
 
-export const openAPIDocumentation = createExternalLinkActionV2({
+export const openAPIDocumentation = createExternalLinkAction({
   name: ({ t }) => t("API documentation"),
   analyticsName: "Open API documentation",
   section: NavigationSection,
@@ -168,7 +168,7 @@ export const openAPIDocumentation = createExternalLinkActionV2({
   target: "_blank",
 });
 
-export const toggleSidebar = createActionV2({
+export const toggleSidebar = createAction({
   name: ({ t }) => t("Toggle sidebar"),
   analyticsName: "Toggle sidebar",
   keywords: "hide show navigation",
@@ -176,7 +176,7 @@ export const toggleSidebar = createActionV2({
   perform: () => stores.ui.toggleCollapsedSidebar(),
 });
 
-export const openFeedbackUrl = createExternalLinkActionV2({
+export const openFeedbackUrl = createExternalLinkAction({
   name: ({ t }) => t("Send us feedback"),
   analyticsName: "Open feedback",
   section: NavigationSection,
@@ -186,7 +186,7 @@ export const openFeedbackUrl = createExternalLinkActionV2({
   target: "_blank",
 });
 
-export const openBugReportUrl = createExternalLinkActionV2({
+export const openBugReportUrl = createExternalLinkAction({
   name: ({ t }) => t("Report a bug"),
   analyticsName: "Open bug report",
   section: NavigationSection,
@@ -196,7 +196,7 @@ export const openBugReportUrl = createExternalLinkActionV2({
   target: "_blank",
 });
 
-export const openChangelog = createExternalLinkActionV2({
+export const openChangelog = createExternalLinkAction({
   name: ({ t }) => t("Changelog"),
   analyticsName: "Open changelog",
   section: NavigationSection,
@@ -206,7 +206,7 @@ export const openChangelog = createExternalLinkActionV2({
   target: "_blank",
 });
 
-export const openKeyboardShortcuts = createActionV2({
+export const openKeyboardShortcuts = createAction({
   name: ({ t }) => t("Keyboard shortcuts"),
   analyticsName: "Open keyboard shortcuts",
   section: NavigationSection,
@@ -221,7 +221,7 @@ export const openKeyboardShortcuts = createActionV2({
   },
 });
 
-export const downloadApp = createExternalLinkActionV2({
+export const downloadApp = createExternalLinkAction({
   name: ({ t }) =>
     t("Download {{ platform }} app", {
       platform: isMac() ? "macOS" : "Windows",
@@ -235,7 +235,7 @@ export const downloadApp = createExternalLinkActionV2({
   target: "_blank",
 });
 
-export const logout = createActionV2({
+export const logout = createAction({
   name: ({ t }) => t("Log out"),
   analyticsName: "Log out",
   section: NavigationSection,

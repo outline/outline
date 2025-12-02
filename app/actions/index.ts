@@ -4,13 +4,13 @@ import { Optional } from "utility-types";
 import { v4 as uuidv4 } from "uuid";
 import {
   ActionContext,
-  ActionV2,
-  ActionV2Group,
-  ActionV2Separator as TActionV2Separator,
-  ActionV2Variant,
-  ActionV2WithChildren,
-  ExternalLinkActionV2,
-  InternalLinkActionV2,
+  Action,
+  ActionGroup,
+  ActionSeparator as TActionSeparator,
+  ActionVariant,
+  ActionWithChildren,
+  ExternalLinkAction,
+  InternalLinkAction,
   MenuItem,
 } from "~/types";
 import Analytics from "~/utils/Analytics";
@@ -21,15 +21,13 @@ export function resolve<T>(value: any, context: ActionContext): T {
   return typeof value === "function" ? value(context) : value;
 }
 
-/** Actions V2 */
-
-export const ActionV2Separator: TActionV2Separator = {
+export const ActionSeparator: TActionSeparator = {
   type: "action_separator",
 };
 
-export function createActionV2(
-  definition: Optional<Omit<ActionV2, "type" | "variant">, "id">
-): ActionV2 {
+export function createAction(
+  definition: Optional<Omit<Action, "type" | "variant">, "id">
+): Action {
   return {
     ...definition,
     type: "action",
@@ -54,9 +52,9 @@ export function createActionV2(
   };
 }
 
-export function createInternalLinkActionV2(
-  definition: Optional<Omit<InternalLinkActionV2, "type" | "variant">, "id">
-): InternalLinkActionV2 {
+export function createInternalLinkAction(
+  definition: Optional<Omit<InternalLinkAction, "type" | "variant">, "id">
+): InternalLinkAction {
   return {
     ...definition,
     type: "action",
@@ -65,9 +63,9 @@ export function createInternalLinkActionV2(
   };
 }
 
-export function createExternalLinkActionV2(
-  definition: Optional<Omit<ExternalLinkActionV2, "type" | "variant">, "id">
-): ExternalLinkActionV2 {
+export function createExternalLinkAction(
+  definition: Optional<Omit<ExternalLinkAction, "type" | "variant">, "id">
+): ExternalLinkAction {
   return {
     ...definition,
     type: "action",
@@ -76,9 +74,9 @@ export function createExternalLinkActionV2(
   };
 }
 
-export function createActionV2WithChildren(
-  definition: Optional<Omit<ActionV2WithChildren, "type" | "variant">, "id">
-): ActionV2WithChildren {
+export function createActionWithChildren(
+  definition: Optional<Omit<ActionWithChildren, "type" | "variant">, "id">
+): ActionWithChildren {
   return {
     ...definition,
     type: "action",
@@ -87,9 +85,9 @@ export function createActionV2WithChildren(
   };
 }
 
-export function createActionV2Group(
-  definition: Omit<ActionV2Group, "type">
-): ActionV2Group {
+export function createActionGroup(
+  definition: Omit<ActionGroup, "type">
+): ActionGroup {
   return {
     ...definition,
     type: "action_group",
@@ -97,8 +95,8 @@ export function createActionV2Group(
 }
 
 export function createRootMenuAction(
-  actions: (ActionV2Variant | ActionV2Group | TActionV2Separator)[]
-): ActionV2WithChildren {
+  actions: (ActionVariant | ActionGroup | TActionSeparator)[]
+): ActionWithChildren {
   return {
     id: uuidv4(),
     type: "action",
@@ -109,8 +107,8 @@ export function createRootMenuAction(
   };
 }
 
-export function actionV2ToMenuItem(
-  action: ActionV2Variant | ActionV2Group | TActionV2Separator,
+export function actionToMenuItem(
+  action: ActionVariant | ActionGroup | TActionSeparator,
   context: ActionContext
 ): MenuItem {
   switch (action.type) {
@@ -134,7 +132,7 @@ export function actionV2ToMenuItem(
             tooltip: resolve<React.ReactChild>(action.tooltip, context),
             selected: resolve<boolean>(action.selected, context),
             dangerous: action.dangerous,
-            onClick: () => performActionV2(action, context),
+            onClick: () => performAction(action, context),
           };
 
         case "internal_link": {
@@ -163,10 +161,10 @@ export function actionV2ToMenuItem(
 
         case "action_with_children": {
           const children = resolve<
-            (ActionV2Variant | ActionV2Group | TActionV2Separator)[]
+            (ActionVariant | ActionGroup | TActionSeparator)[]
           >(action.children, context);
           const subMenuItems = children.map((a) =>
-            actionV2ToMenuItem(a, context)
+            actionToMenuItem(a, context)
           );
           return {
             type: "submenu",
@@ -185,7 +183,7 @@ export function actionV2ToMenuItem(
 
     case "action_group": {
       const groupItems = action.actions.map((a) =>
-        actionV2ToMenuItem(a, context)
+        actionToMenuItem(a, context)
       );
       return {
         type: "group",
@@ -200,8 +198,8 @@ export function actionV2ToMenuItem(
   }
 }
 
-export function actionV2ToKBar(
-  action: ActionV2Variant,
+export function actionToKBar(
+  action: ActionVariant,
   context: ActionContext
 ): KbarAction[] {
   const visible = resolve<boolean>(action.visible, context);
@@ -233,18 +231,18 @@ export function actionV2ToKBar(
           shortcut: action.shortcut,
           icon,
           priority,
-          perform: () => performActionV2(action, context),
+          perform: () => performAction(action, context),
         },
       ];
     }
 
     case "action_with_children": {
-      const resolvedChildren = resolve<ActionV2Variant[]>(
+      const resolvedChildren = resolve<ActionVariant[]>(
         action.children,
         context
       );
       const children = resolvedChildren
-        .map((a) => actionV2ToKBar(a, context))
+        .map((a) => actionToKBar(a, context))
         .flat()
         .filter(Boolean);
 
@@ -270,8 +268,8 @@ export function actionV2ToKBar(
   }
 }
 
-export async function performActionV2(
-  action: Exclude<ActionV2Variant, ActionV2WithChildren>,
+export async function performAction(
+  action: Exclude<ActionVariant, ActionWithChildren>,
   context: ActionContext
 ) {
   const perform =

@@ -1,10 +1,10 @@
 import { PlusIcon } from "outline-icons";
 import stores from "~/stores";
 import { OAuthClientNew } from "~/components/OAuthClient/OAuthClientNew";
-import { createActionV2 } from "..";
+import { createAction } from "..";
 import { SettingsSection } from "../sections";
 
-export const createOAuthClient = createActionV2({
+export const createOAuthClient = createAction({
   name: ({ t }) => t("New App"),
   analyticsName: "New App",
   section: SettingsSection,

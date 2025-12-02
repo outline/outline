@@ -1,13 +1,13 @@
 import copy from "copy-to-clipboard";
 import Share from "~/models/Share";
-import { createActionV2, createInternalLinkActionV2 } from "..";
+import { createAction, createInternalLinkAction } from "..";
 import { ArrowIcon, CopyIcon, TrashIcon } from "outline-icons";
 import { ShareSection } from "../sections";
 import env from "~/env";
 import { toast } from "sonner";
 
 export const copyShareUrlFactory = ({ share }: { share: Share }) =>
-  createActionV2({
+  createAction({
     name: ({ t }) => t("Copy link"),
     analyticsName: "Copy share link",
     section: ShareSection,
@@ -22,7 +22,7 @@ export const copyShareUrlFactory = ({ share }: { share: Share }) =>
   });
 
 export const goToShareSourceFactory = ({ share }: { share: Share }) =>
-  createInternalLinkActionV2({
+  createInternalLinkAction({
     name: ({ t }) =>
       share.collectionId ? t("Go to collection") : t("Go to document"),
     analyticsName: "Go to share source",
@@ -41,7 +41,7 @@ export const revokeShareFactory = ({
   share: Share;
   can: Record<string, boolean>;
 }) =>
-  createActionV2({
+  createAction({
     name: ({ t }) => t("Revoke link"),
     analyticsName: "Revoke share",
     section: ShareSection,
