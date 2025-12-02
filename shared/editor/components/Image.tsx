@@ -11,7 +11,6 @@ import { ResizeLeft, ResizeRight } from "./ResizeHandle";
 import useDragResize from "./hooks/useDragResize";
 import { useTranslation } from "react-i18next";
 import find from "lodash/find";
-import { Separator } from "~/components/Actions";
 
 type Props = ComponentProps & {
   /** Callback triggered when the image is clicked */
@@ -341,6 +340,13 @@ const ImageWrapper = styled.div<{ isFullWidth: boolean }>`
       opacity: 1;
     }
   }
+`;
+
+const Separator = styled.div<{ height?: number }>`
+  flex-shrink: 0;
+  width: 1px;
+  height: ${(props) => props.height || 28}px;
+  background: ${s("divider")};
 `;
 
 export default Image;
