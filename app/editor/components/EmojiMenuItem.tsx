@@ -17,11 +17,7 @@ export default function EmojiMenuItem({ emoji, ...rest }: EmojiMenuItemProps) {
     <SuggestionsMenuItem
       {...rest}
       icon={
-        isUUID(emoji) ? (
-          <CustomEmoji src={`/api/emojis.redirect?id=${emoji}`} />
-        ) : (
-          <Emoji>{emoji}</Emoji>
-        )
+        isUUID(emoji) ? <CustomEmoji value={emoji} /> : <Emoji>{emoji}</Emoji>
       }
     />
   );

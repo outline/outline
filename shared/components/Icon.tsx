@@ -2,7 +2,6 @@ import { observer } from "mobx-react";
 import { getLuminance } from "polished";
 import styled from "styled-components";
 import useStores from "../hooks/useStores";
-import useShare from "../hooks/useShare";
 import { IconType } from "../types";
 import { IconLibrary } from "../utils/IconLibrary";
 import { colorPalette } from "../utils/collections";
@@ -37,7 +36,6 @@ const Icon = ({
   forceColor,
   className,
 }: Props) => {
-  const { shareId } = useShare();
   const iconType = determineIconType(icon);
 
   if (!iconType) {
@@ -63,10 +61,8 @@ const Icon = ({
 
     if (iconType === IconType.Custom) {
       return (
-        <EmojiImageWrapper>
-          <CustomEmoji
-            src={`/api/emojis.redirect?id=${icon}${shareId ? `&shareId=${shareId}` : ""}`}
-          />
+        <EmojiImageWrapper size={size} className={className}>
+          <CustomEmoji value={icon} size={size - size / 4} />
         </EmojiImageWrapper>
       );
     }
@@ -128,21 +124,11 @@ export const IconTitleWrapper = styled(Flex)<{ dir?: string }>`
     props.dir === "rtl" ? "right: -44px" : "left: -44px"};
 `;
 
-const EmojiImageWrapper = styled(Flex)`
-  width: 24px;
-  height: 24px;
+const EmojiImageWrapper = styled(Flex)<{ size: number }>`
+  width: ${(props) => props.size}px;
+  height: ${(props) => props.size}px;
   align-items: center;
   justify-content: center;
-
-  ${IconTitleWrapper} & {
-    width: auto;
-    height: auto;
-
-    ${CustomEmoji} {
-      width: 26px;
-      height: 26px;
-    }
-  }
 `;
 
 export default Icon;

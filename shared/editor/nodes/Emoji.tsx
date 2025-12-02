@@ -12,6 +12,8 @@ import { getEmojiFromName } from "../lib/emoji";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import emojiRule from "../rules/emoji";
 import { isUUID } from "validator";
+import { ComponentProps } from "../types";
+import { CustomEmoji } from "../../components/CustomEmoji";
 
 export default class Emoji extends Extension {
   get type() {
@@ -37,6 +39,7 @@ export default class Emoji extends Extension {
       selectable: false,
       parseDOM: [
         {
+          priority: 100,
           tag: "strong.emoji",
           preserveWhitespace: "full",
           getAttrs: (dom: HTMLElement) =>
@@ -56,9 +59,7 @@ export default class Emoji extends Extension {
             class: `emoji ${name}`,
             "data-name": name,
           },
-          isUUID(name)
-            ? ["img", { src: `/api/emojis.redirect?id=${name}`, alt: name }]
-            : getEmojiFromName(name),
+          getEmojiFromName(name),
         ];
       },
       leafText: (node) => getEmojiFromName(node.attrs["data-name"]),
@@ -68,6 +69,19 @@ export default class Emoji extends Extension {
   get rulePlugins() {
     return [emojiRule];
   }
+
+  component = (props: ComponentProps) => {
+    const name = props.node.attrs["data-name"];
+    return (
+      <strong className="emoji" data-name={name}>
+        {isUUID(name) ? (
+          <CustomEmoji value={name} size="1em" />
+        ) : (
+          getEmojiFromName(name)
+        )}
+      </strong>
+    );
+  };
 
   commands({ type }: { type: NodeType; schema: Schema }) {
     return (attrs: Record<string, Primitive>): Command =>

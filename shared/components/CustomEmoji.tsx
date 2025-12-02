@@ -1,7 +1,17 @@
-import styled from "styled-components";
+import useShare from "@shared/hooks/useShare";
 
-export const CustomEmoji = styled.img<{ size?: number }>`
-  width: ${(props) => (props.size ? `${props.size}px` : "16px")};
-  height: ${(props) => (props.size ? `${props.size}px` : "16px")};
-  object-fit: contain;
-`;
+type Props = React.ImgHTMLAttributes<HTMLImageElement> & {
+  value: string;
+  size?: number | string;
+};
+
+export const CustomEmoji = ({ value, size = 16, ...props }: Props) => {
+  const { shareId } = useShare();
+  return (
+    <img
+      src={`/api/emojis.redirect?id=${value}${shareId ? `&shareId=${shareId}` : ""}`}
+      style={{ width: size, height: size, objectFit: "contain" }}
+      {...props}
+    />
+  );
+};
