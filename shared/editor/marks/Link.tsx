@@ -14,13 +14,7 @@ import { isUrl, sanitizeUrl } from "../../utils/urls";
 import { getMarkRange } from "../queries/getMarkRange";
 import Mark from "./Mark";
 import { isInCode } from "../queries/isInCode";
-import {
-  addLink,
-  openLink,
-  removeLink,
-  toggleLink,
-  updateLink,
-} from "../commands/link";
+import { addLink, openLink, removeLink, updateLink } from "../commands/link";
 
 const LINK_INPUT_REGEX = /\[([^[]+)]\((\S+)\)$/;
 
@@ -112,13 +106,6 @@ export default class Link extends Mark {
 
   keys(): Record<string, Command> {
     return {
-      "Mod-k": (state, dispatch) => {
-        if (state.selection.empty) {
-          return false;
-        }
-
-        return toggleLink({ href: "" })(state, dispatch);
-      },
       "Mod-Enter": openLink({
         onClickLink: this.options.onClickLink,
         dictionary: this.options.dictionary,

@@ -33,6 +33,7 @@ import { MediaLinkEditor } from "./MediaLinkEditor";
 import FloatingToolbar from "./FloatingToolbar";
 import LinkEditor from "./LinkEditor";
 import ToolbarMenu from "./ToolbarMenu";
+import { isModKey } from "@shared/utils/keyboard";
 
 type Props = {
   /** Whether the text direction is right-to-left */
@@ -59,6 +60,12 @@ function useIsDragging() {
   return isDragging;
 }
 
+enum TOOLBAR {
+  LINK = "link",
+  MEDIA = "media",
+  MENU = "menu",
+}
+
 export function SelectionToolbar(props: Props) {
   const { readOnly = false } = props;
   const { view, commands } = useEditor();
@@ -67,11 +74,22 @@ export function SelectionToolbar(props: Props) {
   const isMobile = useMobile();
   const isActive = props.isActive || isMobile;
   const isDragging = useIsDragging();
-  const [isEditingImgUrl, setIsEditingImgUrl] = React.useState(false);
+
+  const { state } = view;
+  const { selection } = state;
+  const isEmbedSelection =
+    selection instanceof NodeSelection && selection.node.type.name === "embed";
+  const [activeToolbar, setActiveToolbar] = React.useState<TOOLBAR | null>(
+    null
+  );
 
   React.useEffect(() => {
-    setIsEditingImgUrl(false);
-  }, [isActive]);
+    if (isEmbedSelection) {
+      setActiveToolbar(TOOLBAR.MEDIA);
+    } else if (!selection.empty) {
+      setActiveToolbar(TOOLBAR.MENU);
+    }
+  }, [selection]);
 
   React.useEffect(() => {
     const handleClickOutside = (ev: MouseEvent): void => {
@@ -94,8 +112,6 @@ export function SelectionToolbar(props: Props) {
         return;
       }
 
-      setIsEditingImgUrl(false);
-
       const { dispatch } = view;
       dispatch(
         view.state.tr.setSelection(new TextSelection(view.state.doc.resolve(0)))
@@ -114,8 +130,6 @@ export function SelectionToolbar(props: Props) {
   }
 
   const { isTemplate, rtl, canComment, canUpdate, ...rest } = props;
-  const { state } = view;
-  const { selection } = state;
 
   const isDividerSelection = isNodeActive(state.schema.nodes.hr)(state);
   const colIndex = getColumnIndex(state);
@@ -125,8 +139,6 @@ export function SelectionToolbar(props: Props) {
   const isAttachmentSelection =
     selection instanceof NodeSelection &&
     selection.node.type.name === "attachment";
-  const isEmbedSelection =
-    selection instanceof NodeSelection && selection.node.type.name === "embed";
   const isCodeSelection = isInCode(state, { onlyBlock: true });
   const isNoticeSelection = isInNotice(state);
   const link =
@@ -188,40 +200,72 @@ export function SelectionToolbar(props: Props) {
     return null;
   }
 
-  const showLinkToolbar =
-    link && link.from === selection.from && link.to === selection.to;
+  useEventListener(
+    "keydown",
+    (ev: KeyboardEvent) => {
+      if (
+        isModKey(ev) &&
+        ev.key.toLowerCase() === "k" &&
+        !view.state.selection.empty
+      ) {
+        ev.stopPropagation();
+        if (activeToolbar === TOOLBAR.LINK) {
+          setActiveToolbar(TOOLBAR.MENU);
+        } else if (activeToolbar === TOOLBAR.MENU) {
+          setActiveToolbar(TOOLBAR.LINK);
+        }
+      }
+    },
+    view.dom,
+    { capture: true }
+  );
 
-  const isEditingMedia =
-    isEmbedSelection || (isImageSelection && isEditingImgUrl);
+  if (!activeToolbar) {
+    return null;
+  }
 
   return (
     <FloatingToolbar
       align={align}
       active={isActive}
       ref={menuRef}
-      width={showLinkToolbar || isEmbedSelection ? 336 : undefined}
+      width={
+        activeToolbar === TOOLBAR.LINK || activeToolbar === TOOLBAR.MEDIA
+          ? 336
+          : undefined
+      }
     >
-      {showLinkToolbar ? (
+      {activeToolbar === TOOLBAR.LINK ? (
         <LinkEditor
-          key={`${link.from}-${link.to}`}
+          key={`${selection.from}-${selection.to}`}
           dictionary={dictionary}
           view={view}
-          mark={link.mark}
+          mark={link ? link.mark : undefined}
+          onLinkAdd={() => setActiveToolbar(null)}
+          onLinkUpdate={() => setActiveToolbar(null)}
+          onLinkRemove={() => setActiveToolbar(null)}
+          onEscape={() => setActiveToolbar(TOOLBAR.MENU)}
+          onClickOutside={() => setActiveToolbar(null)}
         />
-      ) : isEditingMedia ? (
+      ) : activeToolbar === TOOLBAR.MEDIA ? (
         <MediaLinkEditor
           key={`embed-${selection.from}`}
-          node={selection.node}
+          node={(selection as NodeSelection).node}
           view={view}
           dictionary={dictionary}
-          autoFocus={isEditingImgUrl}
+          onLinkUpdate={() => setActiveToolbar(null)}
+          onLinkRemove={() => setActiveToolbar(null)}
+          onEscape={() => setActiveToolbar(TOOLBAR.MENU)}
+          onClickOutside={() => setActiveToolbar(null)}
         />
       ) : (
         <ToolbarMenu
           items={items}
           {...rest}
           handlers={{
-            editImageUrl: () => setIsEditingImgUrl(true),
+            editImageUrl: () => setActiveToolbar(TOOLBAR.MEDIA),
+            linkOnImage: () => setActiveToolbar(TOOLBAR.LINK),
+            addLink: () => setActiveToolbar(TOOLBAR.LINK),
           }}
         />
       )}

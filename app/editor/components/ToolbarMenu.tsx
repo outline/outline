@@ -105,7 +105,7 @@ function ToolbarDropdown(props: {
 
 function ToolbarMenu(props: Props) {
   const { commands, view } = useEditor();
-  const { items } = props;
+  const { items, handlers } = props;
   const { state } = view;
 
   const handleClick = (item: MenuItem) => () => {
@@ -113,6 +113,13 @@ function ToolbarMenu(props: Props) {
       return;
     }
 
+    // if item has an associated handler, run the handler
+    if (handlers && handlers[item.name]) {
+      handlers[item.name]();
+      return;
+    }
+
+    // otherwise, run the associated editor command
     commands[item.name](
       typeof item.attrs === "function" ? item.attrs(state) : item.attrs
     );

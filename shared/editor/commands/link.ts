@@ -11,6 +11,8 @@ import { toast } from "sonner";
 import { sanitizeUrl } from "@shared/utils/urls";
 import { addMark } from "./addMark";
 import { getMarkRangeNodeSelection } from "../queries/getMarkRange";
+import { collapseSelection } from "./collapseSelection";
+import { chainTransactions } from "../lib/chainTransactions";
 
 const addLinkTextSelection =
   (attrs: Attrs): Command =>
@@ -19,7 +21,12 @@ const addLinkTextSelection =
       return false;
     }
 
-    return addMark(state.schema.marks.link, attrs)(state, dispatch);
+    chainTransactions(
+      addMark(state.schema.marks.link, attrs),
+      collapseSelection()
+    )(state, dispatch);
+
+    return true;
   };
 
 const addLinkNodeSelection =
