@@ -246,6 +246,7 @@ export function SelectionToolbar(props: Props) {
           onLinkRemove={() => setActiveToolbar(null)}
           onEscape={() => setActiveToolbar(TOOLBAR.MENU)}
           onClickOutside={() => setActiveToolbar(null)}
+          onBackButtonPress={() => setActiveToolbar(TOOLBAR.MENU)}
         />
       ) : activeToolbar === TOOLBAR.MEDIA ? (
         <MediaLinkEditor

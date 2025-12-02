@@ -1,5 +1,11 @@
 import { observer } from "mobx-react";
-import { ArrowIcon, CloseIcon, DocumentIcon, OpenIcon } from "outline-icons";
+import {
+  ArrowIcon,
+  BackIcon,
+  CloseIcon,
+  DocumentIcon,
+  OpenIcon,
+} from "outline-icons";
 import { Mark } from "prosemirror-model";
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
@@ -32,6 +38,7 @@ type Props = {
   onLinkRemove: () => void;
   onEscape: () => void;
   onClickOutside: () => void;
+  onBackButtonPress: () => void;
 };
 
 const LinkEditor: React.FC<Props> = ({
@@ -43,6 +50,7 @@ const LinkEditor: React.FC<Props> = ({
   onLinkRemove,
   onEscape,
   onClickOutside,
+  onBackButtonPress,
 }) => {
   const getHref = () => sanitizeUrl(mark?.attrs.href) ?? "";
   const initialValue = getHref();
@@ -181,6 +189,12 @@ const LinkEditor: React.FC<Props> = ({
       visible: view.editable,
       disabled: false,
       handler: removeLink,
+    },
+    {
+      icon: <BackIcon />,
+      visible: view.editable,
+      disabled: false,
+      handler: onBackButtonPress,
     },
   ];
 
