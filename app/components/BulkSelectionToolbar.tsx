@@ -8,9 +8,9 @@ import { depths, s } from "@shared/styles";
 import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
 import useStores from "~/hooks/useStores";
-import BulkArchiveDialog from "./BulkArchiveDialog";
 import DocumentMove from "~/scenes/DocumentMove";
 import DocumentDelete from "~/scenes/DocumentDelete";
+import DocumentArchive from "~/scenes/DocumentArchive";
 
 function BulkSelectionToolbar() {
   const { t } = useTranslation();
@@ -44,9 +44,9 @@ function BulkSelectionToolbar() {
       dialogs.openModal({
         title: t("Archive {{ count }} documents", { count: selectedCount }),
         content: (
-          <BulkArchiveDialog
+          <DocumentArchive
             documents={selectedDocuments}
-            onSubmit={dialogs.closeAllModals}
+            onSubmit={documents.clearSelection}
           />
         ),
       });
