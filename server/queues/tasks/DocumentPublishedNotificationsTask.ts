@@ -33,6 +33,7 @@ export default class DocumentPublishedNotificationsTask extends BaseTask<Documen
 
       if (
         recipient &&
+        !recipient.isSuspended &&
         recipient.id !== mention.actorId &&
         recipient.subscribedToEventType(
           NotificationEventType.MentionedInDocument
@@ -82,6 +83,7 @@ export default class DocumentPublishedNotificationsTask extends BaseTask<Documen
         const recipient = await User.findByPk(user.userId);
         if (
           recipient &&
+          !recipient.isSuspended &&
           recipient.id !== group.actorId &&
           recipient.subscribedToEventType(
             NotificationEventType.GroupMentionedInDocument

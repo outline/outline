@@ -66,6 +66,7 @@ export default class CommentCreatedNotificationsTask extends BaseTask<CommentEve
       if (
         mention.actorId &&
         recipient &&
+        !recipient.isSuspended &&
         recipient.id !== mention.actorId &&
         recipient.subscribedToEventType(
           NotificationEventType.MentionedInComment
@@ -120,6 +121,7 @@ export default class CommentCreatedNotificationsTask extends BaseTask<CommentEve
         const recipient = await User.findByPk(user.userId);
         if (
           recipient &&
+          !recipient.isSuspended &&
           recipient.id !== group.actorId &&
           recipient.subscribedToEventType(
             NotificationEventType.GroupMentionedInComment

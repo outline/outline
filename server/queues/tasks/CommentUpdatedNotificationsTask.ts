@@ -59,6 +59,7 @@ export default class CommentUpdatedNotificationsTask extends BaseTask<CommentEve
       if (
         mention.actorId &&
         recipient &&
+        !recipient.isSuspended &&
         recipient.id !== mention.actorId &&
         recipient.subscribedToEventType(
           NotificationEventType.MentionedInComment
@@ -110,6 +111,7 @@ export default class CommentUpdatedNotificationsTask extends BaseTask<CommentEve
         const recipient = await User.findByPk(user.userId);
         if (
           recipient &&
+          !recipient.isSuspended &&
           recipient.id !== group.actorId &&
           recipient.subscribedToEventType(
             NotificationEventType.GroupMentionedInComment
@@ -180,6 +182,7 @@ export default class CommentUpdatedNotificationsTask extends BaseTask<CommentEve
 
         if (
           user &&
+          !user.isSuspended &&
           user.subscribedToEventType(NotificationEventType.ResolveComment) &&
           (await canUserAccessDocument(user, document.id))
         ) {
