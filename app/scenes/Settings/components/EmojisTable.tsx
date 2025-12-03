@@ -80,7 +80,7 @@ const EmojisTable = observer(function EmojisTable({
           width: "50px",
         },
       ]),
-    [t]
+    [t, canManage]
   );
 
   return (
