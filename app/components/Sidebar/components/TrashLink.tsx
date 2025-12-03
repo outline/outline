@@ -26,7 +26,7 @@ function TrashLink() {
         }),
         content: (
           <DocumentDelete
-            document={document}
+            documents={[document]}
             onSubmit={dialogs.closeAllModals}
           />
         ),

@@ -15,10 +15,11 @@ import useStores from "~/hooks/useStores";
 
 type Props = {
   documents: Document[];
+  onSubmit?: () => void;
 };
 
-function DocumentMove({ documents }: Props) {
-  const { dialogs, policies, documents: documentsStore } = useStores();
+function DocumentMove({ documents, onSubmit }: Props) {
+  const { dialogs, policies } = useStores();
   const { t } = useTranslation();
   const collectionTrees = useCollectionTrees();
   const [selectedPath, selectPath] = useState<NavigationNode | null>(null);
@@ -66,7 +67,7 @@ function DocumentMove({ documents }: Props) {
         .map((node) => ({ ...node, children: [] }));
     }
     return nodes;
-  }, [policies, collectionTrees, documentIds, documents]);
+  }, [policies, collectionTrees, documentIds, documents, isBulkAction]);
 
   const move = async () => {
     if (!selectedPath) {
@@ -96,8 +97,7 @@ function DocumentMove({ documents }: Props) {
         }
       }
 
-      documentsStore.clearSelection();
-
+      onSubmit?.();
       if (!isBulkAction) {
         toast.success(t("Document moved"));
       } else {

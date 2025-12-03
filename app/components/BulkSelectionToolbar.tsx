@@ -8,9 +8,9 @@ import { depths, s } from "@shared/styles";
 import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
 import useStores from "~/hooks/useStores";
-import BulkDeleteDialog from "./BulkDeleteDialog";
 import BulkArchiveDialog from "./BulkArchiveDialog";
 import DocumentMove from "~/scenes/DocumentMove";
+import DocumentDelete from "~/scenes/DocumentDelete";
 
 function BulkSelectionToolbar() {
   const { t } = useTranslation();
@@ -61,14 +61,17 @@ function BulkSelectionToolbar() {
       dialogs.openModal({
         title: t("Delete {{ count }} documents", { count: selectedCount }),
         content: (
-          <BulkDeleteDialog
+          <DocumentDelete
             documents={selectedDocuments}
-            onSubmit={dialogs.closeAllModals}
+            onSubmit={() => {
+              dialogs.closeAllModals();
+              documents.clearSelection();
+            }}
           />
         ),
       });
     },
-    [dialogs, selectedCount, selectedDocuments, t]
+    [dialogs, selectedCount, selectedDocuments, t, documents]
   );
 
   const handleMove = React.useCallback(
@@ -77,10 +80,15 @@ function BulkSelectionToolbar() {
       ev.stopPropagation();
       dialogs.openModal({
         title: t("Move {{ count }} documents", { count: selectedCount }),
-        content: <DocumentMove documents={selectedDocuments} />,
+        content: (
+          <DocumentMove
+            documents={selectedDocuments}
+            onSubmit={documents.clearSelection}
+          />
+        ),
       });
     },
-    [dialogs, selectedCount, selectedDocuments, t]
+    [dialogs, selectedCount, selectedDocuments, t, documents]
   );
 
   const sidebarWidth = ui.sidebarWidth;
