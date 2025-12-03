@@ -57,16 +57,6 @@ function CollectionLinkChildren({
     }
   }, [childDocuments, showing]);
 
-  const onCheckToggle = useCallback((document?: Document) => {
-    if (!document) {return;}
-
-    if (!documents.selectedDocs.has(document.id)) {
-      documents.select(document.id);
-    } else {
-      documents.selectedDocs.delete(document.id);
-    }
-  }, []);
-
   return (
     <Folder expanded={expanded}>
       <DynamicDropCursor collection={collection} />
@@ -87,11 +77,6 @@ function CollectionLinkChildren({
             isDraft={node.isDraft}
             depth={2}
             index={index}
-            onCheckToggle={
-              collection.name
-                ? () => onCheckToggle(documents.active)
-                : undefined
-            }
           />
         ))}
         {childDocuments?.length === 0 && !children && (

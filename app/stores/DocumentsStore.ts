@@ -52,8 +52,13 @@ export default class DocumentsStore extends Store<Document> {
   @observable
   movingDocumentId: string | null | undefined;
 
+  /** Set of selected document IDs for bulk operations */
   @observable
-  selectedDocs: Set<string> = new Set();
+  selectedIds: Set<string> = new Set();
+
+  /** Whether selection mode is active */
+  @observable
+  isSelectionMode = false;
 
   importFileTypes: string[] = [
     ".md",
@@ -114,14 +119,6 @@ export default class DocumentsStore extends Store<Document> {
       "updatedAt",
       "desc"
     );
-  }
-
-  get selected() {
-    return Array.from(this.selectedDocs);
-  }
-
-  select(documentId: string) {
-    this.selectedDocs.add(documentId);
   }
 
   createdByUser(userId: string): Document[] {
@@ -782,5 +779,111 @@ export default class DocumentsStore extends Store<Document> {
     return document.collectionId
       ? this.rootStore.collections.get(document.collectionId)
       : undefined;
+  }
+
+  // Selection methods for bulk operations
+
+  /**
+   * Returns the number of selected documents.
+   */
+  @computed
+  get selectedCount(): number {
+    return this.selectedIds.size;
+  }
+
+  /**
+   * Returns an array of selected document IDs.
+   */
+  @computed
+  get selectedDocumentIds(): string[] {
+    return Array.from(this.selectedIds);
+  }
+
+  /**
+   * Returns the selected documents.
+   */
+  @computed
+  get selectedDocuments(): Document[] {
+    return compact(this.selectedDocumentIds.map((id) => this.get(id)));
+  }
+
+  /**
+   * Checks if a document is selected.
+   *
+   * @param id - the document id to check.
+   * @returns true if the document is selected.
+   */
+  isSelected(id: string): boolean {
+    return this.selectedIds.has(id);
+  }
+
+  /**
+   * Selects a document.
+   *
+   * @param id - the document id to select.
+   */
+  @action
+  select(id: string): void {
+    this.selectedIds.add(id);
+    if (!this.isSelectionMode) {
+      this.isSelectionMode = true;
+    }
+  }
+
+  /**
+   * Deselects a document.
+   *
+   * @param id - the document id to deselect.
+   */
+  @action
+  deselect(id: string): void {
+    this.selectedIds.delete(id);
+    if (this.selectedIds.size === 0) {
+      this.isSelectionMode = false;
+    }
+  }
+
+  /**
+   * Toggles the selection of a document.
+   *
+   * @param id - the document id to toggle.
+   */
+  @action
+  toggleSelection(id: string): void {
+    if (this.selectedIds.has(id)) {
+      this.deselect(id);
+    } else {
+      this.select(id);
+    }
+  }
+
+  /**
+   * Selects all documents from the given list.
+   *
+   * @param ids - array of document ids to select.
+   */
+  @action
+  selectAll(ids: string[]): void {
+    ids.forEach((id) => this.selectedIds.add(id));
+    if (!this.isSelectionMode && ids.length > 0) {
+      this.isSelectionMode = true;
+    }
+  }
+
+  /**
+   * Enters selection mode without selecting any documents.
+   */
+  @action
+  enterSelectionMode(): void {
+    this.isSelectionMode = true;
+  }
+
+  /**
+   * Clears all selections and exits selection mode.
+   */
+  @action
+  clearSelection(): void {
+    this.selectedIds.clear();
+    this.isSelectionMode = false;
   }
 }
