@@ -1018,7 +1018,7 @@ export const moveDocumentToCollection = createActionV2({
         title: t("Move {{ documentType }}", {
           documentType: document.noun,
         }),
-        content: <DocumentMove document={document} />,
+        content: <DocumentMove documents={[document]} />,
       });
     }
   },

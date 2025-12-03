@@ -10,7 +10,7 @@ import Tooltip from "~/components/Tooltip";
 import useStores from "~/hooks/useStores";
 import BulkDeleteDialog from "./BulkDeleteDialog";
 import BulkArchiveDialog from "./BulkArchiveDialog";
-import BulkMoveDialog from "./BulkMoveDialog";
+import DocumentMove from "~/scenes/DocumentMove";
 
 function BulkSelectionToolbar() {
   const { t } = useTranslation();
@@ -77,12 +77,7 @@ function BulkSelectionToolbar() {
       ev.stopPropagation();
       dialogs.openModal({
         title: t("Move {{ count }} documents", { count: selectedCount }),
-        content: (
-          <BulkMoveDialog
-            documents={selectedDocuments}
-            onSubmit={dialogs.closeAllModals}
-          />
-        ),
+        content: <DocumentMove documents={selectedDocuments} />,
       });
     },
     [dialogs, selectedCount, selectedDocuments, t]
