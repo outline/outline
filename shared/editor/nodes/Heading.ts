@@ -221,12 +221,26 @@ export default class Heading extends Node {
               container.appendChild(fold);
 
               decorations.push(
+                // Contains the heading actions
                 Decoration.widget(pos + 1, container, {
                   side: -1,
                   ignoreSelection: true,
                   relaxedSide: true,
                   key: pos.toString(),
-                })
+                }),
+                // Creates a "space" for the caret to move to before the widget.
+                // Without this it is very hard to place the caret at the beginning
+                // of the heading when it begins with an atom element.
+                Decoration.widget(
+                  pos + 1,
+                  () => document.createElement("span"),
+                  {
+                    side: -1,
+                    ignoreSelection: true,
+                    relaxedSide: true,
+                    key: "span",
+                  }
+                )
               );
             }
           });

@@ -15,7 +15,6 @@ import * as T from "./schema";
 import { getTeamFromContext } from "@server/utils/passport";
 import { loadPublicShare } from "@server/commands/shareLoader";
 import { AuthorizationError } from "@server/errors";
-import { flattenTree } from "@shared/utils/tree";
 
 const router = new Router();
 
@@ -87,18 +86,15 @@ router.get(
       const teamFromCtx = await getTeamFromContext(ctx, {
         includeStateCookie: false,
       });
-
-      const { sharedTree } = await loadPublicShare({
+      const { share } = await loadPublicShare({
         id: shareId,
         teamId: teamFromCtx?.id,
       });
 
-      // collect all icons from sharedTree
-      const isEmojiInSharedTree =
-        sharedTree &&
-        flattenTree(sharedTree).some((node) => node.icon === emoji.id);
-
-      if (!isEmojiInSharedTree) {
+      // Note: This is purposefully using a somewhat looser authorization check.
+      // In order to load a custom emoji you must have a valid emoji ID and a
+      // valid share ID from the same team.
+      if (share.teamId !== emoji.teamId) {
         throw AuthorizationError();
       }
     } else {
