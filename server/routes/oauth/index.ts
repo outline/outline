@@ -22,6 +22,14 @@ const app = new Koa();
 const router = new Router();
 const oauth = new OAuth2Server({
   model: OAuthInterface,
+  // Allow PKCE clients to refresh tokens without client_secret.
+  // PKCE clients are public clients that cannot safely store secrets,
+  // so they authenticate via code_verifier during initial token exchange
+  // and should be allowed to refresh without a secret.
+  requireClientAuthentication: {
+    authorization_code: true,
+    refresh_token: false,
+  },
 });
 
 router.post(
