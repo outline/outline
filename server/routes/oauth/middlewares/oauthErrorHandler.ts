@@ -31,9 +31,17 @@ export default function oauthErrorHandler() {
         return;
       }
 
-      ctx.status = err.code || 500;
+      ctx.status = err.status || err.statusCode || err.code || 500;
+      // Map common HTTP status codes to OAuth error types
+      let errorType = "server_error";
+      if (ctx.status === 400) {
+        errorType = "invalid_request";
+      } else if (ctx.status === 401) {
+        errorType = "invalid_client";
+      }
+
       ctx.body = {
-        error: err.name,
+        error: errorType,
         error_description: err.message,
       };
     }

@@ -135,6 +135,7 @@ export const OAuthInterface: RefreshTokenModel &
     return {
       id: client.clientId,
       redirectUris: client.redirectUris,
+      clientType: client.clientType,
       databaseId: client.id,
       grants: this.grants,
     };
