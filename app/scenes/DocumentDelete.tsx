@@ -16,13 +16,14 @@ import {
 
 type Props = {
   documents: Document[];
-  onSubmit: () => void;
+  onSubmit?: () => void;
 };
 
 function DocumentDelete({ documents, onSubmit }: Props) {
   const { t } = useTranslation();
   const {
     ui,
+    dialogs,
     documents: documentsStore,
     collections: collectionsStore,
     userMemberships,
@@ -44,10 +45,6 @@ function DocumentDelete({ documents, onSubmit }: Props) {
       }, 0),
     [documents]
   );
-
-  // const collections = document.collectionId
-  //   ? collectionsStore.get(document.collectionId)
-  //   : undefined;
 
   const handleSubmit = React.useCallback(
     async (ev: React.SyntheticEvent) => {
@@ -110,8 +107,9 @@ function DocumentDelete({ documents, onSubmit }: Props) {
       } catch (err) {
         toast.error(err.message);
       } finally {
-        onSubmit();
+        onSubmit?.();
         setDeleting(false);
+        dialogs.closeAllModals();
       }
     },
     [
@@ -122,6 +120,7 @@ function DocumentDelete({ documents, onSubmit }: Props) {
       documentsStore,
       collectionsStore,
       history,
+      dialogs,
       onSubmit,
       isBulkAction,
       t,
@@ -160,11 +159,12 @@ function DocumentDelete({ documents, onSubmit }: Props) {
       } catch (err) {
         toast.error(err.message);
       } finally {
-        onSubmit();
+        onSubmit?.();
         setArchiving(false);
+        dialogs.closeAllModals();
       }
     },
-    [documents, onSubmit, isBulkAction, t]
+    [documents, dialogs, isBulkAction, t, onSubmit]
   );
 
   const NoChildBody = () =>

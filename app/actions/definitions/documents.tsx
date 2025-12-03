@@ -47,7 +47,6 @@ import DocumentMove from "~/scenes/DocumentMove";
 import DocumentPermanentDelete from "~/scenes/DocumentPermanentDelete";
 import DocumentPublish from "~/scenes/DocumentPublish";
 import DeleteDocumentsInTrash from "~/scenes/Trash/components/DeleteDocumentsInTrash";
-import ConfirmationDialog from "~/components/ConfirmationDialog";
 import DocumentCopy from "~/components/DocumentCopy";
 import MarkdownIcon from "~/components/Icons/MarkdownIcon";
 import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
@@ -82,6 +81,7 @@ import capitalize from "lodash/capitalize";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import { ActionV2, ActionV2Group, ActionV2Separator } from "~/types";
 import lazyWithRetry from "~/utils/lazyWithRetry";
+import DocumentArchive from "~/scenes/DocumentArchive";
 
 const Insights = lazyWithRetry(
   () => import("~/scenes/Document/components/Insights")
@@ -1084,19 +1084,7 @@ export const archiveDocument = createActionV2({
 
       dialogs.openModal({
         title: t("Are you sure you want to archive this document?"),
-        content: (
-          <ConfirmationDialog
-            onSubmit={async () => {
-              await document.archive();
-              toast.success(t("Document archived"));
-            }}
-            savingText={`${t("Archiving")}…`}
-          >
-            {t(
-              "Archiving this document will remove it from the collection and search results."
-            )}
-          </ConfirmationDialog>
-        ),
+        content: <DocumentArchive documents={[document]} />,
       });
     }
   },
@@ -1220,12 +1208,7 @@ export const deleteDocument = createActionV2({
         title: t("Delete {{ documentName }}", {
           documentName: document.noun,
         }),
-        content: (
-          <DocumentDelete
-            documents={[document]}
-            onSubmit={stores.dialogs.closeAllModals}
-          />
-        ),
+        content: <DocumentDelete documents={[document]} />,
       });
     }
   },
