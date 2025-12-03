@@ -1222,7 +1222,7 @@ export const deleteDocument = createActionV2({
         }),
         content: (
           <DocumentDelete
-            document={document}
+            documents={[document]}
             onSubmit={stores.dialogs.closeAllModals}
           />
         ),
