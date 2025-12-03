@@ -48,7 +48,6 @@ type Props = {
   depth: number;
   index: number;
   parentId?: string;
-  onCheckToggle?: (id?: string) => void;
 };
 
 function InnerDocumentLink(
@@ -62,7 +61,6 @@ function InnerDocumentLink(
     depth,
     index,
     parentId,
-    onCheckToggle,
   }: Props,
   ref: React.RefObject<HTMLAnchorElement>
 ) {
@@ -79,6 +77,18 @@ function InnerDocumentLink(
   const editableTitleRef = React.useRef<RefHandle>(null);
   const sidebarContext = useSidebarContext();
   const user = useCurrentUser();
+
+  // Selection state for bulk operations
+  const isSelected = documents.isSelected(node.id);
+  const hasAnySelection = documents.selectedCount > 0;
+
+  const handleCheckboxChange = React.useCallback(() => {
+    if (documents.isSelected(node.id)) {
+      documents.deselect(node.id);
+    } else {
+      documents.select(node.id);
+    }
+  }, [documents, node.id]);
 
   React.useEffect(() => {
     if (
@@ -198,7 +208,7 @@ function InnerDocumentLink(
   const iconElement = React.useMemo(
     () =>
       icon ? <Icon value={icon} color={color} initial={initial} /> : undefined,
-    [icon, color, initial]
+    [icon, color]
   );
 
   // Draggable
@@ -418,9 +428,6 @@ function InnerDocumentLink(
           <div ref={dropToReparent}>
             <DropToImport documentId={node.id}>
               <SidebarLink
-                selected={documents.selectedDocs.has(document?.id || "")}
-                showCheckbox={documents.selectedDocs.size > 0}
-                onCheckToggle={onCheckToggle}
                 // @ts-expect-error react-router type is wrong, string component is fine.
                 component={isEditing ? "div" : undefined}
                 expanded={hasChildren ? isExpanded : undefined}
@@ -439,6 +446,10 @@ function InnerDocumentLink(
                 isDraft={isDraft}
                 ref={ref}
                 menu={menuElement}
+                isSelected={isSelected}
+                showCheckbox
+                hasAnySelection={hasAnySelection}
+                onCheckboxChange={handleCheckboxChange}
               />
             </DropToImport>
           </div>
@@ -468,7 +479,6 @@ function InnerDocumentLink(
       <Folder expanded={expanded && !isDragging}>
         {nodeChildren.map((childNode, childIndex) => (
           <DocumentLink
-            onCheckToggle={onCheckToggle}
             key={childNode.id}
             collection={collection}
             membership={membership}

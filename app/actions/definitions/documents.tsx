@@ -1008,67 +1008,37 @@ export const moveDocumentToCollection = createActionV2({
     return !!stores.policies.abilities(activeDocumentId).move;
   },
   perform: ({ activeDocumentId, stores, t }) => {
-    const selected = stores.documents.selected;
-    const documents: string[] =
-      selected.length > 0
-        ? selected
-        : activeDocumentId
-          ? [activeDocumentId]
-          : [];
-
-    if (documents.length) {
-      const selected = stores.documents.selected;
-      const documents = selected.length > 0 ? selected : [activeDocumentId];
+    if (activeDocumentId) {
+      const document = stores.documents.get(activeDocumentId);
+      if (!document) {
+        return;
+      }
 
       stores.dialogs.openModal({
         title: t("Move {{ documentType }}", {
-          documentType: stores.documents.active?.noun || "document",
+          documentType: document.noun,
         }),
-        content: <DocumentMove documents={documents as string[]} />,
+        content: <DocumentMove document={document} />,
       });
     }
   },
 });
 
 export const moveDocument = createActionV2({
-  name: ({ t, stores }) => {
-    const multiple = stores.documents.selectedDocs.size > 0;
-    return multiple ? t("Move selected") : t("Move");
-  },
+  name: ({ t }) => t("Move"),
   analyticsName: "Move document",
   section: ActiveDocumentSection,
   icon: <MoveIcon />,
   visible: ({ activeDocumentId, stores }) => {
-    const selected = stores.documents.selected;
-    const documents: string[] =
-      selected.length > 0
-        ? selected
-        : activeDocumentId
-          ? [activeDocumentId]
-          : [];
-
-    if (!documents.length) {
+    if (!activeDocumentId) {
       return false;
     }
-
-    // Check if any document is a non-workspace template
-    const hasNonWorkspaceTemplate = documents.some((id) => {
-      const doc = stores.documents.get(id);
-      return doc && doc.template && !doc.isWorkspaceTemplate;
-    });
-
-    if (hasNonWorkspaceTemplate) {
+    const document = stores.documents.get(activeDocumentId);
+    // Don't show the button if this is a non-workspace template.
+    if (!document || (document.template && !document.isWorkspaceTemplate)) {
       return false;
     }
-
-    // Check if user has permission to move all documents
-    const canMoveAll = documents.every((id) => {
-      const doc = stores.documents.get(id);
-      if (!doc) {return false;}
-      return stores.policies.abilities(id).move;
-    });
-
-    return canMoveAll;
+    return !!stores.policies.abilities(activeDocumentId).move;
   },
   perform: moveDocumentToCollection.perform,
 });
@@ -1093,223 +1063,117 @@ export const moveTemplate = createActionV2WithChildren({
 });
 
 export const archiveDocument = createActionV2({
-  name: ({ t, stores }) => {
-    const multiple = stores.documents.selectedDocs.size > 0;
-    return multiple ? `${t("Archive selected")}…` : `${t("Archive")}…`;
-  },
+  name: ({ t }) => `${t("Archive")}…`,
   analyticsName: "Archive document",
   section: ActiveDocumentSection,
   icon: <ArchiveIcon />,
   visible: ({ activeDocumentId, stores }) => {
-    const selected = stores.documents.selected;
-    const documentIds: string[] =
-      selected.length > 0
-        ? selected
-        : activeDocumentId
-          ? [activeDocumentId]
-          : [];
-
-    if (!documentIds.length) {
+    if (!activeDocumentId) {
       return false;
     }
-
-    const canArchiveAll = documentIds.every((id) => {
-      const doc = stores.documents.get(id);
-      if (!doc) {return false;}
-      return stores.policies.abilities(id).archive;
-    });
-
-    return canArchiveAll;
+    return !!stores.policies.abilities(activeDocumentId).archive;
   },
   perform: async ({ activeDocumentId, stores, t }) => {
     const { dialogs, documents } = stores;
-    const selected = documents.selected;
-    const documentIds: string[] =
-      selected.length > 0
-        ? selected
-        : activeDocumentId
-          ? [activeDocumentId]
-          : [];
 
-    if (!documentIds.length) {
-      return;
+    if (activeDocumentId) {
+      const document = documents.get(activeDocumentId);
+      if (!document) {
+        return;
+      }
+
+      dialogs.openModal({
+        title: t("Are you sure you want to archive this document?"),
+        content: (
+          <ConfirmationDialog
+            onSubmit={async () => {
+              await document.archive();
+              toast.success(t("Document archived"));
+            }}
+            savingText={`${t("Archiving")}…`}
+          >
+            {t(
+              "Archiving this document will remove it from the collection and search results."
+            )}
+          </ConfirmationDialog>
+        ),
+      });
     }
-
-    const isPlural = documentIds.length > 1;
-
-    dialogs.openModal({
-      title: isPlural
-        ? t("Are you sure you want to archive these documents?")
-        : t("Are you sure you want to archive this document?"),
-      content: (
-        <ConfirmationDialog
-          onSubmit={async () => {
-            const archivePromises = documentIds.map((id) => {
-              const document = documents.get(id);
-              return document?.archive();
-            });
-
-            await Promise.all(archivePromises.filter(Boolean));
-
-            toast.success(
-              isPlural
-                ? t("{{count}} documents archived", {
-                    count: documentIds.length,
-                  })
-                : t("Document archived")
-            );
-          }}
-          savingText={`${t("Archiving")}…`}
-        >
-          {isPlural
-            ? t(
-                "Archiving these documents will remove them from the collection and search results."
-              )
-            : t(
-                "Archiving this document will remove it from the collection and search results."
-              )}
-        </ConfirmationDialog>
-      ),
-    });
   },
 });
 
 export const restoreDocument = createActionV2({
-  name: ({ t, stores }) => {
-    const selected = stores.documents.selected;
-    const isPlural = selected.length > 1;
-    return isPlural ? `${t("Restore selected")}` : `${t("Restore")}`;
-  },
+  name: ({ t }) => `${t("Restore")}`,
   analyticsName: "Restore document",
   section: ActiveDocumentSection,
   icon: <RestoreIcon />,
   visible: ({ activeDocumentId, stores }) => {
-    const selected = stores.documents.selected;
-    const documentIds: string[] =
-      selected.length > 0
-        ? selected
-        : activeDocumentId
-          ? [activeDocumentId]
-          : [];
-
-    if (!documentIds.length) {
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+    if (!document) {
       return false;
     }
 
-    return documentIds.every((id) => {
-      const document = stores.documents.get(id);
-      if (!document) {
-        return false;
-      }
+    const collection = document.collectionId
+      ? stores.collections.get(document.collectionId)
+      : undefined;
+    const can = stores.policies.abilities(document.id);
 
-      const collection = document.collectionId
-        ? stores.collections.get(document.collectionId)
-        : undefined;
-      const can = stores.policies.abilities(document.id);
-
-      return (
-        !!(document.isWorkspaceTemplate || collection?.isActive) &&
-        !!(can.restore || can.unarchive)
-      );
-    });
+    return (
+      !!(document.isWorkspaceTemplate || collection?.isActive) &&
+      !!(can.restore || can.unarchive)
+    );
   },
   perform: async ({ t, stores, activeDocumentId }) => {
-    const selected = stores.documents.selected;
-    const documentIds: string[] =
-      selected.length > 0
-        ? selected
-        : activeDocumentId
-          ? [activeDocumentId]
-          : [];
-
-    if (!documentIds.length) {
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+    if (!document) {
       return;
     }
 
-    const isPlural = documentIds.length > 1;
-
-    try {
-      const fetchPromises = documentIds.map((id) => stores.documents.fetch(id));
-      const fetchedDocuments = await Promise.all(fetchPromises);
-
-      const restorePromises = fetchedDocuments
-        .filter(Boolean)
-        .map((document) => document.restore());
-
-      await Promise.all(restorePromises);
-
-      toast.success(
-        isPlural
-          ? t("{{count}} documents restored", { count: documentIds.length })
-          : t("{{ documentName }} restored", {
-              documentName: capitalize(fetchedDocuments[0]?.noun || "document"),
-            })
-      );
-    } catch {
-      toast.error(
-        isPlural
-          ? t("Couldn't restore the documents, try again?")
-          : t("Couldn't restore the document, try again?")
-      );
-    }
+    await document.restore();
+    toast.success(
+      t("{{ documentName }} restored", {
+        documentName: capitalize(document.noun),
+      })
+    );
   },
 });
 
 export const restoreDocumentToCollection = createActionV2WithChildren({
-  name: ({ t, stores }) => {
-    const selected = stores.documents.selected;
-    const isPlural = selected.length > 1;
-    return isPlural ? `${t("Restore selected")}…` : `${t("Restore")}…`;
-  },
+  name: ({ t }) => `${t("Restore")}…`,
   analyticsName: "Restore document",
   section: ActiveDocumentSection,
   icon: <RestoreIcon />,
   visible: ({ stores, activeDocumentId }) => {
-    const selected = stores.documents.selected;
-    const documentIds: string[] =
-      selected.length > 0
-        ? selected
-        : activeDocumentId
-          ? [activeDocumentId]
-          : [];
-
-    if (!documentIds.length) {
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+    if (!document) {
       return false;
     }
 
-    // Check if all documents can be restored to a collection
-    return documentIds.every((id) => {
-      const document = stores.documents.get(id);
-      if (!document) {
-        return false;
-      }
+    const can = stores.policies.abilities(document.id);
+    const collection = document.collectionId
+      ? stores.collections.get(document.collectionId)
+      : undefined;
 
-      const can = stores.policies.abilities(document.id);
-      const collection = document.collectionId
-        ? stores.collections.get(document.collectionId)
-        : undefined;
-
-      return (
-        !(document.isWorkspaceTemplate || collection?.isActive) &&
-        !!(can.restore || can.unarchive)
-      );
-    });
+    return (
+      !(document.isWorkspaceTemplate || collection?.isActive) &&
+      !!(can.restore || can.unarchive)
+    );
   },
   children: ({ t, activeDocumentId, stores }) => {
     const { collections, documents, policies } = stores;
-    const selected = documents.selected;
-    const documentIds: string[] =
-      selected.length > 0
-        ? selected
-        : activeDocumentId
-          ? [activeDocumentId]
-          : [];
 
-    if (!documentIds.length) {
+    const document = activeDocumentId
+      ? documents.get(activeDocumentId)
+      : undefined;
+    if (!document) {
       return [];
     }
-
-    const isPlural = documentIds.length > 1;
 
     const actions = collections.orderedData.map((collection) => {
       const can = policies.abilities(collection.id);
@@ -1319,36 +1183,12 @@ export const restoreDocumentToCollection = createActionV2WithChildren({
         icon: <CollectionIcon collection={collection} />,
         visible: can.createDocument,
         perform: async () => {
-          try {
-            const fetchPromises = documentIds.map((id) => documents.fetch(id));
-            const fetchedDocuments = await Promise.all(fetchPromises);
-
-            const restorePromises = fetchedDocuments
-              .filter(Boolean)
-              .map((document) =>
-                document.restore({ collectionId: collection.id })
-              );
-
-            await Promise.all(restorePromises);
-
-            toast.success(
-              isPlural
-                ? t("{{count}} documents restored", {
-                    count: documentIds.length,
-                  })
-                : t("{{ documentName }} restored", {
-                    documentName: capitalize(
-                      fetchedDocuments[0]?.noun || "document"
-                    ),
-                  })
-            );
-          } catch {
-            toast.error(
-              isPlural
-                ? t("Couldn't restore the documents, try again?")
-                : t("Couldn't restore the document, try again?")
-            );
-          }
+          await document.restore({ collectionId: collection.id });
+          toast.success(
+            t("{{ documentName }} restored", {
+              documentName: capitalize(document.noun),
+            })
+          );
         },
       });
     });
@@ -1358,121 +1198,70 @@ export const restoreDocumentToCollection = createActionV2WithChildren({
 });
 
 export const deleteDocument = createActionV2({
-  name: ({ t, stores }) => {
-    const selected = stores.documents.selected;
-    const isPlural = selected.length > 1;
-    return isPlural ? `${t("Delete selected")}…` : `${t("Delete")}…`;
-  },
+  name: ({ t }) => `${t("Delete")}…`,
   analyticsName: "Delete document",
   section: ActiveDocumentSection,
   icon: <TrashIcon />,
   dangerous: true,
   visible: ({ activeDocumentId, stores }) => {
-    const selected = stores.documents.selected;
-    const documentIds: string[] =
-      selected.length > 0
-        ? selected
-        : activeDocumentId
-          ? [activeDocumentId]
-          : [];
-
-    if (!documentIds.length) {
+    if (!activeDocumentId) {
       return false;
     }
-
-    return documentIds.every((id) => !!stores.policies.abilities(id).delete);
+    return !!stores.policies.abilities(activeDocumentId).delete;
   },
   perform: ({ activeDocumentId, stores, t }) => {
-    const selected = stores.documents.selected;
-    const documentIds: string[] =
-      selected.length > 0
-        ? selected
-        : activeDocumentId
-          ? [activeDocumentId]
-          : [];
+    if (activeDocumentId) {
+      const document = stores.documents.get(activeDocumentId);
+      if (!document) {
+        return;
+      }
 
-    if (!documentIds.length) {
-      return;
+      stores.dialogs.openModal({
+        title: t("Delete {{ documentName }}", {
+          documentName: document.noun,
+        }),
+        content: (
+          <DocumentDelete
+            document={document}
+            onSubmit={stores.dialogs.closeAllModals}
+          />
+        ),
+      });
     }
-
-    stores.dialogs.openModal({
-      title:
-        documentIds.length === 1
-          ? t("Delete {{ documentName }}", {
-              documentName:
-                stores.documents.get(documentIds[0])?.noun || "document",
-            })
-          : t("Delete {{count}} documents", { count: documentIds.length }),
-      content: (
-        <DocumentDelete
-          documents={documentIds}
-          onSubmit={stores.dialogs.closeAllModals}
-        />
-      ),
-    });
   },
 });
 
 export const permanentlyDeleteDocument = createActionV2({
-  name: ({ t, stores }) => {
-    const selected = stores.documents.selected;
-    const isPlural = selected.length > 1;
-    return isPlural
-      ? t("Permanently delete selected")
-      : t("Permanently delete");
-  },
+  name: ({ t }) => t("Permanently delete"),
   analyticsName: "Permanently delete document",
   section: ActiveDocumentSection,
   icon: <CrossIcon />,
   dangerous: true,
   visible: ({ activeDocumentId, stores }) => {
-    const selected = stores.documents.selected;
-    const documentIds: string[] =
-      selected.length > 0
-        ? selected
-        : activeDocumentId
-          ? [activeDocumentId]
-          : [];
-
-    if (!documentIds.length) {
+    if (!activeDocumentId) {
       return false;
     }
-
-    // Check if user has permission to permanently delete all documents
-    return documentIds.every(
-      (id) => !!stores.policies.abilities(id).permanentDelete
-    );
+    return !!stores.policies.abilities(activeDocumentId).permanentDelete;
   },
   perform: ({ activeDocumentId, stores, t }) => {
-    const selected = stores.documents.selected;
-    const documentIds: string[] =
-      selected.length > 0
-        ? selected
-        : activeDocumentId
-          ? [activeDocumentId]
-          : [];
+    if (activeDocumentId) {
+      const document = stores.documents.get(activeDocumentId);
+      if (!document) {
+        return;
+      }
 
-    if (!documentIds.length) {
-      return;
+      stores.dialogs.openModal({
+        title: t("Permanently delete {{ documentName }}", {
+          documentName: document.noun,
+        }),
+        content: (
+          <DocumentPermanentDelete
+            document={document}
+            onSubmit={stores.dialogs.closeAllModals}
+          />
+        ),
+      });
     }
-
-    stores.dialogs.openModal({
-      title:
-        documentIds.length === 1
-          ? t("Permanently delete {{ documentName }}", {
-              documentName:
-                stores.documents.get(documentIds[0])?.noun || "document",
-            })
-          : t("Permanently delete {{count}} documents", {
-              count: documentIds.length,
-            }),
-      content: (
-        <DocumentPermanentDelete
-          documents={documentIds}
-          onSubmit={stores.dialogs.closeAllModals}
-        />
-      ),
-    });
   },
 });
 
