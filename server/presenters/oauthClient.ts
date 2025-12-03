@@ -15,6 +15,7 @@ export default function presentOAuthClient(oauthClient: OAuthClient) {
     avatarUrl: oauthClient.avatarUrl,
     clientId: oauthClient.clientId,
     clientSecret: oauthClient.clientSecret,
+    clientType: oauthClient.clientType,
     redirectUris: oauthClient.redirectUris,
     published: oauthClient.published,
     createdAt: oauthClient.createdAt,
