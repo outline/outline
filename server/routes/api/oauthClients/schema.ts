@@ -23,7 +23,9 @@ export type OAuthClientsInfoReq = z.infer<typeof OAuthClientsInfoSchema>;
 export const OAuthClientsCreateSchema = BaseSchema.extend({
   body: z.object({
     /** OAuth client type */
-    clientType: z.enum(OAuthClientValidation.clientTypes),
+    clientType: z
+      .enum(OAuthClientValidation.clientTypes)
+      .default("confidential"),
 
     /** OAuth client name */
     name: z.string(),

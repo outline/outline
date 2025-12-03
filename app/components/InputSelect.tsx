@@ -50,7 +50,7 @@ export type Item = {
 
 export type Option = Item | Separator;
 
-type Props = React.HTMLAttributes<HTMLButtonElement> & {
+type Props = Omit<React.HTMLAttributes<HTMLButtonElement>, "onChange"> & {
   /* Options to display in the select menu. */
   options: Option[];
   /* Current chosen value. */
