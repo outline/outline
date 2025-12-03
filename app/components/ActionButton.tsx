@@ -1,10 +1,10 @@
 /* oxlint-disable react/prop-types */
 import * as React from "react";
 import Tooltip, { Props as TooltipProps } from "~/components/Tooltip";
-import { performAction, performActionV2, resolve } from "~/actions";
+import { performAction, resolve } from "~/actions";
 import useIsMounted from "~/hooks/useIsMounted";
-import { Action, ActionV2Variant, ActionV2WithChildren } from "~/types";
 import useActionContext from "~/hooks/useActionContext";
+import { ActionVariant, ActionWithChildren } from "~/types";
 
 export type Props = React.HTMLAttributes<HTMLButtonElement> & {
   /** Show the button in a disabled state */
@@ -12,7 +12,7 @@ export type Props = React.HTMLAttributes<HTMLButtonElement> & {
   /** Hide the button entirely if action is not applicable */
   hideOnActionDisabled?: boolean;
   /** Action to use on button */
-  action?: Action | Exclude<ActionV2Variant, ActionV2WithChildren>;
+  action?: Exclude<ActionVariant, ActionWithChildren>;
   /** If tooltip props are provided the button will be wrapped in a tooltip */
   tooltip?: Omit<TooltipProps, "children">;
 };
@@ -61,10 +61,7 @@ const ActionButton = React.forwardRef<HTMLButtonElement, Props>(
             ? (ev) => {
                 ev.preventDefault();
                 ev.stopPropagation();
-                const response =
-                  "variant" in action
-                    ? performActionV2(action, actionContext)
-                    : performAction(action, actionContext);
+                const response = performAction(action, actionContext);
                 if (response?.finally) {
                   setExecuting(true);
                   void response.finally(

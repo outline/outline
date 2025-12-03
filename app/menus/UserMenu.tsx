@@ -12,9 +12,9 @@ import {
   UserChangeEmailDialog,
 } from "~/components/UserDialogs";
 import {
-  ActionV2Separator,
-  createActionV2,
-  createActionV2WithChildren,
+  ActionSeparator,
+  createAction,
+  createActionWithChildren,
 } from "~/actions";
 import {
   deleteUserActionFactory,
@@ -90,52 +90,52 @@ function UserMenu({ user }: Props) {
 
   const actions = React.useMemo(
     () => [
-      createActionV2WithChildren({
+      createActionWithChildren({
         name: t("Change role"),
         section: UserSection,
         visible: can.demote || can.promote,
         children: changeRoleActions,
       }),
-      createActionV2({
+      createAction({
         name: `${t("Change name")}…`,
         section: UserSection,
         visible: can.update,
         perform: handleChangeName,
       }),
-      createActionV2({
+      createAction({
         name: `${t("Change email")}…`,
         section: UserSection,
         visible: can.update,
         perform: handleChangeEmail,
       }),
-      createActionV2({
+      createAction({
         name: t("Resend invite"),
         section: UserSection,
         visible: can.resendInvite,
         perform: handleResendInvite,
       }),
-      ActionV2Separator,
-      createActionV2({
+      ActionSeparator,
+      createAction({
         name: `${t("Revoke invite")}…`,
         section: UserSection,
         visible: user.isInvited,
         dangerous: true,
         perform: handleRevoke,
       }),
-      createActionV2({
+      createAction({
         name: t("Activate user"),
         section: UserSection,
         visible: !user.isInvited && user.isSuspended,
         perform: handleActivate,
       }),
-      createActionV2({
+      createAction({
         name: `${t("Suspend user")}…`,
         section: UserSection,
         visible: !user.isInvited && !user.isSuspended,
         dangerous: true,
         perform: handleSuspend,
       }),
-      ActionV2Separator,
+      ActionSeparator,
       deleteUserActionFactory(user.id),
     ],
     [

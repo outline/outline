@@ -6,17 +6,17 @@ import { LoginDialog } from "~/scenes/Login/components/LoginDialog";
 import TeamNew from "~/scenes/TeamNew";
 import TeamLogo from "~/components/TeamLogo";
 import {
-  createActionV2,
-  createActionV2WithChildren,
-  createExternalLinkActionV2,
+  createAction,
+  createActionWithChildren,
+  createExternalLinkAction,
 } from "~/actions";
-import { ActionContext, ExternalLinkActionV2 } from "~/types";
+import { ActionContext, ExternalLinkAction } from "~/types";
 import Desktop from "~/utils/Desktop";
 import { TeamSection } from "../sections";
 
 export const switchTeamsList = ({ stores }: { stores: RootStore }) =>
-  stores.auth.availableTeams?.map<ExternalLinkActionV2>((session) =>
-    createExternalLinkActionV2({
+  stores.auth.availableTeams?.map<ExternalLinkAction>((session) =>
+    createExternalLinkAction({
       id: `switch-${session.id}`,
       name: session.name,
       analyticsName: "Switch workspace",
@@ -41,7 +41,7 @@ export const switchTeamsList = ({ stores }: { stores: RootStore }) =>
     })
   ) ?? [];
 
-export const switchTeam = createActionV2WithChildren({
+export const switchTeam = createActionWithChildren({
   name: ({ t }) => t("Switch workspace"),
   placeholder: ({ t }) => t("Select a workspace"),
   analyticsName: "Switch workspace",
@@ -52,7 +52,7 @@ export const switchTeam = createActionV2WithChildren({
   children: switchTeamsList,
 });
 
-export const createTeam = createActionV2({
+export const createTeam = createAction({
   name: ({ t }) => `${t("New workspace")}…`,
   analyticsName: "New workspace",
   keywords: "create change switch workspace organization team",
@@ -74,7 +74,7 @@ export const createTeam = createActionV2({
   },
 });
 
-export const desktopLoginTeam = createActionV2({
+export const desktopLoginTeam = createAction({
   name: ({ t }) => t("Login to workspace"),
   analyticsName: "Login to workspace",
   keywords: "change switch workspace organization team",

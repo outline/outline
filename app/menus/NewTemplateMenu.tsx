@@ -7,9 +7,9 @@ import CollectionIcon from "~/components/Icons/CollectionIcon";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import TeamLogo from "~/components/TeamLogo";
 import {
-  ActionV2Separator,
-  createActionV2Group,
-  createInternalLinkActionV2,
+  ActionSeparator,
+  createActionGroup,
+  createInternalLinkAction,
 } from "~/actions";
 import { DocumentSection } from "~/actions/sections";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
@@ -28,7 +28,7 @@ function NewTemplateMenu() {
     () =>
       collections.orderedData.map((collection) => {
         const canCollection = policies.abilities(collection.id);
-        return createInternalLinkActionV2({
+        return createInternalLinkAction({
           name: collection.name,
           section: DocumentSection,
           icon: <CollectionIcon collection={collection} />,
@@ -41,15 +41,15 @@ function NewTemplateMenu() {
 
   const allActions = useMemo(
     () => [
-      createInternalLinkActionV2({
+      createInternalLinkAction({
         name: t("Save in workspace"),
         section: DocumentSection,
         icon: <TeamLogo model={team} />,
         visible: can.createTemplate,
         to: newTemplatePath(),
       }),
-      ActionV2Separator,
-      createActionV2Group({
+      ActionSeparator,
+      createActionGroup({
         name: t("Choose a collection"),
         actions: collectionActions,
       }),

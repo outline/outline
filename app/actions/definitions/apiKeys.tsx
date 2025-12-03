@@ -3,7 +3,7 @@ import stores from "~/stores";
 import ApiKey from "~/models/ApiKey";
 import ApiKeyNew from "~/scenes/ApiKeyNew";
 import ApiKeyRevokeDialog from "~/scenes/Settings/components/ApiKeyRevokeDialog";
-import { createAction, createActionV2 } from "..";
+import { createAction } from "..";
 import { SettingsSection } from "../sections";
 
 export const createApiKey = createAction({
@@ -26,7 +26,7 @@ export const createApiKey = createAction({
 });
 
 export const revokeApiKeyFactory = ({ apiKey }: { apiKey: ApiKey }) =>
-  createActionV2({
+  createAction({
     name: ({ t, isMenu }) =>
       isMenu
         ? apiKey.isExpired
