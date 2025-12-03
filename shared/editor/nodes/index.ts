@@ -1,4 +1,5 @@
 import DateTime from "../extensions/DateTime";
+import DeleteNearAtom from "../extensions/DeleteNearAtom";
 import History from "../extensions/History";
 import MaxLength from "../extensions/MaxLength";
 import TrailingNode from "../extensions/TrailingNode";
@@ -66,6 +67,7 @@ export const basicExtensions: Nodes = [
   MaxLength,
   DateTime,
   HardBreak,
+  DeleteNearAtom,
 ];
 
 export const listExtensions: Nodes = [
