@@ -22,6 +22,13 @@ const app = new Koa();
 const router = new Router();
 const oauth = new OAuth2Server({
   model: OAuthInterface,
+  requireClientAuthentication: {
+    // Allow public clients (those without a client secret) to refresh without a client secret.
+    refresh_token: false,
+  },
+  // Always revoke the used refresh token and issue a new one, see:
+  // https://www.rfc-editor.org/rfc/rfc6819#section-5.2.2.3
+  alwaysIssueNewRefreshToken: true,
 });
 
 router.post(
@@ -72,6 +79,28 @@ router.post(
   "/token",
   rateLimiter(RateLimiterStrategy.OneHundredPerHour),
   async (ctx) => {
+    const grantType = ctx.request.body.grant_type;
+    const refreshToken = ctx.request.body.refresh_token;
+    const clientId = ctx.request.body.client_id;
+    const clientSecret = ctx.request.body.client_secret;
+
+    // Because we disabled client authentication for refresh_token grant type at the library
+    // initialization, we need to manually enforce it here for confidential clients.
+    if (grantType === "refresh_token" && !clientSecret) {
+      if (!refreshToken) {
+        throw ValidationError(
+          "Missing refresh_token for refresh_token grant type"
+        );
+      }
+      const client = await OAuthClient.findByClientId(clientId);
+      if (!client) {
+        throw ValidationError("Invalid client_id");
+      }
+      if (client.clientType === "confidential") {
+        throw ValidationError("Missing client_secret for confidential client");
+      }
+    }
+
     // Note: These objects are mutated by the OAuth2Server library
     const request = new OAuth2Server.Request(ctx.request);
     const response = new OAuth2Server.Response(ctx.response);

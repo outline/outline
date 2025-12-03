@@ -15,6 +15,7 @@ import {
   Length,
   BeforeCreate,
   AllowNull,
+  IsIn,
 } from "sequelize-typescript";
 import { randomString } from "@shared/random";
 import { OAuthClientValidation } from "@shared/validations";
@@ -70,6 +71,10 @@ class OAuthClient extends ParanoidModel<
 
   @Column
   clientId: string;
+
+  @IsIn([["confidential", "public"]])
+  @Column
+  clientType: "confidential" | "public";
 
   @Column(DataType.BLOB)
   @Encrypted
