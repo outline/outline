@@ -50,7 +50,7 @@ export type Item = {
 
 export type Option = Item | Separator;
 
-type Props = {
+type Props = React.HTMLAttributes<HTMLButtonElement> & {
   /* Options to display in the select menu. */
   options: Option[];
   /* Current chosen value. */

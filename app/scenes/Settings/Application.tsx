@@ -31,6 +31,7 @@ import ImageInput from "./components/ImageInput";
 import SettingRow from "./components/SettingRow";
 import { createInternalLinkActionV2 } from "~/actions";
 import { NavigationSection } from "~/actions/sections";
+import { InputClientType } from "~/components/OAuthClient/InputClientType";
 
 type Props = {
   oauthClient: OAuthClient;
@@ -76,6 +77,7 @@ const Application = observer(function Application({ oauthClient }: Props) {
       avatarUrl: oauthClient.avatarUrl ?? "",
       redirectUris: oauthClient.redirectUris ?? [],
       published: oauthClient.published ?? false,
+      clientType: oauthClient.clientType,
     },
   });
 
@@ -176,6 +178,25 @@ const Application = observer(function Application({ oauthClient }: Props) {
         </SettingRow>
 
         <SettingRow
+          name="clientType"
+          label={t("Client Type")}
+          description={t("Confidential clients can keep a secret")}
+        >
+          <Controller
+            control={control}
+            name="clientType"
+            render={({ field }) => (
+              <InputClientType
+                hideLabel
+                value={field.value}
+                onChange={field.onChange}
+                ref={field.ref}
+              />
+            )}
+          />
+        </SettingRow>
+
+        <SettingRow
           name="description"
           label={t("Tagline")}
           description={t("A short description")}
@@ -252,33 +273,35 @@ const Application = observer(function Application({ oauthClient }: Props) {
             />
           </Input>
         </SettingRow>
-        <SettingRow
-          name="clientSecret"
-          label={t("OAuth client secret")}
-          description={t(
-            "Store this value securely, do not expose it publicly"
-          )}
-        >
-          <Input
-            id="clientSecret"
-            type="password"
-            value={oauthClient.clientSecret}
-            readOnly
+        {oauthClient.clientType === "confidential" && (
+          <SettingRow
+            name="clientSecret"
+            label={t("OAuth client secret")}
+            description={t(
+              "Store this value securely, do not expose it publicly"
+            )}
           >
-            <Tooltip content={t("Rotate secret")} placement="top">
-              <NudeButton type="button" onClick={handleRotateSecret}>
-                <ReplaceIcon size={20} />
-              </NudeButton>
-            </Tooltip>
-
-            <CopyButton
+            <Input
+              id="clientSecret"
+              type="password"
               value={oauthClient.clientSecret}
-              success={t("Copied to clipboard")}
-              tooltip={t("Copy")}
-              icon={<CopyIcon size={20} />}
-            />
-          </Input>
-        </SettingRow>
+              readOnly
+            >
+              <Tooltip content={t("Rotate secret")} placement="top">
+                <NudeButton type="button" onClick={handleRotateSecret}>
+                  <ReplaceIcon size={20} />
+                </NudeButton>
+              </Tooltip>
+
+              <CopyButton
+                value={oauthClient.clientSecret}
+                success={t("Copied to clipboard")}
+                tooltip={t("Copy")}
+                icon={<CopyIcon size={20} />}
+              />
+            </Input>
+          </SettingRow>
+        )}
         <SettingRow
           name="redirectUris"
           label={t("Callback URLs")}

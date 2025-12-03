@@ -72,9 +72,9 @@ class OAuthClient extends ParanoidModel<
   @Column
   clientId: string;
 
-  @IsIn([["confidential", "public"]])
-  @Column
-  clientType: "confidential" | "public";
+  @IsIn([Array.from(OAuthClientValidation.clientTypes)])
+  @Column(DataType.STRING)
+  clientType: (typeof OAuthClientValidation.clientTypes)[number];
 
   @Column(DataType.BLOB)
   @Encrypted

@@ -94,6 +94,9 @@ export const OAuthClientValidation = {
 
   /** The maximum length of an OAuth client redirect URI */
   maxRedirectUriLength: 1000,
+
+  /** The allowed OAuth client types */
+  clientTypes: ["confidential", "public"] as const,
 };
 
 export const RevisionValidation = {
