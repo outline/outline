@@ -119,4 +119,27 @@ describe("documents.publish", () => {
     });
     expect(spy).not.toHaveBeenCalled();
   });
+
+  test("should not send a notification to suspended users", async () => {
+    const spy = jest.spyOn(Notification, "create");
+    const user = await buildUser();
+    const document = await buildDocument({
+      teamId: user.teamId,
+    });
+    // Suspend the user
+    user.suspendedAt = new Date();
+    user.setNotificationEventType(NotificationEventType.PublishDocument);
+    await user.save();
+
+    const processor = new DocumentPublishedNotificationsTask();
+    await processor.perform({
+      name: "documents.publish",
+      documentId: document.id,
+      collectionId: document.collectionId!,
+      teamId: document.teamId,
+      actorId: document.createdById,
+      ip,
+    });
+    expect(spy).not.toHaveBeenCalled();
+  });
 });

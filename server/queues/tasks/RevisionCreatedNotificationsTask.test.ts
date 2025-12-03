@@ -514,4 +514,41 @@ describe("revisions.create", () => {
     });
     expect(spy).not.toHaveBeenCalled();
   });
+
+  test("should not send a notification to suspended users", async () => {
+    const spy = jest.spyOn(Notification, "create");
+    const user = await buildUser();
+    let document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    await Revision.createFromDocument(createContext({ user }), document);
+
+    document = updateDocumentText(document, "Updated body content");
+    const collaborator = await buildUser({ 
+      teamId: document.teamId,
+      suspendedAt: new Date(),
+    });
+    const revision = await Revision.createFromDocument(
+      createContext({ user: collaborator }),
+      document
+    );
+    document.collaboratorIds = [user.id, collaborator.id];
+    await document.save();
+
+    // Suspend the user who should receive the notification
+    user.suspendedAt = new Date();
+    await user.save();
+
+    const task = new RevisionCreatedNotificationsTask();
+    await task.perform({
+      name: "revisions.create",
+      documentId: document.id,
+      teamId: document.teamId,
+      actorId: collaborator.id,
+      modelId: revision.id,
+      ip,
+    });
+    expect(spy).not.toHaveBeenCalled();
+  });
 });
