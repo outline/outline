@@ -6,7 +6,7 @@ import Import from "~/models/Import";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
 import usePolicy from "~/hooks/usePolicy";
-import { createActionV2 } from "~/actions";
+import { createAction } from "~/actions";
 import { useMenuAction } from "~/hooks/useMenuAction";
 
 const Section = "Imports";
@@ -27,7 +27,7 @@ export const ImportMenu = observer(
 
     const actions = React.useMemo(
       () => [
-        createActionV2({
+        createAction({
           name: t("Cancel"),
           section: Section,
           visible: !!can.cancel,
@@ -35,7 +35,7 @@ export const ImportMenu = observer(
           dangerous: true,
           perform: onCancel,
         }),
-        createActionV2({
+        createAction({
           name: t("Delete"),
           section: Section,
           visible: !!can.delete,

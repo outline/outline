@@ -1,14 +1,13 @@
 import { NewDocumentIcon, ShapesIcon } from "outline-icons";
 import { useEffect, useMemo } from "react";
 import Icon from "@shared/components/Icon";
-import { createAction } from "~/actions";
+import { createActionWithChildren, createInternalLinkAction } from "~/actions";
 import {
   ActiveCollectionSection,
   DocumentSection,
   TeamSection,
 } from "~/actions/sections";
 import useStores from "~/hooks/useStores";
-import history from "~/utils/history";
 import { newDocumentPath } from "~/utils/routeHelpers";
 
 const useTemplatesAction = () => {
@@ -21,7 +20,7 @@ const useTemplatesAction = () => {
   const actions = useMemo(
     () =>
       documents.templatesAlphabetical.map((template) =>
-        createAction({
+        createInternalLinkAction({
           name: template.titleWithDefault,
           analyticsName: "New document",
           section: template.isWorkspaceTemplate
@@ -47,15 +46,20 @@ const useTemplatesAction = () => {
               template.isWorkspaceTemplate
             );
           },
-          perform: ({ activeCollectionId, sidebarContext }) =>
-            history.push(
-              newDocumentPath(template.collectionId ?? activeCollectionId, {
-                templateId: template.id,
-              }),
+          to: ({ activeCollectionId, sidebarContext }) => {
+            const [pathname, search] = newDocumentPath(
+              template.collectionId ?? activeCollectionId,
               {
-                sidebarContext,
+                templateId: template.id,
               }
-            ),
+            ).split("?");
+
+            return {
+              pathname,
+              search,
+              state: { sidebarContext },
+            };
+          },
         })
       ),
     [documents.templatesAlphabetical]
@@ -63,7 +67,7 @@ const useTemplatesAction = () => {
 
   const newFromTemplate = useMemo(
     () =>
-      createAction({
+      createActionWithChildren({
         id: "templates",
         name: ({ t }) => t("New from template"),
         placeholder: ({ t }) => t("Choose a template"),
@@ -78,7 +82,7 @@ const useTemplatesAction = () => {
             stores.policies.abilities(currentTeamId).createDocument
           );
         },
-        children: () => actions,
+        children: actions,
       }),
     [actions]
   );

@@ -3,7 +3,7 @@ import Icon from "@shared/components/Icon";
 import { NavigationNode } from "@shared/types";
 import Breadcrumb from "~/components/Breadcrumb";
 import { sharedModelPath } from "~/utils/routeHelpers";
-import { createInternalLinkActionV2 } from "~/actions";
+import { createInternalLinkAction } from "~/actions";
 import { ActiveDocumentSection } from "~/actions/sections";
 
 type Props = {
@@ -53,7 +53,7 @@ const PublicBreadcrumb: React.FC<Props> = ({
       pathToDocument(sharedTree, documentId)
         .slice(1, -1)
         .map((item) =>
-          createInternalLinkActionV2({
+          createInternalLinkAction({
             name: item.title,
             section: ActiveDocumentSection,
             icon: item.icon ? (

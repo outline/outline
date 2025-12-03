@@ -16,7 +16,7 @@ import {
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { commentPath, urlify } from "~/utils/routeHelpers";
-import { ActionV2Separator, createActionV2 } from "~/actions";
+import { ActionSeparator, createAction } from "~/actions";
 import { ActiveDocumentSection } from "~/actions/sections";
 import { useMenuAction } from "~/hooks/useMenuAction";
 
@@ -54,7 +54,7 @@ function CommentMenu({
 
   const actions = useMemo(
     () => [
-      createActionV2({
+      createAction({
         name: `${t("Edit")}…`,
         icon: <EditIcon />,
         section: ActiveDocumentSection,
@@ -72,13 +72,13 @@ function CommentMenu({
       viewCommentReactionsFactory({
         comment,
       }),
-      createActionV2({
+      createAction({
         name: t("Copy link"),
         icon: <CopyIcon />,
         section: ActiveDocumentSection,
         perform: handleCopyLink,
       }),
-      ActionV2Separator,
+      ActionSeparator,
       deleteCommentFactory({ comment, onDelete }),
     ],
     [t, comment, can.update, onEdit, onUpdate, onDelete, handleCopyLink]

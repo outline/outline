@@ -13,7 +13,7 @@ import {
   logout,
 } from "~/actions/definitions/navigation";
 import { changeTheme } from "~/actions/definitions/settings";
-import { ActionV2Separator } from "~/actions";
+import { ActionSeparator } from "~/actions";
 import { useMenuAction } from "~/hooks/useMenuAction";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 
@@ -29,14 +29,14 @@ const AccountMenu: React.FC = ({ children }: Props) => {
       openKeyboardShortcuts,
       openDocumentation,
       openAPIDocumentation,
-      ActionV2Separator,
+      ActionSeparator,
       openChangelog,
       openFeedbackUrl,
       openBugReportUrl,
       changeTheme,
       navigateToProfileSettings,
       navigateToAccountPreferences,
-      ActionV2Separator,
+      ActionSeparator,
       logout,
     ],
     []

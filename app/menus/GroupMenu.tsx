@@ -13,9 +13,9 @@ import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import {
-  ActionV2Separator,
-  createActionV2,
-  createExternalLinkActionV2,
+  ActionSeparator,
+  createAction,
+  createExternalLinkAction,
 } from "~/actions";
 import { GroupSection } from "~/actions/sections";
 import { useMenuAction } from "~/hooks/useMenuAction";
@@ -56,22 +56,22 @@ function GroupMenu({ group }: Props) {
 
   const actions = useMemo(
     () => [
-      createActionV2({
+      createAction({
         name: `${t("Members")}…`,
         icon: <GroupIcon />,
         section: GroupSection,
         visible: !!(group && can.read),
         perform: handleViewMembers,
       }),
-      ActionV2Separator,
-      createActionV2({
+      ActionSeparator,
+      createAction({
         name: `${t("Edit")}…`,
         icon: <EditIcon />,
         section: GroupSection,
         visible: !!(group && can.update),
         perform: handleEditGroup,
       }),
-      createActionV2({
+      createAction({
         name: `${t("Delete")}…`,
         icon: <TrashIcon />,
         section: GroupSection,
@@ -79,8 +79,8 @@ function GroupMenu({ group }: Props) {
         dangerous: true,
         perform: handleDeleteGroup,
       }),
-      ActionV2Separator,
-      createExternalLinkActionV2({
+      ActionSeparator,
+      createExternalLinkAction({
         name: group.externalId ?? "",
         section: GroupSection,
         visible: !!group.externalId,

@@ -6,17 +6,17 @@ import { s, ellipsis } from "@shared/styles";
 import Flex from "~/components/Flex";
 import BreadcrumbMenu from "~/menus/BreadcrumbMenu";
 import { undraggableOnDesktop } from "~/styles";
-import { InternalLinkActionV2, MenuInternalLink } from "~/types";
-import { actionV2ToMenuItem } from "~/actions";
+import { InternalLinkAction, MenuInternalLink } from "~/types";
+import { actionToMenuItem } from "~/actions";
 import useActionContext from "~/hooks/useActionContext";
 import { useComputed } from "~/hooks/useComputed";
 
 type TopLevelAction =
-  | InternalLinkActionV2
-  | { type: "menu"; actions: InternalLinkActionV2[] };
+  | InternalLinkAction
+  | { type: "menu"; actions: InternalLinkAction[] };
 
 type Props = React.PropsWithChildren<{
-  actions: InternalLinkActionV2[];
+  actions: InternalLinkAction[];
   max?: number;
   highlightFirstItem?: boolean;
 }>;
@@ -46,7 +46,7 @@ function Breadcrumb(
     const menuActions = topLevelActions.splice(
       halfMax,
       totalVisibleActions - max
-    ) as InternalLinkActionV2[];
+    ) as InternalLinkAction[];
 
     topLevelActions.splice(halfMax, 0, {
       type: "menu",
@@ -60,10 +60,7 @@ function Breadcrumb(
         return <BreadcrumbMenu key="menu" actions={action.actions} />;
       }
 
-      const item = actionV2ToMenuItem(
-        action,
-        actionContext
-      ) as MenuInternalLink;
+      const item = actionToMenuItem(action, actionContext) as MenuInternalLink;
 
       return (
         <>

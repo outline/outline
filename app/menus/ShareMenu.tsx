@@ -5,7 +5,7 @@ import Share from "~/models/Share";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
 import usePolicy from "~/hooks/usePolicy";
-import { ActionV2Separator } from "~/actions";
+import { ActionSeparator } from "~/actions";
 import {
   copyShareUrlFactory,
   goToShareSourceFactory,
@@ -25,7 +25,7 @@ function ShareMenu({ share }: Props) {
     () => [
       copyShareUrlFactory({ share }),
       goToShareSourceFactory({ share }),
-      ActionV2Separator,
+      ActionSeparator,
       revokeShareFactory({ share, can }),
     ],
     [share, can]

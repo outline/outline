@@ -12,7 +12,7 @@ import {
 } from "~/actions/definitions/teams";
 import useActionContext from "~/hooks/useActionContext";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
-import { ActionV2Separator } from "~/actions";
+import { ActionSeparator } from "~/actions";
 import { useMenuAction } from "~/hooks/useMenuAction";
 
 type Props = {
@@ -30,7 +30,7 @@ const TeamMenu: React.FC = ({ children }: Props) => {
       ...switchTeamsList(context),
       createTeam,
       desktopLoginTeam,
-      ActionV2Separator,
+      ActionSeparator,
       navigateToWorkspaceSettings,
       logout,
     ],

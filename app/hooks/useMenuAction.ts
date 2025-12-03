@@ -2,17 +2,17 @@ import isEqual from "lodash/isEqual";
 import { useRef } from "react";
 import { createRootMenuAction } from "~/actions";
 import {
-  ActionV2Group,
-  ActionV2Separator,
-  ActionV2Variant,
-  ActionV2WithChildren,
+  ActionGroup,
+  ActionSeparator,
+  ActionVariant,
+  ActionWithChildren,
 } from "~/types";
 import usePrevious from "./usePrevious";
 
-type Actions = (ActionV2Variant | ActionV2Group | ActionV2Separator)[];
+type Actions = (ActionVariant | ActionGroup | ActionSeparator)[];
 
 export function useMenuAction(actions: Actions) {
-  const rootActionRef = useRef<ActionV2WithChildren>(
+  const rootActionRef = useRef<ActionWithChildren>(
     createRootMenuAction(actions)
   );
   const prevActions = usePrevious(actions);

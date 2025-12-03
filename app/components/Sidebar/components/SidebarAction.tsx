@@ -2,11 +2,11 @@ import invariant from "invariant";
 import { observer } from "mobx-react";
 import { actionToMenuItem } from "~/actions";
 import useActionContext from "~/hooks/useActionContext";
-import { Action } from "~/types";
+import { ActionVariant, ActionWithChildren } from "~/types";
 import SidebarLink from "./SidebarLink";
 
 type Props = {
-  action: Action;
+  action: Exclude<ActionVariant, ActionWithChildren>;
   depth?: number;
 };
 

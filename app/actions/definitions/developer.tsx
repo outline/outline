@@ -9,7 +9,7 @@ import {
   UserIcon,
 } from "outline-icons";
 import { toast } from "sonner";
-import { createAction } from "~/actions";
+import { createAction, createActionWithChildren } from "~/actions";
 import { DeveloperSection } from "~/actions/sections";
 import env from "~/env";
 import { client } from "~/utils/ApiClient";
@@ -19,7 +19,7 @@ import { deleteAllDatabases } from "~/utils/developer";
 import history from "~/utils/history";
 import { homePath } from "~/utils/routeHelpers";
 
-export const copyId = createAction({
+export const copyId = createActionWithChildren({
   name: ({ t }) => t("Copy ID"),
   icon: <CopyIcon />,
   keywords: "uuid",
@@ -191,7 +191,7 @@ export const toggleDebugSafeArea = createAction({
   },
 });
 
-export const toggleFeatureFlag = createAction({
+export const toggleFeatureFlag = createActionWithChildren({
   name: "Toggle feature flag",
   icon: <BeakerIcon />,
   section: DeveloperSection,
@@ -215,7 +215,7 @@ export const toggleFeatureFlag = createAction({
   ),
 });
 
-export const developer = createAction({
+export const developer = createActionWithChildren({
   name: ({ t }) => t("Development"),
   keywords: "debug",
   icon: <ToolsIcon />,

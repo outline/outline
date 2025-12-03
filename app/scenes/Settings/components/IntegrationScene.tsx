@@ -1,7 +1,7 @@
 import { SettingsIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { createInternalLinkActionV2 } from "~/actions";
+import { createInternalLinkAction } from "~/actions";
 import { NavigationSection } from "~/actions/sections";
 import Breadcrumb from "~/components/Breadcrumb";
 import Scene from "~/components/Scene";
@@ -15,7 +15,7 @@ export function IntegrationScene({
 
   const breadcrumbActions = React.useMemo(
     () => [
-      createInternalLinkActionV2({
+      createInternalLinkAction({
         name: t("Integrations"),
         section: NavigationSection,
         icon: <SettingsIcon />,

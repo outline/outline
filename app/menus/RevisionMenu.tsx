@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import Document from "~/models/Document";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
-import { ActionV2Separator } from "~/actions";
+import { ActionSeparator } from "~/actions";
 import {
   copyLinkToRevision,
   restoreRevision,
@@ -20,7 +20,7 @@ type Props = {
 function RevisionMenu({ document }: Props) {
   const { t } = useTranslation();
   const actions = useMemo(
-    () => [restoreRevision, ActionV2Separator, copyLinkToRevision],
+    () => [restoreRevision, ActionSeparator, copyLinkToRevision],
     []
   );
 
