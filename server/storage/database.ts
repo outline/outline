@@ -5,6 +5,7 @@ import { Sequelize, SequelizeOptions } from "sequelize-typescript";
 import { Umzug, SequelizeStorage, MigrationError } from "umzug";
 import env from "@server/env";
 import Model from "@server/models/base/Model";
+import { Second } from "@shared/utils/time";
 import Logger from "../logging/Logger";
 import * as models from "../models";
 
@@ -62,6 +63,11 @@ export function createDatabaseInstance(
       typeValidation: true,
       logQueryParameters: env.isDevelopment,
       dialectOptions: {
+        application_name: [
+          "outline",
+          ...(env.SERVICES.length < 4 ? env.SERVICES : []),
+        ].join("-"),
+        connectionTimeoutMillis: 30 * Second.ms,
         ssl:
           env.isProduction && !isSSLDisabled
             ? {
