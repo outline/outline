@@ -179,8 +179,8 @@ const Application = observer(function Application({ oauthClient }: Props) {
 
         <SettingRow
           name="clientType"
-          label={t("Client Type")}
-          description={t("Confidential clients can keep a secret")}
+          label={t("Client type")}
+          description={t("Confidential clients can securely store a secret")}
         >
           <Controller
             control={control}
