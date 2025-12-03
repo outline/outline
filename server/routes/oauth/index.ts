@@ -77,12 +77,13 @@ router.post(
 
 router.post(
   "/token",
+  validate(T.TokenSchema),
   rateLimiter(RateLimiterStrategy.OneHundredPerHour),
-  async (ctx) => {
-    const grantType = ctx.request.body.grant_type;
-    const refreshToken = ctx.request.body.refresh_token;
-    const clientId = ctx.request.body.client_id;
-    const clientSecret = ctx.request.body.client_secret;
+  async (ctx: APIContext<T.TokenReq>) => {
+    const grantType = ctx.input.body.grant_type;
+    const refreshToken = ctx.input.body.refresh_token;
+    const clientId = ctx.input.body.client_id;
+    const clientSecret = ctx.input.body.client_secret;
 
     // Because we disabled client authentication for refresh_token grant type at the library
     // initialization, we need to manually enforce it here for confidential clients.
