@@ -162,7 +162,10 @@ export default class Image extends SimpleImage {
           tag: "img",
           getAttrs: (dom: HTMLImageElement) => {
             // Don't parse images from our own editor with this rule.
-            if (dom.parentElement?.classList.contains("image")) {
+            if (
+              dom.parentElement?.classList.contains("image") ||
+              dom.parentElement?.classList.contains("emoji")
+            ) {
               return false;
             }
 
