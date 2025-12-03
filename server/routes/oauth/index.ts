@@ -93,6 +93,9 @@ router.post(
           "Missing refresh_token for refresh_token grant type"
         );
       }
+      if (!clientId) {
+        throw ValidationError("Missing client_id for refresh_token grant type");
+      }
       const client = await OAuthClient.findByClientId(clientId);
       if (!client) {
         throw ValidationError("Invalid client_id");
