@@ -34,7 +34,7 @@ function DocumentArchive({ documents, onSubmit }: Props) {
 
         if (errorCount === documents.length) {
           throw new Error(
-            t("Couldn't archive the {{noun}}, try again", {
+            t("Couldn't archive the {{noun}}, try again?", {
               noun: isBulkAction ? "documents" : "document",
             })
           );

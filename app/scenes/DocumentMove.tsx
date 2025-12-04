@@ -77,58 +77,54 @@ function DocumentMove({ documents, onSubmit }: Props) {
 
     setMoving(true);
 
-    try {
-      const { type, id: parentDocumentId } = selectedPath;
-      const collectionId = selectedPath.collectionId as string;
+    const { type, id: parentDocumentId } = selectedPath;
+    const collectionId = selectedPath.collectionId as string;
 
-      let successCount = 0;
-      let errorCount = 0;
+    let successCount = 0;
+    let errorCount = 0;
 
-      for (const document of documents) {
-        try {
-          if (type === "document") {
-            await document.move({ collectionId, parentDocumentId });
-          } else {
-            await document.move({ collectionId });
-          }
-          successCount++;
-        } catch {
-          errorCount++;
+    for (const document of documents) {
+      try {
+        if (type === "document") {
+          await document.move({ collectionId, parentDocumentId });
+        } else {
+          await document.move({ collectionId });
         }
+        successCount++;
+      } catch {
+        errorCount++;
       }
+    }
 
-      if (errorCount === documents.length) {
-        throw new Error(
-          t("Couldn’t move the {{noun}}, try again?", {
-            noun: isBulkAction ? "documents" : "document",
+    if (errorCount === documents.length) {
+      toast.error(
+        t("Couldn’t move the {{noun}}, try again?", {
+          noun: isBulkAction ? "documents" : "document",
+        })
+      );
+      setMoving(false);
+      return;
+    }
+
+    onSubmit?.();
+    if (!isBulkAction) {
+      toast.success(t("Document moved"));
+    } else {
+      if (errorCount === 0) {
+        toast.success(
+          t("{{ count }} documents moved", { count: successCount })
+        );
+      } else {
+        toast.warning(
+          t("{{ errorCount }} documents failed to move, try again?", {
+            errorCount,
           })
         );
       }
-
-      onSubmit?.();
-      if (!isBulkAction) {
-        toast.success(t("Document moved"));
-      } else {
-        if (errorCount === 0) {
-          toast.success(
-            t("{{ count }} documents moved", { count: successCount })
-          );
-        } else {
-          toast.warning(
-            t("{{ successCount }} moved, {{ errorCount }} failed", {
-              successCount,
-              errorCount,
-            })
-          );
-        }
-      }
-
-      dialogs.closeAllModals();
-    } catch (err) {
-      toast.error(err.message);
-    } finally {
-      setMoving(false);
     }
+
+    dialogs.closeAllModals();
+    setMoving(false);
   };
 
   const SelectedPathFooter = ({ title }: { title: string }) =>

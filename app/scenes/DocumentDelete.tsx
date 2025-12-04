@@ -40,8 +40,9 @@ function DocumentDelete({ documents, onSubmit }: Props) {
   const nestedDocumentsCount = React.useMemo(
     () =>
       documents.reduce((total, doc) => {
-        const childrenCount = doc.childDocuments.length;
-        return total + childrenCount;
+        const collection = collectionsStore.get(doc.collectionId || "");
+        const childrenCount = collection?.getChildrenForDocument(doc.id).length;
+        return total + (childrenCount ?? 0);
       }, 0),
     [documents]
   );
@@ -83,7 +84,6 @@ function DocumentDelete({ documents, onSubmit }: Props) {
         if (isBulkAction) {
           const message = failedIds.length
             ? t("{{ errorCount }} documents failed to delete, try again?", {
-                successCount,
                 errorCount: failedIds.length,
               })
             : t("{{ count }} documents deleted", { count: successCount });
@@ -145,13 +145,22 @@ function DocumentDelete({ documents, onSubmit }: Props) {
           documents.map((doc) => doc.archive())
         );
 
+        const errorCount = results.filter(
+          (r) => r.status === "rejected"
+        ).length;
+
+        if (errorCount === documents.length) {
+          throw new Error(
+            t("Couldn’t archive the {{noun}}, try again?", {
+              noun: isBulkAction ? "documents" : "document",
+            })
+          );
+        }
+
         // Show toast messages
         if (isBulkAction) {
           const successCount = results.filter(
             (r) => r.status === "fulfilled"
-          ).length;
-          const errorCount = results.filter(
-            (r) => r.status === "rejected"
           ).length;
 
           const message = errorCount

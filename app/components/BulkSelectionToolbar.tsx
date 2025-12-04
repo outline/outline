@@ -63,10 +63,7 @@ function BulkSelectionToolbar() {
         content: (
           <DocumentDelete
             documents={selectedDocuments}
-            onSubmit={() => {
-              dialogs.closeAllModals();
-              documents.clearSelection();
-            }}
+            onSubmit={documents.clearSelection}
           />
         ),
       });
