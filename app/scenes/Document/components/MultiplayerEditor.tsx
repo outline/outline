@@ -6,6 +6,7 @@ import {
   useMemo,
   useEffect,
   forwardRef,
+  useRef,
 } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
@@ -26,6 +27,7 @@ import useStores from "~/hooks/useStores";
 import { AwarenessChangeEvent } from "~/types";
 import Logger from "~/utils/Logger";
 import { homePath } from "~/utils/routeHelpers";
+import { sleep } from "@shared/utils/timers";
 
 type Props = EditorProps & {
   id: string;
@@ -52,6 +54,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   const history = useHistory();
   const { t } = useTranslation();
   const currentUser = useCurrentUser();
+  const retryCount = useRef(0);
   const { presence, auth, ui } = useStores();
   const [editorVersionBehind, setEditorVersionBehind] = useState(false);
   const [showCursorNames, setShowCursorNames] = useState(false);
@@ -105,15 +108,21 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     );
 
     provider.on("authenticationFailed", () => {
-      void auth
-        .fetchAuth()
-        .then(() => {
-          provider.setConfiguration({ token: auth.collaborationToken });
-          provider.connect();
-        })
-        .catch(() => {
-          history.replace(homePath());
-        });
+      provider.shouldConnect = false;
+      retryCount.current++;
+
+      sleep(retryCount.current * 1000 - 1000).then(() =>
+        auth
+          .fetchAuth()
+          .then(() => {
+            provider.setConfiguration({ token: auth.collaborationToken });
+            provider.connect();
+            provider.shouldConnect = true;
+          })
+          .catch(() => {
+            history.replace(homePath());
+          })
+      );
     });
 
     provider.on("awarenessChange", (event: AwarenessChangeEvent) => {
@@ -153,6 +162,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     provider.on("synced", () => {
       presence.touch(documentId, currentUser.id, false);
       setRemoteSynced(true);
+      retryCount.current = 0;
     });
 
     provider.on("close", (ev: MessageEvent) => {

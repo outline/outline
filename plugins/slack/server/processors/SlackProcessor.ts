@@ -11,7 +11,7 @@ import {
   Event,
 } from "@server/types";
 import fetch from "@server/utils/fetch";
-import { sleep } from "@server/utils/timers";
+import { sleep } from "@shared/utils/timers";
 import env from "../env";
 import { presentMessageAttachment } from "../presenters/messageAttachment";
 
