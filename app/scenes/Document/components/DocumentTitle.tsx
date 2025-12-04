@@ -233,9 +233,9 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
   );
 
   const dir = ref.current?.getComputedDirection();
-  const initial = title.slice(0, 1).toUpperCase();
+  const initial = title.charAt(0).toUpperCase();
   const fallbackIcon = icon ? (
-    <Icon value={icon} color={color} size={40} />
+    <Icon value={icon} initial={initial} color={color} size={40} />
   ) : null;
 
   return (

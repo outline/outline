@@ -57,7 +57,7 @@ const PublicBreadcrumb: React.FC<Props> = ({
             name: item.title,
             section: ActiveDocumentSection,
             icon: item.icon ? (
-              <Icon value={item.icon} color={item.color} />
+              <Icon value={item.icon} initial={item.title} color={item.color} />
             ) : undefined,
             to: sharedModelPath(shareId, item.url),
           })

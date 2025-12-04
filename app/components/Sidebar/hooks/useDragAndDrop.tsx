@@ -176,6 +176,7 @@ export function useDragDocument(
 ) {
   const icon = document?.icon || node.icon || node.emoji;
   const color = document?.color || node.color;
+  const initial = document?.initial || node.title;
 
   const [{ isDragging }, draggableRef, preview] = useDrag<
     DragObject,
@@ -187,7 +188,9 @@ export function useDragDocument(
       ({
         ...node,
         depth,
-        icon: icon ? <Icon value={icon} color={color} /> : undefined,
+        icon: icon ? (
+          <Icon initial={initial} value={icon} color={color} />
+        ) : undefined,
         collectionId: document?.collectionId || "",
       }) as DragObject,
     canDrag: () => !!document?.isActive && !isEditing,

@@ -224,7 +224,11 @@ const LinkEditor: React.FC<Props> = ({ mark, dictionary, view }) => {
                   title={doc.title}
                   icon={
                     doc.icon ? (
-                      <Icon value={doc.icon} color={doc.color ?? undefined} />
+                      <Icon
+                        value={doc.icon}
+                        initial={doc.initial}
+                        color={doc.color ?? undefined}
+                      />
                     ) : (
                       <DocumentIcon />
                     )

@@ -27,7 +27,11 @@ const useTemplatesAction = () => {
             ? TeamSection
             : ActiveCollectionSection,
           icon: template.icon ? (
-            <Icon value={template.icon} color={template.color ?? undefined} />
+            <Icon
+              value={template.icon}
+              initial={template.initial}
+              color={template.color ?? undefined}
+            />
           ) : (
             <NewDocumentIcon />
           ),

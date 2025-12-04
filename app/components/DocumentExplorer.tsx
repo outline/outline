@@ -268,7 +268,9 @@ function DocumentExplorer({ onSubmit, onSelect, items, defaultValue }: Props) {
         title = doc?.title ?? node.title;
 
         if (icon) {
-          renderedIcon = <Icon value={icon} color={color} />;
+          renderedIcon = (
+            <Icon value={icon} initial={node.title} color={color} />
+          );
         } else if (doc?.isStarred) {
           renderedIcon = <StarredIcon color={theme.yellow} />;
         } else {

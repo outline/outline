@@ -115,7 +115,12 @@ export const MentionDocument = observer(function MentionDocument_(
       to={doc?.path ?? `/doc/${node.attrs.modelId}`}
     >
       {doc?.icon ? (
-        <Icon value={doc?.icon} color={doc?.color} size={18} />
+        <Icon
+          value={doc.icon}
+          initial={doc.initial}
+          color={doc.color}
+          size={18}
+        />
       ) : (
         <DocumentIcon size={18} />
       )}
@@ -148,7 +153,12 @@ export const MentionCollection = observer(function MentionCollection_(
       to={collection?.path ?? `/collection/${node.attrs.modelId}`}
     >
       {collection?.icon ? (
-        <Icon value={collection?.icon} color={collection?.color} size={18} />
+        <Icon
+          value={collection.icon}
+          initial={collection.initial}
+          color={collection.color}
+          size={18}
+        />
       ) : (
         <CollectionIcon size={18} />
       )}

@@ -20,7 +20,11 @@ const useRecentDocumentActions = (count = 6) => {
             analyticsName: "Recently viewed document",
             section: RecentSection,
             icon: item.icon ? (
-              <Icon value={item.icon} color={item.color ?? undefined} />
+              <Icon
+                value={item.icon}
+                initial={item.initial}
+                color={item.color ?? undefined}
+              />
             ) : (
               <DocumentIcon />
             ),

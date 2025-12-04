@@ -143,7 +143,11 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
                 ({
                   name: "mention",
                   icon: doc.icon ? (
-                    <Icon value={doc.icon} color={doc.color ?? undefined} />
+                    <Icon
+                      value={doc.icon}
+                      initial={doc.initial}
+                      color={doc.color ?? undefined}
+                    />
                   ) : (
                     <DocumentIcon />
                   ),
@@ -178,6 +182,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
                   icon: collection.icon ? (
                     <Icon
                       value={collection.icon}
+                      initial={collection.initial}
                       color={collection.color ?? undefined}
                     />
                   ) : (

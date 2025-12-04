@@ -28,7 +28,11 @@ function CollectionLink({ node, shareId, hideRootNode }: Props) {
               title: node.title,
             },
           }}
-          icon={icon && <Icon value={icon} color={node.color} />}
+          icon={
+            icon && (
+              <Icon value={icon} initial={node.title} color={node.color} />
+            )
+          }
           label={node.title || t("Untitled")}
           depth={0}
           exact={false}

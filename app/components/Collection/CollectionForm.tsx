@@ -67,7 +67,13 @@ export const CollectionForm = observer(function CollectionForm_({
   const [hasOpenedIconPicker, setHasOpenedIconPicker] = useBoolean(false);
 
   const iconColor = useIconColor(collection);
-  const fallbackIcon = <Icon value="collection" color={iconColor} />;
+  const fallbackIcon = (
+    <Icon
+      value="collection"
+      initial={collection?.initial ?? "?"}
+      color={iconColor}
+    />
+  );
 
   const {
     register,
