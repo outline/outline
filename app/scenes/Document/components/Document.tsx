@@ -148,10 +148,7 @@ class DocumentScene extends React.Component<Props> {
    * @param template The template to use
    * @param selection The selection to replace, if any
    */
-  replaceSelection = (
-    template: Document | Revision,
-    selection?: Selection
-  ) => {
+  replaceSelection = (template: Document | Revision, selection?: Selection) => {
     const editorRef = this.editor.current;
 
     if (!editorRef) {
@@ -428,7 +425,9 @@ class DocumentScene extends React.Component<Props> {
 
     return this.replaceSelection(
       template,
-      ProsemirrorHelper.isEmpty(doc) ? new AllSelection(doc) : view.state.selection
+      ProsemirrorHelper.isEmpty(doc)
+        ? new AllSelection(doc)
+        : view.state.selection
     );
   };
 
