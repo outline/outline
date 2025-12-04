@@ -13,6 +13,7 @@ import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import { uploadFile } from "~/utils/files";
 import { compressImage } from "~/utils/compressImage";
+import { generateEmojiNameFromFilename } from "~/utils/emoji";
 import { AttachmentValidation, EmojiValidation } from "@shared/validations";
 import { bytesToHumanReadable } from "@shared/utils/files";
 
@@ -51,6 +52,15 @@ export function EmojiCreateDialog({ onSubmit }: Props) {
       }
 
       setFile(file);
+
+      // Auto-populate name field if it's empty
+      setName((currentName) => {
+        if (!currentName.trim()) {
+          const generatedName = generateEmojiNameFromFilename(file.name);
+          return generatedName || currentName;
+        }
+        return currentName;
+      });
     },
     [t]
   );
