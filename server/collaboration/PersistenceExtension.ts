@@ -31,7 +31,7 @@ export default class PersistenceExtension implements Extension {
 
     // First, try to find the document without a lock to check if it has state
     const documentWithoutLock = await Document.unscoped().findOne({
-      attributes: ["id", "state"],
+      attributes: ["state"],
       rejectOnEmpty: true,
       where: {
         id: documentId,
@@ -57,16 +57,16 @@ export default class PersistenceExtension implements Extension {
           id: documentId,
         },
       });
+      let ydoc;
 
       // Double-check the state in case another process created it
       if (document.state) {
-        const ydoc = new Y.Doc();
+        ydoc = new Y.Doc();
         Logger.info("database", `Document ${documentId} is in database state`);
         Y.applyUpdate(ydoc, document.state);
         return ydoc;
       }
 
-      let ydoc;
       if (document.content) {
         Logger.info(
           "database",
