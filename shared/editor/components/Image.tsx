@@ -134,7 +134,7 @@ const Image = (props: Props) => {
                 <Separator height={24} />
               </>
             )}
-            {imgLink && !isSelected && (
+            {imgLink && (
               <>
                 <Button
                   // `mousedown` on ancestor `div.ProseMirror` was preventing the `onClick` handler from firing
