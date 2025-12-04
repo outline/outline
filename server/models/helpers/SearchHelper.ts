@@ -571,8 +571,7 @@ export default class SearchHelper {
     // collectionId is passed as an option it is assumed that the authorization
     // has already been done in the router
     if (options.collectionId) {
-      // When a specific collection is requested, it should be an AND condition
-      // to restrict results to only that collection
+      where[Op.or].push({ collectionId: options.collectionId });
       where[Op.and].push({ collectionId: options.collectionId });
     } else {
       const collectionIds = await model.collectionIds();
