@@ -173,7 +173,11 @@ function DocumentHeader({
         title={
           <Flex gap={4}>
             {document.icon && (
-              <Icon value={document.icon} color={document.color ?? undefined} />
+              <Icon
+                value={document.icon}
+                initial={document.initial}
+                color={document.color ?? undefined}
+              />
             )}
             {document.title}
           </Flex>
@@ -226,7 +230,11 @@ function DocumentHeader({
         title={
           <Flex gap={4} align="center">
             {document.icon && (
-              <Icon value={document.icon} color={document.color ?? undefined} />
+              <Icon
+                value={document.icon}
+                initial={document.initial}
+                color={document.color ?? undefined}
+              />
             )}
             {document.title}
             {document.isArchived && <Badge>{t("Archived")}</Badge>}

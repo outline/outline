@@ -15,7 +15,7 @@ type Emoji = {
   title: string;
   emoji: string;
   description: string;
-  attrs: { markup: string; "data-name": string };
+  attrs: { "data-name": string };
 };
 
 type Props = Omit<
@@ -42,7 +42,7 @@ const EmojiMenu = (props: Props) => {
           // @ts-expect-error emojiMartToGemoji key
           const id = emojiMartToGemoji[item.id] || item.id;
           const type = determineIconType(id);
-          const shortcode = type === IconType.Custom ? id : snakeCase(id);
+          const value = type === IconType.Custom ? id : snakeCase(id);
           const emoji = item.value;
 
           return {
@@ -53,7 +53,7 @@ const EmojiMenu = (props: Props) => {
                 ? item.name
                 : capitalize(item.name.toLowerCase()),
             emoji,
-            attrs: { markup: shortcode, "data-name": shortcode },
+            attrs: { "data-name": value },
           };
         })
         .slice(0, 15),
