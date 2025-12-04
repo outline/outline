@@ -154,15 +154,6 @@ function SidebarLink(
     [onDisclosureClick]
   );
 
-  const handleCheckBoxClick = React.useCallback(
-    (ev: React.MouseEvent) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-      onCheckboxChange?.();
-    },
-    [onCheckboxChange]
-  );
-
   const DisclosureComponent = icon ? HiddenDisclosure : Disclosure;
 
   return (
@@ -171,7 +162,6 @@ function SidebarLink(
         $isActiveDrop={isActiveDrop}
         $isDraft={isDraft}
         $disabled={disabled}
-        $isSelected={isSelected}
         $hasCheckbox={showCheckbox}
         $hasAnySelection={hasAnySelection}
         style={style}
@@ -195,7 +185,7 @@ function SidebarLink(
             <CheckboxWrapper $alwaysVisible={hasAnySelection}>
               <NudeButton
                 type="button"
-                onClick={handleCheckBoxClick}
+                onClick={onCheckboxChange}
                 aria-label={t("Select")}
               >
                 <CheckboxIcon checked={isSelected} />
@@ -288,7 +278,6 @@ const Link = styled(NavLink)<{
   $isActiveDrop?: boolean;
   $isDraft?: boolean;
   $disabled?: boolean;
-  $isSelected?: boolean;
   $hasCheckbox?: boolean;
   $hasAnySelection?: boolean;
 }>`
@@ -302,7 +291,6 @@ const Link = styled(NavLink)<{
   }
 
   ${(props) => props.$isActiveDrop && `--background: ${props.theme.slateDark};`}
-  ${(props) => props.$isSelected && `--background: ${props.theme.accent}15;`}
 
   display: flex;
   position: relative;
