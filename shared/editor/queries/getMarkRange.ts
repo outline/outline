@@ -40,6 +40,11 @@ export function getMarkRange($pos?: ResolvedPos, type?: MarkType) {
   return { from: startPos, to: endPos, mark };
 }
 
+/**
+ * @param selection Current node selection
+ * @param type Mark type to check for
+ * @returns Returns the mark, along with its range for a given NodeSelection, or false if the mark is not found.
+ */
 export function getMarkRangeNodeSelection(
   selection: NodeSelection,
   type: MarkType
