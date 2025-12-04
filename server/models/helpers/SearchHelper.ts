@@ -570,14 +570,15 @@ export default class SearchHelper {
     // Ensure we're filtering by the users accessible collections. If
     // collectionId is passed as an option it is assumed that the authorization
     // has already been done in the router
+    const collectionIds = options.collectionId
+      ? [options.collectionId]
+      : await model.collectionIds();
+
     if (options.collectionId) {
-      where[Op.or].push({ collectionId: options.collectionId });
       where[Op.and].push({ collectionId: options.collectionId });
-    } else {
-      const collectionIds = await model.collectionIds();
-      if (collectionIds.length) {
-        where[Op.or].push({ collectionId: collectionIds });
-      }
+    }
+    if (collectionIds.length) {
+      where[Op.or].push({ collectionId: collectionIds });
     }
 
     if (options.dateFilter) {
