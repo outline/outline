@@ -4,7 +4,7 @@ import isEqual from "lodash/isEqual";
 import { action, observable } from "mobx";
 import { observer } from "mobx-react";
 import { Node } from "prosemirror-model";
-import { AllSelection, TextSelection } from "prosemirror-state";
+import { AllSelection, Selection, TextSelection } from "prosemirror-state";
 import * as React from "react";
 import { WithTranslation, withTranslation } from "react-i18next";
 import {
@@ -150,7 +150,7 @@ class DocumentScene extends React.Component<Props> {
    */
   replaceSelection = (
     template: Document | Revision,
-    selection?: TextSelection | AllSelection
+    selection?: Selection
   ) => {
     const editorRef = this.editor.current;
 
@@ -418,14 +418,17 @@ class DocumentScene extends React.Component<Props> {
   });
 
   handleSelectTemplate = async (template: Document | Revision) => {
-    const doc = this.editor.current?.view.state.doc;
-    if (!doc) {
+    const editorRef = this.editor.current;
+    if (!editorRef) {
       return;
     }
 
+    const { view } = editorRef;
+    const doc = view.state.doc;
+
     return this.replaceSelection(
       template,
-      ProsemirrorHelper.isEmpty(doc) ? new AllSelection(doc) : undefined
+      ProsemirrorHelper.isEmpty(doc) ? new AllSelection(doc) : view.state.selection
     );
   };
 
