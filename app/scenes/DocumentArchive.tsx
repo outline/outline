@@ -52,7 +52,6 @@ function DocumentArchive({ documents, onSubmit }: Props) {
           } else {
             toast.warning(
               t("{{ errorCount }} documents failed to archive, try again?", {
-                successCount,
                 errorCount,
               })
             );

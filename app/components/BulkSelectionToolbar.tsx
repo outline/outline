@@ -11,11 +11,12 @@ import useStores from "~/hooks/useStores";
 import DocumentMove from "~/scenes/DocumentMove";
 import DocumentDelete from "~/scenes/DocumentDelete";
 import DocumentArchive from "~/scenes/DocumentArchive";
+import { toast } from "sonner";
 
 function BulkSelectionToolbar() {
   const { t } = useTranslation();
   const { documents, dialogs, policies, ui } = useStores();
-  const selectedCount = documents.selectedCount;
+  const selectedCount = documents.selectedDocumentIds.length;
 
   const selectedDocuments = documents.selectedDocuments;
   const canArchiveAll = selectedDocuments.every(
@@ -27,6 +28,16 @@ function BulkSelectionToolbar() {
   const canMoveAll = selectedDocuments.every(
     (doc) => policies.abilities(doc.id).move
   );
+
+  React.useEffect(() => {
+    if (!canArchiveAll && !canDeleteAll && !canMoveAll) {
+      documents.clearSelection();
+      toast.info(
+        t("Selection cleared due to changes in permissions or document state.")
+      );
+      s;
+    }
+  }, [canArchiveAll, canDeleteAll, canMoveAll]);
 
   const handleClear = React.useCallback(
     (ev: React.MouseEvent) => {
@@ -46,7 +57,7 @@ function BulkSelectionToolbar() {
         content: (
           <DocumentArchive
             documents={selectedDocuments}
-            onSubmit={documents.clearSelection}
+            onSubmit={() => documents.clearSelection()}
           />
         ),
       });
@@ -63,7 +74,7 @@ function BulkSelectionToolbar() {
         content: (
           <DocumentDelete
             documents={selectedDocuments}
-            onSubmit={documents.clearSelection}
+            onSubmit={() => documents.clearSelection()}
           />
         ),
       });
@@ -80,7 +91,7 @@ function BulkSelectionToolbar() {
         content: (
           <DocumentMove
             documents={selectedDocuments}
-            onSubmit={documents.clearSelection}
+            onSubmit={() => documents.clearSelection()}
           />
         ),
       });

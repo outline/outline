@@ -181,6 +181,7 @@
   "currently viewing": "currently viewing",
   "previously edited": "previously edited",
   "You": "You",
+  "Selection cleared due to changes in permissions or document state.": "Selection cleared due to changes in permissions or document state.",
   "Archive {{ count }} documents": "Archive {{ count }} documents",
   "Archive {{ count }} documents_plural": "Archive {{ count }} documents",
   "Delete {{ count }} documents": "Delete {{ count }} documents",

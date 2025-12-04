@@ -80,7 +80,7 @@ function InnerDocumentLink(
 
   // Selection state for bulk operations
   const isSelected = documents.isSelected(node.id);
-  const hasAnySelection = documents.selectedCount > 0;
+  const hasAnySelection = documents.selectedDocumentIds.length > 0;
 
   const handleCheckboxChange = React.useCallback(() => {
     if (isSelected) {
@@ -446,8 +446,8 @@ function InnerDocumentLink(
                 isDraft={isDraft}
                 ref={ref}
                 menu={menuElement}
-                isSelected={isSelected}
                 showCheckbox
+                isSelected={isSelected}
                 hasAnySelection={hasAnySelection}
                 onCheckboxChange={handleCheckboxChange}
               />

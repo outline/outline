@@ -193,11 +193,13 @@ function SidebarLink(
         <Content>
           {showCheckbox && (
             <CheckboxWrapper $alwaysVisible={hasAnySelection}>
-              <CheckboxIcon
-                checked={isSelected}
+              <NudeButton
+                type="button"
                 onClick={handleCheckBoxClick}
                 aria-label={t("Select")}
-              />
+              >
+                <CheckboxIcon checked={isSelected} />
+              </NudeButton>
             </CheckboxWrapper>
           )}
           {hasDisclosure && (
@@ -220,13 +222,12 @@ function SidebarLink(
   );
 }
 
-// accounts for whitespace around icon
 export const IconWrapper = styled.span<{ $hideForCheckbox?: boolean }>`
   margin-left: -4px;
   height: 24px;
   overflow: hidden;
   flex-shrink: 0;
-  transition: all 150ms ease-in-out;
+  transition: opacity 150ms ease-in-out;
   display: ${(props) => (props.$hideForCheckbox ? "none" : "block")};
 `;
 

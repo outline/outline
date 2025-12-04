@@ -784,14 +784,6 @@ export default class DocumentsStore extends Store<Document> {
   // Selection methods for bulk operations
 
   /**
-   * Returns the number of selected documents.
-   */
-  @computed
-  get selectedCount(): number {
-    return this.selectedIds.size;
-  }
-
-  /**
    * Returns an array of selected document IDs.
    */
   @computed
@@ -842,41 +834,6 @@ export default class DocumentsStore extends Store<Document> {
     if (this.selectedIds.size === 0) {
       this.isSelectionMode = false;
     }
-  }
-
-  /**
-   * Toggles the selection of a document.
-   *
-   * @param id - the document id to toggle.
-   */
-  @action
-  toggleSelection(id: string): void {
-    if (this.selectedIds.has(id)) {
-      this.deselect(id);
-    } else {
-      this.select(id);
-    }
-  }
-
-  /**
-   * Selects all documents from the given list.
-   *
-   * @param ids - array of document ids to select.
-   */
-  @action
-  selectAll(ids: string[]): void {
-    ids.forEach((id) => this.selectedIds.add(id));
-    if (!this.isSelectionMode && ids.length > 0) {
-      this.isSelectionMode = true;
-    }
-  }
-
-  /**
-   * Enters selection mode without selecting any documents.
-   */
-  @action
-  enterSelectionMode(): void {
-    this.isSelectionMode = true;
   }
 
   /**

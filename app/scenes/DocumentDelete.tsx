@@ -44,7 +44,7 @@ function DocumentDelete({ documents, onSubmit }: Props) {
         const childrenCount = collection?.getChildrenForDocument(doc.id).length;
         return total + (childrenCount ?? 0);
       }, 0),
-    [documents]
+    [documents, collectionsStore]
   );
 
   const handleSubmit = React.useCallback(
