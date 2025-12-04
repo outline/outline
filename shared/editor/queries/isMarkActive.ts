@@ -33,7 +33,7 @@ const isNodeMarkActive =
     return true;
   };
 
-const isActualMarkActive =
+const isInlineMarkActive =
   (type: MarkType, attrs?: Record<string, Primitive>, options?: Options) =>
   (state: EditorState): boolean => {
     if (!type) {
@@ -79,6 +79,6 @@ export const isMarkActive = (
   options?: Options
 ) =>
   chainCommands(
-    isActualMarkActive(type, attrs, options),
+    isInlineMarkActive(type, attrs, options),
     isNodeMarkActive(type)
   );
