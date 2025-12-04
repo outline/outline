@@ -825,6 +825,7 @@ export default class DocumentsStore extends Store<Document> {
   @action
   select(id: string): void {
     this.selectedIds.add(id);
+    void this.fetch(id);
     if (!this.isSelectionMode) {
       this.isSelectionMode = true;
     }
