@@ -28,7 +28,7 @@ describe("EmojiCreateDialog - GIF handling", () => {
       id: "attachment-id",
       url: "https://example.com/emoji.gif",
       name: "animated.gif",
-    } as ReturnType<typeof uploadFile> extends Promise<infer T> ? T : never);
+    } as unknown as Awaited<ReturnType<typeof uploadFile>>);
 
     // Simulate the logic from handleSubmit
     const fileToUpload =
@@ -75,7 +75,7 @@ describe("EmojiCreateDialog - GIF handling", () => {
       id: "attachment-id",
       url: "https://example.com/emoji.png",
       name: "emoji.png",
-    } as ReturnType<typeof uploadFile> extends Promise<infer T> ? T : never);
+    } as unknown as Awaited<ReturnType<typeof uploadFile>>);
 
     // Simulate the logic from handleSubmit
     const fileToUpload =
