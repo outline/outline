@@ -83,9 +83,16 @@ export function SelectionToolbar(props: Props) {
     null
   );
 
+  const linkMark =
+    selection instanceof NodeSelection
+      ? getMarkRangeNodeSelection(selection, state.schema.marks.link)
+      : getMarkRange(selection.$from, state.schema.marks.link);
+
   React.useEffect(() => {
     if (isEmbedSelection) {
       setActiveToolbar(TOOLBAR.Media);
+    } else if (linkMark) {
+      setActiveToolbar(TOOLBAR.Link);
     } else if (!selection.empty) {
       setActiveToolbar(TOOLBAR.Menu);
     }
