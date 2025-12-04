@@ -38,7 +38,7 @@ type Props = {
   onLinkRemove: () => void;
   onEscape: () => void;
   onClickOutside: () => void;
-  onBackButtonPress: () => void;
+  onClickBack: () => void;
 };
 
 const LinkEditor: React.FC<Props> = ({
@@ -50,7 +50,7 @@ const LinkEditor: React.FC<Props> = ({
   onLinkRemove,
   onEscape,
   onClickOutside,
-  onBackButtonPress,
+  onClickBack,
 }) => {
   const getHref = () => sanitizeUrl(mark?.attrs.href) ?? "";
   const initialValue = getHref();
@@ -194,7 +194,7 @@ const LinkEditor: React.FC<Props> = ({
       icon: <ReturnIcon />,
       visible: view.editable,
       disabled: false,
-      handler: onBackButtonPress,
+      handler: onClickBack,
     },
   ];
 
