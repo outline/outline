@@ -574,6 +574,9 @@ export default class SearchHelper {
       ? [options.collectionId]
       : await model.collectionIds();
 
+    if (options.collectionId) {
+      where[Op.and].push({ collectionId: options.collectionId });
+    }
     if (collectionIds.length) {
       where[Op.or].push({ collectionId: collectionIds });
     }

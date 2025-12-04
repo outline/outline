@@ -1933,6 +1933,58 @@ describe("#documents.search", () => {
     expect(body.data[0].document.id).toEqual(document.id);
     expect(res.status).toEqual(200);
   });
+
+  it("should not return documents from other collections when filtering by specific collection without search term", async () => {
+    const user = await buildUser();
+    const collection1 = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const collection2 = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const docsInCollection1 = await Promise.all([
+      buildDocument({
+        teamId: user.teamId,
+        userId: user.id,
+        collectionId: collection1.id,
+        title: "document 1 in collection 1",
+      }),
+      buildDocument({
+        teamId: user.teamId,
+        userId: user.id,
+        collectionId: collection1.id,
+        title: "document 2 in collection 1",
+      }),
+    ]);
+    await Promise.all([
+      buildDocument({
+        teamId: user.teamId,
+        userId: user.id,
+        collectionId: collection2.id,
+        title: "document 1 in collection 2",
+      }),
+      buildDocument({
+        teamId: user.teamId,
+        userId: user.id,
+        collectionId: collection2.id,
+        title: "document 2 in collection 2",
+      }),
+    ]);
+    const res = await server.post("/api/documents.search", {
+      body: {
+        token: user.getJwtToken(),
+        collectionId: collection1.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(2);
+    const returnedIds = body.data.map((d: any) => d.document.id).sort();
+    const expectedIds = docsInCollection1.map((d) => d.id).sort();
+    expect(returnedIds).toEqual(expectedIds);
+  });
 });
 
 describe("#documents.templatize", () => {
