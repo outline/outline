@@ -1,10 +1,10 @@
 import { observer } from "mobx-react";
 import {
   ArrowIcon,
-  BackIcon,
   CloseIcon,
   DocumentIcon,
   OpenIcon,
+  ReturnIcon,
 } from "outline-icons";
 import { Mark } from "prosemirror-model";
 import { EditorView } from "prosemirror-view";
@@ -191,7 +191,7 @@ const LinkEditor: React.FC<Props> = ({
       handler: removeLink,
     },
     {
-      icon: <BackIcon />,
+      icon: <ReturnIcon />,
       visible: view.editable,
       disabled: false,
       handler: onBackButtonPress,
