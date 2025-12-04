@@ -29,8 +29,27 @@ export default class PersistenceExtension implements Extension {
       return;
     }
 
+    // First, try to find the document without a lock to check if it has state
+    const documentWithoutLock = await Document.unscoped().findOne({
+      attributes: ["id", "state"],
+      rejectOnEmpty: true,
+      where: {
+        id: documentId,
+      },
+    });
+
+    // If the document already has state, we can return it without needing a transaction
+    if (documentWithoutLock.state) {
+      const ydoc = new Y.Doc();
+      Logger.info("database", `Document ${documentId} is in database state`);
+      Y.applyUpdate(ydoc, documentWithoutLock.state);
+      return ydoc;
+    }
+
+    // If the document doesn't have state yet, we need to acquire a lock and create it
     return await sequelize.transaction(async (transaction) => {
-      const document = await Document.scope("withState").findOne({
+      const document = await Document.unscoped().findOne({
+        attributes: ["id", "state", "content", "text"],
         transaction,
         lock: transaction.LOCK.UPDATE,
         rejectOnEmpty: true,
@@ -39,14 +58,15 @@ export default class PersistenceExtension implements Extension {
         },
       });
 
-      let ydoc;
+      // Double-check the state in case another process created it
       if (document.state) {
-        ydoc = new Y.Doc();
+        const ydoc = new Y.Doc();
         Logger.info("database", `Document ${documentId} is in database state`);
         Y.applyUpdate(ydoc, document.state);
         return ydoc;
       }
 
+      let ydoc;
       if (document.content) {
         Logger.info(
           "database",
