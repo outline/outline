@@ -54,14 +54,15 @@ export function EmojiCreateDialog({ onSubmit }: Props) {
       setFile(file);
 
       // Auto-populate name field if it's empty
-      if (!name.trim()) {
-        const generatedName = generateEmojiNameFromFilename(file.name);
-        if (generatedName) {
-          setName(generatedName);
+      setName((currentName) => {
+        if (!currentName.trim()) {
+          const generatedName = generateEmojiNameFromFilename(file.name);
+          return generatedName || currentName;
         }
-      }
+        return currentName;
+      });
     },
-    [t, name]
+    [t]
   );
 
   const onDrop = React.useCallback(
