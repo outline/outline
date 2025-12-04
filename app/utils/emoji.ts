@@ -7,7 +7,8 @@ export function emojiToUrl(text: string) {
  * - Removing file extension
  * - Converting to lowercase
  * - Replacing spaces with underscores
- * - Removing invalid characters (only allowing lowercase letters, numbers, and underscores)
+ * - Removing invalid characters (only allowing lowercase letters and underscores)
+ * - Removing numbers
  * - Removing leading/trailing underscores
  *
  * @param filename the name of the file.
@@ -20,8 +21,8 @@ export function generateEmojiNameFromFilename(filename: string): string {
   // Convert to lowercase, replace spaces with underscores
   let name = nameWithoutExt.toLowerCase().replace(/\s+/g, "_");
 
-  // Remove all characters that aren't lowercase letters, numbers, or underscores
-  name = name.replace(/[^a-z0-9_]/g, "");
+  // Remove all characters that aren't lowercase letters or underscores (including numbers)
+  name = name.replace(/[^a-z_]/g, "");
 
   // Remove leading/trailing underscores and collapse multiple underscores
   name = name.replace(/^_+|_+$/g, "").replace(/_+/g, "_");

@@ -29,7 +29,14 @@ describe("generateEmojiNameFromFilename", () => {
       "partyparrot"
     );
     expect(generateEmojiNameFromFilename("happy!@#$%.png")).toBe("happy");
-    expect(generateEmojiNameFromFilename("emoji(1).png")).toBe("emoji1");
+    expect(generateEmojiNameFromFilename("emoji(1).png")).toBe("emoji");
+  });
+
+  test("should remove numbers", () => {
+    expect(generateEmojiNameFromFilename("emoji1.png")).toBe("emoji");
+    expect(generateEmojiNameFromFilename("test123.gif")).toBe("test");
+    expect(generateEmojiNameFromFilename("123emoji.png")).toBe("emoji");
+    expect(generateEmojiNameFromFilename("emoji2023.png")).toBe("emoji");
   });
 
   test("should handle files from slackmojis.com format", () => {
@@ -57,15 +64,15 @@ describe("generateEmojiNameFromFilename", () => {
 
   test("should handle complex filenames", () => {
     expect(generateEmojiNameFromFilename("Party Parrot (1).gif")).toBe(
-      "party_parrot_1"
+      "party_parrot"
     );
     expect(generateEmojiNameFromFilename("dumpster-fire-2023.png")).toBe(
-      "dumpsterfire2023"
+      "dumpsterfire"
     );
   });
 
   test("should handle edge cases", () => {
-    expect(generateEmojiNameFromFilename("123.png")).toBe("123");
+    expect(generateEmojiNameFromFilename("123.png")).toBe("");
     expect(generateEmojiNameFromFilename("_____.png")).toBe("");
     expect(generateEmojiNameFromFilename("a.png")).toBe("a");
   });
