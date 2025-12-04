@@ -110,7 +110,11 @@ export const openDocument = createActionWithChildren({
         id: item.url,
         name: item.title,
         icon: item.icon ? (
-          <Icon value={item.icon} color={item.color ?? undefined} />
+          <Icon
+            value={item.icon}
+            initial={item.title}
+            color={item.color ?? undefined}
+          />
         ) : (
           <DocumentIcon />
         ),

@@ -187,12 +187,12 @@ function DocumentCard(props: Props) {
 
 const DocumentSquircle = ({
   icon,
-  color,
   initial,
+  color,
 }: {
   icon: string;
+  initial: string;
   color?: string;
-  initial?: string;
 }) => {
   const theme = useTheme();
   const iconType = determineIconType(icon)!;

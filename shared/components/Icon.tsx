@@ -18,7 +18,7 @@ export type Props = {
   /** The size of the icon */
   size?: number;
   /** The initial to display if the icon is a letter icon */
-  initial?: string;
+  initial: string;
   /** Optional additional class name */
   className?: string;
   /**
@@ -103,7 +103,7 @@ const SVGIcon = observer(
 
     return (
       <Component color={color} size={size} className={className}>
-        {initial}
+        {initial?.charAt(0).toUpperCase()}
       </Component>
     );
   }

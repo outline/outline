@@ -38,7 +38,7 @@ type Props = {
   icon: string | null;
   color: string;
   size?: number;
-  initial?: string;
+  initial: string;
   className?: string;
   popoverPosition: "bottom-start" | "right";
   allowDelete?: boolean;

@@ -59,6 +59,8 @@ function Avatar(props: Props) {
   } = props;
   const src = props.src || model?.avatarUrl;
   const [error, handleError] = useBoolean(false);
+  const initial =
+    model?.initial || (model?.name ? model.name[0] : "").toUpperCase();
 
   const content = (
     <Relative
@@ -71,7 +73,7 @@ function Avatar(props: Props) {
         <Image onError={handleError} src={src} {...rest} />
       ) : model ? (
         <Initials color={model.color} {...rest}>
-          {model.initial?.toUpperCase()}
+          {initial}
         </Initials>
       ) : (
         <Initials {...rest} />
