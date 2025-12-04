@@ -11,7 +11,6 @@ import useStores from "~/hooks/useStores";
 import DocumentMove from "~/scenes/DocumentMove";
 import DocumentDelete from "~/scenes/DocumentDelete";
 import DocumentArchive from "~/scenes/DocumentArchive";
-import { toast } from "sonner";
 
 function BulkSelectionToolbar() {
   const { t } = useTranslation();
@@ -30,14 +29,15 @@ function BulkSelectionToolbar() {
   );
 
   React.useEffect(() => {
-    if (!canArchiveAll && !canDeleteAll && !canMoveAll) {
+    if (
+      !canArchiveAll &&
+      !canDeleteAll &&
+      !canMoveAll &&
+      documents.isSelectionMode
+    ) {
       documents.clearSelection();
-      toast.info(
-        t("Selection cleared due to changes in permissions or document state.")
-      );
-      s;
     }
-  }, [canArchiveAll, canDeleteAll, canMoveAll]);
+  }, [canArchiveAll, canDeleteAll, canMoveAll, documents.isSelectionMode]);
 
   const handleClear = React.useCallback(
     (ev: React.MouseEvent) => {

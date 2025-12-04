@@ -77,7 +77,7 @@ function DocumentArchive({ documents, onSubmit }: Props) {
         {isBulkAction ? (
           <Trans
             count={documents.length}
-            defaults="Are you sure you want to archive <em>{{ count }} documents</em>? They will be removed from collections and search results."
+            defaults="Are you sure you want to archive these <em>{{ count }} documents</em>? They will be removed from collections and search results."
             values={{ count: documents.length }}
             components={{ em: <strong /> }}
           />

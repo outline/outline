@@ -80,6 +80,9 @@ function DocumentDelete({ documents, onSubmit }: Props) {
           );
         }
 
+        onSubmit?.();
+        dialogs.closeAllModals();
+
         // Show toast messages
         if (isBulkAction) {
           const message = failedIds.length
@@ -115,9 +118,7 @@ function DocumentDelete({ documents, onSubmit }: Props) {
       } catch (err) {
         toast.error(err.message);
       } finally {
-        onSubmit?.();
         setDeleting(false);
-        dialogs.closeAllModals();
       }
     },
     [
@@ -157,6 +158,9 @@ function DocumentDelete({ documents, onSubmit }: Props) {
           );
         }
 
+        onSubmit?.();
+        dialogs.closeAllModals();
+
         // Show toast messages
         if (isBulkAction) {
           const successCount = results.filter(
@@ -176,9 +180,7 @@ function DocumentDelete({ documents, onSubmit }: Props) {
       } catch (err) {
         toast.error(err.message);
       } finally {
-        onSubmit?.();
         setArchiving(false);
-        dialogs.closeAllModals();
       }
     },
     [documents, dialogs, isBulkAction, t, onSubmit]
