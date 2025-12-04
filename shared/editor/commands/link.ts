@@ -9,10 +9,7 @@ import {
 import { getMarkRange } from "../queries/getMarkRange";
 import { toast } from "sonner";
 import { sanitizeUrl } from "@shared/utils/urls";
-import { addMark } from "./addMark";
 import { getMarkRangeNodeSelection } from "../queries/getMarkRange";
-import { collapseSelection } from "./collapseSelection";
-import { chainTransactions } from "../lib/chainTransactions";
 
 const addLinkTextSelection =
   (attrs: Attrs): Command =>
@@ -21,10 +18,15 @@ const addLinkTextSelection =
       return false;
     }
 
-    chainTransactions(
-      addMark(state.schema.marks.link, attrs),
-      collapseSelection()
-    )(state, dispatch);
+    dispatch?.(
+      state.tr
+        .setSelection(TextSelection.create(state.doc, state.tr.selection.to))
+        .addMark(
+          state.selection.from,
+          state.selection.to,
+          state.schema.marks.link.create(attrs)
+        )
+    );
 
     return true;
   };
