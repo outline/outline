@@ -196,6 +196,26 @@ export function SelectionToolbar(props: Props) {
   });
 
   items = filterExcessSeparators(items);
+  items = items.map((item) => {
+    if (item.children) {
+      item.children = item.children.map((child) => {
+        if (child.name === "editImageUrl") {
+          child.onClick = () => {
+            setActiveToolbar(TOOLBAR.Media);
+          };
+        }
+        return child;
+      });
+    }
+
+    if (item.name === "linkOnImage" || item.name === "addLink") {
+      item.onClick = () => {
+        setActiveToolbar(TOOLBAR.Link);
+      };
+    }
+    return item;
+  });
+
   if (!items.length) {
     return null;
   }
@@ -260,15 +280,7 @@ export function SelectionToolbar(props: Props) {
           onClickOutside={() => setActiveToolbar(null)}
         />
       ) : (
-        <ToolbarMenu
-          items={items}
-          {...rest}
-          handlers={{
-            editImageUrl: () => setActiveToolbar(TOOLBAR.Media),
-            linkOnImage: () => setActiveToolbar(TOOLBAR.Link),
-            addLink: () => setActiveToolbar(TOOLBAR.Link),
-          }}
-        />
+        <ToolbarMenu items={items} {...rest} />
       )}
     </FloatingToolbar>
   );

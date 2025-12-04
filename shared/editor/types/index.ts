@@ -42,6 +42,7 @@ export type MenuItem = {
   appendSpace?: boolean;
   skipIcon?: boolean;
   disabled?: boolean;
+  onClick?: () => void;
 };
 
 export type ComponentProps = {
