@@ -60,7 +60,7 @@ function useIsDragging() {
   return isDragging;
 }
 
-enum TOOLBAR {
+enum Toolbar {
   Link = "link",
   Media = "media",
   Menu = "menu",
@@ -79,7 +79,7 @@ export function SelectionToolbar(props: Props) {
   const { selection } = state;
   const isEmbedSelection =
     selection instanceof NodeSelection && selection.node.type.name === "embed";
-  const [activeToolbar, setActiveToolbar] = React.useState<TOOLBAR | null>(
+  const [activeToolbar, setActiveToolbar] = React.useState<Toolbar | null>(
     null
   );
 
@@ -90,11 +90,11 @@ export function SelectionToolbar(props: Props) {
 
   React.useEffect(() => {
     if (isEmbedSelection) {
-      setActiveToolbar(TOOLBAR.Media);
+      setActiveToolbar(Toolbar.Media);
     } else if (linkMark) {
-      setActiveToolbar(TOOLBAR.Link);
+      setActiveToolbar(Toolbar.Link);
     } else if (!selection.empty) {
-      setActiveToolbar(TOOLBAR.Menu);
+      setActiveToolbar(Toolbar.Menu);
     }
   }, [selection]);
 
@@ -208,7 +208,7 @@ export function SelectionToolbar(props: Props) {
       item.children = item.children.map((child) => {
         if (child.name === "editImageUrl") {
           child.onClick = () => {
-            setActiveToolbar(TOOLBAR.Media);
+            setActiveToolbar(Toolbar.Media);
           };
         }
         return child;
@@ -217,7 +217,7 @@ export function SelectionToolbar(props: Props) {
 
     if (item.name === "linkOnImage" || item.name === "addLink") {
       item.onClick = () => {
-        setActiveToolbar(TOOLBAR.Link);
+        setActiveToolbar(Toolbar.Link);
       };
     }
     return item;
@@ -236,10 +236,10 @@ export function SelectionToolbar(props: Props) {
         !view.state.selection.empty
       ) {
         ev.stopPropagation();
-        if (activeToolbar === TOOLBAR.Link) {
-          setActiveToolbar(TOOLBAR.Menu);
-        } else if (activeToolbar === TOOLBAR.Menu) {
-          setActiveToolbar(TOOLBAR.Link);
+        if (activeToolbar === Toolbar.Link) {
+          setActiveToolbar(Toolbar.Menu);
+        } else if (activeToolbar === Toolbar.Menu) {
+          setActiveToolbar(Toolbar.Link);
         }
       }
     },
@@ -257,12 +257,12 @@ export function SelectionToolbar(props: Props) {
       active={isActive}
       ref={menuRef}
       width={
-        activeToolbar === TOOLBAR.Link || activeToolbar === TOOLBAR.Media
+        activeToolbar === Toolbar.Link || activeToolbar === Toolbar.Media
           ? 336
           : undefined
       }
     >
-      {activeToolbar === TOOLBAR.Link ? (
+      {activeToolbar === Toolbar.Link ? (
         <LinkEditor
           key={`${selection.from}-${selection.to}`}
           dictionary={dictionary}
@@ -271,11 +271,11 @@ export function SelectionToolbar(props: Props) {
           onLinkAdd={() => setActiveToolbar(null)}
           onLinkUpdate={() => setActiveToolbar(null)}
           onLinkRemove={() => setActiveToolbar(null)}
-          onEscape={() => setActiveToolbar(TOOLBAR.Menu)}
+          onEscape={() => setActiveToolbar(Toolbar.Menu)}
           onClickOutside={() => setActiveToolbar(null)}
-          onClickBack={() => setActiveToolbar(TOOLBAR.Menu)}
+          onClickBack={() => setActiveToolbar(Toolbar.Menu)}
         />
-      ) : activeToolbar === TOOLBAR.Media ? (
+      ) : activeToolbar === Toolbar.Media ? (
         <MediaLinkEditor
           key={`embed-${selection.from}`}
           node={(selection as NodeSelection).node}
@@ -283,7 +283,7 @@ export function SelectionToolbar(props: Props) {
           dictionary={dictionary}
           onLinkUpdate={() => setActiveToolbar(null)}
           onLinkRemove={() => setActiveToolbar(null)}
-          onEscape={() => setActiveToolbar(TOOLBAR.Menu)}
+          onEscape={() => setActiveToolbar(Toolbar.Menu)}
           onClickOutside={() => setActiveToolbar(null)}
         />
       ) : (
