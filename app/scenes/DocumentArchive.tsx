@@ -15,7 +15,7 @@ type Props = {
 
 function DocumentArchive({ documents, onSubmit }: Props) {
   const { t } = useTranslation();
-  const { documents: documentsStore, dialogs } = useStores();
+  const { dialogs } = useStores();
   const [isArchiving, setArchiving] = React.useState(false);
   const isBulkAction = documents.length > 1;
 
@@ -28,13 +28,21 @@ function DocumentArchive({ documents, onSubmit }: Props) {
         const results = await Promise.allSettled(
           documents.map((document) => document.archive())
         );
+        const errorCount = results.filter(
+          (r) => r.status === "rejected"
+        ).length;
+
+        if (errorCount === documents.length) {
+          throw new Error(
+            t("Couldn't archive the {{noun}}, try again", {
+              noun: isBulkAction ? "documents" : "document",
+            })
+          );
+        }
 
         if (isBulkAction) {
           const successCount = results.filter(
             (r) => r.status === "fulfilled"
-          ).length;
-          const errorCount = results.filter(
-            (r) => r.status === "rejected"
           ).length;
 
           if (errorCount === 0) {
@@ -43,7 +51,7 @@ function DocumentArchive({ documents, onSubmit }: Props) {
             );
           } else {
             toast.warning(
-              t("{{ successCount }} archived, {{ errorCount }} failed", {
+              t("{{ errorCount }} documents failed to archive, try again?", {
                 successCount,
                 errorCount,
               })
@@ -61,7 +69,7 @@ function DocumentArchive({ documents, onSubmit }: Props) {
         setArchiving(false);
       }
     },
-    [onSubmit, documents, documentsStore, t, isBulkAction, dialogs]
+    [onSubmit, documents, t, isBulkAction, dialogs]
   );
 
   return (

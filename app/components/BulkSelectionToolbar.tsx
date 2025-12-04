@@ -51,7 +51,7 @@ function BulkSelectionToolbar() {
         ),
       });
     },
-    [dialogs, selectedCount, selectedDocuments, t]
+    [dialogs, selectedCount, selectedDocuments, t, documents]
   );
 
   const handleDelete = React.useCallback(

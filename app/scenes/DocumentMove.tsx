@@ -97,6 +97,14 @@ function DocumentMove({ documents, onSubmit }: Props) {
         }
       }
 
+      if (errorCount === documents.length) {
+        throw new Error(
+          t("Couldn’t move the {{noun}}, try again?", {
+            noun: isBulkAction ? "documents" : "document",
+          })
+        );
+      }
+
       onSubmit?.();
       if (!isBulkAction) {
         toast.success(t("Document moved"));
@@ -116,8 +124,8 @@ function DocumentMove({ documents, onSubmit }: Props) {
       }
 
       dialogs.closeAllModals();
-    } catch (_err) {
-      toast.error(t("Couldn’t move the document, try again?"));
+    } catch (err) {
+      toast.error(err.message);
     } finally {
       setMoving(false);
     }

@@ -83,12 +83,12 @@ function InnerDocumentLink(
   const hasAnySelection = documents.selectedCount > 0;
 
   const handleCheckboxChange = React.useCallback(() => {
-    if (documents.isSelected(node.id)) {
+    if (isSelected) {
       documents.deselect(node.id);
     } else {
       documents.select(node.id);
     }
-  }, [documents, node.id]);
+  }, [documents, node.id, isSelected]);
 
   React.useEffect(() => {
     if (

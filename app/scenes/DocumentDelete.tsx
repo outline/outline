@@ -71,17 +71,25 @@ function DocumentDelete({ documents, onSubmit }: Props) {
           }
         }
 
+        if (failedIds.length === documents.length) {
+          throw new Error(
+            t("Couldn’t delete the {{noun}}, try again?", {
+              noun: isBulkAction ? "documents" : "document",
+            })
+          );
+        }
+
         // Show toast messages
         if (isBulkAction) {
           const message = failedIds.length
-            ? t("{{ successCount }} deleted, {{ errorCount }} failed", {
+            ? t("{{ errorCount }} documents failed to delete, try again?", {
                 successCount,
                 errorCount: failedIds.length,
               })
             : t("{{ count }} documents deleted", { count: successCount });
           failedIds.length ? toast.warning(message) : toast.success(message);
         } else {
-          toast.success(t("Document deleted."));
+          toast.success(t("Document deleted"));
         }
 
         // only redirect if we're currently viewing one of the documents that have been deleted
@@ -154,7 +162,7 @@ function DocumentDelete({ documents, onSubmit }: Props) {
             : t("{{ count }} documents archived", { count: successCount });
           errorCount ? toast.warning(message) : toast.success(message);
         } else {
-          toast.success(t("Document archived."));
+          toast.success(t("Document archived"));
         }
       } catch (err) {
         toast.error(err.message);
