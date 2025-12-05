@@ -61,6 +61,9 @@ class User extends ParanoidModel implements Searchable {
   lastActiveAt: string;
 
   @observable
+  lastActiveIp?: string | null;
+
+  @observable
   isSuspended: boolean;
 
   @computed

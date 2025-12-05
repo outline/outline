@@ -1,6 +1,6 @@
 import { ColumnSort } from "@tanstack/react-table";
 import { observer } from "mobx-react";
-import { PlusIcon, UserIcon } from "outline-icons";
+import { DownloadIcon, PlusIcon, UserIcon } from "outline-icons";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
@@ -21,6 +21,8 @@ import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import { useTableRequest } from "~/hooks/useTableRequest";
+import { convertToCSV } from "~/utils/csv";
+import download from "~/utils/download";
 import { MembersTable } from "./components/MembersTable";
 import { StickyFilters } from "./components/StickyFilters";
 import UserRoleFilter from "./components/UserRoleFilter";
@@ -36,6 +38,7 @@ function Members() {
   const params = useQuery();
   const can = usePolicy(team);
   const [query, setQuery] = useState("");
+  const [isExporting, setIsExporting] = useState(false);
 
   const reqParams = useMemo(
     () => ({
@@ -101,6 +104,63 @@ function Members() {
     setQuery(value);
   }, []);
 
+  const handleExportCSV = useCallback(async () => {
+    setIsExporting(true);
+    try {
+      const allUsers = [];
+      let offset = 0;
+      const limit = 500;
+      let hasMore = true;
+
+      // Fetch all users with pagination
+      while (hasMore) {
+        const response = await users.fetchPage({
+          ...reqParams,
+          offset,
+          limit,
+        });
+
+        allUsers.push(...response);
+
+        // Check if there are more pages
+        if (response.length < limit) {
+          hasMore = false;
+        } else {
+          offset += limit;
+        }
+      }
+
+      // Convert to CSV format
+      const csvData = allUsers.map((user) => ({
+        id: user.id,
+        name: user.name,
+        email: user.email || "",
+        lastActiveAt: user.lastActiveAt || "",
+        lastActiveIp: user.lastActiveIp || "",
+        createdAt: user.createdAt,
+      }));
+
+      const headers = [
+        "id",
+        "name",
+        "email",
+        "lastActiveAt",
+        "lastActiveIp",
+        "createdAt",
+      ];
+      const csv = convertToCSV(csvData, headers);
+
+      // Trigger download
+      download(csv, "members.csv", "text/csv");
+      toast.success(t("Members exported successfully"));
+    } catch (err) {
+      toast.error(t("Failed to export members"));
+      console.error("Export error:", err);
+    } finally {
+      setIsExporting(false);
+    }
+  }, [users, reqParams, t]);
+
   useEffect(() => {
     if (error) {
       toast.error(t("Could not load members"));
@@ -159,6 +219,15 @@ function Members() {
           activeKey={reqParams.role ?? ""}
           onSelect={handleRoleFilter}
         />
+        <Button
+          type="button"
+          icon={<DownloadIcon />}
+          onClick={handleExportCSV}
+          disabled={isExporting}
+          neutral
+        >
+          {isExporting ? t("Exporting") + "…" : t("Export CSV")}
+        </Button>
       </StickyFilters>
       <ConditionalFade animate={!data}>
         <MembersTable

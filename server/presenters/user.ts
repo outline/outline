@@ -15,6 +15,7 @@ type UserPresentation = {
   updatedAt: Date;
   deletedAt: Date | null;
   lastActiveAt: Date | null;
+  lastActiveIp?: string | null;
   color: string;
   role: UserRole;
   isSuspended: boolean;
@@ -45,6 +46,7 @@ export default function presentUser(
 
   if (options.includeDetails) {
     userData.email = user.email;
+    userData.lastActiveIp = user.lastActiveIp;
     userData.language = user.language || env.DEFAULT_LANGUAGE;
     userData.preferences = user.preferences;
     userData.notificationSettings = user.notificationSettings;
