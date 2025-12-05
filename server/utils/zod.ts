@@ -23,6 +23,9 @@ export const zodIconType = () =>
     z.string().uuid(),
   ]);
 
+export const zodEmojiType = () =>
+  z.union([z.string().regex(emojiRegex()), z.string().uuid()]);
+
 export const zodShareIdType = () =>
   z.union([
     z.string().uuid(),

@@ -26,6 +26,7 @@ import {
   User,
   Event,
   Document,
+  Emoji,
   Star,
   Collection,
   Group,
@@ -571,6 +572,39 @@ export async function buildAttachment(
     name,
     createdAt: new Date("2018-01-02T00:00:00.000Z"),
     updatedAt: new Date("2018-01-02T00:00:00.000Z"),
+    ...overrides,
+  });
+}
+
+export async function buildEmoji(
+  overrides: Partial<Emoji> = {}
+): Promise<Emoji> {
+  if (!overrides.teamId) {
+    const team = await buildTeam();
+    overrides.teamId = team.id;
+  }
+
+  if (!overrides.createdById) {
+    const user = await buildUser({
+      teamId: overrides.teamId,
+    });
+    overrides.createdById = user.id;
+  }
+
+  if (!overrides.attachmentId) {
+    const attachment = await buildAttachment({
+      teamId: overrides.teamId,
+      userId: overrides.createdById,
+      contentType: "image/png",
+    });
+    overrides.attachmentId = attachment.id;
+  }
+
+  return Emoji.create({
+    name: faker.word
+      .adjective()
+      .toLowerCase()
+      .replace(/[^a-z0-9_]/g, "_"),
     ...overrides,
   });
 }
