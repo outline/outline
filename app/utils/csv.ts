@@ -26,20 +26,20 @@ function escapeCSVField(value: string | null | undefined): string {
  * @param headers Array of header names in the desired order.
  * @returns CSV string.
  */
-export function convertToCSV(
-  data: Record<string, any>[],
-  headers: string[]
+export function convertToCSV<T extends Record<string, unknown>>(
+  data: T[],
+  headers: (keyof T)[]
 ): string {
   if (data.length === 0) {
-    return headers.join(",") + "\n";
+    return headers.map(h => String(h)).map(escapeCSVField).join(",") + "\n";
   }
 
   // Create header row
-  const headerRow = headers.map(escapeCSVField).join(",");
+  const headerRow = headers.map(h => String(h)).map(escapeCSVField).join(",");
 
   // Create data rows
   const dataRows = data.map((row) =>
-    headers.map((header) => escapeCSVField(row[header])).join(",")
+    headers.map((header) => escapeCSVField(String(row[header] ?? ""))).join(",")
   );
 
   return [headerRow, ...dataRows].join("\n");

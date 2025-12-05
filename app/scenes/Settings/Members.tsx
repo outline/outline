@@ -112,33 +112,47 @@ function Members() {
       let offset = 0;
       const limit = 500;
       let hasMore = true;
+      const maxPages = 1000; // Safety limit to prevent infinite loops
+      let pagesProcessed = 0;
 
       // Fetch all users with pagination
-      while (hasMore) {
-        const response = await users.fetchPage({
-          ...reqParams,
-          offset,
-          limit,
-        });
+      while (hasMore && pagesProcessed < maxPages) {
+        try {
+          const response = await users.fetchPage({
+            ...reqParams,
+            offset,
+            limit,
+          });
 
-        allUsers.push(...response);
+          if (response.length === 0) {
+            hasMore = false;
+            break;
+          }
 
-        // Check if there are more pages
-        if (response.length < limit) {
-          hasMore = false;
-        } else {
-          offset += limit;
+          allUsers.push(...response);
+
+          // Check if there are more pages
+          if (response.length < limit) {
+            hasMore = false;
+          } else {
+            offset += limit;
+          }
+
+          pagesProcessed++;
+        } catch (err) {
+          console.error(`Error fetching page at offset ${offset}:`, err);
+          throw new Error(`Failed to fetch users at page ${pagesProcessed + 1}`);
         }
       }
 
-      // Convert to CSV format
+      // Convert to CSV format with formatted dates
       const csvData = allUsers.map((user) => ({
         id: user.id,
         name: user.name,
         email: user.email || "",
-        lastActiveAt: user.lastActiveAt || "",
+        lastActiveAt: user.lastActiveAt ? new Date(user.lastActiveAt).toISOString() : "",
         lastActiveIp: user.lastActiveIp || "",
-        createdAt: user.createdAt,
+        createdAt: new Date(user.createdAt).toISOString(),
       }));
 
       const headers = [
@@ -148,7 +162,7 @@ function Members() {
         "lastActiveAt",
         "lastActiveIp",
         "createdAt",
-      ];
+      ] as const;
       const csv = convertToCSV(csvData, headers);
 
       // Trigger download
