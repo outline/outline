@@ -4,7 +4,7 @@
  * @param value The value to escape.
  * @returns The escaped value.
  */
-function escapeCSVField(value: string | null | undefined): string {
+function escapeCSVField(value: unknown): string {
   if (value === null || value === undefined) {
     return "";
   }
@@ -39,7 +39,7 @@ export function convertToCSV<T extends Record<string, unknown>>(
 
   // Create data rows
   const dataRows = data.map((row) =>
-    headers.map((header) => escapeCSVField(String(row[header] ?? ""))).join(",")
+    headers.map((header) => escapeCSVField(row[header])).join(",")
   );
 
   return [headerRow, ...dataRows].join("\n");

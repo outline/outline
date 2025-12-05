@@ -41,6 +41,9 @@ function Members() {
   const [query, setQuery] = useState("");
   const [isExporting, setIsExporting] = useState(false);
 
+  // Maximum number of pages to fetch to prevent infinite loops
+  const MAX_EXPORT_PAGES = 1000;
+
   const reqParams = useMemo(
     () => ({
       query: params.get("query") || undefined,
@@ -112,11 +115,10 @@ function Members() {
       let offset = 0;
       const limit = 500;
       let hasMore = true;
-      const maxPages = 1000; // Safety limit to prevent infinite loops
       let pagesProcessed = 0;
 
       // Fetch all users with pagination
-      while (hasMore && pagesProcessed < maxPages) {
+      while (hasMore && pagesProcessed < MAX_EXPORT_PAGES) {
         try {
           const response = await users.fetchPage({
             ...reqParams,
@@ -152,7 +154,7 @@ function Members() {
         email: user.email || "",
         lastActiveAt: user.lastActiveAt ? new Date(user.lastActiveAt).toISOString() : "",
         lastActiveIp: user.lastActiveIp || "",
-        createdAt: new Date(user.createdAt).toISOString(),
+        createdAt: user.createdAt ? new Date(user.createdAt).toISOString() : "",
       }));
 
       const headers = [
@@ -174,7 +176,7 @@ function Members() {
     } finally {
       setIsExporting(false);
     }
-  }, [users, reqParams, t]);
+  }, [users, reqParams, t, MAX_EXPORT_PAGES]);
 
   useEffect(() => {
     if (error) {
