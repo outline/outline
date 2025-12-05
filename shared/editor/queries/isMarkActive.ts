@@ -3,7 +3,6 @@ import { EditorState, NodeSelection } from "prosemirror-state";
 import { Primitive } from "utility-types";
 import { getMarksBetween } from "./getMarksBetween";
 import { getMarkRangeNodeSelection } from "./getMarkRange";
-import { chainCommands } from "prosemirror-commands";
 
 type Options = {
   /** Only return match if the range and attrs is exact */
@@ -73,11 +72,8 @@ const isInlineMarkActive =
  * @param options The options to use.
  * @returns A function that checks if a mark is active in the current selection or not.
  */
-export const isMarkActive = (
-  type: MarkType,
-  attrs?: Record<string, Primitive>,
-  options?: Options
-) =>
+export const isMarkActive =
+  (type: MarkType, attrs?: Record<string, Primitive>, options?: Options) =>
   (state: EditorState) =>
     isInlineMarkActive(type, attrs, options)(state) ||
     isNodeMarkActive(type)(state);

@@ -53,3 +53,8 @@ export type ComponentProps = {
   isEditable: boolean;
   getPos: () => number;
 };
+
+export interface NodeMarkAttr {
+  type: string;
+  [key: string]: any;
+}
