@@ -77,24 +77,28 @@ export function SelectionToolbar(props: Props) {
 
   const { state } = view;
   const { selection } = state;
-  const isEmbedSelection =
-    selection instanceof NodeSelection && selection.node.type.name === "embed";
   const [activeToolbar, setActiveToolbar] = React.useState<Toolbar | null>(
     null
   );
 
-  const linkMark =
-    selection instanceof NodeSelection
-      ? getMarkRangeNodeSelection(selection, state.schema.marks.link)
-      : getMarkRange(selection.$from, state.schema.marks.link);
-
   React.useEffect(() => {
+    const linkMark =
+      selection instanceof NodeSelection
+        ? getMarkRangeNodeSelection(selection, state.schema.marks.link)
+        : getMarkRange(selection.$from, state.schema.marks.link);
+
+    const isEmbedSelection =
+      selection instanceof NodeSelection &&
+      selection.node.type.name === "embed";
+
     if (isEmbedSelection) {
       setActiveToolbar(Toolbar.Media);
-    } else if (linkMark) {
+    } else if (linkMark && !activeToolbar) {
       setActiveToolbar(Toolbar.Link);
     } else if (!selection.empty) {
       setActiveToolbar(Toolbar.Menu);
+    } else if (selection.empty) {
+      setActiveToolbar(null);
     }
   }, [selection]);
 
