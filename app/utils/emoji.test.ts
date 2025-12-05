@@ -57,9 +57,7 @@ describe("generateEmojiNameFromFilename", () => {
     expect(generateEmojiNameFromFilename("party___parrot.gif")).toBe(
       "party_parrot"
     );
-    expect(generateEmojiNameFromFilename("test__emoji.png")).toBe(
-      "test_emoji"
-    );
+    expect(generateEmojiNameFromFilename("test__emoji.png")).toBe("test_emoji");
   });
 
   test("should handle complex filenames", () => {
