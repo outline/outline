@@ -163,7 +163,7 @@ function Members() {
             onSelect={handleRoleFilter}
           />
         </Flex>
-        <ExportCSV users={users} reqParams={reqParams} />
+        <ExportCSV reqParams={reqParams} />
       </StickyFilters>
       <ConditionalFade animate={!data}>
         <MembersTable
