@@ -105,7 +105,7 @@ const LinkEditor: React.FC<Props> = ({
   const removeLink = React.useCallback(() => {
     commands["removeLink"]();
     onLinkRemove();
-  }, []);
+  }, [commands, onLinkRemove]);
 
   const updateLink = (link: string) => {
     if (!link) {
