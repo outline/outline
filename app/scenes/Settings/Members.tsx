@@ -1,6 +1,6 @@
 import { ColumnSort } from "@tanstack/react-table";
 import { observer } from "mobx-react";
-import { DownloadIcon, PlusIcon, UserIcon } from "outline-icons";
+import { PlusIcon, UserIcon } from "outline-icons";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
@@ -22,8 +22,7 @@ import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import { useTableRequest } from "~/hooks/useTableRequest";
-import { convertToCSV } from "~/utils/csv";
-import download from "~/utils/download";
+import { ExportCSV } from "./components/ExportCSV";
 import { MembersTable } from "./components/MembersTable";
 import { StickyFilters } from "./components/StickyFilters";
 import UserRoleFilter from "./components/UserRoleFilter";
@@ -39,10 +38,6 @@ function Members() {
   const params = useQuery();
   const can = usePolicy(team);
   const [query, setQuery] = useState("");
-  const [isExporting, setIsExporting] = useState(false);
-
-  // Maximum number of pages to fetch to prevent infinite loops
-  const MAX_EXPORT_PAGES = 1000;
 
   const reqParams = useMemo(
     () => ({
@@ -108,77 +103,6 @@ function Members() {
     setQuery(value);
   }, []);
 
-  const handleExportCSV = useCallback(async () => {
-    setIsExporting(true);
-    try {
-      const allUsers = [];
-      let offset = 0;
-      const limit = 500;
-      let hasMore = true;
-      let pagesProcessed = 0;
-
-      // Fetch all users with pagination
-      while (hasMore && pagesProcessed < MAX_EXPORT_PAGES) {
-        try {
-          const response = await users.fetchPage({
-            ...reqParams,
-            offset,
-            limit,
-          });
-
-          if (response.length === 0) {
-            hasMore = false;
-            break;
-          }
-
-          allUsers.push(...response);
-
-          // Check if there are more pages
-          if (response.length < limit) {
-            hasMore = false;
-          } else {
-            offset += limit;
-          }
-
-          pagesProcessed++;
-        } catch (err) {
-          const errorMessage = err instanceof Error ? err.message : String(err);
-          console.error(`Error fetching page at offset ${offset}:`, err);
-          throw new Error(`Failed to fetch users at page ${pagesProcessed + 1}: ${errorMessage}`);
-        }
-      }
-
-      // Convert to CSV format with formatted dates
-      const csvData = allUsers.map((user) => ({
-        id: user.id,
-        name: user.name,
-        email: user.email || "",
-        lastActiveAt: user.lastActiveAt ? new Date(user.lastActiveAt).toISOString() : "",
-        lastActiveIp: user.lastActiveIp || "",
-        createdAt: user.createdAt ? new Date(user.createdAt).toISOString() : "",
-      }));
-
-      const headers = [
-        "id",
-        "name",
-        "email",
-        "lastActiveAt",
-        "lastActiveIp",
-        "createdAt",
-      ] as const;
-      const csv = convertToCSV(csvData, headers);
-
-      // Trigger download
-      download(csv, "members.csv", "text/csv");
-      toast.success(t("Members exported successfully"));
-    } catch (err) {
-      toast.error(t("Failed to export members"));
-      console.error("Export error:", err);
-    } finally {
-      setIsExporting(false);
-    }
-  }, [users, reqParams, t]);
-
   useEffect(() => {
     if (error) {
       toast.error(t("Could not load members"));
@@ -239,15 +163,7 @@ function Members() {
             onSelect={handleRoleFilter}
           />
         </Flex>
-        <Button
-          type="button"
-          icon={<DownloadIcon />}
-          onClick={handleExportCSV}
-          disabled={isExporting}
-          neutral
-        >
-          {isExporting ? t("Exporting") + "…" : t("Export CSV")}
-        </Button>
+        <ExportCSV users={users} reqParams={reqParams} />
       </StickyFilters>
       <ConditionalFade animate={!data}>
         <MembersTable
