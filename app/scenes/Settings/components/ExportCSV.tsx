@@ -2,6 +2,7 @@ import { DownloadIcon } from "outline-icons";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import User from "~/models/User";
 import UsersStore from "~/stores/UsersStore";
 import Button from "~/components/Button";
 import { convertToCSV } from "~/utils/csv";
@@ -22,6 +23,8 @@ type Props = {
 
 // Maximum number of pages to fetch to prevent infinite loops
 const MAX_EXPORT_PAGES = 1000;
+// Number of users to fetch per page
+const USERS_PER_PAGE = 100;
 
 /**
  * A button that exports all members to a CSV file.
@@ -33,9 +36,8 @@ export function ExportCSV({ users, reqParams }: Props) {
   const handleExportCSV = useCallback(async () => {
     setIsExporting(true);
     try {
-      const allUsers = [];
+      const allUsers: User[] = [];
       let offset = 0;
-      const limit = 100;
       let hasMore = true;
       let pagesProcessed = 0;
 
@@ -45,7 +47,7 @@ export function ExportCSV({ users, reqParams }: Props) {
           const response = await users.fetchPage({
             ...reqParams,
             offset,
-            limit,
+            limit: USERS_PER_PAGE,
           });
 
           if (response.length === 0) {
@@ -56,10 +58,10 @@ export function ExportCSV({ users, reqParams }: Props) {
           allUsers.push(...response);
 
           // Check if there are more pages
-          if (response.length < limit) {
+          if (response.length < USERS_PER_PAGE) {
             hasMore = false;
           } else {
-            offset += limit;
+            offset += USERS_PER_PAGE;
           }
 
           pagesProcessed++;
