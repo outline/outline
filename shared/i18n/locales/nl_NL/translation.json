@@ -1405,8 +1405,8 @@
   "You created {{ timeAgo }}": "{{ timeAgo }} door jou aangemaakt",
   "{{ user }} created {{ timeAgo }}": "{{ timeAgo }} door {{ user }} aangemaakt",
   "Caption": "Onderschrift",
-  "Empty diagram": "Empty diagram",
-  "Double click to edit": "Double click to edit",
+  "Empty diagram": "Diagram leegmaken",
+  "Double click to edit": "Dubbelklik om te bewerken",
   "Open": "Open",
   "Error loading data": "Fout bij laden van gegevens"
 }
