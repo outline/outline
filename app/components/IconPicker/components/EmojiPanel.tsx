@@ -182,12 +182,12 @@ const getSearchResults = ({
   );
 
   const allResults = [
+    ...matchingCustomEmojis,
     ...emojis.map((emoji) => ({
       type: IconType.Emoji as const,
       id: emoji.id,
       value: emoji.value,
     })),
-    ...matchingCustomEmojis,
   ];
 
   return [
