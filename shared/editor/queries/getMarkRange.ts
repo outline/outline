@@ -49,8 +49,12 @@ export function getMarkRangeNodeSelection(
   selection: NodeSelection,
   type: MarkType
 ) {
+  interface MarkAttr {
+    type: string;
+    [key: string]: any;
+  }
   const mark = (selection.node.attrs.marks ?? []).find(
-    (mark: any) => mark.type === type.name
+    (mark: MarkAttr) => mark.type === type.name
   );
 
   if (!mark) {
