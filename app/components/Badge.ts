@@ -21,6 +21,7 @@ const Badge = styled.span<{ yellow?: boolean; primary?: boolean }>`
   font-size: 12px;
   font-weight: 500;
   user-select: none;
+  white-space: nowrap;
 `;
 
 export default Badge;
