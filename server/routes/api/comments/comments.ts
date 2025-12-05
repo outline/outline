@@ -9,7 +9,6 @@ import {
 } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
 import { parser } from "@server/editor";
-import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { feature } from "@server/middlewares/feature";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -410,15 +409,11 @@ router.post(
     authorize(user, "comment", document);
     authorize(user, "addReaction", comment);
 
-    // Validate custom emoji if it's a UUID
-    const emojiType = determineIconType(emoji);
-    if (emojiType === IconType.Custom) {
+    if (determineIconType(emoji) === IconType.Custom) {
       const customEmoji = await Emoji.findByPk(emoji, {
         transaction,
       });
-      if (!customEmoji || customEmoji.teamId !== user.teamId) {
-        throw ValidationError("Custom emoji not found");
-      }
+      authorize(user, "read", customEmoji);
     }
 
     await Reaction.findOrCreate({

@@ -951,7 +951,7 @@ describe("#comments.add_reaction", () => {
       },
     });
 
-    expect(res.status).toEqual(404);
+    expect(res.status).toEqual(403);
   });
 });
 
