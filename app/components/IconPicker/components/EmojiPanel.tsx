@@ -11,6 +11,7 @@ import { StyledInputSearch, UserInputContainer } from "./Components";
 import { useIconState } from "../useIconState";
 import useStores from "~/hooks/useStores";
 import Emoji from "~/models/Emoji";
+import { useComputed } from "~/hooks/useComputed";
 
 const GRID_HEIGHT = 410;
 
@@ -36,6 +37,10 @@ const EmojiPanel = ({
 
   const searchRef = React.useRef<HTMLInputElement | null>(null);
   const scrollableRef = React.useRef<HTMLDivElement | null>(null);
+  const customEmojis = useComputed(
+    () => emojis.orderedData.map(toIcon),
+    [emojis.orderedData]
+  );
 
   const {
     emojiSkinTone: skinTone,
@@ -57,7 +62,6 @@ const EmojiPanel = ({
   const [freqCustomEmojis, setFreqCustomEmojis] = React.useState<EmojiNode[]>(
     []
   );
-  const [customEmojiData, setCustomEmojiData] = React.useState<EmojiNode[]>([]);
 
   const handleFilter = React.useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,7 +83,7 @@ const EmojiPanel = ({
 
       // Determine if this is a custom emoji by checking if it's in the custom emoji data
       const isCustomEmoji =
-        customEmojiData.some((emoji) => emoji.id === id) ||
+        customEmojis.some((emoji) => emoji.id === id) ||
         freqCustomEmojis.some((emoji) => emoji.id === id);
 
       if (isCustomEmoji) {
@@ -92,17 +96,12 @@ const EmojiPanel = ({
       onEmojiChange,
       incrementIconCount,
       incrementCustomIconCount,
-      customEmojiData,
+      customEmojis,
       freqCustomEmojis,
     ]
   );
 
   React.useEffect(() => {
-    // Load custom emojis
-    emojis.fetchAll().then(() => {
-      setCustomEmojiData(emojis.orderedData.map(toIcon));
-    });
-
     // Load frequent custom emojis
     getFrequentCustomIcons().forEach((id) => {
       emojis
@@ -126,12 +125,12 @@ const EmojiPanel = ({
     ? getSearchResults({
         query,
         skinTone,
-        customEmojis: customEmojiData,
+        customEmojis,
       })
     : getAllEmojis({
         skinTone,
         freqEmojis,
-        customEmojis: customEmojiData,
+        customEmojis,
         freqCustomEmojis,
       });
 
@@ -242,17 +241,6 @@ const getAllEmojis = ({
     };
   };
 
-  const getCustomEmojiData = (): DataNode | null => {
-    if (customEmojis.length === 0) {
-      return null;
-    }
-    return {
-      category: "Custom",
-      icons: customEmojis,
-    };
-  };
-
-  const customData = getCustomEmojiData();
   const allData = concat(
     getFrequentIcons(),
     getCategoryData(EmojiCategory.People),
@@ -265,8 +253,11 @@ const getAllEmojis = ({
     getCategoryData(EmojiCategory.Flags)
   );
 
-  if (customData) {
-    allData.push(customData);
+  if (customEmojis.length) {
+    allData.push({
+      category: "Custom",
+      icons: customEmojis,
+    });
   }
 
   return allData;
