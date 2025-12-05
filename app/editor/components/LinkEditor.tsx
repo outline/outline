@@ -191,6 +191,7 @@ const LinkEditor: React.FC<Props> = ({
       handler: removeLink,
     },
     {
+      tooltip: dictionary.formattingControls,
       icon: <ReturnIcon />,
       visible: view.editable,
       disabled: false,

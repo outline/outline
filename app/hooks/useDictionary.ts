@@ -110,6 +110,7 @@ export default function useDictionary() {
       none: t("None"),
       deleteEmbed: t("Delete embed"),
       uploadImage: t("Upload an image"),
+      formattingControls: t("Formatting controls"),
     }),
     [t]
   );
