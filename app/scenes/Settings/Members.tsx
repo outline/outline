@@ -10,6 +10,7 @@ import UsersStore, { queriedUsers } from "~/stores/UsersStore";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
 import { ConditionalFade } from "~/components/Fade";
+import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import InputSearch from "~/components/InputSearch";
 import Scene from "~/components/Scene";
@@ -204,21 +205,23 @@ function Members() {
           {{ signinMethods: team.signinMethods }} but haven’t signed in yet.
         </Trans>
       </Text>
-      <StickyFilters gap={8}>
-        <InputSearch
-          short
-          value={query}
-          placeholder={`${t("Filter")}…`}
-          onChange={handleSearch}
-        />
-        <LargeUserStatusFilter
-          activeKey={reqParams.filter ?? ""}
-          onSelect={handleStatusFilter}
-        />
-        <LargeUserRoleFilter
-          activeKey={reqParams.role ?? ""}
-          onSelect={handleRoleFilter}
-        />
+      <StickyFilters gap={8} justify="space-between">
+        <Flex gap={8}>
+          <InputSearch
+            short
+            value={query}
+            placeholder={`${t("Filter")}…`}
+            onChange={handleSearch}
+          />
+          <LargeUserStatusFilter
+            activeKey={reqParams.filter ?? ""}
+            onSelect={handleStatusFilter}
+          />
+          <LargeUserRoleFilter
+            activeKey={reqParams.role ?? ""}
+            onSelect={handleRoleFilter}
+          />
+        </Flex>
         <Button
           type="button"
           icon={<DownloadIcon />}
