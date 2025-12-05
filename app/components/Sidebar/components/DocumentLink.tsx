@@ -82,7 +82,7 @@ function InnerDocumentLink(
   const isSelected = documents.isSelected(node.id);
   const hasAnySelection = documents.selectedDocumentIds.length > 0;
 
-  const handleCheckboxChange = React.useCallback(() => {
+  const handleSelectionChange = React.useCallback(() => {
     if (isSelected) {
       documents.deselect(node.id);
     } else {
@@ -446,10 +446,12 @@ function InnerDocumentLink(
                 isDraft={isDraft}
                 ref={ref}
                 menu={menuElement}
-                showCheckbox
-                isSelected={isSelected}
-                hasAnySelection={hasAnySelection}
-                onCheckboxChange={handleCheckboxChange}
+                onSelectionChange={handleSelectionChange}
+                selectionState={{
+                  isSelected,
+                  hasAnySelection,
+                  showCheckbox: true,
+                }}
               />
             </DropToImport>
           </div>

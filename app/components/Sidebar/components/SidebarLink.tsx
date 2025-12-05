@@ -57,14 +57,14 @@ type Props = Omit<NavLinkProps, "to"> & {
   scrollIntoViewIfNeeded?: boolean;
   /** Optional context menu action to display */
   contextAction?: ActionWithChildren;
-  /** Whether the item is selected for bulk operations */
-  isSelected?: boolean;
-  /** Whether to show the selection checkbox */
-  showCheckbox?: boolean;
-  /** Whether any document is selected (makes checkbox always visible) */
-  hasAnySelection?: boolean;
-  /** Callback fired when the checkbox is toggled */
-  onCheckboxChange?: () => void;
+  /** State of the selection checkbox */
+  selectionState?: {
+    isSelected: boolean;
+    showCheckbox: boolean;
+    hasAnySelection: boolean;
+  };
+  /** Callback fired when the selection checkbox is toggled */
+  onSelectionChange?: () => void;
 };
 
 const activeDropStyle = {
@@ -97,10 +97,12 @@ function SidebarLink(
     disabled,
     unreadBadge,
     contextAction,
-    isSelected = false,
-    showCheckbox,
-    hasAnySelection,
-    onCheckboxChange,
+    selectionState = {
+      isSelected: false,
+      showCheckbox: false,
+      hasAnySelection: false,
+    },
+    onSelectionChange,
     ...rest
   }: Props,
   ref: React.RefObject<HTMLAnchorElement>
@@ -109,6 +111,7 @@ function SidebarLink(
   const { t } = useTranslation();
   const theme = useTheme();
   const { handleMouseEnter, handleMouseLeave } = useClickIntent(onClickIntent);
+  const { isSelected, showCheckbox, hasAnySelection } = selectionState;
   const style = React.useMemo(
     () => ({
       paddingLeft: `${(depth || 0) * 16 + (icon ? -8 : 12)}px`,
@@ -185,7 +188,7 @@ function SidebarLink(
             <CheckboxWrapper $alwaysVisible={hasAnySelection}>
               <NudeButton
                 type="button"
-                onClick={onCheckboxChange}
+                onClick={onSelectionChange}
                 aria-label={t("Select")}
               >
                 <CheckboxIcon checked={isSelected} />
@@ -226,10 +229,9 @@ const CheckboxWrapper = styled(EventBoundary)<{ $alwaysVisible?: boolean }>`
   align-items: center;
   justify-content: center;
   margin-left: -4px;
-  margin-right: 4px;
   flex-shrink: 0;
   opacity: ${(props) => (props.$alwaysVisible ? 1 : 0)};
-  transition: opacity 150ms ease-in-out;
+  transition: opacity 200ms ease-in-out;
 `;
 
 const Content = styled.span`

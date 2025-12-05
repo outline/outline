@@ -1,152 +1,94 @@
 import { observer } from "mobx-react";
-import { ArchiveIcon, CrossIcon, MoveIcon, TrashIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
 import { depths, s } from "@shared/styles";
-import NudeButton from "~/components/NudeButton";
-import Tooltip from "~/components/Tooltip";
+import {
+  MenuHeader,
+  MenuSeparator,
+} from "~/components/primitives/components/Menu";
+import { Portal } from "~/components/Portal";
+import { toMobileMenuItems } from "~/components/Menu/transformer";
+import { actionToMenuItem } from "~/actions";
+import { useBulkDocumentMenuAction } from "~/hooks/useBulkDocumentMenuAction";
+import useActionContext from "~/hooks/useActionContext";
 import useStores from "~/hooks/useStores";
-import DocumentMove from "~/scenes/DocumentMove";
-import DocumentDelete from "~/scenes/DocumentDelete";
-import DocumentArchive from "~/scenes/DocumentArchive";
+import { ActionVariant } from "~/types";
+import NudeButton from "./NudeButton";
+import { CrossIcon } from "outline-icons";
 
 function BulkSelectionToolbar() {
   const { t } = useTranslation();
-  const { documents, dialogs, policies, ui } = useStores();
+  const { documents, ui } = useStores();
   const selectedCount = documents.selectedDocumentIds.length;
-
   const selectedDocuments = documents.selectedDocuments;
-  const canArchiveAll = selectedDocuments.every(
-    (doc) => policies.abilities(doc.id).archive
-  );
-  const canDeleteAll = selectedDocuments.every(
-    (doc) => policies.abilities(doc.id).delete
-  );
-  const canMoveAll = selectedDocuments.every(
-    (doc) => policies.abilities(doc.id).move
-  );
-
-  React.useEffect(() => {
-    if (
-      !canArchiveAll &&
-      !canDeleteAll &&
-      !canMoveAll &&
-      documents.isSelectionMode
-    ) {
-      documents.clearSelection();
-    }
-  }, [canArchiveAll, canDeleteAll, canMoveAll, documents.isSelectionMode]);
-
-  const handleClear = React.useCallback(
-    (ev: React.MouseEvent) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-      documents.clearSelection();
-    },
-    [documents]
-  );
-
-  const handleArchive = React.useCallback(
-    (ev: React.MouseEvent) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-      dialogs.openModal({
-        title: t("Archive {{ count }} documents", { count: selectedCount }),
-        content: (
-          <DocumentArchive
-            documents={selectedDocuments}
-            onSubmit={() => documents.clearSelection()}
-          />
-        ),
-      });
-    },
-    [dialogs, selectedCount, selectedDocuments, t, documents]
-  );
-
-  const handleDelete = React.useCallback(
-    (ev: React.MouseEvent) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-      dialogs.openModal({
-        title: t("Delete {{ count }} documents", { count: selectedCount }),
-        content: (
-          <DocumentDelete
-            documents={selectedDocuments}
-            onSubmit={() => documents.clearSelection()}
-          />
-        ),
-      });
-    },
-    [dialogs, selectedCount, selectedDocuments, t, documents]
-  );
-
-  const handleMove = React.useCallback(
-    (ev: React.MouseEvent) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-      dialogs.openModal({
-        title: t("Move {{ count }} documents", { count: selectedCount }),
-        content: (
-          <DocumentMove
-            documents={selectedDocuments}
-            onSubmit={() => documents.clearSelection()}
-          />
-        ),
-      });
-    },
-    [dialogs, selectedCount, selectedDocuments, t, documents]
-  );
-
   const sidebarWidth = ui.sidebarWidth;
+
+  const handleClearSelection = React.useCallback(() => {
+    documents.clearSelection();
+  }, [documents]);
+
+  const rootAction = useBulkDocumentMenuAction({
+    documents: selectedDocuments,
+  });
+
+  const actionContext = useActionContext({
+    isMenu: true,
+  });
+
+  const menuItems = React.useMemo(() => {
+    if (!rootAction.children || selectedCount === 0) {
+      return [];
+    }
+
+    return (rootAction.children as ActionVariant[]).map((childAction) =>
+      actionToMenuItem(childAction, actionContext)
+    );
+  }, [rootAction.children, selectedCount, actionContext]);
+
+  const content = toMobileMenuItems(menuItems, handleClearSelection, () => {});
 
   if (selectedCount === 0) {
     return null;
   }
 
   return (
-    <Wrapper $sidebarWidth={sidebarWidth}>
-      <MenuContainer>
-        <Header>
-          <CountText>
-            {t("{{ count }} selected", { count: selectedCount })}
-          </CountText>
-          <Tooltip content={t("Clear selection")} placement="top">
-            <ClearButton onClick={handleClear}>
+    <Portal>
+      <Wrapper $sidebarWidth={sidebarWidth}>
+        <MenuContainer>
+          <Header>
+            <MenuHeader>
+              {t("{{ count }} selected", { count: selectedCount })}
+            </MenuHeader>
+            <ClearButton
+              onClick={handleClearSelection}
+              tooltip={{
+                content: t("Clear selection"),
+              }}
+            >
               <CrossIcon size={18} />
             </ClearButton>
-          </Tooltip>
-        </Header>
-        <MenuSeparator />
-        {canArchiveAll && (
-          <MenuItem onClick={handleArchive}>
-            <MenuIconWrapper>
-              <ArchiveIcon />
-            </MenuIconWrapper>
-            <MenuLabel>{t("Archive")}</MenuLabel>
-          </MenuItem>
-        )}
-        {canMoveAll && (
-          <MenuItem onClick={handleMove}>
-            <MenuIconWrapper>
-              <MoveIcon />
-            </MenuIconWrapper>
-            <MenuLabel>{t("Move")}</MenuLabel>
-          </MenuItem>
-        )}
-        {canDeleteAll && (
-          <MenuItem onClick={handleDelete} $dangerous>
-            <MenuIconWrapper>
-              <TrashIcon />
-            </MenuIconWrapper>
-            <MenuLabel>{t("Delete")}</MenuLabel>
-          </MenuItem>
-        )}
-      </MenuContainer>
-    </Wrapper>
+          </Header>
+          <MenuSeparator />
+          {content}
+        </MenuContainer>
+      </Wrapper>
+    </Portal>
   );
 }
+
+const ClearButton = styled(NudeButton)`
+  &:hover {
+    color: ${s("text")};
+    background: ${s("sidebarControlHoverBackground")};
+  }
+`;
+
+const Header = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
 
 const Wrapper = styled.div<{ $sidebarWidth: number }>`
   position: fixed;
@@ -156,95 +98,11 @@ const Wrapper = styled.div<{ $sidebarWidth: number }>`
 `;
 
 const MenuContainer = styled.div`
+  min-width: 180px;
   background: ${s("menuBackground")};
   box-shadow: ${s("menuShadow")};
   border-radius: 6px;
   padding: 6px;
-  min-width: 180px;
-`;
-
-const Header = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px 4px;
-`;
-
-const CountText = styled.span`
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  color: ${s("textTertiary")};
-  letter-spacing: 0.04em;
-`;
-
-const ClearButton = styled(NudeButton)`
-  width: 24px;
-  height: 24px;
-  color: ${s("textTertiary")};
-
-  &:hover {
-    color: ${s("text")};
-    background: ${s("sidebarControlHoverBackground")};
-  }
-`;
-
-const MenuSeparator = styled.hr`
-  margin: 6px 0;
-  border: none;
-  border-top: 1px solid ${s("divider")};
-`;
-
-const MenuItem = styled.button<{ $dangerous?: boolean }>`
-  display: flex;
-  align-items: center;
-  width: 100%;
-  min-height: 32px;
-  font-size: 16px;
-  cursor: var(--pointer);
-  user-select: none;
-  white-space: nowrap;
-  background: none;
-  color: ${s("textSecondary")};
-  margin: 0;
-  border: 0;
-  border-radius: 4px;
-  padding: 12px;
-
-  &:hover {
-    color: ${s("accentText")};
-    background: ${(props) =>
-      props.$dangerous ? props.theme.danger : props.theme.accent};
-
-    svg {
-      color: ${s("accentText")};
-      fill: ${s("accentText")};
-    }
-  }
-
-  ${breakpoint("tablet")`
-    padding: 4px 12px;
-    font-size: 14px;
-  `}
-`;
-
-const MenuIconWrapper = styled.span`
-  width: 24px;
-  height: 24px;
-  margin-right: 6px;
-  margin-left: -4px;
-  color: ${s("textSecondary")};
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`;
-
-const MenuLabel = styled.span`
-  flex-grow: 1;
-  display: flex;
-  align-items: center;
-  gap: 8px;
 `;
 
 export default observer(BulkSelectionToolbar);
