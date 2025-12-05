@@ -302,9 +302,8 @@ export default function FindAndReplace({
   const style: React.CSSProperties = React.useMemo(
     () => ({
       position: "fixed",
-      left: "initial",
-      top: 60,
-      right: 16,
+      top: 0,
+      right: 0,
       zIndex: depths.popover,
     }),
     []
@@ -375,6 +374,7 @@ export default function FindAndReplace({
         minWidth={420}
         scrollable={false}
         onPointerDownOutside={() => setLocalOpen(false)}
+        style={{ marginRight: 16, marginTop: 60 }}
       >
         <Content column>
           <Flex gap={4}>
