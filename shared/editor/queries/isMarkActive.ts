@@ -78,7 +78,6 @@ export const isMarkActive = (
   attrs?: Record<string, Primitive>,
   options?: Options
 ) =>
-  chainCommands(
-    isInlineMarkActive(type, attrs, options),
-    isNodeMarkActive(type)
-  );
+  (state: EditorState) =>
+    isInlineMarkActive(type, attrs, options)(state) ||
+    isNodeMarkActive(type)(state);
