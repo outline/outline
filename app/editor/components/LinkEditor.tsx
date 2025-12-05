@@ -37,7 +37,7 @@ type Props = {
   onLinkUpdate: () => void;
   onLinkRemove: () => void;
   onEscape: () => void;
-  onClickOutside: () => void;
+  onClickOutside: (ev: MouseEvent | TouchEvent) => void;
   onClickBack: () => void;
 };
 
@@ -79,7 +79,7 @@ const LinkEditor: React.FC<Props> = ({
     }
   }, [trimmedQuery, request]);
 
-  useOnClickOutside(wrapperRef, () => {
+  useOnClickOutside(wrapperRef, (ev) => {
     // If the link is totally empty or only spaces then remove the mark
     if (!trimmedQuery) {
       return removeLink();
@@ -87,7 +87,7 @@ const LinkEditor: React.FC<Props> = ({
 
     // If the link in input is non-empty and same as it was when the editor opened, nothing to do
     if (trimmedQuery === initialValue) {
-      onClickOutside();
+      onClickOutside(ev);
       return;
     }
 

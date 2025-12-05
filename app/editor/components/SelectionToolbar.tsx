@@ -227,6 +227,13 @@ export function SelectionToolbar(props: Props) {
     return null;
   }
 
+  const handleClickOutsideLinkEditor = (ev: MouseEvent | TouchEvent) => {
+    if (ev.target instanceof Element && ev.target.closest(".image-wrapper")) {
+      return;
+    }
+    setActiveToolbar(null);
+  };
+
   useEventListener(
     "keydown",
     (ev: KeyboardEvent) => {
@@ -272,7 +279,7 @@ export function SelectionToolbar(props: Props) {
           onLinkUpdate={() => setActiveToolbar(null)}
           onLinkRemove={() => setActiveToolbar(null)}
           onEscape={() => setActiveToolbar(Toolbar.Menu)}
-          onClickOutside={() => setActiveToolbar(null)}
+          onClickOutside={handleClickOutsideLinkEditor}
           onClickBack={() => setActiveToolbar(Toolbar.Menu)}
         />
       ) : activeToolbar === Toolbar.Media ? (
@@ -284,7 +291,7 @@ export function SelectionToolbar(props: Props) {
           onLinkUpdate={() => setActiveToolbar(null)}
           onLinkRemove={() => setActiveToolbar(null)}
           onEscape={() => setActiveToolbar(Toolbar.Menu)}
-          onClickOutside={() => setActiveToolbar(null)}
+          onClickOutside={handleClickOutsideLinkEditor}
         />
       ) : (
         <ToolbarMenu items={items} {...rest} />

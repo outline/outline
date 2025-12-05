@@ -19,7 +19,7 @@ type Props = {
   onLinkUpdate: () => void;
   onLinkRemove: () => void;
   onEscape: () => void;
-  onClickOutside: () => void;
+  onClickOutside: (ev: MouseEvent | TouchEvent) => void;
 };
 
 export function MediaLinkEditor({
