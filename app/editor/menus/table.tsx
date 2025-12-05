@@ -34,6 +34,11 @@ export default function tableMenuItems(
       active: () => isFullWidth,
     },
     {
+      name: "distributeWidthEvenly",
+      tooltip: dictionary.distributeWidthEvenly,
+      icon: <TableColumnsDistributeIcon />,
+    },
+    {
       name: "separator",
     },
     {
@@ -50,14 +55,6 @@ export default function tableMenuItems(
       label: "CSV",
       attrs: { format: "csv", fileName: `${window.document.title}.csv` },
       icon: <DownloadIcon />,
-    },
-    {
-      name: "separator",
-    },
-    {
-      name: "distributeWidthEvenly",
-      tooltip: dictionary.distributeWidthEvenly,
-      icon: <TableColumnsDistributeIcon />,
     },
   ];
 }
