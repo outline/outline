@@ -142,8 +142,9 @@ function Members() {
 
           pagesProcessed++;
         } catch (err) {
+          const errorMessage = err instanceof Error ? err.message : String(err);
           console.error(`Error fetching page at offset ${offset}:`, err);
-          throw new Error(`Failed to fetch users at page ${pagesProcessed + 1}`);
+          throw new Error(`Failed to fetch users at page ${pagesProcessed + 1}: ${errorMessage}`);
         }
       }
 
@@ -176,7 +177,7 @@ function Members() {
     } finally {
       setIsExporting(false);
     }
-  }, [users, reqParams, t, MAX_EXPORT_PAGES]);
+  }, [users, reqParams, t]);
 
   useEffect(() => {
     if (error) {
