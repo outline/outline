@@ -69,8 +69,9 @@ const Image = (props: Props) => {
   }, [node.attrs.width]);
 
   const sanitizedSrc = sanitizeUrl(src);
+  const linkMarkType = props.view.state.schema.marks.link;
   const imgLink =
-    find(node.attrs.marks ?? [], (mark) => mark.type === "link")?.attrs.href ||
+    find(node.attrs.marks ?? [], (mark) => mark.type === linkMarkType.name)?.attrs.href ||
     // Coalescing to `undefined` to avoid empty string in href because empty string
     // in href still shows pointer on hover and click navigates to nowhere
     undefined;
