@@ -10,6 +10,7 @@ import {
   buildComment,
   buildCommentMark,
   buildDocument,
+  buildEmoji,
   buildResolvedComment,
   buildTeam,
   buildUser,
@@ -885,6 +886,72 @@ describe("#comments.add_reaction", () => {
       { emoji: "😄", userIds: ["test-user", user.id] },
     ]);
     expect(addedReaction).toBeTruthy();
+  });
+
+  it("should add a custom emoji reaction to a comment", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const comment = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+    });
+    const emoji = await buildEmoji({
+      teamId: team.id,
+      createdById: user.id,
+    });
+
+    const res = await server.post("/api/comments.add_reaction", {
+      body: {
+        token: user.getJwtToken(),
+        id: comment.id,
+        emoji: emoji.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.success).toEqual(true);
+
+    const updatedComment = await Comment.findByPk(comment.id);
+    const addedReaction = await Reaction.findOne({
+      where: { commentId: comment.id, emoji: emoji.id, userId: user.id },
+    });
+
+    expect(updatedComment?.reactions).toEqual([
+      { emoji: emoji.id, userIds: [user.id] },
+    ]);
+    expect(addedReaction).toBeTruthy();
+  });
+
+  it("should fail with custom emoji from different team", async () => {
+    const team = await buildTeam();
+    const otherTeam = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const comment = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+    });
+    const emoji = await buildEmoji({
+      teamId: otherTeam.id,
+    });
+
+    const res = await server.post("/api/comments.add_reaction", {
+      body: {
+        token: user.getJwtToken(),
+        id: comment.id,
+        emoji: emoji.id,
+      },
+    });
+
+    expect(res.status).toEqual(404);
   });
 });
 

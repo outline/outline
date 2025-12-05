@@ -104,7 +104,7 @@ export type CommentsUnresolveReq = z.infer<typeof CommentsUnresolveSchema>;
 export const CommentsReactionSchema = z.object({
   body: BaseIdSchema.extend({
     /**  Emoji that's added to (or) removed from a comment as a reaction. */
-    emoji: z.string().regex(emojiRegex()),
+    emoji: z.union([z.string().regex(emojiRegex()), z.string().uuid()]),
   }),
 });
 

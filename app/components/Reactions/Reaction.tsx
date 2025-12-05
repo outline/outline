@@ -13,6 +13,8 @@ import NudeButton from "~/components/NudeButton";
 import Text from "~/components/Text";
 import Tooltip from "~/components/Tooltip";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import { isUUID } from "validator";
+import { CustomEmoji } from "@shared/components/CustomEmoji";
 
 type Props = {
   /** Thin reaction data - contains the emoji & active user ids for this reaction. */
@@ -120,7 +122,11 @@ const Reaction: React.FC<Props> = ({
     () => (
       <EmojiButton disabled={disabled} $active={active} onClick={handleClick}>
         <Flex gap={6} justify="center" align="center">
-          <Emoji size={15}>{reaction.emoji}</Emoji>
+          {isUUID(reaction.emoji) ? (
+            <CustomEmoji size={15} value={reaction.emoji} />
+          ) : (
+            <Emoji size={15}>{reaction.emoji}</Emoji>
+          )}
           <Count weight="xbold">{reaction.userIds.length}</Count>
         </Flex>
       </EmojiButton>
