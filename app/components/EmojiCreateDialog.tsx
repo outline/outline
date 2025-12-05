@@ -108,12 +108,16 @@ export function EmojiCreateDialog({ onSubmit }: Props) {
 
     setIsUploading(true);
     try {
-      const compressed = await compressImage(file, {
-        maxHeight: 64,
-        maxWidth: 64,
-      });
+      // Skip compression for GIFs to preserve animation
+      const fileToUpload =
+        file.type === "image/gif"
+          ? file
+          : await compressImage(file, {
+              maxHeight: 64,
+              maxWidth: 64,
+            });
 
-      const attachment = await uploadFile(compressed, {
+      const attachment = await uploadFile(fileToUpload, {
         name: file.name,
         preset: AttachmentPreset.Emoji,
       });
