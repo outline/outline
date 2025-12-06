@@ -11,11 +11,13 @@ import {
   TableSplitCellsIcon,
   AlphabeticalSortIcon,
   AlphabeticalReverseSortIcon,
+  TableColumnsDistributeIcon,
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
 import { CellSelection, selectedRect } from "prosemirror-tables";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import {
+  getAllSelectedColumns,
   isMergedCellSelection,
   isMultipleCellSelection,
 } from "@shared/editor/queries/table";
@@ -38,6 +40,7 @@ export default function tableColMenuItems(
 
   const { index, rtl } = options;
   const { schema, selection } = state;
+  const selectedCols = getAllSelectedColumns(state);
 
   if (!(selection instanceof CellSelection)) {
     return [];
@@ -146,6 +149,12 @@ export default function tableColMenuItems(
           label: dictionary.splitCell,
           icon: <TableSplitCellsIcon />,
           visible: isMergedCellSelection(state),
+        },
+        {
+          name: "distributeColumns",
+          visible: selectedCols.length > 1,
+          label: dictionary.distributeColumns,
+          icon: <TableColumnsDistributeIcon />,
         },
         {
           name: "separator",
