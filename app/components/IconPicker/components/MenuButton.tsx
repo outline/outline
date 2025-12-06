@@ -6,6 +6,7 @@ export const MenuButton = styled(NudeButton)`
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   width: 32px;
   height: 32px;
   color: ${s("textSecondary")};

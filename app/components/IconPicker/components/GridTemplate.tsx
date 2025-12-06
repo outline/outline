@@ -37,14 +37,20 @@ export type DataNode = {
 };
 
 type Props = {
+  /** Width of the grid container */
   width: number;
+  /** Height of the grid container */
   height: number;
+  /** Data to be displayed in the grid */
   data: DataNode[];
+  /** Content to display when search results are empty */
+  empty?: React.ReactNode;
+  /** Callback when an icon is selected */
   onIconSelect: ({ id, value }: { id: string; value: string }) => void;
 };
 
 const GridTemplate = (
-  { width, height, data, onIconSelect }: Props,
+  { width, height, data, empty, onIconSelect }: Props,
   ref: React.Ref<HTMLDivElement>
 ) => {
   // 24px padding for the Grid Container
@@ -52,10 +58,6 @@ const GridTemplate = (
 
   const gridItems = compact(
     data.flatMap((node) => {
-      if (node.icons.length === 0) {
-        return [];
-      }
-
       const category = (
         <CategoryName
           key={node.category}
@@ -66,6 +68,13 @@ const GridTemplate = (
           {TRANSLATED_CATEGORIES[node.category]}
         </CategoryName>
       );
+
+      if (node.icons.length === 0) {
+        if (node.category !== "Search") {
+          return [];
+        }
+        return [[category], [empty]];
+      }
 
       const items = node.icons.map((item) => {
         if (item.type === IconType.SVG) {

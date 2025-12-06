@@ -9,4 +9,5 @@ export const UserInputContainer = styled(Flex)`
 
 export const StyledInputSearch = styled(InputSearch)`
   flex-grow: 1;
+  min-width: 0;
 `;
