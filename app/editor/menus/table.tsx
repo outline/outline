@@ -34,8 +34,8 @@ export default function tableMenuItems(
       active: () => isFullWidth,
     },
     {
-      name: "distributeWidthEvenly",
-      tooltip: dictionary.distributeWidthEvenly,
+      name: "distributeColumns",
+      tooltip: dictionary.distributeColumns,
       icon: <TableColumnsDistributeIcon />,
     },
     {

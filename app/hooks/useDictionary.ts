@@ -110,7 +110,7 @@ export default function useDictionary() {
       none: t("None"),
       deleteEmbed: t("Delete embed"),
       uploadImage: t("Upload an image"),
-      distributeWidthEvenly: t("Distribute width evenly"),
+      distributeColumns: t("Distribute columns"),
     }),
     [t]
   );

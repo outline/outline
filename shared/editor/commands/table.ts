@@ -183,7 +183,7 @@ export function exportTable({
  *
  * @returns {Command}
  */
-export function distributeWidthEvenly(): Command {
+export function distributeColumns(): Command {
   return (state, dispatch, view) => {
     if (!isInTable(state) || !dispatch) {
       return false;

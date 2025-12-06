@@ -11,6 +11,7 @@ import {
   TableSplitCellsIcon,
   AlphabeticalSortIcon,
   AlphabeticalReverseSortIcon,
+  TableColumnsDistributeIcon,
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
 import { CellSelection, selectedRect } from "prosemirror-tables";
@@ -23,8 +24,6 @@ import {
 import { MenuItem } from "@shared/editor/types";
 import { Dictionary } from "~/hooks/useDictionary";
 import { ArrowLeftIcon, ArrowRightIcon } from "~/components/Icons/ArrowIcon";
-import { faArrowsLeftRight } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export default function tableColMenuItems(
   state: EditorState,
@@ -152,6 +151,12 @@ export default function tableColMenuItems(
           visible: isMergedCellSelection(state),
         },
         {
+          name: "distributeColumns",
+          visible: selectedCols.length > 1,
+          label: dictionary.distributeColumns,
+          icon: <TableColumnsDistributeIcon />,
+        },
+        {
           name: "separator",
         },
         {
@@ -159,15 +164,6 @@ export default function tableColMenuItems(
           dangerous: true,
           label: dictionary.deleteColumn,
           icon: <TrashIcon />,
-        },
-        {
-          name: "separator",
-        },
-        {
-          name: "distributeWidthEvenly",
-          visible: selectedCols.length > 1,
-          label: dictionary.distributeWidthEvenly,
-          icon: <FontAwesomeIcon icon={faArrowsLeftRight} />,
         },
       ],
     },
