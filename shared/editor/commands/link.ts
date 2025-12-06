@@ -52,19 +52,22 @@ const addLinkNodeSelection =
   };
 
 const openLinkTextSelection =
-  (attrs: Attrs): Command =>
+  (
+    onClickLink: (url: string, event: KeyboardEvent) => void,
+    dictionary: Record<string, string>
+  ): Command =>
   (state) => {
     if (!(state.selection instanceof TextSelection)) {
       return false;
     }
 
     const range = getMarkRange(state.selection.$from, state.schema.marks.link);
-    if (range && range.mark && attrs.onClickLink) {
+    if (range && range.mark && onClickLink) {
       try {
         const event = new KeyboardEvent("keydown", { metaKey: false });
-        attrs.onClickLink(sanitizeUrl(range.mark.attrs.href), event);
+        onClickLink(sanitizeUrl(range.mark.attrs.href) ?? "", event);
       } catch (_err) {
-        toast.error(attrs.dictionary.openLinkError);
+        toast.error(dictionary.openLinkError);
       }
       return true;
     }
@@ -72,13 +75,16 @@ const openLinkTextSelection =
   };
 
 const openLinkNodeSelection =
-  (attrs: Attrs): Command =>
+  (
+    onClickLink: (url: string, event: KeyboardEvent) => void,
+    dictionary: Record<string, string>
+  ): Command =>
   (state) => {
     if (!(state.selection instanceof NodeSelection)) {
       return false;
     }
 
-    if (!attrs.onClickLink) {
+    if (!onClickLink) {
       return false;
     }
 
@@ -90,9 +96,9 @@ const openLinkNodeSelection =
 
     try {
       const event = new KeyboardEvent("keydown", { metaKey: false });
-      attrs.onClickLink(sanitizeUrl(linkMark.attrs.href), event);
+      onClickLink(sanitizeUrl(linkMark.attrs.href) ?? "", event);
     } catch (_err) {
-      toast.error(attrs.dictionary.openLinkError);
+      toast.error(dictionary.openLinkError);
     }
     return true;
   };
@@ -235,8 +241,14 @@ export const toggleLink = (attrs: Attrs): Command =>
 export const addLink = (attrs: Attrs): Command =>
   chainCommands(addLinkTextSelection(attrs), addLinkNodeSelection(attrs));
 
-export const openLink = (attrs: Attrs): Command =>
-  chainCommands(openLinkTextSelection(attrs), openLinkNodeSelection(attrs));
+export const openLink = (
+  onClickLink: (url: string, event: KeyboardEvent) => void,
+  dictionary: Record<string, string>
+): Command =>
+  chainCommands(
+    openLinkTextSelection(onClickLink, dictionary),
+    openLinkNodeSelection(onClickLink, dictionary)
+  );
 
 export const updateLink = (attrs: Attrs): Command =>
   chainCommands(updateLinkTextSelection(attrs), updateLinkNodeSelection(attrs));

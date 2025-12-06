@@ -106,10 +106,7 @@ export default class Link extends Mark {
 
   keys(): Record<string, Command> {
     return {
-      "Mod-Enter": openLink({
-        onClickLink: this.options.onClickLink,
-        dictionary: this.options.dictionary,
-      }),
+      "Mod-Enter": openLink(this.options.onClickLink, this.options.dictionary),
     };
   }
 
@@ -118,10 +115,7 @@ export default class Link extends Mark {
       addLink,
       updateLink,
       openLink: (): Command =>
-        openLink({
-          onClickLink: this.options.onClickLink,
-          dictionary: this.options.dictionary,
-        }),
+        openLink(this.options.onClickLink, this.options.dictionary),
       removeLink,
     };
   }

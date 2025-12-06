@@ -2,6 +2,14 @@ import { NodeMarkAttr } from "@shared/editor/types";
 import { ResolvedPos, MarkType } from "prosemirror-model";
 import { NodeSelection } from "prosemirror-state";
 
+/**
+ * Returns the mark of type along with its range for a given ResolvedPos,
+ * or false if the mark is not found.
+ *
+ * @param $pos The ResolvedPos to check.
+ * @param type The MarkType to look for.
+ * @returns An object containing the from and to positions and the mark, or false.
+ */
 export function getMarkRange($pos?: ResolvedPos, type?: MarkType) {
   if (!$pos || !type) {
     return false;
@@ -42,9 +50,12 @@ export function getMarkRange($pos?: ResolvedPos, type?: MarkType) {
 }
 
 /**
- * @param selection Current node selection
- * @param type Mark type to check for
- * @returns Returns the mark, along with its range for a given NodeSelection, or false if the mark is not found.
+ * Returns the mark of type along with its range for a given NodeSelection,
+ * or false if the mark is not found.
+ *
+ * @param selection The NodeSelection to check.
+ * @param type The MarkType to look for.
+ * @returns An object containing the from and to positions and the mark, or false.
  */
 export function getMarkRangeNodeSelection(
   selection: NodeSelection,
