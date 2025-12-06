@@ -15,7 +15,7 @@ import {
 } from "~/utils/routeHelpers";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import { SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
-import { CollectionPath } from "./Navigation";
+import { CollectionTab } from "./Navigation";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 import history from "~/utils/history";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
@@ -24,8 +24,11 @@ import { useCallback } from "react";
 const ShareButton = lazyWithRetry(() => import("./ShareButton"));
 
 type Props = {
+  /** The collection for which to render actions */
   collection: Collection;
+  /** Whether the collection is in editing mode */
   isEditing: boolean;
+  /** Contextual information for the sidebar */
   sidebarContext: SidebarContextType;
 };
 
@@ -43,7 +46,7 @@ function Actions({ collection, isEditing, sidebarContext }: Props) {
 
   const goBack = useCallback(() => {
     history.push({
-      pathname: collectionPath(collection, CollectionPath.Overview),
+      pathname: collectionPath(collection, CollectionTab.Overview),
       state: { sidebarContext },
     });
   }, [collection, sidebarContext]);
@@ -63,7 +66,7 @@ function Actions({ collection, isEditing, sidebarContext }: Props) {
             shortcut="e"
             placement="bottom"
           >
-            <Button as={Link} icon={<EditIcon />} onClick={goToEdit} neutral>
+            <Button icon={<EditIcon />} onClick={goToEdit} neutral>
               {t("Edit")}
             </Button>
           </Tooltip>
@@ -72,9 +75,7 @@ function Actions({ collection, isEditing, sidebarContext }: Props) {
       {isEditing && user?.separateEditMode && (
         <Action>
           <RegisterKeyDown trigger="Escape" handler={goBack} />
-          <Button as={Link} onClick={goBack}>
-            {t("Done editing")}
-          </Button>
+          <Button onClick={goBack}>{t("Done editing")}</Button>
         </Action>
       )}
       {can.createDocument && (

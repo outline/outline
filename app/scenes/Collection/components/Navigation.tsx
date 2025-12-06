@@ -6,7 +6,7 @@ import Tabs from "~/components/Tabs";
 import { collectionPath } from "~/utils/routeHelpers";
 import { type SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
 
-export enum CollectionPath {
+export enum CollectionTab {
   Overview = "overview",
   Recent = "recent",
   Popular = "popular",
@@ -20,7 +20,7 @@ type Props = {
   /** The collection for which to render navigation tabs */
   collection: Collection;
   /** Callback when the tab is changed */
-  onChangeTab: (tab: CollectionPath) => void;
+  onChangeTab: (tab: CollectionTab) => void;
   /** Whether to show the overview tab */
   showOverview?: boolean;
   /** Contextual information for the sidebar */
@@ -39,7 +39,7 @@ const Navigation = observer(function Navigation({
 }: Props) {
   const { t } = useTranslation();
 
-  const tabProps = (path: CollectionPath) => ({
+  const tabProps = (path: CollectionTab) => ({
     exact: true,
     onClick: () => onChangeTab(path),
     to: {
@@ -51,24 +51,24 @@ const Navigation = observer(function Navigation({
   return (
     <Tabs>
       {showOverview && (
-        <Tab {...tabProps(CollectionPath.Overview)} exact={false}>
+        <Tab {...tabProps(CollectionTab.Overview)} exact={false}>
           {t("Overview")}
         </Tab>
       )}
-      <Tab {...tabProps(CollectionPath.Recent)}>{t("Documents")}</Tab>
+      <Tab {...tabProps(CollectionTab.Recent)}>{t("Documents")}</Tab>
       {!collection.isArchived && (
         <>
-          <Tab {...tabProps(CollectionPath.Popular)}>{t("Popular")}</Tab>
-          <Tab {...tabProps(CollectionPath.Updated)}>
+          <Tab {...tabProps(CollectionTab.Popular)}>{t("Popular")}</Tab>
+          <Tab {...tabProps(CollectionTab.Updated)}>
             {t("Recently updated")}
           </Tab>
-          <Tab {...tabProps(CollectionPath.Published)}>
+          <Tab {...tabProps(CollectionTab.Published)}>
             {t("Recently published")}
           </Tab>
-          <Tab {...tabProps(CollectionPath.Old)}>
+          <Tab {...tabProps(CollectionTab.Old)}>
             {t("Least recently updated")}
           </Tab>
-          <Tab {...tabProps(CollectionPath.Alphabetical)}>{t("A–Z")}</Tab>
+          <Tab {...tabProps(CollectionTab.Alphabetical)}>{t("A–Z")}</Tab>
         </>
       )}
     </Tabs>

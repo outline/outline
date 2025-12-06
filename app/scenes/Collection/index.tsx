@@ -43,7 +43,7 @@ import Actions from "./components/Actions";
 import DropToImport from "./components/DropToImport";
 import Empty from "./components/Empty";
 import MembershipPreview from "./components/MembershipPreview";
-import Navigation, { CollectionPath } from "./components/Navigation";
+import Navigation, { CollectionTab } from "./components/Navigation";
 import Notices from "./components/Notices";
 import Overview from "./components/Overview";
 import { Header } from "./components/Header";
@@ -72,11 +72,9 @@ const CollectionScene = observer(function _CollectionScene() {
 
   const { pins, count } = usePinnedDocuments(urlId, collection?.id);
 
-  const [collectionTab, setCollectionTab] = usePersistedState<CollectionPath>(
+  const [collectionTab, setCollectionTab] = usePersistedState<CollectionTab>(
     `collection-tab:${collection?.id}`,
-    collection?.hasDescription
-      ? CollectionPath.Overview
-      : CollectionPath.Recent,
+    collection?.hasDescription ? CollectionTab.Overview : CollectionTab.Recent,
     {
       listen: false,
     }
@@ -204,7 +202,7 @@ const CollectionScene = observer(function _CollectionScene() {
               </Route>
               <Route
                 path={[
-                  collectionPath(collection, CollectionPath.Overview),
+                  collectionPath(collection, CollectionTab.Overview),
                   collectionEditPath(collection),
                 ]}
               >
@@ -218,7 +216,7 @@ const CollectionScene = observer(function _CollectionScene() {
                     to={{
                       pathname: collectionPath(
                         collection,
-                        CollectionPath.Recent
+                        CollectionTab.Recent
                       ),
                       state: { sidebarContext },
                     }}
@@ -232,7 +230,7 @@ const CollectionScene = observer(function _CollectionScene() {
                   <Route
                     path={collectionPath(
                       collection,
-                      CollectionPath.Alphabetical
+                      CollectionTab.Alphabetical
                     )}
                   >
                     <PaginatedDocumentList
@@ -246,7 +244,7 @@ const CollectionScene = observer(function _CollectionScene() {
                       }}
                     />
                   </Route>
-                  <Route path={collectionPath(collection, CollectionPath.Old)}>
+                  <Route path={collectionPath(collection, CollectionTab.Old)}>
                     <PaginatedDocumentList
                       key="old"
                       documents={documents.leastRecentlyUpdatedInCollection(
@@ -259,7 +257,7 @@ const CollectionScene = observer(function _CollectionScene() {
                     />
                   </Route>
                   <Route
-                    path={collectionPath(collection, CollectionPath.Published)}
+                    path={collectionPath(collection, CollectionTab.Published)}
                   >
                     <PaginatedDocumentList
                       key="published"
@@ -274,7 +272,7 @@ const CollectionScene = observer(function _CollectionScene() {
                     />
                   </Route>
                   <Route
-                    path={collectionPath(collection, CollectionPath.Updated)}
+                    path={collectionPath(collection, CollectionTab.Updated)}
                   >
                     <PaginatedDocumentList
                       key="updated"
@@ -288,7 +286,7 @@ const CollectionScene = observer(function _CollectionScene() {
                     />
                   </Route>
                   <Route
-                    path={collectionPath(collection, CollectionPath.Popular)}
+                    path={collectionPath(collection, CollectionTab.Popular)}
                   >
                     <PaginatedDocumentList
                       key="popular"
@@ -300,7 +298,7 @@ const CollectionScene = observer(function _CollectionScene() {
                     />
                   </Route>
                   <Route
-                    path={collectionPath(collection, CollectionPath.Recent)}
+                    path={collectionPath(collection, CollectionTab.Recent)}
                     exact
                   >
                     <PaginatedDocumentList
@@ -318,7 +316,7 @@ const CollectionScene = observer(function _CollectionScene() {
                 </>
               ) : (
                 <Route
-                  path={collectionPath(collection, CollectionPath.Recent)}
+                  path={collectionPath(collection, CollectionTab.Recent)}
                   exact
                 >
                   <PaginatedDocumentList
