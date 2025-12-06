@@ -44,6 +44,10 @@ export function collectionPath(url: string, section?: string): string {
   return url;
 }
 
+export function collectionEditPath(url: string): string {
+  return collectionPath(url, "overview/edit");
+}
+
 export function updateCollectionPath(
   oldUrl: string,
   collection: Collection
@@ -143,6 +147,8 @@ export function urlify(path: string): string {
 
 export const matchCollectionSlug =
   ":collectionSlug([0-9a-zA-Z-_~]*-[a-zA-z0-9]{10,15})";
+
+export const matchCollectionEdit = `/collection/${matchCollectionSlug}/overview/edit`;
 
 export const matchDocumentSlug =
   ":documentSlug([0-9a-zA-Z-_~]*-[a-zA-z0-9]{10,15})";

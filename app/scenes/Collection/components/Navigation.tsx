@@ -51,7 +51,9 @@ const Navigation = observer(function Navigation({
   return (
     <Tabs>
       {showOverview && (
-        <Tab {...tabProps(CollectionPath.Overview)}>{t("Overview")}</Tab>
+        <Tab {...tabProps(CollectionPath.Overview)} exact={false}>
+          {t("Overview")}
+        </Tab>
       )}
       <Tab {...tabProps(CollectionPath.Recent)}>{t("Documents")}</Tab>
       {!collection.isArchived && (

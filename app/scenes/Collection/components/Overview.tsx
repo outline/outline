@@ -24,10 +24,10 @@ const extensions = withUIExtensions(richExtensions);
 
 type Props = {
   collection: Collection;
-  shareId?: string;
+  readOnly?: boolean;
 };
 
-function Overview({ collection, shareId }: Props) {
+function Overview({ collection, readOnly }: Props) {
   const { documents, collections } = useStores();
   const { t } = useTranslation();
   const user = useCurrentUser({ rejectOnEmpty: false });
@@ -91,7 +91,7 @@ function Overview({ collection, shareId }: Props) {
               maxLength={CollectionValidation.maxDescriptionLength}
               onCreateLink={onCreateLink}
               canUpdate={can.update}
-              readOnly={!can.update || !!shareId}
+              readOnly={!can.update || readOnly}
               userId={user?.id}
               editorStyle={editorStyle}
             />
