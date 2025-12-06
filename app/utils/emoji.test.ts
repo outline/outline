@@ -15,7 +15,7 @@ describe("generateEmojiNameFromFilename", () => {
     );
   });
 
-  test("should replace spaces with underscores", () => {
+  test("should replace spaces and dashes with underscores", () => {
     expect(generateEmojiNameFromFilename("party parrot.gif")).toBe(
       "party_parrot"
     );
@@ -26,7 +26,7 @@ describe("generateEmojiNameFromFilename", () => {
 
   test("should remove invalid characters", () => {
     expect(generateEmojiNameFromFilename("party-parrot.gif")).toBe(
-      "partyparrot"
+      "party_parrot"
     );
     expect(generateEmojiNameFromFilename("happy!@#$%.png")).toBe("happy");
     expect(generateEmojiNameFromFilename("emoji(1).png")).toBe("emoji");
@@ -65,7 +65,7 @@ describe("generateEmojiNameFromFilename", () => {
       "party_parrot"
     );
     expect(generateEmojiNameFromFilename("dumpster-fire-2023.png")).toBe(
-      "dumpsterfire"
+      "dumpster_fire"
     );
   });
 
