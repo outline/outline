@@ -166,7 +166,6 @@ function SidebarLink(
         $isDraft={isDraft}
         $disabled={disabled}
         $hasCheckbox={showCheckbox}
-        $hasAnySelection={hasAnySelection}
         style={style}
         activeStyle={isActiveDrop ? activeDropStyle : activeStyle}
         onClick={handleClick}
@@ -203,9 +202,7 @@ function SidebarLink(
               tabIndex={-1}
             />
           )}
-          {icon && (
-            <IconWrapper $hideForCheckbox={hasAnySelection}>{icon}</IconWrapper>
-          )}
+          {icon && <IconWrapper>{icon}</IconWrapper>}
           <Label $ellipsis={typeof label === "string"}>{label}</Label>
           {unreadBadge && <UnreadBadge style={unreadStyle} />}
         </Content>
@@ -215,23 +212,23 @@ function SidebarLink(
   );
 }
 
-export const IconWrapper = styled.span<{ $hideForCheckbox?: boolean }>`
+export const IconWrapper = styled.span`
   margin-left: -4px;
+  margin-right: 4px;
   height: 24px;
   overflow: hidden;
   flex-shrink: 0;
   transition: opacity 150ms ease-in-out;
-  display: ${(props) => (props.$hideForCheckbox ? "none" : "block")};
 `;
 
 const CheckboxWrapper = styled(EventBoundary)<{ $alwaysVisible?: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-left: -4px;
+  margin-left: -11px;
   flex-shrink: 0;
   opacity: ${(props) => (props.$alwaysVisible ? 1 : 0)};
-  transition: opacity 200ms ease-in-out;
+  transition: opacity 150ms ease-in-out;
 `;
 
 const Content = styled.span`
@@ -281,7 +278,6 @@ const Link = styled(NavLink)<{
   $isDraft?: boolean;
   $disabled?: boolean;
   $hasCheckbox?: boolean;
-  $hasAnySelection?: boolean;
 }>`
   &:hover,
   &:active {
@@ -370,15 +366,11 @@ const Link = styled(NavLink)<{
         props.$isActiveDrop ? props.theme.white : props.theme.text};
     }
 
-    /* Show checkbox on hover and hide icon when checkbox is enabled */
     ${(props) =>
       props.$hasCheckbox &&
       css`
         &:hover ${CheckboxWrapper} {
           opacity: 1;
-        }
-        &:hover ${IconWrapper} {
-          display: none;
         }
       `}
   }
