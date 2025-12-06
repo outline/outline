@@ -12,7 +12,10 @@ import { Minute } from "@shared/utils/time";
 export async function checkPendingMigrations() {
   let lock;
   try {
-    lock = await MutexLock.acquire("migrations", 10 * Minute.ms);
+    lock = await MutexLock.acquire("migrations", 10 * Minute.ms, {
+      releaseOnShutdown: true,
+    });
+
     const pending = await migrations.pending();
     if (!isEmpty(pending)) {
       if (getArg("no-migrate")) {
