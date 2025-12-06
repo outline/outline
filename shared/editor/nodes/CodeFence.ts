@@ -248,16 +248,14 @@ export default class CodeFence extends Node {
           init: (_, state) => {
             const codeBlock = findParentNode(isCode)(state.selection);
             if (!codeBlock) {
-              return { decorations: DecorationSet.empty };
+              return DecorationSet.empty;
             }
             const decoration = Decoration.node(
               codeBlock.pos,
               codeBlock.pos + codeBlock.node.nodeSize,
               { class: "code-active" }
             );
-            return {
-              decorations: DecorationSet.create(state.doc, [decoration]),
-            };
+            return DecorationSet.create(state.doc, [decoration]);
           },
           apply: (tr, pluginState, oldState, newState) => {
             // Only recompute if selection or document changed
@@ -267,7 +265,7 @@ export default class CodeFence extends Node {
 
             const codeBlock = findParentNode(isCode)(newState.selection);
             if (!codeBlock) {
-              return { decorations: DecorationSet.empty };
+              return DecorationSet.empty;
             }
 
             const decoration = Decoration.node(
@@ -275,14 +273,12 @@ export default class CodeFence extends Node {
               codeBlock.pos + codeBlock.node.nodeSize,
               { class: "code-active" }
             );
-            return {
-              decorations: DecorationSet.create(newState.doc, [decoration]),
-            };
+            return DecorationSet.create(newState.doc, [decoration]);
           },
         },
         props: {
           decorations(state) {
-            return this.getState(state)?.decorations;
+            return this.getState(state);
           },
         },
       }),

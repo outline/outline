@@ -1,6 +1,6 @@
 import { Token } from "markdown-it";
 import { NodeSpec } from "prosemirror-model";
-import { Plugin } from "prosemirror-state";
+import { Plugin, PluginKey } from "prosemirror-state";
 import { DecorationSet, Decoration, EditorView } from "prosemirror-view";
 import { addColumnBefore, selectColumn } from "../commands/table";
 import { getCellAttrs, setCellAttrs } from "../lib/table";
@@ -70,46 +70,11 @@ export default class TableHeader extends Node {
 
     return [
       new Plugin({
-        props: {
-          handleDOMEvents: {
-            mousedown: (view: EditorView, event: MouseEvent) => {
-              if (!(event.target instanceof HTMLElement)) {
-                return false;
-              }
-
-              const targetAddColumn = event.target.closest(
-                `.${EditorStyleHelper.tableAddColumn}`
-              );
-              if (targetAddColumn) {
-                event.preventDefault();
-                event.stopImmediatePropagation();
-                const index = Number(
-                  targetAddColumn.getAttribute("data-index")
-                );
-                addColumnBefore({ index })(view.state, view.dispatch);
-                return true;
-              }
-
-              const targetGripColumn = event.target.closest(
-                `.${EditorStyleHelper.tableGripColumn}`
-              );
-              if (targetGripColumn) {
-                event.preventDefault();
-                event.stopImmediatePropagation();
-
-                selectColumn(
-                  Number(targetGripColumn.getAttribute("data-index")),
-                  event.metaKey || event.shiftKey
-                )(view.state, view.dispatch);
-                return true;
-              }
-
-              return false;
-            },
-          },
-          decorations: (state) => {
+        key: new PluginKey("table-header-decorations"),
+        state: {
+          init: (_, state) => {
             if (!this.editor.view?.editable) {
-              return;
+              return DecorationSet.empty;
             }
 
             const { doc } = state;
@@ -150,6 +115,97 @@ export default class TableHeader extends Node {
             }
 
             return DecorationSet.create(doc, decorations);
+          },
+          apply: (tr, pluginState, oldState, newState) => {
+            // Only recompute if selection or document changed
+            if (!tr.selectionSet && !tr.docChanged) {
+              return pluginState;
+            }
+
+            if (!this.editor.view?.editable) {
+              return DecorationSet.empty;
+            }
+
+            const { doc } = newState;
+            const decorations: Decoration[] = [];
+            const cols = getCellsInRow(0)(newState);
+
+            if (cols) {
+              cols.forEach((pos, index) => {
+                const className = cn(EditorStyleHelper.tableGripColumn, {
+                  selected:
+                    isColumnSelected(index)(newState) ||
+                    isTableSelected(newState),
+                  first: index === 0,
+                  last: index === cols.length - 1,
+                });
+
+                decorations.push(
+                  Decoration.widget(
+                    pos + 1,
+                    () => {
+                      const grip = document.createElement("a");
+                      grip.role = "button";
+                      grip.className = className;
+                      grip.dataset.index = index.toString();
+                      return grip;
+                    },
+                    {
+                      key: cn(className, index),
+                    }
+                  )
+                );
+
+                if (index === 0) {
+                  decorations.push(buildAddColumnDecoration(pos, index));
+                }
+
+                decorations.push(buildAddColumnDecoration(pos, index + 1));
+              });
+            }
+
+            return DecorationSet.create(doc, decorations);
+          },
+        },
+        props: {
+          handleDOMEvents: {
+            mousedown: (view: EditorView, event: MouseEvent) => {
+              if (!(event.target instanceof HTMLElement)) {
+                return false;
+              }
+
+              const targetAddColumn = event.target.closest(
+                `.${EditorStyleHelper.tableAddColumn}`
+              );
+              if (targetAddColumn) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                const index = Number(
+                  targetAddColumn.getAttribute("data-index")
+                );
+                addColumnBefore({ index })(view.state, view.dispatch);
+                return true;
+              }
+
+              const targetGripColumn = event.target.closest(
+                `.${EditorStyleHelper.tableGripColumn}`
+              );
+              if (targetGripColumn) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+
+                selectColumn(
+                  Number(targetGripColumn.getAttribute("data-index")),
+                  event.metaKey || event.shiftKey
+                )(view.state, view.dispatch);
+                return true;
+              }
+
+              return false;
+            },
+          },
+          decorations(state) {
+            return this.getState(state);
           },
         },
       }),
