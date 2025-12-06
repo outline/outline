@@ -227,21 +227,26 @@ export default class Heading extends Node {
                   ignoreSelection: true,
                   relaxedSide: true,
                   key: pos.toString(),
-                }),
-                // Creates a "space" for the caret to move to before the widget.
-                // Without this it is very hard to place the caret at the beginning
-                // of the heading when it begins with an atom element.
-                Decoration.widget(
-                  pos + 1,
-                  () => document.createElement("span"),
-                  {
-                    side: -1,
-                    ignoreSelection: true,
-                    relaxedSide: true,
-                    key: "span",
-                  }
-                )
+                })
               );
+
+              // Creates a "space" for the caret to move to before the widget.
+              // Without this it is very hard to place the caret at the beginning
+              // of the heading when it begins with an atom element.
+              if (node.firstChild?.isAtom === false) {
+                decorations.push(
+                  Decoration.widget(
+                    pos + 1,
+                    () => document.createElement("span"),
+                    {
+                      side: -1,
+                      ignoreSelection: true,
+                      relaxedSide: true,
+                      key: "span",
+                    }
+                  )
+                );
+              }
             }
           });
 
