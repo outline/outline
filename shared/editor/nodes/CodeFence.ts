@@ -243,12 +243,31 @@ export default class CodeFence extends Node {
         },
       }),
       new Plugin({
-        props: {
-          decorations(state) {
+        key: new PluginKey("code-fence-active"),
+        state: {
+          init: (_, state) => {
             const codeBlock = findParentNode(isCode)(state.selection);
-
             if (!codeBlock) {
-              return null;
+              return { decorations: DecorationSet.empty };
+            }
+            const decoration = Decoration.node(
+              codeBlock.pos,
+              codeBlock.pos + codeBlock.node.nodeSize,
+              { class: "code-active" }
+            );
+            return {
+              decorations: DecorationSet.create(state.doc, [decoration]),
+            };
+          },
+          apply: (tr, pluginState, oldState, newState) => {
+            // Only recompute if selection or document changed
+            if (!tr.selectionSet && !tr.docChanged) {
+              return pluginState;
+            }
+
+            const codeBlock = findParentNode(isCode)(newState.selection);
+            if (!codeBlock) {
+              return { decorations: DecorationSet.empty };
             }
 
             const decoration = Decoration.node(
@@ -256,7 +275,14 @@ export default class CodeFence extends Node {
               codeBlock.pos + codeBlock.node.nodeSize,
               { class: "code-active" }
             );
-            return DecorationSet.create(state.doc, [decoration]);
+            return {
+              decorations: DecorationSet.create(newState.doc, [decoration]),
+            };
+          },
+        },
+        props: {
+          decorations(state) {
+            return this.getState(state)?.decorations;
           },
         },
       }),
