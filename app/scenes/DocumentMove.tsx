@@ -14,23 +14,38 @@ import useCollectionTrees from "~/hooks/useCollectionTrees";
 import useStores from "~/hooks/useStores";
 
 type Props = {
-  document: Document;
+  documents: Document[];
+  onSubmit?: () => void;
 };
 
-function DocumentMove({ document }: Props) {
+function DocumentMove({ documents, onSubmit }: Props) {
   const { dialogs, policies } = useStores();
   const { t } = useTranslation();
   const collectionTrees = useCollectionTrees();
   const [selectedPath, selectPath] = useState<NavigationNode | null>(null);
+  const [isMoving, setMoving] = useState(false);
+
+  const isBulkAction = documents.length > 1;
+  const documentIds = useMemo(
+    () => new Set(documents.map((doc) => doc.id)),
+    [documents]
+  );
 
   const items = useMemo(() => {
     // Recursively filter out the document itself and its existing parent doc, if any.
     const filterSourceDocument = (node: NavigationNode): NavigationNode => ({
       ...node,
       children: node.children
-        ?.filter(
-          (c) => c.id !== document.id && c.id !== document.parentDocumentId
-        )
+        ?.filter((c) => {
+          // if multiple documents are selected we want to only filter out the selected documents.
+          if (isBulkAction) {
+            return !documentIds.has(c.id);
+          }
+
+          return (
+            c.id !== documents[0].id && c.id !== documents[0].parentDocumentId
+          );
+        })
         .map(filterSourceDocument),
     });
 
@@ -45,19 +60,14 @@ function DocumentMove({ document }: Props) {
 
     // If the document we're moving is a template, only show collections as
     // move targets.
-    if (document.isTemplate) {
+    const hasTemplates = documents.some((doc) => doc.isTemplate);
+    if (hasTemplates) {
       return nodes
         .filter((node) => node.type === "collection")
         .map((node) => ({ ...node, children: [] }));
     }
     return nodes;
-  }, [
-    policies,
-    collectionTrees,
-    document.id,
-    document.parentDocumentId,
-    document.isTemplate,
-  ]);
+  }, [policies, collectionTrees, documentIds, documents, isBulkAction]);
 
   const move = async () => {
     if (!selectedPath) {
@@ -65,24 +75,87 @@ function DocumentMove({ document }: Props) {
       return;
     }
 
-    try {
-      const { type, id: parentDocumentId } = selectedPath;
+    setMoving(true);
 
-      const collectionId = selectedPath.collectionId as string;
+    const { type, id: parentDocumentId } = selectedPath;
+    const collectionId = selectedPath.collectionId as string;
 
-      if (type === "document") {
-        await document.move({ collectionId, parentDocumentId });
-      } else {
-        await document.move({ collectionId });
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (const document of documents) {
+      try {
+        if (type === "document") {
+          await document.move({ collectionId, parentDocumentId });
+        } else {
+          await document.move({ collectionId });
+        }
+        successCount++;
+      } catch {
+        errorCount++;
       }
-
-      toast.success(t("Document moved"));
-
-      dialogs.closeAllModals();
-    } catch (_err) {
-      toast.error(t("Couldn’t move the document, try again?"));
     }
+
+    if (errorCount === documents.length) {
+      toast.error(
+        t("Couldn’t move the {{noun}}, try again?", {
+          noun: isBulkAction ? "documents" : "document",
+        })
+      );
+      setMoving(false);
+      return;
+    }
+
+    onSubmit?.();
+    if (!isBulkAction) {
+      toast.success(t("Document moved"));
+    } else {
+      if (errorCount === 0) {
+        toast.success(
+          t("{{ count }} documents moved", { count: successCount })
+        );
+      } else {
+        toast.warning(
+          t("{{ errorCount }} documents failed to move, try again?", {
+            errorCount,
+          })
+        );
+      }
+    }
+
+    dialogs.closeAllModals();
+    setMoving(false);
   };
+
+  const SelectedPathFooter = ({ title }: { title: string }) =>
+    isBulkAction ? (
+      <Trans
+        defaults="Move {{ count }} documents to <em>{{ location }}</em>"
+        values={{
+          count: documents.length,
+          location: title || t("Untitled"),
+        }}
+        components={{
+          em: <strong />,
+        }}
+      />
+    ) : (
+      <Trans
+        defaults="Move to <em>{{ location }}</em>"
+        values={{
+          location: title || t("Untitled"),
+        }}
+        components={{
+          em: <strong />,
+        }}
+      />
+    );
+
+  const NoSelectedPathFooter = isBulkAction
+    ? t("Select a location to move {{ count }} documents", {
+        count: documents.length,
+      })
+    : t("Select a location to move");
 
   return (
     <FlexContainer column>
@@ -90,21 +163,13 @@ function DocumentMove({ document }: Props) {
       <Footer justify="space-between" align="center" gap={8}>
         <StyledText type="secondary">
           {selectedPath ? (
-            <Trans
-              defaults="Move to <em>{{ location }}</em>"
-              values={{
-                location: selectedPath.title || t("Untitled"),
-              }}
-              components={{
-                em: <strong />,
-              }}
-            />
+            <SelectedPathFooter title={selectedPath.title} />
           ) : (
-            t("Select a location to move")
+            NoSelectedPathFooter
           )}
         </StyledText>
-        <Button disabled={!selectedPath} onClick={move}>
-          {t("Move")}
+        <Button disabled={!selectedPath || isMoving} onClick={move}>
+          {isMoving ? `${t("Moving")}…` : t("Move")}
         </Button>
       </Footer>
     </FlexContainer>

@@ -14,6 +14,7 @@ import NavLink, { Props as NavLinkProps } from "./NavLink";
 import { ActionWithChildren } from "~/types";
 import { ContextMenu } from "~/components/Menu/ContextMenu";
 import { useTranslation } from "react-i18next";
+import { CheckboxIcon } from "outline-icons";
 
 /**
  * Props for the SidebarLink component.
@@ -56,6 +57,14 @@ type Props = Omit<NavLinkProps, "to"> & {
   scrollIntoViewIfNeeded?: boolean;
   /** Optional context menu action to display */
   contextAction?: ActionWithChildren;
+  /** State of the selection checkbox */
+  selectionState?: {
+    isSelected: boolean;
+    showCheckbox: boolean;
+    hasAnySelection: boolean;
+  };
+  /** Callback fired when the selection checkbox is toggled */
+  onSelectionChange?: () => void;
 };
 
 const activeDropStyle = {
@@ -88,6 +97,12 @@ function SidebarLink(
     disabled,
     unreadBadge,
     contextAction,
+    selectionState = {
+      isSelected: false,
+      showCheckbox: false,
+      hasAnySelection: false,
+    },
+    onSelectionChange,
     ...rest
   }: Props,
   ref: React.RefObject<HTMLAnchorElement>
@@ -96,6 +111,7 @@ function SidebarLink(
   const { t } = useTranslation();
   const theme = useTheme();
   const { handleMouseEnter, handleMouseLeave } = useClickIntent(onClickIntent);
+  const { isSelected, showCheckbox, hasAnySelection } = selectionState;
   const style = React.useMemo(
     () => ({
       paddingLeft: `${(depth || 0) * 16 + (icon ? -8 : 12)}px`,
@@ -149,6 +165,7 @@ function SidebarLink(
         $isActiveDrop={isActiveDrop}
         $isDraft={isDraft}
         $disabled={disabled}
+        $hasCheckbox={showCheckbox}
         style={style}
         activeStyle={isActiveDrop ? activeDropStyle : activeStyle}
         onClick={handleClick}
@@ -166,6 +183,17 @@ function SidebarLink(
         {...rest}
       >
         <Content>
+          {showCheckbox && (
+            <CheckboxWrapper $alwaysVisible={hasAnySelection}>
+              <NudeButton
+                type="button"
+                onClick={onSelectionChange}
+                aria-label={t("Select")}
+              >
+                <CheckboxIcon checked={isSelected} />
+              </NudeButton>
+            </CheckboxWrapper>
+          )}
           {hasDisclosure && (
             <DisclosureComponent
               expanded={expanded}
@@ -184,13 +212,23 @@ function SidebarLink(
   );
 }
 
-// accounts for whitespace around icon
 export const IconWrapper = styled.span`
   margin-left: -4px;
+  margin-right: 4px;
   height: 24px;
   overflow: hidden;
   flex-shrink: 0;
-  transition: opacity 200ms ease-in-out;
+  transition: opacity 150ms ease-in-out;
+`;
+
+const CheckboxWrapper = styled(EventBoundary)<{ $alwaysVisible?: boolean }>`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: -11px;
+  flex-shrink: 0;
+  opacity: ${(props) => (props.$alwaysVisible ? 1 : 0)};
+  transition: opacity 150ms ease-in-out;
 `;
 
 const Content = styled.span`
@@ -239,6 +277,7 @@ const Link = styled(NavLink)<{
   $isActiveDrop?: boolean;
   $isDraft?: boolean;
   $disabled?: boolean;
+  $hasCheckbox?: boolean;
 }>`
   &:hover,
   &:active {
@@ -326,6 +365,14 @@ const Link = styled(NavLink)<{
       color: ${(props) =>
         props.$isActiveDrop ? props.theme.white : props.theme.text};
     }
+
+    ${(props) =>
+      props.$hasCheckbox &&
+      css`
+        &:hover ${CheckboxWrapper} {
+          opacity: 1;
+        }
+      `}
   }
 
   & ${Actions} {

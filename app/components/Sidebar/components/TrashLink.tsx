@@ -24,12 +24,7 @@ function TrashLink() {
         title: t("Delete {{ documentName }}", {
           documentName: document?.noun,
         }),
-        content: (
-          <DocumentDelete
-            document={document}
-            onSubmit={dialogs.closeAllModals}
-          />
-        ),
+        content: <DocumentDelete documents={[document]} />,
       });
     },
     canDrop: (item) => policies.abilities(item.id).delete,

@@ -15,70 +15,125 @@ import {
 } from "~/utils/routeHelpers";
 
 type Props = {
-  document: Document;
-  onSubmit: () => void;
+  documents: Document[];
+  onSubmit?: () => void;
 };
 
-function DocumentDelete({ document, onSubmit }: Props) {
+function DocumentDelete({ documents, onSubmit }: Props) {
   const { t } = useTranslation();
-  const { ui, documents, collections, userMemberships, groupMemberships } =
-    useStores();
+  const {
+    ui,
+    dialogs,
+    documents: documentsStore,
+    collections: collectionsStore,
+    userMemberships,
+    groupMemberships,
+  } = useStores();
   const history = useHistory();
   const [isDeleting, setDeleting] = React.useState(false);
   const [isArchiving, setArchiving] = React.useState(false);
-  const canArchive =
-    !document.isDraft && !document.isArchived && !document.template;
-  const collection = document.collectionId
-    ? collections.get(document.collectionId)
-    : undefined;
-  const nestedDocumentsCount = collection
-    ? collection.getChildrenForDocument(document.id).length
-    : 0;
+  const isBulkAction = documents.length > 1;
+  const canArchiveAll = documents.every(
+    (doc) => !doc.isDraft && !doc.isArchived && !doc.template
+  );
+
+  const nestedDocumentsCount = React.useMemo(
+    () =>
+      documents.reduce((total, doc) => {
+        const collection = collectionsStore.get(doc.collectionId || "");
+        const childrenCount = collection?.getChildrenForDocument(doc.id).length;
+        return total + (childrenCount ?? 0);
+      }, 0),
+    [documents, collectionsStore]
+  );
+
   const handleSubmit = React.useCallback(
     async (ev: React.SyntheticEvent) => {
       ev.preventDefault();
       setDeleting(true);
 
       try {
-        await document.delete();
+        const failedIds: string[] = [];
+        let successCount = 0;
 
-        userMemberships
-          .getByDocumentId(document.id)
-          ?.removeDocument(document.id);
-        groupMemberships
-          .getByDocumentId(document.id)
-          ?.removeDocument(document.id);
-
-        // only redirect if we're currently viewing the document that's deleted
-        if (ui.activeDocumentId === document.id) {
-          // If the document has a parent and it's available in the store then
-          // redirect to it
-          if (document.parentDocumentId) {
-            const parent = documents.get(document.parentDocumentId);
-
-            if (parent) {
-              history.push(documentPath(parent));
-              onSubmit();
-              return;
-            }
+        // Delete documents
+        for (const document of documents) {
+          try {
+            await document.delete();
+            userMemberships
+              .getByDocumentId(document.id)
+              ?.removeDocument(document.id);
+            groupMemberships
+              .getByDocumentId(document.id)
+              ?.removeDocument(document.id);
+            successCount++;
+          } catch {
+            failedIds.push(document.id);
           }
-
-          // If template, redirect to the template settings.
-          // Otherwise redirect to the collection (or) home.
-          const path = document.template
-            ? settingsPath("templates")
-            : collectionPath(collection?.path || "/");
-          history.push(path);
         }
 
-        onSubmit();
+        if (failedIds.length === documents.length) {
+          throw new Error(
+            t("Couldn’t delete the {{noun}}, try again?", {
+              noun: isBulkAction ? "documents" : "document",
+            })
+          );
+        }
+
+        onSubmit?.();
+        dialogs.closeAllModals();
+
+        // Show toast messages
+        if (isBulkAction) {
+          const message = failedIds.length
+            ? t("{{ errorCount }} documents failed to delete, try again?", {
+                errorCount: failedIds.length,
+              })
+            : t("{{ count }} documents deleted", { count: successCount });
+          failedIds.length ? toast.warning(message) : toast.success(message);
+        } else {
+          toast.success(t("Document deleted"));
+        }
+
+        // only redirect if we're currently viewing one of the documents that have been deleted
+        const activeDocument = documents.find(
+          (doc) => ui.activeDocumentId === doc.id
+        );
+        if (activeDocument && !failedIds.includes(activeDocument.id)) {
+          const parent = activeDocument.parentDocumentId
+            ? documentsStore.get(activeDocument.parentDocumentId)
+            : null;
+
+          const path = parent
+            ? documentPath(parent)
+            : activeDocument.template
+              ? settingsPath("templates")
+              : collectionPath(
+                  collectionsStore.get(activeDocument.collectionId || "")
+                    ?.path || "/"
+                );
+
+          history.push(path);
+        }
       } catch (err) {
         toast.error(err.message);
       } finally {
         setDeleting(false);
       }
     },
-    [onSubmit, ui, document, documents, history, collection]
+    [
+      documents,
+      userMemberships,
+      groupMemberships,
+      ui,
+      documentsStore,
+      collectionsStore,
+      history,
+      dialogs,
+      onSubmit,
+      isBulkAction,
+      t,
+    ]
   );
 
   const handleArchive = React.useCallback(
@@ -87,68 +142,134 @@ function DocumentDelete({ document, onSubmit }: Props) {
       setArchiving(true);
 
       try {
-        await document.archive();
-        onSubmit();
+        const results = await Promise.allSettled(
+          documents.map((doc) => doc.archive())
+        );
+
+        const errorCount = results.filter(
+          (r) => r.status === "rejected"
+        ).length;
+
+        if (errorCount === documents.length) {
+          throw new Error(
+            t("Couldn’t archive the {{noun}}, try again?", {
+              noun: isBulkAction ? "documents" : "document",
+            })
+          );
+        }
+
+        onSubmit?.();
+        dialogs.closeAllModals();
+
+        // Show toast messages
+        if (isBulkAction) {
+          const successCount = results.filter(
+            (r) => r.status === "fulfilled"
+          ).length;
+
+          const message = errorCount
+            ? t("{{ successCount }} archived, {{ errorCount }} failed", {
+                successCount,
+                errorCount,
+              })
+            : t("{{ count }} documents archived", { count: successCount });
+          errorCount ? toast.warning(message) : toast.success(message);
+        } else {
+          toast.success(t("Document archived"));
+        }
       } catch (err) {
         toast.error(err.message);
       } finally {
         setArchiving(false);
       }
     },
-    [onSubmit, document]
+    [documents, dialogs, isBulkAction, t, onSubmit]
   );
+
+  const NoChildBody = () =>
+    isBulkAction ? (
+      <Trans
+        count={documents.length}
+        defaults="Are you sure you want to delete these <em>{{ count }} documents</em>? This action will delete all their history."
+        values={{ count: documents.length }}
+        components={{ em: <strong /> }}
+      />
+    ) : (
+      <Trans
+        defaults="Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history</em>."
+        values={{
+          documentTitle: documents[0].titleWithDefault,
+        }}
+        components={{
+          em: <strong />,
+        }}
+      />
+    );
+
+  const HasChildBody = () =>
+    isBulkAction ? (
+      <Trans
+        count={documents.length}
+        defaults="Are you sure about that? Deleting these <em>{{ count }} documents</em> will delete all their history and their combined <em>{{ any }} nested documents.</em>."
+        values={{ count: documents.length, any: nestedDocumentsCount }}
+        components={{
+          em: <strong />,
+        }}
+      />
+    ) : (
+      <Trans
+        count={nestedDocumentsCount}
+        defaults="Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history and <em>{{ any }} nested document</em>."
+        values={{
+          documentTitle: documents[0].titleWithDefault,
+          any: nestedDocumentsCount,
+        }}
+        components={{
+          em: <strong />,
+        }}
+      />
+    );
+
+  const ArchiveInsteadBody = () =>
+    isBulkAction ? (
+      <Trans>
+        If you’d like the option of referencing or restoring these documents in
+        the future, consider archiving them instead.
+      </Trans>
+    ) : (
+      <Trans>
+        If you’d like the option of referencing or restoring the document in the
+        future, consider archiving it instead.
+      </Trans>
+    );
 
   return (
     <form onSubmit={handleSubmit}>
       <Text as="p" type="secondary">
-        {document.isTemplate ? (
+        {!isBulkAction && documents[0].isTemplate ? (
           <Trans
             defaults="Are you sure you want to delete the <em>{{ documentTitle }}</em> template?"
             values={{
-              documentTitle: document.titleWithDefault,
+              documentTitle: documents[0].titleWithDefault,
             }}
             components={{
               em: <strong />,
             }}
           />
         ) : nestedDocumentsCount < 1 ? (
-          <Trans
-            defaults="Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history</em>."
-            values={{
-              documentTitle: document.titleWithDefault,
-            }}
-            components={{
-              em: <strong />,
-            }}
-          />
+          <NoChildBody />
         ) : (
-          <Trans
-            count={nestedDocumentsCount}
-            defaults="Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history and <em>{{ any }} nested document</em>."
-            values={{
-              documentTitle: document.titleWithDefault,
-              any: nestedDocumentsCount,
-            }}
-            components={{
-              em: <strong />,
-            }}
-          />
+          <HasChildBody />
         )}
       </Text>
-      {canArchive && (
+      {canArchiveAll && (
         <Text as="p" type="secondary">
-          <Trans>
-            If you’d like the option of referencing or restoring the{" "}
-            {{
-              noun: document.noun,
-            }}{" "}
-            in the future, consider archiving it instead.
-          </Trans>
+          <ArchiveInsteadBody />
         </Text>
       )}
 
       <Flex justify="flex-end" gap={8}>
-        {canArchive && (
+        {canArchiveAll && (
           <Button type="button" onClick={handleArchive} neutral>
             {isArchiving ? `${t("Archiving")}…` : t("Archive")}
           </Button>

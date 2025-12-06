@@ -78,6 +78,18 @@ function InnerDocumentLink(
   const sidebarContext = useSidebarContext();
   const user = useCurrentUser();
 
+  // Selection state for bulk operations
+  const isSelected = documents.isSelected(node.id);
+  const hasAnySelection = documents.selectedDocumentIds.length > 0;
+
+  const handleSelectionChange = React.useCallback(() => {
+    if (isSelected) {
+      documents.deselect(node.id);
+    } else {
+      documents.select(node.id);
+    }
+  }, [documents, node.id, isSelected]);
+
   React.useEffect(() => {
     if (
       isActiveDocument &&
@@ -434,6 +446,12 @@ function InnerDocumentLink(
                 isDraft={isDraft}
                 ref={ref}
                 menu={menuElement}
+                onSelectionChange={handleSelectionChange}
+                selectionState={{
+                  isSelected,
+                  hasAnySelection,
+                  showCheckbox: true,
+                }}
               />
             </DropToImport>
           </div>

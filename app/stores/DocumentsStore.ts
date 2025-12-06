@@ -52,6 +52,14 @@ export default class DocumentsStore extends Store<Document> {
   @observable
   movingDocumentId: string | null | undefined;
 
+  /** Set of selected document IDs for bulk operations */
+  @observable
+  selectedIds: Set<string> = new Set();
+
+  /** Whether selection mode is active */
+  @observable
+  isSelectionMode = false;
+
   importFileTypes: string[] = [
     ".md",
     ".doc",
@@ -771,5 +779,69 @@ export default class DocumentsStore extends Store<Document> {
     return document.collectionId
       ? this.rootStore.collections.get(document.collectionId)
       : undefined;
+  }
+
+  // Selection methods for bulk operations
+
+  /**
+   * Returns an array of selected document IDs.
+   */
+  @computed
+  get selectedDocumentIds(): string[] {
+    return Array.from(this.selectedIds);
+  }
+
+  /**
+   * Returns the selected documents.
+   */
+  @computed
+  get selectedDocuments(): Document[] {
+    return compact(this.selectedDocumentIds.map((id) => this.get(id)));
+  }
+
+  /**
+   * Checks if a document is selected.
+   *
+   * @param id - the document id to check.
+   * @returns true if the document is selected.
+   */
+  isSelected(id: string): boolean {
+    return this.selectedIds.has(id);
+  }
+
+  /**
+   * Selects a document.
+   *
+   * @param id - the document id to select.
+   */
+  @action
+  select(id: string): void {
+    this.selectedIds.add(id);
+    void this.fetch(id);
+    if (!this.isSelectionMode) {
+      this.isSelectionMode = true;
+    }
+  }
+
+  /**
+   * Deselects a document.
+   *
+   * @param id - the document id to deselect.
+   */
+  @action
+  deselect(id: string): void {
+    this.selectedIds.delete(id);
+    if (this.selectedIds.size === 0) {
+      this.isSelectionMode = false;
+    }
+  }
+
+  /**
+   * Clears all selections and exits selection mode.
+   */
+  @action
+  clearSelection(): void {
+    this.selectedIds.clear();
+    this.isSelectionMode = false;
   }
 }
