@@ -1,9 +1,11 @@
 import concat from "lodash/concat";
+import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { EmojiCategory, EmojiSkinTone, IconType } from "@shared/types";
 import { getEmojis, getEmojisWithCategory, search } from "@shared/utils/emoji";
 import Flex from "~/components/Flex";
+import { EmojiCreateDialog } from "~/components/EmojiCreateDialog";
 import { DisplayCategory } from "../utils";
 import GridTemplate, { DataNode, EmojiNode } from "./GridTemplate";
 import SkinTonePicker from "./SkinTonePicker";
@@ -12,6 +14,9 @@ import { useIconState } from "../useIconState";
 import useStores from "~/hooks/useStores";
 import Emoji from "~/models/Emoji";
 import { useComputed } from "~/hooks/useComputed";
+import { MenuButton } from "./MenuButton";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
+import usePolicy from "~/hooks/usePolicy";
 
 const GRID_HEIGHT = 410;
 
@@ -33,8 +38,9 @@ const EmojiPanel = ({
   height = GRID_HEIGHT,
 }: Props) => {
   const { t } = useTranslation();
-  const { emojis } = useStores();
-
+  const { emojis, dialogs } = useStores();
+  const team = useCurrentTeam();
+  const can = usePolicy(team);
   const searchRef = React.useRef<HTMLInputElement | null>(null);
   const scrollableRef = React.useRef<HTMLDivElement | null>(null);
   const customEmojis = useComputed(
@@ -76,6 +82,13 @@ const EmojiPanel = ({
     },
     [setEmojiSkinTone]
   );
+
+  const handleUploadClick = React.useCallback(() => {
+    dialogs.openModal({
+      title: t("Upload emoji"),
+      content: <EmojiCreateDialog onSubmit={dialogs.closeAllModals} />,
+    });
+  }, [dialogs, t]);
 
   const handleEmojiSelection = React.useCallback(
     ({ id, value }: { id: string; value: string }) => {
@@ -144,7 +157,7 @@ const EmojiPanel = ({
 
   return (
     <Flex column>
-      <UserInputContainer align="center" gap={12}>
+      <UserInputContainer align="center" gap={8}>
         <StyledInputSearch
           ref={searchRef}
           value={query}
@@ -152,6 +165,14 @@ const EmojiPanel = ({
           onChange={handleFilter}
         />
         <SkinTonePicker skinTone={skinTone} onChange={handleSkinChange} />
+        {can.update && (
+          <MenuButton
+            onClick={handleUploadClick}
+            aria-label={t("Upload emoji")}
+          >
+            <PlusIcon />
+          </MenuButton>
+        )}
       </UserInputContainer>
       <GridTemplate
         ref={scrollableRef}
