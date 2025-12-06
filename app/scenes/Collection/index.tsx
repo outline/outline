@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { useState, useCallback, useEffect, Suspense } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import {
   useParams,
@@ -11,11 +11,8 @@ import {
   Redirect,
 } from "react-router-dom";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
-import { IconTitleWrapper } from "@shared/components/Icon";
 import { s } from "@shared/styles";
 import { StatusFilter } from "@shared/types";
-import { colorPalette } from "@shared/utils/collections";
 import Collection from "~/models/Collection";
 import { Action } from "~/components/Actions";
 import CenteredContent from "~/components/CenteredContent";
@@ -28,13 +25,10 @@ import PaginatedDocumentList from "~/components/PaginatedDocumentList";
 import PinnedDocuments from "~/components/PinnedDocuments";
 import PlaceholderText from "~/components/PlaceholderText";
 import Scene from "~/components/Scene";
-import Tab from "~/components/Tab";
-import Tabs from "~/components/Tabs";
 import { editCollection } from "~/actions/definitions/collections";
 import useCommandBarActions from "~/hooks/useCommandBarActions";
 import { useLastVisitedPath } from "~/hooks/useLastVisitedPath";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
-import usePersistedState from "~/hooks/usePersistedState";
 import { usePinnedDocuments } from "~/hooks/usePinnedDocuments";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -45,24 +39,14 @@ import Actions from "./components/Actions";
 import DropToImport from "./components/DropToImport";
 import Empty from "./components/Empty";
 import MembershipPreview from "./components/MembershipPreview";
+import Navigation, { CollectionPath } from "./components/Navigation";
 import Notices from "./components/Notices";
 import Overview from "./components/Overview";
-import first from "lodash/first";
 import lazyWithRetry from "~/utils/lazyWithRetry";
-
-const IconPicker = lazyWithRetry(() => import("~/components/IconPicker"));
+import { Header } from "./components/Header";
+import usePersistedState from "~/hooks/usePersistedState";
 
 const ShareButton = lazyWithRetry(() => import("./components/ShareButton"));
-
-enum CollectionPath {
-  Overview = "overview",
-  Recent = "recent",
-  Popular = "popular",
-  Updated = "updated",
-  Published = "published",
-  Old = "old",
-  Alphabetical = "alphabetical",
-}
 
 const CollectionScene = observer(function _CollectionScene() {
   const params = useParams<{ id?: string }>();
@@ -83,6 +67,7 @@ const CollectionScene = observer(function _CollectionScene() {
   const can = usePolicy(collection);
 
   const { pins, count } = usePinnedDocuments(urlId, collection?.id);
+
   const [collectionTab, setCollectionTab] = usePersistedState<CollectionPath>(
     `collection-tab:${collection?.id}`,
     collection?.hasDescription
@@ -91,12 +76,6 @@ const CollectionScene = observer(function _CollectionScene() {
     {
       listen: false,
     }
-  );
-
-  const handleIconChange = useCallback(
-    (icon: string | null, color: string | null) =>
-      collection?.save({ icon, color }),
-    [collection]
   );
 
   useEffect(() => {
@@ -149,23 +128,13 @@ const CollectionScene = observer(function _CollectionScene() {
   if (!collection && error) {
     return <Error404 />;
   }
+  if (!collection) {
+    return <Loading />;
+  }
 
-  const hasOverview = can.update || collection?.hasDescription;
+  const showOverview = can.update || collection?.hasDescription;
 
-  const fallbackIcon = collection ? (
-    <CollectionIcon collection={collection} size={40} expanded />
-  ) : null;
-
-  const tabProps = (path: CollectionPath) => ({
-    exact: true,
-    onClick: () => setCollectionTab(path),
-    to: {
-      pathname: collectionPath(collection!.path, path),
-      state: { sidebarContext },
-    },
-  });
-
-  return collection ? (
+  return (
     <Scene
       centered={false}
       textTitle={collection.name}
@@ -204,28 +173,7 @@ const CollectionScene = observer(function _CollectionScene() {
       >
         <CenteredContent withStickyHeader>
           <Notices collection={collection} />
-          <CollectionHeading>
-            <IconTitleWrapper>
-              {can.update ? (
-                <Suspense fallback={fallbackIcon}>
-                  <IconPicker
-                    icon={collection.icon ?? "collection"}
-                    color={collection.color ?? (first(colorPalette) as string)}
-                    initial={collection.initial}
-                    size={40}
-                    popoverPosition="bottom-start"
-                    onChange={handleIconChange}
-                    borderOnHover
-                  >
-                    {fallbackIcon}
-                  </IconPicker>
-                </Suspense>
-              ) : (
-                fallbackIcon
-              )}
-            </IconTitleWrapper>
-            {collection.name}
-          </CollectionHeading>
+          <Header collection={collection} />
 
           <PinnedDocuments
             pins={pins}
@@ -233,34 +181,13 @@ const CollectionScene = observer(function _CollectionScene() {
             placeholderCount={count}
           />
 
-          <Documents>
-            <Tabs>
-              {hasOverview && (
-                <Tab {...tabProps(CollectionPath.Overview)}>
-                  {t("Overview")}
-                </Tab>
-              )}
-              <Tab {...tabProps(CollectionPath.Recent)}>{t("Documents")}</Tab>
-              {!collection.isArchived && (
-                <>
-                  <Tab {...tabProps(CollectionPath.Popular)}>
-                    {t("Popular")}
-                  </Tab>
-                  <Tab {...tabProps(CollectionPath.Updated)}>
-                    {t("Recently updated")}
-                  </Tab>
-                  <Tab {...tabProps(CollectionPath.Published)}>
-                    {t("Recently published")}
-                  </Tab>
-                  <Tab {...tabProps(CollectionPath.Old)}>
-                    {t("Least recently updated")}
-                  </Tab>
-                  <Tab {...tabProps(CollectionPath.Alphabetical)}>
-                    {t("A–Z")}
-                  </Tab>
-                </>
-              )}
-            </Tabs>
+          <Content>
+            <Navigation
+              collection={collection}
+              onChangeTab={setCollectionTab}
+              showOverview={showOverview}
+              sidebarContext={sidebarContext}
+            />
             <Switch>
               <Route path={collectionPath(collection.path)} exact>
                 <Redirect
@@ -273,7 +200,7 @@ const CollectionScene = observer(function _CollectionScene() {
               <Route
                 path={collectionPath(collection.path, CollectionPath.Overview)}
               >
-                {hasOverview ? (
+                {showOverview ? (
                   <Overview collection={collection} />
                 ) : (
                   <Redirect
@@ -412,19 +339,21 @@ const CollectionScene = observer(function _CollectionScene() {
                 </Route>
               )}
             </Switch>
-          </Documents>
+          </Content>
         </CenteredContent>
       </DropToImport>
     </Scene>
-  ) : (
-    <CenteredContent>
-      <Heading>
-        <PlaceholderText height={35} />
-      </Heading>
-      <PlaceholderList count={5} />
-    </CenteredContent>
   );
 });
+
+const Loading = () => (
+  <CenteredContent>
+    <Heading>
+      <PlaceholderText height={35} />
+    </Heading>
+    <PlaceholderList count={5} />
+  </CenteredContent>
+);
 
 const KeyedCollection = () => {
   const params = useParams<{ id?: string }>();
@@ -434,20 +363,9 @@ const KeyedCollection = () => {
   return <CollectionScene key={params.id} />;
 };
 
-const Documents = styled.div`
+const Content = styled.div`
   position: relative;
   background: ${s("background")};
-`;
-
-const CollectionHeading = styled(Heading)`
-  display: flex;
-  align-items: center;
-  position: relative;
-  margin-left: 40px;
-
-  ${breakpoint("tablet")`
-    margin-left: 0;
-  `}
 `;
 
 export default KeyedCollection;
