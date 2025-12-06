@@ -1,29 +1,20 @@
 import { Token } from "markdown-it";
-import { toggleMark } from "prosemirror-commands";
 import { InputRule } from "prosemirror-inputrules";
 import { MarkdownSerializerState } from "prosemirror-markdown";
 import {
-  Attrs,
   MarkSpec,
   MarkType,
   Node,
   Mark as ProsemirrorMark,
 } from "prosemirror-model";
-import {
-  Command,
-  EditorState,
-  Plugin,
-  Selection,
-  TextSelection,
-} from "prosemirror-state";
+import { Command, EditorState, Plugin, TextSelection } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { toast } from "sonner";
 import { isUrl, sanitizeUrl } from "../../utils/urls";
 import { getMarkRange } from "../queries/getMarkRange";
-import { isMarkActive } from "../queries/isMarkActive";
 import Mark from "./Mark";
 import { isInCode } from "../queries/isInCode";
-import { addMark } from "../commands/addMark";
+import { addLink, openLink, removeLink, updateLink } from "../commands/link";
 
 const LINK_INPUT_REGEX = /\[([^[]+)]\((\S+)\)$/;
 
@@ -113,102 +104,19 @@ export default class Link extends Mark {
     ];
   }
 
-  keys({ type }: { type: MarkType }): Record<string, Command> {
+  keys(): Record<string, Command> {
     return {
-      "Mod-k": (state, dispatch) => {
-        if (state.selection.empty) {
-          return false;
-        }
-
-        return toggleMark(type, { href: "" })(state, dispatch);
-      },
-      "Mod-Enter": (state) => {
-        if (isMarkActive(type)(state)) {
-          const range = getMarkRange(
-            state.selection.$from,
-            state.schema.marks.link
-          );
-          if (range && range.mark && this.options.onClickLink) {
-            try {
-              const event = new KeyboardEvent("keydown", { metaKey: false });
-              this.options.onClickLink(
-                sanitizeUrl(range.mark.attrs.href),
-                event
-              );
-            } catch (_err) {
-              toast.error(this.options.dictionary.openLinkError);
-            }
-            return true;
-          }
-        }
-        return false;
-      },
+      "Mod-Enter": openLink(this.options.onClickLink, this.options.dictionary),
     };
   }
 
-  commands({ type }: { type: MarkType }) {
+  commands() {
     return {
-      addLink: (attrs: Attrs): Command => addMark(type, attrs),
-      updateLink:
-        (attrs: Attrs): Command =>
-        (state, dispatch) => {
-          const range = getMarkRange(
-            state.selection.$from,
-            state.schema.marks.link
-          );
-
-          if (range && range.mark) {
-            const nextSelection =
-              Selection.findFrom(state.doc.resolve(range.to), 1, true) ??
-              TextSelection.create(state.tr.doc, 0);
-            dispatch?.(
-              state.tr
-                .setSelection(nextSelection)
-                .removeMark(range.from, range.to, state.schema.marks.link)
-                .addMark(
-                  range.from,
-                  range.to,
-                  state.schema.marks.link.create(attrs)
-                )
-            );
-            return true;
-          }
-          return false;
-        },
-      openLink: (): Command => (state) => {
-        const range = getMarkRange(
-          state.selection.$from,
-          state.schema.marks.link
-        );
-        if (range && range.mark && this.options.onClickLink) {
-          try {
-            const event = new KeyboardEvent("keydown", { metaKey: false });
-            this.options.onClickLink(sanitizeUrl(range.mark.attrs.href), event);
-          } catch (_err) {
-            toast.error(this.options.dictionary.openLinkError);
-          }
-          return true;
-        }
-        return false;
-      },
-      removeLink: (): Command => (state, dispatch) => {
-        const range = getMarkRange(
-          state.selection.$from,
-          state.schema.marks.link
-        );
-        if (range && range.mark) {
-          const nextSelection =
-            Selection.findFrom(state.doc.resolve(range.to), 1, true) ??
-            TextSelection.create(state.tr.doc, 0);
-          dispatch?.(
-            state.tr
-              .setSelection(nextSelection)
-              .removeMark(range.from, range.to, range.mark)
-          );
-          return true;
-        }
-        return false;
-      },
+      addLink,
+      updateLink,
+      openLink: (): Command =>
+        openLink(this.options.onClickLink, this.options.dictionary),
+      removeLink,
     };
   }
 
@@ -268,6 +176,19 @@ export default class Link extends Mark {
               return false;
             }
 
+            // If an image is selected in write mode, disallow navigation to its href
+            const selectedDOMNode = view.nodeDOM(view.state.selection.from);
+            if (
+              view.editable &&
+              selectedDOMNode &&
+              selectedDOMNode instanceof HTMLSpanElement &&
+              selectedDOMNode.classList.contains("component-image") &&
+              event.target instanceof HTMLImageElement &&
+              selectedDOMNode.contains(event.target)
+            ) {
+              return false;
+            }
+
             // clicking a link while editing should show the link toolbar,
             // clicking in read-only will navigate
             if (!view.editable || (view.editable && !view.hasFocus())) {
@@ -278,7 +199,7 @@ export default class Link extends Mark {
                   : "");
 
               try {
-                if (this.options.onClickLink) {
+                if (this.options.onClickLink && href) {
                   event.stopPropagation();
                   event.preventDefault();
                   this.options.onClickLink(sanitizeUrl(href), event);
