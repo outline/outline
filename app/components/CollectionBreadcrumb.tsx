@@ -28,7 +28,7 @@ export const CollectionBreadcrumb: React.FC<Props> = ({ collection }) => {
         name: collection.name,
         section: ActiveCollectionSection,
         icon: <CollectionIcon collection={collection} expanded />,
-        to: collectionPath(collection.path),
+        to: collectionPath(collection),
       }),
     ],
     [collection, t]

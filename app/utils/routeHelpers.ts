@@ -1,7 +1,7 @@
 import queryString from "query-string";
-import Collection from "~/models/Collection";
-import Comment from "~/models/Comment";
-import Document from "~/models/Document";
+import type Collection from "~/models/Collection";
+import type Comment from "~/models/Comment";
+import type Document from "~/models/Document";
 import env from "~/env";
 
 export function homePath(): string {
@@ -37,11 +37,18 @@ export function commentPath(document: Document, comment: Comment): string {
   }`;
 }
 
-export function collectionPath(url: string, section?: string): string {
+export function collectionPath(
+  collection: Collection,
+  section?: string
+): string {
   if (section) {
-    return `${url}/${section}`;
+    return `${collection.path}/${section}`;
   }
-  return url;
+  return collection.path;
+}
+
+export function collectionEditPath(collection: Collection): string {
+  return collectionPath(collection, "overview/edit");
 }
 
 export function updateCollectionPath(
@@ -143,6 +150,8 @@ export function urlify(path: string): string {
 
 export const matchCollectionSlug =
   ":collectionSlug([0-9a-zA-Z-_~]*-[a-zA-z0-9]{10,15})";
+
+export const matchCollectionEdit = `/collection/${matchCollectionSlug}/overview/edit`;
 
 export const matchDocumentSlug =
   ":documentSlug([0-9a-zA-Z-_~]*-[a-zA-z0-9]{10,15})";

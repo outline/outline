@@ -1,6 +1,6 @@
 import debounce from "lodash/debounce";
 import { observer } from "mobx-react";
-import { useMemo, useRef, useCallback, Suspense } from "react";
+import { useMemo, useRef, useCallback, useEffect, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
@@ -24,10 +24,10 @@ const extensions = withUIExtensions(richExtensions);
 
 type Props = {
   collection: Collection;
-  shareId?: string;
+  readOnly?: boolean;
 };
 
-function Overview({ collection, shareId }: Props) {
+function Overview({ collection, readOnly }: Props) {
   const { documents, collections } = useStores();
   const { t } = useTranslation();
   const user = useCurrentUser({ rejectOnEmpty: false });
@@ -46,6 +46,13 @@ function Overview({ collection, shareId }: Props) {
         }
       }, 1000),
     [collection, t]
+  );
+
+  useEffect(
+    () => () => {
+      handleSave.flush();
+    },
+    [handleSave]
   );
 
   const childRef = useRef<HTMLDivElement>(null);
@@ -91,7 +98,7 @@ function Overview({ collection, shareId }: Props) {
               maxLength={CollectionValidation.maxDescriptionLength}
               onCreateLink={onCreateLink}
               canUpdate={can.update}
-              readOnly={!can.update || !!shareId}
+              readOnly={!can.update || readOnly}
               userId={user?.id}
               editorStyle={editorStyle}
             />
