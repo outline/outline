@@ -6,7 +6,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import styled, { css } from "styled-components";
+import styled, { css, useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "@shared/components/EventBoundary";
 import Icon from "@shared/components/Icon";
@@ -29,6 +29,7 @@ import { ActionContextProvider } from "~/hooks/useActionContext";
 import { useDocumentMenuAction } from "~/hooks/useDocumentMenuAction";
 import { ContextMenu } from "./Menu/ContextMenu";
 import useStores from "~/hooks/useStores";
+import { DocumentIcon } from "outline-icons";
 
 type Props = {
   document: Document;
@@ -54,6 +55,7 @@ function DocumentListItem(
 ) {
   const { t } = useTranslation();
   const user = useCurrentUser();
+  const theme = useTheme();
   const { userMemberships, groupMemberships } = useStores();
   const locationSidebarContext = useLocationSidebarContext();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
@@ -129,15 +131,16 @@ function DocumentListItem(
         >
           <Content>
             <Heading dir={document.dir}>
-              {document.icon && (
-                <>
-                  <Icon
-                    value={document.icon}
-                    color={document.color ?? undefined}
-                    initial={document.initial}
-                  />
-                  &nbsp;
-                </>
+              {document.icon ? (
+                <Icon
+                  value={document.icon}
+                  color={document.color ?? undefined}
+                  initial={document.initial}
+                />
+              ) : (
+                <DocumentIcon
+                  color={document.collection?.color ?? theme.textSecondary}
+                />
               )}
               <Title
                 text={document.titleWithDefault}
@@ -290,8 +293,10 @@ const Heading = styled.span<{ rtl?: boolean }>`
   color: ${s("text")};
   font-family: ${s("fontFamily")};
   font-weight: 500;
-  font-size: 20px;
+  font-size: 18px;
   line-height: 1.2;
+  margin-left: -28px;
+  gap: 4px;
 `;
 
 const StarPositioner = styled(Flex)`

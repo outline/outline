@@ -182,7 +182,7 @@ const DocumentMeta: React.FC<Props> = ({
         <span>
           &nbsp;{t("in")}&nbsp;
           <Strong>
-            <DocumentBreadcrumb document={document} onlyText />
+            <DocumentBreadcrumb document={document} maxDepth={1} onlyText />
           </Strong>
         </span>
       )}
