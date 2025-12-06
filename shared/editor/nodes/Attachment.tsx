@@ -15,6 +15,7 @@ import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import attachmentsRule from "../rules/links";
 import { ComponentProps } from "../types";
 import Node from "./Node";
+import PdfViewer from "../components/PDF";
 
 export default class Attachment extends Node {
   get name() {
@@ -37,6 +38,19 @@ export default class Attachment extends Node {
         title: {},
         size: {
           default: 0,
+        },
+        preview: {
+          default: false,
+        },
+        width: {
+          default: 300,
+        },
+        height: {
+          default: 424,
+        },
+        contentType: {
+          default: null,
+          validate: "string|null",
         },
       },
       group: "block",
@@ -78,9 +92,33 @@ export default class Attachment extends Node {
       view.dispatch(transaction);
     };
 
+  handleChangeSize =
+    ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
+    ({ width, height }: { width: number; height?: number }) => {
+      if (!node.attrs.preview) {
+        return;
+      }
+
+      const { view } = this.editor;
+      const { tr, doc } = view.state;
+
+      const pos = getPos();
+      const transaction = tr
+        .setNodeMarkup(pos, undefined, {
+          ...node.attrs,
+          width,
+          height,
+        })
+        .setMeta("addToHistory", true);
+      const $pos = doc.resolve(getPos());
+      view.dispatch(transaction.setSelection(new NodeSelection($pos)));
+    };
+
   component = (props: ComponentProps) => {
     const { isSelected, isEditable, theme, node } = props;
-    return (
+    return node.attrs.preview && node.attrs.contentType === "pdf" ? (
+      <PdfViewer {...props} onChangeSize={this.handleChangeSize(props)} />
+    ) : (
       <Widget
         icon={<FileExtension title={node.attrs.title} />}
         href={node.attrs.href}
@@ -133,13 +171,21 @@ export default class Attachment extends Node {
           throw new Error("uploadFile prop is required to replace attachments");
         }
 
-        if (node.type.name !== "attachment") {
+        const accept =
+          node.attrs.contentType === "pdf"
+            ? ".pdf"
+            : node.type.name === "attachment"
+              ? "*"
+              : null;
+
+        if (accept === null) {
           return false;
         }
 
         // create an input element and click to trigger picker
         const inputElement = document.createElement("input");
         inputElement.type = "file";
+        inputElement.accept = accept;
         inputElement.onchange = (event) => {
           const files = getEventFiles(event);
           void insertFiles(view, event, state.selection.from, files, {
@@ -170,6 +216,31 @@ export default class Attachment extends Node {
         document.body.removeChild(link);
         return true;
       },
+      resizeAttachment:
+        ({ width, height }: { width: number; height?: number }): Command =>
+        (state, dispatch) => {
+          if (
+            !(state.selection instanceof NodeSelection) ||
+            !state.selection.node.attrs.preview
+          ) {
+            return false;
+          }
+
+          const { view } = this.editor;
+          const { tr } = view.state;
+          const { attrs } = state.selection.node;
+
+          const transaction = tr
+            .setNodeMarkup(state.selection.from, undefined, {
+              ...attrs,
+              width,
+              height,
+            })
+            .setMeta("addToHistory", true);
+          const $pos = transaction.doc.resolve(state.selection.from);
+          dispatch?.(transaction.setSelection(new NodeSelection($pos)));
+          return true;
+        },
     };
   }
 

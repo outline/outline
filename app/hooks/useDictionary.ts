@@ -50,6 +50,7 @@ export default function useDictionary() {
       em: t("Italic"),
       embedInvalidLink: t("Sorry, that link won’t work for this embed type"),
       file: t("File attachment"),
+      pdf: t("Embed PDF"),
       enterLink: `${t("Enter a link")}…`,
       h1: t("Big heading"),
       h2: t("Medium heading"),
@@ -111,6 +112,9 @@ export default function useDictionary() {
       deleteEmbed: t("Delete embed"),
       uploadImage: t("Upload an image"),
       distributeColumns: t("Distribute columns"),
+      dowloadPDF: t("Download PDF"),
+      replacePDF: t("Replace PDF"),
+      deletePDF: t("Delete PDF"),
     }),
     [t]
   );
