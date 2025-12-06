@@ -43,13 +43,17 @@ const TabLink = styled(NavLink)`
 
 const Active = styled(m.div)`
   position: absolute;
+  top: 0;
   bottom: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  width: 100%;
-  border-radius: 3px;
-  background: ${s("textSecondary")};
+  left: -8px;
+  right: -8px;
+  border-radius: 12px;
+  corner-shape: superellipse(1);
+  background: ${s("sidebarActiveBackground")};
+`;
+
+const Content = styled.span`
+  position: relative;
 `;
 
 const transition = {
@@ -77,7 +81,6 @@ const Tab: React.FC<Props> = ({
     >
       {(match, location) => (
         <>
-          {children}
           {match &&
             (!exactQueryString ||
               isEqual(
@@ -90,6 +93,7 @@ const Tab: React.FC<Props> = ({
                 transition={transition}
               />
             )}
+          <Content>{children}</Content>
         </>
       )}
     </TabLink>

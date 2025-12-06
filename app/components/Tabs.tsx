@@ -6,8 +6,8 @@ import { s } from "@shared/styles";
 import useWindowSize from "~/hooks/useWindowSize";
 
 const Nav = styled.nav<{ $shadowVisible?: boolean }>`
-  border-bottom: 1px solid ${s("divider")};
-  margin: 12px 0;
+  margin: -8px -32px 28px;
+  padding: 0 32px;
   overflow-y: auto;
   white-space: nowrap;
 
@@ -41,9 +41,9 @@ const Nav = styled.nav<{ $shadowVisible?: boolean }>`
 // items that scroll past can "stick out" the sides of the heading
 const Sticky = styled.div`
   position: sticky;
-  top: 54px;
-  margin: 0 -8px;
-  padding: 0 8px;
+  top: 64px;
+  margin: 0 -48px;
+  padding: 0 48px;
   background: ${s("background")};
   z-index: 1;
 `;

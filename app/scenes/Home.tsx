@@ -47,12 +47,14 @@ function Home() {
       <ResizingHeightContainer>
         {!ui.languagePromptDismissed && <LanguagePrompt key="language" />}
       </ResizingHeightContainer>
-      <Heading>{t("Home")}</Heading>
       <PinnedDocuments
         pins={pins}
         canUpdate={can.update}
         placeholderCount={count}
       />
+      <Heading>
+        <Greeting />
+      </Heading>
       <Documents>
         <Tabs>
           <Tab to="/home" exact>
@@ -122,6 +124,27 @@ function Home() {
     </Scene>
   );
 }
+
+const Greeting = () => {
+  const { t } = useTranslation();
+  const user = useCurrentUser();
+  const hour = new Date().getHours();
+
+  if (user?.isCreatedInPastDay) {
+    return <>{t("Welcome")}</>;
+  }
+
+  let greeting;
+  if (hour >= 5 && hour < 12) {
+    greeting = t("Good morning");
+  } else if (hour >= 12 && hour < 17) {
+    greeting = t("Good afternoon");
+  } else {
+    greeting = t("Good evening");
+  }
+
+  return <>{greeting}</>;
+};
 
 const Documents = styled.div`
   position: relative;

@@ -6,6 +6,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import { DocumentIcon } from "outline-icons";
 import styled, { css, useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "@shared/components/EventBoundary";
@@ -29,7 +30,6 @@ import { ActionContextProvider } from "~/hooks/useActionContext";
 import { useDocumentMenuAction } from "~/hooks/useDocumentMenuAction";
 import { ContextMenu } from "./Menu/ContextMenu";
 import useStores from "~/hooks/useStores";
-import { DocumentIcon } from "outline-icons";
 
 type Props = {
   document: Document;
@@ -129,57 +129,57 @@ function DocumentListItem(
           {...rest}
           {...rovingTabIndex}
         >
-          <Content>
-            <Heading dir={document.dir}>
-              {document.icon ? (
-                <Icon
-                  value={document.icon}
-                  color={document.color ?? undefined}
-                  initial={document.initial}
-                />
-              ) : (
-                <DocumentIcon
-                  color={document.collection?.color ?? theme.textSecondary}
-                />
-              )}
-              <Title
-                text={document.titleWithDefault}
-                highlight={highlight}
-                dir={document.dir}
+          <Flex gap={4} auto>
+            {document.icon ? (
+              <Icon
+                value={document.icon}
+                color={document.color ?? undefined}
+                initial={document.initial}
               />
-              {document.isBadgedNew && document.createdBy?.id !== user.id && (
-                <Badge yellow>{t("New")}</Badge>
-              )}
-              {document.isDraft && showDraft && (
-                <Tooltip content={t("Only visible to you")} placement="top">
-                  <Badge>{t("Draft")}</Badge>
-                </Tooltip>
-              )}
-              {canStar && (
-                <StarPositioner>
-                  <StarButton document={document} />
-                </StarPositioner>
-              )}
-              {document.isTemplate && showTemplate && (
-                <Badge primary>{t("Template")}</Badge>
-              )}
-            </Heading>
-
-            {!queryIsInTitle && (
-              <ResultContext
-                text={context}
-                highlight={highlight ? SEARCH_RESULT_REGEX : undefined}
-                processResult={replaceResultMarks}
-              />
+            ) : (
+              <DocumentIcon color={theme.textSecondary} />
             )}
-            <DocumentMeta
-              document={document}
-              showCollection={showCollection}
-              showPublished={showPublished}
-              showParentDocuments={showParentDocuments}
-              showLastViewed
-            />
-          </Content>
+            <Content>
+              <Heading dir={document.dir}>
+                <Title
+                  text={document.titleWithDefault}
+                  highlight={highlight}
+                  dir={document.dir}
+                />
+                {document.isBadgedNew && document.createdBy?.id !== user.id && (
+                  <Badge yellow>{t("New")}</Badge>
+                )}
+                {document.isDraft && showDraft && (
+                  <Tooltip content={t("Only visible to you")} placement="top">
+                    <Badge>{t("Draft")}</Badge>
+                  </Tooltip>
+                )}
+                {canStar && (
+                  <StarPositioner>
+                    <StarButton document={document} />
+                  </StarPositioner>
+                )}
+                {document.isTemplate && showTemplate && (
+                  <Badge primary>{t("Template")}</Badge>
+                )}
+              </Heading>
+
+              {!queryIsInTitle && (
+                <ResultContext
+                  text={context}
+                  highlight={highlight ? SEARCH_RESULT_REGEX : undefined}
+                  processResult={replaceResultMarks}
+                />
+              )}
+              <DocumentMeta
+                document={document}
+                showCollection={showCollection}
+                showPublished={showPublished}
+                showParentDocuments={showParentDocuments}
+                showLastViewed
+              />
+            </Content>
+          </Flex>
           <Actions>
             <DocumentMenu
               document={document}
@@ -226,7 +226,7 @@ const DocumentLink = styled(Link)<{
 }>`
   display: flex;
   align-items: center;
-  margin: 10px -8px;
+  margin: 10px -36px;
   padding: 6px 8px;
   border-radius: 8px;
   max-height: 50vh;
@@ -288,14 +288,13 @@ const Heading = styled.span<{ rtl?: boolean }>`
   justify-content: ${(props) => (props.rtl ? "flex-end" : "flex-start")};
   align-items: center;
   margin-top: 0;
-  margin-bottom: 0.25em;
+  margin-bottom: 0.1em;
   white-space: nowrap;
   color: ${s("text")};
   font-family: ${s("fontFamily")};
   font-weight: 500;
   font-size: 18px;
   line-height: 1.2;
-  margin-left: -28px;
   gap: 4px;
 `;
 

@@ -125,6 +125,14 @@ class User extends ParanoidModel implements Searchable {
     return this.role === UserRole.Guest;
   }
 
+  get isCreatedInPastDay(): boolean {
+    if (!this.createdAt) {
+      return false;
+    }
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    return new Date(this.createdAt) > oneDayAgo;
+  }
+
   /**
    * Whether the user has been recently active. Recently is currently defined
    * as within the last 5 minutes.
