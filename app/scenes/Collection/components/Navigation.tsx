@@ -43,7 +43,7 @@ const Navigation = observer(function Navigation({
     exact: true,
     onClick: () => onChangeTab(path),
     to: {
-      pathname: collectionPath(collection.path, path),
+      pathname: collectionPath(collection, path),
       state: { sidebarContext },
     },
   });

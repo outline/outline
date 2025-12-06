@@ -40,7 +40,7 @@ function SharedCollection({ collection }: Props) {
           as={Link}
           icon={<EditIcon />}
           to={{
-            pathname: collectionPath(collection.path, "overview"),
+            pathname: collectionPath(collection, "overview"),
           }}
           neutral
         >

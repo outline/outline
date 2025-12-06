@@ -331,7 +331,7 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
   ) : (
     <CopyLinkButton
       key="copy-link"
-      url={urlify(collectionPath(collection.path))}
+      url={urlify(collectionPath(collection))}
       onCopy={onRequestClose}
     />
   );
