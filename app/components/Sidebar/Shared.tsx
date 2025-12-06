@@ -88,7 +88,8 @@ function SharedSidebar({ share }: Props) {
           ) : (
             <SharedDocumentLink
               index={0}
-              depth={0}
+              // If the root node has an icon we need some extra space for it
+              depth={rootNode.icon ? 1 : 0}
               shareId={shareId}
               node={rootNode}
               prefetchDocument={documents.prefetchDocument}
