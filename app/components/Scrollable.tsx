@@ -1,27 +1,43 @@
 import { observer } from "mobx-react";
 import * as React from "react";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import { hideScrollbars } from "@shared/styles";
 import useWindowSize from "~/hooks/useWindowSize";
 
 type Props = React.HTMLAttributes<HTMLDivElement> & {
+  /** Whether to show shadows at top and bottom when scrolled */
   shadow?: boolean;
+  /** Whether to show shadow at the top when scrolled */
   topShadow?: boolean;
+  /** Whether to show shadow at the bottom when scrolled */
   bottomShadow?: boolean;
+  /** Whether to hide the scrollbars */
   hiddenScrollbars?: boolean;
+  /** Color to fade to (enables fade effect) */
+  fadeTo?: string;
+  /** Whether to use flexbox layout */
   flex?: boolean;
+  /** Custom overflow style */
   overflow?: string;
-  children: React.ReactNode;
 };
 
+/**
+ * A scrollable container component with optional shadow indicators and custom scrollbar styling.
+ *
+ * @param props - component properties.
+ * @param ref - forwarded ref to the scrollable div element.
+ * @returns the scrollable container element.
+ */
 function Scrollable(
   {
     shadow,
     topShadow,
     bottomShadow,
     hiddenScrollbars,
+    fadeTo,
     flex,
     overflow,
+    children,
     ...rest
   }: Props,
   ref: React.RefObject<HTMLDivElement>
@@ -36,14 +52,17 @@ function Scrollable(
       return;
     }
     const scrollTop = c.scrollTop;
-    const tsv = !!((shadow || topShadow) && scrollTop > 0);
+    const tsv = !!((shadow || topShadow || fadeTo) && scrollTop > 0);
 
     if (tsv !== topShadowVisible) {
       setTopShadow(tsv);
     }
 
     const wrapperHeight = c.scrollHeight - c.clientHeight;
-    const bsv = !!((shadow || bottomShadow) && wrapperHeight - scrollTop !== 0);
+    const bsv = !!(
+      (shadow || bottomShadow || fadeTo) &&
+      wrapperHeight - scrollTop !== 0
+    );
 
     if (bsv !== bottomShadowVisible) {
       setBottomShadow(bsv);
@@ -52,6 +71,7 @@ function Scrollable(
     shadow,
     topShadow,
     bottomShadow,
+    fadeTo,
     ref,
     topShadowVisible,
     bottomShadowVisible,
@@ -67,21 +87,59 @@ function Scrollable(
       onScroll={updateShadows}
       $flex={flex}
       $hiddenScrollbars={hiddenScrollbars}
-      $topShadowVisible={topShadowVisible}
-      $bottomShadowVisible={bottomShadowVisible}
+      $topShadowVisible={topShadowVisible && !fadeTo}
+      $bottomShadowVisible={bottomShadowVisible && !fadeTo}
       $overflow={overflow}
       {...rest}
-    />
+    >
+      {fadeTo && <Fade to={fadeTo} visible={topShadowVisible} top />}
+      {children}
+      {fadeTo && <Fade to={fadeTo} visible={bottomShadowVisible} bottom />}
+    </Wrapper>
   );
 }
 
+const Fade = styled.div<{
+  to: string;
+  top?: boolean;
+  bottom?: boolean;
+  visible: boolean;
+}>`
+  --height: 1.5em;
+  position: sticky;
+  ${(props) =>
+    props.top &&
+    css`
+      top: 0;
+      background: linear-gradient(to bottom, ${props.to}, transparent);
+      margin-bottom: calc(-1 * var(--height));
+    `}
+  ${(props) =>
+    props.bottom &&
+    css`
+      bottom: 0;
+      background: linear-gradient(to top, ${props.to}, transparent);
+      margin-top: calc(-1 * var(--height));
+    `}
+
+  flex-shrink: 0;
+  height: var(--height);
+  width: calc(100% - var(--scrollbar-width, 0px));
+  pointer-events: none;
+  opacity: ${(props) => (props.visible ? 1 : 0)};
+  transition: opacity 100ms ease-in-out;
+  z-index: 1;
+`;
+
 const Wrapper = styled.div<{
   $flex?: boolean;
+  $fadeTo?: string;
   $topShadowVisible?: boolean;
   $bottomShadowVisible?: boolean;
   $hiddenScrollbars?: boolean;
   $overflow?: string;
 }>`
+  position: relative;
   display: ${(props) => (props.$flex ? "flex" : "block")};
   flex-direction: column;
   height: 100%;
