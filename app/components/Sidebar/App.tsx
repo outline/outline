@@ -30,6 +30,7 @@ import SidebarLink from "./components/SidebarLink";
 import Starred from "./components/Starred";
 import ToggleButton from "./components/ToggleButton";
 import TrashLink from "./components/TrashLink";
+import BulkSelectionToolbar from "../BulkSelectionToolbar";
 
 function AppSidebar() {
   const { t } = useTranslation();
@@ -131,6 +132,7 @@ function AppSidebar() {
               <SidebarAction action={inviteUser} />
             </Section>
           </Scrollable>
+          <BulkSelectionToolbar />
         </DndProvider>
       )}
     </Sidebar>

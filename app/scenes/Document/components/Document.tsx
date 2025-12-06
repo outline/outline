@@ -247,7 +247,7 @@ class DocumentScene extends React.Component<Props> {
     if (abilities.move) {
       dialogs.openModal({
         title: t("Move document"),
-        content: <DocumentMove document={document} />,
+        content: <DocumentMove documents={[document]} />,
       });
     }
   };

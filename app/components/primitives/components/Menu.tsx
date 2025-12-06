@@ -67,7 +67,8 @@ const BaseMenuItemCSS = css<BaseMenuItemProps>`
     !props.disabled &&
     `
       &[data-highlighted],
-      &:focus-visible {
+      &:focus-visible,
+      &:hover {
         color: ${props.theme.accentText};
         background: ${props.$dangerous ? props.theme.danger : props.theme.accent};
         outline-color: ${
