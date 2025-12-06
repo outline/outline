@@ -17,6 +17,9 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import { SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
 import { CollectionPath } from "./Navigation";
 import lazyWithRetry from "~/utils/lazyWithRetry";
+import history from "~/utils/history";
+import RegisterKeyDown from "~/components/RegisterKeyDown";
+import { useCallback } from "react";
 
 const ShareButton = lazyWithRetry(() => import("./ShareButton"));
 
@@ -31,6 +34,20 @@ function Actions({ collection, isEditing, sidebarContext }: Props) {
   const can = usePolicy(collection);
   const user = useCurrentUser();
 
+  const goToEdit = useCallback(() => {
+    history.push({
+      pathname: collectionEditPath(collection),
+      state: { sidebarContext },
+    });
+  }, [collection, sidebarContext]);
+
+  const goBack = useCallback(() => {
+    history.push({
+      pathname: collectionPath(collection, CollectionPath.Overview),
+      state: { sidebarContext },
+    });
+  }, [collection, sidebarContext]);
+
   return (
     <>
       {(!isEditing || !user?.separateEditMode) && (
@@ -40,20 +57,13 @@ function Actions({ collection, isEditing, sidebarContext }: Props) {
       )}
       {!isEditing && user?.separateEditMode && (
         <Action>
+          <RegisterKeyDown trigger="e" handler={goToEdit} />
           <Tooltip
             content={t("Edit collection")}
             shortcut="e"
             placement="bottom"
           >
-            <Button
-              as={Link}
-              icon={<EditIcon />}
-              to={{
-                pathname: collectionEditPath(collection),
-                state: { sidebarContext },
-              }}
-              neutral
-            >
+            <Button as={Link} icon={<EditIcon />} onClick={goToEdit} neutral>
               {t("Edit")}
             </Button>
           </Tooltip>
@@ -61,13 +71,8 @@ function Actions({ collection, isEditing, sidebarContext }: Props) {
       )}
       {isEditing && user?.separateEditMode && (
         <Action>
-          <Button
-            as={Link}
-            to={{
-              pathname: collectionPath(collection, CollectionPath.Overview),
-              state: { sidebarContext },
-            }}
-          >
+          <RegisterKeyDown trigger="Escape" handler={goBack} />
+          <Button as={Link} onClick={goBack}>
             {t("Done editing")}
           </Button>
         </Action>
