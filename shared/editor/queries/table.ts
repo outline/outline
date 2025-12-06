@@ -7,6 +7,7 @@ import {
 } from "prosemirror-tables";
 import { ColumnSelection } from "../selection/ColumnSelection";
 import { RowSelection } from "../selection/RowSelection";
+import { EditorView } from "prosemirror-view";
 
 /**
  * Checks if the current selection is a column selection.
@@ -272,4 +273,80 @@ export function isMergedCellSelection(state: EditorState): boolean {
   }
 
   return false;
+}
+
+export function getAllSelectedColumns(state: EditorState): number[] {
+  const rect = selectedRect(state);
+
+  const selectedColumns: number[] = [];
+  for (let col = rect.left; col < rect.right; col++) {
+    selectedColumns.push(col);
+  }
+
+  return selectedColumns;
+}
+
+/**
+ * Get the total width of selected columns by measuring DOM elements.
+ * Uses getBoundingClientRect to get precise rendered widths including decimals.
+ *
+ * @param view The editor view
+ * @param rect The table rect
+ * @param selectedColumns Array of column indices to measure
+ * @returns The total width in px, or 0 if measurement fails
+ */
+export function getWidthFromDom({
+  view,
+  rect,
+  selectedColumns,
+}: {
+  view?: EditorView;
+  rect: TableRect;
+  selectedColumns: number[];
+}): number {
+  if (!view) {
+    return 0;
+  }
+
+  const tableDOM = view.domAtPos(rect.tableStart).node as HTMLElement;
+  const firstRow = tableDOM.closest("table")?.querySelector("tr");
+  if (!firstRow) {
+    return 0;
+  }
+
+  const cells = firstRow.querySelectorAll("td, th");
+  return selectedColumns.reduce((total, colIndex) => {
+    const cell = cells[colIndex] as HTMLElement | undefined;
+    return total + (cell?.getBoundingClientRect().width ?? 0);
+  }, 0);
+}
+
+/**
+ * Get the total width of selected columns from node attributes.
+ * Sums the colwidth values stored in the document state.
+ *
+ * @param state The editor state
+ * @param selectedColumns Array of column indices to measure
+ * @returns The total width in px from colwidth attributes
+ */
+export function getWidthFromNodes({
+  state,
+  selectedColumns,
+}: {
+  state: EditorState;
+  selectedColumns: number[];
+}): number {
+  const firstRowCells = getCellsInRow(0)(state);
+  if (!firstRowCells) {
+    return 0;
+  }
+
+  return selectedColumns.reduce((total, colIndex) => {
+    const cell =
+      firstRowCells[colIndex] !== undefined
+        ? state.doc.nodeAt(firstRowCells[colIndex])
+        : null;
+    const colwidth = cell?.attrs.colwidth;
+    return total + (colwidth?.[0] ?? 0);
+  }, 0);
 }
