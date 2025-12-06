@@ -22,6 +22,7 @@ export default createGlobalStyle<Props>`
     padding: 0;
     print-color-adjust: exact;
     --pointer: ${(props) => (props.useCursorPointer ? "pointer" : "default")};
+    --scrollbar-width: calc(100vw - 100cqw);
     overscroll-behavior-x: none;
 
     @media print {
