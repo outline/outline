@@ -1,18 +1,17 @@
 import { useMemo, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import { s, hover } from "@shared/styles";
 import { EmojiSkinTone } from "@shared/types";
 import { getEmojiVariants } from "@shared/utils/emoji";
 import { Emoji } from "~/components/Emoji";
 import Flex from "~/components/Flex";
-import NudeButton from "~/components/NudeButton";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "~/components/primitives/Popover";
 import { IconButton } from "./IconButton";
+import { MenuButton } from "./MenuButton";
 
 const SkinTonePicker = ({
   skinTone,
@@ -57,9 +56,9 @@ const SkinTonePicker = ({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger>
-        <StyledMenuButton aria-label={t("Choose default skin tone")}>
+        <MenuButton aria-label={t("Choose default skin tone")}>
           {handEmojiVariants[skinTone]?.value}
-        </StyledMenuButton>
+        </MenuButton>
       </PopoverTrigger>
       <PopoverContent
         side="bottom"
@@ -77,17 +76,6 @@ const SkinTonePicker = ({
 
 const Emojis = styled(Flex)`
   padding: 0 8px;
-`;
-
-const StyledMenuButton = styled(NudeButton)`
-  width: 32px;
-  height: 32px;
-  border: 1px solid ${s("inputBorder")};
-  padding: 4px;
-
-  &: ${hover} {
-    border: 1px solid ${s("inputBorderFocused")};
-  }
 `;
 
 export default SkinTonePicker;

@@ -21,13 +21,11 @@ import { Drawer, DrawerContent, DrawerTrigger } from "../primitives/Drawer";
 import EmojiPanel from "./components/EmojiPanel";
 import IconPanel from "./components/IconPanel";
 import { PopoverButton } from "./components/PopoverButton";
-import CustomEmojiPanel from "./components/CustomEmojiPanel";
 import useStores from "~/hooks/useStores";
 
 const TAB_NAMES = {
   Icon: "icon",
   Emoji: "emoji",
-  Custom: "custom",
 } as const;
 
 type TabName = (typeof TAB_NAMES)[keyof typeof TAB_NAMES];
@@ -175,7 +173,7 @@ const IconPicker = ({
     if (open) {
       void emojis.fetchAll();
     }
-  }, [open]);
+  }, [open, emojis]);
 
   if (isMobile) {
     return (
@@ -254,13 +252,6 @@ const Content = ({
           >
             {t("Emojis")}
           </StyledTab>
-          <StyledTab
-            value={TAB_NAMES["Custom"]}
-            aria-label={t("Custom Emojis")}
-            $active={activeTab === TAB_NAMES["Custom"]}
-          >
-            {t("Custom")}
-          </StyledTab>
         </Tabs.List>
         {allowDelete && (
           <RemoveButton onClick={onIconRemove}>{t("Remove")}</RemoveButton>
@@ -283,15 +274,6 @@ const Content = ({
           panelWidth={panelWidth}
           query={query}
           panelActive={open && activeTab === TAB_NAMES["Emoji"]}
-          onEmojiChange={onIconChange}
-          onQueryChange={onQueryChange}
-        />
-      </StyledTabContent>
-      <StyledTabContent value={TAB_NAMES["Custom"]}>
-        <CustomEmojiPanel
-          panelWidth={panelWidth}
-          query={query}
-          panelActive={open && activeTab === TAB_NAMES["Custom"]}
           onEmojiChange={onIconChange}
           onQueryChange={onQueryChange}
         />

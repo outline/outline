@@ -111,6 +111,7 @@ export default function useDictionary() {
       deleteEmbed: t("Delete embed"),
       uploadImage: t("Upload an image"),
       formattingControls: t("Formatting controls"),
+      distributeColumns: t("Distribute columns"),
     }),
     [t]
   );
