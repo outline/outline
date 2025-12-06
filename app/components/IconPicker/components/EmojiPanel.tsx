@@ -17,6 +17,7 @@ import { useComputed } from "~/hooks/useComputed";
 import { MenuButton } from "./MenuButton";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
+import { IconButton } from "./IconButton";
 
 const GRID_HEIGHT = 410;
 
@@ -180,6 +181,11 @@ const EmojiPanel = ({
         height={height - 48}
         data={templateData}
         onIconSelect={handleEmojiSelection}
+        empty={
+          <IconButton onClick={handleUploadClick}>
+            <PlusIcon />
+          </IconButton>
+        }
       />
     </Flex>
   );
