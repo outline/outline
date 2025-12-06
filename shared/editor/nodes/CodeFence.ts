@@ -7,7 +7,13 @@ import {
   Schema,
   Node as ProsemirrorNode,
 } from "prosemirror-model";
-import { Command, Plugin, PluginKey, TextSelection } from "prosemirror-state";
+import {
+  Command,
+  EditorState,
+  Plugin,
+  PluginKey,
+  TextSelection,
+} from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { toast } from "sonner";
 import { Primitive } from "utility-types";
@@ -185,6 +191,19 @@ export default class CodeFence extends Node {
   }
 
   get plugins() {
+    const createActiveCodeBlockDecoration = (state: EditorState) => {
+      const codeBlock = findParentNode(isCode)(state.selection);
+      if (!codeBlock) {
+        return DecorationSet.empty;
+      }
+      const decoration = Decoration.node(
+        codeBlock.pos,
+        codeBlock.pos + codeBlock.node.nodeSize,
+        { class: "code-active" }
+      );
+      return DecorationSet.create(state.doc, [decoration]);
+    };
+
     return [
       CodeHighlighting({
         name: this.name,
@@ -243,20 +262,21 @@ export default class CodeFence extends Node {
         },
       }),
       new Plugin({
-        props: {
-          decorations(state) {
-            const codeBlock = findParentNode(isCode)(state.selection);
-
-            if (!codeBlock) {
-              return null;
+        key: new PluginKey("code-fence-active"),
+        state: {
+          init: (_, state) => createActiveCodeBlockDecoration(state),
+          apply: (tr, pluginState, oldState, newState) => {
+            // Only recompute if selection or document changed
+            if (!tr.selectionSet && !tr.docChanged) {
+              return pluginState;
             }
 
-            const decoration = Decoration.node(
-              codeBlock.pos,
-              codeBlock.pos + codeBlock.node.nodeSize,
-              { class: "code-active" }
-            );
-            return DecorationSet.create(state.doc, [decoration]);
+            return createActiveCodeBlockDecoration(newState);
+          },
+        },
+        props: {
+          decorations(state) {
+            return this.getState(state);
           },
         },
       }),
