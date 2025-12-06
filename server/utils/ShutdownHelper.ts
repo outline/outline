@@ -9,7 +9,7 @@ export enum ShutdownOrder {
 }
 
 type Handler = {
-  name: string;
+  key: string;
   order: ShutdownOrder;
   callback: () => Promise<unknown>;
 };
@@ -38,15 +38,24 @@ export default class ShutdownHelper {
   /**
    * Add a shutdown handler to be executed when the process is exiting
    *
-   * @param name The name of the handler
+   * @param key The key of the handler
    * @param callback The callback to execute
    */
   public static add(
-    name: string,
+    key: string,
     order: ShutdownOrder,
     callback: () => Promise<unknown>
   ) {
-    this.handlers.push({ name, order, callback });
+    this.handlers.push({ key, order, callback });
+  }
+
+  /**
+   * Remove a shutdown handler, if it exists
+   *
+   * @param key The key of the handler to remove
+   */
+  public static remove(key: string) {
+    this.handlers = this.handlers.filter((handler) => handler.key !== key);
   }
 
   /**
@@ -75,14 +84,14 @@ export default class ShutdownHelper {
 
       await Promise.allSettled(
         handlers.map(async (handler) => {
-          Logger.debug("lifecycle", `Running shutdown handler ${handler.name}`);
+          Logger.debug("lifecycle", `Running shutdown handler ${handler.key}`);
 
           await handler.callback().catch((error) => {
             Logger.error(
-              `Error inside shutdown handler ${handler.name}`,
+              `Error inside shutdown handler ${handler.key}`,
               error,
               {
-                name: handler.name,
+                key: handler.key,
               }
             );
           });
