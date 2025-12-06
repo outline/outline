@@ -11,7 +11,6 @@ import * as React from "react";
 import { sanitizeUrl } from "../../utils/urls";
 import Caption from "../components/Caption";
 import ImageComponent from "../components/Image";
-import { addComment } from "../commands/comment";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { ComponentProps } from "../types";
@@ -19,6 +18,8 @@ import SimpleImage from "./SimpleImage";
 import { LightboxImageFactory } from "../lib/Lightbox";
 import { ImageSource } from "../lib/FileHelper";
 import { DiagramPlaceholder } from "../components/DiagramPlaceholder";
+import { addComment } from "../commands/comment";
+import { addLink } from "../commands/link";
 
 const imageSizeRegex = /\s=(\d+)?x(\d+)?$/;
 
@@ -335,6 +336,14 @@ export default class Image extends SimpleImage {
       view.dispatch(transaction);
     };
 
+  handleZoomIn =
+    ({ getPos, view }: ComponentProps) =>
+    () => {
+      this.editor.updateActiveLightboxImage(
+        LightboxImageFactory.createLightboxImage(view, getPos())
+      );
+    };
+
   handleClick =
     ({ getPos, view }: ComponentProps) =>
     () => {
@@ -379,6 +388,7 @@ export default class Image extends SimpleImage {
         {...props}
         onClick={this.handleClick(props)}
         onDownload={this.handleDownload(props)}
+        onZoomIn={this.handleZoomIn(props)}
         onChangeSize={this.handleChangeSize(props)}
       >
         <Caption
@@ -536,6 +546,7 @@ export default class Image extends SimpleImage {
         },
       commentOnImage: (): Command =>
         addComment({ userId: this.options.userId }),
+      linkOnImage: (): Command => addLink({ href: "" }),
     };
   }
 

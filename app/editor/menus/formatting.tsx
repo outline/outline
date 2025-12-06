@@ -258,6 +258,7 @@ export default function formattingMenuItems(
       shortcut: `${metaDisplay}+K`,
       icon: <LinkIcon />,
       attrs: { href: "" },
+      active: isMarkActive(schema.marks.link, undefined, { exact: true }),
       visible: !isCodeBlock && (!isMobile || !isEmpty),
     },
     {

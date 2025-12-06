@@ -1,4 +1,4 @@
-import { CrossIcon, DownloadIcon, GlobeIcon } from "outline-icons";
+import { CrossIcon, DownloadIcon, GlobeIcon, ZoomInIcon } from "outline-icons";
 import type { EditorView } from "prosemirror-view";
 import * as React from "react";
 import styled from "styled-components";
@@ -10,12 +10,15 @@ import { ComponentProps } from "../types";
 import { ResizeLeft, ResizeRight } from "./ResizeHandle";
 import useDragResize from "./hooks/useDragResize";
 import { useTranslation } from "react-i18next";
+import find from "lodash/find";
 
 type Props = ComponentProps & {
   /** Callback triggered when the image is clicked */
   onClick: () => void;
   /** Callback triggered when the download button is clicked */
   onDownload?: (event: React.MouseEvent<HTMLButtonElement>) => Promise<void>;
+  /** Callback triggered when the zoom in button is clicked */
+  onZoomIn?: (event: React.MouseEvent<HTMLButtonElement>) => void;
   /** Callback triggered when the image is resized */
   onChangeSize?: (props: { width: number; height?: number }) => void;
   /** The editor view */
@@ -66,7 +69,13 @@ const Image = (props: Props) => {
   }, [node.attrs.width]);
 
   const sanitizedSrc = sanitizeUrl(src);
-
+  const linkMarkType = props.view.state.schema.marks.link;
+  const imgLink =
+    find(node.attrs.marks ?? [], (mark) => mark.type === linkMarkType.name)
+      ?.attrs.href ||
+    // Coalescing to `undefined` to avoid empty string in href because empty string
+    // in href still shows pointer on hover and click navigates to nowhere
+    undefined;
   const handleOpen = React.useCallback(() => {
     window.open(sanitizedSrc, "_blank");
   }, [sanitizedSrc]);
@@ -120,12 +129,30 @@ const Image = (props: Props) => {
         {!dragging && width > 60 && isDownloadable && (
           <Actions>
             {isExternalUrl(src) && (
-              <Button onClick={handleOpen} aria-label={t("Open")}>
-                <GlobeIcon />
-              </Button>
+              <>
+                <Button onClick={handleOpen} aria-label={t("Open")}>
+                  <GlobeIcon />
+                </Button>
+                <Separator height={24} />
+              </>
+            )}
+            {imgLink && (
+              <>
+                <Button
+                  // `mousedown` on ancestor `div.ProseMirror` was preventing the `onClick` handler from firing
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={props.onZoomIn}
+                  aria-label={t("Zoom in")}
+                >
+                  <ZoomInIcon />
+                </Button>
+                <Separator height={24} />
+              </>
             )}
             <Button
               onClick={handleDownload}
+              // `mousedown` on ancestor `div.ProseMirror` was preventing the `onClick` handler from firing
+              onMouseDown={(e) => e.stopPropagation()}
               aria-label={t("Download")}
               disabled={isDownloading}
             >
@@ -138,16 +165,18 @@ const Image = (props: Props) => {
             <CrossIcon size={16} /> Image failed to load
           </Error>
         ) : (
-          <>
+          <a
+            href={imgLink}
+            // Do not show hover preview when the image is selected
+            className={!isSelected ? "use-hover-preview" : ""}
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+          >
             <img
               className={EditorStyleHelper.imageHandle}
               style={{
                 ...widthStyle,
                 display: loaded ? "block" : "none",
-                pointerEvents:
-                  dragging || (!props.isSelected && props.isEditable)
-                    ? "none"
-                    : "all",
               }}
               src={sanitizedSrc}
               alt={node.attrs.alt || ""}
@@ -175,18 +204,18 @@ const Image = (props: Props) => {
               onClick={handleImageClick}
               onTouchStart={handleImageTouchStart}
             />
-            {!loaded && width && height && (
-              <img
-                style={{
-                  ...widthStyle,
-                  display: "block",
-                }}
-                src={`data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
-                  getPlaceholder(width, height)
-                )}`}
-              />
-            )}
-          </>
+          </a>
+        )}
+        {!loaded && width && height && (
+          <img
+            style={{
+              ...widthStyle,
+              display: "block",
+            }}
+            src={`data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
+              getPlaceholder(width, height)
+            )}`}
+          />
         )}
         {isEditable && !isFullWidth && isResizable && (
           <>
@@ -231,7 +260,6 @@ const Actions = styled.div`
   display: flex;
   align-items: center;
   position: absolute;
-  gap: 1px;
   top: 8px;
   right: 8px;
   opacity: 0;
@@ -314,6 +342,13 @@ const ImageWrapper = styled.div<{ isFullWidth: boolean }>`
       opacity: 1;
     }
   }
+`;
+
+const Separator = styled.div<{ height?: number }>`
+  flex-shrink: 0;
+  width: 1px;
+  height: ${(props) => props.height || 28}px;
+  background: ${s("divider")};
 `;
 
 export default Image;

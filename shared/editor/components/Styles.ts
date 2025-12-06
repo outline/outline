@@ -785,9 +785,6 @@ img.ProseMirror-separator {
 .component-image + img.ProseMirror-separator + br.ProseMirror-trailingBreak {
   display: none;
 }
-.component-image img {
-  cursor: zoom-in;
-}
 
 .${EditorStyleHelper.imageCaption} {
   border: 0;
@@ -884,6 +881,41 @@ h6:not(.placeholder)::before {
   h6 {
     &:not(.placeholder)::before {
       opacity: 1;
+    }
+  }
+}
+
+.ProseMirror[contenteditable="true"] {
+  & .image-wrapper.ProseMirror-selectednode > a {
+    /* force zoom-in cursor if image node is selected */
+    cursor: zoom-in !important;
+  }
+  &.ProseMirror-focused {
+    .image-wrapper:not(.ProseMirror-selectednode) > a {
+      /* prevents cursor from turning to pointer on pointer down */
+      pointer-events: none;
+    }
+  }
+  &:not(.ProseMirror-focused) {
+    .image-wrapper  {
+      & > a[href] {
+        cursor: pointer;
+      }
+      & > a:not([href]) {
+        /* prevents cursor from turning to pointer on pointer down */
+        pointer-events: none;
+      }
+    }
+  }
+}
+
+.ProseMirror[contenteditable="false"] {
+  .image-wrapper  {
+    & > a[href] {
+      cursor: pointer;
+    }
+    & > a:not([href]) {
+      cursor: zoom-in;
     }
   }
 }

@@ -20,20 +20,15 @@ import EventBoundary from "@shared/components/EventBoundary";
 
 type Props = {
   items: MenuItem[];
-  handlers?: Record<string, (...args: any[]) => void>;
 };
 
 /*
  * Renders a dropdown menu in the floating toolbar.
  */
-function ToolbarDropdown(props: {
-  active: boolean;
-  item: MenuItem;
-  handlers?: Record<string, Function>;
-}) {
+function ToolbarDropdown(props: { active: boolean; item: MenuItem }) {
   const { commands, view } = useEditor();
   const { t } = useTranslation();
-  const { item, handlers } = props;
+  const { item } = props;
   const { state } = view;
 
   const items: TMenuItem[] = useMemo(() => {
@@ -48,12 +43,8 @@ function ToolbarDropdown(props: {
             ? menuItem.attrs(state)
             : menuItem.attrs
         );
-      } else if (handlers && handlers[menuItem.name]) {
-        handlers[menuItem.name](
-          typeof menuItem.attrs === "function"
-            ? menuItem.attrs(state)
-            : menuItem.attrs
-        );
+      } else if (menuItem.onClick) {
+        menuItem.onClick();
       }
     };
 
@@ -113,6 +104,13 @@ function ToolbarMenu(props: Props) {
       return;
     }
 
+    // if item has an associated onClick prop, run it
+    if (item.onClick) {
+      item.onClick();
+      return;
+    }
+
+    // otherwise, run the associated editor command
     commands[item.name](
       typeof item.attrs === "function" ? item.attrs(state) : item.attrs
     );
@@ -141,7 +139,6 @@ function ToolbarMenu(props: Props) {
                   <MediaDimension key={index} />
                 ) : item.children ? (
                   <ToolbarDropdown
-                    handlers={props.handlers}
                     active={isActive && !item.label}
                     item={item}
                   />
