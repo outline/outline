@@ -43,8 +43,9 @@ const useTooltipContent = ({
 }) => {
   const { t } = useTranslation();
   const { emojis } = useStores();
+  const customEmoji = emojis.get(emoji);
   const [transformedEmoji, setTransformedEmoji] = React.useState(
-    `:${getEmojiId(emoji)}:`
+    customEmoji?.shortName ?? `:${getEmojiId(emoji)}:`
   );
 
   // If the emoji is a custom emoji ID, we need to get its short name for display
