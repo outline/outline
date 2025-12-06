@@ -9,13 +9,11 @@ import {
   useRouteMatch,
   useLocation,
   Redirect,
-  Link,
 } from "react-router-dom";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { StatusFilter } from "@shared/types";
 import Collection from "~/models/Collection";
-import { Action } from "~/components/Actions";
 import CenteredContent from "~/components/CenteredContent";
 import { CollectionBreadcrumb } from "~/components/CollectionBreadcrumb";
 import Heading from "~/components/Heading";
@@ -48,16 +46,9 @@ import MembershipPreview from "./components/MembershipPreview";
 import Navigation, { CollectionPath } from "./components/Navigation";
 import Notices from "./components/Notices";
 import Overview from "./components/Overview";
-import lazyWithRetry from "~/utils/lazyWithRetry";
 import { Header } from "./components/Header";
 import usePersistedState from "~/hooks/usePersistedState";
-import Tooltip from "~/components/Tooltip";
-import Button from "~/components/Button";
-import { EditIcon } from "outline-icons";
-import useMobile from "~/hooks/useMobile";
 import useCurrentUser from "~/hooks/useCurrentUser";
-
-const ShareButton = lazyWithRetry(() => import("./components/ShareButton"));
 
 const CollectionScene = observer(function _CollectionScene() {
   const params = useParams<{ collectionSlug?: string }>();
@@ -71,7 +62,6 @@ const CollectionScene = observer(function _CollectionScene() {
   const currentPath = location.pathname;
   const [, setLastVisitedPath] = useLastVisitedPath();
   const sidebarContext = useLocationSidebarContext();
-  const isMobile = useMobile();
   const isEditRoute = match.path === matchCollectionEdit;
 
   const id = params.collectionSlug || "";
@@ -146,31 +136,6 @@ const CollectionScene = observer(function _CollectionScene() {
     return <Loading />;
   }
 
-  const editAction = (
-    <Action>
-      <Tooltip content={t("Edit collection")} shortcut="e" placement="bottom">
-        <Button
-          as={Link}
-          icon={isEditRoute ? undefined : <EditIcon />}
-          to={
-            isEditRoute
-              ? {
-                  pathname: collectionPath(collection, CollectionPath.Overview),
-                  state: { sidebarContext },
-                }
-              : {
-                  pathname: collectionEditPath(collection),
-                  state: { sidebarContext },
-                }
-          }
-          neutral={!isEditRoute}
-        >
-          {isMobile ? null : isEditRoute ? t("Done editing") : t("Edit")}
-        </Button>
-      </Tooltip>
-    </Action>
-  );
-
   const showOverview = can.update || collection?.hasDescription;
 
   return (
@@ -198,11 +163,11 @@ const CollectionScene = observer(function _CollectionScene() {
       actions={
         <>
           <MembershipPreview collection={collection} />
-          <Action>
-            {can.update && <ShareButton collection={collection} />}
-          </Action>
-          {user?.separateEditMode ? editAction : null}
-          <Actions collection={collection} />
+          <Actions
+            collection={collection}
+            isEditing={isEditRoute}
+            sidebarContext={sidebarContext}
+          />
         </>
       }
     >
