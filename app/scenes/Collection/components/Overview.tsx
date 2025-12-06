@@ -1,6 +1,6 @@
 import debounce from "lodash/debounce";
 import { observer } from "mobx-react";
-import { useMemo, useRef, useCallback, Suspense } from "react";
+import { useMemo, useRef, useCallback, useEffect, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
@@ -46,6 +46,13 @@ function Overview({ collection, readOnly }: Props) {
         }
       }, 1000),
     [collection, t]
+  );
+
+  useEffect(
+    () => () => {
+      handleSave.flush();
+    },
+    [handleSave]
   );
 
   const childRef = useRef<HTMLDivElement>(null);
