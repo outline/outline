@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from "react";
+import styled from "styled-components";
 import useDragResize from "./hooks/useDragResize";
 import { ResizeLeft, ResizeRight } from "./ResizeHandle";
 import { ComponentProps } from "../types";
@@ -71,11 +72,16 @@ export default function PdfViewer(props: Props) {
   });
 
   return (
-    <div
-      className="pdf"
+    <PDFWrapper
       contentEditable={false}
       ref={ref}
-      style={{ width: dragging ? width : undefined }}
+      className={
+        isSelected || dragging
+          ? "pdf-wrapper ProseMirror-selectednode"
+          : "pdf-wrapper"
+      }
+      style={{ width: width ?? "auto" }}
+      $dragging={dragging}
     >
       <embed
         title={name}
@@ -100,6 +106,32 @@ export default function PdfViewer(props: Props) {
           />
         </>
       )}
-    </div>
+    </PDFWrapper>
   );
 }
+
+const PDFWrapper = styled.div<{ $dragging: boolean }>`
+  line-height: 0;
+  position: relative;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 100%;
+  transition-property: width, height;
+  transition-duration: 120ms;
+  transition-timing-function: ease-in-out;
+  overflow: hidden;
+  will-change: ${(props) => (props.$dragging ? "width, height" : "auto")};
+
+  embed {
+    transition-property: width, height;
+    transition-duration: 120ms;
+    transition-timing-function: ease-in-out;
+    will-change: ${(props) => (props.$dragging ? "width, height" : "auto")};
+  }
+
+  &:hover {
+    ${ResizeLeft}, ${ResizeRight} {
+      opacity: 1;
+    }
+  }
+`;
