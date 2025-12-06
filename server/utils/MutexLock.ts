@@ -41,7 +41,7 @@ export class MutexLock {
       const key = `lock:${resource}`;
       // @ts-expect-error Attach resource for use in shutdown
       lock._key = key;
-      ShutdownHelper.add(key, ShutdownOrder.last, lock.release);
+      ShutdownHelper.add(key, ShutdownOrder.last, lock.release.bind(lock));
     }
     return lock;
   }
