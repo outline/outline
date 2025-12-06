@@ -1,6 +1,6 @@
 import { Token } from "markdown-it";
 import { NodeSpec, Slice } from "prosemirror-model";
-import { Plugin, PluginKey } from "prosemirror-state";
+import { EditorState, Plugin, PluginKey } from "prosemirror-state";
 import { DecorationSet, Decoration } from "prosemirror-view";
 import { addRowBefore, selectRow, selectTable } from "../commands/table";
 import { getCellAttrs, setCellAttrs } from "../lib/table";
@@ -69,150 +69,86 @@ export default class TableCell extends Node {
       );
     }
 
+    const createRowDecorations = (state: EditorState) => {
+      if (!this.editor.view?.editable) {
+        return DecorationSet.empty;
+      }
+
+      const { doc } = state;
+      const decorations: Decoration[] = [];
+      const rows = getCellsInColumn(0)(state);
+
+      if (rows) {
+        rows.forEach((pos, visualIndex) => {
+          const actualRowIndex = getRowIndexInMap(visualIndex, state);
+          const index = actualRowIndex !== -1 ? actualRowIndex : visualIndex;
+
+          if (index === 0) {
+            const className = cn(EditorStyleHelper.tableGrip, {
+              selected: isTableSelected(state),
+            });
+
+            decorations.push(
+              Decoration.widget(
+                pos + 1,
+                () => {
+                  const grip = document.createElement("a");
+                  grip.role = "button";
+                  grip.className = className;
+                  return grip;
+                },
+                {
+                  key: className,
+                }
+              )
+            );
+          }
+
+          const className = cn(EditorStyleHelper.tableGripRow, {
+            selected: isRowSelected(index)(state) || isTableSelected(state),
+            first: index === 0,
+            last: visualIndex === rows.length - 1,
+          });
+
+          decorations.push(
+            Decoration.widget(
+              pos + 1,
+              () => {
+                const grip = document.createElement("a");
+                grip.role = "button";
+                grip.className = className;
+                grip.dataset.index = index.toString();
+                return grip;
+              },
+              {
+                key: cn(className, index),
+              }
+            )
+          );
+
+          if (index === 0) {
+            decorations.push(buildAddRowDecoration(pos, index));
+          }
+
+          decorations.push(buildAddRowDecoration(pos, index + 1));
+        });
+      }
+
+      return DecorationSet.create(doc, decorations);
+    };
+
     return [
       new Plugin({
         key: new PluginKey("table-cell-decorations"),
         state: {
-          init: (_, state) => {
-            if (!this.editor.view?.editable) {
-              return DecorationSet.empty;
-            }
-
-            const { doc } = state;
-            const decorations: Decoration[] = [];
-            const rows = getCellsInColumn(0)(state);
-
-            if (rows) {
-              rows.forEach((pos, visualIndex) => {
-                const actualRowIndex = getRowIndexInMap(visualIndex, state);
-                const index =
-                  actualRowIndex !== -1 ? actualRowIndex : visualIndex;
-                if (index === 0) {
-                  const className = cn(EditorStyleHelper.tableGrip, {
-                    selected: isTableSelected(state),
-                  });
-
-                  decorations.push(
-                    Decoration.widget(
-                      pos + 1,
-                      () => {
-                        const grip = document.createElement("a");
-                        grip.role = "button";
-                        grip.className = className;
-                        return grip;
-                      },
-                      {
-                        key: className,
-                      }
-                    )
-                  );
-                }
-
-                const className = cn(EditorStyleHelper.tableGripRow, {
-                  selected:
-                    isRowSelected(index)(state) || isTableSelected(state),
-                  first: index === 0,
-                  last: visualIndex === rows.length - 1,
-                });
-
-                decorations.push(
-                  Decoration.widget(
-                    pos + 1,
-                    () => {
-                      const grip = document.createElement("a");
-                      grip.role = "button";
-                      grip.className = className;
-                      grip.dataset.index = index.toString();
-                      return grip;
-                    },
-                    {
-                      key: cn(className, index),
-                    }
-                  )
-                );
-
-                if (index === 0) {
-                  decorations.push(buildAddRowDecoration(pos, index));
-                }
-
-                decorations.push(buildAddRowDecoration(pos, index + 1));
-              });
-            }
-
-            return DecorationSet.create(doc, decorations);
-          },
+          init: (_, state) => createRowDecorations(state),
           apply: (tr, pluginState, oldState, newState) => {
             // Only recompute if selection or document changed
             if (!tr.selectionSet && !tr.docChanged) {
               return pluginState;
             }
 
-            if (!this.editor.view?.editable) {
-              return DecorationSet.empty;
-            }
-
-            const { doc } = newState;
-            const decorations: Decoration[] = [];
-            const rows = getCellsInColumn(0)(newState);
-
-            if (rows) {
-              rows.forEach((pos, visualIndex) => {
-                const actualRowIndex = getRowIndexInMap(visualIndex, newState);
-                const index =
-                  actualRowIndex !== -1 ? actualRowIndex : visualIndex;
-                if (index === 0) {
-                  const className = cn(EditorStyleHelper.tableGrip, {
-                    selected: isTableSelected(newState),
-                  });
-
-                  decorations.push(
-                    Decoration.widget(
-                      pos + 1,
-                      () => {
-                        const grip = document.createElement("a");
-                        grip.role = "button";
-                        grip.className = className;
-                        return grip;
-                      },
-                      {
-                        key: className,
-                      }
-                    )
-                  );
-                }
-
-                const className = cn(EditorStyleHelper.tableGripRow, {
-                  selected:
-                    isRowSelected(index)(newState) || isTableSelected(newState),
-                  first: index === 0,
-                  last: visualIndex === rows.length - 1,
-                });
-
-                decorations.push(
-                  Decoration.widget(
-                    pos + 1,
-                    () => {
-                      const grip = document.createElement("a");
-                      grip.role = "button";
-                      grip.className = className;
-                      grip.dataset.index = index.toString();
-                      return grip;
-                    },
-                    {
-                      key: cn(className, index),
-                    }
-                  )
-                );
-
-                if (index === 0) {
-                  decorations.push(buildAddRowDecoration(pos, index));
-                }
-
-                decorations.push(buildAddRowDecoration(pos, index + 1));
-              });
-            }
-
-            return DecorationSet.create(doc, decorations);
+            return createRowDecorations(newState);
           },
         },
         props: {
