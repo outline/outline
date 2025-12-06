@@ -42,7 +42,7 @@ class LightboxMermaidImage extends LightboxImage {
   }
 
   private svgToSrc(svg: string): string {
-    return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
   }
 
   private extractSvg(): string {
@@ -55,7 +55,8 @@ class LightboxMermaidImage extends LightboxImage {
       return "";
     }
 
-    return svg.outerHTML;
+    const serializer = new XMLSerializer();
+    return serializer.serializeToString(svg);
   }
 
   getElement() {
