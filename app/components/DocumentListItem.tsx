@@ -130,15 +130,17 @@ function DocumentListItem(
           {...rovingTabIndex}
         >
           <Flex gap={4} auto>
-            {document.icon ? (
-              <Icon
-                value={document.icon}
-                color={document.color ?? undefined}
-                initial={document.initial}
-              />
-            ) : (
-              <DocumentIcon color={theme.textSecondary} />
-            )}
+            <IconWrapper>
+              {document.icon ? (
+                <Icon
+                  value={document.icon}
+                  color={document.color ?? undefined}
+                  initial={document.initial}
+                />
+              ) : (
+                <DocumentIcon color={theme.textSecondary} />
+              )}
+            </IconWrapper>
             <Content>
               <Heading dir={document.dir}>
                 <Title
@@ -193,6 +195,14 @@ function DocumentListItem(
   );
 }
 
+const IconWrapper = styled.div`
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  width: 24px;
+`;
+
 const Content = styled.div`
   flex-grow: 1;
   flex-shrink: 1;
@@ -226,7 +236,7 @@ const DocumentLink = styled(Link)<{
 }>`
   display: flex;
   align-items: center;
-  margin: 10px -36px;
+  margin: 10px -8px;
   padding: 6px 8px;
   border-radius: 8px;
   max-height: 50vh;
@@ -239,6 +249,7 @@ const DocumentLink = styled(Link)<{
 
   ${breakpoint("tablet")`
     width: auto;
+    margin: 10px -36px;
   `};
 
   ${Actions} {

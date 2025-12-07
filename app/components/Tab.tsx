@@ -4,7 +4,7 @@ import isEqual from "lodash/isEqual";
 import queryString from "query-string";
 import * as React from "react";
 import styled, { useTheme } from "styled-components";
-import { s, hover } from "@shared/styles";
+import { s, hover, extraArea } from "@shared/styles";
 import NavLink from "~/components/NavLink";
 
 type Props = Omit<React.ComponentProps<typeof NavLink>, "children"> & {
@@ -35,9 +35,10 @@ const TabLink = styled(NavLink)`
   user-select: none;
   margin-right: 24px;
   padding: 6px 0;
+  ${extraArea(4)}
 
   &: ${hover} {
-    color: ${s("textSecondary")};
+    color: ${s("text")};
   }
 `;
 
@@ -70,7 +71,7 @@ const Tab: React.FC<Props> = ({
 }: Props) => {
   const theme = useTheme();
   const activeStyle = {
-    color: theme.textSecondary,
+    color: theme.text,
   };
 
   return (
