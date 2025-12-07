@@ -227,10 +227,6 @@ export function SelectionToolbar(props: Props) {
     return item;
   });
 
-  if (!items.length) {
-    return null;
-  }
-
   const handleClickOutsideLinkEditor = (ev: MouseEvent | TouchEvent) => {
     if (ev.target instanceof Element && ev.target.closest(".image-wrapper")) {
       return;
@@ -258,7 +254,7 @@ export function SelectionToolbar(props: Props) {
     { capture: true }
   );
 
-  if (!activeToolbar) {
+  if (!activeToolbar || !items.length) {
     return null;
   }
 
