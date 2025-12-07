@@ -1,14 +1,13 @@
 import { Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import { DOMSerializer } from "prosemirror-model";
+import { DOMSerializer, Node } from "prosemirror-model";
 import { type ChangeSet } from "prosemirror-changeset";
 import Extension from "../lib/Extension";
-import { type ProsemirrorData } from "../../types";
 
 export type DiffChanges = {
   inserted: ChangeSet["inserted"];
   deleted: ChangeSet["deleted"];
-  data: ProsemirrorData;
+  doc: Node;
 };
 
 export default class Diff extends Extension {
@@ -66,7 +65,8 @@ export default class Diff extends Extension {
             return DecorationSet.create(state.doc, decorations);
           },
         },
-        filterTransaction: () => false,
+        // Allow meta transactions to bypass filtering
+        filterTransaction: (tr) => !!tr.getMeta("codeHighlighting"),
       }),
     ];
   }

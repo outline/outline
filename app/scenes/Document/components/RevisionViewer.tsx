@@ -16,7 +16,6 @@ import { withUIExtensions } from "~/editor/extensions";
 import { richExtensions, withComments } from "@shared/editor/nodes";
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
 import Diff, { type DiffChanges } from "@shared/editor/extensions/Diff";
-import { ProsemirrorData } from "@shared/types";
 
 type Props = Omit<EditorProps, "extensions"> & {
   /** The ID of the revision */
@@ -99,7 +98,7 @@ function RevisionViewer(props: Props) {
       return {
         inserted: changeSet.inserted,
         deleted: changeSet.deleted,
-        data: tr.doc.toJSON() as ProsemirrorData,
+        doc: tr.doc,
       };
     } catch {
       return null;
@@ -134,7 +133,7 @@ function RevisionViewer(props: Props) {
         rtl={revision.rtl}
       />
       <Editor
-        value={changes?.data || revision.data}
+        defaultValue={changes?.doc || revision.data}
         extensions={extensions}
         dir={revision.dir}
         readOnly

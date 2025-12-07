@@ -70,8 +70,8 @@ export type Props = {
   userId?: string;
   /** The editor content, should only be changed if you wish to reset the content */
   value?: string | ProsemirrorData;
-  /** The initial editor content as a markdown string or JSON object */
-  defaultValue: string | object;
+  /** The initial editor content as a markdown string, JSON object, or ProsemirrorNode */
+  defaultValue: string | ProsemirrorData | ProsemirrorNode;
   /** Placeholder displayed when the editor is empty */
   placeholder: string;
   /** Extensions to load into the editor */
@@ -399,7 +399,7 @@ export class Editor extends React.PureComponent<
     });
   }
 
-  private createState(value?: string | object) {
+  private createState(value?: string | ProsemirrorData | ProsemirrorNode) {
     const doc = this.createDocument(value || this.props.defaultValue);
 
     return EditorState.create({
@@ -421,7 +421,12 @@ export class Editor extends React.PureComponent<
     });
   }
 
-  private createDocument(content: string | object) {
+  private createDocument(content: string | object | ProsemirrorNode) {
+    // Already a ProsemirrorNode
+    if (content instanceof ProsemirrorNode) {
+      return content;
+    }
+
     // Looks like Markdown
     if (typeof content === "string") {
       return this.parser.parse(content) || undefined;
