@@ -1919,6 +1919,7 @@ table {
 
 .${EditorStyleHelper.table} {
   position: relative;
+  --print-table-scale: 1;
 }
 
 .${EditorStyleHelper.tableScrollable} {
@@ -2120,6 +2121,30 @@ del[data-operation-index] {
   em,
   blockquote {
     font-family: "SF Pro Text", ${props.theme.fontFamily};
+  }
+  .math-node {
+    overflow: visible !important;
+    white-space: pre-wrap !important;
+    word-break: break-word !important;
+  }
+
+  .${EditorStyleHelper.table} {
+    max-width: 100%;
+  }
+
+  .${EditorStyleHelper.tableScrollable} {
+    overflow: visible !important;
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
+    transform-origin: top left;
+  }
+
+  .${EditorStyleHelper.tableScrollable} table {
+    transform: scale(var(--print-table-scale, 1));
+    transform-origin: top left;
+    width: max-content;
   }
 }
 `;
