@@ -3,6 +3,7 @@ import DeleteNearAtom from "../extensions/DeleteNearAtom";
 import History from "../extensions/History";
 import MaxLength from "../extensions/MaxLength";
 import TrailingNode from "../extensions/TrailingNode";
+import Diff from "../extensions/Diff";
 import Extension from "../lib/Extension";
 import Bold from "../marks/Bold";
 import Code from "../marks/Code";
@@ -122,3 +123,8 @@ export const withComments = (nodes: Nodes) => [
   Mention,
   Comment,
 ];
+
+/**
+ * Add diff rendering to a set of nodes
+ */
+export const withDiffRendering = (nodes: Nodes) => [...nodes, Diff];

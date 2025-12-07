@@ -2085,6 +2085,18 @@ del[data-operation-index] {
   }
 }
 
+.diff-insertion {
+  color: ${props.theme.textDiffInserted};
+  background-color: ${props.theme.textDiffInsertedBackground};
+  text-decoration: none;
+}
+
+.diff-deletion {
+  color: ${props.theme.textDiffDeleted};
+  background-color: ${props.theme.textDiffDeletedBackground};
+  text-decoration: line-through;
+}
+
 @media print {
   .placeholder::before,
   .block-menu-trigger,
