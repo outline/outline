@@ -138,7 +138,11 @@ function DocumentListItem(
                   initial={document.initial}
                 />
               ) : (
-                <DocumentIcon color={theme.textSecondary} />
+                <DocumentIcon
+                  color={
+                    document.isDraft ? theme.textTertiary : theme.textSecondary
+                  }
+                />
               )}
             </IconWrapper>
             <Content>

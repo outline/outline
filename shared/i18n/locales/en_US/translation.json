@@ -970,6 +970,7 @@
   "Any status": "Any status",
   "Remove search": "Remove search",
   "Any author": "Any author",
+  "Results for \"{{ term }}\"": "Results for \"{{ term }}\"",
   "Search titles only": "Search titles only",
   "Please try again or contact support if the problem persists": "Please try again or contact support if the problem persists",
   "No documents found for your search filters.": "No documents found for your search filters.",
