@@ -7,12 +7,13 @@ import { colorPalette } from "@shared/utils/collections";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
 import Flex from "~/components/Flex";
+import useStores from "~/hooks/useStores";
 import { documentPath } from "~/utils/routeHelpers";
 import { Meta as DocumentMeta } from "./DocumentMeta";
 import DocumentTitle from "./DocumentTitle";
 import Editor, { Props as EditorProps } from "~/components/Editor";
 import { withUIExtensions } from "~/editor/extensions";
-import { richExtensions } from "@shared/editor/nodes";
+import { richExtensions, withComments } from "@shared/editor/nodes";
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
 import Diff, { type DiffChanges } from "@shared/editor/extensions/Diff";
 
@@ -27,26 +28,73 @@ type Props = Omit<EditorProps, "extensions"> & {
 };
 
 /**
- * Displays revision HTML pre-rendered on the server.
+ * Displays a revision with diff highlighting showing changes from the previous revision.
+ *
+ * This component shows the content of a specific revision with visual diff indicators
+ * that highlight what changed compared to the revision that came before it. Insertions
+ * are shown with a highlight background, and deletions are shown with strikethrough.
+ *
+ * @param props - Component props including the revision to display and current document
  */
 function RevisionViewer(props: Props) {
   const { document, children, revision } = props;
+  const { revisions } = useStores();
 
-  // Calculate changeset between current document and revision
+  /**
+   * Get the previous revision (chronologically earlier) for comparison.
+   *
+   * Revisions are sorted by creation date (newest first), so the "previous" revision
+   * is the one that comes after the current revision in the sorted list.
+   */
+  const previousRevision = React.useMemo(() => {
+    const allRevisions = revisions
+      .getByDocumentId(document.id)
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+
+    const currentIndex = allRevisions.findIndex((r) => r.id === revision.id);
+    return currentIndex >= 0 && currentIndex < allRevisions.length - 1
+      ? allRevisions[currentIndex + 1]
+      : null;
+  }, [revisions, document.id, revision.id]);
+
+  console.log(
+    "Comparing" +
+      revision.id +
+      " to " +
+      (previousRevision ? previousRevision.id : "null")
+  );
+
+  /**
+   * Calculate the changeset (insertions and deletions) between the previous revision
+   * and the current revision being viewed.
+   *
+   * This uses ProseMirror's changeset calculation to determine what text was added
+   * (inserted) and what text was removed (deleted) when this revision was created.
+   * If there's no previous revision (i.e., this is the first revision), no diff is shown.
+   */
   const changes = React.useMemo<DiffChanges | null>(() => {
+    if (!previousRevision) {
+      console.log("NO previous");
+      // This is the first revision, nothing to compare against
+      return null;
+    }
+
     try {
       // Create schema from extensions
       const extensionManager = new ExtensionManager(
-        withUIExtensions(richExtensions)
+        withComments(withUIExtensions(richExtensions))
       );
       const schema = new Schema({
         nodes: extensionManager.nodes,
         marks: extensionManager.marks,
       });
 
-      // Parse documents from JSON
-      const docOld = Node.fromJSON(schema, revision.data);
-      const docNew = Node.fromJSON(schema, document.data);
+      // Parse documents from JSON (old = previous revision, new = current revision)
+      const docOld = Node.fromJSON(schema, previousRevision.data);
+      const docNew = Node.fromJSON(schema, revision.data);
 
       // Calculate the transform and changeset
       const tr = recreateTransform(docOld, docNew);
@@ -66,15 +114,30 @@ function RevisionViewer(props: Props) {
         to: deletion.pos + deletion.to - deletion.from,
       }));
 
-      return { inserted, deleted };
+      console.log({
+        inserted,
+        deleted,
+      });
+
+      return {
+        inserted,
+        deleted,
+      };
     } catch (error) {
+      console.error(error);
       return null;
     }
-  }, [document.data, revision.data]);
+  }, [previousRevision?.data, revision?.data]);
 
-  // Create extensions with diff rendering
+  /**
+   * Create editor extensions with the Diff extension configured to render
+   * the calculated changes as decorations in the editor.
+   */
   const extensions = React.useMemo(
-    () => [...withUIExtensions(richExtensions), new Diff({ changes })],
+    () => [
+      ...withComments(withUIExtensions(richExtensions)),
+      new Diff({ changes }),
+    ],
     [changes]
   );
 
@@ -93,7 +156,7 @@ function RevisionViewer(props: Props) {
         to={documentPath(document)}
         rtl={revision.rtl}
       />
-      <Editor defaultValue={document.data} extensions={extensions} />
+      <Editor value={revision.data} extensions={extensions} />
       {children}
     </Flex>
   );
