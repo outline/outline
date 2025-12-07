@@ -45,6 +45,7 @@ import {
 import { MaxLength } from "class-validator";
 import isUUID from "validator/lib/isUUID";
 import type {
+  DocumentPermission,
   NavigationNode,
   ProsemirrorData,
   SourceMetadata,
@@ -679,11 +680,28 @@ class Document extends ArchivableModel<
    * either via group or direct membership.
    *
    * @param documentId
+   * @param permission optional permission filter
+   *
    * @returns userIds
    */
-  static async membershipUserIds(documentId: string) {
+  static async membershipUserIds(
+    documentId: string,
+    permission?: DocumentPermission
+  ) {
     const document = await this.scope("withAllMemberships").findOne({
       where: { id: documentId },
+      include: [
+        {
+          association: "memberships",
+          required: false,
+          where: { permission },
+        },
+        {
+          association: "groupMemberships",
+          required: false,
+          where: { permission },
+        },
+      ],
     });
     if (!document) {
       return [];

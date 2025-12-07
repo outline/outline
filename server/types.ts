@@ -285,6 +285,12 @@ export type DocumentUserEvent = BaseEvent<UserMembership> & {
   };
 };
 
+export type DocumentAccessRequestEvent = BaseEvent<Document> & {
+  name: "documents.request_access";
+  documentId: string;
+  userId: string;
+};
+
 export type DocumentGroupEvent = BaseEvent<GroupMembership> & {
   name: "documents.add_group" | "documents.remove_group";
   documentId: string;
@@ -454,6 +460,7 @@ export type Event =
   | AuthenticationProviderEvent
   | DocumentEvent
   | DocumentUserEvent
+  | DocumentAccessRequestEvent
   | DocumentMovedEvent
   | DocumentGroupEvent
   | PinEvent

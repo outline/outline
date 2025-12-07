@@ -553,10 +553,26 @@ class Collection extends ParanoidModel<
    * @param collectionId
    * @returns userIds
    */
-  static async membershipUserIds(collectionId: string) {
-    const collection = await this.scope("withAllMemberships").findOne({
+  static async membershipUserIds(
+    collectionId: string,
+    permission?: CollectionPermission
+  ) {
+    const collection = await this.findOne({
       where: { id: collectionId },
+      include: [
+        {
+          association: "memberships",
+          required: false,
+          where: { permission },
+        },
+        {
+          association: "groupMemberships",
+          required: false,
+          where: { permission },
+        },
+      ],
     });
+
     if (!collection) {
       return [];
     }

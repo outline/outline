@@ -136,6 +136,14 @@ function Notifications() {
       ),
     },
     {
+      event: NotificationEventType.RequestDocumentAccess,
+      icon: <CheckboxIcon checked />,
+      title: t("Document access requested"),
+      description: t(
+        "Receive a notification when a user requests access to a document you manage"
+      ),
+    },
+    {
       visible: isCloudHosted,
       icon: <AcademicCapIcon />,
       event: NotificationEventType.Onboarding,
