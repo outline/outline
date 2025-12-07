@@ -133,7 +133,12 @@ function RevisionViewer(props: Props) {
         to={documentPath(document)}
         rtl={revision.rtl}
       />
-      <Editor value={changes?.data || revision.data} extensions={extensions} />
+      <Editor
+        value={changes?.data || revision.data}
+        extensions={extensions}
+        dir={revision.dir}
+        readOnly
+      />
       {children}
     </Flex>
   );
