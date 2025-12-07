@@ -14,7 +14,7 @@ import { uniq } from "lodash";
  * Notification task that sends notifications to users who can manage a document
  * when someone requests access to it.
  */
-export default class DocumentRequestAccessNotificationsTask extends BaseTask<DocumentAccessRequestEvent> {
+export default class DocumentAccessRequestNotificationsTask extends BaseTask<DocumentAccessRequestEvent> {
   public async perform(event: DocumentAccessRequestEvent) {
     const document = await Document.findByPk(event.documentId);
     if (!document) {
