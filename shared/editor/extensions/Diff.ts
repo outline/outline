@@ -1,15 +1,14 @@
 import { Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
+import { DOMSerializer } from "prosemirror-model";
+import { type ChangeSet } from "prosemirror-changeset";
 import Extension from "../lib/Extension";
-
-export type DiffChange = {
-  from: number;
-  to: number;
-};
+import { type ProsemirrorData } from "../../types";
 
 export type DiffChanges = {
-  inserted: DiffChange[];
-  deleted: DiffChange[];
+  inserted: ChangeSet["inserted"];
+  deleted: ChangeSet["deleted"];
+  data: ProsemirrorData;
 };
 
 export default class Diff extends Extension {
@@ -19,7 +18,7 @@ export default class Diff extends Extension {
 
   get defaultOptions() {
     return {
-      changes: null as DiffChanges | null,
+      changes: null,
     };
   }
 
@@ -28,7 +27,7 @@ export default class Diff extends Extension {
   }
 
   get plugins() {
-    const { changes } = this.options;
+    const { changes } = this.options as { changes: DiffChanges | null };
 
     if (!changes) {
       return [];
@@ -42,7 +41,7 @@ export default class Diff extends Extension {
             let decorations: Decoration[] = [];
 
             // Add insertion decorations
-            changes.inserted.forEach((insertion: DiffChange) => {
+            changes.inserted.forEach((insertion) => {
               decorations.push(
                 Decoration.inline(insertion.from, insertion.to, {
                   class: "diff-insertion",
@@ -50,13 +49,17 @@ export default class Diff extends Extension {
               );
             });
 
-            // Add deletion decorations
-            changes.deleted.forEach((deletion: DiffChange) => {
+            // Add deletion decorations using widgets
+            changes.deleted.forEach((deletion) => {
+              const dom = document.createElement("span");
+              dom.setAttribute("class", "diff-deletion");
+              dom.appendChild(
+                DOMSerializer.fromSchema(state.schema).serializeFragment(
+                  deletion.slice.content
+                )
+              );
               decorations.push(
-                Decoration.inline(deletion.from, deletion.to, {
-                  nodeName: "del",
-                  class: "diff-deletion",
-                })
+                Decoration.widget(deletion.pos, dom, { marks: [] })
               );
             });
 

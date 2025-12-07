@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { Node, Schema } from "prosemirror-model";
 import { ChangeSet } from "prosemirror-changeset";
-import { recreateTransform } from "@manuscripts/prosemirror-recreate-steps";
+import { recreateTransform } from "@shared/editor/lib/prosemirror-recreate-transform";
 import { colorPalette } from "@shared/utils/collections";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
@@ -16,6 +16,7 @@ import { withUIExtensions } from "~/editor/extensions";
 import { richExtensions, withComments } from "@shared/editor/nodes";
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
 import Diff, { type DiffChanges } from "@shared/editor/extensions/Diff";
+import { ProsemirrorData } from "@shared/types";
 
 type Props = Omit<EditorProps, "extensions"> & {
   /** The ID of the revision */
@@ -60,13 +61,6 @@ function RevisionViewer(props: Props) {
       : null;
   }, [revisions, document.id, revision.id]);
 
-  console.log(
-    "Comparing" +
-      revision.id +
-      " to " +
-      (previousRevision ? previousRevision.id : "null")
-  );
-
   /**
    * Calculate the changeset (insertions and deletions) between the previous revision
    * and the current revision being viewed.
@@ -77,7 +71,6 @@ function RevisionViewer(props: Props) {
    */
   const changes = React.useMemo<DiffChanges | null>(() => {
     if (!previousRevision) {
-      console.log("NO previous");
       // This is the first revision, nothing to compare against
       return null;
     }
@@ -103,31 +96,15 @@ function RevisionViewer(props: Props) {
         tr.mapping.maps
       );
 
-      // Convert changeset to our format
-      const inserted = changeSet.inserted.map((insertion) => ({
-        from: insertion.from,
-        to: insertion.to,
-      }));
-
-      const deleted = changeSet.deleted.map((deletion) => ({
-        from: deletion.pos,
-        to: deletion.pos + deletion.to - deletion.from,
-      }));
-
-      console.log({
-        inserted,
-        deleted,
-      });
-
       return {
-        inserted,
-        deleted,
+        inserted: changeSet.inserted,
+        deleted: changeSet.deleted,
+        data: tr.doc.toJSON() as ProsemirrorData,
       };
-    } catch (error) {
-      console.error(error);
+    } catch {
       return null;
     }
-  }, [previousRevision?.data, revision?.data]);
+  }, [previousRevision, revision?.data]);
 
   /**
    * Create editor extensions with the Diff extension configured to render
@@ -156,7 +133,7 @@ function RevisionViewer(props: Props) {
         to={documentPath(document)}
         rtl={revision.rtl}
       />
-      <Editor value={revision.data} extensions={extensions} />
+      <Editor value={changes?.data || revision.data} extensions={extensions} />
       {children}
     </Flex>
   );
