@@ -642,6 +642,14 @@ export class Environment {
     1000000;
 
   /**
+   * The duration in seconds for which signed URLs are valid.
+   */
+  @IsOptional()
+  @IsNumber()
+  public FILE_STORAGE_SIGNED_URL_DURATION =
+    this.toOptionalNumber(environment.FILE_STORAGE_SIGNED_URL_DURATION) ?? 3600;
+
+  /**
    * Set max allowed upload size for document imports.
    */
   @Public
