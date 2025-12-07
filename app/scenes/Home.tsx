@@ -52,12 +52,7 @@ function Home() {
         canUpdate={can.update}
         placeholderCount={count}
       />
-      <Heading
-        style={{
-          // Visually align the heading, you'd be surprised how much better this looks
-          marginLeft: -4,
-        }}
-      >
+      <Heading aboveList>
         <Greeting />
       </Heading>
       <Documents>

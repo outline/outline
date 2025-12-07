@@ -1243,7 +1243,6 @@
   "To create a workspace under another email please sign up from the homepage": "To create a workspace under another email please sign up from the homepage",
   "Trash emptied": "Trash emptied",
   "Are you sure you want to permanently delete all the documents in Trash? This action is immediate and cannot be undone.": "Are you sure you want to permanently delete all the documents in Trash? This action is immediate and cannot be undone.",
-  "Recently deleted": "Recently deleted",
   "Trash is empty at the moment.": "Trash is empty at the moment.",
   "A confirmation code has been sent to your email address, please enter the code below to permanently destroy your account.": "A confirmation code has been sent to your email address, please enter the code below to permanently destroy your account.",
   "Are you sure? Deleting your account will destroy identifying data associated with your user and cannot be undone. You will be immediately logged out of {{appName}} and all your API tokens will be revoked.": "Are you sure? Deleting your account will destroy identifying data associated with your user and cannot be undone. You will be immediately logged out of {{appName}} and all your API tokens will be revoked.",

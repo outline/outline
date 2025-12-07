@@ -4,7 +4,7 @@ import { BaseIconProps } from ".";
 export function GitHubIssueStatusIcon(props: BaseIconProps) {
   const { state, className, size = 16 } = props;
 
-  switch (state.name) {
+  switch (state?.name) {
     case "open":
       return (
         <svg
