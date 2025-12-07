@@ -16,7 +16,7 @@ import CommentCreatedNotificationsTask from "../tasks/CommentCreatedNotification
 import CommentUpdatedNotificationsTask from "../tasks/CommentUpdatedNotificationsTask";
 import ReactionCreatedNotificationsTask from "../tasks/ReactionCreatedNotificationsTask";
 import ReactionRemovedNotificationsTask from "../tasks/ReactionRemovedNotificationsTask";
-import DocumentRequestAccessNotificationsTask from "../tasks/DocumentRequestAccessNotificationsTask";
+import DocumentAccessRequestNotificationsTask from "../tasks/DocumentAccessRequestNotificationsTask";
 import DocumentAddGroupNotificationsTask from "../tasks/DocumentAddGroupNotificationsTask";
 import DocumentAddUserNotificationsTask from "../tasks/DocumentAddUserNotificationsTask";
 import DocumentPublishedNotificationsTask from "../tasks/DocumentPublishedNotificationsTask";
@@ -47,7 +47,7 @@ export default class NotificationsProcessor extends BaseProcessor {
       case "documents.add_group":
         return this.documentAddGroup(event);
       case "documents.request_access":
-        return this.documentRequestAccess(event);
+        return this.documentAccessRequest(event);
       case "revisions.create":
         return this.revisionCreated(event);
       case "collections.create":
@@ -89,8 +89,8 @@ export default class NotificationsProcessor extends BaseProcessor {
     await new DocumentAddGroupNotificationsTask().schedule(event);
   }
 
-  async documentRequestAccess(event: DocumentAccessRequestEvent) {
-    await new DocumentRequestAccessNotificationsTask().schedule(event);
+  async documentAccessRequest(event: DocumentAccessRequestEvent) {
+    await new DocumentAccessRequestNotificationsTask().schedule(event);
   }
 
   async revisionCreated(event: RevisionEvent) {
