@@ -13,6 +13,8 @@ import uniq from "lodash/uniq";
 import mime from "mime-types";
 import { Op, ScopeOptions, Sequelize, WhereOptions } from "sequelize";
 import { randomUUID } from "crypto";
+import { Node } from "prosemirror-model";
+import { schema, serializer } from "@server/editor";
 import { NavigationNode, StatusFilter, UserRole } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import slugify from "@shared/utils/slugify";
@@ -156,8 +158,8 @@ router.post(
         collectionId:
           template && can(user, "readTemplate", user.team)
             ? {
-                [Op.or]: [{ [Op.in]: collectionIds }, { [Op.is]: null }],
-              }
+              [Op.or]: [{ [Op.in]: collectionIds }, { [Op.is]: null }],
+            }
             : collectionIds,
       });
     }
@@ -622,8 +624,8 @@ router.post(
       data:
         apiVersion >= 2
           ? {
-              document: serializedDocument,
-            }
+            document: serializedDocument,
+          }
           : serializedDocument,
       policies: isPublic ? undefined : presentPolicies(user, [document]),
     };
@@ -669,10 +671,10 @@ router.post(
         },
         collection?.permission
           ? {
-              role: {
-                [Op.ne]: UserRole.Guest,
-              },
-            }
+            role: {
+              [Op.ne]: UserRole.Guest,
+            },
+          }
           : {},
       ],
     };
@@ -746,7 +748,7 @@ router.post(
   auth(),
   validate(T.DocumentsExportSchema),
   async (ctx: APIContext<T.DocumentsExportReq>) => {
-    const { id } = ctx.input.body;
+    const { id, signedUrls } = ctx.input.body;
     const { user } = ctx.state.auth;
     const accept = ctx.request.headers["accept"];
 
@@ -760,6 +762,25 @@ router.post(
     let contentType: string;
     let content: string;
 
+    const toMarkdown = async () => {
+      if (signedUrls) {
+        const data = await DocumentHelper.toJSON(document, {
+          signedUrls: env.FILE_STORAGE_SIGNED_URL_DURATION,
+          teamId: user.teamId,
+        });
+        const doc = Node.fromJSON(schema, data);
+        return serializer
+          .serialize(doc)
+          .replace(/(^|\n)\\(\n|$)/g, "\n\n")
+          .replace(/“/g, '"')
+          .replace(/”/g, '"')
+          .replace(/‘/g, "'")
+          .replace(/’/g, "'")
+          .trim();
+      }
+      return DocumentHelper.toMarkdown(document);
+    };
+
     if (accept?.includes("text/html")) {
       contentType = "text/html";
       content = await DocumentHelper.toHTML(document, {
@@ -772,10 +793,10 @@ router.post(
       );
     } else if (accept?.includes("text/markdown")) {
       contentType = "text/markdown";
-      content = DocumentHelper.toMarkdown(document);
+      content = await toMarkdown();
     } else {
       ctx.body = {
-        data: DocumentHelper.toMarkdown(document),
+        data: await toMarkdown(),
       };
       return;
     }
@@ -791,11 +812,11 @@ router.post(
     );
     const attachments = attachmentIds.length
       ? await Attachment.findAll({
-          where: {
-            teamId: document.teamId,
-            id: attachmentIds,
-          },
-        })
+        where: {
+          teamId: document.teamId,
+          id: attachmentIds,
+        },
+      })
       : [];
 
     if (attachments.length === 0) {
@@ -879,19 +900,19 @@ router.post(
 
     const srcCollection = sourceCollectionId
       ? await Collection.findByPk(sourceCollectionId, {
-          userId: user.id,
-          includeDocumentStructure: true,
-          paranoid: false,
-          transaction,
-        })
+        userId: user.id,
+        includeDocumentStructure: true,
+        paranoid: false,
+        transaction,
+      })
       : undefined;
 
     const destCollection = destCollectionId
       ? await Collection.findByPk(destCollectionId, {
-          userId: user.id,
-          includeDocumentStructure: true,
-          transaction,
-        })
+        userId: user.id,
+        includeDocumentStructure: true,
+        transaction,
+      })
       : undefined;
 
     // In case of workspace templates, both source and destination collections are undefined.
@@ -1291,9 +1312,9 @@ router.post(
 
     const collection = collectionId
       ? await Collection.findByPk(collectionId, {
-          userId: user.id,
-          transaction,
-        })
+        userId: user.id,
+        transaction,
+      })
       : document?.collection;
 
     if (collection) {
@@ -2070,11 +2091,11 @@ router.post(
 function getAPIVersion(ctx: APIContext) {
   return Number(
     ctx.headers["x-api-version"] ??
-      (typeof ctx.input.body === "object" &&
-        ctx.input.body &&
-        "apiVersion" in ctx.input.body &&
-        ctx.input.body.apiVersion) ??
-      0
+    (typeof ctx.input.body === "object" &&
+      ctx.input.body &&
+      "apiVersion" in ctx.input.body &&
+      ctx.input.body.apiVersion) ??
+    0
   );
 }
 
