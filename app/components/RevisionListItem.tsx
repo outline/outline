@@ -76,6 +76,7 @@ const RevisionListItem = ({ item, document, ...rest }: Props) => {
         document,
         isLatestRevision ? "latest" : item.id
       ),
+      search: location.search,
       state: {
         sidebarContext,
         retainScrollPosition: true,

@@ -13,6 +13,7 @@ import { withUIExtensions } from "~/editor/extensions";
 import { richExtensions, withComments } from "@shared/editor/nodes";
 import Diff from "@shared/editor/extensions/Diff";
 import { ChangesetHelper } from "@shared/editor/lib/ChangesetHelper";
+import useQuery from "~/hooks/useQuery";
 
 type Props = Omit<EditorProps, "extensions"> & {
   /** The ID of the revision */
@@ -36,6 +37,8 @@ type Props = Omit<EditorProps, "extensions"> & {
 function RevisionViewer(props: Props) {
   const { document, children, revision } = props;
   const { revisions } = useStores();
+  const query = useQuery();
+  const showChanges = query.has("changes");
 
   /**
    * Get the previous revision (chronologically earlier) for comparison.
@@ -77,9 +80,9 @@ function RevisionViewer(props: Props) {
   const extensions = React.useMemo(
     () => [
       ...withComments(withUIExtensions(richExtensions)),
-      new Diff({ changes: result?.changes }),
+      ...(showChanges ? [new Diff({ changes: result?.changes })] : []),
     ],
-    [result]
+    [result, showChanges]
   );
 
   return (

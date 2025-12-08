@@ -16,6 +16,7 @@ import useStores from "~/hooks/useStores";
 import { documentPath } from "~/utils/routeHelpers";
 import Sidebar from "./SidebarLayout";
 import useMobile from "~/hooks/useMobile";
+import Switch from "~/components/Switch";
 
 const DocumentEvents = [
   "documents.publish",
@@ -39,6 +40,32 @@ function History() {
   const [revisionsOffset, setRevisionsOffset] = React.useState(0);
   const [eventsOffset, setEventsOffset] = React.useState(0);
   const isMobile = useMobile();
+
+  const searchParams = new URLSearchParams(history.location.search);
+  const [showChanges, setShowChanges] = React.useState(
+    searchParams.get("changes") === "true"
+  );
+
+  const handleShowChangesToggle = React.useCallback(
+    (checked: boolean) => {
+      setShowChanges(checked);
+      const params = new URLSearchParams(history.location.search);
+
+      if (checked) {
+        params.set("changes", "true");
+      } else {
+        params.delete("changes");
+      }
+
+      const search = params.toString();
+      history.replace({
+        pathname: history.location.pathname,
+        search: search ? `?${search}` : "",
+        state: history.location.state,
+      });
+    },
+    [history]
+  );
 
   const fetchHistory = React.useCallback(async () => {
     if (!document) {
@@ -145,21 +172,32 @@ function History() {
 
   return (
     <Sidebar title={t("History")} onClose={onCloseHistory}>
+      <Content>
+        <Switch
+          label="Show changes"
+          checked={showChanges}
+          onChange={handleShowChangesToggle}
+        />
+      </Content>
       {document ? (
         <PaginatedEventList
           aria-label={t("History")}
           fetch={fetchHistory}
           items={items}
           document={document}
-          empty={<EmptyHistory>{t("No history yet")}</EmptyHistory>}
+          empty={
+            <Content>
+              <Empty>{t("No history yet")}</Empty>
+            </Content>
+          }
         />
       ) : null}
     </Sidebar>
   );
 }
 
-const EmptyHistory = styled(Empty)`
-  padding: 0 12px;
+const Content = styled.div`
+  padding: 0 16px;
 `;
 
 export default observer(History);
