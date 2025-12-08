@@ -1,8 +1,5 @@
 import { observer } from "mobx-react";
 import * as React from "react";
-import { Node, Schema } from "prosemirror-model";
-import { ChangeSet } from "prosemirror-changeset";
-import { recreateTransform } from "@shared/editor/lib/prosemirror-recreate-transform";
 import { colorPalette } from "@shared/utils/collections";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
@@ -14,8 +11,8 @@ import DocumentTitle from "./DocumentTitle";
 import Editor, { Props as EditorProps } from "~/components/Editor";
 import { withUIExtensions } from "~/editor/extensions";
 import { richExtensions, withComments } from "@shared/editor/nodes";
-import ExtensionManager from "@shared/editor/lib/ExtensionManager";
-import Diff, { type DiffChanges } from "@shared/editor/extensions/Diff";
+import Diff from "@shared/editor/extensions/Diff";
+import { ChangesetHelper } from "@shared/editor/lib/ChangesetHelper";
 
 type Props = Omit<EditorProps, "extensions"> & {
   /** The ID of the revision */
@@ -68,42 +65,10 @@ function RevisionViewer(props: Props) {
    * (inserted) and what text was removed (deleted) when this revision was created.
    * If there's no previous revision (i.e., this is the first revision), no diff is shown.
    */
-  const changes = React.useMemo<DiffChanges | null>(() => {
-    if (!previousRevision) {
-      // This is the first revision, nothing to compare against
-      return null;
-    }
-
-    try {
-      // Create schema from extensions
-      const extensionManager = new ExtensionManager(
-        withComments(withUIExtensions(richExtensions))
-      );
-      const schema = new Schema({
-        nodes: extensionManager.nodes,
-        marks: extensionManager.marks,
-      });
-
-      // Parse documents from JSON (old = previous revision, new = current revision)
-      const docOld = Node.fromJSON(schema, previousRevision.data);
-      const docNew = Node.fromJSON(schema, revision.data);
-
-      // Calculate the transform and changeset
-      const tr = recreateTransform(docOld, docNew);
-      const changeSet = ChangeSet.create(docOld).addSteps(
-        tr.doc,
-        tr.mapping.maps
-      );
-
-      return {
-        inserted: changeSet.inserted,
-        deleted: changeSet.deleted,
-        doc: tr.doc,
-      };
-    } catch {
-      return null;
-    }
-  }, [previousRevision, revision?.data]);
+  const result = React.useMemo(
+    () => ChangesetHelper.getChanges(revision.data, previousRevision?.data),
+    [previousRevision, revision?.data]
+  );
 
   /**
    * Create editor extensions with the Diff extension configured to render
@@ -112,9 +77,9 @@ function RevisionViewer(props: Props) {
   const extensions = React.useMemo(
     () => [
       ...withComments(withUIExtensions(richExtensions)),
-      new Diff({ changes }),
+      new Diff({ changes: result?.changes }),
     ],
-    [changes]
+    [result]
   );
 
   return (
@@ -133,7 +98,7 @@ function RevisionViewer(props: Props) {
         rtl={revision.rtl}
       />
       <Editor
-        defaultValue={changes?.doc || revision.data}
+        defaultValue={result?.doc || revision.data}
         extensions={extensions}
         dir={revision.dir}
         readOnly

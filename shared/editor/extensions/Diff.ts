@@ -1,14 +1,8 @@
 import { Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import { DOMSerializer, Node } from "prosemirror-model";
-import { type ChangeSet } from "prosemirror-changeset";
+import { DOMSerializer } from "prosemirror-model";
 import Extension from "../lib/Extension";
-
-export type DiffChanges = {
-  inserted: ChangeSet["inserted"];
-  deleted: ChangeSet["deleted"];
-  doc: Node;
-};
+import { Change } from "prosemirror-changeset";
 
 export default class Diff extends Extension {
   get name() {
@@ -26,7 +20,7 @@ export default class Diff extends Extension {
   }
 
   get plugins() {
-    const { changes } = this.options as { changes: DiffChanges | null };
+    const { changes } = this.options as { changes: Change[] | null };
 
     if (!changes) {
       return [];
@@ -40,26 +34,36 @@ export default class Diff extends Extension {
             let decorations: Decoration[] = [];
 
             // Add insertion decorations
-            changes.inserted.forEach((insertion) => {
-              decorations.push(
-                Decoration.inline(insertion.from, insertion.to, {
-                  class: "diff-insertion",
-                })
-              );
-            });
+            changes.forEach((change) => {
+              let start = change.fromB;
+              let end = start;
+              change.inserted.forEach((insertion) => {
+                end = start + insertion.length;
 
-            // Add deletion decorations using widgets
-            changes.deleted.forEach((deletion) => {
-              const dom = document.createElement("span");
-              dom.setAttribute("class", "diff-deletion");
-              dom.appendChild(
-                DOMSerializer.fromSchema(state.schema).serializeFragment(
-                  deletion.slice.content
-                )
-              );
-              decorations.push(
-                Decoration.widget(deletion.pos, dom, { marks: [] })
-              );
+                decorations.push(
+                  Decoration.inline(start, end, {
+                    class: "diff-insertion",
+                  })
+                );
+              });
+
+              change.deleted.forEach((deletion) => {
+                // For deletions, we create a widget decoration that shows
+                // the deleted text in a special way.
+                const dom = document.createElement("span");
+                dom.setAttribute("class", "diff-deletion");
+                dom.appendChild(
+                  DOMSerializer.fromSchema(state.schema).serializeFragment(
+                    deletion.data.slice.content
+                  )
+                );
+
+                decorations.push(
+                  Decoration.widget(start, () => dom, {
+                    side: -1,
+                  })
+                );
+              });
             });
 
             return DecorationSet.create(state.doc, decorations);

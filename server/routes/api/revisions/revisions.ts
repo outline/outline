@@ -52,13 +52,18 @@ router.post(
       throw ValidationError("Either id or documentId must be provided");
     }
 
+    // Client no longer needs expensive HTML calculation
+    const noHTML = Number(ctx.headers["x-api-version"] ?? 0) >= 4;
+
     ctx.body = {
       data: await presentRevision(
         after,
-        await DocumentHelper.diff(before, after, {
-          includeTitle: false,
-          includeStyles: false,
-        })
+        noHTML
+          ? undefined
+          : await DocumentHelper.diff(before, after, {
+              includeTitle: false,
+              includeStyles: false,
+            })
       ),
       policies: presentPolicies(user, [after]),
     };
