@@ -205,7 +205,6 @@ export default class EmailsProcessor extends BaseProcessor {
         await new DocumentAccessRequestEmail(
           {
             to: notification.user.email,
-            userId: notification.userId,
             documentId: notification.documentId,
             actorId: notification.actorId,
             teamUrl: notification.team.url,

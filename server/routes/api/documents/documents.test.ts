@@ -5856,3 +5856,92 @@ describe("#documents.documents", () => {
     expect(body).toMatchSnapshot();
   });
 });
+
+describe("#documents.request_access", () => {
+  it("should require id", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.request_access", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("id: Must be a valid UUID or slug");
+  });
+
+  it("should require authentication", async () => {
+    const document = await buildDocument();
+    const res = await server.post("/api/documents.request_access", {
+      body: {
+        id: document.id,
+      },
+    });
+    expect(res.status).toEqual(401);
+  });
+
+  it("should return 404 for non-existent document", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.request_access", {
+      body: {
+        token: user.getJwtToken(),
+        id: "a8f22c38-f4eb-4909-8c30-b927af36c5f3",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(404);
+    expect(body.message).toEqual("Document could not be found");
+  });
+
+  it("should create event when requesting access to a document", async () => {
+    const team = await buildTeam();
+    const owner = await buildUser({ teamId: team.id });
+    const requester = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      teamId: team.id,
+      createdById: owner.id,
+    });
+
+    const res = await server.post("/api/documents.request_access", {
+      body: {
+        token: requester.getJwtToken(),
+        id: document.id,
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.success).toEqual(true);
+
+    const events = await Event.findAll({
+      where: {
+        teamId: team.id,
+        name: "documents.request_access",
+      },
+    });
+    expect(events.length).toEqual(1);
+    expect(events[0].documentId).toEqual(document.id);
+    expect(events[0].actorId).toEqual(requester.id);
+  });
+
+  it("should work with document urlId", async () => {
+    const team = await buildTeam();
+    const owner = await buildUser({ teamId: team.id });
+    const requester = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      teamId: team.id,
+      createdById: owner.id,
+    });
+
+    const res = await server.post("/api/documents.request_access", {
+      body: {
+        token: requester.getJwtToken(),
+        id: document.urlId,
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.success).toEqual(true);
+  });
+});

@@ -28,22 +28,10 @@ export default class DocumentAccessRequestNotificationsTask extends BaseTask<Doc
       return;
     }
 
-    const requestingUser = await User.findByPk(event.userId);
-    if (!requestingUser) {
-      Logger.debug(
-        "task",
-        `Requesting user not found for access request notification`,
-        {
-          userId: event.userId,
-        }
-      );
-      return;
-    }
-
     const recipients = await this.findDocumentManagers(document);
     for (const recipient of recipients) {
       if (
-        recipient.id === requestingUser.id ||
+        recipient.id === event.actorId ||
         recipient.isSuspended ||
         !recipient.subscribedToEventType(
           NotificationEventType.RequestDocumentAccess
@@ -55,7 +43,7 @@ export default class DocumentAccessRequestNotificationsTask extends BaseTask<Doc
       await Notification.create({
         event: NotificationEventType.RequestDocumentAccess,
         userId: recipient.id,
-        actorId: event.userId,
+        actorId: event.actorId,
         teamId: event.teamId,
         documentId: event.documentId,
       });
