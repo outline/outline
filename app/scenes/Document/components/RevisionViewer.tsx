@@ -4,7 +4,6 @@ import { colorPalette } from "@shared/utils/collections";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
 import Flex from "~/components/Flex";
-import useStores from "~/hooks/useStores";
 import { documentPath } from "~/utils/routeHelpers";
 import { Meta as DocumentMeta } from "./DocumentMeta";
 import DocumentTitle from "./DocumentTitle";
@@ -36,29 +35,8 @@ type Props = Omit<EditorProps, "extensions"> & {
  */
 function RevisionViewer(props: Props) {
   const { document, children, revision } = props;
-  const { revisions } = useStores();
   const query = useQuery();
   const showChanges = query.has("changes");
-
-  /**
-   * Get the previous revision (chronologically earlier) for comparison.
-   *
-   * Revisions are sorted by creation date (newest first), so the "previous" revision
-   * is the one that comes after the current revision in the sorted list.
-   */
-  const previousRevision = React.useMemo(() => {
-    const allRevisions = revisions
-      .getByDocumentId(document.id)
-      .sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
-
-    const currentIndex = allRevisions.findIndex((r) => r.id === revision.id);
-    return currentIndex >= 0 && currentIndex < allRevisions.length - 1
-      ? allRevisions[currentIndex + 1]
-      : null;
-  }, [revisions, document.id, revision.id]);
 
   /**
    * Calculate the changeset (insertions and deletions) between the previous revision
@@ -69,8 +47,8 @@ function RevisionViewer(props: Props) {
    * If there's no previous revision (i.e., this is the first revision), no diff is shown.
    */
   const result = React.useMemo(
-    () => ChangesetHelper.getChanges(revision.data, previousRevision?.data),
-    [previousRevision, revision?.data]
+    () => ChangesetHelper.getChanges(revision.data, revision.before?.data),
+    [revision.before, revision.data]
   );
 
   /**
