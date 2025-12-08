@@ -356,7 +356,7 @@
     "discord-api-types": "^0.38.30",
     "husky": "^8.0.3",
     "i18next-parser": "^8.13.0",
-    "ioredis-mock": "^8.9.0",
+    "ioredis-mock": "^8.13.1",
     "jest-cli": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "jest-fetch-mock": "^3.0.3",
