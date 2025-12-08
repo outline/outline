@@ -8,7 +8,6 @@ import Header from "./components/Header";
 import Heading from "./components/Heading";
 
 type InputProps = EmailProps & {
-  userId: string;
   documentId: string;
   actorId: string;
   teamUrl: string;
@@ -24,7 +23,7 @@ type Props = InputProps & BeforeSend;
 /**
  * Email sent to users who can manage a document when someone requests access.
  */
-export default class DocumentAccessRequestedEmail extends BaseEmail<
+export default class DocumentAccessRequestEmail extends BaseEmail<
   InputProps,
   BeforeSend
 > {

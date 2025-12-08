@@ -2148,7 +2148,6 @@ router.post(
   validate(T.DocumentsRequestAccessSchema),
   async (ctx: APIContext<T.DocumentsRequestAccessReq>) => {
     const { id } = ctx.input.body;
-    const { user } = ctx.state.auth;
 
     const document = await Document.unscoped()
       .scope("withoutState")
@@ -2161,7 +2160,6 @@ router.post(
     await Event.createFromContext(ctx, {
       name: "documents.request_access",
       documentId: document.id,
-      userId: user.id,
     });
 
     ctx.body = {

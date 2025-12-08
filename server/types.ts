@@ -243,6 +243,7 @@ export type DocumentEvent = BaseEvent<Document> &
         createdAt: string;
       }
     | DocumentMovedEvent
+    | DocumentAccessRequestEvent
   );
 
 export type EmptyTrashEvent = {
@@ -296,7 +297,6 @@ export type DocumentUserEvent = BaseEvent<UserMembership> & {
 export type DocumentAccessRequestEvent = BaseEvent<Document> & {
   name: "documents.request_access";
   documentId: string;
-  userId: string;
 };
 
 export type DocumentGroupEvent = BaseEvent<GroupMembership> & {
