@@ -63,7 +63,7 @@ function Starred() {
             .map((star) => (
               <StarredLink key={star.id} star={star} />
             ))}
-          {!end && (
+          {!loading && !end && (
             <SidebarLink
               onClick={next}
               label={`${t("Show more")}…`}
