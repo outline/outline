@@ -1,7 +1,7 @@
 import { LocationDescriptor } from "history";
 import { observer } from "mobx-react";
 import { EditIcon, TrashIcon } from "outline-icons";
-import { useCallback, useRef } from "react";
+import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import styled from "styled-components";
@@ -14,13 +14,11 @@ import { Avatar, AvatarSize } from "~/components/Avatar";
 import Item, { Actions } from "~/components/List/Item";
 import Time from "~/components/Time";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
-import useStores from "~/hooks/useStores";
 import RevisionMenu from "~/menus/RevisionMenu";
 import { documentHistoryPath } from "~/utils/routeHelpers";
 import { EventItem, lineStyle } from "./EventListItem";
 import Facepile from "./Facepile";
 import Text from "./Text";
-import useClickIntent from "~/hooks/useClickIntent";
 
 type Props = {
   document: Document;
@@ -29,10 +27,8 @@ type Props = {
 
 const RevisionListItem = ({ item, document, ...rest }: Props) => {
   const { t } = useTranslation();
-  const { revisions } = useStores();
   const location = useLocation();
   const sidebarContext = useLocationSidebarContext();
-  const revisionLoadedRef = useRef(false);
 
   const isLatestRevision = RevisionHelper.latestId(document.id) === item.id;
 
@@ -43,19 +39,6 @@ const RevisionListItem = ({ item, document, ...rest }: Props) => {
   const handleTimeClick = () => {
     ref.current?.focus();
   };
-
-  const prefetchRevision = useCallback(async () => {
-    if (!document.isDeleted && !item.deletedAt && !revisionLoadedRef.current) {
-      if (isLatestRevision) {
-        return;
-      }
-      await revisions.fetch(item.id, { force: true });
-      revisionLoadedRef.current = true;
-    }
-  }, [document.isDeleted, item.deletedAt, isLatestRevision, revisions]);
-
-  const { handleMouseEnter, handleMouseLeave } =
-    useClickIntent(prefetchRevision);
 
   let meta, icon, to: LocationDescriptor | undefined;
 
@@ -139,8 +122,6 @@ const RevisionListItem = ({ item, document, ...rest }: Props) => {
           </StyledEventBoundary>
         ) : undefined
       }
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
       ref={ref}
       {...rest}
     />
