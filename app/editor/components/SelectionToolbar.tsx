@@ -136,6 +136,26 @@ export function SelectionToolbar(props: Props) {
     };
   }, [isActive, readOnly, view]);
 
+  useEventListener(
+    "keydown",
+    (ev: KeyboardEvent) => {
+      if (
+        isModKey(ev) &&
+        ev.key.toLowerCase() === "k" &&
+        !view.state.selection.empty
+      ) {
+        ev.stopPropagation();
+        if (activeToolbar === Toolbar.Link) {
+          setActiveToolbar(Toolbar.Menu);
+        } else if (activeToolbar === Toolbar.Menu) {
+          setActiveToolbar(Toolbar.Link);
+        }
+      }
+    },
+    view.dom,
+    { capture: true }
+  );
+
   if (isDragging) {
     return null;
   }
@@ -233,26 +253,6 @@ export function SelectionToolbar(props: Props) {
     }
     setActiveToolbar(null);
   };
-
-  useEventListener(
-    "keydown",
-    (ev: KeyboardEvent) => {
-      if (
-        isModKey(ev) &&
-        ev.key.toLowerCase() === "k" &&
-        !view.state.selection.empty
-      ) {
-        ev.stopPropagation();
-        if (activeToolbar === Toolbar.Link) {
-          setActiveToolbar(Toolbar.Menu);
-        } else if (activeToolbar === Toolbar.Menu) {
-          setActiveToolbar(Toolbar.Link);
-        }
-      }
-    },
-    view.dom,
-    { capture: true }
-  );
 
   if (!activeToolbar || !items.length) {
     return null;
