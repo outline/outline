@@ -1,5 +1,6 @@
 import escapeRegExp from "lodash/escapeRegExp";
 import env from "../env";
+import { UnfurlResourceType } from "../types";
 import { isBrowser } from "./browser";
 import { parseDomain } from "./domains";
 
@@ -243,5 +244,42 @@ export function toDisplayUrl(url: string) {
     return parsed.host + (parsed.pathname === "/" ? "" : parsed.pathname);
   } catch {
     return url;
+  }
+}
+
+/**
+ * Parses a GitHub URL and returns resource identifiers for GitHub specific URLs.
+ *
+ * @param url URL to parse
+ * @returns Object containing resource identifiers - `owner`, `repo`, `type` and `id`, or undefined if not a valid GitHub resource URL.
+ */
+export function parseGitHubUrl(url: string) {
+  try {
+    const { hostname, pathname } = new URL(url);
+    if (hostname !== "github.com") {
+      return;
+    }
+
+    const parts = pathname.split("/");
+    const owner = parts[1];
+    const repo = parts[2];
+    const resourceType = parts[3];
+    const id = Number(parts[4]);
+
+    if (!resourceType || !id) {
+      return;
+    }
+
+    if (resourceType === "issues" || resourceType === "issue") {
+      return { owner, repo, type: UnfurlResourceType.Issue, id, url };
+    }
+
+    if (resourceType === "pull" || resourceType === "pulls") {
+      return { owner, repo, type: UnfurlResourceType.PR, id, url };
+    }
+
+    return;
+  } catch {
+    return;
   }
 }

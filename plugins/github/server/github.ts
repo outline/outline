@@ -233,7 +233,6 @@ export class GitHub {
       where: {
         service: IntegrationService.GitHub,
         teamId: actor.teamId,
-        "settings.github.installation.account.name": resource.owner,
       },
     })) as Integration<IntegrationType.Embed>;
 

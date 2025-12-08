@@ -16,6 +16,7 @@ import { Primitive } from "utility-types";
 import { v4 as uuidv4 } from "uuid";
 import env from "../../env";
 import { MentionType, UnfurlResourceType, UnfurlResponse } from "../../types";
+import { parseGitHubUrl } from "../../utils/urls";
 import {
   MentionCollection,
   MentionDocument,
@@ -148,13 +149,39 @@ export default class Mention extends Node {
             onChangeUnfurl={this.handleChangeUnfurl(props)}
           />
         );
-      case MentionType.URL:
+      case MentionType.URL: {
+        const href = props.node.attrs.href;
+        // This is for backwards compatibility so that older public github issue/pr links
+        // render corresponding issue/pr status icon, and the id,
+        // instead of being rendered as generic mention URLs without those
+        if (href) {
+          const parsedUrl = parseGitHubUrl(href);
+          if (parsedUrl) {
+            if (parsedUrl.type === UnfurlResourceType.Issue) {
+              return (
+                <MentionIssue
+                  {...props}
+                  onChangeUnfurl={this.handleChangeUnfurl(props)}
+                />
+              );
+            }
+            if (parsedUrl.type === UnfurlResourceType.PR) {
+              return (
+                <MentionPullRequest
+                  {...props}
+                  onChangeUnfurl={this.handleChangeUnfurl(props)}
+                />
+              );
+            }
+          }
+        }
         return (
           <MentionURL
             {...props}
             onChangeUnfurl={this.handleChangeUnfurl(props)}
           />
         );
+      }
       default:
         return null;
     }
