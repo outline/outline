@@ -2097,6 +2097,10 @@ del[data-operation-index] {
   text-decoration: line-through;
 }
 
+.current-diff {
+  box-shadow: inset 0 0 0 2px ${props.theme.accent};
+}
+
 @media print {
   .placeholder::before,
   .block-menu-trigger,

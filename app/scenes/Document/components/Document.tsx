@@ -535,6 +535,7 @@ class DocumentScene extends React.Component<Props> {
               />
             )}
             <Header
+              editorRef={this.editor}
               document={document}
               revision={revision}
               isDraft={document.isDraft}
@@ -567,6 +568,7 @@ class DocumentScene extends React.Component<Props> {
                 {revision ? (
                   <RevisionContainer docFullWidth={document.fullWidth}>
                     <RevisionViewer
+                      ref={this.editor}
                       document={document}
                       revision={revision}
                       id={revision.id}

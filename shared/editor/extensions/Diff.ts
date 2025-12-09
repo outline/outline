@@ -1,8 +1,12 @@
-import { Plugin, PluginKey } from "prosemirror-state";
+import { observable } from "mobx";
+import { Command, Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import { DOMSerializer } from "prosemirror-model";
+import { DOMSerializer, Node } from "prosemirror-model";
+import scrollIntoView from "scroll-into-view-if-needed";
 import Extension from "../lib/Extension";
 import { Change } from "prosemirror-changeset";
+
+const pluginKey = new PluginKey("diffs");
 
 export default class Diff extends Extension {
   get name() {
@@ -12,6 +16,60 @@ export default class Diff extends Extension {
   get defaultOptions() {
     return {
       changes: null,
+      insertionClassName: "diff-insertion",
+      deletionClassName: "diff-deletion",
+      currentChangeClassName: "current-diff",
+    };
+  }
+
+  public commands() {
+    return {
+      /**
+       * Navigate to the next change in the document.
+       */
+      nextChange: () => this.goToChange(1),
+
+      /**
+       * Navigate to the previous change in the document.
+       */
+      prevChange: () => this.goToChange(-1),
+    };
+  }
+
+  private goToChange(direction: number): Command {
+    return (state, dispatch) => {
+      const { changes } = this.options as { changes: Change[] | null };
+
+      if (!changes || changes.length === 0) {
+        return false;
+      }
+
+      if (direction > 0) {
+        if (this.currentChangeIndex >= changes.length - 1) {
+          this.currentChangeIndex = 0;
+        } else {
+          this.currentChangeIndex += 1;
+        }
+      } else {
+        if (this.currentChangeIndex === 0) {
+          this.currentChangeIndex = changes.length - 1;
+        } else {
+          this.currentChangeIndex -= 1;
+        }
+      }
+
+      dispatch?.(state.tr.setMeta(pluginKey, {}));
+
+      const element = window.document.querySelector(
+        `.${this.options.currentChangeClassName}`
+      );
+      if (element) {
+        scrollIntoView(element, {
+          scrollMode: "if-needed",
+          block: "center",
+        });
+      }
+      return true;
     };
   }
 
@@ -20,54 +78,85 @@ export default class Diff extends Extension {
   }
 
   get plugins() {
-    const { changes } = this.options as { changes: Change[] | null };
-
     return [
       new Plugin({
-        key: new PluginKey("diffs"),
+        key: pluginKey,
+        state: {
+          init: () => DecorationSet.empty,
+          apply: (tr, decorationSet) => {
+            const action = tr.getMeta(pluginKey);
+
+            if (action) {
+              return this.createDecorations(tr.doc);
+            }
+
+            if (tr.docChanged) {
+              return decorationSet.map(tr.mapping, tr.doc);
+            }
+
+            return decorationSet;
+          },
+        },
         props: {
-          decorations: (state) => {
-            let decorations: Decoration[] = [];
-
-            // Add insertion decorations
-            changes.forEach((change) => {
-              let start = change.fromB;
-              let end = start;
-              change.inserted.forEach((insertion) => {
-                end = start + insertion.length;
-
-                decorations.push(
-                  Decoration.inline(start, end, {
-                    class: "diff-insertion",
-                  })
-                );
-              });
-
-              change.deleted.forEach((deletion) => {
-                // For deletions, we create a widget decoration that shows
-                // the deleted text in a special way.
-                const dom = document.createElement("span");
-                dom.setAttribute("class", "diff-deletion");
-                dom.appendChild(
-                  DOMSerializer.fromSchema(state.schema).serializeFragment(
-                    deletion.data.slice.content
-                  )
-                );
-
-                decorations.push(
-                  Decoration.widget(start, () => dom, {
-                    side: -1,
-                  })
-                );
-              });
-            });
-
-            return DecorationSet.create(state.doc, decorations);
+          decorations(state) {
+            return this.getState(state);
           },
         },
         // Allow meta transactions to bypass filtering
-        filterTransaction: (tr) => !!tr.getMeta("codeHighlighting"),
+        // filterTransaction: (tr) => !!tr.getMeta("codeHighlighting"),
       }),
     ];
   }
+
+  private createDecorations(doc: Node) {
+    const { changes } = this.options as { changes: Change[] | null };
+    const decorations: Decoration[] = [];
+
+    // Add insertion and deletion decorations
+    changes?.forEach((change, changeIndex) => {
+      let start = change.fromB;
+      let end = start;
+      const isCurrent = changeIndex === this.currentChangeIndex;
+
+      change.inserted.forEach((insertion) => {
+        end = start + insertion.length;
+
+        decorations.push(
+          Decoration.inline(start, end, {
+            class: `${this.options.insertionClassName}${
+              isCurrent ? ` ${this.options.currentChangeClassName}` : ""
+            }`,
+          })
+        );
+      });
+
+      change.deleted.forEach((deletion) => {
+        // For deletions, we create a widget decoration that shows
+        // the deleted text in a special way.
+        const dom = document.createElement("span");
+        dom.setAttribute(
+          "class",
+          `${this.options.deletionClassName}${
+            isCurrent ? ` ${this.options.currentChangeClassName}` : ""
+          }`
+        );
+        dom.appendChild(
+          DOMSerializer.fromSchema(doc.type.schema).serializeFragment(
+            deletion.data.slice.content
+          )
+        );
+
+        decorations.push(
+          Decoration.widget(start, () => dom, {
+            side: -1,
+          })
+        );
+      });
+    });
+
+    return DecorationSet.create(doc, decorations);
+  }
+
+  @observable
+  private currentChangeIndex = 0;
 }

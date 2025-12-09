@@ -40,8 +40,11 @@ import PublicBreadcrumb from "./PublicBreadcrumb";
 import ShareButton from "./ShareButton";
 import { AppearanceAction } from "~/components/Sharing/components/Actions";
 import useShare from "@shared/hooks/useShare";
+import { type Editor } from "~/editor";
+import { ChangesNavigatior } from "./ChangesNavigator";
 
 type Props = {
+  editorRef: React.RefObject<Editor>;
   document: Document;
   revision: Revision | undefined;
   isDraft: boolean;
@@ -59,6 +62,7 @@ type Props = {
 };
 
 function DocumentHeader({
+  editorRef,
   document,
   revision,
   isEditing,
@@ -305,6 +309,7 @@ function DocumentHeader({
               )}
             {revision && revision.createdAt !== document.updatedAt && (
               <Action>
+                <ChangesNavigatior revision={revision} editorRef={editorRef} />
                 <Tooltip content={t("Restore version")} placement="bottom">
                   <Button action={restoreRevision} neutral hideOnActionDisabled>
                     {t("Restore")}

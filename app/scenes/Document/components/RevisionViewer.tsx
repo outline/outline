@@ -12,6 +12,7 @@ import { withUIExtensions } from "~/editor/extensions";
 import { richExtensions, withComments } from "@shared/editor/nodes";
 import Diff from "@shared/editor/extensions/Diff";
 import useQuery from "~/hooks/useQuery";
+import { type Editor as TEditor } from "~/editor";
 
 type Props = Omit<EditorProps, "extensions"> & {
   /** The ID of the revision */
@@ -32,7 +33,7 @@ type Props = Omit<EditorProps, "extensions"> & {
  *
  * @param props - Component props including the revision to display and current document
  */
-function RevisionViewer(props: Props) {
+function RevisionViewer(props: Props, ref: React.Ref<TEditor>) {
   const { document, children, revision } = props;
   const query = useQuery();
   const showChanges = query.has("changes");
@@ -67,6 +68,7 @@ function RevisionViewer(props: Props) {
         rtl={revision.rtl}
       />
       <Editor
+        ref={ref}
         defaultValue={revision.data}
         extensions={extensions}
         dir={revision.dir}
@@ -77,4 +79,4 @@ function RevisionViewer(props: Props) {
   );
 }
 
-export default observer(RevisionViewer);
+export default observer(React.forwardRef(RevisionViewer));
