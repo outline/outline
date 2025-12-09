@@ -69,7 +69,7 @@ export type Props = {
   /** The user id of the current user */
   userId?: string;
   /** The editor content, should only be changed if you wish to reset the content */
-  value?: string | ProsemirrorData;
+  value?: string | ProsemirrorData | ProsemirrorNode;
   /** The initial editor content as a markdown string, JSON object, or ProsemirrorNode */
   defaultValue: string | ProsemirrorData | ProsemirrorNode;
   /** Placeholder displayed when the editor is empty */

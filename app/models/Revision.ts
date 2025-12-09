@@ -7,6 +7,7 @@ import ParanoidModel from "./base/ParanoidModel";
 import Field from "./decorators/Field";
 import Relation from "./decorators/Relation";
 import type RevisionsStore from "~/stores/RevisionsStore";
+import { ChangesetHelper } from "@shared/editor/lib/ChangesetHelper";
 
 class Revision extends ParanoidModel {
   static modelName = "Revision";
@@ -93,6 +94,11 @@ class Revision extends ParanoidModel {
     return currentIndex >= 0 && currentIndex < allRevisions.length - 1
       ? allRevisions[currentIndex + 1]
       : null;
+  }
+
+  @computed
+  get changeset() {
+    return ChangesetHelper.getChangeset(this.data, this.before?.data);
   }
 }
 

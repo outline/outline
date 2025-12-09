@@ -22,10 +22,6 @@ export default class Diff extends Extension {
   get plugins() {
     const { changes } = this.options as { changes: Change[] | null };
 
-    if (!changes) {
-      return [];
-    }
-
     return [
       new Plugin({
         key: new PluginKey("diffs"),

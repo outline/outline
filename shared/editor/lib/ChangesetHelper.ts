@@ -12,7 +12,7 @@ export type DiffChanges = {
 };
 
 export class ChangesetHelper {
-  public static getChanges(
+  public static getChangeset(
     revision?: ProsemirrorData | null,
     previousRevision?: ProsemirrorData | null
   ): DiffChanges | null {

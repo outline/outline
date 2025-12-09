@@ -11,7 +11,6 @@ import Editor, { Props as EditorProps } from "~/components/Editor";
 import { withUIExtensions } from "~/editor/extensions";
 import { richExtensions, withComments } from "@shared/editor/nodes";
 import Diff from "@shared/editor/extensions/Diff";
-import { ChangesetHelper } from "@shared/editor/lib/ChangesetHelper";
 import useQuery from "~/hooks/useQuery";
 
 type Props = Omit<EditorProps, "extensions"> & {
@@ -39,28 +38,17 @@ function RevisionViewer(props: Props) {
   const showChanges = query.has("changes");
 
   /**
-   * Calculate the changeset (insertions and deletions) between the previous revision
-   * and the current revision being viewed.
-   *
-   * This uses ProseMirror's changeset calculation to determine what text was added
-   * (inserted) and what text was removed (deleted) when this revision was created.
-   * If there's no previous revision (i.e., this is the first revision), no diff is shown.
-   */
-  const result = React.useMemo(
-    () => ChangesetHelper.getChanges(revision.data, revision.before?.data),
-    [revision.before, revision.data]
-  );
-
-  /**
    * Create editor extensions with the Diff extension configured to render
    * the calculated changes as decorations in the editor.
    */
   const extensions = React.useMemo(
     () => [
       ...withComments(withUIExtensions(richExtensions)),
-      ...(showChanges ? [new Diff({ changes: result?.changes })] : []),
+      ...(showChanges && revision.changeset?.changes
+        ? [new Diff({ changes: revision.changeset?.changes })]
+        : []),
     ],
-    [result, showChanges]
+    [revision.changeset, showChanges]
   );
 
   return (
@@ -79,7 +67,7 @@ function RevisionViewer(props: Props) {
         rtl={revision.rtl}
       />
       <Editor
-        defaultValue={result?.doc || revision.data}
+        defaultValue={revision.data}
         extensions={extensions}
         dir={revision.dir}
         readOnly
