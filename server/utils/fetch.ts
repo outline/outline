@@ -1,4 +1,4 @@
-/* oxlint-disable no-restricted-imports */
+/* oxlint-disable no-restricted-imports, react/rules-of-hooks */
 import http from "http";
 import https from "https";
 import nodeFetch, { type RequestInit, type Response } from "node-fetch";

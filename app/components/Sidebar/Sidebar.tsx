@@ -37,7 +37,7 @@ type Props = {
   children: React.ReactNode;
 };
 
-const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
+const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
   { children, hidden = false, canCollapse = true, className }: Props,
   ref: React.RefObject<HTMLDivElement>
 ) {
