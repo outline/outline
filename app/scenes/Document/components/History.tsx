@@ -17,6 +17,7 @@ import { documentPath } from "~/utils/routeHelpers";
 import Sidebar from "./SidebarLayout";
 import useMobile from "~/hooks/useMobile";
 import Switch from "~/components/Switch";
+import Text from "@shared/components/Text";
 
 const DocumentEvents = [
   "documents.publish",
@@ -173,11 +174,13 @@ function History() {
   return (
     <Sidebar title={t("History")} onClose={onCloseHistory}>
       <Content>
-        <Switch
-          label="Show changes"
-          checked={showChanges}
-          onChange={handleShowChangesToggle}
-        />
+        <Text type="secondary" size="small">
+          <Switch
+            label={t("Highlight changes")}
+            checked={showChanges}
+            onChange={handleShowChangesToggle}
+          />
+        </Text>
       </Content>
       {document ? (
         <PaginatedEventList
