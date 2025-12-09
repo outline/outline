@@ -123,7 +123,7 @@ function SharedWithMe() {
               .map((membership) => (
                 <SharedWithMeLink key={membership.id} membership={membership} />
               ))}
-            {!end && (
+            {!loading && !end && (
               <SidebarLink
                 onClick={next}
                 label={`${t("Show more")}…`}

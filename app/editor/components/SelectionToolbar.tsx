@@ -136,6 +136,26 @@ export function SelectionToolbar(props: Props) {
     };
   }, [isActive, readOnly, view]);
 
+  useEventListener(
+    "keydown",
+    (ev: KeyboardEvent) => {
+      if (
+        isModKey(ev) &&
+        ev.key.toLowerCase() === "k" &&
+        !view.state.selection.empty
+      ) {
+        ev.stopPropagation();
+        if (activeToolbar === Toolbar.Link) {
+          setActiveToolbar(Toolbar.Menu);
+        } else if (activeToolbar === Toolbar.Menu) {
+          setActiveToolbar(Toolbar.Link);
+        }
+      }
+    },
+    view.dom,
+    { capture: true }
+  );
+
   if (isDragging) {
     return null;
   }
@@ -227,10 +247,6 @@ export function SelectionToolbar(props: Props) {
     return item;
   });
 
-  if (!items.length) {
-    return null;
-  }
-
   const handleClickOutsideLinkEditor = (ev: MouseEvent | TouchEvent) => {
     if (ev.target instanceof Element && ev.target.closest(".image-wrapper")) {
       return;
@@ -238,27 +254,7 @@ export function SelectionToolbar(props: Props) {
     setActiveToolbar(null);
   };
 
-  useEventListener(
-    "keydown",
-    (ev: KeyboardEvent) => {
-      if (
-        isModKey(ev) &&
-        ev.key.toLowerCase() === "k" &&
-        !view.state.selection.empty
-      ) {
-        ev.stopPropagation();
-        if (activeToolbar === Toolbar.Link) {
-          setActiveToolbar(Toolbar.Menu);
-        } else if (activeToolbar === Toolbar.Menu) {
-          setActiveToolbar(Toolbar.Link);
-        }
-      }
-    },
-    view.dom,
-    { capture: true }
-  );
-
-  if (!activeToolbar) {
+  if (!activeToolbar || !items.length) {
     return null;
   }
 
