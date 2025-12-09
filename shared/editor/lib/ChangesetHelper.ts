@@ -1,5 +1,5 @@
 import { Node, Schema } from "prosemirror-model";
-import { Change, ChangeSet } from "prosemirror-changeset";
+import { Change, ChangeSet, simplifyChanges } from "prosemirror-changeset";
 import ExtensionManager from "./ExtensionManager";
 import { recreateTransform } from "./prosemirror-recreate-transform";
 import { richExtensions, withComments } from "../nodes";
@@ -36,15 +36,20 @@ export class ChangesetHelper {
       const docNew = Node.fromJSON(schema, revision);
 
       // Calculate the transform and changeset
-      const tr = recreateTransform(docOld, docNew);
-      const set = ChangeSet.create<Step>(docOld).addSteps(
+      const tr = recreateTransform(docOld, docNew, {
+        complexSteps: false,
+        wordDiffs: true,
+        simplifyDiff: true,
+      });
+      const changeset = ChangeSet.create<Step>(docOld).addSteps(
         tr.doc,
         tr.mapping.maps,
         tr.steps
       );
+      const changes = simplifyChanges(changeset.changes, docNew);
 
       return {
-        changes: set.changes,
+        changes,
         doc: tr.doc,
       };
     } catch {
