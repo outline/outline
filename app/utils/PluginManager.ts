@@ -142,6 +142,7 @@ export class PluginManager {
     }
 
     const r = import.meta.glob("../../plugins/*/client/index.{ts,js,tsx,jsx}");
+
     await Promise.all(Object.keys(r).map((key: string) => r[key]()));
     this.loaded = true;
   }
