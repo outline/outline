@@ -44,7 +44,7 @@ type Props = {
 };
 
 export const Suggestions = observer(
-  React.forwardRef(function _Suggestions(
+  React.forwardRef(function Suggestions_(
     {
       document,
       collection,

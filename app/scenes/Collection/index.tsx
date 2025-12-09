@@ -50,7 +50,7 @@ import { Header } from "./components/Header";
 import usePersistedState from "~/hooks/usePersistedState";
 import useCurrentUser from "~/hooks/useCurrentUser";
 
-const CollectionScene = observer(function _CollectionScene() {
+const CollectionScene = observer(function CollectionScene_() {
   const params = useParams<{ collectionSlug?: string }>();
   const history = useHistory();
   const match = useRouteMatch();

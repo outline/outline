@@ -17,7 +17,7 @@ import ErrorBoundary from "../ErrorBoundary";
 
 type Props = Omit<UnfurlResponse[UnfurlResourceType.Group], "type">;
 
-const HoverPreviewGroup = React.forwardRef(function _HoverPreviewGroup(
+const HoverPreviewGroup = React.forwardRef(function HoverPreviewGroup_(
   { name, description, memberCount, users }: Props,
   ref: React.Ref<HTMLDivElement>
 ) {

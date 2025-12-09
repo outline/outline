@@ -21,7 +21,7 @@ export type Props = React.HTMLAttributes<HTMLButtonElement> & {
  * Button that can be used to trigger an action definition.
  */
 const ActionButton = React.forwardRef<HTMLButtonElement, Props>(
-  function _ActionButton(
+  function ActionButton_(
     { action, tooltip, hideOnActionDisabled, ...rest }: Props,
     ref: React.Ref<HTMLButtonElement>
   ) {

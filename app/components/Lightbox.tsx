@@ -904,7 +904,7 @@ type ImageProps = {
   onMaxZoom: () => void;
 };
 
-const Image = forwardRef<HTMLImageElement, ImageProps>(function _Image(
+const Image = forwardRef<HTMLImageElement, ImageProps>(function Image_(
   {
     src,
     alt,

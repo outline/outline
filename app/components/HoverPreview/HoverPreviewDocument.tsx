@@ -15,7 +15,7 @@ import {
 
 type Props = Omit<UnfurlResponse[UnfurlResourceType.Document], "type">;
 
-const HoverPreviewDocument = React.forwardRef(function _HoverPreviewDocument(
+const HoverPreviewDocument = React.forwardRef(function HoverPreviewDocument_(
   { url, id, title, summary, lastActivityByViewer }: Props,
   ref: React.Ref<HTMLDivElement>
 ) {

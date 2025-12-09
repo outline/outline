@@ -18,7 +18,7 @@ export type SidebarButtonProps = React.ComponentProps<typeof Button> & {
 };
 
 const SidebarButton = React.forwardRef<HTMLButtonElement, SidebarButtonProps>(
-  function _SidebarButton(
+  function SidebarButton_(
     {
       position = "top",
       showMoreMenu,
