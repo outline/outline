@@ -82,6 +82,7 @@ export function SelectionToolbar(props: Props) {
   );
 
   React.useEffect(() => {
+    const { selection } = state;
     const linkMark =
       selection instanceof NodeSelection
         ? getMarkRangeNodeSelection(selection, state.schema.marks.link)
@@ -91,16 +92,20 @@ export function SelectionToolbar(props: Props) {
       selection instanceof NodeSelection &&
       selection.node.type.name === "embed";
 
+    const isCodeSelection = isInCode(state, { onlyBlock: true });
+
     if (isEmbedSelection) {
       setActiveToolbar(Toolbar.Media);
     } else if (linkMark && !activeToolbar) {
       setActiveToolbar(Toolbar.Link);
+    } else if (isCodeSelection) {
+      setActiveToolbar(Toolbar.Menu);
     } else if (!selection.empty) {
       setActiveToolbar(Toolbar.Menu);
     } else if (selection.empty) {
       setActiveToolbar(null);
     }
-  }, [selection]);
+  }, [state, selection]);
 
   React.useEffect(() => {
     const handleClickOutside = (ev: MouseEvent): void => {
@@ -254,10 +259,6 @@ export function SelectionToolbar(props: Props) {
     setActiveToolbar(null);
   };
 
-  if (!activeToolbar || !items.length) {
-    return null;
-  }
-
   return (
     <FloatingToolbar
       align={align}
@@ -293,9 +294,9 @@ export function SelectionToolbar(props: Props) {
           onEscape={() => setActiveToolbar(Toolbar.Menu)}
           onClickOutside={handleClickOutsideLinkEditor}
         />
-      ) : (
+      ) : activeToolbar === Toolbar.Menu ? (
         <ToolbarMenu items={items} {...rest} />
-      )}
+      ) : null}
     </FloatingToolbar>
   );
 }
