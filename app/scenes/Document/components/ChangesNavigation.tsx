@@ -13,7 +13,7 @@ type Props = {
   editorRef: React.RefObject<Editor>;
 };
 
-export const ChangesNavigatior = ({ revision, editorRef }: Props) => {
+export const ChangesNavigation = ({ revision, editorRef }: Props) => {
   const { t } = useTranslation();
 
   return (
@@ -21,7 +21,9 @@ export const ChangesNavigatior = ({ revision, editorRef }: Props) => {
       {revision.changeset?.changes && revision.changeset.changes.length > 0 && (
         <ChangeNavigation gap={4}>
           <NavigationLabel>
-            {t("Changes")}: {revision.changeset.changes.length}
+            {t("{{ count }} changes", {
+              count: revision.changeset.changes.length,
+            })}
           </NavigationLabel>
           <Tooltip content={t("Previous change")} placement="bottom">
             <NavigationButton
@@ -47,8 +49,6 @@ export const ChangesNavigatior = ({ revision, editorRef }: Props) => {
 
 const ChangeNavigation = styled(Flex)`
   padding: 8px 12px;
-  background: ${s("sidebarBackground")};
-  border-bottom: 1px solid ${s("divider")};
   align-items: center;
 `;
 

@@ -41,7 +41,7 @@ import ShareButton from "./ShareButton";
 import { AppearanceAction } from "~/components/Sharing/components/Actions";
 import useShare from "@shared/hooks/useShare";
 import { type Editor } from "~/editor";
-import { ChangesNavigatior } from "./ChangesNavigator";
+import { ChangesNavigation } from "./ChangesNavigation";
 
 type Props = {
   editorRef: React.RefObject<Editor>;
@@ -309,7 +309,7 @@ function DocumentHeader({
               )}
             {revision && revision.createdAt !== document.updatedAt && (
               <Action>
-                <ChangesNavigatior revision={revision} editorRef={editorRef} />
+                <ChangesNavigation revision={revision} editorRef={editorRef} />
                 <Tooltip content={t("Restore version")} placement="bottom">
                   <Button action={restoreRevision} neutral hideOnActionDisabled>
                     {t("Restore")}
