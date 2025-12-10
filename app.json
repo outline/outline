@@ -203,6 +203,10 @@
       "description": "Override SMTP cipher configuration (optional)",
       "required": false
     },
+    "SMTP_PROXY": {
+      "description": "SOCKS URL for SMTP server behind proxy (optional)",
+      "required": false
+    },
     "GOOGLE_ANALYTICS_ID": {
       "description": "G-xxxx (optional)",
       "required": false

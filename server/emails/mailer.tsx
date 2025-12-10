@@ -36,6 +36,9 @@ export class Mailer {
   constructor() {
     if (env.SMTP_HOST || env.SMTP_SERVICE) {
       this.transporter = nodemailer.createTransport(this.getOptions());
+      if (env.SMTP_PROXY) {
+        this.transporter.set("proxy_socks_module", require("socks"));
+      }
     }
     if (useTestEmailService) {
       Logger.info(
@@ -235,6 +238,7 @@ export class Mailer {
         : {
             rejectUnauthorized: false,
           },
+      proxy: env.SMTP_PROXY ? env.SMTP_PROXY : undefined,
     };
   }
 

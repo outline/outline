@@ -432,6 +432,13 @@ export class Environment {
   );
 
   /**
+   * If set, will use a socks proxy to contact the SMTP server.
+   * SMTP_HOST and SMTP_PORT stay the same as if server can be contacted directly
+   * Assuming you have an open proxy `ssh -N -D localhost:7001 user@proxyserver.org`
+   */
+  public SMTP_PROXY = this.toOptionalString(environment.SMTP_PROXY);
+
+  /**
    * Dropbox app key for embedding Dropbox files
    */
   @Public
