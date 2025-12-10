@@ -22,10 +22,10 @@ export const fadeIn = keyframes`
   to { opacity: 1; }
 `;
 
-export const pulse = keyframes`
-  0% { box-shadow: 0 0 0 1px rgba(255, 213, 0, 0.75) }
-  50% { box-shadow: 0 0 0 4px rgba(255, 213, 0, 0.75) }
-  100% { box-shadow: 0 0 0 1px rgba(255, 213, 0, 0.75) }
+export const pulse = (color: string) => keyframes`
+  0% { box-shadow: 0 0 0 1px ${color} }
+  50% { box-shadow: 0 0 0 4px ${color} }
+  100% { box-shadow: 0 0 0 1px ${color} }
 `;
 
 const codeMarkCursor = () => css`
@@ -274,6 +274,32 @@ const codeBlockStyle = (props: Props) => css`
   }
 `;
 
+const diffStyle = (props: Props) => css`
+  .diff-insertion {
+    color: ${props.theme.textDiffInserted};
+    background-color: ${props.theme.textDiffInsertedBackground};
+    text-decoration: none;
+
+    &.current-diff {
+      background-color: ${lighten(0.2, props.theme.textDiffInsertedBackground)};
+      animation: ${pulse(lighten(0.2, props.theme.textDiffInsertedBackground))}
+        150ms 1;
+    }
+  }
+
+  .diff-deletion {
+    color: ${props.theme.textDiffDeleted};
+    background-color: ${props.theme.textDiffDeletedBackground};
+    text-decoration: line-through;
+
+    &.current-diff {
+      background-color: ${lighten(0.2, props.theme.textDiffDeletedBackground)};
+      animation: ${pulse(lighten(0.2, props.theme.textDiffDeletedBackground))}
+        150ms 1;
+    }
+  }
+`;
+
 const findAndReplaceStyle = () => css`
   .find-result:not(:has(.mention)),
   .find-result .mention {
@@ -283,7 +309,7 @@ const findAndReplaceStyle = () => css`
   .find-result.current-result:not(:has(.mention)),
   .find-result.current-result .mention {
       background: rgba(255, 213, 0, 0.75);
-      animation: ${pulse} 150ms 1;
+      animation: ${pulse("rgba(255, 213, 0, 0.75)")} 150ms 1;
     }
   }
 `;
@@ -2069,38 +2095,6 @@ del {
   text-decoration: strikethrough;
 }
 
-ins[data-operation-index] {
-  color: ${props.theme.textDiffInserted};
-  background-color: ${props.theme.textDiffInsertedBackground};
-  text-decoration: none;
-}
-
-del[data-operation-index] {
-  color: ${props.theme.textDiffDeleted};
-  background-color: ${props.theme.textDiffDeletedBackground};
-  text-decoration: none;
-
-  img {
-    opacity: .5;
-  }
-}
-
-.diff-insertion {
-  color: ${props.theme.textDiffInserted};
-  background-color: ${props.theme.textDiffInsertedBackground};
-  text-decoration: none;
-}
-
-.diff-deletion {
-  color: ${props.theme.textDiffDeleted};
-  background-color: ${props.theme.textDiffDeletedBackground};
-  text-decoration: line-through;
-}
-
-.current-diff {
-  box-shadow: inset 0 0 0 2px ${props.theme.accent};
-}
-
 @media print {
   .placeholder::before,
   .block-menu-trigger,
@@ -2145,6 +2139,7 @@ const EditorContainer = styled.div<Props>`
   ${mathStyle}
   ${codeMarkCursor}
   ${codeBlockStyle}
+  ${diffStyle}
   ${findAndReplaceStyle}
   ${emailStyle}
   ${textStyle}

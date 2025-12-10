@@ -307,15 +307,27 @@ function DocumentHeader({
                   <NewChildDocumentMenu document={document} />
                 </Action>
               )}
-            {revision && revision.createdAt !== document.updatedAt && (
-              <Action>
-                <ChangesNavigation revision={revision} editorRef={editorRef} />
-                <Tooltip content={t("Restore version")} placement="bottom">
-                  <Button action={restoreRevision} neutral hideOnActionDisabled>
-                    {t("Restore")}
-                  </Button>
-                </Tooltip>
-              </Action>
+            {revision && (
+              <>
+                <Action>
+                  <ChangesNavigation
+                    revision={revision}
+                    editorRef={editorRef}
+                  />
+                </Action>
+                <Action>
+                  <Tooltip content={t("Restore version")} placement="bottom">
+                    <Button
+                      action={restoreRevision}
+                      disabled={revision.createdAt === document.updatedAt}
+                      neutral
+                      hideOnActionDisabled
+                    >
+                      {t("Restore")}
+                    </Button>
+                  </Tooltip>
+                </Action>
+              </>
             )}
             {can.publish && (
               <Action>

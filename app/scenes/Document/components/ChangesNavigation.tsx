@@ -3,9 +3,10 @@ import { s } from "@shared/styles";
 import { CaretDownIcon, CaretUpIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import NudeButton from "~/components/NudeButton";
+import Button from "~/components/Button";
 import Tooltip from "~/components/Tooltip";
 import { type Editor } from "~/editor";
+import useQuery from "~/hooks/useQuery";
 import type Revision from "~/models/Revision";
 
 type Props = {
@@ -15,11 +16,17 @@ type Props = {
 
 export const ChangesNavigation = ({ revision, editorRef }: Props) => {
   const { t } = useTranslation();
+  const query = useQuery();
+  const showChanges = query.get("changes");
+
+  if (!showChanges) {
+    return null;
+  }
 
   return (
     <>
       {revision.changeset?.changes && revision.changeset.changes.length > 0 && (
-        <ChangeNavigation gap={4}>
+        <Flex gap={4} align="center">
           <NavigationLabel>
             {t("{{ count }} changes", {
               count: revision.changeset.changes.length,
@@ -27,45 +34,30 @@ export const ChangesNavigation = ({ revision, editorRef }: Props) => {
           </NavigationLabel>
           <Tooltip content={t("Previous change")} placement="bottom">
             <NavigationButton
+              icon={<CaretUpIcon />}
               onClick={() => editorRef.current?.commands.prevChange()}
               aria-label={t("Previous change")}
-            >
-              <CaretUpIcon />
-            </NavigationButton>
+            />
           </Tooltip>
           <Tooltip content={t("Next change")} placement="bottom">
             <NavigationButton
+              icon={<CaretDownIcon />}
               onClick={() => editorRef.current?.commands.nextChange()}
               aria-label={t("Next change")}
-            >
-              <CaretDownIcon />
-            </NavigationButton>
+            />
           </Tooltip>
-        </ChangeNavigation>
+        </Flex>
       )}
     </>
   );
 };
 
-const ChangeNavigation = styled(Flex)`
-  padding: 8px 12px;
-  align-items: center;
-`;
-
-const NavigationButton = styled(NudeButton)`
+const NavigationButton = styled(Button).attrs({
+  borderOnHover: true,
+  neutral: true,
+})`
   width: 32px;
   height: 32px;
-
-  &:hover,
-  &[aria-expanded="true"] {
-    background: ${s("sidebarControlHoverBackground")};
-  }
-
-  &:disabled {
-    color: ${s("textTertiary")};
-    background: none;
-    cursor: default;
-  }
 `;
 
 const NavigationLabel = styled.span`

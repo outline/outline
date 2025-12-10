@@ -83,19 +83,7 @@ export default class Diff extends Extension {
         key: pluginKey,
         state: {
           init: () => DecorationSet.empty,
-          apply: (tr, decorationSet) => {
-            const action = tr.getMeta(pluginKey);
-
-            if (action) {
-              return this.createDecorations(tr.doc);
-            }
-
-            if (tr.docChanged) {
-              return decorationSet.map(tr.mapping, tr.doc);
-            }
-
-            return decorationSet;
-          },
+          apply: (tr) => this.createDecorations(tr.doc),
         },
         props: {
           decorations(state) {
@@ -103,7 +91,10 @@ export default class Diff extends Extension {
           },
         },
         // Allow meta transactions to bypass filtering
-        // filterTransaction: (tr) => !!tr.getMeta("codeHighlighting"),
+        filterTransaction: (tr) =>
+          tr.getMeta("codeHighlighting") || tr.getMeta(pluginKey)
+            ? true
+            : false,
       }),
     ];
   }
@@ -158,5 +149,5 @@ export default class Diff extends Extension {
   }
 
   @observable
-  private currentChangeIndex = 0;
+  private currentChangeIndex = -1;
 }

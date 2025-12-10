@@ -18,6 +18,7 @@ import Sidebar from "./SidebarLayout";
 import useMobile from "~/hooks/useMobile";
 import Switch from "~/components/Switch";
 import Text from "@shared/components/Text";
+import usePersistedState from "~/hooks/usePersistedState";
 
 const DocumentEvents = [
   "documents.publish",
@@ -42,21 +43,25 @@ function History() {
   const [eventsOffset, setEventsOffset] = React.useState(0);
   const isMobile = useMobile();
 
+  const [defaultShowChanges, setDefaultShowChanges] =
+    usePersistedState<boolean>("history-show-changes", false);
+
   const searchParams = new URLSearchParams(history.location.search);
   const [showChanges, setShowChanges] = React.useState(
-    searchParams.get("changes") === "true"
+    searchParams.get("changes") === "true" || defaultShowChanges
   );
 
-  const handleShowChangesToggle = React.useCallback(
-    (checked: boolean) => {
-      setShowChanges(checked);
+  const updateLocation = React.useCallback(
+    (changes: Record<string, string | null>) => {
       const params = new URLSearchParams(history.location.search);
 
-      if (checked) {
-        params.set("changes", "true");
-      } else {
-        params.delete("changes");
-      }
+      Object.entries(changes).forEach(([key, value]) => {
+        if (value === null) {
+          params.delete(key);
+        } else {
+          params.set(key, value);
+        }
+      });
 
       const search = params.toString();
       history.replace({
@@ -67,6 +72,23 @@ function History() {
     },
     [history]
   );
+
+  // Handler for toggling the "Show Changes" switch, updating state and URL parameter
+  const handleShowChangesToggle = React.useCallback(
+    (checked: boolean) => {
+      setShowChanges(checked);
+      setDefaultShowChanges(checked);
+      updateLocation({ changes: checked ? "true" : null });
+    },
+    [history]
+  );
+
+  // Ensure that the URL parameter is in sync with the persisted state on mount
+  React.useEffect(() => {
+    if (defaultShowChanges) {
+      updateLocation({ changes: "true" });
+    }
+  }, [defaultShowChanges]);
 
   const fetchHistory = React.useCallback(async () => {
     if (!document) {
