@@ -294,7 +294,7 @@ const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
     <Portal>
       <Wrapper
         active={props.active && position.visible}
-        arrow={!position.blockSelection}
+        arrow={!!props.children && !position.blockSelection}
         ref={menuRef}
         $offset={position.offset}
         style={{
@@ -304,7 +304,9 @@ const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
           left: `${position.left}px`,
         }}
       >
-        <Background align={props.align}>{props.children}</Background>
+        {props.children && (
+          <Background align={props.align}>{props.children}</Background>
+        )}
       </Wrapper>
     </Portal>
   );
