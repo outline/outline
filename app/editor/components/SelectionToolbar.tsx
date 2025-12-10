@@ -94,9 +94,9 @@ export function SelectionToolbar(props: Props) {
 
     const isCodeSelection = isInCode(state, { onlyBlock: true });
 
-    if (isEmbedSelection) {
+    if (isEmbedSelection && !readOnly) {
       setActiveToolbar(Toolbar.Media);
-    } else if (linkMark && !activeToolbar) {
+    } else if (linkMark && !activeToolbar && !readOnly) {
       setActiveToolbar(Toolbar.Link);
     } else if (isCodeSelection) {
       setActiveToolbar(Toolbar.Menu);
@@ -105,7 +105,7 @@ export function SelectionToolbar(props: Props) {
     } else if (selection.empty) {
       setActiveToolbar(null);
     }
-  }, [state, selection]);
+  }, [readOnly, selection]);
 
   React.useEffect(() => {
     const handleClickOutside = (ev: MouseEvent): void => {
@@ -294,7 +294,7 @@ export function SelectionToolbar(props: Props) {
           onEscape={() => setActiveToolbar(Toolbar.Menu)}
           onClickOutside={handleClickOutsideLinkEditor}
         />
-      ) : activeToolbar === Toolbar.Menu ? (
+      ) : activeToolbar === Toolbar.Menu && items.length ? (
         <ToolbarMenu items={items} {...rest} />
       ) : null}
     </FloatingToolbar>
