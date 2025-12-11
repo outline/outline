@@ -65,8 +65,9 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
     const threshold = subWeeks(now, env.POPULARITY_ACTIVITY_THRESHOLD_WEEKS);
 
     // Generate unique table name for this run to prevent conflicts
-    const uniqueId = crypto.randomBytes(8).toString("hex");
-    this.workingTable = `${WORKING_TABLE_PREFIX}_${uniqueId}`;
+    const dateStr = now.toISOString().slice(0, 19).replace(/[-:T]/g, "");
+    const uniqueId = crypto.randomBytes(4).toString("hex");
+    this.workingTable = `${WORKING_TABLE_PREFIX}_${dateStr}_${uniqueId}`;
 
     try {
       // Setup: Create working table and populate with active document IDs
@@ -150,31 +151,64 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
     const [startUuid, endUuid] = this.getPartitionBounds(partition);
 
     // Populate with documents that have recent activity and are valid
-    // (published, not deleted). Using JOINs to filter upfront.
-    await sequelize.query(
-      `
-      INSERT INTO ${this.workingTable} ("documentId")
-      SELECT DISTINCT d.id
-      FROM documents d
-      WHERE d."publishedAt" IS NOT NULL
-        AND d."deletedAt" IS NULL
-        AND (
-          EXISTS (
-            SELECT 1 FROM revisions r
-            WHERE r."documentId" = d.id AND r."createdAt" >= :threshold
+    // (published, not deleted). Process in chunks to avoid long-running queries.
+    let offset = 0;
+    let insertedCount = 0;
+    const chunkSize = 500;
+
+    while (true) {
+      const result = await sequelize.query<{ documentId: string }>(
+        `
+        INSERT INTO ${this.workingTable} ("documentId")
+        SELECT DISTINCT d.id as "documentId"
+        FROM documents d
+        WHERE d."publishedAt" IS NOT NULL
+          AND d."deletedAt" IS NULL
+          AND (
+            EXISTS (
+              SELECT 1 FROM revisions r
+              WHERE r."documentId" = d.id AND r."createdAt" >= :threshold
+            )
+            OR EXISTS (
+              SELECT 1 FROM comments c
+              WHERE c."documentId" = d.id AND c."createdAt" >= :threshold
+            )
+            OR EXISTS (
+              SELECT 1 FROM views v
+              WHERE v."documentId" = d.id AND v."updatedAt" >= :threshold
+            )
           )
-          OR EXISTS (
-            SELECT 1 FROM comments c
-            WHERE c."documentId" = d.id AND c."createdAt" >= :threshold
-          )
-          OR EXISTS (
-            SELECT 1 FROM views v
-            WHERE v."documentId" = d.id AND v."updatedAt" >= :threshold
-          )
-        )
-        ${startUuid && endUuid ? "AND d.id >= :startUuid AND d.id <= :endUuid" : ""}
-      `,
-      { replacements: { threshold, startUuid, endUuid } }
+          ${startUuid && endUuid ? "AND d.id >= :startUuid AND d.id <= :endUuid" : ""}
+        ORDER BY d.id
+        LIMIT :limit
+        OFFSET :offset
+        ON CONFLICT ("documentId") DO NOTHING
+        RETURNING "documentId"
+        `,
+        {
+          replacements: {
+            threshold,
+            startUuid,
+            endUuid,
+            limit: chunkSize,
+            offset,
+          },
+          type: QueryTypes.SELECT,
+        }
+      );
+
+      insertedCount += result.length;
+
+      if (result.length < chunkSize) {
+        break;
+      }
+
+      offset += chunkSize;
+    }
+
+    Logger.debug(
+      "task",
+      `Populated working table with ${insertedCount} documents in ${Math.ceil(insertedCount / chunkSize)} chunks`
     );
 
     // Create index on processed column for efficient batch selection
