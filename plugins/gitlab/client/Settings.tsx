@@ -41,20 +41,24 @@ function GitLab() {
     <IntegrationScene title="GitLab" icon={<GitLabIcon />}>
       <Heading>GitLab</Heading>
 
-      {error === "access_denied" && (
+      {error && (
         <Notice>
-          <Trans>
-            Whoops, you need to accept the permissions in GitLab to connect{" "}
-            {{ appName }} to your workspace. Try again?
-          </Trans>
-        </Notice>
-      )}
-      {error === "unauthenticated" && (
-        <Notice>
-          <Trans>
-            Something went wrong while authenticating your request. Please try
-            logging in again.
-          </Trans>
+          {error === "access_denied" ? (
+            <Trans>
+              Whoops, you need to accept the permissions in GitLab to connect{" "}
+              {{ appName }} to your workspace. Try again?
+            </Trans>
+          ) : error === "unauthenticated" ? (
+            <Trans>
+              Something went wrong while authenticating your request. Please try
+              logging in again.
+            </Trans>
+          ) : (
+            <Trans>
+              Something went wrong while authenticating your request. Please try
+              again.
+            </Trans>
+          )}
         </Notice>
       )}
       {installRequest === "true" && (

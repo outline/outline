@@ -4,6 +4,8 @@ import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 
 export class GitLabUtils {
   public static clientId = env.GITLAB_CLIENT_ID;
+  public static oauthUrl = "https://gitlab.com/oauth";
+  public static apiBaseUrl = "https://gitlab.com/api/v4";
 
   static get url() {
     return integrationSettingsPath("gitlab");
@@ -46,6 +48,7 @@ export class GitLabUtils {
       state,
       scope: "api read_api read_user",
     };
+
     return `${baseUrl}?${queryString.stringify(params)}`;
   }
 
