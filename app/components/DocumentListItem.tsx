@@ -253,7 +253,6 @@ const DocumentLink = styled(Link)<{
 
   ${breakpoint("tablet")`
     width: auto;
-    margin: 10px -36px;
   `};
 
   ${Actions} {

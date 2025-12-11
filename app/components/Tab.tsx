@@ -34,7 +34,7 @@ const TabLink = styled(NavLink)`
   color: ${s("textTertiary")};
   user-select: none;
   margin-right: 24px;
-  padding: 6px 0;
+  padding: 2px 0;
   ${extraArea(4)}
 
   &: ${hover} {
