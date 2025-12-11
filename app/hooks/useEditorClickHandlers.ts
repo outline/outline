@@ -37,7 +37,7 @@ export default function useEditorClickHandlers({ shareId }: Params) {
         if (href[0] !== "/") {
           try {
             const url = new URL(href);
-            navigateTo = url.pathname + url.hash;
+            navigateTo = url.pathname + url.search + url.hash;
           } catch (_err) {
             navigateTo = href;
           }
