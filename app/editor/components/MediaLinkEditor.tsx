@@ -12,7 +12,7 @@ import ToolbarButton from "./ToolbarButton";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
 
 type Props = {
-  node: Node;
+  node?: Node;
   view: EditorView;
   dictionary: Dictionary;
   autoFocus?: boolean;
@@ -31,14 +31,14 @@ export function MediaLinkEditor({
   onEscape,
   onClickOutside,
 }: Props) {
-  const url = (node.attrs.href ?? node.attrs.src) as string;
+  const url = (node?.attrs.href ?? node?.attrs.src) as string;
   const [localUrl, setLocalUrl] = useState(url);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   // If we're attempting to edit an image, autofocus the input
   // Not doing for embed type because it made the editor scroll to top
   // unexpectedly–leaving that out for now
-  const isEditingImgUrl = node.type.name === "image";
+  const isEditingImgUrl = node?.type.name === "image";
 
   const moveSelectionToEnd = useCallback(() => {
     const { state, dispatch } = view;
@@ -65,9 +65,9 @@ export function MediaLinkEditor({
 
   const update = useCallback(() => {
     const { state } = view;
-    const hrefType = node.type.name === "image" ? "src" : "href";
+    const hrefType = node?.type.name === "image" ? "src" : "href";
     const tr = state.tr.setNodeMarkup(state.selection.from, undefined, {
-      ...node.attrs,
+      ...node?.attrs,
       [hrefType]: localUrl,
     });
 
@@ -101,6 +101,10 @@ export function MediaLinkEditor({
     },
     [update, moveSelectionToEnd]
   );
+
+  if (!node) {
+    return null;
+  }
 
   return (
     <Wrapper ref={wrapperRef}>
