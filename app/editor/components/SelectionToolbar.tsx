@@ -102,6 +102,8 @@ export function SelectionToolbar(props: Props) {
       setActiveToolbar(Toolbar.Menu);
     } else if (!selection.empty) {
       setActiveToolbar(Toolbar.Menu);
+    } else if (isNoticeSelection && selection.empty) {
+      setActiveToolbar(Toolbar.Menu);
     } else if (selection.empty) {
       setActiveToolbar(null);
     }
