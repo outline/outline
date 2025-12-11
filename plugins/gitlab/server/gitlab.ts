@@ -310,7 +310,9 @@ export class GitLab {
 
     try {
       const projectPath = `${resource.owner}/${resource.repo}`;
-      const token = integration.authentication.token;
+      const token = await integration.authentication.refreshTokenIfNeeded(
+        async (refreshToken: string) => GitLab.refreshToken(refreshToken)
+      );
 
       if (resource.type === UnfurlResourceType.Issue) {
         const issue = (await GitLab.getIssue(
