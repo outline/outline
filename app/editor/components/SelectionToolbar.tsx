@@ -286,7 +286,9 @@ export function SelectionToolbar(props: Props) {
       ) : activeToolbar === Toolbar.Media ? (
         <MediaLinkEditor
           key={`embed-${selection.from}`}
-          node={"node" in selection ? selection.node : undefined}
+          node={
+            "node" in selection ? (selection as NodeSelection).node : undefined
+          }
           view={view}
           dictionary={dictionary}
           onLinkUpdate={() => setActiveToolbar(null)}
