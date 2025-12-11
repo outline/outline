@@ -93,6 +93,7 @@ export function SelectionToolbar(props: Props) {
       selection.node.type.name === "embed";
 
     const isCodeSelection = isInCode(state, { onlyBlock: true });
+    const isNoticeSelection = isInNotice(state);
 
     if (isEmbedSelection && !readOnly) {
       setActiveToolbar(Toolbar.Media);
@@ -101,6 +102,8 @@ export function SelectionToolbar(props: Props) {
     } else if (isCodeSelection) {
       setActiveToolbar(Toolbar.Menu);
     } else if (!selection.empty) {
+      setActiveToolbar(Toolbar.Menu);
+    } else if (isNoticeSelection && selection.empty) {
       setActiveToolbar(Toolbar.Menu);
     } else if (selection.empty) {
       setActiveToolbar(null);
