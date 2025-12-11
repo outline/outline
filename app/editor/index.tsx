@@ -919,7 +919,7 @@ const EditorContainer = styled(Styles)<{
 `;
 
 const LazyLoadedEditor = React.forwardRef<Editor, Props>(
-  function _LazyLoadedEditor(props: Props, ref) {
+  function LazyLoadedEditor_(props: Props, ref) {
     return (
       <WithTheme>
         {(theme) => <Editor theme={theme} {...props} ref={ref} />}

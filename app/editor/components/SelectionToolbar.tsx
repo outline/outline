@@ -82,6 +82,7 @@ export function SelectionToolbar(props: Props) {
   );
 
   React.useEffect(() => {
+    const { selection } = state;
     const linkMark =
       selection instanceof NodeSelection
         ? getMarkRangeNodeSelection(selection, state.schema.marks.link)
@@ -91,16 +92,20 @@ export function SelectionToolbar(props: Props) {
       selection instanceof NodeSelection &&
       selection.node.type.name === "embed";
 
-    if (isEmbedSelection) {
+    const isCodeSelection = isInCode(state, { onlyBlock: true });
+
+    if (isEmbedSelection && !readOnly) {
       setActiveToolbar(Toolbar.Media);
-    } else if (linkMark && !activeToolbar) {
+    } else if (linkMark && !activeToolbar && !readOnly) {
       setActiveToolbar(Toolbar.Link);
+    } else if (isCodeSelection) {
+      setActiveToolbar(Toolbar.Menu);
     } else if (!selection.empty) {
       setActiveToolbar(Toolbar.Menu);
     } else if (selection.empty) {
       setActiveToolbar(null);
     }
-  }, [selection]);
+  }, [readOnly, selection]);
 
   React.useEffect(() => {
     const handleClickOutside = (ev: MouseEvent): void => {
@@ -254,10 +259,6 @@ export function SelectionToolbar(props: Props) {
     setActiveToolbar(null);
   };
 
-  if (!activeToolbar || !items.length) {
-    return null;
-  }
-
   return (
     <FloatingToolbar
       align={align}
@@ -285,7 +286,9 @@ export function SelectionToolbar(props: Props) {
       ) : activeToolbar === Toolbar.Media ? (
         <MediaLinkEditor
           key={`embed-${selection.from}`}
-          node={(selection as NodeSelection).node}
+          node={
+            "node" in selection ? (selection as NodeSelection).node : undefined
+          }
           view={view}
           dictionary={dictionary}
           onLinkUpdate={() => setActiveToolbar(null)}
@@ -293,9 +296,9 @@ export function SelectionToolbar(props: Props) {
           onEscape={() => setActiveToolbar(Toolbar.Menu)}
           onClickOutside={handleClickOutsideLinkEditor}
         />
-      ) : (
+      ) : activeToolbar === Toolbar.Menu && items.length ? (
         <ToolbarMenu items={items} {...rest} />
-      )}
+      ) : null}
     </FloatingToolbar>
   );
 }

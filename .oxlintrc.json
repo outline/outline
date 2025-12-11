@@ -94,7 +94,8 @@
             "args": "after-used",
             "ignoreRestSiblings": true
           }
-        ]
+        ],
+        "react/rules-of-hooks": "error"
       },
       "plugins": ["eslint", "oxc", "react", "typescript", "import"]
     }
