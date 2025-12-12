@@ -26,6 +26,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
+      - name: Enable Corepack
+        run: corepack enable
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v5
         with:
@@ -39,6 +41,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      - name: Enable Corepack
+        run: corepack enable
       - uses: actions/setup-node@v5
         with:
           node-version: 22.x
@@ -51,6 +55,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      - name: Enable Corepack
+        run: corepack enable
       - uses: actions/setup-node@v5
         with:
           node-version: 22.x
@@ -93,6 +99,8 @@ jobs:
         test-group: [app, shared]
     steps:
       - uses: actions/checkout@v5
+      - name: Enable Corepack
+        run: corepack enable
       - uses: actions/setup-node@v5
         with:
           node-version: 22.x
@@ -125,6 +133,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
+      - name: Enable Corepack
+        run: corepack enable
       - uses: actions/setup-node@v5
         with:
           node-version: 22.x
@@ -142,6 +152,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      - name: Enable Corepack
+        run: corepack enable
       - uses: actions/setup-node@v5
         with:
           node-version: 22.x
