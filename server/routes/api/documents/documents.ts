@@ -469,6 +469,7 @@ router.post(
           ]),
           required: true,
           where: {
+            teamId: user.teamId,
             collectionId: collectionIds,
           },
           include: [
@@ -522,6 +523,7 @@ router.post(
       ? [collectionId]
       : await user.collectionIds();
     const where: WhereOptions = {
+      teamId: user.teamId,
       createdById: user.id,
       collectionId: {
         [Op.or]: [{ [Op.in]: collectionIds }, { [Op.is]: null }],
