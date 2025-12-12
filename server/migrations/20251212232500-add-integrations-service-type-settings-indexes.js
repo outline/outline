@@ -8,13 +8,20 @@ module.exports = {
     });
 
     // Add GIN index on settings for JSONB queries
+    // Using raw SQL as Sequelize doesn't support GIN index type natively
     await queryInterface.sequelize.query(
       'CREATE INDEX "integrations_settings_gin" ON "integrations" USING GIN ("settings");'
     );
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.removeIndex("integrations", "integrations_settings_gin");
-    await queryInterface.removeIndex("integrations", "integrations_service_type");
+    // Drop indexes in reverse order of creation
+    await queryInterface.sequelize.query(
+      'DROP INDEX IF EXISTS "integrations_settings_gin";'
+    );
+    await queryInterface.removeIndex(
+      "integrations",
+      "integrations_service_type"
+    );
   },
 };
