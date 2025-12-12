@@ -7,7 +7,6 @@ import {
   Table,
 } from "sequelize-typescript";
 import { MentionType } from "@shared/types";
-import { can } from "@server/policies";
 import Document from "./Document";
 import User from "./User";
 import IdModel from "./base/IdModel";
@@ -53,6 +52,9 @@ class Mention extends IdModel<
    * @param user The user to check document access for
    */
   public static async findMentionsForUser(userId: string, user: User) {
+    // Lazy import to avoid circular dependency
+    const { can } = await import("@server/policies");
+
     const mentions = await this.findAll({
       where: {
         mentionedUserId: userId,
