@@ -23,7 +23,8 @@ if (enabled) {
       type: Hook.UnfurlProvider,
       value: { unfurl: GitLab.unfurl, cacheExpiry: Minute.seconds },
     },
-    // GitLab doesn't require cleanup
+    // no need for uninstall hook
+    // since GitLab doesn't require cleanup
     // The integration will simply be removed from the database
   ]);
 }

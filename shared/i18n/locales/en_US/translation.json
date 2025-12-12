@@ -1347,7 +1347,7 @@
   "The owner of GitLab account has been requested to install the application. Once approved, previews will be shown for respective links.": "The owner of GitLab account has been requested to install the application. Once approved, previews will be shown for respective links.",
   "Enable previews of GitLab issues and merge requests in documents by connecting a GitLab organization or specific repositories to {appName}.": "Enable previews of GitLab issues and merge requests in documents by connecting a GitLab organization or specific repositories to {appName}.",
   "Disconnecting will prevent previewing GitLab links from this organization in documents. Are you sure?": "Disconnecting will prevent previewing GitLab links from this organization in documents. Are you sure?",
-  "The GitLab integration is currently disabled. Please set the associated environment variables and restart the server to enable the integration.": "The GitLab integration is currently disabled. Please set the associated environment variables and restart the server to enable the integration.",
+  "The GitLab integration is currently disabled. Please set the associated environment variables and restart the server to enable the integration. <2>Learn more</2>": "The GitLab integration is currently disabled. Please set the associated environment variables and restart the server to enable the integration. <2>Learn more</2>",
   "Google Analytics": "Google Analytics",
   "Add a Google Analytics 4 measurement ID to send document views and analytics from the workspace to your own Google Analytics account.": "Add a Google Analytics 4 measurement ID to send document views and analytics from the workspace to your own Google Analytics account.",
   "Measurement ID": "Measurement ID",
