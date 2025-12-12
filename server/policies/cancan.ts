@@ -1,6 +1,4 @@
-import flattenDeep from "lodash/flattenDeep";
 import isObject from "lodash/isPlainObject";
-import uniq from "lodash/uniq";
 import { Model } from "sequelize-typescript";
 import { AuthorizationError } from "@server/errors";
 
@@ -85,25 +83,31 @@ export class CanCan {
     );
 
     // Check conditions only for matching abilities
-    const conditions = uniq(
-      flattenDeep(
-        matchingAbilities.map((ability) => {
-          if (!ability.condition) {
-            return false;
-          }
-          return ability.condition(performer, target, options || {});
-        })
-      )
-    );
+    const seenConditions = new Set<boolean | string>();
+    const membershipIds: string[] = [];
+    let hasNonMembershipMatch = false;
 
-    const matchingConditions = conditions.filter(Boolean);
-    const matchingMembershipIds = matchingConditions.filter(
-      (m) => typeof m === "string"
-    ) as string[];
+    for (const ability of matchingAbilities) {
+      if (!ability.condition) {
+        continue;
+      }
 
-    return matchingMembershipIds.length > 0
-      ? matchingMembershipIds
-      : matchingConditions.length > 0;
+      const result = ability.condition(performer, target, options || {});
+
+      if (!result || seenConditions.has(result)) {
+        continue;
+      }
+
+      seenConditions.add(result);
+
+      if (typeof result === "string") {
+        membershipIds.push(result);
+      } else {
+        hasNonMembershipMatch = true;
+      }
+    }
+
+    return membershipIds.length > 0 ? membershipIds : hasNonMembershipMatch;
   };
 
   /*
