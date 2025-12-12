@@ -1,7 +1,7 @@
-import queryString from "query-string";
 import env from "@shared/env";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 import { UnfurlResourceType } from "@shared/types";
+import { IssueSchema, MRSchema } from "../server/schema";
 
 export class GitLabUtils {
   private static clientId = env.GITLAB_CLIENT_ID;
@@ -14,66 +14,76 @@ export class GitLabUtils {
 
   public static oauthUrl = `${this.gitlabUrl}/oauth`;
 
-  static get url() {
+  public static get url() {
     return integrationSettingsPath("gitlab");
   }
 
   /**
-   * @param error
-   * @returns URL to be redirected to upon authorization error from GitLab
+   * Generates the error URL for GitLab authorization errors.
+   *
+   * @param error - The error message to include in the URL.
+   * @returns The URL to redirect to upon authorization error.
    */
-  public static errorUrl(error: string) {
-    return `${this.url}?error=${error}`;
+  public static errorUrl(error: string): string {
+    return `${this.url}?error=${encodeURIComponent(error)}`;
   }
 
   /**
-   * @returns Callback URL configured for GitLab, to which users will be redirected upon authorization
+   * Generates the callback URL for GitLab OAuth.
+   *
+   * @param baseUrl - The base URL of the application.
+   * @param params - Optional query parameters to include in the callback URL.
+   * @returns The full callback URL.
    */
   public static callbackUrl(
     { baseUrl, params }: { baseUrl: string; params?: string } = {
       baseUrl: env.URL,
       params: undefined,
     }
-  ) {
+  ): string {
+    const callbackPath = "/api/gitlab.callback";
     return params
-      ? `${baseUrl}/api/gitlab.callback?${params}`
-      : `${baseUrl}/api/gitlab.callback`;
+      ? `${baseUrl}${callbackPath}?${params}`
+      : `${baseUrl}${callbackPath}`;
   }
 
   /**
    * Generates the authorization URL for GitLab OAuth.
    *
-   * @param {string} state - A unique state string to prevent CSRF attacks and maintain state between the request and callback.
-   * @returns {string} - The full URL to redirect the user to GitLab's OAuth authorization page.
+   * @param state - A unique state string to prevent CSRF attacks.
+   * @returns The full URL to redirect the user to GitLab's OAuth authorization page.
    */
-  static authUrl(state: string): string {
-    const baseUrl = `${this.oauthUrl}/authorize`;
-    const params = {
+  public static authUrl(state: string): string {
+    const params = new URLSearchParams({
       client_id: this.clientId,
       redirect_uri: this.callbackUrl(),
       response_type: "code",
       state,
       scope: "read_api read_user",
-    };
+    });
 
-    return `${baseUrl}?${queryString.stringify(params)}`;
+    return `${this.oauthUrl}/authorize?${params.toString()}`;
   }
 
   /**
-   * @returns URL for installation requests
+   * Generates the installation request URL.
+   *
+   * @returns The URL for installation requests.
    */
-  static installRequestUrl(): string {
+  public static installRequestUrl(): string {
     return `${this.url}?install_request=true`;
   }
 
   /**
-   * Makes an authenticated API request to GitLab
+   * Makes an authenticated API request to GitLab.
    *
-   * @param accessToken Access token for authentication
-   * @param endpoint API endpoint path
-   * @returns Response data from GitLab API
+   * @param accessToken - The access token for authentication.
+   * @param endpoint - The API endpoint path.
+   * @param params - Additional fetch options.
+   * @param query - Query parameters to include in the request.
+   * @returns The response data from the GitLab API.
    */
-  static async apiRequest({
+  public static async apiRequest({
     accessToken,
     endpoint,
     params,
@@ -110,22 +120,22 @@ export class GitLabUtils {
 
       return response.json();
     } catch (err) {
-      if (err instanceof Error) {
-        throw err;
-      }
-      throw new Error(`Failed to fetch from GitLab API: ${endpoint}`);
+      throw new Error(
+        `Failed to fetch from GitLab API: ${endpoint}. ${err instanceof Error ? err.message : ""}`
+      );
     }
   }
 
   /**
-   * Parses a given URL and returns resource identifiers for GitLab specific URLs
+   * Parses a GitLab URL and extracts resource identifiers.
    *
-   * @param url URL to parse
-   * @returns Containing resource identifiers - `owner`, `repo`, `type` and `id`.
+   * @param url - The GitLab URL to parse.
+   * @returns An object containing resource identifiers or undefined if the URL is invalid.
    */
   public static parseUrl(url: string) {
     const { hostname, pathname } = new URL(url);
     const urlHostname = new URL(this.gitlabUrl).hostname;
+
     if (hostname !== urlHostname) {
       return;
     }
@@ -133,44 +143,39 @@ export class GitLabUtils {
     // GitLab URLs: /owner/repo/-/issues/123 or /owner/repo/-/merge_requests/123
     const parts = pathname.split("/").filter(Boolean);
     if (parts.length < 4) {
+      // not a valid gitlab mr or issue url
       return;
     }
 
-    const owner = parts[0];
-    const repo = parts[1];
+    const [owner, repo, resourceType, resourceId] = parts;
 
-    // Find the resource type index
-    let typeIndex = -1;
-    let type: UnfurlResourceType | undefined;
-
-    if (parts.includes("issues")) {
-      typeIndex = parts.indexOf("issues");
-      type = UnfurlResourceType.Issue;
-    } else if (parts.includes("merge_requests")) {
-      typeIndex = parts.indexOf("merge_requests");
-      type = UnfurlResourceType.PR;
-    }
-
-    if (typeIndex === -1 || !type) {
-      return;
-    }
-
-    const id = Number(parts[typeIndex + 1]);
+    const type =
+      resourceType === "issues"
+        ? UnfurlResourceType.Issue
+        : resourceType === "merge_requests"
+          ? UnfurlResourceType.PR
+          : undefined;
 
     if (!type || !this.supportedResources.includes(type)) {
       return;
     }
 
-    return { owner, repo, type, id, url };
+    return {
+      owner,
+      repo,
+      type,
+      id: Number(resourceId),
+      url,
+    };
   }
 
   /**
-   * Fetches an issue from a GitLab project
+   * Fetches an issue from a GitLab project.
    *
-   * @param accessToken Access token for authentication
-   * @param projectPath Project path (owner/repo)
-   * @param issueId Issue IID
-   * @returns Issue data
+   * @param accessToken - The access token for authentication.
+   * @param projectPath - The project path (owner/repo).
+   * @param issueId - The issue IID.
+   * @returns The issue data.
    */
   public static async getIssue(
     accessToken: string,
@@ -178,21 +183,21 @@ export class GitLabUtils {
     issueId: number
   ) {
     const encodedPath = encodeURIComponent(projectPath);
-    const issue = GitLabUtils.apiRequest({
+    const issue = await this.apiRequest({
       accessToken,
       endpoint: `/projects/${encodedPath}/issues/${issueId}`,
     });
 
-    return issue;
+    return IssueSchema.parse(issue);
   }
 
   /**
-   * Fetches a merge request from a GitLab project
+   * Fetches a merge request from a GitLab project.
    *
-   * @param accessToken Access token for authentication
-   * @param projectPath Project path (owner/repo)
-   * @param mrId Merge request IID
-   * @returns Merge request data
+   * @param accessToken - The access token for authentication.
+   * @param projectPath - The project path (owner/repo).
+   * @param mrId - The merge request IID.
+   * @returns The merge request data.
    */
   public static async getMergeRequest(
     accessToken: string,
@@ -200,30 +205,33 @@ export class GitLabUtils {
     mrId: number
   ) {
     const encodedPath = encodeURIComponent(projectPath);
-    return GitLabUtils.apiRequest({
+    const mr = await this.apiRequest({
       accessToken,
       endpoint: `/projects/${encodedPath}/merge_requests/${mrId}`,
     });
+
+    return MRSchema.parse(mr);
   }
 
   /**
-   * @param status
-   * @param isDraftMR
-   * @returns Color associated with the given status
+   * Returns the color associated with a given status.
+   *
+   * @param status - The status of the resource.
+   * @param isDraftMR - Whether the resource is a draft merge request.
+   * @returns The color associated with the status.
    */
-  public static getColorForStatus(status: string, isDraftMR: boolean = false) {
-    switch (status) {
-      case "opened":
-        return isDraftMR ? "#848d97" : "#1f75cb";
-      case "done":
-        return "#a371f7";
-      case "closed":
-        return "#f85149";
-      case "merged":
-        return "#8250df";
-      case "canceled":
-      default:
-        return "#848d97";
-    }
+  public static getColorForStatus(
+    status: string,
+    isDraftMR: boolean = false
+  ): string {
+    const statusColors: Record<string, string> = {
+      opened: isDraftMR ? "#848d97" : "#1f75cb",
+      done: "#a371f7",
+      closed: "#f85149",
+      merged: "#8250df",
+      canceled: "#848d97",
+    };
+
+    return statusColors[status] ?? "#848d97";
   }
 }

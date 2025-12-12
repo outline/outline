@@ -9,7 +9,7 @@ import { IntegrationAuthentication, Integration } from "@server/models";
 import { APIContext } from "@server/types";
 import { GitLabUtils } from "../../shared/GitLabUtils";
 import { GitLab } from "../gitlab";
-import * as T from "./schema";
+import * as T from "../schema";
 import Logger from "@server/logging/Logger";
 import { addSeconds } from "date-fns";
 

@@ -9,75 +9,17 @@ import { Integration, IntegrationAuthentication, User } from "@server/models";
 import { UnfurlIssueOrPR, UnfurlSignature } from "@server/types";
 import { GitLabUtils } from "../shared/GitLabUtils";
 import env from "./env";
-import z from "zod";
-
-type MR = {
-  iid: number;
-  title: string;
-  description: string;
-  web_url: string;
-  state: string;
-  draft: boolean;
-  merged_at: string | null;
-  created_at: string;
-  author: {
-    username: string;
-    avatar_url: string;
-  };
-  labels: string[];
-};
-
-type Issue = {
-  iid: number;
-  title: string;
-  description: string;
-  web_url: string;
-  state: string;
-  created_at: string;
-  author: {
-    username: string;
-    avatar_url: string;
-  };
-  labels: { name: string; color: string }[];
-};
-
-const AccessTokenResponseSchema = z.object({
-  access_token: z.string(),
-  token_type: z.string(),
-  expires_in: z.number(),
-  refresh_token: z.string(),
-  scope: z.string(),
-  created_at: z.number(),
-});
-
-const UserInfoResponseSchema = z.object({
-  id: z.number(),
-  username: z.string(),
-  name: z.string(),
-  avatar_url: z.string().url(),
-});
-
-const projectsSchema = z.array(
-  z.object({
-    id: z.number(),
-    name: z.string(),
-    namespace: z.object({
-      id: z.number(),
-      full_path: z.string(),
-    }),
-  })
-);
-
-const ApplicationSchema = z.object({
-  id: z.number(),
-  application_id: z.string(),
-  application_name: z.string(),
-  callback_url: z.string().url(),
-  confidential: z.boolean(),
-});
+import {
+  MR,
+  Issue,
+  projectsSchema,
+  UserInfoResponseSchema,
+  AccessTokenResponseSchema,
+} from "./schema";
 
 export class GitLab {
   private static clientSecret = env.GITLAB_CLIENT_SECRET;
+  private static clientId = env.GITLAB_CLIENT_ID;
 
   /**
    * Fetches current user information
@@ -114,25 +56,6 @@ export class GitLab {
     return projectsSchema.parse(projects);
   }
 
-  public static async validateApplication({
-    accessToken,
-    applicationId,
-  }: {
-    accessToken: string;
-    applicationId: string;
-  }) {
-    const applications = await GitLabUtils.apiRequest({
-      accessToken,
-      endpoint: "/applications",
-    });
-
-    const application = applications.find(
-      (app: any) => app.application_id === applicationId
-    );
-
-    return ApplicationSchema.parse(application);
-  }
-
   /**
    * @param url GitLab resource url
    * @param actor User attempting to unfurl resource url
@@ -144,7 +67,7 @@ export class GitLab {
       return;
     }
 
-    // to do: consider any ways to make this more accurate
+    // to do: consider any ways to narrow this down
     const integration = (await Integration.findOne({
       where: {
         service: IntegrationService.GitLab,
@@ -170,19 +93,20 @@ export class GitLab {
       );
 
       if (resource.type === UnfurlResourceType.Issue) {
-        const issue = (await GitLabUtils.getIssue(
+        const issue = await GitLabUtils.getIssue(
           token,
           projectPath,
           resource.id
-        )) as Issue;
-        return GitLab.transformIssue(issue);
+        );
+
+        return this.transformIssue(issue);
       } else if (resource.type === UnfurlResourceType.PR) {
         const mr = (await GitLabUtils.getMergeRequest(
           token,
           projectPath,
           resource.id
         )) as MR;
-        return GitLab.transformMR(mr);
+        return this.transformMR(mr);
       }
 
       return { error: "Resource not found" };
@@ -200,8 +124,8 @@ export class GitLab {
       },
       body: JSON.stringify({
         code,
-        client_id: env.GITLAB_CLIENT_ID,
-        client_secret: env.GITLAB_CLIENT_SECRET,
+        client_id: this.clientId,
+        client_secret: this.clientSecret,
         grant_type: "authorization_code",
         redirect_uri: GitLabUtils.callbackUrl(),
       }),
@@ -217,28 +141,33 @@ export class GitLab {
   };
 
   private static async refreshToken(refreshToken: string) {
-    const res = await fetch(GitLabUtils.oauthUrl + "/token", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({
-        client_id: env.GITLAB_CLIENT_ID,
-        client_secret: this.clientSecret,
-        grant_type: "refresh_token",
-        refresh_token: refreshToken,
-        redirect_uri: GitLabUtils.callbackUrl(),
-      }),
+    const queryParams = new URLSearchParams({
+      client_id: this.clientId!,
+      client_secret: this.clientSecret!,
+      grant_type: "refresh_token",
+      refresh_token: refreshToken,
+      redirect_uri: GitLabUtils.callbackUrl(),
     });
 
+    const res = await fetch(
+      `${GitLabUtils.oauthUrl}/token?${queryParams.toString()}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Accept: "application/json",
+        },
+      }
+    );
+    const resJson = await res.json();
     if (res.status !== 200) {
+      Logger.error("failed to refresh access token from GitLab", resJson);
       throw new Error(
         `Error while refreshing access token from GitLab; status: ${res.status}`
       );
     }
 
-    return AccessTokenResponseSchema.parse(await res.json());
+    return AccessTokenResponseSchema.parse(resJson);
   }
 
   private static transformIssue(issue: Issue) {

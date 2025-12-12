@@ -145,7 +145,10 @@ function GitLab() {
           <Trans>
             The GitLab integration is currently disabled. Please set the
             associated environment variables and restart the server to enable
-            the integration.
+            the integration.{" "}
+            <a href="#" target="_blank" rel="noopener noreferrer">
+              Learn more
+            </a>
           </Trans>
         </Notice>
       )}
