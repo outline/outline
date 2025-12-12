@@ -153,7 +153,7 @@ export type DocumentsInfoReq = z.infer<typeof DocumentsInfoSchema>;
 
 export const DocumentsExportSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
-    signedUrls: z.boolean().optional(),
+    signedUrls: z.number().optional(),
   }),
 });
 
