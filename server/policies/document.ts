@@ -1,5 +1,4 @@
 import invariant from "invariant";
-import filter from "lodash/filter";
 import { DocumentPermission, TeamPreference } from "@shared/types";
 import { Document, Revision, User, Team } from "@server/models";
 import { allow, cannot, can } from "./cancan";
@@ -322,10 +321,20 @@ function includesMembership(
     "Development: document groupMemberships should be preloaded, did you forget withMembership scope?"
   );
 
-  const membershipIds = filter(
-    [...document.memberships, ...document.groupMemberships],
-    (m) => permissions.includes(m.permission as DocumentPermission)
-  ).map((m) => m.id);
+  const permissionSet = new Set(permissions);
+  const membershipIds: string[] = [];
+
+  for (const membership of document.memberships) {
+    if (permissionSet.has(membership.permission as DocumentPermission)) {
+      membershipIds.push(membership.id);
+    }
+  }
+
+  for (const membership of document.groupMemberships) {
+    if (permissionSet.has(membership.permission as DocumentPermission)) {
+      membershipIds.push(membership.id);
+    }
+  }
 
   return membershipIds.length > 0 ? membershipIds : false;
 }

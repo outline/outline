@@ -7,8 +7,12 @@ import invariant from "invariant";
 type Args = boolean | string | Args[];
 
 export function and(...args: Args[]) {
-  const filtered = args.filter(Boolean);
-  return filtered.length === args.length ? filtered : false;
+  for (const arg of args) {
+    if (!arg) {
+      return false;
+    }
+  }
+  return args;
 }
 
 export function or(...args: Args[]) {
