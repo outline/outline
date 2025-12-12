@@ -239,11 +239,14 @@ export class GitHub {
       order: [
         [
           Sequelize.literal(
-            `CASE WHEN "settings"->'github'->'installation'->'account'->>'name' = '${resource.owner.replace(/'/g, "''")}' THEN 0 ELSE 1 END`
+            `CASE WHEN "settings"->'github'->'installation'->'account'->>'name' = :owner THEN 0 ELSE 1 END`
           ),
           "ASC",
         ],
       ],
+      replacements: {
+        owner: resource.owner,
+      },
     })) as Integration<IntegrationType.Embed>;
 
     if (!integration) {
