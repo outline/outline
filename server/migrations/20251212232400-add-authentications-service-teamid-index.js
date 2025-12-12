@@ -2,15 +2,15 @@
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.addIndex("authentications", ["service", "teamId"], {
-      name: "authentications_service_team_id",
+    await queryInterface.addIndex("authentications", ["teamId", "service"], {
+      name: "authentications_team_id_service",
     });
   },
 
   async down(queryInterface, Sequelize) {
     await queryInterface.removeIndex(
       "authentications",
-      "authentications_service_team_id"
+      "authentications_team_id_service"
     );
   },
 };
