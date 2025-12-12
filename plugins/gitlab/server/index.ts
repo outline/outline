@@ -5,6 +5,7 @@ import { GitLabIssueProvider } from "./GitLabIssueProvider";
 import router from "./api/gitlab";
 import env from "./env";
 import { GitLab } from "./gitlab";
+import GitLabWebhookTask from "./tasks/GitLabWebhookTask";
 
 const enabled = !!env.GITLAB_CLIENT_ID && !!env.GITLAB_CLIENT_SECRET;
 
@@ -22,6 +23,10 @@ if (enabled) {
     {
       type: Hook.UnfurlProvider,
       value: { unfurl: GitLab.unfurl, cacheExpiry: Minute.seconds },
+    },
+    {
+      type: Hook.Task,
+      value: GitLabWebhookTask,
     },
     // no need for uninstall hook
     // since GitLab doesn't require cleanup

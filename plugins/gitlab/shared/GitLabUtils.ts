@@ -13,6 +13,7 @@ export class GitLabUtils {
   ];
 
   public static oauthUrl = `${this.gitlabUrl}/oauth`;
+  public static clientSecret = env.GITLAB_CLIENT_SECRET;
 
   public static get url() {
     return integrationSettingsPath("gitlab");

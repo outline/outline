@@ -5,10 +5,12 @@ import apexAuthRedirect from "@server/middlewares/apexAuthRedirect";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
+import validateWebhook from "@server/middlewares/validateWebhook";
 import { IntegrationAuthentication, Integration } from "@server/models";
 import { APIContext } from "@server/types";
 import { GitLabUtils } from "../../shared/GitLabUtils";
 import { GitLab } from "../gitlab";
+import GitLabWebhookTask from "../tasks/GitLabWebhookTask";
 import * as T from "../schema";
 import Logger from "@server/logging/Logger";
 import { addSeconds } from "date-fns";
@@ -83,6 +85,30 @@ router.get(
       Logger.error("Encountered error during Gitlab OAuth callback", err);
       ctx.redirect(GitLabUtils.errorUrl("unauthenticated"));
     }
+  }
+);
+
+router.post(
+  "gitlab.webhooks",
+  validateWebhook({
+    secretKey: GitLabUtils.clientSecret!,
+    getSignatureFromHeader: (ctx) => {
+      const { headers } = ctx.request;
+      const signatureHeader = headers["x-gitlab-token"];
+      return Array.isArray(signatureHeader)
+        ? signatureHeader[0]
+        : signatureHeader;
+    },
+  }),
+  async (ctx: APIContext) => {
+    const { headers, body } = ctx.request;
+
+    await new GitLabWebhookTask().schedule({
+      payload: body,
+      headers,
+    });
+
+    ctx.status = 202;
   }
 );
 
