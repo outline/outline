@@ -747,7 +747,7 @@ router.post(
     const toMarkdown = async () => {
       if (signedUrls) {
         const data = await DocumentHelper.toJSON(document, {
-          signedUrls: env.FILE_STORAGE_SIGNED_URL_DURATION,
+          signedUrls,
           teamId: user.teamId,
         });
         const doc = Node.fromJSON(schema, data);

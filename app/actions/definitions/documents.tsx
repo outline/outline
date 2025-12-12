@@ -613,7 +613,7 @@ export const copyDocumentAsMarkdown = createAction({
     if (document) {
       const res = await client.post("/documents.export", {
         id: document.id,
-        signedUrls: true,
+        signedUrls: 3600 * 24 * 30, // 30 days
       });
       copy(res.data);
       toast.success(t("Markdown copied to clipboard"));
