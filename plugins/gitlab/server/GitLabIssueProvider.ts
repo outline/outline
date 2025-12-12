@@ -53,7 +53,24 @@ export class GitLabIssueProvider extends BaseIssueProvider {
     return sources;
   }
 
-  async handleWebhook() {
-    Logger.warn("handling webhooks");
+  async handleWebhook({
+    // payload,
+    headers,
+  }: {
+    payload: Record<string, unknown>;
+    headers: Record<string, unknown>;
+  }) {
+    const hookId = headers["X-Gitlab-Webhook-UUID"] as string;
+    const eventName = headers["x-gitlab-event"] as string;
+
+    if (!eventName) {
+      Logger.warn(
+        `Received GitLab webhook without event name; hookId: ${hookId}, eventName: ${eventName}`
+      );
+      return;
+    }
+
+    //to do: continue webhook handling logic
+    Logger.info("task", `Received GitLab webhook event: ${eventName}`);
   }
 }
