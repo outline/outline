@@ -14,7 +14,7 @@ type Options = {
   includeText?: boolean;
   /** Always include the data of the document in the payload. */
   includeData?: boolean;
-
+  /** Include the updatedAt timestamp for public documents. */
   includeUpdatedAt?: boolean;
 };
 
@@ -56,7 +56,6 @@ async function presentDocument(
     text,
     icon: document.icon,
     color: document.color,
-    tasks: document.tasks,
     language: document.language,
     createdAt: document.createdAt,
     createdBy: undefined,
@@ -85,6 +84,7 @@ async function presentDocument(
   if (!options.isPublic) {
     const source = await document.$get("import");
 
+    res.tasks = document.tasks;
     res.isCollectionDeleted = await document.isCollectionDeleted();
     res.collectionId = document.collectionId;
     res.parentDocumentId = document.parentDocumentId;
