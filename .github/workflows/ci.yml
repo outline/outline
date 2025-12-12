@@ -32,7 +32,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: "yarn"
       - name: Install dependencies
-        run: yarn install --frozen-lockfile --prefer-offline
+        run: yarn install --immutable
 
   lint:
     needs: build
@@ -43,7 +43,7 @@ jobs:
         with:
           node-version: 22.x
           cache: "yarn"
-      - run: yarn install --frozen-lockfile --prefer-offline
+      - run: yarn install --immutable
       - run: yarn lint --quiet
 
   types:
@@ -55,7 +55,7 @@ jobs:
         with:
           node-version: 22.x
           cache: "yarn"
-      - run: yarn install --frozen-lockfile --prefer-offline
+      - run: yarn install --immutable
       - run: yarn tsc
 
   changes:
@@ -97,7 +97,7 @@ jobs:
         with:
           node-version: 22.x
           cache: "yarn"
-      - run: yarn install --frozen-lockfile --prefer-offline
+      - run: yarn install --immutable
       - run: yarn test:${{ matrix.test-group }}
 
   test-server:
@@ -129,7 +129,7 @@ jobs:
         with:
           node-version: 22.x
           cache: "yarn"
-      - run: yarn install --frozen-lockfile --prefer-offline
+      - run: yarn install --immutable
       - run: yarn sequelize db:migrate
       - name: Run server tests
         run: |
@@ -146,7 +146,7 @@ jobs:
         with:
           node-version: 22.x
           cache: "yarn"
-      - run: yarn install --frozen-lockfile --prefer-offline
+      - run: yarn install --immutable
       - name: Set environment to production
         run: echo "NODE_ENV=production" >> $GITHUB_ENV
       - run: yarn vite:build
