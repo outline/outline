@@ -6,10 +6,10 @@ import { and, isTeamAdmin, isTeamModel, isTeamMutable, or } from "./utils";
 
 allow(User, "createCollection", Team, (actor, team) =>
   and(
-    isTeamModel(actor, team),
-    isTeamMutable(actor),
     !actor.isGuest,
     !actor.isViewer,
+    isTeamModel(actor, team),
+    isTeamMutable(actor),
     or(actor.isAdmin, !!team?.memberCollectionCreate)
   )
 );
@@ -25,9 +25,9 @@ allow(User, "importCollection", Team, (actor, team) =>
 allow(User, "move", Collection, (actor, collection) =>
   and(
     //
+    !!collection?.isActive,
     isTeamAdmin(actor, collection),
-    isTeamMutable(actor),
-    !!collection?.isActive
+    isTeamMutable(actor)
   )
 );
 

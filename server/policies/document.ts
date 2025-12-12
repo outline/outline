@@ -35,8 +35,8 @@ allow(User, "read", Document, (actor, document) =>
 
 allow(User, ["listRevisions", "listViews"], Document, (actor, document) =>
   or(
-    and(can(actor, "read", document), !actor.isGuest),
-    and(can(actor, "update", document), actor.isGuest)
+    and(!actor.isGuest, can(actor, "read", document)),
+    and(actor.isGuest, can(actor, "update", document))
   )
 );
 
@@ -52,14 +52,14 @@ allow(User, "download", Document, (actor, document) =>
 
 allow(User, "comment", Document, (actor, document) =>
   and(
-    // TODO: We'll introduce a separate permission for commenting
-    or(
-      and(can(actor, "read", document), !actor.isGuest),
-      and(can(actor, "update", document), actor.isGuest)
-    ),
-    isTeamMutable(actor),
     !!document?.isActive,
     !document?.template,
+    isTeamMutable(actor),
+    // TODO: We'll introduce a separate permission for commenting
+    or(
+      and(!actor.isGuest, can(actor, "read", document)),
+      and(actor.isGuest, can(actor, "update", document))
+    ),
     or(!document?.collection, document?.collection?.commenting !== false)
   )
 );
@@ -71,26 +71,26 @@ allow(
   (actor, document) =>
     and(
       //
-      can(actor, "read", document),
-      !document?.template
+      !document?.template,
+      can(actor, "read", document)
     )
 );
 
 allow(User, "share", Document, (actor, document) =>
   and(
-    can(actor, "read", document),
-    isTeamMutable(actor),
     !!document?.isActive,
     !document?.template,
+    isTeamMutable(actor),
+    can(actor, "read", document),
     or(!document?.collection, can(actor, "share", document?.collection))
   )
 );
 
 allow(User, "update", Document, (actor, document) =>
   and(
-    can(actor, "read", document),
-    isTeamMutable(actor),
     !!document?.isActive,
+    isTeamMutable(actor),
+    can(actor, "read", document),
     or(
       includesMembership(document, [
         DocumentPermission.ReadWrite,
@@ -114,8 +114,8 @@ allow(User, "update", Document, (actor, document) =>
 allow(User, "publish", Document, (actor, document) =>
   and(
     //
-    can(actor, "update", document),
-    !!document?.isDraft
+    !!document?.isDraft,
+    can(actor, "update", document)
   )
 );
 
@@ -170,35 +170,40 @@ allow(User, "move", Document, (actor, document) =>
 );
 
 allow(User, "createChildDocument", Document, (actor, document) =>
-  and(can(actor, "update", document), !document?.isDraft, !document?.template)
+  and(
+    //
+    !document?.isDraft,
+    !document?.template,
+    can(actor, "update", document)
+  )
 );
 
 allow(User, ["updateInsights", "pin", "unpin"], Document, (actor, document) =>
   and(
-    can(actor, "update", document),
-    can(actor, "update", document?.collection),
     !document?.isDraft,
     !document?.template,
-    !actor.isGuest
+    !actor.isGuest,
+    can(actor, "update", document),
+    can(actor, "update", document?.collection)
   )
 );
 
 allow(User, "pinToHome", Document, (actor, document) =>
   and(
     //
-    isTeamAdmin(actor, document),
-    isTeamMutable(actor),
     !document?.isDraft,
     !document?.template,
-    !!document?.isActive
+    !!document?.isActive,
+    isTeamAdmin(actor, document),
+    isTeamMutable(actor)
   )
 );
 
 allow(User, "delete", Document, (actor, document) =>
   and(
+    !document?.isDeleted,
     isTeamModel(actor, document),
     isTeamMutable(actor),
-    !document?.isDeleted,
     or(
       can(actor, "unarchive", document),
       can(actor, "update", document),
@@ -209,9 +214,9 @@ allow(User, "delete", Document, (actor, document) =>
 
 allow(User, "restore", Document, (actor, document) =>
   and(
-    isTeamModel(actor, document),
     !actor.isGuest,
     !!document?.isDeleted,
+    isTeamModel(actor, document),
     or(
       includesMembership(document, [
         DocumentPermission.ReadWrite,
@@ -230,9 +235,9 @@ allow(User, "restore", Document, (actor, document) =>
 
 allow(User, "permanentDelete", Document, (actor, document) =>
   and(
-    isTeamModel(actor, document),
     !actor.isGuest,
     !!document?.isDeleted,
+    isTeamModel(actor, document),
     isTeamAdmin(actor, document)
   )
 );
