@@ -2,7 +2,7 @@ import { Node, Schema } from "prosemirror-model";
 import headingToSlug from "../editor/lib/headingToSlug";
 import textBetween from "../editor/lib/textBetween";
 import { getTextSerializers } from "../editor/lib/textSerializers";
-import { ProsemirrorData } from "../types";
+import { MentionType, ProsemirrorData, UnfurlResponse } from "../types";
 import { TextHelper } from "./TextHelper";
 
 export type Heading = {
@@ -28,6 +28,23 @@ export type Task = {
   text: string;
   /* Whether the task is completed or not */
   completed: boolean;
+};
+
+export type MentionAttrs = {
+  /* The type of mention */
+  type: MentionType;
+  /* The label/text of the mention */
+  label: string;
+  /* The ID of the model being mentioned */
+  modelId: string;
+  /* The actor who created the mention */
+  actorId?: string;
+  /* The unique ID of this mention instance */
+  id?: string;
+  /* The href for the mention */
+  href?: string;
+  /* Unfurl data for the mention */
+  unfurl?: UnfurlResponse;
 };
 
 interface User {
@@ -415,5 +432,45 @@ export class ProsemirrorHelper {
       }
     }
     return paragraphs;
+  }
+
+  /**
+   * Parse all mentions from a Prosemirror document.
+   *
+   * @param doc Prosemirror document node
+   * @param options Optional filters to apply to mentions
+   * @returns Array<MentionAttrs> of mentions found
+   */
+  static parseMentions(
+    doc: Node,
+    options?: Partial<MentionAttrs>
+  ): MentionAttrs[] {
+    const mentions: MentionAttrs[] = [];
+
+    doc.descendants((node) => {
+      if (node.type.name === "mention") {
+        const mentionAttrs = node.attrs as MentionAttrs;
+
+        // Apply filters if provided
+        if (options) {
+          let matches = true;
+          for (const [key, value] of Object.entries(options)) {
+            if (mentionAttrs[key as keyof MentionAttrs] !== value) {
+              matches = false;
+              break;
+            }
+          }
+          if (matches) {
+            mentions.push(mentionAttrs);
+          }
+        } else {
+          mentions.push(mentionAttrs);
+        }
+      }
+
+      return true;
+    });
+
+    return mentions;
   }
 }
