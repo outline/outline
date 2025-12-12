@@ -28,7 +28,6 @@ function GitLab() {
   const error = query.get("error");
   const installRequest = query.get("install_request");
   const appName = env.APP_NAME;
-  const gitlabAppName = env.GITLAB_APP_NAME;
 
   React.useEffect(() => {
     void integrations.fetchAll({
@@ -64,9 +63,9 @@ function GitLab() {
       {installRequest === "true" && (
         <Notice>
           <Trans>
-            The owner of GitLab account has been requested to install the{" "}
-            {{ gitlabAppName }} GitLab app. Once approved, previews will be
-            shown for respective links.
+            The owner of GitLab account has been requested to install the
+            application. Once approved, previews will be shown for respective
+            links.
           </Trans>
         </Notice>
       )}

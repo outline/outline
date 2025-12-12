@@ -1,4 +1,4 @@
-import fetch, { RequestInit } from "node-fetch";
+import fetch from "node-fetch";
 import {
   IntegrationService,
   IntegrationType,
@@ -77,110 +77,7 @@ const ApplicationSchema = z.object({
 });
 
 export class GitLab {
-  private static clientId = env.GITLAB_CLIENT_ID;
   private static clientSecret = env.GITLAB_CLIENT_SECRET;
-
-  private static supportedResources = [
-    UnfurlResourceType.Issue,
-    UnfurlResourceType.PR,
-  ];
-
-  /**
-   * Parses a given URL and returns resource identifiers for GitLab specific URLs
-   *
-   * @param url URL to parse
-   * @returns Containing resource identifiers - `owner`, `repo`, `type` and `id`.
-   */
-  public static parseUrl(url: string) {
-    const { hostname, pathname } = new URL(url);
-    if (hostname !== "gitlab.com") {
-      return;
-    }
-
-    // GitLab URLs: /owner/repo/-/issues/123 or /owner/repo/-/merge_requests/123
-    const parts = pathname.split("/").filter(Boolean);
-    if (parts.length < 4) {
-      return;
-    }
-
-    const owner = parts[0];
-    const repo = parts[1];
-
-    // Find the resource type index
-    let typeIndex = -1;
-    let type: UnfurlResourceType | undefined;
-
-    if (parts.includes("issues")) {
-      typeIndex = parts.indexOf("issues");
-      type = UnfurlResourceType.Issue;
-    } else if (parts.includes("merge_requests")) {
-      typeIndex = parts.indexOf("merge_requests");
-      type = UnfurlResourceType.PR;
-    }
-
-    if (typeIndex === -1 || !type) {
-      return;
-    }
-
-    const id = Number(parts[typeIndex + 1]);
-
-    if (!type || !GitLab.supportedResources.includes(type)) {
-      return;
-    }
-
-    return { owner, repo, type, id, url };
-  }
-
-  /**
-   * Makes an authenticated API request to GitLab
-   *
-   * @param accessToken Access token for authentication
-   * @param endpoint API endpoint path
-   * @returns Response data from GitLab API
-   */
-  private static async apiRequest({
-    accessToken,
-    endpoint,
-    params,
-    query,
-  }: {
-    accessToken: string;
-    endpoint: string;
-    params?: RequestInit;
-    query?: Record<string, string | number | boolean>;
-  }): Promise<any> {
-    const url = new URL(`${GitLabUtils.apiBaseUrl}${endpoint}`);
-
-    if (query) {
-      Object.entries(query).forEach(([key, value]) => {
-        url.searchParams.append(key, String(value));
-      });
-    }
-
-    try {
-      const response = await fetch(url.toString(), {
-        ...params,
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-          ...params?.headers,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(
-          `GitLab API error: ${response.status} ${response.statusText} (${endpoint})`
-        );
-      }
-
-      return response.json();
-    } catch (err) {
-      if (err instanceof Error) {
-        throw err;
-      }
-      throw new Error(`Failed to fetch from GitLab API: ${endpoint}`);
-    }
-  }
 
   /**
    * Fetches current user information
@@ -189,7 +86,7 @@ export class GitLab {
    * @returns User information
    */
   public static async getCurrentUser(accessToken: string) {
-    const userData = await GitLab.apiRequest({
+    const userData = await GitLabUtils.apiRequest({
       accessToken,
       endpoint: "/user",
     });
@@ -204,7 +101,7 @@ export class GitLab {
    * @returns Array of projects
    */
   public static async getProjects(accessToken: string) {
-    const projects = await GitLab.apiRequest({
+    const projects = await GitLabUtils.apiRequest({
       accessToken,
       endpoint: "/projects",
       query: {
@@ -224,7 +121,7 @@ export class GitLab {
     accessToken: string;
     applicationId: string;
   }) {
-    const applications = await GitLab.apiRequest({
+    const applications = await GitLabUtils.apiRequest({
       accessToken,
       endpoint: "/applications",
     });
@@ -237,63 +134,21 @@ export class GitLab {
   }
 
   /**
-   * Fetches an issue from a GitLab project
-   *
-   * @param accessToken Access token for authentication
-   * @param projectPath Project path (owner/repo)
-   * @param issueId Issue IID
-   * @returns Issue data
-   */
-  public static async getIssue(
-    accessToken: string,
-    projectPath: string,
-    issueId: number
-  ) {
-    const encodedPath = encodeURIComponent(projectPath);
-    const issue = GitLab.apiRequest({
-      accessToken,
-      endpoint: `/projects/${encodedPath}/issues/${issueId}`,
-    });
-
-    return issue;
-  }
-
-  /**
-   * Fetches a merge request from a GitLab project
-   *
-   * @param accessToken Access token for authentication
-   * @param projectPath Project path (owner/repo)
-   * @param mrId Merge request IID
-   * @returns Merge request data
-   */
-  public static async getMergeRequest(
-    accessToken: string,
-    projectPath: string,
-    mrId: number
-  ) {
-    const encodedPath = encodeURIComponent(projectPath);
-    return GitLab.apiRequest({
-      accessToken,
-      endpoint: `/projects/${encodedPath}/merge_requests/${mrId}`,
-    });
-  }
-
-  /**
    * @param url GitLab resource url
    * @param actor User attempting to unfurl resource url
    * @returns An object containing resource details e.g, a GitLab Merge Request details
    */
   public static unfurl: UnfurlSignature = async (url: string, actor: User) => {
-    const resource = GitLab.parseUrl(url);
+    const resource = GitLabUtils.parseUrl(url);
     if (!resource) {
       return;
     }
 
+    // to do: consider any ways to make this more accurate
     const integration = (await Integration.findOne({
       where: {
         service: IntegrationService.GitLab,
         teamId: actor.teamId,
-        "settings.gitlab.installation.account.name": resource.owner,
       },
       include: [
         {
@@ -315,14 +170,14 @@ export class GitLab {
       );
 
       if (resource.type === UnfurlResourceType.Issue) {
-        const issue = (await GitLab.getIssue(
+        const issue = (await GitLabUtils.getIssue(
           token,
           projectPath,
           resource.id
         )) as Issue;
         return GitLab.transformIssue(issue);
       } else if (resource.type === UnfurlResourceType.PR) {
-        const mr = (await GitLab.getMergeRequest(
+        const mr = (await GitLabUtils.getMergeRequest(
           token,
           projectPath,
           resource.id
@@ -345,8 +200,8 @@ export class GitLab {
       },
       body: JSON.stringify({
         code,
-        client_id: this.clientId,
-        client_secret: this.clientSecret,
+        client_id: env.GITLAB_CLIENT_ID,
+        client_secret: env.GITLAB_CLIENT_SECRET,
         grant_type: "authorization_code",
         redirect_uri: GitLabUtils.callbackUrl(),
       }),
@@ -361,7 +216,7 @@ export class GitLab {
     return AccessTokenResponseSchema.parse(await res.json());
   };
 
-  static async refreshToken(refreshToken: string) {
+  private static async refreshToken(refreshToken: string) {
     const res = await fetch(GitLabUtils.oauthUrl + "/token", {
       method: "POST",
       headers: {
@@ -369,7 +224,7 @@ export class GitLab {
         Accept: "application/json",
       },
       body: JSON.stringify({
-        client_id: this.clientId,
+        client_id: env.GITLAB_CLIENT_ID,
         client_secret: this.clientSecret,
         grant_type: "refresh_token",
         refresh_token: refreshToken,
