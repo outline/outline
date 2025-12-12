@@ -12,10 +12,14 @@ class GitLabPluginEnvironment extends Environment {
   @IsOptional()
   public GITLAB_CLIENT_ID = this.toOptionalString(environment.GITLAB_CLIENT_ID);
 
+  /**
+   * GitLab URL. Defaults to the gitlab cloud URL.
+   */
   @Public
   @IsOptional()
-  @CannotUseWithout("GITLAB_CLIENT_ID")
-  public GITLAB_APP_NAME = this.toOptionalString(environment.GITLAB_APP_NAME);
+  @CannotUseWithout("GITLAB_CLIENT_SECRET")
+  public GITLAB_URL =
+    this.toOptionalString(environment.GITLAB_URL) ?? "https://gitlab.com";
 
   /**
    * GitLab OAuth2 client credentials. To enable integration with GitLab.
@@ -24,12 +28,6 @@ class GitLabPluginEnvironment extends Environment {
   @CannotUseWithout("GITLAB_CLIENT_ID")
   public GITLAB_CLIENT_SECRET = this.toOptionalString(
     environment.GITLAB_CLIENT_SECRET
-  );
-
-  @IsOptional()
-  @CannotUseWithout("GITLAB_CLIENT_ID")
-  public GITLAB_WEBHOOK_SECRET = this.toOptionalString(
-    environment.GITLAB_WEBHOOK_SECRET
   );
 }
 
