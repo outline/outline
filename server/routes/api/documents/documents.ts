@@ -145,8 +145,13 @@ router.post(
       // index sort is special because it uses the order of the documents in the
       // collection.documentStructure rather than a database column
       if (sort === "index") {
-        documentIds = (collection.documentStructure || [])
-          .map((node) => node.id);
+        // Extract all document IDs from the collection structure.
+        // Note: We don't slice here because pagination is handled by the database query.
+        // The WHERE IN clause will contain all document IDs, but the OFFSET/LIMIT
+        // in the query will handle pagination correctly.
+        documentIds = (collection.documentStructure || []).map(
+          (node) => node.id
+        );
         where[Op.and].push({ id: documentIds });
       } // if it's not a backlink request, filter by all collections the user has access to
     } else if (!backlinkDocumentId) {
@@ -338,8 +343,13 @@ router.post(
       // index sort is special because it uses the order of the documents in the
       // collection.documentStructure rather than a database column
       if (sort === "index") {
-        documentIds = (collection?.documentStructure || [])
-          .map((node) => node.id);
+        // Extract all document IDs from the collection structure.
+        // Note: We don't slice here because pagination is handled by the database query.
+        // The WHERE IN clause will contain all document IDs, but the OFFSET/LIMIT
+        // in the query will handle pagination correctly.
+        documentIds = (collection?.documentStructure || []).map(
+          (node) => node.id
+        );
         where = { ...where, id: documentIds };
       } // otherwise, filter by all collections the user has access to
     } else {
