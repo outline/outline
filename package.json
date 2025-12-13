@@ -195,6 +195,7 @@
     "pluralize": "^8.0.0",
     "png-chunks-extract": "^1.0.0",
     "polished": "^4.3.1",
+    "prosemirror-changeset": "2.3.1",
     "prosemirror-codemark": "^0.4.2",
     "prosemirror-commands": "^1.7.1",
     "prosemirror-dropcursor": "^1.8.2",

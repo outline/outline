@@ -16,6 +16,9 @@ import useStores from "~/hooks/useStores";
 import { documentPath } from "~/utils/routeHelpers";
 import Sidebar from "./SidebarLayout";
 import useMobile from "~/hooks/useMobile";
+import Switch from "~/components/Switch";
+import Text from "@shared/components/Text";
+import usePersistedState from "~/hooks/usePersistedState";
 
 const DocumentEvents = [
   "documents.publish",
@@ -39,6 +42,53 @@ function History() {
   const [revisionsOffset, setRevisionsOffset] = React.useState(0);
   const [eventsOffset, setEventsOffset] = React.useState(0);
   const isMobile = useMobile();
+
+  const [defaultShowChanges, setDefaultShowChanges] =
+    usePersistedState<boolean>("history-show-changes", false);
+
+  const searchParams = new URLSearchParams(history.location.search);
+  const [showChanges, setShowChanges] = React.useState(
+    searchParams.get("changes") === "true" || defaultShowChanges
+  );
+
+  const updateLocation = React.useCallback(
+    (changes: Record<string, string | null>) => {
+      const params = new URLSearchParams(history.location.search);
+
+      Object.entries(changes).forEach(([key, value]) => {
+        if (value === null) {
+          params.delete(key);
+        } else {
+          params.set(key, value);
+        }
+      });
+
+      const search = params.toString();
+      history.replace({
+        pathname: history.location.pathname,
+        search: search ? `?${search}` : "",
+        state: history.location.state,
+      });
+    },
+    [history]
+  );
+
+  // Handler for toggling the "Show Changes" switch, updating state and URL parameter
+  const handleShowChangesToggle = React.useCallback(
+    (checked: boolean) => {
+      setShowChanges(checked);
+      setDefaultShowChanges(checked);
+      updateLocation({ changes: checked ? "true" : null });
+    },
+    [history]
+  );
+
+  // Ensure that the URL parameter is in sync with the persisted state on mount
+  React.useEffect(() => {
+    if (defaultShowChanges) {
+      updateLocation({ changes: "true" });
+    }
+  }, [defaultShowChanges]);
 
   const fetchHistory = React.useCallback(async () => {
     if (!document) {
@@ -145,21 +195,34 @@ function History() {
 
   return (
     <Sidebar title={t("History")} onClose={onCloseHistory}>
+      <Content>
+        <Text type="secondary" size="small">
+          <Switch
+            label={t("Highlight changes")}
+            checked={showChanges}
+            onChange={handleShowChangesToggle}
+          />
+        </Text>
+      </Content>
       {document ? (
         <PaginatedEventList
           aria-label={t("History")}
           fetch={fetchHistory}
           items={items}
           document={document}
-          empty={<EmptyHistory>{t("No history yet")}</EmptyHistory>}
+          empty={
+            <Content>
+              <Empty>{t("No history yet")}</Empty>
+            </Content>
+          }
         />
       ) : null}
     </Sidebar>
   );
 }
 
-const EmptyHistory = styled(Empty)`
-  padding: 0 12px;
+const Content = styled.div`
+  padding: 0 16px;
 `;
 
 export default observer(History);
