@@ -33,6 +33,8 @@ function getIcon(props: Props) {
       return <GitHubIssueStatusIcon {...props} />;
     case IntegrationService.Linear:
       return <LinearIssueStatusIcon {...props} />;
+    case IntegrationService.GitLab:
+      return <GitHubIssueStatusIcon {...props} />;
   }
 }
 
