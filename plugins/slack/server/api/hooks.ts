@@ -96,7 +96,7 @@ router.post(
 
           if (commentId) {
             const comment = await Comment.findByPk(commentId as string);
-            if (!comment) {
+            if (!comment || comment.documentId !== doc.id) {
               continue;
             }
 
