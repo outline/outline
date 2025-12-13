@@ -11,7 +11,7 @@
     "build": "yarn clean && yarn vite:build && yarn build:i18n && yarn build:server",
     "start": "node ./build/server/index.js",
     "dev": "NODE_ENV=development yarn concurrently -n api,collaboration  -c \"blue,magenta\" \"node --inspect=0.0.0.0 build/server/index.js --services=cron,collaboration,websockets,admin,web,worker\"",
-    "dev:backend": "NODE_ENV=development nodemon --exec \"yarn build:server && yarn dev\" -e js,ts,tsx --ignore *.test.ts --ignore data/ --ignore build/ --ignore app/ --ignore shared/editor --ignore server/migrations",
+    "dev:backend": "NODE_ENV=development nodemon --exec \"yarn build:server && yarn dev\" -e js,ts,tsx --watch server --watch shared --watch plugins --watch .env --watch .env.local --watch .env.development --ignore *.test.ts --ignore data/ --ignore build/ --ignore app/ --ignore shared/editor --ignore server/migrations",
     "dev:watch": "NODE_ENV=development yarn concurrently -n backend,frontend \"yarn dev:backend\" \"yarn vite:dev\"",
     "lint": "oxlint --type-aware app server shared plugins",
     "lint:changed": "git diff --name-only --diff-filter=ACMRTUXB | grep -E '\\.(js|jsx|ts|tsx)$' | xargs -r oxlint",
