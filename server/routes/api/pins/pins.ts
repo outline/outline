@@ -100,6 +100,13 @@ router.post(
     const { collectionId } = ctx.input.body;
     const { user } = ctx.state.auth;
 
+    if (collectionId) {
+      const collection = await Collection.findByPk(collectionId, {
+        userId: user.id,
+      });
+      authorize(user, "read", collection);
+    }
+
     const [pins, collectionIds] = await Promise.all([
       Pin.findAll({
         where: {
