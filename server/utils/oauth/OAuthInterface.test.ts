@@ -115,6 +115,19 @@ describe("OAuthInterface", () => {
       );
       expect(result).toBe(false);
     });
+
+    it("should return false for HTTP redirect URI (security requirement)", async () => {
+      const httpClient = {
+        ...client,
+        redirectUris: ["http://example.com/callback"],
+      };
+      const redirectUri = "http://example.com/callback";
+      const result = await OAuthInterface.validateRedirectUri(
+        redirectUri,
+        httpClient
+      );
+      expect(result).toBe(false);
+    });
   });
 
   describe("#validateScope", () => {
