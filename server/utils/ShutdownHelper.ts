@@ -60,8 +60,10 @@ export default class ShutdownHelper {
 
   /**
    * Exit the process after all shutdown handlers have completed
+   *
+   * @param code The exit code to use
    */
-  public static async execute() {
+  public static async execute(code = 0) {
     if (this.isShuttingDown) {
       return;
     }
@@ -100,6 +102,6 @@ export default class ShutdownHelper {
     }
 
     Logger.info("lifecycle", "Gracefully quitting");
-    process.exit(0);
+    process.exit(code);
   }
 }

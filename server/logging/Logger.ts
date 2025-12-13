@@ -200,7 +200,7 @@ class Logger {
    */
   public fatal(message: string, error: Error, extra?: Extra) {
     this.error(message, error, extra);
-    void ShutdownHelper.execute();
+    void ShutdownHelper.execute(1);
   }
 
   /**
