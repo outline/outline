@@ -11,7 +11,7 @@ import isNil from "lodash/isNil";
 import remove from "lodash/remove";
 import uniq from "lodash/uniq";
 import mime from "mime-types";
-import { Op, ScopeOptions, Sequelize, WhereOptions } from "sequelize";
+import { Op, Order, ScopeOptions, Sequelize, WhereOptions } from "sequelize";
 import { randomUUID } from "crypto";
 import { NavigationNode, StatusFilter, UserRole } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
@@ -145,9 +145,13 @@ router.post(
       // index sort is special because it uses the order of the documents in the
       // collection.documentStructure rather than a database column
       if (sort === "index") {
+        // Extract all document IDs from the collection structure.
         documentIds = (collection.documentStructure || [])
           .map((node) => node.id)
-          .slice(ctx.state.pagination.offset, ctx.state.pagination.limit);
+          .slice(
+            ctx.state.pagination.offset,
+            ctx.state.pagination.offset + ctx.state.pagination.limit
+          );
         where[Op.and].push({ id: documentIds });
       } // if it's not a backlink request, filter by all collections the user has access to
     } else if (!backlinkDocumentId) {
@@ -271,30 +275,33 @@ router.post(
       });
     }
 
+    // When sorting by index, use array_position to sort by the document order
+    // in the collection structure directly in SQL, enabling correct pagination
+    const orderClause =
+      sort === "index"
+        ? documentIds.length > 0
+          ? [
+              [
+                Sequelize.literal(
+                  `array_position(ARRAY[${documentIds.map((id) => `'${id}'`).join(",")}]::uuid[], "document"."id")`
+                ),
+                direction,
+              ],
+            ]
+          : undefined
+        : [[sort, direction]];
+
+    // When sorting by index, pagination is already handled by slicing documentIds,
+    // so we skip the SQL-level offset to avoid double-pagination
     const [documents, total] = await Promise.all([
       Document.withMembershipScope(user.id).findAll({
         where,
-        order: [
-          [
-            // this needs to be done otherwise findAll will throw citing
-            // that the column "document"."index" doesn't exist – value of sort
-            // is required to be a column name
-            sort === "index" ? "updatedAt" : sort,
-            direction,
-          ],
-        ],
-        offset: ctx.state.pagination.offset,
+        order: orderClause as Order,
+        offset: sort === "index" ? 0 : ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
       }),
       Document.count({ where }),
     ]);
-
-    if (sort === "index") {
-      // sort again so as to retain the order of documents as in collection.documentStructure
-      documents.sort(
-        (a, b) => documentIds.indexOf(a.id) - documentIds.indexOf(b.id)
-      );
-    }
 
     const data = await Promise.all(
       documents.map((document) => presentDocument(ctx, document))
@@ -316,8 +323,13 @@ router.post(
   validate(T.DocumentsArchivedSchema),
   async (ctx: APIContext<T.DocumentsArchivedReq>) => {
     const { sort, direction, collectionId } = ctx.input.body;
-
     const { user } = ctx.state.auth;
+
+    if (sort === "index") {
+      throw ValidationError(
+        "Sorting archived documents by index is not supported"
+      );
+    }
 
     let where: WhereOptions<Document> = {
       teamId: user.teamId,
@@ -325,8 +337,6 @@ router.post(
         [Op.ne]: null,
       },
     };
-
-    let documentIds: string[] = [];
 
     // if a specific collection is passed then we need to check auth to view it
     if (collectionId) {
@@ -336,14 +346,7 @@ router.post(
       });
       authorize(user, "readDocument", collection);
 
-      // index sort is special because it uses the order of the documents in the
-      // collection.documentStructure rather than a database column
-      if (sort === "index") {
-        documentIds = (collection?.documentStructure || [])
-          .map((node) => node.id)
-          .slice(ctx.state.pagination.offset, ctx.state.pagination.limit);
-        where = { ...where, id: documentIds };
-      } // otherwise, filter by all collections the user has access to
+      // otherwise, filter by all collections the user has access to
     } else {
       const collectionIds = await user.collectionIds();
       where = {
@@ -354,25 +357,10 @@ router.post(
 
     const documents = await Document.withMembershipScope(user.id).findAll({
       where,
-      order: [
-        [
-          // this needs to be done otherwise findAll will throw citing
-          // that the column "document"."index" doesn't exist – value of sort
-          // is required to be a column name
-          sort === "index" ? "updatedAt" : sort,
-          direction,
-        ],
-      ],
+      order: [[sort, direction]],
       offset: ctx.state.pagination.offset,
       limit: ctx.state.pagination.limit,
     });
-
-    if (sort === "index") {
-      // sort again so as to retain the order of documents as in collection.documentStructure
-      documents.sort(
-        (a, b) => documentIds.indexOf(a.id) - documentIds.indexOf(b.id)
-      );
-    }
 
     const data = await Promise.all(
       documents.map((document) => presentDocument(ctx, document))
