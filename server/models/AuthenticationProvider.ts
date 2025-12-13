@@ -111,10 +111,12 @@ class AuthenticationProvider extends Model<
   disable: (ctx: APIContext) => Promise<AuthenticationProvider> = async (
     ctx
   ) => {
-    const res = await (
+    const { transaction } = ctx.state;
+    const otherEnabledProviders = await (
       this.constructor as typeof AuthenticationProvider
-    ).findAndCountAll({
-      transaction: ctx.transaction,
+    ).findAll({
+      transaction,
+      lock: transaction.LOCK.SHARE,
       where: {
         teamId: this.teamId,
         enabled: true,
@@ -125,7 +127,7 @@ class AuthenticationProvider extends Model<
       limit: 1,
     });
 
-    if (res.count >= 1) {
+    if (otherEnabledProviders.length >= 1) {
       return this.updateWithCtx(ctx, {
         enabled: false,
       });
