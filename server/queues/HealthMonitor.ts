@@ -11,19 +11,26 @@ export default class HealthMonitor {
    * @param queue The queue to monitor
    */
   public static start(queue: Queue) {
-    let processedJobsSinceCheck = 0;
+    let lastActivityTime = Date.now();
 
     queue.on("active", () => {
-      processedJobsSinceCheck += 1;
+      lastActivityTime = Date.now();
+    });
+    queue.on("completed", () => {
+      lastActivityTime = Date.now();
+    });
+    queue.on("failed", () => {
+      lastActivityTime = Date.now();
     });
 
     setInterval(async () => {
-      if (processedJobsSinceCheck > 0) {
-        processedJobsSinceCheck = 0;
+      const timeSinceActivity = Date.now() - lastActivityTime;
+
+      // If there's been recent activity, the queue is healthy
+      if (timeSinceActivity < 30 * Second.ms) {
         return;
       }
 
-      processedJobsSinceCheck = 0;
       const waiting = await queue.getWaitingCount();
       if (waiting > 50) {
         Logger.fatal(
