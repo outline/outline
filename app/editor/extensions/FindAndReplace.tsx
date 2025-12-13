@@ -2,7 +2,13 @@ import deburr from "lodash/deburr";
 import escapeRegExp from "lodash/escapeRegExp";
 import { observable } from "mobx";
 import { Node } from "prosemirror-model";
-import { Command, Plugin, PluginKey } from "prosemirror-state";
+import {
+  Command,
+  EditorState,
+  Plugin,
+  PluginKey,
+  Transaction,
+} from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import scrollIntoView from "scroll-into-view-if-needed";
 import Extension, { WidgetProps } from "@shared/editor/lib/Extension";
@@ -145,6 +151,7 @@ export default class FindAndReplaceExtension extends Extension {
       this.currentResultIndex = 0;
 
       dispatch?.(state.tr.setMeta(pluginKey, {}));
+      this.expandHeadings({ state, dispatch });
       return true;
     };
   }
@@ -190,6 +197,7 @@ export default class FindAndReplaceExtension extends Extension {
       }
 
       dispatch?.(state.tr.setMeta(pluginKey, {}));
+      this.expandHeadings({ state, dispatch });
 
       const element = window.document.querySelector(
         `.${this.options.resultCurrentClassName}`
@@ -316,6 +324,63 @@ export default class FindAndReplaceExtension extends Extension {
     return this.decorations
       ? DecorationSet.create(doc, this.decorations)
       : DecorationSet.empty;
+  }
+
+  private expandHeadings({
+    state,
+    dispatch,
+  }: {
+    state: EditorState;
+    dispatch?: (tr: Transaction) => void;
+  }) {
+    const currentResult = this.results[this.currentResultIndex];
+    if (!currentResult) {
+      return;
+    }
+
+    const parentHeadings = this.findFoldedHeadings({
+      doc: state.doc,
+      targetPos: currentResult.from,
+    });
+
+    const tr = state.tr;
+    parentHeadings.forEach(({ node, pos }) => {
+      if (node.attrs.collapsed) {
+        tr.setNodeMarkup(pos, undefined, { ...node.attrs, collapsed: false });
+      }
+    });
+
+    dispatch?.(tr);
+  }
+
+  private findFoldedHeadings({
+    doc,
+    targetPos,
+  }: {
+    doc: Node;
+    targetPos: number;
+  }): Array<{ node: Node; pos: number }> {
+    const headings: Array<{ node: Node; pos: number }> = [];
+
+    doc.nodesBetween(0, targetPos, (node, pos) => {
+      if (node.type.name !== "heading" || pos >= targetPos) {
+        return;
+      }
+
+      const level = node.attrs.level;
+      while (
+        headings.length > 0 &&
+        headings[headings.length - 1].node.attrs.level >= level
+      ) {
+        headings.pop();
+      }
+
+      if (node.attrs.collapsed) {
+        headings.push({ node, pos });
+      }
+    });
+
+    return headings;
   }
 
   get allowInReadOnly() {
