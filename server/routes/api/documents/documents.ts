@@ -146,8 +146,7 @@ router.post(
       // collection.documentStructure rather than a database column
       if (sort === "index") {
         documentIds = (collection.documentStructure || [])
-          .map((node) => node.id)
-          .slice(ctx.state.pagination.offset, ctx.state.pagination.limit);
+          .map((node) => node.id);
         where[Op.and].push({ id: documentIds });
       } // if it's not a backlink request, filter by all collections the user has access to
     } else if (!backlinkDocumentId) {
@@ -340,8 +339,7 @@ router.post(
       // collection.documentStructure rather than a database column
       if (sort === "index") {
         documentIds = (collection?.documentStructure || [])
-          .map((node) => node.id)
-          .slice(ctx.state.pagination.offset, ctx.state.pagination.limit);
+          .map((node) => node.id);
         where = { ...where, id: documentIds };
       } // otherwise, filter by all collections the user has access to
     } else {
