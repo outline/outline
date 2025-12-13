@@ -56,6 +56,10 @@ async function presentDocument(
     text,
     icon: document.icon,
     color: document.color,
+    tasks: {
+      completed: 0,
+      total: 0,
+    },
     language: document.language,
     createdAt: document.createdAt,
     createdBy: undefined,
