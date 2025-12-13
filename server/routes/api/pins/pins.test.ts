@@ -323,6 +323,80 @@ describe("#pins.list", () => {
     expect(body.data.pins).toBeTruthy();
     expect(body.data.pins).toHaveLength(0);
   });
+
+  it("should fail with status 403 forbidden when user cannot access the collection", async () => {
+    const otherUser = await buildUser();
+    const privateCollection = await buildCollection({
+      teamId: otherUser.teamId,
+      createdById: otherUser.id,
+      permission: null,
+    });
+    const doc = await buildDocument({
+      teamId: otherUser.teamId,
+      collectionId: privateCollection.id,
+    });
+    await buildPin({
+      createdById: otherUser.id,
+      documentId: doc.id,
+      collectionId: privateCollection.id,
+      teamId: otherUser.teamId,
+    });
+
+    // Create a user on the same team but without access to the private collection
+    const teamMember = await buildUser({ teamId: otherUser.teamId });
+
+    const res = await server.post("/api/pins.list", {
+      body: {
+        token: teamMember.getJwtToken(),
+        collectionId: privateCollection.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(403);
+    expect(body.message).toEqual("Authorization error");
+  });
+
+  it("should succeed with status 200 ok when user can access the collection", async () => {
+    const collectionWithPins = await buildCollection({
+      teamId: user.teamId,
+      createdById: user.id,
+    });
+    const doc = await buildDocument({
+      teamId: user.teamId,
+      collectionId: collectionWithPins.id,
+    });
+    const pin = await buildPin({
+      createdById: user.id,
+      documentId: doc.id,
+      collectionId: collectionWithPins.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/pins.list", {
+      body: {
+        token: user.getJwtToken(),
+        collectionId: collectionWithPins.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.pins).toHaveLength(1);
+    expect(body.data.pins[0].id).toEqual(pin.id);
+    expect(body.data.documents).toHaveLength(1);
+    expect(body.data.documents[0].id).toEqual(doc.id);
+  });
+
+  it("should fail with status 403 forbidden when collection does not exist", async () => {
+    const res = await server.post("/api/pins.list", {
+      body: {
+        token: user.getJwtToken(),
+        collectionId: "00000000-0000-0000-0000-000000000000",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(403);
+    expect(body.message).toEqual("Authorization error");
+  });
 });
 
 describe("#pins.update", () => {
