@@ -164,6 +164,21 @@ export default abstract class BaseStorage {
     if (match) {
       contentType = match[1];
       buffer = Buffer.from(match[2], "base64");
+
+      // Validate size for base64 URLs, same as for remote URLs
+      const maxSize = Math.min(
+        options?.maxUploadSize ?? Infinity,
+        env.FILE_STORAGE_UPLOAD_MAX_SIZE
+      );
+
+      if (buffer.byteLength > maxSize) {
+        Logger.warn("Base64 URL exceeds size limit", {
+          size: buffer.byteLength,
+          maxSize,
+          key,
+        });
+        return;
+      }
     } else {
       try {
         const headers = {
