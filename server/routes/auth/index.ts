@@ -30,7 +30,7 @@ router.get("/redirect", authMiddleware(), async (ctx: APIContext) => {
   const { user } = ctx.state.auth;
   const jwtToken = user.getJwtToken();
 
-  if (jwtToken === ctx.params.token) {
+  if (jwtToken === ctx.state.auth.token) {
     throw AuthenticationError("Cannot extend token");
   }
 
