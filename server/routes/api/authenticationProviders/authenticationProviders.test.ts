@@ -93,6 +93,52 @@ describe("#authenticationProviders.update", () => {
     expect(body.data.isConnected).toBe(true);
   });
 
+  it("should prevent concurrent disable operations leaving zero enabled providers", async () => {
+    const team = await buildTeam();
+    const user = await buildAdmin({
+      teamId: team.id,
+    });
+
+    // Create a second authentication provider (team starts with slack)
+    const googleProvider = await team.$create("authenticationProvider", {
+      name: "google",
+      providerId: randomUUID(),
+    });
+
+    const authenticationProviders = await team.$get("authenticationProviders");
+    const slackProvider = authenticationProviders.find(
+      (p) => p.name === "slack"
+    );
+    expect(slackProvider).toBeDefined();
+
+    // Attempt to disable both providers concurrently
+    const [res1, res2] = await Promise.all([
+      server.post("/api/authenticationProviders.update", {
+        body: {
+          id: slackProvider!.id,
+          isEnabled: false,
+          token: user.getJwtToken(),
+        },
+      }),
+      server.post("/api/authenticationProviders.update", {
+        body: {
+          id: googleProvider.id,
+          isEnabled: false,
+          token: user.getJwtToken(),
+        },
+      }),
+    ]);
+
+    // At least one request should fail
+    const statuses = [res1.status, res2.status];
+    expect(statuses).toContain(400);
+
+    // Verify at least one provider remains enabled
+    const finalProviders = await team.$get("authenticationProviders");
+    const enabledCount = finalProviders.filter((p) => p.enabled).length;
+    expect(enabledCount).toBeGreaterThanOrEqual(1);
+  });
+
   it("should require authorization", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
