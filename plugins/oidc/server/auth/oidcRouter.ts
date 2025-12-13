@@ -159,7 +159,7 @@ export function createOIDCRouter(
             get(profile, env.OIDC_USERNAME_CLAIM) ??
             get(token, env.OIDC_USERNAME_CLAIM);
           const name = profile.name || username || profile.username;
-          const profileId = profile.sub ? profile.sub : profile.id;
+          const profileId = profile.sub ?? token.sub ?? profile.id;
 
           if (!name) {
             throw AuthenticationError(
