@@ -763,7 +763,7 @@ class User extends ParanoidModel<
       previousRole &&
       model.changed("role") &&
       UserRoleHelper.isRoleLower(model.role, UserRole.Member) &&
-      UserRoleHelper.isRoleHigher(previousRole, UserRole.Viewer)
+      !UserRoleHelper.isRoleLower(previousRole, UserRole.Viewer)
     ) {
       await UserMembership.update(
         {
