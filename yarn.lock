@@ -9354,6 +9354,11 @@ ioredis@^5.3.2, ioredis@^5.8.2:
     redis-parser "^3.0.0"
     standard-as-callback "^2.1.0"
 
+ip-address@^10.0.1:
+  version "10.1.0"
+  resolved "https://registry.yarnpkg.com/ip-address/-/ip-address-10.1.0.tgz#d8dcffb34d0e02eb241427444a6e23f5b0595aa4"
+  integrity sha512-XXADHxXmvT9+CRxhXg56LJovE+bmWnEWB78LB83VZTprKTmaC5QfruXocxzTZ2Kl0DNwKuBdlIhjL8LeY8Sf8Q==
+
 ipaddr.js@^2.1.0:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/ipaddr.js/-/ipaddr.js-2.2.0.tgz#d33fa7bac284f4de7af949638c9d68157c6b92e8"
@@ -13609,6 +13614,11 @@ slugify@^1.6.6:
   resolved "https://registry.yarnpkg.com/slugify/-/slugify-1.6.6.tgz#2d4ac0eacb47add6af9e04d3be79319cbcc7924b"
   integrity "sha1-LUrA6stHrdavngTTvnkxnLzHkks= sha512-h+z7HKHYXj6wJU+AnS/+IH8Uh9fdcX1Lrhg1/VMdf9PwoBQXFcXiAdsy2tSK0P6gKwJLXp02r90ahUCqHk9rrw=="
 
+smart-buffer@^4.2.0:
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/smart-buffer/-/smart-buffer-4.2.0.tgz#6e1d71fa4f18c05f7d0ff216dd16a481d0e8d9ae"
+  integrity sha512-94hK0Hh8rPqQl2xXc3HsaBoOXKV20MToPkcXvwbISWLEs+64sBq5kFgn2kJDHb1Pry9yrP0dxrCI9RRci7RXKg==
+
 smob@^1.0.0:
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/smob/-/smob-1.5.0.tgz#85d79a1403abf128d24d3ebc1cdc5e1a9548d3ab"
@@ -13667,6 +13677,14 @@ socket.io@^4.8.1:
     engine.io "~6.6.0"
     socket.io-adapter "~2.5.2"
     socket.io-parser "~4.2.4"
+
+socks@^2.8.7:
+  version "2.8.7"
+  resolved "https://registry.yarnpkg.com/socks/-/socks-2.8.7.tgz#e2fb1d9a603add75050a2067db8c381a0b5669ea"
+  integrity sha512-HLpt+uLy/pxB+bum/9DzAgiKS8CX1EvbWxI4zlmgGCExImLdiad2iCwXT5Z4c9c3Eq8rP2318mPW2c+QbtjK8A==
+  dependencies:
+    ip-address "^10.0.1"
+    smart-buffer "^4.2.0"
 
 sonner@^1.7.4:
   version "1.7.4"
