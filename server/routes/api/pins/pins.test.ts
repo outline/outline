@@ -227,7 +227,7 @@ describe("#pins.info", () => {
     expect(pin.data.collectionId).toEqual(document.collectionId);
   });
 
-  it("should throw 404 if no pin found", async () => {
+  it("should return 204 if no pin for input", async () => {
     const user = await buildUser();
     const document = await buildDocument({
       userId: user.id,
@@ -242,7 +242,7 @@ describe("#pins.info", () => {
       },
     });
 
-    expect(res.status).toEqual(404);
+    expect(res.status).toEqual(204);
   });
 });
 

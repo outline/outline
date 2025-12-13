@@ -180,6 +180,16 @@ export type UserMembershipEvent = BaseEvent<UserMembership> & {
   };
 };
 
+export type DocumentMovedEvent = BaseEvent<Document> & {
+  name: "documents.move";
+  documentId: string;
+  collectionId: string;
+  data: {
+    collectionIds: string[];
+    documentIds: string[];
+  };
+};
+
 export type DocumentEvent = BaseEvent<Document> &
   (
     | {
@@ -192,34 +202,19 @@ export type DocumentEvent = BaseEvent<Document> &
           | "documents.restore";
         documentId: string;
         collectionId: string;
-        data: {
-          title: string;
+        data?: {
           source?: "import";
         };
       }
     | {
         name: "documents.unpublish";
         documentId: string;
-        collectionId: string;
+        collectionId?: string;
       }
     | {
         name: "documents.unarchive";
         documentId: string;
         collectionId: string;
-        data: {
-          title: string;
-          /** Id of collection from which the document is unarchived */
-          sourceCollectionId: string;
-        };
-      }
-    | {
-        name: "documents.move";
-        documentId: string;
-        collectionId: string;
-        data: {
-          collectionIds: string[];
-          documentIds: string[];
-        };
       }
     | {
         name:
@@ -229,9 +224,7 @@ export type DocumentEvent = BaseEvent<Document> &
         documentId: string;
         collectionId: string;
         createdAt: string;
-        data: {
-          title: string;
-          autosave: boolean;
+        data?: {
           done: boolean;
         };
       }
@@ -240,11 +233,8 @@ export type DocumentEvent = BaseEvent<Document> &
         documentId: string;
         collectionId: string;
         createdAt: string;
-        data: {
-          title: string;
-          previousTitle: string;
-        };
       }
+    | DocumentMovedEvent
   );
 
 export type EmptyTrashEvent = {
@@ -256,7 +246,6 @@ export type EmptyTrashEvent = {
 export type RevisionEvent = BaseEvent<Revision> & {
   name: "revisions.create";
   documentId: string;
-  collectionId: string;
   modelId: string;
 };
 
@@ -306,44 +295,17 @@ export type DocumentGroupEvent = BaseEvent<GroupMembership> & {
   };
 };
 
-export type CollectionEvent = BaseEvent<Collection> &
-  (
-    | {
-        name: "collections.create";
-        collectionId: string;
-        data: {
-          name: string;
-          source?: "import";
-        };
-      }
-    | {
-        name:
-          | "collections.update"
-          | "collections.delete"
-          | "collections.archive"
-          | "collections.restore";
-        collectionId: string;
-        data: {
-          name: string;
-          archivedAt: string;
-        };
-      }
-    | {
-        name: "collections.move";
-        collectionId: string;
-        data: {
-          index: string;
-        };
-      }
-    | {
-        name: "collections.permission_changed";
-        collectionId: string;
-        data: {
-          privacyChanged: boolean;
-          sharingChanged: boolean;
-        };
-      }
-  );
+export type CollectionEvent = BaseEvent<Collection> & {
+  name:
+    | "collections.create"
+    | "collections.update"
+    | "collections.delete"
+    | "collections.archive"
+    | "collections.restore"
+    | "collections.move"
+    | "collections.permission_changed";
+  collectionId: string;
+};
 
 export type GroupUserEvent = BaseEvent<UserMembership> & {
   name: "groups.add_user" | "groups.remove_user";
@@ -476,7 +438,7 @@ export type OAuthClientEvent = BaseEvent<OAuthClient> & {
   modelId: string;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// oxlint-disable-next-line @typescript-eslint/no-explicit-any
 export type ImportEvent = BaseEvent<Import<any>> & {
   name:
     | "imports.create"
@@ -492,6 +454,7 @@ export type Event =
   | AuthenticationProviderEvent
   | DocumentEvent
   | DocumentUserEvent
+  | DocumentMovedEvent
   | DocumentGroupEvent
   | PinEvent
   | CommentEvent
@@ -585,13 +548,12 @@ export type CollectionJSONExport = {
   };
 };
 
-export type UnfurlIssueAndPR = (
+export type UnfurlIssueOrPR =
   | UnfurlResponse[UnfurlResourceType.Issue]
-  | UnfurlResponse[UnfurlResourceType.PR]
-) & { transformed_unfurl: true };
+  | UnfurlResponse[UnfurlResourceType.PR];
 
 export type Unfurl =
-  | UnfurlIssueAndPR
+  | UnfurlIssueOrPR
   | {
       type: Exclude<
         UnfurlResourceType,

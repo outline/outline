@@ -24,12 +24,12 @@ export default abstract class OAuthClient {
     try {
       response = await fetch(this.endpoints.userinfo, {
         method: "GET",
+        allowPrivateIPAddress: true,
         headers: {
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
       });
-      data = await response.json();
     } catch (err) {
       throw InvalidRequestError(err.message);
     }
@@ -37,6 +37,12 @@ export default abstract class OAuthClient {
     const success = response.status >= 200 && response.status < 300;
     if (!success) {
       throw AuthenticationError();
+    }
+
+    try {
+      data = await response.json();
+    } catch (err) {
+      throw InvalidRequestError(err.message);
     }
 
     return data;
@@ -59,6 +65,7 @@ export default abstract class OAuthClient {
 
       response = await fetch(endpoint, {
         method: "POST",
+        allowPrivateIPAddress: true,
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },

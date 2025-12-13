@@ -31,22 +31,22 @@ const Text = styled.span<Props>`
     props.type === "secondary"
       ? props.theme.textSecondary
       : props.type === "tertiary"
-      ? props.theme.textTertiary
-      : props.type === "danger"
-      ? props.theme.brand.red
-      : props.theme.text};
+        ? props.theme.textTertiary
+        : props.type === "danger"
+          ? props.theme.brand.red
+          : props.theme.text};
   font-size: ${(props) =>
     props.size === "xlarge"
       ? "26px"
       : props.size === "large"
-      ? "18px"
-      : props.size === "medium"
-      ? "16px"
-      : props.size === "small"
-      ? "14px"
-      : props.size === "xsmall"
-      ? "13px"
-      : "inherit"};
+        ? "18px"
+        : props.size === "medium"
+          ? "16px"
+          : props.size === "small"
+            ? "14px"
+            : props.size === "xsmall"
+              ? "13px"
+              : "inherit"};
 
   ${(props) =>
     props.weight &&
@@ -54,10 +54,10 @@ const Text = styled.span<Props>`
       font-weight: ${props.weight === "xbold"
         ? 600
         : props.weight === "bold"
-        ? 500
-        : props.weight === "normal"
-        ? 400
-        : "inherit"};
+          ? 500
+          : props.weight === "normal"
+            ? 400
+            : "inherit"};
     `}
 
   font-style: ${(props) => (props.italic ? "italic" : "normal")};

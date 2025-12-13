@@ -1,4 +1,4 @@
-import * as React from "react";
+import { isUUID } from "validator";
 import styled from "styled-components";
 import { s } from "../styles";
 
@@ -17,7 +17,7 @@ type Props = {
 export default function EmojiIcon({ size = 24, emoji, ...rest }: Props) {
   return (
     <Span $size={size} {...rest}>
-      <SVG size={size} emoji={emoji} />
+      <SVG size={size} emoji={isUUID(emoji) ? "�" : emoji} />
     </Span>
   );
 }

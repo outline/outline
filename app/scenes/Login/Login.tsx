@@ -7,7 +7,8 @@ import { useLocation, Link, Redirect } from "react-router-dom";
 import styled from "styled-components";
 import { getCookie, setCookie } from "tiny-cookie";
 import { s } from "@shared/styles";
-import { UserPreference } from "@shared/types";
+import { Client, UserPreference } from "@shared/types";
+import { isPWA } from "@shared/utils/browser";
 import { parseDomain } from "@shared/utils/domains";
 import { Config } from "~/stores/AuthStore";
 import { AvatarSize } from "~/components/Avatar";
@@ -18,6 +19,7 @@ import Heading from "~/components/Heading";
 import OutlineIcon from "~/components/Icons/OutlineIcon";
 import Input from "~/components/Input";
 import LoadingIndicator from "~/components/LoadingIndicator";
+import { OneTimePasswordInput } from "~/components/OneTimePasswordInput";
 import PageTitle from "~/components/PageTitle";
 import TeamLogo from "~/components/TeamLogo";
 import Text from "~/components/Text";
@@ -39,6 +41,11 @@ import { Background } from "./components/Background";
 import { Centered } from "./components/Centered";
 import { Notices } from "./components/Notices";
 import { getRedirectUrl, navigateToSubdomain } from "./urls";
+import lazyWithRetry from "~/utils/lazyWithRetry";
+
+const WorkspaceSetup = lazyWithRetry(
+  () => import("./components/WorkspaceSetup")
+);
 
 type Props = {
   children?: (config?: Config) => React.ReactNode;
@@ -49,6 +56,7 @@ function Login({ children, onBack }: Props) {
   const location = useLocation();
   const query = useQuery();
   const notice = query.get("notice");
+  const forceOTP = query.get("forceOTP");
 
   const { t } = useTranslation();
   const user = useCurrentUser({ rejectOnEmpty: false });
@@ -191,11 +199,23 @@ function Login({ children, onBack }: Props) {
     );
   }
 
+  const firstRun =
+    config.providers.length === 0 && !isCloudHosted && !config.name;
   const hasMultipleProviders = config.providers.length > 1;
   const defaultProvider = find(
     config.providers,
     (provider) => provider.id === auth.lastSignedIn && !isCreate
   );
+  const clientType = Desktop.isElectron() ? Client.Desktop : Client.Web;
+  const preferOTP = isPWA || !!forceOTP;
+
+  if (firstRun) {
+    return (
+      <React.Suspense fallback={null}>
+        <WorkspaceSetup onBack={onBack} />
+      </React.Suspense>
+    );
+  }
 
   if (emailLinkSentTo) {
     return (
@@ -205,14 +225,43 @@ function Login({ children, onBack }: Props) {
           <PageTitle title={t("Check your email")} />
           <CheckEmailIcon size={38} />
           <Heading centered>{t("Check your email")}</Heading>
-          <Note>
-            <Trans
-              defaults="A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em> if an account exists."
-              values={{ emailLinkSentTo }}
-              components={{ em: <em /> }}
-            />
-          </Note>
-          <br />
+          {preferOTP ? (
+            <>
+              <Note>
+                <Trans
+                  defaults="Enter the sign-in code sent to the email <em>{{ emailLinkSentTo }}</em>"
+                  values={{ emailLinkSentTo }}
+                  components={{ em: <em /> }}
+                />
+                .
+              </Note>
+              <Form
+                method="POST"
+                action="/auth/email.callback"
+                style={{ width: "100%" }}
+              >
+                <input type="hidden" name="email" value={emailLinkSentTo} />
+                <input type="hidden" name="client" value={clientType} />
+                <input type="hidden" name="follow" value="true" />
+                <OneTimePasswordInput name="code" />
+                <br />
+                <ButtonLarge type="submit" fullwidth>
+                  {t("Continue")}
+                </ButtonLarge>
+              </Form>
+            </>
+          ) : (
+            <>
+              <Note>
+                <Trans
+                  defaults="A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em> if an account exists."
+                  values={{ emailLinkSentTo }}
+                  components={{ em: <em /> }}
+                />
+              </Note>
+              <br />
+            </>
+          )}
           <ButtonLarge onClick={handleReset} fullwidth neutral>
             {t("Back to login")}
           </ButtonLarge>
@@ -276,6 +325,7 @@ function Login({ children, onBack }: Props) {
             <AuthenticationProvider
               isCreate={isCreate}
               onEmailSuccess={handleEmailSuccess}
+              preferOTP={preferOTP}
               {...defaultProvider}
             />
             {hasMultipleProviders && (
@@ -300,6 +350,7 @@ function Login({ children, onBack }: Props) {
               key={provider.id}
               isCreate={isCreate}
               onEmailSuccess={handleEmailSuccess}
+              preferOTP={preferOTP}
               neutral={defaultProvider && hasMultipleProviders}
               {...provider}
             />
@@ -316,6 +367,10 @@ function Login({ children, onBack }: Props) {
     </Background>
   );
 }
+
+const Form = styled.form`
+  margin: 1em 0;
+`;
 
 const StyledHeading = styled(Heading)`
   margin: 0;

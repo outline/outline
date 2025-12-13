@@ -1,11 +1,11 @@
 import { observer } from "mobx-react";
 import { transparentize } from "polished";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
-import { depths, s } from "@shared/styles";
+import { depths, hideScrollbars, s } from "@shared/styles";
 import { useDocumentContext } from "~/components/DocumentContext";
 import useWindowScrollPosition from "~/hooks/useWindowScrollPosition";
 import { decodeURIComponentSafe } from "~/utils/urls";
@@ -18,6 +18,7 @@ function Contents() {
     throttle: 100,
   });
   const { headings } = useDocumentContext();
+  const itemRefs = useRef<Record<string, HTMLLIElement | null>>({});
 
   useEffect(() => {
     let activeId = headings.length > 0 ? headings[0].id : undefined;
@@ -37,8 +38,20 @@ function Contents() {
       }
     }
 
-    setActiveSlug(activeId);
-  }, [scrollPosition, headings]);
+    if (activeSlug !== activeId) {
+      setActiveSlug(activeId);
+    }
+  }, [scrollPosition, headings, activeSlug]);
+
+  useEffect(() => {
+    const activeItem = activeSlug ? itemRefs.current[activeSlug] : undefined;
+
+    if (activeItem) {
+      activeItem.scrollIntoView({
+        block: "nearest",
+      });
+    }
+  }, [activeSlug]);
 
   // calculate the minimum heading level and adjust all the headings to make
   // that the top-most. This prevents the contents from being weirdly indented
@@ -63,6 +76,7 @@ function Contents() {
           .map((heading) => (
             <ListItem
               key={heading.id}
+              ref={(el) => (itemRefs.current[heading.id] = el)}
               level={heading.level - headingAdjustment}
               active={activeSlug === heading.id}
             >
@@ -76,16 +90,16 @@ function Contents() {
 
 const StickyWrapper = styled.div`
   display: none;
-
   position: sticky;
   top: 90px;
   max-height: calc(100vh - 90px);
   width: ${EditorStyleHelper.tocWidth}px;
 
+  ${hideScrollbars()}
+
   padding: 0 16px;
   overflow-y: auto;
   border-radius: 8px;
-
   background: ${s("background")};
 
   @supports (backdrop-filter: blur(20px)) {

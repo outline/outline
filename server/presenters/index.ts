@@ -19,6 +19,7 @@ import presentPolicies from "./policy";
 import presentProviderConfig from "./providerConfig";
 import presentPublicTeam from "./publicTeam";
 import presentReaction from "./reaction";
+import presentRelationship from "./relationship";
 import presentRevision from "./revision";
 import presentSearchQuery from "./searchQuery";
 import presentShare from "./share";
@@ -27,6 +28,7 @@ import presentSubscription from "./subscription";
 import presentTeam from "./team";
 import presentUser from "./user";
 import presentView from "./view";
+import presentEmoji from "./emoji";
 
 export {
   presentApiKey,
@@ -51,6 +53,7 @@ export {
   presentPolicies,
   presentProviderConfig,
   presentReaction,
+  presentRelationship,
   presentRevision,
   presentSearchQuery,
   presentShare,
@@ -59,4 +62,5 @@ export {
   presentTeam,
   presentUser,
   presentView,
+  presentEmoji,
 };

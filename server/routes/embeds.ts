@@ -1,6 +1,7 @@
 import escape from "escape-html";
 import { Context, Next } from "koa";
 import env from "@server/env";
+import { InvalidRequestError } from "@server/errors";
 
 /**
  * Resize observer script that sends a message to the parent window when content is resized. Inject
@@ -41,14 +42,14 @@ export const renderEmbed = async (ctx: Context, next: Next) => {
   const url = escape(String(ctx.query.url));
 
   if (!url) {
-    ctx.throw(400, "url is required");
+    ctx.throw(InvalidRequestError("url is required"));
   }
 
   let parsed;
   try {
     parsed = new URL(url);
-  } catch (err) {
-    ctx.throw(400, "Invalid URL provided");
+  } catch (_err) {
+    ctx.throw(InvalidRequestError("Invalid URL provided"));
   }
 
   if (
@@ -143,7 +144,7 @@ ${iframeCheckScript(ctx)}
 </head>
 <body>
 <a href="${parsed}" class="dropbox-embed">
-<script type="text/javascript" src="${dropboxJs}" 
+<script type="text/javascript" src="${dropboxJs}"
 id="dropboxjs" data-app-key="${env.DROPBOX_APP_KEY}"></script>
 ${resizeObserverScript(ctx)}
 </body>
@@ -184,7 +185,7 @@ ${resizeObserverScript(ctx)}
 <html>
 <head>
 <style>
-  html, body, iframe { 
+  html, body, iframe {
     margin: 0;
     padding: 0;
     width: 100%;
@@ -216,14 +217,14 @@ ${resizeObserverScript(ctx)}
       border-color: rgb(35, 38, 41) !important;
       background-color: rgb(22, 25, 28) !important;
     }
-    
+
     [class$="_pinner"],
     [class$="_board"] {
       color: #e6e6e6 !important;
     }
     [class$="_button"] {
       border-color: rgb(38, 42, 50) !important;
-      background-color: rgba(3, 58, 120, 0.1) !important; 
+      background-color: rgba(3, 58, 120, 0.1) !important;
     }
   }
 </style>
@@ -232,8 +233,8 @@ ${iframeCheckScript(ctx)}
 </head>
 <body>
 <div class="pinterest-container">
-  <a 
-    data-pin-do="${pinType}" 
+  <a
+    data-pin-do="${pinType}"
     data-pin-board-width="100%"
     href="${url}"
     style="width:100%;max-width:none;"

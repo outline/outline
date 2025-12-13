@@ -2,9 +2,8 @@ import { differenceInMinutes, formatDistanceToNowStrict } from "date-fns";
 import { t } from "i18next";
 import { UnfurlResourceType, UnfurlResponse } from "@shared/types";
 import { dateLocale } from "@shared/utils/date";
-import { Document, User, View } from "@server/models";
+import { Document, User, View, Group } from "@server/models";
 import { opts } from "@server/utils/i18n";
-import { GitHubUtils } from "plugins/github/shared/GitHubUtils";
 
 async function presentUnfurl(
   data: Record<string, any>,
@@ -13,6 +12,8 @@ async function presentUnfurl(
   switch (data.type) {
     case UnfurlResourceType.Mention:
       return presentMention(data, options);
+    case UnfurlResourceType.Group:
+      return presentGroup(data);
     case UnfurlResourceType.Document:
       return presentDocument(data);
     case UnfurlResourceType.PR:
@@ -20,18 +21,19 @@ async function presentUnfurl(
     case UnfurlResourceType.Issue:
       return presentIssue(data);
     default:
-      return presentOEmbed(data);
+      return presentURL(data);
   }
 }
 
-const presentOEmbed = (
+const presentURL = (
   data: Record<string, any>
-): UnfurlResponse[UnfurlResourceType.OEmbed] => ({
-  type: UnfurlResourceType.OEmbed,
+): UnfurlResponse[UnfurlResourceType.URL] => ({
+  type: UnfurlResourceType.URL,
   url: data.url,
-  title: data.title,
-  description: data.description,
-  thumbnailUrl: data.thumbnail_url,
+  title: data.meta.title,
+  description: data.meta.description,
+  thumbnailUrl: (data.links.thumbnail ?? [])[0]?.href ?? "",
+  faviconUrl: (data.links.icon ?? [])[0]?.href ?? "",
 });
 
 const presentMention = async (
@@ -54,6 +56,26 @@ const presentMention = async (
   };
 };
 
+const presentGroup = async (
+  data: Record<string, any>
+): Promise<UnfurlResponse[UnfurlResourceType.Group]> => {
+  const group: Group = data.group;
+  const memberCount = await group.memberCount;
+
+  return {
+    type: UnfurlResourceType.Group,
+    name: group.name,
+    description: group.description,
+    memberCount,
+    users: (data.users as User[]).map((user) => ({
+      id: user.id,
+      name: user.name,
+      avatarUrl: user.avatarUrl,
+      color: user.color,
+    })),
+  };
+};
+
 const presentDocument = (
   data: Record<string, any>
 ): UnfurlResponse[UnfurlResourceType.Document] => {
@@ -71,63 +93,13 @@ const presentDocument = (
 
 const presentPR = (
   data: Record<string, any>
-): UnfurlResponse[UnfurlResourceType.PR] => {
-  // TODO: For backwards compatibility, remove once cache has expired in next release.
-  if (data.transformed_unfurl) {
-    delete data.transformed_unfurl;
-    return data as UnfurlResponse[UnfurlResourceType.PR]; // this would have been transformed by the unfurl plugin.
-  }
-
-  return {
-    url: data.html_url,
-    type: UnfurlResourceType.PR,
-    id: `#${data.number}`,
-    title: data.title,
-    description: data.body,
-    author: {
-      name: data.user.login,
-      avatarUrl: data.user.avatar_url,
-    },
-    state: {
-      name: data.merged ? "merged" : data.state,
-      color: GitHubUtils.getColorForStatus(data.merged ? "merged" : data.state),
-    },
-    createdAt: data.created_at,
-  };
-};
+): UnfurlResponse[UnfurlResourceType.PR] =>
+  data as UnfurlResponse[UnfurlResourceType.PR]; // this would have been transformed by the unfurl plugin.
 
 const presentIssue = (
   data: Record<string, any>
-): UnfurlResponse[UnfurlResourceType.Issue] => {
-  // TODO: For backwards compatibility, remove once cache has expired in next release.
-  if (data.transformed_unfurl) {
-    delete data.transformed_unfurl;
-    return data as UnfurlResponse[UnfurlResourceType.Issue]; // this would have been transformed by the unfurl plugin.
-  }
-
-  return {
-    url: data.html_url,
-    type: UnfurlResourceType.Issue,
-    id: `#${data.number}`,
-    title: data.title,
-    description: data.body_text,
-    author: {
-      name: data.user.login,
-      avatarUrl: data.user.avatar_url,
-    },
-    labels: data.labels.map((label: { name: string; color: string }) => ({
-      name: label.name,
-      color: `#${label.color}`,
-    })),
-    state: {
-      name: data.state,
-      color: GitHubUtils.getColorForStatus(
-        data.state === "closed" ? "done" : data.state
-      ),
-    },
-    createdAt: data.created_at,
-  };
-};
+): UnfurlResponse[UnfurlResourceType.Issue] =>
+  data as UnfurlResponse[UnfurlResourceType.Issue]; // this would have been transformed by the unfurl plugin.
 
 const presentLastOnlineInfoFor = (user: User) => {
   const locale = dateLocale(user.language);

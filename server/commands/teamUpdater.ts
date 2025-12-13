@@ -1,18 +1,17 @@
 import has from "lodash/has";
-import { Transaction } from "sequelize";
+import isEqual from "lodash/isEqual";
 import { TeamPreference } from "@shared/types";
 import env from "@server/env";
-import { Event, Team, TeamDomain, User } from "@server/models";
+import { Team, TeamDomain, User } from "@server/models";
+import { APIContext } from "@server/types";
 
 type Props = {
   params: Partial<Omit<Team, "allowedDomains">> & { allowedDomains?: string[] };
-  ip?: string | null;
   user: User;
   team: Team;
-  transaction: Transaction;
 };
 
-const teamUpdater = async ({ params, user, team, ip, transaction }: Props) => {
+const teamUpdater = async (ctx: APIContext, { params, user, team }: Props) => {
   const { allowedDomains, preferences, subdomain, ...attributes } = params;
   team.setAttributes(attributes);
 
@@ -23,7 +22,7 @@ const teamUpdater = async ({ params, user, team, ip, transaction }: Props) => {
   if (allowedDomains !== undefined) {
     const existingAllowedDomains = await TeamDomain.findAll({
       where: { teamId: team.id },
-      transaction,
+      transaction: ctx.state.transaction,
     });
 
     // Only keep existing domains if they are still in the list of allowed domains
@@ -39,14 +38,11 @@ const teamUpdater = async ({ params, user, team, ip, transaction }: Props) => {
     await Promise.all(
       newDomains.map(async (newDomain) => {
         newAllowedDomains.push(
-          await TeamDomain.create(
-            {
-              name: newDomain,
-              teamId: team.id,
-              createdById: user.id,
-            },
-            { transaction }
-          )
+          await TeamDomain.createWithCtx(ctx, {
+            name: newDomain,
+            teamId: team.id,
+            createdById: user.id,
+          })
         );
       })
     );
@@ -55,35 +51,22 @@ const teamUpdater = async ({ params, user, team, ip, transaction }: Props) => {
     const deletedDomains = existingAllowedDomains.filter(
       (x) => !allowedDomains.includes(x.name)
     );
-    await Promise.all(deletedDomains.map((x) => x.destroy({ transaction })));
+    await Promise.all(deletedDomains.map((x) => x.destroyWithCtx(ctx)));
     team.allowedDomains = newAllowedDomains;
   }
 
   if (preferences) {
-    for (const value of Object.values(TeamPreference)) {
-      if (has(preferences, value)) {
-        team.setPreference(value, preferences[value]);
+    for (const key of Object.values(TeamPreference)) {
+      if (
+        has(preferences, key) &&
+        !isEqual(preferences[key], team.getPreference(key))
+      ) {
+        team.setPreference(key, preferences[key]);
       }
     }
   }
 
-  const changes = team.changeset;
-  if (Object.keys(changes.attributes).length) {
-    await Event.create(
-      {
-        name: "teams.update",
-        actorId: user.id,
-        teamId: user.teamId,
-        ip,
-        changes,
-      },
-      {
-        transaction,
-      }
-    );
-  }
-
-  return team.save({ transaction });
+  return team.saveWithCtx(ctx);
 };
 
 export default teamUpdater;

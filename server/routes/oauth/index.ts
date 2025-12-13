@@ -16,11 +16,19 @@ import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { OAuthInterface } from "@server/utils/oauth/OAuthInterface";
 import oauthErrorHandler from "./middlewares/oauthErrorHandler";
 import * as T from "./schema";
+import { verifyCSRFToken } from "@server/middlewares/csrf";
 
 const app = new Koa();
 const router = new Router();
 const oauth = new OAuth2Server({
   model: OAuthInterface,
+  requireClientAuthentication: {
+    // Allow public clients (those without a client secret) to refresh without a client secret.
+    refresh_token: false,
+  },
+  // Always revoke the used refresh token and issue a new one, see:
+  // https://www.rfc-editor.org/rfc/rfc6819#section-5.2.2.3
+  alwaysIssueNewRefreshToken: true,
 });
 
 router.post(
@@ -69,8 +77,34 @@ router.post(
 
 router.post(
   "/token",
+  validate(T.TokenSchema),
   rateLimiter(RateLimiterStrategy.OneHundredPerHour),
-  async (ctx) => {
+  async (ctx: APIContext<T.TokenReq>) => {
+    const grantType = ctx.input.body.grant_type;
+    const refreshToken = ctx.input.body.refresh_token;
+    const clientId = ctx.input.body.client_id;
+    const clientSecret = ctx.input.body.client_secret;
+
+    // Because we disabled client authentication for refresh_token grant type at the library
+    // initialization, we need to manually enforce it here for confidential clients.
+    if (grantType === "refresh_token" && !clientSecret) {
+      if (!refreshToken) {
+        throw ValidationError(
+          "Missing refresh_token for refresh_token grant type"
+        );
+      }
+      if (!clientId) {
+        throw ValidationError("Missing client_id for refresh_token grant type");
+      }
+      const client = await OAuthClient.findByClientId(clientId);
+      if (!client) {
+        throw ValidationError("Invalid client_id");
+      }
+      if (client.clientType === "confidential") {
+        throw ValidationError("Missing client_secret for confidential client");
+      }
+    }
+
     // Note: These objects are mutated by the OAuth2Server library
     const request = new OAuth2Server.Request(ctx.request);
     const response = new OAuth2Server.Response(ctx.response);
@@ -127,6 +161,7 @@ router.post(
 app.use(requestTracer());
 app.use(oauthErrorHandler());
 app.use(bodyParser());
+app.use(verifyCSRFToken());
 app.use(router.routes());
 
 export default app;

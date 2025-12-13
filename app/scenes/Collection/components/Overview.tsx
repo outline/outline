@@ -1,6 +1,6 @@
 import debounce from "lodash/debounce";
 import { observer } from "mobx-react";
-import { useMemo, useRef, useCallback, Suspense } from "react";
+import { useMemo, useRef, useCallback, useEffect, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
@@ -13,6 +13,7 @@ import Document from "~/models/Document";
 import Editor from "~/components/Editor";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import Text from "~/components/Text";
+import { MeasuredContainer } from "~/components/MeasuredContainer";
 import { withUIExtensions } from "~/editor/extensions";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
@@ -23,12 +24,13 @@ const extensions = withUIExtensions(richExtensions);
 
 type Props = {
   collection: Collection;
+  readOnly?: boolean;
 };
 
-function Overview({ collection }: Props) {
+function Overview({ collection, readOnly }: Props) {
   const { documents, collections } = useStores();
   const { t } = useTranslation();
-  const user = useCurrentUser({ rejectOnEmpty: true });
+  const user = useCurrentUser({ rejectOnEmpty: false });
   const can = usePolicy(collection);
 
   const handleSave = useMemo(
@@ -44,6 +46,13 @@ function Overview({ collection }: Props) {
         }
       }, 1000),
     [collection, t]
+  );
+
+  useEffect(
+    () => () => {
+      handleSave.flush();
+    },
+    [handleSave]
   );
 
   const childRef = useRef<HTMLDivElement>(null);
@@ -80,19 +89,21 @@ function Overview({ collection }: Props) {
       {collections.isSaving && <LoadingIndicator />}
       {(collection.hasDescription || can.update) && (
         <Suspense fallback={<Placeholder>Loading…</Placeholder>}>
-          <Editor
-            defaultValue={collection.data}
-            onChange={handleSave}
-            placeholder={`${t("Add a description")}…`}
-            extensions={extensions}
-            maxLength={CollectionValidation.maxDescriptionLength}
-            onCreateLink={onCreateLink}
-            canUpdate={can.update}
-            readOnly={!can.update}
-            userId={user.id}
-            editorStyle={editorStyle}
-          />
-          <div ref={childRef} />
+          <MeasuredContainer name="document">
+            <Editor
+              defaultValue={collection.data}
+              onChange={handleSave}
+              placeholder={`${t("Add a description")}…`}
+              extensions={extensions}
+              maxLength={CollectionValidation.maxDescriptionLength}
+              onCreateLink={onCreateLink}
+              canUpdate={can.update}
+              readOnly={!can.update || readOnly}
+              userId={user?.id}
+              editorStyle={editorStyle}
+            />
+            <div ref={childRef} />
+          </MeasuredContainer>
         </Suspense>
       )}
     </>

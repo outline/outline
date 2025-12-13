@@ -3,7 +3,7 @@ import { UserRole } from "@shared/types";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { AuthenticationProvider, Event } from "@server/models";
+import { AuthenticationProvider } from "@server/models";
 import AuthenticationHelper from "@server/models/helpers/AuthenticationHelper";
 import { authorize } from "@server/policies";
 import {
@@ -52,18 +52,10 @@ router.post(
     const enabled = !!isEnabled;
 
     if (enabled) {
-      await authenticationProvider.enable({ transaction });
+      await authenticationProvider.enable(ctx);
     } else {
-      await authenticationProvider.disable({ transaction });
+      await authenticationProvider.disable(ctx);
     }
-
-    await Event.createFromContext(ctx, {
-      name: "authenticationProviders.update",
-      data: {
-        enabled,
-      },
-      modelId: id,
-    });
 
     ctx.body = {
       data: presentAuthenticationProvider(authenticationProvider),

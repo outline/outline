@@ -1,3 +1,4 @@
+import Storage from "@shared/utils/Storage";
 import copy from "copy-to-clipboard";
 import {
   BeakerIcon,
@@ -8,7 +9,7 @@ import {
   UserIcon,
 } from "outline-icons";
 import { toast } from "sonner";
-import { createAction } from "~/actions";
+import { createAction, createActionWithChildren } from "~/actions";
 import { DeveloperSection } from "~/actions/sections";
 import env from "~/env";
 import { client } from "~/utils/ApiClient";
@@ -18,7 +19,7 @@ import { deleteAllDatabases } from "~/utils/developer";
 import history from "~/utils/history";
 import { homePath } from "~/utils/routeHelpers";
 
-export const copyId = createAction({
+export const copyId = createActionWithChildren({
   name: ({ t }) => t("Copy ID"),
   icon: <CopyIcon />,
   keywords: "uuid",
@@ -106,8 +107,8 @@ export const startTyping = createAction({
     }, 250);
 
     window.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") {
-        intervalId && clearInterval(intervalId);
+      if (event.key === "Escape" && intervalId) {
+        clearInterval(intervalId);
       }
     });
 
@@ -124,6 +125,17 @@ export const clearIndexedDB = createAction({
     history.push(homePath());
     await deleteAllDatabases();
     toast.success(t("IndexedDB cache cleared"));
+  },
+});
+
+export const clearStorage = createAction({
+  name: ({ t }) => t("Clear local storage"),
+  icon: <TrashIcon />,
+  keywords: "cache clear localstorage",
+  section: DeveloperSection,
+  perform: ({ t }) => {
+    Storage.clear();
+    toast.success(t("Local storage cleared"));
   },
 });
 
@@ -164,7 +176,22 @@ export const toggleDebugLogging = createAction({
   },
 });
 
-export const toggleFeatureFlag = createAction({
+export const toggleDebugSafeArea = createAction({
+  name: () => "Toggle menu safe area debugging",
+  icon: <ToolsIcon />,
+  section: DeveloperSection,
+  visible: () => env.ENVIRONMENT === "development",
+  perform: ({ stores }) => {
+    stores.ui.toggleDebugSafeArea();
+    toast.message(
+      stores.ui.debugSafeArea
+        ? "Menu safe area debugging enabled"
+        : "Menu safe area debugging disabled"
+    );
+  },
+});
+
+export const toggleFeatureFlag = createActionWithChildren({
   name: "Toggle feature flag",
   icon: <BeakerIcon />,
   section: DeveloperSection,
@@ -188,7 +215,7 @@ export const toggleFeatureFlag = createAction({
   ),
 });
 
-export const developer = createAction({
+export const developer = createActionWithChildren({
   name: ({ t }) => t("Development"),
   keywords: "debug",
   icon: <ToolsIcon />,
@@ -197,10 +224,12 @@ export const developer = createAction({
   children: [
     copyId,
     toggleDebugLogging,
+    toggleDebugSafeArea,
     toggleFeatureFlag,
     createToast,
     createTestUsers,
     clearIndexedDB,
+    clearStorage,
     startTyping,
   ],
 });

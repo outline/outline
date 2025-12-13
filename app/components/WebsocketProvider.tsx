@@ -159,8 +159,14 @@ class WebsocketProvider extends Component<Props> {
             if (document?.updatedAt === documentDescriptor.updatedAt) {
               continue;
             }
-            if (!document && !event.fetchIfMissing) {
+            if (!document) {
               continue;
+            }
+
+            if (event.invalidatedPolicies) {
+              event.invalidatedPolicies.forEach((policyId) => {
+                policies.remove(policyId);
+              });
             }
 
             // otherwise, grab the latest version of the document
@@ -207,8 +213,14 @@ class WebsocketProvider extends Component<Props> {
             if (collection?.updatedAt === collectionDescriptor.updatedAt) {
               continue;
             }
-            if (!collection?.documents && !event.fetchIfMissing) {
+            if (!collection?.documents) {
               continue;
+            }
+
+            if (event.invalidatedPolicies) {
+              event.invalidatedPolicies.forEach((policyId) => {
+                policies.remove(policyId);
+              });
             }
 
             try {
@@ -273,7 +285,8 @@ class WebsocketProvider extends Component<Props> {
     this.socket.on(
       "documents.archive",
       action((event: PartialExcept<Document, "id">) => {
-        documents.addToArchive(event as Document);
+        const model = documents.add(event);
+        documents.addToArchive(model);
 
         if (event.collectionId) {
           const collection = collections.get(event.collectionId);

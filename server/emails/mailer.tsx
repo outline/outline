@@ -3,6 +3,7 @@ import nodemailer, { Transporter } from "nodemailer";
 import SMTPTransport from "nodemailer/lib/smtp-transport";
 import Oy from "oy-vey";
 import env from "@server/env";
+import { InternalError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
 import { baseStyles } from "./templates/components/EmailLayout";
@@ -65,9 +66,10 @@ export class Mailer {
     dir = "ltr" /* https://www.w3.org/TR/html4/struct/dirlang.html#blocklevel-bidi */,
   }: Oy.CustomTemplateRenderOptions) => {
     if (!title) {
-      throw new Error("`title` is a required option for `renderTemplate`");
-    } else if (!bodyContent) {
-      throw new Error(
+      throw InternalError("`title` is a required option for `renderTemplate`");
+    }
+    if (!bodyContent) {
+      throw InternalError(
         "`bodyContent` is a required option for `renderTemplate`"
       );
     }
@@ -213,13 +215,17 @@ export class Mailer {
       name: env.SMTP_NAME,
       host: env.SMTP_HOST,
       port: env.SMTP_PORT,
+      // If not explicitly configured we default to using TLS in production
       secure: env.SMTP_SECURE ?? env.isProduction,
+      // Allow connections with no authentication if no username is provided
       auth: env.SMTP_USERNAME
         ? {
             user: env.SMTP_USERNAME,
             pass: env.SMTP_PASSWORD,
           }
         : undefined,
+      // Disable STARTTLS entirely when SMTP_DISABLE_STARTTLS is set to true
+      ignoreTLS: env.SMTP_DISABLE_STARTTLS,
       tls: env.SMTP_SECURE
         ? env.SMTP_TLS_CIPHERS
           ? {
@@ -246,7 +252,7 @@ export class Mailer {
           pass: testAccount.pass,
         },
       };
-    } catch (err) {
+    } catch (_err) {
       return undefined;
     }
   }

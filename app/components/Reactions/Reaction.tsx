@@ -13,6 +13,9 @@ import NudeButton from "~/components/NudeButton";
 import Text from "~/components/Text";
 import Tooltip from "~/components/Tooltip";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import { isUUID } from "validator";
+import { CustomEmoji } from "@shared/components/CustomEmoji";
+import useStores from "~/hooks/useStores";
 
 type Props = {
   /** Thin reaction data - contains the emoji & active user ids for this reaction. */
@@ -39,12 +42,24 @@ const useTooltipContent = ({
   active: boolean;
 }) => {
   const { t } = useTranslation();
+  const { emojis } = useStores();
+  const customEmoji = emojis.get(emoji);
+  const [transformedEmoji, setTransformedEmoji] = React.useState(
+    customEmoji?.shortName ?? `:${getEmojiId(emoji)}:`
+  );
+
+  // If the emoji is a custom emoji ID, we need to get its short name for display
+  if (isUUID(emoji)) {
+    emojis.fetch(emoji).then((ce) => {
+      if (ce) {
+        setTransformedEmoji(ce.shortName);
+      }
+    });
+  }
 
   if (!reactedUsers.length) {
     return;
   }
-
-  const transformedEmoji = `:${getEmojiId(emoji)}:`;
 
   switch (reactedUsers.length) {
     case 1: {
@@ -107,9 +122,11 @@ const Reaction: React.FC<Props> = ({
   const handleClick = React.useCallback(
     (event: React.SyntheticEvent<HTMLButtonElement>) => {
       event.stopPropagation();
-      active
-        ? void onRemoveReaction(reaction.emoji)
-        : void onAddReaction(reaction.emoji);
+      if (active) {
+        void onRemoveReaction(reaction.emoji);
+      } else {
+        void onAddReaction(reaction.emoji);
+      }
     },
     [reaction, active, onAddReaction, onRemoveReaction]
   );
@@ -118,7 +135,11 @@ const Reaction: React.FC<Props> = ({
     () => (
       <EmojiButton disabled={disabled} $active={active} onClick={handleClick}>
         <Flex gap={6} justify="center" align="center">
-          <Emoji size={15}>{reaction.emoji}</Emoji>
+          {isUUID(reaction.emoji) ? (
+            <CustomEmoji size={15} value={reaction.emoji} />
+          ) : (
+            <Emoji size={15}>{reaction.emoji}</Emoji>
+          )}
           <Count weight="xbold">{reaction.userIds.length}</Count>
         </Flex>
       </EmojiButton>

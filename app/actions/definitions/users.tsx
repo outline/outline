@@ -22,6 +22,7 @@ export const inviteUser = createAction({
   perform: ({ t }) => {
     stores.dialogs.openModal({
       title: t("Invite to workspace"),
+      width: "500px",
       content: <Invite onSubmit={stores.dialogs.closeAllModals} />,
     });
   },
@@ -45,8 +46,8 @@ export const updateUserRoleActionFactory = (user: User, role: UserRole) =>
       return UserRoleHelper.isRoleHigher(role, user.role)
         ? can.promote
         : UserRoleHelper.isRoleLower(role, user.role)
-        ? can.demote
-        : false;
+          ? can.demote
+          : false;
     },
     perform: ({ t }) => {
       stores.dialogs.openModal({

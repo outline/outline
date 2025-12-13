@@ -19,7 +19,7 @@ export default class HardBreak extends Node {
       selectable: false,
       parseDOM: [{ tag: "br" }],
       toDOM: () => ["br"],
-      toPlainText: () => "\n",
+      leafText: () => "\n",
     };
   }
 
@@ -55,7 +55,9 @@ export default class HardBreak extends Node {
   }
 
   toMarkdown(state: MarkdownSerializerState) {
-    state.write(state.options.softBreak ? "\n" : "\\n");
+    state.write(
+      state.inTable ? "<br>" : state.options.softBreak ? "\n" : "\\n"
+    );
   }
 
   parseMarkdown() {

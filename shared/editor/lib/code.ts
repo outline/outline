@@ -51,6 +51,11 @@ export const codeLanguages: Record<string, CodeLanguage> = {
     label: "CSV",
     loader: () => import("refractor/lang/csv").then((m) => m.default),
   },
+  dart: {
+    lang: "dart",
+    label: "Dart",
+    loader: () => import("refractor/lang/dart").then((m) => m.default),
+  },
   docker: {
     lang: "docker",
     label: "Docker",
@@ -402,7 +407,7 @@ export const getFrequentCodeLanguages = () => {
   const recentLang = Storage.get(RecentlyUsedStorageKey);
   const frequentLangEntries = Object.entries(Storage.get(StorageKey) ?? {}) as [
     keyof typeof codeLanguages,
-    number
+    number,
   ][];
 
   const frequentLangs = sortFrequencies(frequentLangEntries)
@@ -420,3 +425,11 @@ export const getFrequentCodeLanguages = () => {
 
 const sortFrequencies = <T>(freqs: [T, number][]) =>
   freqs.sort((a, b) => (a[1] >= b[1] ? -1 : 1));
+
+export const languagesWithFourSpaceIndent = [
+  "python",
+  "java",
+  "cpp",
+  "csharp",
+  "rust",
+];

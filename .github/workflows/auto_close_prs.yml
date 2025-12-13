@@ -2,7 +2,7 @@ name: Auto Close Unsigned PRs
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # Run daily at midnight UTC
+    - cron: "0 0 * * *" # Run daily at midnight UTC
 
 jobs:
   close-unsigned-prs:
@@ -13,7 +13,7 @@ jobs:
 
     steps:
       - name: Close unsigned PRs
-        uses: actions/github-script@v6
+        uses: actions/github-script@v8
         with:
           script: |
             const now = new Date();

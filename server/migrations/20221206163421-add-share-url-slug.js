@@ -4,15 +4,11 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     try {
       await queryInterface.sequelize.transaction(async (transaction) => {
-        await queryInterface.addColumn(
-          "shares",
-          "urlId",
-          {
-            type: Sequelize.STRING,
-            allowNull: true,
-            transaction,
-          },
-        );
+        await queryInterface.addColumn("shares", "urlId", {
+          type: Sequelize.STRING,
+          allowNull: true,
+          transaction,
+        });
 
         await queryInterface.addConstraint("shares", {
           fields: ["urlId", "teamId"],
@@ -20,7 +16,7 @@ module.exports = {
           transaction,
         });
       });
-    } catch(err) {
+    } catch (err) {
       throw err;
     }
   },

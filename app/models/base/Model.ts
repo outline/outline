@@ -1,11 +1,12 @@
 import pick from "lodash/pick";
-import { observable, action } from "mobx";
+import { observable, action, toJS } from "mobx";
 import { JSONObject } from "@shared/types";
 import type Store from "~/stores/base/Store";
 import Logger from "~/utils/Logger";
 import { getFieldsForModel } from "../decorators/Field";
 import { LifecycleManager } from "../decorators/Lifecycle";
 import { getRelationsForModelClass } from "../decorators/Relation";
+import { isEqual } from "lodash";
 
 export default abstract class Model {
   static modelName: string;
@@ -147,6 +148,10 @@ export default abstract class Model {
           continue;
         }
         // @ts-expect-error TODO
+        if (isEqual(toJS(this[key]), data[key])) {
+          continue;
+        }
+        // @ts-expect-error TODO
         this[key] = data[key];
       } catch (error) {
         Logger.warn(`Error setting ${key} on model`, error);
@@ -208,7 +213,7 @@ export default abstract class Model {
 
     for (const property in this) {
       if (
-        // eslint-disable-next-line no-prototype-builtins
+        // oxlint-disable-next-line no-prototype-builtins
         this.hasOwnProperty(property) &&
         !["persistedAttributes", "store", "isSaving", "isNew"].includes(
           property

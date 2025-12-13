@@ -1,3 +1,4 @@
+/** Available user roles. */
 export enum UserRole {
   Admin = "admin",
   Member = "member",
@@ -5,9 +6,7 @@ export enum UserRole {
   Guest = "guest",
 }
 
-/**
- * Scopes for OAuth and API keys.
- */
+/** Scopes for OAuth and API keys. */
 export enum Scope {
   Read = "read",
   Write = "write",
@@ -84,8 +83,10 @@ export enum MentionType {
   User = "user",
   Document = "document",
   Collection = "collection",
+  Group = "group",
   Issue = "issue",
   PullRequest = "pull_request",
+  URL = "url",
 }
 
 export type PublicEnv = {
@@ -101,6 +102,7 @@ export enum AttachmentPreset {
   WorkspaceImport = "workspaceImport",
   Import = "import",
   Avatar = "avatar",
+  Emoji = "emoji",
 }
 
 export enum IntegrationType {
@@ -178,6 +180,11 @@ export enum DocumentPermission {
   Admin = "admin",
 }
 
+export enum GroupPermission {
+  Member = "member",
+  Admin = "admin",
+}
+
 export type IntegrationSettings<T> = T extends IntegrationType.Embed
   ? {
       url?: string;
@@ -190,30 +197,42 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
       linear?: {
         workspace: { id: string; name: string; key: string; logoUrl?: string };
       };
+      diagrams?: {
+        url: string;
+      };
     }
   : T extends IntegrationType.Analytics
-  ? { measurementId: string; instanceUrl?: string; scriptName?: string }
-  : T extends IntegrationType.Post
-  ? { url: string; channel: string; channelId: string }
-  : T extends IntegrationType.Command
-  ? { serviceTeamId: string }
-  : T extends IntegrationType.Import
-  ? { externalWorkspace: { id: string; name: string; iconUrl?: string } }
-  :
-      | { url: string }
-      | {
-          github?: {
-            installation: {
-              id: number;
-              account: { id?: number; name: string; avatarUrl?: string };
-            };
-          };
-        }
-      | { url: string; channel: string; channelId: string }
-      | { serviceTeamId: string }
-      | { measurementId: string }
-      | { slack: { serviceTeamId: string; serviceUserId: string } }
-      | undefined;
+    ? { measurementId: string; instanceUrl?: string; scriptName?: string }
+    : T extends IntegrationType.Post
+      ? { url: string; channel: string; channelId: string }
+      : T extends IntegrationType.Command
+        ? { serviceTeamId: string }
+        : T extends IntegrationType.Import
+          ? {
+              externalWorkspace: { id: string; name: string; iconUrl?: string };
+            }
+          :
+              | { url: string }
+              | {
+                  github?: {
+                    installation: {
+                      id: number;
+                      account: {
+                        id?: number;
+                        name: string;
+                        avatarUrl?: string;
+                      };
+                    };
+                  };
+                  diagrams?: {
+                    url: string;
+                  };
+                }
+              | { url: string; channel: string; channelId: string }
+              | { serviceTeamId: string }
+              | { measurementId: string }
+              | { slack: { serviceTeamId: string; serviceUserId: string } }
+              | undefined;
 
 export enum UserPreference {
   /** Whether reopening the app should redirect to the last viewed document. */
@@ -247,6 +266,8 @@ export type SourceMetadata = {
   externalName?: string;
   /** Whether the item was created through a trial license. */
   trial?: boolean;
+  /** The ID of the original document when this document was duplicated. */
+  originalDocumentId?: string;
 };
 
 export type CustomTheme = {
@@ -287,6 +308,8 @@ export enum TeamPreference {
   CustomTheme = "customTheme",
   /** Side to display the document's table of contents in relation to the main content. */
   TocPosition = "tocPosition",
+  /** Whether to prevent shared documents from being embedded in iframes on external websites. */
+  PreventDocumentEmbedding = "preventDocumentEmbedding",
 }
 
 export type TeamPreferences = {
@@ -300,6 +323,7 @@ export type TeamPreferences = {
   [TeamPreference.Commenting]?: boolean;
   [TeamPreference.CustomTheme]?: Partial<CustomTheme>;
   [TeamPreference.TocPosition]?: TOCPosition;
+  [TeamPreference.PreventDocumentEmbedding]?: boolean;
 };
 
 export enum NavigationNodeType {
@@ -342,8 +366,11 @@ export enum NotificationEventType {
   CreateCollection = "collections.create",
   CreateComment = "comments.create",
   ResolveComment = "comments.resolve",
+  ReactionsCreate = "reactions.create",
   MentionedInDocument = "documents.mentioned",
   MentionedInComment = "comments.mentioned",
+  GroupMentionedInDocument = "documents.group_mentioned",
+  GroupMentionedInComment = "comments.group_mentioned",
   InviteAccepted = "emails.invite_accepted",
   Onboarding = "emails.onboarding",
   Features = "emails.features",
@@ -355,6 +382,10 @@ export enum NotificationChannelType {
   Email = "email",
   Chat = "chat",
 }
+
+export type NotificationData = {
+  emoji?: string;
+};
 
 export type NotificationSettings = {
   [event in NotificationEventType]?:
@@ -371,9 +402,12 @@ export const NotificationEventDefaults: Record<NotificationEventType, boolean> =
     [NotificationEventType.CreateCollection]: false,
     [NotificationEventType.CreateComment]: true,
     [NotificationEventType.ResolveComment]: true,
+    [NotificationEventType.ReactionsCreate]: true,
     [NotificationEventType.CreateRevision]: false,
     [NotificationEventType.MentionedInDocument]: true,
     [NotificationEventType.MentionedInComment]: true,
+    [NotificationEventType.GroupMentionedInDocument]: true,
+    [NotificationEventType.GroupMentionedInComment]: true,
     [NotificationEventType.InviteAccepted]: true,
     [NotificationEventType.Onboarding]: true,
     [NotificationEventType.Features]: true,
@@ -383,17 +417,18 @@ export const NotificationEventDefaults: Record<NotificationEventType, boolean> =
   };
 
 export enum UnfurlResourceType {
-  OEmbed = "oembed",
+  URL = "url",
   Mention = "mention",
+  Group = "group",
   Document = "document",
   Issue = "issue",
   PR = "pull",
 }
 
 export type UnfurlResponse = {
-  [UnfurlResourceType.OEmbed]: {
+  [UnfurlResourceType.URL]: {
     /** The resource type */
-    type: UnfurlResourceType.OEmbed;
+    type: UnfurlResourceType.URL;
     /** URL pointing to the resource */
     url: string;
     /** A text title, describing the resource */
@@ -402,6 +437,8 @@ export type UnfurlResponse = {
     description: string;
     /** A URL to a thumbnail image representing the resource */
     thumbnailUrl: string;
+    /** A URL to a favicon representing the resource */
+    faviconUrl: string;
   };
   [UnfurlResourceType.Mention]: {
     /** The resource type */
@@ -416,6 +453,23 @@ export type UnfurlResponse = {
     color: string;
     /** Mentiond user's recent activity */
     lastActive: string;
+  };
+  [UnfurlResourceType.Group]: {
+    /** The resource type */
+    type: UnfurlResourceType.Group;
+    /** Group name */
+    name: string;
+    /** Group description */
+    description: string | null;
+    /** Number of members in the group */
+    memberCount: number;
+    /** Array of group members (limited to display count) */
+    users: Array<{
+      id: string;
+      name: string;
+      avatarUrl: string | null;
+      color: string;
+    }>;
   };
   [UnfurlResourceType.Document]: {
     /** The resource type */
@@ -511,6 +565,7 @@ export type ProsemirrorDoc = {
 export enum IconType {
   SVG = "svg",
   Emoji = "emoji",
+  Custom = "custom",
 }
 
 export enum EmojiCategory {

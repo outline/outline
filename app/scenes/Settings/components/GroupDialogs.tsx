@@ -4,7 +4,6 @@ import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { v4 as uuidv4 } from "uuid";
 import Group from "~/models/Group";
 import User from "~/models/User";
 import Invite from "~/scenes/Invite";
@@ -20,14 +19,18 @@ import Input from "~/components/Input";
 import PlaceholderList from "~/components/List/Placeholder";
 import PaginatedList from "~/components/PaginatedList";
 import { ListItem } from "~/components/Sharing/components/ListItem";
-import Subheading from "~/components/Subheading";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
-import GroupMemberMenu from "~/menus/GroupMemberMenu";
+import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelect";
+import { GroupPermission } from "@shared/types";
+import { GroupValidation } from "@shared/validations";
+import { EmptySelectValue, Permission } from "~/types";
+import GroupUser from "~/models/GroupUser";
+import Switch from "~/components/Switch";
 
 type Props = {
   group: Group;
@@ -38,6 +41,7 @@ export function CreateGroupDialog() {
   const { dialogs, groups } = useStores();
   const { t } = useTranslation();
   const [name, setName] = React.useState<string | undefined>();
+  const [description, setDescription] = React.useState<string | undefined>();
   const [isSaving, setIsSaving] = React.useState(false);
 
   const handleSubmit = React.useCallback(
@@ -48,16 +52,17 @@ export function CreateGroupDialog() {
       const group = new Group(
         {
           name,
+          description,
         },
         groups
       );
 
       try {
         await group.save();
+        dialogs.closeAllModals();
         dialogs.openModal({
           title: t("Group members"),
           content: <ViewGroupMembersDialog group={group} />,
-          fullscreen: true,
         });
       } catch (err) {
         toast.error(err.message);
@@ -65,7 +70,7 @@ export function CreateGroupDialog() {
         setIsSaving(false);
       }
     },
-    [t, dialogs, groups, name]
+    [t, dialogs, groups, name, description]
   );
 
   return (
@@ -77,7 +82,7 @@ export function CreateGroupDialog() {
           example.
         </Trans>
       </Text>
-      <Flex>
+      <Flex column>
         <Input
           type="text"
           label="Name"
@@ -85,6 +90,15 @@ export function CreateGroupDialog() {
           value={name}
           required
           autoFocus
+          flex
+        />
+        <Input
+          type="textarea"
+          label="Description"
+          placeholder={t("Optional")}
+          onChange={(e) => setDescription(e.target.value)}
+          value={description || ""}
+          maxLength={GroupValidation.maxDescriptionLength}
           flex
         />
       </Flex>
@@ -102,6 +116,10 @@ export function CreateGroupDialog() {
 export function EditGroupDialog({ group, onSubmit }: Props) {
   const { t } = useTranslation();
   const [name, setName] = React.useState(group.name);
+  const [description, setDescription] = React.useState(group.description || "");
+  const [disableMentions, setDisableMentions] = React.useState(
+    group.disableMentions || false
+  );
   const [isSaving, setIsSaving] = React.useState(false);
   const handleSubmit = React.useCallback(
     async (ev: React.SyntheticEvent) => {
@@ -111,6 +129,8 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
       try {
         await group.save({
           name,
+          description,
+          disableMentions,
         });
         onSubmit();
       } catch (err) {
@@ -119,7 +139,7 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
         setIsSaving(false);
       }
     },
-    [group, onSubmit, name]
+    [group, onSubmit, name, description, disableMentions]
   );
 
   const handleNameChange = React.useCallback(
@@ -137,7 +157,7 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
           often might confuse your team mates.
         </Trans>
       </Text>
-      <Flex>
+      <Flex column>
         <Input
           type="text"
           label={t("Name")}
@@ -146,6 +166,24 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
           required
           autoFocus
           flex
+        />
+        <Input
+          type="textarea"
+          label={t("Description")}
+          placeholder={t("Optional")}
+          onChange={(e) => setDescription(e.target.value)}
+          value={description}
+          maxLength={GroupValidation.maxDescriptionLength}
+          flex
+        />
+        <Switch
+          id="mentions"
+          label={t("Disable mentions")}
+          note={t(
+            "Prevent this group from being mentionable in documents or comments"
+          )}
+          checked={disableMentions}
+          onChange={setDisableMentions}
         />
       </Flex>
 
@@ -197,7 +235,7 @@ export const ViewGroupMembersDialog = observer(function ({
         groupName: group.name,
       }),
       content: <AddPeopleToGroupDialog group={group} />,
-      fullscreen: true,
+      replace: true,
     });
   }, [t, group, dialogs]);
 
@@ -216,7 +254,7 @@ export const ViewGroupMembersDialog = observer(function ({
             icon: <Avatar model={user} size={AvatarSize.Toast} />,
           }
         );
-      } catch (err) {
+      } catch (_err) {
         toast.error(t("Could not remove user"));
       }
     },
@@ -250,6 +288,7 @@ export const ViewGroupMembersDialog = observer(function ({
               </Button>
             </span>
           )}
+          <br />
         </>
       ) : (
         <Text as="p" type="secondary">
@@ -264,10 +303,6 @@ export const ViewGroupMembersDialog = observer(function ({
           />
         </Text>
       )}
-
-      <Subheading>
-        <Trans>Members</Trans>
-      </Subheading>
       <PaginatedList<User>
         items={users.inGroup(group.id)}
         fetch={groupUsers.fetchPage}
@@ -279,6 +314,10 @@ export const ViewGroupMembersDialog = observer(function ({
           <GroupMemberListItem
             key={user.id}
             user={user}
+            group={group}
+            groupUser={groupUsers.orderedData.find(
+              (gu) => gu.userId === user.id && gu.groupId === group.id
+            )}
             onRemove={can.update ? () => handleRemoveUser(user) : undefined}
           />
         )}
@@ -326,7 +365,7 @@ const AddPeopleToGroupDialog = observer(function ({
             icon: <Avatar model={user} size={AvatarSize.Toast} />,
           }
         );
-      } catch (err) {
+      } catch (_err) {
         toast.error(t("Could not add user"));
       }
     },
@@ -334,11 +373,10 @@ const AddPeopleToGroupDialog = observer(function ({
   );
 
   const handleInvitePeople = React.useCallback(() => {
-    const id = uuidv4();
     dialogs.openModal({
-      id,
       title: t("Invite people"),
-      content: <Invite onSubmit={() => dialogs.closeModal(id)} />,
+      content: <Invite onSubmit={dialogs.closeAllModals} />,
+      replace: true,
     });
   }, [t, dialogs]);
 
@@ -396,6 +434,8 @@ const AddPeopleToGroupDialog = observer(function ({
             <GroupMemberListItem
               key={item.id}
               user={item}
+              group={group}
+              groupUser={undefined}
               onAdd={() => handleAddUser(item)}
             />
           )}
@@ -407,16 +447,41 @@ const AddPeopleToGroupDialog = observer(function ({
 
 type GroupMemberListItemProps = {
   user: User;
+  group: Group;
+  groupUser: GroupUser | undefined;
   onAdd?: () => Promise<void>;
   onRemove?: () => Promise<void>;
 };
 
 const GroupMemberListItem = observer(function ({
   user,
-  onRemove,
+  group,
+  groupUser,
   onAdd,
 }: GroupMemberListItemProps) {
   const { t } = useTranslation();
+  const { groupUsers } = useStores();
+  const can = usePolicy(group);
+
+  const permissions = React.useMemo(
+    () =>
+      [
+        {
+          label: t("Group admin"),
+          value: GroupPermission.Admin,
+        },
+        {
+          label: t("Member"),
+          value: GroupPermission.Member,
+        },
+        {
+          divider: true,
+          label: t("Remove"),
+          value: EmptySelectValue,
+        },
+      ] as Permission[],
+    [t]
+  );
 
   return (
     <ListItem
@@ -437,11 +502,40 @@ const GroupMemberListItem = observer(function ({
       image={<Avatar model={user} size={AvatarSize.Large} />}
       actions={
         <Flex align="center">
-          {onRemove && <GroupMemberMenu onRemove={onRemove} />}
-          {onAdd && (
+          {onAdd ? (
             <Button onClick={onAdd} neutral>
               {t("Add")}
             </Button>
+          ) : (
+            <div style={{ marginRight: -8 }}>
+              <InputMemberPermissionSelect
+                permissions={permissions}
+                onChange={async (
+                  permission: GroupPermission | typeof EmptySelectValue
+                ) => {
+                  try {
+                    if (permission === EmptySelectValue) {
+                      await groupUsers.delete({
+                        userId: user.id,
+                        groupId: group.id,
+                      });
+                    } else {
+                      await groupUsers.update({
+                        userId: user.id,
+                        groupId: group.id,
+                        permission,
+                      });
+                    }
+                  } catch (err) {
+                    toast.error(err.message);
+                    return false;
+                  }
+                  return true;
+                }}
+                disabled={!can.update}
+                value={groupUser?.permission}
+              />
+            </div>
           )}
         </Flex>
       }

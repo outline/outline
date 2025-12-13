@@ -2,10 +2,10 @@ import { faker } from "@faker-js/faker";
 import isNil from "lodash/isNil";
 import isNull from "lodash/isNull";
 import { Node } from "prosemirror-model";
-import randomstring from "randomstring";
 import { InferCreationAttributes } from "sequelize";
 import { DeepPartial } from "utility-types";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
+import { randomString } from "@shared/random";
 import {
   CollectionPermission,
   FileOperationState,
@@ -26,6 +26,7 @@ import {
   User,
   Event,
   Document,
+  Emoji,
   Star,
   Collection,
   Group,
@@ -47,7 +48,9 @@ import {
   OAuthClient,
   AuthenticationProvider,
   OAuthAuthentication,
+  Relationship,
 } from "@server/models";
+import { RelationshipType } from "@server/models/Relationship";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { hash } from "@server/utils/crypto";
 import { OAuthInterface } from "@server/utils/oauth/OAuthInterface";
@@ -77,7 +80,7 @@ export async function buildShare(overrides: Partial<Share> = {}) {
     overrides.userId = user.id;
   }
 
-  if (!overrides.documentId) {
+  if (!overrides.documentId && !overrides.collectionId) {
     const document = await buildDocument({
       createdById: overrides.userId,
       teamId: overrides.teamId,
@@ -154,7 +157,7 @@ export function buildTeam(
       authenticationProviders: [
         {
           name: "slack",
-          providerId: randomstring.generate(32),
+          providerId: randomString(32),
         },
       ],
       ...overrides,
@@ -215,7 +218,7 @@ export async function buildUser(overrides: Partial<User> = {}) {
         ? [
             {
               authenticationProviderId: authenticationProvider.id,
-              providerId: randomstring.generate(32),
+              providerId: randomString(32),
             },
           ]
         : [],
@@ -272,7 +275,7 @@ export async function buildIntegration(overrides: Partial<Integration> = {}) {
     service: IntegrationService.Slack,
     userId: user.id,
     teamId: user.teamId,
-    token: randomstring.generate(32),
+    token: randomString(32),
     scopes: ["example", "scopes", "here"],
   });
   return Integration.create({
@@ -280,7 +283,7 @@ export async function buildIntegration(overrides: Partial<Integration> = {}) {
     type: IntegrationType.Post,
     events: ["documents.update", "documents.publish"],
     settings: {
-      serviceTeamId: uuidv4(),
+      serviceTeamId: randomUUID(),
     },
     authenticationId: authentication.id,
     ...overrides,
@@ -496,7 +499,7 @@ export async function buildFileOperation(
   });
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// oxlint-disable-next-line @typescript-eslint/no-explicit-any
 export async function buildImport(overrides: Partial<Import<any>> = {}) {
   if (!overrides.teamId) {
     const team = await buildTeam();
@@ -519,7 +522,7 @@ export async function buildImport(overrides: Partial<Import<any>> = {}) {
     overrides.integrationId = integration.id;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // oxlint-disable-next-line @typescript-eslint/no-explicit-any
   return Import.create<Import<any>>({
     name: "testImport",
     service: IntegrationService.Notion,
@@ -557,7 +560,7 @@ export async function buildAttachment(
     overrides.documentId = document.id;
   }
 
-  const id = uuidv4();
+  const id = randomUUID();
   const acl = overrides.acl || "public-read";
   const name = fileName || faker.system.fileName();
   return Attachment.create({
@@ -569,6 +572,39 @@ export async function buildAttachment(
     name,
     createdAt: new Date("2018-01-02T00:00:00.000Z"),
     updatedAt: new Date("2018-01-02T00:00:00.000Z"),
+    ...overrides,
+  });
+}
+
+export async function buildEmoji(
+  overrides: Partial<Emoji> = {}
+): Promise<Emoji> {
+  if (!overrides.teamId) {
+    const team = await buildTeam();
+    overrides.teamId = team.id;
+  }
+
+  if (!overrides.createdById) {
+    const user = await buildUser({
+      teamId: overrides.teamId,
+    });
+    overrides.createdById = user.id;
+  }
+
+  if (!overrides.attachmentId) {
+    const attachment = await buildAttachment({
+      teamId: overrides.teamId,
+      userId: overrides.createdById,
+      contentType: "image/png",
+    });
+    overrides.attachmentId = attachment.id;
+  }
+
+  return Emoji.create({
+    name: faker.word
+      .adjective()
+      .toLowerCase()
+      .replace(/[^a-z0-9_]/g, "_"),
     ...overrides,
   });
 }
@@ -737,7 +773,7 @@ export async function buildOAuthAuthorizationCode(
     overrides.expiresAt = new Date();
   }
 
-  const code = randomstring.generate(32);
+  const code = randomString(32);
 
   let client;
   if (overrides.oauthClientId) {
@@ -817,15 +853,41 @@ export function buildCommentMark(overrides: {
   resolved?: boolean;
 }) {
   if (!overrides.id) {
-    overrides.id = randomstring.generate(10);
+    overrides.id = randomString(10);
   }
 
   if (!overrides.userId) {
-    overrides.userId = randomstring.generate(10);
+    overrides.userId = randomString(10);
   }
 
   return {
     type: "comment",
     attrs: overrides,
   };
+}
+
+export async function buildRelationship(overrides: Partial<Relationship> = {}) {
+  if (!overrides.userId) {
+    const user = await buildUser();
+    overrides.userId = user.id;
+  }
+
+  if (!overrides.documentId) {
+    const document = await buildDocument({
+      createdById: overrides.userId,
+    });
+    overrides.documentId = document.id;
+  }
+
+  if (!overrides.reverseDocumentId) {
+    const reverseDocument = await buildDocument({
+      createdById: overrides.userId,
+    });
+    overrides.reverseDocumentId = reverseDocument.id;
+  }
+
+  return Relationship.create({
+    type: RelationshipType.Backlink,
+    ...overrides,
+  });
 }

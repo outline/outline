@@ -11,6 +11,7 @@ import useStores from "~/hooks/useStores";
 import {
   collectionPath,
   documentPath,
+  homePath,
   settingsPath,
 } from "~/utils/routeHelpers";
 
@@ -21,7 +22,8 @@ type Props = {
 
 function DocumentDelete({ document, onSubmit }: Props) {
   const { t } = useTranslation();
-  const { ui, documents, collections } = useStores();
+  const { ui, documents, collections, userMemberships, groupMemberships } =
+    useStores();
   const history = useHistory();
   const [isDeleting, setDeleting] = React.useState(false);
   const [isArchiving, setArchiving] = React.useState(false);
@@ -41,6 +43,13 @@ function DocumentDelete({ document, onSubmit }: Props) {
       try {
         await document.delete();
 
+        userMemberships
+          .getByDocumentId(document.id)
+          ?.removeDocument(document.id);
+        groupMemberships
+          .getByDocumentId(document.id)
+          ?.removeDocument(document.id);
+
         // only redirect if we're currently viewing the document that's deleted
         if (ui.activeDocumentId === document.id) {
           // If the document has a parent and it's available in the store then
@@ -59,7 +68,9 @@ function DocumentDelete({ document, onSubmit }: Props) {
           // Otherwise redirect to the collection (or) home.
           const path = document.template
             ? settingsPath("templates")
-            : collectionPath(collection?.path || "/");
+            : collection
+              ? collectionPath(collection)
+              : homePath();
           history.push(path);
         }
 

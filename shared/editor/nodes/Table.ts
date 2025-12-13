@@ -10,6 +10,8 @@ import {
   deleteRow,
   deleteTable,
   goToNextCell,
+  moveTableColumn,
+  moveTableRow,
   tableEditing,
   toggleHeader,
 } from "prosemirror-tables";
@@ -20,6 +22,7 @@ import {
   setColumnAttr,
   createTable,
   exportTable,
+  distributeColumns,
   sortTable,
   setTableAttr,
   deleteColSelection,
@@ -28,9 +31,12 @@ import {
   moveOutOfTable,
   createTableInner,
   deleteTableIfSelected,
+  splitCellAndCollapse,
+  mergeCellsAndCollapse,
 } from "../commands/table";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
-import { FixTablesPlugin } from "../plugins/FixTables";
+import { FixTablesPlugin } from "../plugins/FixTablesPlugin";
+import { TableLayoutPlugin } from "../plugins/TableLayoutPlugin";
 import tablesRule from "../rules/tables";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { TableLayout } from "../types";
@@ -84,11 +90,16 @@ export default class Table extends Node {
       deleteColumn: () => deleteColumn,
       addRowBefore,
       addRowAfter: () => addRowAfter,
+      moveTableRow,
+      moveTableColumn,
       deleteRow: () => deleteRow,
       deleteTable: () => deleteTable,
       exportTable,
+      distributeColumns,
       toggleHeaderColumn: () => toggleHeader("column"),
       toggleHeaderRow: () => toggleHeader("row"),
+      mergeCells: () => mergeCellsAndCollapse(),
+      splitCell: () => splitCellAndCollapse(),
     };
   }
 
@@ -143,6 +154,7 @@ export default class Table extends Node {
       }),
       tableEditing(),
       new FixTablesPlugin(),
+      new TableLayoutPlugin(),
     ];
   }
 }

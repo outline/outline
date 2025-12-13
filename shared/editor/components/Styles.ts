@@ -1,7 +1,7 @@
-/* eslint-disable no-irregular-whitespace */
+/* oxlint-disable no-irregular-whitespace */
 import { lighten, transparentize } from "polished";
 import styled, { DefaultTheme, css, keyframes } from "styled-components";
-import { hover } from "../../styles";
+import { breakpoints, hover } from "../../styles";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { videoStyle } from "./Video";
 
@@ -9,6 +9,7 @@ export type Props = {
   rtl: boolean;
   readOnly?: boolean;
   readOnlyWriteCheckboxes?: boolean;
+  commenting?: boolean;
   staticHTML?: boolean;
   editorStyle?: React.CSSProperties;
   grow?: boolean;
@@ -50,7 +51,6 @@ const mathStyle = (props: Props) => css`
   .math-node {
     min-width: 1em;
     min-height: 1em;
-    font-size: 0.95em;
     font-family: ${props.theme.fontFamilyMono};
     cursor: auto;
     white-space: pre-wrap;
@@ -95,7 +95,6 @@ const mathStyle = (props: Props) => css`
 
   math-inline .math-render {
     display: inline-block;
-    font-size: 0.85em;
   }
 
   math-inline .math-src .ProseMirror {
@@ -164,13 +163,13 @@ const codeBlockStyle = (props: Props) => css`
     opacity: 0.7;
   }
 
-  .token.operator,
   .token.boolean,
   .token.number {
     color: ${props.theme.codeNumber};
   }
 
-  .token.property {
+  .token.property,
+  .token.variable {
     color: ${props.theme.codeProperty};
   }
 
@@ -178,6 +177,8 @@ const codeBlockStyle = (props: Props) => css`
     color: ${props.theme.codeTag};
   }
 
+  .token.char,
+  .token.builtin,
   .token.string {
     color: ${props.theme.codeString};
   }
@@ -187,7 +188,20 @@ const codeBlockStyle = (props: Props) => css`
   }
 
   .token.attr-name {
-    color: ${props.theme.codeAttr};
+    color: ${props.theme.codeAttrName};
+  }
+
+  .token.attr-value,
+  .token.attr-value .token.punctuation {
+    color: ${props.theme.codeAttrValue};
+  }
+
+  .token.operator {
+    color: ${props.theme.codeOperator};
+  }
+
+  .token.namespace {
+    opacity: 0.8;
   }
 
   .token.entity,
@@ -243,6 +257,14 @@ const codeBlockStyle = (props: Props) => css`
     font-weight: bold;
   }
 
+  .token.constant {
+    color: ${props.theme.codeConstant};
+  }
+
+  .token.parameter {
+    color: ${props.theme.codeParameter};
+  }
+
   .token.important {
     color: ${props.theme.codeImportant};
   }
@@ -279,6 +301,77 @@ const emailStyle = (props: Props) => css`
   .image > img {
     width: auto;
     height: auto;
+  }
+`;
+
+/**
+ * Adjustments to line-height and paragraph margins for complex scripts. If adding
+ * scripts here you also need to update the `getLangFor` method.
+ *
+ * @returns The CSS styles for complex scripts.
+ */
+const textStyle = () => css`
+  /* Southeast Asian scripts */
+  :lang(th),  /* Thai */
+    :lang(lo),  /* Lao */
+    :lang(km),  /* Khmer */
+    :lang(my) {
+    /* Burmese */
+    p {
+      line-height: 1.7;
+      margin-top: 0.8em;
+      margin-bottom: 0.8em;
+    }
+  }
+
+  /* South Asian scripts */
+  :lang(hi),  /* Hindi */
+    :lang(mr),  /* Marathi */
+    :lang(ne),  /* Nepali */
+    :lang(bn),  /* Bengali */
+    :lang(gu),  /* Gujarati */
+    :lang(pa),  /* Punjabi */
+    :lang(te),  /* Telugu */
+    :lang(ta),  /* Tamil */
+    :lang(ml),  /* Malayalam */
+    :lang(si) {
+    /* Sinhala */
+    p {
+      line-height: 1.7;
+      margin-top: 0.8em;
+      margin-bottom: 0.8em;
+    }
+  }
+
+  /* Tibetan and related scripts */
+  :lang(bo) {
+    p {
+      line-height: 1.8;
+      margin-top: 0.8em;
+      margin-bottom: 0.8em;
+    }
+  }
+
+  /* Middle Eastern scripts */
+  :lang(ar),  /* Arabic */
+    :lang(fa),  /* Persian */
+    :lang(ur),  /* Urdu */
+    :lang(he) {
+    /* Hebrew */
+    p {
+      line-height: 1.6;
+    }
+  }
+
+  /* Ethiopic and other complex scripts */
+  :lang(am),  /* Amharic */
+    :lang(mn) {
+    /* Mongolian */
+    p {
+      line-height: 1.7;
+      margin-top: 0.8em;
+      margin-bottom: 0.8em;
+    }
   }
 `;
 
@@ -370,6 +463,7 @@ width: 100%;
   h6 {
     margin-top: 1em;
     margin-bottom: 0.25em;
+    line-height: inherit;
     font-weight: 600;
     cursor: text;
 
@@ -481,7 +575,7 @@ iframe.embed {
   width: 100%;
   height: 400px;
   border: 1px solid ${props.theme.embedBorder};
-  border-radius: 6px;
+  border-radius: ${EditorStyleHelper.blockRadius};
 }
 
 .image,
@@ -593,7 +687,7 @@ iframe.embed {
   max-width: 100vw;
   clear: both;
   position: initial;
-  transform: translateX(calc(50% + var(--container-width) * -0.5));
+  transform: translateX(calc(50% + var(--container-width) * -0.5 + var(--full-width-transform-offset)));
 
   img {
     max-width: 100vw;
@@ -606,7 +700,7 @@ iframe.embed {
 .${EditorStyleHelper.tableFullWidth} {
   transform: translateX(calc(50% + ${
     EditorStyleHelper.padding
-  }px + var(--container-width) * -0.5));
+  }px + var(--container-width) * -0.5 + var(--full-width-transform-offset)));
 
   .${EditorStyleHelper.tableScrollable},
   table {
@@ -721,14 +815,7 @@ img.ProseMirror-separator {
   }
 }
 
-.heading-content {
-  &::before {
-    content: "​";
-    display: inline;
-  }
-}
-
-.heading-name {
+.${EditorStyleHelper.headingPositionAnchor}, .${EditorStyleHelper.imagePositionAnchor} {
   color: ${props.theme.text};
   pointer-events: none;
   display: block;
@@ -741,11 +828,11 @@ img.ProseMirror-separator {
   }
 }
 
-.heading-name:first-child,
+.${EditorStyleHelper.headingPositionAnchor}:first-child,
 // Edge case where multiplayer cursor is between start of cell and heading
-.heading-name:first-child + .ProseMirror-yjs-cursor,
+.${EditorStyleHelper.headingPositionAnchor}:first-child + .ProseMirror-yjs-cursor,
 // Edge case where table grips are between start of cell and heading
-.heading-name:first-child + [role=button] + [role=button] {
+.${EditorStyleHelper.headingPositionAnchor}:first-child + [role=button] + [role=button] {
   & + h1,
   & + h2,
   & + h3,
@@ -798,8 +885,51 @@ h6:not(.placeholder)::before {
   }
 }
 
+.ProseMirror[contenteditable="true"] {
+  & .image-wrapper.ProseMirror-selectednode > a {
+    /* force zoom-in cursor if image node is selected */
+    cursor: zoom-in !important;
+  }
+  &.ProseMirror-focused {
+    .image-wrapper:not(.ProseMirror-selectednode) > a {
+      /* prevents cursor from turning to pointer on pointer down */
+      pointer-events: none;
+    }
+  }
+  &:not(.ProseMirror-focused) {
+    .image-wrapper  {
+      & > a[href] {
+        cursor: pointer;
+      }
+      & > a:not([href]) {
+        /* prevents cursor from turning to pointer on pointer down */
+        pointer-events: none;
+      }
+    }
+  }
+}
+
+.ProseMirror[contenteditable="false"] {
+  .image-wrapper  {
+    & > a[href] {
+      cursor: pointer;
+    }
+    & > a:not([href]) {
+      cursor: zoom-in;
+    }
+  }
+}
+
 .with-emoji {
   margin-${props.rtl ? "right" : "left"}: -1em;
+}
+
+.emoji img {
+  width: 1em;
+  height: 1em;
+  vertical-align: middle;
+  position: relative;
+  top: -0.1em;
 }
 
 .heading-anchor,
@@ -838,8 +968,9 @@ h6:not(.placeholder)::before {
   margin-left: -26px;
   flex-direction: row;
   display: none;
-  position: relative;
-  top: -2px;
+  position: absolute;
+  left: 0;
+  top: calc(.5em - 6px);
   width: 26px;
   height: 24px;
 
@@ -929,6 +1060,9 @@ h6 {
   opacity: 1;
 }
 
+${
+  props.commenting
+    ? `
 .${EditorStyleHelper.comment} {
   &:not([data-resolved]):not([data-draft]), &[data-draft][data-user-id="${
     props.userId ?? ""
@@ -942,6 +1076,14 @@ h6 {
       background: ${props.theme.commentMarkBackground};
     }
   }
+}
+`
+    : `
+.${EditorStyleHelper.comment} {
+  background: transparent !important;
+  border: none !important;
+}
+`
 }
 
 .notice-block {
@@ -1074,6 +1216,10 @@ strong {
 p {
   margin: 0;
   min-height: 1.6em;
+}
+
+.heading-content {
+  position: relative;
 }
 
 .heading-content a,
@@ -1310,13 +1456,23 @@ hr.page-break::before {
 
 .math-inline .math-src .ProseMirror,
 code {
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+
   border-radius: 4px;
   border: 1px solid ${props.theme.codeBorder};
   background: ${props.theme.codeBackground};
   padding: 3px 4px;
-  color: ${props.theme.codeString};
+  color: ${props.theme.code};
   font-family: ${props.theme.fontFamilyMono};
   font-size: 90%;
+
+  .${EditorStyleHelper.codeWord} {
+    @media (min-width: ${breakpoints.tablet}px) {
+      white-space: nowrap;
+    }
+    color: ${props.theme.codeKeyword};
+  }
 }
 
 mark {
@@ -1364,6 +1520,10 @@ mark {
     `
   }
 
+  &:is(.code-active) + .mermaid-diagram-wrapper {
+    cursor: zoom-in;
+  }
+
   // Hide code without display none so toolbar can still be positioned against it
   &:not(.code-active) {
     height: ${props.staticHTML || props.readOnly ? "auto" : "0"};
@@ -1379,6 +1539,9 @@ mark {
     height: 0;
     overflow: hidden;
     margin: -0.5em 0 0 0;
+    & + .mermaid-diagram-wrapper {
+      cursor: zoom-in;
+    }
 }
 
 .code-block.with-line-numbers {
@@ -1413,7 +1576,7 @@ mark {
   margin: 0.75em 0;
   min-height: 1.6em;
   background: ${props.theme.codeBackground};
-  border-radius: 6px;
+  border-radius: ${EditorStyleHelper.blockRadius};
   border: 1px solid ${props.theme.codeBorder};
   padding: 8px;
   user-select: none;
@@ -1474,10 +1637,13 @@ pre {
 
 table {
   width: 100%;
-  border-collapse: collapse;
-  border-radius: 4px;
+  border-collapse: separate;
+  border-radius: ${EditorStyleHelper.blockRadius};
   margin-top: 1em;
   box-sizing: border-box;
+  border: 1px solid ${props.theme.divider};
+  border-left: 0;
+  border-spacing: 0;
 
   * {
     box-sizing: border-box;
@@ -1486,24 +1652,39 @@ table {
   tr {
     position: relative;
     border-bottom: 1px solid ${props.theme.divider};
+    border-color: inherit;
   }
 
   td,
   th {
     position: relative;
     vertical-align: top;
-    border: 1px solid ${props.theme.divider};
     position: relative;
     padding: 4px 8px;
     text-align: start;
     min-width: 100px;
     font-weight: normal;
+    border-left: 1px solid ${props.theme.divider};
+    border-top: 1px solid ${props.theme.divider};
   }
 
   th {
     background: ${transparentize(0.75, props.theme.divider)};
     color: ${props.theme.textSecondary};
     font-weight: 500;
+  }
+
+  tr:first-child th,
+  tr:first-child td {
+    border-top: 0;
+  }
+  tr:first-child th:first-child,
+  tr:first-child td:first-child {
+    border-radius: ${EditorStyleHelper.blockRadius} 0 0 0;
+  }
+  tr:last-child th:first-child,
+  tr:last-child td:first-child {
+    border-radius: 0 0 0 ${EditorStyleHelper.blockRadius};
   }
 
   td .component-embed {
@@ -1565,6 +1746,7 @@ table {
     left: -16px;
     width: 0;
     height: 2px;
+    z-index: 1;
 
     &::after {
       content: "";
@@ -1609,6 +1791,7 @@ table {
     right: -1px;
     width: 2px;
     height: 0;
+    z-index: 1;
 
     &::after {
       content: "";
@@ -1753,10 +1936,15 @@ table {
   padding-right: ${EditorStyleHelper.padding}px;
   transition: border 250ms ease-in-out 0s;
 
+  table {
+    table-layout: fixed;
+    word-break: break-word;
+  }
+
   &:hover {
     scrollbar-color: ${props.theme.scrollbarThumb} ${
-  props.theme.scrollbarBackground
-};
+      props.theme.scrollbarBackground
+    };
   }
 
   & ::-webkit-scrollbar {
@@ -1945,6 +2133,7 @@ const EditorContainer = styled.div<Props>`
   ${codeBlockStyle}
   ${findAndReplaceStyle}
   ${emailStyle}
+  ${textStyle}
 `;
 
 export default EditorContainer;

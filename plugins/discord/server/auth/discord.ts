@@ -27,6 +27,7 @@ import {
 import config from "../../plugin.json";
 import env from "../env";
 import { DiscordGuildError, DiscordGuildRoleError } from "../errors";
+import { createContext } from "@server/context";
 
 const router = new Router();
 
@@ -54,7 +55,7 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
         pkce: false,
       },
       async function (
-        ctx: Context,
+        context: Context,
         accessToken: string,
         refreshToken: string,
         params: { expires_in: number },
@@ -66,8 +67,8 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
         ) => void
       ) {
         try {
-          const team = await getTeamFromContext(ctx);
-          const client = getClientFromContext(ctx);
+          const team = await getTeamFromContext(context);
+          const client = getClientFromContext(context);
           /** Fetch the user's profile */
           const profile: RESTGetAPICurrentUserResult = await request(
             "GET",
@@ -180,8 +181,8 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
           // if a team can be inferred, we assume the user is only interested in signing into
           // that team in particular; otherwise, we will do a best effort at finding their account
           // or provisioning a new one (within AccountProvisioner)
-          const result = await accountProvisioner({
-            ip: ctx.ip,
+          const ctx = createContext({ ip: context.ip });
+          const result = await accountProvisioner(ctx, {
             team: {
               teamId: team?.id,
               name: teamName,

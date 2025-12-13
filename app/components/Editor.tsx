@@ -21,6 +21,7 @@ import useEmbeds from "~/hooks/useEmbeds";
 import useStores from "~/hooks/useStores";
 import { uploadFile, uploadFileFromUrl } from "~/utils/files";
 import lazyWithRetry from "~/utils/lazyWithRetry";
+import useShare from "@shared/hooks/useShare";
 
 const LazyLoadedEditor = lazyWithRetry(() => import("~/editor"));
 
@@ -33,7 +34,6 @@ export type Props = Optional<
   | "dictionary"
   | "extensions"
 > & {
-  shareId?: string | undefined;
   embedsDisabled?: boolean;
   onSynced?: () => Promise<void>;
   onPublish?: (event: React.MouseEvent) => void;
@@ -41,9 +41,9 @@ export type Props = Optional<
 };
 
 function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
-  const { id, shareId, onChange, onCreateCommentMark, onDeleteCommentMark } =
-    props;
+  const { id, onChange, onCreateCommentMark, onDeleteCommentMark } = props;
   const { comments } = useStores();
+  const { shareId } = useShare();
   const dictionary = useDictionary();
   const embeds = useEmbeds(!shareId);
   const localRef = React.useRef<SharedEditor>();
@@ -201,6 +201,8 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
             grow={props.grow}
             style={props.style}
             editorStyle={props.editorStyle}
+            commenting={!!props.onClickCommentMark}
+            lang={props.lang}
           >
             <div className="ProseMirror">
               {paragraphs.map((paragraph, index) => (

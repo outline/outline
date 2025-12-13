@@ -6,7 +6,6 @@ import styled from "styled-components";
 import { s, hover } from "@shared/styles";
 import Notification from "~/models/Notification";
 import { markNotificationsAsRead } from "~/actions/definitions/notifications";
-import useActionContext from "~/hooks/useActionContext";
 import useStores from "~/hooks/useStores";
 import NotificationMenu from "~/menus/NotificationMenu";
 import Desktop from "~/utils/Desktop";
@@ -23,21 +22,18 @@ import NotificationListItem from "./NotificationListItem";
 type Props = {
   /** Callback when the notification panel wants to close. */
   onRequestClose: () => void;
-  /** Whether the panel is open or not. */
-  isOpen: boolean;
 };
 
 /**
  * A panel containing a list of notifications and controls to manage them.
  */
 function Notifications(
-  { onRequestClose, isOpen }: Props,
+  { onRequestClose }: Props,
   ref: React.RefObject<HTMLDivElement>
 ) {
-  const context = useActionContext();
   const { notifications } = useStores();
   const { t } = useTranslation();
-  const isEmpty = notifications.orderedData.length === 0;
+  const isEmpty = notifications.active.length === 0;
 
   // Update the notification count in the dock icon, if possible.
   React.useEffect(() => {
@@ -69,7 +65,10 @@ function Notifications(
           <Flex gap={8}>
             {notifications.approximateUnreadCount > 0 && (
               <Tooltip content={t("Mark all as read")}>
-                <Button action={markNotificationsAsRead} context={context}>
+                <Button
+                  action={markNotificationsAsRead}
+                  aria-label={t("Mark all as read")}
+                >
                   <MarkAsReadIcon />
                 </Button>
               </Tooltip>
@@ -82,7 +81,7 @@ function Notifications(
             <PaginatedList<Notification>
               fetch={notifications.fetchPage}
               options={{ archived: false }}
-              items={isOpen ? notifications.orderedData : undefined}
+              items={notifications.active}
               renderItem={(item) => (
                 <NotificationListItem
                   key={item.id}

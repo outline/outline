@@ -14,6 +14,8 @@ type Options = {
   includeText?: boolean;
   /** Always include the data of the document in the payload. */
   includeData?: boolean;
+  /** Include the updatedAt timestamp for public documents. */
+  includeUpdatedAt?: boolean;
 };
 
 async function presentDocument(
@@ -54,7 +56,7 @@ async function presentDocument(
     text,
     icon: document.icon,
     color: document.color,
-    tasks: document.tasks,
+    language: document.language,
     createdAt: document.createdAt,
     createdBy: undefined,
     updatedAt: document.updatedAt,
@@ -75,9 +77,14 @@ async function presentDocument(
     res.lastViewedAt = document.views[0].updatedAt;
   }
 
+  if (options.isPublic && !options.includeUpdatedAt) {
+    delete res.updatedAt;
+  }
+
   if (!options.isPublic) {
     const source = await document.$get("import");
 
+    res.tasks = document.tasks;
     res.isCollectionDeleted = await document.isCollectionDeleted();
     res.collectionId = document.collectionId;
     res.parentDocumentId = document.parentDocumentId;
@@ -87,12 +94,14 @@ async function presentDocument(
     res.templateId = document.templateId;
     res.template = document.template;
     res.insightsEnabled = document.insightsEnabled;
+    res.popularityScore = document.popularityScore;
     res.sourceMetadata = document.sourceMetadata
       ? {
           importedAt: source?.createdAt ?? document.createdAt,
           importType: source?.format,
           createdByName: document.sourceMetadata.createdByName,
           fileName: document.sourceMetadata?.fileName,
+          originalDocumentId: document.sourceMetadata?.originalDocumentId,
         }
       : undefined;
   }

@@ -7,8 +7,10 @@ import {
   buildTeam,
   buildUser,
   buildShare,
+  buildGroup,
 } from "@server/test/factories";
 import UserMembership from "../UserMembership";
+import GroupMembership from "../GroupMembership";
 
 beforeEach(async () => {
   jest.resetAllMocks();
@@ -17,7 +19,7 @@ beforeEach(async () => {
 
 describe("SearchHelper", () => {
   describe("#searchForTeam", () => {
-    test("should return search results from public collections", async () => {
+    it("should return search results from public collections", async () => {
       const team = await buildTeam();
       const collection = await buildCollection({
         teamId: team.id,
@@ -34,7 +36,7 @@ describe("SearchHelper", () => {
       expect(results[0].document?.id).toBe(document.id);
     });
 
-    test("should return search results from a collection without search term", async () => {
+    it("should return search results from a collection without search term", async () => {
       const team = await buildTeam();
       const collection = await buildCollection({
         teamId: team.id,
@@ -58,7 +60,7 @@ describe("SearchHelper", () => {
       );
     });
 
-    test("should not return results from private collections without providing collectionId", async () => {
+    it("should not return results from private collections without providing collectionId", async () => {
       const team = await buildTeam();
       const collection = await buildCollection({
         permission: null,
@@ -75,7 +77,7 @@ describe("SearchHelper", () => {
       expect(results.length).toBe(0);
     });
 
-    test("should return results from private collections when collectionId is provided", async () => {
+    it("should return results from private collections when collectionId is provided", async () => {
       const team = await buildTeam();
       const collection = await buildCollection({
         permission: null,
@@ -93,7 +95,7 @@ describe("SearchHelper", () => {
       expect(results.length).toBe(1);
     });
 
-    test("should return results from document tree of shared document", async () => {
+    it("should return results from document tree of shared document", async () => {
       const team = await buildTeam();
       const collection = await buildCollection({
         permission: null,
@@ -123,7 +125,7 @@ describe("SearchHelper", () => {
       expect(results.length).toBe(1);
     });
 
-    test("should handle no collections", async () => {
+    it("should handle no collections", async () => {
       const team = await buildTeam();
       const { results } = await SearchHelper.searchForTeam(team, {
         query: "test",
@@ -131,7 +133,7 @@ describe("SearchHelper", () => {
       expect(results.length).toBe(0);
     });
 
-    test("should handle backslashes in search term", async () => {
+    it("should handle backslashes in search term", async () => {
       const team = await buildTeam();
       const collection = await buildCollection({
         teamId: team.id,
@@ -148,7 +150,7 @@ describe("SearchHelper", () => {
       expect(results[0].document?.id).toBe(document.id);
     });
 
-    test("should return the total count of search results", async () => {
+    it("should return the total count of search results", async () => {
       const team = await buildTeam();
       const collection = await buildCollection({
         teamId: team.id,
@@ -169,7 +171,7 @@ describe("SearchHelper", () => {
       expect(total).toBe(2);
     });
 
-    test("should return the document when searched with their previous titles", async () => {
+    it("should return the document when searched with their previous titles", async () => {
       const team = await buildTeam();
       const collection = await buildCollection({
         teamId: team.id,
@@ -187,7 +189,7 @@ describe("SearchHelper", () => {
       expect(total).toBe(1);
     });
 
-    test("should not return the document when searched with neither the titles nor the previous titles", async () => {
+    it("should not return the document when searched with neither the titles nor the previous titles", async () => {
       const team = await buildTeam();
       const collection = await buildCollection({
         teamId: team.id,
@@ -207,7 +209,7 @@ describe("SearchHelper", () => {
   });
 
   describe("#searchForUser", () => {
-    test("should return search results from collections", async () => {
+    it("should return search results from collections", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
       const collection = await buildCollection({
@@ -235,7 +237,7 @@ describe("SearchHelper", () => {
       expect(results[0].document?.id).toBe(document.id);
     });
 
-    test("should return search results for a user without search term", async () => {
+    it("should return search results for a user without search term", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
       const collection = await buildCollection({
@@ -263,7 +265,7 @@ describe("SearchHelper", () => {
       );
     });
 
-    test("should return search results from a collection without search term", async () => {
+    it("should return search results from a collection without search term", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
       const collection = await buildCollection({
@@ -293,7 +295,55 @@ describe("SearchHelper", () => {
       );
     });
 
-    test("should handle no collections", async () => {
+    it("should not return documents from other collections when filtering by specific collection without search term", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection1 = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+      const collection2 = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+      const docsInCollection1 = await Promise.all([
+        buildDocument({
+          teamId: team.id,
+          userId: user.id,
+          collectionId: collection1.id,
+          title: "document 1 in collection 1",
+        }),
+        buildDocument({
+          teamId: team.id,
+          userId: user.id,
+          collectionId: collection1.id,
+          title: "document 2 in collection 1",
+        }),
+      ]);
+      await Promise.all([
+        buildDocument({
+          teamId: team.id,
+          userId: user.id,
+          collectionId: collection2.id,
+          title: "document 1 in collection 2",
+        }),
+        buildDocument({
+          teamId: team.id,
+          userId: user.id,
+          collectionId: collection2.id,
+          title: "document 2 in collection 2",
+        }),
+      ]);
+      const { results } = await SearchHelper.searchForUser(user, {
+        collectionId: collection1.id,
+      });
+      expect(results.length).toBe(2);
+      expect(results.map((r) => r.document.id).sort()).toEqual(
+        docsInCollection1.map((doc) => doc.id).sort()
+      );
+    });
+
+    it("should handle no collections", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
       const { results } = await SearchHelper.searchForUser(user, {
@@ -302,7 +352,7 @@ describe("SearchHelper", () => {
       expect(results.length).toBe(0);
     });
 
-    test("should search only drafts created by user", async () => {
+    it("should search only drafts created by user", async () => {
       const user = await buildUser();
       await buildDraftDocument({
         title: "test",
@@ -333,7 +383,7 @@ describe("SearchHelper", () => {
       expect(results.length).toBe(1);
     });
 
-    test("should not include drafts with user read permission", async () => {
+    it("should not include drafts with user read permission", async () => {
       const user = await buildUser();
       await buildDraftDocument({
         title: "test",
@@ -358,7 +408,7 @@ describe("SearchHelper", () => {
       expect(results.length).toBe(0);
     });
 
-    test("should search only published created by user", async () => {
+    it("should search only published created by user", async () => {
       const user = await buildUser();
       await buildDocument({
         title: "test",
@@ -389,7 +439,7 @@ describe("SearchHelper", () => {
       expect(results.length).toBe(1);
     });
 
-    test("should search only archived documents created by user", async () => {
+    it("should search only archived documents created by user", async () => {
       const user = await buildUser();
       await buildDocument({
         title: "test",
@@ -426,7 +476,7 @@ describe("SearchHelper", () => {
       expect(results.length).toBe(1);
     });
 
-    test("should return results from archived and published", async () => {
+    it("should return results from archived and published", async () => {
       const user = await buildUser();
       await buildDraftDocument({
         teamId: user.teamId,
@@ -454,7 +504,7 @@ describe("SearchHelper", () => {
       expect(results.length).toBe(2);
     });
 
-    test("should return results from drafts and published", async () => {
+    it("should return results from drafts and published", async () => {
       const user = await buildUser();
       await buildDocument({
         userId: user.id,
@@ -482,7 +532,7 @@ describe("SearchHelper", () => {
       expect(results.length).toBe(2);
     });
 
-    test("should include results from drafts and archived", async () => {
+    it("should include results from drafts and archived", async () => {
       const user = await buildUser();
       await buildDocument({
         userId: user.id,
@@ -510,7 +560,7 @@ describe("SearchHelper", () => {
       expect(results.length).toBe(2);
     });
 
-    test("should return the total count of search results", async () => {
+    it("should return the total count of search results", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
       const collection = await buildCollection({
@@ -535,7 +585,7 @@ describe("SearchHelper", () => {
       expect(total).toBe(2);
     });
 
-    test("should return the document when searched with their previous titles", async () => {
+    it("should return the document when searched with their previous titles", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
       const collection = await buildCollection({
@@ -556,7 +606,7 @@ describe("SearchHelper", () => {
       expect(total).toBe(1);
     });
 
-    test("should not return the document when searched with neither the titles nor the previous titles", async () => {
+    it("should not return the document when searched with neither the titles nor the previous titles", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
       const collection = await buildCollection({
@@ -577,7 +627,7 @@ describe("SearchHelper", () => {
       expect(total).toBe(0);
     });
 
-    test("should find exact phrases", async () => {
+    it("should find exact phrases", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
       const collection = await buildCollection({
@@ -598,7 +648,7 @@ describe("SearchHelper", () => {
       expect(total).toBe(1);
     });
 
-    test("should correctly handle removal of trailing spaces", async () => {
+    it("should correctly handle removal of trailing spaces", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
       const collection = await buildCollection({
@@ -618,10 +668,60 @@ describe("SearchHelper", () => {
       });
       expect(total).toBe(1);
     });
+
+    it("should return search results from group memberships", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const otherUser = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        userId: otherUser.id,
+        teamId: team.id,
+        permission: null, // private collection
+      });
+      const document = await buildDocument({
+        userId: otherUser.id,
+        teamId: team.id,
+        collectionId: collection.id,
+        title: "group test document",
+      });
+
+      // Document with no access should not appear in results
+      await buildDocument({
+        userId: otherUser.id,
+        teamId: team.id,
+        collectionId: collection.id,
+        title: "group test document 2",
+      });
+
+      // Create a group and add the user to it
+      const group = await buildGroup({
+        teamId: team.id,
+      });
+      await group.$add("user", user, {
+        through: {
+          createdById: otherUser.id,
+        },
+      });
+
+      // Add group membership to the document
+      await GroupMembership.create({
+        createdById: otherUser.id,
+        groupId: group.id,
+        documentId: document.id,
+      });
+
+      const { results } = await SearchHelper.searchForUser(user, {
+        query: "group test",
+      });
+
+      expect(results.length).toBe(1);
+      expect(results[0].ranking).toBeTruthy();
+      expect(results[0].document?.id).toBe(document.id);
+    });
   });
 
   describe("#searchTitlesForUser", () => {
-    test("should return search results from collections", async () => {
+    it("should return search results from collections", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
       const collection = await buildCollection({
@@ -641,7 +741,7 @@ describe("SearchHelper", () => {
       expect(documents[0]?.id).toBe(document.id);
     });
 
-    test("should filter to specific collection", async () => {
+    it("should filter to specific collection", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
       const collection = await buildCollection({
@@ -677,7 +777,7 @@ describe("SearchHelper", () => {
       expect(documents[0]?.id).toBe(document.id);
     });
 
-    test("should handle no collections", async () => {
+    it("should handle no collections", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
       const documents = await SearchHelper.searchTitlesForUser(user, {
@@ -686,7 +786,7 @@ describe("SearchHelper", () => {
       expect(documents.length).toBe(0);
     });
 
-    test("should search only drafts created by user", async () => {
+    it("should search only drafts created by user", async () => {
       const user = await buildUser();
       await buildDraftDocument({
         title: "test",
@@ -717,7 +817,7 @@ describe("SearchHelper", () => {
       expect(documents.length).toBe(1);
     });
 
-    test("should search only published created by user", async () => {
+    it("should search only published created by user", async () => {
       const user = await buildUser();
       await buildDocument({
         title: "test",
@@ -748,7 +848,7 @@ describe("SearchHelper", () => {
       expect(documents.length).toBe(1);
     });
 
-    test("should search only archived documents created by user", async () => {
+    it("should search only archived documents created by user", async () => {
       const user = await buildUser();
       await buildDocument({
         title: "test",
@@ -785,7 +885,7 @@ describe("SearchHelper", () => {
       expect(documents.length).toBe(1);
     });
 
-    test("should return results from archived and published", async () => {
+    it("should return results from archived and published", async () => {
       const user = await buildUser();
       await buildDraftDocument({
         teamId: user.teamId,
@@ -813,7 +913,7 @@ describe("SearchHelper", () => {
       expect(documents.length).toBe(2);
     });
 
-    test("should return results from drafts and published", async () => {
+    it("should return results from drafts and published", async () => {
       const user = await buildUser();
       await buildDocument({
         userId: user.id,
@@ -841,7 +941,7 @@ describe("SearchHelper", () => {
       expect(documents.length).toBe(2);
     });
 
-    test("should include results from drafts and archived", async () => {
+    it("should include results from drafts and archived", async () => {
       const user = await buildUser();
       await buildDocument({
         userId: user.id,
@@ -868,10 +968,59 @@ describe("SearchHelper", () => {
       });
       expect(documents.length).toBe(2);
     });
+
+    it("should return search results from group memberships", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const otherUser = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        userId: otherUser.id,
+        teamId: team.id,
+        permission: null, // private collection
+      });
+      const document = await buildDocument({
+        userId: otherUser.id,
+        teamId: team.id,
+        collectionId: collection.id,
+        title: "group title test document",
+      });
+
+      // Document with no access should not appear in results
+      await buildDocument({
+        userId: otherUser.id,
+        teamId: team.id,
+        collectionId: collection.id,
+        title: "group title test document 2",
+      });
+
+      // Create a group and add the user to it
+      const group = await buildGroup({
+        teamId: team.id,
+      });
+      await group.$add("user", user, {
+        through: {
+          createdById: otherUser.id,
+        },
+      });
+
+      // Add group membership to the document
+      await GroupMembership.create({
+        createdById: otherUser.id,
+        groupId: group.id,
+        documentId: document.id,
+      });
+
+      const documents = await SearchHelper.searchTitlesForUser(user, {
+        query: "group title",
+      });
+
+      expect(documents.length).toBe(1);
+      expect(documents[0].id).toBe(document.id);
+    });
   });
 
   describe("#searchCollectionsForUser", () => {
-    test("should return search results from collections", async () => {
+    it("should return search results from collections", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
       const collection1 = await buildCollection({
@@ -893,7 +1042,7 @@ describe("SearchHelper", () => {
       expect(results[0].id).toBe(collection1.id);
     });
 
-    test("should return all collections when no query provided", async () => {
+    it("should return all collections when no query provided", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
       const collection1 = await buildCollection({
@@ -916,22 +1065,22 @@ describe("SearchHelper", () => {
   });
 
   describe("webSearchQuery", () => {
-    test("should correctly sanitize query", () => {
+    it("should correctly sanitize query", () => {
       expect(SearchHelper.webSearchQuery("one/two")).toBe("one/two:*");
       expect(SearchHelper.webSearchQuery("one\\two")).toBe("one\\\\two:*");
       expect(SearchHelper.webSearchQuery("test''")).toBe("test");
     });
-    test("should wildcard unquoted queries", () => {
+    it("should wildcard unquoted queries", () => {
       expect(SearchHelper.webSearchQuery("test")).toBe("test:*");
       expect(SearchHelper.webSearchQuery("'")).toBe("");
       expect(SearchHelper.webSearchQuery("'quoted'")).toBe(`"quoted":*`);
     });
-    test("should wildcard multi-word queries", () => {
+    it("should wildcard multi-word queries", () => {
       expect(SearchHelper.webSearchQuery("this is a test")).toBe(
         "this&is&a&test:*"
       );
     });
-    test("should not wildcard quoted queries", () => {
+    it("should not wildcard quoted queries", () => {
       expect(SearchHelper.webSearchQuery(`"this is a test"`)).toBe(
         `"this<->is<->a<->test"`
       );

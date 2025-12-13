@@ -1,13 +1,11 @@
 import { Op } from "sequelize";
-import { User, Collection, Document } from "@server/models";
+import { Collection, Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { APIContext } from "@server/types";
 import documentCreator from "./documentCreator";
 
 type Props = {
-  /** The user who is creating the document */
-  user: User;
   /** The document to duplicate */
   document: Document;
   /** The collection to add the duplicated document to */
@@ -20,29 +18,19 @@ type Props = {
   publish?: boolean;
   /** Whether to duplicate child documents */
   recursive?: boolean;
-  /** The request context */
-  ctx: APIContext;
 };
 
-export default async function documentDuplicator({
-  user,
-  document,
-  collection,
-  parentDocumentId,
-  title,
-  publish,
-  recursive,
-  ctx,
-}: Props): Promise<Document[]> {
+export default async function documentDuplicator(
+  ctx: APIContext,
+  { document, collection, parentDocumentId, title, publish, recursive }: Props
+): Promise<Document[]> {
   const newDocuments: Document[] = [];
   const sharedProperties = {
-    user,
     collectionId: collection?.id,
     publish: publish ?? !!document.publishedAt,
-    ctx,
   };
 
-  const duplicated = await documentCreator({
+  const duplicated = await documentCreator(ctx, {
     parentDocumentId,
     icon: document.icon,
     color: document.color,
@@ -52,15 +40,27 @@ export default async function documentDuplicator({
       DocumentHelper.toProsemirror(document),
       ["comment"]
     ),
+    sourceMetadata: {
+      ...document.sourceMetadata,
+      originalDocumentId: document.id,
+    },
     ...sharedProperties,
   });
 
   duplicated.collection = collection ?? null;
   newDocuments.push(duplicated);
 
+  const originalCollection = document?.collectionId
+    ? await Collection.findByPk(document.collectionId, {
+        attributes: {
+          include: ["documentStructure"],
+        },
+      })
+    : null;
+
   async function duplicateChildDocuments(
     original: Document,
-    duplicated: Document
+    duplicatedDocument: Document
   ) {
     const childDocuments = await original.findChildDocuments(
       {
@@ -75,9 +75,14 @@ export default async function documentDuplicator({
       ctx
     );
 
-    for (const childDocument of childDocuments) {
-      const duplicatedChildDocument = await documentCreator({
-        parentDocumentId: duplicated.id,
+    const sorted = DocumentHelper.sortDocumentsByStructure(
+      childDocuments,
+      originalCollection?.getDocumentTree(original.id)?.children ?? []
+    ).reverse(); // we have to reverse since the child documents will be added in reverse order
+
+    for (const childDocument of sorted) {
+      const duplicatedChildDocument = await documentCreator(ctx, {
+        parentDocumentId: duplicatedDocument.id,
         icon: childDocument.icon,
         color: childDocument.color,
         title: childDocument.title,
@@ -85,6 +90,10 @@ export default async function documentDuplicator({
           DocumentHelper.toProsemirror(childDocument),
           ["comment"]
         ),
+        sourceMetadata: {
+          ...childDocument.sourceMetadata,
+          originalDocumentId: childDocument.id,
+        },
         ...sharedProperties,
       });
 

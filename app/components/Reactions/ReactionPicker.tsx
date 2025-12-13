@@ -1,15 +1,17 @@
 import { ReactionIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { PopoverDisclosure, usePopoverState } from "reakit";
 import EventBoundary from "@shared/components/EventBoundary";
 import Flex from "~/components/Flex";
 import { createLazyComponent } from "~/components/LazyLoad";
 import NudeButton from "~/components/NudeButton";
 import PlaceholderText from "~/components/PlaceholderText";
-import Popover from "~/components/Popover";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "~/components/primitives/Popover";
 import useMobile from "~/hooks/useMobile";
-import useOnClickOutside from "~/hooks/useOnClickOutside";
 import useWindowSize from "~/hooks/useWindowSize";
 import Tooltip from "../Tooltip";
 
@@ -20,109 +22,59 @@ const EmojiPanel = createLazyComponent(
 type Props = {
   /** Callback when an emoji is selected by the user. */
   onSelect: (emoji: string) => Promise<void>;
-  /** Callback when the picker is opened. */
-  onOpen?: () => void;
-  /** Callback when the picker is closed. */
-  onClose?: () => void;
   /** Optional classname. */
   className?: string;
   size?: number;
 };
 
-const ReactionPicker: React.FC<Props> = ({
-  onSelect,
-  onOpen,
-  onClose,
-  className,
-  size,
-}) => {
+const ReactionPicker: React.FC<Props> = ({ onSelect, className, size }) => {
   const { t } = useTranslation();
-  const popover = usePopoverState({
-    modal: true,
-    unstable_offset: [0, 0],
-    placement: "bottom-end",
-  });
+  const [open, setOpen] = React.useState(false);
 
   const { width: windowWidth } = useWindowSize();
   const isMobile = useMobile();
 
   const [query, setQuery] = React.useState("");
-  const contentRef = React.useRef<HTMLDivElement | null>(null);
 
   const popoverWidth = isMobile ? windowWidth : 300;
   // In mobile, popover is absolutely positioned to leave 8px on both sides.
   const panelWidth = isMobile ? windowWidth - 16 : popoverWidth;
-  const { toggle, hide } = popover;
-  const handlePopoverButtonClick = React.useCallback(
-    (ev: React.MouseEvent) => {
-      ev.stopPropagation();
-      toggle();
-    },
-    [toggle]
-  );
 
   const handleEmojiSelect = React.useCallback(
     (emoji: string) => {
-      hide();
+      setOpen(false);
       void onSelect(emoji);
     },
-    [hide, onSelect]
-  );
-
-  // Popover open effect
-  React.useEffect(() => {
-    if (popover.visible) {
-      onOpen?.();
-    } else {
-      onClose?.();
-    }
-  }, [popover.visible, onOpen, onClose]);
-
-  // Custom click outside handling rather than using `hideOnClickOutside` from reakit so that we can
-  // prevent event bubbling.
-  useOnClickOutside(
-    contentRef,
-    (event) => {
-      if (
-        popover.visible &&
-        !popover.unstable_disclosureRef.current?.contains(event.target as Node)
-      ) {
-        event.stopPropagation();
-        event.preventDefault();
-        popover.hide();
-      }
-    },
-    { capture: true }
+    [onSelect]
   );
 
   return (
-    <>
-      <PopoverDisclosure {...popover}>
-        {(props) => (
-          <Tooltip content={t("Add reaction")} placement="top">
-            <NudeButton
-              {...props}
-              aria-label={t("Reaction picker")}
-              className={className}
-              onClick={handlePopoverButtonClick}
-              onMouseEnter={() => EmojiPanel.preload()}
-              size={size}
-            >
-              <ReactionIcon size={22} />
-            </NudeButton>
-          </Tooltip>
-        )}
-      </PopoverDisclosure>
-      <Popover
-        {...popover}
-        ref={contentRef}
-        width={popoverWidth}
-        shrink
+    <Popover open={open} onOpenChange={setOpen} modal={true}>
+      <Tooltip content={t("Add reaction")} placement="top">
+        <PopoverTrigger>
+          <NudeButton
+            aria-label={t("Reaction picker")}
+            className={className}
+            onMouseEnter={() => EmojiPanel.preload()}
+            onClick={(e) => e.stopPropagation()}
+            size={size}
+          >
+            <ReactionIcon size={22} />
+          </NudeButton>
+        </PopoverTrigger>
+      </Tooltip>
+      <PopoverContent
         aria-label={t("Reaction picker")}
-        onClick={(e) => e.stopPropagation()}
-        hideOnClickOutside={false}
+        width={popoverWidth}
+        side="bottom"
+        align="end"
+        shrink
+        onCloseAutoFocus={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
       >
-        {popover.visible && (
+        {open && (
           <React.Suspense fallback={<Placeholder />}>
             <EventBoundary>
               <EmojiPanel.Component
@@ -136,8 +88,8 @@ const ReactionPicker: React.FC<Props> = ({
             </EventBoundary>
           </React.Suspense>
         )}
-      </Popover>
-    </>
+      </PopoverContent>
+    </Popover>
   );
 };
 

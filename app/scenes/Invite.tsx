@@ -12,7 +12,7 @@ import { UserValidation } from "@shared/validations";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
-import InputSelect from "~/components/InputSelect";
+import { InputSelect, Option } from "~/components/InputSelect";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Text from "~/components/Text";
 import Tooltip from "~/components/Tooltip";
@@ -58,7 +58,9 @@ function Invite({ onSubmit }: Props) {
         onSubmit();
 
         if (response.length > 0) {
-          toast.success(t("We sent out your invites!"));
+          toast.success(
+            t("{{ count }} invites sent", { count: response.length })
+          );
         } else {
           toast.message(t("Those email addresses are already invited"));
         }
@@ -131,11 +133,12 @@ function Invite({ onSubmit }: Props) {
     </span>
   ) : undefined;
 
-  const options = React.useMemo(() => {
-    const memo = [];
+  const options = React.useMemo<Option[]>(() => {
+    const memo: Option[] = [];
 
     if (user.isAdmin) {
       memo.push({
+        type: "item",
         label: t("Admin"),
         description: t("Can manage all workspace settings"),
         value: UserRole.Admin,
@@ -145,11 +148,13 @@ function Invite({ onSubmit }: Props) {
     return [
       ...memo,
       {
+        type: "item",
         label: t("Editor"),
         description: t("Can create, edit, and delete documents"),
         value: UserRole.Member,
       },
       {
+        type: "item",
         label: t("Viewer"),
         description: t("Can view and comment"),
         value: UserRole.Viewer,
@@ -189,11 +194,10 @@ function Invite({ onSubmit }: Props) {
         )}
         <Flex gap={12} column>
           <InputSelect
-            label={t("Invite as")}
-            ariaLabel={t("Role")}
             options={options}
             onChange={(r) => setRole(r as UserRole)}
             value={role}
+            label={t("Invite as")}
           />
 
           <ResizingHeightContainer style={{ minHeight: 72, marginBottom: 8 }}>
@@ -221,6 +225,8 @@ function Invite({ onSubmit }: Props) {
                   labelHidden={index !== 0}
                   onKeyDown={handleKeyDown}
                   onChange={(ev) => handleChange(ev, index)}
+                  autoComplete="off"
+                  data-1p-ignore
                   value={invite.name}
                   required={!!invite.email}
                   flex

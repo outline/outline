@@ -3,16 +3,13 @@ import { Op } from "sequelize";
 import { ImportState } from "@shared/types";
 import Logger from "@server/logging/Logger";
 import { Import, ImportTask } from "@server/models";
-import BaseTask, { TaskPriority, TaskSchedule } from "./BaseTask";
-
-type Props = Record<string, never>;
+import { TaskPriority } from "./base/BaseTask";
+import { CronTask, TaskInterval } from "./base/CronTask";
 
 /**
  * A task that deletes the import_tasks for old imports which are completed, errored (or) canceled.
  */
-export default class CleanupOldImportsTask extends BaseTask<Props> {
-  static cron = TaskSchedule.Day;
-
+export default class CleanupOldImportsTask extends CronTask {
   public async perform() {
     // TODO: Hardcoded right now, configurable later
     const retentionDays = 1;
@@ -21,7 +18,7 @@ export default class CleanupOldImportsTask extends BaseTask<Props> {
     let totalTasksDeleted = 0;
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // oxlint-disable-next-line @typescript-eslint/no-explicit-any
       await Import.findAllInBatches<Import<any>>(
         {
           attributes: ["id"],
@@ -44,7 +41,7 @@ export default class CleanupOldImportsTask extends BaseTask<Props> {
           paranoid: false,
         },
         async (imports) => {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          // oxlint-disable-next-line @typescript-eslint/no-explicit-any
           await ImportTask.findAllInBatches<ImportTask<any>>(
             {
               attributes: ["id"],
@@ -74,6 +71,12 @@ export default class CleanupOldImportsTask extends BaseTask<Props> {
         });
       }
     }
+  }
+
+  public get cron() {
+    return {
+      interval: TaskInterval.Day,
+    };
   }
 
   public get options() {

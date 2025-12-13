@@ -155,26 +155,22 @@ const DocumentMeta: React.FC<Props> = ({
       }
       return (
         <Viewed>
-          •&nbsp;<Modified highlight>{t("Never viewed")}</Modified>
+          <Separator />
+          <Modified highlight>{t("Never viewed")}</Modified>
         </Viewed>
       );
     }
 
     return (
       <Viewed>
-        •&nbsp;{t("Viewed")} <Time dateTime={lastViewedAt} addSuffix shorten />
+        <Separator />
+        {t("Viewed")} <Time dateTime={lastViewedAt} addSuffix shorten />
       </Viewed>
     );
   };
 
   return (
-    <Container
-      align="center"
-      rtl={document.dir === "rtl"}
-      {...rest}
-      dir="ltr"
-      lang=""
-    >
+    <Container align="center" rtl={document.dir === "rtl"} {...rest} dir="ltr">
       {to ? (
         <Link to={to} replace={replace}>
           {content}
@@ -192,16 +188,17 @@ const DocumentMeta: React.FC<Props> = ({
       )}
       {showParentDocuments && nestedDocumentsCount > 0 && (
         <span>
-          &nbsp;• {nestedDocumentsCount}{" "}
+          <Separator />
+          {nestedDocumentsCount}{" "}
           {t("nested document", {
             count: nestedDocumentsCount,
           })}
         </span>
       )}
-      &nbsp;{timeSinceNow()}
+      {timeSinceNow()}
       {canShowProgressBar && (
         <>
-          &nbsp;•&nbsp;
+          <Separator />
           <DocumentTasks document={document} />
         </>
       )}
@@ -209,6 +206,14 @@ const DocumentMeta: React.FC<Props> = ({
     </Container>
   );
 };
+
+export const Separator = styled.span`
+  padding: 0 0.4em;
+
+  &::after {
+    content: "•";
+  }
+`;
 
 const Strong = styled.strong`
   font-weight: 550;

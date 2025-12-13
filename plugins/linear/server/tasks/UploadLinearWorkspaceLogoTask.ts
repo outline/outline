@@ -1,8 +1,7 @@
-import { v4 as uuidv4 } from "uuid";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import { Integration } from "@server/models";
 import { Buckets } from "@server/models/helpers/AttachmentHelper";
-import BaseTask, { TaskPriority } from "@server/queues/tasks/BaseTask";
+import { BaseTask, TaskPriority } from "@server/queues/tasks/base/BaseTask";
 import FileStorage from "@server/storage/files";
 
 type Props = {
@@ -27,7 +26,7 @@ export default class UploadLinearWorkspaceLogoTask extends BaseTask<Props> {
 
     const res = await FileStorage.storeFromUrl(
       props.logoUrl,
-      `${Buckets.avatars}/${integration.teamId}/${uuidv4()}`,
+      `${Buckets.avatars}/${integration.teamId}/${crypto.randomUUID()}`,
       "public-read",
       {
         headers: {

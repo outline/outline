@@ -36,9 +36,15 @@ export const NavigationSection = ({ t }: ActionContext) => t("Navigation");
 
 export const NotificationSection = ({ t }: ActionContext) => t("Notification");
 
+export const GroupSection = ({ t }: ActionContext) => t("Groups");
+
+export const EmojiSecion = ({ t }: ActionContext) => t("Emoji");
+
 export const UserSection = ({ t }: ActionContext) => t("People");
 
 UserSection.priority = 0.5;
+
+export const ShareSection = ({ t }: ActionContext) => t("Share");
 
 export const TeamSection = ({ t }: ActionContext) => t("Workspace");
 

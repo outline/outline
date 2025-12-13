@@ -14,6 +14,9 @@ import Input from "~/components/Input";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import Icon from "./Icon";
+import { disconnectAnalyticsIntegrationFactory } from "~/actions/definitions/integrations";
+import Flex from "~/components/Flex";
+import styled from "styled-components";
 
 type FormData = {
   instanceUrl: string;
@@ -29,6 +32,9 @@ function Matomo() {
     service: IntegrationService.Matomo,
   }) as Integration<IntegrationType.Analytics> | undefined;
 
+  const instanceUrl = integration?.settings.instanceUrl;
+  const measurementId = integration?.settings.measurementId;
+
   const {
     register,
     reset,
@@ -37,35 +43,31 @@ function Matomo() {
   } = useForm<FormData>({
     mode: "all",
     defaultValues: {
-      instanceUrl: integration?.settings.instanceUrl,
-      measurementId: integration?.settings.measurementId,
+      instanceUrl,
+      measurementId,
     },
   });
 
   React.useEffect(() => {
     reset({
-      measurementId: integration?.settings.measurementId,
-      instanceUrl: integration?.settings.instanceUrl,
+      instanceUrl,
+      measurementId,
     });
-  }, [integration, reset]);
+  }, [reset, instanceUrl, measurementId]);
 
   const handleSubmit = React.useCallback(
     async (data: FormData) => {
       try {
-        if (data.instanceUrl && data.measurementId) {
-          await integrations.save({
-            id: integration?.id,
-            type: IntegrationType.Analytics,
-            service: IntegrationService.Matomo,
-            settings: {
-              measurementId: data.measurementId,
-              // Ensure the URL ends with a trailing slash
-              instanceUrl: data.instanceUrl.replace(/\/?$/, "/"),
-            } as Integration<IntegrationType.Analytics>["settings"],
-          });
-        } else {
-          await integration?.delete();
-        }
+        await integrations.save({
+          id: integration?.id,
+          type: IntegrationType.Analytics,
+          service: IntegrationService.Matomo,
+          settings: {
+            measurementId: data.measurementId,
+            // Ensure the URL ends with a trailing slash
+            instanceUrl: data.instanceUrl.replace(/\/?$/, "/"),
+          } as Integration<IntegrationType.Analytics>["settings"],
+        });
 
         toast.success(t("Settings saved"));
       } catch (err) {
@@ -95,9 +97,8 @@ function Matomo() {
           border={false}
         >
           <Input
-            required
             placeholder="https://instance.matomo.cloud/"
-            {...register("instanceUrl")}
+            {...register("instanceUrl", { required: true })}
           />
         </SettingRow>
         <SettingRow
@@ -108,15 +109,43 @@ function Matomo() {
           )}
           border={false}
         >
-          <Input required placeholder="1" {...register("measurementId")} />
+          <Input
+            placeholder="1"
+            {...register("measurementId", { required: true })}
+          />
         </SettingRow>
 
-        <Button type="submit" disabled={formState.isSubmitting}>
-          {formState.isSubmitting ? `${t("Saving")}…` : t("Save")}
-        </Button>
+        <Actions reverse justify="end" gap={8}>
+          <StyledSubmit
+            type="submit"
+            disabled={
+              !formState.isDirty || !formState.isValid || formState.isSubmitting
+            }
+          >
+            {formState.isSubmitting ? `${t("Saving")}…` : t("Save")}
+          </StyledSubmit>
+
+          <Button
+            action={disconnectAnalyticsIntegrationFactory(integration)}
+            disabled={formState.isSubmitting}
+            neutral
+            hideIcon
+            hideOnActionDisabled
+          >
+            {t("Disconnect")}
+          </Button>
+        </Actions>
       </form>
     </IntegrationScene>
   );
 }
+
+const Actions = styled(Flex)`
+  margin-top: 8px;
+`;
+
+const StyledSubmit = styled(Button)`
+  width: 80px;
+`;
 
 export default observer(Matomo);

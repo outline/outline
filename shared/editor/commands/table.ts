@@ -17,17 +17,25 @@ import {
   deleteRow,
   deleteColumn,
   deleteTable,
+  mergeCells,
+  splitCell,
 } from "prosemirror-tables";
 import { ProsemirrorHelper } from "../../utils/ProsemirrorHelper";
 import { CSVHelper } from "../../utils/csv";
 import { chainTransactions } from "../lib/chainTransactions";
 import {
+  getAllSelectedColumns,
   getCellsInColumn,
+  getCellsInRow,
   isHeaderEnabled,
   isTableSelected,
+  getWidthFromDom,
+  getWidthFromNodes,
 } from "../queries/table";
 import { TableLayout } from "../types";
 import { collapseSelection } from "./collapseSelection";
+import { RowSelection } from "../selection/RowSelection";
+import { ColumnSelection } from "../selection/ColumnSelection";
 
 export function createTable({
   rowsCount,
@@ -140,7 +148,7 @@ export function exportTable({
         .map((row) =>
           row
             .map((cell) => {
-              let value = ProsemirrorHelper.toPlainText(cell, state.schema);
+              let value = ProsemirrorHelper.toPlainText(cell);
 
               // Escape double quotes by doubling them
               if (value.includes('"')) {
@@ -167,6 +175,100 @@ export function exportTable({
 
     return true;
   };
+}
+
+/**
+ * A Commands that distributes the width of all selected columns evenly between them in the current table selection.
+ *
+ *
+ * @returns {Command}
+ */
+export function distributeColumns(): Command {
+  return (state, dispatch, view) => {
+    if (!isInTable(state) || !dispatch) {
+      return false;
+    }
+
+    const rect = selectedRect(state);
+    const { tr, doc } = state;
+    const { map } = rect;
+    const selectedColumns = getAllSelectedColumns(state);
+    if (selectedColumns.length <= 1) {
+      return false;
+    }
+
+    const hasNullWidth = selectedColumns.some((colIndex) =>
+      isNullWidth({ state, colIndex })
+    );
+
+    // whenever we can, we want to take the column width that prose-mirror sets
+    // since that will always be accurate, when set
+    const totalWidth = hasNullWidth
+      ? getWidthFromDom({ view, rect, selectedColumns })
+      : getWidthFromNodes({ state, selectedColumns });
+
+    if (totalWidth < 1) {
+      return false;
+    }
+
+    const evenWidth = totalWidth / selectedColumns.length;
+    const isLastColSelected = selectedColumns.includes(map.width - 1);
+
+    const tableNode = doc.nodeAt(rect.tableStart - 1);
+    const isFullWidth = tableNode?.attrs.layout === TableLayout.fullWidth;
+
+    for (let row = 0; row < map.height; row++) {
+      const cellsInRow = getCellsInRow(row)(state);
+      if (!cellsInRow || cellsInRow.length < 1) {
+        continue;
+      }
+
+      selectedColumns.forEach((colIndex) => {
+        const pos = cellsInRow[colIndex];
+        const cell = pos !== undefined ? doc.nodeAt(pos) : null;
+        if (!cell) {
+          return;
+        }
+
+        const isLastColumn = colIndex === map.width - 1;
+        const shouldKeepNull =
+          isLastColumn && isLastColSelected && isFullWidth && hasNullWidth;
+
+        tr.setNodeMarkup(pos, undefined, {
+          ...cell.attrs,
+          colwidth: shouldKeepNull ? null : [evenWidth],
+        });
+      });
+    }
+
+    dispatch(tr);
+    return true;
+  };
+}
+
+/**
+ * Determines whether the width of a specified column is null.
+ *
+ * @param state - The current editor state.
+ * @param colIndex - The index of the column to check.
+ *
+ * @returns {boolean} True if the column width is null, false otherwise.
+ */
+function isNullWidth({
+  state,
+  colIndex,
+}: {
+  state: EditorState;
+  colIndex: number;
+}): boolean {
+  const firstRowCells = getCellsInRow(0)(state);
+  const cell =
+    firstRowCells?.[colIndex] !== undefined
+      ? state.doc.nodeAt(firstRowCells[colIndex])
+      : null;
+
+  const colwidth = cell?.attrs.colwidth;
+  return !colwidth?.[0];
 }
 
 export function sortTable({
@@ -290,9 +392,15 @@ export function addRowBefore({ index }: { index?: number }): Command {
     // move inwards.
     const headerSpecialCase = position === 0 && isHeaderRowEnabled;
 
+    // Determine which row to copy alignment from (using original table indices)
+    // When inserting at position 0, copy from original row 0
+    // When inserting at other positions, copy from the row above (position - 1)
+    const copyFromRow = position === 0 ? 0 : position - 1;
+
     chainTransactions(
       headerSpecialCase ? toggleHeader("row") : undefined,
-      (s, d) => !!d?.(addRow(s.tr, rect, position)),
+      (s, d) =>
+        !!d?.(addRowWithAlignment(s.tr, rect, position, copyFromRow, s)),
       headerSpecialCase ? toggleHeader("row") : undefined,
       collapseSelection()
     )(state, dispatch);
@@ -384,12 +492,24 @@ export function addRowAndMoveSelection({
     // above instead of below.
     if (rect.left === 0 && view?.endOfTextblock("backward", state)) {
       const indexBefore = index !== undefined ? index - 1 : rect.top;
-      dispatch?.(addRow(state.tr, rect, indexBefore));
+      // Copy alignment from the current row (which will be pushed down)
+      const copyFromRow = indexBefore;
+      dispatch?.(
+        addRowWithAlignment(state.tr, rect, indexBefore, copyFromRow, state)
+      );
       return true;
     }
 
     const indexAfter = index !== undefined ? index + 1 : rect.bottom;
-    const tr = addRow(state.tr, rect, indexAfter);
+    // Copy alignment from the row above the insertion point
+    const copyFromRow = indexAfter > 0 ? indexAfter - 1 : undefined;
+    const tr = addRowWithAlignment(
+      state.tr,
+      rect,
+      indexAfter,
+      copyFromRow,
+      state
+    );
 
     // Special case when adding row to the end of the table as the calculated
     // rect does not include the row that we just added.
@@ -471,8 +591,8 @@ export function selectRow(index: number, expand = false): Command {
       const $pos = state.doc.resolve(rect.tableStart + pos);
       const rowSelection =
         expand && state.selection instanceof CellSelection
-          ? CellSelection.rowSelection(state.selection.$anchorCell, $pos)
-          : CellSelection.rowSelection($pos);
+          ? RowSelection.rowSelection(state.selection.$anchorCell, $pos)
+          : RowSelection.rowSelection($pos);
       dispatch(state.tr.setSelection(rowSelection));
       return true;
     }
@@ -488,8 +608,8 @@ export function selectColumn(index: number, expand = false): Command {
       const $pos = state.doc.resolve(rect.tableStart + pos);
       const colSelection =
         expand && state.selection instanceof CellSelection
-          ? CellSelection.colSelection(state.selection.$anchorCell, $pos)
-          : CellSelection.colSelection($pos);
+          ? ColumnSelection.colSelection(state.selection.$anchorCell, $pos)
+          : ColumnSelection.colSelection($pos);
       dispatch(state.tr.setSelection(colSelection));
       return true;
     }
@@ -596,4 +716,86 @@ export function deleteCellSelection(
     }
   }
   return false;
+}
+
+/**
+ * A command that splits a cell and collapses the selection.
+ *
+ * @returns The command
+ */
+export function splitCellAndCollapse(): Command {
+  return chainTransactions(splitCell, collapseSelection());
+}
+
+/**
+ * Helper function to add a row while copying alignment attributes from an existing row.
+ *
+ * @param tr The transaction
+ * @param rect The table rect
+ * @param index The index where to insert the row
+ * @param copyFromRow The row index to copy alignment from (optional)
+ * @param state The editor state
+ * @returns The modified transaction
+ */
+function addRowWithAlignment(
+  tr: Transaction,
+  rect: any,
+  index: number,
+  copyFromRow: number | undefined,
+  state: EditorState
+): Transaction {
+  // Get alignment attributes from the source row BEFORE inserting the new row
+  let sourceRowAlignments: (string | null)[] | undefined;
+
+  if (
+    copyFromRow !== undefined &&
+    copyFromRow >= 0 &&
+    copyFromRow < rect.map.height
+  ) {
+    const cellsInSourceRow = getCellsInRow(copyFromRow)(state);
+    if (cellsInSourceRow) {
+      sourceRowAlignments = cellsInSourceRow.map((pos) => {
+        const node = tr.doc.nodeAt(pos);
+        return node?.attrs.alignment || null;
+      });
+    }
+  }
+
+  // Now add the row using the standard prosemirror function
+  const newTr = addRow(tr, rect, index);
+
+  // Apply the copied alignments to the new row
+  if (sourceRowAlignments) {
+    const newState = state.apply(newTr);
+    const cellsInNewRow = getCellsInRow(index)(newState);
+
+    if (cellsInNewRow) {
+      cellsInNewRow.forEach((newCellPos, colIndex) => {
+        if (
+          colIndex < sourceRowAlignments.length &&
+          sourceRowAlignments[colIndex]
+        ) {
+          const newCellNode = newTr.doc.nodeAt(newCellPos);
+          if (newCellNode) {
+            const attrs = {
+              ...newCellNode.attrs,
+              alignment: sourceRowAlignments[colIndex],
+            };
+            newTr.setNodeMarkup(newCellPos, undefined, attrs);
+          }
+        }
+      });
+    }
+  }
+
+  return newTr;
+}
+
+/**
+ * A command that merges selected cells and collapses the selection.
+ *
+ * @returns The command
+ */
+export function mergeCellsAndCollapse(): Command {
+  return chainTransactions(mergeCells, collapseSelection());
 }

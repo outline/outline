@@ -1,5 +1,5 @@
-import randomstring from "randomstring";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
+import { randomString } from "@shared/random";
 import slugify from "@shared/utils/slugify";
 import {
   buildUser,
@@ -101,7 +101,7 @@ describe("getDocumentTree", () => {
 describe("#addDocumentToStructure", () => {
   it("should add as last element without index", async () => {
     const collection = await buildCollection();
-    const id = uuidv4();
+    const id = randomUUID();
     const newDocument = await buildDocument({
       id,
       title: "New end node",
@@ -119,7 +119,7 @@ describe("#addDocumentToStructure", () => {
 
   it("should add with an index", async () => {
     const collection = await buildCollection();
-    const id = uuidv4();
+    const id = randomUUID();
     const newDocument = await buildDocument({
       id,
       title: "New end node",
@@ -136,7 +136,7 @@ describe("#addDocumentToStructure", () => {
     const document = await buildDocument({ collectionId: collection.id });
     await collection.reload();
 
-    const id = uuidv4();
+    const id = randomUUID();
     const newDocument = await buildDocument({
       id,
       title: "New end node",
@@ -156,12 +156,12 @@ describe("#addDocumentToStructure", () => {
     await collection.reload();
 
     const newDocument = await buildDocument({
-      id: uuidv4(),
+      id: randomUUID(),
       title: "node",
       parentDocumentId: document.id,
       teamId: collection.teamId,
     });
-    const id = uuidv4();
+    const id = randomUUID();
     const secondDocument = await buildDocument({
       id,
       title: "New start node",
@@ -239,9 +239,9 @@ describe("#addDocumentToStructure", () => {
   describe("options: documentJson", () => {
     it("should append supplied json over document's own", async () => {
       const collection = await buildCollection();
-      const id = uuidv4();
+      const id = randomUUID();
       const newDocument = await buildDocument({
-        id: uuidv4(),
+        id: randomUUID(),
         title: "New end node",
         parentDocumentId: null,
         teamId: collection.teamId,
@@ -511,8 +511,41 @@ describe("#findByPk", () => {
   });
 
   it("should return null when no collection is found with urlId", async () => {
-    const id = `${slugify("test collection")}-${randomstring.generate(15)}`;
+    const id = `${slugify("test collection")}-${randomString(15)}`;
     const response = await Collection.findByPk(id);
     expect(response).toBe(null);
+  });
+});
+
+describe("#setIndex", () => {
+  it("should set index before creating a collection", async () => {
+    const collection = await buildCollection();
+    expect(collection.index).not.toBeNull();
+  });
+
+  it("should resolve index collision when creating a collection", async () => {
+    const collection = await buildCollection();
+    const anotherCollection = await buildCollection({
+      teamId: collection.teamId,
+      index: collection.index,
+    });
+    expect(anotherCollection.index).not.toBeNull();
+    expect(anotherCollection.index).not.toEqual(collection.index);
+  });
+
+  it("should ensure only transaction is used for finding the first collection for team", async () => {
+    const collection = await buildCollection();
+    const [anotherCollection] = await Collection.findOrCreate({
+      where: {
+        name: "Another collection",
+        teamId: collection.teamId,
+      },
+      defaults: {
+        createdById: collection.createdById,
+        index: collection.index,
+      },
+    });
+    expect(anotherCollection.index).not.toBeNull();
+    expect(anotherCollection.index).not.toEqual(collection.index);
   });
 });

@@ -4,7 +4,6 @@ import flatten from "lodash/flatten";
 import isMatch from "lodash/isMatch";
 import uniq from "lodash/uniq";
 import { Node, DOMSerializer, Fragment } from "prosemirror-model";
-import * as React from "react";
 import { renderToString } from "react-dom/server";
 import styled, { ServerStyleSheet, ThemeProvider } from "styled-components";
 import { prosemirrorToYDoc } from "y-prosemirror";
@@ -31,6 +30,8 @@ export type HTMLOptions = {
   includeStyles?: boolean;
   /** Whether to include mermaidjs scripts in the generated HTML (defaults to false) */
   includeMermaid?: boolean;
+  /** Whether to include head tags in the generated HTML (defaults to true) */
+  includeHead?: boolean;
   /** Whether to include styles to center diff (defaults to true) */
   centered?: boolean;
   /** The base URL to use for relative links */
@@ -281,8 +282,8 @@ export class ProsemirrorHelper {
     }
 
     function replaceUrl(url: string) {
-      // Only replace if the URL starts with /doc/ (not already in a share path)
-      if (url.startsWith("/doc/")) {
+      // Only replace if the URL starts with /doc/ (or) /collection/ (not already in a share path)
+      if (url.startsWith("/doc/") || url.startsWith("/collection/")) {
         return `${basePath}${url}`;
       }
       return url;
@@ -561,7 +562,21 @@ export class ProsemirrorHelper {
       dom.window.document.body.appendChild(element);
     }
 
-    return dom.serialize();
+    const output = dom.serialize();
+
+    if (options?.includeHead === false) {
+      // replace everything upto and including "<body>"
+      const body = "<body>";
+      const bodyIndex = output.indexOf(body) + body.length;
+      if (bodyIndex !== -1) {
+        return output
+          .substring(bodyIndex)
+          .replace("</body>", "")
+          .replace("</html>", "");
+      }
+    }
+
+    return output;
   }
 
   /**

@@ -3,14 +3,14 @@ import { CollectionPermission, DocumentPermission } from "@shared/types";
 import Collection from "./Collection";
 import Document from "./Document";
 import Group from "./Group";
-import Model from "./base/Model";
 import { AfterRemove } from "./decorators/Lifecycle";
 import Relation from "./decorators/Relation";
+import NavigableModel from "./base/NavigableModel";
 
 /**
  * Represents a groups's membership to a collection or document.
  */
-class GroupMembership extends Model {
+class GroupMembership extends NavigableModel {
   static modelName = "GroupMembership";
 
   /** The group ID that this membership is granted to. */
@@ -19,9 +19,6 @@ class GroupMembership extends Model {
   /** The group that this membership is granted to. */
   @Relation(() => Group, { onDelete: "cascade" })
   group: Group;
-
-  /** The document ID that this membership grants the group access to. */
-  documentId: string | undefined;
 
   /** The document that this membership grants the group access to. */
   @Relation(() => Document, { onDelete: "cascade" })
@@ -44,6 +41,22 @@ class GroupMembership extends Model {
   /** The permission level granted to the group. */
   @observable
   permission: CollectionPermission | DocumentPermission;
+
+  // methods
+  /**
+   * Fetches the child documents structure from the server.
+   */
+  async fetchDocuments(options: { force?: boolean } = {}) {
+    if (!this.documentId) {
+      return;
+    }
+
+    await super.fetchDocuments({
+      path: "/documents.documents",
+      params: { id: this.documentId },
+      ...options,
+    });
+  }
 
   // hooks
 

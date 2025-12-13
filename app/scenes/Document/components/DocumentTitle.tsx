@@ -23,8 +23,10 @@ import { useDocumentContext } from "~/components/DocumentContext";
 import { PopoverButton } from "~/components/IconPicker/components/PopoverButton";
 import useBoolean from "~/hooks/useBoolean";
 import usePolicy from "~/hooks/usePolicy";
+import { useTranslation } from "react-i18next";
+import lazyWithRetry from "~/utils/lazyWithRetry";
 
-const IconPicker = React.lazy(() => import("~/components/IconPicker"));
+const IconPicker = lazyWithRetry(() => import("~/components/IconPicker"));
 
 type Props = {
   /** ID of the associated document */
@@ -54,7 +56,7 @@ type Props = {
 const lineHeight = "1.25";
 const fontSize = "2.25em";
 
-const DocumentTitle = React.forwardRef(function _DocumentTitle(
+const DocumentTitle = React.forwardRef(function DocumentTitle_(
   {
     documentId,
     title,
@@ -70,6 +72,7 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
   }: Props,
   externalRef: React.RefObject<RefHandle>
 ) {
+  const { t } = useTranslation();
   const ref = React.useRef<RefHandle>(null);
   const [iconPickerIsOpen, handleOpen, setIconPickerClosed] = useBoolean();
   const { editor } = useDocumentContext();
@@ -230,9 +233,9 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
   );
 
   const dir = ref.current?.getComputedDirection();
-
+  const initial = title.charAt(0).toUpperCase();
   const fallbackIcon = icon ? (
-    <Icon value={icon} color={color} size={40} />
+    <Icon value={icon} initial={initial} color={color} size={40} />
   ) : null;
 
   return (
@@ -249,6 +252,7 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
       autoFocus={!title}
       maxLength={DocumentValidation.maxTitleLength}
       readOnly={readOnly}
+      aria-label={t("Document title")}
       dir="auto"
       ref={mergeRefs([ref, externalRef])}
     >
@@ -258,6 +262,7 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
             <StyledIconPicker
               icon={icon ?? null}
               color={color}
+              initial={initial}
               size={40}
               popoverPosition="bottom-start"
               onChange={handleIconChange}

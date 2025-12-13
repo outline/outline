@@ -4,6 +4,7 @@ import {
   type OAuthWebFlowAuthOptions,
   type InstallationAuthOptions,
 } from "@octokit/auth-app";
+import { Sequelize } from "sequelize";
 import { Endpoints, OctokitResponse } from "@octokit/types";
 import { Octokit } from "octokit";
 import pluralize from "pluralize";
@@ -14,7 +15,7 @@ import {
 } from "@shared/types";
 import Logger from "@server/logging/Logger";
 import { Integration, User } from "@server/models";
-import { UnfurlIssueAndPR, UnfurlSignature } from "@server/types";
+import { UnfurlIssueOrPR, UnfurlSignature } from "@server/types";
 import { GitHubUtils } from "../shared/GitHubUtils";
 import env from "./env";
 
@@ -22,6 +23,8 @@ type PR =
   Endpoints["GET /repos/{owner}/{repo}/pulls/{pull_number}"]["response"]["data"];
 type Issue =
   Endpoints["GET /repos/{owner}/{repo}/issues/{issue_number}"]["response"]["data"];
+type Installation =
+  Endpoints["GET /app/installations/{installation_id}"]["response"]["data"];
 
 const requestPlugin = (octokit: Octokit) => ({
   requestRepos: () =>
@@ -85,6 +88,23 @@ const requestPlugin = (octokit: Octokit) => ({
         return;
     }
   },
+
+  /**
+   * Fetches details of a specific GitHub app installation
+   *
+   * @param installationId Id of the installation to fetch
+   * @returns Response containing installation details
+   */
+  requestAppInstallation: async (
+    installationId: number
+  ): Promise<OctokitResponse<Installation>> =>
+    octokit.request("GET /app/installations/{installation_id}", {
+      installation_id: installationId,
+      headers: {
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+    }),
 
   /**
    * Uninstalls the GitHub app from a given target
@@ -210,11 +230,22 @@ export class GitHub {
       return;
     }
 
+    // Find integration, prioritizing one where the installation account matches the resource owner
     const integration = (await Integration.findOne({
       where: {
         service: IntegrationService.GitHub,
         teamId: actor.teamId,
-        "settings.github.installation.account.name": resource.owner,
+      },
+      order: [
+        [
+          Sequelize.literal(
+            `CASE WHEN "settings"->'github'->'installation'->'account'->>'name' = :owner THEN 0 ELSE 1 END`
+          ),
+          "ASC",
+        ],
+      ],
+      replacements: {
+        owner: resource.owner,
       },
     })) as Integration<IntegrationType.Embed>;
 
@@ -261,8 +292,7 @@ export class GitHub {
           color: GitHubUtils.getColorForStatus(issue.state),
         },
         createdAt: issue.created_at,
-        transformed_unfurl: true,
-      } satisfies UnfurlIssueAndPR;
+      } satisfies UnfurlIssueOrPR;
     }
 
     const pr = data as PR;
@@ -283,7 +313,6 @@ export class GitHub {
         draft: pr.draft,
       },
       createdAt: pr.created_at,
-      transformed_unfurl: true,
-    } satisfies UnfurlIssueAndPR;
+    } satisfies UnfurlIssueOrPR;
   }
 }

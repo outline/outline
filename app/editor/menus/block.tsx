@@ -28,6 +28,7 @@ import Image from "@shared/editor/components/Img";
 import { MenuItem } from "@shared/editor/types";
 import { metaDisplay } from "@shared/utils/keyboard";
 import { Dictionary } from "~/hooks/useDictionary";
+import Desktop from "~/utils/Desktop";
 
 const Img = styled(Image)`
   border-radius: 2px;
@@ -44,7 +45,7 @@ export default function blockMenuItems(
 ): MenuItem[] {
   const documentWidth = documentRef.current?.clientWidth ?? 0;
 
-  return [
+  const items = [
     {
       name: "heading",
       title: dictionary.h1,
@@ -223,5 +224,16 @@ export default function blockMenuItems(
       keywords: "diagram flowchart",
       attrs: { language: "mermaidjs" },
     },
+    {
+      name: "editDiagram",
+      title: "Diagrams.net Diagram",
+      icon: <Img src="/images/diagrams.png" alt="Diagrams.net Diagram" />,
+      keywords: "diagram flowchart draw.io",
+    },
   ];
+
+  // Filter out diagrams.net in desktop app
+  return Desktop.isElectron()
+    ? items.filter((item) => item.name !== "editDiagram")
+    : items;
 }

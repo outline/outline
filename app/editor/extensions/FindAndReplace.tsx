@@ -291,6 +291,12 @@ export default class FindAndReplaceExtension extends Extension {
           const from = type === "inline" ? pos + i : pos;
           const to = from + (type === "inline" ? m[0].length : node.nodeSize);
 
+          // Prevent wrap around matches when the regex matches at the end of the deburred
+          // string and continues matching at the start of the original string
+          if (i + m[0].length > text.length) {
+            continue;
+          }
+
           // Check if already exists in results, possible due to duplicated
           // search string on L257
           if (this.results.some((r) => r.from === from && r.to === to)) {
@@ -299,7 +305,7 @@ export default class FindAndReplaceExtension extends Extension {
 
           this.results.push({ from, to, type });
         }
-      } catch (e) {
+      } catch (_err) {
         // Invalid RegExp
       }
     });

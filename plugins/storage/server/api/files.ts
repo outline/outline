@@ -1,6 +1,7 @@
 import JWT from "jsonwebtoken";
 import Router from "koa-router";
 import mime from "mime-types";
+import contentDisposition from "content-disposition";
 import env from "@server/env";
 import {
   AuthenticationError,
@@ -94,14 +95,18 @@ router.get(
       "application/octet-stream";
 
     ctx.set("Accept-Ranges", "bytes");
+    ctx.set("Access-Control-Allow-Origin", "*");
     ctx.set("Cache-Control", cacheHeader);
     ctx.set("Content-Type", contentType);
     ctx.set("Content-Security-Policy", "sandbox");
-    ctx.attachment(fileName, {
-      type: forceDownload
-        ? "attachment"
-        : FileStorage.getContentDisposition(contentType),
-    });
+    ctx.set(
+      "Content-Disposition",
+      contentDisposition(fileName, {
+        type: forceDownload
+          ? "attachment"
+          : FileStorage.getContentDisposition(contentType),
+      })
+    );
 
     // Handle byte range requests
     // https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests
@@ -154,7 +159,7 @@ function getKeyFromContext(ctx: APIContext<T.FilesGetReq>): string {
 
     try {
       JWT.verify(sig, env.SECRET_KEY);
-    } catch (err) {
+    } catch (_err) {
       throw AuthenticationError("Invalid signature");
     }
 

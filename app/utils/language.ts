@@ -3,7 +3,8 @@ import { locales, unicodeCLDRtoBCP47 } from "@shared/utils/date";
 import Desktop from "./Desktop";
 
 /**
- * Formats a number using the user's locale where possible.
+ * Formats a number using the user's locale where possible. Use `useFormatNumber` hook
+ * instead of this function in React components, to automatically use the user's locale.
  *
  * @param number The number to format
  * @param locale The locale to use for formatting (BCP47 format)
@@ -12,7 +13,7 @@ import Desktop from "./Desktop";
 export function formatNumber(number: number, locale: string) {
   try {
     return new Intl.NumberFormat(locale).format(number);
-  } catch (e) {
+  } catch (_err) {
     return number.toString();
   }
 }
@@ -47,4 +48,47 @@ export async function changeLanguage(
     await instance.changeLanguage(localeBCP);
     await Desktop.bridge?.setSpellCheckerLanguages(["en-US", localeBCP]);
   }
+}
+
+/**
+ * Languages with special styling, in ISO 639-1 format.
+ */
+const scriptsWithLang = new Set([
+  "th", // Thai
+  "lo", // Lao
+  "km", // Khmer
+  "my", // Burmese
+  "hi", // Hindi
+  "mr", // Marathi
+  "ne", // Nepali
+  "bn", // Bengali
+  "gu", // Gujarati
+  "pa", // Punjabi
+  "te", // Telugu
+  "ta", // Tamil
+  "ml", // Malayalam
+  "si", // Sinhala
+  "bo", // Tibetan
+  "ar", // Arabic
+  "fa", // Persian
+  "ur", // Urdu
+  "he", // Hebrew
+  "am", // Amharic
+  "mn", // Mongolian
+]);
+
+/**
+ * Returns the language code if it requires special text styling, otherwise undefined.
+ * This is used to determine if a lang attribute should be set on elements for CSS styling.
+ *
+ * @param langCode The language code to check, in ISO 639-1 format
+ * @returns The language code if it requires special styling, otherwise undefined
+ */
+export function getLangFor(
+  langCode: string | null | undefined
+): string | undefined {
+  if (!langCode) {
+    return undefined;
+  }
+  return scriptsWithLang.has(langCode) ? langCode : undefined;
 }

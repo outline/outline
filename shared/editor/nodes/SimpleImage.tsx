@@ -14,9 +14,12 @@ import uploadPlaceholderPlugin from "../lib/uploadPlaceholder";
 import { UploadPlugin } from "../plugins/UploadPlugin";
 import { ComponentProps } from "../types";
 import Node from "./Node";
+import { LightboxImageFactory } from "../lib/Lightbox";
 
 export default class SimpleImage extends Node {
-  options: Options;
+  options: Options & {
+    userId?: string;
+  };
 
   get name() {
     return "image";
@@ -76,20 +79,16 @@ export default class SimpleImage extends Node {
     };
   }
 
-  handleSelect =
-    ({ getPos }: { getPos: () => number }) =>
-    (event: React.MouseEvent) => {
-      event.preventDefault();
-
-      const { view } = this.editor;
-      const $pos = view.state.doc.resolve(getPos());
-      const transaction = view.state.tr.setSelection(new NodeSelection($pos));
-      view.dispatch(transaction);
-      view.focus();
+  handleClick =
+    ({ view, getPos }: ComponentProps) =>
+    () => {
+      this.editor.updateActiveLightboxImage(
+        LightboxImageFactory.createLightboxImage(view, getPos())
+      );
     };
 
   component = (props: ComponentProps) => (
-    <ImageComponent {...props} onClick={this.handleSelect(props)} />
+    <ImageComponent {...props} onClick={this.handleClick(props)} />
   );
 
   keys(): Record<string, Command> {
@@ -134,9 +133,7 @@ export default class SimpleImage extends Node {
       node: "image",
       getAttrs: (token: Token) => ({
         src: token.attrGet("src"),
-        alt:
-          (token?.children && token.children[0] && token.children[0].content) ||
-          null,
+        alt: token.content || null,
       }),
     };
   }

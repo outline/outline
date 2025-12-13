@@ -1,5 +1,5 @@
+import * as React from "react";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
 import { depths, s } from "@shared/styles";
 import env from "~/env";
 import OutlineIcon from "./Icons/OutlineIcon";
@@ -10,7 +10,7 @@ type Props = {
 
 function Branding({ href = env.URL }: Props) {
   return (
-    <Link href={href}>
+    <Link href={href} target="_blank">
       <OutlineIcon size={20} />
       &nbsp;{env.APP_NAME}
     </Link>
@@ -33,18 +33,16 @@ const Link = styled.a`
     fill: ${s("text")};
   }
 
-  ${breakpoint("tablet")`
-    z-index: ${depths.sidebar + 1};
-    background: ${s("sidebarBackground")};
-    position: fixed;
-    bottom: 0;
-    right: 0;
-    padding: 16px;
+  z-index: ${depths.sidebar + 1};
+  background: ${s("sidebarBackground")};
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  padding: 16px;
 
-    &:hover {
-      background: ${s("sidebarControlHoverBackground")};
-    }
-  `};
+  &:hover {
+    background: ${s("sidebarControlHoverBackground")};
+  }
 `;
 
-export default Branding;
+export default React.memo(Branding);

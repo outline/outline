@@ -26,6 +26,7 @@ import { Background } from "./components/Background";
 import { Centered } from "./components/Centered";
 import { ConnectHeader } from "./components/ConnectHeader";
 import { TeamSwitcher } from "./components/TeamSwitcher";
+import { Form } from "~/components/primitives/Form";
 
 export default function OAuthAuthorize() {
   const team = useCurrentTeam({ rejectOnEmpty: false });
@@ -93,7 +94,9 @@ function Authorize() {
 
   useEffect(
     () => () => {
-      timeoutRef.current && window.clearTimeout(timeoutRef.current);
+      if (timeoutRef.current) {
+        window.clearTimeout(timeoutRef.current);
+      }
     },
     []
   );
@@ -201,7 +204,7 @@ function Authorize() {
             </li>
           ))}
         </ul>
-        <form
+        <Form
           method="POST"
           action="/oauth/authorize"
           style={{ width: "100%" }}
@@ -234,7 +237,7 @@ function Authorize() {
               {t("Authorize")}
             </Button>
           </Flex>
-        </form>
+        </Form>
       </Centered>
     </Background>
   );

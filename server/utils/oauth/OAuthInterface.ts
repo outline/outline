@@ -59,9 +59,8 @@ export const OAuthInterface: RefreshTokenModel &
   },
 
   async getAccessToken(accessToken: string) {
-    const authentication = await OAuthAuthentication.findByAccessToken(
-      accessToken
-    );
+    const authentication =
+      await OAuthAuthentication.findByAccessToken(accessToken);
     if (!authentication) {
       return false;
     }
@@ -71,7 +70,7 @@ export const OAuthInterface: RefreshTokenModel &
       accessTokenExpiresAt: authentication.accessTokenExpiresAt,
       scope: authentication.scope,
       client: {
-        id: authentication.oauthClientId,
+        id: authentication.oauthClient.clientId,
         grants: this.grants,
       },
       user: authentication.user,
@@ -79,9 +78,8 @@ export const OAuthInterface: RefreshTokenModel &
   },
 
   async getRefreshToken(refreshToken: string) {
-    const authentication = await OAuthAuthentication.findByRefreshToken(
-      refreshToken
-    );
+    const authentication =
+      await OAuthAuthentication.findByRefreshToken(refreshToken);
     if (!authentication) {
       return false;
     }
@@ -91,7 +89,7 @@ export const OAuthInterface: RefreshTokenModel &
       refreshTokenExpiresAt: authentication.refreshTokenExpiresAt,
       scope: authentication.scope,
       client: {
-        id: authentication.oauthClientId,
+        id: authentication.oauthClient.clientId,
         grants: this.grants,
       },
       user: authentication.user,
@@ -137,6 +135,7 @@ export const OAuthInterface: RefreshTokenModel &
     return {
       id: client.clientId,
       redirectUris: client.redirectUris,
+      clientType: client.clientType,
       databaseId: client.id,
       grants: this.grants,
     };

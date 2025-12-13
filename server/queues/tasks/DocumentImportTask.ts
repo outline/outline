@@ -5,13 +5,13 @@ import { createContext } from "@server/context";
 import { User } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import FileStorage from "@server/storage/files";
-import BaseTask, { TaskPriority } from "./BaseTask";
+import { BaseTask, TaskPriority } from "./base/BaseTask";
 
 type Props = {
   userId: string;
   sourceMetadata: Pick<Required<SourceMetadata>, "fileName" | "mimeType">;
   publish?: boolean;
-  collectionId?: string;
+  collectionId?: string | null;
   parentDocumentId?: string | null;
   ip: string;
   key: string;
@@ -44,15 +44,17 @@ export default class DocumentImportTask extends BaseTask<Props> {
           transaction,
         });
 
+        const ctx = createContext({ user, transaction, ip });
+
         const { text, state, title, icon } = await documentImporter({
           user,
           fileName: sourceMetadata.fileName,
           mimeType: sourceMetadata.mimeType,
           content,
-          ctx: createContext({ user, transaction, ip }),
+          ctx,
         });
 
-        return documentCreator({
+        return documentCreator(ctx, {
           sourceMetadata,
           title,
           icon,
@@ -61,8 +63,6 @@ export default class DocumentImportTask extends BaseTask<Props> {
           publish,
           collectionId,
           parentDocumentId,
-          user,
-          ctx: createContext({ user, transaction, ip }),
         });
       });
       return { documentId: document.id };

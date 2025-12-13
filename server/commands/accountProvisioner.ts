@@ -20,10 +20,11 @@ import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { sequelize } from "@server/storage/database";
 import teamProvisioner from "./teamProvisioner";
 import userProvisioner from "./userProvisioner";
+import { APIContext } from "@server/types";
+import { addSeconds } from "date-fns";
+import { createContext } from "@server/context";
 
 type Props = {
-  /** The IP address of the incoming request */
-  ip: string;
   /** Details of the user logging in from SSO provider */
   user: {
     /** The displayed name of the user */
@@ -80,28 +81,29 @@ export type AccountProvisionerResult = {
   isNewUser: boolean;
 };
 
-async function accountProvisioner({
-  ip,
-  user: userParams,
-  team: teamParams,
-  authenticationProvider: authenticationProviderParams,
-  authentication: authenticationParams,
-}: Props): Promise<AccountProvisionerResult> {
+async function accountProvisioner(
+  ctx: APIContext,
+  {
+    user: userParams,
+    team: teamParams,
+    authenticationProvider: authenticationProviderParams,
+    authentication: authenticationParams,
+  }: Props
+): Promise<AccountProvisionerResult> {
   let result;
   let emailMatchOnly;
 
   try {
-    result = await teamProvisioner({
-      name: "Wiki",
+    result = await teamProvisioner(ctx, {
       ...teamParams,
+      name: teamParams.name || "Wiki",
       authenticationProvider: authenticationProviderParams,
-      ip,
     });
   } catch (err) {
     // The account could not be provisioned for the provided teamId
     // check to see if we can try authentication using email matching only
     if (err.id === "invalid_authentication") {
-      const authenticationProvider = await AuthenticationProvider.findOne({
+      const authProvider = await AuthenticationProvider.findOne({
         where: {
           name: authenticationProviderParams.name,
           teamId: teamParams.teamId,
@@ -116,11 +118,11 @@ async function accountProvisioner({
         order: [["enabled", "DESC"]],
       });
 
-      if (authenticationProvider) {
+      if (authProvider) {
         emailMatchOnly = true;
         result = {
-          authenticationProvider,
-          team: authenticationProvider.team,
+          authenticationProvider: authProvider,
+          team: authProvider.team,
           isNewTeam: false,
         };
       }
@@ -142,21 +144,20 @@ async function accountProvisioner({
     throw AuthenticationProviderDisabledError();
   }
 
-  result = await userProvisioner({
+  result = await userProvisioner(ctx, {
     name: userParams.name,
     email: userParams.email,
     language: userParams.language,
     role: isNewTeam ? UserRole.Admin : undefined,
     avatarUrl: userParams.avatarUrl,
     teamId: team.id,
-    ip,
     authentication: emailMatchOnly
       ? undefined
       : {
           authenticationProviderId: authenticationProvider.id,
           ...authenticationParams,
           expiresAt: authenticationParams.expiresIn
-            ? new Date(Date.now() + authenticationParams.expiresIn * 1000)
+            ? addSeconds(Date.now(), authenticationParams.expiresIn)
             : undefined,
         },
   });
@@ -187,7 +188,7 @@ async function accountProvisioner({
     }
 
     if (provision) {
-      await provisionFirstCollection(team, user);
+      await provisionFirstCollection(ctx, team, user);
     }
   }
 
@@ -199,21 +200,26 @@ async function accountProvisioner({
   };
 }
 
-async function provisionFirstCollection(team: Team, user: User) {
+async function provisionFirstCollection(
+  ctx: APIContext,
+  team: Team,
+  user: User
+) {
   await sequelize.transaction(async (transaction) => {
-    const collection = await Collection.create(
-      {
-        name: "Welcome",
-        description: `This collection is a quick guide to what ${env.APP_NAME} is all about. Feel free to delete this collection once your team is up to speed with the basics!`,
-        teamId: team.id,
-        createdById: user.id,
-        sort: Collection.DEFAULT_SORT,
-        permission: CollectionPermission.ReadWrite,
-      },
-      {
-        transaction,
-      }
-    );
+    const context = createContext({
+      ...ctx,
+      transaction,
+      user,
+    });
+
+    const collection = await Collection.createWithCtx(context, {
+      name: "Welcome",
+      description: `This collection is a quick guide to what ${env.APP_NAME} is all about. Feel free to delete this collection once your team is up to speed with the basics!`,
+      teamId: team.id,
+      createdById: user.id,
+      sort: Collection.DEFAULT_SORT,
+      permission: CollectionPermission.ReadWrite,
+    });
 
     // For the first collection we go ahead and create some initial documents to get
     // the team started. You can edit these in /server/onboarding/x.md
@@ -229,26 +235,23 @@ async function provisionFirstCollection(team: Team, user: User) {
         path.join(process.cwd(), "server", "onboarding", `${title}.md`),
         "utf8"
       );
-      const document = await Document.create(
-        {
-          version: 2,
-          isWelcome: true,
-          parentDocumentId: null,
-          collectionId: collection.id,
-          teamId: collection.teamId,
-          lastModifiedById: collection.createdById,
-          createdById: collection.createdById,
-          title,
-          text,
-        },
-        { transaction }
-      );
+      const document = await Document.createWithCtx(context, {
+        version: 2,
+        isWelcome: true,
+        parentDocumentId: null,
+        collectionId: collection.id,
+        teamId: collection.teamId,
+        lastModifiedById: collection.createdById,
+        createdById: collection.createdById,
+        title,
+        text,
+      });
 
       document.content = await DocumentHelper.toJSON(document);
 
-      await document.publish(user, collection.id, {
+      await document.publish(context, {
+        collectionId: collection.id,
         silent: true,
-        transaction,
       });
     }
   });

@@ -9,6 +9,7 @@ import Text from "~/components/Text";
 import { TRANSLATED_CATEGORIES } from "../utils";
 import Grid from "./Grid";
 import { IconButton } from "./IconButton";
+import { CustomEmoji } from "@shared/components/CustomEmoji";
 
 /**
  * icon/emoji size is 24px; and we add 4px padding on all sides,
@@ -23,10 +24,11 @@ type OutlineNode = {
   delay: number;
 };
 
-type EmojiNode = {
-  type: IconType.Emoji;
+export type EmojiNode = {
+  type: IconType.Emoji | IconType.Custom;
   id: string;
   value: string;
+  name?: string;
 };
 
 export type DataNode = {
@@ -35,14 +37,20 @@ export type DataNode = {
 };
 
 type Props = {
+  /** Width of the grid container */
   width: number;
+  /** Height of the grid container */
   height: number;
+  /** Data to be displayed in the grid */
   data: DataNode[];
+  /** Content to display when search results are empty */
+  empty?: React.ReactNode;
+  /** Callback when an icon is selected */
   onIconSelect: ({ id, value }: { id: string; value: string }) => void;
 };
 
 const GridTemplate = (
-  { width, height, data, onIconSelect }: Props,
+  { width, height, data, empty, onIconSelect }: Props,
   ref: React.Ref<HTMLDivElement>
 ) => {
   // 24px padding for the Grid Container
@@ -50,10 +58,6 @@ const GridTemplate = (
 
   const gridItems = compact(
     data.flatMap((node) => {
-      if (node.icons.length === 0) {
-        return [];
-      }
-
       const category = (
         <CategoryName
           key={node.category}
@@ -64,6 +68,13 @@ const GridTemplate = (
           {TRANSLATED_CATEGORIES[node.category]}
         </CategoryName>
       );
+
+      if (node.icons.length === 0) {
+        if (node.category !== "Search") {
+          return [];
+        }
+        return [[category], [empty]];
+      }
 
       const items = node.icons.map((item) => {
         if (item.type === IconType.SVG) {
@@ -86,7 +97,11 @@ const GridTemplate = (
             onClick={() => onIconSelect({ id: item.id, value: item.value })}
           >
             <Emoji width={24} height={24}>
-              {item.value}
+              {item.type === IconType.Custom ? (
+                <CustomEmoji value={item.value} title={item.name} />
+              ) : (
+                item.value
+              )}
             </Emoji>
           </IconButton>
         );
@@ -115,7 +130,9 @@ const CategoryName = styled(Text)`
 `;
 
 const Icon = styled.svg`
-  transition: color 150ms ease-in-out, fill 150ms ease-in-out;
+  transition:
+    color 150ms ease-in-out,
+    fill 150ms ease-in-out;
   transition-delay: var(--delay);
 `;
 

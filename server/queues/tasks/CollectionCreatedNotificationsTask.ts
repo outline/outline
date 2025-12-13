@@ -2,7 +2,7 @@ import { NotificationEventType } from "@shared/types";
 import { Collection, Notification } from "@server/models";
 import NotificationHelper from "@server/models/helpers/NotificationHelper";
 import { CollectionEvent } from "@server/types";
-import BaseTask, { TaskPriority } from "./BaseTask";
+import { BaseTask, TaskPriority } from "./base/BaseTask";
 
 export default class CollectionCreatedNotificationsTask extends BaseTask<CollectionEvent> {
   public async perform(event: CollectionEvent) {
@@ -10,10 +10,6 @@ export default class CollectionCreatedNotificationsTask extends BaseTask<Collect
 
     // We only send notifications for collections visible to the entire team
     if (!collection || collection.isPrivate) {
-      return;
-    }
-
-    if ("source" in event.data && event.data.source === "import") {
       return;
     }
 

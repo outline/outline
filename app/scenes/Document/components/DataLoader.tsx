@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useLocation, RouteComponentProps, StaticContext } from "react-router";
-import { NavigationNode, TeamPreference } from "@shared/types";
+import { TeamPreference } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import Document from "~/models/Document";
@@ -10,6 +10,7 @@ import Error402 from "~/scenes/Errors/Error402";
 import Error403 from "~/scenes/Errors/Error403";
 import Error404 from "~/scenes/Errors/Error404";
 import ErrorOffline from "~/scenes/Errors/ErrorOffline";
+import ErrorUnknown from "~/scenes/Errors/ErrorUnknown";
 import { useDocumentContext } from "~/components/DocumentContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -33,8 +34,6 @@ type Params = {
   documentSlug: string;
   /** A specific revision id to load. */
   revisionId?: string;
-  /** The share ID to use to load data. */
-  shareId?: string;
 };
 
 type LocationState = {
@@ -53,7 +52,6 @@ type Children = (options: {
     params: Properties<Document>,
     nested?: boolean
   ) => Promise<string>;
-  sharedTree: NavigationNode | undefined;
 }) => React.ReactNode;
 
 type Props = RouteComponentProps<Params, StaticContext, LocationState> & {
@@ -66,12 +64,10 @@ function DataLoader({ match, children }: Props) {
   const user = useCurrentUser();
   const { setDocument } = useDocumentContext();
   const [error, setError] = React.useState<Error | null>(null);
-  const { revisionId, shareId, documentSlug } = match.params;
+  const { revisionId, documentSlug } = match.params;
 
   // Allows loading by /doc/slug-<urlId> or /doc/<id>
-  const document =
-    documents.getByUrl(match.params.documentSlug) ??
-    documents.get(match.params.documentSlug);
+  const document = documents.get(match.params.documentSlug);
 
   if (document) {
     setDocument(document);
@@ -85,27 +81,25 @@ function DataLoader({ match, children }: Props) {
       )
     : undefined;
 
-  const sharedTree = document
-    ? documents.getSharedTree(document.id)
-    : undefined;
   const isEditRoute =
     match.path === matchDocumentEdit || match.path.startsWith(settingsPath());
   const isEditing = isEditRoute || !user?.separateEditMode;
   const can = usePolicy(document);
   const location = useLocation<LocationState>();
+  const missingPolicy = !can || Object.keys(can).length === 0;
 
   React.useEffect(() => {
     async function fetchDocument() {
       try {
-        await documents.fetchWithSharedTree(documentSlug, {
-          shareId,
+        await documents.fetch(documentSlug, {
+          force: missingPolicy,
         });
       } catch (err) {
         setError(err);
       }
     }
     void fetchDocument();
-  }, [ui, documents, shareId, documentSlug]);
+  }, [ui, documents, missingPolicy, documentSlug]);
 
   React.useEffect(() => {
     async function fetchRevision() {
@@ -194,7 +188,7 @@ function DataLoader({ match, children }: Props) {
           });
         }
 
-        shares.fetch(document.id).catch((err) => {
+        shares.fetchOne({ documentId: document.id }).catch((err) => {
           if (!(err instanceof NotFoundError)) {
             throw err;
           }
@@ -220,8 +214,10 @@ function DataLoader({ match, children }: Props) {
       <Error402 />
     ) : error instanceof AuthorizationError ? (
       <Error403 />
-    ) : (
+    ) : error instanceof NotFoundError ? (
       <Error404 />
+    ) : (
+      <ErrorUnknown />
     );
   }
 
@@ -242,7 +238,7 @@ function DataLoader({ match, children }: Props) {
 
   return (
     <>
-      {!shareId && !revision && <MarkAsViewed document={document} />}
+      {!revision && <MarkAsViewed document={document} />}
       <React.Fragment key={canEdit ? "edit" : "read"}>
         {children({
           document,
@@ -250,7 +246,6 @@ function DataLoader({ match, children }: Props) {
           abilities: can,
           readOnly,
           onCreateLink,
-          sharedTree,
         })}
       </React.Fragment>
     </>

@@ -1,13 +1,18 @@
 import { observer } from "mobx-react";
-import Guide from "~/components/Guide";
-import Modal from "~/components/Modal";
+import { Suspense } from "react";
 import useStores from "~/hooks/useStores";
+import lazyWithRetry from "~/utils/lazyWithRetry";
+
+const Guide = lazyWithRetry(() => import("~/components/Guide"));
+const Modal = lazyWithRetry(() => import("~/components/Modal"));
 
 function Dialogs() {
   const { dialogs } = useStores();
   const { guide, modalStack } = dialogs;
+  const modals = [...modalStack];
+
   return (
-    <>
+    <Suspense fallback={null}>
       {guide ? (
         <Guide
           isOpen={guide.isOpen}
@@ -17,22 +22,23 @@ function Dialogs() {
           {guide.content}
         </Guide>
       ) : undefined}
-      {[...modalStack].map(([id, modal]) => (
+      {modals.map(([id, modal]) => (
         <Modal
           key={id}
           isOpen={modal.isOpen}
-          fullscreen={modal.fullscreen ?? false}
           onRequestClose={() => {
             modal.onClose?.();
             dialogs.closeModal(id);
           }}
           title={modal.title}
           style={modal.style}
+          width={modal.width}
+          height={modal.height}
         >
           {modal.content}
         </Modal>
       ))}
-    </>
+    </Suspense>
   );
 }
 

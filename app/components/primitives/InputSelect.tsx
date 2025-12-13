@@ -3,7 +3,6 @@ import * as React from "react";
 import styled from "styled-components";
 import { depths, s } from "@shared/styles";
 import { Props as ButtonProps } from "~/components/Button";
-import Separator from "~/components/ContextMenu/Separator";
 import { fadeAndSlideDown, fadeAndSlideUp } from "~/styles/animations";
 import {
   SelectItemIndicator,
@@ -30,11 +29,11 @@ const InputSelectTrigger = React.forwardRef<
   React.ElementRef<typeof InputSelectPrimitive.Trigger>,
   InputSelectTriggerProps
 >((props, ref) => {
-  const { placeholder, children, ...buttonProps } = props;
+  const { placeholder, children, nude, ...buttonProps } = props;
 
   return (
     <InputSelectPrimitive.Trigger ref={ref} asChild>
-      <SelectButton neutral disclosure {...buttonProps}>
+      <SelectButton neutral disclosure $nude={nude} {...buttonProps}>
         <InputSelectPrimitive.Value placeholder={placeholder} />
       </SelectButton>
     </InputSelectPrimitive.Trigger>
@@ -98,6 +97,10 @@ const InputSelectSeparator = React.forwardRef<
   </InputSelectPrimitive.Separator>
 ));
 InputSelectSeparator.displayName = InputSelectPrimitive.Separator.displayName;
+
+const Separator = styled.hr`
+  margin: 6px 0;
+`;
 
 /** Styled components. */
 const StyledContent = styled(InputSelectPrimitive.Content)`

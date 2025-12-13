@@ -1,9 +1,9 @@
 import addressparser, { EmailAddress } from "addressparser";
 import Bull from "bull";
 import invariant from "invariant";
+import { subMinutes } from "date-fns";
 import { Node } from "prosemirror-model";
-import randomstring from "randomstring";
-import * as React from "react";
+import { randomString } from "@shared/random";
 import { TeamPreference } from "@shared/types";
 import { Day } from "@shared/utils/time";
 import mailer from "@server/emails/mailer";
@@ -16,7 +16,7 @@ import HTMLHelper from "@server/models/helpers/HTMLHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
 import { taskQueue } from "@server/queues";
-import { TaskPriority } from "@server/queues/tasks/BaseTask";
+import { TaskPriority } from "@server/queues/tasks/base/BaseTask";
 import { NotificationMetadata } from "@server/types";
 
 export enum EmailMessageCategory {
@@ -24,6 +24,7 @@ export enum EmailMessageCategory {
   Invitation = "invitation",
   Notification = "notification",
   Marketing = "marketing",
+  Internal = "internal",
 }
 
 export interface EmailProps {
@@ -35,7 +36,7 @@ export interface EmailProps {
 
 export default abstract class BaseEmail<
   T extends EmailProps,
-  S extends Record<string, any> | void = void
+  S extends Record<string, unknown> | void = void,
 > {
   private props: T;
   private metadata?: NotificationMetadata;
@@ -144,12 +145,21 @@ export default abstract class BaseEmail<
       ? await Notification.emailReferences(notification)
       : undefined;
 
+    // Check if notification is considerably delayed and annotate
+    // the subject. This is incase of extended downtime or queue backlogs
+    let subject = this.subject(data);
+    if (notification) {
+      if (notification.createdAt < subMinutes(new Date(), 30)) {
+        subject = `Delayed notification: ${subject}`;
+      }
+    }
+
     try {
       await mailer.sendMail({
         to: this.props.to,
         replyTo: this.replyTo?.(data),
         from: this.from(data),
-        subject: this.subject(data),
+        subject,
         messageId,
         references,
         previewText: this.preview(data),
@@ -200,7 +210,7 @@ export default abstract class BaseEmail<
       address:
         env.isCloudHosted &&
         this.category === EmailMessageCategory.Authentication
-          ? `noreply-${randomstring.generate(24)}@${domain}`
+          ? `noreply-${randomString(24)}@${domain}`
           : parsedFrom.address,
     };
   }

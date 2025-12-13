@@ -6,11 +6,11 @@ import { useLastVisitedPath } from "~/hooks/useLastVisitedPath";
 import useStores from "~/hooks/useStores";
 import DataLoader from "./components/DataLoader";
 import Document from "./components/Document";
+import { Footer } from "./components/Footer";
 
 type Params = {
   documentSlug: string;
   revisionId?: string;
-  shareId?: string;
 };
 
 type LocationState = {
@@ -51,7 +51,13 @@ export default function DocumentScene(props: Props) {
   // for the key.
   const urlParts = documentSlug ? documentSlug.split("-") : [];
   const urlId = urlParts.length ? urlParts[urlParts.length - 1] : undefined;
-  const key = [urlId, revisionId].join("/");
+
+  // Normalize the key so that it is *stable* between renders.
+  // Without this, the initial value can be "<urlId>/undefined" and then flip to
+  // "<urlId>/" when React stringifies `undefined` on the next render, causing a
+  // full unmount/mount cycle of the document subtree. Keeping the key constant
+  // prevents extra network requests and preserves editor state on resize.
+  const key = revisionId ? `${urlId}/${revisionId}` : urlId;
 
   return (
     <DataLoader
@@ -60,7 +66,11 @@ export default function DocumentScene(props: Props) {
       history={props.history}
       location={props.location}
     >
-      {(rest) => <Document {...rest} />}
+      {(rest) => (
+        <Document {...rest}>
+          <Footer document={rest.document} />
+        </Document>
+      )}
     </DataLoader>
   );
 }

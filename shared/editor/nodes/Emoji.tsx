@@ -5,12 +5,15 @@ import {
   NodeType,
   Schema,
 } from "prosemirror-model";
-import { Command, TextSelection } from "prosemirror-state";
+import { Command, Plugin, TextSelection } from "prosemirror-state";
 import { Primitive } from "utility-types";
 import Extension from "../lib/Extension";
 import { getEmojiFromName } from "../lib/emoji";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import emojiRule from "../rules/emoji";
+import { isUUID } from "validator";
+import { ComponentProps } from "../types";
+import { CustomEmoji } from "../../components/CustomEmoji";
 
 export default class Emoji extends Extension {
   get type() {
@@ -36,6 +39,7 @@ export default class Emoji extends Extension {
       selectable: false,
       parseDOM: [
         {
+          priority: 100,
           tag: "strong.emoji",
           preserveWhitespace: "full",
           getAttrs: (dom: HTMLElement) =>
@@ -58,13 +62,60 @@ export default class Emoji extends Extension {
           getEmojiFromName(name),
         ];
       },
-      toPlainText: (node) => getEmojiFromName(node.attrs["data-name"]),
+      leafText: (node) => getEmojiFromName(node.attrs["data-name"]),
     };
   }
 
   get rulePlugins() {
     return [emojiRule];
   }
+
+  get plugins() {
+    return [
+      new Plugin({
+        props: {
+          // Placing the caret infront of an emoji is tricky as click events directly
+          // on the emoji will not behave the same way as clicks on text characters, this
+          // plugin ensures that clicking on an emoji behaves more naturally.
+          handleClickOn: (view, _pos, node, nodePos, event) => {
+            if (node.type.name === this.name) {
+              const element = event.target as HTMLElement;
+              const rect = element.getBoundingClientRect();
+              const clickX = event.clientX - rect.left;
+              const side = clickX < rect.width / 2 ? -1 : 1;
+
+              // If the click is in the left half of the emoji, place the caret before it
+              const tr = view.state.tr.setSelection(
+                TextSelection.near(
+                  view.state.doc.resolve(
+                    side === -1 ? nodePos : nodePos + node.nodeSize
+                  ),
+                  side
+                )
+              );
+              view.dispatch(tr);
+              return true;
+            }
+
+            return false;
+          },
+        },
+      }),
+    ];
+  }
+
+  component = (props: ComponentProps) => {
+    const name = props.node.attrs["data-name"];
+    return (
+      <strong className="emoji" data-name={name}>
+        {isUUID(name) ? (
+          <CustomEmoji value={name} size="1em" />
+        ) : (
+          getEmojiFromName(name)
+        )}
+      </strong>
+    );
+  };
 
   commands({ type }: { type: NodeType; schema: Schema }) {
     return (attrs: Record<string, Primitive>): Command =>

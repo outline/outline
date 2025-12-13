@@ -4,26 +4,21 @@ import { ImportState, ImportTaskState } from "@shared/types";
 import Logger from "@server/logging/Logger";
 import { Import, ImportTask } from "@server/models";
 import { sequelize } from "@server/storage/database";
-import BaseTask, { TaskPriority, TaskSchedule } from "./BaseTask";
-
-type Props = {
-  limit: number;
-};
+import { TaskPriority } from "./base/BaseTask";
+import { CronTask, TaskInterval, Props } from "./base/CronTask";
 
 /**
  * A task that moves the stuck imports to errored state.
  */
-export default class ErrorTimedOutImportsTask extends BaseTask<Props> {
-  static cron = TaskSchedule.Hour;
-
+export default class ErrorTimedOutImportsTask extends CronTask {
   public async perform({ limit }: Props) {
     // TODO: Hardcoded right now, configurable later
-    const thresholdHours = 12;
+    const thresholdHours = 24;
     const cutOffTime = subHours(new Date(), thresholdHours);
     const importsErrored: Record<string, boolean> = {};
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // oxlint-disable-next-line @typescript-eslint/no-explicit-any
       await ImportTask.findAllInBatches<ImportTask<any>>(
         {
           where: {
@@ -80,6 +75,12 @@ export default class ErrorTimedOutImportsTask extends BaseTask<Props> {
         );
       }
     }
+  }
+
+  public get cron() {
+    return {
+      interval: TaskInterval.Hour,
+    };
   }
 
   public get options() {

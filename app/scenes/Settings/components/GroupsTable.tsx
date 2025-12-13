@@ -20,6 +20,8 @@ import useStores from "~/hooks/useStores";
 import GroupMenu from "~/menus/GroupMenu";
 import { ViewGroupMembersDialog } from "./GroupDialogs";
 import { FILTER_HEIGHT } from "./StickyFilters";
+import NudeButton from "~/components/NudeButton";
+import { AvatarSize } from "~/components/Avatar";
 
 const ROW_HEIGHT = 60;
 const STICKY_OFFSET = HEADER_HEIGHT + FILTER_HEIGHT;
@@ -35,7 +37,6 @@ export function GroupsTable(props: Props) {
       dialogs.openModal({
         title: t("Group members"),
         content: <ViewGroupMembersDialog group={group} />,
-        fullscreen: true,
       });
     },
     [t, dialogs]
@@ -58,7 +59,7 @@ export function GroupsTable(props: Props) {
                 <Title onClick={() => handleViewMembers(group)}>
                   {group.name}
                 </Title>
-                <Text type="tertiary" size="small">
+                <Text type="tertiary" size="small" weight="normal">
                   <Trans
                     defaults="{{ count }} member"
                     values={{ count: group.memberCount }}
@@ -71,6 +72,18 @@ export function GroupsTable(props: Props) {
         },
         {
           type: "data",
+          id: "description",
+          header: t("Description"),
+          accessor: (group) => group.description || "",
+          component: (group) => (
+            <Text type="secondary" size="small" weight="normal">
+              {group.description}
+            </Text>
+          ),
+          width: "2fr",
+        },
+        {
+          type: "data",
           id: "members",
           header: t("Members"),
           accessor: (group) => `${group.memberCount} members`,
@@ -78,13 +91,22 @@ export function GroupsTable(props: Props) {
             const users = group.users.slice(0, MAX_AVATAR_DISPLAY);
             const overflow = group.memberCount - users.length;
 
+            if (users.length === 0) {
+              return null;
+            }
+
             return (
-              <Flex>
+              <GroupMembers
+                onClick={() => handleViewMembers(group)}
+                width={
+                  (users.length + (overflow > 0 ? 1 : 0)) * AvatarSize.Large
+                }
+              >
                 <Facepile users={users} overflow={overflow} />
-              </Flex>
+              </GroupMembers>
             );
           },
-          width: "1fr",
+          width: "1.5fr",
           sortable: false,
         },
         {
@@ -117,6 +139,11 @@ export function GroupsTable(props: Props) {
     />
   );
 }
+
+const GroupMembers = styled(NudeButton)`
+  justify-content: flex-start;
+  display: flex;
+`;
 
 const Image = styled(Flex)`
   align-items: center;

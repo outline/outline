@@ -1,5 +1,6 @@
 import { Op } from "sequelize";
-import { Document, Backlink } from "@server/models";
+import { Document, Relationship } from "@server/models";
+import { RelationshipType } from "@server/models/Relationship";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { Event, DocumentEvent, RevisionEvent } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
@@ -18,22 +19,29 @@ export default class BacklinksProcessor extends BaseProcessor {
         if (!document) {
           return;
         }
+
+        // Note: These can be UUID or slugs
         const linkIds = DocumentHelper.parseDocumentIds(document);
+
         await Promise.all(
           linkIds.map(async (linkId) => {
-            const linkedDocument = await Document.findByPk(linkId);
+            const linkedDocument = await Document.findByPk(linkId, {
+              attributes: ["id"],
+            });
 
             if (!linkedDocument || linkedDocument.id === event.documentId) {
               return;
             }
 
-            await Backlink.findOrCreate({
+            await Relationship.findOrCreate({
               where: {
                 documentId: linkedDocument.id,
                 reverseDocumentId: event.documentId,
+                type: RelationshipType.Backlink,
               },
               defaults: {
                 userId: document.lastModifiedById,
+                type: RelationshipType.Backlink,
               },
             });
           })
@@ -58,19 +66,23 @@ export default class BacklinksProcessor extends BaseProcessor {
         // create or find existing backlink records for referenced docs
         await Promise.all(
           linkIds.map(async (linkId) => {
-            const linkedDocument = await Document.findByPk(linkId);
+            const linkedDocument = await Document.findByPk(linkId, {
+              attributes: ["id"],
+            });
 
             if (!linkedDocument || linkedDocument.id === event.documentId) {
               return;
             }
 
-            await Backlink.findOrCreate({
+            await Relationship.findOrCreate({
               where: {
                 documentId: linkedDocument.id,
                 reverseDocumentId: event.documentId,
+                type: RelationshipType.Backlink,
               },
               defaults: {
                 userId: document.lastModifiedById,
+                type: RelationshipType.Backlink,
               },
             });
             linkedDocumentIds.push(linkedDocument.id);
@@ -78,19 +90,20 @@ export default class BacklinksProcessor extends BaseProcessor {
         );
 
         // delete any backlinks that no longer exist
-        await Backlink.destroy({
+        await Relationship.destroy({
           where: {
             documentId: {
               [Op.notIn]: linkedDocumentIds,
             },
             reverseDocumentId: event.documentId,
+            type: RelationshipType.Backlink,
           },
         });
         break;
       }
 
       case "documents.delete": {
-        await Backlink.destroy({
+        await Relationship.destroy({
           where: {
             [Op.or]: [
               {
@@ -100,6 +113,7 @@ export default class BacklinksProcessor extends BaseProcessor {
                 documentId: event.documentId,
               },
             ],
+            type: RelationshipType.Backlink,
           },
         });
         break;

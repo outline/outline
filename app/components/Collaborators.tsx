@@ -5,13 +5,16 @@ import uniq from "lodash/uniq";
 import { observer } from "mobx-react";
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
 import Document from "~/models/Document";
 import { AvatarSize, AvatarWithPresence } from "~/components/Avatar";
 import DocumentViews from "~/components/DocumentViews";
 import Facepile from "~/components/Facepile";
 import NudeButton from "~/components/NudeButton";
-import Popover from "~/components/Popover";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "~/components/primitives/Popover";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 
@@ -36,9 +39,10 @@ function Collaborators(props: Props) {
   const { document } = props;
   const { observingUserId } = ui;
   const documentPresence = presence.get(document.id);
-  const documentPresenceArray = documentPresence
-    ? Array.from(documentPresence.values())
-    : [];
+  const documentPresenceArray = useMemo(
+    () => (documentPresence ? Array.from(documentPresence.values()) : []),
+    [documentPresence]
+  );
 
   // Use Set for O(1) lookups and stable references
   const presentIds = useMemo(
@@ -94,19 +98,14 @@ function Collaborators(props: Props) {
     }
   }, [missingUserIds, requestedUserIds, users]);
 
-  const popover = usePopoverState({
-    gutter: 0,
-    placement: "bottom-end",
-  });
-
   // Memoize onClick handler to avoid inline function creation
   const handleAvatarClick = useCallback(
     (
-        collaboratorId: string,
-        isPresent: boolean,
-        isObserving: boolean,
-        isObservable: boolean
-      ) =>
+      collaboratorId: string,
+      isPresent: boolean,
+      isObserving: boolean,
+      isObservable: boolean
+    ) =>
       (ev: React.MouseEvent) => {
         if (isObservable && isPresent) {
           ev.preventDefault();
@@ -133,6 +132,7 @@ function Collaborators(props: Props) {
           isEditing={isEditing}
           isObserving={isObserving}
           isCurrentUser={currentUserId === collaborator.id}
+          alt={t("Avatar of {{ name }}", { name: collaborator.name })}
           onClick={
             isObservable
               ? handleAvatarClick(
@@ -149,29 +149,30 @@ function Collaborators(props: Props) {
     [presentIds, editingIds, observingUserId, currentUserId, handleAvatarClick]
   );
 
+  if (!document.insightsEnabled) {
+    return null;
+  }
+
   return (
-    <>
-      <PopoverDisclosure {...popover}>
-        {(popoverProps) => (
-          <NudeButton
-            width={Math.min(collaborators.length, limit) * AvatarSize.Large}
-            height={AvatarSize.Large}
-            {...popoverProps}
-          >
-            <Facepile
-              size={AvatarSize.Large}
-              limit={limit}
-              overflow={Math.max(0, collaborators.length - limit)}
-              users={collaborators}
-              renderAvatar={renderAvatar}
-            />
-          </NudeButton>
-        )}
-      </PopoverDisclosure>
-      <Popover {...popover} width={300} aria-label={t("Viewers")} tabIndex={0}>
-        {popover.visible && <DocumentViews document={document} />}
-      </Popover>
-    </>
+    <Popover>
+      <PopoverTrigger>
+        <NudeButton
+          width={Math.min(collaborators.length, limit) * AvatarSize.Large}
+          height={AvatarSize.Large}
+        >
+          <Facepile
+            size={AvatarSize.Large}
+            limit={limit}
+            overflow={Math.max(0, collaborators.length - limit)}
+            users={collaborators}
+            renderAvatar={renderAvatar}
+          />
+        </NudeButton>
+      </PopoverTrigger>
+      <PopoverContent aria-label={t("Viewers")} side="bottom" align="end">
+        <DocumentViews document={document} />
+      </PopoverContent>
+    </Popover>
   );
 }
 

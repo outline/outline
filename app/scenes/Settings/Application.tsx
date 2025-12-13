@@ -1,10 +1,11 @@
 import { observer } from "mobx-react";
 import { CopyIcon, InternetIcon, ReplaceIcon } from "outline-icons";
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
+
 import { OAuthClientValidation } from "@shared/validations";
 import OAuthClient from "~/models/oauth/OAuthClient";
 import Breadcrumb from "~/components/Breadcrumb";
@@ -28,6 +29,9 @@ import { ActionRow } from "./components/ActionRow";
 import { CopyButton } from "./components/CopyButton";
 import ImageInput from "./components/ImageInput";
 import SettingRow from "./components/SettingRow";
+import { createInternalLinkAction } from "~/actions";
+import { NavigationSection } from "~/actions/sections";
+import { InputClientType } from "~/components/OAuthClient/InputClientType";
 
 type Props = {
   oauthClient: OAuthClient;
@@ -73,8 +77,21 @@ const Application = observer(function Application({ oauthClient }: Props) {
       avatarUrl: oauthClient.avatarUrl ?? "",
       redirectUris: oauthClient.redirectUris ?? [],
       published: oauthClient.published ?? false,
+      clientType: oauthClient.clientType,
     },
   });
+
+  const breadcrumbActions = useMemo(
+    () => [
+      createInternalLinkAction({
+        name: t("Applications"),
+        section: NavigationSection,
+        icon: <InternetIcon />,
+        to: settingsPath("applications"),
+      }),
+    ],
+    [t]
+  );
 
   const handleSubmit = useCallback(
     async (data: FormData) => {
@@ -117,18 +134,7 @@ const Application = observer(function Application({ oauthClient }: Props) {
   return (
     <Scene
       title={oauthClient.name}
-      left={
-        <Breadcrumb
-          items={[
-            {
-              type: "route",
-              title: t("Applications"),
-              to: settingsPath("applications"),
-              icon: <InternetIcon />,
-            },
-          ]}
-        />
-      }
+      left={<Breadcrumb actions={breadcrumbActions} />}
       actions={<OAuthClientMenu oauthClient={oauthClient} showEdit={false} />}
     >
       <form onSubmit={formHandleSubmit(handleSubmit)}>
@@ -157,6 +163,7 @@ const Application = observer(function Application({ oauthClient }: Props) {
             name="avatarUrl"
             render={({ field }) => (
               <ImageInput
+                alt={t("Application icon")}
                 onSuccess={(url) => field.onChange(url)}
                 onError={(err) => setError("avatarUrl", { message: err })}
                 model={{
@@ -165,6 +172,25 @@ const Application = observer(function Application({ oauthClient }: Props) {
                   initial: getValues().name[0],
                 }}
                 borderRadius={0}
+              />
+            )}
+          />
+        </SettingRow>
+
+        <SettingRow
+          name="clientType"
+          label={t("Client type")}
+          description={t("Confidential clients can securely store a secret")}
+        >
+          <Controller
+            control={control}
+            name="clientType"
+            render={({ field }) => (
+              <InputClientType
+                hideLabel
+                value={field.value}
+                onChange={field.onChange}
+                ref={field.ref}
               />
             )}
           />
@@ -218,7 +244,17 @@ const Application = observer(function Application({ oauthClient }: Props) {
             )}
             border={false}
           >
-            <Switch id="published" {...register("published")} />
+            <Controller
+              name="published"
+              control={control}
+              render={({ field }) => (
+                <Switch
+                  id="published"
+                  checked={field.value}
+                  onChange={field.onChange}
+                />
+              )}
+            />
           </SettingRow>
         )}
 
@@ -237,33 +273,35 @@ const Application = observer(function Application({ oauthClient }: Props) {
             />
           </Input>
         </SettingRow>
-        <SettingRow
-          name="clientSecret"
-          label={t("OAuth client secret")}
-          description={t(
-            "Store this value securely, do not expose it publicly"
-          )}
-        >
-          <Input
-            id="clientSecret"
-            type="password"
-            value={oauthClient.clientSecret}
-            readOnly
+        {oauthClient.clientType === "confidential" && (
+          <SettingRow
+            name="clientSecret"
+            label={t("OAuth client secret")}
+            description={t(
+              "Store this value securely, do not expose it publicly"
+            )}
           >
-            <Tooltip content={t("Rotate secret")} placement="top">
-              <NudeButton type="button" onClick={handleRotateSecret}>
-                <ReplaceIcon size={20} />
-              </NudeButton>
-            </Tooltip>
-
-            <CopyButton
+            <Input
+              id="clientSecret"
+              type="password"
               value={oauthClient.clientSecret}
-              success={t("Copied to clipboard")}
-              tooltip={t("Copy")}
-              icon={<CopyIcon size={20} />}
-            />
-          </Input>
-        </SettingRow>
+              readOnly
+            >
+              <Tooltip content={t("Rotate secret")} placement="top">
+                <NudeButton type="button" onClick={handleRotateSecret}>
+                  <ReplaceIcon size={20} />
+                </NudeButton>
+              </Tooltip>
+
+              <CopyButton
+                value={oauthClient.clientSecret}
+                success={t("Copied to clipboard")}
+                tooltip={t("Copy")}
+                icon={<CopyIcon size={20} />}
+              />
+            </Input>
+          </SettingRow>
+        )}
         <SettingRow
           name="redirectUris"
           label={t("Callback URLs")}

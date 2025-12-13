@@ -1,5 +1,4 @@
 import invariant from "invariant";
-import find from "lodash/find";
 import isEmpty from "lodash/isEmpty";
 import orderBy from "lodash/orderBy";
 import sortBy from "lodash/sortBy";
@@ -186,7 +185,7 @@ export default class CollectionsStore extends Store<Collection> {
       statusFilter: [CollectionStatusFilter.Archived],
     });
 
-  get(id: string): Collection | undefined {
+  get(id: string = ""): Collection | undefined {
     return (
       this.data.get(id) ??
       this.orderedData.find((collection) => id.endsWith(collection.urlId))
@@ -242,19 +241,15 @@ export default class CollectionsStore extends Store<Collection> {
     return this.orderedData.map((collection) => collection.asNavigationNode);
   }
 
-  getByUrl(url: string): Collection | null | undefined {
-    return find(this.orderedData, (col: Collection) => url.endsWith(col.urlId));
-  }
-
   async delete(collection: Collection) {
     await super.delete(collection);
     await this.rootStore.documents.fetchRecentlyUpdated();
     await this.rootStore.documents.fetchRecentlyViewed();
   }
 
-  export = (format: FileOperationFormat, includeAttachments: boolean) =>
-    client.post("/collections.export_all", {
-      format,
-      includeAttachments,
-    });
+  export = (options: {
+    format: FileOperationFormat;
+    includeAttachments: boolean;
+    includePrivate: boolean;
+  }) => client.post("/collections.export_all", options);
 }

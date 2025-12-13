@@ -1,10 +1,12 @@
 import { observer } from "mobx-react";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import User from "~/models/User";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import Flex from "~/components/Flex";
-import Initials from "./Avatar/Initials";
+import { s } from "@shared/styles";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 type Props = {
   /** The users to display */
@@ -21,6 +23,8 @@ type Props = {
       model: User;
     }
   >;
+  /** Whether to show tooltips on hover, defaults to true */
+  showTooltip?: boolean;
 };
 
 function Facepile({
@@ -29,25 +33,30 @@ function Facepile({
   size = AvatarSize.Large,
   limit = 8,
   renderAvatar = Avatar,
+  showTooltip = true,
   ...rest
 }: Props) {
+  const { t } = useTranslation();
   const filtered = users.filter(Boolean).slice(-limit);
   const Component = renderAvatar;
 
+  if (overflow > 0) {
+    filtered.unshift({
+      id: "overflow",
+      initial: `${users.length ? "+" : ""}${overflow}`,
+      name: t(`{{count}} more user`, { count: overflow }),
+    } as User);
+  }
+
   return (
     <Avatars {...rest}>
-      {overflow > 0 && (
-        <Initials size={size} content={String(overflow)}>
-          {users.length ? "+" : ""}
-          {overflow}
-        </Initials>
-      )}
       {filtered.map((model, index) => {
-        const lastChild = index === 0 && overflow <= 0;
+        const lastChild = index === 0;
         return (
           <Component
             key={model.id}
             {...{
+              showTooltip,
               model,
               size,
               style: {
@@ -60,7 +69,9 @@ function Facepile({
           />
         );
       })}
-      <FacepileClip size={size} />
+      <VisuallyHidden>
+        <FacepileClip size={size} />
+      </VisuallyHidden>
     </Avatars>
   );
 }
@@ -98,6 +109,11 @@ const Avatars = styled(Flex)`
   align-items: center;
   flex-direction: row-reverse;
   cursor: var(--pointer);
+
+  *:hover {
+    clip-path: none !important;
+    box-shadow: 0 0 0 2px ${s("background")};
+  }
 `;
 
 export default observer(Facepile);

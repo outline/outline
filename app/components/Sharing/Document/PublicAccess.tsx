@@ -37,7 +37,10 @@ type Props = {
   onRequestClose?: () => void;
 };
 
-function PublicAccess({ document, share, sharedParent }: Props) {
+function PublicAccess(
+  { document, share, sharedParent }: Props,
+  ref: React.RefObject<HTMLDivElement>
+) {
   const { t } = useTranslation();
   const theme = useTheme();
   const [validationError, setValidationError] = React.useState("");
@@ -52,10 +55,36 @@ function PublicAccess({ document, share, sharedParent }: Props) {
   }, [share?.urlId]);
 
   const handleIndexingChanged = React.useCallback(
-    async (event) => {
+    async (checked: boolean) => {
       try {
         await share?.save({
-          allowIndexing: event.currentTarget.checked,
+          allowIndexing: checked,
+        });
+      } catch (err) {
+        toast.error(err.message);
+      }
+    },
+    [share]
+  );
+
+  const handleShowLastModifiedChanged = React.useCallback(
+    async (checked: boolean) => {
+      try {
+        await share?.save({
+          showLastUpdated: checked,
+        });
+      } catch (err) {
+        toast.error(err.message);
+      }
+    },
+    [share]
+  );
+
+  const handleShowTOCChanged = React.useCallback(
+    async (checked: boolean) => {
+      try {
+        await share?.save({
+          showTOC: checked,
         });
       } catch (err) {
         toast.error(err.message);
@@ -65,10 +94,10 @@ function PublicAccess({ document, share, sharedParent }: Props) {
   );
 
   const handlePublishedChange = React.useCallback(
-    async (event) => {
+    async (checked: boolean) => {
       try {
         await share?.save({
-          published: event.currentTarget.checked,
+          published: checked,
         });
       } catch (err) {
         toast.error(err.message);
@@ -112,11 +141,9 @@ function PublicAccess({ document, share, sharedParent }: Props) {
     toast.success(t("Public link copied to clipboard"));
   }, [t]);
 
-  const documentTitle = sharedParent?.documentTitle;
-
   const shareUrl = sharedParent?.url
     ? `${sharedParent.url}${document.url}`
-    : share?.url ?? "";
+    : (share?.url ?? "");
 
   const copyButton = (
     <Tooltip content={t("Copy public link")} placement="top">
@@ -129,19 +156,30 @@ function PublicAccess({ document, share, sharedParent }: Props) {
   );
 
   return (
-    <Wrapper>
+    <Wrapper ref={ref}>
       <ListItem
         title={t("Web")}
         subtitle={
           <>
             {sharedParent && !document.isDraft ? (
-              <Trans>
-                Anyone with the link can access because the parent document,{" "}
-                <StyledLink to={`/doc/${sharedParent.documentId}`}>
-                  {{ documentTitle }}
-                </StyledLink>
-                , is shared
-              </Trans>
+              sharedParent.collectionId ? (
+                <Trans>
+                  Anyone with the link can access because the containing
+                  collection,{" "}
+                  <StyledLink to={`/collection/${sharedParent.collectionId}`}>
+                    {sharedParent.sourceTitle}
+                  </StyledLink>
+                  , is shared
+                </Trans>
+              ) : (
+                <Trans>
+                  Anyone with the link can access because the parent document,{" "}
+                  <StyledLink to={`/doc/${sharedParent.documentId}`}>
+                    {sharedParent.sourceTitle}
+                  </StyledLink>
+                  , is shared
+                </Trans>
+              )
             ) : (
               t("Allow anyone with the link to access")
             )}
@@ -167,30 +205,84 @@ function PublicAccess({ document, share, sharedParent }: Props) {
       />
 
       <ResizingHeightContainer>
-        {share?.published && (
-          <ListItem
-            title={
-              <Text type="tertiary" as={Flex}>
-                {t("Search engine indexing")}&nbsp;
-                <Tooltip
-                  content={t(
-                    "Disable this setting to discourage search engines from indexing the page"
-                  )}
-                >
-                  <QuestionMarkIcon size={18} />
-                </Tooltip>
-              </Text>
-            }
-            actions={
-              <Switch
-                aria-label={t("Search engine indexing")}
-                checked={share?.allowIndexing ?? false}
-                onChange={handleIndexingChanged}
-                width={26}
-                height={14}
-              />
-            }
-          />
+        {share?.published && !sharedParent?.published && (
+          <>
+            <ListItem
+              title={
+                <Text type="tertiary" as={Flex}>
+                  {t("Search engine indexing")}&nbsp;
+                  <Tooltip
+                    content={t(
+                      "Disable this setting to discourage search engines from indexing the page"
+                    )}
+                  >
+                    <NudeButton size={18}>
+                      <QuestionMarkIcon size={18} />
+                    </NudeButton>
+                  </Tooltip>
+                </Text>
+              }
+              actions={
+                <Switch
+                  aria-label={t("Search engine indexing")}
+                  checked={share?.allowIndexing ?? false}
+                  onChange={handleIndexingChanged}
+                  width={26}
+                  height={14}
+                />
+              }
+            />
+            <ListItem
+              title={
+                <Text type="tertiary" as={Flex}>
+                  {t("Show last modified")}&nbsp;
+                  <Tooltip
+                    content={t(
+                      "Display the last modified timestamp on the shared page"
+                    )}
+                  >
+                    <NudeButton size={18}>
+                      <QuestionMarkIcon size={18} />
+                    </NudeButton>
+                  </Tooltip>
+                </Text>
+              }
+              actions={
+                <Switch
+                  aria-label={t("Show last modified")}
+                  checked={share?.showLastUpdated ?? false}
+                  onChange={handleShowLastModifiedChanged}
+                  width={26}
+                  height={14}
+                />
+              }
+            />
+            <ListItem
+              title={
+                <Text type="tertiary" as={Flex}>
+                  {t("Show table of contents")}&nbsp;
+                  <Tooltip
+                    content={t(
+                      "Display the table of contents on documents by default"
+                    )}
+                  >
+                    <NudeButton size={18}>
+                      <QuestionMarkIcon size={18} />
+                    </NudeButton>
+                  </Tooltip>
+                </Text>
+              }
+              actions={
+                <Switch
+                  aria-label={t("Show table of contents")}
+                  checked={share?.showTOC ?? false}
+                  onChange={handleShowTOCChanged}
+                  width={26}
+                  height={14}
+                />
+              }
+            />
+          </>
         )}
 
         {sharedParent?.published ? (
@@ -264,4 +356,4 @@ const StyledLink = styled(Link)`
   text-decoration: underline;
 `;
 
-export default observer(PublicAccess);
+export default observer(React.forwardRef(PublicAccess));

@@ -1,5 +1,6 @@
 import copy from "copy-to-clipboard";
 import invariant from "invariant";
+import uniqBy from "lodash/uniqBy";
 import {
   DownloadIcon,
   DuplicateIcon,
@@ -25,11 +26,12 @@ import {
   PublishIcon,
   CommentIcon,
   CopyIcon,
-  EyeIcon,
   PadlockIcon,
   GlobeIcon,
   LogoutIcon,
   CaseSensitiveIcon,
+  RestoreIcon,
+  EditIcon,
 } from "outline-icons";
 import { toast } from "sonner";
 import Icon from "@shared/components/Icon";
@@ -48,10 +50,14 @@ import DeleteDocumentsInTrash from "~/scenes/Trash/components/DeleteDocumentsInT
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import DocumentCopy from "~/components/DocumentCopy";
 import MarkdownIcon from "~/components/Icons/MarkdownIcon";
-import SharePopover from "~/components/Sharing/Document";
 import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
 import DocumentTemplatizeDialog from "~/components/TemplatizeDialog";
-import { createAction } from "~/actions";
+import {
+  createAction,
+  createActionGroup,
+  createActionWithChildren,
+  createInternalLinkAction,
+} from "~/actions";
 import {
   ActiveDocumentSection,
   DocumentSection,
@@ -61,7 +67,6 @@ import env from "~/env";
 import { setPersistedState } from "~/hooks/usePersistedState";
 import history from "~/utils/history";
 import {
-  documentInsightsPath,
   documentHistoryPath,
   homePath,
   newDocumentPath,
@@ -70,9 +75,21 @@ import {
   documentPath,
   urlify,
   trashPath,
+  documentEditPath,
 } from "~/utils/routeHelpers";
+import capitalize from "lodash/capitalize";
+import CollectionIcon from "~/components/Icons/CollectionIcon";
+import { Action, ActionGroup, ActionSeparator } from "~/types";
+import lazyWithRetry from "~/utils/lazyWithRetry";
 
-export const openDocument = createAction({
+const Insights = lazyWithRetry(
+  () => import("~/scenes/Document/components/Insights")
+);
+const SharePopover = lazyWithRetry(
+  () => import("~/components/Sharing/Document/SharePopover")
+);
+
+export const openDocument = createActionWithChildren({
   name: ({ t }) => t("Open document"),
   analyticsName: "Open document",
   section: DocumentSection,
@@ -84,24 +101,63 @@ export const openDocument = createAction({
       (acc, node) => [...acc, ...node.children],
       [] as NavigationNode[]
     );
+    const documents = stores.documents.orderedData;
 
-    return nodes.map((item) => ({
-      // Note: using url which includes the slug rather than id here to bust
-      // cache if the document is renamed
-      id: item.url,
-      name: item.title,
-      icon: item.icon ? (
-        <Icon value={item.icon} color={item.color ?? undefined} />
-      ) : (
-        <DocumentIcon />
-      ),
-      section: DocumentSection,
-      perform: () => history.push(item.url),
-    }));
+    return uniqBy([...documents, ...nodes], "id").map((item) =>
+      createInternalLinkAction({
+        // Note: using url which includes the slug rather than id here to bust
+        // cache if the document is renamed
+        id: item.url,
+        name: item.title,
+        icon: item.icon ? (
+          <Icon
+            value={item.icon}
+            initial={item.title}
+            color={item.color ?? undefined}
+          />
+        ) : (
+          <DocumentIcon />
+        ),
+        section: DocumentSection,
+        to: item.url,
+      })
+    );
   },
 });
 
-export const createDocument = createAction({
+export const editDocument = createInternalLinkAction({
+  name: ({ t }) => t("Edit"),
+  analyticsName: "Edit document",
+  section: ActiveDocumentSection,
+  keywords: "edit",
+  icon: <EditIcon />,
+  visible: ({ activeDocumentId, stores }) => {
+    const { auth, documents, policies } = stores;
+
+    const document = activeDocumentId
+      ? documents.get(activeDocumentId)
+      : undefined;
+    const can = activeDocumentId
+      ? policies.abilities(activeDocumentId)
+      : undefined;
+
+    return (
+      !!can?.update && !!auth.user?.separateEditMode && !document?.template
+    );
+  },
+  to: ({ activeDocumentId, stores }) => {
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+    if (!document) {
+      return "";
+    }
+
+    return documentEditPath(document);
+  },
+});
+
+export const createDocument = createInternalLinkAction({
   name: ({ t }) => t("New document"),
   analyticsName: "New document",
   section: DocumentSection,
@@ -119,13 +175,18 @@ export const createDocument = createAction({
       !!currentTeamId && stores.policies.abilities(currentTeamId).createDocument
     );
   },
-  perform: ({ activeCollectionId, sidebarContext }) =>
-    history.push(newDocumentPath(activeCollectionId), {
-      sidebarContext,
-    }),
+  to: ({ activeCollectionId, sidebarContext }) => {
+    const [pathname, search] = newDocumentPath(activeCollectionId).split("?");
+
+    return {
+      pathname,
+      search,
+      state: { sidebarContext },
+    };
+  },
 });
 
-export const createDraftDocument = createAction({
+export const createDraftDocument = createInternalLinkAction({
   name: ({ t }) => t("New draft"),
   analyticsName: "New document",
   section: DocumentSection,
@@ -133,13 +194,13 @@ export const createDraftDocument = createAction({
   keywords: "create document",
   visible: ({ currentTeamId, stores }) =>
     !!currentTeamId && stores.policies.abilities(currentTeamId).createDocument,
-  perform: ({ sidebarContext }) =>
-    history.push(newDocumentPath(), {
-      sidebarContext,
-    }),
+  to: ({ sidebarContext }) => ({
+    pathname: newDocumentPath(),
+    state: { sidebarContext },
+  }),
 });
 
-export const createDocumentFromTemplate = createAction({
+export const createDocumentFromTemplate = createInternalLinkAction({
   name: ({ t }) => t("New from template"),
   analyticsName: "New document",
   section: DocumentSection,
@@ -169,16 +230,24 @@ export const createDocumentFromTemplate = createAction({
     }
     return stores.policies.abilities(currentTeamId).createDocument;
   },
-  perform: ({ activeCollectionId, activeDocumentId, sidebarContext }) =>
-    history.push(
-      newDocumentPath(activeCollectionId, { templateId: activeDocumentId }),
-      {
-        sidebarContext,
-      }
-    ),
+  to: ({ activeDocumentId, activeCollectionId, sidebarContext }) => {
+    if (!activeDocumentId || !activeCollectionId) {
+      return "";
+    }
+
+    const [pathname, search] = newDocumentPath(activeCollectionId, {
+      templateId: activeDocumentId,
+    }).split("?");
+
+    return {
+      pathname,
+      search,
+      state: { sidebarContext },
+    };
+  },
 });
 
-export const createNestedDocument = createAction({
+export const createNestedDocument = createInternalLinkAction({
   name: ({ t }) => t("New nested document"),
   analyticsName: "New document",
   section: ActiveDocumentSection,
@@ -189,10 +258,16 @@ export const createNestedDocument = createAction({
     !!activeDocumentId &&
     stores.policies.abilities(currentTeamId).createDocument &&
     stores.policies.abilities(activeDocumentId).createChildDocument,
-  perform: ({ activeDocumentId, sidebarContext }) =>
-    history.push(newNestedDocumentPath(activeDocumentId), {
-      sidebarContext,
-    }),
+  to: ({ activeDocumentId, sidebarContext }) => {
+    const [pathname, search] =
+      newNestedDocumentPath(activeDocumentId).split("?");
+
+    return {
+      pathname,
+      search,
+      state: { sidebarContext },
+    };
+  },
 });
 
 export const starDocument = createAction({
@@ -325,6 +400,22 @@ export const subscribeDocument = createAction({
   analyticsName: "Subscribe to document",
   section: ActiveDocumentSection,
   icon: <SubscribeIcon />,
+  tooltip: ({ activeCollectionId, isMenu, stores, t }) => {
+    if (!isMenu || !activeCollectionId) {
+      return undefined;
+    }
+
+    return stores.collections.get(activeCollectionId)?.isSubscribed
+      ? t("Subscription inherited from collection")
+      : undefined;
+  },
+  disabled: ({ activeCollectionId, isMenu, stores }) => {
+    if (!isMenu || !activeCollectionId) {
+      return false;
+    }
+
+    return !!stores.collections.get(activeCollectionId)?.isSubscribed;
+  },
   visible: ({ activeDocumentId, stores }) => {
     if (!activeDocumentId) {
       return false;
@@ -333,6 +424,7 @@ export const subscribeDocument = createAction({
     const document = stores.documents.get(activeDocumentId);
 
     return (
+      !!document?.isActive &&
       !document?.collection?.isSubscribed &&
       !document?.isSubscribed &&
       stores.policies.abilities(activeDocumentId).subscribe
@@ -354,6 +446,22 @@ export const unsubscribeDocument = createAction({
   analyticsName: "Unsubscribe from document",
   section: ActiveDocumentSection,
   icon: <UnsubscribeIcon />,
+  tooltip: ({ activeCollectionId, isMenu, stores, t }) => {
+    if (!isMenu || !activeCollectionId) {
+      return undefined;
+    }
+
+    return stores.collections.get(activeCollectionId)?.isSubscribed
+      ? t("Subscription inherited from collection")
+      : undefined;
+  },
+  disabled: ({ activeCollectionId, isMenu, stores }) => {
+    if (!isMenu || !activeCollectionId) {
+      return false;
+    }
+
+    return !!stores.collections.get(activeCollectionId)?.isSubscribed;
+  },
   visible: ({ activeDocumentId, stores }) => {
     if (!activeDocumentId) {
       return false;
@@ -362,9 +470,10 @@ export const unsubscribeDocument = createAction({
     const document = stores.documents.get(activeDocumentId);
 
     return (
-      !!document?.collection?.isSubscribed ||
-      (!!document?.isSubscribed &&
-        stores.policies.abilities(activeDocumentId).unsubscribe)
+      !!document?.isActive &&
+      (!!document?.collection?.isSubscribed ||
+        (!!document?.isSubscribed &&
+          stores.policies.abilities(activeDocumentId).unsubscribe))
     );
   },
   perform: async ({ activeDocumentId, stores, currentUserId, t }) => {
@@ -440,9 +549,11 @@ export const downloadDocumentAsPDF = createAction({
   icon: <DownloadIcon />,
   iconInContextMenu: false,
   visible: ({ activeDocumentId, stores }) =>
-    !!activeDocumentId &&
-    stores.policies.abilities(activeDocumentId).download &&
-    env.PDF_EXPORT_ENABLED,
+    !!(
+      activeDocumentId &&
+      stores.policies.abilities(activeDocumentId).download &&
+      env.PDF_EXPORT_ENABLED
+    ),
   perform: ({ activeDocumentId, t, stores }) => {
     if (!activeDocumentId) {
       return;
@@ -475,9 +586,8 @@ export const downloadDocumentAsMarkdown = createAction({
   },
 });
 
-export const downloadDocument = createAction({
-  name: ({ t, isContextMenu }) =>
-    isContextMenu ? t("Download") : t("Download document"),
+export const downloadDocument = createActionWithChildren({
+  name: ({ t, isMenu }) => (isMenu ? t("Download") : t("Download document")),
   analyticsName: "Download document",
   section: ActiveDocumentSection,
   icon: <DownloadIcon />,
@@ -499,12 +609,15 @@ export const copyDocumentAsMarkdown = createAction({
   iconInContextMenu: false,
   visible: ({ activeDocumentId, stores }) =>
     !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
-  perform: ({ stores, activeDocumentId, t }) => {
+  perform: async ({ stores, activeDocumentId, t }) => {
     const document = activeDocumentId
       ? stores.documents.get(activeDocumentId)
       : undefined;
     if (document) {
-      copy(document.toMarkdown());
+      const { ProsemirrorHelper } = await import(
+        "~/models/helpers/ProsemirrorHelper"
+      );
+      copy(ProsemirrorHelper.toMarkdown(document));
       toast.success(t("Markdown copied to clipboard"));
     }
   },
@@ -518,12 +631,15 @@ export const copyDocumentAsPlainText = createAction({
   iconInContextMenu: false,
   visible: ({ activeDocumentId, stores }) =>
     !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
-  perform: ({ stores, activeDocumentId, t }) => {
+  perform: async ({ stores, activeDocumentId, t }) => {
     const document = activeDocumentId
       ? stores.documents.get(activeDocumentId)
       : undefined;
     if (document) {
-      copy(document.toPlainText());
+      const { ProsemirrorHelper } = await import(
+        "~/models/helpers/ProsemirrorHelper"
+      );
+      copy(ProsemirrorHelper.toPlainText(document));
       toast.success(t("Text copied to clipboard"));
     }
   },
@@ -568,7 +684,7 @@ export const copyDocumentLink = createAction({
   },
 });
 
-export const copyDocument = createAction({
+export const copyDocument = createActionWithChildren({
   name: ({ t }) => t("Copy"),
   analyticsName: "Copy document",
   section: ActiveDocumentSection,
@@ -583,8 +699,7 @@ export const copyDocument = createAction({
 });
 
 export const duplicateDocument = createAction({
-  name: ({ t, isContextMenu }) =>
-    isContextMenu ? t("Duplicate") : t("Duplicate document"),
+  name: ({ t, isMenu }) => (isMenu ? t("Duplicate") : t("Duplicate document")),
   analyticsName: "Duplicate document",
   section: ActiveDocumentSection,
   icon: <DuplicateIcon />,
@@ -695,7 +810,7 @@ export const pinDocumentToHome = createAction({
   },
 });
 
-export const pinDocument = createAction({
+export const pinDocument = createActionWithChildren({
   name: ({ t }) => t("Pin"),
   analyticsName: "Pin document",
   section: ActiveDocumentSection,
@@ -703,7 +818,7 @@ export const pinDocument = createAction({
   children: [pinDocumentToCollection, pinDocumentToHome],
 });
 
-export const searchInDocument = createAction({
+export const searchInDocument = createInternalLinkAction({
   name: ({ t }) => t("Search in document"),
   analyticsName: "Search document",
   section: ActiveDocumentSection,
@@ -716,14 +831,25 @@ export const searchInDocument = createAction({
     const document = stores.documents.get(activeDocumentId);
     return !!document?.isActive;
   },
-  perform: ({ activeDocumentId }) => {
-    history.push(searchPath({ documentId: activeDocumentId }));
+  to: ({ activeDocumentId, sidebarContext }) => {
+    if (!activeDocumentId) {
+      return "";
+    }
+
+    const [pathname, search] = searchPath({
+      documentId: activeDocumentId,
+    }).split("?");
+
+    return {
+      pathname,
+      search,
+      state: { sidebarContext },
+    };
   },
 });
 
 export const printDocument = createAction({
-  name: ({ t, isContextMenu }) =>
-    isContextMenu ? t("Print") : t("Print document"),
+  name: ({ t, isMenu }) => (isMenu ? t("Print") : t("Print document")),
   analyticsName: "Print document",
   section: ActiveDocumentSection,
   icon: <PrintIcon />,
@@ -745,7 +871,7 @@ export const importDocument = createAction({
     }
 
     if (activeCollectionId) {
-      return !!stores.policies.abilities(activeCollectionId).update;
+      return !!stores.policies.abilities(activeCollectionId).createDocument;
     }
 
     return false;
@@ -754,11 +880,10 @@ export const importDocument = createAction({
     const { documents } = stores;
     const input = document.createElement("input");
     input.type = "file";
-    input.accept = documents.importFileTypes.join(", ");
+    input.accept = documents.importFileTypesString;
 
     input.onchange = async (ev) => {
       const files = getEventFiles(ev);
-
       const file = files[0];
 
       try {
@@ -831,14 +956,14 @@ export const openRandomDocument = createAction({
 });
 
 export const searchDocumentsForQuery = (query: string) =>
-  createAction({
+  createInternalLinkAction({
     id: "search",
     name: ({ t }) =>
       t(`Search documents for "{{searchQuery}}"`, { searchQuery: query }),
     analyticsName: "Search documents",
     section: DocumentSection,
     icon: <SearchIcon />,
-    perform: () => history.push(searchPath({ query })),
+    to: searchPath({ query }),
     visible: ({ location }) => location.pathname !== searchPath(),
   });
 
@@ -928,7 +1053,7 @@ export const moveDocument = createAction({
   perform: moveDocumentToCollection.perform,
 });
 
-export const moveTemplate = createAction({
+export const moveTemplate = createActionWithChildren({
   name: ({ t }) => t("Move"),
   analyticsName: "Move document",
   section: ActiveDocumentSection,
@@ -984,6 +1109,101 @@ export const archiveDocument = createAction({
         ),
       });
     }
+  },
+});
+
+export const restoreDocument = createAction({
+  name: ({ t }) => `${t("Restore")}`,
+  analyticsName: "Restore document",
+  section: ActiveDocumentSection,
+  icon: <RestoreIcon />,
+  visible: ({ activeDocumentId, stores }) => {
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+    if (!document) {
+      return false;
+    }
+
+    const collection = document.collectionId
+      ? stores.collections.get(document.collectionId)
+      : undefined;
+    const can = stores.policies.abilities(document.id);
+
+    return (
+      !!(document.isWorkspaceTemplate || collection?.isActive) &&
+      !!(can.restore || can.unarchive)
+    );
+  },
+  perform: async ({ t, stores, activeDocumentId }) => {
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+    if (!document) {
+      return;
+    }
+
+    await document.restore();
+    toast.success(
+      t("{{ documentName }} restored", {
+        documentName: capitalize(document.noun),
+      })
+    );
+  },
+});
+
+export const restoreDocumentToCollection = createActionWithChildren({
+  name: ({ t }) => `${t("Restore")}…`,
+  analyticsName: "Restore document",
+  section: ActiveDocumentSection,
+  icon: <RestoreIcon />,
+  visible: ({ stores, activeDocumentId }) => {
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+    if (!document) {
+      return false;
+    }
+
+    const can = stores.policies.abilities(document.id);
+    const collection = document.collectionId
+      ? stores.collections.get(document.collectionId)
+      : undefined;
+
+    return (
+      !(document.isWorkspaceTemplate || collection?.isActive) &&
+      !!(can.restore || can.unarchive)
+    );
+  },
+  children: ({ t, activeDocumentId, stores }) => {
+    const { collections, documents, policies } = stores;
+
+    const document = activeDocumentId
+      ? documents.get(activeDocumentId)
+      : undefined;
+    if (!document) {
+      return [];
+    }
+
+    const actions = collections.orderedData.map((collection) => {
+      const can = policies.abilities(collection.id);
+      return createAction({
+        name: collection.name,
+        section: ActiveDocumentSection,
+        icon: <CollectionIcon collection={collection} />,
+        visible: can.createDocument,
+        perform: async () => {
+          await document.restore({ collectionId: collection.id });
+          toast.success(
+            t("{{ documentName }} restored", {
+              documentName: capitalize(document.noun),
+            })
+          );
+        },
+      });
+    });
+
+    return [createActionGroup({ name: t("Choose a collection"), actions })];
   },
 });
 
@@ -1081,17 +1301,13 @@ export const openDocumentComments = createAction({
   analyticsName: "Open comments",
   section: ActiveDocumentSection,
   icon: <CommentIcon />,
-  visible: ({ activeCollectionId, activeDocumentId, stores }) => {
+  visible: ({ activeDocumentId, stores }) => {
     const can = stores.policies.abilities(activeDocumentId ?? "");
-    const collection = activeCollectionId
-      ? stores.collections.get(activeCollectionId)
-      : undefined;
 
     return (
       !!activeDocumentId &&
       can.comment &&
-      (collection?.canCreateComment ??
-        !!stores.auth.team?.getPreference(TeamPreference.Commenting))
+      !!stores.auth.team?.getPreference(TeamPreference.Commenting)
     );
   },
   perform: ({ activeDocumentId, stores }) => {
@@ -1103,7 +1319,7 @@ export const openDocumentComments = createAction({
   },
 });
 
-export const openDocumentHistory = createAction({
+export const openDocumentHistory = createInternalLinkAction({
   name: ({ t }) => t("History"),
   analyticsName: "Open document history",
   section: ActiveDocumentSection,
@@ -1112,15 +1328,21 @@ export const openDocumentHistory = createAction({
     const can = stores.policies.abilities(activeDocumentId ?? "");
     return !!activeDocumentId && can.listRevisions;
   },
-  perform: ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) {
-      return;
-    }
-    const document = stores.documents.get(activeDocumentId);
+  to: ({ activeDocumentId, stores, sidebarContext }) => {
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
     if (!document) {
-      return;
+      return "";
     }
-    history.push(documentHistoryPath(document));
+
+    const [pathname, search] = documentHistoryPath(document).split("?");
+
+    return {
+      pathname,
+      search,
+      state: { sidebarContext },
+    };
   },
 });
 
@@ -1142,45 +1364,17 @@ export const openDocumentInsights = createAction({
       !document?.isDeleted
     );
   },
-  perform: ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) {
-      return;
-    }
-    const document = stores.documents.get(activeDocumentId);
-    if (!document) {
-      return;
-    }
-    history.push(documentInsightsPath(document));
-  },
-});
-
-export const toggleViewerInsights = createAction({
-  name: ({ t, stores, activeDocumentId }) => {
+  perform: ({ activeDocumentId, stores, t }) => {
     const document = activeDocumentId
       ? stores.documents.get(activeDocumentId)
       : undefined;
-    return document?.insightsEnabled
-      ? t("Disable viewer insights")
-      : t("Enable viewer insights");
-  },
-  analyticsName: "Toggle viewer insights",
-  section: ActiveDocumentSection,
-  icon: <EyeIcon />,
-  visible: ({ activeDocumentId, stores }) => {
-    const can = stores.policies.abilities(activeDocumentId ?? "");
-    return can.updateInsights;
-  },
-  perform: async ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) {
-      return;
-    }
-    const document = stores.documents.get(activeDocumentId);
     if (!document) {
       return;
     }
 
-    await document.save({
-      insightsEnabled: !document.insightsEnabled,
+    stores.dialogs.openModal({
+      title: t("Insights"),
+      content: <Insights document={document} />,
     });
   },
 });
@@ -1215,11 +1409,32 @@ export const leaveDocument = createAction({
       } as UserMembership);
 
       toast.success(t("You have left the shared document"));
-    } catch (err) {
+    } catch (_err) {
       toast.error(t("Could not leave document"));
     }
   },
 });
+
+export const applyTemplateFactory = ({
+  actions,
+}: {
+  actions: (Action | ActionGroup | ActionSeparator)[];
+}) =>
+  createActionWithChildren({
+    name: ({ t }) => t("Apply template"),
+    analyticsName: "Apply template",
+    section: ActiveDocumentSection,
+    icon: <ShapesIcon />,
+    visible: ({ activeDocumentId, stores }) => {
+      const { policies } = stores;
+      const can = activeDocumentId
+        ? policies.abilities(activeDocumentId)
+        : undefined;
+
+      return !!can?.update;
+    },
+    children: actions,
+  });
 
 export const rootDocumentActions = [
   openDocument,

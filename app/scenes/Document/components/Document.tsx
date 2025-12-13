@@ -4,7 +4,7 @@ import isEqual from "lodash/isEqual";
 import { action, observable } from "mobx";
 import { observer } from "mobx-react";
 import { Node } from "prosemirror-model";
-import { AllSelection, TextSelection } from "prosemirror-state";
+import { AllSelection, Selection, TextSelection } from "prosemirror-state";
 import * as React from "react";
 import { WithTranslation, withTranslation } from "react-i18next";
 import {
@@ -27,16 +27,13 @@ import {
 } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { TextHelper } from "@shared/utils/TextHelper";
-import { parseDomain } from "@shared/utils/domains";
 import { determineIconType } from "@shared/utils/icon";
 import { isModKey } from "@shared/utils/keyboard";
 import RootStore from "~/stores/RootStore";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
-import ConnectionStatus from "~/scenes/Document/components/ConnectionStatus";
 import DocumentMove from "~/scenes/DocumentMove";
 import DocumentPublish from "~/scenes/DocumentPublish";
-import Branding from "~/components/Branding";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import PageTitle from "~/components/PageTitle";
@@ -44,6 +41,7 @@ import PlaceholderDocument from "~/components/PlaceholderDocument";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
 import { SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
 import withStores from "~/components/withStores";
+import { MeasuredContainer } from "~/components/MeasuredContainer";
 import type { Editor as TEditor } from "~/editor";
 import { Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -57,13 +55,10 @@ import Container from "./Container";
 import Contents from "./Contents";
 import Editor from "./Editor";
 import Header from "./Header";
-import KeyboardShortcutsButton from "./KeyboardShortcutsButton";
-import { MeasuredContainer } from "./MeasuredContainer";
 import Notices from "./Notices";
 import PublicReferences from "./PublicReferences";
 import References from "./References";
 import RevisionViewer from "./RevisionViewer";
-import { SizeWarning } from "./SizeWarning";
 
 const AUTOSAVE_DELAY = 3000;
 
@@ -153,10 +148,7 @@ class DocumentScene extends React.Component<Props> {
    * @param template The template to use
    * @param selection The selection to replace, if any
    */
-  replaceSelection = (
-    template: Document | Revision,
-    selection?: TextSelection | AllSelection
-  ) => {
+  replaceSelection = (template: Document | Revision, selection?: Selection) => {
     const editorRef = this.editor.current;
 
     if (!editorRef) {
@@ -422,6 +414,23 @@ class DocumentScene extends React.Component<Props> {
     void this.onSave();
   });
 
+  handleSelectTemplate = async (template: Document | Revision) => {
+    const editorRef = this.editor.current;
+    if (!editorRef) {
+      return;
+    }
+
+    const { view } = editorRef;
+    const doc = view.state.doc;
+
+    return this.replaceSelection(
+      template,
+      ProsemirrorHelper.isEmpty(doc)
+        ? new AllSelection(doc)
+        : view.state.selection
+    );
+  };
+
   goBack = () => {
     if (!this.props.readOnly) {
       this.props.history.push({
@@ -433,6 +442,7 @@ class DocumentScene extends React.Component<Props> {
 
   render() {
     const {
+      children,
       document,
       revision,
       readOnly,
@@ -457,6 +467,11 @@ class DocumentScene extends React.Component<Props> {
       (isShare
         ? ui.tocVisible !== false
         : !document.isTemplate && ui.tocVisible === true);
+    const tocOffset =
+      tocPos === TOCPosition.Left
+        ? EditorStyleHelper.tocWidth / -2
+        : EditorStyleHelper.tocWidth / 2;
+
     const multiplayerEditor =
       !document.isArchived && !document.isDeleted && !revision && !isShare;
 
@@ -469,6 +484,10 @@ class DocumentScene extends React.Component<Props> {
       ? document.titleWithDefault.replace(document.icon!, "")
       : document.titleWithDefault;
     const favicon = hasEmojiInTitle ? emojiToUrl(document.icon!) : undefined;
+
+    const fullWidthTransformOffsetStyle = {
+      ["--full-width-transform-offset"]: `${document.fullWidth && showContents ? tocOffset : 0}px`,
+    } as React.CSSProperties;
 
     return (
       <ErrorBoundary showTitle>
@@ -518,7 +537,6 @@ class DocumentScene extends React.Component<Props> {
             <Header
               document={document}
               revision={revision}
-              shareId={shareId}
               isDraft={document.isDraft}
               isEditing={!readOnly && !!user?.separateEditMode}
               isSaving={this.isSaving}
@@ -527,11 +545,14 @@ class DocumentScene extends React.Component<Props> {
                 document.isSaving || this.isPublishing || this.isEmpty
               }
               savingIsDisabled={document.isSaving || this.isEmpty}
-              sharedTree={this.props.sharedTree}
-              onSelectTemplate={this.replaceSelection}
+              onSelectTemplate={this.handleSelectTemplate}
               onSave={this.onSave}
             />
-            <Main fullWidth={document.fullWidth} tocPosition={tocPos}>
+            <Main
+              fullWidth={document.fullWidth}
+              tocPosition={tocPos}
+              style={fullWidthTransformOffsetStyle}
+            >
               <React.Suspense
                 fallback={
                   <EditorContainer
@@ -572,7 +593,6 @@ class DocumentScene extends React.Component<Props> {
                         key={embedsDisabled ? "disabled" : "enabled"}
                         ref={this.editor}
                         multiplayer={multiplayerEditor}
-                        shareId={shareId}
                         isDraft={document.isDraft}
                         template={document.isTemplate}
                         document={document}
@@ -595,11 +615,7 @@ class DocumentScene extends React.Component<Props> {
                       >
                         {shareId ? (
                           <ReferencesWrapper>
-                            <PublicReferences
-                              shareId={shareId}
-                              documentId={document.id}
-                              sharedTree={this.props.sharedTree}
-                            />
+                            <PublicReferences documentId={document.id} />
                           </ReferencesWrapper>
                         ) : !revision ? (
                           <ReferencesWrapper>
@@ -620,19 +636,8 @@ class DocumentScene extends React.Component<Props> {
                 )}
               </React.Suspense>
             </Main>
-            {isShare &&
-              !parseDomain(window.location.origin).custom &&
-              !auth.user && (
-                <Branding href="//www.getoutline.com?ref=sharelink" />
-              )}
+            {children}
           </Container>
-          {!isShare && (
-            <Footer>
-              <KeyboardShortcutsButton />
-              <ConnectionStatus />
-              <SizeWarning document={document} />
-            </Footer>
-          )}
         </MeasuredContainer>
       </ErrorBoundary>
     );
@@ -741,24 +746,13 @@ const RevisionContainer = styled.div<RevisionContainerProps>`
   `}
 `;
 
-const Footer = styled.div`
-  position: fixed;
-  width: 100%;
-  bottom: 12px;
-  right: 20px;
-  text-align: right;
-  display: flex;
-  justify-content: flex-end;
-  gap: 20px;
-`;
-
 const Background = styled(Container)`
   position: relative;
   background: ${s("background")};
 `;
 
 const ReferencesWrapper = styled.div`
-  margin-top: 16px;
+  margin: 12px 0;
 
   @media print {
     display: none;

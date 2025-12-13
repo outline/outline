@@ -1,4 +1,6 @@
 import { computed, observable } from "mobx";
+import { NavigationNode, PublicTeam } from "@shared/types";
+import SharesStore from "~/stores/SharesStore";
 import Collection from "./Collection";
 import Document from "./Document";
 import User from "./User";
@@ -9,6 +11,8 @@ import { Searchable } from "./interfaces/Searchable";
 
 class Share extends Model implements Searchable {
   static modelName = "Share";
+
+  store: SharesStore;
 
   @Field
   @observable
@@ -45,6 +49,12 @@ class Share extends Model implements Searchable {
   domain: string;
 
   @observable
+  sourceTitle: string;
+
+  @observable
+  sourcePath: string;
+
+  @observable
   documentTitle: string;
 
   @observable
@@ -60,6 +70,14 @@ class Share extends Model implements Searchable {
   @observable
   allowIndexing: boolean;
 
+  @Field
+  @observable
+  showLastUpdated: boolean;
+
+  @Field
+  @observable
+  showTOC: boolean;
+
   @observable
   views: number;
 
@@ -68,8 +86,41 @@ class Share extends Model implements Searchable {
   createdBy: User;
 
   @computed
+  get title(): string {
+    return this.sourceTitle ?? this.documentTitle;
+  }
+
+  @computed
+  get sourcePathWithFallback(): string {
+    return this.sourcePath ?? this.documentUrl;
+  }
+
+  @computed
   get searchContent(): string[] {
-    return [this.document?.title ?? this.documentTitle];
+    return [this.title];
+  }
+
+  @computed
+  get searchSuppressed(): boolean {
+    return false;
+  }
+
+  @computed
+  get sharedCache() {
+    return (
+      this.store.sharedCache.get(this.id) ??
+      this.store.sharedCache.get(this.urlId)
+    );
+  }
+
+  @computed
+  get team(): PublicTeam | undefined {
+    return this.sharedCache?.team;
+  }
+
+  @computed
+  get tree(): NavigationNode | undefined {
+    return this.sharedCache?.sharedTree ?? undefined;
   }
 }
 

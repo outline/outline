@@ -1,4 +1,5 @@
 import { observer } from "mobx-react";
+import { v4 as uuidv4 } from "uuid";
 import queryString from "query-string";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -6,7 +7,6 @@ import { useHistory, useLocation, useRouteMatch } from "react-router-dom";
 import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { v4 as uuidv4 } from "uuid";
 import { Pagination } from "@shared/constants";
 import { hideScrollbars } from "@shared/styles";
 import {
@@ -126,8 +126,11 @@ function Search() {
   });
 
   const updateLocation = (query: string) => {
+    // If query came from route params, navigate to base search path
+    const pathname = routeMatch.params.query ? searchPath() : location.pathname;
+
     history.replace({
-      pathname: location.pathname,
+      pathname,
       search: queryString.stringify(
         { ...queryString.parse(location.search), q: query },
         {
@@ -222,8 +225,8 @@ function Search() {
               documentId
                 ? t("Search in document")
                 : collectionId
-                ? t("Search in collection")
-                : t("Search")
+                  ? t("Search in collection")
+                  : t("Search")
             }…`}
             onKeyDown={handleKeyDown}
             defaultValue={query ?? ""}
@@ -271,8 +274,8 @@ function Search() {
                 width={26}
                 height={14}
                 label={t("Search titles only")}
-                onChange={(ev: React.ChangeEvent<HTMLInputElement>) => {
-                  handleFilterChange({ titleFilter: ev.target.checked });
+                onChange={(checked: boolean) => {
+                  handleFilterChange({ titleFilter: checked });
                 }}
                 checked={titleFilter}
               />

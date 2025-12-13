@@ -1,6 +1,7 @@
 import http, { IncomingMessage } from "http";
 import { Duplex } from "stream";
 import url from "url";
+import { Redis } from "@hocuspocus/extension-redis";
 import { Throttle } from "@hocuspocus/extension-throttle";
 import { Server } from "@hocuspocus/server";
 import Koa from "koa";
@@ -10,6 +11,7 @@ import { ConnectionLimitExtension } from "@server/collaboration/ConnectionLimitE
 import { ViewsExtension } from "@server/collaboration/ViewsExtension";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
+import RedisAdapter from "@server/storage/redis";
 import ShutdownHelper, { ShutdownOrder } from "@server/utils/ShutdownHelper";
 import AuthenticationExtension from "../collaboration/AuthenticationExtension";
 import { EditorVersionExtension } from "../collaboration/EditorVersionExtension";
@@ -33,6 +35,13 @@ export default function init(
     timeout: 30000,
     maxDebounce: 10000,
     extensions: [
+      ...(env.REDIS_COLLABORATION_URL
+        ? [
+            new Redis({
+              redis: RedisAdapter.collaborationClient,
+            }),
+          ]
+        : []),
       new Throttle({
         throttle: env.RATE_LIMITER_COLLABORATION_REQUESTS,
         consideredSeconds: env.RATE_LIMITER_DURATION_WINDOW,

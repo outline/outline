@@ -11,7 +11,6 @@ import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useStores from "~/hooks/useStores";
 import { DragObject } from "../hooks/useDragAndDrop";
 import CollectionLink from "./CollectionLink";
-import CollectionLinkChildren from "./CollectionLinkChildren";
 import DropCursor from "./DropCursor";
 import Relative from "./Relative";
 import { useSidebarContext } from "./SidebarContext";
@@ -19,14 +18,12 @@ import { useSidebarContext } from "./SidebarContext";
 type Props = {
   collection: Collection;
   activeDocument: Document | undefined;
-  prefetchDocument: (id: string) => Promise<Document | void>;
   belowCollection: Collection | void;
 };
 
 function DraggableCollectionLink({
   collection,
   activeDocument,
-  prefetchDocument,
   belowCollection,
 }: Props) {
   const locationSidebarContext = useLocationSidebarContext();
@@ -116,11 +113,6 @@ function DraggableCollectionLink({
         />
       </Draggable>
       <Relative>
-        <CollectionLinkChildren
-          collection={collection}
-          expanded={displayChildDocuments}
-          prefetchDocument={prefetchDocument}
-        />
         {isDraggingAnyCollection && (
           <DropCursor
             isActiveDrop={isCollectionDropping}
@@ -135,7 +127,7 @@ function DraggableCollectionLink({
 const Draggable = styled("div")<{ $isDragging: boolean }>`
   transition: opacity 250ms ease;
   opacity: ${(props) => (props.$isDragging ? 0.1 : 1)};
-  pointer-events: ${(props) => (props.$isDragging ? "none" : "auto")};
+  pointer-events: ${(props) => (props.$isDragging ? "none" : "inherit")};
 `;
 
 export default observer(DraggableCollectionLink);

@@ -1,13 +1,14 @@
 import { observable, action } from "mobx";
-import * as React from "react";
 import { v4 as uuidv4 } from "uuid";
+import * as React from "react";
 
 type DialogDefinition = {
   title: string;
   content: React.ReactNode;
   isOpen: boolean;
-  fullscreen?: boolean;
   style?: React.CSSProperties;
+  width?: number | string;
+  height?: number | string;
   onClose?: () => void;
 };
 
@@ -48,30 +49,29 @@ export default class DialogsStore {
     id,
     title,
     content,
-    fullscreen,
     replace,
     style,
+    width,
+    height,
     onClose,
-  }: {
+  }: Omit<DialogDefinition, "isOpen"> & {
     id?: string;
-    title: string;
-    fullscreen?: boolean;
-    content: React.ReactNode;
-    style?: React.CSSProperties;
     replace?: boolean;
-    onClose?: () => void;
   }) => {
     setTimeout(
       action(() => {
+        let replaceId;
         if (replace) {
+          replaceId = Array.from(this.modalStack.keys())[0];
           this.modalStack.clear();
         }
 
-        this.modalStack.set(id ?? uuidv4(), {
+        this.modalStack.set(id ?? replaceId ?? uuidv4(), {
           title,
           content,
-          fullscreen,
           style,
+          width,
+          height,
           isOpen: true,
           onClose,
         });

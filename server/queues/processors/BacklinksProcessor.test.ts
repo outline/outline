@@ -1,6 +1,8 @@
 import { parser } from "@server/editor";
-import { Backlink } from "@server/models";
+import { Relationship } from "@server/models";
+import { RelationshipType } from "@server/models/Relationship";
 import { buildDocument } from "@server/test/factories";
+
 import BacklinksProcessor from "./BacklinksProcessor";
 
 const ip = "127.0.0.1";
@@ -19,12 +21,12 @@ describe("documents.publish", () => {
       collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: document.createdById,
-      data: { title: document.title },
       ip,
     });
-    const backlinks = await Backlink.findAll({
+    const backlinks = await Relationship.findAll({
       where: {
         reverseDocumentId: document.id,
+        type: RelationshipType.Backlink,
       },
     });
     expect(backlinks.length).toBe(1);
@@ -49,12 +51,12 @@ describe("documents.publish", () => {
       collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: document.createdById,
-      data: { title: document.title },
       ip,
     });
-    const backlinks = await Backlink.findAll({
+    const backlinks = await Relationship.findAll({
       where: {
         reverseDocumentId: document.id,
+        type: RelationshipType.Backlink,
       },
     });
     expect(backlinks.length).toBe(0);
@@ -76,12 +78,13 @@ describe("documents.update", () => {
       teamId: document.teamId,
       actorId: document.createdById,
       createdAt: new Date().toISOString(),
-      data: { title: document.title, autosave: false, done: true },
+      data: { done: true },
       ip,
     });
-    const backlinks = await Backlink.findAll({
+    const backlinks = await Relationship.findAll({
       where: {
         reverseDocumentId: document.id,
+        type: RelationshipType.Backlink,
       },
     });
     expect(backlinks.length).toBe(1);
@@ -106,12 +109,13 @@ describe("documents.update", () => {
       teamId: document.teamId,
       actorId: document.createdById,
       createdAt: new Date().toISOString(),
-      data: { title: document.title, autosave: false, done: true },
+      data: { done: true },
       ip,
     });
-    const backlinks = await Backlink.findAll({
+    const backlinks = await Relationship.findAll({
       where: {
         reverseDocumentId: document.id,
+        type: RelationshipType.Backlink,
       },
     });
     expect(backlinks.length).toBe(1);
@@ -133,12 +137,13 @@ describe("documents.update", () => {
       teamId: document.teamId,
       actorId: document.createdById,
       createdAt: new Date().toISOString(),
-      data: { title: document.title, autosave: false, done: true },
+      data: { done: true },
       ip,
     });
-    const backlinks = await Backlink.findAll({
+    const backlinks = await Relationship.findAll({
       where: {
         reverseDocumentId: document.id,
+        type: RelationshipType.Backlink,
       },
     });
     expect(backlinks.length).toBe(1);
@@ -160,7 +165,6 @@ describe("documents.update", () => {
       collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: document.createdById,
-      data: { title: document.title },
       ip,
     });
     document.content = parser
@@ -179,12 +183,13 @@ describe("documents.update", () => {
       teamId: document.teamId,
       actorId: document.createdById,
       createdAt: new Date().toISOString(),
-      data: { title: document.title, autosave: false, done: true },
+      data: { done: true },
       ip,
     });
-    const backlinks = await Backlink.findAll({
+    const backlinks = await Relationship.findAll({
       where: {
         reverseDocumentId: document.id,
+        type: RelationshipType.Backlink,
       },
     });
     expect(backlinks.length).toBe(1);
@@ -209,7 +214,7 @@ describe("documents.delete", () => {
       teamId: document.teamId,
       actorId: document.createdById,
       createdAt: new Date().toISOString(),
-      data: { title: document.title, autosave: false, done: true },
+      data: { done: true },
       ip,
     });
 
@@ -219,12 +224,12 @@ describe("documents.delete", () => {
       collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: document.createdById,
-      data: { title: document.title },
       ip,
     });
-    const backlinks = await Backlink.findAll({
+    const backlinks = await Relationship.findAll({
       where: {
         reverseDocumentId: document.id,
+        type: RelationshipType.Backlink,
       },
     });
     expect(backlinks.length).toBe(0);

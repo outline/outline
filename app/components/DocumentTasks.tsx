@@ -7,6 +7,7 @@ import Document from "~/models/Document";
 import CircularProgressBar from "~/components/CircularProgressBar";
 import usePrevious from "~/hooks/usePrevious";
 import { bounceIn } from "~/styles/animations";
+import Flex from "./Flex";
 
 type Props = {
   document: Document;
@@ -39,8 +40,9 @@ function DocumentTasks({ document }: Props) {
   const done = completed === total;
   const previousDone = usePrevious(done);
   const message = getMessage(t, total, completed);
+
   return (
-    <>
+    <Flex align="center" style={{ padding: "0 1px" }} gap={2}>
       {completed === total ? (
         <Done
           color={theme.accent}
@@ -50,8 +52,8 @@ function DocumentTasks({ document }: Props) {
       ) : (
         <CircularProgressBar percentage={tasksPercentage} />
       )}
-      &nbsp;{message}
-    </>
+      {message}
+    </Flex>
   );
 }
 

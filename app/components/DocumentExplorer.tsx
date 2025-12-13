@@ -3,6 +3,7 @@ import concat from "lodash/concat";
 import difference from "lodash/difference";
 import fill from "lodash/fill";
 import filter from "lodash/filter";
+import flatten from "lodash/flatten";
 import includes from "lodash/includes";
 import map from "lodash/map";
 import { observer } from "mobx-react";
@@ -15,8 +16,9 @@ import scrollIntoView from "scroll-into-view-if-needed";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Icon from "@shared/components/Icon";
-import { NavigationNode, NavigationNodeType } from "@shared/types";
+import { NavigationNode } from "@shared/types";
 import { isModKey } from "@shared/utils/keyboard";
+import { ancestors, descendants, flattenTree } from "@shared/utils/tree";
 import DocumentExplorerNode from "~/components/DocumentExplorerNode";
 import DocumentExplorerSearchResult from "~/components/DocumentExplorerSearchResult";
 import Flex from "~/components/Flex";
@@ -26,7 +28,6 @@ import InputSearch from "~/components/InputSearch";
 import Text from "~/components/Text";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
-import { ancestors, descendants } from "~/utils/tree";
 
 type Props = {
   /** Action taken upon submission of selected item, could be publish, move etc. */
@@ -48,8 +49,13 @@ function DocumentExplorer({ onSubmit, onSelect, items, defaultValue }: Props) {
   const [searchTerm, setSearchTerm] = React.useState<string>();
   const [selectedNode, selectNode] = React.useState<NavigationNode | null>(
     () => {
-      const node =
-        defaultValue && items.find((item) => item.id === defaultValue);
+      if (!defaultValue) {
+        return null;
+      }
+
+      // Search through all nodes in the tree, not just top-level items
+      const allNodes = flatten(items.map(flattenTree));
+      const node = allNodes.find((item) => item.id === defaultValue);
       return node || null;
     }
   );
@@ -58,7 +64,9 @@ function DocumentExplorer({ onSubmit, onSelect, items, defaultValue }: Props) {
   const [activeNode, setActiveNode] = React.useState<number>(0);
   const [expandedNodes, setExpandedNodes] = React.useState<string[]>(() => {
     if (defaultValue) {
-      const node = items.find((item) => item.id === defaultValue);
+      // Search through all nodes in the tree, not just top-level items
+      const allNodes = flatten(items.map(flattenTree));
+      const node = allNodes.find((item) => item.id === defaultValue);
       if (node) {
         return ancestors(node).map((ancestorNode) => ancestorNode.id);
       }
@@ -78,13 +86,9 @@ function DocumentExplorer({ onSubmit, onSelect, items, defaultValue }: Props) {
   const VERTICAL_PADDING = 6;
   const HORIZONTAL_PADDING = 24;
 
-  const recentlyViewedItemIds = documents.recentlyViewed
-    .slice(0, 5)
-    .map((item) => item.id);
-
   const searchIndex = React.useMemo(
     () =>
-      new FuzzySearch(items, ["title"], {
+      new FuzzySearch(flatten(items.map(flattenTree)), ["title"], {
         caseSensitive: false,
       }),
     [items]
@@ -107,6 +111,20 @@ function DocumentExplorer({ onSubmit, onSelect, items, defaultValue }: Props) {
     );
   }, [items.length]);
 
+  function getNodes() {
+    function includeDescendants(item: NavigationNode): NavigationNode[] {
+      return expandedNodes.includes(item.id)
+        ? [item, ...descendants(item, 1).flatMap(includeDescendants)]
+        : [item];
+    }
+
+    return searchTerm
+      ? searchIndex.search(searchTerm)
+      : items.flatMap(includeDescendants);
+  }
+
+  const nodes = getNodes();
+
   React.useEffect(() => {
     onSelect(selectedNode);
   }, [selectedNode, onSelect]);
@@ -118,30 +136,12 @@ function DocumentExplorer({ onSubmit, onSelect, items, defaultValue }: Props) {
         setTimeout(() => listRef.current?.scrollToItem(index, "center"), 50);
       }
     }
-  }, []);
-
-  function getNodes() {
-    function includeDescendants(item: NavigationNode): NavigationNode[] {
-      return expandedNodes.includes(item.id)
-        ? [item, ...descendants(item, 1).flatMap(includeDescendants)]
-        : [item];
-    }
-
-    return searchTerm
-      ? searchIndex.search(searchTerm)
-      : items
-          .filter((item) => recentlyViewedItemIds.includes(item.id))
-          .concat(
-            items.filter((item) => item.type === NavigationNodeType.Collection)
-          )
-          .flatMap(includeDescendants);
-  }
-
-  const nodes = getNodes();
+  }, [defaultValue, selectedNode, nodes]);
   const baseDepth = nodes.reduce(
     (min, node) => (node.depth ? Math.min(min, node.depth) : min),
     Infinity
   );
+  const normalizedBaseDepth = baseDepth === Infinity ? 0 : baseDepth;
 
   const scrollNodeIntoView = React.useCallback(
     (node: number) => {
@@ -268,7 +268,9 @@ function DocumentExplorer({ onSubmit, onSelect, items, defaultValue }: Props) {
         title = doc?.title ?? node.title;
 
         if (icon) {
-          renderedIcon = <Icon value={icon} color={color} />;
+          renderedIcon = (
+            <Icon value={icon} initial={node.title} color={color} />
+          );
         } else if (doc?.isStarred) {
           renderedIcon = <StarredIcon color={theme.yellow} />;
         } else {
@@ -315,7 +317,7 @@ function DocumentExplorer({ onSubmit, onSelect, items, defaultValue }: Props) {
           expanded={isExpanded(index)}
           icon={renderedIcon}
           title={title}
-          depth={(node.depth ?? 0) - baseDepth}
+          depth={(node.depth ?? 0) - normalizedBaseDepth}
           hasChildren={hasChildren(index)}
           ref={itemRefs[index]}
         />

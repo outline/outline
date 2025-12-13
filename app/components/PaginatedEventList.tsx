@@ -1,13 +1,18 @@
 import * as React from "react";
 import styled from "styled-components";
 import Document from "~/models/Document";
+import Event from "~/models/Event";
+import Revision from "~/models/Revision";
 import PaginatedList from "~/components/PaginatedList";
-import EventListItem, { type Event } from "./EventListItem";
+import EventListItem from "./EventListItem";
+import RevisionListItem from "./RevisionListItem";
+
+type Item = Revision | Event<Document>;
 
 type Props = {
-  events: Event[];
+  items: Item[];
   document: Document;
-  fetch: (options: Record<string, any> | undefined) => Promise<Event[]>;
+  fetch: (options: Record<string, any> | undefined) => Promise<Item[]>;
   options?: Record<string, any>;
   heading?: React.ReactNode;
   empty?: JSX.Element;
@@ -16,7 +21,7 @@ type Props = {
 const PaginatedEventList = React.memo<Props>(function PaginatedEventList({
   empty,
   heading,
-  events,
+  items,
   fetch,
   options,
   document,
@@ -24,14 +29,18 @@ const PaginatedEventList = React.memo<Props>(function PaginatedEventList({
 }: Props) {
   return (
     <StyledPaginatedList
-      items={events}
+      items={items}
       empty={empty}
       heading={heading}
       fetch={fetch}
       options={options}
-      renderItem={(item: Event) => (
-        <EventListItem key={item.id} event={item} document={document} />
-      )}
+      renderItem={(item: Item) =>
+        item instanceof Revision ? (
+          <RevisionListItem key={item.id} item={item} document={document} />
+        ) : (
+          <EventListItem key={item.id} item={item} document={document} />
+        )
+      }
       renderHeading={(name) => <Heading>{name}</Heading>}
       {...rest}
     />

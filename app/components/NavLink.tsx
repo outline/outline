@@ -12,17 +12,11 @@ type Props = React.ComponentProps<typeof NavLink> & {
       | null,
     location: LocationDescriptorObject
   ) => React.ReactNode;
-  /**
-   * If true, the tab will only be active if the path matches exactly.
-   */
+  /** If true, the tab will only be active if the path matches exactly */
   exact?: boolean;
-  /**
-   * CSS properties to apply to the link when it is active.
-   */
+  /** CSS properties to apply to the link when it is active */
   activeStyle?: React.CSSProperties;
-  /**
-   * The path to match against the current location.
-   */
+  /** The path to match against the current location */
   to: LocationDescriptor;
 };
 

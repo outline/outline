@@ -2,6 +2,7 @@ import { EmailIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { Client } from "@shared/types";
 import ButtonLarge from "~/components/ButtonLarge";
 import InputLarge from "~/components/InputLarge";
 import PluginIcon from "~/components/PluginIcon";
@@ -15,14 +16,18 @@ type Props = React.ComponentProps<typeof ButtonLarge> & {
   authUrl: string;
   isCreate: boolean;
   onEmailSuccess: (email: string) => void;
+  preferOTP: boolean;
 };
+
+type AuthState = "initial" | "email" | "code";
 
 function AuthenticationProvider(props: Props) {
   const { t } = useTranslation();
-  const [showEmailSignin, setShowEmailSignin] = React.useState(false);
+  const [authState, setAuthState] = React.useState<AuthState>("initial");
   const [isSubmitting, setSubmitting] = React.useState(false);
   const [email, setEmail] = React.useState("");
   const { isCreate, id, name, authUrl, onEmailSuccess, ...rest } = props;
+  const clientType = Desktop.isElectron() ? Client.Desktop : Client.Web;
 
   const handleChangeEmail = (event: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(event.target.value);
@@ -33,25 +38,27 @@ function AuthenticationProvider(props: Props) {
   ) => {
     event.preventDefault();
 
-    if (showEmailSignin && email) {
+    if (authState === "email" && email) {
       setSubmitting(true);
 
       try {
         const response = await client.post(event.currentTarget.action, {
           email,
-          client: Desktop.isElectron() ? "desktop" : undefined,
+          client: clientType,
+          preferOTP: props.preferOTP,
         });
 
         if (response.redirect) {
           window.location.href = response.redirect;
         } else {
-          onEmailSuccess(email);
+          setSubmitting(false);
+          onEmailSuccess?.(email);
         }
-      } finally {
+      } catch (_err) {
         setSubmitting(false);
       }
     } else {
-      setShowEmailSignin(true);
+      setAuthState("email");
     }
   };
 
@@ -65,7 +72,7 @@ function AuthenticationProvider(props: Props) {
     return (
       <Wrapper>
         <Form method="POST" action="/auth/email" onSubmit={handleSubmitEmail}>
-          {showEmailSignin ? (
+          {authState === "email" ? (
             <>
               <InputLarge
                 type="email"

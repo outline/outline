@@ -4,7 +4,7 @@ import { InputRule } from "prosemirror-inputrules";
 import { NodeType, Schema } from "prosemirror-model";
 import { EditorState, Plugin } from "prosemirror-state";
 import Extension from "@shared/editor/lib/Extension";
-import { SuggestionsMenuPlugin } from "@shared/editor/plugins/Suggestions";
+import { SuggestionsMenuPlugin } from "@shared/editor/plugins/SuggestionsMenuPlugin";
 import { isInCode } from "@shared/editor/queries/isInCode";
 
 type Options = {

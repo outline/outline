@@ -8,7 +8,7 @@ import { TeamPreference, UserPreference } from "@shared/types";
 import { Theme } from "~/stores/UiStore";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
-import { InputSelectNew, Option } from "~/components/InputSelectNew";
+import { InputSelect, Option } from "~/components/InputSelect";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
@@ -34,7 +34,7 @@ function Preferences() {
             type: "item",
             label: lang.label,
             value: lang.value,
-          } satisfies Option)
+          }) satisfies Option
       ),
     []
   );
@@ -49,16 +49,50 @@ function Preferences() {
     [t]
   );
 
-  const handlePreferenceChange =
-    (inverted = false) =>
-    async (ev: React.ChangeEvent<HTMLInputElement>) => {
-      user.setPreference(
-        ev.target.name as UserPreference,
-        inverted ? !ev.target.checked : ev.target.checked
-      );
+  const handleUseCursorPointerChange = React.useCallback(
+    async (checked: boolean) => {
+      user.setPreference(UserPreference.UseCursorPointer, checked);
       await user.save();
       toast.success(t("Preferences saved"));
-    };
+    },
+    [user, t]
+  );
+
+  const handleCodeBlockLineNumbersChange = React.useCallback(
+    async (checked: boolean) => {
+      user.setPreference(UserPreference.CodeBlockLineNumers, checked);
+      await user.save();
+      toast.success(t("Preferences saved"));
+    },
+    [user, t]
+  );
+
+  const handleSeamlessEditChange = React.useCallback(
+    async (checked: boolean) => {
+      user.setPreference(UserPreference.SeamlessEdit, !checked);
+      await user.save();
+      toast.success(t("Preferences saved"));
+    },
+    [user, t]
+  );
+
+  const handleRememberLastPathChange = React.useCallback(
+    async (checked: boolean) => {
+      user.setPreference(UserPreference.RememberLastPath, checked);
+      await user.save();
+      toast.success(t("Preferences saved"));
+    },
+    [user, t]
+  );
+
+  const handleEnableSmartTextChange = React.useCallback(
+    async (checked: boolean) => {
+      user.setPreference(UserPreference.EnableSmartText, checked);
+      await user.save();
+      toast.success(t("Preferences saved"));
+    },
+    [user, t]
+  );
 
   const handleLanguageChange = React.useCallback(
     async (language: string) => {
@@ -111,11 +145,10 @@ function Preferences() {
           </>
         }
       >
-        <InputSelectNew
+        <InputSelect
           options={languageOptions}
           value={user.language}
           onChange={handleLanguageChange}
-          ariaLabel={t("Language")}
           label={t("Language")}
           hideLabel
         />
@@ -125,11 +158,10 @@ function Preferences() {
         label={t("Appearance")}
         description={t("Choose your preferred interface color scheme.")}
       >
-        <InputSelectNew
+        <InputSelect
           options={themeOptions}
           value={ui.theme}
           onChange={handleThemeChange}
-          ariaLabel={t("Appearance")}
           label={t("Appearance")}
           hideLabel
         />
@@ -145,7 +177,7 @@ function Preferences() {
           id={UserPreference.UseCursorPointer}
           name={UserPreference.UseCursorPointer}
           checked={user.getPreference(UserPreference.UseCursorPointer)}
-          onChange={handlePreferenceChange(false)}
+          onChange={handleUseCursorPointerChange}
         />
       </SettingRow>
       <SettingRow
@@ -158,7 +190,7 @@ function Preferences() {
           id={UserPreference.CodeBlockLineNumers}
           name={UserPreference.CodeBlockLineNumers}
           checked={user.getPreference(UserPreference.CodeBlockLineNumers)}
-          onChange={handlePreferenceChange(false)}
+          onChange={handleCodeBlockLineNumbersChange}
         />
       </SettingRow>
 
@@ -179,7 +211,7 @@ function Preferences() {
               team.getPreference(TeamPreference.SeamlessEdit)
             )
           }
-          onChange={handlePreferenceChange(true)}
+          onChange={handleSeamlessEditChange}
         />
       </SettingRow>
       <SettingRow
@@ -193,7 +225,7 @@ function Preferences() {
           id={UserPreference.RememberLastPath}
           name={UserPreference.RememberLastPath}
           checked={!!user.getPreference(UserPreference.RememberLastPath)}
-          onChange={handlePreferenceChange(false)}
+          onChange={handleRememberLastPathChange}
         />
       </SettingRow>
       <SettingRow
@@ -208,7 +240,7 @@ function Preferences() {
           id={UserPreference.EnableSmartText}
           name={UserPreference.EnableSmartText}
           checked={!!user.getPreference(UserPreference.EnableSmartText)}
-          onChange={handlePreferenceChange(false)}
+          onChange={handleEnableSmartTextChange}
         />
       </SettingRow>
 

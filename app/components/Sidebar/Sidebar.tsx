@@ -7,7 +7,6 @@ import { depths, s } from "@shared/styles";
 import { Avatar } from "~/components/Avatar";
 import Flex from "~/components/Flex";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import useMenuContext from "~/hooks/useMenuContext";
 import useMobile from "~/hooks/useMobile";
 import usePrevious from "~/hooks/usePrevious";
 import useStores from "~/hooks/useStores";
@@ -19,31 +18,39 @@ import NotificationIcon from "../Notifications/NotificationIcon";
 import NotificationsPopover from "../Notifications/NotificationsPopover";
 import { TooltipProvider } from "../TooltipContext";
 import ResizeBorder from "./components/ResizeBorder";
-import SidebarButton, { SidebarButtonProps } from "./components/SidebarButton";
+import SidebarButton from "./components/SidebarButton";
 import ToggleButton from "./components/ToggleButton";
+import { useTranslation } from "react-i18next";
+import useKeyDown from "~/hooks/useKeyDown";
+import { isModKey } from "@shared/utils/keyboard";
 
 const ANIMATION_MS = 250;
 
 type Props = {
-  children: React.ReactNode;
+  /** Whether to hide the sidebar content (sets opacity to 0). */
   hidden?: boolean;
+  /** Whether the sidebar can be collapsed, defaults to true. */
+  canCollapse?: boolean;
+  /** CSS class name(s) to apply to the sidebar container. */
   className?: string;
+  /** Content to render inside the sidebar. */
+  children: React.ReactNode;
 };
 
-const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
-  { children, hidden = false, className }: Props,
+const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
+  { children, hidden = false, canCollapse = true, className }: Props,
   ref: React.RefObject<HTMLDivElement>
 ) {
   const [isCollapsing, setCollapsing] = React.useState(false);
+  const { t } = useTranslation();
   const theme = useTheme();
   const { ui } = useStores();
   const location = useLocation();
   const previousLocation = usePrevious(location);
-  const { isMenuOpen } = useMenuContext();
   const user = useCurrentUser({ rejectOnEmpty: false });
   const isMobile = useMobile();
   const width = ui.sidebarWidth;
-  const collapsed = ui.sidebarIsClosed && !isMenuOpen;
+  const collapsed = ui.sidebarIsClosed && canCollapse;
   const maxWidth = theme.sidebarMaxWidth;
   const minWidth = theme.sidebarMinWidth + 16; // padding
 
@@ -53,8 +60,13 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
   const [isResizing, setResizing] = React.useState(false);
   const [hasPointerMoved, setPointerMoved] = React.useState(false);
   const isSmallerThanMinimum = width < minWidth;
-
   const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  useKeyDown(".", (event) => {
+    if (isModKey(event)) {
+      ui.toggleCollapsedSidebar();
+    }
+  });
 
   const handleDrag = React.useCallback(
     (event: MouseEvent) => {
@@ -64,11 +76,15 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
       const newWidth = Math.min(event.pageX - offset, maxWidth);
       const isSmallerThanCollapsePoint = newWidth < minWidth / 2;
 
-      ui.set({
-        sidebarWidth: isSmallerThanCollapsePoint
-          ? theme.sidebarCollapsedWidth
-          : newWidth,
-      });
+      if (canCollapse) {
+        ui.set({
+          sidebarWidth: isSmallerThanCollapsePoint
+            ? theme.sidebarCollapsedWidth
+            : newWidth,
+        });
+      } else {
+        ui.set({ sidebarWidth: Math.max(newWidth, minWidth) });
+      }
     },
     [ui, theme, offset, minWidth, maxWidth]
   );
@@ -83,7 +99,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
     if (isSmallerThanMinimum) {
       const isSmallerThanCollapsePoint = width < minWidth / 2;
 
-      if (isSmallerThanCollapsePoint) {
+      if (isSmallerThanCollapsePoint && canCollapse) {
         setAnimating(false);
         setCollapsing(true);
         ui.collapseSidebar();
@@ -231,24 +247,27 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
 
         {user && (
           <AccountMenu>
-            {(props: SidebarButtonProps) => (
-              <SidebarButton
-                {...props}
-                showMoreMenu
-                title={user.name}
-                position="bottom"
-                image={
-                  <Avatar
-                    alt={user.name}
-                    model={user}
-                    size={24}
-                    style={{ marginLeft: 4 }}
-                  />
-                }
-              >
-                <Notifications />
-              </SidebarButton>
-            )}
+            <SidebarButton
+              showMoreMenu
+              title={user.name}
+              position="bottom"
+              image={
+                <Avatar
+                  alt={t("Avatar of {{ name }}", { name: user.name })}
+                  model={user}
+                  size={24}
+                  style={{ marginLeft: 4 }}
+                />
+              }
+            >
+              <NotificationsPopover>
+                <SidebarButton
+                  position="bottom"
+                  image={<NotificationIcon />}
+                  aria-label={t("Notifications")}
+                />
+              </NotificationsPopover>
+            </SidebarButton>
           </AccountMenu>
         )}
         <ResizeBorder
@@ -260,14 +279,6 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
     </TooltipProvider>
   );
 });
-
-const Notifications = () => (
-  <NotificationsPopover>
-    {(rest: SidebarButtonProps) => (
-      <SidebarButton {...rest} position="bottom" image={<NotificationIcon />} />
-    )}
-  </NotificationsPopover>
-);
 
 const Backdrop = styled.a`
   animation: ${fadeIn} 250ms ease-in-out;
@@ -297,8 +308,8 @@ const hoverStyles = (props: ContainerProps) => `
     props.$collapsed
       ? "rgba(0, 0, 0, 0.2) 1px 0 4px"
       : props.$isSmallerThanMinimum
-      ? "rgba(0, 0, 0, 0.1) inset -1px 0 2px"
-      : "none"
+        ? "rgba(0, 0, 0, 0.1) inset -1px 0 2px"
+        : "none"
   };
 
   ${ToggleButton} {
@@ -312,7 +323,9 @@ const Container = styled(Flex)<ContainerProps>`
   bottom: 0;
   width: 100%;
   background: ${s("sidebarBackground")};
-  transition: box-shadow 150ms ease-in-out, transform 150ms ease-out,
+  transition:
+    box-shadow 150ms ease-in-out,
+    transform 150ms ease-out,
     ${(props: ContainerProps) =>
       props.$isAnimating ? `,width ${ANIMATION_MS}ms ease-out` : ""};
   transform: translateX(

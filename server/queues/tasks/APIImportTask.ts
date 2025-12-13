@@ -4,7 +4,7 @@ import truncate from "lodash/truncate";
 import uniqBy from "lodash/uniqBy";
 import { Fragment, Node } from "prosemirror-model";
 import { Transaction, WhereOptions } from "sequelize";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
 import { ImportTaskInput, ImportTaskOutput } from "@shared/schema";
 import {
   AttachmentPreset,
@@ -23,7 +23,7 @@ import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { sequelize } from "@server/storage/database";
 import { PagePerImportTask } from "../processors/ImportsProcessor";
-import BaseTask, { TaskPriority } from "./BaseTask";
+import { BaseTask, TaskPriority } from "./base/BaseTask";
 import UploadAttachmentsForImportTask from "./UploadAttachmentsForImportTask";
 
 export type ProcessOutput<T extends ImportableIntegrationService> = {
@@ -37,7 +37,7 @@ type Props = {
 };
 
 export default abstract class APIImportTask<
-  T extends ImportableIntegrationService
+  T extends ImportableIntegrationService,
 > extends BaseTask<Props> {
   /**
    * Run the import task.
@@ -175,7 +175,11 @@ export default abstract class APIImportTask<
         createContext({
           user: associatedImport.createdBy,
           transaction,
-        })
+        }),
+        undefined,
+        {
+          persist: false,
+        }
       );
     });
 
@@ -286,7 +290,7 @@ export default abstract class APIImportTask<
 
     await sequelize.transaction(async (transaction) => {
       const dbPromises = attachmentsData.map(async (item) => {
-        const modelId = uuidv4();
+        const modelId = randomUUID();
         const acl = AttachmentHelper.presetToAcl(
           AttachmentPreset.DocumentAttachment
         );

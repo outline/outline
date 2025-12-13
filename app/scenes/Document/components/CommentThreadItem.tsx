@@ -1,5 +1,5 @@
 import { differenceInMilliseconds } from "date-fns";
-import { action } from "mobx";
+import { runInAction } from "mobx";
 import { observer } from "mobx-react";
 import { DoneIcon } from "outline-icons";
 import { darken } from "polished";
@@ -24,12 +24,12 @@ import Text from "~/components/Text";
 import Time from "~/components/Time";
 import Tooltip from "~/components/Tooltip";
 import { resolveCommentFactory } from "~/actions/definitions/comments";
-import useActionContext from "~/hooks/useActionContext";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import CommentMenu from "~/menus/CommentMenu";
 import CommentEditor from "./CommentEditor";
 import { HighlightedText } from "./HighlightText";
+import { useDocumentContext } from "~/components/DocumentContext";
 
 /**
  * Hook to calculate if we should display a timestamp on a comment
@@ -88,10 +88,12 @@ type Props = {
   onUpdate?: (id: string, attrs: { resolved: boolean }) => void;
   /** Text to highlight at the top of the comment */
   highlightedText?: string;
-  /** Enable scroll for the comments container */
-  enableScroll: () => void;
-  /** Disable scroll for the comments container */
-  disableScroll: () => void;
+  /** Whether to force the comment into edit mode */
+  forceEdit?: boolean;
+  /** Callback when edit mode starts */
+  onEditStart?: () => void;
+  /** Callback when edit mode ends */
+  onEditEnd?: () => void;
 };
 
 function CommentThreadItem({
@@ -105,9 +107,11 @@ function CommentThreadItem({
   onDelete,
   onUpdate,
   highlightedText,
-  enableScroll,
-  disableScroll,
+  forceEdit,
+  onEditStart,
+  onEditEnd,
 }: Props) {
+  const { setFocusedCommentId } = useDocumentContext();
   const { t } = useTranslation();
   const user = useCurrentUser();
   const [data, setData] = React.useState(comment.data);
@@ -118,6 +122,20 @@ function CommentThreadItem({
     comment.updatedAt !== comment.createdAt &&
     !comment.isResolved;
   const [isEditing, setEditing, setReadOnly] = useBoolean();
+
+  // Handle forced edit mode
+  React.useEffect(() => {
+    if (forceEdit && !isEditing) {
+      setEditing();
+      onEditStart?.();
+    }
+  }, [forceEdit, isEditing, setEditing, onEditStart]);
+
+  // Override setReadOnly to call onEditEnd
+  const handleSetReadOnly = React.useCallback(() => {
+    setReadOnly();
+    onEditEnd?.();
+  }, [setReadOnly, onEditEnd]);
   const formRef = React.useRef<HTMLFormElement>(null);
 
   const handleAddReaction = React.useCallback(
@@ -137,6 +155,9 @@ function CommentThreadItem({
   const handleUpdate = React.useCallback(
     (attrs: { resolved: boolean }) => {
       onUpdate?.(comment.id, attrs);
+      if ("resolved" in attrs) {
+        setFocusedCommentId(null);
+      }
     },
     [comment.id, onUpdate]
   );
@@ -158,22 +179,22 @@ function CommentThreadItem({
     );
   }, []);
 
-  const handleSubmit = action(async (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
     try {
-      setReadOnly();
-      comment.data = data;
+      handleSetReadOnly();
+      runInAction(() => (comment.data = data));
       await comment.save();
-    } catch (error) {
+    } catch (_err) {
       setEditing();
       toast.error(t("Error updating comment"));
     }
-  });
+  };
 
   const handleCancel = () => {
     setData(comment.data);
-    setReadOnly();
+    handleSetReadOnly();
   };
 
   return (
@@ -217,6 +238,7 @@ function CommentThreadItem({
             defaultValue={data}
             onChange={handleChange}
             onSave={handleSave}
+            onCancel={handleCancel}
             autoFocus
           />
           {isEditing && (
@@ -240,8 +262,6 @@ function CommentThreadItem({
                     <Action
                       as={ReactionPicker}
                       onSelect={handleAddReaction}
-                      onOpen={disableScroll}
-                      onClose={enableScroll}
                       size={28}
                       $rounded
                     />
@@ -262,8 +282,6 @@ function CommentThreadItem({
                   <Action
                     as={ReactionPicker}
                     onSelect={handleAddReaction}
-                    onOpen={disableScroll}
-                    onClose={enableScroll}
                     $rounded
                   />
                 </>
@@ -271,7 +289,10 @@ function CommentThreadItem({
               <Action
                 as={CommentMenu}
                 comment={comment}
-                onEdit={setEditing}
+                onEdit={() => {
+                  setEditing();
+                  onEditStart?.();
+                }}
                 onDelete={handleDelete}
                 onUpdate={handleUpdate}
               />
@@ -290,14 +311,12 @@ const ResolveButton = ({
   comment: Comment;
   onUpdate: (attrs: { resolved: boolean }) => void;
 }) => {
-  const context = useActionContext();
   const { t } = useTranslation();
 
   return (
     <Tooltip content={t("Mark as resolved")} placement="top">
       <Action
         as={NudeButton}
-        context={context}
         action={resolveCommentFactory({
           comment,
           onResolve: () => onUpdate({ resolved: true }),
@@ -353,7 +372,9 @@ const Action = styled.span<{ $rounded?: boolean }>`
     opacity: 0.5;
   }
 
-  &: ${hover}, &[aria-expanded= "true"] {
+  &:
+    ${hover},
+    &[aria-expanded= "true"] {
     background: ${s("backgroundQuaternary")};
 
     svg {
@@ -406,7 +427,9 @@ export const Bubble = styled(Flex)<{
   min-width: 2em;
   margin-bottom: 1px;
   padding: 8px 12px;
-  transition: color 100ms ease-out, background 100ms ease-out;
+  transition:
+    color 100ms ease-out,
+    background 100ms ease-out;
 
   ${({ $lastOfThread, $canReply }) =>
     $lastOfThread &&

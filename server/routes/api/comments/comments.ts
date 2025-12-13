@@ -5,14 +5,16 @@ import {
   CommentStatusFilter,
   TeamPreference,
   MentionType,
+  IconType,
 } from "@shared/types";
+import { determineIconType } from "@shared/utils/icon";
 import { parser } from "@server/editor";
 import auth from "@server/middlewares/authentication";
 import { feature } from "@server/middlewares/feature";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { Document, Comment, Collection, Reaction } from "@server/models";
+import { Document, Comment, Collection, Reaction, Emoji } from "@server/models";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
 import { authorize } from "@server/policies";
@@ -250,7 +252,20 @@ router.post(
         { type: MentionType.User }
       ).map((mention) => mention.id);
 
-      newMentionIds = difference(updatedMentionIds, existingMentionIds);
+      const existingGroupMentionIds = ProsemirrorHelper.parseMentions(
+        ProsemirrorHelper.toProsemirror(comment.data),
+        { type: MentionType.Group }
+      ).map((mention) => mention.id);
+      const updatedGroupMentionIds = ProsemirrorHelper.parseMentions(
+        ProsemirrorHelper.toProsemirror(data),
+        { type: MentionType.Group }
+      ).map((mention) => mention.id);
+
+      newMentionIds = [
+        ...difference(updatedMentionIds, existingMentionIds),
+        ...difference(updatedGroupMentionIds, existingGroupMentionIds),
+      ];
+
       comment.data = data;
     }
 
@@ -393,6 +408,13 @@ router.post(
 
     authorize(user, "comment", document);
     authorize(user, "addReaction", comment);
+
+    if (determineIconType(emoji) === IconType.Custom) {
+      const customEmoji = await Emoji.findByPk(emoji, {
+        transaction,
+      });
+      authorize(user, "read", customEmoji);
+    }
 
     await Reaction.findOrCreate({
       where: {

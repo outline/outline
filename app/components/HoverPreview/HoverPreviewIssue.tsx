@@ -24,7 +24,7 @@ import {
 
 type Props = Omit<UnfurlResponse[UnfurlResourceType.Issue], "type">;
 
-const HoverPreviewIssue = React.forwardRef(function _HoverPreviewIssue(
+const HoverPreviewIssue = React.forwardRef(function HoverPreviewIssue_(
   { url, id, title, description, author, labels, state, createdAt }: Props,
   ref: React.Ref<HTMLDivElement>
 ) {

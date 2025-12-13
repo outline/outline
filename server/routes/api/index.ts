@@ -6,6 +6,7 @@ import env from "@server/env";
 import { NotFoundError } from "@server/errors";
 import coalesceBody from "@server/middlewares/coaleseBody";
 import requestTracer from "@server/middlewares/requestTracer";
+import { verifyCSRFToken } from "@server/middlewares/csrf";
 import { AppState, AppContext } from "@server/types";
 import { Hook, PluginManager } from "@server/utils/PluginManager";
 import apiKeys from "./apiKeys";
@@ -17,6 +18,7 @@ import comments from "./comments/comments";
 import cron from "./cron";
 import developer from "./developer";
 import documents from "./documents";
+import emojis from "./emojis";
 import events from "./events";
 import fileOperationsRoute from "./fileOperations";
 import groupMemberships from "./groupMemberships";
@@ -32,6 +34,7 @@ import oauthAuthentications from "./oauthAuthentications";
 import oauthClients from "./oauthClients";
 import pins from "./pins";
 import reactions from "./reactions";
+import relationships from "./relationships";
 import revisions from "./revisions";
 import searches from "./searches";
 import shares from "./shares";
@@ -58,6 +61,7 @@ api.use(
       ),
       maxFieldsSize: 10 * 1024 * 1024,
     },
+    jsonLimit: 5 * 1024 * 1024, // 5MB limit for JSON payloads
   })
 );
 api.use(coalesceBody());
@@ -66,6 +70,7 @@ api.use(requestTracer());
 api.use(apiResponse());
 api.use(apiErrorHandler());
 api.use(editor());
+api.use(verifyCSRFToken());
 
 // Register plugin API routes before others to allow for overrides
 PluginManager.getHooks(Hook.API).forEach((hook) =>
@@ -80,6 +85,7 @@ router.use("/", users.routes());
 router.use("/", collections.routes());
 router.use("/", comments.routes());
 router.use("/", documents.routes());
+router.use("/", emojis.routes());
 router.use("/", pins.routes());
 router.use("/", revisions.routes());
 router.use("/", views.routes());
@@ -102,6 +108,7 @@ router.use("/", fileOperationsRoute.routes());
 router.use("/", urls.routes());
 router.use("/", userMemberships.routes());
 router.use("/", reactions.routes());
+router.use("/", relationships.routes());
 router.use("/", imports.routes());
 
 if (!env.isCloudHosted) {

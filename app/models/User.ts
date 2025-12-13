@@ -65,12 +65,29 @@ class User extends ParanoidModel implements Searchable {
 
   @computed
   get searchContent(): string[] {
-    return [this.name, this.email].filter(Boolean);
+    return [this.name, this.email, this.initials].filter(Boolean);
+  }
+
+  @computed
+  get searchSuppressed(): boolean {
+    return this.isDeleted;
   }
 
   @computed
   get initial(): string {
     return (this.name ? this.name[0] : "?").toUpperCase();
+  }
+
+  @computed
+  get initials(): string {
+    if (!this.name) {
+      return "";
+    }
+    const names = this.name.trim().split(" ");
+    if (names.length === 1) {
+      return names[0][0].toUpperCase();
+    }
+    return (names[0][0] + names[names.length - 1][0]).toUpperCase();
   }
 
   /**
@@ -137,7 +154,7 @@ class User extends ParanoidModel implements Searchable {
 
   /**
    * Returns the direct memberships that this user has to documents. Documents that the
-   * user already has access to through a collection and trashed documents are not included.
+   * user already has access to through a collection, archived, and trashed documents are not included.
    *
    * @returns A list of user memberships
    */
@@ -153,7 +170,7 @@ class User extends ParanoidModel implements Searchable {
         const policy = document?.collectionId
           ? policies.get(document.collectionId)
           : undefined;
-        return !policy?.abilities?.readDocument && !document?.isDeleted;
+        return !policy?.abilities?.readDocument && !!document?.isActive;
       });
   }
 

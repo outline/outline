@@ -4,9 +4,8 @@ import ukkonen from "ukkonen";
 import { updateYFragment, yDocToProsemirrorJSON } from "y-prosemirror";
 import * as Y from "yjs";
 import textBetween from "@shared/editor/lib/textBetween";
-import { getTextSerializers } from "@shared/editor/lib/textSerializers";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
-import { IconType, ProsemirrorData } from "@shared/types";
+import { IconType, NavigationNode, ProsemirrorData } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
 import { parser, serializer, schema } from "@server/editor";
 import { addTags } from "@server/logging/tracer";
@@ -23,6 +22,8 @@ type HTMLOptions = {
   includeStyles?: boolean;
   /** Whether to include the Mermaid script in the generated HTML (defaults to false) */
   includeMermaid?: boolean;
+  /** Whether to include the doctype,head, etc in the generated HTML (defaults to false) */
+  includeHead?: boolean;
   /** Whether to include styles to center diff (defaults to true) */
   centered?: boolean;
   /**
@@ -139,8 +140,7 @@ export class DocumentHelper {
    */
   static toPlainText(document: Document | Revision | ProsemirrorData) {
     const node = DocumentHelper.toProsemirror(document);
-
-    return textBetween(node, 0, node.content.size, this.textSerializers);
+    return textBetween(node, 0, node.content.size);
   }
 
   /**
@@ -189,30 +189,40 @@ export class DocumentHelper {
   /**
    * Returns the document as plain HTML. This is a lossy conversion and should only be used for export.
    *
-   * @param document The document or revision to convert
+   * @param model The document or revision or collection to convert
    * @param options Options for the HTML output
    * @returns The document title and content as a HTML string
    */
-  static async toHTML(document: Document | Revision, options?: HTMLOptions) {
-    const node = DocumentHelper.toProsemirror(document);
+  static async toHTML(
+    model: Document | Revision | Collection,
+    options?: HTMLOptions
+  ) {
+    const node = DocumentHelper.toProsemirror(model);
     let output = ProsemirrorHelper.toHTML(node, {
-      title: options?.includeTitle !== false ? document.title : undefined,
+      title:
+        options?.includeTitle !== false
+          ? model instanceof Collection
+            ? model.name
+            : model.title
+          : undefined,
       includeStyles: options?.includeStyles,
       includeMermaid: options?.includeMermaid,
+      includeHead: options?.includeHead,
       centered: options?.centered,
       baseUrl: options?.baseUrl,
     });
 
     addTags({
-      documentId: document.id,
+      collectionId: model instanceof Collection ? model.id : undefined,
+      documentId: !(model instanceof Collection) ? model.id : undefined,
       options,
     });
 
     if (options?.signedUrls) {
       const teamId =
-        document instanceof Document
-          ? document.teamId
-          : (await document.$get("document"))?.teamId;
+        model instanceof Collection || model instanceof Document
+          ? model.teamId
+          : (await model.$get("document"))?.teamId;
 
       if (!teamId) {
         return output;
@@ -475,7 +485,10 @@ export class DocumentHelper {
       }
 
       // apply new document to existing ydoc
-      updateYFragment(type.doc, type, doc, new Map());
+      updateYFragment(type.doc, type, doc, {
+        mapping: new Map(),
+        isOMark: new Map(),
+      });
 
       const state = Y.encodeStateAsUpdate(ydoc);
 
@@ -509,5 +522,35 @@ export class DocumentHelper {
     return distance > threshold;
   }
 
-  private static textSerializers = getTextSerializers(schema);
+  /**
+   * Sorts an array of documents based on their order in the collection's document structure.
+   * Documents are ordered according to their position in the navigation structure, with
+   * documents not found in the structure placed at the end. The result is reversed to
+   * account for documents being added in reverse order during processing.
+   *
+   * @param documents - Array of Document objects to be sorted
+   * @param documentStructure - Array of NavigationNode objects representing the collection's document hierarchy
+   * @returns Sorted array of documents in the order they appear in the document structure
+   *
+   **/
+  public static sortDocumentsByStructure(
+    documents: Document[],
+    documentStructure: NavigationNode[]
+  ): Document[] {
+    if (!documentStructure.length) {
+      return documents;
+    }
+
+    const orderMap = new Map<string, number>();
+    documentStructure.forEach((node, index) => {
+      orderMap.set(node.id, index);
+    });
+
+    return documents.sort((a, b) => {
+      const orderA = orderMap.get(a.id) ?? Number.MAX_SAFE_INTEGER;
+      const orderB = orderMap.get(b.id) ?? Number.MAX_SAFE_INTEGER;
+
+      return orderA - orderB;
+    });
+  }
 }

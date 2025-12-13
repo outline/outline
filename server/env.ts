@@ -1,7 +1,8 @@
-/* eslint-disable no-console */
-// eslint-disable-next-line import/order
+/* oxlint-disable no-console */
+// oxlint-disable-next-line import/order
 import environment from "./utils/environment";
 import os from "os";
+import wellKnownServices from "nodemailer/lib/well-known/services.json";
 import {
   validate,
   IsNotEmpty,
@@ -16,7 +17,13 @@ import {
 import uniq from "lodash/uniq";
 import { languages } from "@shared/i18n";
 import { Day, Hour } from "@shared/utils/time";
-import { CannotUseWith, CannotUseWithout } from "@server/utils/validators";
+import {
+  CannotUseWith,
+  CannotUseWithout,
+  CannotUseWithAny,
+  IsInCaseInsensitive,
+  IsDatabaseUrl,
+} from "@server/utils/validators";
 import Deprecated from "./models/decorators/Deprecated";
 import { getArg } from "./utils/args";
 import { Public, PublicEnvironmentRegister } from "./utils/decorators/Public";
@@ -73,13 +80,64 @@ export class Environment {
   /**
    * The url of the database.
    */
-  @IsNotEmpty()
-  @IsUrl({
-    require_tld: false,
-    allow_underscores: true,
-    protocols: ["postgres", "postgresql"],
-  })
-  public DATABASE_URL = environment.DATABASE_URL ?? "";
+  @IsOptional()
+  @IsDatabaseUrl()
+  @CannotUseWithAny([
+    "DATABASE_HOST",
+    "DATABASE_PORT",
+    "DATABASE_NAME",
+    "DATABASE_USER",
+    "DATABASE_PASSWORD",
+  ])
+  public DATABASE_URL = this.toOptionalString(environment.DATABASE_URL);
+
+  /**
+   * Optional database URL for read replica to distribute read queries
+   * and reduce load on primary database.
+   */
+  @IsOptional()
+  @IsDatabaseUrl()
+  public DATABASE_URL_READ_ONLY = this.toOptionalString(
+    environment.DATABASE_URL_READ_ONLY
+  );
+
+  /**
+   * Database host for individual component configuration.
+   */
+  @IsOptional()
+  @CannotUseWith("DATABASE_URL")
+  public DATABASE_HOST = this.toOptionalString(environment.DATABASE_HOST);
+
+  /**
+   * Database port for individual component configuration.
+   */
+  @IsOptional()
+  @IsNumber()
+  @CannotUseWith("DATABASE_URL")
+  public DATABASE_PORT = this.toOptionalNumber(environment.DATABASE_PORT);
+
+  /**
+   * Database name for individual component configuration.
+   */
+  @IsOptional()
+  @CannotUseWith("DATABASE_URL")
+  public DATABASE_NAME = this.toOptionalString(environment.DATABASE_NAME);
+
+  /**
+   * Database user for individual component configuration.
+   */
+  @IsOptional()
+  @CannotUseWith("DATABASE_URL")
+  public DATABASE_USER = this.toOptionalString(environment.DATABASE_USER);
+
+  /**
+   * Database password for individual component configuration.
+   */
+  @IsOptional()
+  @CannotUseWith("DATABASE_URL")
+  public DATABASE_PASSWORD = this.toOptionalString(
+    environment.DATABASE_PASSWORD
+  );
 
   /**
    * An optional database schema.
@@ -91,11 +149,7 @@ export class Environment {
    * The url of the database pool.
    */
   @IsOptional()
-  @IsUrl({
-    require_tld: false,
-    allow_underscores: true,
-    protocols: ["postgres", "postgresql"],
-  })
+  @IsDatabaseUrl()
   public DATABASE_CONNECTION_POOL_URL = this.toOptionalString(
     environment.DATABASE_CONNECTION_POOL_URL
   );
@@ -135,6 +189,12 @@ export class Environment {
    */
   @IsNotEmpty()
   public REDIS_URL = environment.REDIS_URL;
+
+  /**
+   * The url of redis for horizontally scaling the collaboration service. If not
+   * set then the collaboration service must be ran as a singleton.
+   */
+  public REDIS_COLLABORATION_URL = environment.REDIS_COLLABORATION_URL;
 
   /**
    * The fully qualified, external facing domain name of the server.
@@ -300,6 +360,7 @@ export class Environment {
    * See https://community.nodemailer.com/2-0-0-beta/setup-smtp/well-known-services/
    */
   @CannotUseWith("SMTP_HOST")
+  @IsInCaseInsensitive(Object.keys(wellKnownServices))
   public SMTP_SERVICE = this.toOptionalString(environment.SMTP_SERVICE);
 
   @Public
@@ -358,6 +419,17 @@ export class Environment {
    * encrypted connection.
    */
   public SMTP_SECURE = this.toBoolean(environment.SMTP_SECURE ?? "true");
+
+  /**
+   * If true then STARTTLS is disabled even if the server supports it.
+   * If false (the default) then STARTTLS is used if server supports it.
+   *
+   * Setting secure to false therefore does not mean that you would not use an
+   * encrypted connection.
+   */
+  public SMTP_DISABLE_STARTTLS = this.toBoolean(
+    environment.SMTP_DISABLE_STARTTLS ?? "false"
+  );
 
   /**
    * Dropbox app key for embedding Dropbox files
@@ -579,6 +651,13 @@ export class Environment {
     1000000;
 
   /**
+   * Timeout in milliseconds for downloading files from remote locations to file storage.
+   */
+  @IsNumber()
+  public FILE_STORAGE_IMPORT_TIMEOUT =
+    this.toOptionalNumber(environment.FILE_STORAGE_IMPORT_TIMEOUT) ?? 60000;
+
+  /**
    * Set max allowed upload size for imports at workspace level.
    */
   @IsNumber()
@@ -644,10 +723,57 @@ export class Environment {
   );
 
   /**
+   * Time window in seconds to analyze webhook failures for disabling decision.
+   * Defaults to 86400 seconds (24 hours).
+   */
+  @IsNumber()
+  @IsOptional()
+  public WEBHOOK_FAILURE_TIME_WINDOW =
+    this.toOptionalNumber(environment.WEBHOOK_FAILURE_TIME_WINDOW) ?? 86400;
+
+  /**
+   * Percentage threshold of failures within the time window that triggers
+   * webhook disabling. Defaults to 80%.
+   */
+  @IsNumber()
+  @IsOptional()
+  public WEBHOOK_FAILURE_RATE_THRESHOLD =
+    this.toOptionalNumber(environment.WEBHOOK_FAILURE_RATE_THRESHOLD) ?? 80;
+
+  /**
+   * Comma-separated list of IP addresses that are allowed to be accessed
+   * even if they are private IP addresses. This is useful for allowing
+   * connections to OIDC providers or webhooks on private networks.
+   * Example: "10.0.0.1,192.168.1.100"
+   */
+  @IsOptional()
+  public ALLOWED_PRIVATE_IP_ADDRESSES = this.toOptionalCommaList(
+    environment.ALLOWED_PRIVATE_IP_ADDRESSES
+  );
+
+  /**
    * The product name
    */
   @Public
   public APP_NAME = "Outline";
+
+  /**
+   * Gravity constant for time decay in popularity scoring. Higher values cause
+   * faster decay of older content. Default is 0.7.
+   */
+  @IsOptional()
+  @IsNumber()
+  public POPULARITY_GRAVITY =
+    this.toOptionalNumber(environment.POPULARITY_GRAVITY) ?? 0.7;
+
+  /**
+   * Number of weeks of activity to consider when calculating popularity scores.
+   * Default is 2 weeks.
+   */
+  @IsOptional()
+  @IsNumber()
+  public POPULARITY_ACTIVITY_THRESHOLD_WEEKS =
+    this.toOptionalNumber(environment.POPULARITY_ACTIVITY_THRESHOLD_WEEKS) ?? 2;
 
   /**
    * Returns true if the current installation is the cloud hosted version at
@@ -709,7 +835,7 @@ export class Environment {
   protected toBoolean(value: string) {
     try {
       return value ? !!JSON.parse(value) : false;
-    } catch (err) {
+    } catch (_err) {
       throw new Error(
         `"${value}" could not be parsed as a boolean, must be "true" or "false"`
       );
@@ -731,7 +857,7 @@ export class Environment {
   protected toOptionalBoolean(value: string | undefined) {
     try {
       return value ? !!JSON.parse(value) : undefined;
-    } catch (err) {
+    } catch (_err) {
       return undefined;
     }
   }

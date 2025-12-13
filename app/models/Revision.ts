@@ -1,5 +1,5 @@
-import { computed } from "mobx";
-import { ProsemirrorData } from "@shared/types";
+import { computed, observable } from "mobx";
+import { type ProsemirrorData } from "@shared/types";
 import { isRTL } from "@shared/utils/rtl";
 import Document from "./Document";
 import User from "./User";
@@ -18,26 +18,43 @@ class Revision extends ParanoidModel {
   document: Document;
 
   /** The document title when the revision was created */
+  @observable
   title: string;
 
   /** An optional name for the revision */
   @Field
+  @observable
   name: string | null;
 
   /** Prosemirror data of the content when revision was created */
+  @observable.shallow
   data: ProsemirrorData;
 
   /** The icon (or) emoji of the document when the revision was created */
+  @observable
   icon: string | null;
 
   /** The color of the document icon when the revision was created */
+  @observable
   color: string | null;
 
   /** HTML string representing the revision as a diff from the previous version */
+  @observable
   html: string;
 
+  /** @deprecated The ID of the user who created the revision */
+  createdById: string;
+
+  /** @deprecated Use collaborators instead*/
   @Relation(() => User)
   createdBy: User;
+
+  /** Array of user IDs who collaborated on this revision */
+  collaboratorIds: string[];
+
+  /** The user IDs who authored this revision */
+  @Relation(() => User, { multiple: true, onDelete: "ignore" })
+  collaborators: User[];
 
   /**
    * Returns the direction of the revision text, either "rtl" or "ltr"

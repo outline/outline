@@ -1,12 +1,11 @@
 import invariant from "invariant";
-import { action, computed, observable, runInAction } from "mobx";
+import { action, comparer, computed, observable, runInAction } from "mobx";
 import {
   CollectionPermission,
   FileOperationFormat,
   type NavigationNode,
   NavigationNodeType,
   type ProsemirrorData,
-  TeamPreference,
 } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { sortNavigationNodes } from "@shared/utils/collections";
@@ -129,21 +128,6 @@ export default class Collection extends ParanoidModel {
     return !this.permission;
   }
 
-  /**
-   * Returns whether comments should be enabled for this collection,
-   *
-   * @returns boolean
-   */
-  @computed
-  get canCreateComment(): boolean {
-    const teamCommentingEnabled =
-      !!this.store.rootStore.auth.team?.getPreference(
-        TeamPreference.Commenting
-      );
-
-    return teamCommentingEnabled && this.commenting !== false;
-  }
-
   /** Returns whether the collection description is not empty. */
   @computed
   get hasDescription(): boolean {
@@ -172,7 +156,7 @@ export default class Collection extends ParanoidModel {
     return this.sort.field === "index";
   }
 
-  @computed
+  @computed({ equals: comparer.structural })
   get sortedDocuments(): NavigationNode[] | undefined {
     if (!this.documents) {
       return undefined;
@@ -183,7 +167,7 @@ export default class Collection extends ParanoidModel {
   /** The initial letter of the collection name as a string. */
   @computed
   get initial() {
-    return (this.name ? this.name[0] : "?").toUpperCase();
+    return (this.name?.charAt(0) ?? "?").toUpperCase();
   }
 
   @computed
@@ -335,6 +319,13 @@ export default class Collection extends ParanoidModel {
   updateIndex(index: string) {
     this.index = index;
   }
+
+  @action
+  share = async () =>
+    this.store.rootStore.shares.create({
+      type: "collection",
+      collectionId: this.id,
+    });
 
   getChildrenForDocument(documentId: string) {
     let result: NavigationNode[] = [];

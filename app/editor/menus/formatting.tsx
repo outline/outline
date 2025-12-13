@@ -17,6 +17,8 @@ import {
   IndentIcon,
   CopyIcon,
   Heading3Icon,
+  TableMergeCellsIcon,
+  TableSplitCellsIcon,
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
 import styled from "styled-components";
@@ -30,17 +32,29 @@ import { MenuItem } from "@shared/editor/types";
 import { metaDisplay } from "@shared/utils/keyboard";
 import CircleIcon from "~/components/Icons/CircleIcon";
 import { Dictionary } from "~/hooks/useDictionary";
+import {
+  isMobile as isMobileDevice,
+  isTouchDevice,
+} from "@shared/utils/browser";
+import {
+  isMergedCellSelection,
+  isMultipleCellSelection,
+} from "@shared/editor/queries/table";
+import { CellSelection } from "prosemirror-tables";
 
 export default function formattingMenuItems(
   state: EditorState,
   isTemplate: boolean,
-  isMobile: boolean,
   dictionary: Dictionary
 ): MenuItem[] {
   const { schema } = state;
   const isCode = isInCode(state);
   const isCodeBlock = isInCode(state, { onlyBlock: true });
   const isEmpty = state.selection.empty;
+  const isMobile = isMobileDevice();
+  const isTouch = isTouchDevice();
+  const isList = isInList(state);
+  const isTableCell = state.selection instanceof CellSelection;
 
   const highlight = getMarksBetween(
     state.selection.from,
@@ -86,7 +100,7 @@ export default function formattingMenuItems(
     },
     {
       tooltip: dictionary.mark,
-      shortcut: `${metaDisplay}+Ctrl+H`,
+      shortcut: `${metaDisplay}+⇧+H`,
       icon: highlight ? (
         <CircleIcon color={highlight.mark.attrs.color || Highlight.colors[0]} />
       ) : (
@@ -161,11 +175,25 @@ export default function formattingMenuItems(
       icon: <BlockQuoteIcon />,
       active: isNodeActive(schema.nodes.blockquote),
       attrs: { level: 2 },
-      visible: !isCodeBlock && (!isMobile || isEmpty),
+      visible: !isCodeBlock && !isTableCell && (!isMobile || isEmpty),
     },
     {
       name: "separator",
-      visible: !isCodeBlock,
+    },
+    {
+      name: "mergeCells",
+      tooltip: dictionary.mergeCells,
+      icon: <TableMergeCellsIcon />,
+      visible: isMultipleCellSelection(state),
+    },
+    {
+      name: "splitCell",
+      tooltip: dictionary.splitCell,
+      icon: <TableSplitCellsIcon />,
+      visible: isMergedCellSelection(state),
+    },
+    {
+      name: "separator",
     },
     {
       name: "checkbox_list",
@@ -174,7 +202,7 @@ export default function formattingMenuItems(
       icon: <TodoListIcon />,
       keywords: "checklist checkbox task",
       active: isNodeActive(schema.nodes.checkbox_list),
-      visible: !isCodeBlock && (!isMobile || isEmpty),
+      visible: !isCodeBlock && !isTableCell && (!isList || !isTouch),
     },
     {
       name: "bullet_list",
@@ -182,7 +210,7 @@ export default function formattingMenuItems(
       shortcut: `⇧+Ctrl+8`,
       icon: <BulletedListIcon />,
       active: isNodeActive(schema.nodes.bullet_list),
-      visible: !isCodeBlock && (!isMobile || isEmpty),
+      visible: !isCodeBlock && !isTableCell && (!isList || !isTouch),
     },
     {
       name: "ordered_list",
@@ -190,48 +218,47 @@ export default function formattingMenuItems(
       shortcut: `⇧+Ctrl+9`,
       icon: <OrderedListIcon />,
       active: isNodeActive(schema.nodes.ordered_list),
-      visible: !isCodeBlock && (!isMobile || isEmpty),
+      visible: !isCodeBlock && !isTableCell && (!isList || !isTouch),
     },
     {
       name: "outdentList",
       tooltip: dictionary.outdent,
       shortcut: `⇧+Tab`,
       icon: <OutdentIcon />,
-      visible:
-        isMobile && isInList(state, { types: ["ordered_list", "bullet_list"] }),
+      visible: isTouch && isList,
     },
     {
       name: "indentList",
       tooltip: dictionary.indent,
       shortcut: `Tab`,
       icon: <IndentIcon />,
-      visible:
-        isMobile && isInList(state, { types: ["ordered_list", "bullet_list"] }),
+      visible: isTouch && isList,
     },
     {
       name: "outdentCheckboxList",
       tooltip: dictionary.outdent,
       shortcut: `⇧+Tab`,
       icon: <OutdentIcon />,
-      visible: isMobile && isInList(state, { types: ["checkbox_list"] }),
+      visible: isTouch && isInList(state, { types: ["checkbox_list"] }),
     },
     {
       name: "indentCheckboxList",
       tooltip: dictionary.indent,
       shortcut: `Tab`,
       icon: <IndentIcon />,
-      visible: isMobile && isInList(state, { types: ["checkbox_list"] }),
+      visible: isTouch && isInList(state, { types: ["checkbox_list"] }),
     },
     {
       name: "separator",
       visible: !isCodeBlock,
     },
     {
-      name: "link",
+      name: "addLink",
       tooltip: dictionary.createLink,
       shortcut: `${metaDisplay}+K`,
       icon: <LinkIcon />,
       attrs: { href: "" },
+      active: isMarkActive(schema.marks.link, undefined, { exact: true }),
       visible: !isCodeBlock && (!isMobile || !isEmpty),
     },
     {

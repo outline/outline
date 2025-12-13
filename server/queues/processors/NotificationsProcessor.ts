@@ -7,11 +7,14 @@ import {
   CollectionUserEvent,
   DocumentUserEvent,
   DocumentGroupEvent,
+  CommentReactionEvent,
 } from "@server/types";
 import CollectionAddUserNotificationsTask from "../tasks/CollectionAddUserNotificationsTask";
 import CollectionCreatedNotificationsTask from "../tasks/CollectionCreatedNotificationsTask";
 import CommentCreatedNotificationsTask from "../tasks/CommentCreatedNotificationsTask";
 import CommentUpdatedNotificationsTask from "../tasks/CommentUpdatedNotificationsTask";
+import ReactionCreatedNotificationsTask from "../tasks/ReactionCreatedNotificationsTask";
+import ReactionRemovedNotificationsTask from "../tasks/ReactionRemovedNotificationsTask";
 import DocumentAddGroupNotificationsTask from "../tasks/DocumentAddGroupNotificationsTask";
 import DocumentAddUserNotificationsTask from "../tasks/DocumentAddUserNotificationsTask";
 import DocumentPublishedNotificationsTask from "../tasks/DocumentPublishedNotificationsTask";
@@ -28,6 +31,8 @@ export default class NotificationsProcessor extends BaseProcessor {
     "collections.add_user",
     "comments.create",
     "comments.update",
+    "comments.add_reaction",
+    "comments.remove_reaction",
   ];
 
   async perform(event: Event) {
@@ -48,17 +53,17 @@ export default class NotificationsProcessor extends BaseProcessor {
         return this.commentCreated(event);
       case "comments.update":
         return this.commentUpdated(event);
+      case "comments.add_reaction":
+        return this.reactionCreated(event);
+      case "comments.remove_reaction":
+        return this.reactionRemoved(event);
       default:
     }
   }
 
   async documentPublished(event: DocumentEvent) {
     // never send notifications when batch importing
-    if (
-      "data" in event &&
-      "source" in event.data &&
-      event.data.source === "import"
-    ) {
+    if (event.name === "documents.publish" && event.data?.source === "import") {
       return;
     }
 
@@ -86,9 +91,8 @@ export default class NotificationsProcessor extends BaseProcessor {
   async collectionCreated(event: CollectionEvent) {
     // never send notifications when batch importing
     if (
-      "data" in event &&
-      "source" in event.data &&
-      event.data.source === "import"
+      !!event.changes?.attributes.apiImportId ||
+      !!event.changes?.attributes.importId
     ) {
       return;
     }
@@ -110,5 +114,13 @@ export default class NotificationsProcessor extends BaseProcessor {
 
   async commentUpdated(event: CommentEvent) {
     await new CommentUpdatedNotificationsTask().schedule(event);
+  }
+
+  async reactionCreated(event: CommentReactionEvent) {
+    await new ReactionCreatedNotificationsTask().schedule(event);
+  }
+
+  async reactionRemoved(event: CommentReactionEvent) {
+    await new ReactionRemovedNotificationsTask().schedule(event);
   }
 }

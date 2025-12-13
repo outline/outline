@@ -53,7 +53,7 @@ export default class WebsocketsProcessor {
         }
         if (
           event.name === "documents.create" &&
-          event.data.source === "import"
+          event.data?.source === "import"
         ) {
           return;
         }
@@ -62,7 +62,8 @@ export default class WebsocketsProcessor {
 
         return socketio.to(channels).emit("entities", {
           event: event.name,
-          fetchIfMissing: true,
+          invalidatedPolicies:
+            event.name === "documents.create" ? [] : [document.id],
           documentIds: [
             {
               id: document.id,
@@ -93,18 +94,25 @@ export default class WebsocketsProcessor {
         const channels = await this.getDocumentEventChannels(event, document);
 
         // We need to add the collection channel to let the members update the doc structure.
-        channels.push(`collection-${event.collectionId}`);
+        // In case draft is detached from a collection, fallback to previous attribute to get the right one.
+        const collectionId =
+          event.collectionId ?? event.changes?.previous.collectionId;
+
+        channels.push(`collection-${collectionId}`);
 
         return socketio.to(channels).emit(event.name, {
           document: documentToPresent,
-          collectionId: event.collectionId,
+          collectionId,
         });
       }
 
       case "documents.unarchive": {
+        const srcCollectionId =
+          event.changes?.previous.collectionId ?? event.collectionId;
+
         const [document, srcCollection] = await Promise.all([
           Document.findByPk(event.documentId, { paranoid: false }),
-          Collection.findByPk(event.data.sourceCollectionId, {
+          Collection.findByPk(srcCollectionId, {
             paranoid: false,
           }),
         ]);
@@ -124,7 +132,7 @@ export default class WebsocketsProcessor {
 
         return socketio.to(channels).emit("entities", {
           event: event.name,
-          fetchIfMissing: true,
+          invalidatedPolicies: [document.id],
           documentIds: [
             {
               id: document.id,
@@ -177,6 +185,7 @@ export default class WebsocketsProcessor {
         documents.forEach((document) => {
           socketio.to(`collection-${document.collectionId}`).emit("entities", {
             event: event.name,
+            invalidatedPolicies: [document.id],
             documentIds: [
               {
                 id: document.id,
@@ -316,11 +325,16 @@ export default class WebsocketsProcessor {
           return;
         }
 
+        const archivedAt =
+          event.name === "collections.archive"
+            ? event.changes?.attributes.archivedAt
+            : event.changes?.previous.archivedAt;
+
         return socketio
           .to(this.getCollectionEventChannels(event, collection))
           .emit(event.name, {
             id: event.collectionId,
-            archivedAt: event.data.archivedAt,
+            archivedAt,
           });
       }
 
@@ -329,7 +343,7 @@ export default class WebsocketsProcessor {
           .to(`collection-${event.collectionId}`)
           .emit("collections.update_index", {
             collectionId: event.collectionId,
-            index: event.data.index,
+            index: event.changes?.attributes.index,
           });
       }
 

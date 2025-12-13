@@ -1,0 +1,49 @@
+{
+  "extends": ["../.oxlintrc.json"],
+  "plugins": ["oxc", "eslint", "typescript", "react"],
+  "overrides": [
+    {
+      "files": ["**/*.{js,jsx,ts,tsx}"],
+      "rules": {
+        "no-restricted-globals": [
+          "error",
+          {
+            "name": "crypto",
+            "message": "Do not use, does not work in environments without SSL."
+          }
+        ],
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["@shared/*"],
+                "message": "Use relative imports."
+              },
+              {
+                "allowTypeImports": true,
+                "group": ["~/*"],
+                "message": "Do not reference app code from shared code."
+              },
+              {
+                "allowTypeImports": true,
+                "group": ["@server/*"],
+                "message": "Do not reference server code from shared code."
+              },
+              {
+                "group": ["mime-types"],
+                "message": "Do not use the mime-types package in the browser."
+              }
+            ]
+          }
+        ]
+      },
+      "plugins": ["import"]
+    }
+  ],
+  "env": {
+    "jest": true,
+    "browser": true,
+    "node": true
+  }
+}

@@ -17,7 +17,7 @@ export default class NotificationsStore extends Store<Notification> {
 
   @action
   fetchPage = async (
-    options: PaginationParams | undefined
+    options: ({ archived?: boolean } & PaginationParams) | undefined
   ): Promise<Notification[]> => {
     this.isFetching = true;
 
@@ -73,8 +73,7 @@ export default class NotificationsStore extends Store<Notification> {
    */
   @computed
   get approximateUnreadCount(): number {
-    return this.orderedData.filter((notification) => !notification.viewedAt)
-      .length;
+    return this.active.filter((notification) => !notification.viewedAt).length;
   }
 
   /**
@@ -84,9 +83,15 @@ export default class NotificationsStore extends Store<Notification> {
   get orderedData(): Notification[] {
     return sortBy(
       orderBy(Array.from(this.data.values()), "createdAt", "desc"),
-      (item) => {
-        item.viewedAt ? 1 : -1;
-      }
+      (item) => (item.viewedAt ? 1 : -1)
     );
+  }
+
+  /**
+   * Returns only the active (non-archived) notifications.
+   */
+  @computed
+  get active(): Notification[] {
+    return this.orderedData.filter((n) => !n.archivedAt);
   }
 }

@@ -15,12 +15,11 @@ import {
   Icon,
   PlusIcon,
   InternetIcon,
+  SmileyIcon,
 } from "outline-icons";
-import { ComponentProps } from "react";
-import * as React from "react";
+import { ComponentProps, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
-import { Integrations } from "~/scenes/Settings/Integrations";
 import { createLazyComponent as lazy } from "~/components/LazyLoad";
 import { Hook, PluginManager } from "~/utils/PluginManager";
 import { settingsPath } from "~/utils/routeHelpers";
@@ -38,6 +37,7 @@ const Export = lazy(() => import("~/scenes/Settings/Export"));
 const Features = lazy(() => import("~/scenes/Settings/Features"));
 const Groups = lazy(() => import("~/scenes/Settings/Groups"));
 const Import = lazy(() => import("~/scenes/Settings/Import"));
+const Integrations = lazy(() => import("~/scenes/Settings/Integrations"));
 const Members = lazy(() => import("~/scenes/Settings/Members"));
 const Notifications = lazy(() => import("~/scenes/Settings/Notifications"));
 const Preferences = lazy(() => import("~/scenes/Settings/Preferences"));
@@ -45,6 +45,7 @@ const Profile = lazy(() => import("~/scenes/Settings/Profile"));
 const Security = lazy(() => import("~/scenes/Settings/Security"));
 const Shares = lazy(() => import("~/scenes/Settings/Shares"));
 const Templates = lazy(() => import("~/scenes/Settings/Templates"));
+const CustomEmojis = lazy(() => import("~/scenes/Settings/CustomEmojis"));
 
 export type ConfigItem = {
   name: string;
@@ -65,7 +66,7 @@ const useSettingsConfig = () => {
   const can = usePolicy(team);
   const { t } = useTranslation();
 
-  React.useEffect(() => {
+  useEffect(() => {
     void integrations.fetchAll();
   }, [integrations]);
 
@@ -159,9 +160,18 @@ const useSettingsConfig = () => {
         path: settingsPath("templates"),
         component: Templates.Component,
         preload: Templates.preload,
-        enabled: can.readTemplate,
+        enabled: can.createTemplate,
         group: t("Workspace"),
         icon: ShapesIcon,
+      },
+      {
+        name: t("Emojis"),
+        path: settingsPath("emojis"),
+        component: CustomEmojis.Component,
+        preload: CustomEmojis.preload,
+        enabled: can.update,
+        group: t("Workspace"),
+        icon: SmileyIcon,
       },
       {
         name: t("API Keys"),
@@ -212,8 +222,9 @@ const useSettingsConfig = () => {
       {
         name: `${t("Install")}…`,
         path: settingsPath("integrations"),
-        component: Integrations,
-        enabled: true,
+        component: Integrations.Component,
+        preload: Integrations.preload,
+        enabled: can.update,
         group: t("Integrations"),
         icon: PlusIcon,
       },

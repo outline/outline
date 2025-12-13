@@ -19,6 +19,9 @@ import Folder from "./Folder";
 import PlaceholderCollections from "./PlaceholderCollections";
 import SidebarLink from "./SidebarLink";
 
+// The number of child documents to initially render
+const DEFAULT_PAGE_SIZE = 50;
+
 type Props = {
   /** The collection to render the children of. */
   collection: Collection;
@@ -26,25 +29,21 @@ type Props = {
   expanded: boolean;
   /** Function to prefetch a document by ID. */
   prefetchDocument?: (documentId: string) => Promise<Document | void>;
+  /** Element to display above the child documents */
+  children?: React.ReactNode;
 };
 
 function CollectionLinkChildren({
   collection,
   expanded,
   prefetchDocument,
+  children,
 }: Props) {
-  const pageSize = 250;
+  const pageSize = DEFAULT_PAGE_SIZE;
   const { documents } = useStores();
   const { t } = useTranslation();
   const childDocuments = useCollectionDocuments(collection, documents.active);
   const [showing, setShowing] = useState(pageSize);
-  const dummyRef = useRef<HTMLDivElement>(null);
-
-  const [{ isOver, canDrop }, dropRef] = useDropToChangeCollection(
-    collection,
-    noop,
-    dummyRef
-  );
 
   useEffect(() => {
     if (!expanded) {
@@ -60,10 +59,9 @@ function CollectionLinkChildren({
 
   return (
     <Folder expanded={expanded}>
-      {canDrop && collection.isManualSort && (
-        <DropCursor isActiveDrop={isOver} innerRef={dropRef} position="top" />
-      )}
+      <DynamicDropCursor collection={collection} />
       <DocumentsLoader collection={collection} enabled={expanded}>
+        {children}
         {!childDocuments && (
           <ResizingHeightContainer hideOverflow>
             <Loading />
@@ -81,7 +79,7 @@ function CollectionLinkChildren({
             index={index}
           />
         ))}
-        {childDocuments?.length === 0 && (
+        {childDocuments?.length === 0 && !children && (
           <SidebarLink
             label={
               <Text type="tertiary" size="small" italic>
@@ -92,11 +90,32 @@ function CollectionLinkChildren({
             depth={2}
           />
         )}
-        <Waypoint key={showing} onEnter={showMore} fireOnRapidScroll />
+        {childDocuments && (
+          <Waypoint key={showing} onEnter={showMore} fireOnRapidScroll />
+        )}
       </DocumentsLoader>
     </Folder>
   );
 }
+
+const DynamicDropCursor = observer(
+  ({ collection }: { collection: Collection }) => {
+    const dummyRef = useRef<HTMLDivElement>(null);
+    const [{ isOver, canDrop }] = useDropToChangeCollection(
+      collection,
+      noop,
+      dummyRef
+    );
+
+    if (!canDrop || !collection.isManualSort) {
+      return null;
+    }
+
+    return (
+      <DropCursor isActiveDrop={isOver} innerRef={dummyRef} position="top" />
+    );
+  }
+);
 
 const Loading = styled(PlaceholderCollections)`
   margin-left: 44px;

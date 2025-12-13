@@ -1,4 +1,5 @@
 import { CollectionPermission } from "@shared/types";
+import { createContext } from "@server/context";
 import { View, UserMembership } from "@server/models";
 import {
   buildAdmin,
@@ -18,7 +19,7 @@ describe("#views.list", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await View.incrementOrCreate({
+    await View.incrementOrCreate(createContext({ user }), {
       documentId: document.id,
       userId: user.id,
     });
@@ -39,7 +40,7 @@ describe("#views.list", () => {
     const admin = await buildAdmin({ teamId: team.id });
     const user = await buildUser({ teamId: team.id });
     const document = await buildDocument({ userId: user.id, teamId: team.id });
-    await View.incrementOrCreate({
+    await View.incrementOrCreate(createContext({ user }), {
       documentId: document.id,
       userId: user.id,
     });
@@ -77,7 +78,7 @@ describe("#views.list", () => {
       userId: user.id,
       permission: CollectionPermission.Read,
     });
-    await View.incrementOrCreate({
+    await View.incrementOrCreate(createContext({ user }), {
       documentId: document.id,
       userId: user.id,
     });

@@ -6,7 +6,7 @@ import {
   FileOperationFormat,
 } from "@shared/types";
 import { Collection } from "@server/models";
-import { zodIconType, zodIdType } from "@server/utils/zod";
+import { zodIconType, zodIdType, zodShareIdType } from "@server/utils/zod";
 import { ValidateColor, ValidateIndex } from "@server/validation";
 import { BaseSchema, ProsemirrorSchema } from "../schema";
 
@@ -50,7 +50,10 @@ export const CollectionsCreateSchema = BaseSchema.extend({
 export type CollectionsCreateReq = z.infer<typeof CollectionsCreateSchema>;
 
 export const CollectionsInfoSchema = BaseSchema.extend({
-  body: BaseIdSchema,
+  body: BaseIdSchema.extend({
+    /** Share Id, if available */
+    shareId: zodShareIdType().optional(),
+  }),
 });
 
 export type CollectionsInfoReq = z.infer<typeof CollectionsInfoSchema>;
@@ -146,6 +149,7 @@ export const CollectionsExportAllSchema = BaseSchema.extend({
       .nativeEnum(FileOperationFormat)
       .default(FileOperationFormat.MarkdownZip),
     includeAttachments: z.boolean().default(true),
+    includePrivate: z.boolean().default(true),
   }),
 });
 

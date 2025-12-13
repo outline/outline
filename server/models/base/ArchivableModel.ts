@@ -1,10 +1,9 @@
-/* eslint-disable @typescript-eslint/ban-types */
 import { AllowNull, Column, IsDate } from "sequelize-typescript";
 import ParanoidModel from "./ParanoidModel";
 
 class ArchivableModel<
-  TModelAttributes extends {} = any,
-  TCreationAttributes extends {} = TModelAttributes
+  TModelAttributes extends object = any,
+  TCreationAttributes extends object = TModelAttributes,
 > extends ParanoidModel<TModelAttributes, TCreationAttributes> {
   /** Whether the document is archived, and if so when. */
   @AllowNull

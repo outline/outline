@@ -66,7 +66,7 @@ export default class CommentCreatedEmail extends BaseEmail<
     }
 
     const parentComment = comment.parentCommentId
-      ? (await comment.$get("parentComment")) ?? undefined
+      ? ((await comment.$get("parentComment")) ?? undefined)
       : undefined;
 
     const body = await this.htmlForData(
@@ -137,7 +137,7 @@ export default class CommentCreatedEmail extends BaseEmail<
     return `
 ${actorName} ${isReply ? "replied to a thread in" : "commented on"} "${
       document.titleWithDefault
-    }"${collection?.name ? `in the ${collection.name} collection` : ""}.
+    }" ${collection?.name ? `in the ${collection.name} collection` : ""}.
 
 Open Thread: ${teamUrl}${document.url}?commentId=${commentId}
 `;

@@ -5,20 +5,24 @@ import RootStore from "~/stores/RootStore";
 import { LoginDialog } from "~/scenes/Login/components/LoginDialog";
 import TeamNew from "~/scenes/TeamNew";
 import TeamLogo from "~/components/TeamLogo";
-import { createAction } from "~/actions";
-import { ActionContext } from "~/types";
+import {
+  createAction,
+  createActionWithChildren,
+  createExternalLinkAction,
+} from "~/actions";
+import { ActionContext, ExternalLinkAction } from "~/types";
 import Desktop from "~/utils/Desktop";
 import { TeamSection } from "../sections";
 
 export const switchTeamsList = ({ stores }: { stores: RootStore }) =>
-  stores.auth.availableTeams?.map((session) => ({
-    id: `switch-${session.id}`,
-    name: session.name,
-    analyticsName: "Switch workspace",
-    section: TeamSection,
-    keywords: "change switch workspace organization team",
-    icon: function _Icon() {
-      return (
+  stores.auth.availableTeams?.map<ExternalLinkAction>((session) =>
+    createExternalLinkAction({
+      id: `switch-${session.id}`,
+      name: session.name,
+      analyticsName: "Switch workspace",
+      section: TeamSection,
+      keywords: "change switch workspace organization team",
+      icon: (
         <StyledTeamLogo
           alt={session.name}
           model={{
@@ -29,13 +33,15 @@ export const switchTeamsList = ({ stores }: { stores: RootStore }) =>
           }}
           size={24}
         />
-      );
-    },
-    visible: ({ currentTeamId }: ActionContext) => currentTeamId !== session.id,
-    perform: () => (window.location.href = session.url),
-  })) ?? [];
+      ),
+      visible: ({ currentTeamId }: ActionContext) =>
+        currentTeamId !== session.id,
+      url: session.url,
+      target: "_self",
+    })
+  ) ?? [];
 
-export const switchTeam = createAction({
+export const switchTeam = createActionWithChildren({
   name: ({ t }) => t("Switch workspace"),
   placeholder: ({ t }) => t("Select a workspace"),
   analyticsName: "Switch workspace",
@@ -57,13 +63,14 @@ export const createTeam = createAction({
   perform: ({ t, event, stores }) => {
     event?.preventDefault();
     event?.stopPropagation();
+
     const { user } = stores.auth;
-    user &&
+    if (user) {
       stores.dialogs.openModal({
         title: t("Create a workspace"),
-        fullscreen: true,
         content: <TeamNew user={user} />,
       });
+    }
   },
 });
 

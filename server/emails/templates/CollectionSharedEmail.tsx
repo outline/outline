@@ -80,8 +80,8 @@ View Document: ${teamUrl}${collection.path}
       membership.permission === CollectionPermission.ReadWrite
         ? "view and edit"
         : membership.permission === CollectionPermission.Admin
-        ? "manage"
-        : "view";
+          ? "manage"
+          : "view";
 
     return (
       <EmailTemplate

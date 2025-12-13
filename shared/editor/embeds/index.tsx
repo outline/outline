@@ -20,6 +20,7 @@ import Spotify from "./Spotify";
 import Trello from "./Trello";
 import Vimeo from "./Vimeo";
 import YouTube from "./YouTube";
+import PlantUmlDiagrams from "./PlantUml";
 
 export type EmbedProps = {
   isSelected: boolean;
@@ -31,13 +32,18 @@ export type EmbedProps = {
   };
 };
 
-const Img = styled(Image)`
+const Img = styled(Image)<{ $invertable?: boolean }>`
   border-radius: 3px;
-  background: #fff;
-  box-shadow: 0 0 0 1px ${(props) => props.theme.divider};
   margin: 3px;
   width: 18px;
   height: 18px;
+
+  ${(props) =>
+    props.$invertable &&
+    props.theme.isDark &&
+    `
+    filter: invert(1);
+  `}
 `;
 
 export class EmbedDescriptor {
@@ -190,8 +196,8 @@ const embeds: EmbedDescriptor[] = [
         const params = new URLSearchParams(url.search);
         params.append("embed", "");
         return `${url.origin}${url.pathname}?${params.toString()}`;
-      } catch (e) {
-        //
+      } catch (_err) {
+        // Ignore
       }
 
       return input;
@@ -225,7 +231,7 @@ const embeds: EmbedDescriptor[] = [
     regexMatch: [new RegExp("^https://codepen.io/(.*?)/(pen|embed)/(.*)$")],
     transformMatch: (matches) =>
       `https://codepen.io/${matches[1]}/embed/${matches[3]}`,
-    icon: <Img src="/images/codepen.png" alt="Codepen" />,
+    icon: <Img src="/images/codepen.png" alt="Codepen" $invertable />,
   }),
   new EmbedDescriptor({
     title: "DBDiagram",
@@ -241,6 +247,7 @@ const embeds: EmbedDescriptor[] = [
     regexMatch: [/^https:\/\/viewer\.diagrams\.net\/(?!proxy).*(title=\\w+)?/],
     icon: <Img src="/images/diagrams.png" alt="Diagrams.net" />,
     component: Diagrams,
+    visible: false,
   }),
   new EmbedDescriptor({
     title: "Descript",
@@ -288,7 +295,7 @@ const embeds: EmbedDescriptor[] = [
     keywords: "design prototyping",
     regexMatch: [new RegExp("^https://framer.cloud/(.*)$")],
     transformMatch: (matches) => matches[0],
-    icon: <Img src="/images/framer.png" alt="Framer" />,
+    icon: <Img src="/images/framer.png" alt="Framer" $invertable />,
   }),
   new EmbedDescriptor({
     title: "GitHub Gist",
@@ -298,7 +305,7 @@ const embeds: EmbedDescriptor[] = [
         "^https://gist\\.github\\.com/([a-zA-Z\\d](?:[a-zA-Z\\d]|-(?=[a-zA-Z\\d])){0,38})/(.*)$"
       ),
     ],
-    icon: <Img src="/images/github-gist.png" alt="GitHub" />,
+    icon: <Img src="/images/github-gist.png" alt="GitHub" $invertable />,
     component: Gist,
   }),
   new EmbedDescriptor({
@@ -425,8 +432,8 @@ const embeds: EmbedDescriptor[] = [
 
         params.append("embed", "true");
         return `${url.origin}${url.pathname}?${params.toString()}`;
-      } catch (e) {
-        //
+      } catch (_err) {
+        // Ignore
       }
 
       return input;
@@ -446,6 +453,7 @@ const embeds: EmbedDescriptor[] = [
     title: "InVision",
     keywords: "design prototype",
     defaultHidden: true,
+    visible: false,
     regexMatch: [
       /^https:\/\/(invis\.io\/.*)|(projects\.invisionapp\.com\/share\/.*)$/,
       /^https:\/\/(opal\.invisionapp\.com\/static-signed\/live-embed\/.*)$/,
@@ -458,7 +466,7 @@ const embeds: EmbedDescriptor[] = [
     keywords: "code",
     defaultHidden: true,
     regexMatch: [new RegExp("^https?://jsfiddle\\.net/(.*)/(.*)$")],
-    icon: <Img src="/images/jsfiddle.png" alt="JSFiddle" />,
+    icon: <Img src="/images/jsfiddle.png" alt="JSFiddle" $invertable />,
     component: JSFiddle,
   }),
   new EmbedDescriptor({
@@ -587,13 +595,23 @@ const embeds: EmbedDescriptor[] = [
     component: Spotify,
   }),
   new EmbedDescriptor({
+    title: "Tella",
+    keywords: "video",
+    regexMatch: [/^https?:\/\/(?:www\.)?tella\.tv\/video\/([^\/]+)(?:.*)?$/],
+    transformMatch: (matches: RegExpMatchArray) =>
+      `https://www.tella.tv/video/${matches[1]}/embed?b=0&title=1&a=0&loop=0&t=0&muted=0&wt=1`,
+    icon: <Img src="/images/tella.png" alt="Tella" />,
+    defaultHidden: true,
+    hideToolbar: true,
+  }),
+  new EmbedDescriptor({
     title: "Tldraw",
     keywords: "draw schematics diagrams",
     regexMatch: [
       new RegExp("^https?://(beta|www|old)\\.tldraw\\.com/[rsvopf]+/(.*)"),
     ],
     transformMatch: (matches: RegExpMatchArray) => matches[0],
-    icon: <Img src="/images/tldraw.png" alt="Tldraw" />,
+    icon: <Img src="/images/tldraw.png" alt="Tldraw" $invertable />,
   }),
   new EmbedDescriptor({
     title: "Trello",
@@ -611,7 +629,7 @@ const embeds: EmbedDescriptor[] = [
       ),
     ],
     transformMatch: (matches: RegExpMatchArray) => matches[0],
-    icon: <Img src="/images/typeform.png" alt="Typeform" />,
+    icon: <Img src="/images/typeform.png" alt="Typeform" $invertable />,
   }),
   new EmbedDescriptor({
     title: "Valtown",
@@ -619,7 +637,7 @@ const embeds: EmbedDescriptor[] = [
     regexMatch: [/^https?:\/\/(?:www.)?val\.town\/(?:v|embed)\/(.*)$/],
     transformMatch: (matches: RegExpMatchArray) =>
       `https://www.val.town/embed/${matches[1]}`,
-    icon: <Img src="/images/valtown.png" alt="Valtown" />,
+    icon: <Img src="/images/valtown.png" alt="Valtown" $invertable />,
   }),
   new EmbedDescriptor({
     title: "Vimeo",
@@ -660,6 +678,15 @@ const embeds: EmbedDescriptor[] = [
     ],
     icon: <Img src="/images/youtube.png" alt="YouTube" />,
     component: YouTube,
+  }),
+  new EmbedDescriptor({
+    title: "Plant UML",
+    keywords: "plant plantuml uml",
+    regexMatch: [
+      /(?:https?:\/\/)?(?:www\.)?editor\.plantuml\.com\/uml\/([a-zA-Z0-9\-_]+)([\&\?].*)?$/i,
+    ],
+    icon: <Img src="/images/plantuml.png" alt="PlantUml" />,
+    component: PlantUmlDiagrams,
   }),
   /* The generic iframe embed should always be the last one */
   new EmbedDescriptor({

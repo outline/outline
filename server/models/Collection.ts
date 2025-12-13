@@ -1,7 +1,8 @@
-/* eslint-disable lines-between-class-members */
+/* oxlint-disable lines-between-class-members */
 import fractionalIndex from "fractional-index";
 import find from "lodash/find";
 import findIndex from "lodash/findIndex";
+import isNil from "lodash/isNil";
 import remove from "lodash/remove";
 import uniq from "lodash/uniq";
 import {
@@ -16,6 +17,7 @@ import {
   type UpdateOptions,
   type ScopeOptions,
   type SaveOptions,
+  Op,
 } from "sequelize";
 import {
   Sequelize,
@@ -43,13 +45,18 @@ import {
   AfterSave,
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
-import type { CollectionSort, ProsemirrorData } from "@shared/types";
+import type {
+  CollectionSort,
+  ProsemirrorData,
+  SourceMetadata,
+} from "@shared/types";
 import { CollectionPermission, NavigationNode } from "@shared/types";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import { sortNavigationNodes } from "@shared/utils/collections";
 import slugify from "@shared/utils/slugify";
 import { CollectionValidation } from "@shared/validations";
 import { ValidationError } from "@server/errors";
+import { APIContext } from "@server/types";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import removeIndexCollision from "@server/utils/removeIndexCollision";
 import { generateUrlId } from "@server/utils/url";
@@ -74,6 +81,7 @@ type AdditionalFindOptions = {
   userId?: string;
   includeDocumentStructure?: boolean;
   includeOwner?: boolean;
+  includeArchivedBy?: boolean;
   rejectOnEmpty?: boolean | Error;
 };
 
@@ -230,10 +238,6 @@ class Collection extends ParanoidModel<
   content: ProsemirrorData | null;
 
   /** An icon (or) emoji to use as the collection icon. */
-  @Length({
-    max: 50,
-    msg: `icon must be 50 characters or less`,
-  })
   @Column
   icon: string | null;
 
@@ -301,6 +305,10 @@ class Collection extends ParanoidModel<
   @Default(null)
   @Column(DataType.BOOLEAN)
   commenting: boolean | null;
+
+  @AllowNull
+  @Column(DataType.JSONB)
+  sourceMetadata: SourceMetadata | null;
 
   // getters
 
@@ -385,6 +393,26 @@ class Collection extends ParanoidModel<
     }
   }
 
+  @BeforeDestroy
+  static async deleteDocuments(model: Collection, ctx: APIContext["context"]) {
+    await Document.update(
+      {
+        lastModifiedById: ctx.auth.user.id,
+        deletedAt: new Date(),
+      },
+      {
+        transaction: ctx.transaction,
+        where: {
+          teamId: model.teamId,
+          collectionId: model.id,
+          archivedAt: {
+            [Op.is]: null,
+          },
+        },
+      }
+    );
+  }
+
   @BeforeCreate
   static async setIndex(model: Collection, options: CreateOptions<Collection>) {
     if (model.index) {
@@ -403,7 +431,7 @@ class Collection extends ParanoidModel<
         Sequelize.literal('"collection"."index" collate "C"'),
         ["updatedAt", "DESC"],
       ],
-      ...options,
+      transaction: options.transaction,
     });
 
     model.index = fractionalIndex(null, firstCollectionForTeam?.index ?? null);
@@ -439,6 +467,22 @@ class Collection extends ParanoidModel<
     ) {
       model.index = await removeIndexCollision(model.teamId, model.index!, {
         transaction: options.transaction,
+      });
+    }
+  }
+
+  @BeforeUpdate
+  static async publishPermissionChangedEvent(
+    model: Collection,
+    ctx: APIContext["context"]
+  ) {
+    const privacyChanged = model.previous("permission") !== model.permission;
+    const sharingChanged = model.previous("sharing") !== model.sharing;
+
+    if (privacyChanged || sharingChanged) {
+      await this.insertEvent("permission_changed", model, {
+        ...ctx,
+        event: { publish: true },
       });
     }
   }
@@ -551,7 +595,13 @@ class Collection extends ParanoidModel<
       return null;
     }
 
-    const { includeDocumentStructure, includeOwner, userId, ...rest } = options;
+    const {
+      includeDocumentStructure,
+      includeOwner,
+      includeArchivedBy,
+      userId,
+      ...rest
+    } = options;
 
     const scopes: (string | ScopeOptions)[] = [
       includeDocumentStructure ? "withDocumentStructure" : "defaultScope",
@@ -562,6 +612,9 @@ class Collection extends ParanoidModel<
 
     if (includeOwner) {
       scopes.push("withUser");
+    }
+    if (includeArchivedBy) {
+      scopes.push("withArchivedBy");
     }
 
     const scope = this.scope(scopes);
@@ -588,7 +641,7 @@ class Collection extends ParanoidModel<
         where: {
           urlId: match[1],
         },
-        ...options,
+        ...rest,
         rejectOnEmpty: false,
       });
 
@@ -613,7 +666,7 @@ class Collection extends ParanoidModel<
     user: User,
     options: FindOptions = {}
   ) {
-    const id = await user.collectionIds();
+    const id = await user.collectionIds({ transaction: options.transaction });
     return this.findOne({
       where: {
         teamId: user.teamId,
@@ -840,6 +893,7 @@ class Collection extends ParanoidModel<
       silent?: boolean;
       documentJson?: NavigationNode;
       includeArchived?: boolean;
+      insertOrder?: "prepend" | "append";
     } = {}
   ) {
     if (!this.documentStructure) {
@@ -856,24 +910,36 @@ class Collection extends ParanoidModel<
       ...options.documentJson,
     };
 
+    // Determine the insertion index based on order parameter or explicit index
+    let insertionIndex: number;
+
+    if (index !== undefined) {
+      // Explicit index takes precedence
+      insertionIndex = index;
+    } else if (options.insertOrder === "prepend") {
+      // Prepend to the beginning
+      insertionIndex = 0;
+    } else {
+      // Default behavior: append to the end (maintains backward compatibility)
+      insertionIndex = this.documentStructure.length;
+    }
+
     if (!document.parentDocumentId) {
       // Note: Index is supported on DB level but it's being ignored
       // by the API presentation until we build product support for it.
-      this.documentStructure.splice(
-        index !== undefined ? index : this.documentStructure.length,
-        0,
-        documentJson
-      );
+      this.documentStructure.splice(insertionIndex, 0, documentJson);
     } else {
       // Recursively place document
       const placeDocument = (documentList: NavigationNode[]) =>
         documentList.map((childDocument) => {
           if (document.parentDocumentId === childDocument.id) {
-            childDocument.children.splice(
-              index !== undefined ? index : childDocument.children.length,
-              0,
-              documentJson
-            );
+            const childInsertionIndex =
+              index !== undefined
+                ? index
+                : options.insertOrder === "prepend"
+                  ? 0
+                  : childDocument.children.length;
+            childDocument.children.splice(childInsertionIndex, 0, documentJson);
           } else {
             childDocument.children = placeDocument(childDocument.children);
           }
@@ -897,6 +963,44 @@ class Collection extends ParanoidModel<
 
     return this;
   };
+
+  /**
+   * Get all of the document ids that are in this collection by
+   * recursively iterating through `documentStructure`.
+   *
+   * @returns list of document ids
+   */
+  getAllDocumentIds = (): string[] => {
+    if (!this.documentStructure) {
+      return [];
+    }
+
+    const allDocumentIds: string[] = [];
+
+    const loopChildren = (node: NavigationNode) => {
+      allDocumentIds.push(node.id);
+      (node.children ?? []).forEach((childNode) => {
+        loopChildren(childNode);
+      });
+    };
+
+    this.documentStructure.forEach(loopChildren);
+    return allDocumentIds;
+  };
+
+  /**
+   * Returns a JSON representation of this collection suitable for use in the frontend navigation.
+   *
+   * @returns NavigationNode
+   */
+  toNavigationNode = (): NavigationNode => ({
+    id: this.id,
+    title: this.name,
+    url: this.path,
+    icon: isNil(this.icon) ? undefined : this.icon,
+    color: isNil(this.color) ? undefined : this.color,
+    children: sortNavigationNodes(this.documentStructure ?? [], this.sort),
+  });
 }
 
 export default Collection;

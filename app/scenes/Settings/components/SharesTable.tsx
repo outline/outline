@@ -1,9 +1,9 @@
 import compact from "lodash/compact";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
 import Share from "~/models/Share";
 import { Avatar, AvatarSize } from "~/components/Avatar";
+import Badge from "~/components/Badge";
 import Flex from "~/components/Flex";
 import { HEADER_HEIGHT } from "~/components/Header";
 import {
@@ -12,9 +12,8 @@ import {
 } from "~/components/SortableTable";
 import { type Column as TableColumn } from "~/components/Table";
 import Time from "~/components/Time";
-import useUserLocale from "~/hooks/useUserLocale";
 import ShareMenu from "~/menus/ShareMenu";
-import { formatNumber } from "~/utils/language";
+import { useFormatNumber } from "~/hooks/useFormatNumber";
 
 const ROW_HEIGHT = 50;
 
@@ -24,7 +23,7 @@ type Props = Omit<TableProps<Share>, "columns" | "rowHeight"> & {
 
 export function SharesTable({ data, canManage, ...rest }: Props) {
   const { t } = useTranslation();
-  const language = useUserLocale();
+  const formatNumber = useFormatNumber();
   const hasDomain = data.some((share) => share.domain);
 
   const columns = useMemo<TableColumn<Share>[]>(
@@ -33,10 +32,15 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
         {
           type: "data",
           id: "title",
-          header: t("Document"),
-          accessor: (share) => share.documentTitle || t("Untitled"),
+          header: t("Title"),
+          accessor: (share) => share.sourceTitle || t("Untitled"),
           sortable: false,
-          component: (share) => <>{share.documentTitle || t("Untitled")}</>,
+          component: (share) => (
+            <>
+              {share.sourceTitle || t("Untitled")}
+              {share.collectionId ? <Badge>{t("Collection")}</Badge> : null}
+            </>
+          ),
           width: "4fr",
         },
         {
@@ -95,13 +99,7 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
           id: "views",
           header: t("Views"),
           accessor: (share) => share.views,
-          component: (share) => (
-            <>
-              {language
-                ? formatNumber(share.views, unicodeCLDRtoBCP47(language))
-                : share.views}
-            </>
-          ),
+          component: (share) => formatNumber(share.views),
           width: "150px",
         },
         canManage
@@ -117,7 +115,7 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
             }
           : undefined,
       ]),
-    [t, language, hasDomain, canManage]
+    [t, hasDomain, canManage]
   );
 
   return (

@@ -1,6 +1,6 @@
 import Router from "koa-router";
 import { WhereOptions } from "sequelize";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
 import { AttachmentPreset } from "@shared/types";
 import { bytesToHumanReadable, getFileNameFromUrl } from "@shared/utils/files";
 import { AttachmentValidation } from "@shared/validations";
@@ -93,13 +93,18 @@ router.post(
     // All user types can upload an avatar so no additional authorization is needed.
     if (preset === AttachmentPreset.Avatar) {
       assertIn(contentType, AttachmentValidation.avatarContentTypes);
-    } else if (preset === AttachmentPreset.DocumentAttachment && documentId) {
-      const document = await Document.findByPk(documentId, {
-        userId: user.id,
-        transaction,
-      });
-      authorize(user, "update", document);
     } else {
+      if (preset === AttachmentPreset.DocumentAttachment && documentId) {
+        const document = await Document.findByPk(documentId, {
+          userId: user.id,
+          transaction,
+        });
+        authorize(user, "update", document);
+      }
+      if (preset === AttachmentPreset.Emoji) {
+        assertIn(contentType, AttachmentValidation.emojiContentTypes);
+      }
+
       authorize(user, "createAttachment", user.team);
     }
 
@@ -113,7 +118,7 @@ router.post(
       );
     }
 
-    const modelId = uuidv4();
+    const modelId = randomUUID();
     const acl = AttachmentHelper.presetToAcl(preset);
     const key = AttachmentHelper.getKey({
       acl,
@@ -135,6 +140,7 @@ router.post(
     });
 
     const presignedPost = await FileStorage.getPresignedPost(
+      ctx,
       key,
       acl,
       maxUploadSize,
@@ -184,7 +190,7 @@ router.post(
     authorize(user, "update", document);
 
     const name = getFileNameFromUrl(url) ?? "file";
-    const modelId = uuidv4();
+    const modelId = randomUUID();
     const acl = AttachmentHelper.presetToAcl(preset);
     const key = AttachmentHelper.getKey({
       acl,

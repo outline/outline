@@ -1,6 +1,6 @@
-import debounce from "lodash/debounce";
 import last from "lodash/last";
 import sortBy from "lodash/sortBy";
+import { v4 as uuidv4 } from "uuid";
 import type MermaidUnsafe from "mermaid";
 import { Node } from "prosemirror-model";
 import {
@@ -10,11 +10,12 @@ import {
   Transaction,
 } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import { v4 as uuidv4 } from "uuid";
 import { isCode } from "../lib/isCode";
 import { isRemoteTransaction } from "../lib/multiplayer";
 import { findBlockNodes } from "../queries/findChildren";
 import { NodeWithPos } from "../types";
+import type { Editor } from "../../../app/editor";
+import { LightboxImageFactory } from "../lib/Lightbox";
 
 type MermaidState = {
   decorationSet: DecorationSet;
@@ -40,29 +41,23 @@ class Cache {
 
 let mermaid: typeof MermaidUnsafe;
 
-type RendererFunc = (
-  block: { node: Node; pos: number },
-  isDark: boolean
-) => void;
-
 class MermaidRenderer {
   readonly diagramId: string;
   readonly element: HTMLElement;
   readonly elementId: string;
+  readonly editor: Editor;
 
-  constructor() {
+  constructor(editor: Editor) {
     this.diagramId = uuidv4();
     this.elementId = `mermaid-diagram-wrapper-${this.diagramId}`;
     this.element =
       document.getElementById(this.elementId) || document.createElement("div");
     this.element.id = this.elementId;
     this.element.classList.add("mermaid-diagram-wrapper");
+    this.editor = editor;
   }
 
-  renderImmediately = async (
-    block: { node: Node; pos: number },
-    isDark: boolean
-  ) => {
+  render = async (block: { node: Node; pos: number }, isDark: boolean) => {
     const element = this.element;
     const text = block.node.textContent;
 
@@ -75,8 +70,12 @@ class MermaidRenderer {
     }
 
     // Create a temporary element that will render the diagram off-screen. This is necessary
-    // as Mermaid will error if the element is not visible, such as if the heading is collapsed
+    // as Mermaid will error if the element is not visible or the element is removed while the
+    // diagram is being rendered.
     const renderElement = document.createElement("div");
+    const tempId =
+      "offscreen-mermaid-" + Math.random().toString(36).substr(2, 9);
+    renderElement.id = tempId;
     renderElement.style.position = "absolute";
     renderElement.style.left = "-9999px";
     renderElement.style.top = "-9999px";
@@ -86,22 +85,17 @@ class MermaidRenderer {
       mermaid ??= (await import("mermaid")).default;
       mermaid.initialize({
         startOnLoad: true,
+        suppressErrorRendering: true,
         // TODO: Make dynamic based on the width of the editor or remove in
         // the future if Mermaid is able to handle this automatically.
         gantt: { useWidth: 700 },
         pie: { useWidth: 700 },
-        fontFamily: "inherit",
+        fontFamily: getComputedStyle(this.element).fontFamily || "inherit",
         theme: isDark ? "dark" : "default",
         darkMode: isDark,
       });
 
-      const { svg, bindFunctions } = await mermaid.render(
-        `mermaid-diagram-${this.diagramId}`,
-        text,
-        // If the element is not visible we use an off-screen element to render the diagram
-        element.offsetParent === null ? renderElement : element
-      );
-      this.currentTextContent = text;
+      const { svg, bindFunctions } = await mermaid.render(tempId, text);
 
       // Cache the rendered SVG so we won't need to calculate it again in the same session
       if (text) {
@@ -126,17 +120,6 @@ class MermaidRenderer {
       renderElement.remove();
     }
   };
-
-  get render(): RendererFunc {
-    if (this._rendererFunc) {
-      return this._rendererFunc;
-    }
-    this._rendererFunc = debounce<RendererFunc>(this.renderImmediately, 250);
-    return this.renderImmediately;
-  }
-
-  private currentTextContent = "";
-  private _rendererFunc?: RendererFunc;
 }
 
 function overlap(
@@ -175,10 +158,12 @@ function getNewState({
   doc,
   name,
   pluginState,
+  editor,
 }: {
   doc: Node;
   name: string;
   pluginState: MermaidState;
+  editor: Editor;
 }): MermaidState {
   const decorations: Decoration[] = [];
 
@@ -201,7 +186,7 @@ function getNewState({
     );
 
     const renderer: MermaidRenderer =
-      bestDecoration?.spec?.renderer ?? new MermaidRenderer();
+      bestDecoration?.spec?.renderer ?? new MermaidRenderer(editor);
 
     const diagramDecoration = Decoration.widget(
       block.pos + block.node.nodeSize,
@@ -239,9 +224,11 @@ function getNewState({
 export default function Mermaid({
   name,
   isDark,
+  editor,
 }: {
   name: string;
   isDark: boolean;
+  editor: Editor;
 }) {
   return new Plugin({
     key: new PluginKey("mermaid"),
@@ -255,6 +242,7 @@ export default function Mermaid({
           doc,
           name,
           pluginState,
+          editor,
         });
       },
       apply: (
@@ -285,6 +273,7 @@ export default function Mermaid({
             doc: transaction.doc,
             name,
             pluginState,
+            editor,
           });
         }
 
@@ -306,7 +295,7 @@ export default function Mermaid({
         return this.getState(state)?.decorationSet;
       },
       handleDOMEvents: {
-        mousedown(view, event) {
+        mouseup(view, event) {
           const target = event.target as HTMLElement;
           const diagram = target?.closest(".mermaid-diagram-wrapper");
           const codeBlock = diagram?.previousElementSibling;
@@ -320,8 +309,20 @@ export default function Mermaid({
             return false;
           }
 
-          // select node
           if (diagram && event.detail === 1) {
+            const { selection: textSelection } = view.state;
+            const $pos = view.state.doc.resolve(pos);
+            const selected =
+              textSelection.from >= $pos.start() &&
+              textSelection.to <= $pos.end();
+            if (selected || editor.props.readOnly) {
+              editor.updateActiveLightboxImage(
+                LightboxImageFactory.createLightboxImage(view, $pos.before())
+              );
+              return true;
+            }
+
+            // select node
             view.dispatch(
               view.state.tr
                 .setSelection(TextSelection.near(view.state.doc.resolve(pos)))

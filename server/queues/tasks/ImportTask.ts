@@ -28,7 +28,8 @@ import {
 import { sequelize } from "@server/storage/database";
 import ZipHelper from "@server/utils/ZipHelper";
 import { generateUrlId } from "@server/utils/url";
-import BaseTask, { TaskPriority } from "./BaseTask";
+import { BaseTask, TaskPriority } from "./base/BaseTask";
+import env from "@server/env";
 
 type Props = {
   fileOperationId: string;
@@ -160,6 +161,8 @@ export default abstract class ImportTask extends BaseTask<Props> {
 
       return result;
     } catch (error) {
+      Logger.error(`ImportTask failed for ${fileOperationId}`, error);
+
       await this.updateFileOperation(
         fileOperation,
         FileOperationState.Error,
@@ -304,7 +307,6 @@ export default abstract class ImportTask extends BaseTask<Props> {
     const user = await User.findByPk(fileOperation.userId, {
       rejectOnEmpty: true,
     });
-    const ip = user.lastActiveIp || undefined;
 
     try {
       await this.preprocessDocUrlIds(data);
@@ -370,20 +372,22 @@ export default abstract class ImportTask extends BaseTask<Props> {
             sort: item.sort,
             createdById: fileOperation.userId,
             permission:
-              item.permission ?? fileOperation.options?.permission !== undefined
+              (item.permission ??
+              fileOperation.options?.permission !== undefined)
                 ? fileOperation.options?.permission
                 : CollectionPermission.ReadWrite,
             importId: fileOperation.id,
           };
 
+          const ctx = createContext({ user, transaction });
+
           // check if collection with name exists
-          const response = await Collection.findOrCreate({
+          const response = await Collection.findOrCreateWithCtx(ctx, {
             where: {
               teamId: fileOperation.teamId,
               name: item.name,
             },
             defaults: sharedDefaults,
-            transaction,
           });
 
           let collection = response[0];
@@ -394,31 +398,12 @@ export default abstract class ImportTask extends BaseTask<Props> {
           // with right now
           if (!isCreated) {
             const name = `${item.name} (Imported)`;
-            collection = await Collection.create(
-              {
-                ...sharedDefaults,
-                name,
-                teamId: fileOperation.teamId,
-              },
-              { transaction }
-            );
+            collection = await Collection.createWithCtx(ctx, {
+              ...sharedDefaults,
+              name,
+              teamId: fileOperation.teamId,
+            });
           }
-
-          await Event.create(
-            {
-              name: "collections.create",
-              collectionId: collection.id,
-              teamId: collection.teamId,
-              actorId: fileOperation.userId,
-              data: {
-                name: collection.name,
-              },
-              ip,
-            },
-            {
-              transaction,
-            }
-          );
 
           collections.set(item.id, collection);
 
@@ -450,7 +435,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
               );
             }
 
-            const document = await documentCreator({
+            const document = await documentCreator(ctx, {
               sourceMetadata: {
                 fileName: path.basename(item.path),
                 mimeType: item.mimeType,
@@ -462,20 +447,21 @@ export default abstract class ImportTask extends BaseTask<Props> {
               urlId: item.urlId,
               text,
               content: item.data,
+              icon: item.icon,
+              color: item.color,
               collectionId: item.collectionId,
               createdAt: item.createdAt,
               updatedAt: item.updatedAt ?? item.createdAt,
               publishedAt: item.updatedAt ?? item.createdAt ?? new Date(),
               parentDocumentId: item.parentDocumentId,
               importId: fileOperation.id,
-              user,
-              ctx: createContext({ user, transaction }),
             });
             documents.set(item.id, document);
 
-            await collection.addDocumentToStructure(document, 0, {
+            await collection.addDocumentToStructure(document, undefined, {
               transaction,
               save: false,
+              insertOrder: "append",
             });
           }
 
@@ -504,6 +490,9 @@ export default abstract class ImportTask extends BaseTask<Props> {
                 buffer: await item.buffer(),
                 user,
                 ctx: createContext({ user, transaction }),
+                fetchOptions: {
+                  timeout: env.FILE_STORAGE_IMPORT_TIMEOUT,
+                },
               });
               if (attachment) {
                 attachments.set(item.id, attachment);

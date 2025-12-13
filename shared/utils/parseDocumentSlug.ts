@@ -15,7 +15,7 @@ export default function parseDocumentSlug(url: string) {
 
   try {
     parsed = new URL(url).pathname;
-  } catch (err) {
+  } catch (_err) {
     return;
   }
 

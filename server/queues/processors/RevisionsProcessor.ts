@@ -17,7 +17,7 @@ export default class RevisionsProcessor extends BaseProcessor {
       case "documents.publish":
       case "documents.update.debounced":
       case "documents.update": {
-        if (event.name === "documents.update" && !event.data.done) {
+        if (event.name === "documents.update" && !event.data?.done) {
           return;
         }
 

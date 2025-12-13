@@ -1,7 +1,7 @@
 import { Server } from "@hocuspocus/server";
 import WebSocket from "ws";
 import EDITOR_VERSION from "@shared/editor/version";
-import { sleep } from "@server/utils/timers";
+import { sleep } from "@shared/utils/timers";
 import { ConnectionLimitExtension } from "./ConnectionLimitExtension";
 import { EditorVersionExtension } from "./EditorVersionExtension";
 

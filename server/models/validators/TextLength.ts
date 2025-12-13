@@ -25,11 +25,8 @@ export default function TextLength({
           let text;
 
           try {
-            text = ProsemirrorHelper.toPlainText(
-              Node.fromJSON(schema, value),
-              schema
-            );
-          } catch (err) {
+            text = ProsemirrorHelper.toPlainText(Node.fromJSON(schema, value));
+          } catch (_err) {
             throw new Error("Invalid data");
           }
 

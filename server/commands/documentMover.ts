@@ -1,19 +1,9 @@
 import { Transaction } from "sequelize";
-import { createContext } from "@server/context";
 import { traceFunction } from "@server/logging/tracing";
-import {
-  User,
-  Document,
-  Collection,
-  Pin,
-  Event,
-  UserMembership,
-  GroupMembership,
-} from "@server/models";
+import { Document, Collection, Pin } from "@server/models";
+import { APIContext } from "@server/types";
 
 type Props = {
-  /** User attempting to move the document */
-  user: User;
   /** Document which is being moved */
   document: Document;
   /** Destination collection to which the document is moved */
@@ -22,10 +12,6 @@ type Props = {
   parentDocumentId?: string | null;
   /** Position of moved document within document structure */
   index?: number;
-  /** The IP address of the user moving the document */
-  ip: string | null;
-  /** The database transaction to run within */
-  transaction?: Transaction;
 };
 
 type Result = {
@@ -34,16 +20,19 @@ type Result = {
   collectionChanged: boolean;
 };
 
-async function documentMover({
-  user,
-  document,
-  collectionId = null,
-  parentDocumentId = null,
-  // convert undefined to null so parentId comparison treats them as equal
-  index,
-  ip,
-  transaction,
-}: Props): Promise<Result> {
+async function documentMover(
+  ctx: APIContext,
+  {
+    document,
+    collectionId = null,
+    parentDocumentId = null,
+    // convert undefined to null so parentId comparison treats them as equal
+    index,
+  }: Props
+): Promise<Result> {
+  const { user } = ctx.state.auth;
+  const { transaction } = ctx.state;
+
   const collectionChanged = collectionId !== document.collectionId;
   const previousCollectionId = document.collectionId;
   const result: Result = {
@@ -193,11 +182,11 @@ async function documentMover({
 
       document.collection = newCollection;
       result.documents.push(
-        ...documents.map((document) => {
+        ...documents.map((doc) => {
           if (newCollection) {
-            document.collection = newCollection;
+            doc.collection = newCollection;
           }
-          return document;
+          return doc;
         })
       );
 
@@ -214,96 +203,22 @@ async function documentMover({
         lock: Transaction.LOCK.UPDATE,
       });
 
-      await pin?.destroyWithCtx(
-        createContext({
-          user,
-          ip,
-          transaction,
-        })
-      );
+      await pin?.destroyWithCtx(ctx);
     }
   }
 
-  await document.save({ transaction });
   result.documents.push(document);
 
-  // If there are any sourced memberships for this document, we need to go to the source
-  // memberships and recalculate the membership for the user or group.
-  const [
-    userMemberships,
-    parentDocumentUserMemberships,
-    groupMemberships,
-    parentDocumentGroupMemberships,
-  ] = await Promise.all([
-    UserMembership.findRootMembershipsForDocument(document.id, undefined, {
-      transaction,
-    }),
-    parentDocumentId
-      ? UserMembership.findRootMembershipsForDocument(
-          parentDocumentId,
-          undefined,
-          { transaction }
-        )
-      : [],
-    GroupMembership.findRootMembershipsForDocument(document.id, undefined, {
-      transaction,
-    }),
-    parentDocumentId
-      ? GroupMembership.findRootMembershipsForDocument(
-          parentDocumentId,
-          undefined,
-          { transaction }
-        )
-      : [],
-  ]);
-
-  await recalculateUserMemberships(userMemberships, transaction);
-  await recalculateUserMemberships(parentDocumentUserMemberships, transaction);
-  await recalculateGroupMemberships(groupMemberships, transaction);
-  await recalculateGroupMemberships(
-    parentDocumentGroupMemberships,
-    transaction
-  );
-
-  await Event.create(
-    {
-      name: "documents.move",
-      actorId: user.id,
-      documentId: document.id,
-      collectionId,
-      teamId: document.teamId,
-      data: {
-        title: document.title,
-        collectionIds: result.collections.map((c) => c.id),
-        documentIds: result.documents.map((d) => d.id),
-      },
-      ip,
+  await document.saveWithCtx(ctx, undefined, {
+    name: "move",
+    data: {
+      collectionIds: result.collections.map((c) => c.id),
+      documentIds: result.documents.map((d) => d.id),
     },
-    {
-      transaction,
-    }
-  );
+  });
 
   // we need to send all updated models back to the client
   return result;
-}
-
-async function recalculateUserMemberships(
-  memberships: UserMembership[],
-  transaction?: Transaction
-) {
-  for (const membership of memberships) {
-    await UserMembership.createSourcedMemberships(membership, { transaction });
-  }
-}
-
-async function recalculateGroupMemberships(
-  memberships: GroupMembership[],
-  transaction?: Transaction
-) {
-  for (const membership of memberships) {
-    await GroupMembership.createSourcedMemberships(membership, { transaction });
-  }
 }
 
 export default traceFunction({

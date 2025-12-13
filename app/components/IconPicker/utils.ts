@@ -18,6 +18,7 @@ export const TRANSLATED_CATEGORIES = {
   Objects: i18next.t("Objects"),
   Symbols: i18next.t("Symbols"),
   Flags: i18next.t("Flags"),
+  Custom: i18next.t("Custom"),
 };
 
 export const FREQUENTLY_USED_COUNT = {
@@ -32,6 +33,8 @@ const STORAGE_KEYS = {
   EmojisFrequency: "emojis-freq",
   LastIcon: "last-icon",
   LastEmoji: "last-emoji",
+  CustomEmojisFrequency: "custom-emojis-freq",
+  LastCustomEmoji: "last-custom-emoji",
 };
 
 const getStorageKey = (key: string) => `${STORAGE_KEYS.Base}.${key}`;
@@ -45,6 +48,12 @@ export const emojisFreqKey = getStorageKey(STORAGE_KEYS.EmojisFrequency);
 export const lastIconKey = getStorageKey(STORAGE_KEYS.LastIcon);
 
 export const lastEmojiKey = getStorageKey(STORAGE_KEYS.LastEmoji);
+
+export const customEmojisFreqKey = getStorageKey(
+  STORAGE_KEYS.CustomEmojisFrequency
+);
+
+export const lastCustomEmojiKey = getStorageKey(STORAGE_KEYS.LastCustomEmoji);
 
 export const sortFrequencies = (freqs: [string, number][]) =>
   freqs.sort((a, b) => (a[1] >= b[1] ? -1 : 1));

@@ -9,12 +9,18 @@ import {
 import Logger from "@server/logging/Logger";
 import { Integration } from "@server/models";
 import User from "@server/models/User";
-import { UnfurlIssueAndPR, UnfurlSignature } from "@server/types";
+import { UnfurlIssueOrPR, UnfurlSignature } from "@server/types";
 import { LinearUtils } from "../shared/LinearUtils";
 import env from "./env";
+import { Minute } from "@shared/utils/time";
+import { opts } from "@server/utils/i18n";
+import { t } from "i18next";
 
 const AccessTokenResponseSchema = z.object({
   access_token: z.string(),
+  // Linear is in the process of switching to short-lived refresh tokens. Some apps
+  // may not return a refresh token before April 2026, hence it's optional here.
+  refresh_token: z.string().optional(),
   token_type: z.string(),
   expires_in: z.number(),
   scope: z.string(),
@@ -41,6 +47,39 @@ export class Linear {
       headers,
       body,
     });
+
+    if (res.status !== 200) {
+      throw new Error(
+        `Error while exchanging oauth code from Linear; status: ${res.status}`
+      );
+    }
+
+    return AccessTokenResponseSchema.parse(await res.json());
+  }
+
+  static async refreshToken(refreshToken: string) {
+    const headers = {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Accept: "application/json",
+    };
+
+    const body = new URLSearchParams();
+    body.set("refresh_token", refreshToken);
+    body.set("client_id", env.LINEAR_CLIENT_ID!);
+    body.set("client_secret", env.LINEAR_CLIENT_SECRET!);
+    body.set("grant_type", "refresh_token");
+
+    const res = await fetch(LinearUtils.tokenUrl, {
+      method: "POST",
+      headers,
+      body,
+    });
+
+    if (res.status !== 200) {
+      throw new Error(
+        `Error while refreshing access token from Linear; status: ${res.status}`
+      );
+    }
 
     return AccessTokenResponseSchema.parse(await res.json());
   }
@@ -74,22 +113,32 @@ export class Linear {
       return;
     }
 
-    const integration = (await Integration.scope("withAuthentication").findOne({
-      where: {
-        service: IntegrationService.Linear,
-        teamId: actor.teamId,
-        "settings.linear.workspace.key": resource.workspaceKey,
-      },
-    })) as Integration<IntegrationType.Embed>;
+    const integrations = (await Integration.scope("withAuthentication").findAll(
+      {
+        where: {
+          service: IntegrationService.Linear,
+          teamId: actor.teamId,
+        },
+      }
+    )) as Integration<IntegrationType.Embed>[];
 
-    if (!integration) {
+    if (integrations.length === 0) {
       return;
     }
 
+    // Prefer integration with matching workspaceKey, otherwise pick the first one
+    const integration =
+      integrations.find(
+        (int) => int.settings.linear?.workspace.key === resource.workspaceKey
+      ) ?? integrations[0];
+
     try {
-      const client = new LinearClient({
-        accessToken: integration.authentication.token,
-      });
+      const accessToken = await integration.authentication.refreshTokenIfNeeded(
+        async (refreshToken: string) => Linear.refreshToken(refreshToken),
+        5 * Minute.ms
+      );
+
+      const client = new LinearClient({ accessToken });
       const issue = await client.issue(resource.id);
 
       if (!issue) {
@@ -102,7 +151,7 @@ export class Linear {
         issue.paginate(issue.labels, {}),
       ]);
 
-      if (!author || !state || !labels) {
+      if (!state || !labels) {
         return { error: "Failed to fetch auxiliary data from Linear" };
       }
 
@@ -119,8 +168,12 @@ export class Linear {
         title: issue.title,
         description: issue.description ?? null,
         author: {
-          name: author.name,
-          avatarUrl: author.avatarUrl ?? "",
+          name:
+            author?.name ??
+            issue.botActor?.userDisplayName ??
+            issue.botActor?.name ??
+            t("Unknown", opts(actor)),
+          avatarUrl: author?.avatarUrl ?? "",
         },
         labels: labels.map((label) => ({
           name: label.name,
@@ -133,8 +186,7 @@ export class Linear {
           completionPercentage,
         },
         createdAt: issue.createdAt.toISOString(),
-        transformed_unfurl: true,
-      } satisfies UnfurlIssueAndPR;
+      } satisfies UnfurlIssueOrPR;
     } catch (err) {
       Logger.warn("Failed to fetch resource from Linear", err);
       return { error: err.message || "Unknown error" };
@@ -188,7 +240,7 @@ export class Linear {
    * Parses a given URL and returns resource identifiers for Linear specific URLs
    *
    * @param url URL to parse
-   * @returns {object} Containing resource identifiers - `workspaceKey`, `type`, `id` and `name`.
+   * @returns An object containing resource identifiers - `workspaceKey`, `type`, `id` and `name`.
    */
   private static parseUrl(url: string) {
     const { hostname, pathname } = new URL(url);

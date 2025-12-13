@@ -88,6 +88,18 @@ export const uploadFile = async (
     xhr.addEventListener("loadend", () => {
       resolve(xhr.readyState === 4 && xhr.status >= 200 && xhr.status < 400);
     });
+
+    // Do not send credentials if uploading to a different origin, as the combination
+    // of CORS and cookies will cause preflight request failure. However S3-like storage
+    // on the same host can work with credentials.
+    if (data.uploadUrl.startsWith("/")) {
+      xhr.withCredentials = true;
+    } else {
+      const parsed = new URL(data.uploadUrl);
+      const requiresPreflightRequest = parsed.origin !== window.location.origin;
+      xhr.withCredentials = !requiresPreflightRequest;
+    }
+
     xhr.open("POST", data.uploadUrl, true);
     xhr.send(formData);
   });

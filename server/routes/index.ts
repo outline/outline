@@ -1,10 +1,9 @@
 import crypto from "crypto";
 import path from "path";
 import { formatRFC7231 } from "date-fns";
-import Koa, { BaseContext } from "koa";
+import Koa from "koa";
 import Router from "koa-router";
 import send from "koa-send";
-import userAgent, { UserAgentContext } from "koa-useragent";
 import { languages } from "@shared/i18n";
 import { IntegrationType, TeamPreference } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
@@ -23,8 +22,6 @@ import errors from "./errors";
 
 const koa = new Koa();
 const router = new Router();
-
-koa.use<BaseContext, UserAgentContext>(userAgent);
 
 // serve public assets
 router.use(["/images/*", "/email/*", "/fonts/*"], async (ctx, next) => {
@@ -132,8 +129,25 @@ router.get("/embeds/github", renderEmbed);
 router.get("/embeds/dropbox", renderEmbed);
 router.get("/embeds/pinterest", renderEmbed);
 
+router.use(shareDomains());
+
+router.get("/doc/:documentSlug", async (ctx, next) => {
+  if (ctx.state?.rootShare) {
+    return renderShare(ctx, next);
+  }
+  return next();
+});
+
+router.get("/sitemap.xml", async (ctx) => {
+  if (ctx.state?.rootShare) {
+    ctx.redirect(`/api/shares.sitemap?id=${ctx.state?.rootShare.id}`);
+  } else {
+    ctx.status = 404;
+  }
+});
+
 // catch all for application
-router.get("*", shareDomains(), async (ctx, next) => {
+router.get("*", async (ctx, next) => {
   if (ctx.state?.rootShare) {
     return renderShare(ctx, next);
   }
@@ -170,16 +184,16 @@ router.get("*", shareDomains(), async (ctx, next) => {
       })
     : [];
 
+  const publicBranding =
+    team?.getPreference(TeamPreference.PublicBranding) ?? false;
+
   return renderApp(ctx, next, {
-    title:
-      team?.getPreference(TeamPreference.PublicBranding) && team.name
-        ? team.name
-        : undefined,
+    title: publicBranding && team?.name ? team.name : undefined,
+    description:
+      publicBranding && team?.description ? team.description : undefined,
     analytics,
     shortcutIcon:
-      team?.getPreference(TeamPreference.PublicBranding) && team.avatarUrl
-        ? team.avatarUrl
-        : undefined,
+      publicBranding && team?.avatarUrl ? team.avatarUrl : undefined,
   });
 });
 

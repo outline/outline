@@ -10,8 +10,10 @@ import {
   EditIcon,
   EmailIcon,
   PublishIcon,
+  SmileyIcon,
   StarredIcon,
   UserIcon,
+  GroupIcon,
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
@@ -70,11 +72,27 @@ function Notifications() {
       ),
     },
     {
+      event: NotificationEventType.GroupMentionedInDocument,
+      icon: <GroupIcon />,
+      title: t("Group mentions"),
+      description: t(
+        "Receive a notification when someone mentions a group you are a member of in a document or comment"
+      ),
+    },
+    {
       event: NotificationEventType.ResolveComment,
       icon: <DoneIcon />,
       title: t("Resolved"),
       description: t(
         "Receive a notification when a comment thread you were involved in is resolved"
+      ),
+    },
+    {
+      event: NotificationEventType.ReactionsCreate,
+      icon: <SmileyIcon />,
+      title: t("Reaction added"),
+      description: t(
+        "Receive a notification when someone reacts to your comment"
       ),
     },
     {
@@ -138,15 +156,13 @@ function Notifications() {
   }, 500);
 
   const handleChange = React.useCallback(
-    async (ev: React.ChangeEvent<HTMLInputElement>) => {
-      await user.setNotificationEventType(
-        ev.target.name as NotificationEventType,
-        ev.target.checked
-      );
+    (eventType: NotificationEventType) => async (checked: boolean) => {
+      await user.setNotificationEventType(eventType, checked);
       showSuccessMessage();
     },
     [user, showSuccessMessage]
   );
+
   const showSuccessNotice = window.location.search === "?success";
 
   return (
@@ -196,7 +212,7 @@ function Notifications() {
               id={option.event}
               name={option.event}
               checked={!!setting}
-              onChange={handleChange}
+              onChange={handleChange(option.event)}
             />
           </SettingRow>
         );

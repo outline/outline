@@ -1,6 +1,7 @@
 import Router from "koa-router";
 import { Op, WhereOptions } from "sequelize";
 import { MAX_AVATAR_DISPLAY } from "@shared/constants";
+import { GroupPermission } from "@shared/types";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -57,15 +58,45 @@ router.post(
       };
     }
 
-    const groups = await Group.filterByMember(userId).findAll({
-      where,
-      order: [[sort, direction]],
-      offset: ctx.state.pagination.offset,
-      limit: ctx.state.pagination.limit,
-    });
+    if (userId) {
+      const groupIds = await Group.filterByMember(userId)
+        .findAll({
+          attributes: ["id"],
+        })
+        .then((groups) => groups.map((g) => g.id));
+
+      where = {
+        ...where,
+        id: {
+          [Op.in]: groupIds,
+        },
+      };
+    }
+
+    const [groups, total] = await Promise.all([
+      Group.findAll({
+        where,
+        include: [
+          {
+            model: GroupUser,
+            as: "groupUsers",
+            required: false,
+            where: {
+              userId: user.id,
+            },
+          },
+        ],
+        order: [[sort, direction]],
+        offset: ctx.state.pagination.offset,
+        limit: ctx.state.pagination.limit,
+      }),
+      Group.count({
+        where,
+      }),
+    ]);
 
     ctx.body = {
-      pagination: ctx.state.pagination,
+      pagination: { ...ctx.state.pagination, total },
       data: {
         groups: await Promise.all(groups.map(presentGroup)),
         // TODO: Deprecated, will remove in the future as language conflicts with GroupMembership
@@ -76,6 +107,7 @@ router.post(
                 where: {
                   groupId: group.id,
                 },
+                order: [["permission", "ASC"]],
                 limit: MAX_AVATAR_DISPLAY,
               })
             )
@@ -100,11 +132,26 @@ router.post(
     const { id, externalId } = ctx.input.body;
     const { user } = ctx.state.auth;
 
+    const include = [
+      {
+        model: GroupUser,
+        as: "groupUsers",
+        required: false,
+        where: {
+          userId: user.id,
+        },
+      },
+    ];
+
     const group = id
-      ? await Group.findByPk(id)
+      ? await Group.findByPk(id, { include })
       : externalId
-      ? await Group.findOne({ where: { externalId } })
-      : null;
+        ? await Group.findOne({
+            include,
+            where: { teamId: user.teamId, externalId },
+          })
+        : null;
+
     authorize(user, "read", group);
 
     ctx.body = {
@@ -121,16 +168,19 @@ router.post(
   validate(T.GroupsCreateSchema),
   transaction(),
   async (ctx: APIContext<T.GroupsCreateReq>) => {
-    const { name, externalId } = ctx.input.body;
+    const { name, externalId, disableMentions } = ctx.input.body;
     const { user } = ctx.state.auth;
     authorize(user, "createGroup", user.team);
 
     const group = await Group.createWithCtx(ctx, {
       name,
       externalId,
+      disableMentions,
       teamId: user.teamId,
       createdById: user.id,
     });
+
+    group.groupUsers = [];
 
     ctx.body = {
       data: await presentGroup(group),
@@ -151,7 +201,20 @@ router.post(
 
     const group = await Group.findByPk(id, {
       transaction,
-      lock: transaction.LOCK.UPDATE,
+      include: [
+        {
+          model: GroupUser,
+          as: "groupUsers",
+          required: false,
+          where: {
+            userId: user.id,
+          },
+        },
+      ],
+      lock: {
+        level: transaction.LOCK.UPDATE,
+        of: Group,
+      },
     });
     authorize(user, "update", group);
 
@@ -251,15 +314,30 @@ router.post(
   validate(T.GroupsAddUserSchema),
   transaction(),
   async (ctx: APIContext<T.GroupsAddUserReq>) => {
-    const { id, userId } = ctx.input.body;
+    const { id, userId, permission } = ctx.input.body;
     const actor = ctx.state.auth.user;
     const { transaction } = ctx.state;
 
     const user = await User.findByPk(userId, { transaction });
     authorize(actor, "read", user);
 
-    const group = await Group.findByPk(id, { transaction });
+    // Load group with group users for authorization
+    const group = await Group.findByPk(id, {
+      transaction,
+      include: [
+        {
+          model: GroupUser,
+          as: "groupUsers",
+          required: false,
+          where: {
+            userId: actor.id,
+          },
+        },
+      ],
+    });
     authorize(actor, "update", group);
+
+    const userPermission = permission;
 
     const [groupUser] = await GroupUser.findOrCreateWithCtx(
       ctx,
@@ -270,10 +348,19 @@ router.post(
         },
         defaults: {
           createdById: actor.id,
+          permission: userPermission || GroupPermission.Member,
         },
       },
       { name: "add_user" }
     );
+
+    // If the user already exists in the group, update the permission if provided
+    if (
+      userPermission !== undefined &&
+      groupUser.permission !== userPermission
+    ) {
+      await groupUser.update({ permission: userPermission });
+    }
 
     groupUser.user = user;
 
@@ -297,7 +384,19 @@ router.post(
     const actor = ctx.state.auth.user;
     const { transaction } = ctx.state;
 
-    const group = await Group.findByPk(id, { transaction });
+    const group = await Group.findByPk(id, {
+      transaction,
+      include: [
+        {
+          model: GroupUser,
+          as: "groupUsers",
+          required: false,
+          where: {
+            userId: actor.id,
+          },
+        },
+      ],
+    });
     authorize(actor, "update", group);
 
     const user = await User.findByPk(userId, { transaction });
@@ -316,6 +415,61 @@ router.post(
 
     ctx.body = {
       data: {
+        groups: [await presentGroup(group)],
+      },
+    };
+  }
+);
+
+router.post(
+  "groups.update_user",
+  auth(),
+  validate(T.GroupsUpdateUserSchema),
+  transaction(),
+  async (ctx: APIContext<T.GroupsUpdateUserReq>) => {
+    const { id, userId, permission } = ctx.input.body;
+    const actor = ctx.state.auth.user;
+    const { transaction } = ctx.state;
+
+    // Load group with group users for authorization
+    const group = await Group.findByPk(id, {
+      transaction,
+      include: [
+        {
+          model: GroupUser,
+          as: "groupUsers",
+          required: false,
+          where: {
+            userId: actor.id,
+          },
+        },
+      ],
+    });
+    authorize(actor, "update", group);
+
+    const user = await User.findByPk(userId, { transaction });
+    authorize(actor, "read", user);
+
+    const groupUser = await GroupUser.unscoped().findOne({
+      where: {
+        groupId: group.id,
+        userId: user.id,
+      },
+      transaction,
+      rejectOnEmpty: true,
+      lock: {
+        level: transaction.LOCK.UPDATE,
+        of: GroupUser,
+      },
+    });
+
+    await groupUser.updateWithCtx(ctx, { permission });
+    groupUser.user = user;
+
+    ctx.body = {
+      data: {
+        users: [presentUser(user)],
+        groupMemberships: [presentGroupUser(groupUser, { includeUser: true })],
         groups: [await presentGroup(group)],
       },
     };

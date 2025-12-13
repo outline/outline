@@ -126,7 +126,7 @@ describe("#imports.list", () => {
     expect(body.data.length).toEqual(2);
 
     const importIds = body.data.map(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // oxlint-disable-next-line @typescript-eslint/no-explicit-any
       (importModel: Import<any>) => importModel.id
     );
     expect(importIds).toContain(importOne.id);

@@ -1,6 +1,8 @@
 import { SettingsIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { createInternalLinkAction } from "~/actions";
+import { NavigationSection } from "~/actions/sections";
 import Breadcrumb from "~/components/Breadcrumb";
 import Scene from "~/components/Scene";
 import { settingsPath } from "~/utils/routeHelpers";
@@ -11,22 +13,20 @@ export function IntegrationScene({
 }: React.ComponentProps<typeof Scene>) {
   const { t } = useTranslation();
 
+  const breadcrumbActions = React.useMemo(
+    () => [
+      createInternalLinkAction({
+        name: t("Integrations"),
+        section: NavigationSection,
+        icon: <SettingsIcon />,
+        to: settingsPath("integrations"),
+      }),
+    ],
+    [t]
+  );
+
   return (
-    <Scene
-      left={
-        <Breadcrumb
-          items={[
-            {
-              type: "route",
-              title: t("Integrations"),
-              icon: <SettingsIcon />,
-              to: settingsPath("integrations"),
-            },
-          ]}
-        />
-      }
-      {...rest}
-    >
+    <Scene left={<Breadcrumb actions={breadcrumbActions} />} {...rest}>
       {children}
     </Scene>
   );

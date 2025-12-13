@@ -13,8 +13,6 @@ import ErrorSuspended from "~/scenes/Errors/ErrorSuspended";
 import Layout from "~/components/Layout";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
 import Sidebar from "~/components/Sidebar";
-import SidebarRight from "~/components/Sidebar/Right";
-import SettingsSidebar from "~/components/Sidebar/Settings";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import { usePostLoginPath } from "~/hooks/useLastVisitedPath";
 import usePolicy from "~/hooks/usePolicy";
@@ -27,11 +25,11 @@ import {
   settingsPath,
   matchDocumentHistory,
   matchDocumentSlug as slug,
-  matchDocumentInsights,
 } from "~/utils/routeHelpers";
 import { DocumentContextProvider } from "./DocumentContext";
 import Fade from "./Fade";
 import { PortalContext } from "./Portal";
+import CommandBar from "./CommandBar";
 
 const DocumentComments = lazyWithRetry(
   () => import("~/scenes/Document/components/Comments")
@@ -39,17 +37,16 @@ const DocumentComments = lazyWithRetry(
 const DocumentHistory = lazyWithRetry(
   () => import("~/scenes/Document/components/History")
 );
-const DocumentInsights = lazyWithRetry(
-  () => import("~/scenes/Document/components/Insights")
+const SettingsSidebar = lazyWithRetry(
+  () => import("~/components/Sidebar/Settings")
 );
-const CommandBar = lazyWithRetry(() => import("~/components/CommandBar"));
 
 type Props = {
   children?: React.ReactNode;
 };
 
 const AuthenticatedLayout: React.FC = ({ children }: Props) => {
-  const { ui, auth, collections } = useStores();
+  const { ui, auth } = useStores();
   const location = useLocation();
   const layoutRef = React.useRef<HTMLDivElement>(null);
   const can = usePolicy(ui.activeDocumentId);
@@ -98,34 +95,24 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
     !!matchPath(location.pathname, {
       path: matchDocumentHistory,
     }) && can.listRevisions;
-  const showInsights =
-    !!matchPath(location.pathname, {
-      path: matchDocumentInsights,
-    }) && can.listViews;
   const showComments =
-    !showInsights &&
     !showHistory &&
     can.comment &&
     ui.activeDocumentId &&
     ui.commentsExpanded &&
-    (ui.activeCollectionId
-      ? collections.get(ui.activeCollectionId)?.canCreateComment
-      : !!team.getPreference(TeamPreference.Commenting));
+    !!team.getPreference(TeamPreference.Commenting);
 
   const sidebarRight = (
     <AnimatePresence
       initial={false}
       key={ui.activeDocumentId ? "active" : "inactive"}
     >
-      {(showHistory || showInsights || showComments) && (
+      {(showHistory || showComments) && (
         <Route path={`/doc/${slug}`}>
-          <SidebarRight>
-            <React.Suspense fallback={null}>
-              {showHistory && <DocumentHistory />}
-              {showInsights && <DocumentInsights />}
-              {showComments && <DocumentComments />}
-            </React.Suspense>
-          </SidebarRight>
+          <React.Suspense fallback={null}>
+            {showHistory && <DocumentHistory />}
+            {showComments && <DocumentComments />}
+          </React.Suspense>
         </Route>
       )}
     </AnimatePresence>
@@ -144,9 +131,7 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
           <RegisterKeyDown trigger="t" handler={goToSearch} />
           <RegisterKeyDown trigger="/" handler={goToSearch} />
           {children}
-          <React.Suspense fallback={null}>
-            <CommandBar />
-          </React.Suspense>
+          <CommandBar />
         </Layout>
       </PortalContext.Provider>
     </DocumentContextProvider>

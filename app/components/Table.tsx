@@ -219,7 +219,11 @@ function Table<TData>({
                 $columns={gridColumns}
               >
                 {row.getAllCells().map((cell) => (
-                  <TD role="cell" key={cell.id}>
+                  <TD
+                    role="cell"
+                    key={cell.id}
+                    className={cell.column.id === "action" ? "actions" : ""}
+                  >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TD>
                 ))}
@@ -383,7 +387,9 @@ const TD = styled.span`
     right: 0;
   }
 
-  ${NudeButton} {
+  ${NudeButton}[aria-haspopup="menu"] {
+    vertical-align: middle;
+
     &:hover,
     &[aria-expanded="true"] {
       background: ${s("sidebarControlHoverBackground")};
