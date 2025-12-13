@@ -922,6 +922,7 @@ describe("#documents.list", () => {
     });
 
     // Create 25 documents for pagination testing
+    // Note: buildDocument adds each doc to position 0, so they'll be in reverse order
     const documents = [];
     for (let i = 0; i < 25; i++) {
       const doc = await buildDocument({
@@ -932,6 +933,10 @@ describe("#documents.list", () => {
       });
       documents.push(doc);
     }
+
+    // Documents are added at position 0, so the order in documentStructure is reversed
+    // documents[24] is first, documents[0] is last
+    const expectedOrder = documents.slice().reverse();
 
     // First page (offset=0, limit=10)
     const res1 = await server.post("/api/documents.list", {
@@ -947,8 +952,8 @@ describe("#documents.list", () => {
     const body1 = await res1.json();
     expect(res1.status).toEqual(200);
     expect(body1.data).toHaveLength(10);
-    expect(body1.data[0].id).toEqual(documents[0].id);
-    expect(body1.data[9].id).toEqual(documents[9].id);
+    expect(body1.data[0].id).toEqual(expectedOrder[0].id);
+    expect(body1.data[9].id).toEqual(expectedOrder[9].id);
 
     // Second page (offset=10, limit=10) - this tests the bug fix
     const res2 = await server.post("/api/documents.list", {
@@ -964,8 +969,8 @@ describe("#documents.list", () => {
     const body2 = await res2.json();
     expect(res2.status).toEqual(200);
     expect(body2.data).toHaveLength(10);
-    expect(body2.data[0].id).toEqual(documents[10].id);
-    expect(body2.data[9].id).toEqual(documents[19].id);
+    expect(body2.data[0].id).toEqual(expectedOrder[10].id);
+    expect(body2.data[9].id).toEqual(expectedOrder[19].id);
 
     // Third page (offset=20, limit=10)
     const res3 = await server.post("/api/documents.list", {
@@ -981,8 +986,8 @@ describe("#documents.list", () => {
     const body3 = await res3.json();
     expect(res3.status).toEqual(200);
     expect(body3.data).toHaveLength(5);
-    expect(body3.data[0].id).toEqual(documents[20].id);
-    expect(body3.data[4].id).toEqual(documents[24].id);
+    expect(body3.data[0].id).toEqual(expectedOrder[20].id);
+    expect(body3.data[4].id).toEqual(expectedOrder[24].id);
   });
 
   it("should allow filtering by collection", async () => {
@@ -2339,6 +2344,7 @@ describe("#documents.archived", () => {
     });
 
     // Create 25 documents and archive them for pagination testing
+    // Note: buildDocument adds each doc to position 0, so they'll be in reverse order
     const documents = [];
     for (let i = 0; i < 25; i++) {
       const doc = await buildDocument({
@@ -2350,6 +2356,10 @@ describe("#documents.archived", () => {
       await withAPIContext(user, (ctx) => doc.archiveWithCtx(ctx));
       documents.push(doc);
     }
+
+    // Documents are added at position 0, so the order in documentStructure is reversed
+    // documents[24] is first, documents[0] is last
+    const expectedOrder = documents.slice().reverse();
 
     // First page (offset=0, limit=10)
     const res1 = await server.post("/api/documents.archived", {
@@ -2365,8 +2375,8 @@ describe("#documents.archived", () => {
     const body1 = await res1.json();
     expect(res1.status).toEqual(200);
     expect(body1.data).toHaveLength(10);
-    expect(body1.data[0].id).toEqual(documents[0].id);
-    expect(body1.data[9].id).toEqual(documents[9].id);
+    expect(body1.data[0].id).toEqual(expectedOrder[0].id);
+    expect(body1.data[9].id).toEqual(expectedOrder[9].id);
 
     // Second page (offset=10, limit=10) - this tests the bug fix
     const res2 = await server.post("/api/documents.archived", {
@@ -2382,8 +2392,8 @@ describe("#documents.archived", () => {
     const body2 = await res2.json();
     expect(res2.status).toEqual(200);
     expect(body2.data).toHaveLength(10);
-    expect(body2.data[0].id).toEqual(documents[10].id);
-    expect(body2.data[9].id).toEqual(documents[19].id);
+    expect(body2.data[0].id).toEqual(expectedOrder[10].id);
+    expect(body2.data[9].id).toEqual(expectedOrder[19].id);
 
     // Third page (offset=20, limit=10)
     const res3 = await server.post("/api/documents.archived", {
@@ -2399,8 +2409,9 @@ describe("#documents.archived", () => {
     const body3 = await res3.json();
     expect(res3.status).toEqual(200);
     expect(body3.data).toHaveLength(5);
-    expect(body3.data[0].id).toEqual(documents[20].id);
-    expect(body3.data[4].id).toEqual(documents[24].id);
+    expect(body3.data[0].id).toEqual(expectedOrder[20].id);
+    expect(body3.data[4].id).toEqual(expectedOrder[24].id);
+  });
   });
 
   it("should not return deleted documents", async () => {
