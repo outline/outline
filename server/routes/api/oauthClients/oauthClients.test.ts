@@ -67,9 +67,9 @@ describe("oauthClients.info", () => {
     expect(body).toMatchSnapshot();
   });
 
-  it("should return information about an OAuth client when authorized", async () => {
+  it("should return confidential information about an OAuth client when admin", async () => {
     const team = await buildTeam();
-    const user = await buildUser({ teamId: team.id });
+    const user = await buildAdmin({ teamId: team.id });
 
     const client = await OAuthClient.create({
       teamId: team.id,
@@ -90,7 +90,33 @@ describe("oauthClients.info", () => {
     expect(body.data.id).toBeDefined();
     expect(body.data.name).toEqual("Test Client");
     expect(body.data.published).toBeFalsy();
+    expect(body.data.clientSecret).toBeDefined();
     expect(body.data.redirectUris).toEqual(["https://example.com/callback"]);
+  });
+
+  it("should return basic information about an OAuth client when member", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+
+    const client = await OAuthClient.create({
+      teamId: team.id,
+      createdById: user.id,
+      name: "Test Client",
+      redirectUris: ["https://example.com/callback"],
+    });
+
+    const res = await server.post("/api/oauthClients.info", {
+      body: {
+        token: user.getJwtToken(),
+        id: client.id,
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toBeUndefined();
+    expect(body.data.name).toEqual("Test Client");
+    expect(body.data.clientSecret).toBeUndefined();
   });
 
   it("should return information about an OAuth client when published", async () => {
