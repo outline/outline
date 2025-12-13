@@ -32,4 +32,15 @@ describe("auth/redirect", () => {
     expect(res.headers.get("location")).not.toBeNull();
     expect(res.headers.get("location")!.endsWith(collection.url)).toBeTruthy();
   });
+
+  it("should prevent token extension by rejecting JWT tokens", async () => {
+    const user = await buildUser();
+    const jwtToken = user.getJwtToken();
+
+    const res = await server.get(`/auth/redirect?token=${jwtToken}`, {
+      redirect: "manual",
+    });
+
+    expect(res.status).toEqual(401);
+  });
 });
