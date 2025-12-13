@@ -235,6 +235,7 @@ export type DocumentEvent = BaseEvent<Document> &
         createdAt: string;
       }
     | DocumentMovedEvent
+    | DocumentAccessRequestEvent
   );
 
 export type EmptyTrashEvent = {
@@ -283,6 +284,11 @@ export type DocumentUserEvent = BaseEvent<UserMembership> & {
   data: {
     isNew?: boolean;
   };
+};
+
+export type DocumentAccessRequestEvent = BaseEvent<Document> & {
+  name: "documents.request_access";
+  documentId: string;
 };
 
 export type DocumentGroupEvent = BaseEvent<GroupMembership> & {
@@ -454,6 +460,7 @@ export type Event =
   | AuthenticationProviderEvent
   | DocumentEvent
   | DocumentUserEvent
+  | DocumentAccessRequestEvent
   | DocumentMovedEvent
   | DocumentGroupEvent
   | PinEvent

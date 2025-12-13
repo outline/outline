@@ -137,6 +137,8 @@ class Notification extends Model {
         return t("shared");
       case NotificationEventType.AddUserToCollection:
         return t("invited you to");
+      case NotificationEventType.RequestDocumentAccess:
+        return t("is requesting access to");
       default:
         return this.event;
     }
@@ -179,6 +181,7 @@ class Notification extends Model {
           : undefined;
         return collection ? collectionPath(collection) : "";
       }
+      case NotificationEventType.RequestDocumentAccess:
       case NotificationEventType.AddUserToDocument:
       case NotificationEventType.GroupMentionedInDocument:
       case NotificationEventType.MentionedInDocument: {

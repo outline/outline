@@ -464,6 +464,14 @@ export type DocumentsMembershipsReq = z.infer<
   typeof DocumentsMembershipsSchema
 >;
 
+export const DocumentsRequestAccessSchema = BaseSchema.extend({
+  body: BaseIdSchema,
+});
+
+export type DocumentsRequestAccessReq = z.infer<
+  typeof DocumentsRequestAccessSchema
+>;
+
 export const DocumentsSitemapSchema = BaseSchema.extend({
   query: z.object({
     shareId: zodShareIdType().optional(),
