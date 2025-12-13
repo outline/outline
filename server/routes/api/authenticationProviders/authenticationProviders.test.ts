@@ -109,6 +109,7 @@ describe("#authenticationProviders.update", () => {
     const slackProvider = authenticationProviders.find(
       (p) => p.name === "slack"
     );
+    expect(slackProvider).toBeDefined();
 
     // Attempt to disable both providers concurrently
     const [res1, res2] = await Promise.all([

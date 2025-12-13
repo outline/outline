@@ -112,6 +112,10 @@ class AuthenticationProvider extends Model<
     ctx
   ) => {
     const { transaction } = ctx.state;
+    if (!transaction) {
+      throw new Error("Transaction required");
+    }
+
     const otherEnabledProviders = await (
       this.constructor as typeof AuthenticationProvider
     ).findAll({
