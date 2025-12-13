@@ -3,7 +3,6 @@ import { DraftsIcon } from "outline-icons";
 import queryString from "query-string";
 import { useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
-import styled from "styled-components";
 import { DateFilter as TDateFilter } from "@shared/types";
 import CollectionFilter from "~/scenes/Search/components/CollectionFilter";
 import { Action } from "~/components/Actions";
@@ -13,7 +12,6 @@ import Heading from "~/components/Heading";
 import InputSearchPage from "~/components/InputSearchPage";
 import PaginatedDocumentList from "~/components/PaginatedDocumentList";
 import Scene from "~/components/Scene";
-import Subheading from "~/components/Subheading";
 import useStores from "~/hooks/useStores";
 import NewDocumentMenu from "~/menus/NewDocumentMenu";
 import DateFilter from "./Search/components/DateFilter";
@@ -59,10 +57,10 @@ function Drafts() {
         </Action>
       }
     >
-      <Heading>{t("Drafts")}</Heading>
-      <Subheading sticky>
-        {t("Documents")}
-        <Filters>
+      <Heading aboveList style={{ justifyContent: "space-between" }}>
+        {t("Drafts")}
+
+        <Flex gap={8}>
           <CollectionFilter
             collectionId={collectionId}
             onSelect={(collectionId) =>
@@ -79,8 +77,8 @@ function Drafts() {
               })
             }
           />
-        </Filters>
-      </Subheading>
+        </Flex>
+      </Heading>
 
       <PaginatedDocumentList
         empty={
@@ -99,19 +97,5 @@ function Drafts() {
     </Scene>
   );
 }
-
-const Filters = styled(Flex)`
-  opacity: 0.85;
-  transition: opacity 100ms ease-in-out;
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  padding: 0 0 6px;
-  gap: 4px;
-
-  &:hover {
-    opacity: 1;
-  }
-`;
 
 export default observer(Drafts);

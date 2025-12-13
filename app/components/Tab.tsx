@@ -4,7 +4,7 @@ import isEqual from "lodash/isEqual";
 import queryString from "query-string";
 import * as React from "react";
 import styled, { useTheme } from "styled-components";
-import { s, hover } from "@shared/styles";
+import { s, hover, extraArea } from "@shared/styles";
 import NavLink from "~/components/NavLink";
 
 type Props = Omit<React.ComponentProps<typeof NavLink>, "children"> & {
@@ -34,22 +34,27 @@ const TabLink = styled(NavLink)`
   color: ${s("textTertiary")};
   user-select: none;
   margin-right: 24px;
-  padding: 6px 0;
+  padding: 2px 0;
+  ${extraArea(4)}
 
   &: ${hover} {
-    color: ${s("textSecondary")};
+    color: ${s("text")};
   }
 `;
 
 const Active = styled(m.div)`
   position: absolute;
+  top: 0;
   bottom: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  width: 100%;
-  border-radius: 3px;
-  background: ${s("textSecondary")};
+  left: -8px;
+  right: -8px;
+  border-radius: 12px;
+  corner-shape: superellipse(1);
+  background: ${s("sidebarActiveBackground")};
+`;
+
+const Content = styled.span`
+  position: relative;
 `;
 
 const transition = {
@@ -66,7 +71,7 @@ const Tab: React.FC<Props> = ({
 }: Props) => {
   const theme = useTheme();
   const activeStyle = {
-    color: theme.textSecondary,
+    color: theme.text,
   };
 
   return (
@@ -77,7 +82,6 @@ const Tab: React.FC<Props> = ({
     >
       {(match, location) => (
         <>
-          {children}
           {match &&
             (!exactQueryString ||
               isEqual(
@@ -90,6 +94,7 @@ const Tab: React.FC<Props> = ({
                 transition={transition}
               />
             )}
+          <Content>{children}</Content>
         </>
       )}
     </TabLink>

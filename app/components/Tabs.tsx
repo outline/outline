@@ -2,14 +2,20 @@ import { AnimateSharedLayout } from "framer-motion";
 import { transparentize } from "polished";
 import * as React from "react";
 import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
 import useWindowSize from "~/hooks/useWindowSize";
 
 const Nav = styled.nav<{ $shadowVisible?: boolean }>`
-  border-bottom: 1px solid ${s("divider")};
-  margin: 12px 0;
+  margin: -8px 0 28px;
+  padding: 0 8px;
   overflow-y: auto;
   white-space: nowrap;
+
+  ${breakpoint("tablet")`
+    margin: -8px -32px 32px;
+    padding: 0 32px;
+  `};
 
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -35,17 +41,35 @@ const Nav = styled.nav<{ $shadowVisible?: boolean }>`
     )`
         : `transparent`};
   }
+
+  &:before {
+    content: "";
+    position: absolute;
+    bottom: -1.5em;
+    height: 1.5em;
+    left: 0;
+    right: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      180deg,
+      ${(props) => props.theme.background},
+      ${(props) => transparentize(1, props.theme.background)}
+    );
+  }
 `;
 
 // When sticky we need extra background coverage around the sides otherwise
 // items that scroll past can "stick out" the sides of the heading
 const Sticky = styled.div`
   position: sticky;
-  top: 54px;
-  margin: 0 -8px;
-  padding: 0 8px;
+  top: 64px;
   background: ${s("background")};
   z-index: 1;
+
+  ${breakpoint("tablet")`
+    margin: 0 -48px;
+    padding: 0 48px;
+  `};
 `;
 
 export const Separator = styled.span`

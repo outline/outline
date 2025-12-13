@@ -176,7 +176,6 @@ const CollectionScene = observer(function CollectionScene_() {
       >
         <CenteredContent withStickyHeader>
           <Notices collection={collection} />
-          <Header collection={collection} />
 
           <PinnedDocuments
             pins={pins}
@@ -184,6 +183,7 @@ const CollectionScene = observer(function CollectionScene_() {
             placeholderCount={count}
           />
 
+          <Header collection={collection} />
           <Content>
             <Navigation
               collection={collection}

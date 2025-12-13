@@ -158,7 +158,7 @@ const List = styled.div`
   grid-template-columns: repeat(2, minmax(0, 1fr));
   padding: 0;
   list-style: none;
-  margin: 16px 0 32px;
+  margin: 32px 0 32px;
 
   &:empty {
     display: none;

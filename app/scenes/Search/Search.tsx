@@ -208,7 +208,10 @@ function Search() {
   const showEmpty = !loading && query && data?.length === 0;
 
   return (
-    <Scene textTitle={query ? `${query} – ${t("Search")}` : t("Search")}>
+    <Scene
+      title={t('Results for "{{ term }}"', { term: query })}
+      textTitle={query ? `${query} – ${t("Search")}` : t("Search")}
+    >
       <RegisterKeyDown trigger="Escape" handler={history.goBack} />
       {loading && <LoadingIndicator />}
       <ResultsWrapper column auto>

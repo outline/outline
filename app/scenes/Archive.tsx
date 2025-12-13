@@ -5,7 +5,6 @@ import Empty from "~/components/Empty";
 import Heading from "~/components/Heading";
 import PaginatedDocumentList from "~/components/PaginatedDocumentList";
 import Scene from "~/components/Scene";
-import Subheading from "~/components/Subheading";
 import useStores from "~/hooks/useStores";
 
 function Archive() {
@@ -13,11 +12,10 @@ function Archive() {
   const { documents } = useStores();
   return (
     <Scene icon={<ArchiveIcon />} title={t("Archive")}>
-      <Heading>{t("Archive")}</Heading>
+      <Heading aboveList>{t("Archive")}</Heading>
       <PaginatedDocumentList
         documents={documents.archived}
         fetch={documents.fetchArchived}
-        heading={<Subheading sticky>{t("Documents")}</Subheading>}
         empty={
           <Empty>{t("The document archive is empty at the moment.")}</Empty>
         }
