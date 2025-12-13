@@ -133,6 +133,8 @@ export function createDatabaseInstance(
             `Failed to connect using database credentials. Please check DATABASE_HOST, DATABASE_NAME, DATABASE_USER configuration`
           )
     );
+    // To satisfy TypeScript that a Sequelize instance is always returned
+    throw _err;
   }
 }
 
