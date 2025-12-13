@@ -8,7 +8,8 @@ import {
   IsNotEmpty,
   IsUrl,
   IsOptional,
-  IsByteLength,
+  IsHexadecimal,
+  Length,
   IsNumber,
   IsIn,
   IsEmail,
@@ -65,8 +66,9 @@ export class Environment {
    * The secret key is used for encrypting data. Do not change this value once
    * set or your users will be unable to login.
    */
-  @IsByteLength(32, 64, {
-    message: `The SECRET_KEY environment variable is invalid (Use \`openssl rand -hex 32\` to generate a value).`,
+  @IsHexadecimal()
+  @Length(64, 64, {
+    message: `The SECRET_KEY environment variable must be exactly 64 hexadecimal characters (Use \`openssl rand -hex 32\` to generate a value).`,
   })
   public SECRET_KEY = environment.SECRET_KEY ?? "";
 
