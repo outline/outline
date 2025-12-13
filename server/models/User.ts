@@ -57,6 +57,7 @@ import Attachment from "./Attachment";
 import AuthenticationProvider from "./AuthenticationProvider";
 import Collection from "./Collection";
 import Group from "./Group";
+import Mention from "./Mention";
 import Team from "./Team";
 import UserAuthentication from "./UserAuthentication";
 import UserMembership from "./UserMembership";
@@ -247,6 +248,9 @@ class User extends ParanoidModel<
 
   @HasMany(() => UserAuthentication)
   authentications: UserAuthentication[];
+
+  @HasMany(() => Mention, "mentionedUserId")
+  mentions: Mention[];
 
   // getters
 

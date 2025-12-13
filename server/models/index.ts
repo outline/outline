@@ -32,6 +32,8 @@ export { default as Integration } from "./Integration";
 
 export { default as IntegrationAuthentication } from "./IntegrationAuthentication";
 
+export { default as Mention } from "./Mention";
+
 export { default as Notification } from "./Notification";
 
 export { default as OAuthAuthentication } from "./oauth/OAuthAuthentication";
