@@ -14,20 +14,14 @@ export const isURLMentionable = ({
   integration: Integration;
 }): boolean => {
   const { hostname, pathname } = url;
-  const pathParts = pathname.split("/");
 
   switch (integration.service) {
     case IntegrationService.GitHub: {
-      const settings =
-        integration.settings as IntegrationSettings<IntegrationType.Embed>;
-
-      return (
-        hostname === "github.com" &&
-        settings.github?.installation.account.name === pathParts[1] // ensure installed org/account name matches with the provided url.
-      );
+      return hostname === "github.com";
     }
 
     case IntegrationService.Linear: {
+      const pathParts = pathname.split("/");
       const settings =
         integration.settings as IntegrationSettings<IntegrationType.Embed>;
 
