@@ -131,11 +131,11 @@ export function isUrl(
     if (blockedProtocols.includes(url.protocol)) {
       return false;
     }
-    if (url.hostname) {
-      return true;
-    }
     if (requireHttps && url.protocol === "http:") {
       return false;
+    }
+    if (url.hostname) {
+      return true;
     }
 
     return (
