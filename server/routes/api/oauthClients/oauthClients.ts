@@ -6,7 +6,7 @@ import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { OAuthClient } from "@server/models";
-import { authorize } from "@server/policies";
+import { authorize, can } from "@server/policies";
 import {
   presentPolicies,
   presentOAuthClient,
@@ -27,6 +27,7 @@ router.post(
   async (ctx: APIContext<T.OAuthClientsListReq>) => {
     const { user } = ctx.state.auth;
     const where = { teamId: user.teamId };
+    authorize(user, "listOAuthClients", user.team);
 
     const [oauthClients, total] = await Promise.all([
       OAuthClient.findAll({
@@ -40,7 +41,11 @@ router.post(
 
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
-      data: oauthClients.map(presentOAuthClient),
+      data: oauthClients.map((oauthClient) =>
+        can(user, "update", oauthClient)
+          ? presentOAuthClient(oauthClient)
+          : presentPublishedOAuthClient(oauthClient)
+      ),
       policies: presentPolicies(user, oauthClients),
     };
   }
@@ -64,9 +69,10 @@ router.post(
     }
 
     const isInternalApp = oauthClient.teamId === user.teamId;
+    const canUpdate = can(user, "update", oauthClient);
 
     ctx.body = {
-      data: isInternalApp
+      data: canUpdate
         ? presentOAuthClient(oauthClient)
         : presentPublishedOAuthClient(oauthClient),
       policies: isInternalApp ? presentPolicies(user, [oauthClient]) : [],

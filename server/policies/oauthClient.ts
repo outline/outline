@@ -3,7 +3,7 @@ import { allow } from "./cancan";
 import { or, isTeamModel, isTeamMutable, and, isTeamAdmin } from "./utils";
 
 allow(User, "createOAuthClient", Team, (actor, team) =>
-  and(isTeamModel(actor, team), isTeamMutable(actor), actor.isAdmin)
+  and(isTeamAdmin(actor, team), isTeamMutable(actor))
 );
 
 allow(User, "listOAuthClients", Team, (actor, team) =>
@@ -15,5 +15,5 @@ allow(User, "read", OAuthClient, (actor, oauthClient) =>
 );
 
 allow(User, ["update", "delete"], OAuthClient, (actor, oauthClient) =>
-  and(isTeamModel(actor, oauthClient), isTeamMutable(actor), actor.isAdmin)
+  and(isTeamAdmin(actor, oauthClient), isTeamMutable(actor))
 );
