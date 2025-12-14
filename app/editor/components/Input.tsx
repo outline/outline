@@ -20,6 +20,7 @@ const Input = styled.input`
 
   @media (hover: none) and (pointer: coarse) {
     font-size: 16px;
+    height: 34px;
   }
 `;
 
