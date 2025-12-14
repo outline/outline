@@ -263,10 +263,6 @@ const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
   const { height } = useWindowSize();
 
   if (isMobile) {
-    if (!props.children) {
-      return null;
-    }
-
     if (props.active && position.visible) {
       const rect = document.body.getBoundingClientRect();
       const safeAreaInsets = getSafeAreaInsets();
