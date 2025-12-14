@@ -388,10 +388,13 @@ const Actions = styled(Flex)<{ dir?: "rtl" | "ltr" }>`
   left: ${(props) => (props.dir !== "rtl" ? "auto" : "4px")};
   right: ${(props) => (props.dir === "rtl" ? "auto" : "4px")};
   top: 4px;
-  opacity: 0;
   transition: opacity 100ms ease-in-out;
   background: ${s("backgroundSecondary")};
   padding-left: 4px;
+
+  ${breakpoint("tablet")`
+    opacity: 0;
+  `}
 
   &:has(${Action}[aria-expanded="true"]) {
     opacity: 1;
