@@ -15,7 +15,7 @@ import { UnreadBadge } from "../UnreadBadge";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 
 const CommentEditor = lazyWithRetry(
-  () => import("~/scenes/Document/components/CommentEditor")
+  () => import("~/scenes/Document/components/Comments/CommentEditor")
 );
 
 type Props = {

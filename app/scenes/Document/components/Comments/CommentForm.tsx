@@ -25,6 +25,7 @@ import useStores from "~/hooks/useStores";
 import { Bubble } from "./CommentThreadItem";
 import { HighlightedText } from "./HighlightText";
 import lazyWithRetry from "~/utils/lazyWithRetry";
+import { mergeRefs } from "react-merge-refs";
 
 const CommentEditor = lazyWithRetry(() => import("./CommentEditor"));
 
@@ -247,15 +248,15 @@ function CommentForm({
     }
   };
 
-  // Focus the editor when it's a new comment just mounted, after a delay as the
-  // editor is mounted within a fade transition.
-  React.useEffect(() => {
-    setTimeout(() => {
+  // Focus the editor when it's a new comment just mounted
+  const handleMounted = React.useCallback(
+    (ref) => {
       if (autoFocus) {
-        editorRef.current?.focusAtStart();
+        ref?.focusAtStart();
       }
-    }, 0);
-  }, [autoFocus]);
+    },
+    [autoFocus]
+  );
 
   const presence = animatePresence
     ? {
@@ -310,7 +311,7 @@ function CommentForm({
           )}
           <CommentEditor
             key={`${forceRender}`}
-            ref={editorRef}
+            ref={mergeRefs([editorRef, handleMounted])}
             defaultValue={draft}
             onChange={handleChange}
             onSave={handleSave}
