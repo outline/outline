@@ -11,6 +11,7 @@ import Empty from "~/components/Empty";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
+import { ArrowDownIcon } from "~/components/Icons/ArrowIcon";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import { useFocusedComment } from "~/hooks/useFocusedComment";
 import useKeyDown from "~/hooks/useKeyDown";
@@ -22,9 +23,8 @@ import { CommentSortOption, CommentSortType } from "~/types";
 import CommentForm from "./CommentForm";
 import CommentSortMenu from "./CommentSortMenu";
 import CommentThread from "./CommentThread";
-import Sidebar from "./SidebarLayout";
+import Sidebar from "../SidebarLayout";
 import useMobile from "~/hooks/useMobile";
-import { ArrowDownIcon } from "~/components/Icons/ArrowIcon";
 
 function Comments() {
   const { ui, comments, documents } = useStores();
