@@ -2074,9 +2074,7 @@ router.post(
   async (ctx: APIContext<T.DocumentsRequestAccessReq>) => {
     const { id } = ctx.input.body;
 
-    const document = await Document.unscoped()
-      .scope("withoutState")
-      .findByPk(id);
+    const document = await Document.findByPk(id);
 
     if (!document) {
       throw NotFoundError("Document could not be found");
