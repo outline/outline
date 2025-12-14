@@ -7,15 +7,15 @@ import {
 import Logger from "@server/logging/Logger";
 import { Integration, IntegrationAuthentication, User } from "@server/models";
 import { UnfurlIssueOrPR, UnfurlSignature } from "@server/types";
-import { GitLabUtils } from "../shared/GitLabUtils";
-import env from "./env";
 import {
+  GitLabUtils,
   MR,
   Issue,
   projectsSchema,
   UserInfoResponseSchema,
   AccessTokenResponseSchema,
-} from "./schema";
+} from "../shared/GitLabUtils";
+import env from "./env";
 
 export class GitLab {
   private static clientSecret = env.GITLAB_CLIENT_SECRET;

@@ -1,7 +1,72 @@
 import env from "@shared/env";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 import { UnfurlResourceType } from "@shared/types";
-import { IssueSchema, MRSchema } from "../server/schema";
+import z from "zod";
+
+export const AccessTokenResponseSchema = z.object({
+  access_token: z.string(),
+  token_type: z.string(),
+  expires_in: z.number(),
+  refresh_token: z.string(),
+  scope: z.string(),
+  created_at: z.number(),
+});
+
+export const UserInfoResponseSchema = z.object({
+  id: z.number(),
+  username: z.string(),
+  name: z.string(),
+  avatar_url: z.string().url(),
+});
+
+export const projectsSchema = z.array(
+  z.object({
+    id: z.number(),
+    name: z.string(),
+    namespace: z.object({
+      id: z.number(),
+      full_path: z.string(),
+    }),
+  })
+);
+
+const AuthorSchema = z.object({
+  username: z.string(),
+  avatar_url: z.string().url(),
+});
+
+export const IssueSchema = z.object({
+  iid: z.number(),
+  title: z.string(),
+  description: z.string(),
+  web_url: z.string().url(),
+  state: z.string(),
+  created_at: z.string().datetime(), // ISO 8601 datetime string
+  author: AuthorSchema,
+  labels: z.array(
+    z.object({
+      name: z.string(),
+      color: z.string(),
+    })
+  ),
+});
+
+export type Issue = z.infer<typeof IssueSchema>;
+
+export const MRSchema = z.object({
+  iid: z.number(),
+  title: z.string(),
+  description: z.string(),
+  web_url: z.string().url(),
+  state: z.string(),
+  draft: z.boolean(),
+  merged_at: z.string().datetime().nullable(), // Nullable ISO 8601 datetime string
+  created_at: z.string().datetime(), // ISO 8601 datetime string
+  author: AuthorSchema,
+  labels: z.array(z.string()), // Labels are strings in MR
+});
+
+export type MR = z.infer<typeof MRSchema>;
 
 export class GitLabUtils {
   private static clientId = env.GITLAB_CLIENT_ID;
