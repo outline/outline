@@ -4,6 +4,7 @@ import { mergeRefs } from "react-merge-refs";
 import styled from "styled-components";
 import { depths, s } from "@shared/styles";
 import { fadeAndScaleIn } from "~/styles/animations";
+import { usePortalContext } from "../Portal";
 
 const Popover = PopoverPrimitive.Root;
 
@@ -39,7 +40,7 @@ const PopoverContent = React.forwardRef<
 >((props, forwardedRef) => {
   const ref = React.useRef<React.ElementRef<typeof PopoverPrimitive.Content>>();
   const timeoutRef = React.useRef<NodeJS.Timeout>();
-
+  const container = usePortalContext();
   const {
     width = 380,
     minWidth,
@@ -70,7 +71,7 @@ const PopoverContent = React.forwardRef<
   }, [enablePointerEvents]);
 
   return (
-    <PopoverPrimitive.Portal>
+    <PopoverPrimitive.Portal container={container}>
       <StyledContent
         ref={mergeRefs([ref, forwardedRef])}
         sideOffset={sideOffset}
