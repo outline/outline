@@ -274,7 +274,8 @@ const LinkEditor: React.FC<Props> = ({
 const InputWrapper = styled(Flex)`
   pointer-events: all;
   gap: 6px;
-  padding: 6px;
+  padding: 4px 6px;
+  align-items: center;
 `;
 
 const SearchResults = styled(Scrollable)<{ $hasResults: boolean }>`
@@ -297,7 +298,7 @@ const SearchResults = styled(Scrollable)<{ $hasResults: boolean }>`
   @media (hover: none) and (pointer: coarse) {
     position: fixed;
     top: auto;
-    bottom: 40px;
+    bottom: 46px;
     border-radius: 0;
     max-height: 50vh;
     padding: 8px 8px 4px;
