@@ -84,7 +84,14 @@ function Notifications(
 
   return (
     <ErrorBoundary>
-      <Flex style={{ width: "100%", minHeight: "200px" }} column>
+      <Flex
+        style={{
+          width: "100%",
+          minHeight: "200px",
+          height: "calc(var(--radix-popover-content-available-height) - 44px)",
+        }}
+        column
+      >
         <Header justify="space-between">
           <Text weight="bold" as="span">
             {t("Notifications")}
@@ -112,8 +119,11 @@ function Notifications(
             <NotificationMenu />
           </Flex>
         </Header>
+        {isEmpty && (
+          <EmptyNotifications>{t("You're all caught up")}.</EmptyNotifications>
+        )}
         <React.Suspense fallback={null}>
-          <Scrollable ref={ref} flex topShadow>
+          <Scrollable ref={ref} flex topShadow hiddenScrollbars>
             <PaginatedList<Notification>
               fetch={notifications.fetchPage}
               options={{ archived: false }}
@@ -128,9 +138,6 @@ function Notifications(
             />
           </Scrollable>
         </React.Suspense>
-        {isEmpty && (
-          <EmptyNotifications>{t("You're all caught up")}.</EmptyNotifications>
-        )}
       </Flex>
     </ErrorBoundary>
   );
@@ -152,6 +159,7 @@ const EmptyNotifications = styled(Empty)`
   display: flex;
   align-items: center;
   justify-content: center;
+  height: 100%;
 `;
 
 const Button = styled(NudeButton)`
