@@ -99,14 +99,9 @@ export class GitLabIssueProvider extends BaseIssueProvider {
           service: IntegrationService.GitLab,
           "settings.github.installation.account.name": owner.name,
         },
-        include: [
-          {
-            model: IntegrationAuthentication,
-            as: "authentication",
-            required: true,
-          },
-        ],
       })) as Integration<IntegrationType.Embed> | null;
+
+      if (integration) {break;}
     }
 
     if (!integration) {
@@ -117,7 +112,7 @@ export class GitLabIssueProvider extends BaseIssueProvider {
     let sources = integration.issueSources ?? [];
 
     await sequelize.transaction(async (transaction) => {
-      if (eventName === "prjoect_create") {
+      if (eventName === "project_create") {
         sources.push({
           id: String(payload.project_id),
           name: payload.name,
@@ -149,16 +144,9 @@ export class GitLabIssueProvider extends BaseIssueProvider {
           service: IntegrationService.GitLab,
           "settings.gitlab.installation.account.name": owner.name,
         },
-        include: [
-          {
-            model: IntegrationAuthentication,
-            as: "authentication",
-            required: true,
-          },
-        ],
       })) as Integration<IntegrationType.Embed> | null;
 
-      if (integration && integration.authentication) {
+      if (integration) {
         source = integration.issueSources?.find(
           (s) => s.id === String(payload.project_id)
         );
