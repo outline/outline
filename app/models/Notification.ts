@@ -15,8 +15,50 @@ import Model from "./base/Model";
 import Field from "./decorators/Field";
 import Relation from "./decorators/Relation";
 
+export type NotificationFilter =
+  | "all"
+  | "mentions"
+  | "comments"
+  | "reactions"
+  | "documents"
+  | "collections"
+  | "system";
+
 class Notification extends Model {
   static modelName = "Notification";
+
+  static filterCategories: Record<NotificationFilter, NotificationEventType[]> =
+    {
+      all: [],
+      mentions: [
+        NotificationEventType.MentionedInDocument,
+        NotificationEventType.MentionedInComment,
+        NotificationEventType.GroupMentionedInDocument,
+        NotificationEventType.GroupMentionedInComment,
+      ],
+      comments: [
+        NotificationEventType.CreateComment,
+        NotificationEventType.ResolveComment,
+        NotificationEventType.ReactionsCreate,
+      ],
+      reactions: [NotificationEventType.ReactionsCreate],
+      documents: [
+        NotificationEventType.PublishDocument,
+        NotificationEventType.UpdateDocument,
+        NotificationEventType.CreateRevision,
+        NotificationEventType.AddUserToDocument,
+      ],
+      collections: [
+        NotificationEventType.CreateCollection,
+        NotificationEventType.AddUserToCollection,
+      ],
+      system: [
+        NotificationEventType.InviteAccepted,
+        NotificationEventType.Onboarding,
+        NotificationEventType.Features,
+        NotificationEventType.ExportCompleted,
+      ],
+    };
 
   /**
    * The date the notification was marked as read.
