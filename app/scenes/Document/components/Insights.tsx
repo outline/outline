@@ -146,7 +146,7 @@ function Insights({ document }: Props) {
                     <ListItem
                       key={model.id}
                       title={model.name}
-                      image={<Avatar model={model} size={32} />}
+                      image={<Avatar model={model} size={AvatarSize.Large} />}
                       subtitle={
                         model.id === document.createdBy?.id
                           ? document.sourceMetadata?.createdByName
