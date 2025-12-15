@@ -51,6 +51,14 @@ import IsUrlOrRelativePath from "./validators/IsUrlOrRelativePath";
 import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
 import { SkipChangeset } from "./decorators/Changeset";
+import { builderFilterSchema } from "@shared/helpers/FilterHelper";
+import z from "zod";
+
+const { FilterSchema: RetentionFilterSchema } = builderFilterSchema(
+  z.enum(["createdAt", "updatedAt"])
+);
+
+type RetentionFilter = z.infer<typeof RetentionFilterSchema>;
 
 @Scopes(() => ({
   withDomains: {
@@ -194,6 +202,10 @@ class Team extends ParanoidModel<
   @Column(DataType.ARRAY(DataType.STRING))
   @SkipChangeset
   previousSubdomains: string[] | null;
+
+  @AllowNull
+  @Column(DataType.JSONB)
+  retentionFilter: RetentionFilter | null;
 
   // getters
 
