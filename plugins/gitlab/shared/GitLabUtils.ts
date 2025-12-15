@@ -19,16 +19,16 @@ export const UserInfoResponseSchema = z.object({
   avatar_url: z.string().url(),
 });
 
-export const projectsSchema = z.array(
-  z.object({
+export const projectSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  namespace: z.object({
     id: z.number(),
-    name: z.string(),
-    namespace: z.object({
-      id: z.number(),
-      full_path: z.string(),
-    }),
-  })
-);
+    full_path: z.string(),
+  }),
+});
+
+export const projectsSchema = z.array(projectSchema);
 
 const AuthorSchema = z.object({
   username: z.string(),
@@ -38,10 +38,10 @@ const AuthorSchema = z.object({
 export const IssueSchema = z.object({
   iid: z.number(),
   title: z.string(),
-  description: z.string(),
+  description: z.string().nullish(),
   web_url: z.string().url(),
   state: z.string(),
-  created_at: z.string().datetime(), // ISO 8601 datetime string
+  created_at: z.string().datetime(),
   author: AuthorSchema,
   labels: z.array(
     z.object({
@@ -56,14 +56,14 @@ export type Issue = z.infer<typeof IssueSchema>;
 export const MRSchema = z.object({
   iid: z.number(),
   title: z.string(),
-  description: z.string(),
+  description: z.string().nullish(),
   web_url: z.string().url(),
   state: z.string(),
   draft: z.boolean(),
-  merged_at: z.string().datetime().nullable(), // Nullable ISO 8601 datetime string
-  created_at: z.string().datetime(), // ISO 8601 datetime string
+  merged_at: z.string().datetime().nullish(),
+  created_at: z.string().datetime(),
   author: AuthorSchema,
-  labels: z.array(z.string()), // Labels are strings in MR
+  labels: z.array(z.string()),
 });
 
 export type MR = z.infer<typeof MRSchema>;
@@ -213,7 +213,7 @@ export class GitLabUtils {
       return;
     }
 
-    const [owner, repo, resourceType, resourceId] = parts;
+    const [owner, repo, , resourceType, resourceId] = parts;
 
     const type =
       resourceType === "issues"

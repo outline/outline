@@ -200,7 +200,7 @@ export class GitLab {
       url: mr.web_url,
       id: `!${mr.iid}`,
       title: mr.title,
-      description: mr.description,
+      description: mr.description ?? "",
       author: {
         name: mr.author.username,
         avatarUrl: mr.author.avatar_url,

@@ -72,7 +72,7 @@ router.get(
               id: userInfo.id,
               account: {
                 id: userInfo.id,
-                name: userInfo.username,
+                name: userInfo.name,
                 avatarUrl: userInfo.avatar_url,
               },
             },
@@ -91,6 +91,7 @@ router.get(
 router.post(
   "gitlab.webhooks",
   validateWebhook({
+    hmacSign: false,
     secretKey: GitLabUtils.clientSecret!,
     getSignatureFromHeader: (ctx) => {
       const { headers } = ctx.request;
