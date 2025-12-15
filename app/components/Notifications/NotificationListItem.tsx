@@ -13,6 +13,14 @@ import Text from "../Text";
 import Time from "../Time";
 import { UnreadBadge } from "../UnreadBadge";
 import lazyWithRetry from "~/utils/lazyWithRetry";
+import { ContextMenu } from "../Menu/ContextMenu";
+import { createActionWithChildren } from "~/actions";
+import {
+  notificationMarkRead,
+  notificationMarkUnread,
+  notificationArchive,
+} from "~/actions/definitions/notifications";
+import { NotificationSection } from "~/actions/sections";
 
 const CommentEditor = lazyWithRetry(
   () => import("~/scenes/Document/components/Comments/CommentEditor")
@@ -42,31 +50,47 @@ function NotificationListItem({ notification, onNavigate }: Props) {
     onNavigate();
   };
 
+  const menuAction = React.useMemo(
+    () =>
+      createActionWithChildren({
+        name: ({ t }) => t("Notification options"),
+        section: NotificationSection,
+        children: [
+          notificationMarkRead(notification),
+          notificationMarkUnread(notification),
+          notificationArchive(notification),
+        ],
+      }),
+    [notification]
+  );
+
   return (
-    <StyledLink to={notification.path ?? ""} onClick={handleClick}>
-      <Container gap={8} $unread={!notification.viewedAt}>
-        <StyledAvatar model={notification.actor} />
-        <Flex column>
-          <Text as="div" size="small">
-            <Text weight="bold">
-              {notification.actor?.name ?? t("Unknown")}
-            </Text>{" "}
-            {notification.eventText(t)}{" "}
-            <Text weight="bold">{notification.subject}</Text>
-          </Text>
-          <Text type="tertiary" size="xsmall">
-            <Time dateTime={notification.createdAt} addSuffix />{" "}
-            {collection && <>&middot; {collection.name}</>}
-          </Text>
-          {notification.comment && (
-            <StyledCommentEditor
-              defaultValue={toJS(notification.comment.data)}
-            />
-          )}
-        </Flex>
-        {notification.viewedAt ? null : <UnreadBadge style={{ right: 20 }} />}
-      </Container>
-    </StyledLink>
+    <ContextMenu action={menuAction} ariaLabel={t("Notification options")}>
+      <StyledLink to={notification.path ?? ""} onClick={handleClick}>
+        <Container gap={8} $unread={!notification.viewedAt}>
+          <StyledAvatar model={notification.actor} />
+          <Flex column>
+            <Text as="div" size="small">
+              <Text weight="bold">
+                {notification.actor?.name ?? t("Unknown")}
+              </Text>{" "}
+              {notification.eventText(t)}{" "}
+              <Text weight="bold">{notification.subject}</Text>
+            </Text>
+            <Text type="tertiary" size="xsmall">
+              <Time dateTime={notification.createdAt} addSuffix />{" "}
+              {collection && <>&middot; {collection.name}</>}
+            </Text>
+            {notification.comment && (
+              <StyledCommentEditor
+                defaultValue={toJS(notification.comment.data)}
+              />
+            )}
+          </Flex>
+          {notification.viewedAt ? null : <UnreadBadge style={{ right: 12 }} />}
+        </Container>
+      </StyledLink>
+    </ContextMenu>
   );
 }
 
@@ -96,6 +120,7 @@ const Container = styled(Flex)<{ $unread: boolean }>`
   padding-right: 40px;
   border-radius: 4px;
 
+  ${StyledLink}[data-state=open] &,
   &:${hover},
   &:active {
     background: ${s("listItemHoverBackground")};
