@@ -56,7 +56,7 @@ type Props = {
 const lineHeight = "1.25";
 const fontSize = "2.25em";
 
-const DocumentTitle = React.forwardRef(function _DocumentTitle(
+const DocumentTitle = React.forwardRef(function DocumentTitle_(
   {
     documentId,
     title,
@@ -294,10 +294,8 @@ const StyledIconPicker = styled(IconPicker)`
 const Title = styled(ContentEditable)<TitleProps>`
   position: relative;
   line-height: ${lineHeight};
-  margin-top: 6vh;
+  margin-top: 10vh;
   margin-bottom: 0.5em;
-  margin-left: ${(props) =>
-    props.$containsIcon || props.$iconPickerIsOpen ? "40px" : "0px"};
   font-size: ${fontSize};
   font-weight: 600;
   border: 0;
@@ -319,8 +317,6 @@ const Title = styled(ContentEditable)<TitleProps>`
     css`
       &:focus-within,
       &:focus {
-        margin-left: 40px;
-
         ${PopoverButton} {
           opacity: 1 !important;
         }
@@ -333,12 +329,8 @@ const Title = styled(ContentEditable)<TitleProps>`
   }
 
   ${breakpoint("tablet")`
+    margin-top: 6vh;
     margin-left: 0;
-
-    &:focus-within,
-    &:focus {
-      margin-left: 0;
-    }
 
     &:hover {
       ${PopoverButton} {

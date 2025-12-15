@@ -105,6 +105,21 @@ class Notification extends Model {
   }
 
   /**
+   * Archive the notification
+   *
+   * @returns A promise that resolves when the notification has been archived.
+   */
+  @action
+  archive() {
+    if (this.archivedAt) {
+      return;
+    }
+
+    this.archivedAt = new Date();
+    return this.save();
+  }
+
+  /**
    * Returns translated text that describes the notification
    *
    * @param t - The translation function
@@ -177,7 +192,7 @@ class Notification extends Model {
         const collection = this.collectionId
           ? this.store.rootStore.collections.get(this.collectionId)
           : undefined;
-        return collection ? collectionPath(collection.path) : "";
+        return collection ? collectionPath(collection) : "";
       }
       case NotificationEventType.AddUserToDocument:
       case NotificationEventType.GroupMentionedInDocument:

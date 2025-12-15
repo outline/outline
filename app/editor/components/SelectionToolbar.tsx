@@ -82,6 +82,7 @@ export function SelectionToolbar(props: Props) {
   );
 
   React.useEffect(() => {
+    const { selection } = state;
     const linkMark =
       selection instanceof NodeSelection
         ? getMarkRangeNodeSelection(selection, state.schema.marks.link)
@@ -91,16 +92,23 @@ export function SelectionToolbar(props: Props) {
       selection instanceof NodeSelection &&
       selection.node.type.name === "embed";
 
-    if (isEmbedSelection) {
+    const isCodeSelection = isInCode(state, { onlyBlock: true });
+    const isNoticeSelection = isInNotice(state);
+
+    if (isEmbedSelection && !readOnly) {
       setActiveToolbar(Toolbar.Media);
-    } else if (linkMark && !activeToolbar) {
+    } else if (linkMark && !activeToolbar && !readOnly) {
       setActiveToolbar(Toolbar.Link);
+    } else if (isCodeSelection) {
+      setActiveToolbar(Toolbar.Menu);
     } else if (!selection.empty) {
+      setActiveToolbar(Toolbar.Menu);
+    } else if (isNoticeSelection && selection.empty) {
       setActiveToolbar(Toolbar.Menu);
     } else if (selection.empty) {
       setActiveToolbar(null);
     }
-  }, [selection]);
+  }, [readOnly, selection]);
 
   React.useEffect(() => {
     const handleClickOutside = (ev: MouseEvent): void => {
@@ -135,6 +143,26 @@ export function SelectionToolbar(props: Props) {
       window.removeEventListener("mouseup", handleClickOutside);
     };
   }, [isActive, readOnly, view]);
+
+  useEventListener(
+    "keydown",
+    (ev: KeyboardEvent) => {
+      if (
+        isModKey(ev) &&
+        ev.key.toLowerCase() === "k" &&
+        !view.state.selection.empty
+      ) {
+        ev.stopPropagation();
+        if (activeToolbar === Toolbar.Link) {
+          setActiveToolbar(Toolbar.Menu);
+        } else if (activeToolbar === Toolbar.Menu) {
+          setActiveToolbar(Toolbar.Link);
+        }
+      }
+    },
+    view.dom,
+    { capture: true }
+  );
 
   if (isDragging) {
     return null;
@@ -227,40 +255,12 @@ export function SelectionToolbar(props: Props) {
     return item;
   });
 
-  if (!items.length) {
-    return null;
-  }
-
   const handleClickOutsideLinkEditor = (ev: MouseEvent | TouchEvent) => {
     if (ev.target instanceof Element && ev.target.closest(".image-wrapper")) {
       return;
     }
     setActiveToolbar(null);
   };
-
-  useEventListener(
-    "keydown",
-    (ev: KeyboardEvent) => {
-      if (
-        isModKey(ev) &&
-        ev.key.toLowerCase() === "k" &&
-        !view.state.selection.empty
-      ) {
-        ev.stopPropagation();
-        if (activeToolbar === Toolbar.Link) {
-          setActiveToolbar(Toolbar.Menu);
-        } else if (activeToolbar === Toolbar.Menu) {
-          setActiveToolbar(Toolbar.Link);
-        }
-      }
-    },
-    view.dom,
-    { capture: true }
-  );
-
-  if (!activeToolbar) {
-    return null;
-  }
 
   return (
     <FloatingToolbar
@@ -289,7 +289,9 @@ export function SelectionToolbar(props: Props) {
       ) : activeToolbar === Toolbar.Media ? (
         <MediaLinkEditor
           key={`embed-${selection.from}`}
-          node={(selection as NodeSelection).node}
+          node={
+            "node" in selection ? (selection as NodeSelection).node : undefined
+          }
           view={view}
           dictionary={dictionary}
           onLinkUpdate={() => setActiveToolbar(null)}
@@ -297,9 +299,9 @@ export function SelectionToolbar(props: Props) {
           onEscape={() => setActiveToolbar(Toolbar.Menu)}
           onClickOutside={handleClickOutsideLinkEditor}
         />
-      ) : (
+      ) : activeToolbar === Toolbar.Menu && items.length ? (
         <ToolbarMenu items={items} {...rest} />
-      )}
+      ) : null}
     </FloatingToolbar>
   );
 }

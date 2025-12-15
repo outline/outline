@@ -123,7 +123,7 @@ function Notifications(
 
   return (
     <ErrorBoundary>
-      <Flex style={{ width: "100%" }} column>
+      <Flex style={{ width: "100%", minHeight: "200px" }} column>
         <Header justify="space-between">
           <Text weight="bold" as="span">
             {t("Notifications")}
@@ -184,7 +184,6 @@ const EmptyNotifications = styled(Empty)`
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 200px;
 `;
 
 const Button = styled(NudeButton)`

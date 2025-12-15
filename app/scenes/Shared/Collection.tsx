@@ -40,7 +40,7 @@ function SharedCollection({ collection }: Props) {
           as={Link}
           icon={<EditIcon />}
           to={{
-            pathname: collectionPath(collection.path, "overview"),
+            pathname: collectionPath(collection, "overview"),
           }}
           neutral
         >
@@ -83,7 +83,7 @@ function SharedCollection({ collection }: Props) {
             </SharedMeta>
           ) : null}
         </Flex>
-        <Overview collection={collection} shareId={shareId} />
+        <Overview collection={collection} readOnly />
       </CenteredContent>
     </Scene>
   );

@@ -1,5 +1,5 @@
 import { faker } from "@faker-js/faker";
-import { CollectionPermission } from "@shared/types";
+import { CollectionPermission, UserRole } from "@shared/types";
 import { createContext } from "@server/context";
 import { Event } from "@server/models";
 import { sequelize } from "@server/storage/database";
@@ -8,6 +8,8 @@ import {
   buildTeam,
   buildCollection,
   buildAdmin,
+  buildViewer,
+  buildGuestUser,
 } from "@server/test/factories";
 import User from "./User";
 import UserMembership from "./UserMembership";
@@ -232,6 +234,198 @@ describe("user model", () => {
       const response = await user.collectionIds();
       expect(response.length).toEqual(1);
       expect(response[0]).toEqual(collection.id);
+    });
+  });
+
+  describe("updateMembershipPermissions", () => {
+    it("should downgrade permissions when demoting Admin to Viewer", async () => {
+      const admin = await buildAdmin();
+      // Ensure there's another admin so we can demote this one
+      await buildAdmin({ teamId: admin.teamId });
+      const collection = await buildCollection({
+        teamId: admin.teamId,
+        permission: null,
+      });
+      await UserMembership.create({
+        createdById: admin.id,
+        collectionId: collection.id,
+        userId: admin.id,
+        permission: CollectionPermission.ReadWrite,
+      });
+
+      await sequelize.transaction(async (transaction) => {
+        await admin.update({ role: UserRole.Viewer }, { transaction });
+      });
+
+      const membership = await UserMembership.findOne({
+        where: { userId: admin.id, collectionId: collection.id },
+      });
+      expect(membership?.permission).toEqual(CollectionPermission.Read);
+    });
+
+    it("should downgrade permissions when demoting Admin to Guest", async () => {
+      const admin = await buildAdmin();
+      // Ensure there's another admin so we can demote this one
+      await buildAdmin({ teamId: admin.teamId });
+      const collection = await buildCollection({
+        teamId: admin.teamId,
+        permission: null,
+      });
+      await UserMembership.create({
+        createdById: admin.id,
+        collectionId: collection.id,
+        userId: admin.id,
+        permission: CollectionPermission.ReadWrite,
+      });
+
+      await sequelize.transaction(async (transaction) => {
+        await admin.update({ role: UserRole.Guest }, { transaction });
+      });
+
+      const membership = await UserMembership.findOne({
+        where: { userId: admin.id, collectionId: collection.id },
+      });
+      expect(membership?.permission).toEqual(CollectionPermission.Read);
+    });
+
+    it("should downgrade permissions when demoting Member to Viewer", async () => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        permission: null,
+      });
+      await UserMembership.create({
+        createdById: user.id,
+        collectionId: collection.id,
+        userId: user.id,
+        permission: CollectionPermission.ReadWrite,
+      });
+
+      await sequelize.transaction(async (transaction) => {
+        await user.update({ role: UserRole.Viewer }, { transaction });
+      });
+
+      const membership = await UserMembership.findOne({
+        where: { userId: user.id, collectionId: collection.id },
+      });
+      expect(membership?.permission).toEqual(CollectionPermission.Read);
+    });
+
+    it("should downgrade permissions when demoting Member to Guest", async () => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        permission: null,
+      });
+      await UserMembership.create({
+        createdById: user.id,
+        collectionId: collection.id,
+        userId: user.id,
+        permission: CollectionPermission.ReadWrite,
+      });
+
+      await sequelize.transaction(async (transaction) => {
+        await user.update({ role: UserRole.Guest }, { transaction });
+      });
+
+      const membership = await UserMembership.findOne({
+        where: { userId: user.id, collectionId: collection.id },
+      });
+      expect(membership?.permission).toEqual(CollectionPermission.Read);
+    });
+
+    it("should downgrade permissions when demoting Viewer to Guest", async () => {
+      const viewer = await buildViewer();
+      const collection = await buildCollection({
+        teamId: viewer.teamId,
+        permission: null,
+      });
+      await UserMembership.create({
+        createdById: viewer.id,
+        collectionId: collection.id,
+        userId: viewer.id,
+        permission: CollectionPermission.ReadWrite,
+      });
+
+      await sequelize.transaction(async (transaction) => {
+        await viewer.update({ role: UserRole.Guest }, { transaction });
+      });
+
+      const membership = await UserMembership.findOne({
+        where: { userId: viewer.id, collectionId: collection.id },
+      });
+      expect(membership?.permission).toEqual(CollectionPermission.Read);
+    });
+
+    it("should not downgrade permissions when promoting Guest to Viewer", async () => {
+      const guest = await buildGuestUser();
+      const collection = await buildCollection({
+        teamId: guest.teamId,
+        permission: null,
+      });
+      await UserMembership.create({
+        createdById: guest.id,
+        collectionId: collection.id,
+        userId: guest.id,
+        permission: CollectionPermission.ReadWrite,
+      });
+
+      await sequelize.transaction(async (transaction) => {
+        await guest.update({ role: UserRole.Viewer }, { transaction });
+      });
+
+      const membership = await UserMembership.findOne({
+        where: { userId: guest.id, collectionId: collection.id },
+      });
+      expect(membership?.permission).toEqual(CollectionPermission.ReadWrite);
+    });
+
+    it("should not downgrade permissions when promoting Viewer to Member", async () => {
+      const viewer = await buildViewer();
+      const collection = await buildCollection({
+        teamId: viewer.teamId,
+        permission: null,
+      });
+      await UserMembership.create({
+        createdById: viewer.id,
+        collectionId: collection.id,
+        userId: viewer.id,
+        permission: CollectionPermission.Read,
+      });
+
+      await sequelize.transaction(async (transaction) => {
+        await viewer.update({ role: UserRole.Member }, { transaction });
+      });
+
+      const membership = await UserMembership.findOne({
+        where: { userId: viewer.id, collectionId: collection.id },
+      });
+      expect(membership?.permission).toEqual(CollectionPermission.Read);
+    });
+
+    it("should not downgrade permissions when demoting Admin to Member", async () => {
+      const admin = await buildAdmin();
+      // Ensure there's another admin so we can demote this one
+      await buildAdmin({ teamId: admin.teamId });
+      const collection = await buildCollection({
+        teamId: admin.teamId,
+        permission: null,
+      });
+      await UserMembership.create({
+        createdById: admin.id,
+        collectionId: collection.id,
+        userId: admin.id,
+        permission: CollectionPermission.ReadWrite,
+      });
+
+      await sequelize.transaction(async (transaction) => {
+        await admin.update({ role: UserRole.Member }, { transaction });
+      });
+
+      const membership = await UserMembership.findOne({
+        where: { userId: admin.id, collectionId: collection.id },
+      });
+      expect(membership?.permission).toEqual(CollectionPermission.ReadWrite);
     });
   });
 });

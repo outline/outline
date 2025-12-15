@@ -11,6 +11,7 @@ import useStores from "~/hooks/useStores";
 import {
   collectionPath,
   documentPath,
+  homePath,
   settingsPath,
 } from "~/utils/routeHelpers";
 
@@ -67,7 +68,9 @@ function DocumentDelete({ document, onSubmit }: Props) {
           // Otherwise redirect to the collection (or) home.
           const path = document.template
             ? settingsPath("templates")
-            : collectionPath(collection?.path || "/");
+            : collection
+              ? collectionPath(collection)
+              : homePath();
           history.push(path);
         }
 

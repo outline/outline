@@ -6,7 +6,7 @@ import { Preview, Title, Info, Card, CardContent } from "./Components";
 
 type Props = Omit<UnfurlResponse[UnfurlResourceType.Mention], "type">;
 
-const HoverPreviewMention = React.forwardRef(function _HoverPreviewMention(
+const HoverPreviewMention = React.forwardRef(function HoverPreviewMention_(
   { avatarUrl, name, lastActive, color }: Props,
   ref: React.Ref<HTMLDivElement>
 ) {

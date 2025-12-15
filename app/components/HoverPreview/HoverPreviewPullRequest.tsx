@@ -20,7 +20,7 @@ import {
 type Props = Omit<UnfurlResponse[UnfurlResourceType.PR], "type">;
 
 const HoverPreviewPullRequest = React.forwardRef(
-  function _HoverPreviewPullRequest(
+  function HoverPreviewPullRequest_(
     { url, title, id, description, author, state, createdAt }: Props,
     ref: React.Ref<HTMLDivElement>
   ) {
