@@ -72,7 +72,6 @@ export const SelectButton = styled(Button)<{ $nude?: boolean }>`
     `}
 
   ${Inner} {
-    line-height: 28px;
     padding-left: 12px;
     padding-right: 4px;
   }

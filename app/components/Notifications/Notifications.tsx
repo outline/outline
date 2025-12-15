@@ -3,9 +3,8 @@ import { MarkAsReadIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import { NotificationEventType } from "@shared/types";
 import { s, hover } from "@shared/styles";
-import Notification from "~/models/Notification";
+import Notification, { type NotificationFilter } from "~/models/Notification";
 import { markNotificationsAsRead } from "~/actions/definitions/notifications";
 import useStores from "~/hooks/useStores";
 import NotificationMenu from "~/menus/NotificationMenu";
@@ -26,45 +25,6 @@ type Props = {
   onRequestClose: () => void;
 };
 
-type NotificationFilter =
-  | "all"
-  | "mentions"
-  | "comments"
-  | "documents"
-  | "collections"
-  | "system";
-
-const FILTER_CATEGORIES: Record<NotificationFilter, NotificationEventType[]> = {
-  all: [],
-  mentions: [
-    NotificationEventType.MentionedInDocument,
-    NotificationEventType.MentionedInComment,
-    NotificationEventType.GroupMentionedInDocument,
-    NotificationEventType.GroupMentionedInComment,
-  ],
-  comments: [
-    NotificationEventType.CreateComment,
-    NotificationEventType.ResolveComment,
-    NotificationEventType.ReactionsCreate,
-  ],
-  documents: [
-    NotificationEventType.PublishDocument,
-    NotificationEventType.UpdateDocument,
-    NotificationEventType.CreateRevision,
-    NotificationEventType.AddUserToDocument,
-  ],
-  collections: [
-    NotificationEventType.CreateCollection,
-    NotificationEventType.AddUserToCollection,
-  ],
-  system: [
-    NotificationEventType.InviteAccepted,
-    NotificationEventType.Onboarding,
-    NotificationEventType.Features,
-    NotificationEventType.ExportCompleted,
-  ],
-};
-
 /**
  * A panel containing a list of notifications and controls to manage them.
  */
@@ -80,9 +40,10 @@ function Notifications(
     () => [
       { type: "item", label: t("All"), value: "all" },
       { type: "item", label: t("Mentions"), value: "mentions" },
-      { type: "item", label: t("Comments"), value: "comments" },
-      { type: "item", label: t("Documents"), value: "documents" },
-      { type: "item", label: t("Collections"), value: "collections" },
+      { type: "item", label: t("Comments and replies"), value: "comments" },
+      { type: "item", label: t("Reactions"), value: "reactions" },
+      { type: "item", label: t("Document events"), value: "documents" },
+      { type: "item", label: t("Collection events"), value: "collections" },
       { type: "item", label: t("System"), value: "system" },
     ],
     [t]
@@ -93,7 +54,7 @@ function Notifications(
       return notifications.active;
     }
 
-    const eventTypes = FILTER_CATEGORIES[filter];
+    const eventTypes = Notification.filterCategories[filter];
     return notifications.active.filter((notification) =>
       eventTypes.includes(notification.event)
     );
@@ -128,7 +89,16 @@ function Notifications(
           <Text weight="bold" as="span">
             {t("Notifications")}
           </Text>
-          <Flex gap={8}>
+          <Flex gap={8} align="center">
+            <StyledInputSelect
+              label={t("Filter")}
+              hideLabel
+              options={filterOptions}
+              value={filter}
+              onChange={(value) => setFilter(value as NotificationFilter)}
+              short
+              nude
+            />
             {notifications.approximateUnreadCount > 0 && (
               <Tooltip content={t("Mark all as read")}>
                 <Button
@@ -142,16 +112,6 @@ function Notifications(
             <NotificationMenu />
           </Flex>
         </Header>
-        <FilterContainer>
-          <InputSelect
-            label={t("Filter")}
-            hideLabel
-            options={filterOptions}
-            value={filter}
-            onChange={(value) => setFilter(value as NotificationFilter)}
-            short
-          />
-        </FilterContainer>
         <React.Suspense fallback={null}>
           <Scrollable ref={ref} flex topShadow>
             <PaginatedList<Notification>
@@ -176,8 +136,16 @@ function Notifications(
   );
 }
 
-const FilterContainer = styled.div`
-  padding: 0 12px 12px;
+const StyledInputSelect = styled(InputSelect)`
+  color: ${s("textSecondary")};
+  font-weight: 500;
+  font-size: 14px;
+  height: 24px;
+
+  & > * {
+    min-height: 24px;
+    line-height: 24px;
+  }
 `;
 
 const EmptyNotifications = styled(Empty)`
