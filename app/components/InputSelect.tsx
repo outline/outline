@@ -67,8 +67,6 @@ type Props = Omit<React.HTMLAttributes<HTMLButtonElement>, "onChange"> & {
   short?: boolean;
   /** Display a tooltip with the descriptive help text about the select menu. */
   help?: string;
-  /* Component used for the trigger button. */
-  as?: React.ElementType;
 } & TriggerButtonProps;
 
 export const InputSelect = React.forwardRef<HTMLButtonElement, Props>(

@@ -151,7 +151,7 @@ const StyledInputSelect = styled(InputSelect)`
 
   & > * {
     min-height: 24px;
-    line-height: 24px;
+    line-height: 24px !important;
   }
 `;
 
