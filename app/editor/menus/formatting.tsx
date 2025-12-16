@@ -41,6 +41,8 @@ import {
   isMultipleCellSelection,
 } from "@shared/editor/queries/table";
 import { CellSelection } from "prosemirror-tables";
+import { hasMarkCellSelection } from "@shared/editor/queries/getMarkRange";
+import isBoolean from "lodash/isBoolean";
 
 export default function formattingMenuItems(
   state: EditorState,
@@ -56,11 +58,14 @@ export default function formattingMenuItems(
   const isList = isInList(state);
   const isTableCell = state.selection instanceof CellSelection;
 
-  const highlight = getMarksBetween(
-    state.selection.from,
-    state.selection.to,
-    state
-  ).find(({ mark }) => mark.type.name === "highlight");
+  const highlight = isTableCell
+    ? hasMarkCellSelection(
+        state.selection as CellSelection,
+        state.schema.marks.highlight
+      )
+    : getMarksBetween(state.selection.from, state.selection.to, state).find(
+        ({ mark }) => mark.type === state.schema.marks.highlight
+      );
 
   return [
     {
@@ -101,11 +106,16 @@ export default function formattingMenuItems(
     {
       tooltip: dictionary.mark,
       shortcut: `${metaDisplay}+⇧+H`,
-      icon: highlight ? (
-        <CircleIcon color={highlight.mark.attrs.color || Highlight.colors[0]} />
-      ) : (
-        <HighlightIcon />
-      ),
+      icon:
+        isTableCell && highlight ? (
+          <CircleIcon color="rainbow" />
+        ) : highlight && !isBoolean(highlight) ? (
+          <CircleIcon
+            color={highlight.mark.attrs.color || Highlight.colors[0]}
+          />
+        ) : (
+          <HighlightIcon />
+        ),
       active: () => !!highlight,
       visible: !isCode && (!isMobile || !isEmpty),
       children: [
@@ -116,7 +126,7 @@ export default function formattingMenuItems(
                 label: dictionary.none,
                 icon: <DottedCircleIcon retainColor color="transparent" />,
                 active: () => false,
-                attrs: { color: highlight.mark.attrs.color },
+                attrs: { color: null },
               },
             ]
           : []),

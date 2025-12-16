@@ -4,6 +4,9 @@ import type { MarkSpec, MarkType } from "prosemirror-model";
 import { markInputRuleForPattern } from "../lib/markInputRule";
 import markRule from "../rules/mark";
 import Mark from "./Mark";
+import { CommandFactory } from "../lib/Extension";
+import { Primitive } from "utility-types";
+import { toggleHighlight } from "../commands/highlight";
 
 export default class Highlight extends Mark {
   /** The colors that can be used for highlighting */
@@ -74,6 +77,10 @@ export default class Highlight extends Mark {
     return {
       "Mod-Shift-h": toggleMark(type),
     };
+  }
+
+  commands(): Record<string, CommandFactory> | CommandFactory | undefined {
+    return (attrs) => toggleHighlight(attrs as Record<string, Primitive>);
   }
 
   get rulePlugins() {
