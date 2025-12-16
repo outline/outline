@@ -211,22 +211,28 @@ router.post(
     authorize(user, "update", collection);
     authorize(user, "read", group);
 
-    const [membership, created] = await GroupMembership.findOrCreate({
+    let membership = await GroupMembership.findOne({
       where: {
         collectionId: id,
         groupId,
-      },
-      defaults: {
-        permission,
-        createdById: user.id,
       },
       lock: transaction.LOCK.UPDATE,
       ...ctx.context,
     });
 
-    if (!created) {
+    if (membership) {
       membership.permission = permission;
       await membership.save(ctx.context);
+    } else {
+      membership = await GroupMembership.create(
+        {
+          collectionId: id,
+          groupId,
+          permission,
+          createdById: user.id,
+        },
+        ctx.context
+      );
     }
 
     const groupMemberships = [presentGroupMembership(membership)];
@@ -365,22 +371,28 @@ router.post(
     authorize(actor, "update", collection);
     authorize(actor, "read", user);
 
-    const [membership, isNew] = await UserMembership.findOrCreate({
+    let membership = await UserMembership.findOne({
       where: {
         collectionId: id,
         userId,
-      },
-      defaults: {
-        permission: permission || user.defaultCollectionPermission,
-        createdById: actor.id,
       },
       lock: transaction.LOCK.UPDATE,
       ...ctx.context,
     });
 
-    if (!isNew && permission) {
-      membership.permission = permission;
+    if (membership) {
+      membership.permission = permission || user.defaultCollectionPermission;
       await membership.save(ctx.context);
+    } else {
+      membership = await UserMembership.create(
+        {
+          collectionId: id,
+          userId,
+          permission: permission || user.defaultCollectionPermission,
+          createdById: actor.id,
+        },
+        ctx.context
+      );
     }
 
     ctx.body = {
@@ -588,18 +600,28 @@ router.post(
       permission !== CollectionPermission.ReadWrite &&
       collection.permission === CollectionPermission.ReadWrite
     ) {
-      await UserMembership.findOrCreate({
+      let membership = await UserMembership.findOne({
         where: {
           collectionId: collection.id,
           userId: user.id,
         },
-        defaults: {
-          permission: CollectionPermission.Admin,
-          createdById: user.id,
-        },
         transaction,
-        hooks: false,
       });
+
+      if (!membership) {
+        await UserMembership.create(
+          {
+            collectionId: collection.id,
+            userId: user.id,
+            permission: CollectionPermission.Admin,
+            createdById: user.id,
+          },
+          {
+            transaction,
+            hooks: false,
+          }
+        );
+      }
     }
 
     let privacyChanged = false;

@@ -180,7 +180,7 @@ class Event extends IdModel<
         ...attributes,
         actorId: user?.id || defaultAttributes.actorId,
         teamId: user?.teamId || defaultAttributes.teamId,
-        ip: ctx.request.ip || defaultAttributes.ip,
+        ip: ctx.request?.ip || defaultAttributes.ip,
         authType,
       },
       {
