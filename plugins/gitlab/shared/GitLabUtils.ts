@@ -206,14 +206,19 @@ export class GitLabUtils {
       return;
     }
 
-    // GitLab URLs: /owner/repo/-/issues/123 or /owner/repo/-/merge_requests/123
     const parts = pathname.split("/").filter(Boolean);
-    if (parts.length < 4) {
-      // not a valid gitlab mr or issue url
+    if (parts.length < 5) {
+      // Not a valid GitLab MR or issue URL
       return;
     }
 
-    const [owner, repo, , resourceType, resourceId] = parts;
+    // GitLab URLs: /owner/repo/-/issues/123 or /owner/repo/-/merge_requests/123
+    const resourceId = parts.pop(); // Last part is the ID
+    const resourceType = parts.pop(); // Second to last is the type
+    parts.pop(); // Third to last is the separator ("-")
+
+    const repo = parts.pop(); // Fourth to last is the project/repo
+    const owner = parts.join("/"); // Everything before is the owner
 
     const type =
       resourceType === "issues"
