@@ -1709,27 +1709,33 @@ router.post(
       UserMemberships.length ? UserMemberships[0].index : null
     );
 
-    const [membership, isNew] = await UserMembership.findOrCreate({
+    let membership = await UserMembership.findOne({
       where: {
         documentId: id,
         userId,
-      },
-      defaults: {
-        index,
-        permission: permission || user.defaultDocumentPermission,
-        createdById: actor.id,
       },
       lock: transaction.LOCK.UPDATE,
       ...ctx.context,
     });
 
-    if (!isNew && permission) {
-      membership.permission = permission;
-
-      // disconnect from the source if the permission is manually updated
-      membership.sourceId = null;
-
-      await membership.save(ctx.context);
+    if (membership) {
+      if (permission) {
+        membership.permission = permission;
+        // disconnect from the source if the permission is manually updated
+        membership.sourceId = null;
+        await membership.save(ctx.context);
+      }
+    } else {
+      membership = await UserMembership.create(
+        {
+          documentId: id,
+          userId,
+          index,
+          permission: permission || user.defaultDocumentPermission,
+          createdById: actor.id,
+        },
+        ctx.context
+      );
     }
 
     ctx.body = {
@@ -1810,26 +1816,32 @@ router.post(
     authorize(user, "manageUsers", document);
     authorize(user, "read", group);
 
-    const [membership, created] = await GroupMembership.findOrCreate({
+    let membership = await GroupMembership.findOne({
       where: {
         documentId: id,
         groupId,
-      },
-      defaults: {
-        permission: permission || user.defaultDocumentPermission,
-        createdById: user.id,
       },
       lock: transaction.LOCK.UPDATE,
       ...ctx.context,
     });
 
-    if (!created && permission) {
-      membership.permission = permission;
-
-      // disconnect from the source if the permission is manually updated
-      membership.sourceId = null;
-
-      await membership.save(ctx.context);
+    if (membership) {
+      if (permission) {
+        membership.permission = permission;
+        // disconnect from the source if the permission is manually updated
+        membership.sourceId = null;
+        await membership.save(ctx.context);
+      }
+    } else {
+      membership = await GroupMembership.create(
+        {
+          documentId: id,
+          groupId,
+          permission: permission || user.defaultDocumentPermission,
+          createdById: user.id,
+        },
+        ctx.context
+      );
     }
 
     ctx.body = {

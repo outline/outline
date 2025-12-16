@@ -1,7 +1,7 @@
-import { WhereOptions } from "sequelize";
+import { QueryTypes } from "sequelize";
 import { SubscriptionType } from "@shared/types";
 import { createContext } from "@server/context";
-import { Subscription, Document } from "@server/models";
+import { Subscription, Document, Event } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import { APIContext, DocumentEvent, RevisionEvent } from "@server/types";
 
@@ -32,23 +32,69 @@ export default async function subscriptionCreator({
 }: Props): Promise<Subscription> {
   const { user } = ctx.state.auth;
 
-  const where: WhereOptions<Subscription> = {
-    userId: user.id,
-    event,
-  };
-
+  let rows;
+  const now = new Date();
   if (documentId) {
-    where.documentId = documentId;
+    rows = await sequelize.query(
+      `INSERT INTO subscriptions ("id", "userId", "documentId", "event", "createdAt", "updatedAt")
+       VALUES (gen_random_uuid(), :userId, :documentId, :event, :now, :now)
+       ON CONFLICT ("userId", "documentId", "event")
+       DO UPDATE SET "updatedAt" = EXCLUDED."updatedAt"
+       RETURNING *`,
+      {
+        replacements: {
+          userId: user.id,
+          documentId,
+          event,
+          now,
+        },
+        type: QueryTypes.SELECT,
+        transaction: ctx.state.transaction,
+      }
+    );
+  } else if (collectionId) {
+    rows = await sequelize.query(
+      `INSERT INTO subscriptions ("id", "userId", "collectionId", "event", "createdAt", "updatedAt")
+       VALUES (gen_random_uuid(), :userId, :collectionId, :event, :now, :now)
+       ON CONFLICT ("userId", "collectionId", "event")
+       DO UPDATE SET "updatedAt" = EXCLUDED."updatedAt"
+       RETURNING *`,
+      {
+        replacements: {
+          userId: user.id,
+          collectionId,
+          event,
+          now,
+        },
+        type: QueryTypes.SELECT,
+        transaction: ctx.state.transaction,
+      }
+    );
+  } else {
+    throw new Error("Either documentId or collectionId must be provided");
   }
 
-  if (collectionId) {
-    where.collectionId = collectionId;
+  if (!rows || rows.length === 0) {
+    throw new Error("Failed to create or find subscription");
   }
 
-  const [subscription] = await Subscription.findOrCreateWithCtx(ctx, {
-    where,
-    paranoid: false, // Previous subscriptions are soft-deleted, we want to know about them here.
+  // Build subscription instance from the returned row
+  const subscription = Subscription.build(rows[0], {
+    isNewRecord: false,
+    include: [],
+    raw: true,
   });
+
+  const isNew = subscription.createdAt.getTime() === now.getTime();
+  if (isNew) {
+    await Event.createFromContext(ctx, {
+      name: "subscriptions.create",
+      modelId: subscription.id,
+      userId: subscription.userId,
+      collectionId: subscription.collectionId,
+      documentId: subscription.documentId,
+    });
+  }
 
   // If the subscription was deleted, then just restore the existing row.
   if (subscription.deletedAt && resubscribe) {

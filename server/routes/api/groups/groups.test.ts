@@ -361,7 +361,7 @@ describe("#groups.list", () => {
     expect(body.data.groups[0].id).toEqual(group.id);
   });
 
-  it.only("should return correct group total even when the limit is less than the total", async () => {
+  it("should return correct group total even when the limit is less than the total", async () => {
     const user = await buildUser();
     await buildGroup({ teamId: user.teamId });
     await buildGroup({ teamId: user.teamId });
