@@ -16,6 +16,7 @@ import { MenuContent } from "~/components/primitives/Menu";
 import { MenuProvider } from "~/components/primitives/Menu/MenuContext";
 import { Menu, MenuTrigger } from "~/components/primitives/Menu";
 import { useTranslation } from "react-i18next";
+import EventBoundary from "@shared/components/EventBoundary";
 
 type Props = {
   items: MenuItem[];
@@ -84,7 +85,7 @@ function ToolbarDropdown(props: { active: boolean; item: MenuItem }) {
           aria-label={item.tooltip || t("More options")}
           onCloseAutoFocus={handleCloseAutoFocus}
         >
-          {toMenuItems(items)}
+          <EventBoundary>{toMenuItems(items)}</EventBoundary>
         </MenuContent>
       </Menu>
     </MenuProvider>
