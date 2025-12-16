@@ -606,7 +606,6 @@ router.post(
           userId: user.id,
         },
         transaction,
-        hooks: false,
       });
 
       if (!membership) {
