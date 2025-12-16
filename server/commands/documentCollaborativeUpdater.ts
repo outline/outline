@@ -30,6 +30,10 @@ export default async function documentCollaborativeUpdater({
   clientVersion,
 }: Props) {
   return sequelize.transaction(async (transaction) => {
+    await sequelize.query(`SET LOCAL lock_timeout = '15s';`, {
+      transaction,
+    });
+
     const document = await Document.unscoped()
       .scope("withoutState")
       .findOne({
