@@ -1825,10 +1825,10 @@
     loglevel "^1.8.1"
     pako "^2.0.4"
 
-"@datadog/flagging-core@0.1.0-preview.13":
-  version "0.1.0-preview.13"
-  resolved "https://registry.yarnpkg.com/@datadog/flagging-core/-/flagging-core-0.1.0-preview.13.tgz#73fc80aeb21435fa2307f79f2d315b857616cd5d"
-  integrity sha512-DfQYeBgGvCerKx6coRiXMt0aXWJB8kRIsJhfdTKyejS9rfp6ZBjWc6dctKzhwMAQdpBiN42MEVXNt4Pdcmj1WA==
+"@datadog/flagging-core@0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@datadog/flagging-core/-/flagging-core-0.2.0.tgz#d29d81486068b870c41cebb2524721a71184eb16"
+  integrity sha512-DocYjr8NFJZfsnqzu3MuBUNqgbJquq1doimkKEXI5UImLmz/tR0LO09dd651pBhoz1Pa4SKcnPaxWFLTqxWtsA==
   dependencies:
     spark-md5 "^3.0.2"
 
@@ -1859,12 +1859,12 @@
     node-addon-api "^6.1.0"
     node-gyp-build "^3.9.0"
 
-"@datadog/openfeature-node-server@0.1.0-preview.13":
-  version "0.1.0-preview.13"
-  resolved "https://registry.yarnpkg.com/@datadog/openfeature-node-server/-/openfeature-node-server-0.1.0-preview.13.tgz#355dacbbe927d29c903fb3c17d14dec7af34ba55"
-  integrity sha512-W7+Aff5Ex7EbNnH2P22zycSzIMIJ4+3DgSrSwxSguw9lvaj7rbnKmRv0G9q2kffbVymrUWEFkBEhqB+gRy9FLg==
+"@datadog/openfeature-node-server@^0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@datadog/openfeature-node-server/-/openfeature-node-server-0.2.0.tgz#905032cc6d7d1eb1d6620aabe323ed552366d65a"
+  integrity sha512-Jn8lShFyqNji0tiKntLcCRwu3xrhg93fTTJS3gHSPKMfBDBKxjB9uF8Hu5Ayn2k0QuwJexx5atN9GSiWX0h5qg==
   dependencies:
-    "@datadog/flagging-core" "0.1.0-preview.13"
+    "@datadog/flagging-core" "0.2.0"
     "@openfeature/server-sdk" "~1.18.0"
 
 "@datadog/pprof@5.12.0":
@@ -1883,10 +1883,10 @@
   resolved "https://registry.yarnpkg.com/@datadog/sketches-js/-/sketches-js-2.1.1.tgz#9ec2251b3c932b4f43e1d164461fa6cb6f28b7d0"
   integrity sha512-d5RjycE+MObE/hU+8OM5Zp4VjTwiPLRa8299fj7muOmR16fb942z8byoMbCErnGh0lBevvgkGrLclQDvINbIyg==
 
-"@datadog/wasm-js-rewriter@4.0.1":
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/@datadog/wasm-js-rewriter/-/wasm-js-rewriter-4.0.1.tgz#883535e97f6b88b15427f93b5dc5d2d3a01c02b6"
-  integrity sha512-JRa05Je6gw+9+3yZnm/BroQZrEfNwRYCxms56WCCHzOBnoPihQLB0fWy5coVJS29kneCUueUvBvxGp6NVXgdqw==
+"@datadog/wasm-js-rewriter@5.0.1":
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/@datadog/wasm-js-rewriter/-/wasm-js-rewriter-5.0.1.tgz#f227d2e3eb0f83b8a37f190a9ff8fdbde5955782"
+  integrity sha512-EzbV3Lrdt3udQEsbDOVC5gB1y7yxfpBbrSIk4jaEsGjyj0Dbv2HGj7tZjs+qXzIzNonHc8h5El2bYZOGfC2wwg==
   dependencies:
     js-yaml "^4.1.0"
     lru-cache "^7.14.0"
@@ -2337,10 +2337,10 @@
     wrap-ansi "^8.1.0"
     wrap-ansi-cjs "npm:wrap-ansi@^7.0.0"
 
-"@isaacs/ttlcache@^1.4.1":
-  version "1.4.1"
-  resolved "https://registry.yarnpkg.com/@isaacs/ttlcache/-/ttlcache-1.4.1.tgz#21fb23db34e9b6220c6ba023a0118a2dd3461ea2"
-  integrity sha512-RQgQ4uQ+pLbqXfOmieB91ejmLwvSgv9nLx6sT6sD83s7umBypgg+OIBOBbEUiJXrfpnp9j0mRhYYdzp9uqq3lA==
+"@isaacs/ttlcache@^2.0.1":
+  version "2.1.3"
+  resolved "https://registry.yarnpkg.com/@isaacs/ttlcache/-/ttlcache-2.1.3.tgz#b5da3615f0a22e7687779afd899dd8f44cc36602"
+  integrity sha512-NCnhdBecu8reiXZ067zrpwR+xU2MY9wFTpRGpc7oZ1MwWC3EZmZkuqKdYI1Um5phbH1ql8kfiFjLdFkeuEWhfw==
 
 "@istanbuljs/load-nyc-config@^1.0.0":
   version "1.1.0"
@@ -3071,37 +3071,25 @@
   resolved "https://registry.yarnpkg.com/@opentelemetry/api/-/api-1.9.0.tgz#d03eba68273dc0f7509e2a3d5cba21eae10379fe"
   integrity sha512-3giAOQvZiH5F9bMlMiv8+GSPMeqg0dbaeo58/0SlA9sxSqZhnUtxzX9/2FzyhS9sWQf5S0GJE0AKBrFqjpeYcg==
 
-"@opentelemetry/core@1.9.1":
-  version "1.9.1"
-  resolved "https://registry.yarnpkg.com/@opentelemetry/core/-/core-1.9.1.tgz#e343337e1a7bf30e9a6aef3ef659b9b76379762a"
-  integrity sha512-6/qon6tw2I8ZaJnHAQUUn4BqhTbTNRS0WP8/bA0ynaX+Uzp/DDbd0NS0Cq6TMlh8+mrlsyqDE7mO50nmv2Yvlg==
-  dependencies:
-    "@opentelemetry/semantic-conventions" "1.9.1"
-
-"@opentelemetry/core@>=1.14.0 <1.31.0":
+"@opentelemetry/core@1.30.1", "@opentelemetry/core@>=1.14.0 <1.31.0":
   version "1.30.1"
   resolved "https://registry.yarnpkg.com/@opentelemetry/core/-/core-1.30.1.tgz#a0b468bb396358df801881709ea38299fc30ab27"
   integrity sha512-OOCM2C/QIURhJMuKaekP3TRBxBKxG/TWWA0TL2J6nXUtDnuCtccy49LUJF8xPFXMX+0LMcxFpCo8M9cGY1W6rQ==
   dependencies:
     "@opentelemetry/semantic-conventions" "1.28.0"
 
-"@opentelemetry/resources@>=1.0.0 <1.10.0":
-  version "1.9.1"
-  resolved "https://registry.yarnpkg.com/@opentelemetry/resources/-/resources-1.9.1.tgz#5ad3d80ba968a3a0e56498ce4bc82a6a01f2682f"
-  integrity sha512-VqBGbnAfubI+l+yrtYxeLyOoL358JK57btPMJDd3TCOV3mV5TNBmzvOfmesM4NeTyXuGJByd3XvOHvFezLn3rQ==
+"@opentelemetry/resources@>=1.0.0 <1.31.0":
+  version "1.30.1"
+  resolved "https://registry.yarnpkg.com/@opentelemetry/resources/-/resources-1.30.1.tgz#a4eae17ebd96947fdc7a64f931ca4b71e18ce964"
+  integrity sha512-5UxZqiAgLYGFjS4s9qm5mBVo433u+dSPUFWVWXmLAD4wB65oMCoXaJP1KJa9DIYYMeHu3z4BZcStG3LC593cWA==
   dependencies:
-    "@opentelemetry/core" "1.9.1"
-    "@opentelemetry/semantic-conventions" "1.9.1"
+    "@opentelemetry/core" "1.30.1"
+    "@opentelemetry/semantic-conventions" "1.28.0"
 
 "@opentelemetry/semantic-conventions@1.28.0":
   version "1.28.0"
   resolved "https://registry.yarnpkg.com/@opentelemetry/semantic-conventions/-/semantic-conventions-1.28.0.tgz#337fb2bca0453d0726696e745f50064411f646d6"
   integrity sha512-lp4qAiMTD4sNWW4DbKLBkfiMZ4jbAboJIGOQr5DvciMRI494OapieI9qiODpOt0XBr1LjIDy1xAGAnVs5supTA==
-
-"@opentelemetry/semantic-conventions@1.9.1":
-  version "1.9.1"
-  resolved "https://registry.yarnpkg.com/@opentelemetry/semantic-conventions/-/semantic-conventions-1.9.1.tgz#ad3367684a57879392513479e0a436cb2ac46dad"
-  integrity sha512-oPQdbFDmZvjXk5ZDoBGXG8B4tSB/qW5vQunJWQMFUBp7Xe8O1ByPANueJ+Jzg58esEBegyyxZ7LRmfJr7kFcFg==
 
 "@outlinewiki/koa-passport@^4.2.1":
   version "4.2.1"
@@ -7545,24 +7533,24 @@ dc-polyfill@^0.1.10:
   resolved "https://registry.yarnpkg.com/dc-polyfill/-/dc-polyfill-0.1.10.tgz#6f2ada1a9e449587c363ca98cfb79b443cf74b70"
   integrity sha512-9iSbB8XZ7aIrhUtWI5ulEOJ+IyUN+axquodHK+bZO4r7HfY/xwmo6I4fYYf+aiDom+WMcN/wnzCz+pKvHDDCug==
 
-dd-trace@^5.76.0:
-  version "5.76.0"
-  resolved "https://registry.yarnpkg.com/dd-trace/-/dd-trace-5.76.0.tgz#11a7f12a51d9b3d08817b9d7f9b21cbf224643bc"
-  integrity sha512-MIYpc8gsBQHM606jcNBYQSYIOzO7ZaH2XGb2mykghXxjAXaxE1baBVC42d5d/v0d7GdXJLg75uCU/auiWzBncw==
+dd-trace@^5.80.0:
+  version "5.80.0"
+  resolved "https://registry.yarnpkg.com/dd-trace/-/dd-trace-5.80.0.tgz#3a456d12ffe138cf3984d4dfbd57b0b8392c603c"
+  integrity sha512-v2Iara1zD6Z9sKjg18TLlOOAaX5x9vmmp9D0vdEduYpyyrd+0HWPyxMGvSdg/LkRpEhazg8dOxYW4YQHi3QUkA==
   dependencies:
     "@datadog/libdatadog" "0.7.0"
     "@datadog/native-appsec" "10.3.0"
     "@datadog/native-iast-taint-tracking" "4.0.0"
     "@datadog/native-metrics" "3.1.1"
-    "@datadog/openfeature-node-server" "0.1.0-preview.13"
+    "@datadog/openfeature-node-server" "^0.2.0"
     "@datadog/pprof" "5.12.0"
     "@datadog/sketches-js" "2.1.1"
-    "@datadog/wasm-js-rewriter" "4.0.1"
-    "@isaacs/ttlcache" "^1.4.1"
+    "@datadog/wasm-js-rewriter" "5.0.1"
+    "@isaacs/ttlcache" "^2.0.1"
     "@opentelemetry/api" ">=1.0.0 <1.10.0"
     "@opentelemetry/api-logs" "<1.0.0"
     "@opentelemetry/core" ">=1.14.0 <1.31.0"
-    "@opentelemetry/resources" ">=1.0.0 <1.10.0"
+    "@opentelemetry/resources" ">=1.0.0 <1.31.0"
     crypto-randomuuid "^1.0.0"
     dc-polyfill "^0.1.10"
     escape-string-regexp "^5.0.0"
