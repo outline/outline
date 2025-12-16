@@ -5,6 +5,7 @@ import {
   Extension,
 } from "@hocuspocus/server";
 import * as Y from "yjs";
+import { promiseTimeout } from "@shared/utils/timers";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
 import Document from "@server/models/Document";
@@ -127,13 +128,17 @@ export default class PersistenceExtension implements Extension {
     }
 
     try {
-      await documentCollaborativeUpdater({
-        documentId,
-        ydoc: document,
-        sessionCollaboratorIds,
-        isLastConnection: clientsCount === 0,
-        clientVersion,
-      });
+      await promiseTimeout(
+        documentCollaborativeUpdater({
+          documentId,
+          ydoc: document,
+          sessionCollaboratorIds,
+          isLastConnection: clientsCount === 0,
+          clientVersion,
+        }),
+        15000,
+        `Document save operation timed out after 15s for document ${documentId}`
+      );
     } catch (err) {
       Logger.error("Unable to persist document", err, {
         documentId,
