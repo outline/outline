@@ -2,7 +2,6 @@ import { Next } from "koa";
 import capitalize from "lodash/capitalize";
 import { UserRole } from "@shared/types";
 import { UserRoleHelper } from "@shared/utils/UserRoleHelper";
-import Logger from "@server/logging/Logger";
 import tracer, {
   addTags,
   getRootSpanFromRequestContext,
@@ -39,13 +38,10 @@ export default function auth(options: AuthenticationOptions = {}) {
     try {
       const { type, token, user } = await validateAuthentication(ctx, options);
 
-      // We are not awaiting the promises here so that the request is not blocked
-      user.updateActiveAt(ctx).catch((err) => {
-        Logger.error("Failed to update user activeAt", err);
-      });
-      user.team?.updateActiveAt().catch((err) => {
-        Logger.error("Failed to update team activeAt", err);
-      });
+      await Promise.all([
+        user.updateActiveAt(ctx),
+        user.team?.updateActiveAt(),
+      ]);
 
       ctx.state.auth = {
         user,
