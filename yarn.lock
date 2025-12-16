@@ -13037,10 +13037,10 @@ replace-ext@^2.0.0:
   resolved "https://registry.yarnpkg.com/replace-ext/-/replace-ext-2.0.0.tgz#9471c213d22e1bcc26717cd6e50881d88f812b06"
   integrity "sha1-lHHCE9IuG8wmcXzW5QiB2I+BKwY= sha512-UszKE5KVK6JvyD92nzMn9cDapSk6w/CaFZ96CnmDMUqH9oowfxF/ZjRITD25H4DnOQClLA4/j7jLGXXLVKxAug=="
 
-request-filtering-agent@^2.0.1:
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/request-filtering-agent/-/request-filtering-agent-2.0.1.tgz#aa65ba7077d4519426ee25aaa74bcd6f3809c072"
-  integrity sha512-QvD3qwthEt9J+2hCdQ3wTn3Z/ZsgyiMECjY9yVJ0F8FtnGfNQG+dRz65eKayYRHIRQ6OGjH8Zuqr1lw7G6pz1Q==
+request-filtering-agent@^3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/request-filtering-agent/-/request-filtering-agent-3.2.0.tgz#4b42c95624a88080454282e6df0cb8e41a2ae365"
+  integrity sha512-tKPrKdsmTFuGG1/pBEpzTB66mDZ2lZLW8kjW4N6jj4QjnxUTKrIfv5p2zuJRfztOos86jRPD41lRaGjh+1QqDw==
   dependencies:
     ipaddr.js "^2.1.0"
 
