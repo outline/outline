@@ -15,6 +15,7 @@ import {
 } from "sequelize-typescript";
 import { APIContext } from "@server/types";
 import Document from "./Document";
+import Event from "./Event";
 import User from "./User";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
@@ -69,17 +70,32 @@ class View extends IdModel<
     },
     options?: FindOrCreateOptions<InferAttributes<View>>
   ) {
-    const [model, created] = await this.findOrCreateWithCtx(ctx, {
-      ...options,
+    // Try to increment existing record
+    const [[models]] = await this.increment("count", {
       where,
+      ...options,
     });
 
-    if (!created) {
-      model.count += 1;
-      await model.saveWithCtx(ctx, options, {
-        name: "create",
+    // @ts-expect-error Return type of increment is incorrect
+    let model = models?.[0] as View | undefined;
+
+    if (model) {
+      // Manually create event to match createWithCtx behavior
+      await Event.createFromContext(ctx, {
+        name: "views.create",
+        modelId: model.id,
+        userId: model.userId,
+        documentId: model.documentId,
       });
+      return model;
     }
+
+    // If no record exists, create a new one
+    model = await this.createWithCtx(ctx, {
+      ...where,
+      count: 1,
+      ...options?.defaults,
+    });
 
     return model;
   }
