@@ -83,6 +83,7 @@ function CommentForm({
   const [forceRender, setForceRender] = React.useState(0);
   const [inputFocused, setInputFocused] = React.useState(autoFocus);
   const file = React.useRef<HTMLInputElement>(null);
+  const hasFocusedOnMount = React.useRef(false);
   const theme = useTheme();
   const { t } = useTranslation();
   const { comments } = useStores();
@@ -251,8 +252,9 @@ function CommentForm({
   // Focus the editor when it's a new comment just mounted
   const handleMounted = React.useCallback(
     (ref) => {
-      if (autoFocus) {
-        ref?.focusAtStart();
+      if (autoFocus && ref && !hasFocusedOnMount.current) {
+        ref.focusAtStart();
+        hasFocusedOnMount.current = true;
       }
     },
     [autoFocus]
