@@ -5,6 +5,8 @@ import { Integration, IntegrationAuthentication } from "@server/models";
 import { BaseIssueProvider } from "@server/utils/BaseIssueProvider";
 import { GitLab } from "./gitlab";
 import { sequelize } from "@server/storage/database";
+import { Op } from "sequelize";
+import { Sequelize } from "sequelize";
 
 export class GitLabIssueProvider extends BaseIssueProvider {
   constructor() {
@@ -78,19 +80,128 @@ export class GitLabIssueProvider extends BaseIssueProvider {
         await this.updateProject(payload);
         break;
       case "project_create":
-      case "project_destroy":
-        await this.createOrDestroyProject(payload, eventName);
+        await this.createProject(payload);
         break;
-
+      case "project_destroy":
+        await this.destroyProject(payload);
+        break;
+      case "group_rename":
+        await this.updateNamespace(payload);
+        break;
+      case "user_destroy":
+      case "group_destroy":
+        await this.destroyNamespace(payload);
+        break;
       default:
         break;
     }
   }
 
-  private async createOrDestroyProject(
-    payload: Record<string, any>,
-    eventName: string
-  ) {
+  private async updateNamespace(payload: Record<string, any>) {
+    await sequelize.transaction(async (transaction) => {
+      const integrations = (await Integration.findAll({
+        where: {
+          service: IntegrationService.GitLab,
+          [Op.and]: Sequelize.literal(
+            `"issueSources"::jsonb @> '[{"owner": {"name": "${payload.old_full_path}"}}]'`
+          ),
+        },
+        lock: transaction.LOCK.UPDATE,
+        transaction,
+      })) as Integration<IntegrationType.Embed>[];
+
+      if (!integrations || integrations.length === 0) {
+        Logger.warn(`GitLab group_update event without integration;`);
+        return;
+      }
+
+      for (const integration of integrations) {
+        const sources = integration.issueSources ?? [];
+        const updatedSources = sources.map((source) => {
+          if (source.owner.id === String(payload.group_id)) {
+            return {
+              ...source,
+              owner: {
+                ...source.owner,
+                name: payload.full_path,
+              },
+            };
+          }
+          return source;
+        });
+
+        integration.issueSources = updatedSources;
+        integration.changed("issueSources", true);
+        await integration.save({ transaction });
+      }
+    });
+  }
+
+  private async destroyNamespace(payload: Record<string, any>) {
+    const name = payload.full_path ?? payload.username;
+
+    await sequelize.transaction(async (transaction) => {
+      const integrations = (await Integration.findAll({
+        where: {
+          service: IntegrationService.GitLab,
+          [Op.and]: Sequelize.literal(
+            `"issueSources"::jsonb @> '[{"owner": {"name": "${name}"}}]'`
+          ),
+        },
+        lock: transaction.LOCK.UPDATE,
+        transaction,
+      })) as Integration<IntegrationType.Embed>[];
+
+      if (!integrations) {
+        Logger.warn(`GitLab group_destroy event without integration;`);
+        return;
+      }
+
+      for (const integration of integrations) {
+        const sources =
+          integration.issueSources?.filter(
+            (source) => name !== source.owner.name
+          ) ?? [];
+
+        integration.issueSources = sources;
+        integration.changed("issueSources", true);
+        await integration.save({ transaction });
+      }
+    });
+  }
+
+  private async destroyProject(payload: Record<string, any>) {
+    await sequelize.transaction(async (transaction) => {
+      const integrations = await Integration.findAll({
+        where: {
+          service: IntegrationService.GitLab,
+          [Op.and]: Sequelize.literal(
+            `"issueSources"::jsonb @> '[{"id": "${payload.project_id}"}]'`
+          ),
+        },
+        lock: transaction.LOCK.UPDATE,
+        transaction,
+      });
+
+      if (!integrations) {
+        Logger.warn(`GitLab project_destroy event without integration;`);
+        return;
+      }
+
+      for (const integration of integrations) {
+        const sources =
+          integration.issueSources?.filter(
+            (source) => String(payload.project_id) !== source.id
+          ) ?? [];
+
+        integration.issueSources = sources;
+        integration.changed("issueSources", true);
+        await integration.save({ transaction });
+      }
+    });
+  }
+
+  private async createProject(payload: Record<string, any>) {
     let integration: Integration<IntegrationType.Embed> | null = null;
 
     for (const owner of payload.owners) {
@@ -105,28 +216,23 @@ export class GitLabIssueProvider extends BaseIssueProvider {
     }
 
     if (!integration) {
-      Logger.warn(`GitLab ${eventName} event without integration;`);
+      Logger.warn(`GitLab project_create event without integration;`);
       return;
     }
 
     let sources = integration.issueSources ?? [];
 
     await sequelize.transaction(async (transaction) => {
-      if (eventName === "project_create") {
-        sources.push({
-          id: String(payload.project_id),
-          name: payload.name,
-          owner: {
-            id: String(payload.project_namespace_id),
-            name: payload.path_with_namespace.split("/").slice(0, -1).join("/"),
-          },
-          service: IntegrationService.GitLab,
-        });
-      } else {
-        sources = sources.filter(
-          (source) => String(payload.project_id) !== source.id
-        );
-      }
+      await integration.reload({ lock: transaction.LOCK.UPDATE });
+      sources.push({
+        id: String(payload.project_id),
+        name: payload.name,
+        owner: {
+          id: String(payload.project_namespace_id),
+          name: payload.path_with_namespace.split("/").slice(0, -1).join("/"),
+        },
+        service: IntegrationService.GitLab,
+      });
 
       integration.issueSources = sources;
       integration.changed("issueSources", true);
@@ -135,42 +241,39 @@ export class GitLabIssueProvider extends BaseIssueProvider {
   }
 
   private async updateProject(payload: Record<string, any>) {
-    let source: IssueSource | undefined;
-    let integration: Integration<IntegrationType.Embed> | null = null;
-
-    for (const owner of payload.owners) {
-      integration = (await Integration.findOne({
+    await sequelize.transaction(async (transaction) => {
+      const integrations = await Integration.findAll({
         where: {
           service: IntegrationService.GitLab,
-          "settings.gitlab.installation.account.name": owner.name,
+          [Op.and]: Sequelize.literal(
+            `"issueSources"::jsonb @> '[{"id": "${payload.project_id}"}]'`
+          ),
         },
-      })) as Integration<IntegrationType.Embed> | null;
+        lock: transaction.LOCK.UPDATE,
+        transaction,
+      });
 
-      if (integration) {
-        source = integration.issueSources?.find(
+      if (!integrations) {
+        Logger.warn(`GitLab project_update event without integration;`);
+        return;
+      }
+
+      for (const integration of integrations) {
+        const source = integration.issueSources?.find(
           (s) => s.id === String(payload.project_id)
         );
-        break;
+
+        if (source) {
+          source.name = payload.name;
+          source.owner.name = payload.path_with_namespace
+            .split("/")
+            .slice(0, -1)
+            .join("/");
+          source.owner.id = String(payload.project_namespace_id);
+          integration.changed("issueSources", true);
+          await integration.save({ transaction });
+        }
       }
-    }
-
-    if (!source || !integration) {
-      Logger.info(
-        "task",
-        `No matching issue source found for project ID: ${payload.project_id}, integration ID: ${integration?.id ?? "undefined"}`
-      );
-      return;
-    }
-
-    await sequelize.transaction(async (transaction) => {
-      source.name = payload.name;
-      source.owner.name = payload.path_with_namespace
-        .split("/")
-        .slice(0, -1)
-        .join("/");
-      source.owner.id = String(payload.project_namespace_id);
-      integration.changed("issueSources", true);
-      await integration.save({ transaction });
     });
   }
 }
