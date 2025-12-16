@@ -260,7 +260,7 @@
     "tiny-cookie": "^2.5.1",
     "tmp": "^0.2.5",
     "tunnel-agent": "^0.6.0",
-    "turndown": "^7.2.1",
+    "turndown": "^7.2.2",
     "ukkonen": "^2.2.0",
     "umzug": "^3.8.2",
     "utility-types": "^3.11.0",
