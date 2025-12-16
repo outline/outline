@@ -222,6 +222,7 @@ const NoComments = styled(Flex)`
 
 const Wrapper = styled.div<{ $hasComments: boolean }>`
   height: ${(props) => (props.$hasComments ? "auto" : "100%")};
+  padding-bottom: 60px;
 `;
 
 const JumpToRecent = styled(ButtonSmall)`
