@@ -17,7 +17,7 @@ class GitLabPluginEnvironment extends Environment {
    */
   @Public
   @IsOptional()
-  @CannotUseWithout("GITLAB_CLIENT_SECRET")
+  @CannotUseWithout("GITLAB_CLIENT_ID")
   public GITLAB_URL =
     this.toOptionalString(environment.GITLAB_URL) ?? "https://gitlab.com";
 
