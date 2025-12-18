@@ -149,13 +149,6 @@ export default class CollectionsStore extends Store<Collection> {
   }
 
   @action
-  async fetch(id: string, options?: { force: boolean }): Promise<Collection> {
-    const model = await super.fetch(id, options);
-    await model.fetchDocuments(options);
-    return model;
-  }
-
-  @action
   fetchNamedPage = async (
     request = "list",
     options:
