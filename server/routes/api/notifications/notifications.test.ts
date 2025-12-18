@@ -719,7 +719,7 @@ describe("#notifications.unsubscribe", () => {
     );
 
     const events = (await user.reload()).notificationSettings;
-    expect(events).not.toContain("documents.update");
+    expect(events["documents.update"]).toBe(false);
   });
 
   it("should not allow unsubscribe with invalid token", async () => {
