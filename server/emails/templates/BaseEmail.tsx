@@ -68,7 +68,7 @@ export default abstract class BaseEmail<
 
     // Ideally we'd use EmailTask.schedule here but importing creates a circular
     // dependency so we're pushing onto the task queue in the expected format
-    return taskQueue.add(
+    return taskQueue().add(
       {
         name: "EmailTask",
         props: {

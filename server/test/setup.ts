@@ -7,11 +7,6 @@ import { EventEmitter } from "events";
 // This needs to be done before any modules that use EventEmitter are loaded
 EventEmitter.defaultMaxListeners = 100;
 
-// Enable mocks for Redis-related modules
-jest.mock("ioredis", () => require("ioredis-mock"));
-jest.mock("@server/utils/MutexLock");
-jest.mock("@server/utils/CacheHelper");
-
 // Enable fetch mocks for testing
 require("jest-fetch-mock").enableMocks();
 fetchMock.dontMock();
