@@ -248,13 +248,21 @@ describe("#oauth.token", () => {
         grantId,
       });
 
-      // Create another authentication in the same grant (simulating rotation)
-      const auth2 = await buildOAuthAuthentication({
-        user,
-        scope: [Scope.Read],
-        oauthClientId: client.id,
-        grantId,
+      // Use the refresh token once (rotation)
+      const res1 = await server.post("/oauth/token", {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: toFormData({
+          grant_type: "refresh_token",
+          refresh_token: auth1.refreshToken,
+          client_id: client.clientId,
+          client_secret: client.clientSecret,
+        }),
       });
+      expect(res1.status).toEqual(200);
+      const body1 = await res1.json();
+      const auth2RefreshToken = body1.refresh_token;
 
       // Create an unrelated authentication
       const otherAuth = await buildOAuthAuthentication({
@@ -262,11 +270,8 @@ describe("#oauth.token", () => {
         scope: [Scope.Read],
       });
 
-      // Revoke the first one (simulating it was already used and rotated)
-      await auth1.destroy();
-
-      // Attempt to use the revoked refresh token
-      const res = await server.post("/oauth/token", {
+      // Use the OLD refresh token again (reuse detection)
+      const res2 = await server.post("/oauth/token", {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },
@@ -279,13 +284,14 @@ describe("#oauth.token", () => {
       });
 
       // The request should fail
-      expect(res.status).toEqual(400);
+      expect(res2.status).toEqual(400);
 
       // All tokens in the grant should be revoked
       const foundAuth1 = await OAuthAuthentication.findByPk(auth1.id, {
         paranoid: false,
       });
-      const foundAuth2 = await OAuthAuthentication.findByPk(auth2.id);
+      const foundAuth2 =
+        await OAuthAuthentication.findByRefreshToken(auth2RefreshToken);
       const foundOtherAuth = await OAuthAuthentication.findByPk(otherAuth.id);
 
       expect(foundAuth1?.deletedAt).toBeTruthy();
@@ -311,14 +317,24 @@ describe("#oauth.token", () => {
         redirectUri: client.redirectUris[0],
         oauthClientId: client.id,
         userId: user.id,
-        expiresAt: new Date(),
+        expiresAt: new Date(Date.now() + 10000),
         grantId,
       });
 
-      // Revoke the authentication
-      await auth.destroy();
+      // Use the refresh token once (rotation)
+      await server.post("/oauth/token", {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: toFormData({
+          grant_type: "refresh_token",
+          refresh_token: auth.refreshToken,
+          client_id: client.clientId,
+          client_secret: client.clientSecret,
+        }),
+      });
 
-      // Use the revoked refresh token
+      // Use the OLD refresh token again (reuse detection)
       await server.post("/oauth/token", {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
