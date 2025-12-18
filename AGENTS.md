@@ -63,8 +63,8 @@ yarn install
 2. Public static methods
 3. Public variables
 4. Public methods
-6. Protected variables & methods
-8. Private variables & methods
+5. Protected variables & methods
+6. Private variables & methods
 
 ### Exports
 
@@ -156,7 +156,7 @@ yarn test path/to/test.spec.ts
 
 - Write unit tests for utilities and business logic in a collocated .test.ts file.
 - Do not create new test directories
-- Mock external dependencies appropriately in __mocks__ folder.
+- Mock external dependencies appropriately in **mocks** folder.
 - Aim for high code coverage but focus on critical paths.
 
 ## Code Quality
