@@ -72,7 +72,7 @@ router.get(
               id: userInfo.id,
               account: {
                 id: userInfo.id,
-                name: userInfo.name,
+                name: userInfo.username,
                 avatarUrl: userInfo.avatar_url,
               },
             },
