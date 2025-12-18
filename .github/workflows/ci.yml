@@ -18,24 +18,27 @@ env:
   SMTP_USERNAME: localhost
 
 jobs:
-  build:
+  setup:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [20.x, 22.x]
-
     steps:
       - uses: actions/checkout@v5
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Use Node.js 22.x
         uses: actions/setup-node@v5
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 22.x
           cache: "yarn"
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('yarn.lock') }}
       - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: yarn install --frozen-lockfile --prefer-offline
 
   lint:
-    needs: build
+    needs: setup
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -43,11 +46,15 @@ jobs:
         with:
           node-version: 22.x
           cache: "yarn"
-      - run: yarn install --frozen-lockfile --prefer-offline
+      - name: Restore node_modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('yarn.lock') }}
       - run: yarn lint --quiet
 
   types:
-    needs: build
+    needs: setup
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -55,7 +62,11 @@ jobs:
         with:
           node-version: 22.x
           cache: "yarn"
-      - run: yarn install --frozen-lockfile --prefer-offline
+      - name: Restore node_modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('yarn.lock') }}
       - run: yarn tsc
 
   changes:
@@ -85,7 +96,7 @@ jobs:
               - 'yarn.lock'
 
   test:
-    needs: [build, changes]
+    needs: [setup, changes]
     if: ${{ needs.changes.outputs.app == 'true' || needs.changes.outputs.config == 'true' }}
     runs-on: ubuntu-latest
     strategy:
@@ -97,11 +108,15 @@ jobs:
         with:
           node-version: 22.x
           cache: "yarn"
-      - run: yarn install --frozen-lockfile --prefer-offline
+      - name: Restore node_modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('yarn.lock') }}
       - run: yarn test:${{ matrix.test-group }}
 
   test-server:
-    needs: [build, changes]
+    needs: [setup, changes]
     if: ${{ needs.changes.outputs.server == 'true' || needs.changes.outputs.config == 'true' }}
     runs-on: ubuntu-latest
     services:
@@ -129,7 +144,11 @@ jobs:
         with:
           node-version: 22.x
           cache: "yarn"
-      - run: yarn install --frozen-lockfile --prefer-offline
+      - name: Restore node_modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('yarn.lock') }}
       - run: yarn sequelize db:migrate
       - name: Run server tests
         run: |
@@ -137,7 +156,7 @@ jobs:
           yarn test --maxWorkers=2 $TESTFILES
 
   bundle-size:
-    needs: [build, types, changes]
+    needs: [setup, types, changes]
     if: ${{ needs.changes.outputs.app == 'true' && github.repository == 'outline/outline' }}
     runs-on: ubuntu-latest
     steps:
@@ -146,7 +165,11 @@ jobs:
         with:
           node-version: 22.x
           cache: "yarn"
-      - run: yarn install --frozen-lockfile --prefer-offline
+      - name: Restore node_modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('yarn.lock') }}
       - name: Set environment to production
         run: echo "NODE_ENV=production" >> $GITHUB_ENV
       - run: yarn vite:build
