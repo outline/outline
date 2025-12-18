@@ -6,6 +6,17 @@
  */
 export default function normalizePastedMarkdown(text: string): string {
   const CHECKBOX_REGEX = /^\s?(\[(X|\s|_|-)\]\s(.*)?)/gim;
+  const CODE_BLOCK_REGEX = /^ {0,3}(`{3,}|~{3,})[\s\S]*?^ {0,3}\1/gm;
+
+  const placeholders: string[] = [];
+  const placeholderPrefix = "REPLACED_CODE_BLOCK_";
+
+  // Replace code blocks with placeholders to prevent normalization
+  text = text.replace(CODE_BLOCK_REGEX, (match) => {
+    const placeholder = `${placeholderPrefix}${placeholders.length}`;
+    placeholders.push(match);
+    return placeholder;
+  });
 
   // find checkboxes not contained in a list and wrap them in list items
   while (text.match(CHECKBOX_REGEX)) {
@@ -17,6 +28,12 @@ export default function normalizePastedMarkdown(text: string): string {
 
   // find single newlines and insert an extra to ensure they are treated as paragraphs
   text = text.replace(/\b\n\b/g, "\n\n");
+
+  // Restore placeholders
+  placeholders.forEach((match, index) => {
+    const placeholder = `${placeholderPrefix}${index}`;
+    text = text.replace(placeholder, match);
+  });
 
   return text;
 }
