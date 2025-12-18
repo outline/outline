@@ -1,9 +1,11 @@
 import { Op } from "sequelize";
+import { v4 as uuidv4 } from "uuid";
 import { Collection, Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { APIContext } from "@server/types";
 import documentCreator from "./documentCreator";
+import { generateUrlId } from "@server/utils/url";
 
 type Props = {
   /** The document to duplicate */
@@ -20,92 +22,168 @@ type Props = {
   recursive?: boolean;
 };
 
+function rewriteLinks(json: any, urlIdMap: Map<string, string>): any {
+  if (Array.isArray(json)) {
+    return json.map((node: any) => rewriteLinks(node, urlIdMap));
+  }
+
+  if (json && typeof json === "object") {
+    // marks: link href
+    if (json.marks) {
+      for (const mark of json.marks) {
+        if (mark.type === "link" && mark.attrs?.href) {
+          const href: string = mark.attrs.href;
+
+          // domain-relative only
+          if (!href.startsWith("/")) {
+            continue;
+          }
+
+          const match = href.match(/^\/doc\/([^/#?]+)-([A-Za-z0-9]{10})(.*)$/);
+
+          if (match) {
+            const slug = match[1];
+            const oldUrlId = match[2];
+            const tail = match[3] || "";
+
+            const newUrlId = urlIdMap.get(oldUrlId);
+            if (newUrlId) {
+              mark.attrs.href = `/doc/${slug}-${newUrlId}${tail}`;
+            }
+          }
+        }
+      }
+    }
+
+    // plain text occurrences
+    if (json.text) {
+      json.text = json.text.replace(
+        /\/doc\/([^/#?\s]+)-([A-Za-z0-9]{10})([^\s]*)?/g,
+        (full: string, slug: string, oldUrlId: string, tail: string = "") => {
+          const newUrlId = urlIdMap.get(oldUrlId);
+          return newUrlId ? `/doc/${slug}-${newUrlId}${tail}` : full;
+        }
+      );
+    }
+
+    // recurse children
+    if (json.content) {
+      json.content = json.content.map((child: any) =>
+        rewriteLinks(child, urlIdMap)
+      );
+    }
+  }
+
+  return json;
+}
+
 export default async function documentDuplicator(
   ctx: APIContext,
   { document, collection, parentDocumentId, title, publish, recursive }: Props
 ): Promise<Document[]> {
-  const newDocuments: Document[] = [];
-  const sharedProperties = {
-    collectionId: collection?.id,
-    publish: publish ?? !!document.publishedAt,
-  };
+  const newDocs: Document[] = [];
 
-  const duplicated = await documentCreator(ctx, {
-    parentDocumentId,
-    icon: document.icon,
-    color: document.color,
-    template: document.template,
-    title: title ?? document.title,
-    content: ProsemirrorHelper.removeMarks(
-      DocumentHelper.toProsemirror(document),
-      ["comment"]
-    ),
-    sourceMetadata: {
-      ...document.sourceMetadata,
-      originalDocumentId: document.id,
-    },
-    ...sharedProperties,
-  });
-
-  duplicated.collection = collection ?? null;
-  newDocuments.push(duplicated);
+  const idMap = new Map<string, string>();
+  const urlIdMap = new Map<string, string>();
 
   const originalCollection = document?.collectionId
     ? await Collection.findByPk(document.collectionId, {
-        attributes: {
-          include: ["documentStructure"],
-        },
-      })
+      attributes: {
+        include: ["documentStructure"],
+      },
+    })
     : null;
 
-  async function duplicateChildDocuments(
-    original: Document,
-    duplicatedDocument: Document
-  ) {
-    const childDocuments = await original.findChildDocuments(
+  async function getSortedChildren(original: Document): Promise<Document[]> {
+    const children = await original.findChildDocuments(
       {
         archivedAt: original.archivedAt
-          ? {
-              [Op.ne]: null,
-            }
-          : {
-              [Op.eq]: null,
-            },
+          ? { [Op.ne]: null }
+          : { [Op.eq]: null },
       },
       ctx
     );
 
-    const sorted = DocumentHelper.sortDocumentsByStructure(
-      childDocuments,
-      originalCollection?.getDocumentTree(original.id)?.children ?? []
-    ).reverse(); // we have to reverse since the child documents will be added in reverse order
+    if (originalCollection) {
+      return DocumentHelper.sortDocumentsByStructure(
+        children,
+        originalCollection.getDocumentTree(original.id)?.children ?? []
+      ).reverse();
+    }
 
-    for (const childDocument of sorted) {
-      const duplicatedChildDocument = await documentCreator(ctx, {
-        parentDocumentId: duplicatedDocument.id,
-        icon: childDocument.icon,
-        color: childDocument.color,
-        title: childDocument.title,
-        content: ProsemirrorHelper.removeMarks(
-          DocumentHelper.toProsemirror(childDocument),
-          ["comment"]
-        ),
-        sourceMetadata: {
-          ...childDocument.sourceMetadata,
-          originalDocumentId: childDocument.id,
-        },
-        ...sharedProperties,
-      });
+    return children;
+  }
 
-      duplicatedChildDocument.collection = collection ?? null;
-      newDocuments.push(duplicatedChildDocument);
-      await duplicateChildDocuments(childDocument, duplicatedChildDocument);
+  async function buildMaps(root: Document, recursiveFlag: boolean) {
+    const queue: Document[] = [root];
+
+    while (queue.length) {
+      const doc = queue.shift()!;
+
+      idMap.set(doc.id, uuidv4());
+      urlIdMap.set(doc.urlId, generateUrlId());
+
+      if (recursiveFlag) {
+        queue.push(...(await getSortedChildren(doc)));
+      }
     }
   }
 
-  if (recursive && !document.template) {
-    await duplicateChildDocuments(document, duplicated);
+  // 1) Prebuild id/urlId maps for entire subtree
+  await buildMaps(document, recursive ?? true);
+
+  // 2) BFS clone
+  const queue: Document[] = [document];
+
+  while (queue.length) {
+    const original = queue.shift()!;
+
+    const newId = idMap.get(original.id)!;
+    const newUrlId = urlIdMap.get(original.urlId)!;
+
+    // Convert content → ProseMirror JSON
+    const json = DocumentHelper.toProsemirror(original);
+    const cleaned = ProsemirrorHelper.removeMarks(json, ["comment"]);
+    const rewritten = rewriteLinks(cleaned, urlIdMap);
+
+    // Determine correct parent
+    let newParentId: string | null = null;
+
+    if (original.id !== document.id) {
+      newParentId = idMap.get(original.parentDocumentId ?? "") ?? null;
+    } else if (parentDocumentId) {
+      newParentId = parentDocumentId;
+    }
+
+    // Create duplicated document
+    const duplicated = await documentCreator(ctx, {
+      id: newId,
+      urlId: newUrlId,
+      parentDocumentId: newParentId,
+      collectionId: collection?.id ?? original.collectionId,
+      title:
+        original.id === document.id
+          ? (title ?? original.title)
+          : original.title,
+      icon: original.icon,
+      color: original.color,
+      template: original.template,
+      content: rewritten,
+      editorVersion: original.editorVersion,
+      publish: publish ?? !!original.publishedAt,
+      sourceMetadata: {
+        ...original.sourceMetadata,
+        originalDocumentId: original.id,
+      },
+    });
+
+    newDocs.push(duplicated);
+
+    // Continue BFS with structure-based children order
+    if (recursive) {
+      queue.push(...(await getSortedChildren(original)));
+    }
   }
 
-  return newDocuments;
+  return newDocs;
 }
