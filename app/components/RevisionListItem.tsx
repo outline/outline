@@ -1,7 +1,7 @@
 import { LocationDescriptor } from "history";
 import { observer } from "mobx-react";
 import { EditIcon, TrashIcon } from "outline-icons";
-import { useCallback, useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import styled from "styled-components";
@@ -10,6 +10,11 @@ import { hover } from "@shared/styles";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
+import { ActionSeparator } from "~/actions";
+import {
+  copyLinkToRevision,
+  restoreRevision,
+} from "~/actions/definitions/revisions";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import Item, { Actions } from "~/components/List/Item";
 import { ContextMenu } from "~/components/Menu/ContextMenu";
@@ -18,7 +23,7 @@ import { ActionContextProvider } from "~/hooks/useActionContext";
 import useBoolean from "~/hooks/useBoolean";
 import useClickIntent from "~/hooks/useClickIntent";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
-import { useRevisionMenuAction } from "~/hooks/useRevisionMenuAction";
+import { useMenuAction } from "~/hooks/useMenuAction";
 import useStores from "~/hooks/useStores";
 import RevisionMenu from "~/menus/RevisionMenu";
 import { documentHistoryPath } from "~/utils/routeHelpers";
@@ -43,7 +48,11 @@ const RevisionListItem = ({ item, document, ...rest }: Props) => {
 
   const ref = useRef<HTMLAnchorElement>(null);
 
-  const contextMenuAction = useRevisionMenuAction();
+  const actions = useMemo(
+    () => [restoreRevision, ActionSeparator, copyLinkToRevision],
+    []
+  );
+  const contextMenuAction = useMenuAction(actions);
 
   // the time component tends to steal focus when clicked
   // ...so forward the focus back to the parent item
