@@ -17,11 +17,11 @@ type Props = {
   revisionId: string;
 };
 
-function RevisionMenu({ document }: Props) {
+function RevisionMenu({ document, revisionId }: Props) {
   const { t } = useTranslation();
   const actions = useMemo(
-    () => [restoreRevision, ActionSeparator, copyLinkToRevision],
-    []
+    () => [restoreRevision, ActionSeparator, copyLinkToRevision(revisionId)],
+    [revisionId]
   );
 
   const rootAction = useMenuAction(actions);
