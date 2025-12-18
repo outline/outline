@@ -96,6 +96,10 @@ export async function loadPublicShare({
       associatedCollection?.getDocumentTree(share.document.id) ?? null;
   }
 
+  if (sharedTree && share.domain) {
+    sharedTree.url = "";
+  }
+
   if (collectionId && collectionId !== share.collectionId) {
     throw AuthorizationError();
   }
