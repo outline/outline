@@ -34,6 +34,7 @@ You're an expert in the following areas:
 - Emphasize type safety and static analysis.
 - Follow consistent Prettier formatting.
 - Do not replace smart quotes ("") or ('') with simple quotes ("").
+- Do not create new MD files.
 
 ## Dependencies and Upgrading
 
@@ -154,6 +155,7 @@ yarn test path/to/test.spec.ts
 ```
 
 - Write unit tests for utilities and business logic in a collocated .test.ts file.
+- Do not create new test directories
 - Mock external dependencies appropriately in __mocks__ folder.
 - Aim for high code coverage but focus on critical paths.
 
