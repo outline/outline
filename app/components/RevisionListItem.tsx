@@ -12,15 +12,19 @@ import Document from "~/models/Document";
 import Revision from "~/models/Revision";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import Item, { Actions } from "~/components/List/Item";
+import { ContextMenu } from "~/components/Menu/ContextMenu";
 import Time from "~/components/Time";
+import { ActionContextProvider } from "~/hooks/useActionContext";
+import useBoolean from "~/hooks/useBoolean";
+import useClickIntent from "~/hooks/useClickIntent";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
+import { useRevisionMenuAction } from "~/hooks/useRevisionMenuAction";
 import useStores from "~/hooks/useStores";
 import RevisionMenu from "~/menus/RevisionMenu";
 import { documentHistoryPath } from "~/utils/routeHelpers";
 import { EventItem, lineStyle } from "./EventListItem";
 import Facepile from "./Facepile";
 import Text from "./Text";
-import useClickIntent from "~/hooks/useClickIntent";
 
 type Props = {
   document: Document;
@@ -33,10 +37,13 @@ const RevisionListItem = ({ item, document, ...rest }: Props) => {
   const location = useLocation();
   const sidebarContext = useLocationSidebarContext();
   const revisionLoadedRef = useRef(false);
+  const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
 
   const isLatestRevision = RevisionHelper.latestId(document.id) === item.id;
 
   const ref = useRef<HTMLAnchorElement>(null);
+
+  const contextMenuAction = useRevisionMenuAction();
 
   // the time component tends to steal focus when clicked
   // ...so forward the focus back to the parent item
@@ -107,42 +114,52 @@ const RevisionListItem = ({ item, document, ...rest }: Props) => {
   }
 
   return (
-    <RevisionItem
-      small
-      exact
-      to={to}
-      title={
-        <Time
-          dateTime={item.createdAt}
-          format={{
-            en_US: "MMM do, h:mm a",
-            fr_FR: "'Le 'd MMMM 'à' H:mm",
-          }}
-          relative={false}
-          addSuffix
-          onClick={handleTimeClick}
+    <ActionContextProvider value={{ activeDocumentId: document.id }}>
+      <ContextMenu
+        action={contextMenuAction}
+        ariaLabel={t("Revision options")}
+        onOpen={handleMenuOpen}
+        onClose={handleMenuClose}
+      >
+        <RevisionItem
+          small
+          exact
+          to={to}
+          title={
+            <Time
+              dateTime={item.createdAt}
+              format={{
+                en_US: "MMM do, h:mm a",
+                fr_FR: "'Le 'd MMMM 'à' H:mm",
+              }}
+              relative={false}
+              addSuffix
+              onClick={handleTimeClick}
+            />
+          }
+          image={
+            item.collaborators ? (
+              <Facepile users={item.collaborators} limit={3} />
+            ) : (
+              <Avatar model={item.createdBy} size={AvatarSize.Large} />
+            )
+          }
+          subtitle={meta}
+          actions={
+            isActive ? (
+              <StyledEventBoundary>
+                <RevisionMenu document={document} revisionId={item.id} />
+              </StyledEventBoundary>
+            ) : undefined
+          }
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          ref={ref}
+          $menuOpen={menuOpen}
+          {...rest}
         />
-      }
-      image={
-        item.collaborators ? (
-          <Facepile users={item.collaborators} limit={3} />
-        ) : (
-          <Avatar model={item.createdBy} size={AvatarSize.Large} />
-        )
-      }
-      subtitle={meta}
-      actions={
-        isActive ? (
-          <StyledEventBoundary>
-            <RevisionMenu document={document} revisionId={item.id} />
-          </StyledEventBoundary>
-        ) : undefined
-      }
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      ref={ref}
-      {...rest}
-    />
+      </ContextMenu>
+    </ActionContextProvider>
   );
 };
 
@@ -155,7 +172,7 @@ const StyledEventBoundary = styled(EventBoundary)`
   height: 24px;
 `;
 
-const RevisionItem = styled(Item)`
+const RevisionItem = styled(Item)<{ $menuOpen?: boolean }>`
   border: 0;
   position: relative;
   margin: 8px 0;
@@ -165,7 +182,7 @@ const RevisionItem = styled(Item)`
   ${lineStyle}
 
   ${Actions} {
-    opacity: 0.5;
+    opacity: ${(props) => (props.$menuOpen ? "1" : "0.5")};
 
     &: ${hover} {
       opacity: 1;
