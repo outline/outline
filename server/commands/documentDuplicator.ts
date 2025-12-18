@@ -29,7 +29,7 @@ function rewriteLinks(json: any, urlIdMap: Map<string, string>): any {
 
   if (json && typeof json === "object") {
     // marks: link href
-    if (json.marks) {
+    if (Array.isArray(json.marks)) {
       for (const mark of json.marks) {
         if (mark.type === "link" && mark.attrs?.href) {
           const href: string = mark.attrs.href;
@@ -55,19 +55,8 @@ function rewriteLinks(json: any, urlIdMap: Map<string, string>): any {
       }
     }
 
-    // plain text occurrences
-    if (json.text) {
-      json.text = json.text.replace(
-        /\/doc\/([^/#?\s]+)-([A-Za-z0-9]{10})([^\s]*)?/g,
-        (full: string, slug: string, oldUrlId: string, tail: string = "") => {
-          const newUrlId = urlIdMap.get(oldUrlId);
-          return newUrlId ? `/doc/${slug}-${newUrlId}${tail}` : full;
-        }
-      );
-    }
-
     // recurse children
-    if (json.content) {
+    if (Array.isArray(json.content)) {
       json.content = json.content.map((child: any) =>
         rewriteLinks(child, urlIdMap)
       );
@@ -85,6 +74,8 @@ export default async function documentDuplicator(
 
   const idMap = new Map<string, string>();
   const urlIdMap = new Map<string, string>();
+
+  const recursiveFlag = recursive ?? true;
 
   const originalCollection = document?.collectionId
     ? await Collection.findByPk(document.collectionId, {
@@ -114,7 +105,7 @@ export default async function documentDuplicator(
     return children;
   }
 
-  async function buildMaps(root: Document, recursiveFlag: boolean) {
+  async function buildMaps(root: Document) {
     const queue: Document[] = [root];
 
     while (queue.length) {
@@ -129,8 +120,8 @@ export default async function documentDuplicator(
     }
   }
 
-  // 1) Prebuild id/urlId maps for entire subtree
-  await buildMaps(document, recursive ?? true);
+  // 1) Prebuild id/urlId maps for entire subtree (or just root)
+  await buildMaps(document);
 
   // 2) BFS clone
   const queue: Document[] = [document];
@@ -180,7 +171,7 @@ export default async function documentDuplicator(
     newDocs.push(duplicated);
 
     // Continue BFS with structure-based children order
-    if (recursive) {
+    if (recursiveFlag) {
       queue.push(...(await getSortedChildren(original)));
     }
   }
