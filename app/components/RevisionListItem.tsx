@@ -49,8 +49,8 @@ const RevisionListItem = ({ item, document, ...rest }: Props) => {
   const ref = useRef<HTMLAnchorElement>(null);
 
   const actions = useMemo(
-    () => [restoreRevision, ActionSeparator, copyLinkToRevision],
-    []
+    () => [restoreRevision, ActionSeparator, copyLinkToRevision(item.id)],
+    [item.id]
   );
   const contextMenuAction = useMenuAction(actions);
 
