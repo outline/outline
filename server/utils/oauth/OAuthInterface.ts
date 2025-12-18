@@ -2,6 +2,7 @@ import crypto from "crypto";
 import {
   RefreshTokenModel,
   AuthorizationCodeModel,
+  User as OAuthUser,
 } from "@node-oauth/oauth2-server";
 import { Required } from "utility-types";
 import { Scope } from "@shared/types";
@@ -19,6 +20,14 @@ import { hash, safeEqual } from "@server/utils/crypto";
  */
 interface Config {
   grants: string[];
+}
+
+/**
+ * An extension of the OAuth2Server User type that includes a grantId for
+ * session tracking.
+ */
+interface GrantUser extends OAuthUser {
+  grantId?: string;
 }
 
 /**
@@ -40,24 +49,45 @@ export const OAuthInterface: RefreshTokenModel &
   /** Supported grant types */
   grants: ["authorization_code", "refresh_token"],
 
+  /**
+   * Generates a new access token.
+   *
+   * @returns The generated access token.
+   */
   async generateAccessToken() {
     return `${OAuthAuthentication.accessTokenPrefix}${crypto
       .randomBytes(32)
       .toString("hex")}`;
   },
 
+  /**
+   * Generates a new refresh token.
+   *
+   * @returns The generated refresh token.
+   */
   async generateRefreshToken() {
     return `${OAuthAuthentication.refreshTokenPrefix}${crypto
       .randomBytes(32)
       .toString("hex")}`;
   },
 
+  /**
+   * Generates a new authorization code.
+   *
+   * @returns The generated authorization code.
+   */
   async generateAuthorizationCode() {
     return `${OAuthAuthorizationCode.authorizationCodePrefix}${crypto
       .randomBytes(32)
       .toString("hex")}`;
   },
 
+  /**
+   * Retrieves an access token by its value.
+   *
+   * @param accessToken The access token to retrieve.
+   * @returns The access token if found, false otherwise.
+   */
   async getAccessToken(accessToken: string) {
     const authentication =
       await OAuthAuthentication.findByAccessToken(accessToken);
@@ -77,6 +107,12 @@ export const OAuthInterface: RefreshTokenModel &
     };
   },
 
+  /**
+   * Retrieves a refresh token by its value, with reuse detection.
+   *
+   * @param refreshToken The refresh token to retrieve.
+   * @returns The refresh token if found, false otherwise.
+   */
   async getRefreshToken(refreshToken: string) {
     let authentication =
       await OAuthAuthentication.findByRefreshToken(refreshToken);
@@ -124,6 +160,12 @@ export const OAuthInterface: RefreshTokenModel &
     };
   },
 
+  /**
+   * Retrieves an authorization code by its value.
+   *
+   * @param authorizationCode The authorization code to retrieve.
+   * @returns The authorization code if found, false otherwise.
+   */
   async getAuthorizationCode(authorizationCode) {
     const code = await OAuthAuthorizationCode.findByCode(authorizationCode);
     if (!code) {
@@ -153,6 +195,13 @@ export const OAuthInterface: RefreshTokenModel &
     };
   },
 
+  /**
+   * Retrieves a client by its ID and secret.
+   *
+   * @param clientId The client ID.
+   * @param clientSecret The client secret.
+   * @returns The client if found and valid, false otherwise.
+   */
   async getClient(clientId: string, clientSecret?: string) {
     const client = await OAuthClient.findByClientId(clientId);
     if (!client) {
@@ -172,6 +221,14 @@ export const OAuthInterface: RefreshTokenModel &
     };
   },
 
+  /**
+   * Saves an access and refresh token.
+   *
+   * @param token The token object to save.
+   * @param client The client that requested the token.
+   * @param user The user that authorized the token.
+   * @returns The saved token.
+   */
   async saveToken(token, client, user) {
     const {
       accessToken,
@@ -190,7 +247,7 @@ export const OAuthInterface: RefreshTokenModel &
       scope: token.scope,
       oauthClientId: client.databaseId,
       userId: user.id,
-      grantId: (user as { grantId?: string }).grantId || crypto.randomUUID(),
+      grantId: (user as GrantUser).grantId || crypto.randomUUID(),
     });
 
     return {
@@ -207,6 +264,14 @@ export const OAuthInterface: RefreshTokenModel &
     };
   },
 
+  /**
+   * Saves an authorization code.
+   *
+   * @param code The authorization code object to save.
+   * @param client The client that requested the code.
+   * @param user The user that authorized the code.
+   * @returns The saved authorization code.
+   */
   async saveAuthorizationCode(code, client, user) {
     const {
       authorizationCode,
@@ -226,7 +291,7 @@ export const OAuthInterface: RefreshTokenModel &
       codeChallengeMethod,
       oauthClientId: client.databaseId,
       userId: user.id,
-      grantId: (user as { grantId?: string }).grantId || crypto.randomUUID(),
+      grantId: (user as GrantUser).grantId || crypto.randomUUID(),
     });
 
     return {
@@ -242,6 +307,12 @@ export const OAuthInterface: RefreshTokenModel &
     };
   },
 
+  /**
+   * Revokes a refresh token.
+   *
+   * @param token The token object containing the refresh token to revoke.
+   * @returns True if the token was revoked, false otherwise.
+   */
   async revokeToken(token) {
     const auth = await OAuthAuthentication.findByRefreshToken(
       token.refreshToken
@@ -253,6 +324,12 @@ export const OAuthInterface: RefreshTokenModel &
     return false;
   },
 
+  /**
+   * Revokes an authorization code.
+   *
+   * @param code The authorization code object to revoke.
+   * @returns True if the code was revoked, false otherwise.
+   */
   async revokeAuthorizationCode(code) {
     const authCode = await OAuthAuthorizationCode.findByCode(
       code.authorizationCode

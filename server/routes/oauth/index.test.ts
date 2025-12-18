@@ -1,5 +1,6 @@
+import crypto from "crypto";
 import { Scope } from "@shared/types";
-import { OAuthAuthentication } from "@server/models";
+import { OAuthAuthentication, OAuthAuthorizationCode } from "@server/models";
 import {
   buildOAuthAuthentication,
   buildOAuthClient,
@@ -229,6 +230,110 @@ describe("#oauth.token", () => {
       expect(body.error_description).toContain(
         "Missing client_secret for confidential client"
       );
+    });
+
+    it("should revoke all tokens in a grant when a refresh token is reused", async () => {
+      const user = await buildUser();
+      const client = await buildOAuthClient({
+        teamId: user.teamId,
+        clientType: "confidential",
+      });
+      const grantId = crypto.randomUUID();
+
+      // Create initial authentication
+      const auth1 = await buildOAuthAuthentication({
+        user,
+        scope: [Scope.Read],
+        oauthClientId: client.id,
+        grantId,
+      });
+
+      // Create another authentication in the same grant (simulating rotation)
+      const auth2 = await buildOAuthAuthentication({
+        user,
+        scope: [Scope.Read],
+        oauthClientId: client.id,
+        grantId,
+      });
+
+      // Create an unrelated authentication
+      const otherAuth = await buildOAuthAuthentication({
+        user,
+        scope: [Scope.Read],
+      });
+
+      // Revoke the first one (simulating it was already used and rotated)
+      await auth1.destroy();
+
+      // Attempt to use the revoked refresh token
+      const res = await server.post("/oauth/token", {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: toFormData({
+          grant_type: "refresh_token",
+          refresh_token: auth1.refreshToken,
+          client_id: client.clientId,
+          client_secret: client.clientSecret,
+        }),
+      });
+
+      // The request should fail
+      expect(res.status).toEqual(400);
+
+      // All tokens in the grant should be revoked
+      const foundAuth1 = await OAuthAuthentication.findByPk(auth1.id, {
+        paranoid: false,
+      });
+      const foundAuth2 = await OAuthAuthentication.findByPk(auth2.id);
+      const foundOtherAuth = await OAuthAuthentication.findByPk(otherAuth.id);
+
+      expect(foundAuth1?.deletedAt).toBeTruthy();
+      expect(foundAuth2).toBeNull();
+      expect(foundOtherAuth).not.toBeNull();
+    });
+
+    it("should revoke associated authorization codes when reuse is detected", async () => {
+      const user = await buildUser();
+      const client = await buildOAuthClient({ teamId: user.teamId });
+      const grantId = crypto.randomUUID();
+
+      const auth = await buildOAuthAuthentication({
+        user,
+        scope: [Scope.Read],
+        oauthClientId: client.id,
+        grantId,
+      });
+
+      const code = await OAuthAuthorizationCode.create({
+        authorizationCodeHash: "hash",
+        scope: [Scope.Read],
+        redirectUri: client.redirectUris[0],
+        oauthClientId: client.id,
+        userId: user.id,
+        expiresAt: new Date(),
+        grantId,
+      });
+
+      // Revoke the authentication
+      await auth.destroy();
+
+      // Use the revoked refresh token
+      await server.post("/oauth/token", {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: toFormData({
+          grant_type: "refresh_token",
+          refresh_token: auth.refreshToken,
+          client_id: client.clientId,
+          client_secret: client.clientSecret,
+        }),
+      });
+
+      // The authorization code should be gone
+      const foundCode = await OAuthAuthorizationCode.findByPk(code.id);
+      expect(foundCode).toBeNull();
     });
   });
 });
