@@ -1,10 +1,10 @@
 import { createQueue } from "@server/queues/queue";
 import { Second } from "@shared/utils/time";
 
-let _globalEventQueue: ReturnType<typeof createQueue> | undefined;
+let cachedGlobalEventQueue: ReturnType<typeof createQueue> | undefined;
 export const globalEventQueue = () => {
-  if (!_globalEventQueue) {
-    _globalEventQueue = createQueue("globalEvents", {
+  if (!cachedGlobalEventQueue) {
+    cachedGlobalEventQueue = createQueue("globalEvents", {
       attempts: 5,
       backoff: {
         type: "exponential",
@@ -12,13 +12,13 @@ export const globalEventQueue = () => {
       },
     });
   }
-  return _globalEventQueue;
+  return cachedGlobalEventQueue;
 };
 
-let _processorEventQueue: ReturnType<typeof createQueue> | undefined;
+let cachedProcessorEventQueue: ReturnType<typeof createQueue> | undefined;
 export const processorEventQueue = () => {
-  if (!_processorEventQueue) {
-    _processorEventQueue = createQueue("processorEvents", {
+  if (!cachedProcessorEventQueue) {
+    cachedProcessorEventQueue = createQueue("processorEvents", {
       attempts: 5,
       backoff: {
         type: "exponential",
@@ -26,23 +26,23 @@ export const processorEventQueue = () => {
       },
     });
   }
-  return _processorEventQueue;
+  return cachedProcessorEventQueue;
 };
 
-let _websocketQueue: ReturnType<typeof createQueue> | undefined;
+let cachedWebsocketQueue: ReturnType<typeof createQueue> | undefined;
 export const websocketQueue = () => {
-  if (!_websocketQueue) {
-    _websocketQueue = createQueue("websockets", {
+  if (!cachedWebsocketQueue) {
+    cachedWebsocketQueue = createQueue("websockets", {
       timeout: 10 * Second.ms,
     });
   }
-  return _websocketQueue;
+  return cachedWebsocketQueue;
 };
 
-let _taskQueue: ReturnType<typeof createQueue> | undefined;
+let cachedTaskQueue: ReturnType<typeof createQueue> | undefined;
 export const taskQueue = () => {
-  if (!_taskQueue) {
-    _taskQueue = createQueue("tasks", {
+  if (!cachedTaskQueue) {
+    cachedTaskQueue = createQueue("tasks", {
       attempts: 5,
       backoff: {
         type: "exponential",
@@ -50,5 +50,5 @@ export const taskQueue = () => {
       },
     });
   }
-  return _taskQueue;
+  return cachedTaskQueue;
 };

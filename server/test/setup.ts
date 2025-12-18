@@ -40,18 +40,12 @@ require("@server/storage/database");
 
 // Import Redis after mocking
 const Redis = require("ioredis");
-const RedisAdapter = require("@server/storage/redis").default;
 
 beforeEach(() => {
   env.URL = sharedEnv.URL = "https://app.outline.dev";
 });
 
 afterEach(async () => {
-  // Reset Redis static instances
-  if (RedisAdapter.reset) {
-    RedisAdapter.reset();
-  }
-
   // Create a new Redis instance for cleanup
   const redis = new Redis();
   await redis.flushall();
