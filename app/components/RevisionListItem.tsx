@@ -182,7 +182,7 @@ const RevisionItem = styled(Item)<{ $menuOpen?: boolean }>`
   ${lineStyle}
 
   ${Actions} {
-    opacity: ${(props) => (props.$menuOpen ? "1" : "0.5")};
+    opacity: ${(props) => (props.$menuOpen ? 1 : 0.5)};
 
     &: ${hover} {
       opacity: 1;
