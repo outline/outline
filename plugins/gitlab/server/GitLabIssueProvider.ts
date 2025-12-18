@@ -86,6 +86,7 @@ export class GitLabIssueProvider extends BaseIssueProvider {
         await this.destroyProject(payload);
         break;
       case "group_rename":
+      case "user_rename":
         await this.updateNamespace(payload);
         break;
       case "user_destroy":
@@ -98,7 +99,7 @@ export class GitLabIssueProvider extends BaseIssueProvider {
   }
 
   private async updateNamespace(payload: Record<string, any>) {
-    const name = payload.old_full_path || payload.username;
+    const name = payload.old_full_path ?? payload.old_username;
     const where = {
       service: IntegrationService.GitLab,
       [Op.and]: Sequelize.literal(
@@ -107,36 +108,34 @@ export class GitLabIssueProvider extends BaseIssueProvider {
     };
 
     await sequelize.transaction(async (transaction) => {
-      const integrations = (await Integration.findAll({
+      const integration = (await Integration.findOne({
         where,
         lock: transaction.LOCK.UPDATE,
         transaction,
-      })) as Integration<IntegrationType.Embed>[];
+      })) as Integration<IntegrationType.Embed>;
 
-      if (integrations.length === 0) {
+      if (!integration) {
         Logger.warn(`GitLab namespace_update event without integration;`);
         return;
       }
 
-      for (const integration of integrations) {
-        const sources = integration.issueSources ?? [];
-        const updatedSources = sources.map((source) => {
-          if (source.owner.name === name) {
-            return {
-              ...source,
-              owner: {
-                id: payload.group_id ?? source.id,
-                name: name,
-              },
-            };
-          }
-          return source;
-        });
+      const sources = integration.issueSources ?? [];
+      const updatedSources = sources.map((source) => {
+        if (source.owner.name === name) {
+          return {
+            ...source,
+            owner: {
+              id: payload.group_id || source.id,
+              name: payload.full_path ?? payload.username,
+            },
+          };
+        }
+        return source;
+      });
 
-        integration.issueSources = updatedSources;
-        integration.changed("issueSources", true);
-        await integration.save({ transaction });
-      }
+      integration.issueSources = updatedSources;
+      integration.changed("issueSources", true);
+      await integration.save({ transaction });
     });
   }
 
@@ -219,7 +218,9 @@ export class GitLabIssueProvider extends BaseIssueProvider {
       /^0{40}$/.test(p.before)
     );
 
-    if (!createEvent) {return;}
+    if (!createEvent) {
+      return;
+    }
     await sequelize.transaction(async (transaction) => {
       const integration = (await Integration.findOne({
         where: {
@@ -236,7 +237,7 @@ export class GitLabIssueProvider extends BaseIssueProvider {
 
       const project = payload.project;
       const owner = {
-        id: "",
+        id: "", // namespace.id is not provided in this webhook payload
         name: project.path_with_namespace.split("/").slice(0, -1).join("/"),
       };
       const sources = integration.issueSources ?? [];
