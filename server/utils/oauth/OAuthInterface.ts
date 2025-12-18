@@ -78,11 +78,39 @@ export const OAuthInterface: RefreshTokenModel &
   },
 
   async getRefreshToken(refreshToken: string) {
-    const authentication =
+    let authentication =
       await OAuthAuthentication.findByRefreshToken(refreshToken);
+
     if (!authentication) {
+      // If the refresh token is not found, it may have already been used or
+      // revoked. In this case we perform reuse detection as recommended by RFC 9700.
+      authentication = await OAuthAuthentication.findOne({
+        where: {
+          refreshTokenHash: hash(refreshToken),
+        },
+        paranoid: false,
+      });
+
+      if (authentication?.grantId) {
+        await Promise.all([
+          OAuthAuthentication.destroy({
+            where: {
+              grantId: authentication.grantId,
+            },
+          }),
+          OAuthAuthorizationCode.destroy({
+            where: {
+              grantId: authentication.grantId,
+            },
+          }),
+        ]);
+      }
+
       return false;
     }
+
+    const user = authentication.user;
+    Object.assign(user, { grantId: authentication.grantId });
 
     return {
       refreshToken,
@@ -92,7 +120,7 @@ export const OAuthInterface: RefreshTokenModel &
         id: authentication.oauthClient.clientId,
         grants: this.grants,
       },
-      user: authentication.user,
+      user,
     };
   },
 
@@ -107,6 +135,9 @@ export const OAuthInterface: RefreshTokenModel &
       return false;
     }
 
+    const user = code.user;
+    Object.assign(user, { grantId: code.grantId });
+
     return {
       authorizationCode,
       expiresAt: code.expiresAt,
@@ -118,7 +149,7 @@ export const OAuthInterface: RefreshTokenModel &
         id: oauthClient.clientId,
         grants: this.grants,
       },
-      user: code.user,
+      user,
     };
   },
 
@@ -159,6 +190,7 @@ export const OAuthInterface: RefreshTokenModel &
       scope: token.scope,
       oauthClientId: client.databaseId,
       userId: user.id,
+      grantId: (user as { grantId?: string }).grantId || crypto.randomUUID(),
     });
 
     return {
@@ -194,6 +226,7 @@ export const OAuthInterface: RefreshTokenModel &
       codeChallengeMethod,
       oauthClientId: client.databaseId,
       userId: user.id,
+      grantId: (user as { grantId?: string }).grantId || crypto.randomUUID(),
     });
 
     return {
