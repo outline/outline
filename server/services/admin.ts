@@ -13,10 +13,10 @@ export default function init(app: Koa) {
   const serverAdapter = new KoaAdapter();
   createBullBoard({
     queues: [
-      new BullAdapter(globalEventQueue),
-      new BullAdapter(processorEventQueue),
-      new BullAdapter(websocketQueue),
-      new BullAdapter(taskQueue),
+      new BullAdapter(globalEventQueue()),
+      new BullAdapter(processorEventQueue()),
+      new BullAdapter(websocketQueue()),
+      new BullAdapter(taskQueue()),
     ],
     serverAdapter,
   });

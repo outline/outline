@@ -142,7 +142,7 @@ export default function init(
 
   // Handle events from event queue that should be sent to the clients down ws
   const websockets = new WebsocketsProcessor();
-  websocketQueue
+  websocketQueue()
     .process(
       traceFunction({
         serviceName: "websockets",

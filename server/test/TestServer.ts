@@ -48,6 +48,7 @@ class TestServer {
   close() {
     this.listener = null;
     this.server.closeAllConnections();
+    this.server.close();
   }
 
   delete(path: string, options?: any) {
