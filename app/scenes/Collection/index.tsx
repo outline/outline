@@ -301,16 +301,9 @@ const CollectionScene = observer(function CollectionScene_() {
                     path={collectionPath(collection, CollectionTab.Recent)}
                     exact
                   >
-                    <PaginatedDocumentList
-                      documents={documents.rootInCollection(collection.id)}
-                      fetch={documents.fetchPage}
-                      options={{
-                        collectionId: collection.id,
-                        parentDocumentId: null,
-                        sort: collection.sort.field,
-                        direction: collection.sort.direction,
-                      }}
-                      showParentDocuments
+                    <RecentDocuments
+                      collection={collection}
+                      documents={documents}
                     />
                   </Route>
                 </>
@@ -362,5 +355,27 @@ const Content = styled.div`
   position: relative;
   background: ${s("background")};
 `;
+
+const RecentDocuments = observer(
+  ({ collection, documents }: { collection: Collection; documents: any }) => {
+    useEffect(() => {
+      collection.fetchDocuments();
+    }, [collection]);
+
+    return (
+      <PaginatedDocumentList
+        documents={documents.rootInCollection(collection.id)}
+        fetch={documents.fetchPage}
+        options={{
+          collectionId: collection.id,
+          parentDocumentId: null,
+          sort: collection.sort.field,
+          direction: collection.sort.direction,
+        }}
+        showParentDocuments
+      />
+    );
+  }
+);
 
 export default KeyedCollection;
