@@ -74,6 +74,14 @@ class OAuthAuthentication extends ParanoidModel<
   @Column
   refreshTokenExpiresAt: Date;
 
+  /**
+   * The ID of the grant that this authentication belongs to. Used for
+   * refresh token rotation and revocation of all tokens in a grant.
+   */
+  @Column(DataType.UUID)
+  @SkipChangeset
+  grantId: string | null;
+
   /** A list of scopes that this authentication has access to */
   @Matches(/[\/\.\w\s]*/, {
     each: true,
