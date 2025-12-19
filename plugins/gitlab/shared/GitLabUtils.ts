@@ -1,77 +1,11 @@
+import { Gitlab } from "@gitbeaker/rest";
 import env from "@shared/env";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 import { UnfurlResourceType } from "@shared/types";
-import z from "zod";
-
-export const AccessTokenResponseSchema = z.object({
-  access_token: z.string(),
-  token_type: z.string(),
-  expires_in: z.number(),
-  refresh_token: z.string(),
-  scope: z.string(),
-  created_at: z.number(),
-});
-
-export const UserInfoResponseSchema = z.object({
-  id: z.number(),
-  username: z.string(),
-  name: z.string(),
-  avatar_url: z.string().url(),
-});
-
-export const projectSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-  namespace: z.object({
-    id: z.number(),
-    full_path: z.string(),
-  }),
-});
-
-export const projectsSchema = z.array(projectSchema);
-
-const AuthorSchema = z.object({
-  username: z.string(),
-  avatar_url: z.string().url(),
-});
-
-export const IssueSchema = z.object({
-  iid: z.number(),
-  title: z.string(),
-  description: z.string().nullish(),
-  web_url: z.string().url(),
-  state: z.string(),
-  created_at: z.string().datetime(),
-  author: AuthorSchema,
-  labels: z.array(
-    z.object({
-      name: z.string(),
-      color: z.string(),
-    })
-  ),
-});
-
-export type Issue = z.infer<typeof IssueSchema>;
-
-export const MRSchema = z.object({
-  iid: z.number(),
-  title: z.string(),
-  description: z.string().nullish(),
-  web_url: z.string().url(),
-  state: z.string(),
-  draft: z.boolean(),
-  merged_at: z.string().datetime().nullish(),
-  created_at: z.string().datetime(),
-  author: AuthorSchema,
-  labels: z.array(z.string()),
-});
-
-export type MR = z.infer<typeof MRSchema>;
 
 export class GitLabUtils {
   private static clientId = env.GITLAB_CLIENT_ID;
   private static gitlabUrl = env.GITLAB_URL ?? "https://gitlab.com";
-  private static apiBaseUrl = `${this.gitlabUrl}/api/v4`;
   private static supportedResources = [
     UnfurlResourceType.Issue,
     UnfurlResourceType.PR,
@@ -141,55 +75,16 @@ export class GitLabUtils {
   }
 
   /**
-   * Makes an authenticated API request to GitLab.
+   * Creates a Gitbeaker client instance.
    *
    * @param accessToken - The access token for authentication.
-   * @param endpoint - The API endpoint path.
-   * @param params - Additional fetch options.
-   * @param query - Query parameters to include in the request.
-   * @returns The response data from the GitLab API.
+   * @returns A configured Gitbeaker client.
    */
-  public static async apiRequest({
-    accessToken,
-    endpoint,
-    params,
-    query,
-  }: {
-    accessToken: string;
-    endpoint: string;
-    params?: RequestInit;
-    query?: Record<string, string | number | boolean>;
-  }): Promise<any> {
-    const url = new URL(`${this.apiBaseUrl}${endpoint}`);
-
-    if (query) {
-      Object.entries(query).forEach(([key, value]) => {
-        url.searchParams.append(key, String(value));
-      });
-    }
-
-    try {
-      const response = await fetch(url.toString(), {
-        ...params,
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-          ...params?.headers,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(
-          `GitLab API error: ${response.status} ${response.statusText} (${endpoint})`
-        );
-      }
-
-      return response.json();
-    } catch (err) {
-      throw new Error(
-        `Failed to fetch from GitLab API: ${endpoint}. ${err instanceof Error ? err.message : ""}`
-      );
-    }
+  public static createClient(accessToken: string) {
+    return new Gitlab({
+      host: this.gitlabUrl,
+      oauthToken: accessToken,
+    });
   }
 
   /**
@@ -245,21 +140,27 @@ export class GitLabUtils {
    *
    * @param accessToken - The access token for authentication.
    * @param projectPath - The project path (owner/repo).
-   * @param issueId - The issue IID.
+   * @param issueIid - The issue IID (internal ID within the project).
    * @returns The issue data.
    */
   public static async getIssue(
     accessToken: string,
     projectPath: string,
-    issueId: number
+    issueIid: number
   ) {
-    const encodedPath = encodeURIComponent(projectPath);
-    const issue = await this.apiRequest({
-      accessToken,
-      endpoint: `/projects/${encodedPath}/issues/${issueId}`,
+    const client = this.createClient(accessToken);
+
+    const issues = await client.Issues.all({
+      projectId: projectPath,
+      iids: [issueIid],
+      withLabelsDetails: true,
     });
 
-    return IssueSchema.parse(issue);
+    if (!issues || issues.length === 0) {
+      throw new Error(`Issue ${issueIid} not found in project ${projectPath}`);
+    }
+
+    return issues[0];
   }
 
   /**
@@ -267,21 +168,18 @@ export class GitLabUtils {
    *
    * @param accessToken - The access token for authentication.
    * @param projectPath - The project path (owner/repo).
-   * @param mrId - The merge request IID.
+   * @param mrIid - The merge request IID (internal ID within the project).
    * @returns The merge request data.
    */
   public static async getMergeRequest(
     accessToken: string,
     projectPath: string,
-    mrId: number
+    mrIid: number
   ) {
-    const encodedPath = encodeURIComponent(projectPath);
-    const mr = await this.apiRequest({
-      accessToken,
-      endpoint: `/projects/${encodedPath}/merge_requests/${mrId}`,
-    });
-
-    return MRSchema.parse(mr);
+    const client = this.createClient(accessToken);
+    // MergeRequests.show properly accepts projectId and mergerequestIId
+    const mr = await client.MergeRequests.show(projectPath, mrIid);
+    return mr;
   }
 
   /**
