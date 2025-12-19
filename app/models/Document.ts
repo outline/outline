@@ -412,6 +412,9 @@ export default class Document extends ArchivableModel implements Searchable {
       TeamPreference.TrashRetentionDays,
       30
     );
+    if (!retentionDays) {
+      return undefined;
+    }
 
     return addDays(new Date(this.deletedAt), retentionDays).toString();
   }
