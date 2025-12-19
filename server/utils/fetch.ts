@@ -81,7 +81,7 @@ export default async function fetch(
   } catch (err) {
     if (!env.isCloudHosted && err.message?.startsWith("DNS lookup")) {
       throw InternalError(
-        `${err.message}\n\nTo allow this request, add the IP address to the ALLOWED_PRIVATE_IP_ADDRESSES environment variable.`
+        `${err.message}\n\nTo allow this request, add the IP address or CIDR range to the ALLOWED_PRIVATE_IP_ADDRESSES environment variable.`
       );
     }
     throw err;
