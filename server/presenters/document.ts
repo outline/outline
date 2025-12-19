@@ -68,6 +68,7 @@ async function presentDocument(
     publishedAt: document.publishedAt,
     archivedAt: document.archivedAt,
     deletedAt: document.deletedAt,
+    permanentlyDeletedAt: document.permanentlyDeletedAt,
     collaboratorIds: [],
     revision: document.revisionCount,
     fullWidth: document.fullWidth,

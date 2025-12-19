@@ -29,7 +29,7 @@ export default function Notices({ document, readOnly }: Props) {
   const { t } = useTranslation();
 
   function permanentlyDeletedDescription() {
-    if (!document.permanentlyDeletedAt) {
+    if (!document.permanentlyDeletesAt) {
       return;
     }
 
@@ -37,9 +37,9 @@ export default function Notices({ document, readOnly }: Props) {
     // to avoid showing a negative number of days. The cleanup task will
     // permanently delete the document at the next run.
     const permanentlyDeletedAt =
-      new Date(document.permanentlyDeletedAt) < new Date()
+      new Date(document.permanentlyDeletesAt) < new Date()
         ? new Date().toISOString()
-        : document.permanentlyDeletedAt;
+        : document.permanentlyDeletesAt;
 
     return document.template ? (
       <Trans>

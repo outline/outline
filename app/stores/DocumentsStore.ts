@@ -233,8 +233,8 @@ export default class DocumentsStore extends Store<Document> {
 
   @computed
   get deleted(): Document[] {
-    return orderBy(this.orderedData, "deletedAt", "desc").filter(
-      (d) => d.deletedAt
+    return orderBy(this.orderedData, "deletedAt", "asc").filter(
+      (d) => d.deletedAt && !d.permanentlyDeletedAt
     );
   }
 
