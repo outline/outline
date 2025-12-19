@@ -1,7 +1,7 @@
 import { Attrs, Node } from "prosemirror-model";
 import { MutableAttrs } from "prosemirror-tables";
 import { isBrowser } from "../../utils/browser";
-import { TableLayout } from "../types";
+import { NodeMarkAttr, TableLayout } from "../types";
 
 export interface TableAttrs {
   layout: TableLayout | null;
@@ -12,6 +12,7 @@ export interface CellAttrs {
   rowspan: number;
   colwidth: number[] | null;
   alignment: "center" | "left" | "right" | null;
+  marks?: NodeMarkAttr[];
 }
 
 /**
@@ -42,6 +43,16 @@ export function getCellAttrs(dom: HTMLElement | string): Attrs {
         : dom.style.textAlign === "right"
           ? "right"
           : null,
+    marks: dom.getAttribute("data-bgcolor")
+      ? [
+          {
+            type: "highlight",
+            attrs: {
+              color: dom.getAttribute("data-bgcolor"),
+            },
+          },
+        ]
+      : undefined,
   } satisfies CellAttrs;
 }
 
@@ -69,6 +80,17 @@ export function setCellAttrs(node: Node): Attrs {
       attrs.style =
         (attrs.style ?? "") +
         `min-width: ${parseInt(node.attrs.colwidth[0])}px;`;
+    }
+  }
+  if (node.attrs.marks) {
+    const highlightMark = node.attrs.marks.find(
+      (mark: NodeMarkAttr) =>
+        mark.type === node.type.schema.marks.highlight.name
+    );
+    if (highlightMark) {
+      attrs["data-bgcolor"] = highlightMark.attrs.color;
+      attrs.style =
+        (attrs.style ?? "") + `background-color: ${highlightMark.attrs.color};`;
     }
   }
 

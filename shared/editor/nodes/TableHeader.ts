@@ -32,6 +32,9 @@ export default class TableHeader extends Node {
         rowspan: { default: 1 },
         alignment: { default: null },
         colwidth: { default: null },
+        marks: {
+          default: undefined,
+        },
       },
     };
   }
