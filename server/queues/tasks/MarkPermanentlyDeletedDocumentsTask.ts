@@ -4,6 +4,7 @@ import { Document } from "@server/models";
 import { Minute } from "@shared/utils/time";
 import { TaskPriority } from "./base/BaseTask";
 import { CronTask, Props, TaskInterval } from "./base/CronTask";
+import { TeamPreference } from "@shared/types";
 
 export default class MarkPermanentlyDeletedDocumentsTask extends CronTask {
   public async perform({ partition }: Props) {
@@ -22,7 +23,7 @@ export default class MarkPermanentlyDeletedDocumentsTask extends CronTask {
         where: {
           deletedAt: {
             [Op.lt]: Sequelize.literal(
-              `now() - (COALESCE((SELECT (preferences->>'trashRetentionDays')::int FROM teams WHERE teams.id = "documents"."teamId"), 30) || ' days')::interval`
+              `now() - (COALESCE((SELECT (preferences->>'${TeamPreference.DataRetentionDays}')::int FROM teams WHERE teams.id = "documents"."teamId"), 30) || ' days')::interval`
             ),
           },
           permanentlyDeletedAt: {
