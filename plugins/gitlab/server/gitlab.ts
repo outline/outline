@@ -1,4 +1,5 @@
 import fetch from "node-fetch";
+import z from "zod";
 import {
   IntegrationService,
   IntegrationType,
@@ -7,54 +8,56 @@ import {
 import Logger from "@server/logging/Logger";
 import { Integration, IntegrationAuthentication, User } from "@server/models";
 import { UnfurlIssueOrPR, UnfurlSignature } from "@server/types";
-import {
-  GitLabUtils,
-  MR,
-  Issue,
-  projectsSchema,
-  UserInfoResponseSchema,
-  AccessTokenResponseSchema,
-} from "../shared/GitLabUtils";
+import { GitLabUtils } from "../shared/GitLabUtils";
 import env from "./env";
-import { Op, Sequelize } from "sequelize";
+import { Op } from "sequelize";
+import { sequelize } from "@server/storage/database";
+import {
+  IssueSchemaWithExpandedLabels,
+  MergeRequestSchema,
+} from "@gitbeaker/rest";
+
+const AccessTokenResponseSchema = z.object({
+  access_token: z.string(),
+  token_type: z.string(),
+  expires_in: z.number(),
+  refresh_token: z.string(),
+  scope: z.string(),
+  created_at: z.number(),
+});
 
 export class GitLab {
   private static clientSecret = env.GITLAB_CLIENT_SECRET;
   private static clientId = env.GITLAB_CLIENT_ID;
 
   /**
-   * Fetches current user information
+   * Fetches current user information.
    *
-   * @param accessToken Access token received from OAuth flow
-   * @returns User information
+   * @param accessToken - Access token received from OAuth flow.
+   * @returns User information.
    */
   public static async getCurrentUser(accessToken: string) {
-    const userData = await GitLabUtils.apiRequest({
-      accessToken,
-      endpoint: "/user",
+    const client = GitLabUtils.createClient(accessToken);
+    const userData = await client.Users.showCurrentUser({
+      showExpanded: false,
     });
-
-    return UserInfoResponseSchema.parse(userData);
+    return userData;
   }
 
   /**
-   * Fetches projects accessible to the user
+   * Fetches projects accessible to the user.
    *
-   * @param accessToken Access token for authentication
-   * @returns Array of projects
+   * @param accessToken - Access token for authentication.
+   * @returns Array of projects.
    */
   public static async getProjects(accessToken: string) {
-    const projects = await GitLabUtils.apiRequest({
-      accessToken,
-      endpoint: "/projects",
-      query: {
-        simple: true,
-        per_page: 100,
-        min_access_level: 40, // At least Maintanier access to reduce the sheer volume of projects
-      },
+    const client = GitLabUtils.createClient(accessToken);
+    const projects = await client.Projects.all({
+      simple: true,
+      perPage: 100,
+      minAccessLevel: 40, // At least Maintainer access to reduce the sheer volume of projects
     });
-
-    return projectsSchema.parse(projects);
+    return projects;
   }
 
   /**
@@ -72,9 +75,14 @@ export class GitLab {
       where: {
         service: IntegrationService.GitLab,
         teamId: actor.teamId,
-        [Op.and]: Sequelize.literal(
-          `"issueSources"::jsonb @> '[{"owner": {"name": "${resource.owner}"}}]'`
+        [Op.and]: sequelize.where(
+          sequelize.literal(`"issueSources"::jsonb @> :ownerJson`),
+          Op.eq,
+          true
         ),
+      },
+      replacements: {
+        ownerJson: JSON.stringify([{ owner: { name: resource.owner } }]),
       },
       include: [
         {
@@ -104,11 +112,11 @@ export class GitLab {
 
         return this.transformIssue(issue);
       } else if (resource.type === UnfurlResourceType.PR) {
-        const mr = (await GitLabUtils.getMergeRequest(
+        const mr = await GitLabUtils.getMergeRequest(
           token,
           projectPath,
           resource.id
-        )) as MR;
+        );
         return this.transformMR(mr);
       }
 
@@ -173,7 +181,7 @@ export class GitLab {
     return AccessTokenResponseSchema.parse(resJson);
   }
 
-  private static transformIssue(issue: Issue) {
+  private static transformIssue(issue: IssueSchemaWithExpandedLabels) {
     return {
       type: UnfurlResourceType.Issue,
       url: issue.web_url,
@@ -196,7 +204,7 @@ export class GitLab {
     } satisfies UnfurlIssueOrPR;
   }
 
-  private static transformMR(mr: MR) {
+  private static transformMR(mr: MergeRequestSchema) {
     const mrState = mr.merged_at ? "merged" : mr.state;
     return {
       type: UnfurlResourceType.PR,
