@@ -1,5 +1,6 @@
+import crypto from "crypto";
 import { Scope } from "@shared/types";
-import { OAuthAuthentication } from "@server/models";
+import { OAuthAuthentication, OAuthAuthorizationCode } from "@server/models";
 import {
   buildOAuthAuthentication,
   buildOAuthClient,
@@ -229,6 +230,126 @@ describe("#oauth.token", () => {
       expect(body.error_description).toContain(
         "Missing client_secret for confidential client"
       );
+    });
+
+    it("should revoke all tokens in a grant when a refresh token is reused", async () => {
+      const user = await buildUser();
+      const client = await buildOAuthClient({
+        teamId: user.teamId,
+        clientType: "confidential",
+      });
+      const grantId = crypto.randomUUID();
+
+      // Create initial authentication
+      const auth1 = await buildOAuthAuthentication({
+        user,
+        scope: [Scope.Read],
+        oauthClientId: client.id,
+        grantId,
+      });
+
+      // Use the refresh token once (rotation)
+      const res1 = await server.post("/oauth/token", {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: toFormData({
+          grant_type: "refresh_token",
+          refresh_token: auth1.refreshToken,
+          client_id: client.clientId,
+          client_secret: client.clientSecret,
+        }),
+      });
+      expect(res1.status).toEqual(200);
+      const body1 = await res1.json();
+      const auth2RefreshToken = body1.refresh_token;
+
+      // Create an unrelated authentication
+      const otherAuth = await buildOAuthAuthentication({
+        user,
+        scope: [Scope.Read],
+      });
+
+      // Use the OLD refresh token again (reuse detection)
+      const res2 = await server.post("/oauth/token", {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: toFormData({
+          grant_type: "refresh_token",
+          refresh_token: auth1.refreshToken,
+          client_id: client.clientId,
+          client_secret: client.clientSecret,
+        }),
+      });
+
+      // The request should fail
+      expect(res2.status).toEqual(400);
+
+      // All tokens in the grant should be revoked
+      const foundAuth1 = await OAuthAuthentication.findByPk(auth1.id, {
+        paranoid: false,
+      });
+      const foundAuth2 =
+        await OAuthAuthentication.findByRefreshToken(auth2RefreshToken);
+      const foundOtherAuth = await OAuthAuthentication.findByPk(otherAuth.id);
+
+      expect(foundAuth1?.deletedAt).toBeTruthy();
+      expect(foundAuth2).toBeNull();
+      expect(foundOtherAuth).not.toBeNull();
+    });
+
+    it("should revoke associated authorization codes when reuse is detected", async () => {
+      const user = await buildUser();
+      const client = await buildOAuthClient({ teamId: user.teamId });
+      const grantId = crypto.randomUUID();
+
+      const auth = await buildOAuthAuthentication({
+        user,
+        scope: [Scope.Read],
+        oauthClientId: client.id,
+        grantId,
+      });
+
+      const code = await OAuthAuthorizationCode.create({
+        authorizationCodeHash: "hash",
+        scope: [Scope.Read],
+        redirectUri: client.redirectUris[0],
+        oauthClientId: client.id,
+        userId: user.id,
+        expiresAt: new Date(Date.now() + 10000),
+        grantId,
+      });
+
+      // Use the refresh token once (rotation)
+      await server.post("/oauth/token", {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: toFormData({
+          grant_type: "refresh_token",
+          refresh_token: auth.refreshToken,
+          client_id: client.clientId,
+          client_secret: client.clientSecret,
+        }),
+      });
+
+      // Use the OLD refresh token again (reuse detection)
+      await server.post("/oauth/token", {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: toFormData({
+          grant_type: "refresh_token",
+          refresh_token: auth.refreshToken,
+          client_id: client.clientId,
+          client_secret: client.clientSecret,
+        }),
+      });
+
+      // The authorization code should be gone
+      const foundCode = await OAuthAuthorizationCode.findByPk(code.id);
+      expect(foundCode).toBeNull();
     });
   });
 });

@@ -797,10 +797,12 @@ export async function buildOAuthAuthentication({
   oauthClientId,
   user,
   scope,
+  grantId,
 }: {
   oauthClientId?: string;
   user: User;
   scope: string[];
+  grantId?: string;
 }) {
   const oauthClient = oauthClientId
     ? await OAuthClient.findByPk(oauthClientId, { rejectOnEmpty: true })
@@ -836,6 +838,7 @@ export async function buildOAuthAuthentication({
     refreshTokenHash: hash(refreshToken),
     refreshTokenExpiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
     scope,
+    grantId,
   });
 }
 
