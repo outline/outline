@@ -8,6 +8,7 @@ module.exports = {
     });
     await queryInterface.addIndex("documents", ["permanentlyDeletedAt"], {
       name: "documents_permanently_deleted_at",
+      concurrently: true,
     });
   },
 
