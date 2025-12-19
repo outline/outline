@@ -157,15 +157,30 @@ export class DocumentHelper {
    * @param options Options for the conversion
    * @returns The document title and content as a Markdown string
    */
-  static toMarkdown(
+  static async toMarkdown(
     document: Document | Revision | Collection | ProsemirrorData,
     options?: {
       /** Whether to include the document title (default: true) */
       includeTitle?: boolean;
+      /** Whether to sign attachment urls, and if so for how many seconds is the signature valid */
+      signedUrls?: number;
+      /** The team context */
+      teamId?: string;
     }
   ) {
+    let node = DocumentHelper.toProsemirror(document);
+
+    if (options?.signedUrls && options?.teamId) {
+      const data = await ProsemirrorHelper.signAttachmentUrls(
+        node,
+        options.teamId,
+        options.signedUrls
+      );
+      node = Node.fromJSON(schema, data);
+    }
+
     const text = serializer
-      .serialize(DocumentHelper.toProsemirror(document))
+      .serialize(node)
       .replace(/(^|\n)\\(\n|$)/g, "\n\n")
       .replace(/“/g, '"')
       .replace(/”/g, '"')

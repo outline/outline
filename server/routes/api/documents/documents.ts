@@ -557,7 +557,7 @@ router.post(
     });
 
     let document: Document | null;
-    let serializedDocument: Record<string, any> | undefined;
+    let serializedDocument: Record<string, unknown> | undefined;
     let isPublic = false;
 
     if (shareId) {
@@ -744,24 +744,11 @@ router.post(
     let contentType: string;
     let content: string;
 
-    const toMarkdown = async () => {
-      if (signedUrls) {
-        const data = await DocumentHelper.toJSON(document, {
-          signedUrls,
-          teamId: user.teamId,
-        });
-        const doc = Node.fromJSON(schema, data);
-        return serializer
-          .serialize(doc)
-          .replace(/(^|\n)\\(\n|$)/g, "\n\n")
-          .replace(/“/g, '"')
-          .replace(/”/g, '"')
-          .replace(/‘/g, "'")
-          .replace(/’/g, "'")
-          .trim();
-      }
-      return DocumentHelper.toMarkdown(document);
-    };
+    const toMarkdown = async () =>
+      DocumentHelper.toMarkdown(document, {
+        signedUrls,
+        teamId: user.teamId,
+      });
 
     if (accept?.includes("text/html")) {
       contentType = "text/html";
@@ -934,7 +921,7 @@ router.post(
       const revision = await Revision.findByPk(revisionId, { transaction });
       authorize(document, "restore", revision);
 
-      document.restoreFromRevision(revision);
+      await document.restoreFromRevision(revision);
       await document.saveWithCtx(ctx, undefined, { name: "restore" });
     } else {
       assertPresent(revisionId, "revisionId is required");

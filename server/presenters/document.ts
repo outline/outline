@@ -44,10 +44,10 @@ async function presentDocument(
 
   const text =
     !asData || options?.includeText
-      ? DocumentHelper.toMarkdown(data, { includeTitle: false })
+      ? await DocumentHelper.toMarkdown(data, { includeTitle: false })
       : undefined;
 
-  const res: Record<string, any> = {
+  const res: Record<string, unknown> = {
     id: document.id,
     url: document.path,
     urlId: document.urlId,
