@@ -20,7 +20,6 @@ import documentCreator from "@server/commands/documentCreator";
 import documentDuplicator from "@server/commands/documentDuplicator";
 import documentLoader from "@server/commands/documentLoader";
 import documentMover from "@server/commands/documentMover";
-import documentPermanentDeleter from "@server/commands/documentPermanentDeleter";
 import documentUpdater from "@server/commands/documentUpdater";
 import env from "@server/env";
 import {
@@ -401,6 +400,9 @@ router.post(
         teamId: user.teamId,
         deletedAt: {
           [Op.ne]: null,
+        },
+        permanentlyDeletedAt: {
+          [Op.is]: null,
         },
         [Op.or]: [
           {
@@ -1426,7 +1428,8 @@ router.post(
       });
       authorize(user, "permanentDelete", document);
 
-      await documentPermanentDeleter([document]);
+      document.permanentlyDeletedAt = new Date();
+      await document.save();
       await Event.createFromContext(ctx, {
         name: "documents.permanent_delete",
         documentId: document.id,
@@ -2034,6 +2037,9 @@ router.post(
       where: {
         deletedAt: {
           [Op.ne]: null,
+        },
+        permanentlyDeletedAt: {
+          [Op.is]: null,
         },
         [Op.or]: [
           {

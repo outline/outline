@@ -310,6 +310,8 @@ export enum TeamPreference {
   TocPosition = "tocPosition",
   /** Whether to prevent shared documents from being embedded in iframes on external websites. */
   PreventDocumentEmbedding = "preventDocumentEmbedding",
+  /** The number of days to retain documents in the trash before permanent deletion. */
+  DocumentRetentionDays = "documentRetentionDays",
 }
 
 export type TeamPreferences = {
@@ -324,6 +326,7 @@ export type TeamPreferences = {
   [TeamPreference.CustomTheme]?: Partial<CustomTheme>;
   [TeamPreference.TocPosition]?: TOCPosition;
   [TeamPreference.PreventDocumentEmbedding]?: boolean;
+  [TeamPreference.DocumentRetentionDays]?: number;
 };
 
 export enum NavigationNodeType {
