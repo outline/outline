@@ -351,7 +351,7 @@ export default abstract class ImportsProcessor<
               // imported collection will be placed in the beginning.
               collectionIdx = fractionalIndex(null, collectionIdx);
 
-              const description = DocumentHelper.toMarkdown(
+              const description = await DocumentHelper.toMarkdown(
                 transformedContent,
                 {
                   includeTitle: false,
@@ -412,7 +412,7 @@ export default abstract class ImportsProcessor<
               title: output.title,
               icon: output.emoji,
               content: transformedContent,
-              text: DocumentHelper.toMarkdown(transformedContent, {
+              text: await DocumentHelper.toMarkdown(transformedContent, {
                 includeTitle: false,
               }),
               collectionId: collectionInternalId,
