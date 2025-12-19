@@ -21,7 +21,7 @@ export default class CleanupDeletedDocumentsTask extends CronTask {
       where: {
         permanentlyDeletedAt: {
           [Op.lt]: Sequelize.literal(
-            `now() - (COALESCE((SELECT (preferences->>'documentRetentionDays')::int FROM teams WHERE teams.id = "document"."teamId"), 30) || ' days')::interval`
+            `now() - (COALESCE((SELECT (preferences->>'documentRetentionDays')::int FROM teams WHERE teams.id = "documents"."teamId"), 30) || ' days')::interval`
           ),
         },
         ...this.getPartitionWhereClause("id", partition),

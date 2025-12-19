@@ -22,7 +22,7 @@ export default class MarkPermanentlyDeletedDocumentsTask extends CronTask {
         where: {
           deletedAt: {
             [Op.lt]: Sequelize.literal(
-              `now() - (COALESCE((SELECT (preferences->>'trashRetentionDays')::int FROM teams WHERE teams.id = "document"."teamId"), 30) || ' days')::interval`
+              `now() - (COALESCE((SELECT (preferences->>'trashRetentionDays')::int FROM teams WHERE teams.id = "documents"."teamId"), 30) || ' days')::interval`
             ),
           },
           permanentlyDeletedAt: {

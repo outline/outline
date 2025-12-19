@@ -81,7 +81,7 @@ describe("CleanupDeletedDocumentsTask", () => {
 
   it("should respect custom documentRetentionDays", async () => {
     const team = await buildTeam();
-    team.setPreference(TeamPreference.DocumentRetentionDays, 7);
+    team.setPreference(TeamPreference.DataRetentionDays, 7);
     await team.save();
 
     await buildDocument({
@@ -106,7 +106,7 @@ describe("CleanupDeletedDocumentsTask", () => {
 
   it("should not destroy documents if within custom documentRetentionDays", async () => {
     const team = await buildTeam();
-    team.setPreference(TeamPreference.DocumentRetentionDays, 90);
+    team.setPreference(TeamPreference.DataRetentionDays, 90);
     await team.save();
 
     await buildDocument({
