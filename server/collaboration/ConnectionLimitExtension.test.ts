@@ -21,6 +21,7 @@ describe("ConnectionLimitExtension", () => {
     server = Server.configure({
       port,
       extensions: [extension, new EditorVersionExtension()],
+      quiet: true,
     });
     await server.listen();
   });
