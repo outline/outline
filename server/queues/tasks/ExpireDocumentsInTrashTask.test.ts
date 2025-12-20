@@ -1,4 +1,5 @@
 import { buildTeam } from "@server/test/factories";
+import { TeamPreferenceDefaults } from "@shared/constants";
 import { TeamPreference } from "@shared/types";
 import ExpireDocumentsInTrashTask from "./ExpireDocumentsInTrashTask";
 import ExpireDocumentsInTrashByRetentionTask from "./ExpireDocumentsInTrashByRetentionTask";
@@ -10,6 +11,10 @@ const props = {
     partitionCount: 1,
   },
 };
+
+const defaultRetentionDays = TeamPreferenceDefaults[
+  TeamPreference.TrashRetentionDays
+] as number;
 
 describe("ExpireDocumentsInTrashTask", () => {
   it("should schedule worker tasks for default and custom retention periods", async () => {
@@ -30,13 +35,12 @@ describe("ExpireDocumentsInTrashTask", () => {
     // Verify that the default retention task was scheduled
     expect(scheduleSpy).toHaveBeenCalledWith(
       expect.objectContaining({
-        isDefault: true,
+        retentionDays: defaultRetentionDays,
         partition: props.partition,
       })
     );
 
-    // Verify that the custom retention task was scheduled. We check for the specific
-    // retention period we just created to be lenient towards other data in the DB.
+    // Verify that the custom retention task was scheduled.
     expect(scheduleSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         retentionDays: customDays,
@@ -58,7 +62,7 @@ describe("ExpireDocumentsInTrashTask", () => {
 
     expect(scheduleSpy).toHaveBeenCalledWith(
       expect.objectContaining({
-        isDefault: true,
+        retentionDays: defaultRetentionDays,
         partition: props.partition,
       })
     );

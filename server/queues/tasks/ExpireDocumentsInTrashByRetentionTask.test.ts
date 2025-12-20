@@ -1,6 +1,7 @@
 import { subDays } from "date-fns";
 import { Document } from "@server/models";
 import { buildDocument, buildTeam } from "@server/test/factories";
+import { TeamPreferenceDefaults } from "@shared/constants";
 import { TeamPreference } from "@shared/types";
 import ExpireDocumentsInTrashByRetentionTask from "./ExpireDocumentsInTrashByRetentionTask";
 
@@ -11,6 +12,10 @@ const props = {
   },
 };
 
+const defaultRetentionDays = TeamPreferenceDefaults[
+  TeamPreference.TrashRetentionDays
+] as number;
+
 describe("ExpireDocumentsInTrashByRetentionTask", () => {
   it("should not mark active documents", async () => {
     const team = await buildTeam();
@@ -20,7 +25,7 @@ describe("ExpireDocumentsInTrashByRetentionTask", () => {
     });
 
     const task = new ExpireDocumentsInTrashByRetentionTask();
-    await task.perform({ ...props, isDefault: true });
+    await task.perform({ ...props, retentionDays: defaultRetentionDays });
 
     const doc = await Document.unscoped().findOne({
       where: { teamId: team.id },
@@ -34,11 +39,11 @@ describe("ExpireDocumentsInTrashByRetentionTask", () => {
     await buildDocument({
       teamId: team.id,
       publishedAt: new Date(),
-      deletedAt: subDays(new Date(), 25),
+      deletedAt: subDays(new Date(), defaultRetentionDays - 5),
     });
 
     const task = new ExpireDocumentsInTrashByRetentionTask();
-    await task.perform({ ...props, isDefault: true });
+    await task.perform({ ...props, retentionDays: defaultRetentionDays });
 
     const doc = await Document.unscoped().findOne({
       where: { teamId: team.id },
@@ -52,11 +57,11 @@ describe("ExpireDocumentsInTrashByRetentionTask", () => {
     await buildDocument({
       teamId: team.id,
       publishedAt: new Date(),
-      deletedAt: subDays(new Date(), 31),
+      deletedAt: subDays(new Date(), defaultRetentionDays + 1),
     });
 
     const task = new ExpireDocumentsInTrashByRetentionTask();
-    await task.perform({ ...props, isDefault: true });
+    await task.perform({ ...props, retentionDays: defaultRetentionDays });
 
     const doc = await Document.unscoped().findOne({
       where: { teamId: team.id },

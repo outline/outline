@@ -1,133 +1,72 @@
-import { subDays } from "date-fns";
-import { Document } from "@server/models";
-import { buildDocument, buildTeam } from "@server/test/factories";
+import { buildTeam } from "@server/test/factories";
+import { TeamPreferenceDefaults } from "@shared/constants";
 import { TeamPreference } from "@shared/types";
 import CleanupPermanentlyDeletedDocumentsTask from "./CleanupPermanentlyDeletedDocumentsTask";
+import CleanupPermanentlyDeletedDocumentsByRetentionTask from "./CleanupPermanentlyDeletedDocumentsByRetentionTask";
 
 const props = {
-  limit: 100,
+  limit: 10000,
   partition: {
     partitionIndex: 0,
     partitionCount: 1,
   },
 };
 
+const defaultRetentionDays = TeamPreferenceDefaults[
+  TeamPreference.DataRetentionDays
+] as number;
+
 describe("CleanupPermanentlyDeletedDocumentsTask", () => {
-  it("should not destroy documents not marked for permanent deletion", async () => {
-    const team = await buildTeam();
-    await buildDocument({
-      teamId: team.id,
-      publishedAt: new Date(),
-      deletedAt: subDays(new Date(), 60),
-      permanentlyDeletedAt: null,
-    });
+  it("should schedule worker tasks for default and custom retention periods", async () => {
+    const scheduleSpy = jest.spyOn(
+      CleanupPermanentlyDeletedDocumentsByRetentionTask.prototype,
+      "schedule"
+    );
+
+    // Team with custom retention
+    const teamCustom = await buildTeam();
+    const customDays = 7;
+    teamCustom.setPreference(TeamPreference.DataRetentionDays, customDays);
+    await teamCustom.save();
 
     const task = new CleanupPermanentlyDeletedDocumentsTask();
-    await task.perform({ ...props, isDefault: true });
+    await task.perform(props);
 
-    expect(
-      await Document.unscoped().count({
-        where: {
-          teamId: team.id,
-        },
-        paranoid: false,
+    // Verify that the default retention task was scheduled
+    expect(scheduleSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        retentionDays: defaultRetentionDays,
+        partition: props.partition,
       })
-    ).toEqual(1);
+    );
+
+    // Verify that the custom retention task was scheduled
+    expect(scheduleSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        retentionDays: customDays,
+        partition: props.partition,
+      })
+    );
+
+    scheduleSpy.mockRestore();
   });
 
-  it("should not destroy documents marked for permanent deletion less than 30 days ago (default)", async () => {
-    const team = await buildTeam();
-    await buildDocument({
-      teamId: team.id,
-      publishedAt: new Date(),
-      deletedAt: subDays(new Date(), 60),
-      permanentlyDeletedAt: subDays(new Date(), 25),
-    });
+  it("should always schedule a worker for the default retention period", async () => {
+    const scheduleSpy = jest.spyOn(
+      CleanupPermanentlyDeletedDocumentsByRetentionTask.prototype,
+      "schedule"
+    );
 
     const task = new CleanupPermanentlyDeletedDocumentsTask();
-    await task.perform({ ...props, isDefault: true });
+    await task.perform(props);
 
-    expect(
-      await Document.unscoped().count({
-        where: {
-          teamId: team.id,
-        },
-        paranoid: false,
+    expect(scheduleSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        retentionDays: defaultRetentionDays,
+        partition: props.partition,
       })
-    ).toEqual(1);
-  });
+    );
 
-  it("should destroy documents marked for permanent deletion more than 30 days ago (default)", async () => {
-    const team = await buildTeam();
-    await buildDocument({
-      teamId: team.id,
-      publishedAt: new Date(),
-      deletedAt: subDays(new Date(), 60),
-      permanentlyDeletedAt: subDays(new Date(), 31),
-    });
-
-    const task = new CleanupPermanentlyDeletedDocumentsTask();
-    await task.perform({ ...props, isDefault: true });
-
-    expect(
-      await Document.unscoped().count({
-        where: {
-          teamId: team.id,
-        },
-        paranoid: false,
-      })
-    ).toEqual(0);
-  });
-
-  it("should respect custom documentRetentionDays", async () => {
-    const retentionDays = 7;
-    const team = await buildTeam();
-    team.setPreference(TeamPreference.DataRetentionDays, retentionDays);
-    await team.save();
-
-    await buildDocument({
-      teamId: team.id,
-      publishedAt: new Date(),
-      deletedAt: subDays(new Date(), 60),
-      permanentlyDeletedAt: subDays(new Date(), 10),
-    });
-
-    const task = new CleanupPermanentlyDeletedDocumentsTask();
-    await task.perform({ ...props, retentionDays });
-
-    expect(
-      await Document.unscoped().count({
-        where: {
-          teamId: team.id,
-        },
-        paranoid: false,
-      })
-    ).toEqual(0);
-  });
-
-  it("should not destroy documents if within custom documentRetentionDays", async () => {
-    const retentionDays = 90;
-    const team = await buildTeam();
-    team.setPreference(TeamPreference.DataRetentionDays, retentionDays);
-    await team.save();
-
-    await buildDocument({
-      teamId: team.id,
-      publishedAt: new Date(),
-      deletedAt: subDays(new Date(), 60),
-      permanentlyDeletedAt: subDays(new Date(), 45),
-    });
-
-    const task = new CleanupPermanentlyDeletedDocumentsTask();
-    await task.perform({ ...props, retentionDays });
-
-    expect(
-      await Document.unscoped().count({
-        where: {
-          teamId: team.id,
-        },
-        paranoid: false,
-      })
-    ).toEqual(1);
+    scheduleSpy.mockRestore();
   });
 });

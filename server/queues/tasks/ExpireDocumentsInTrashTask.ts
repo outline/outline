@@ -52,7 +52,7 @@ export default class ExpireDocumentsInTrashTask extends CronTask {
 
     // Schedule a task for the default retention period.
     await task.schedule({
-      isDefault: true,
+      retentionDays: defaultTrashRetentionDays,
       partition: props.partition,
     });
 

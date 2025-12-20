@@ -8,31 +8,25 @@ import { BaseTask, PartitionInfo, TaskPriority } from "./base/BaseTask";
 
 export type Props = {
   /** The trash retention period in days to process in this tranche. */
-  retentionDays?: number;
-  /** Whether to process teams using the default trash retention period. */
-  isDefault?: boolean;
+  retentionDays: number;
   /** Partition information for distributing work. */
   partition?: PartitionInfo;
 };
 
+/**
+ * A task that marks documents in the trash for permanent deletion based on a retention period.
+ */
 export default class ExpireDocumentsInTrashByRetentionTask extends BaseTask<Props> {
-  /**
-   * Processes a single tranche of documents based on a specific trash retention period.
-   *
-   * @param props Properties to be used by the task
-   */
   public async perform(props: Props) {
-    const { partition, retentionDays, isDefault } = props;
+    const { partition, retentionDays } = props;
     const defaultTrashRetentionDays = TeamPreferenceDefaults[
       TeamPreference.TrashRetentionDays
     ] as number;
-    const days = isDefault
-      ? defaultTrashRetentionDays
-      : (retentionDays as number);
+    const isDefault = retentionDays === defaultTrashRetentionDays;
 
     Logger.info(
       "task",
-      `Marking documents past ${days} day trash timeout as pending permanent deletion…`
+      `Marking documents past ${retentionDays} day trash timeout as pending permanent deletion…`
     );
 
     // Mark documents that have been in the trash for longer than the retention period.
@@ -44,7 +38,7 @@ export default class ExpireDocumentsInTrashByRetentionTask extends BaseTask<Prop
       {
         where: {
           deletedAt: {
-            [Op.lt]: subDays(new Date(), days),
+            [Op.lt]: subDays(new Date(), retentionDays),
           },
           permanentlyDeletedAt: {
             [Op.is]: null,
@@ -61,7 +55,7 @@ export default class ExpireDocumentsInTrashByRetentionTask extends BaseTask<Prop
                 : `EXISTS (
                     SELECT 1 FROM teams
                     WHERE teams.id = "documents"."teamId"
-                    AND (preferences->>'${TeamPreference.TrashRetentionDays}')::int = ${days}
+                    AND (preferences->>'${TeamPreference.TrashRetentionDays}')::int = ${retentionDays}
                   )`
             ),
           ],
