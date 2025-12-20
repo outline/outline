@@ -16,7 +16,7 @@ const style: React.CSSProperties = {
 };
 
 const Button: React.FC<Props> = (props) => (
-  <a {...props} style={style}>
+  <a {...props} style={style} className="email-button">
     {props.children}
   </a>
 );
