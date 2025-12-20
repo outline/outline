@@ -94,6 +94,10 @@ router.get(
       (fileName ? mime.lookup(fileName) : undefined) ||
       "application/octet-stream";
 
+    if (contentType === "application/pdf") {
+      ctx.remove("X-Frame-Options");
+    }
+
     ctx.set("Accept-Ranges", "bytes");
     ctx.set("Access-Control-Allow-Origin", "*");
     ctx.set("Cache-Control", cacheHeader);
