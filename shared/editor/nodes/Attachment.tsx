@@ -42,10 +42,10 @@ export default class Attachment extends Node {
           default: false,
         },
         width: {
-          default: 300,
+          default: null,
         },
         height: {
-          default: 424,
+          default: null,
         },
         contentType: {
           default: null,
@@ -121,7 +121,8 @@ export default class Attachment extends Node {
       </>
     );
 
-    return node.attrs.preview && node.attrs.contentType === "pdf" ? (
+    return node.attrs.preview &&
+      node.attrs.contentType === "application/pdf" ? (
       <PdfViewer
         icon={<FileExtension title={node.attrs.title} />}
         title={node.attrs.title}
@@ -174,7 +175,7 @@ export default class Attachment extends Node {
         }
 
         const accept =
-          node.attrs.contentType === "pdf"
+          node.attrs.contentType === "application/pdf"
             ? ".pdf"
             : node.type.name === "attachment"
               ? "*"

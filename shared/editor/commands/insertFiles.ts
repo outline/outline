@@ -183,8 +183,9 @@ const insertFiles = async function (
                   href: src,
                   title: upload.file.name ?? dictionary.untitled,
                   size: upload.file.size,
+                  contentType: upload.file.type,
                   preview: upload.isPdf,
-                  contentType: upload.isPdf ? "pdf" : null,
+                  ...options.attrs,
                 })
               )
               .setMeta(uploadPlaceholderPlugin, { remove: { id: upload.id } })
