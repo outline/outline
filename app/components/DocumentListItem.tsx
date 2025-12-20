@@ -187,7 +187,7 @@ function DocumentListItem(
             />
           </Actions>
           {document.deletedAt &&
-            document.permanentlyDeletesInDays != null &&
+            document.permanentlyDeletesInDays &&
             document.permanentlyDeletesInDays >= 0 && (
               <Tooltip
                 content={t("Permanently deletes in {{ days }} days", {
@@ -201,7 +201,7 @@ function DocumentListItem(
                   })}
                 </Badge>
               </Tooltip>
-          )}
+            )}
         </DocumentLink>
       </ContextMenu>
     </ActionContextProvider>
