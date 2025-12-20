@@ -24,7 +24,6 @@ import { client } from "~/utils/ApiClient";
 import { settingsPath } from "~/utils/routeHelpers";
 import Collection from "./Collection";
 import type Notification from "./Notification";
-import Pin from "./Pin";
 import type View from "./View";
 import ArchivableModel from "./base/ArchivableModel";
 import Field from "./decorators/Field";
@@ -494,16 +493,11 @@ export default class Document extends ArchivableModel implements Searchable {
   };
 
   @action
-  pin = async (collectionId?: string | null) => {
-    const pin = new Pin({}, this.store.rootStore.pins);
-
-    await pin.save({
+  pin = (collectionId?: string | null) =>
+    this.store.rootStore.pins.create({
       documentId: this.id,
       ...(collectionId ? { collectionId } : {}),
     });
-
-    return pin;
-  };
 
   @action
   unpin = (collectionId?: string) => {
