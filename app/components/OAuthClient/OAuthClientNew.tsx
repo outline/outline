@@ -4,7 +4,8 @@ import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
 import useStores from "~/hooks/useStores";
 import { settingsPath } from "~/utils/routeHelpers";
-import { OAuthClientForm, FormData } from "./OAuthClientForm";
+import type { FormData } from "./OAuthClientForm";
+import { OAuthClientForm } from "./OAuthClientForm";
 
 type Props = {
   onSubmit: () => void;

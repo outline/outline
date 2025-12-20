@@ -2,7 +2,7 @@ import { EditIcon, TrashIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import WebhookSubscription from "~/models/WebhookSubscription";
+import type WebhookSubscription from "~/models/WebhookSubscription";
 import Badge from "~/components/Badge";
 import Button from "~/components/Button";
 import ListItem from "~/components/List/Item";

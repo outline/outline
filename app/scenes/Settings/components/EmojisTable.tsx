@@ -3,7 +3,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import Flex from "@shared/components/Flex";
-import Emoji from "~/models/Emoji";
+import type Emoji from "~/models/Emoji";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import { HEADER_HEIGHT } from "~/components/Header";
 import {

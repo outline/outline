@@ -7,7 +7,7 @@ import { useParams } from "react-router-dom";
 import { toast } from "sonner";
 
 import { OAuthClientValidation } from "@shared/validations";
-import OAuthClient from "~/models/oauth/OAuthClient";
+import type OAuthClient from "~/models/oauth/OAuthClient";
 import Breadcrumb from "~/components/Breadcrumb";
 import Button from "~/components/Button";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
@@ -16,7 +16,7 @@ import Heading from "~/components/Heading";
 import Input from "~/components/Input";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import NudeButton from "~/components/NudeButton";
-import { FormData } from "~/components/OAuthClient/OAuthClientForm";
+import type { FormData } from "~/components/OAuthClient/OAuthClientForm";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Tooltip from "~/components/Tooltip";

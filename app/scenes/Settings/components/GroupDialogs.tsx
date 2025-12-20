@@ -5,7 +5,7 @@ import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import Group from "~/models/Group";
-import User from "~/models/User";
+import type User from "~/models/User";
 import Invite from "~/scenes/Invite";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import Badge from "~/components/Badge";
@@ -28,8 +28,9 @@ import useStores from "~/hooks/useStores";
 import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelect";
 import { GroupPermission } from "@shared/types";
 import { GroupValidation } from "@shared/validations";
-import { EmptySelectValue, Permission } from "~/types";
-import GroupUser from "~/models/GroupUser";
+import type { Permission } from "~/types";
+import { EmptySelectValue } from "~/types";
+import type GroupUser from "~/models/GroupUser";
 import Switch from "~/components/Switch";
 
 type Props = {

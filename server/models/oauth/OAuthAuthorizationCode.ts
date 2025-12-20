@@ -1,5 +1,5 @@
 import { Matches } from "class-validator";
-import { InferAttributes, InferCreationAttributes } from "sequelize";
+import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
   Column,
   DataType,

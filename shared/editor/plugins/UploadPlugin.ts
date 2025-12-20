@@ -1,8 +1,9 @@
-import { Node } from "prosemirror-model";
+import type { Node } from "prosemirror-model";
 import { Plugin } from "prosemirror-state";
 import { getDataTransferFiles, getDataTransferImage } from "../../utils/files";
 import { fileNameFromUrl, isInternalUrl } from "../../utils/urls";
-import insertFiles, { Options } from "../commands/insertFiles";
+import type { Options } from "../commands/insertFiles";
+import insertFiles from "../commands/insertFiles";
 import FileHelper from "../lib/FileHelper";
 
 export class UploadPlugin extends Plugin {

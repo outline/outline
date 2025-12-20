@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { OAuthClientValidation } from "@shared/validations";
-import OAuthClient from "~/models/oauth/OAuthClient";
+import type OAuthClient from "~/models/oauth/OAuthClient";
 import ImageInput from "~/scenes/Settings/components/ImageInput";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";

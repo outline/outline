@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import { EditIcon, GroupIcon, TrashIcon } from "outline-icons";
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import Group from "~/models/Group";
+import type Group from "~/models/Group";
 import {
   DeleteGroupDialog,
   EditGroupDialog,

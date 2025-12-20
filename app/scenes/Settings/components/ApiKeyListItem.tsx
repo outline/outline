@@ -3,7 +3,7 @@ import { CopyIcon } from "outline-icons";
 import { useState, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import ApiKey from "~/models/ApiKey";
+import type ApiKey from "~/models/ApiKey";
 import Button from "~/components/Button";
 import CopyToClipboard from "~/components/CopyToClipboard";
 import Flex from "~/components/Flex";

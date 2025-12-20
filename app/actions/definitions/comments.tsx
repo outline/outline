@@ -1,6 +1,6 @@
 import { DoneIcon, SmileyIcon, TrashIcon } from "outline-icons";
 import { toast } from "sonner";
-import Comment from "~/models/Comment";
+import type Comment from "~/models/Comment";
 import CommentDeleteDialog from "~/components/CommentDeleteDialog";
 import ViewReactionsDialog from "~/components/Reactions/ViewReactionsDialog";
 import { createAction } from "..";

@@ -1,11 +1,13 @@
 import deburr from "lodash/deburr";
 import escapeRegExp from "lodash/escapeRegExp";
 import { observable } from "mobx";
-import { Node } from "prosemirror-model";
-import { Command, Plugin, PluginKey } from "prosemirror-state";
+import type { Node } from "prosemirror-model";
+import type { Command } from "prosemirror-state";
+import { Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import scrollIntoView from "scroll-into-view-if-needed";
-import Extension, { WidgetProps } from "@shared/editor/lib/Extension";
+import type { WidgetProps } from "@shared/editor/lib/Extension";
+import Extension from "@shared/editor/lib/Extension";
 import FindAndReplace from "../components/FindAndReplace";
 
 const pluginKey = new PluginKey("find-and-replace");

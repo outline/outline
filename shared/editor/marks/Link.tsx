@@ -1,14 +1,15 @@
-import { Token } from "markdown-it";
+import type { Token } from "markdown-it";
 import { InputRule } from "prosemirror-inputrules";
-import { MarkdownSerializerState } from "prosemirror-markdown";
-import {
+import type { MarkdownSerializerState } from "prosemirror-markdown";
+import type {
   MarkSpec,
   MarkType,
   Node,
   Mark as ProsemirrorMark,
 } from "prosemirror-model";
-import { Command, EditorState, Plugin, TextSelection } from "prosemirror-state";
-import { EditorView } from "prosemirror-view";
+import type { Command, EditorState } from "prosemirror-state";
+import { Plugin, TextSelection } from "prosemirror-state";
+import type { EditorView } from "prosemirror-view";
 import { toast } from "sonner";
 import { isUrl, sanitizeUrl } from "../../utils/urls";
 import { getMarkRange } from "../queries/getMarkRange";

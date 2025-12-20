@@ -1,4 +1,5 @@
-import Redis, { RedisOptions } from "ioredis";
+import type { RedisOptions } from "ioredis";
+import Redis from "ioredis";
 import defaults from "lodash/defaults";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";

@@ -1,6 +1,8 @@
-import { Token } from "markdown-it";
-import { NodeSpec, Slice } from "prosemirror-model";
-import { EditorState, Plugin, PluginKey } from "prosemirror-state";
+import type { Token } from "markdown-it";
+import type { NodeSpec } from "prosemirror-model";
+import { Slice } from "prosemirror-model";
+import type { EditorState } from "prosemirror-state";
+import { Plugin, PluginKey } from "prosemirror-state";
 import { DecorationSet, Decoration } from "prosemirror-view";
 import { addRowBefore, selectRow, selectTable } from "../commands/table";
 import { getCellAttrs, setCellAttrs } from "../lib/table";

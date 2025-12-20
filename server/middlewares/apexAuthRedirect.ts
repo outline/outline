@@ -1,8 +1,8 @@
-import { Next } from "koa";
+import type { Next } from "koa";
 import { parseDomain } from "@shared/utils/domains";
 import Logger from "@server/logging/Logger";
 import { Team } from "@server/models";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 
 /**
  * An authentication middleware that should be used on routes that return from external auth flows

@@ -1,4 +1,5 @@
-import { Selection, NodeSelection, TextSelection } from "prosemirror-state";
+import type { Selection } from "prosemirror-state";
+import { NodeSelection, TextSelection } from "prosemirror-state";
 import * as React from "react";
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
 import {
@@ -13,7 +14,7 @@ import {
   getRowIndex,
   isTableSelected,
 } from "@shared/editor/queries/table";
-import { MenuItem } from "@shared/editor/types";
+import type { MenuItem } from "@shared/editor/types";
 import useBoolean from "~/hooks/useBoolean";
 import useDictionary from "~/hooks/useDictionary";
 import useEventListener from "~/hooks/useEventListener";

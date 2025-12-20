@@ -3,7 +3,8 @@ import { Op } from "sequelize";
 import Logger from "@server/logging/Logger";
 import { Event } from "@server/models";
 import { TaskPriority } from "./base/BaseTask";
-import { CronTask, Props, TaskInterval } from "./base/CronTask";
+import type { Props } from "./base/CronTask";
+import { CronTask, TaskInterval } from "./base/CronTask";
 import { Minute } from "@shared/utils/time";
 
 export default class CleanupOldEventsTask extends CronTask {

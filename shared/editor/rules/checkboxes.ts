@@ -1,4 +1,5 @@
-import MarkdownIt, { Token } from "markdown-it";
+import type { Token } from "markdown-it";
+import type MarkdownIt from "markdown-it";
 
 const CHECKBOX_REGEX = /\[(X|\s|_|-)\]\s(.*)?/i;
 

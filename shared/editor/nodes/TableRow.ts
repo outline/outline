@@ -1,4 +1,4 @@
-import { NodeSpec } from "prosemirror-model";
+import type { NodeSpec } from "prosemirror-model";
 import Node from "./Node";
 
 export default class TableRow extends Node {

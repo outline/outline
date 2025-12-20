@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import OAuthClient from "~/models/oauth/OAuthClient";
+import type OAuthClient from "~/models/oauth/OAuthClient";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 
 type Props = {

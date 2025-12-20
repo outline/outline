@@ -43,7 +43,7 @@ import {
   presentComment,
 } from "@server/presenters";
 import { BaseTask } from "@server/queues/tasks/base/BaseTask";
-import {
+import type {
   CollectionEvent,
   CollectionGroupEvent,
   CollectionUserEvent,
@@ -67,7 +67,8 @@ import {
   WebhookSubscriptionEvent,
 } from "@server/types";
 import fetch from "@server/utils/fetch";
-import presentWebhook, { WebhookPayload } from "../presenters/webhook";
+import type { WebhookPayload } from "../presenters/webhook";
+import presentWebhook from "../presenters/webhook";
 import presentWebhookSubscription from "../presenters/webhookSubscription";
 
 function assertUnreachable(event: never) {

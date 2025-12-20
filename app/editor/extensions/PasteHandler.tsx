@@ -1,15 +1,13 @@
 import { action, observable } from "mobx";
 import { v4 as uuidv4 } from "uuid";
 import { toggleMark } from "prosemirror-commands";
-import { Node, Slice } from "prosemirror-model";
-import {
-  EditorState,
-  Plugin,
-  PluginKey,
-  TextSelection,
-} from "prosemirror-state";
+import type { Node } from "prosemirror-model";
+import { Slice } from "prosemirror-model";
+import type { EditorState } from "prosemirror-state";
+import { Plugin, PluginKey, TextSelection } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import Extension, { WidgetProps } from "@shared/editor/lib/Extension";
+import type { WidgetProps } from "@shared/editor/lib/Extension";
+import Extension from "@shared/editor/lib/Extension";
 import { codeLanguages } from "@shared/editor/lib/code";
 import isMarkdown from "@shared/editor/lib/isMarkdown";
 import normalizePastedMarkdown from "@shared/editor/lib/markdown/normalize";
@@ -17,7 +15,7 @@ import { isRemoteTransaction } from "@shared/editor/lib/multiplayer";
 import { recreateTransform } from "@shared/editor/lib/prosemirror-recreate-transform";
 import { isInCode } from "@shared/editor/queries/isInCode";
 import { isList } from "@shared/editor/queries/isList";
-import { MenuItem } from "@shared/editor/types";
+import type { MenuItem } from "@shared/editor/types";
 import { IconType, MentionType } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
 import parseCollectionSlug from "@shared/utils/parseCollectionSlug";

@@ -1,9 +1,10 @@
 import { QueryTypes } from "sequelize";
 import { SubscriptionType } from "@shared/types";
 import { createContext } from "@server/context";
-import { Subscription, Document, Event } from "@server/models";
+import type { Document } from "@server/models";
+import { Subscription, Event } from "@server/models";
 import { sequelize } from "@server/storage/database";
-import { APIContext, DocumentEvent, RevisionEvent } from "@server/types";
+import type { APIContext, DocumentEvent, RevisionEvent } from "@server/types";
 
 type Props = {
   /** The request context, which also contains the user creating the subscription */

@@ -5,7 +5,8 @@ import { Minute } from "@shared/utils/time";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { TaskPriority } from "./base/BaseTask";
-import { CronTask, PartitionInfo, Props, TaskInterval } from "./base/CronTask";
+import type { PartitionInfo, Props } from "./base/CronTask";
+import { CronTask, TaskInterval } from "./base/CronTask";
 import { sequelize, sequelizeReadOnly } from "@server/storage/database";
 
 /**

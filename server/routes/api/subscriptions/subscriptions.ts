@@ -1,5 +1,6 @@
 import Router from "koa-router";
-import { Transaction, WhereOptions } from "sequelize";
+import type { WhereOptions } from "sequelize";
+import { Transaction } from "sequelize";
 import { QueryNotices } from "@shared/types";
 import subscriptionCreator from "@server/commands/subscriptionCreator";
 import { createContext } from "@server/context";
@@ -12,7 +13,7 @@ import { Subscription, Document, User, Collection } from "@server/models";
 import SubscriptionHelper from "@server/models/helpers/SubscriptionHelper";
 import { authorize } from "@server/policies";
 import { presentSubscription } from "@server/presenters";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";

@@ -11,9 +11,11 @@ import isNil from "lodash/isNil";
 import remove from "lodash/remove";
 import uniq from "lodash/uniq";
 import mime from "mime-types";
-import { Op, Order, ScopeOptions, Sequelize, WhereOptions } from "sequelize";
+import type { Order, ScopeOptions, WhereOptions } from "sequelize";
+import { Op, Sequelize } from "sequelize";
 import { randomUUID } from "crypto";
-import { NavigationNode, StatusFilter, UserRole } from "@shared/types";
+import type { NavigationNode } from "@shared/types";
+import { StatusFilter, UserRole } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import slugify from "@shared/utils/slugify";
 import documentCreator from "@server/commands/documentCreator";
@@ -65,12 +67,11 @@ import {
   presentGroupMembership,
   presentGroup,
 } from "@server/presenters";
-import DocumentImportTask, {
-  DocumentImportTaskResponse,
-} from "@server/queues/tasks/DocumentImportTask";
+import type { DocumentImportTaskResponse } from "@server/queues/tasks/DocumentImportTask";
+import DocumentImportTask from "@server/queues/tasks/DocumentImportTask";
 import EmptyTrashTask from "@server/queues/tasks/EmptyTrashTask";
 import FileStorage from "@server/storage/files";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import ZipHelper from "@server/utils/ZipHelper";
 import { getTeamFromContext } from "@server/utils/passport";

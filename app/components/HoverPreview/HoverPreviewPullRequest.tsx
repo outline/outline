@@ -3,7 +3,7 @@ import { Trans } from "react-i18next";
 import styled from "styled-components";
 import { Backticks } from "@shared/components/Backticks";
 import { PullRequestIcon } from "@shared/components/PullRequestIcon";
-import { UnfurlResourceType, UnfurlResponse } from "@shared/types";
+import type { UnfurlResourceType, UnfurlResponse } from "@shared/types";
 import { Avatar } from "~/components/Avatar";
 import Flex from "~/components/Flex";
 import Text from "../Text";

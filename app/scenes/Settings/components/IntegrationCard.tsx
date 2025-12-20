@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { s, ellipsis } from "@shared/styles";
-import { ConfigItem } from "~/hooks/useSettingsConfig";
+import type { ConfigItem } from "~/hooks/useSettingsConfig";
 import Button from "../../../components/Button";
 import Flex from "../../../components/Flex";
 import Text from "../../../components/Text";

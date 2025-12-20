@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import Model from "~/models/base/Model";
+import type Model from "~/models/base/Model";
 import useCurrentUser from "./useCurrentUser";
 import useStores from "./useStores";
 
