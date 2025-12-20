@@ -67,7 +67,7 @@ const Embed = (props: Props) => {
 
 const InnerEmbed = React.forwardRef<HTMLIFrameElement, Props>(
   function InnerEmbed_(
-    { isEditable, isSelected, theme, node, embeds, embedsDisabled, style },
+    { isEditable, isSelected, node, embeds, embedsDisabled, style },
     ref
   ) {
     const cache = React.useMemo(
@@ -88,7 +88,6 @@ const InnerEmbed = React.forwardRef<HTMLIFrameElement, Props>(
           embed={embed}
           isEditable={isEditable}
           isSelected={isSelected}
-          theme={theme}
         />
       );
     }
@@ -120,7 +119,6 @@ const InnerEmbed = React.forwardRef<HTMLIFrameElement, Props>(
           isEditable={isEditable}
           isSelected={isSelected}
           embed={embed}
-          theme={theme}
         />
       );
     }
