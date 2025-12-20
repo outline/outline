@@ -112,9 +112,23 @@ export default class Attachment extends Node {
     };
 
   component = (props: ComponentProps) => {
-    const { isSelected, isEditable, theme, node } = props;
+    const { isSelected, isEditable, node } = props;
+    const context = node.attrs.href ? (
+      bytesToHumanReadable(node.attrs.size || "0")
+    ) : (
+      <>
+        <Trans>Uploading</Trans>…
+      </>
+    );
+
     return node.attrs.preview && node.attrs.contentType === "pdf" ? (
-      <PdfViewer {...props} onChangeSize={this.handleChangeSize(props)} />
+      <PdfViewer
+        icon={<FileExtension title={node.attrs.title} />}
+        title={node.attrs.title}
+        context={context}
+        onChangeSize={this.handleChangeSize(props)}
+        {...props}
+      />
     ) : (
       <Widget
         icon={<FileExtension title={node.attrs.title} />}
@@ -130,17 +144,8 @@ export default class Attachment extends Node {
             event.stopPropagation();
           }
         }}
-        context={
-          node.attrs.href ? (
-            bytesToHumanReadable(node.attrs.size || "0")
-          ) : (
-            <>
-              <Trans>Uploading</Trans>…
-            </>
-          )
-        }
+        context={context}
         isSelected={isSelected}
-        theme={theme}
       >
         {node.attrs.href && !isEditable && <DownloadIcon size={20} />}
       </Widget>

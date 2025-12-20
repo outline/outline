@@ -1,7 +1,8 @@
 import * as React from "react";
-import styled, { css, DefaultTheme, ThemeProps } from "styled-components";
+import styled, { css } from "styled-components";
 import { s } from "../../styles";
 import { sanitizeUrl } from "../../utils/urls";
+import Flex from "../../components/Flex";
 
 type Props = {
   /** Icon to display on the left side of the widget */
@@ -24,7 +25,7 @@ type Props = {
   onClick?: React.MouseEventHandler<HTMLAnchorElement>;
 };
 
-export default function Widget(props: Props & ThemeProps<DefaultTheme>) {
+export default function Widget(props: Props) {
   const className = props.isSelected
     ? "ProseMirror-selectednode widget"
     : "widget";
@@ -59,25 +60,32 @@ const Children = styled.div`
   }
 `;
 
-const Title = styled.strong`
+export const Title = styled.strong`
   font-weight: 500;
   font-size: 14px;
+  line-height: 28px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
   color: ${s("text")};
 `;
 
-const Preview = styled.div`
-  gap: 8px;
-  display: flex;
-  flex-direction: row;
+export const Preview = styled(Flex).attrs({
+  gap: 8,
+  align: "center",
+})`
   flex-grow: 1;
-  align-items: center;
   color: ${s("textTertiary")};
 `;
 
-const Subtitle = styled.span`
+export const Subtitle = styled.span`
   font-size: 13px;
+  line-height: 28px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  flex-shrink: 0;
   color: ${s("textTertiary")} !important;
-  line-height: 0;
 `;
 
 const Wrapper = styled.a`
@@ -91,7 +99,7 @@ const Wrapper = styled.a`
   border-radius: 8px;
   padding: 6px 8px;
   max-width: 840px;
-  cursor: default;
+  cursor: var(--pointer);
 
   user-select: none;
   text-overflow: ellipsis;

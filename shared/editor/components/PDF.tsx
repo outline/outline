@@ -3,9 +3,18 @@ import styled from "styled-components";
 import useDragResize from "./hooks/useDragResize";
 import { ResizeLeft, ResizeRight } from "./ResizeHandle";
 import { ComponentProps } from "../types";
-import { isFirefox } from "@shared/utils/browser";
+import { isFirefox } from "../../utils/browser";
+import Flex from "../../components/Flex";
+import { s } from "../../styles";
+import { Preview, Subtitle, Title } from "./Widget";
 
 type Props = ComponentProps & {
+  /** Icon to display on the left side of the widget */
+  icon: React.ReactNode;
+  /** Title of the widget */
+  title: React.ReactNode;
+  /** Context, displayed to right of title */
+  context?: React.ReactNode;
   /** Callback triggered when the pdf is resized */
   onChangeSize?: (props: { width: number; height?: number }) => void;
 };
@@ -13,7 +22,7 @@ type Props = ComponentProps & {
 export default function PdfViewer(props: Props) {
   const { node, isEditable, onChangeSize, isSelected } = props;
   const { href, name } = node.attrs;
-  const ref = useRef<HTMLEmbedElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
   const embedRef = useRef<HTMLEmbedElement>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -43,15 +52,19 @@ export default function PdfViewer(props: Props) {
   useEffect(() => {
     // firefox handles resizing on its own
     // and forced reload causes the parent to collapse while resizing
-    if (isFirefox()) {
+    if (isFirefox() || !ref.current) {
       return;
     }
 
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
+    const observer = new ResizeObserver(() => {
+      if (dragging) {
+        return;
+      }
 
-    if (!dragging && embedRef.current) {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+
       debounceTimerRef.current = setTimeout(() => {
         if (embedRef.current) {
           embedRef.current.src = "";
@@ -61,15 +74,18 @@ export default function PdfViewer(props: Props) {
             }
           });
         }
-      }, 500);
-    }
+      }, 250);
+    });
+
+    observer.observe(ref.current);
 
     return () => {
+      observer.disconnect();
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
       }
     };
-  });
+  }, [dragging, href]);
 
   return (
     <PDFWrapper
@@ -83,6 +99,13 @@ export default function PdfViewer(props: Props) {
       style={{ width: width ?? "auto" }}
       $dragging={dragging}
     >
+      <Flex gap={6} align="center">
+        {props.icon}
+        <Preview>
+          <Title>{props.title}</Title>
+          <Subtitle>{props.context}</Subtitle>
+        </Preview>
+      </Flex>
       <embed
         title={name}
         src={href}
@@ -92,6 +115,7 @@ export default function PdfViewer(props: Props) {
         height={height}
         style={{
           pointerEvents: isSelected && !dragging ? "initial" : "none",
+          marginTop: 6,
         }}
       />
       {isEditable && !!props.onChangeSize && (
@@ -121,6 +145,10 @@ const PDFWrapper = styled.div<{ $dragging: boolean }>`
   transition-timing-function: ease-in-out;
   overflow: hidden;
   will-change: ${(props) => (props.$dragging ? "width, height" : "auto")};
+  box-shadow: 0 0 0 1px ${s("divider")};
+  border-radius: 8px;
+  padding: 6px 8px;
+  cursor: var(--pointer);
 
   embed {
     transition-property: width, height;
