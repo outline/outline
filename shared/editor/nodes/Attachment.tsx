@@ -112,6 +112,7 @@ export default class Attachment extends Node {
     };
 
   component = (props: ComponentProps) => {
+    const { embedsDisabled } = this.editor.props;
     const { isSelected, isEditable, node } = props;
     const context = node.attrs.href ? (
       bytesToHumanReadable(node.attrs.size || "0")
@@ -122,6 +123,7 @@ export default class Attachment extends Node {
     );
 
     return node.attrs.preview &&
+      !embedsDisabled &&
       node.attrs.contentType === "application/pdf" ? (
       <PdfViewer
         icon={<FileExtension title={node.attrs.title} />}
