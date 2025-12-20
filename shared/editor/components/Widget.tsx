@@ -3,6 +3,7 @@ import styled, { css } from "styled-components";
 import { s } from "../../styles";
 import { sanitizeUrl } from "../../utils/urls";
 import Flex from "../../components/Flex";
+import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 
 type Props = {
   /** Icon to display on the left side of the widget */
@@ -67,6 +68,7 @@ export const Title = styled.strong`
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
+  user-select: none;
   color: ${s("text")};
 `;
 
@@ -85,6 +87,7 @@ export const Subtitle = styled.span`
   overflow: hidden;
   white-space: nowrap;
   flex-shrink: 0;
+  user-select: none;
   color: ${s("textTertiary")} !important;
 `;
 
@@ -96,8 +99,8 @@ const Wrapper = styled.a`
   color: ${s("text")} !important;
   box-shadow: 0 0 0 1px ${s("divider")};
   white-space: nowrap;
-  border-radius: 8px;
-  padding: 6px 8px;
+  border-radius: ${EditorStyleHelper.blockRadius};
+  padding: ${EditorStyleHelper.blockRadius};
   max-width: 840px;
   cursor: var(--pointer);
 

@@ -7,6 +7,7 @@ import { isFirefox } from "../../utils/browser";
 import Flex from "../../components/Flex";
 import { s } from "../../styles";
 import { Preview, Subtitle, Title } from "./Widget";
+import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 
 type Props = ComponentProps & {
   /** Icon to display on the left side of the widget */
@@ -114,7 +115,8 @@ export default function PdfViewer(props: Props) {
         width={width}
         height={height}
         style={{
-          pointerEvents: isSelected && !dragging ? "initial" : "none",
+          pointerEvents:
+            !isEditable || (isSelected && !dragging) ? "initial" : "none",
           marginTop: 6,
         }}
       />
@@ -146,9 +148,8 @@ const PDFWrapper = styled.div<{ $dragging: boolean }>`
   overflow: hidden;
   will-change: ${(props) => (props.$dragging ? "width, height" : "auto")};
   box-shadow: 0 0 0 1px ${s("divider")};
-  border-radius: 8px;
-  padding: 6px 8px;
-  cursor: var(--pointer);
+  border-radius: ${EditorStyleHelper.blockRadius};
+  padding: ${EditorStyleHelper.blockRadius};
 
   embed {
     transition-property: width, height;
