@@ -10,7 +10,9 @@ const getBucketOrigin = () => {
   }
 
   const url = env.AWS_S3_UPLOAD_BUCKET_URL || "";
-  if (!url) {return "";}
+  if (!url) {
+    return;
+  }
 
   try {
     const parsedUrl = new URL(url);
@@ -27,7 +29,7 @@ const getBucketOrigin = () => {
 
     return parsedUrl.origin;
   } catch {
-    return "";
+    return;
   }
 };
 
@@ -39,7 +41,7 @@ export default function createCSPMiddleware() {
   const defaultSrc: string[] = ["'self'"];
   const scriptSrc: string[] = [];
   const styleSrc: string[] = ["'self'", "'unsafe-inline'"];
-  const bucketOrigin = getBucketOrigin() || "";
+  const objectSrc: string[] = [env.URL, "'self'"];
 
   if (env.isCloudHosted) {
     scriptSrc.push("www.googletagmanager.com");
@@ -66,6 +68,11 @@ export default function createCSPMiddleware() {
     defaultSrc.push(env.CDN_URL);
   }
 
+  const bucketOrigin = getBucketOrigin();
+  if (bucketOrigin) {
+    objectSrc.push(bucketOrigin);
+  }
+
   return function cspMiddleware(ctx: Context, next: Next) {
     ctx.state.cspNonce = crypto.randomBytes(16).toString("hex");
 
@@ -83,7 +90,7 @@ export default function createCSPMiddleware() {
         mediaSrc: ["*", "data:", "blob:"],
         imgSrc: ["*", "data:", "blob:"],
         frameSrc: ["*", "data:"],
-        objectSrc: [bucketOrigin, "https://docs.google.com/viewer", "'self'"],
+        objectSrc,
         // Do not use connect-src: because self + websockets does not work in
         // Safari, ref: https://bugs.webkit.org/show_bug.cgi?id=201591
         connectSrc: ["*"],

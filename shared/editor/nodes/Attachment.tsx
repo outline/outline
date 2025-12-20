@@ -2,7 +2,6 @@ import { Token } from "markdown-it";
 import { DownloadIcon } from "outline-icons";
 import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
 import { Command, NodeSelection } from "prosemirror-state";
-import * as React from "react";
 import { Trans } from "react-i18next";
 import { Primitive } from "utility-types";
 import { bytesToHumanReadable, getEventFiles } from "../../utils/files";
@@ -99,19 +98,17 @@ export default class Attachment extends Node {
         return;
       }
 
-      const { view } = this.editor;
-      const { tr, doc } = view.state;
+      const { view, commands } = this.editor;
+      const { doc, tr } = view.state;
 
       const pos = getPos();
-      const transaction = tr
-        .setNodeMarkup(pos, undefined, {
-          ...node.attrs,
-          width,
-          height,
-        })
-        .setMeta("addToHistory", true);
-      const $pos = doc.resolve(getPos());
-      view.dispatch(transaction.setSelection(new NodeSelection($pos)));
+      const $pos = doc.resolve(pos);
+
+      view.dispatch(tr.setSelection(new NodeSelection($pos)));
+      commands["resizeAttachment"]({
+        width,
+        height: height || node.attrs.height,
+      });
     };
 
   component = (props: ComponentProps) => {
