@@ -3,7 +3,7 @@ import { useEffect, useRef, Fragment } from "react";
 import { Trans } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import styled from "styled-components";
-import Document from "~/models/Document";
+import type Document from "~/models/Document";
 import Fade from "~/components/Fade";
 import { determineSidebarContext } from "~/components/Sidebar/components/SidebarContext";
 import Tab from "~/components/Tab";

@@ -8,7 +8,7 @@ import { Group, User } from "@server/models";
 import SearchHelper from "@server/models/helpers/SearchHelper";
 import { can } from "@server/policies";
 import { presentDocument, presentGroup, presentUser } from "@server/presenters";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 

@@ -1,8 +1,10 @@
 import { differenceInMinutes, formatDistanceToNowStrict } from "date-fns";
 import { t } from "i18next";
-import { UnfurlResourceType, UnfurlResponse } from "@shared/types";
+import type { UnfurlResponse } from "@shared/types";
+import { UnfurlResourceType } from "@shared/types";
 import { dateLocale } from "@shared/utils/date";
-import { Document, User, View, Group } from "@server/models";
+import type { Document, User, Group } from "@server/models";
+import { View } from "@server/models";
 import { opts } from "@server/utils/i18n";
 
 async function presentUnfurl(

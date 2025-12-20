@@ -1,4 +1,4 @@
-import { NavigationNode } from "../types";
+import type { NavigationNode } from "../types";
 import * as React from "react";
 
 type ShareContextType = {

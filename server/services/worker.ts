@@ -3,7 +3,7 @@ import Logger from "@server/logging/Logger";
 import { setResource, addTags } from "@server/logging/tracer";
 import { traceFunction } from "@server/logging/tracing";
 import HealthMonitor from "@server/queues/HealthMonitor";
-import { Event } from "@server/types";
+import type { Event } from "@server/types";
 import { initI18n } from "@server/utils/i18n";
 import {
   globalEventQueue,

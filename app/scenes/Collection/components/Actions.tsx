@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import { EditIcon, PlusIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import Collection from "~/models/Collection";
+import type Collection from "~/models/Collection";
 import { Action, Separator } from "~/components/Actions";
 import Button from "~/components/Button";
 import Tooltip from "~/components/Tooltip";
@@ -14,7 +14,7 @@ import {
   newDocumentPath,
 } from "~/utils/routeHelpers";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import { SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
+import type { SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
 import { CollectionTab } from "./Navigation";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 import history from "~/utils/history";

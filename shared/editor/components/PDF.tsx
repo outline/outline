@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react";
 import styled from "styled-components";
 import useDragResize from "./hooks/useDragResize";
 import { ResizeLeft, ResizeRight } from "./ResizeHandle";
-import { ComponentProps } from "../types";
+import type { ComponentProps } from "../types";
 import { isFirefox } from "../../utils/browser";
 import Flex from "../../components/Flex";
 import { s } from "../../styles";

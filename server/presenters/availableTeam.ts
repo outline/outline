@@ -1,4 +1,4 @@
-import { Team } from "@server/models";
+import type { Team } from "@server/models";
 
 export default function presentAvailableTeam(team: Team, isSignedIn = false) {
   return {

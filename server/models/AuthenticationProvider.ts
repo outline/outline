@@ -1,4 +1,5 @@
-import { InferAttributes, InferCreationAttributes, Op } from "sequelize";
+import type { InferAttributes, InferCreationAttributes } from "sequelize";
+import { Op } from "sequelize";
 import {
   BelongsTo,
   Column,
@@ -23,7 +24,7 @@ import Length from "./validators/Length";
 import AzureClient from "plugins/azure/server/azure";
 import GoogleClient from "plugins/google/server/google";
 import OIDCClient from "plugins/oidc/server/oidc";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 
 @Scopes(() => ({
   withUserAuthentication: (userId: string) => ({

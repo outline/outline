@@ -1,18 +1,23 @@
-import { Token } from "markdown-it";
+import type { Token } from "markdown-it";
 import { DownloadIcon } from "outline-icons";
-import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
-import { Command, NodeSelection } from "prosemirror-state";
+import type {
+  NodeSpec,
+  NodeType,
+  Node as ProsemirrorNode,
+} from "prosemirror-model";
+import type { Command } from "prosemirror-state";
+import { NodeSelection } from "prosemirror-state";
 import { Trans } from "react-i18next";
-import { Primitive } from "utility-types";
+import type { Primitive } from "utility-types";
 import { bytesToHumanReadable, getEventFiles } from "../../utils/files";
 import { sanitizeUrl } from "../../utils/urls";
 import insertFiles from "../commands/insertFiles";
 import toggleWrap from "../commands/toggleWrap";
 import FileExtension from "../components/FileExtension";
 import Widget from "../components/Widget";
-import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import attachmentsRule from "../rules/links";
-import { ComponentProps } from "../types";
+import type { ComponentProps } from "../types";
 import Node from "./Node";
 import PdfViewer from "../components/PDF";
 

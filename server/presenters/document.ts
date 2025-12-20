@@ -1,8 +1,8 @@
 import { Hour } from "@shared/utils/time";
 import { traceFunction } from "@server/logging/tracing";
-import { Document } from "@server/models";
+import type { Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import presentUser from "./user";
 
 type Options = {

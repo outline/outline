@@ -1,6 +1,6 @@
 import { addMinutes, subMinutes } from "date-fns";
 import invariant from "invariant";
-import {
+import type {
   InferAttributes,
   InferCreationAttributes,
   SaveOptions,

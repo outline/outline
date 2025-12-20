@@ -1,7 +1,7 @@
 import { ArchiveIcon, CheckmarkIcon, MarkAsReadIcon } from "outline-icons";
 import { createAction } from "..";
 import { NotificationSection } from "../sections";
-import Notification from "~/models/Notification";
+import type Notification from "~/models/Notification";
 
 export const markNotificationsAsRead = createAction({
   name: ({ t }) => t("Mark notifications as read"),

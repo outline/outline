@@ -2,10 +2,11 @@ import { faker } from "@faker-js/faker";
 import isNil from "lodash/isNil";
 import isNull from "lodash/isNull";
 import { Node } from "prosemirror-model";
-import { InferCreationAttributes } from "sequelize";
-import { DeepPartial } from "utility-types";
+import type { InferCreationAttributes } from "sequelize";
+import type { DeepPartial } from "utility-types";
 import { randomUUID } from "crypto";
 import { randomString } from "@shared/random";
+import type { ProsemirrorData, ReactionSummary } from "@shared/types";
 import {
   CollectionPermission,
   FileOperationState,
@@ -14,12 +15,11 @@ import {
   IntegrationService,
   IntegrationType,
   NotificationEventType,
-  ProsemirrorData,
-  ReactionSummary,
   SubscriptionType,
   UserRole,
 } from "@shared/types";
 import { parser, schema } from "@server/editor";
+import type { AuthenticationProvider } from "@server/models";
 import {
   Share,
   Team,
@@ -46,7 +46,6 @@ import {
   Import,
   OAuthAuthorizationCode,
   OAuthClient,
-  AuthenticationProvider,
   OAuthAuthentication,
   Relationship,
 } from "@server/models";

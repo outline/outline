@@ -4,7 +4,7 @@ import { ArchiveIcon } from "outline-icons";
 import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import Flex from "@shared/components/Flex";
-import Collection from "~/models/Collection";
+import type Collection from "~/models/Collection";
 import PaginatedList from "~/components/PaginatedList";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";

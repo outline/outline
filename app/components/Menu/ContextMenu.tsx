@@ -2,7 +2,7 @@ import * as React from "react";
 import { actionToMenuItem } from "~/actions";
 import useActionContext from "~/hooks/useActionContext";
 import useMobile from "~/hooks/useMobile";
-import { ActionVariant, ActionWithChildren } from "~/types";
+import type { ActionVariant, ActionWithChildren } from "~/types";
 import { toMenuItems } from "./transformer";
 import { observer } from "mobx-react";
 import { useComputed } from "~/hooks/useComputed";

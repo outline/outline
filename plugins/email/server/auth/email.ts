@@ -10,7 +10,7 @@ import Logger from "@server/logging/Logger";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import validate from "@server/middlewares/validate";
 import { User, Team } from "@server/models";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { VerificationCode } from "@server/utils/VerificationCode";
 import { signIn } from "@server/utils/authentication";

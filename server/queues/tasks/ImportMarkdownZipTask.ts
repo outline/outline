@@ -6,11 +6,14 @@ import { randomUUID } from "crypto";
 import documentImporter from "@server/commands/documentImporter";
 import { createContext } from "@server/context";
 import Logger from "@server/logging/Logger";
-import { FileOperation, User } from "@server/models";
+import type { FileOperation } from "@server/models";
+import { User } from "@server/models";
 import { Buckets } from "@server/models/helpers/AttachmentHelper";
 import { sequelize } from "@server/storage/database";
-import ImportHelper, { FileTreeNode } from "@server/utils/ImportHelper";
-import ImportTask, { StructuredImportData } from "./ImportTask";
+import type { FileTreeNode } from "@server/utils/ImportHelper";
+import ImportHelper from "@server/utils/ImportHelper";
+import type { StructuredImportData } from "./ImportTask";
+import ImportTask from "./ImportTask";
 
 export default class ImportMarkdownZipTask extends ImportTask {
   public async parseData(

@@ -1,4 +1,5 @@
-import { CustomTheme, TeamPreference } from "@shared/types";
+import type { CustomTheme } from "@shared/types";
+import { TeamPreference } from "@shared/types";
 import { buildTeam, buildUser } from "@server/test/factories";
 import { withAPIContext } from "@server/test/support";
 import teamUpdater from "./teamUpdater";

@@ -1,4 +1,5 @@
-import { EditorState, Plugin } from "prosemirror-state";
+import type { EditorState } from "prosemirror-state";
+import { Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import * as React from "react";
 import ReactDOM from "react-dom";

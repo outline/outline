@@ -1,4 +1,4 @@
-import { Emoji } from "@server/models";
+import type { Emoji } from "@server/models";
 import presentUser from "./user";
 
 export default function present(emoji: Emoji) {

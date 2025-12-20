@@ -1,10 +1,10 @@
 import crypto from "crypto";
-import {
+import type {
   RefreshTokenModel,
   AuthorizationCodeModel,
   User as OAuthUser,
 } from "@node-oauth/oauth2-server";
-import { Required } from "utility-types";
+import type { Required } from "utility-types";
 import { Scope } from "@shared/types";
 import { isUrl } from "@shared/utils/urls";
 import {

@@ -1,6 +1,6 @@
 import { Op } from "sequelize";
 import { GroupUser } from "@server/models";
-import { DocumentGroupEvent, DocumentUserEvent } from "@server/types";
+import type { DocumentGroupEvent, DocumentUserEvent } from "@server/types";
 import { BaseTask, TaskPriority } from "./base/BaseTask";
 import DocumentAddUserNotificationsTask from "./DocumentAddUserNotificationsTask";
 

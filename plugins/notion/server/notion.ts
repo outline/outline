@@ -7,7 +7,7 @@ import {
   isFullUser,
   RequestTimeoutError,
 } from "@notionhq/client";
-import {
+import type {
   BlockObjectResponse,
   DatabaseObjectResponse,
   PageObjectResponse,
@@ -23,7 +23,8 @@ import { isUrl } from "@shared/utils/urls";
 import { CollectionValidation, DocumentValidation } from "@shared/validations";
 import Logger from "@server/logging/Logger";
 import { NotionUtils } from "../shared/NotionUtils";
-import { Block, Page, PageType } from "../shared/types";
+import type { Block, Page } from "../shared/types";
+import { PageType } from "../shared/types";
 import env from "./env";
 
 type PageInfo = {

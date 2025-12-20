@@ -11,7 +11,7 @@ import {
   UserRole,
 } from "@shared/types";
 import type { NotificationSettings } from "@shared/types";
-import { locales } from "@shared/utils/date";
+import type { locales } from "@shared/utils/date";
 import { client } from "~/utils/ApiClient";
 import type Document from "./Document";
 import type Group from "./Group";
