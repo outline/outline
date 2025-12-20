@@ -1523,7 +1523,6 @@ router.post(
     const acl = "private";
 
     const key = AttachmentHelper.getKey({
-      acl,
       id: randomUUID(),
       name: fileName,
       userId: user.id,

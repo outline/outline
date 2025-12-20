@@ -121,7 +121,6 @@ router.post(
     const modelId = randomUUID();
     const acl = AttachmentHelper.presetToAcl(preset);
     const key = AttachmentHelper.getKey({
-      acl,
       id: modelId,
       name,
       userId: user.id,
@@ -193,7 +192,6 @@ router.post(
     const modelId = randomUUID();
     const acl = AttachmentHelper.presetToAcl(preset);
     const key = AttachmentHelper.getKey({
-      acl,
       id: modelId,
       name,
       userId: user.id,

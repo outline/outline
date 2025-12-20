@@ -47,7 +47,6 @@ export default async function attachmentCreator({
 }: Props): Promise<Attachment | undefined> {
   const acl = AttachmentHelper.presetToAcl(preset);
   const key = AttachmentHelper.getKey({
-    acl,
     id: randomUUID(),
     name,
     userId: user.id,
