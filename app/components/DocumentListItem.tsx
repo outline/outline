@@ -186,19 +186,21 @@ function DocumentListItem(
               onClose={handleMenuClose}
             />
           </Actions>
-          {document.deletedAt && (
-            <Tooltip
-              content={t("Permanently deletes in {{ days }} days", {
-                days: document.permanentlyDeletesInDays,
-              })}
-              placement="bottom"
-            >
-              <Badge>
-                {t("{{ days }} days", {
+          {document.deletedAt &&
+            document.permanentlyDeletesInDays != null &&
+            document.permanentlyDeletesInDays >= 0 && (
+              <Tooltip
+                content={t("Permanently deletes in {{ days }} days", {
                   days: document.permanentlyDeletesInDays,
                 })}
-              </Badge>
-            </Tooltip>
+                placement="bottom"
+              >
+                <Badge>
+                  {t("{{ days }} days", {
+                    days: document.permanentlyDeletesInDays,
+                  })}
+                </Badge>
+              </Tooltip>
           )}
         </DocumentLink>
       </ContextMenu>
