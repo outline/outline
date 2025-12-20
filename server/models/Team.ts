@@ -493,14 +493,18 @@ class Team extends ParanoidModel<
           [
             Sequelize.fn(
               "DISTINCT",
-              Sequelize.literal(`(preferences->>'${preference}')::int`)
+              Sequelize.literal("(preferences->> :preference)::int")
             ),
             "value",
           ],
         ],
         where: Sequelize.literal(
-          `preferences->>'${preference}' IS NOT NULL AND (preferences->>'${preference}')::int != ${defaultValue}`
+          "preferences->> :preference IS NOT NULL AND (preferences->> :preference)::int != :defaultValue"
         ),
+        replacements: {
+          preference,
+          defaultValue,
+        },
         raw: true,
       });
 

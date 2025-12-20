@@ -40,7 +40,7 @@ export default class ExpireDocumentsInTrashTask extends CronTask {
       partition: props.partition,
     });
 
-    Logger.info(
+    Logger.debug(
       "task",
       `Scheduled ${customRetentionPeriods.length + 1} tranches for marking documents for permanent deletion`
     );

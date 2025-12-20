@@ -4,7 +4,7 @@ import Logger from "@server/logging/Logger";
 import { Document } from "@server/models";
 import { TeamPreferenceDefaults } from "@shared/constants";
 import { TeamPreference } from "@shared/types";
-import type { PartitionInfo} from "./base/BaseTask";
+import type { PartitionInfo } from "./base/BaseTask";
 import { BaseTask, TaskPriority } from "./base/BaseTask";
 
 export type Props = {
@@ -25,7 +25,7 @@ export default class ExpireDocumentsInTrashByRetentionTask extends BaseTask<Prop
     ] as number;
     const isDefault = retentionDays === defaultTrashRetentionDays;
 
-    Logger.info(
+    Logger.debug(
       "task",
       `Marking documents past ${retentionDays} day trash timeout as pending permanent deletion…`
     );

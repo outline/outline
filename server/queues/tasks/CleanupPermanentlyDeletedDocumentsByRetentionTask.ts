@@ -27,7 +27,7 @@ export default class CleanupPermanentlyDeletedDocumentsByRetentionTask extends B
     ] as number;
     const isDefault = retentionDays === defaultRetentionDays;
 
-    Logger.info(
+    Logger.debug(
       "task",
       `Permanently destroying upto ${limit} documents past ${retentionDays} day retention timeout…`
     );
@@ -46,17 +46,21 @@ export default class CleanupPermanentlyDeletedDocumentsByRetentionTask extends B
               ? `NOT EXISTS (
                   SELECT 1 FROM teams
                   WHERE teams.id = "document"."teamId"
-                  AND preferences->>'${TeamPreference.DataRetentionDays}' IS NOT NULL
-                  AND (preferences->>'${TeamPreference.DataRetentionDays}')::int != ${defaultRetentionDays}
+                  AND preferences->> :preference IS NOT NULL
+                  AND (preferences->> :preference)::int != :retentionDays
                 )`
               : `EXISTS (
                   SELECT 1 FROM teams
                   WHERE teams.id = "document"."teamId"
-                  AND (preferences->>'${TeamPreference.DataRetentionDays}')::int = ${retentionDays}
+                  AND (preferences->> :preference)::int = :retentionDays
                 )`
           ),
         ],
         ...this.getPartitionWhereClause("id", partition),
+      },
+      replacements: {
+        preference: TeamPreference.DataRetentionDays,
+        retentionDays,
       },
       paranoid: false,
       limit,

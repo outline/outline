@@ -42,7 +42,7 @@ export default class CleanupPermanentlyDeletedDocumentsTask extends CronTask {
       partition: props.partition,
     });
 
-    Logger.info(
+    Logger.debug(
       "task",
       `Scheduled ${customRetentionPeriods.length + 1} tranches for document cleanup`
     );
