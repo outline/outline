@@ -1429,15 +1429,8 @@ router.post(
       });
       authorize(user, "permanentDelete", document);
 
-      document.permanentlyDeletedAt = new Date();
-      await document.save();
-      await Event.createFromContext(ctx, {
-        name: "documents.permanent_delete",
-        documentId: document.id,
-        collectionId: document.collectionId,
-        data: {
-          title: document.title,
-        },
+      await document.updateWithCtx(ctx, {
+        permanentlyDeletedAt: new Date(),
       });
     } else {
       const document = await Document.findByPk(id, {
