@@ -156,12 +156,7 @@ router.post(
         },
         attachment: {
           ...presentAttachment(attachment),
-          // always use the redirect url for document attachments, as the serializer
-          // depends on it to detect attachment vs link
-          url:
-            preset === AttachmentPreset.DocumentAttachment
-              ? attachment.redirectUrl
-              : attachment.url,
+          url: attachment.redirectUrl,
         },
       },
     };
@@ -276,12 +271,12 @@ const handleAttachmentsRedirect = async (
 ) => {
   const id = (ctx.input.body.id ?? ctx.input.query.id) as string;
 
-  const { user } = ctx.state.auth;
+  const user = ctx.state.auth?.user;
   const attachment = await Attachment.findByPk(id, {
     rejectOnEmpty: true,
   });
 
-  if (attachment.isPrivate && attachment.teamId !== user.teamId) {
+  if (attachment.isPrivate && attachment.teamId !== user?.teamId) {
     throw AuthorizationError();
   }
 
@@ -294,27 +289,27 @@ const handleAttachmentsRedirect = async (
     }
   );
 
-  if (attachment.isPrivate) {
+  if (attachment.isStoredInPublicBucket) {
+    ctx.set("Cache-Control", `max-age=604800, immutable`);
+    ctx.redirect(attachment.canonicalUrl);
+  } else {
     ctx.set(
       "Cache-Control",
       `max-age=${BaseStorage.defaultSignedUrlExpires}, immutable`
     );
     ctx.redirect(await attachment.signedUrl);
-  } else {
-    ctx.set("Cache-Control", `max-age=604800, immutable`);
-    ctx.redirect(attachment.canonicalUrl);
   }
 };
 
 router.get(
   "attachments.redirect",
-  auth(),
+  auth({ optional: true }),
   validate(T.AttachmentsRedirectSchema),
   handleAttachmentsRedirect
 );
 router.post(
   "attachments.redirect",
-  auth(),
+  auth({ optional: true }),
   validate(T.AttachmentsRedirectSchema),
   handleAttachmentsRedirect
 );
