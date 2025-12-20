@@ -1,4 +1,3 @@
-import { Sequelize } from "sequelize";
 import Logger from "@server/logging/Logger";
 import { Team } from "@server/models";
 import { TeamPreferenceDefaults } from "@shared/constants";
@@ -21,29 +20,14 @@ export default class ExpireDocumentsInTrashTask extends CronTask {
     ] as number;
 
     // Find all unique custom trash retention periods currently in use by teams.
-    const customRetentionPeriods = await Team.findAll({
-      attributes: [
-        [
-          Sequelize.fn(
-            "DISTINCT",
-            Sequelize.literal(
-              `(preferences->>'${TeamPreference.TrashRetentionDays}')::int`
-            )
-          ),
-          "days",
-        ],
-      ],
-      where: Sequelize.literal(
-        `preferences->>'${TeamPreference.TrashRetentionDays}' IS NOT NULL AND (preferences->>'${TeamPreference.TrashRetentionDays}')::int != ${defaultTrashRetentionDays}`
-      ),
-      raw: true,
-    });
+    const customRetentionPeriods = await Team.findUniquePreferenceValues(
+      TeamPreference.TrashRetentionDays
+    );
 
     const task = new ExpireDocumentsInTrashByRetentionTask();
 
     // Schedule a task for each unique custom retention period.
-    for (const row of customRetentionPeriods) {
-      const days = (row as any).days as number;
+    for (const days of customRetentionPeriods) {
       await task.schedule({
         retentionDays: days,
         partition: props.partition,

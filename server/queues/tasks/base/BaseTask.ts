@@ -1,6 +1,7 @@
 import type { Job, JobOptions } from "bull";
 import { taskQueue } from "../../";
-import { Op, WhereOptions } from "sequelize";
+import type { WhereOptions } from "sequelize";
+import { Op } from "sequelize";
 
 export enum TaskPriority {
   Background = 40,

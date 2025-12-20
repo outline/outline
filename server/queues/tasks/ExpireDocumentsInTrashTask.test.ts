@@ -5,7 +5,7 @@ import ExpireDocumentsInTrashTask from "./ExpireDocumentsInTrashTask";
 import ExpireDocumentsInTrashByRetentionTask from "./ExpireDocumentsInTrashByRetentionTask";
 
 const props = {
-  limit: 10000,
+  limit: 100,
   partition: {
     partitionIndex: 0,
     partitionCount: 1,

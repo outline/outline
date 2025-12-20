@@ -1,4 +1,5 @@
-import { BaseTask, PartitionInfo } from "./BaseTask";
+import type { PartitionInfo } from "./BaseTask";
+import { BaseTask } from "./BaseTask";
 
 export enum TaskInterval {
   Day = "daily",

@@ -4,7 +4,8 @@ import Logger from "@server/logging/Logger";
 import { Document } from "@server/models";
 import { TeamPreferenceDefaults } from "@shared/constants";
 import { TeamPreference } from "@shared/types";
-import { BaseTask, PartitionInfo, TaskPriority } from "./base/BaseTask";
+import type { PartitionInfo} from "./base/BaseTask";
+import { BaseTask, TaskPriority } from "./base/BaseTask";
 
 export type Props = {
   /** The trash retention period in days to process in this tranche. */

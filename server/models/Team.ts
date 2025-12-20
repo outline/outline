@@ -3,7 +3,7 @@ import { URL } from "url";
 import { subMinutes } from "date-fns";
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import { type SaveOptions } from "sequelize";
-import { Op } from "sequelize";
+import { Op, Sequelize } from "sequelize";
 import {
   Column,
   IsLowercase,
@@ -25,6 +25,8 @@ import {
   IsNumeric,
 } from "sequelize-typescript";
 import { isEmail } from "validator";
+import { Hour } from "@shared/utils/time";
+import { CacheHelper } from "@server/utils/CacheHelper";
 import { TeamPreferenceDefaults } from "@shared/constants";
 import type { TeamPreferences } from "@shared/types";
 import { TeamPreference, UserRole } from "@shared/types";
@@ -468,6 +470,54 @@ class Team extends ParanoidModel<
       },
       order: [["updatedAt", "DESC"]],
     });
+  }
+
+  /**
+   * Find all unique custom values for a given preference across all teams.
+   *
+   * @param preference The preference to search for.
+   * @param options Options for the query.
+   * @returns An array of unique values for the preference.
+   */
+  static async findUniquePreferenceValues(
+    preference: TeamPreference,
+    options: { useCache?: boolean } = {}
+  ): Promise<number[]> {
+    const cacheKey = `unique_preference_values:${preference}`;
+    const defaultValue = TeamPreferenceDefaults[preference];
+    const useCache = options.useCache ?? true;
+
+    const fetcher = async () => {
+      const results = await this.findAll({
+        attributes: [
+          [
+            Sequelize.fn(
+              "DISTINCT",
+              Sequelize.literal(`(preferences->>'${preference}')::int`)
+            ),
+            "value",
+          ],
+        ],
+        where: Sequelize.literal(
+          `preferences->>'${preference}' IS NOT NULL AND (preferences->>'${preference}')::int != ${defaultValue}`
+        ),
+        raw: true,
+      });
+
+      return results.map((r: any) => r.value);
+    };
+
+    if (useCache) {
+      const results = await CacheHelper.getDataOrSet<number[]>(
+        cacheKey,
+        fetcher,
+        Hour.seconds
+      );
+
+      return results ?? [];
+    }
+
+    return (await fetcher()) ?? [];
   }
 }
 

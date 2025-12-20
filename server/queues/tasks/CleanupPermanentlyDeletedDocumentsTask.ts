@@ -1,4 +1,3 @@
-import { Sequelize } from "sequelize";
 import Logger from "@server/logging/Logger";
 import { Team } from "@server/models";
 import { TeamPreferenceDefaults } from "@shared/constants";
@@ -21,29 +20,14 @@ export default class CleanupPermanentlyDeletedDocumentsTask extends CronTask {
     ] as number;
 
     // Find all unique custom retention periods currently in use by teams.
-    const customRetentionPeriods = await Team.findAll({
-      attributes: [
-        [
-          Sequelize.fn(
-            "DISTINCT",
-            Sequelize.literal(
-              `(preferences->>'${TeamPreference.DataRetentionDays}')::int`
-            )
-          ),
-          "days",
-        ],
-      ],
-      where: Sequelize.literal(
-        `preferences->>'${TeamPreference.DataRetentionDays}' IS NOT NULL AND (preferences->>'${TeamPreference.DataRetentionDays}')::int != ${defaultRetentionDays}`
-      ),
-      raw: true,
-    });
+    const customRetentionPeriods = await Team.findUniquePreferenceValues(
+      TeamPreference.DataRetentionDays
+    );
 
     const task = new CleanupPermanentlyDeletedDocumentsByRetentionTask();
 
     // Schedule a task for each unique custom retention period.
-    for (const row of customRetentionPeriods) {
-      const days = (row as any).days as number;
+    for (const days of customRetentionPeriods) {
       await task.schedule({
         limit: props.limit,
         retentionDays: days,
