@@ -1,7 +1,7 @@
 import { computed } from "mobx";
-import { IntegrationService, IntegrationType } from "@shared/types";
+import { IntegrationService, type IntegrationType } from "@shared/types";
 import naturalSort from "@shared/utils/naturalSort";
-import RootStore from "~/stores/RootStore";
+import type RootStore from "~/stores/RootStore";
 import Store from "~/stores/base/Store";
 import Integration from "~/models/Integration";
 

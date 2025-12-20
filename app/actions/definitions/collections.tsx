@@ -20,7 +20,7 @@ import {
   UnsubscribeIcon,
 } from "outline-icons";
 import { toast } from "sonner";
-import Collection from "~/models/Collection";
+import type Collection from "~/models/Collection";
 import { CollectionEdit } from "~/components/Collection/CollectionEdit";
 import { CollectionNew } from "~/components/Collection/CollectionNew";
 import CollectionDeleteDialog from "~/components/CollectionDeleteDialog";

@@ -1,4 +1,5 @@
-import MarkdownIt, { StateBlock, StateInline } from "markdown-it";
+import type { StateBlock, StateInline } from "markdown-it";
+import type MarkdownIt from "markdown-it";
 
 export const REGEX_INLINE_MATH_DOLLARS = /\$\$(.+)\$\$$/;
 

@@ -1,6 +1,6 @@
-import { NodeMarkAttr } from "@shared/editor/types";
-import { ResolvedPos, MarkType } from "prosemirror-model";
-import { NodeSelection } from "prosemirror-state";
+import type { NodeMarkAttr } from "@shared/editor/types";
+import type { ResolvedPos, MarkType } from "prosemirror-model";
+import type { NodeSelection } from "prosemirror-state";
 
 /**
  * Returns the mark of type along with its range for a given ResolvedPos,

@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import { useTranslation } from "react-i18next";
 import Icon from "@shared/components/Icon";
-import { NavigationNode } from "@shared/types";
+import type { NavigationNode } from "@shared/types";
 import useStores from "~/hooks/useStores";
 import { sharedModelPath } from "~/utils/routeHelpers";
 import { SharedDocumentLink } from "./SharedDocumentLink";

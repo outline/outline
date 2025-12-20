@@ -1,7 +1,7 @@
 import { Hour } from "@shared/utils/time";
-import Collection from "@server/models/Collection";
+import type Collection from "@server/models/Collection";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import presentUser from "./user";
 
 type Options = {

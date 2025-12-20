@@ -6,9 +6,9 @@ import orderBy from "lodash/orderBy";
 import uniq from "lodash/uniq";
 import { action, computed } from "mobx";
 import Comment from "~/models/Comment";
-import { CommentSortOption, CommentSortType } from "~/types";
+import { type CommentSortOption, CommentSortType } from "~/types";
 import { client } from "~/utils/ApiClient";
-import RootStore from "./RootStore";
+import type RootStore from "./RootStore";
 import Store from "./base/Store";
 
 export default class CommentsStore extends Store<Comment> {

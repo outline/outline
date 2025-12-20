@@ -1,4 +1,4 @@
-import { AuthenticationProvider } from "@server/models";
+import type { AuthenticationProvider } from "@server/models";
 
 export default function presentAuthenticationProvider(
   authenticationProvider: AuthenticationProvider

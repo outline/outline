@@ -1,7 +1,7 @@
 import isEqual from "fast-deep-equal";
 import revisionCreator from "@server/commands/revisionCreator";
 import { Revision, Document, User } from "@server/models";
-import { DocumentEvent, RevisionEvent, Event } from "@server/types";
+import type { DocumentEvent, RevisionEvent, Event } from "@server/types";
 import DocumentUpdateTextTask from "../tasks/DocumentUpdateTextTask";
 import BaseProcessor from "./BaseProcessor";
 

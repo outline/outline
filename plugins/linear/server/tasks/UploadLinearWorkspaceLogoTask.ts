@@ -1,4 +1,5 @@
-import { IntegrationService, IntegrationType } from "@shared/types";
+import type { IntegrationType } from "@shared/types";
+import { IntegrationService } from "@shared/types";
 import { Integration } from "@server/models";
 import { Buckets } from "@server/models/helpers/AttachmentHelper";
 import { BaseTask, TaskPriority } from "@server/queues/tasks/base/BaseTask";

@@ -1,12 +1,11 @@
 import { observer } from "mobx-react";
 import * as Dialog from "@radix-ui/react-dialog";
-import styled, { css, Keyframes, keyframes } from "styled-components";
+import type { Keyframes } from "styled-components";
+import styled, { css, keyframes } from "styled-components";
+import type { ComponentProps, HTMLAttributes, ReactNode } from "react";
 import {
-  ComponentProps,
   createContext,
   forwardRef,
-  HTMLAttributes,
-  ReactNode,
   useCallback,
   useContext,
   useEffect,
@@ -42,12 +41,12 @@ import { Separator } from "./Actions";
 import useSwipe from "~/hooks/useSwipe";
 import { toast } from "sonner";
 import { findIndex } from "lodash";
-import { LightboxImage } from "@shared/editor/lib/Lightbox";
+import type { LightboxImage } from "@shared/editor/lib/Lightbox";
+import type { ReactZoomPanPinchRef } from "react-zoom-pan-pinch";
 import {
   TransformWrapper,
   TransformComponent,
   useTransformEffect,
-  ReactZoomPanPinchRef,
 } from "react-zoom-pan-pinch";
 import { transparentize } from "polished";
 import { mergeRefs } from "react-merge-refs";

@@ -10,7 +10,7 @@ import {
   FileOperationState,
   FileOperationType,
 } from "@shared/types";
-import FileOperation from "~/models/FileOperation";
+import type FileOperation from "~/models/FileOperation";
 import { Action } from "~/components/Actions";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import ListItem from "~/components/List/Item";

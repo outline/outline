@@ -9,6 +9,7 @@ import {
   HorizontalRuleIcon,
   OrderedListIcon,
   PageBreakIcon,
+  PDFIcon,
   TableIcon,
   TodoListIcon,
   ImageIcon,
@@ -25,11 +26,9 @@ import {
 import * as React from "react";
 import styled from "styled-components";
 import Image from "@shared/editor/components/Img";
-import { MenuItem } from "@shared/editor/types";
+import type { MenuItem } from "@shared/editor/types";
 import { metaDisplay } from "@shared/utils/keyboard";
-import { Dictionary } from "~/hooks/useDictionary";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFilePdf } from "@fortawesome/free-solid-svg-icons";
+import type { Dictionary } from "~/hooks/useDictionary";
 import Desktop from "~/utils/Desktop";
 
 const Img = styled(Image)`
@@ -120,13 +119,7 @@ export default function blockMenuItems(
     {
       name: "attachment",
       title: dictionary.pdf,
-      icon: (
-        <FontAwesomeIcon
-          icon={faFilePdf}
-          size="lg"
-          style={{ marginLeft: "2px" }}
-        />
-      ),
+      icon: <PDFIcon />,
       keywords: "pdf upload attach",
       attrs: {
         accept: "application/pdf",

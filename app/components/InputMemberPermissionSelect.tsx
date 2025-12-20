@@ -2,8 +2,10 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
-import { InputSelect, Option } from "~/components/InputSelect";
-import { EmptySelectValue, Permission } from "~/types";
+import type { Option } from "~/components/InputSelect";
+import { InputSelect } from "~/components/InputSelect";
+import type { Permission } from "~/types";
+import { EmptySelectValue } from "~/types";
 
 type Props = Pick<
   React.ComponentProps<typeof InputSelect>,

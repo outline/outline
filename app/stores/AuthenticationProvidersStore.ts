@@ -1,5 +1,5 @@
 import AuthenticationProvider from "~/models/AuthenticationProvider";
-import RootStore from "./RootStore";
+import type RootStore from "./RootStore";
 import Store, { RPCAction } from "./base/Store";
 
 export default class AuthenticationProvidersStore extends Store<AuthenticationProvider> {

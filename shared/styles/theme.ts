@@ -1,5 +1,5 @@
 import { darken, lighten, transparentize } from "polished";
-import { DefaultTheme, Colors } from "styled-components";
+import type { DefaultTheme, Colors } from "styled-components";
 import breakpoints from "./breakpoints";
 
 const defaultColors: Colors = {

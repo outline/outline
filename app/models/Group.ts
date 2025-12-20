@@ -1,9 +1,9 @@
 import { computed, observable } from "mobx";
-import GroupMembership from "./GroupMembership";
+import type GroupMembership from "./GroupMembership";
 import Model from "./base/Model";
 import Field from "./decorators/Field";
 import { GroupPermission } from "@shared/types";
-import { Searchable } from "./interfaces/Searchable";
+import type { Searchable } from "./interfaces/Searchable";
 
 class Group extends Model implements Searchable {
   static modelName = "Group";

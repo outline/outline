@@ -1,7 +1,8 @@
 import { useEffect } from "react";
-import { StaticContext, useHistory } from "react-router";
-import { RouteComponentProps } from "react-router-dom";
-import { SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
+import type { StaticContext } from "react-router";
+import { useHistory } from "react-router";
+import type { RouteComponentProps } from "react-router-dom";
+import type { SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
 import { useLastVisitedPath } from "~/hooks/useLastVisitedPath";
 import useStores from "~/hooks/useStores";
 import DataLoader from "./components/DataLoader";

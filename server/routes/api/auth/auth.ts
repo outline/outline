@@ -18,9 +18,9 @@ import {
   presentGroupUser,
 } from "@server/presenters";
 import ValidateSSOAccessTask from "@server/queues/tasks/ValidateSSOAccessTask";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import { getSessionsInCookie } from "@server/utils/authentication";
-import * as T from "./schema";
+import type * as T from "./schema";
 
 const router = new Router();
 

@@ -2,7 +2,7 @@ import { Op } from "sequelize";
 import { Document, Relationship } from "@server/models";
 import { RelationshipType } from "@server/models/Relationship";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
-import { Event, DocumentEvent, RevisionEvent } from "@server/types";
+import type { Event, DocumentEvent, RevisionEvent } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
 
 export default class BacklinksProcessor extends BaseProcessor {

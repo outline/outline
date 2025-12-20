@@ -8,7 +8,7 @@ import {
   UserMembership,
 } from "@server/models";
 import { sequelize } from "@server/storage/database";
-import { Event as TEvent, UserEvent } from "@server/types";
+import type { Event as TEvent, UserEvent } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
 
 export default class UserDeletedProcessor extends BaseProcessor {

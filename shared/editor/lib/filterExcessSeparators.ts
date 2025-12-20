@@ -1,5 +1,5 @@
-import { EmbedDescriptor } from "../embeds";
-import { MenuItem } from "../types";
+import type { EmbedDescriptor } from "../embeds";
+import type { MenuItem } from "../types";
 
 type Item = MenuItem | EmbedDescriptor;
 

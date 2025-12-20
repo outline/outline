@@ -6,7 +6,7 @@ import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { User, Team } from "@server/models";
 import { UserFlag } from "@server/models/User";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import { DomainNotAllowedError } from "@server/errors";
 import { can } from "@server/policies";
 

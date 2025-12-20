@@ -1,10 +1,10 @@
 import { BrowserIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
-import { Primitive } from "utility-types";
+import type { Primitive } from "utility-types";
 import env from "../../env";
-import { IntegrationService, IntegrationType } from "../../types";
-import type { IntegrationSettings } from "../../types";
+import { IntegrationService } from "../../types";
+import type { IntegrationSettings, IntegrationType } from "../../types";
 import { urlRegex } from "../../utils/urls";
 import Image from "../components/Img";
 import Berrycast from "./Berrycast";

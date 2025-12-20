@@ -1,8 +1,8 @@
-import { LocationDescriptor } from "history";
+import type { LocationDescriptor } from "history";
 import { toast } from "sonner";
-import { Optional } from "utility-types";
+import type { Optional } from "utility-types";
 import { v4 as uuidv4 } from "uuid";
-import {
+import type {
   ActionContext,
   Action,
   ActionGroup,
@@ -15,7 +15,7 @@ import {
 } from "~/types";
 import Analytics from "~/utils/Analytics";
 import history from "~/utils/history";
-import { Action as KbarAction } from "kbar";
+import type { Action as KbarAction } from "kbar";
 
 export function resolve<T>(value: any, context: ActionContext): T {
   return typeof value === "function" ? value(context) : value;

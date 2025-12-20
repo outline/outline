@@ -9,10 +9,8 @@ import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { Pagination } from "@shared/constants";
 import { hideScrollbars } from "@shared/styles";
-import {
-  DateFilter as TDateFilter,
-  StatusFilter as TStatusFilter,
-} from "@shared/types";
+import type { DateFilter as TDateFilter } from "@shared/types";
+import { StatusFilter as TStatusFilter } from "@shared/types";
 import ArrowKeyNavigation from "~/components/ArrowKeyNavigation";
 import DocumentListItem from "~/components/DocumentListItem";
 import Fade from "~/components/Fade";
@@ -26,7 +24,7 @@ import env from "~/env";
 import usePaginatedRequest from "~/hooks/usePaginatedRequest";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
-import { SearchResult } from "~/types";
+import type { SearchResult } from "~/types";
 import { searchPath } from "~/utils/routeHelpers";
 import { decodeURIComponentSafe } from "~/utils/urls";
 import CollectionFilter from "./components/CollectionFilter";

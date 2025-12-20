@@ -1,4 +1,4 @@
-import { Context, Next } from "koa";
+import type { Context, Next } from "koa";
 
 export default function apexRedirect() {
   return async function apexRedirectMiddleware(ctx: Context, next: Next) {

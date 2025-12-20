@@ -3,8 +3,8 @@ import { StarredIcon, UnstarredIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import styled, { useTheme } from "styled-components";
 import { hover } from "@shared/styles";
-import Collection from "~/models/Collection";
-import Document from "~/models/Document";
+import type Collection from "~/models/Collection";
+import type Document from "~/models/Document";
 import {
   starCollection,
   unstarCollection,

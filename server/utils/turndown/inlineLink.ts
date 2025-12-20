@@ -1,4 +1,4 @@
-import TurndownService from "turndown";
+import type TurndownService from "turndown";
 
 /**
  * A turndown plugin for converting anchors to inline links without a title.

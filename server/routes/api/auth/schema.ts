@@ -1,4 +1,4 @@
-import { z } from "zod";
+import type { z } from "zod";
 import { BaseSchema } from "../schema";
 
 export const AuthConfigSchema = BaseSchema;

@@ -1,7 +1,8 @@
-import { Transaction } from "sequelize";
-import { NotionImportInput, NotionImportTaskInput } from "@shared/schema";
+import type { Transaction } from "sequelize";
+import type { NotionImportInput, NotionImportTaskInput } from "@shared/schema";
 import { IntegrationService } from "@shared/types";
-import { Import, ImportTask, Integration } from "@server/models";
+import type { Import, ImportTask } from "@server/models";
+import { Integration } from "@server/models";
 import ImportsProcessor from "@server/queues/processors/ImportsProcessor";
 import { NotionClient } from "../notion";
 import NotionAPIImportTask from "../tasks/NotionAPIImportTask";

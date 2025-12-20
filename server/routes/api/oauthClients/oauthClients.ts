@@ -12,7 +12,7 @@ import {
   presentOAuthClient,
   presentPublishedOAuthClient,
 } from "@server/presenters";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";

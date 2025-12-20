@@ -1,9 +1,9 @@
-import {
+import type {
   FindOrCreateOptions,
   InferAttributes,
   InferCreationAttributes,
-  Op,
 } from "sequelize";
+import { Op } from "sequelize";
 import {
   BelongsTo,
   Column,
@@ -13,7 +13,7 @@ import {
   DataType,
   Scopes,
 } from "sequelize-typescript";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import Document from "./Document";
 import Event from "./Event";
 import User from "./User";

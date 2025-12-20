@@ -2,7 +2,7 @@ import { useRegisterActions } from "kbar";
 import flattenDeep from "lodash/flattenDeep";
 import { useLocation } from "react-router-dom";
 import { actionToKBar } from "~/actions";
-import { ActionVariant } from "~/types";
+import type { ActionVariant } from "~/types";
 import useActionContext from "./useActionContext";
 
 /**

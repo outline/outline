@@ -1,11 +1,11 @@
 import fractionalIndex from "fractional-index";
-import { Location } from "history";
+import type { Location } from "history";
 import { observer } from "mobx-react";
 import { StarredIcon } from "outline-icons";
 import * as React from "react";
 import { useEffect, useState } from "react";
 import styled, { useTheme } from "styled-components";
-import Star from "~/models/Star";
+import type Star from "~/models/Star";
 import Fade from "~/components/Fade";
 import useBoolean from "~/hooks/useBoolean";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
@@ -22,10 +22,8 @@ import DocumentLink from "./DocumentLink";
 import DropCursor from "./DropCursor";
 import Folder from "./Folder";
 import Relative from "./Relative";
-import SidebarContext, {
-  SidebarContextType,
-  starredSidebarContext,
-} from "./SidebarContext";
+import type { SidebarContextType } from "./SidebarContext";
+import SidebarContext, { starredSidebarContext } from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
 import { ActionContextProvider } from "~/hooks/useActionContext";
 import { useDocumentMenuAction } from "~/hooks/useDocumentMenuAction";

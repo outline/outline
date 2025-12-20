@@ -1,13 +1,13 @@
 import { computed, observable } from "mobx";
-import { NavigationNode, PublicTeam } from "@shared/types";
-import SharesStore from "~/stores/SharesStore";
+import type { NavigationNode, PublicTeam } from "@shared/types";
+import type SharesStore from "~/stores/SharesStore";
 import Collection from "./Collection";
 import Document from "./Document";
 import User from "./User";
 import Model from "./base/Model";
 import Field from "./decorators/Field";
 import Relation from "./decorators/Relation";
-import { Searchable } from "./interfaces/Searchable";
+import type { Searchable } from "./interfaces/Searchable";
 
 class Share extends Model implements Searchable {
   static modelName = "Share";

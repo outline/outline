@@ -36,7 +36,7 @@ import {
 } from "~/actions/definitions/documents";
 import { ActiveDocumentSection } from "~/actions/sections";
 import useMobile from "./useMobile";
-import Document from "~/models/Document";
+import type Document from "~/models/Document";
 import usePolicy from "./usePolicy";
 import useCurrentUser from "./useCurrentUser";
 import { useTemplateMenuActions } from "./useTemplateMenuActions";

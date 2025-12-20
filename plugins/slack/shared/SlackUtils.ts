@@ -1,5 +1,5 @@
 import env from "@shared/env";
-import { IntegrationType } from "@shared/types";
+import type { IntegrationType } from "@shared/types";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 
 export class SlackUtils {

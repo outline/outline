@@ -2,7 +2,7 @@ import teamUpdater from "@server/commands/teamUpdater";
 import { createContext } from "@server/context";
 import { Team, User } from "@server/models";
 import { sequelize } from "@server/storage/database";
-import { Event as TEvent, CollectionEvent } from "@server/types";
+import type { Event as TEvent, CollectionEvent } from "@server/types";
 import DetachDraftsFromCollectionTask from "../tasks/DetachDraftsFromCollectionTask";
 import BaseProcessor from "./BaseProcessor";
 

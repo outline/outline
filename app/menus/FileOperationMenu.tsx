@@ -2,7 +2,7 @@ import { DownloadIcon, TrashIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { FileOperationState, FileOperationType } from "@shared/types";
-import FileOperation from "~/models/FileOperation";
+import type FileOperation from "~/models/FileOperation";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
 import {

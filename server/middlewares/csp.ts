@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { Context, Next } from "koa";
+import type { Context, Next } from "koa";
 import { contentSecurityPolicy } from "koa-helmet";
 import uniq from "lodash/uniq";
 import env from "@server/env";

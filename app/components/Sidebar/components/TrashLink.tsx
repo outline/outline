@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import DocumentDelete from "~/scenes/DocumentDelete";
 import useStores from "~/hooks/useStores";
 import { trashPath } from "~/utils/routeHelpers";
-import { DragObject } from "../hooks/useDragAndDrop";
+import type { DragObject } from "../hooks/useDragAndDrop";
 import SidebarLink from "./SidebarLink";
 
 function TrashLink() {

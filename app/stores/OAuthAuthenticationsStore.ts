@@ -1,5 +1,5 @@
 import OAuthAuthentication from "~/models/oauth/OAuthAuthentication";
-import RootStore from "./RootStore";
+import type RootStore from "./RootStore";
 import Store from "./base/Store";
 
 export default class OAuthAuthenticationsStore extends Store<OAuthAuthentication> {

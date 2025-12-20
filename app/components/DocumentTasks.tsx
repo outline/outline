@@ -1,9 +1,9 @@
-import { TFunction } from "i18next";
+import type { TFunction } from "i18next";
 import { observer } from "mobx-react";
 import { DoneIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import styled, { useTheme } from "styled-components";
-import Document from "~/models/Document";
+import type Document from "~/models/Document";
 import CircularProgressBar from "~/components/CircularProgressBar";
 import usePrevious from "~/hooks/usePrevious";
 import { bounceIn } from "~/styles/animations";

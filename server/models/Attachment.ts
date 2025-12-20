@@ -1,13 +1,13 @@
 import { createReadStream } from "fs";
 import path from "path";
-import { File } from "formidable";
-import {
+import type { File } from "formidable";
+import type {
   InferAttributes,
   InferCreationAttributes,
-  QueryTypes,
   FindOptions,
   Sequelize,
 } from "sequelize";
+import { QueryTypes } from "sequelize";
 import {
   BeforeDestroy,
   BelongsTo,

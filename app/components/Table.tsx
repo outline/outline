@@ -1,14 +1,16 @@
+import type {
+  SortingState,
+  ColumnSort,
+  Row as TRow,
+  AccessorFn,
+  CellContext,
+} from "@tanstack/react-table";
 import {
   useReactTable,
   getCoreRowModel,
-  SortingState,
   flexRender,
-  ColumnSort,
   functionalUpdate,
-  Row as TRow,
   createColumnHelper,
-  AccessorFn,
-  CellContext,
 } from "@tanstack/react-table";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { observer } from "mobx-react";

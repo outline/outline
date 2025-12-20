@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import { ShapesIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
-import Document from "~/models/Document";
+import type Document from "~/models/Document";
 import Button from "~/components/Button";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { useMenuAction } from "~/hooks/useMenuAction";

@@ -4,7 +4,7 @@ import { CopyIcon, EditIcon } from "outline-icons";
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import Comment from "~/models/Comment";
+import type Comment from "~/models/Comment";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
 import {

@@ -1,7 +1,7 @@
-import { PluginSimple } from "markdown-it";
-import { InputRule } from "prosemirror-inputrules";
-import { NodeType, MarkType, Schema } from "prosemirror-model";
-import { Command, Plugin, Selection } from "prosemirror-state";
+import type { PluginSimple } from "markdown-it";
+import type { InputRule } from "prosemirror-inputrules";
+import type { NodeType, MarkType, Schema } from "prosemirror-model";
+import type { Command, Plugin, Selection } from "prosemirror-state";
 import type { Editor } from "../../../app/editor";
 
 export type CommandFactory = (attrs?: unknown) => Command;

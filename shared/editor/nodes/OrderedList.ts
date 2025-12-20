@@ -1,12 +1,12 @@
-import { Token } from "markdown-it";
-import {
+import type { Token } from "markdown-it";
+import type {
   NodeSpec,
   NodeType,
   Schema,
   Node as ProsemirrorNode,
 } from "prosemirror-model";
 import toggleList from "../commands/toggleList";
-import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { listWrappingInputRule } from "../lib/listInputRule";
 import Node from "./Node";
 

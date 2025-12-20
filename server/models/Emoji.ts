@@ -1,8 +1,5 @@
-import {
-  InferAttributes,
-  InferCreationAttributes,
-  type SaveOptions,
-} from "sequelize";
+import type { InferAttributes, InferCreationAttributes } from "sequelize";
+import { type SaveOptions } from "sequelize";
 import {
   BeforeCreate,
   BeforeDestroy,

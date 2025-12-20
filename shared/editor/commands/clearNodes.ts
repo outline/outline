@@ -1,4 +1,4 @@
-import { Command } from "prosemirror-state";
+import type { Command } from "prosemirror-state";
 import { liftTarget } from "prosemirror-transform";
 
 const clearNodes = (): Command => (state, dispatch) => {

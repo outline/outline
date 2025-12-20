@@ -16,8 +16,8 @@ import slugify from "@shared/utils/slugify";
 import accountProvisioner from "@server/commands/accountProvisioner";
 import { InvalidRequestError, TeamDomainRequiredError } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
-import { User } from "@server/models";
-import { AuthenticationResult } from "@server/types";
+import type { User } from "@server/models";
+import type { AuthenticationResult } from "@server/types";
 import {
   StateStore,
   getTeamFromContext,

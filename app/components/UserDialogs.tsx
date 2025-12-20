@@ -2,7 +2,7 @@ import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { UserRole } from "@shared/types";
-import User from "~/models/User";
+import type User from "~/models/User";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Input from "~/components/Input";
 import useCurrentUser from "~/hooks/useCurrentUser";

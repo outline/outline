@@ -1,5 +1,5 @@
 import { OpenIcon } from "outline-icons";
-import { EmbedProps as Props } from "../embeds";
+import type { EmbedProps as Props } from "../embeds";
 import Widget from "./Widget";
 
 export default function DisabledEmbed(

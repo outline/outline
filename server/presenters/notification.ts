@@ -1,5 +1,5 @@
-import { Notification } from "@server/models";
-import { APIContext } from "@server/types";
+import type { Notification } from "@server/models";
+import type { APIContext } from "@server/types";
 import presentUser from "./user";
 import { presentComment, presentDocument } from ".";
 

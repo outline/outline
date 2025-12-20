@@ -2,18 +2,14 @@ import last from "lodash/last";
 import sortBy from "lodash/sortBy";
 import { v4 as uuidv4 } from "uuid";
 import type MermaidUnsafe from "mermaid";
-import { Node } from "prosemirror-model";
-import {
-  Plugin,
-  PluginKey,
-  TextSelection,
-  Transaction,
-} from "prosemirror-state";
+import type { Node } from "prosemirror-model";
+import type { Transaction } from "prosemirror-state";
+import { Plugin, PluginKey, TextSelection } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { isCode } from "../lib/isCode";
 import { isRemoteTransaction } from "../lib/multiplayer";
 import { findBlockNodes } from "../queries/findChildren";
-import { NodeWithPos } from "../types";
+import type { NodeWithPos } from "../types";
 import type { Editor } from "../../../app/editor";
 import { LightboxImageFactory } from "../lib/Lightbox";
 

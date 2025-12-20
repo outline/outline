@@ -1,8 +1,8 @@
 import { Trans, useTranslation } from "react-i18next";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Text from "~/components/Text";
-import { IntegrationType } from "@shared/types";
-import Integration from "~/models/Integration";
+import type { IntegrationType } from "@shared/types";
+import type Integration from "~/models/Integration";
 import useStores from "~/hooks/useStores";
 import { useHistory } from "react-router-dom";
 import { settingsPath } from "~/utils/routeHelpers";

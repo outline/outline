@@ -6,7 +6,7 @@ import * as Tabs from "@radix-ui/react-tabs";
 import { toast } from "sonner";
 import styled, { css } from "styled-components";
 import { s, hover } from "@shared/styles";
-import Comment from "~/models/Comment";
+import type Comment from "~/models/Comment";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import { Emoji } from "~/components/Emoji";
 import Flex from "~/components/Flex";

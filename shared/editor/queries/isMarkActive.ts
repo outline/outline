@@ -1,6 +1,7 @@
-import { MarkType } from "prosemirror-model";
-import { EditorState, NodeSelection } from "prosemirror-state";
-import { Primitive } from "utility-types";
+import type { MarkType } from "prosemirror-model";
+import type { EditorState } from "prosemirror-state";
+import { NodeSelection } from "prosemirror-state";
+import type { Primitive } from "utility-types";
 import { getMarksBetween } from "./getMarksBetween";
 import { getMarkRangeNodeSelection } from "./getMarkRange";
 

@@ -1,4 +1,4 @@
-import { LocationDescriptor } from "history";
+import type { LocationDescriptor } from "history";
 import { observer } from "mobx-react";
 import { EditIcon, TrashIcon } from "outline-icons";
 import { useCallback, useMemo, useRef } from "react";
@@ -8,8 +8,8 @@ import styled from "styled-components";
 import EventBoundary from "@shared/components/EventBoundary";
 import { hover } from "@shared/styles";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
-import Document from "~/models/Document";
-import Revision from "~/models/Revision";
+import type Document from "~/models/Document";
+import type Revision from "~/models/Revision";
 import { ActionSeparator } from "~/actions";
 import {
   copyLinkToRevision,

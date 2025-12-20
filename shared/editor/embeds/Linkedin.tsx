@@ -1,6 +1,6 @@
 import * as React from "react";
 import Frame from "../components/Frame";
-import { EmbedProps as Props } from ".";
+import type { EmbedProps as Props } from ".";
 
 function Linkedin({ matches, ...props }: Props) {
   const objectId = matches[2];

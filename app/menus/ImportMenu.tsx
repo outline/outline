@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import { CrossIcon, TrashIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import Import from "~/models/Import";
+import type Import from "~/models/Import";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
 import usePolicy from "~/hooks/usePolicy";

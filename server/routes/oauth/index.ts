@@ -11,7 +11,7 @@ import validate from "@server/middlewares/validate";
 import { OAuthAuthorizationCode, OAuthClient } from "@server/models";
 import OAuthAuthentication from "@server/models/oauth/OAuthAuthentication";
 import { authorize } from "@server/policies";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { OAuthInterface } from "@server/utils/oauth/OAuthInterface";
 import oauthErrorHandler from "./middlewares/oauthErrorHandler";

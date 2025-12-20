@@ -1,4 +1,5 @@
-import { EditorState, Plugin } from "prosemirror-state";
+import type { EditorState } from "prosemirror-state";
+import { Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 

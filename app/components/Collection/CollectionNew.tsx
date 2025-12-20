@@ -4,7 +4,8 @@ import { useCallback } from "react";
 import { toast } from "sonner";
 import useStores from "~/hooks/useStores";
 import history from "~/utils/history";
-import { CollectionForm, FormData } from "./CollectionForm";
+import type { FormData } from "./CollectionForm";
+import { CollectionForm } from "./CollectionForm";
 
 type Props = {
   onSubmit: () => void;

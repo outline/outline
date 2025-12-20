@@ -18,7 +18,8 @@ import {
 } from "@shared/utils/date";
 import { isModKey } from "@shared/utils/keyboard";
 import { DocumentValidation } from "@shared/validations";
-import ContentEditable, { RefHandle } from "~/components/ContentEditable";
+import type { RefHandle } from "~/components/ContentEditable";
+import ContentEditable from "~/components/ContentEditable";
 import { useDocumentContext } from "~/components/DocumentContext";
 import { PopoverButton } from "~/components/IconPicker/components/PopoverButton";
 import useBoolean from "~/hooks/useBoolean";

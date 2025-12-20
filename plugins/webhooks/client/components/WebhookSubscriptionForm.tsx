@@ -9,7 +9,7 @@ import { useTranslation, Trans } from "react-i18next";
 import styled from "styled-components";
 import { randomString } from "@shared/random";
 import { TeamPreference } from "@shared/types";
-import WebhookSubscription from "~/models/WebhookSubscription";
+import type WebhookSubscription from "~/models/WebhookSubscription";
 import Button from "~/components/Button";
 import Input from "~/components/Input";
 import Text from "~/components/Text";

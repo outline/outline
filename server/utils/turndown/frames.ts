@@ -1,4 +1,4 @@
-import TurndownService from "turndown";
+import type TurndownService from "turndown";
 
 /**
  * A turndown plugin to convert iframes to markdown links.

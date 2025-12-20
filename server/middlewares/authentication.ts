@@ -1,13 +1,14 @@
-import { Next } from "koa";
+import type { Next } from "koa";
 import capitalize from "lodash/capitalize";
-import { UserRole } from "@shared/types";
+import type { UserRole } from "@shared/types";
 import { UserRoleHelper } from "@shared/utils/UserRoleHelper";
 import tracer, {
   addTags,
   getRootSpanFromRequestContext,
 } from "@server/logging/tracer";
 import { User, Team, ApiKey, OAuthAuthentication } from "@server/models";
-import { AppContext, AuthenticationType } from "@server/types";
+import type { AppContext } from "@server/types";
+import { AuthenticationType } from "@server/types";
 import { getUserForJWT } from "@server/utils/jwt";
 import {
   AuthenticationError,

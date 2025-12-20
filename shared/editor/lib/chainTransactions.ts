@@ -1,4 +1,4 @@
-import { Command, Transaction } from "prosemirror-state";
+import type { Command, Transaction } from "prosemirror-state";
 
 /**
  * Chain multiple commands into a single command and collects state as it goes.

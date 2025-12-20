@@ -1,5 +1,6 @@
 import Router from "koa-router";
-import { Sequelize, Op, WhereOptions } from "sequelize";
+import type { WhereOptions } from "sequelize";
+import { Sequelize, Op } from "sequelize";
 import {
   CollectionPermission,
   CollectionStatusFilter,
@@ -36,7 +37,7 @@ import {
   presentGroupMembership,
   presentFileOperation,
 } from "@server/presenters";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { collectionIndexing } from "@server/utils/indexing";

@@ -1,5 +1,5 @@
 import { observable } from "mobx";
-import PinsStore from "~/stores/PinsStore";
+import type PinsStore from "~/stores/PinsStore";
 import { setPersistedState } from "~/hooks/usePersistedState";
 import { pinsCacheKey } from "~/hooks/usePinnedDocuments";
 import Collection from "./Collection";

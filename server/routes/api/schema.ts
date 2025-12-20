@@ -1,7 +1,7 @@
-import formidable from "formidable";
+import type formidable from "formidable";
 import { Node } from "prosemirror-model";
 import { z } from "zod";
-import { ProsemirrorData as TProsemirrorData } from "@shared/types";
+import type { ProsemirrorData as TProsemirrorData } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { schema } from "@server/editor";
 

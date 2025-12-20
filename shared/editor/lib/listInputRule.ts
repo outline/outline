@@ -1,5 +1,9 @@
 import { wrappingInputRule, InputRule } from "prosemirror-inputrules";
-import { NodeType, Node as ProsemirrorNode, Attrs } from "prosemirror-model";
+import type {
+  NodeType,
+  Node as ProsemirrorNode,
+  Attrs,
+} from "prosemirror-model";
 import { isInHeading } from "../queries/isInHeading";
 
 /**

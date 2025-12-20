@@ -4,7 +4,7 @@ import { DOMParser as ProsemirrorDOMParser } from "prosemirror-model";
 import { TextSelection } from "prosemirror-state";
 import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
-import { Optional } from "utility-types";
+import type { Optional } from "utility-types";
 import insertFiles from "@shared/editor/commands/insertFiles";
 import EditorContainer from "@shared/editor/components/Styles";
 import { AttachmentPreset } from "@shared/types";

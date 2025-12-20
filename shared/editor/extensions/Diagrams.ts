@@ -1,9 +1,11 @@
-import { Command, EditorState, NodeSelection } from "prosemirror-state";
-import { Node } from "prosemirror-model";
-import Extension, { CommandFactory } from "../lib/Extension";
+import type { Command, EditorState } from "prosemirror-state";
+import { NodeSelection } from "prosemirror-state";
+import type { Node } from "prosemirror-model";
+import type { CommandFactory } from "../lib/Extension";
+import Extension from "../lib/Extension";
 import FileHelper, { ImageSource } from "../lib/FileHelper";
 import { IntegrationService } from "../../types";
-import { NodeWithPos } from "../types";
+import type { NodeWithPos } from "../types";
 import {
   DiagramsNetClient,
   EMPTY_DIAGRAM_IMAGE,

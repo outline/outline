@@ -5,7 +5,8 @@ import Logger from "@server/logging/Logger";
 import { Import, ImportTask } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import { TaskPriority } from "./base/BaseTask";
-import { CronTask, TaskInterval, Props } from "./base/CronTask";
+import type { Props } from "./base/CronTask";
+import { CronTask, TaskInterval } from "./base/CronTask";
 
 /**
  * A task that moves the stuck imports to errored state.

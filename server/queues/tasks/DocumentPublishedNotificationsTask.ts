@@ -3,7 +3,7 @@ import { createSubscriptionsForDocument } from "@server/commands/subscriptionCre
 import { Document, Group, Notification, User, GroupUser } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import NotificationHelper from "@server/models/helpers/NotificationHelper";
-import { DocumentEvent } from "@server/types";
+import type { DocumentEvent } from "@server/types";
 import { canUserAccessDocument } from "@server/utils/permissions";
 import { BaseTask, TaskPriority } from "./base/BaseTask";
 

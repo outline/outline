@@ -1,7 +1,7 @@
 import passport from "@outlinewiki/koa-passport";
 import type { Context } from "koa";
 import Router from "koa-router";
-import { Profile } from "passport";
+import type { Profile } from "passport";
 import { Strategy as SlackStrategy } from "passport-slack-oauth2";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import accountProvisioner from "@server/commands/accountProvisioner";
@@ -10,15 +10,15 @@ import apexAuthRedirect from "@server/middlewares/apexAuthRedirect";
 import auth from "@server/middlewares/authentication";
 import passportMiddleware from "@server/middlewares/passport";
 import validate from "@server/middlewares/validate";
+import type { User } from "@server/models";
 import {
   IntegrationAuthentication,
   Integration,
-  User,
   Collection,
 } from "@server/models";
 import { authorize } from "@server/policies";
 import { sequelize } from "@server/storage/database";
-import { APIContext, AuthenticationResult } from "@server/types";
+import type { APIContext, AuthenticationResult } from "@server/types";
 import {
   getClientFromContext,
   getTeamFromContext,

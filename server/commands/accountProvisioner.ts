@@ -9,18 +9,18 @@ import {
   AuthenticationProviderDisabledError,
 } from "@server/errors";
 import { traceFunction } from "@server/logging/tracing";
+import type { User } from "@server/models";
 import {
   AuthenticationProvider,
   Collection,
   Document,
   Team,
-  User,
 } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { sequelize } from "@server/storage/database";
 import teamProvisioner from "./teamProvisioner";
 import userProvisioner from "./userProvisioner";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import { addSeconds } from "date-fns";
 import { createContext } from "@server/context";
 

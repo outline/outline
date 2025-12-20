@@ -1,9 +1,9 @@
-import { InferCreationAttributes } from "sequelize";
+import type { InferCreationAttributes } from "sequelize";
 import slugify from "slugify";
 import { RESERVED_SUBDOMAINS } from "@shared/utils/domains";
 import { traceFunction } from "@server/logging/tracing";
 import { Team } from "@server/models";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 
 type Props = {
   /** The displayed name of the team */

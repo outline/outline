@@ -10,7 +10,7 @@ import {
   presentAuthenticationProvider,
   presentPolicies,
 } from "@server/presenters";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import * as T from "./schema";
 
 const router = new Router();

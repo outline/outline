@@ -1,6 +1,6 @@
 import * as React from "react";
 import { richExtensions } from "@shared/editor/nodes";
-import { UnfurlResourceType, UnfurlResponse } from "@shared/types";
+import type { UnfurlResourceType, UnfurlResponse } from "@shared/types";
 import Editor from "~/components/Editor";
 import Flex from "~/components/Flex";
 import ErrorBoundary from "../ErrorBoundary";

@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { SubscriptionType } from "@shared/types";
-import Collection from "~/models/Collection";
+import type Collection from "~/models/Collection";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
 import { ActionContextProvider } from "~/hooks/useActionContext";

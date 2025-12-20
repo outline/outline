@@ -1,4 +1,4 @@
-import { Node } from "prosemirror-model";
+import type { Node } from "prosemirror-model";
 import { ReplaceStep } from "prosemirror-transform";
 
 export function getReplaceStep(fromDoc: Node, toDoc: Node) {

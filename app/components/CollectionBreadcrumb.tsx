@@ -1,7 +1,7 @@
 import { ArchiveIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import Collection from "~/models/Collection";
+import type Collection from "~/models/Collection";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import { archivePath, collectionPath } from "~/utils/routeHelpers";
 import Breadcrumb from "./Breadcrumb";

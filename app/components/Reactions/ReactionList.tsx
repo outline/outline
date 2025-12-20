@@ -1,7 +1,7 @@
 import compact from "lodash/compact";
 import { observer } from "mobx-react";
 import * as React from "react";
-import Comment from "~/models/Comment";
+import type Comment from "~/models/Comment";
 import useHover from "~/hooks/useHover";
 import useStores from "~/hooks/useStores";
 import Logger from "~/utils/Logger";

@@ -1,4 +1,4 @@
-import { NodeType } from "prosemirror-model";
+import type { NodeType } from "prosemirror-model";
 import { Plugin, PluginKey } from "prosemirror-state";
 import Extension from "../lib/Extension";
 

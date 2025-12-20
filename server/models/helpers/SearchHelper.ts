@@ -3,22 +3,22 @@ import escapeRegExp from "lodash/escapeRegExp";
 import find from "lodash/find";
 import map from "lodash/map";
 import queryParser from "pg-tsquery";
-import {
+import type {
   BindOrReplacements,
   FindAttributeOptions,
   FindOptions,
-  Op,
   Order,
-  Sequelize,
   WhereOptions,
 } from "sequelize";
-import { DateFilter, StatusFilter } from "@shared/types";
+import { Op, Sequelize } from "sequelize";
+import type { DateFilter } from "@shared/types";
+import { StatusFilter } from "@shared/types";
 import { regexIndexOf, regexLastIndexOf } from "@shared/utils/string";
 import { getUrls } from "@shared/utils/urls";
 import { ValidationError } from "@server/errors";
 import Collection from "@server/models/Collection";
 import Document from "@server/models/Document";
-import Share from "@server/models/Share";
+import type Share from "@server/models/Share";
 import Team from "@server/models/Team";
 import User from "@server/models/User";
 import { sequelize } from "@server/storage/database";

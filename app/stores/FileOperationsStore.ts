@@ -2,7 +2,7 @@ import orderBy from "lodash/orderBy";
 import { computed } from "mobx";
 import { FileOperationType } from "@shared/types";
 import FileOperation from "~/models/FileOperation";
-import RootStore from "./RootStore";
+import type RootStore from "./RootStore";
 import Store, { RPCAction } from "./base/Store";
 
 export default class FileOperationsStore extends Store<FileOperation> {

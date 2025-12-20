@@ -2,7 +2,7 @@ import { BackIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { parseDomain } from "@shared/utils/domains";
-import { Config } from "~/stores/AuthStore";
+import type { Config } from "~/stores/AuthStore";
 import env from "~/env";
 import Desktop from "~/utils/Desktop";
 import isCloudHosted from "~/utils/isCloudHosted";

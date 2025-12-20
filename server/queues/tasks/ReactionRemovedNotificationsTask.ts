@@ -1,6 +1,6 @@
 import { NotificationEventType } from "@shared/types";
 import { Notification, User } from "@server/models";
-import { CommentReactionEvent } from "@server/types";
+import type { CommentReactionEvent } from "@server/types";
 import { BaseTask, TaskPriority } from "./base/BaseTask";
 import { createContext } from "@server/context";
 import { sequelize } from "@server/storage/database";

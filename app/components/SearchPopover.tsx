@@ -16,7 +16,7 @@ import {
 import { id as bodyContentId } from "~/components/SkipNavContent";
 import useKeyDown from "~/hooks/useKeyDown";
 import useStores from "~/hooks/useStores";
-import { SearchResult } from "~/types";
+import type { SearchResult } from "~/types";
 import SearchListItem from "./SearchListItem";
 
 interface Props extends React.HTMLAttributes<HTMLInputElement> {

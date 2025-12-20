@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import { WebhooksIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
-import WebhookSubscription from "~/models/WebhookSubscription";
+import type WebhookSubscription from "~/models/WebhookSubscription";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";

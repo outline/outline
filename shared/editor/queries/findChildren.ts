@@ -1,5 +1,5 @@
-import { Node } from "prosemirror-model";
-import { NodeWithPos } from "../types";
+import type { Node } from "prosemirror-model";
+import type { NodeWithPos } from "../types";
 
 type Predicate = (node: Node) => boolean;
 

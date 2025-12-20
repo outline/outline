@@ -1,10 +1,12 @@
 import * as React from "react";
 import { NotificationEventType } from "@shared/types";
-import { Collection, Comment, Document, Group } from "@server/models";
+import type { Collection } from "@server/models";
+import { Comment, Document, Group } from "@server/models";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { can } from "@server/policies";
-import BaseEmail, { EmailMessageCategory, EmailProps } from "./BaseEmail";
+import type { EmailProps } from "./BaseEmail";
+import BaseEmail, { EmailMessageCategory } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
 import Diff from "./components/Diff";

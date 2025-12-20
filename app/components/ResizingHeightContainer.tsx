@@ -1,4 +1,5 @@
-import { m, TargetAndTransition } from "framer-motion";
+import type { TargetAndTransition } from "framer-motion";
+import { m } from "framer-motion";
 import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
 import useMeasure from "react-use-measure";

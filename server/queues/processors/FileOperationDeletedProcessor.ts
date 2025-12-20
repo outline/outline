@@ -3,7 +3,7 @@ import { createContext } from "@server/context";
 import Logger from "@server/logging/Logger";
 import { Collection, FileOperation, User } from "@server/models";
 import { sequelize } from "@server/storage/database";
-import { Event as TEvent, FileOperationEvent } from "@server/types";
+import type { Event as TEvent, FileOperationEvent } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
 
 export default class FileOperationDeletedProcessor extends BaseProcessor {

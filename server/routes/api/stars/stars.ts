@@ -11,7 +11,7 @@ import {
   presentDocument,
   presentPolicies,
 } from "@server/presenters";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import { starIndexing } from "@server/utils/indexing";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";

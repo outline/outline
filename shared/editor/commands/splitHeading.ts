@@ -1,5 +1,6 @@
-import { NodeType } from "prosemirror-model";
-import { Command, TextSelection } from "prosemirror-state";
+import type { NodeType } from "prosemirror-model";
+import type { Command } from "prosemirror-state";
+import { TextSelection } from "prosemirror-state";
 import { findBlockNodes } from "../queries/findChildren";
 import { findCollapsedNodes } from "../queries/findCollapsedNodes";
 

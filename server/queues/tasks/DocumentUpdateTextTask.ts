@@ -3,7 +3,7 @@ import { iso6393To1 } from "iso-639-3";
 import { Node } from "prosemirror-model";
 import { schema, serializer } from "@server/editor";
 import { Document } from "@server/models";
-import { DocumentEvent } from "@server/types";
+import type { DocumentEvent } from "@server/types";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { BaseTask } from "./base/BaseTask";
 

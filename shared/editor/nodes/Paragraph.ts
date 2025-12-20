@@ -1,7 +1,11 @@
 import { setBlockType } from "prosemirror-commands";
-import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
+import type {
+  NodeSpec,
+  NodeType,
+  Node as ProsemirrorNode,
+} from "prosemirror-model";
 import deleteEmptyFirstParagraph from "../commands/deleteEmptyFirstParagraph";
-import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import Node from "./Node";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 

@@ -1,7 +1,7 @@
 import { toggleMark as pmToggleMark } from "prosemirror-commands";
-import { MarkType } from "prosemirror-model";
-import { Command } from "prosemirror-state";
-import { Primitive } from "utility-types";
+import type { MarkType } from "prosemirror-model";
+import type { Command } from "prosemirror-state";
+import type { Primitive } from "utility-types";
 import { chainTransactions } from "../lib/chainTransactions";
 import { isMarkActive } from "../queries/isMarkActive";
 

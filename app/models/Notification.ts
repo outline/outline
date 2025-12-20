@@ -1,6 +1,7 @@
-import { TFunction } from "i18next";
+import type { TFunction } from "i18next";
 import { action, computed, observable } from "mobx";
-import { NotificationData, NotificationEventType } from "@shared/types";
+import type { NotificationData } from "@shared/types";
+import { NotificationEventType } from "@shared/types";
 import {
   collectionPath,
   commentPath,

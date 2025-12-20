@@ -1,4 +1,4 @@
-import GroupUser from "@server/models/GroupUser";
+import type GroupUser from "@server/models/GroupUser";
 import { presentUser } from ".";
 
 export default function presentGroupUser(

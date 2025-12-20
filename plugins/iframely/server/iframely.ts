@@ -1,6 +1,7 @@
-import { JSONObject, UnfurlResourceType } from "@shared/types";
+import type { JSONObject } from "@shared/types";
+import { UnfurlResourceType } from "@shared/types";
 import Logger from "@server/logging/Logger";
-import { UnfurlError, UnfurlSignature } from "@server/types";
+import type { UnfurlError, UnfurlSignature } from "@server/types";
 import fetch from "@server/utils/fetch";
 import env from "./env";
 

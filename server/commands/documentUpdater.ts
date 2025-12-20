@@ -1,7 +1,7 @@
 import { Event, Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 
 type Props = {
   /** The existing document */

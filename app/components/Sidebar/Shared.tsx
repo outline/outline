@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { hover } from "@shared/styles";
 import { metaDisplay } from "@shared/utils/keyboard";
-import Share from "~/models/Share";
+import type Share from "~/models/Share";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
 import SearchPopover from "~/components/SearchPopover";

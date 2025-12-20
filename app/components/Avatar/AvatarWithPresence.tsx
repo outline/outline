@@ -3,7 +3,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled, { css } from "styled-components";
 import { s } from "@shared/styles";
-import User from "~/models/User";
+import type User from "~/models/User";
 import Tooltip from "~/components/Tooltip";
 import Avatar, { AvatarSize } from "./Avatar";
 

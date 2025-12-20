@@ -1,5 +1,6 @@
-import { Attrs } from "prosemirror-model";
-import { Command, NodeSelection, TextSelection } from "prosemirror-state";
+import type { Attrs } from "prosemirror-model";
+import type { Command } from "prosemirror-state";
+import { NodeSelection, TextSelection } from "prosemirror-state";
 import { v4 as uuidv4 } from "uuid";
 import { isMarkActive } from "../queries/isMarkActive";
 import { chainTransactions } from "../lib/chainTransactions";

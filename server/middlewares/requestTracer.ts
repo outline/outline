@@ -1,4 +1,4 @@
-import { Context, Next } from "koa";
+import type { Context, Next } from "koa";
 import { addTags, getRootSpanFromRequestContext } from "@server/logging/tracer";
 
 export default function requestTracer() {

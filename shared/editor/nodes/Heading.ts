@@ -1,21 +1,22 @@
 import copy from "copy-to-clipboard";
 import { textblockTypeInputRule } from "prosemirror-inputrules";
-import {
+import type {
   Node as ProsemirrorNode,
   NodeSpec,
   NodeType,
   Schema,
 } from "prosemirror-model";
-import { Command, Plugin, Selection } from "prosemirror-state";
+import type { Command } from "prosemirror-state";
+import { Plugin, Selection } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { toast } from "sonner";
-import { Primitive } from "utility-types";
+import type { Primitive } from "utility-types";
 import Storage from "../../utils/Storage";
 import backspaceToParagraph from "../commands/backspaceToParagraph";
 import splitHeading from "../commands/splitHeading";
 import toggleBlockType from "../commands/toggleBlockType";
 import { headingToPersistenceKey } from "../lib/headingToSlug";
-import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { findCollapsedNodes } from "../queries/findCollapsedNodes";
 import Node from "./Node";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";

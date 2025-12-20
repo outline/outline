@@ -1,5 +1,5 @@
 import isObject from "lodash/isPlainObject";
-import { Model } from "sequelize-typescript";
+import type { Model } from "sequelize-typescript";
 import { AuthorizationError } from "@server/errors";
 
 type Constructor = new (...args: any) => any;

@@ -1,6 +1,6 @@
-import Extension from "@shared/editor/lib/Extension";
-import Mark from "@shared/editor/marks/Mark";
-import Node from "@shared/editor/nodes/Node";
+import type Extension from "@shared/editor/lib/Extension";
+import type Mark from "@shared/editor/marks/Mark";
+import type Node from "@shared/editor/nodes/Node";
 import BlockMenuExtension from "~/editor/extensions/BlockMenu";
 import ClipboardTextSerializer from "~/editor/extensions/ClipboardTextSerializer";
 import DiagramsExtension from "@shared/editor/extensions/Diagrams";

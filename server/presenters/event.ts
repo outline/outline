@@ -1,4 +1,4 @@
-import { Event } from "@server/models";
+import type { Event } from "@server/models";
 import presentUser from "./user";
 
 export default function presentEvent(event: Event, isAdmin = false) {

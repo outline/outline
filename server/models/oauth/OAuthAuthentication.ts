@@ -1,6 +1,6 @@
 import { Matches } from "class-validator";
 import { subMinutes } from "date-fns";
-import {
+import type {
   FindOptions,
   InferAttributes,
   InferCreationAttributes,

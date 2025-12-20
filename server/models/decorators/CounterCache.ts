@@ -1,6 +1,6 @@
 import isNil from "lodash/isNil";
-import { InferAttributes } from "sequelize";
-import { ModelClassGetter } from "sequelize-typescript";
+import type { InferAttributes } from "sequelize";
+import type { ModelClassGetter } from "sequelize-typescript";
 import env from "@server/env";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import type Model from "../base/Model";

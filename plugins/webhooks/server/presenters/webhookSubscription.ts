@@ -1,4 +1,4 @@
-import { WebhookSubscription } from "@server/models";
+import type { WebhookSubscription } from "@server/models";
 
 export default function presentWebhookSubscription(
   webhook: WebhookSubscription

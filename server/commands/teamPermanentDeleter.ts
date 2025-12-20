@@ -1,5 +1,6 @@
 import Logger from "@server/logging/Logger";
 import { traceFunction } from "@server/logging/tracing";
+import type { Team } from "@server/models";
 import {
   ApiKey,
   Attachment,
@@ -10,7 +11,6 @@ import {
   FileOperation,
   Group,
   Import,
-  Team,
   User,
   UserAuthentication,
   Integration,

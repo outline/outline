@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
 import { useTranslation } from "react-i18next";
-import OAuthAuthentication from "~/models/oauth/OAuthAuthentication";
+import type OAuthAuthentication from "~/models/oauth/OAuthAuthentication";
 import { OAuthScopeHelper } from "~/scenes/Login/OAuthScopeHelper";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import { AvatarVariant } from "~/components/Avatar/Avatar";

@@ -1,4 +1,4 @@
-import { NodeSelection } from "prosemirror-state";
+import type { NodeSelection } from "prosemirror-state";
 import { useCallback, useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import Flex from "@shared/components/Flex";

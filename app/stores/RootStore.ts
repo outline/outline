@@ -34,7 +34,7 @@ import UserMembershipsStore from "./UserMembershipsStore";
 import UsersStore from "./UsersStore";
 import ViewsStore from "./ViewsStore";
 import WebhookSubscriptionsStore from "./WebhookSubscriptionStore";
-import Store from "./base/Store";
+import type Store from "./base/Store";
 
 export default class RootStore {
   apiKeys: ApiKeysStore;

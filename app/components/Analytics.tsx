@@ -2,7 +2,8 @@
 /* global ga */
 import escape from "lodash/escape";
 import * as React from "react";
-import { IntegrationService, PublicEnv } from "@shared/types";
+import type { PublicEnv } from "@shared/types";
+import { IntegrationService } from "@shared/types";
 import env from "~/env";
 
 type Props = {

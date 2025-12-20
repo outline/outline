@@ -2,14 +2,13 @@ import path from "path";
 import fs from "fs-extra";
 import chunk from "lodash/chunk";
 import truncate from "lodash/truncate";
-import { InferCreationAttributes } from "sequelize";
+import type { InferCreationAttributes } from "sequelize";
 import tmp from "tmp";
+import type { CollectionSort, ProsemirrorData } from "@shared/types";
 import {
   AttachmentPreset,
   CollectionPermission,
-  CollectionSort,
   FileOperationState,
-  ProsemirrorData,
 } from "@shared/types";
 import { CollectionValidation } from "@shared/validations";
 import attachmentCreator from "@server/commands/attachmentCreator";

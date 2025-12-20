@@ -1,7 +1,7 @@
-import { Attrs, Node } from "prosemirror-model";
-import { MutableAttrs } from "prosemirror-tables";
+import type { Attrs, Node } from "prosemirror-model";
+import type { MutableAttrs } from "prosemirror-tables";
 import { isBrowser } from "../../utils/browser";
-import { TableLayout } from "../types";
+import type { TableLayout } from "../types";
 
 export interface TableAttrs {
   layout: TableLayout | null;

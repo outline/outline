@@ -1,8 +1,8 @@
 import { PlusIcon } from "outline-icons";
-import { UserRole } from "@shared/types";
+import type { UserRole } from "@shared/types";
 import { UserRoleHelper } from "@shared/utils/UserRoleHelper";
 import stores from "~/stores";
-import User from "~/models/User";
+import type User from "~/models/User";
 import Invite from "~/scenes/Invite";
 import {
   UserChangeRoleDialog,

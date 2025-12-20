@@ -1,10 +1,6 @@
-import {
-  IntegrationService,
-  IntegrationSettings,
-  IntegrationType,
-  MentionType,
-} from "@shared/types";
-import Integration from "~/models/Integration";
+import type { IntegrationSettings, IntegrationType } from "@shared/types";
+import { IntegrationService, MentionType } from "@shared/types";
+import type Integration from "~/models/Integration";
 
 export const isURLMentionable = ({
   url,

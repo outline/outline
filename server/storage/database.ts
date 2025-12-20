@@ -1,10 +1,12 @@
 import path from "path";
-import { InferAttributes, InferCreationAttributes } from "sequelize";
+import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import sequelizeStrictAttributes from "sequelize-strict-attributes";
-import { Sequelize, SequelizeOptions } from "sequelize-typescript";
-import { Umzug, SequelizeStorage, MigrationError } from "umzug";
+import type { SequelizeOptions } from "sequelize-typescript";
+import { Sequelize } from "sequelize-typescript";
+import type { MigrationError } from "umzug";
+import { Umzug, SequelizeStorage } from "umzug";
 import env from "@server/env";
-import Model from "@server/models/base/Model";
+import type Model from "@server/models/base/Model";
 import Logger from "../logging/Logger";
 import * as models from "../models";
 

@@ -3,9 +3,8 @@ import { useCallback, useMemo, useEffect } from "react";
 import { emojiMartToGemoji, snakeCase } from "@shared/editor/lib/emoji";
 import { search as emojiSearch } from "@shared/utils/emoji";
 import EmojiMenuItem from "./EmojiMenuItem";
-import SuggestionsMenu, {
-  Props as SuggestionsMenuProps,
-} from "./SuggestionsMenu";
+import type { Props as SuggestionsMenuProps } from "./SuggestionsMenu";
+import SuggestionsMenu from "./SuggestionsMenu";
 import useStores from "~/hooks/useStores";
 import { determineIconType } from "@shared/utils/icon";
 import { IconType } from "@shared/types";

@@ -3,12 +3,12 @@ import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import Icon from "@shared/components/Icon";
 import { TextHelper } from "@shared/utils/TextHelper";
-import Document from "~/models/Document";
+import type Document from "~/models/Document";
 import { ActionSeparator, createAction, createActionGroup } from "~/actions";
 import { DocumentsSection } from "~/actions/sections";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
-import { Action } from "~/types";
+import type { Action } from "~/types";
 import { useComputed } from "./useComputed";
 
 type Props = {

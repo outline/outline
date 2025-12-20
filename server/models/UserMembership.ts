@@ -1,11 +1,6 @@
-import {
-  InferAttributes,
-  InferCreationAttributes,
-  Op,
-  type SaveOptions,
-  type FindOptions,
-} from "sequelize";
-import { WhereOptions } from "sequelize";
+import type { InferAttributes, InferCreationAttributes } from "sequelize";
+import { Op, type SaveOptions, type FindOptions } from "sequelize";
+import type { WhereOptions } from "sequelize";
 import {
   Column,
   ForeignKey,
@@ -22,15 +17,16 @@ import {
   BeforeDestroy,
   BeforeUpdate,
 } from "sequelize-typescript";
-import { CollectionPermission, DocumentPermission } from "@shared/types";
+import type { DocumentPermission } from "@shared/types";
+import { CollectionPermission } from "@shared/types";
 import { ValidationError } from "@server/errors";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import Collection from "./Collection";
 import Document from "./Document";
 import GroupMembership from "./GroupMembership";
 import User from "./User";
 import IdModel from "./base/IdModel";
-import { HookContext } from "./base/Model";
+import type { HookContext } from "./base/Model";
 import Fix from "./decorators/Fix";
 
 /**

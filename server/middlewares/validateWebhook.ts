@@ -1,6 +1,6 @@
 import crypto from "crypto";
-import { Next } from "koa";
-import { APIContext } from "@server/types";
+import type { Next } from "koa";
+import type { APIContext } from "@server/types";
 import { safeEqual } from "@server/utils/crypto";
 
 export default function validateWebhook({

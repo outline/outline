@@ -1,4 +1,4 @@
-import { LocationDescriptor } from "history";
+import type { LocationDescriptor } from "history";
 import * as React from "react";
 import styled, { useTheme, css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -10,8 +10,9 @@ import { UnreadBadge } from "~/components/UnreadBadge";
 import useClickIntent from "~/hooks/useClickIntent";
 import { undraggableOnDesktop } from "~/styles";
 import Disclosure from "./Disclosure";
-import NavLink, { Props as NavLinkProps } from "./NavLink";
-import { ActionWithChildren } from "~/types";
+import type { Props as NavLinkProps } from "./NavLink";
+import NavLink from "./NavLink";
+import type { ActionWithChildren } from "~/types";
 import { ContextMenu } from "~/components/Menu/ContextMenu";
 import { useTranslation } from "react-i18next";
 

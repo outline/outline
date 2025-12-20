@@ -1,13 +1,9 @@
-import { EditorState } from "prosemirror-state";
-import {
-  CellSelection,
-  TableRect,
-  isInTable,
-  selectedRect,
-} from "prosemirror-tables";
+import type { EditorState } from "prosemirror-state";
+import type { TableRect } from "prosemirror-tables";
+import { CellSelection, isInTable, selectedRect } from "prosemirror-tables";
 import { ColumnSelection } from "../selection/ColumnSelection";
 import { RowSelection } from "../selection/RowSelection";
-import { EditorView } from "prosemirror-view";
+import type { EditorView } from "prosemirror-view";
 
 /**
  * Checks if the current selection is a column selection.

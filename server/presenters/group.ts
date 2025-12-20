@@ -1,4 +1,4 @@
-import Group from "@server/models/Group";
+import type Group from "@server/models/Group";
 
 export default async function presentGroup(group: Group) {
   return {

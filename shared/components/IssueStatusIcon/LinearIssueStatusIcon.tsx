@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useTheme } from "styled-components";
 import { isSafari } from "../../utils/browser";
-import { BaseIconProps } from ".";
+import type { BaseIconProps } from ".";
 
 enum StateType {
   Triage = "triage",

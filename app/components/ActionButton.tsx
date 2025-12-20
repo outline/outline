@@ -1,10 +1,11 @@
 /* oxlint-disable react/prop-types */
 import * as React from "react";
-import Tooltip, { Props as TooltipProps } from "~/components/Tooltip";
+import type { Props as TooltipProps } from "~/components/Tooltip";
+import Tooltip from "~/components/Tooltip";
 import { performAction, resolve } from "~/actions";
 import useIsMounted from "~/hooks/useIsMounted";
 import useActionContext from "~/hooks/useActionContext";
-import { ActionVariant, ActionWithChildren } from "~/types";
+import type { ActionVariant, ActionWithChildren } from "~/types";
 
 export type Props = React.HTMLAttributes<HTMLButtonElement> & {
   /** Show the button in a disabled state */

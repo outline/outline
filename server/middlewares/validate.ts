@@ -1,7 +1,8 @@
-import { Next } from "koa";
-import { z, ZodError } from "zod";
+import type { Next } from "koa";
+import type { z } from "zod";
+import { ZodError } from "zod";
 import { ValidationError } from "@server/errors";
-import { APIContext, BaseReq } from "@server/types";
+import type { APIContext, BaseReq } from "@server/types";
 
 export default function validate<T extends z.ZodType<BaseReq>>(schema: T) {
   return async function validateMiddleware(ctx: APIContext, next: Next) {

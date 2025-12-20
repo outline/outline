@@ -1,8 +1,9 @@
 import { Op } from "sequelize";
-import { Collection, Document } from "@server/models";
+import type { Document } from "@server/models";
+import { Collection } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import documentCreator from "./documentCreator";
 
 type Props = {

@@ -9,7 +9,7 @@ import DocumentMentionedEmail from "@server/emails/templates/DocumentMentionedEm
 import DocumentPublishedOrUpdatedEmail from "@server/emails/templates/DocumentPublishedOrUpdatedEmail";
 import DocumentSharedEmail from "@server/emails/templates/DocumentSharedEmail";
 import { Notification } from "@server/models";
-import { Event, NotificationEvent } from "@server/types";
+import type { Event, NotificationEvent } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
 import GroupDocumentMentionedEmail from "@server/emails/templates/GroupDocumentMentionedEmail";
 import GroupCommentMentionedEmail from "@server/emails/templates/GroupCommentMentionedEmail";

@@ -20,7 +20,7 @@ import {
   TableMergeCellsIcon,
   TableSplitCellsIcon,
 } from "outline-icons";
-import { EditorState } from "prosemirror-state";
+import type { EditorState } from "prosemirror-state";
 import styled from "styled-components";
 import Highlight from "@shared/editor/marks/Highlight";
 import { getMarksBetween } from "@shared/editor/queries/getMarksBetween";
@@ -28,10 +28,10 @@ import { isInCode } from "@shared/editor/queries/isInCode";
 import { isInList } from "@shared/editor/queries/isInList";
 import { isMarkActive } from "@shared/editor/queries/isMarkActive";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
-import { MenuItem } from "@shared/editor/types";
+import type { MenuItem } from "@shared/editor/types";
 import { metaDisplay } from "@shared/utils/keyboard";
 import CircleIcon from "~/components/Icons/CircleIcon";
-import { Dictionary } from "~/hooks/useDictionary";
+import type { Dictionary } from "~/hooks/useDictionary";
 import {
   isMobile as isMobileDevice,
   isTouchDevice,

@@ -1,4 +1,4 @@
-import { Node as ProseMirrorNode } from "prosemirror-model";
+import type { Node as ProseMirrorNode } from "prosemirror-model";
 
 /**
  * Returns the text content between two positions.

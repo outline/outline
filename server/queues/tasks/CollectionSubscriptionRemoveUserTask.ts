@@ -5,7 +5,7 @@ import Logger from "@server/logging/Logger";
 import { Collection, Subscription, User } from "@server/models";
 import { can } from "@server/policies";
 import { sequelize } from "@server/storage/database";
-import { CollectionUserEvent } from "@server/types";
+import type { CollectionUserEvent } from "@server/types";
 import { BaseTask } from "./base/BaseTask";
 
 export default class CollectionSubscriptionRemoveUserTask extends BaseTask<CollectionUserEvent> {

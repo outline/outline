@@ -1,6 +1,7 @@
-import { EmailAddress } from "addressparser";
-import nodemailer, { Transporter } from "nodemailer";
-import SMTPTransport from "nodemailer/lib/smtp-transport";
+import type { EmailAddress } from "addressparser";
+import type { Transporter } from "nodemailer";
+import nodemailer from "nodemailer";
+import type SMTPTransport from "nodemailer/lib/smtp-transport";
 import Oy from "oy-vey";
 import env from "@server/env";
 import { InternalError } from "@server/errors";

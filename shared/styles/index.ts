@@ -1,4 +1,4 @@
-import { DefaultTheme } from "styled-components";
+import type { DefaultTheme } from "styled-components";
 import { isTouchDevice } from "../utils/browser";
 
 export { default as depths } from "./depths";

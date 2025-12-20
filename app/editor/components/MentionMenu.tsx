@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import Icon from "@shared/components/Icon";
-import { MenuItem } from "@shared/editor/types";
+import type { MenuItem } from "@shared/editor/types";
 import { MentionType } from "@shared/types";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { Avatar, AvatarSize, GroupAvatar } from "~/components/Avatar";
@@ -22,9 +22,8 @@ import {
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import { client } from "~/utils/ApiClient";
-import SuggestionsMenu, {
-  Props as SuggestionsMenuProps,
-} from "./SuggestionsMenu";
+import type { Props as SuggestionsMenuProps } from "./SuggestionsMenu";
+import SuggestionsMenu from "./SuggestionsMenu";
 import SuggestionsMenuItem from "./SuggestionsMenuItem";
 import { runInAction } from "mobx";
 

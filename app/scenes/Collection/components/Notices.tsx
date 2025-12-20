@@ -1,6 +1,6 @@
 import { ArchiveIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
-import Collection from "~/models/Collection";
+import type Collection from "~/models/Collection";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import Notice from "~/components/Notice";
 import Time from "~/components/Time";

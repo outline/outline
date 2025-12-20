@@ -18,14 +18,15 @@ import {
   Length,
 } from "sequelize-typescript";
 import { globalEventQueue } from "../queues";
-import { APIContext, AuthenticationType } from "../types";
+import type { APIContext } from "../types";
+import { AuthenticationType } from "../types";
 import Collection from "./Collection";
 import Document from "./Document";
 import Team from "./Team";
 import User from "./User";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
-import { Context } from "koa";
+import type { Context } from "koa";
 
 @Table({ tableName: "events", modelName: "event", updatedAt: false })
 @Fix

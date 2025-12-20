@@ -1,6 +1,6 @@
 import * as React from "react";
 import Icon from "@shared/components/Icon";
-import { NavigationNode } from "@shared/types";
+import type { NavigationNode } from "@shared/types";
 import Breadcrumb from "~/components/Breadcrumb";
 import { sharedModelPath } from "~/utils/routeHelpers";
 import { createInternalLinkAction } from "~/actions";

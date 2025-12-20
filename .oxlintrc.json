@@ -86,6 +86,7 @@
         "@typescript-eslint/no-require-imports": "off",
         "import/no-named-as-default": "off",
         "import/no-named-as-default-member": "off",
+        "typescript/consistent-type-imports": "error",
         "no-unused-vars": [
           "error",
           {

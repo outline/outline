@@ -1,6 +1,7 @@
 import { MathView } from "@benrbray/prosemirror-math";
-import { Plugin, PluginKey, PluginSpec } from "prosemirror-state";
-import { NodeViewConstructor } from "prosemirror-view";
+import type { PluginSpec } from "prosemirror-state";
+import { Plugin, PluginKey } from "prosemirror-state";
+import type { NodeViewConstructor } from "prosemirror-view";
 
 export interface IMathPluginState {
   macros: { [cmd: string]: string };

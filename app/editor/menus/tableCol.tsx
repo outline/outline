@@ -13,7 +13,7 @@ import {
   AlphabeticalReverseSortIcon,
   TableColumnsDistributeIcon,
 } from "outline-icons";
-import { EditorState } from "prosemirror-state";
+import type { EditorState } from "prosemirror-state";
 import { CellSelection, selectedRect } from "prosemirror-tables";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import {
@@ -21,8 +21,8 @@ import {
   isMergedCellSelection,
   isMultipleCellSelection,
 } from "@shared/editor/queries/table";
-import { MenuItem } from "@shared/editor/types";
-import { Dictionary } from "~/hooks/useDictionary";
+import type { MenuItem } from "@shared/editor/types";
+import type { Dictionary } from "~/hooks/useDictionary";
 import { ArrowLeftIcon, ArrowRightIcon } from "~/components/Icons/ArrowIcon";
 
 export default function tableColMenuItems(

@@ -1,5 +1,5 @@
-import { Node } from "prosemirror-model";
-import { EditorState } from "prosemirror-state";
+import type { Node } from "prosemirror-model";
+import type { EditorState } from "prosemirror-state";
 
 export function getParentListItem(state: EditorState): [Node, number] | void {
   const $head = state.selection.$head;

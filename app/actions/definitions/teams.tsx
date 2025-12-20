@@ -1,7 +1,7 @@
 import { ArrowIcon, PlusIcon } from "outline-icons";
 import styled from "styled-components";
 import { stringToColor } from "@shared/utils/color";
-import RootStore from "~/stores/RootStore";
+import type RootStore from "~/stores/RootStore";
 import { LoginDialog } from "~/scenes/Login/components/LoginDialog";
 import TeamNew from "~/scenes/TeamNew";
 import TeamLogo from "~/components/TeamLogo";
@@ -10,7 +10,7 @@ import {
   createActionWithChildren,
   createExternalLinkAction,
 } from "~/actions";
-import { ActionContext, ExternalLinkAction } from "~/types";
+import type { ActionContext, ExternalLinkAction } from "~/types";
 import Desktop from "~/utils/Desktop";
 import { TeamSection } from "../sections";
 

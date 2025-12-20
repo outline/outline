@@ -6,7 +6,7 @@ import Flex from "../../components/Flex";
 import { s } from "../../styles";
 import { isExternalUrl, sanitizeUrl } from "../../utils/urls";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
-import { ComponentProps } from "../types";
+import type { ComponentProps } from "../types";
 import { ResizeLeft, ResizeRight } from "./ResizeHandle";
 import useDragResize from "./hooks/useDragResize";
 import { useTranslation } from "react-i18next";

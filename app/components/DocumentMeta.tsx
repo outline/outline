@@ -1,12 +1,12 @@
-import { LocationDescriptor } from "history";
+import type { LocationDescriptor } from "history";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { s, ellipsis } from "@shared/styles";
-import Document from "~/models/Document";
-import Revision from "~/models/Revision";
+import type Document from "~/models/Document";
+import type Revision from "~/models/Revision";
 import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
 import DocumentTasks from "~/components/DocumentTasks";
 import Flex from "~/components/Flex";

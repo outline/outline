@@ -5,17 +5,15 @@ import {
   type InstallationAuthOptions,
 } from "@octokit/auth-app";
 import { Sequelize } from "sequelize";
-import { Endpoints, OctokitResponse } from "@octokit/types";
+import type { Endpoints, OctokitResponse } from "@octokit/types";
 import { Octokit } from "octokit";
 import pluralize from "pluralize";
-import {
-  IntegrationService,
-  IntegrationType,
-  UnfurlResourceType,
-} from "@shared/types";
+import type { IntegrationType } from "@shared/types";
+import { IntegrationService, UnfurlResourceType } from "@shared/types";
 import Logger from "@server/logging/Logger";
-import { Integration, User } from "@server/models";
-import { UnfurlIssueOrPR, UnfurlSignature } from "@server/types";
+import type { User } from "@server/models";
+import { Integration } from "@server/models";
+import type { UnfurlIssueOrPR, UnfurlSignature } from "@server/types";
 import { GitHubUtils } from "../shared/GitHubUtils";
 import env from "./env";
 

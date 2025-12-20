@@ -10,7 +10,7 @@ import { s } from "@shared/styles";
 import { Client, UserPreference } from "@shared/types";
 import { isPWA } from "@shared/utils/browser";
 import { parseDomain } from "@shared/utils/domains";
-import { Config } from "~/stores/AuthStore";
+import type { Config } from "~/stores/AuthStore";
 import { AvatarSize } from "~/components/Avatar";
 import ButtonLarge from "~/components/ButtonLarge";
 import ChangeLanguage from "~/components/ChangeLanguage";

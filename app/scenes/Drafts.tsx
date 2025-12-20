@@ -4,7 +4,7 @@ import queryString from "query-string";
 import { useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
-import { DateFilter as TDateFilter } from "@shared/types";
+import type { DateFilter as TDateFilter } from "@shared/types";
 import CollectionFilter from "~/scenes/Search/components/CollectionFilter";
 import { Action } from "~/components/Actions";
 import Empty from "~/components/Empty";

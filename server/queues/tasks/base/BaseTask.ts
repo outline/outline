@@ -1,4 +1,4 @@
-import { Job, JobOptions } from "bull";
+import type { Job, JobOptions } from "bull";
 import { taskQueue } from "../../";
 
 export enum TaskPriority {

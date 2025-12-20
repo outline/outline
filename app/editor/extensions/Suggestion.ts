@@ -1,8 +1,8 @@
 import escapeRegExp from "lodash/escapeRegExp";
 import { action, observable } from "mobx";
 import { InputRule } from "prosemirror-inputrules";
-import { NodeType, Schema } from "prosemirror-model";
-import { EditorState, Plugin } from "prosemirror-state";
+import type { NodeType, Schema } from "prosemirror-model";
+import type { EditorState, Plugin } from "prosemirror-state";
 import Extension from "@shared/editor/lib/Extension";
 import { SuggestionsMenuPlugin } from "@shared/editor/plugins/SuggestionsMenuPlugin";
 import { isInCode } from "@shared/editor/queries/isInCode";

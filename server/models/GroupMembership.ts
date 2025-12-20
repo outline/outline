@@ -1,6 +1,5 @@
+import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
-  InferAttributes,
-  InferCreationAttributes,
   Op,
   type SaveOptions,
   type FindOptions,
@@ -22,9 +21,10 @@ import {
   BeforeDestroy,
   BeforeUpdate,
 } from "sequelize-typescript";
-import { CollectionPermission, DocumentPermission } from "@shared/types";
+import type { DocumentPermission } from "@shared/types";
+import { CollectionPermission } from "@shared/types";
 import { ValidationError } from "@server/errors";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import Collection from "./Collection";
 import Document from "./Document";
 import Group from "./Group";

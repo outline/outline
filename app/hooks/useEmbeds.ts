@@ -2,7 +2,7 @@ import find from "lodash/find";
 import { useEffect, useMemo } from "react";
 import embeds from "@shared/editor/embeds";
 import { IntegrationType } from "@shared/types";
-import Integration from "~/models/Integration";
+import type Integration from "~/models/Integration";
 import Logger from "~/utils/Logger";
 import useStores from "./useStores";
 

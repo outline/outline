@@ -1,4 +1,4 @@
-import { Context } from "koa";
+import type { Context } from "koa";
 import env from "@server/env";
 import RateLimiter from "@server/utils/RateLimiter";
 import { rateLimiter } from "./rateLimiter";

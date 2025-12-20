@@ -1,5 +1,5 @@
 import path from "path";
-import { FileOperation } from "@server/models";
+import type { FileOperation } from "@server/models";
 import { presentUser } from ".";
 
 export default function presentFileOperation(data: FileOperation) {

@@ -3,17 +3,16 @@ import { v4 as uuidv4 } from "uuid";
 import { EmailIcon, LinkIcon } from "outline-icons";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { EmbedDescriptor } from "@shared/editor/embeds";
-import { MenuItem } from "@shared/editor/types";
+import type { EmbedDescriptor } from "@shared/editor/embeds";
+import type { MenuItem } from "@shared/editor/types";
 import { MentionType } from "@shared/types";
 import { isUrl } from "@shared/utils/urls";
-import Integration from "~/models/Integration";
+import type Integration from "~/models/Integration";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import { determineMentionType, isURLMentionable } from "~/utils/mention";
-import SuggestionsMenu, {
-  Props as SuggestionsMenuProps,
-} from "./SuggestionsMenu";
+import type { Props as SuggestionsMenuProps } from "./SuggestionsMenu";
+import SuggestionsMenu from "./SuggestionsMenu";
 import SuggestionsMenuItem from "./SuggestionsMenuItem";
 
 type Props = Omit<

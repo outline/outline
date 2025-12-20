@@ -1,6 +1,6 @@
-import { Node } from "prosemirror-model";
+import type { Node } from "prosemirror-model";
 import { isCode } from "./isCode";
-import { EditorView } from "prosemirror-view";
+import type { EditorView } from "prosemirror-view";
 import { sanitizeUrl } from "@shared/utils/urls";
 
 export abstract class LightboxImage {

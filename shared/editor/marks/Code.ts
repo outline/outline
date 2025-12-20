@@ -1,6 +1,6 @@
 import codemark from "prosemirror-codemark";
 import { toggleMark } from "prosemirror-commands";
-import {
+import type {
   MarkSpec,
   MarkType,
   Node as ProsemirrorNode,
@@ -8,9 +8,9 @@ import {
   Slice,
 } from "prosemirror-model";
 import { Plugin, TextSelection } from "prosemirror-state";
-import { EditorView } from "prosemirror-view";
+import type { EditorView } from "prosemirror-view";
 import { markInputRuleForPattern } from "../lib/markInputRule";
-import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { isInCode } from "../queries/isInCode";
 import Mark from "./Mark";
 import { codeWordDecorations } from "../plugins/CodeWordDecorationsPlugin";

@@ -1,5 +1,6 @@
-import { InferCreationAttributes, Op } from "sequelize";
-import { UserRole } from "@shared/types";
+import type { InferCreationAttributes } from "sequelize";
+import { Op } from "sequelize";
+import type { UserRole } from "@shared/types";
 import InviteAcceptedEmail from "@server/emails/templates/InviteAcceptedEmail";
 import {
   DomainNotAllowedError,
@@ -10,7 +11,7 @@ import {
 import Logger from "@server/logging/Logger";
 import { Team, User, UserAuthentication } from "@server/models";
 import { sequelize } from "@server/storage/database";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import { UserFlag } from "@server/models/User";
 import UploadUserAvatarTask from "@server/queues/tasks/UploadUserAvatarTask";
 

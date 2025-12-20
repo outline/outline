@@ -1,4 +1,4 @@
-import { EmbedDescriptor } from "../embeds";
+import type { EmbedDescriptor } from "../embeds";
 
 export function getMatchingEmbed(
   embeds: EmbedDescriptor[],

@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { s, hover, truncateMultiline } from "@shared/styles";
-import Notification from "~/models/Notification";
+import type Notification from "~/models/Notification";
 import useStores from "~/hooks/useStores";
 import { Avatar, AvatarSize, AvatarVariant } from "../Avatar";
 import Flex from "../Flex";

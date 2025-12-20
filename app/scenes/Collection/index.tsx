@@ -13,7 +13,7 @@ import {
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { StatusFilter } from "@shared/types";
-import Collection from "~/models/Collection";
+import type Collection from "~/models/Collection";
 import CenteredContent from "~/components/CenteredContent";
 import { CollectionBreadcrumb } from "~/components/CollectionBreadcrumb";
 import Heading from "~/components/Heading";

@@ -2,7 +2,8 @@ import { Node } from "prosemirror-model";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import nodesWithEmptyTextNode from "@server/test/fixtures/notion-page-with-empty-text-nodes.json";
 import allNodes from "@server/test/fixtures/notion-page.json";
-import { NotionConverter, NotionPage } from "./NotionConverter";
+import type { NotionPage } from "./NotionConverter";
+import { NotionConverter } from "./NotionConverter";
 
 describe("NotionConverter", () => {
   it("converts a page", () => {

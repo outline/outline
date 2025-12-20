@@ -1,8 +1,5 @@
-import {
-  registerDecorator,
-  ValidationArguments,
-  ValidationOptions,
-} from "class-validator";
+import type { ValidationArguments, ValidationOptions } from "class-validator";
+import { registerDecorator } from "class-validator";
 
 /**
  * Validates a PostgreSQL database connection URL, including support for

@@ -2,7 +2,7 @@ import invariant from "invariant";
 import { observer } from "mobx-react";
 import { actionToMenuItem } from "~/actions";
 import useActionContext from "~/hooks/useActionContext";
-import { ActionVariant, ActionWithChildren } from "~/types";
+import type { ActionVariant, ActionWithChildren } from "~/types";
 import SidebarLink from "./SidebarLink";
 
 type Props = {

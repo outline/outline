@@ -1,19 +1,19 @@
-import { Token } from "markdown-it";
+import type { Token } from "markdown-it";
 import { InputRule } from "prosemirror-inputrules";
-import { Node as ProsemirrorNode, NodeSpec, NodeType } from "prosemirror-model";
-import {
-  NodeSelection,
-  Plugin,
-  Command,
-  TextSelection,
-} from "prosemirror-state";
+import type {
+  Node as ProsemirrorNode,
+  NodeSpec,
+  NodeType,
+} from "prosemirror-model";
+import type { Command } from "prosemirror-state";
+import { NodeSelection, Plugin, TextSelection } from "prosemirror-state";
 import * as React from "react";
 import { sanitizeUrl } from "../../utils/urls";
 import Caption from "../components/Caption";
 import ImageComponent from "../components/Image";
-import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
-import { ComponentProps } from "../types";
+import type { ComponentProps } from "../types";
 import SimpleImage from "./SimpleImage";
 import { LightboxImageFactory } from "../lib/Lightbox";
 import { ImageSource } from "../lib/FileHelper";

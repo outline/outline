@@ -1,6 +1,7 @@
 import { action } from "mobx";
-import { EditorState, Plugin } from "prosemirror-state";
-import { EditorView } from "prosemirror-view";
+import type { EditorState } from "prosemirror-state";
+import { Plugin } from "prosemirror-state";
+import type { EditorView } from "prosemirror-view";
 
 const MAX_MATCH = 500;
 

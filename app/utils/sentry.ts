@@ -1,6 +1,6 @@
 import { BrowserTracing } from "@sentry/browser";
 import * as Sentry from "@sentry/react";
-import { History } from "history";
+import type { History } from "history";
 import env from "~/env";
 import {
   AuthorizationError,

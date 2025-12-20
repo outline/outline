@@ -8,8 +8,8 @@ import { richExtensions } from "@shared/editor/nodes";
 import { s } from "@shared/styles";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { CollectionValidation } from "@shared/validations";
-import Collection from "~/models/Collection";
-import Document from "~/models/Document";
+import type Collection from "~/models/Collection";
+import type Document from "~/models/Document";
 import Editor from "~/components/Editor";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import Text from "~/components/Text";
@@ -18,7 +18,7 @@ import { withUIExtensions } from "~/editor/extensions";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import { Properties } from "~/types";
+import type { Properties } from "~/types";
 
 const extensions = withUIExtensions(richExtensions);
 

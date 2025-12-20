@@ -10,7 +10,7 @@ import {
   User,
 } from "@server/models";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
-import { CommentEvent, CommentUpdateEvent } from "@server/types";
+import type { CommentEvent, CommentUpdateEvent } from "@server/types";
 import { canUserAccessDocument } from "@server/utils/permissions";
 import { BaseTask, TaskPriority } from "./base/BaseTask";
 

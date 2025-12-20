@@ -1,5 +1,7 @@
-import { NodeAnchor, ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
-import { EditorState, Plugin } from "prosemirror-state";
+import type { NodeAnchor } from "@shared/utils/ProsemirrorHelper";
+import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
+import type { EditorState } from "prosemirror-state";
+import { Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 
 export class AnchorPlugin extends Plugin {

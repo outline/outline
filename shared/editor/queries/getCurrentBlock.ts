@@ -1,5 +1,5 @@
-import { Node } from "prosemirror-model";
-import { EditorState } from "prosemirror-state";
+import type { Node } from "prosemirror-model";
+import type { EditorState } from "prosemirror-state";
 
 /**
  * Gets the current block node that contains the selection

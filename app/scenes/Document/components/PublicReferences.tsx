@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { NavigationNode } from "@shared/types";
+import type { NavigationNode } from "@shared/types";
 import Subheading from "~/components/Subheading";
 import ReferenceListItem from "./ReferenceListItem";
 import useShare from "@shared/hooks/useShare";

@@ -1,7 +1,7 @@
-import { Next } from "koa";
-import { TeamPreference } from "@shared/types";
+import type { Next } from "koa";
+import type { TeamPreference } from "@shared/types";
 import { ValidationError } from "@server/errors";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 
 /**
  * Middleware to check if a feature is enabled for the team.

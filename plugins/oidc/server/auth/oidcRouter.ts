@@ -1,7 +1,7 @@
 import passport from "@outlinewiki/koa-passport";
 import JWT from "jsonwebtoken";
 import type { Context } from "koa";
-import Router from "koa-router";
+import type Router from "koa-router";
 import get from "lodash/get";
 import { slugifyDomain } from "@shared/utils/domains";
 import { parseEmail } from "@shared/utils/email";
@@ -13,8 +13,9 @@ import {
 } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import passportMiddleware from "@server/middlewares/passport";
-import { AuthenticationProvider, User } from "@server/models";
-import { AuthenticationResult } from "@server/types";
+import type { User } from "@server/models";
+import { AuthenticationProvider } from "@server/models";
+import type { AuthenticationResult } from "@server/types";
 import {
   StateStore,
   getTeamFromContext,

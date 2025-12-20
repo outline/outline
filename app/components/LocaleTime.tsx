@@ -1,5 +1,5 @@
 import * as React from "react";
-import { locales } from "@shared/utils/date";
+import type { locales } from "@shared/utils/date";
 import Tooltip from "~/components/Tooltip";
 import { useLocaleTime } from "~/hooks/useLocaleTime";
 

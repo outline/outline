@@ -1,10 +1,11 @@
-import http, { IncomingMessage } from "http";
-import { Duplex } from "stream";
+import type { IncomingMessage } from "http";
+import type http from "http";
+import type { Duplex } from "stream";
 import url from "url";
 import { Redis } from "@hocuspocus/extension-redis";
 import { Throttle } from "@hocuspocus/extension-throttle";
 import { Server } from "@hocuspocus/server";
-import Koa from "koa";
+import type Koa from "koa";
 import WebSocket from "ws";
 import { DocumentValidation } from "@shared/validations";
 import { ConnectionLimitExtension } from "@server/collaboration/ConnectionLimitExtension";

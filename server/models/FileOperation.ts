@@ -1,9 +1,9 @@
-import {
+import type {
   InferAttributes,
   InferCreationAttributes,
-  Op,
   WhereOptions,
 } from "sequelize";
+import { Op } from "sequelize";
 import {
   ForeignKey,
   DefaultScope,
@@ -13,12 +13,8 @@ import {
   Table,
   DataType,
 } from "sequelize-typescript";
-import {
-  CollectionPermission,
-  FileOperationFormat,
-  FileOperationState,
-  FileOperationType,
-} from "@shared/types";
+import type { CollectionPermission, FileOperationFormat } from "@shared/types";
+import { FileOperationState, FileOperationType } from "@shared/types";
 import FileStorage from "@server/storage/files";
 import Collection from "./Collection";
 import Team from "./Team";

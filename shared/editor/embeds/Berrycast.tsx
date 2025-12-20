@@ -1,7 +1,7 @@
 import * as React from "react";
 import useMeasure from "react-use-measure";
 import Frame from "../components/Frame";
-import { EmbedProps as Props } from ".";
+import type { EmbedProps as Props } from ".";
 
 export default function Berrycast({ matches, ...props }: Props) {
   const normalizedUrl = props.attrs.href.replace(/\/$/, "");

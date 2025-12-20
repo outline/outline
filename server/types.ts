@@ -1,8 +1,8 @@
-import { ParameterizedContext, DefaultContext } from "koa";
-import { IRouterParamContext } from "koa-router";
-import { InferAttributes, Model, Transaction } from "sequelize";
-import { z } from "zod";
-import {
+import type { ParameterizedContext, DefaultContext } from "koa";
+import type { IRouterParamContext } from "koa-router";
+import type { InferAttributes, Model, Transaction } from "sequelize";
+import type { z } from "zod";
+import type {
   CollectionSort,
   NavigationNode,
   Client,
@@ -12,8 +12,8 @@ import {
   ProsemirrorData,
   UnfurlResponse,
 } from "@shared/types";
-import { BaseSchema } from "@server/routes/api/schema";
-import { AccountProvisionerResult } from "./commands/accountProvisioner";
+import type { BaseSchema } from "@server/routes/api/schema";
+import type { AccountProvisionerResult } from "./commands/accountProvisioner";
 import type {
   ApiKey,
   Attachment,

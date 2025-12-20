@@ -1,4 +1,4 @@
-import { ActionImpl } from "kbar";
+import type { ActionImpl } from "kbar";
 import { ArrowIcon, BackIcon } from "outline-icons";
 import * as React from "react";
 import styled, { css, useTheme } from "styled-components";

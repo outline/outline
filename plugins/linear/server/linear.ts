@@ -1,15 +1,13 @@
-import { Issue, LinearClient, WorkflowState } from "@linear/sdk";
+import type { Issue, WorkflowState } from "@linear/sdk";
+import { LinearClient } from "@linear/sdk";
 import sortBy from "lodash/sortBy";
 import { z } from "zod";
-import {
-  IntegrationService,
-  IntegrationType,
-  UnfurlResourceType,
-} from "@shared/types";
+import type { IntegrationType } from "@shared/types";
+import { IntegrationService, UnfurlResourceType } from "@shared/types";
 import Logger from "@server/logging/Logger";
 import { Integration } from "@server/models";
-import User from "@server/models/User";
-import { UnfurlIssueOrPR, UnfurlSignature } from "@server/types";
+import type User from "@server/models/User";
+import type { UnfurlIssueOrPR, UnfurlSignature } from "@server/types";
 import { LinearUtils } from "../shared/LinearUtils";
 import env from "./env";
 import { Minute } from "@shared/utils/time";

@@ -1,14 +1,15 @@
-import { Options, PluginSimple } from "markdown-it";
+import type { Options, PluginSimple } from "markdown-it";
 import { observer } from "mobx-react";
 import { keymap } from "prosemirror-keymap";
 import { MarkdownParser } from "prosemirror-markdown";
-import { MarkSpec, NodeSpec, Schema } from "prosemirror-model";
-import { EditorView } from "prosemirror-view";
-import { Primitive } from "utility-types";
+import type { MarkSpec, NodeSpec, Schema } from "prosemirror-model";
+import type { EditorView } from "prosemirror-view";
+import type { Primitive } from "utility-types";
 import type { Editor } from "~/editor";
-import Mark from "../marks/Mark";
-import Node from "../nodes/Node";
-import Extension, { CommandFactory } from "./Extension";
+import type Mark from "../marks/Mark";
+import type Node from "../nodes/Node";
+import type { CommandFactory } from "./Extension";
+import type Extension from "./Extension";
 import makeRules from "./markdown/rules";
 import { MarkdownSerializer } from "./markdown/serializer";
 

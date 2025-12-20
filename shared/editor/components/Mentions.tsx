@@ -5,7 +5,7 @@ import {
   CollectionIcon,
   WarningIcon,
 } from "outline-icons";
-import { Node } from "prosemirror-model";
+import type { Node } from "prosemirror-model";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -27,7 +27,7 @@ import {
   type UnfurlResponse,
 } from "../../types";
 import { cn } from "../styles/utils";
-import { ComponentProps } from "../types";
+import type { ComponentProps } from "../types";
 import { toDisplayUrl, cdnPath } from "../../utils/urls";
 
 type Attrs = {

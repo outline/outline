@@ -1,5 +1,5 @@
 /* oxlint-disable no-console */
-import { IncomingMessage } from "http";
+import type { IncomingMessage } from "http";
 import { styleText } from "node:util";
 import isArray from "lodash/isArray";
 import isEmpty from "lodash/isEmpty";

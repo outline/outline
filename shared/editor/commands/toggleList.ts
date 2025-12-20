@@ -1,6 +1,6 @@
-import { NodeType } from "prosemirror-model";
+import type { NodeType } from "prosemirror-model";
 import { liftListItem, wrapInList } from "prosemirror-schema-list";
-import { Command } from "prosemirror-state";
+import type { Command } from "prosemirror-state";
 import { chainTransactions } from "../lib/chainTransactions";
 import { findParentNode } from "../queries/findParentNode";
 import { isList } from "../queries/isList";

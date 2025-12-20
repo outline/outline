@@ -3,16 +3,16 @@ import {
   insertMathCmd,
   mathSchemaSpec,
 } from "@benrbray/prosemirror-math";
-import { PluginSimple } from "markdown-it";
-import {
+import type { PluginSimple } from "markdown-it";
+import type {
   NodeSpec,
   NodeType,
   Schema,
   Node as ProsemirrorNode,
 } from "prosemirror-model";
-import { Command, Plugin } from "prosemirror-state";
+import type { Command, Plugin } from "prosemirror-state";
 import MathPlugin from "../extensions/Math";
-import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import mathRule, { REGEX_INLINE_MATH_DOLLARS } from "../rules/math";
 import Node from "./Node";
 import { InputRule } from "prosemirror-inputrules";

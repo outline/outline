@@ -1,6 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
-import { UnfurlResourceType, UnfurlResponse } from "../types";
+import type { UnfurlResourceType, UnfurlResponse } from "../types";
 
 type Props = {
   state: UnfurlResponse[UnfurlResourceType.PR]["state"];

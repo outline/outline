@@ -1,4 +1,4 @@
-import { EditorState } from "prosemirror-state";
+import type { EditorState } from "prosemirror-state";
 
 /**
  * Check if the current selection is in a list

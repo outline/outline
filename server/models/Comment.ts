@@ -1,5 +1,5 @@
 import { Node } from "prosemirror-model";
-import { InferAttributes, InferCreationAttributes } from "sequelize";
+import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
   DataType,
   BelongsTo,

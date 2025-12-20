@@ -1,4 +1,4 @@
-import MarkdownIt from "markdown-it";
+import type MarkdownIt from "markdown-it";
 
 const BREAK_REGEX = /(?<=^|[^\\])\\n/;
 const BR_TAG_REGEX = /<br\s*\/?>/gi;

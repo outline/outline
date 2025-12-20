@@ -1,5 +1,5 @@
 import Router from "koa-router";
-import { WhereOptions } from "sequelize";
+import type { WhereOptions } from "sequelize";
 import { randomUUID } from "crypto";
 import { AttachmentPreset } from "@shared/types";
 import { bytesToHumanReadable, getFileNameFromUrl } from "@shared/utils/files";
@@ -23,7 +23,7 @@ import pagination from "@server/routes/api/middlewares/pagination";
 import { sequelize } from "@server/storage/database";
 import FileStorage from "@server/storage/files";
 import BaseStorage from "@server/storage/files/BaseStorage";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { assertIn } from "@server/validation";
 import * as T from "./schema";

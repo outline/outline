@@ -1,7 +1,7 @@
 /* oxlint-disable @typescript-eslint/no-var-requires */
 import find from "lodash/find";
 import env from "@server/env";
-import Team from "@server/models/Team";
+import type Team from "@server/models/Team";
 import { Hook, PluginManager } from "@server/utils/PluginManager";
 
 export default class AuthenticationHelper {
