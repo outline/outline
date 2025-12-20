@@ -20,7 +20,7 @@ describe("AttachmentHelper", () => {
       });
 
       expect(key).toEqual(
-        `public/456/123/${"a".repeat(AttachmentHelper.maximumFileNameLength)}`
+        `uploads/456/123/${"a".repeat(AttachmentHelper.maximumFileNameLength)}`
       );
     });
 
@@ -31,7 +31,7 @@ describe("AttachmentHelper", () => {
         userId: "456",
       });
 
-      expect(key).toEqual("public/456/123/test/one.png");
+      expect(key).toEqual("uploads/456/123/test/one.png");
     });
   });
 });
