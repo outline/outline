@@ -398,7 +398,7 @@ export default class Document extends ArchivableModel implements Searchable {
   }
 
   @computed
-  get permanentlyDeletesAt(): string | undefined {
+  get willPermanentlyDeleteAt(): string | undefined {
     if (!this.deletedAt) {
       return undefined;
     }
@@ -424,7 +424,10 @@ export default class Document extends ArchivableModel implements Searchable {
       return undefined;
     }
 
-    return differenceInDays(new Date(this.permanentlyDeletesAt!), new Date());
+    return differenceInDays(
+      new Date(this.willPermanentlyDeleteAt!),
+      new Date()
+    );
   }
 
   @computed
