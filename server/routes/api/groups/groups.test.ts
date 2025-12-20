@@ -1,4 +1,5 @@
-import { Event, Group, User } from "@server/models";
+import type { Group, User } from "@server/models";
+import { Event } from "@server/models";
 import {
   buildUser,
   buildAdmin,

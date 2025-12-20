@@ -3,9 +3,9 @@ import orderBy from "lodash/orderBy";
 import sortBy from "lodash/sortBy";
 import { action, computed, runInAction } from "mobx";
 import Notification from "~/models/Notification";
-import { PaginationParams } from "~/types";
+import type { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
-import RootStore from "./RootStore";
+import type RootStore from "./RootStore";
 import Store, { RPCAction } from "./base/Store";
 
 export default class NotificationsStore extends Store<Notification> {

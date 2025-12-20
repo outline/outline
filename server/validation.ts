@@ -1,6 +1,6 @@
 import isArrayLike from "lodash/isArrayLike";
 import sanitize from "sanitize-filename";
-import { Primitive } from "utility-types";
+import type { Primitive } from "utility-types";
 import validator from "validator";
 import isIn from "validator/lib/isIn";
 import isUUID from "validator/lib/isUUID";

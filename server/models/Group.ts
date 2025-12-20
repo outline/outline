@@ -1,4 +1,5 @@
-import { InferAttributes, InferCreationAttributes, Op } from "sequelize";
+import type { InferAttributes, InferCreationAttributes } from "sequelize";
+import { Op } from "sequelize";
 import {
   BelongsTo,
   Column,

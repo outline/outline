@@ -1,6 +1,7 @@
-import { Op, WhereOptions } from "sequelize";
+import type { WhereOptions } from "sequelize";
+import { Op } from "sequelize";
 import isUUID from "validator/lib/isUUID";
-import { NavigationNode } from "@shared/types";
+import type { NavigationNode } from "@shared/types";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import {
   AuthorizationError,
@@ -8,7 +9,8 @@ import {
   NotFoundError,
   PaymentRequiredError,
 } from "@server/errors";
-import { Collection, Document, Share, User } from "@server/models";
+import type { User } from "@server/models";
+import { Collection, Document, Share } from "@server/models";
 import { authorize, can } from "@server/policies";
 
 type LoadPublicShareProps = {

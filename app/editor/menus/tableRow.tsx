@@ -7,14 +7,14 @@ import {
   TableSplitCellsIcon,
   TableMergeCellsIcon,
 } from "outline-icons";
-import { EditorState } from "prosemirror-state";
+import type { EditorState } from "prosemirror-state";
 import { CellSelection, selectedRect } from "prosemirror-tables";
 import {
   isMergedCellSelection,
   isMultipleCellSelection,
 } from "@shared/editor/queries/table";
-import { MenuItem } from "@shared/editor/types";
-import { Dictionary } from "~/hooks/useDictionary";
+import type { MenuItem } from "@shared/editor/types";
+import type { Dictionary } from "~/hooks/useDictionary";
 import { ArrowDownIcon, ArrowUpIcon } from "~/components/Icons/ArrowIcon";
 
 export default function tableRowMenuItems(

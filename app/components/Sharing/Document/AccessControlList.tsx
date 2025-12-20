@@ -10,7 +10,7 @@ import { CollectionPermission, IconType } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
 import type Collection from "~/models/Collection";
 import type Document from "~/models/Document";
-import Share from "~/models/Share";
+import type Share from "~/models/Share";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
 import Scrollable from "~/components/Scrollable";

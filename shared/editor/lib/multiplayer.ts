@@ -1,4 +1,4 @@
-import { Transaction } from "prosemirror-state";
+import type { Transaction } from "prosemirror-state";
 import { ySyncPluginKey } from "y-prosemirror";
 
 /**

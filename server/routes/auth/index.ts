@@ -8,7 +8,7 @@ import authMiddleware from "@server/middlewares/authentication";
 import coalesceBody from "@server/middlewares/coaleseBody";
 import { Collection, Team, View } from "@server/models";
 import AuthenticationHelper from "@server/models/helpers/AuthenticationHelper";
-import { AppState, AppContext, APIContext } from "@server/types";
+import type { AppState, AppContext, APIContext } from "@server/types";
 import { verifyCSRFToken } from "@server/middlewares/csrf";
 
 const app = new Koa<AppState, AppContext>();

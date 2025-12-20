@@ -1,6 +1,6 @@
 /* oxlint-disable import/no-duplicates */
+import type { Locale } from "date-fns";
 import {
-  Locale,
   addSeconds,
   formatDistanceToNow,
   subDays,

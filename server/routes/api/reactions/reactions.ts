@@ -1,11 +1,11 @@
 import Router from "koa-router";
-import { WhereOptions } from "sequelize";
+import type { WhereOptions } from "sequelize";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
 import { Comment, Document, Reaction, User } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentReaction } from "@server/presenters";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 

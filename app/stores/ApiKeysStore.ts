@@ -1,6 +1,6 @@
 import { computed } from "mobx";
 import ApiKey from "~/models/ApiKey";
-import RootStore from "./RootStore";
+import type RootStore from "./RootStore";
 import Store, { RPCAction } from "./base/Store";
 
 export default class ApiKeysStore extends Store<ApiKey> {

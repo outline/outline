@@ -1,7 +1,7 @@
 import { computed } from "mobx";
 import Emoji from "~/models/Emoji";
 import naturalSort from "@shared/utils/naturalSort";
-import RootStore from "./RootStore";
+import type RootStore from "./RootStore";
 import Store, { RPCAction } from "./base/Store";
 
 export default class EmojisStore extends Store<Emoji> {

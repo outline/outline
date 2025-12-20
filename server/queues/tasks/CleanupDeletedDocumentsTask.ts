@@ -4,8 +4,9 @@ import Logger from "@server/logging/Logger";
 import { Document } from "@server/models";
 import { Minute } from "@shared/utils/time";
 import { TaskPriority } from "./base/BaseTask";
-import { CronTask, Props, TaskInterval } from "./base/CronTask";
+import { CronTask, TaskInterval } from "./base/CronTask";
 import { TeamPreference } from "@shared/types";
+import type { Props } from "./base/CronTask";
 
 export default class CleanupDeletedDocumentsTask extends CronTask {
   public async perform({ limit, partition }: Props) {

@@ -1,4 +1,4 @@
-import { ColumnSort } from "@tanstack/react-table";
+import type { ColumnSort } from "@tanstack/react-table";
 import { observer } from "mobx-react";
 import { PlusIcon, UserIcon } from "outline-icons";
 import { useState, useMemo, useCallback, useEffect } from "react";
@@ -6,7 +6,8 @@ import { Trans, useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import styled from "styled-components";
-import UsersStore, { queriedUsers } from "~/stores/UsersStore";
+import type UsersStore from "~/stores/UsersStore";
+import { queriedUsers } from "~/stores/UsersStore";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
 import { ConditionalFade } from "~/components/Fade";

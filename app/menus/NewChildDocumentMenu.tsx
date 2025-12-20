@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
-import Document from "~/models/Document";
+import type Document from "~/models/Document";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";

@@ -1,10 +1,10 @@
-import { Extension, onConnectPayload } from "@hocuspocus/server";
+import type { Extension, onConnectPayload } from "@hocuspocus/server";
 import semver from "semver";
 import { EditorUpdateError } from "@shared/collaboration/CloseEvents";
 import EDITOR_VERSION from "@shared/editor/version";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
-import { withContext } from "./types";
+import type { withContext } from "./types";
 
 @trace()
 export class EditorVersionExtension implements Extension {

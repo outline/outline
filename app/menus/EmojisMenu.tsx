@@ -6,7 +6,7 @@ import { IconButton } from "~/components/IconPicker/components/IconButton";
 import Tooltip from "~/components/Tooltip";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import Emoji from "~/models/Emoji";
+import type Emoji from "~/models/Emoji";
 
 const EmojisMenu = ({ emoji }: { emoji: Emoji }) => {
   const { t } = useTranslation();

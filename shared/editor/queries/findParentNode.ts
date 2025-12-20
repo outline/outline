@@ -1,5 +1,5 @@
-import { Node, ResolvedPos } from "prosemirror-model";
-import { Selection } from "prosemirror-state";
+import type { Node, ResolvedPos } from "prosemirror-model";
+import type { Selection } from "prosemirror-state";
 
 type Predicate = (node: Node) => boolean;
 

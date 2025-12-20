@@ -3,14 +3,14 @@ import { Strategy as AzureStrategy } from "@outlinewiki/passport-azure-ad-oauth2
 import jwt from "jsonwebtoken";
 import type { Context } from "koa";
 import Router from "koa-router";
-import { Profile } from "passport";
+import type { Profile } from "passport";
 import { slugifyDomain } from "@shared/utils/domains";
 import { parseEmail } from "@shared/utils/email";
 import accountProvisioner from "@server/commands/accountProvisioner";
 import { MicrosoftGraphError } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
-import { User } from "@server/models";
-import { AuthenticationResult } from "@server/types";
+import type { User } from "@server/models";
+import type { AuthenticationResult } from "@server/types";
 import {
   StateStore,
   request,

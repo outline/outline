@@ -1,6 +1,7 @@
 /* oxlint-disable no-irregular-whitespace */
 import { lighten, transparentize } from "polished";
-import styled, { DefaultTheme, css, keyframes } from "styled-components";
+import type { DefaultTheme } from "styled-components";
+import styled, { css, keyframes } from "styled-components";
 import { breakpoints, hover } from "../../styles";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { videoStyle } from "./Video";
@@ -659,6 +660,31 @@ iframe.embed {
 .attachment-replacement-uploading {
   .widget {
     opacity: 0.5;
+  }
+}
+
+.pdf {
+  position: relative;
+  width: max-content;
+  height: max-content;
+  margin-right: auto;
+  margin-left: auto;
+  max-width: 100%;
+  clear: both;
+  z-index: 1;
+  transition-property: width, height;
+  transition-duration: 80ms;
+  transition-timing-function: ease-in-out;
+
+  embed {
+    display: block;
+    max-width: 100%;
+    contain: strict,
+    content-visibility: auto,
+    backface-visibility: hidden,
+    transition-property: width, height;
+    transition-duration: 80ms;
+    transition-timing-function: ease-in-out;
   }
 }
 

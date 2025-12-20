@@ -1,11 +1,11 @@
-import {
+import type {
   Schema,
   NodeType,
   NodeSpec,
   Node as ProsemirrorModel,
 } from "prosemirror-model";
 import toggleList from "../commands/toggleList";
-import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { listWrappingInputRule } from "../lib/listInputRule";
 import Node from "./Node";
 

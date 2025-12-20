@@ -9,6 +9,7 @@ import {
 import { TextHelper } from "@shared/utils/TextHelper";
 import { createContext } from "@server/context";
 import { parser } from "@server/editor";
+import type { User } from "@server/models";
 import {
   Document,
   View,
@@ -16,7 +17,6 @@ import {
   UserMembership,
   SearchQuery,
   Event,
-  User,
   GroupMembership,
   Relationship,
 } from "@server/models";

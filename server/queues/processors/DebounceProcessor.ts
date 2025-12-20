@@ -1,6 +1,6 @@
 import env from "@server/env";
 import Document from "@server/models/Document";
-import { Event } from "@server/types";
+import type { Event } from "@server/types";
 import { globalEventQueue } from "..";
 import BaseProcessor from "./BaseProcessor";
 

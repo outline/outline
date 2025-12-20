@@ -2,7 +2,7 @@ import * as InputSelectPrimitive from "@radix-ui/react-select";
 import * as React from "react";
 import styled from "styled-components";
 import { depths, s } from "@shared/styles";
-import { Props as ButtonProps } from "~/components/Button";
+import type { Props as ButtonProps } from "~/components/Button";
 import { fadeAndSlideDown, fadeAndSlideUp } from "~/styles/animations";
 import {
   SelectItemIndicator,

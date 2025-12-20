@@ -2,7 +2,7 @@ import fs from "fs";
 import http from "http";
 import path from "path";
 import formidable from "formidable";
-import Koa from "koa";
+import type Koa from "koa";
 import escape from "lodash/escape";
 import isNil from "lodash/isNil";
 import snakeCase from "lodash/snakeCase";

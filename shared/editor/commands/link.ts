@@ -1,16 +1,12 @@
 import { chainCommands, toggleMark } from "prosemirror-commands";
-import { Attrs } from "prosemirror-model";
-import {
-  Command,
-  NodeSelection,
-  Selection,
-  TextSelection,
-} from "prosemirror-state";
+import type { Attrs } from "prosemirror-model";
+import type { Command } from "prosemirror-state";
+import { NodeSelection, Selection, TextSelection } from "prosemirror-state";
 import { getMarkRange } from "../queries/getMarkRange";
 import { toast } from "sonner";
 import { sanitizeUrl } from "@shared/utils/urls";
 import { getMarkRangeNodeSelection } from "../queries/getMarkRange";
-import { NodeMarkAttr } from "@shared/editor/types";
+import type { NodeMarkAttr } from "@shared/editor/types";
 
 const addLinkTextSelection =
   (attrs: Attrs): Command =>

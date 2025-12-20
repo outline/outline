@@ -9,15 +9,10 @@ import type {
   NonNullFindOptions,
   SaveOptions,
   ScopeOptions,
-} from "sequelize";
-import {
-  Transaction,
-  Op,
   FindOptions,
   WhereOptions,
-  EmptyResultError,
-  Sequelize,
 } from "sequelize";
+import { Transaction, Op, EmptyResultError, Sequelize } from "sequelize";
 import {
   ForeignKey,
   BelongsTo,
@@ -75,9 +70,9 @@ import Fix from "./decorators/Fix";
 import { DocumentHelper } from "./helpers/DocumentHelper";
 import IsHexColor from "./validators/IsHexColor";
 import Length from "./validators/Length";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import { SkipChangeset } from "./decorators/Changeset";
-import { HookContext } from "./base/Model";
+import type { HookContext } from "./base/Model";
 
 export const DOCUMENT_VERSION = 2;
 

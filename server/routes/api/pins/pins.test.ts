@@ -1,4 +1,4 @@
-import { Collection, Document, Pin, User } from "@server/models";
+import type { Collection, Document, Pin, User } from "@server/models";
 import {
   buildAdmin,
   buildCollection,

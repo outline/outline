@@ -3,7 +3,8 @@ import Logger from "@server/logging/Logger";
 import { Document } from "@server/models";
 import { Minute } from "@shared/utils/time";
 import { TaskPriority } from "./base/BaseTask";
-import { CronTask, Props, TaskInterval } from "./base/CronTask";
+import type { Props } from "./base/CronTask";
+import { CronTask, TaskInterval } from "./base/CronTask";
 import { TeamPreference } from "@shared/types";
 
 export default class MarkPermanentlyDeletedDocumentsTask extends CronTask {

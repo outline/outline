@@ -1,11 +1,11 @@
 import crypto from "crypto";
 import { addMinutes, subMinutes } from "date-fns";
 import type { Context } from "koa";
-import {
+import type {
   StateStoreStoreCallback,
   StateStoreVerifyCallback,
 } from "passport-oauth2";
-import { Primitive } from "utility-types";
+import type { Primitive } from "utility-types";
 import { Client } from "@shared/types";
 import { getCookieDomain, parseDomain } from "@shared/utils/domains";
 import env from "@server/env";

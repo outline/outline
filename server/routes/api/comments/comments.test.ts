@@ -1,8 +1,5 @@
-import {
-  CommentStatusFilter,
-  ProsemirrorData,
-  ReactionSummary,
-} from "@shared/types";
+import type { ProsemirrorData, ReactionSummary } from "@shared/types";
+import { CommentStatusFilter } from "@shared/types";
 import { Comment, Reaction } from "@server/models";
 import {
   buildAdmin,

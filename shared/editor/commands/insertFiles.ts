@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/react";
 import { v4 as uuidv4 } from "uuid";
-import { EditorView } from "prosemirror-view";
+import type { EditorView } from "prosemirror-view";
 import { toast } from "sonner";
 import type { Dictionary } from "~/hooks/useDictionary";
 import FileHelper from "../lib/FileHelper";
@@ -65,6 +65,7 @@ const insertFiles = async function (
         FileHelper.isVideo(file.type) &&
         !options.isAttachment &&
         !!schema.nodes.video;
+      const isPdf = FileHelper.isPdf(file.type) && !options.isAttachment;
       const getDimensions = isImage
         ? FileHelper.getImageDimensions
         : isVideo
@@ -77,6 +78,7 @@ const insertFiles = async function (
         source: await FileHelper.getImageSourceAttr(file),
         isImage,
         isVideo,
+        isPdf,
         file,
       };
     })
@@ -99,6 +101,7 @@ const insertFiles = async function (
     // to allow all placeholders to be entered at once with the uploads
     // happening in the background in parallel.
     uploadFile?.(upload.file)
+      // then this should be able to get the full URL as well
       .then(async (src) => {
         if (view.isDestroyed) {
           return;
@@ -180,6 +183,9 @@ const insertFiles = async function (
                   href: src,
                   title: upload.file.name ?? dictionary.untitled,
                   size: upload.file.size,
+                  contentType: upload.file.type,
+                  preview: upload.isPdf,
+                  ...options.attrs,
                 })
               )
               .setMeta(uploadPlaceholderPlugin, { remove: { id: upload.id } })

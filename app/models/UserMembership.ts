@@ -1,5 +1,5 @@
 import { observable } from "mobx";
-import { DocumentPermission } from "@shared/types";
+import type { DocumentPermission } from "@shared/types";
 import type UserMembershipsStore from "~/stores/UserMembershipsStore";
 import Document from "./Document";
 import User from "./User";

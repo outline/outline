@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import WebhookSubscription from "~/models/WebhookSubscription";
+import type WebhookSubscription from "~/models/WebhookSubscription";
 import WebhookSubscriptionForm from "./WebhookSubscriptionForm";
 
 type Props = {

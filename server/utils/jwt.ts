@@ -1,9 +1,9 @@
 import { subMinutes } from "date-fns";
 import JWT from "jsonwebtoken";
-import { FindOptions } from "sequelize";
+import type { FindOptions } from "sequelize";
 import { Team, User } from "@server/models";
 import { AuthenticationError, UserSuspendedError } from "../errors";
-import { Context } from "koa";
+import type { Context } from "koa";
 
 export function getJWTPayload(token: string) {
   let payload;

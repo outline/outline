@@ -1,13 +1,15 @@
-import Koa, { BaseContext } from "koa";
+import type { BaseContext } from "koa";
+import Koa from "koa";
 import bodyParser from "koa-body";
 import Router from "koa-router";
-import userAgent, { UserAgentContext } from "koa-useragent";
+import type { UserAgentContext } from "koa-useragent";
+import userAgent from "koa-useragent";
 import env from "@server/env";
 import { NotFoundError } from "@server/errors";
 import coalesceBody from "@server/middlewares/coaleseBody";
 import requestTracer from "@server/middlewares/requestTracer";
 import { verifyCSRFToken } from "@server/middlewares/csrf";
-import { AppState, AppContext } from "@server/types";
+import type { AppState, AppContext } from "@server/types";
 import { Hook, PluginManager } from "@server/utils/PluginManager";
 import apiKeys from "./apiKeys";
 import attachments from "./attachments";
