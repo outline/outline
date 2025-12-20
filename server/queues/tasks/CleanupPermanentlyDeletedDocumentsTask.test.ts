@@ -2,7 +2,7 @@ import { subDays } from "date-fns";
 import { Document } from "@server/models";
 import { buildDocument, buildTeam } from "@server/test/factories";
 import { TeamPreference } from "@shared/types";
-import CleanupDeletedDocumentsTask from "./CleanupDeletedDocumentsTask";
+import CleanupPermanentlyDeletedDocumentsTask from "./CleanupPermanentlyDeletedDocumentsTask";
 
 const props = {
   limit: 100,
@@ -12,7 +12,7 @@ const props = {
   },
 };
 
-describe("CleanupDeletedDocumentsTask", () => {
+describe("CleanupPermanentlyDeletedDocumentsTask", () => {
   it("should not destroy documents not marked for permanent deletion", async () => {
     const team = await buildTeam();
     await buildDocument({
@@ -22,8 +22,8 @@ describe("CleanupDeletedDocumentsTask", () => {
       permanentlyDeletedAt: null,
     });
 
-    const task = new CleanupDeletedDocumentsTask();
-    await task.perform(props);
+    const task = new CleanupPermanentlyDeletedDocumentsTask();
+    await task.perform({ ...props, isDefault: true });
 
     expect(
       await Document.unscoped().count({
@@ -44,8 +44,8 @@ describe("CleanupDeletedDocumentsTask", () => {
       permanentlyDeletedAt: subDays(new Date(), 25),
     });
 
-    const task = new CleanupDeletedDocumentsTask();
-    await task.perform(props);
+    const task = new CleanupPermanentlyDeletedDocumentsTask();
+    await task.perform({ ...props, isDefault: true });
 
     expect(
       await Document.unscoped().count({
@@ -66,8 +66,8 @@ describe("CleanupDeletedDocumentsTask", () => {
       permanentlyDeletedAt: subDays(new Date(), 31),
     });
 
-    const task = new CleanupDeletedDocumentsTask();
-    await task.perform(props);
+    const task = new CleanupPermanentlyDeletedDocumentsTask();
+    await task.perform({ ...props, isDefault: true });
 
     expect(
       await Document.unscoped().count({
@@ -80,8 +80,9 @@ describe("CleanupDeletedDocumentsTask", () => {
   });
 
   it("should respect custom documentRetentionDays", async () => {
+    const retentionDays = 7;
     const team = await buildTeam();
-    team.setPreference(TeamPreference.DataRetentionDays, 7);
+    team.setPreference(TeamPreference.DataRetentionDays, retentionDays);
     await team.save();
 
     await buildDocument({
@@ -91,8 +92,8 @@ describe("CleanupDeletedDocumentsTask", () => {
       permanentlyDeletedAt: subDays(new Date(), 10),
     });
 
-    const task = new CleanupDeletedDocumentsTask();
-    await task.perform(props);
+    const task = new CleanupPermanentlyDeletedDocumentsTask();
+    await task.perform({ ...props, retentionDays });
 
     expect(
       await Document.unscoped().count({
@@ -105,8 +106,9 @@ describe("CleanupDeletedDocumentsTask", () => {
   });
 
   it("should not destroy documents if within custom documentRetentionDays", async () => {
+    const retentionDays = 90;
     const team = await buildTeam();
-    team.setPreference(TeamPreference.DataRetentionDays, 90);
+    team.setPreference(TeamPreference.DataRetentionDays, retentionDays);
     await team.save();
 
     await buildDocument({
@@ -116,8 +118,8 @@ describe("CleanupDeletedDocumentsTask", () => {
       permanentlyDeletedAt: subDays(new Date(), 45),
     });
 
-    const task = new CleanupDeletedDocumentsTask();
-    await task.perform(props);
+    const task = new CleanupPermanentlyDeletedDocumentsTask();
+    await task.perform({ ...props, retentionDays });
 
     expect(
       await Document.unscoped().count({

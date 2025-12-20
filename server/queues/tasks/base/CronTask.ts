@@ -57,7 +57,7 @@ export type Props = {
   partition: PartitionInfo;
 };
 
-export abstract class CronTask extends BaseTask<Props> {
+export abstract class CronTask<P extends Props = Props> extends BaseTask<P> {
   /** The schedule configuration for this cron task */
   public abstract get cron(): TaskSchedule;
 

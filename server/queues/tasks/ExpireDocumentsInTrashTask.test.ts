@@ -2,7 +2,7 @@ import { subDays } from "date-fns";
 import { Document } from "@server/models";
 import { buildDocument, buildTeam } from "@server/test/factories";
 import { TeamPreference } from "@shared/types";
-import MarkPermanentlyDeletedDocumentsTask from "./MarkPermanentlyDeletedDocumentsTask";
+import ExpireDocumentsInTrashTask from "./ExpireDocumentsInTrashTask";
 
 const props = {
   limit: 100,
@@ -12,7 +12,7 @@ const props = {
   },
 };
 
-describe("MarkPermanentlyDeletedDocumentsTask", () => {
+describe("ExpireDocumentsInTrashTask", () => {
   it("should not mark active documents", async () => {
     const team = await buildTeam();
     await buildDocument({
@@ -20,8 +20,8 @@ describe("MarkPermanentlyDeletedDocumentsTask", () => {
       publishedAt: new Date(),
     });
 
-    const task = new MarkPermanentlyDeletedDocumentsTask();
-    await task.perform(props);
+    const task = new ExpireDocumentsInTrashTask();
+    await task.perform({ ...props, isDefault: true });
 
     const doc = await Document.unscoped().findOne({
       where: { teamId: team.id },
@@ -38,8 +38,8 @@ describe("MarkPermanentlyDeletedDocumentsTask", () => {
       deletedAt: subDays(new Date(), 25),
     });
 
-    const task = new MarkPermanentlyDeletedDocumentsTask();
-    await task.perform(props);
+    const task = new ExpireDocumentsInTrashTask();
+    await task.perform({ ...props, isDefault: true });
 
     const doc = await Document.unscoped().findOne({
       where: { teamId: team.id },
@@ -56,8 +56,8 @@ describe("MarkPermanentlyDeletedDocumentsTask", () => {
       deletedAt: subDays(new Date(), 31),
     });
 
-    const task = new MarkPermanentlyDeletedDocumentsTask();
-    await task.perform(props);
+    const task = new ExpireDocumentsInTrashTask();
+    await task.perform({ ...props, isDefault: true });
 
     const doc = await Document.unscoped().findOne({
       where: { teamId: team.id },
@@ -67,8 +67,9 @@ describe("MarkPermanentlyDeletedDocumentsTask", () => {
   });
 
   it("should respect custom trashRetentionDays", async () => {
+    const retentionDays = 7;
     const team = await buildTeam();
-    team.setPreference(TeamPreference.TrashRetentionDays, 7);
+    team.setPreference(TeamPreference.TrashRetentionDays, retentionDays);
     await team.save();
 
     await buildDocument({
@@ -77,8 +78,8 @@ describe("MarkPermanentlyDeletedDocumentsTask", () => {
       deletedAt: subDays(new Date(), 10),
     });
 
-    const task = new MarkPermanentlyDeletedDocumentsTask();
-    await task.perform(props);
+    const task = new ExpireDocumentsInTrashTask();
+    await task.perform({ ...props, retentionDays });
 
     const doc = await Document.unscoped().findOne({
       where: { teamId: team.id },
@@ -88,8 +89,9 @@ describe("MarkPermanentlyDeletedDocumentsTask", () => {
   });
 
   it("should not mark documents if within custom trashRetentionDays", async () => {
+    const retentionDays = 90;
     const team = await buildTeam();
-    team.setPreference(TeamPreference.TrashRetentionDays, 90);
+    team.setPreference(TeamPreference.TrashRetentionDays, retentionDays);
     await team.save();
 
     await buildDocument({
@@ -98,8 +100,8 @@ describe("MarkPermanentlyDeletedDocumentsTask", () => {
       deletedAt: subDays(new Date(), 60),
     });
 
-    const task = new MarkPermanentlyDeletedDocumentsTask();
-    await task.perform(props);
+    const task = new ExpireDocumentsInTrashTask();
+    await task.perform({ ...props, retentionDays });
 
     const doc = await Document.unscoped().findOne({
       where: { teamId: team.id },
