@@ -8,7 +8,6 @@ import { toast } from "sonner";
 import { useTheme } from "styled-components";
 import { TeamPreference } from "@shared/types";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
-import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import type { Option } from "~/components/InputSelect";
 import { InputSelect } from "~/components/InputSelect";
@@ -23,6 +22,7 @@ import useStores from "~/hooks/useStores";
 import isCloudHosted from "~/utils/isCloudHosted";
 import DomainManagement from "./components/DomainManagement";
 import SettingRow from "./components/SettingRow";
+import { HStack } from "~/components/primitives/HStack";
 
 function Security() {
   const { authenticationProviders, dialogs } = useStores();
@@ -217,31 +217,31 @@ function Security() {
           <SettingRow
             key={provider.name}
             label={
-              <Flex gap={8} align="center">
+              <HStack>
                 <PluginIcon id={provider.name} /> {provider.displayName}
-              </Flex>
+              </HStack>
             }
             name={provider.name}
             description={t("Allow members to sign-in with {{ authProvider }}", {
               authProvider: provider.displayName,
             })}
           >
-            <Flex align="center">
+            <HStack spacing={4}>
               <CheckboxIcon
                 color={provider.isActive ? theme.accent : undefined}
                 checked={provider.isActive}
-              />{" "}
+              />
               <Text as="p" type="secondary">
                 {provider.isActive ? t("Connected") : t("Disabled")}
               </Text>
-            </Flex>
+            </HStack>
           </SettingRow>
         ))}
       <SettingRow
         label={
-          <Flex gap={8} align="center">
+          <HStack>
             <EmailIcon /> {t("Email")}
-          </Flex>
+          </HStack>
         }
         name="guestSignin"
         description={

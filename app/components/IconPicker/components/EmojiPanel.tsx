@@ -160,7 +160,7 @@ const EmojiPanel = ({
 
   return (
     <Flex column>
-      <UserInputContainer align="center" gap={8}>
+      <UserInputContainer>
         <StyledInputSearch
           ref={searchRef}
           value={query}
