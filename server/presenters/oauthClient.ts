@@ -1,4 +1,4 @@
-import { OAuthClient } from "@server/models";
+import type { OAuthClient } from "@server/models";
 
 /**
  * Presents the OAuth client to the user, including the client secret.

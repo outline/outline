@@ -1,4 +1,4 @@
-import ApiKey from "@server/models/ApiKey";
+import type ApiKey from "@server/models/ApiKey";
 import presentUser from "./user";
 
 export default function presentApiKey(apiKey: ApiKey) {

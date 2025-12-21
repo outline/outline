@@ -1,5 +1,5 @@
 import { Plugin } from "prosemirror-state";
-import { EditorView } from "prosemirror-view";
+import type { EditorView } from "prosemirror-view";
 import Extension from "@shared/editor/lib/Extension";
 
 export default class UpArrowAtStart extends Extension {

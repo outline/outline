@@ -1,7 +1,7 @@
 import { IntegrationType } from "@shared/types";
 import { Integration } from "@server/models";
 import BaseProcessor from "@server/queues/processors/BaseProcessor";
-import { IntegrationEvent, Event } from "@server/types";
+import type { IntegrationEvent, Event } from "@server/types";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import CacheIssueSourcesTask from "../tasks/CacheIssueSourcesTask";
 

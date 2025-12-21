@@ -6,13 +6,15 @@ import * as Tabs from "@radix-ui/react-tabs";
 import { toast } from "sonner";
 import styled, { css } from "styled-components";
 import { s, hover } from "@shared/styles";
-import Comment from "~/models/Comment";
+import type Comment from "~/models/Comment";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import { Emoji } from "~/components/Emoji";
 import Flex from "~/components/Flex";
 import PlaceholderText from "~/components/PlaceholderText";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
+import { CustomEmoji } from "@shared/components/CustomEmoji";
+import { isUUID } from "validator";
 
 type Props = {
   /** Model for which to show the reactions. */
@@ -61,7 +63,11 @@ const ViewReactionsDialog: React.FC<Props> = ({ model }) => {
               aria-label={t("Reaction")}
               $active={selectedTab === reaction.emoji}
             >
-              <Emoji size={16}>{reaction.emoji}</Emoji>
+              {isUUID(reaction.emoji) ? (
+                <CustomEmoji size={16} value={reaction.emoji} />
+              ) : (
+                <Emoji size={16}>{reaction.emoji}</Emoji>
+              )}
             </StyledTab>
           ))}
         </Tabs.List>
@@ -119,9 +125,11 @@ const StyledTab = styled(Tabs.Trigger)<{ $active: boolean }>`
   background: none;
   border: 0;
   border-radius: 4px 4px 0 0;
-  padding: 8px 12px 10px;
   user-select: none;
   transition: background-color 100ms ease;
+  vertical-align: bottom;
+  width: 36px;
+  height: 36px;
 
   &: ${hover} {
     background-color: ${s("listItemHoverBackground")};
@@ -136,7 +144,7 @@ const StyledTab = styled(Tabs.Trigger)<{ $active: boolean }>`
         bottom: 0;
         left: 0;
         right: 0;
-        height: 1px;
+        height: 2px;
         background: ${s("textSecondary")};
       }
     `}

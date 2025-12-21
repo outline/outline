@@ -4,7 +4,7 @@ import { IntegrationService, IntegrationType } from "@shared/types";
 import { Minute } from "@shared/utils/time";
 import { Document, Integration, Collection, Team } from "@server/models";
 import BaseProcessor from "@server/queues/processors/BaseProcessor";
-import {
+import type {
   DocumentEvent,
   IntegrationEvent,
   RevisionEvent,

@@ -1,3 +1,4 @@
+import type { Icon } from "outline-icons";
 import {
   EmailIcon,
   ProfileIcon,
@@ -12,12 +13,12 @@ import {
   ExportIcon,
   ImportIcon,
   ShapesIcon,
-  Icon,
   PlusIcon,
   InternetIcon,
   SmileyIcon,
 } from "outline-icons";
-import { ComponentProps, useEffect } from "react";
+import type { ComponentProps } from "react";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 import { createLazyComponent as lazy } from "~/components/LazyLoad";

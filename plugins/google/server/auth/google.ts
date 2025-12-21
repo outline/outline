@@ -2,7 +2,7 @@ import passport from "@outlinewiki/koa-passport";
 import type { Context } from "koa";
 import Router from "koa-router";
 import capitalize from "lodash/capitalize";
-import { Profile } from "passport";
+import type { Profile } from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth2";
 import { languages } from "@shared/i18n";
 import { slugifyDomain } from "@shared/utils/domains";
@@ -13,7 +13,7 @@ import {
 } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
 import { User } from "@server/models";
-import { AuthenticationResult } from "@server/types";
+import type { AuthenticationResult } from "@server/types";
 import {
   StateStore,
   getTeamFromContext,

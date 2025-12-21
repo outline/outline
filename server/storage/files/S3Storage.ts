@@ -1,19 +1,17 @@
 import path from "path";
-import { Readable } from "stream";
+import type { Readable } from "stream";
+import type { ObjectCannedACL } from "@aws-sdk/client-s3";
 import {
   S3Client,
   DeleteObjectCommand,
   GetObjectCommand,
-  ObjectCannedACL,
   HeadObjectCommand,
   CopyObjectCommand,
 } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
 import "@aws-sdk/signature-v4-crt"; // https://github.com/aws/aws-sdk-js-v3#functionality-requiring-aws-common-runtime-crt
-import {
-  PresignedPostOptions,
-  createPresignedPost,
-} from "@aws-sdk/s3-presigned-post";
+import type { PresignedPostOptions } from "@aws-sdk/s3-presigned-post";
+import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import fs from "fs-extra";
 import invariant from "invariant";
@@ -22,7 +20,7 @@ import tmp from "tmp";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import BaseStorage from "./BaseStorage";
-import { AppContext } from "@server/types";
+import type { AppContext } from "@server/types";
 
 export default class S3Storage extends BaseStorage {
   constructor() {

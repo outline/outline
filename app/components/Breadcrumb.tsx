@@ -6,7 +6,7 @@ import { s, ellipsis } from "@shared/styles";
 import Flex from "~/components/Flex";
 import BreadcrumbMenu from "~/menus/BreadcrumbMenu";
 import { undraggableOnDesktop } from "~/styles";
-import { InternalLinkAction, MenuInternalLink } from "~/types";
+import type { InternalLinkAction, MenuInternalLink } from "~/types";
 import { actionToMenuItem } from "~/actions";
 import useActionContext from "~/hooks/useActionContext";
 import { useComputed } from "~/hooks/useComputed";

@@ -1,6 +1,6 @@
 import pick from "lodash/pick";
 import { observable, action, toJS } from "mobx";
-import { JSONObject } from "@shared/types";
+import type { JSONObject } from "@shared/types";
 import type Store from "~/stores/base/Store";
 import Logger from "~/utils/Logger";
 import { getFieldsForModel } from "../decorators/Field";

@@ -6,7 +6,7 @@ import styled, { css } from "styled-components";
 import { s, hover } from "@shared/styles";
 import type { ReactionSummary } from "@shared/types";
 import { getEmojiId } from "@shared/utils/emoji";
-import User from "~/models/User";
+import type User from "~/models/User";
 import { Emoji } from "~/components/Emoji";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";

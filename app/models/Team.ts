@@ -1,6 +1,6 @@
 import { computed, observable } from "mobx";
 import { TeamPreferenceDefaults } from "@shared/constants";
-import { TeamPreference, TeamPreferences, UserRole } from "@shared/types";
+import type { TeamPreference, TeamPreferences, UserRole } from "@shared/types";
 import { stringToColor } from "@shared/utils/color";
 import Model from "./base/Model";
 import Field from "./decorators/Field";

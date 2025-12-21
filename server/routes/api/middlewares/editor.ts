@@ -1,4 +1,4 @@
-import { Context, Next } from "koa";
+import type { Context, Next } from "koa";
 import semver from "semver";
 import EDITOR_VERSION from "@shared/editor/version";
 import { EditorUpdateError } from "@server/errors";

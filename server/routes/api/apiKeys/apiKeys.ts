@@ -1,5 +1,5 @@
 import Router from "koa-router";
-import { WhereOptions } from "sequelize";
+import type { WhereOptions } from "sequelize";
 import { UserRole } from "@shared/types";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
@@ -7,7 +7,8 @@ import validate from "@server/middlewares/validate";
 import { ApiKey, User } from "@server/models";
 import { authorize, cannot } from "@server/policies";
 import { presentApiKey } from "@server/presenters";
-import { APIContext, AuthenticationType } from "@server/types";
+import type { APIContext } from "@server/types";
+import { AuthenticationType } from "@server/types";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 

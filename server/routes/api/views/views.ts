@@ -6,7 +6,7 @@ import validate from "@server/middlewares/validate";
 import { View, Document } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentView } from "@server/presenters";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import * as T from "./schema";
 import { transaction } from "@server/middlewares/transaction";

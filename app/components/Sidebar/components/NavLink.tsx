@@ -2,13 +2,11 @@
 // This file is pulled almost 100% from react-router with the addition of one
 // thing, automatic scroll to the active link. It's worth the copy paste because
 // it avoids recalculating the link match again.
-import { Location, createLocation, LocationDescriptor } from "history";
+import type { Location, LocationDescriptor } from "history";
+import { createLocation } from "history";
 import * as React from "react";
-import {
-  __RouterContext as RouterContext,
-  matchPath,
-  match,
-} from "react-router";
+import type { match } from "react-router";
+import { __RouterContext as RouterContext, matchPath } from "react-router";
 import { Link } from "react-router-dom";
 import scrollIntoView from "scroll-into-view-if-needed";
 import history from "~/utils/history";

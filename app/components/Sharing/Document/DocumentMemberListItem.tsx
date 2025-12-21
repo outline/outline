@@ -5,12 +5,13 @@ import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { DocumentPermission } from "@shared/types";
-import User from "~/models/User";
-import UserMembership from "~/models/UserMembership";
+import type User from "~/models/User";
+import type UserMembership from "~/models/UserMembership";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelect";
 import Time from "~/components/Time";
-import { EmptySelectValue, Permission } from "~/types";
+import type { Permission } from "~/types";
+import { EmptySelectValue } from "~/types";
 import { ListItem } from "../components/ListItem";
 
 type Props = {

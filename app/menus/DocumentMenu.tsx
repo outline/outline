@@ -6,7 +6,7 @@ import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
 import { SubscriptionType, UserPreference } from "@shared/types";
-import Document from "~/models/Document";
+import type Document from "~/models/Document";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
 import Switch from "~/components/Switch";

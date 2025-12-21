@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { useTheme } from "styled-components";
 import Spinner from "@shared/components/Spinner";
 import { ImportState } from "@shared/types";
-import Import from "~/models/Import";
+import type Import from "~/models/Import";
 import { Action } from "~/components/Actions";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import ListItem from "~/components/List/Item";

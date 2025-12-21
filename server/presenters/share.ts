@@ -1,4 +1,4 @@
-import { Share } from "@server/models";
+import type { Share } from "@server/models";
 import { presentUser } from ".";
 
 export default function presentShare(share: Share, isAdmin = false) {

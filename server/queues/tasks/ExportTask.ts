@@ -19,7 +19,7 @@ import fileOperationPresenter from "@server/presenters/fileOperation";
 import FileStorage from "@server/storage/files";
 import { BaseTask, TaskPriority } from "./base/BaseTask";
 import { Op } from "sequelize";
-import { WhereOptions } from "sequelize";
+import type { WhereOptions } from "sequelize";
 import { sequelizeReadOnly } from "@server/storage/database";
 
 type Props = {

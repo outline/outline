@@ -10,7 +10,7 @@ import insertFiles from "@shared/editor/commands/insertFiles";
 import { EmbedDescriptor } from "@shared/editor/embeds";
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
 import { findParentNode } from "@shared/editor/queries/findParentNode";
-import { MenuItem } from "@shared/editor/types";
+import type { MenuItem } from "@shared/editor/types";
 import { depths, s } from "@shared/styles";
 import { getEventFiles } from "@shared/utils/files";
 import { AttachmentValidation } from "@shared/validations";
@@ -268,12 +268,13 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
           return;
         case "image":
           return triggerFilePick(
-            AttachmentValidation.imageContentTypes.join(", ")
+            AttachmentValidation.imageContentTypes.join(", "),
+            item.attrs
           );
         case "video":
-          return triggerFilePick("video/*");
+          return triggerFilePick("video/*", item.attrs);
         case "attachment":
-          return triggerFilePick("*");
+          return triggerFilePick(item.attrs?.accept ?? "*", item.attrs);
         case "embed":
           return triggerLinkInput(item);
         default:
@@ -353,10 +354,13 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     }
   };
 
-  const triggerFilePick = (accept: string) => {
+  const triggerFilePick = (accept: string, attrs?: Record<string, any>) => {
     if (inputRef.current) {
       if (accept) {
         inputRef.current.accept = accept;
+      }
+      if (attrs) {
+        inputRef.current.dataset.attrs = attrs ? JSON.stringify(attrs) : "";
       }
       inputRef.current.click();
     }
@@ -375,6 +379,9 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     const { uploadFile, onFileUploadStart, onFileUploadStop } = props;
     const files = getEventFiles(event);
     const parent = findParentNode((node) => !!node)(view.state.selection);
+    const attrs = event.currentTarget.dataset.attrs
+      ? JSON.parse(event.currentTarget.dataset.attrs)
+      : undefined;
 
     handleClearSearch();
 
@@ -389,6 +396,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         onFileUploadStop,
         dictionary,
         isAttachment: inputRef.current?.accept === "*",
+        attrs,
       });
     }
 

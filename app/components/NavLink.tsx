@@ -1,4 +1,4 @@
-import { LocationDescriptor, LocationDescriptorObject } from "history";
+import type { LocationDescriptor, LocationDescriptorObject } from "history";
 import * as React from "react";
 import { type match, NavLink, Route } from "react-router-dom";
 

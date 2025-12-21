@@ -9,6 +9,7 @@ import {
   HorizontalRuleIcon,
   OrderedListIcon,
   PageBreakIcon,
+  PDFIcon,
   TableIcon,
   TodoListIcon,
   ImageIcon,
@@ -25,9 +26,9 @@ import {
 import * as React from "react";
 import styled from "styled-components";
 import Image from "@shared/editor/components/Img";
-import { MenuItem } from "@shared/editor/types";
+import type { MenuItem } from "@shared/editor/types";
 import { metaDisplay } from "@shared/utils/keyboard";
-import { Dictionary } from "~/hooks/useDictionary";
+import type { Dictionary } from "~/hooks/useDictionary";
 import Desktop from "~/utils/Desktop";
 
 const Img = styled(Image)`
@@ -114,6 +115,17 @@ export default function blockMenuItems(
       title: dictionary.video,
       icon: <EmbedIcon />,
       keywords: "mov avi upload player",
+    },
+    {
+      name: "attachment",
+      title: dictionary.pdf,
+      icon: <PDFIcon />,
+      keywords: "pdf upload attach",
+      attrs: {
+        accept: "application/pdf",
+        width: 300,
+        height: 424,
+      },
     },
     {
       name: "attachment",

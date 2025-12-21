@@ -8,7 +8,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useTheme } from "styled-components";
-import { ProsemirrorData } from "@shared/types";
+import type { ProsemirrorData } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
 import { AttachmentValidation, CommentValidation } from "@shared/validations";
 import Comment from "~/models/Comment";
@@ -83,6 +83,7 @@ function CommentForm({
   const [forceRender, setForceRender] = React.useState(0);
   const [inputFocused, setInputFocused] = React.useState(autoFocus);
   const file = React.useRef<HTMLInputElement>(null);
+  const hasFocusedOnMount = React.useRef(false);
   const theme = useTheme();
   const { t } = useTranslation();
   const { comments } = useStores();
@@ -251,8 +252,9 @@ function CommentForm({
   // Focus the editor when it's a new comment just mounted
   const handleMounted = React.useCallback(
     (ref) => {
-      if (autoFocus) {
-        ref?.focusAtStart();
+      if (autoFocus && ref && !hasFocusedOnMount.current) {
+        ref.focusAtStart();
+        hasFocusedOnMount.current = true;
       }
     },
     [autoFocus]

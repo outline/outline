@@ -1,5 +1,6 @@
-import { i18n } from "i18next";
-import { locales, unicodeCLDRtoBCP47 } from "@shared/utils/date";
+import type { i18n } from "i18next";
+import type { locales } from "@shared/utils/date";
+import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
 import Desktop from "./Desktop";
 
 /**

@@ -2,10 +2,10 @@ import { useCallback, useMemo } from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import * as Toolbar from "@radix-ui/react-toolbar";
-import { MenuItem } from "@shared/editor/types";
+import type { MenuItem } from "@shared/editor/types";
 import { s } from "@shared/styles";
 import { TooltipProvider } from "~/components/TooltipContext";
-import { MenuItem as TMenuItem } from "~/types";
+import type { MenuItem as TMenuItem } from "~/types";
 import { useEditor } from "./EditorContext";
 import { MediaDimension } from "./MediaDimension";
 import ToolbarButton from "./ToolbarButton";
@@ -16,6 +16,7 @@ import { MenuContent } from "~/components/primitives/Menu";
 import { MenuProvider } from "~/components/primitives/Menu/MenuContext";
 import { Menu, MenuTrigger } from "~/components/primitives/Menu";
 import { useTranslation } from "react-i18next";
+import EventBoundary from "@shared/components/EventBoundary";
 
 type Props = {
   items: MenuItem[];
@@ -84,7 +85,7 @@ function ToolbarDropdown(props: { active: boolean; item: MenuItem }) {
           aria-label={item.tooltip || t("More options")}
           onCloseAutoFocus={handleCloseAutoFocus}
         >
-          {toMenuItems(items)}
+          <EventBoundary>{toMenuItems(items)}</EventBoundary>
         </MenuContent>
       </Menu>
     </MenuProvider>
