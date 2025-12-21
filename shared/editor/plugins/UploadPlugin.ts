@@ -1,5 +1,7 @@
-import type { Node } from "prosemirror-model";
+import type { Node} from "prosemirror-model";
+import { Fragment, Slice } from "prosemirror-model";
 import { Plugin } from "prosemirror-state";
+import { v4 as uuidv4 } from "uuid";
 import { getDataTransferFiles, getDataTransferImage } from "../../utils/files";
 import { fileNameFromUrl, isInternalUrl } from "../../utils/urls";
 import type { Options } from "../commands/insertFiles";
@@ -95,22 +97,61 @@ export class UploadPlugin extends Plugin {
           },
         },
         transformPasted: (slice, view) => {
-          // find any remote images in pasted slice, but leave it alone.
-          const images: Node[] = [];
-          slice.content.descendants((node) => {
+          const uploads: {
+            originalSrc: string;
+            searchSrc: string;
+            id?: string;
+          }[] = [];
+
+          const mapNode = (node: Node): Node => {
             if (
               node.type.name === "image" &&
               node.attrs.src &&
               !isInternalUrl(node.attrs.src)
             ) {
-              images.push(node);
+              const isBase64 = node.attrs.src.startsWith("data:");
+              if (isBase64) {
+                const id = uuidv4();
+                const redirectUrl = `/api/attachments.redirect?id=${id}`;
+                uploads.push({
+                  originalSrc: node.attrs.src,
+                  searchSrc: redirectUrl,
+                  id,
+                });
+                return node.type.create({
+                  ...node.attrs,
+                  src: redirectUrl,
+                });
+              } else {
+                uploads.push({
+                  originalSrc: node.attrs.src,
+                  searchSrc: node.attrs.src,
+                });
+              }
             }
-          });
 
-          // Upload each remote image to our storage and replace the src
-          // with the new url and dimensions.
-          void images.map(async (image) => {
-            const url = await options.uploadFile?.(image.attrs.src);
+            if (node.content.size > 0) {
+              const nodes: Node[] = [];
+              node.content.forEach((child) => {
+                nodes.push(mapNode(child));
+              });
+              return node.copy(Fragment.from(nodes));
+            }
+
+            return node;
+          };
+
+          const nodes: Node[] = [];
+          slice.content.forEach((node) => {
+            nodes.push(mapNode(node));
+          });
+          const newContent = Fragment.from(nodes);
+
+          // Upload each captured image in the background
+          void uploads.map(async (upload) => {
+            const url = await options.uploadFile?.(upload.originalSrc, {
+              id: upload.id,
+            });
 
             if (url) {
               const file = await FileHelper.getFileForUrl(url);
@@ -120,7 +161,7 @@ export class UploadPlugin extends Plugin {
               tr.doc.nodesBetween(0, tr.doc.nodeSize - 2, (node, pos) => {
                 if (
                   node.type.name === "image" &&
-                  node.attrs.src === image.attrs.src
+                  node.attrs.src === upload.searchSrc
                 ) {
                   tr.setNodeMarkup(pos, undefined, {
                     ...node.attrs,
@@ -134,7 +175,7 @@ export class UploadPlugin extends Plugin {
             }
           });
 
-          return slice;
+          return new Slice(newContent, slice.openStart, slice.openEnd);
         },
       },
     });

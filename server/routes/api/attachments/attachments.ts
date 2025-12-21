@@ -86,7 +86,7 @@ router.post(
   validate(T.AttachmentsCreateSchema),
   transaction(),
   async (ctx: APIContext<T.AttachmentCreateReq>) => {
-    const { name, documentId, contentType, size, preset } = ctx.input.body;
+    const { id, name, documentId, contentType, size, preset } = ctx.input.body;
     const { auth, transaction } = ctx.state;
     const { user } = auth;
 
@@ -118,7 +118,7 @@ router.post(
       );
     }
 
-    const modelId = randomUUID();
+    const modelId = id ?? randomUUID();
     const acl = AttachmentHelper.presetToAcl(preset);
     const key = AttachmentHelper.getKey({
       acl,
@@ -175,7 +175,7 @@ router.post(
   auth(),
   validate(T.AttachmentsCreateFromUrlSchema),
   async (ctx: APIContext<T.AttachmentCreateFromUrlReq>) => {
-    const { url, documentId, preset } = ctx.input.body;
+    const { id, url, documentId, preset } = ctx.input.body;
     const { user, type } = ctx.state.auth;
 
     if (preset !== AttachmentPreset.DocumentAttachment || !documentId) {
@@ -190,7 +190,7 @@ router.post(
     authorize(user, "update", document);
 
     const name = getFileNameFromUrl(url) ?? "file";
-    const modelId = randomUUID();
+    const modelId = id ?? randomUUID();
     const acl = AttachmentHelper.presetToAcl(preset);
     const key = AttachmentHelper.getKey({
       acl,

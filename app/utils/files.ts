@@ -4,6 +4,8 @@ import { client } from "./ApiClient";
 import Logger from "./Logger";
 
 type UploadOptions = {
+  /** The user generated ID of the file */
+  id?: string;
   /** The user facing name of the file */
   name?: string;
   /** The document that this file was uploaded in, if any */
@@ -28,6 +30,7 @@ export const uploadFileFromUrl = async (
   const response = await client.post("/attachments.createFromUrl", {
     documentId: options.documentId,
     url,
+    id: options.id,
   });
   return response.data;
 };
@@ -53,6 +56,7 @@ export const uploadFile = async (
     contentType: file.type,
     size: file.size,
     name,
+    id: options.id,
   });
   invariant(response, "Response should be available");
   const data = response.data;
