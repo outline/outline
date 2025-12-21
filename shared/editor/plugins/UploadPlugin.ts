@@ -2,11 +2,16 @@ import type { Node} from "prosemirror-model";
 import { Fragment, Slice } from "prosemirror-model";
 import { Plugin } from "prosemirror-state";
 import { v4 as uuidv4 } from "uuid";
-import { getDataTransferFiles, getDataTransferImage } from "../../utils/files";
+import {
+  getDataTransferFiles,
+  getDataTransferImage,
+  dataUrlToFile,
+} from "../../utils/files";
 import { fileNameFromUrl, isInternalUrl } from "../../utils/urls";
 import type { Options } from "../commands/insertFiles";
 import insertFiles from "../commands/insertFiles";
 import FileHelper from "../lib/FileHelper";
+import uploadPlaceholder, { findPlaceholder } from "../lib/uploadPlaceholder";
 
 export class UploadPlugin extends Plugin {
   constructor(options: Options) {
@@ -100,7 +105,7 @@ export class UploadPlugin extends Plugin {
           const uploads: {
             originalSrc: string;
             searchSrc: string;
-            id?: string;
+            id: string;
           }[] = [];
 
           const mapNode = (node: Node): Node => {
@@ -109,25 +114,17 @@ export class UploadPlugin extends Plugin {
               node.attrs.src &&
               !isInternalUrl(node.attrs.src)
             ) {
-              const isBase64 = node.attrs.src.startsWith("data:");
-              if (isBase64) {
-                const id = uuidv4();
-                const redirectUrl = `/api/attachments.redirect?id=${id}`;
-                uploads.push({
-                  originalSrc: node.attrs.src,
-                  searchSrc: redirectUrl,
-                  id,
-                });
-                return node.type.create({
-                  ...node.attrs,
-                  src: redirectUrl,
-                });
-              } else {
-                uploads.push({
-                  originalSrc: node.attrs.src,
-                  searchSrc: node.attrs.src,
-                });
-              }
+              const id = uuidv4();
+              const redirectUrl = `/api/attachments.redirect?id=${id}`;
+              uploads.push({
+                originalSrc: node.attrs.src,
+                searchSrc: redirectUrl,
+                id,
+              });
+              return node.type.create({
+                ...node.attrs,
+                src: redirectUrl,
+              });
             }
 
             if (node.content.size > 0) {
@@ -147,33 +144,128 @@ export class UploadPlugin extends Plugin {
           });
           const newContent = Fragment.from(nodes);
 
-          // Upload each captured image in the background
-          void uploads.map(async (upload) => {
-            const url = await options.uploadFile?.(upload.originalSrc, {
-              id: upload.id,
-            });
-
-            if (url) {
-              const file = await FileHelper.getFileForUrl(url);
-              const dimensions = await FileHelper.getImageDimensions(file);
-              const { tr } = view.state;
-
-              tr.doc.nodesBetween(0, tr.doc.nodeSize - 2, (node, pos) => {
-                if (
-                  node.type.name === "image" &&
-                  node.attrs.src === upload.searchSrc
-                ) {
-                  tr.setNodeMarkup(pos, undefined, {
-                    ...node.attrs,
-                    ...dimensions,
-                    src: url,
-                  });
+          // We need to wait for the pasted content to be inserted before we can
+          // find the nodes and replace them with placeholders.
+          setTimeout(() => {
+            void Promise.all(
+              uploads.map(async (upload) => {
+                if (view.isDestroyed) {
+                  return;
                 }
-              });
 
-              view.dispatch(tr);
-            }
-          });
+                const { state } = view;
+                let pos = -1;
+                let nodeSize = 0;
+                let attrs = {};
+                let existingDimensions:
+                  | { width?: number; height?: number }
+                  | undefined;
+
+                state.doc.nodesBetween(
+                  0,
+                  state.doc.nodeSize - 2,
+                  (node, nodePos) => {
+                    if (
+                      node.type.name === "image" &&
+                      node.attrs.src === upload.searchSrc
+                    ) {
+                      pos = nodePos;
+                      nodeSize = node.nodeSize;
+                      attrs = node.attrs;
+                      if (node.attrs.width || node.attrs.height) {
+                        existingDimensions = {
+                          width: node.attrs.width,
+                          height: node.attrs.height,
+                        };
+                      }
+                      return false;
+                    }
+                  }
+                );
+
+                if (pos !== -1) {
+                  const isBase64 = upload.originalSrc.startsWith("data:");
+                  const file = isBase64
+                    ? dataUrlToFile(upload.originalSrc, "pasted-image")
+                    : undefined;
+                  const dimensions =
+                    (isBase64 && file
+                      ? await FileHelper.getImageDimensions(file)
+                      : undefined) ?? existingDimensions;
+
+                  if (view.isDestroyed) {
+                    return;
+                  }
+
+                  // The position may have changed while we were awaiting dimensions
+                  let currentPos = -1;
+                  view.state.doc.nodesBetween(
+                    0,
+                    view.state.doc.nodeSize - 2,
+                    (node, nodePos) => {
+                      if (
+                        node.type.name === "image" &&
+                        node.attrs.src === upload.searchSrc
+                      ) {
+                        currentPos = nodePos;
+                        return false;
+                      }
+                    }
+                  );
+
+                  if (currentPos !== -1) {
+                    view.dispatch(
+                      view.state.tr
+                        .setMeta(uploadPlaceholder, {
+                          add: {
+                            id: upload.id,
+                            file,
+                            src: isBase64 ? undefined : upload.originalSrc,
+                            pos: currentPos,
+                            isImage: true,
+                            dimensions,
+                          },
+                        })
+                        .delete(currentPos, currentPos + nodeSize)
+                    );
+                  }
+                }
+
+                const url = await options.uploadFile?.(upload.originalSrc, {
+                  id: upload.id,
+                });
+
+                if (view.isDestroyed) {
+                  return;
+                }
+
+                if (url) {
+                  const file = await FileHelper.getFileForUrl(url);
+                  const dimensions = await FileHelper.getImageDimensions(file);
+                  const result = findPlaceholder(view.state, upload.id);
+
+                  if (result) {
+                    const [from, to] = result;
+                    view.dispatch(
+                      view.state.tr
+                        .replaceWith(
+                          from,
+                          to || from,
+                          view.state.schema.nodes.image.create({
+                            ...attrs,
+                            ...dimensions,
+                            src: url,
+                          })
+                        )
+                        .setMeta(uploadPlaceholder, {
+                          remove: { id: upload.id },
+                        })
+                    );
+                  }
+                }
+              })
+            );
+          }, 0);
 
           return new Slice(newContent, slice.openStart, slice.openEnd);
         },
