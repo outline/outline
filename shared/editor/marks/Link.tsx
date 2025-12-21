@@ -2,6 +2,7 @@ import type { Token } from "markdown-it";
 import { InputRule } from "prosemirror-inputrules";
 import type { MarkdownSerializerState } from "prosemirror-markdown";
 import type {
+  Attrs,
   MarkSpec,
   MarkType,
   Node,
@@ -14,8 +15,14 @@ import { toast } from "sonner";
 import { isUrl, sanitizeUrl } from "../../utils/urls";
 import { getMarkRange } from "../queries/getMarkRange";
 import Mark from "./Mark";
+import {
+  addLink,
+  openLink,
+  removeLink,
+  updateLink,
+  toggleLink,
+} from "../commands/link";
 import { isInCode } from "../queries/isInCode";
-import { addLink, openLink, removeLink, updateLink } from "../commands/link";
 
 const LINK_INPUT_REGEX = /\[([^[]+)]\((\S+)\)$/;
 
@@ -113,6 +120,7 @@ export default class Link extends Mark {
 
   commands() {
     return {
+      link: (attrs: Attrs) => toggleLink(attrs),
       addLink,
       updateLink,
       openLink: (): Command =>
