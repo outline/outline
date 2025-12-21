@@ -58,6 +58,7 @@ import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import SearchHelper from "@server/models/helpers/SearchHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
+import { buildWhere } from "@server/models/filters/Filters";
 import { authorize, can, cannot } from "@server/policies";
 import {
   presentDocument,
@@ -97,6 +98,7 @@ router.post(
       parentDocumentId,
       userId: createdById,
       statusFilter,
+      filter,
     } = ctx.input.body;
 
     // always filter by the current team
@@ -114,8 +116,12 @@ router.post(
       ],
     };
 
+    if (filter) {
+      where[Op.and].push(buildWhere(filter));
+    }
+
     // Exclude archived docs by default
-    if (!statusFilter) {
+    if (!statusFilter && !filter) {
       where[Op.and].push({ archivedAt: { [Op.eq]: null } });
     }
 

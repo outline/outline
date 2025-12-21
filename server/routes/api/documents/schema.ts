@@ -5,6 +5,7 @@ import { DocumentPermission, StatusFilter } from "@shared/types";
 import { BaseSchema } from "@server/routes/api/schema";
 import { zodIconType, zodIdType, zodShareIdType } from "@server/utils/zod";
 import { ValidateColor } from "@server/validation";
+import { builderFilterSchema } from "@shared/helpers/FilterHelper";
 
 const DocumentsSortParamsSchema = z.object({
   /** Specifies the attributes by which documents will be sorted in the list */
@@ -69,6 +70,17 @@ const BaseIdSchema = z.object({
   id: zodIdType(),
 });
 
+const filter = builderFilterSchema(
+  z.enum([
+    "createdAt",
+    "updatedAt",
+    "archivedAt",
+    "publishedAt",
+    "title",
+    "templateId",
+  ])
+);
+
 export const DocumentsListSchema = BaseSchema.extend({
   body: DocumentsSortParamsSchema.extend({
     /** Id of the user who created the doc */
@@ -94,6 +106,9 @@ export const DocumentsListSchema = BaseSchema.extend({
 
     /** Document statuses to include in results */
     statusFilter: z.nativeEnum(StatusFilter).array().optional(),
+
+    /** Advanced filters */
+    filter: filter.FilterSchema.optional(),
   }),
   // Maintains backwards compatibility
 }).transform((req) => {

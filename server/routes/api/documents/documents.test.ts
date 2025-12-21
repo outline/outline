@@ -1007,6 +1007,102 @@ describe("#documents.list", () => {
     expect(body.data.length).toEqual(1);
   });
 
+  it("should allow advanced filtering", async () => {
+    const user = await buildUser();
+    await buildDocument({
+      title: "First document",
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    await buildDocument({
+      title: "Second document",
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/documents.list", {
+      body: {
+        token: user.getJwtToken(),
+        filter: {
+          field: "title",
+          operator: "contains",
+          value: "First",
+        },
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].title).toEqual("First document");
+  });
+
+  it("should allow advanced filtering with logical operators", async () => {
+    const user = await buildUser();
+    await buildDocument({
+      title: "First document",
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    await buildDocument({
+      title: "Second document",
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/documents.list", {
+      body: {
+        token: user.getJwtToken(),
+        filter: {
+          operator: "OR",
+          filters: [
+            {
+              field: "title",
+              operator: "eq",
+              value: "First document",
+            },
+            {
+              field: "title",
+              operator: "eq",
+              value: "Second document",
+            },
+          ],
+        },
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(2);
+  });
+
+  it("should allow filtering to include archived", async () => {
+    const user = await buildUser();
+    await buildDocument({
+      title: "First document",
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    await buildDocument({
+      title: "Second document",
+      userId: user.id,
+      teamId: user.teamId,
+      archivedAt: new Date(),
+    });
+
+    const res = await server.post("/api/documents.list", {
+      body: {
+        token: user.getJwtToken(),
+        filter: {
+          field: "archivedAt",
+          operator: "isNotNull",
+          value: true,
+        },
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+  });
+
   it("should allow filtering to private collection", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
