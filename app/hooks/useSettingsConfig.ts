@@ -7,6 +7,7 @@ import {
   UserIcon,
   GroupIcon,
   GlobeIcon,
+  ShieldIcon,
   TeamIcon,
   BeakerIcon,
   SettingsIcon,
@@ -137,7 +138,7 @@ const useSettingsConfig = () => {
         preload: Security.preload,
         enabled: can.update,
         group: t("Workspace"),
-        icon: PadlockIcon,
+        icon: ShieldIcon,
       },
       {
         name: t("Features"),

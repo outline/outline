@@ -1,6 +1,6 @@
 import debounce from "lodash/debounce";
 import { observer } from "mobx-react";
-import { PadlockIcon } from "outline-icons";
+import { ShieldIcon } from "outline-icons";
 import { useState } from "react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
@@ -174,7 +174,7 @@ function Security() {
   );
 
   return (
-    <Scene title={t("Security")} icon={<PadlockIcon />}>
+    <Scene title={t("Security")} icon={<ShieldIcon />}>
       <Heading>{t("Security")}</Heading>
       <Text as="p" type="secondary">
         <Trans>
