@@ -12,7 +12,7 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 
 type FormData = {
-  code: string;
+  code?: string;
 };
 
 type Props = {
@@ -47,7 +47,12 @@ function TeamDelete({ onSubmit }: Props) {
   const handleSubmit = React.useCallback(
     async (data: FormData) => {
       try {
-        await auth.deleteTeam(data);
+        // Only include code in payload if EMAIL_ENABLED and we have a code
+        const payload: { code?: string } = {};
+        if (env.EMAIL_ENABLED && data.code) {
+          payload.code = data.code;
+        }
+        await auth.deleteTeam(payload);
         await auth.logout({
           savePath: false,
           revokeToken: false,

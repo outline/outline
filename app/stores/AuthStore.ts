@@ -276,7 +276,7 @@ export default class AuthStore extends Store<Team> {
   };
 
   @action
-  deleteTeam = async (data: { code: string }) => {
+  deleteTeam = async (data: { code?: string }) => {
     await client.post(`/teams.delete`, data);
 
     runInAction("AuthStore#deleteTeam", () => {
