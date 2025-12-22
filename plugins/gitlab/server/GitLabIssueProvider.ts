@@ -1,5 +1,5 @@
-import { IssueSource } from "@shared/schema";
-import { IntegrationService, IntegrationType } from "@shared/types";
+import type { IssueSource } from "@shared/schema";
+import { IntegrationService, type IntegrationType } from "@shared/types";
 import Logger from "@server/logging/Logger";
 import { Integration, IntegrationAuthentication } from "@server/models";
 import { BaseIssueProvider } from "@server/utils/BaseIssueProvider";

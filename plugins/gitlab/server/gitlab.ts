@@ -1,18 +1,19 @@
 import fetch from "node-fetch";
 import z from "zod";
 import {
+  type IntegrationType,
   IntegrationService,
-  IntegrationType,
   UnfurlResourceType,
 } from "@shared/types";
 import Logger from "@server/logging/Logger";
-import { Integration, IntegrationAuthentication, User } from "@server/models";
-import { UnfurlIssueOrPR, UnfurlSignature } from "@server/types";
+import type { User } from "@server/models";
+import { Integration, IntegrationAuthentication } from "@server/models";
+import type { UnfurlIssueOrPR, UnfurlSignature } from "@server/types";
 import { GitLabUtils } from "../shared/GitLabUtils";
 import env from "./env";
 import { Op } from "sequelize";
 import { sequelize } from "@server/storage/database";
-import {
+import type {
   IssueSchemaWithExpandedLabels,
   MergeRequestSchema,
 } from "@gitbeaker/rest";
