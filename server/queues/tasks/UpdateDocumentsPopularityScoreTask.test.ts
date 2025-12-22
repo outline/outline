@@ -27,10 +27,14 @@ describe("UpdateDocumentsPopularityScoreTask", () => {
   beforeEach(() => {
     task = new UpdateDocumentsPopularityScoreTask();
     jest.spyOn(Date.prototype, "getHours").mockReturnValue(0);
-    // Ensure calculation query sees data created in tests by redirecting to main sequelize instance
-    jest
-      .spyOn(sequelizeReadOnly, "query")
-      .mockImplementation(sequelize.query.bind(sequelize));
+
+    // Ensure calculation query sees data created in tests by redirecting to main sequelize instance.
+    // We only mock if the instances are different to avoid infinite recursion.
+    if (sequelizeReadOnly !== sequelize) {
+      jest
+        .spyOn(sequelizeReadOnly, "query")
+        .mockImplementation(sequelize.query.bind(sequelize));
+    }
   });
 
   afterEach(() => {
