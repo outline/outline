@@ -24,6 +24,8 @@ import useStores from "~/hooks/useStores";
 import isCloudHosted from "~/utils/isCloudHosted";
 import DomainManagement from "./components/DomainManagement";
 import SettingRow from "./components/SettingRow";
+import { setPostLoginPath } from "~/hooks/useLastVisitedPath";
+import { settingsPath } from "~/utils/routeHelpers";
 
 function Security() {
   const { authenticationProviders, dialogs } = useStores();
@@ -204,6 +206,7 @@ function Security() {
   );
 
   const handleConnectProvider = React.useCallback((name: string) => {
+    setPostLoginPath(settingsPath("security"));
     window.location.href = `/auth/${name}?host=${window.location.host}`;
   }, []);
 
