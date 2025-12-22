@@ -22,7 +22,7 @@ class GitLabPluginEnvironment extends Environment {
     this.toOptionalString(environment.GITLAB_URL) ?? "https://gitlab.com";
 
   /**
-   * GitLab OAuth2 client credentials. To enable integration with GitLab.
+   * GitLab OAuth2 client secret used for OAuth2 authentication with GitLab.
    */
   @IsOptional()
   @CannotUseWithout("GITLAB_CLIENT_ID")

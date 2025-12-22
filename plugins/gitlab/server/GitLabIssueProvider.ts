@@ -62,7 +62,7 @@ export class GitLabIssueProvider extends BaseIssueProvider {
     payload: Record<string, unknown>;
     headers: Record<string, unknown>;
   }) {
-    const hookId = headers["X-Gitlab-Webhook-UUID"] as string;
+    const hookId = headers["x-gitlab-webhook-uuid"] as string;
     const eventName = payload.event_name as string;
 
     if (!eventName) {
@@ -124,7 +124,7 @@ export class GitLabIssueProvider extends BaseIssueProvider {
           return {
             ...source,
             owner: {
-              id: payload.group_id || source.id,
+              id: payload.group_id || source.owner.id,
               name: payload.full_path ?? payload.username,
             },
           };
@@ -173,7 +173,7 @@ export class GitLabIssueProvider extends BaseIssueProvider {
         if (payload.full_path) {
           const sources =
             integration.issueSources?.filter(
-              (source) => payload.full_path !== source.owner.id
+              (source) => payload.full_path !== source.owner.name
             ) ?? [];
 
           integration.issueSources = sources;

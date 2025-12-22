@@ -27,7 +27,7 @@ export default function validateWebhook({
           .createHmac("sha256", secretKey)
           .update(JSON.stringify(body))
           .digest("hex")
-      : secretKey;
+      : secretKey; // GitLab sends the security token as is, without encryption
 
     if (!safeEqual(computedSignature, signatureFromHeader)) {
       ctx.status = 401;
