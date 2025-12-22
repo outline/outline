@@ -443,11 +443,11 @@ describe("accountProvisioner", () => {
         {
           user: {
             name: admin.name,
-            email: admin.email,
+            email: admin.email!,
           },
           team: {
             teamId: team.id,
-            subdomain: team.subdomain,
+            subdomain: team.subdomain!,
           },
           authenticationProvider: {
             name: "google",
