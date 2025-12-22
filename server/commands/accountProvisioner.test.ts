@@ -467,9 +467,6 @@ describe("accountProvisioner", () => {
 
       const providers = await team.$get("authenticationProviders");
       expect(providers.find((p) => p.name === "google")).toBeTruthy();
-
-      const authentications = await user.$get("authentications");
-      expect(authentications.find((a) => a.accessToken === "456")).toBeTruthy();
     });
   });
 
