@@ -477,10 +477,10 @@ class User extends ParanoidModel<
                 },
               ]),
           {
-            "$memberships.userId$": this.id,
+            "$memberships.id$": { [Op.ne]: null },
           },
           {
-            "$groupMemberships.group.groupUsers.userId$": this.id,
+            "$groupMemberships.id$": { [Op.ne]: null },
           },
         ],
       },
