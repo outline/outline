@@ -93,12 +93,41 @@ async function accountProvisioner(
   let result;
   let emailMatchOnly;
 
-  try {
-    result = await teamProvisioner(ctx, {
-      ...teamParams,
-      name: teamParams.name || "Wiki",
-      authenticationProvider: authenticationProviderParams,
+  const actor = ctx.state.auth?.user;
+
+  // If the user is already logged in and is an admin of the team then we
+  // allow them to connect a new authentication provider
+  if (actor && actor.teamId === teamParams.teamId && actor.isAdmin) {
+    const team = actor.team;
+    let authenticationProvider = await AuthenticationProvider.findOne({
+      where: {
+        ...authenticationProviderParams,
+        teamId: team.id,
+      },
     });
+
+    if (!authenticationProvider) {
+      authenticationProvider = await team.$create<AuthenticationProvider>(
+        "authenticationProvider",
+        authenticationProviderParams
+      );
+    }
+
+    result = {
+      authenticationProvider,
+      team,
+      isNewTeam: false,
+    };
+  }
+
+  try {
+    if (!result) {
+      result = await teamProvisioner(ctx, {
+        ...teamParams,
+        name: teamParams.name || "Wiki",
+        authenticationProvider: authenticationProviderParams,
+      });
+    }
   } catch (err) {
     // The account could not be provisioned for the provided teamId
     // check to see if we can try authentication using email matching only
