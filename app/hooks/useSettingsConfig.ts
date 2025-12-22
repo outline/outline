@@ -33,6 +33,7 @@ import useStores from "./useStores";
 const ApiKeys = lazy(() => import("~/scenes/Settings/ApiKeys"));
 const Applications = lazy(() => import("~/scenes/Settings/Applications"));
 const APIAndApps = lazy(() => import("~/scenes/Settings/APIAndApps"));
+const Authentication = lazy(() => import("~/scenes/Settings/Authentication"));
 const Details = lazy(() => import("~/scenes/Settings/Details"));
 const Export = lazy(() => import("~/scenes/Settings/Export"));
 const Features = lazy(() => import("~/scenes/Settings/Features"));
@@ -119,6 +120,15 @@ const useSettingsConfig = () => {
         enabled: can.update,
         group: t("Workspace"),
         icon: TeamIcon,
+      },
+      {
+        name: t("Authentication"),
+        path: settingsPath("authentication"),
+        component: Authentication.Component,
+        preload: Authentication.preload,
+        enabled: can.update,
+        group: t("Workspace"),
+        icon: PadlockIcon,
       },
       {
         name: t("Security"),

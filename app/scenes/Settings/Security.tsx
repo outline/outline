@@ -1,52 +1,36 @@
 import debounce from "lodash/debounce";
 import { observer } from "mobx-react";
-import { EmailIcon, PadlockIcon, TrashIcon } from "outline-icons";
+import { PadlockIcon } from "outline-icons";
 import { useState } from "react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
 import { TeamPreference } from "@shared/types";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
-import ButtonSmall from "~/components/ButtonSmall";
-import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import type { Option } from "~/components/InputSelect";
 import { InputSelect } from "~/components/InputSelect";
-import type AuthenticationProvider from "~/models/AuthenticationProvider";
-import PluginIcon from "~/components/PluginIcon";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
-import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
-import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import isCloudHosted from "~/utils/isCloudHosted";
-import DomainManagement from "./components/DomainManagement";
 import SettingRow from "./components/SettingRow";
-import { setPostLoginPath } from "~/hooks/useLastVisitedPath";
-import { settingsPath } from "~/utils/routeHelpers";
 
 function Security() {
-  const { authenticationProviders, dialogs } = useStores();
+  const { dialogs } = useStores();
   const team = useCurrentTeam();
   const { t } = useTranslation();
 
   const [data, setData] = useState({
     sharing: team.sharing,
     documentEmbeds: team.documentEmbeds,
-    guestSignin: team.guestSignin,
     defaultUserRole: team.defaultUserRole,
     memberCollectionCreate: team.memberCollectionCreate,
     memberTeamCreate: team.memberTeamCreate,
     inviteRequired: team.inviteRequired,
   });
-
-  const {
-    data: providers,
-    loading,
-    request,
-  } = useRequest(authenticationProviders.fetchPage);
 
   const userRoleOptions: Option[] = React.useMemo(
     () =>
@@ -64,12 +48,6 @@ function Security() {
       ] satisfies Option[],
     [t]
   );
-
-  React.useEffect(() => {
-    if (!providers && !loading) {
-      void request();
-    }
-  }, [loading, providers, request]);
 
   const showSuccessMessage = React.useMemo(
     () =>
@@ -95,13 +73,6 @@ function Security() {
   const handleDefaultRoleChange = React.useCallback(
     async (newDefaultRole: string) => {
       await saveData({ defaultUserRole: newDefaultRole });
-    },
-    [saveData]
-  );
-
-  const handleGuestSigninChange = React.useCallback(
-    async (checked: boolean) => {
-      await saveData({ guestSignin: checked });
     },
     [saveData]
   );
@@ -167,49 +138,6 @@ function Security() {
     [saveData, team.preferences]
   );
 
-  const handleToggleProvider = React.useCallback(
-    async (provider: AuthenticationProvider, isEnabled: boolean) => {
-      try {
-        await provider.save({ isEnabled });
-        showSuccessMessage();
-      } catch (err) {
-        toast.error(err.message);
-      }
-    },
-    [showSuccessMessage]
-  );
-
-  const handleRemoveProvider = React.useCallback(
-    async (provider: AuthenticationProvider) => {
-      dialogs.openModal({
-        title: t("Are you sure?"),
-        content: (
-          <ConfirmationDialog
-            onSubmit={async () => {
-              await provider.delete();
-              showSuccessMessage();
-            }}
-            savingText={`${t("Removing")}…`}
-            danger
-          >
-            {t(
-              "Removing this authentication provider will prevent members from signing in with {{ authProvider }}.",
-              {
-                authProvider: provider.displayName,
-              }
-            )}
-          </ConfirmationDialog>
-        ),
-      });
-    },
-    [dialogs, t, showSuccessMessage]
-  );
-
-  const handleConnectProvider = React.useCallback((name: string) => {
-    setPostLoginPath(settingsPath("security"));
-    window.location.href = `/auth/${name}?host=${window.location.host}`;
-  }, []);
-
   const handleInviteRequiredChange = React.useCallback(
     async (checked: boolean) => {
       const inviteRequired = checked;
@@ -255,72 +183,7 @@ function Security() {
         </Trans>
       </Text>
 
-      <h2>{t("Sign In")}</h2>
-      {authenticationProviders.orderedData.map((provider) => (
-        <SettingRow
-          key={provider.name}
-          label={
-            <Flex gap={8} align="center">
-              <PluginIcon id={provider.name} /> {provider.displayName}
-            </Flex>
-          }
-          name={provider.name}
-          description={
-            provider.isConnected
-              ? t("Allow members to sign-in with {{ authProvider }}", {
-                  authProvider: provider.displayName,
-                })
-              : t("Connect {{ authProvider }} to allow members to sign-in", {
-                  authProvider: provider.displayName,
-                })
-          }
-        >
-          {provider.isConnected ? (
-            <Flex align="center" gap={12}>
-              <Switch
-                id={provider.name}
-                checked={provider.isEnabled}
-                onChange={(checked) => handleToggleProvider(provider, checked)}
-              />
-              <ButtonSmall
-                onClick={() => handleRemoveProvider(provider)}
-                icon={<TrashIcon />}
-                neutral
-              />
-            </Flex>
-          ) : (
-            <ButtonSmall
-              onClick={() => handleConnectProvider(provider.name)}
-              neutral
-            >
-              {t("Connect")}
-            </ButtonSmall>
-          )}
-        </SettingRow>
-      ))}
-      <SettingRow
-        label={
-          <Flex gap={8} align="center">
-            <EmailIcon /> {t("Email")}
-          </Flex>
-        }
-        name="guestSignin"
-        description={
-          env.EMAIL_ENABLED
-            ? t("Allow members to sign-in using their email address")
-            : t("The server must have SMTP configured to enable this setting")
-        }
-        border={false}
-      >
-        <Switch
-          id="guestSignin"
-          checked={data.guestSignin}
-          onChange={handleGuestSigninChange}
-          disabled={!env.EMAIL_ENABLED}
-        />
-      </SettingRow>
-
-      <h2>{t("Access")}</h2>
+      <h2>{t("Invites")}</h2>
       <SettingRow
         label={t("Allow users to send invites")}
         name={TeamPreference.MembersCanInvite}
@@ -367,8 +230,6 @@ function Security() {
           />
         </SettingRow>
       )}
-
-      <DomainManagement onSuccess={showSuccessMessage} />
 
       <h2>{t("Behavior")}</h2>
       <SettingRow

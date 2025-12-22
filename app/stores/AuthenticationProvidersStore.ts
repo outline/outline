@@ -13,10 +13,6 @@ export default class AuthenticationProvidersStore extends Store<AuthenticationPr
 
   @computed
   get orderedData(): AuthenticationProvider[] {
-    return orderBy(
-      Array.from(this.data.values()),
-      ["isEnabled", "name"],
-      ["desc", "asc"]
-    );
+    return orderBy(Array.from(this.data.values()), ["desc", "asc"]);
   }
 }
