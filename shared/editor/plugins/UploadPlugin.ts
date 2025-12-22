@@ -1,4 +1,4 @@
-import type { Node} from "prosemirror-model";
+import type { Node } from "prosemirror-model";
 import { Fragment, Slice } from "prosemirror-model";
 import { Plugin } from "prosemirror-state";
 import { v4 as uuidv4 } from "uuid";
@@ -180,6 +180,7 @@ export class UploadPlugin extends Plugin {
                       }
                       return false;
                     }
+                    return true;
                   }
                 );
 
@@ -210,6 +211,7 @@ export class UploadPlugin extends Plugin {
                         currentPos = nodePos;
                         return false;
                       }
+                      return true;
                     }
                   );
 
