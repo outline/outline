@@ -306,7 +306,7 @@ export const MentionIssue = observer((props: IssuePrProps) => {
   const issue = unfurl as UnfurlResponse[UnfurlResourceType.Issue];
 
   const url = new URL(issue.url);
-  const gitlabUrl = new URL(env.GITLAB_URL || "http://gitlab.com");
+  const gitlabUrl = new URL(env.GITLAB_URL || "https://gitlab.com");
 
   const service =
     url.hostname === gitlabUrl.hostname
