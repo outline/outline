@@ -150,3 +150,59 @@ describe("#authenticationProviders.list", () => {
     expect(res.status).toEqual(401);
   });
 });
+
+describe("#authenticationProviders.delete", () => {
+  it("should allow admins to delete authentication provider", async () => {
+    const team = await buildTeam();
+    const user = await buildAdmin({
+      teamId: team.id,
+    });
+    const googleProvider = await team.$create("authenticationProvider", {
+      name: "google",
+      providerId: randomUUID(),
+    });
+    const res = await server.post("/api/authenticationProviders.delete", {
+      body: {
+        id: googleProvider.id,
+        token: user.getJwtToken(),
+      },
+    });
+    expect(res.status).toEqual(200);
+    const count = await team.$count("authenticationProviders", {
+      where: {
+        id: googleProvider.id,
+      },
+    });
+    expect(count).toBe(0);
+  });
+
+  it("should require authorization", async () => {
+    const team = await buildTeam();
+    const user = await buildUser();
+    const googleProvider = await team.$create("authenticationProvider", {
+      name: "google",
+      providerId: randomUUID(),
+    });
+    const res = await server.post("/api/authenticationProviders.delete", {
+      body: {
+        id: googleProvider.id,
+        token: user.getJwtToken(),
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should require authentication", async () => {
+    const team = await buildTeam();
+    const googleProvider = await team.$create("authenticationProvider", {
+      name: "google",
+      providerId: randomUUID(),
+    });
+    const res = await server.post("/api/authenticationProviders.delete", {
+      body: {
+        id: googleProvider.id,
+      },
+    });
+    expect(res.status).toEqual(401);
+  });
+});

@@ -15,6 +15,7 @@ const app = new Koa<AppState, AppContext>();
 const router = new Router();
 
 router.use(passport.initialize());
+router.use(authMiddleware({ optional: true }));
 
 // dynamically register available authentication provider routes
 void (async () => {

@@ -18,6 +18,7 @@ import {
   StateStore,
   getTeamFromContext,
   getClientFromContext,
+  getUserFromContext,
 } from "@server/utils/passport";
 import config from "../../plugin.json";
 import env from "../env";
@@ -68,6 +69,8 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
           const domain = profile._json.hd;
           const team = await getTeamFromContext(context);
           const client = getClientFromContext(context);
+          const user =
+            context.state?.auth?.user ?? (await getUserFromContext(context));
 
           // No profile domain means personal gmail account
           // No team implies the request came from the apex domain
@@ -109,7 +112,11 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
           // if a team can be inferred, we assume the user is only interested in signing into
           // that team in particular; otherwise, we will do a best effort at finding their account
           // or provisioning a new one (within AccountProvisioner)
-          const ctx = createContext({ ip: context.ip });
+          const ctx = createContext({
+            ip: context.ip,
+            user,
+            authType: context.state?.auth?.type,
+          });
           const result = await accountProvisioner(ctx, {
             team: {
               teamId: team?.id,

@@ -1,17 +1,18 @@
 import debounce from "lodash/debounce";
 import { observer } from "mobx-react";
-import { CheckboxIcon, EmailIcon, PadlockIcon } from "outline-icons";
+import { EmailIcon, PadlockIcon, TrashIcon } from "outline-icons";
 import { useState } from "react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
-import { useTheme } from "styled-components";
 import { TeamPreference } from "@shared/types";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
+import ButtonSmall from "~/components/ButtonSmall";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import type { Option } from "~/components/InputSelect";
 import { InputSelect } from "~/components/InputSelect";
+import type AuthenticationProvider from "~/models/AuthenticationProvider";
 import PluginIcon from "~/components/PluginIcon";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
@@ -28,7 +29,7 @@ function Security() {
   const { authenticationProviders, dialogs } = useStores();
   const team = useCurrentTeam();
   const { t } = useTranslation();
-  const theme = useTheme();
+
   const [data, setData] = useState({
     sharing: team.sharing,
     documentEmbeds: team.documentEmbeds,
@@ -164,6 +165,48 @@ function Security() {
     [saveData, team.preferences]
   );
 
+  const handleToggleProvider = React.useCallback(
+    async (provider: AuthenticationProvider, isEnabled: boolean) => {
+      try {
+        await provider.save({ isEnabled });
+        showSuccessMessage();
+      } catch (err) {
+        toast.error(err.message);
+      }
+    },
+    [showSuccessMessage]
+  );
+
+  const handleRemoveProvider = React.useCallback(
+    async (provider: AuthenticationProvider) => {
+      dialogs.openModal({
+        title: t("Are you sure?"),
+        content: (
+          <ConfirmationDialog
+            onSubmit={async () => {
+              await provider.delete();
+              showSuccessMessage();
+            }}
+            savingText={`${t("Removing")}…`}
+            danger
+          >
+            {t(
+              "Removing this authentication provider will prevent members from signing in with {{ authProvider }}.",
+              {
+                authProvider: provider.displayName,
+              }
+            )}
+          </ConfirmationDialog>
+        ),
+      });
+    },
+    [dialogs, t, showSuccessMessage]
+  );
+
+  const handleConnectProvider = React.useCallback((name: string) => {
+    window.location.href = `/auth/${name}?host=${window.location.host}`;
+  }, []);
+
   const handleInviteRequiredChange = React.useCallback(
     async (checked: boolean) => {
       const inviteRequired = checked;
@@ -210,33 +253,48 @@ function Security() {
       </Text>
 
       <h2>{t("Sign In")}</h2>
-      {authenticationProviders.orderedData
-        // filtering unconnected, until we have ability to connect from this screen
-        .filter((provider) => provider.isConnected)
-        .map((provider) => (
-          <SettingRow
-            key={provider.name}
-            label={
-              <Flex gap={8} align="center">
-                <PluginIcon id={provider.name} /> {provider.displayName}
-              </Flex>
-            }
-            name={provider.name}
-            description={t("Allow members to sign-in with {{ authProvider }}", {
-              authProvider: provider.displayName,
-            })}
-          >
-            <Flex align="center">
-              <CheckboxIcon
-                color={provider.isActive ? theme.accent : undefined}
-                checked={provider.isActive}
-              />{" "}
-              <Text as="p" type="secondary">
-                {provider.isActive ? t("Connected") : t("Disabled")}
-              </Text>
+      {authenticationProviders.orderedData.map((provider) => (
+        <SettingRow
+          key={provider.name}
+          label={
+            <Flex gap={8} align="center">
+              <PluginIcon id={provider.name} /> {provider.displayName}
             </Flex>
-          </SettingRow>
-        ))}
+          }
+          name={provider.name}
+          description={
+            provider.isConnected
+              ? t("Allow members to sign-in with {{ authProvider }}", {
+                  authProvider: provider.displayName,
+                })
+              : t("Connect {{ authProvider }} to allow members to sign-in", {
+                  authProvider: provider.displayName,
+                })
+          }
+        >
+          {provider.isConnected ? (
+            <Flex align="center" gap={12}>
+              <Switch
+                id={provider.name}
+                checked={provider.isEnabled}
+                onChange={(checked) => handleToggleProvider(provider, checked)}
+              />
+              <ButtonSmall
+                onClick={() => handleRemoveProvider(provider)}
+                icon={<TrashIcon />}
+                neutral
+              />
+            </Flex>
+          ) : (
+            <ButtonSmall
+              onClick={() => handleConnectProvider(provider.name)}
+              neutral
+            >
+              {t("Connect")}
+            </ButtonSmall>
+          )}
+        </SettingRow>
+      ))}
       <SettingRow
         label={
           <Flex gap={8} align="center">

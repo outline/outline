@@ -65,6 +65,35 @@ router.post(
 );
 
 router.post(
+  "authenticationProviders.delete",
+  auth({ role: UserRole.Admin }),
+  validate(T.AuthenticationProvidersDeleteSchema),
+  transaction(),
+  async (ctx: APIContext<T.AuthenticationProvidersDeleteReq>) => {
+    const { transaction } = ctx.state;
+    const { id } = ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    const authenticationProvider = await AuthenticationProvider.findByPk(id, {
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
+
+    authorize(user, "delete", authenticationProvider);
+
+    if (authenticationProvider.enabled) {
+      await authenticationProvider.disable(ctx);
+    }
+
+    await authenticationProvider.destroy({ transaction });
+
+    ctx.body = {
+      success: true,
+    };
+  }
+);
+
+router.post(
   "authenticationProviders.list",
   auth({ role: UserRole.Admin }),
   async (ctx: APIContext) => {

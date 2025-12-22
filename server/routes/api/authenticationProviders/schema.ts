@@ -25,3 +25,14 @@ export const AuthenticationProvidersUpdateSchema = BaseSchema.extend({
 export type AuthenticationProvidersUpdateReq = z.infer<
   typeof AuthenticationProvidersUpdateSchema
 >;
+
+export const AuthenticationProvidersDeleteSchema = BaseSchema.extend({
+  body: z.object({
+    /** Authentication Provider Id */
+    id: z.string().uuid(),
+  }),
+});
+
+export type AuthenticationProvidersDeleteReq = z.infer<
+  typeof AuthenticationProvidersDeleteSchema
+>;

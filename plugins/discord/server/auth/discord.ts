@@ -22,6 +22,7 @@ import {
   StateStore,
   getTeamFromContext,
   getClientFromContext,
+  getUserFromContext,
   request,
 } from "@server/utils/passport";
 import config from "../../plugin.json";
@@ -177,11 +178,17 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
               }
             }
           }
+          const user =
+            context.state?.auth?.user ?? (await getUserFromContext(context));
 
           // if a team can be inferred, we assume the user is only interested in signing into
           // that team in particular; otherwise, we will do a best effort at finding their account
           // or provisioning a new one (within AccountProvisioner)
-          const ctx = createContext({ ip: context.ip });
+          const ctx = createContext({
+            ip: context.ip,
+            user,
+            authType: context.state?.auth?.type,
+          });
           const result = await accountProvisioner(ctx, {
             team: {
               teamId: team?.id,

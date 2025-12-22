@@ -12,6 +12,7 @@ import env from "@server/env";
 import { Team } from "@server/models";
 import { InternalError, OAuthStateMismatchError } from "../errors";
 import fetch from "./fetch";
+import { getUserForJWT } from "./jwt";
 
 export class StateStore {
   constructor(private pkce = false) {}
@@ -45,7 +46,8 @@ export class StateStore {
     const clientInput = ctx.query.client?.toString();
     const client = clientInput === Client.Desktop ? Client.Desktop : Client.Web;
     const host = ctx.query.host?.toString() || parseDomain(ctx.hostname).host;
-    const state = buildState(host, token, client, codeVerifier);
+    const accessToken = ctx.cookies.get("accessToken");
+    const state = buildState(host, token, client, codeVerifier, accessToken);
 
     ctx.cookies.set(this.key, state, {
       expires: addMinutes(new Date(), 10),
@@ -119,21 +121,49 @@ function buildState(
   host: string,
   token: string,
   client?: Client,
-  codeVerifier?: string
+  codeVerifier?: string,
+  accessToken?: string
 ) {
-  return [host, token, client, codeVerifier].join("|");
+  return [host, token, client, codeVerifier, accessToken].join("|");
 }
 
 export function parseState(state: string) {
-  const [host, token, client, rawCodeVerifier] = state.split("|");
+  const [host, token, client, rawCodeVerifier, rawAccessToken] =
+    state.split("|");
   const codeVerifier = rawCodeVerifier ? rawCodeVerifier : undefined;
-  return { host, token, client, codeVerifier };
+  const accessToken = rawAccessToken ? rawAccessToken : undefined;
+  return { host, token, client, codeVerifier, accessToken };
 }
 
 export function getClientFromContext(ctx: Context): Client {
   const state = ctx.cookies.get("state");
   const client = state ? parseState(state).client : undefined;
   return client === Client.Desktop ? Client.Desktop : Client.Web;
+}
+
+export function getAccessTokenFromContext(ctx: Context): string | undefined {
+  const state = ctx.cookies.get("state");
+  return state ? parseState(state).accessToken : undefined;
+}
+
+/**
+ * Returns the user from the context if they are authenticated. This is used
+ * to restore the session during the OAuth flow.
+ *
+ * @param ctx The Koa context
+ * @returns The user if authenticated, otherwise undefined
+ */
+export async function getUserFromContext(ctx: Context) {
+  const token = getAccessTokenFromContext(ctx);
+  if (!token) {
+    return undefined;
+  }
+
+  try {
+    return await getUserForJWT(token);
+  } catch (_err) {
+    return undefined;
+  }
 }
 
 type TeamFromContextOptions = {

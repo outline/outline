@@ -77,6 +77,25 @@ async function teamProvisioner(
     };
   } else if (teamId) {
     // The user is attempting to log into a team with an unfamiliar SSO provider
+    const existingTeam = await Team.findByPk(teamId, {
+      rejectOnEmpty: true,
+    });
+
+    // If the user is already logged in and is an admin of the team then we
+    // allow them to connect a new authentication provider
+    const user = ctx.state.auth?.user;
+    if (user && user.teamId === teamId && user.isAdmin) {
+      authP = await existingTeam.$create<AuthenticationProvider>(
+        "authenticationProvider",
+        authenticationProvider
+      );
+      return {
+        authenticationProvider: authP,
+        team: existingTeam,
+        isNewTeam: false,
+      };
+    }
+
     if (env.isCloudHosted) {
       const err = InvalidAuthenticationError();
       Logger.error("Authentication provider does not exist for team", err, {
@@ -85,11 +104,6 @@ async function teamProvisioner(
       });
       throw err;
     }
-
-    // This team + auth provider combination has not been seen before in self hosted
-    const existingTeam = await Team.findByPk(teamId, {
-      rejectOnEmpty: true,
-    });
 
     // If the self-hosted installation has a single team and the domain for the
     // new team is allowed then assign the authentication provider to the
