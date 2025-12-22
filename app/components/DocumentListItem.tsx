@@ -159,11 +159,7 @@ function DocumentListItem(
                     <Badge>{t("Draft")}</Badge>
                   </Tooltip>
                 )}
-                {canStar && (
-                  <StarPositioner>
-                    <StarButton document={document} />
-                  </StarPositioner>
-                )}
+                {canStar && <StarButton document={document} />}
                 {document.isTemplate && showTemplate && (
                   <Badge primary>{t("Template")}</Badge>
                 )}
@@ -309,11 +305,6 @@ const Heading = styled.span<{ rtl?: boolean }>`
   font-size: 18px;
   line-height: 1.2;
   gap: 4px;
-`;
-
-const StarPositioner = styled(Flex)`
-  margin-left: 4px;
-  align-items: center;
 `;
 
 const Title = styled(Highlight)`

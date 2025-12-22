@@ -3,6 +3,7 @@ import styled from "styled-components";
 
 const Badge = styled.span<{ yellow?: boolean; primary?: boolean }>`
   padding: 1.5px 5.5px;
+  margin: 0 2px;
   background-color: ${({ yellow, primary, theme }) =>
     yellow ? theme.yellow : primary ? theme.accent : "transparent"};
   color: ${({ primary, yellow, theme }) =>
