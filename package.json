@@ -361,7 +361,7 @@
     "jest-environment-jsdom": "^29.7.0",
     "jest-fetch-mock": "^3.0.3",
     "lint-staged": "^13.3.0",
-    "nodemon": "^3.1.10",
+    "nodemon": "^3.1.11",
     "oxlint": "1.11.2",
     "oxlint-tsgolint": "^0.1.6",
     "postinstall-postinstall": "^2.1.0",
