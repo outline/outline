@@ -1944,10 +1944,10 @@
   dependencies:
     tslib "^2.0.0"
 
-"@dotenvx/dotenvx@^1.49.0":
-  version "1.49.0"
-  resolved "https://registry.yarnpkg.com/@dotenvx/dotenvx/-/dotenvx-1.49.0.tgz#221b96c39b85fe845f6c163b3521f92f2cb0132c"
-  integrity sha512-M1cyP6YstFQCjih54SAxCqHLMMi8QqV8tenpgGE48RTXWD7vfMYJiw/6xcCDpS2h28AcLpTsFCZA863Ge9yxzA==
+"@dotenvx/dotenvx@^1.51.2":
+  version "1.51.2"
+  resolved "https://registry.yarnpkg.com/@dotenvx/dotenvx/-/dotenvx-1.51.2.tgz#6701c5a7a4105a14a47666b0ea2056b87fddb79e"
+  integrity sha512-+693mNflujDZxudSEqSNGpn92QgFhJlBn9q2mDQ9yGWyHuz3hZ8B5g3EXCwdAz4DMJAI+OFCIbfEFZS+YRdrEA==
   dependencies:
     commander "^11.1.0"
     dotenv "^17.2.1"
