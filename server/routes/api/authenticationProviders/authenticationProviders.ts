@@ -120,7 +120,7 @@ router.post(
           ...(row ? presentAuthenticationProvider(row) : {}),
         };
       })
-      .sort((a) => (a.isEnabled ? -1 : 1));
+      .sort((a, b) => (a.isEnabled === b.isEnabled ? 0 : a.isEnabled ? -1 : 1));
 
     ctx.body = {
       data,

@@ -113,21 +113,6 @@ async function accountProvisioner(
       );
     }
 
-    // We also want to ensure that the current user is associated with this
-    // authentication provider so they can sign-in with it in the future.
-    await userProvisioner(ctx, {
-      name: userParams.name,
-      email: actor.email,
-      teamId: team.id,
-      authentication: {
-        authenticationProviderId: authenticationProvider.id,
-        ...authenticationParams,
-        expiresAt: authenticationParams.expiresIn
-          ? addSeconds(Date.now(), authenticationParams.expiresIn)
-          : undefined,
-      },
-    });
-
     return {
       user: actor,
       team,
