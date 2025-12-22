@@ -126,7 +126,7 @@ class Logger {
           scope.setExtra(key, this.sanitize(extra[key]));
         }
 
-        Sentry.captureException(new Error(message));
+        Sentry.captureMessage(message);
       });
     }
 
