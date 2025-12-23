@@ -474,7 +474,7 @@
   "Change permissions?": "Machtigingen wijzigen?",
   "{{ documentName }} cannot be moved within {{ parentDocumentName }}": "{{ documentName }} kan niet verplaatst worden binnen {{ parentDocumentName }}",
   "You can't reorder documents in an alphabetically sorted collection": "Je kunt documenten in een alfabetisch gesorteerde collectie niet opnieuw ordenen",
-  "The {{ documentName }} cannot be moved here": "{{ documentName }} kan hier niet naartoe verplaatst worden",
+  "{{ documentName }} cannot be moved here": "{{ documentName }} cannot be moved here",
   "Return to App": "Terug naar de app",
   "Installation": "Installatie",
   "Unstar document": "Document verwijderen uit favorieten",
