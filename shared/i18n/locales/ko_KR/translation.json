@@ -474,7 +474,7 @@
   "Change permissions?": "권한을 변경할까요?",
   "{{ documentName }} cannot be moved within {{ parentDocumentName }}": "{{ documentName }} 은(는) {{ parentDocumentName }} 내에서 이동할 수 없음",
   "You can't reorder documents in an alphabetically sorted collection": "알파벳순으로 정렬된 컬렉션에서는 문서를 재정렬할 수 없습니다.",
-  "The {{ documentName }} cannot be moved here": "{{documentName}} 은(는) 여기로 이동할 수 없음",
+  "{{ documentName }} cannot be moved here": "{{ documentName }} cannot be moved here",
   "Return to App": "앱으로 돌아가기",
   "Installation": "설치",
   "Unstar document": "문서 별표 해제",
