@@ -466,7 +466,7 @@ export function useDropToReorderDocument(
           } catch (err) {
             if (err instanceof AuthorizationError) {
               toast.error(
-                t("The {{ documentName }} cannot be moved here", {
+                t("{{ documentName }} cannot be moved here", {
                   documentName: item.title,
                 })
               );

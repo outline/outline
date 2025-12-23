@@ -392,7 +392,7 @@ describe("read_write document", () => {
       expect(abilities.manageUsers).toEqual(false);
       expect(abilities.archive).toEqual(false);
       expect(abilities.share).toEqual(false);
-      expect(abilities.move).toEqual(false);
+      expect(abilities.move).toBeTruthy();
     });
   }
 
@@ -428,7 +428,7 @@ describe("read_write document", () => {
     expect(abilities.manageUsers).toBeTruthy();
     expect(abilities.archive).toBeTruthy();
     expect(abilities.share).toEqual(false);
-    expect(abilities.move).toEqual(false);
+    expect(abilities.move).toBeTruthy();
   });
 });
 
@@ -468,7 +468,7 @@ describe("manage document", () => {
       expect(abilities.createChildDocument).toBeTruthy();
       expect(abilities.manageUsers).toBeTruthy();
       expect(abilities.archive).toBeTruthy();
-      expect(abilities.move).toEqual(false);
+      expect(abilities.move).toBeTruthy();
       expect(abilities.share).toEqual(false);
     });
   }
