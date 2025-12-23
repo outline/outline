@@ -1334,18 +1334,6 @@ router.post(
     });
     authorize(user, "move", document);
 
-    if (collectionId) {
-      const collection = await Collection.findByPk(collectionId, {
-        userId: user.id,
-        transaction,
-      });
-      authorize(user, "updateDocument", collection);
-    } else if (document.template) {
-      authorize(user, "updateTemplate", user.team);
-    } else if (!parentDocumentId) {
-      throw InvalidRequestError("collectionId is required to move a document");
-    }
-
     if (parentDocumentId) {
       const parent = await Document.findByPk(parentDocumentId, {
         userId: user.id,
@@ -1357,6 +1345,16 @@ router.post(
       if (!parent.publishedAt) {
         throw InvalidRequestError("Cannot move document inside a draft");
       }
+    } else if (collectionId) {
+      const collection = await Collection.findByPk(collectionId, {
+        userId: user.id,
+        transaction,
+      });
+      authorize(user, "updateDocument", collection);
+    } else if (document.template) {
+      authorize(user, "updateTemplate", user.team);
+    } else {
+      throw InvalidRequestError("collectionId is required to move a document");
     }
 
     const { documents, collectionChanged } = await documentMover(ctx, {
