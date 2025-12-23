@@ -474,7 +474,7 @@
   "Change permissions?": "Змінити права доступу?",
   "{{ documentName }} cannot be moved within {{ parentDocumentName }}": "{{ documentName }} cannot be moved within {{ parentDocumentName }}",
   "You can't reorder documents in an alphabetically sorted collection": "Ви не можете змінити порядок документів у колекції, яка відсортована за алфавітом",
-  "The {{ documentName }} cannot be moved here": "The {{ documentName }} cannot be moved here",
+  "{{ documentName }} cannot be moved here": "{{ documentName }} cannot be moved here",
   "Return to App": "Назад до програми",
   "Installation": "Встановлення",
   "Unstar document": "Видалити з обраного",
