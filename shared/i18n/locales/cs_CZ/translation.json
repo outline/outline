@@ -474,7 +474,7 @@
   "Change permissions?": "Změnit práva?",
   "{{ documentName }} cannot be moved within {{ parentDocumentName }}": "{{ documentName }} cannot be moved within {{ parentDocumentName }}",
   "You can't reorder documents in an alphabetically sorted collection": "Nemůžete změnit pořadí dokumentů v abecedně seřazené sbírce",
-  "The {{ documentName }} cannot be moved here": "The {{ documentName }} cannot be moved here",
+  "{{ documentName }} cannot be moved here": "{{ documentName }} cannot be moved here",
   "Return to App": "Zpět do aplikace",
   "Installation": "Instalace",
   "Unstar document": "Odznačit dokument",
