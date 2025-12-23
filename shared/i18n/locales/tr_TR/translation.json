@@ -474,7 +474,7 @@
   "Change permissions?": "İzinleri değiştirilsin mi?",
   "{{ documentName }} cannot be moved within {{ parentDocumentName }}": "{{ documentName }}, {{ parentDocumentName }} içine taşınamaz",
   "You can't reorder documents in an alphabetically sorted collection": "Alfabetik olarak sıralanmış bir koleksiyondaki belgeleri yeniden sıralayamazsınız",
-  "The {{ documentName }} cannot be moved here": "{{ documentName }} buraya taşınamaz",
+  "{{ documentName }} cannot be moved here": "{{ documentName }} cannot be moved here",
   "Return to App": "Uygulamaya geri dön",
   "Installation": "Kurulum",
   "Unstar document": "Belgenin yıldızını kaldır",
