@@ -20,6 +20,7 @@ import SettingRow from "./components/SettingRow";
 import { setPostLoginPath } from "~/hooks/useLastVisitedPath";
 import { settingsPath } from "~/utils/routeHelpers";
 import DomainManagement from "./components/DomainManagement";
+import Button from "~/components/Button";
 
 function Authentication() {
   const { authenticationProviders, dialogs } = useStores();
@@ -108,7 +109,7 @@ function Authentication() {
         </Trans>
       </Text>
 
-      <h2>{t("Sign In")}</h2>
+      <Heading as="h2">{t("Sign In")}</Heading>
 
       {authenticationProviders.orderedData.map((provider) => (
         <SettingRow
@@ -143,12 +144,14 @@ function Authentication() {
               />
             </Flex>
           ) : (
-            <ButtonSmall
-              onClick={() => handleConnectProvider(provider.name)}
-              neutral
-            >
-              {t("Connect")}
-            </ButtonSmall>
+            <Flex align="center" gap={12}>
+              <Button
+                onClick={() => handleConnectProvider(provider.name)}
+                neutral
+              >
+                {t("Connect")}
+              </Button>
+            </Flex>
           )}
         </SettingRow>
       ))}
@@ -174,7 +177,7 @@ function Authentication() {
         />
       </SettingRow>
 
-      <h2>{t("Restrictions")}</h2>
+      <Heading as="h2">{t("Restrictions")}</Heading>
       <DomainManagement onSuccess={showSuccessMessage} />
     </Scene>
   );

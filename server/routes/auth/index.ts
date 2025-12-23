@@ -15,14 +15,17 @@ const app = new Koa<AppState, AppContext>();
 const router = new Router();
 
 router.use(passport.initialize());
-router.use(authMiddleware({ optional: true }));
 
 // dynamically register available authentication provider routes
 void (async () => {
   for (const provider of AuthenticationHelper.providers) {
     const resolvedRouter = await provider.value.router;
     if (resolvedRouter) {
-      router.use("/", resolvedRouter.routes());
+      router.use(
+        "/",
+        authMiddleware({ optional: true }),
+        resolvedRouter.routes()
+      );
     }
   }
 })();

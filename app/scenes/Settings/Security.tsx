@@ -183,7 +183,7 @@ function Security() {
         </Trans>
       </Text>
 
-      <h2>{t("Invites")}</h2>
+      <Heading as="h2">{t("Invites")}</Heading>
       <SettingRow
         label={t("Allow users to send invites")}
         name={TeamPreference.MembersCanInvite}
@@ -231,7 +231,7 @@ function Security() {
         </SettingRow>
       )}
 
-      <h2>{t("Behavior")}</h2>
+      <Heading as="h2">{t("Behavior")}</Heading>
       <SettingRow
         label={t("Public document sharing")}
         name="sharing"
