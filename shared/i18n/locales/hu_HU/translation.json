@@ -474,7 +474,7 @@
   "Change permissions?": "Engedélyek módosítása?",
   "{{ documentName }} cannot be moved within {{ parentDocumentName }}": "{{ documentName }} cannot be moved within {{ parentDocumentName }}",
   "You can't reorder documents in an alphabetically sorted collection": "Nem tudja egy ABC szerint rendezett gyűjtemény elemeinek sorrendjét megváltoztatni",
-  "The {{ documentName }} cannot be moved here": "The {{ documentName }} cannot be moved here",
+  "{{ documentName }} cannot be moved here": "{{ documentName }} cannot be moved here",
   "Return to App": "Vissza az alkalmazáshoz",
   "Installation": "Telepítés",
   "Unstar document": "Dokumentum csillagozásának törlése",
