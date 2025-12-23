@@ -6,7 +6,8 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import styled, { css } from "styled-components";
+import { DocumentIcon } from "outline-icons";
+import styled, { css, useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "@shared/components/EventBoundary";
 import Icon from "@shared/components/Icon";
@@ -54,6 +55,7 @@ function DocumentListItem(
 ) {
   const { t } = useTranslation();
   const user = useCurrentUser();
+  const theme = useTheme();
   const { userMemberships, groupMemberships } = useStores();
   const locationSidebarContext = useLocationSidebarContext();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
@@ -127,56 +129,58 @@ function DocumentListItem(
           {...rest}
           {...rovingTabIndex}
         >
-          <Content>
-            <Heading dir={document.dir}>
-              {document.icon && (
-                <>
-                  <Icon
-                    value={document.icon}
-                    color={document.color ?? undefined}
-                    initial={document.initial}
-                  />
-                  &nbsp;
-                </>
+          <Flex gap={4} auto>
+            <IconWrapper>
+              {document.icon ? (
+                <Icon
+                  value={document.icon}
+                  color={document.color ?? undefined}
+                  initial={document.initial}
+                />
+              ) : (
+                <DocumentIcon
+                  outline={document.isDraft}
+                  color={theme.textSecondary}
+                />
               )}
-              <Title
-                text={document.titleWithDefault}
-                highlight={highlight}
-                dir={document.dir}
-              />
-              {document.isBadgedNew && document.createdBy?.id !== user.id && (
-                <Badge yellow>{t("New")}</Badge>
-              )}
-              {document.isDraft && showDraft && (
-                <Tooltip content={t("Only visible to you")} placement="top">
-                  <Badge>{t("Draft")}</Badge>
-                </Tooltip>
-              )}
-              {canStar && (
-                <StarPositioner>
-                  <StarButton document={document} />
-                </StarPositioner>
-              )}
-              {document.isTemplate && showTemplate && (
-                <Badge primary>{t("Template")}</Badge>
-              )}
-            </Heading>
+            </IconWrapper>
+            <Content>
+              <Heading dir={document.dir}>
+                <Title
+                  text={document.titleWithDefault}
+                  highlight={highlight}
+                  dir={document.dir}
+                />
+                {document.isBadgedNew && document.createdBy?.id !== user.id && (
+                  <Badge yellow>{t("New")}</Badge>
+                )}
+                {document.isDraft && showDraft && (
+                  <Tooltip content={t("Only visible to you")} placement="top">
+                    <Badge>{t("Draft")}</Badge>
+                  </Tooltip>
+                )}
+                {canStar && <StarButton document={document} />}
+                {document.isTemplate && showTemplate && (
+                  <Badge primary>{t("Template")}</Badge>
+                )}
+              </Heading>
 
-            {!queryIsInTitle && (
-              <ResultContext
-                text={context}
-                highlight={highlight ? SEARCH_RESULT_REGEX : undefined}
-                processResult={replaceResultMarks}
+              {!queryIsInTitle && (
+                <ResultContext
+                  text={context}
+                  highlight={highlight ? SEARCH_RESULT_REGEX : undefined}
+                  processResult={replaceResultMarks}
+                />
+              )}
+              <DocumentMeta
+                document={document}
+                showCollection={showCollection}
+                showPublished={showPublished}
+                showParentDocuments={showParentDocuments}
+                showLastViewed
               />
-            )}
-            <DocumentMeta
-              document={document}
-              showCollection={showCollection}
-              showPublished={showPublished}
-              showParentDocuments={showParentDocuments}
-              showLastViewed
-            />
-          </Content>
+            </Content>
+          </Flex>
           <Actions>
             <DocumentMenu
               document={document}
@@ -189,6 +193,14 @@ function DocumentListItem(
     </ActionContextProvider>
   );
 }
+
+const IconWrapper = styled.div`
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  width: 24px;
+`;
 
 const Content = styled.div`
   flex-grow: 1;
@@ -285,18 +297,14 @@ const Heading = styled.span<{ rtl?: boolean }>`
   justify-content: ${(props) => (props.rtl ? "flex-end" : "flex-start")};
   align-items: center;
   margin-top: 0;
-  margin-bottom: 0.25em;
+  margin-bottom: 0.1em;
   white-space: nowrap;
   color: ${s("text")};
   font-family: ${s("fontFamily")};
   font-weight: 500;
-  font-size: 20px;
+  font-size: 18px;
   line-height: 1.2;
-`;
-
-const StarPositioner = styled(Flex)`
-  margin-left: 4px;
-  align-items: center;
+  gap: 4px;
 `;
 
 const Title = styled(Highlight)`
