@@ -474,7 +474,7 @@
   "Change permissions?": "¿Cambiar permisos?",
   "{{ documentName }} cannot be moved within {{ parentDocumentName }}": "{{ documentName }} no puede moverse dentro de {{ parentDocumentName }}",
   "You can't reorder documents in an alphabetically sorted collection": "No puedes reordenar documentos en una colección ordenada alfabéticamente",
-  "The {{ documentName }} cannot be moved here": "El {{ documentName }} no se puede mover aquí",
+  "{{ documentName }} cannot be moved here": "{{ documentName }} cannot be moved here",
   "Return to App": "Volver a la aplicación",
   "Installation": "Instalación",
   "Unstar document": "Eliminar documento de favoritos",
