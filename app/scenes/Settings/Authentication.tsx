@@ -1,10 +1,9 @@
 import { observer } from "mobx-react";
-import { EmailIcon, PadlockIcon, TrashIcon } from "outline-icons";
+import { EmailIcon, PadlockIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
-import ButtonSmall from "~/components/ButtonSmall";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import type AuthenticationProvider from "~/models/AuthenticationProvider";
@@ -21,11 +20,14 @@ import { setPostLoginPath } from "~/hooks/useLastVisitedPath";
 import { settingsPath } from "~/utils/routeHelpers";
 import DomainManagement from "./components/DomainManagement";
 import Button from "~/components/Button";
+import { ConnectedIcon } from "~/components/Icons/ConnectedIcon";
+import { useTheme } from "styled-components";
 
 function Authentication() {
   const { authenticationProviders, dialogs } = useStores();
   const team = useCurrentTeam();
   const { t } = useTranslation();
+  const theme = useTheme();
 
   const {
     data: providers,
@@ -130,29 +132,34 @@ function Authentication() {
                 })
           }
         >
-          {provider.isConnected ? (
-            <Flex align="center" gap={12}>
-              <Switch
-                id={provider.name}
-                checked={provider.isEnabled}
-                onChange={(checked) => handleToggleProvider(provider, checked)}
-              />
-              <ButtonSmall
-                onClick={() => handleRemoveProvider(provider)}
-                icon={<TrashIcon />}
+          <Flex align="center" gap={12}>
+            {provider.isConnected ? (
+              <Button
+                icon={
+                  provider.isEnabled ? (
+                    <ConnectedIcon />
+                  ) : (
+                    <ConnectedIcon color={theme.textSecondary} />
+                  )
+                }
+                onClick={() =>
+                  !provider.isEnabled
+                    ? handleToggleProvider(provider, true)
+                    : handleRemoveProvider(provider)
+                }
                 neutral
-              />
-            </Flex>
-          ) : (
-            <Flex align="center" gap={12}>
+              >
+                {provider.isEnabled ? t("Connected") : t("Disabled")}
+              </Button>
+            ) : (
               <Button
                 onClick={() => handleConnectProvider(provider.name)}
                 neutral
               >
                 {t("Connect")}
               </Button>
-            </Flex>
-          )}
+            )}
+          </Flex>
         </SettingRow>
       ))}
       <SettingRow
