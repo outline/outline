@@ -474,7 +474,7 @@
   "Change permissions?": "Thay đổi quyền?",
   "{{ documentName }} cannot be moved within {{ parentDocumentName }}": "{{ documentName }} không thể di chuyển với bên trong {{ parentDocumentName }}",
   "You can't reorder documents in an alphabetically sorted collection": "Bạn không thể sắp xếp lại các tài liệu trong bộ sưu tập được sắp xếp theo thứ tự bảng chữ cái",
-  "The {{ documentName }} cannot be moved here": "{{ documentName }} không thể di chuyển được đến đây",
+  "{{ documentName }} cannot be moved here": "{{ documentName }} cannot be moved here",
   "Return to App": "Quay lại ứng dụng",
   "Installation": "Cài đặt",
   "Unstar document": "Bỏ sao tài liệu",
