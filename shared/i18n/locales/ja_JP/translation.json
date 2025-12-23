@@ -474,7 +474,7 @@
   "Change permissions?": "権限を変更しますか？",
   "{{ documentName }} cannot be moved within {{ parentDocumentName }}": "{{ documentName }} は {{ parentDocumentName }} 以内には移動できません",
   "You can't reorder documents in an alphabetically sorted collection": "五十音順で並べられたコレクション内のドキュメントは、並べ替えができません。",
-  "The {{ documentName }} cannot be moved here": "{{ documentName }} はここに移動できません",
+  "{{ documentName }} cannot be moved here": "{{ documentName }} cannot be moved here",
   "Return to App": "アプリに戻る",
   "Installation": "インストール",
   "Unstar document": "お気に入りから削除",
