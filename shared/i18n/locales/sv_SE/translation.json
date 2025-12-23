@@ -474,7 +474,7 @@
   "Change permissions?": "Ändra behörigheter?",
   "{{ documentName }} cannot be moved within {{ parentDocumentName }}": "{{ documentName }} kan inte flyttas inom {{ parentDocumentName }}",
   "You can't reorder documents in an alphabetically sorted collection": "Du kan inte ordna om dokument i en alfabetiskt sorterad samling",
-  "The {{ documentName }} cannot be moved here": "The {{ documentName }} cannot be moved here",
+  "{{ documentName }} cannot be moved here": "{{ documentName }} cannot be moved here",
   "Return to App": "Tillbaka till appen",
   "Installation": "Installation",
   "Unstar document": "Ostjärnmärk dokument",
