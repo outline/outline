@@ -126,7 +126,10 @@ class AuthenticationProvider extends Model<
     transaction?: Transaction | null
   ): Promise<void> {
     // Check if email sign-in is enabled for the team first
-    const team = await Team.findByPk(this.teamId, { transaction });
+    const team = await Team.findByPk(this.teamId, {
+      transaction,
+      lock: transaction?.LOCK.SHARE,
+    });
     if (team?.emailSigninEnabled) {
       return;
     }

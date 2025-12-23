@@ -55,7 +55,9 @@ describe("#authenticationProviders.info", () => {
 
 describe("#authenticationProviders.update", () => {
   it("should not allow admins to disable when last authentication provider", async () => {
-    const team = await buildTeam();
+    const team = await buildTeam({
+      guestSignin: false,
+    });
     const user = await buildAdmin({
       teamId: team.id,
     });

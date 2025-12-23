@@ -122,13 +122,11 @@ async function accountProvisioner(
   }
 
   try {
-    if (!result) {
-      result = await teamProvisioner(ctx, {
-        ...teamParams,
-        name: teamParams.name || "Wiki",
-        authenticationProvider: authenticationProviderParams,
-      });
-    }
+    result = await teamProvisioner(ctx, {
+      ...teamParams,
+      name: teamParams.name || "Wiki",
+      authenticationProvider: authenticationProviderParams,
+    });
   } catch (err) {
     // The account could not be provisioned for the provided teamId
     // check to see if we can try authentication using email matching only

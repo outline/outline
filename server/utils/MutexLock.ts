@@ -16,9 +16,9 @@ export class MutexLock {
    */
   public static get lock(): Redlock {
     this.redlock ??= new Redlock([Redis.defaultClient], {
-      retryJitter: 10,
-      retryCount: 20,
-      retryDelay: 200,
+      retryJitter: 100,
+      retryCount: 120,
+      retryDelay: 1000,
     });
 
     return this.redlock;
