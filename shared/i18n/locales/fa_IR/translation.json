@@ -474,7 +474,7 @@
   "Change permissions?": "تغییر مجوز ها؟",
   "{{ documentName }} cannot be moved within {{ parentDocumentName }}": "{{ documentName }} قابل جابجایی در {{ parentDocumentName }} نیست",
   "You can't reorder documents in an alphabetically sorted collection": "در مجموعه‌ای که به ترتیب الفبا مرتب شده، نمی‌توانید اسناد را جابجا کنید",
-  "The {{ documentName }} cannot be moved here": "{{ documentName }} را نمی‌توان اینجا منتقل کرد",
+  "{{ documentName }} cannot be moved here": "{{ documentName }} cannot be moved here",
   "Return to App": "بازگشت به برنامه",
   "Installation": "نسخه",
   "Unstar document": "حذف ستاره از سند",
