@@ -474,7 +474,7 @@
   "Change permissions?": "變更權限？",
   "{{ documentName }} cannot be moved within {{ parentDocumentName }}": "「{{ documentName }}」無法在「{{ parentDocumentName }}」內移動",
   "You can't reorder documents in an alphabetically sorted collection": "您無法對按字母順序排序的文件集中的文件再重新排序",
-  "The {{ documentName }} cannot be moved here": "「{{ documentName }}」無法移動至此。",
+  "{{ documentName }} cannot be moved here": "{{ documentName }} cannot be moved here",
   "Return to App": "返回",
   "Installation": "安裝",
   "Unstar document": "取消星號",
