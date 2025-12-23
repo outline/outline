@@ -21,8 +21,8 @@ import type { AuthenticationResult } from "@server/types";
 import {
   StateStore,
   getTeamFromContext,
-  getClientFromContext,
-  getUserFromContext,
+  getClientFromOAuthState,
+  getUserFromOAuthState,
   request,
 } from "@server/utils/passport";
 import config from "../../plugin.json";
@@ -69,7 +69,7 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
       ) {
         try {
           const team = await getTeamFromContext(context);
-          const client = getClientFromContext(context);
+          const client = getClientFromOAuthState(context);
           /** Fetch the user's profile */
           const profile: RESTGetAPICurrentUserResult = await request(
             "GET",
@@ -179,7 +179,7 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
             }
           }
           const user =
-            context.state?.auth?.user ?? (await getUserFromContext(context));
+            context.state?.auth?.user ?? (await getUserFromOAuthState(context));
 
           // if a team can be inferred, we assume the user is only interested in signing into
           // that team in particular; otherwise, we will do a best effort at finding their account

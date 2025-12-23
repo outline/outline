@@ -47,7 +47,13 @@ export class StateStore {
     const client = clientInput === Client.Desktop ? Client.Desktop : Client.Web;
     const host = ctx.query.host?.toString() || parseDomain(ctx.hostname).host;
     const accessToken = ctx.cookies.get("accessToken");
-    const state = buildState(host, token, client, codeVerifier, accessToken);
+    const state = buildState({
+      host,
+      token,
+      client,
+      codeVerifier,
+      accessToken,
+    });
 
     ctx.cookies.set(this.key, state, {
       expires: addMinutes(new Date(), 10),
@@ -117,16 +123,28 @@ export async function request(
   }
 }
 
-function buildState(
-  host: string,
-  token: string,
-  client?: Client,
-  codeVerifier?: string,
-  accessToken?: string
-) {
+function buildState({
+  host,
+  token,
+  client,
+  codeVerifier,
+  accessToken,
+}: {
+  host: string;
+  token: string;
+  client?: Client;
+  codeVerifier?: string;
+  accessToken?: string;
+}) {
   return [host, token, client, codeVerifier, accessToken].join("|");
 }
 
+/**
+ * Parses the state string into its components.
+ *
+ * @param state The state string
+ * @returns An object containing the parsed components
+ */
 export function parseState(state: string) {
   const [host, token, client, rawCodeVerifier, rawAccessToken] =
     state.split("|");
@@ -135,13 +153,28 @@ export function parseState(state: string) {
   return { host, token, client, codeVerifier, accessToken };
 }
 
-export function getClientFromContext(ctx: Context): Client {
+/**
+ * Returns the client type from the context if available. Used to redirect
+ * the user back to the correct client after the OAuth flow.
+ *
+ * @param ctx The Koa context
+ * @returns The client type, defaults to Client.Web
+ */
+export function getClientFromOAuthState(ctx: Context): Client {
   const state = ctx.cookies.get("state");
   const client = state ? parseState(state).client : undefined;
   return client === Client.Desktop ? Client.Desktop : Client.Web;
 }
 
-export function getAccessTokenFromContext(ctx: Context): string | undefined {
+/**
+ * Returns the access token from the context if available. This is used
+ * to restore the session during the OAuth flow when connecting additional
+ * providers to an existing team.
+ *
+ * @param ctx The Koa context
+ * @returns The access token if available, otherwise undefined
+ */
+export function getAccessTokenFromOAuthState(ctx: Context): string | undefined {
   const state = ctx.cookies.get("state");
   return state ? parseState(state).accessToken : undefined;
 }
@@ -153,8 +186,8 @@ export function getAccessTokenFromContext(ctx: Context): string | undefined {
  * @param ctx The Koa context
  * @returns The user if authenticated, otherwise undefined
  */
-export async function getUserFromContext(ctx: Context) {
-  const token = getAccessTokenFromContext(ctx);
+export async function getUserFromOAuthState(ctx: Context) {
+  const token = getAccessTokenFromOAuthState(ctx);
   if (!token) {
     return undefined;
   }
@@ -175,6 +208,13 @@ type TeamFromContextOptions = {
   includeStateCookie?: boolean;
 };
 
+/**
+ * Infers the team from the context based on the hostname or state cookie.
+ *
+ * @param ctx The Koa context
+ * @param options Options for determining the team
+ * @returns The inferred team or undefined if not found
+ */
 export async function getTeamFromContext(
   ctx: Context,
   options: TeamFromContextOptions = { includeStateCookie: true }

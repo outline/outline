@@ -20,9 +20,9 @@ import { authorize } from "@server/policies";
 import { sequelize } from "@server/storage/database";
 import type { APIContext, AuthenticationResult } from "@server/types";
 import {
-  getClientFromContext,
+  getClientFromOAuthState,
   getTeamFromContext,
-  getUserFromContext,
+  getUserFromOAuthState,
   StateStore,
 } from "@server/utils/passport";
 import { parseEmail } from "@shared/utils/email";
@@ -83,9 +83,9 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
     ) {
       try {
         const team = await getTeamFromContext(context);
-        const client = getClientFromContext(context);
+        const client = getClientFromOAuthState(context);
         const user =
-          context.state?.auth?.user ?? (await getUserFromContext(context));
+          context.state?.auth?.user ?? (await getUserFromOAuthState(context));
 
         const { domain } = parseEmail(profile.user.email);
 

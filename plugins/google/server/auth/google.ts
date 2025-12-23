@@ -17,8 +17,8 @@ import type { AuthenticationResult } from "@server/types";
 import {
   StateStore,
   getTeamFromContext,
-  getClientFromContext,
-  getUserFromContext,
+  getClientFromOAuthState,
+  getUserFromOAuthState,
 } from "@server/utils/passport";
 import config from "../../plugin.json";
 import env from "../env";
@@ -68,9 +68,9 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
           // "domain" is the Google Workspaces domain
           const domain = profile._json.hd;
           const team = await getTeamFromContext(context);
-          const client = getClientFromContext(context);
+          const client = getClientFromOAuthState(context);
           const user =
-            context.state?.auth?.user ?? (await getUserFromContext(context));
+            context.state?.auth?.user ?? (await getUserFromOAuthState(context));
 
           // No profile domain means personal gmail account
           // No team implies the request came from the apex domain

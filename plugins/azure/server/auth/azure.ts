@@ -15,8 +15,8 @@ import {
   StateStore,
   request,
   getTeamFromContext,
-  getClientFromContext,
-  getUserFromContext,
+  getClientFromOAuthState,
+  getUserFromOAuthState,
 } from "@server/utils/passport";
 import config from "../../plugin.json";
 import env from "../env";
@@ -97,9 +97,9 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
         }
 
         const team = await getTeamFromContext(context);
-        const client = getClientFromContext(context);
+        const client = getClientFromOAuthState(context);
         const user =
-          context.state?.auth?.user ?? (await getUserFromContext(context));
+          context.state?.auth?.user ?? (await getUserFromOAuthState(context));
 
         const domain = parseEmail(email).domain;
         const subdomain = slugifyDomain(domain);
