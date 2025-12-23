@@ -28,6 +28,8 @@ export const TeamPreferenceDefaults: TeamPreferences = {
   [TeamPreference.CustomTheme]: undefined,
   [TeamPreference.TocPosition]: TOCPosition.Left,
   [TeamPreference.PreventDocumentEmbedding]: false,
+  [TeamPreference.TrashRetentionDays]: 30,
+  [TeamPreference.DataRetentionDays]: 30,
 };
 
 export const UserPreferenceDefaults: UserPreferences = {

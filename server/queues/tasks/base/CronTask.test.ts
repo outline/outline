@@ -1,5 +1,5 @@
 import { Op } from "sequelize";
-import type { PartitionInfo } from "./CronTask";
+import type { PartitionInfo } from "./BaseTask";
 import { CronTask, TaskInterval } from "./CronTask";
 
 // Create a concrete implementation of CronTask for testing

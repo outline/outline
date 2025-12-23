@@ -38,6 +38,7 @@ type Props = {
   showCollection?: boolean;
   showPublished?: boolean;
   showDraft?: boolean;
+  showLastViewed?: boolean;
   showTemplate?: boolean;
 };
 
@@ -73,6 +74,7 @@ function DocumentListItem(
     showCollection,
     showPublished,
     showDraft = true,
+    showLastViewed = true,
     showTemplate,
     highlight,
     context,
@@ -174,7 +176,7 @@ function DocumentListItem(
               showCollection={showCollection}
               showPublished={showPublished}
               showParentDocuments={showParentDocuments}
-              showLastViewed
+              showLastViewed={showLastViewed}
             />
           </Content>
           <Actions>
@@ -184,6 +186,22 @@ function DocumentListItem(
               onClose={handleMenuClose}
             />
           </Actions>
+          {document.deletedAt &&
+            document.permanentlyDeletesInDays &&
+            document.permanentlyDeletesInDays >= 0 && (
+              <Tooltip
+                content={t("Permanently deletes in {{ days }} days", {
+                  days: document.permanentlyDeletesInDays,
+                })}
+                placement="bottom"
+              >
+                <Badge>
+                  {t("{{ days }} days", {
+                    days: document.permanentlyDeletesInDays,
+                  })}
+                </Badge>
+              </Tooltip>
+            )}
         </DocumentLink>
       </ContextMenu>
     </ActionContextProvider>
