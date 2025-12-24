@@ -138,13 +138,15 @@ export default class TableHeader extends Node {
                       if (cellIndex !== -1) {
                         const col = cellIndex % map.width;
                         const row = Math.floor(cellIndex / map.width);
+                        const rowspan = cellNode.attrs.rowspan || 1;
                         const attrs: Record<string, string> = {};
 
                         if (col === 0) {
                           attrs["data-first-column"] = "true";
                         }
 
-                        if (row === map.height - 1) {
+                        // Mark cells that extend into the last row (accounting for rowspan)
+                        if (row + rowspan >= map.height) {
                           attrs["data-last-row"] = "true";
                         }
 
