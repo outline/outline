@@ -1,9 +1,12 @@
 import invariant from "invariant";
 import { AttachmentPreset } from "@shared/types";
+import { dataUrlToBlob } from "@shared/utils/files";
 import { client } from "./ApiClient";
 import Logger from "./Logger";
 
 type UploadOptions = {
+  /** The user generated ID of the file */
+  id?: string;
   /** The user facing name of the file */
   name?: string;
   /** The document that this file was uploaded in, if any */
@@ -28,6 +31,7 @@ export const uploadFileFromUrl = async (
   const response = await client.post("/attachments.createFromUrl", {
     documentId: options.documentId,
     url,
+    id: options.id,
   });
   return response.data;
 };
@@ -53,6 +57,7 @@ export const uploadFile = async (
     contentType: file.type,
     size: file.size,
     name,
+    id: options.id,
   });
   invariant(response, "Response should be available");
   const data = response.data;
@@ -111,25 +116,7 @@ export const uploadFile = async (
   return attachment;
 };
 
-/**
- * Convert a data URL to a Blob
- *
- * @param dataURL The data URL to convert
- * @returns The Blob
- */
-export const dataUrlToBlob = (dataURL: string) => {
-  const blobBin = atob(dataURL.split(",")[1]);
-  const array = [];
-
-  for (let i = 0; i < blobBin.length; i++) {
-    array.push(blobBin.charCodeAt(i));
-  }
-
-  const file = new Blob([new Uint8Array(array)], {
-    type: "image/png",
-  });
-  return file;
-};
+export { dataUrlToBlob };
 
 const CHAR_FORWARD_SLASH = 47; /* / */
 const CHAR_DOT = 46; /* . */

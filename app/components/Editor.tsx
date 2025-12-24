@@ -51,8 +51,9 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   const previousCommentIds = React.useRef<string[]>();
 
   const handleUploadFile = React.useCallback(
-    async (file: File | string) => {
+    async (file: File | string, uploadOptions?: { id?: string }) => {
       const options = {
+        id: uploadOptions?.id,
         documentId: id,
         preset: AttachmentPreset.DocumentAttachment,
       };
