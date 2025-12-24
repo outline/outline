@@ -87,17 +87,13 @@ describe("documentUpdater", () => {
       })
     );
 
-    expect(document.text).toEqual("Initial\n\nAppended");
+    expect(document.text).toEqual("InitialAppended");
     expect(document.content).toMatchObject({
       type: "doc",
       content: [
         {
           type: "paragraph",
-          content: [{ type: "text", text: "Initial" }],
-        },
-        {
-          type: "paragraph",
-          content: [{ type: "text", text: "Appended" }],
+          content: [{ type: "text", text: "InitialAppended" }],
         },
       ],
     });
@@ -129,11 +125,11 @@ describe("documentUpdater", () => {
               marks: [{ type: "strong" }],
               text: "Bold",
             },
+            {
+              type: "text",
+              text: "Appended",
+            },
           ],
-        },
-        {
-          type: "paragraph",
-          content: [{ type: "text", text: "Appended" }],
         },
       ],
     });
@@ -181,7 +177,38 @@ describe("documentUpdater", () => {
               marks: [{ type: "comment", attrs: { id, userId: id } }],
               text: "Italic",
             },
+            {
+              type: "text",
+              text: "Appended",
+            },
           ],
+        },
+      ],
+    });
+  });
+
+  it("should create new paragraph when appending with newline", async () => {
+    const user = await buildUser();
+    let document = await buildDocument({
+      teamId: user.teamId,
+      text: "Initial",
+    });
+
+    document = await withAPIContext(user, (ctx) =>
+      documentUpdater(ctx, {
+        text: "\n\nAppended",
+        document,
+        append: true,
+      })
+    );
+
+    expect(document.text).toEqual("Initial\n\nAppended");
+    expect(document.content).toMatchObject({
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "Initial" }],
         },
         {
           type: "paragraph",
