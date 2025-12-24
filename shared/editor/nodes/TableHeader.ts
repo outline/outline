@@ -115,66 +115,77 @@ export default class TableHeader extends Node {
       return DecorationSet.create(doc, decorations);
     };
 
+    const createHeaderDecorations = (state: EditorState) => {
+      const { doc } = state;
+      const decorations: Decoration[] = [];
+
+      // Iterate through all tables in the document
+      doc.descendants((node, pos) => {
+        if (node.type.spec.tableRole === "table") {
+          const map = TableMap.get(node);
+
+          // Mark cells in the first column and last row of this table
+          node.descendants((cellNode, cellPos) => {
+            if (cellNode.type.spec.tableRole === "header_cell") {
+              const cellOffset = cellPos;
+              const cellIndex = map.map.indexOf(cellOffset);
+
+              if (cellIndex !== -1) {
+                const col = cellIndex % map.width;
+                const row = Math.floor(cellIndex / map.width);
+                const rowspan = cellNode.attrs.rowspan || 1;
+                const colspan = cellNode.attrs.colspan || 1;
+                const attrs: Record<string, string> = {};
+
+                if (col === 0) {
+                  attrs["data-first-column"] = "true";
+                }
+
+                // Mark cells that extend into the last column (accounting for colspan)
+                if (col + colspan >= map.width) {
+                  attrs["data-last-column"] = "true";
+                }
+
+                // Mark cells that extend into the last row (accounting for rowspan)
+                if (row + rowspan >= map.height) {
+                  attrs["data-last-row"] = "true";
+                }
+
+                if (Object.keys(attrs).length > 0) {
+                  decorations.push(
+                    Decoration.node(
+                      pos + cellPos + 1,
+                      pos + cellPos + 1 + cellNode.nodeSize,
+                      attrs
+                    )
+                  );
+                }
+              }
+            }
+          });
+        }
+      });
+
+      return DecorationSet.create(doc, decorations);
+    };
+
     return [
       new Plugin({
         key: new PluginKey("table-header-first-column"),
+        state: {
+          init: (_, state) => createHeaderDecorations(state),
+          apply: (tr, pluginState, oldState, newState) => {
+            // Only recompute if document changed
+            if (!tr.docChanged) {
+              return pluginState;
+            }
+
+            return createHeaderDecorations(newState);
+          },
+        },
         props: {
-          decorations: (state) => {
-            const { doc } = state;
-            const decorations: Decoration[] = [];
-
-            // Iterate through all tables in the document
-            doc.descendants((node, pos) => {
-              if (node.type.spec.tableRole === "table") {
-                try {
-                  const map = TableMap.get(node);
-
-                  // Mark cells in the first column and last row of this table
-                  node.descendants((cellNode, cellPos) => {
-                    if (cellNode.type.spec.tableRole === "header_cell") {
-                      const cellOffset = cellPos;
-                      const cellIndex = map.map.indexOf(cellOffset);
-
-                      if (cellIndex !== -1) {
-                        const col = cellIndex % map.width;
-                        const row = Math.floor(cellIndex / map.width);
-                        const rowspan = cellNode.attrs.rowspan || 1;
-                        const colspan = cellNode.attrs.colspan || 1;
-                        const attrs: Record<string, string> = {};
-
-                        if (col === 0) {
-                          attrs["data-first-column"] = "true";
-                        }
-
-                        // Mark cells that extend into the last column (accounting for colspan)
-                        if (col + colspan >= map.width) {
-                          attrs["data-last-column"] = "true";
-                        }
-
-                        // Mark cells that extend into the last row (accounting for rowspan)
-                        if (row + rowspan >= map.height) {
-                          attrs["data-last-row"] = "true";
-                        }
-
-                        if (Object.keys(attrs).length > 0) {
-                          decorations.push(
-                            Decoration.node(
-                              pos + cellPos + 1,
-                              pos + cellPos + 1 + cellNode.nodeSize,
-                              attrs
-                            )
-                          );
-                        }
-                      }
-                    }
-                  });
-                } catch (err) {
-                  // Skip this table if there's an error
-                }
-              }
-            });
-
-            return DecorationSet.create(doc, decorations);
+          decorations(state) {
+            return this.getState(state);
           },
         },
       }),
