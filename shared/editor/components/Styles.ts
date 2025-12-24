@@ -1704,12 +1704,12 @@ table {
   tr:first-child td {
     border-top: 0;
   }
-  tr:first-child th:first-child,
-  tr:first-child td:first-child {
+  tr:first-child th[data-first-column],
+  tr:first-child td[data-first-column] {
     border-radius: ${EditorStyleHelper.blockRadius} 0 0 0;
   }
-  tr:last-child th:first-child,
-  tr:last-child td:first-child {
+  th[data-first-column][data-last-row],
+  td[data-first-column][data-last-row] {
     border-radius: 0 0 0 ${EditorStyleHelper.blockRadius};
   }
 

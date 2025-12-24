@@ -4,6 +4,7 @@ import type { EditorState } from "prosemirror-state";
 import { Plugin, PluginKey } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
 import { DecorationSet, Decoration } from "prosemirror-view";
+import { TableMap } from "prosemirror-tables";
 import { addColumnBefore, selectColumn } from "../commands/table";
 import { getCellAttrs, setCellAttrs } from "../lib/table";
 import {
@@ -115,6 +116,60 @@ export default class TableHeader extends Node {
     };
 
     return [
+      new Plugin({
+        key: new PluginKey("table-header-first-column"),
+        props: {
+          decorations: (state) => {
+            const { doc } = state;
+            const decorations: Decoration[] = [];
+
+            // Iterate through all tables in the document
+            doc.descendants((node, pos) => {
+              if (node.type.spec.tableRole === "table") {
+                try {
+                  const map = TableMap.get(node);
+
+                  // Mark cells in the first column and last row of this table
+                  node.descendants((cellNode, cellPos) => {
+                    if (cellNode.type.spec.tableRole === "header_cell") {
+                      const cellOffset = cellPos;
+                      const cellIndex = map.map.indexOf(cellOffset);
+
+                      if (cellIndex !== -1) {
+                        const col = cellIndex % map.width;
+                        const row = Math.floor(cellIndex / map.width);
+                        const attrs: Record<string, string> = {};
+
+                        if (col === 0) {
+                          attrs["data-first-column"] = "true";
+                        }
+
+                        if (row === map.height - 1) {
+                          attrs["data-last-row"] = "true";
+                        }
+
+                        if (Object.keys(attrs).length > 0) {
+                          decorations.push(
+                            Decoration.node(
+                              pos + cellPos + 1,
+                              pos + cellPos + 1 + cellNode.nodeSize,
+                              attrs
+                            )
+                          );
+                        }
+                      }
+                    }
+                  });
+                } catch (err) {
+                  // Skip this table if there's an error
+                }
+              }
+            });
+
+            return DecorationSet.create(doc, decorations);
+          },
+        },
+      }),
       new Plugin({
         key: new PluginKey("table-header-decorations"),
         state: {

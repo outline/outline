@@ -1,5 +1,8 @@
 import type { Token } from "markdown-it";
 import type { NodeSpec } from "prosemirror-model";
+import { Plugin, PluginKey } from "prosemirror-state";
+import { Decoration, DecorationSet } from "prosemirror-view";
+import { TableMap } from "prosemirror-tables";
 import { getCellAttrs, setCellAttrs } from "../lib/table";
 import Node from "./Node";
 
@@ -35,6 +38,68 @@ export default class TableCell extends Node {
       block: "td",
       getAttrs: (tok: Token) => ({ alignment: tok.info }),
     };
+  }
+
+  get plugins() {
+    return [
+      new Plugin({
+        key: new PluginKey("table-cell-first-column"),
+        props: {
+          decorations: (state) => {
+            const { doc } = state;
+            const decorations: Decoration[] = [];
+
+            // Iterate through all tables in the document
+            doc.descendants((node, pos) => {
+              if (node.type.spec.tableRole === "table") {
+                try {
+                  const map = TableMap.get(node);
+
+                  // Mark cells in the first column and last row of this table
+                  node.descendants((cellNode, cellPos) => {
+                    if (
+                      cellNode.type.spec.tableRole === "cell" ||
+                      cellNode.type.spec.tableRole === "header_cell"
+                    ) {
+                      const cellOffset = cellPos;
+                      const cellIndex = map.map.indexOf(cellOffset);
+
+                      if (cellIndex !== -1) {
+                        const col = cellIndex % map.width;
+                        const row = Math.floor(cellIndex / map.width);
+                        const attrs: Record<string, string> = {};
+
+                        if (col === 0) {
+                          attrs["data-first-column"] = "true";
+                        }
+
+                        if (row === map.height - 1) {
+                          attrs["data-last-row"] = "true";
+                        }
+
+                        if (Object.keys(attrs).length > 0) {
+                          decorations.push(
+                            Decoration.node(
+                              pos + cellPos + 1,
+                              pos + cellPos + 1 + cellNode.nodeSize,
+                              attrs
+                            )
+                          );
+                        }
+                      }
+                    }
+                  });
+                } catch (err) {
+                  // Skip this table if there's an error
+                }
+              }
+            });
+
+            return DecorationSet.create(doc, decorations);
+          },
+        },
+      }),
+    ];
   }
 
   // get plugins() {
