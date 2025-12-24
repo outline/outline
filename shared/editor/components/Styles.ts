@@ -1712,6 +1712,14 @@ table {
   td[data-first-column][data-last-row] {
     border-radius: 0 0 0 ${EditorStyleHelper.blockRadius};
   }
+  tr:first-child th[data-last-column],
+  tr:first-child td[data-last-column] {
+    border-radius: 0 ${EditorStyleHelper.blockRadius} 0 0;
+  }
+  th[data-last-column][data-last-row],
+  td[data-last-column][data-last-row] {
+    border-radius: 0 0 ${EditorStyleHelper.blockRadius} 0;
+  }
 
   td .component-embed {
     padding: 4px 0;
@@ -1881,13 +1889,14 @@ table {
       border-top-left-radius: 3px;
       border-bottom-left-radius: 3px;
     }
-    &.last::after {
-      border-top-right-radius: 3px;
-      border-bottom-right-radius: 3px;
-    }
     &.selected::after {
       background: ${props.theme.tableSelected};
     }
+  }
+
+  [data-last-column] .${EditorStyleHelper.tableGripColumn}::after {
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
   }
 
   .${EditorStyleHelper.tableGripRow} {
@@ -1911,13 +1920,14 @@ table {
       border-top-left-radius: 3px;
       border-top-right-radius: 3px;
     }
-    &.last::after {
-      border-bottom-left-radius: 3px;
-      border-bottom-right-radius: 3px;
-    }
     &.selected::after {
       background: ${props.theme.tableSelected};
     }
+  }
+
+  [data-last-row] .${EditorStyleHelper.tableGripRow}::after {
+    border-bottom-left-radius: 3px;
+    border-bottom-right-radius: 3px;
   }
 
   .${EditorStyleHelper.tableGrip} {

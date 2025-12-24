@@ -68,10 +68,16 @@ export default class TableCell extends Node {
                         const col = cellIndex % map.width;
                         const row = Math.floor(cellIndex / map.width);
                         const rowspan = cellNode.attrs.rowspan || 1;
+                        const colspan = cellNode.attrs.colspan || 1;
                         const attrs: Record<string, string> = {};
 
                         if (col === 0) {
                           attrs["data-first-column"] = "true";
+                        }
+
+                        // Mark cells that extend into the last column (accounting for colspan)
+                        if (col + colspan >= map.width) {
+                          attrs["data-last-column"] = "true";
                         }
 
                         // Mark cells that extend into the last row (accounting for rowspan)
