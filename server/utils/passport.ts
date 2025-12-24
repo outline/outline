@@ -12,6 +12,7 @@ import env from "@server/env";
 import { Team } from "@server/models";
 import { InternalError, OAuthStateMismatchError } from "../errors";
 import fetch from "./fetch";
+import { getUserForJWT } from "./jwt";
 
 export class StateStore {
   constructor(private pkce = false) {}
@@ -45,7 +46,14 @@ export class StateStore {
     const clientInput = ctx.query.client?.toString();
     const client = clientInput === Client.Desktop ? Client.Desktop : Client.Web;
     const host = ctx.query.host?.toString() || parseDomain(ctx.hostname).host;
-    const state = buildState(host, token, client, codeVerifier);
+    const accessToken = ctx.cookies.get("accessToken");
+    const state = buildState({
+      host,
+      token,
+      client,
+      codeVerifier,
+      accessToken,
+    });
 
     ctx.cookies.set(this.key, state, {
       expires: addMinutes(new Date(), 10),
@@ -115,25 +123,80 @@ export async function request(
   }
 }
 
-function buildState(
-  host: string,
-  token: string,
-  client?: Client,
-  codeVerifier?: string
-) {
-  return [host, token, client, codeVerifier].join("|");
+function buildState({
+  host,
+  token,
+  client,
+  codeVerifier,
+  accessToken,
+}: {
+  host: string;
+  token: string;
+  client?: Client;
+  codeVerifier?: string;
+  accessToken?: string;
+}) {
+  return [host, token, client, codeVerifier, accessToken].join("|");
 }
 
+/**
+ * Parses the state string into its components.
+ *
+ * @param state The state string
+ * @returns An object containing the parsed components
+ */
 export function parseState(state: string) {
-  const [host, token, client, rawCodeVerifier] = state.split("|");
+  const [host, token, client, rawCodeVerifier, rawAccessToken] =
+    state.split("|");
   const codeVerifier = rawCodeVerifier ? rawCodeVerifier : undefined;
-  return { host, token, client, codeVerifier };
+  const accessToken = rawAccessToken ? rawAccessToken : undefined;
+  return { host, token, client, codeVerifier, accessToken };
 }
 
-export function getClientFromContext(ctx: Context): Client {
+/**
+ * Returns the client type from the context if available. Used to redirect
+ * the user back to the correct client after the OAuth flow.
+ *
+ * @param ctx The Koa context
+ * @returns The client type, defaults to Client.Web
+ */
+export function getClientFromOAuthState(ctx: Context): Client {
   const state = ctx.cookies.get("state");
   const client = state ? parseState(state).client : undefined;
   return client === Client.Desktop ? Client.Desktop : Client.Web;
+}
+
+/**
+ * Returns the access token from the context if available. This is used
+ * to restore the session during the OAuth flow when connecting additional
+ * providers to an existing team.
+ *
+ * @param ctx The Koa context
+ * @returns The access token if available, otherwise undefined
+ */
+export function getAccessTokenFromOAuthState(ctx: Context): string | undefined {
+  const state = ctx.cookies.get("state");
+  return state ? parseState(state).accessToken : undefined;
+}
+
+/**
+ * Returns the user from the context if they are authenticated. This is used
+ * to restore the session during the OAuth flow.
+ *
+ * @param ctx The Koa context
+ * @returns The user if authenticated, otherwise undefined
+ */
+export async function getUserFromOAuthState(ctx: Context) {
+  const token = getAccessTokenFromOAuthState(ctx);
+  if (!token) {
+    return undefined;
+  }
+
+  try {
+    return await getUserForJWT(token);
+  } catch (_err) {
+    return undefined;
+  }
 }
 
 type TeamFromContextOptions = {
@@ -145,6 +208,13 @@ type TeamFromContextOptions = {
   includeStateCookie?: boolean;
 };
 
+/**
+ * Infers the team from the context based on the hostname or state cookie.
+ *
+ * @param ctx The Koa context
+ * @param options Options for determining the team
+ * @returns The inferred team or undefined if not found
+ */
 export async function getTeamFromContext(
   ctx: Context,
   options: TeamFromContextOptions = { includeStateCookie: true }

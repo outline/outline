@@ -142,16 +142,16 @@ yarn sequelize migration:create --name=add-field-to-table
 - Run tests with Jest:
 
 ```bash
-# Run all tests
+# Run a specific test file (preferred)
+yarn test path/to/test.spec.ts
+
+# Run every test (avoid)
 yarn test
 
-# Run specific test suites
-yarn test:app      # Frontend tests
-yarn test:server   # Backend tests
-yarn test:shared   # Shared code tests
-
-# Run specific test file
-yarn test path/to/test.spec.ts
+# Run test suites (avoid)
+yarn test:app      # All frontend tests
+yarn test:server   # All backend tests
+yarn test:shared   # All shared code tests
 ```
 
 - Write unit tests for utilities and business logic in a collocated .test.ts file.

@@ -93,6 +93,34 @@ async function accountProvisioner(
   let result;
   let emailMatchOnly;
 
+  const actor = ctx.state.auth?.user;
+
+  // If the user is already logged in and is an admin of the team then we
+  // allow them to connect a new authentication provider
+  if (actor && actor.teamId === teamParams.teamId && actor.isAdmin) {
+    const team = actor.team;
+    let authenticationProvider = await AuthenticationProvider.findOne({
+      where: {
+        ...authenticationProviderParams,
+        teamId: team.id,
+      },
+    });
+
+    if (!authenticationProvider) {
+      authenticationProvider = await team.$create<AuthenticationProvider>(
+        "authenticationProvider",
+        authenticationProviderParams
+      );
+    }
+
+    return {
+      user: actor,
+      team,
+      isNewUser: false,
+      isNewTeam: false,
+    };
+  }
+
   try {
     result = await teamProvisioner(ctx, {
       ...teamParams,
