@@ -41,15 +41,6 @@ function DocumentDelete({ document, onSubmit }: Props) {
       setDeleting(true);
 
       try {
-        await document.delete();
-
-        userMemberships
-          .getByDocumentId(document.id)
-          ?.removeDocument(document.id);
-        groupMemberships
-          .getByDocumentId(document.id)
-          ?.removeDocument(document.id);
-
         // only redirect if we're currently viewing the document that's deleted
         if (ui.activeDocumentId === document.id) {
           // If the document has a parent and it's available in the store then
@@ -74,6 +65,15 @@ function DocumentDelete({ document, onSubmit }: Props) {
           history.push(path);
         }
 
+        await document.delete();
+
+        userMemberships
+          .getByDocumentId(document.id)
+          ?.removeDocument(document.id);
+        groupMemberships
+          .getByDocumentId(document.id)
+          ?.removeDocument(document.id);
+
         onSubmit();
       } catch (err) {
         toast.error(err.message);
@@ -81,7 +81,16 @@ function DocumentDelete({ document, onSubmit }: Props) {
         setDeleting(false);
       }
     },
-    [onSubmit, ui, document, documents, history, collection]
+    [
+      onSubmit,
+      ui,
+      document,
+      documents,
+      history,
+      collection,
+      userMemberships,
+      groupMemberships,
+    ]
   );
 
   const handleArchive = React.useCallback(
