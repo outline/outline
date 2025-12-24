@@ -503,18 +503,16 @@ function Lightbox({ images, activeImage, onUpdate, onClose }: Props) {
         const toTx = to.center.x - final.center.x;
         const toTy = to.center.y - final.center.y;
 
-        const fromSx = from.width / final.width;
-        const fromSy = from.height / final.height;
-        const toSx = to.width / final.width;
-        const toSy = to.height / final.height;
+        const fromS = from.width / final.width;
+        const toS = to.width / final.width;
         return keyframes`
             from {
               translate: ${fromTx}px ${fromTy}px;
-              scale: ${fromSx} ${fromSy};
+              scale: ${fromS};
             }
             to {
               translate: ${toTx}px ${toTy}px;
-              scale: ${toSx} ${toSy};
+              scale: ${toS};
             }
         `;
       };
