@@ -473,9 +473,18 @@ export class DocumentHelper {
     text: string,
     append = false
   ) {
-    document.text = append ? document.text + text : text;
-    const doc = parser.parse(document.text);
+    let doc: Node;
+
+    if (append) {
+      const existingDoc = DocumentHelper.toProsemirror(document);
+      const newDoc = parser.parse(text);
+      doc = existingDoc.copy(existingDoc.content.append(newDoc.content));
+    } else {
+      doc = parser.parse(text);
+    }
+
     document.content = doc.toJSON();
+    document.text = serializer.serialize(doc);
 
     if (document.state) {
       const ydoc = new Y.Doc();

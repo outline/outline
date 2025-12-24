@@ -2,6 +2,7 @@ import { Event } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
 import { withAPIContext } from "@server/test/support";
 import documentUpdater from "./documentUpdater";
+import { randomUUID } from "crypto";
 
 describe("documentUpdater", () => {
   it("should change lastModifiedById", async () => {
@@ -66,6 +67,125 @@ describe("documentUpdater", () => {
               text: "Changed",
             },
           ],
+        },
+      ],
+    });
+  });
+
+  it("should append document content when requested", async () => {
+    const user = await buildUser();
+    let document = await buildDocument({
+      teamId: user.teamId,
+      text: "Initial",
+    });
+
+    document = await withAPIContext(user, (ctx) =>
+      documentUpdater(ctx, {
+        text: "Appended",
+        document,
+        append: true,
+      })
+    );
+
+    expect(document.text).toEqual("Initial\n\nAppended");
+    expect(document.content).toMatchObject({
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "Initial" }],
+        },
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "Appended" }],
+        },
+      ],
+    });
+  });
+
+  it("should preserve rich content when appending", async () => {
+    const user = await buildUser();
+    let document = await buildDocument({
+      teamId: user.teamId,
+      text: "**Bold**",
+    });
+
+    document = await withAPIContext(user, (ctx) =>
+      documentUpdater(ctx, {
+        text: "Appended",
+        document,
+        append: true,
+      })
+    );
+
+    expect(document.content).toMatchObject({
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              marks: [{ type: "strong" }],
+              text: "Bold",
+            },
+          ],
+        },
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "Appended" }],
+        },
+      ],
+    });
+  });
+
+  it("should preserve rich content from JSON when appending", async () => {
+    const user = await buildUser();
+    let document = await buildDocument({
+      teamId: user.teamId,
+    });
+    const id = randomUUID();
+    document.content = {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              marks: [{ type: "comment", attrs: { id, userId: id } }],
+              text: "Italic",
+            },
+          ],
+        },
+      ],
+    };
+    await document.save();
+
+    document = await withAPIContext(user, (ctx) =>
+      documentUpdater(ctx, {
+        text: "Appended",
+        document,
+        append: true,
+      })
+    );
+
+    expect(document.content).toMatchObject({
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              marks: [{ type: "comment", attrs: { id, userId: id } }],
+              text: "Italic",
+            },
+          ],
+        },
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "Appended" }],
         },
       ],
     });
