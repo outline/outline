@@ -21,7 +21,11 @@ void (async () => {
   for (const provider of AuthenticationHelper.providers) {
     const resolvedRouter = await provider.value.router;
     if (resolvedRouter) {
-      router.use("/", resolvedRouter.routes());
+      router.use(
+        "/",
+        authMiddleware({ optional: true }),
+        resolvedRouter.routes()
+      );
     }
   }
 })();
