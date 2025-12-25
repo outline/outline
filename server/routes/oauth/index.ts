@@ -46,8 +46,8 @@ router.post(
     authorize(user, "read", client);
 
     // Note: These objects are mutated by the OAuth2Server library
-    const request = new OAuth2Server.Request(ctx.request);
-    const response = new OAuth2Server.Response(ctx.response);
+    const request = new OAuth2Server.Request(ctx.request as any);
+    const response = new OAuth2Server.Response(ctx.response as any);
 
     const authorizationCode = await oauth.authorize(request, response, {
       // Require state to prevent CSRF attacks
@@ -106,8 +106,8 @@ router.post(
     }
 
     // Note: These objects are mutated by the OAuth2Server library
-    const request = new OAuth2Server.Request(ctx.request);
-    const response = new OAuth2Server.Response(ctx.response);
+    const request = new OAuth2Server.Request(ctx.request as any);
+    const response = new OAuth2Server.Response(ctx.response as any);
     const token = await oauth.token(request, response, {
       accessTokenLifetime: OAuthAuthentication.accessTokenLifetime,
       refreshTokenLifetime: OAuthAuthentication.refreshTokenLifetime,

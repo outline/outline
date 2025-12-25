@@ -74,12 +74,14 @@ export type BaseReq = z.infer<typeof BaseSchema>;
 
 export type BaseRes = unknown;
 
-export interface APIContext<ReqT = BaseReq, ResT = BaseRes>
-  extends ParameterizedContext<
-    AppState,
-    DefaultContext & IRouterParamContext<AppState>,
-    ResT
-  > {
+export interface APIContext<
+  ReqT = BaseReq,
+  ResT = BaseRes,
+> extends ParameterizedContext<
+  AppState,
+  DefaultContext & IRouterParamContext<AppState>,
+  ResT
+> {
   /** Typed and validated version of request, consisting of validated body, query, etc. */
   input: ReqT;
 
