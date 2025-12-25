@@ -285,6 +285,7 @@
     "@relative-ci/agent": "^4.3.1",
     "@types/addressparser": "^1.0.3",
     "@types/body-scroll-lock": "^3.1.2",
+    "@types/cookie": "0.6.0",
     "@types/crypto-js": "^4.2.2",
     "@types/diff": "^5.0.9",
     "@types/dotenv": "^8.2.3",
@@ -323,7 +324,7 @@
     "@types/png-chunks-extract": "^1.0.2",
     "@types/proxy-from-env": "^1.0.4",
     "@types/quoted-printable": "^1.0.2",
-    "@types/react": "^17.0.34",
+    "@types/react": "17.0.75",
     "@types/react-avatar-editor": "^13.0.4",
     "@types/react-color": "^3.0.13",
     "@types/react-dom": "^17.0.11",
@@ -373,6 +374,9 @@
     "typescript": "^5.9.2"
   },
   "resolutions": {
+    "@types/react": "17.0.75",
+    "@types/koa": "2.15.0",
+    "@hocuspocus/server": "1.1.2",
     "prosemirror-transform": "1.10.0",
     "body-scroll-lock": "^4.0.0-beta.0",
     "d3": "^7.0.0",
