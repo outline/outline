@@ -69,6 +69,7 @@ export default function auth(options: AuthenticationOptions = {}) {
     }
 
     Object.defineProperty(ctx, "context", {
+      configurable: true,
       get() {
         return {
           auth: ctx.state.auth,

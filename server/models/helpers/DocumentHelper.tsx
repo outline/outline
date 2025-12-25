@@ -1,5 +1,5 @@
 import { JSDOM } from "jsdom";
-import { Node } from "prosemirror-model";
+import { Node, Fragment } from "prosemirror-model";
 import ukkonen from "ukkonen";
 import { updateYFragment, yDocToProsemirrorJSON } from "y-prosemirror";
 import * as Y from "yjs";
@@ -473,9 +473,39 @@ export class DocumentHelper {
     text: string,
     append = false
   ) {
-    document.text = append ? document.text + text : text;
-    const doc = parser.parse(document.text);
+    let doc: Node;
+
+    if (append) {
+      const existingDoc = DocumentHelper.toProsemirror(document);
+      const newDoc = parser.parse(text);
+      const lastChild = existingDoc.lastChild;
+      const firstChild = newDoc.firstChild;
+
+      if (
+        !text.match(/^\s*\n/) &&
+        lastChild &&
+        firstChild &&
+        lastChild.type.name === "paragraph" &&
+        firstChild.type.name === "paragraph"
+      ) {
+        const mergedPara = lastChild.copy(
+          lastChild.content.append(firstChild.content)
+        );
+        doc = existingDoc.copy(
+          existingDoc.content
+            .cut(0, existingDoc.content.size - lastChild.nodeSize)
+            .append(Fragment.from(mergedPara))
+            .append(newDoc.content.cut(firstChild.nodeSize))
+        );
+      } else {
+        doc = existingDoc.copy(existingDoc.content.append(newDoc.content));
+      }
+    } else {
+      doc = parser.parse(text);
+    }
+
     document.content = doc.toJSON();
+    document.text = serializer.serialize(doc);
 
     if (document.state) {
       const ydoc = new Y.Doc();

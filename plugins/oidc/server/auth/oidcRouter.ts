@@ -19,7 +19,8 @@ import type { AuthenticationResult } from "@server/types";
 import {
   StateStore,
   getTeamFromContext,
-  getClientFromContext,
+  getClientFromOAuthState,
+  getUserFromOAuthState,
   request,
 } from "@server/utils/passport";
 import config from "../../plugin.json";
@@ -121,7 +122,9 @@ export function createOIDCRouter(
           }
 
           const team = await getTeamFromContext(context);
-          const client = getClientFromContext(context);
+          const client = getClientFromOAuthState(context);
+          const user =
+            context.state?.auth?.user ?? (await getUserFromOAuthState(context));
           const { domain } = parseEmail(email);
 
           // Only a single OIDC provider is supported – find the existing, if any.
@@ -187,7 +190,11 @@ export function createOIDCRouter(
             avatarUrl = null;
           }
 
-          const ctx = createContext({ ip: context.ip });
+          const ctx = createContext({
+            ip: context.ip,
+            user,
+            authType: context.state?.auth?.type,
+          });
           const result = await accountProvisioner(ctx, {
             team: {
               teamId: team?.id,

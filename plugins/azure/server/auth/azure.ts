@@ -15,7 +15,8 @@ import {
   StateStore,
   request,
   getTeamFromContext,
-  getClientFromContext,
+  getClientFromOAuthState,
+  getUserFromOAuthState,
 } from "@server/utils/passport";
 import config from "../../plugin.json";
 import env from "../env";
@@ -96,13 +97,19 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
         }
 
         const team = await getTeamFromContext(context);
-        const client = getClientFromContext(context);
+        const client = getClientFromOAuthState(context);
+        const user =
+          context.state?.auth?.user ?? (await getUserFromOAuthState(context));
 
         const domain = parseEmail(email).domain;
         const subdomain = slugifyDomain(domain);
 
         const teamName = organization.displayName;
-        const ctx = createContext({ ip: context.ip });
+        const ctx = createContext({
+          ip: context.ip,
+          user,
+          authType: context.state?.auth?.type,
+        });
         const result = await accountProvisioner(ctx, {
           team: {
             teamId: team?.id,

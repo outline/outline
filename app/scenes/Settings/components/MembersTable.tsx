@@ -1,7 +1,6 @@
 import compact from "lodash/compact";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import styled from "styled-components";
 import Text from "@shared/components/Text";
 import type User from "~/models/User";
 import { Avatar, AvatarSize } from "~/components/Avatar";
@@ -86,7 +85,7 @@ export function MembersTable({ canManage, ...rest }: Props) {
           header: t("Role"),
           accessor: (user) => user.role,
           component: (user) => (
-            <Badges spacing={4} wrap>
+            <HStack spacing={4} wrap>
               {!user.lastActiveAt && <Badge>{t("Invited")}</Badge>}
               {user.isAdmin ? (
                 <Badge primary>{t("Admin")}</Badge>
@@ -98,7 +97,7 @@ export function MembersTable({ canManage, ...rest }: Props) {
                 <Badge>{t("Editor")}</Badge>
               )}
               {user.isSuspended && <Badge>{t("Suspended")}</Badge>}
-            </Badges>
+            </HStack>
           ),
           width: "2fr",
         },
@@ -124,7 +123,3 @@ export function MembersTable({ canManage, ...rest }: Props) {
     />
   );
 }
-
-const Badges = styled(HStack)`
-  margin-left: -10px;
-`;

@@ -16,7 +16,12 @@ export type Options = {
   /** Set to true to replace any existing image at the users selection */
   replaceExisting?: boolean;
   /** Callback fired to upload a file */
-  uploadFile?: (file: File | string) => Promise<string>;
+  uploadFile?: (
+    file: File | string,
+    options?: {
+      id?: string;
+    }
+  ) => Promise<string>;
   /** Callback fired when the user starts a file upload */
   onFileUploadStart?: () => void;
   /** Callback fired when the user completes a file upload */
@@ -73,7 +78,7 @@ const insertFiles = async function (
           : undefined;
 
       return {
-        id: `upload-${uuidv4()}`,
+        id: uuidv4(),
         dimensions: await getDimensions?.(file),
         source: await FileHelper.getImageSourceAttr(file),
         isImage,
@@ -100,7 +105,7 @@ const insertFiles = async function (
     // start uploading the file to the server. Using "then" syntax
     // to allow all placeholders to be entered at once with the uploads
     // happening in the background in parallel.
-    uploadFile?.(upload.file)
+    uploadFile?.(upload.file, { id: upload.id })
       // then this should be able to get the full URL as well
       .then(async (src) => {
         if (view.isDestroyed) {

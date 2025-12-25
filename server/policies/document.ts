@@ -155,6 +155,10 @@ allow(User, "move", Document, (actor, document) =>
   and(
     can(actor, "update", document),
     or(
+      includesMembership(document, [
+        DocumentPermission.ReadWrite,
+        DocumentPermission.Admin,
+      ]),
       can(actor, "updateDocument", document?.collection),
       and(!!document?.isDraft && actor.id === document?.createdById),
       and(!!document?.isDraft && !document?.collection),

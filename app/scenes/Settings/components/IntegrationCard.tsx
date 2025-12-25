@@ -7,6 +7,7 @@ import Button from "../../../components/Button";
 import Text from "../../../components/Text";
 import { HStack } from "~/components/primitives/HStack";
 import { VStack } from "~/components/primitives/VStack";
+import { Status } from "./Status";
 
 type Props = {
   integration: ConfigItem;
@@ -69,27 +70,4 @@ const Description = styled(Text)`
   font-size: 15px;
   max-width: 100%;
   color: ${s("textTertiary")};
-`;
-
-const Status = styled(Text).attrs({
-  type: "secondary",
-  size: "small",
-  as: "span",
-})`
-  display: inline-flex;
-  align-items: center;
-
-  &::after {
-    content: "";
-    display: inline-block;
-    width: 17px;
-    height: 17px;
-
-    background: radial-gradient(
-      circle at center,
-      ${s("accent")} 0 33%,
-      transparent 33%
-    );
-    border-radius: 50%;
-  }
 `;
