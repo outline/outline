@@ -295,7 +295,6 @@ export default abstract class APIImportTask<
           AttachmentPreset.DocumentAttachment
         );
         const key = AttachmentHelper.getKey({
-          acl,
           id: modelId,
           name: item.name,
           userId: createdBy.id,

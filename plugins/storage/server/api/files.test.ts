@@ -5,7 +5,9 @@ import FormData from "form-data";
 import { ensureDirSync } from "fs-extra";
 import { FileOperationState, FileOperationType } from "@shared/types";
 import env from "@server/env";
-import { Buckets } from "@server/models/helpers/AttachmentHelper";
+import AttachmentHelper, {
+  Buckets,
+} from "@server/models/helpers/AttachmentHelper";
 import FileStorage from "@server/storage/files";
 import {
   buildAttachment,
@@ -13,6 +15,7 @@ import {
   buildUser,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
+import { randomUUID } from "crypto";
 
 const server = getTestServer();
 
@@ -175,6 +178,12 @@ describe("#files.get", () => {
 
     const attachment = await buildAttachment(
       {
+        acl: "public-read",
+        key: AttachmentHelper.getKey({
+          id: randomUUID(),
+          name: fileName,
+          userId: user.id,
+        }).replace(Buckets.uploads, Buckets.public),
         teamId: user.teamId,
         userId: user.id,
         contentType:
