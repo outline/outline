@@ -8,7 +8,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useTheme } from "styled-components";
-import { ProsemirrorData } from "@shared/types";
+import type { ProsemirrorData } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
 import { AttachmentValidation, CommentValidation } from "@shared/validations";
 import Comment from "~/models/Comment";
@@ -25,6 +25,8 @@ import useStores from "~/hooks/useStores";
 import { Bubble } from "./CommentThreadItem";
 import { HighlightedText } from "./HighlightText";
 import lazyWithRetry from "~/utils/lazyWithRetry";
+import { mergeRefs } from "react-merge-refs";
+import { HStack } from "~/components/primitives/HStack";
 
 const CommentEditor = lazyWithRetry(() => import("./CommentEditor"));
 
@@ -82,6 +84,7 @@ function CommentForm({
   const [forceRender, setForceRender] = React.useState(0);
   const [inputFocused, setInputFocused] = React.useState(autoFocus);
   const file = React.useRef<HTMLInputElement>(null);
+  const hasFocusedOnMount = React.useRef(false);
   const theme = useTheme();
   const { t } = useTranslation();
   const { comments } = useStores();
@@ -247,15 +250,16 @@ function CommentForm({
     }
   };
 
-  // Focus the editor when it's a new comment just mounted, after a delay as the
-  // editor is mounted within a fade transition.
-  React.useEffect(() => {
-    setTimeout(() => {
-      if (autoFocus) {
-        editorRef.current?.focusAtStart();
+  // Focus the editor when it's a new comment just mounted
+  const handleMounted = React.useCallback(
+    (ref) => {
+      if (autoFocus && ref && !hasFocusedOnMount.current) {
+        ref.focusAtStart();
+        hasFocusedOnMount.current = true;
       }
-    }, 0);
-  }, [autoFocus]);
+    },
+    [autoFocus]
+  );
 
   const presence = animatePresence
     ? {
@@ -310,7 +314,7 @@ function CommentForm({
           )}
           <CommentEditor
             key={`${forceRender}`}
-            ref={editorRef}
+            ref={mergeRefs([editorRef, handleMounted])}
             defaultValue={draft}
             onChange={handleChange}
             onSave={handleSave}
@@ -329,14 +333,14 @@ function CommentForm({
           />
           {(inputFocused || draft) && (
             <Flex justify="space-between" reverse={dir === "rtl"} gap={8}>
-              <Flex gap={8}>
+              <HStack>
                 <ButtonSmall type="submit" borderOnHover>
                   {thread && !thread.isNew ? t("Reply") : t("Post")}
                 </ButtonSmall>
                 <ButtonSmall onClick={handleCancel} neutral borderOnHover>
                   {t("Cancel")}
                 </ButtonSmall>
-              </Flex>
+              </HStack>
               <Tooltip content={t("Upload image")} placement="top">
                 <NudeButton onClick={handleImageUpload}>
                   <ImageIcon color={theme.textTertiary} />

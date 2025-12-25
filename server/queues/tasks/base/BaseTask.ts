@@ -1,4 +1,4 @@
-import { Job, JobOptions } from "bull";
+import type { Job, JobOptions } from "bull";
 import { taskQueue } from "../../";
 
 export enum TaskPriority {
@@ -17,7 +17,7 @@ export abstract class BaseTask<T extends Record<string, any>> {
    * @returns A promise that resolves once the job is placed on the task queue
    */
   public schedule(props: T, options?: JobOptions): Promise<Job> {
-    return taskQueue.add(
+    return taskQueue().add(
       {
         name: this.constructor.name,
         props,

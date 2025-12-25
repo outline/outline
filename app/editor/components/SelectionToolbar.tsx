@@ -1,4 +1,5 @@
-import { Selection, NodeSelection, TextSelection } from "prosemirror-state";
+import type { Selection } from "prosemirror-state";
+import { NodeSelection, TextSelection } from "prosemirror-state";
 import * as React from "react";
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
 import {
@@ -13,7 +14,7 @@ import {
   getRowIndex,
   isTableSelected,
 } from "@shared/editor/queries/table";
-import { MenuItem } from "@shared/editor/types";
+import type { MenuItem } from "@shared/editor/types";
 import useBoolean from "~/hooks/useBoolean";
 import useDictionary from "~/hooks/useDictionary";
 import useEventListener from "~/hooks/useEventListener";
@@ -93,6 +94,7 @@ export function SelectionToolbar(props: Props) {
       selection.node.type.name === "embed";
 
     const isCodeSelection = isInCode(state, { onlyBlock: true });
+    const isNoticeSelection = isInNotice(state);
 
     if (isEmbedSelection && !readOnly) {
       setActiveToolbar(Toolbar.Media);
@@ -101,6 +103,8 @@ export function SelectionToolbar(props: Props) {
     } else if (isCodeSelection) {
       setActiveToolbar(Toolbar.Menu);
     } else if (!selection.empty) {
+      setActiveToolbar(Toolbar.Menu);
+    } else if (isNoticeSelection && selection.empty) {
       setActiveToolbar(Toolbar.Menu);
     } else if (selection.empty) {
       setActiveToolbar(null);

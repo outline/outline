@@ -1,10 +1,11 @@
 import { Node, Schema } from "prosemirror-model";
-import { Change, ChangeSet, simplifyChanges } from "prosemirror-changeset";
+import type { Change } from "prosemirror-changeset";
+import { ChangeSet, simplifyChanges } from "prosemirror-changeset";
 import ExtensionManager from "./ExtensionManager";
 import { recreateTransform } from "./prosemirror-recreate-transform";
 import { richExtensions, withComments } from "../nodes";
-import { ProsemirrorData } from "../../types";
-import { Step } from "prosemirror-transform";
+import type { ProsemirrorData } from "../../types";
+import type { Step } from "prosemirror-transform";
 
 export type DiffChanges = {
   changes: readonly Change[];

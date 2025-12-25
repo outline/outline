@@ -1,14 +1,14 @@
-import { Next } from "koa";
+import type { Next } from "koa";
 import capitalize from "lodash/capitalize";
-import { UserRole } from "@shared/types";
+import type { UserRole } from "@shared/types";
 import { UserRoleHelper } from "@shared/utils/UserRoleHelper";
-import Logger from "@server/logging/Logger";
 import tracer, {
   addTags,
   getRootSpanFromRequestContext,
 } from "@server/logging/tracer";
 import { User, Team, ApiKey, OAuthAuthentication } from "@server/models";
-import { AppContext, AuthenticationType } from "@server/types";
+import type { AppContext } from "@server/types";
+import { AuthenticationType } from "@server/types";
 import { getUserForJWT } from "@server/utils/jwt";
 import {
   AuthenticationError,
@@ -39,13 +39,10 @@ export default function auth(options: AuthenticationOptions = {}) {
     try {
       const { type, token, user } = await validateAuthentication(ctx, options);
 
-      // We are not awaiting the promises here so that the request is not blocked
-      user.updateActiveAt(ctx).catch((err) => {
-        Logger.error("Failed to update user activeAt", err);
-      });
-      user.team?.updateActiveAt().catch((err) => {
-        Logger.error("Failed to update team activeAt", err);
-      });
+      await Promise.all([
+        user.updateActiveAt(ctx),
+        user.team?.updateActiveAt(),
+      ]);
 
       ctx.state.auth = {
         user,
@@ -72,6 +69,7 @@ export default function auth(options: AuthenticationOptions = {}) {
     }
 
     Object.defineProperty(ctx, "context", {
+      configurable: true,
       get() {
         return {
           auth: ctx.state.auth,

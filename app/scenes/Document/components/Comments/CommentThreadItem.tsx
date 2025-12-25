@@ -10,10 +10,10 @@ import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "@shared/components/EventBoundary";
 import { s, hover } from "@shared/styles";
-import { ProsemirrorData } from "@shared/types";
+import type { ProsemirrorData } from "@shared/types";
 import { dateToRelative } from "@shared/utils/date";
 import { Minute } from "@shared/utils/time";
-import Comment from "~/models/Comment";
+import type Comment from "~/models/Comment";
 import { Avatar } from "~/components/Avatar";
 import ButtonSmall from "~/components/ButtonSmall";
 import Flex from "~/components/Flex";
@@ -388,10 +388,13 @@ const Actions = styled(Flex)<{ dir?: "rtl" | "ltr" }>`
   left: ${(props) => (props.dir !== "rtl" ? "auto" : "4px")};
   right: ${(props) => (props.dir === "rtl" ? "auto" : "4px")};
   top: 4px;
-  opacity: 0;
   transition: opacity 100ms ease-in-out;
   background: ${s("backgroundSecondary")};
   padding-left: 4px;
+
+  ${breakpoint("tablet")`
+    opacity: 0;
+  `}
 
   &:has(${Action}[aria-expanded="true"]) {
     opacity: 1;

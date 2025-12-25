@@ -1,13 +1,13 @@
 import { OpenIcon, TrashIcon } from "outline-icons";
-import { Node } from "prosemirror-model";
+import type { Node } from "prosemirror-model";
 import { Selection, TextSelection } from "prosemirror-state";
-import { EditorView } from "prosemirror-view";
+import type { EditorView } from "prosemirror-view";
 import { useCallback, useRef, useState } from "react";
 import styled from "styled-components";
 import Flex from "~/components/Flex";
 import Tooltip from "~/components/Tooltip";
 import Input from "~/editor/components/Input";
-import { Dictionary } from "~/hooks/useDictionary";
+import type { Dictionary } from "~/hooks/useDictionary";
 import ToolbarButton from "./ToolbarButton";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
 

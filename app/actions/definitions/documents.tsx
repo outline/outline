@@ -35,13 +35,10 @@ import {
 } from "outline-icons";
 import { toast } from "sonner";
 import Icon from "@shared/components/Icon";
-import {
-  ExportContentType,
-  TeamPreference,
-  NavigationNode,
-} from "@shared/types";
+import type { NavigationNode } from "@shared/types";
+import { ExportContentType, TeamPreference } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
-import UserMembership from "~/models/UserMembership";
+import type UserMembership from "~/models/UserMembership";
 import DocumentDelete from "~/scenes/DocumentDelete";
 import DocumentMove from "~/scenes/DocumentMove";
 import DocumentPermanentDelete from "~/scenes/DocumentPermanentDelete";
@@ -79,7 +76,7 @@ import {
 } from "~/utils/routeHelpers";
 import capitalize from "lodash/capitalize";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
-import { Action, ActionGroup, ActionSeparator } from "~/types";
+import type { Action, ActionGroup, ActionSeparator } from "~/types";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 
 const Insights = lazyWithRetry(
@@ -614,9 +611,8 @@ export const copyDocumentAsMarkdown = createAction({
       ? stores.documents.get(activeDocumentId)
       : undefined;
     if (document) {
-      const { ProsemirrorHelper } = await import(
-        "~/models/helpers/ProsemirrorHelper"
-      );
+      const { ProsemirrorHelper } =
+        await import("~/models/helpers/ProsemirrorHelper");
       copy(ProsemirrorHelper.toMarkdown(document));
       toast.success(t("Markdown copied to clipboard"));
     }
@@ -636,9 +632,8 @@ export const copyDocumentAsPlainText = createAction({
       ? stores.documents.get(activeDocumentId)
       : undefined;
     if (document) {
-      const { ProsemirrorHelper } = await import(
-        "~/models/helpers/ProsemirrorHelper"
-      );
+      const { ProsemirrorHelper } =
+        await import("~/models/helpers/ProsemirrorHelper");
       copy(ProsemirrorHelper.toPlainText(document));
       toast.success(t("Text copied to clipboard"));
     }

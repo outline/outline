@@ -1,5 +1,5 @@
 import { action } from "mobx";
-import { WidgetProps } from "@shared/editor/lib/Extension";
+import type { WidgetProps } from "@shared/editor/lib/Extension";
 import { isBrowser } from "@shared/utils/browser";
 import Suggestion from "~/editor/extensions/Suggestion";
 import EmojiMenu from "../components/EmojiMenu";

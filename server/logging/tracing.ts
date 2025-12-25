@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { SpanOptions } from "dd-trace";
+import type { SpanOptions } from "dd-trace";
 import DDTags from "dd-trace/ext/tags";
 import env from "@server/env";
 import tracer from "./tracer";

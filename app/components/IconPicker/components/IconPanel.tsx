@@ -7,7 +7,8 @@ import Flex from "~/components/Flex";
 import InputSearch from "~/components/InputSearch";
 import { DisplayCategory } from "../utils";
 import ColorPicker from "./ColorPicker";
-import GridTemplate, { DataNode } from "./GridTemplate";
+import type { DataNode } from "./GridTemplate";
+import GridTemplate from "./GridTemplate";
 import { useIconState } from "../useIconState";
 
 const IconNames = Object.keys(IconLibrary.mapping);

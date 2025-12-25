@@ -1,7 +1,7 @@
 import * as React from "react";
 import Frame from "../components/Frame";
 import Image from "../components/Img";
-import { EmbedProps as Props } from ".";
+import type { EmbedProps as Props } from ".";
 import { useTheme } from "styled-components";
 
 function PlantUmlDiagrams({ matches, ...props }: Props) {

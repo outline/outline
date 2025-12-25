@@ -1,10 +1,12 @@
 import { observable } from "mobx";
-import { Command, Plugin, PluginKey } from "prosemirror-state";
+import type { Command } from "prosemirror-state";
+import { Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import { DOMSerializer, Node } from "prosemirror-model";
+import type { Node } from "prosemirror-model";
+import { DOMSerializer } from "prosemirror-model";
 import scrollIntoView from "scroll-into-view-if-needed";
 import Extension from "../lib/Extension";
-import { Change } from "prosemirror-changeset";
+import type { Change } from "prosemirror-changeset";
 
 const pluginKey = new PluginKey("diffs");
 

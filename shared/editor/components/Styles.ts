@@ -1,6 +1,7 @@
 /* oxlint-disable no-irregular-whitespace */
 import { lighten, transparentize } from "polished";
-import styled, { DefaultTheme, css, keyframes } from "styled-components";
+import type { DefaultTheme } from "styled-components";
+import styled, { css, keyframes } from "styled-components";
 import { breakpoints, hover } from "../../styles";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { videoStyle } from "./Video";
@@ -685,6 +686,31 @@ iframe.embed {
 .attachment-replacement-uploading {
   .widget {
     opacity: 0.5;
+  }
+}
+
+.pdf {
+  position: relative;
+  width: max-content;
+  height: max-content;
+  margin-right: auto;
+  margin-left: auto;
+  max-width: 100%;
+  clear: both;
+  z-index: 1;
+  transition-property: width, height;
+  transition-duration: 80ms;
+  transition-timing-function: ease-in-out;
+
+  embed {
+    display: block;
+    max-width: 100%;
+    contain: strict,
+    content-visibility: auto,
+    backface-visibility: hidden,
+    transition-property: width, height;
+    transition-duration: 80ms;
+    transition-timing-function: ease-in-out;
   }
 }
 
@@ -1704,13 +1730,21 @@ table {
   tr:first-child td {
     border-top: 0;
   }
-  tr:first-child th:first-child,
-  tr:first-child td:first-child {
+  tr:first-child th[data-first-column],
+  tr:first-child td[data-first-column] {
     border-radius: ${EditorStyleHelper.blockRadius} 0 0 0;
   }
-  tr:last-child th:first-child,
-  tr:last-child td:first-child {
+  th[data-first-column][data-last-row],
+  td[data-first-column][data-last-row] {
     border-radius: 0 0 0 ${EditorStyleHelper.blockRadius};
+  }
+  tr:first-child th[data-last-column],
+  tr:first-child td[data-last-column] {
+    border-radius: 0 ${EditorStyleHelper.blockRadius} 0 0;
+  }
+  th[data-last-column][data-last-row],
+  td[data-last-column][data-last-row] {
+    border-radius: 0 0 ${EditorStyleHelper.blockRadius} 0;
   }
 
   td .component-embed {
@@ -1881,13 +1915,14 @@ table {
       border-top-left-radius: 3px;
       border-bottom-left-radius: 3px;
     }
-    &.last::after {
-      border-top-right-radius: 3px;
-      border-bottom-right-radius: 3px;
-    }
     &.selected::after {
       background: ${props.theme.tableSelected};
     }
+  }
+
+  [data-last-column] .${EditorStyleHelper.tableGripColumn}::after {
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
   }
 
   .${EditorStyleHelper.tableGripRow} {
@@ -1911,13 +1946,14 @@ table {
       border-top-left-radius: 3px;
       border-top-right-radius: 3px;
     }
-    &.last::after {
-      border-bottom-left-radius: 3px;
-      border-bottom-right-radius: 3px;
-    }
     &.selected::after {
       background: ${props.theme.tableSelected};
     }
+  }
+
+  [data-last-row] .${EditorStyleHelper.tableGripRow}::after {
+    border-bottom-left-radius: 3px;
+    border-bottom-right-radius: 3px;
   }
 
   .${EditorStyleHelper.tableGrip} {

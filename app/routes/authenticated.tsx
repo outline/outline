@@ -1,6 +1,7 @@
 import { observer } from "mobx-react";
 import { Suspense } from "react";
-import { Switch, Redirect, RouteComponentProps } from "react-router-dom";
+import type { RouteComponentProps } from "react-router-dom";
+import { Switch, Redirect } from "react-router-dom";
 import DocumentNew from "~/scenes/DocumentNew";
 import Error404 from "~/scenes/Errors/Error404";
 import AuthenticatedLayout from "~/components/AuthenticatedLayout";

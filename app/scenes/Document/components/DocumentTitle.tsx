@@ -18,7 +18,8 @@ import {
 } from "@shared/utils/date";
 import { isModKey } from "@shared/utils/keyboard";
 import { DocumentValidation } from "@shared/validations";
-import ContentEditable, { RefHandle } from "~/components/ContentEditable";
+import type { RefHandle } from "~/components/ContentEditable";
+import ContentEditable from "~/components/ContentEditable";
 import { useDocumentContext } from "~/components/DocumentContext";
 import { PopoverButton } from "~/components/IconPicker/components/PopoverButton";
 import useBoolean from "~/hooks/useBoolean";
@@ -294,10 +295,8 @@ const StyledIconPicker = styled(IconPicker)`
 const Title = styled(ContentEditable)<TitleProps>`
   position: relative;
   line-height: ${lineHeight};
-  margin-top: 6vh;
+  margin-top: 10vh;
   margin-bottom: 0.5em;
-  margin-left: ${(props) =>
-    props.$containsIcon || props.$iconPickerIsOpen ? "40px" : "0px"};
   font-size: ${fontSize};
   font-weight: 600;
   border: 0;
@@ -319,8 +318,6 @@ const Title = styled(ContentEditable)<TitleProps>`
     css`
       &:focus-within,
       &:focus {
-        margin-left: 40px;
-
         ${PopoverButton} {
           opacity: 1 !important;
         }
@@ -333,12 +330,8 @@ const Title = styled(ContentEditable)<TitleProps>`
   }
 
   ${breakpoint("tablet")`
+    margin-top: 6vh;
     margin-left: 0;
-
-    &:focus-within,
-    &:focus {
-      margin-left: 0;
-    }
 
     &:hover {
       ${PopoverButton} {

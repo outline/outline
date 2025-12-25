@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import ApiKey from "~/models/ApiKey";
+import type ApiKey from "~/models/ApiKey";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 
 type Props = {

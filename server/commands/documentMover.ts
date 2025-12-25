@@ -1,7 +1,7 @@
 import { Transaction } from "sequelize";
 import { traceFunction } from "@server/logging/tracing";
 import { Document, Collection, Pin } from "@server/models";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 
 type Props = {
   /** Document which is being moved */

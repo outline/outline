@@ -5,7 +5,8 @@ import Logger from "@server/logging/Logger";
 import { Team } from "@server/models";
 import { TaskPriority } from "./base/BaseTask";
 import CleanupDeletedTeamTask from "./CleanupDeletedTeamTask";
-import { CronTask, TaskInterval, Props } from "./base/CronTask";
+import type { Props } from "./base/CronTask";
+import { CronTask, TaskInterval } from "./base/CronTask";
 
 export default class CleanupDeletedTeamsTask extends CronTask {
   public async perform({ limit, partition }: Props) {

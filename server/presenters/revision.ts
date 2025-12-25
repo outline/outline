@@ -1,6 +1,6 @@
 import parseTitle from "@shared/utils/parseTitle";
 import { traceFunction } from "@server/logging/tracing";
-import { Revision } from "@server/models";
+import type { Revision } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import presentUser from "./user";
 

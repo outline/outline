@@ -1,7 +1,8 @@
-import { Node, Schema } from "prosemirror-model";
+import type { Schema } from "prosemirror-model";
+import { Node } from "prosemirror-model";
 import headingToSlug from "../editor/lib/headingToSlug";
 import textBetween from "../editor/lib/textBetween";
-import { ProsemirrorData } from "../types";
+import type { ProsemirrorData } from "../types";
 import { TextHelper } from "./TextHelper";
 import env from "../env";
 import { findChildren } from "@shared/editor/queries/findChildren";

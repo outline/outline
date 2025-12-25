@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
-import Comment from "~/models/Comment";
+import type Comment from "~/models/Comment";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";

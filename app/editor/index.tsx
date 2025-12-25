@@ -1,65 +1,61 @@
 /* global File Promise */
-import { PluginSimple } from "markdown-it";
+import type { PluginSimple } from "markdown-it";
 import { observable } from "mobx";
 import { Observer } from "mobx-react";
 import { darken, transparentize } from "polished";
 import { baseKeymap } from "prosemirror-commands";
 import { dropCursor } from "prosemirror-dropcursor";
 import { gapCursor } from "prosemirror-gapcursor";
-import { inputRules, InputRule } from "prosemirror-inputrules";
+import type { InputRule } from "prosemirror-inputrules";
+import { inputRules } from "prosemirror-inputrules";
 import { keymap } from "prosemirror-keymap";
-import { MarkdownParser } from "prosemirror-markdown";
-import {
-  Schema,
-  NodeSpec,
-  MarkSpec,
-  Node as ProsemirrorNode,
-} from "prosemirror-model";
-import { EditorState, Selection, Plugin, Transaction } from "prosemirror-state";
+import type { MarkdownParser } from "prosemirror-markdown";
+import type { NodeSpec, MarkSpec } from "prosemirror-model";
+import { Schema, Node as ProsemirrorNode } from "prosemirror-model";
+import type { Plugin, Transaction } from "prosemirror-state";
+import { EditorState, Selection } from "prosemirror-state";
 import {
   AddMarkStep,
   RemoveMarkStep,
   ReplaceAroundStep,
   ReplaceStep,
 } from "prosemirror-transform";
-import { Decoration, EditorView, NodeViewConstructor } from "prosemirror-view";
+import type { Decoration, NodeViewConstructor } from "prosemirror-view";
+import { EditorView } from "prosemirror-view";
 import * as React from "react";
-import styled, { css, DefaultTheme, ThemeProps } from "styled-components";
+import type { DefaultTheme, ThemeProps } from "styled-components";
+import styled, { css } from "styled-components";
 import insertFiles from "@shared/editor/commands/insertFiles";
 import Styles from "@shared/editor/components/Styles";
-import { EmbedDescriptor } from "@shared/editor/embeds";
-import Extension, {
-  CommandFactory,
-  WidgetProps,
-} from "@shared/editor/lib/Extension";
+import type { EmbedDescriptor } from "@shared/editor/embeds";
+import type { CommandFactory, WidgetProps } from "@shared/editor/lib/Extension";
+import type Extension from "@shared/editor/lib/Extension";
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
-import { MarkdownSerializer } from "@shared/editor/lib/markdown/serializer";
+import type { MarkdownSerializer } from "@shared/editor/lib/markdown/serializer";
 import textBetween from "@shared/editor/lib/textBetween";
-import Mark from "@shared/editor/marks/Mark";
+import type Mark from "@shared/editor/marks/Mark";
 import { basicExtensions as extensions } from "@shared/editor/nodes";
-import Node from "@shared/editor/nodes/Node";
-import ReactNode from "@shared/editor/nodes/ReactNode";
-import { ComponentProps } from "@shared/editor/types";
-import { ProsemirrorData, UserPreferences } from "@shared/types";
+import type Node from "@shared/editor/nodes/Node";
+import type ReactNode from "@shared/editor/nodes/ReactNode";
+import type { ComponentProps } from "@shared/editor/types";
+import type { ProsemirrorData, UserPreferences } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import EventEmitter from "@shared/utils/events";
-import Document from "~/models/Document";
+import type Document from "~/models/Document";
 import Flex from "~/components/Flex";
 import { PortalContext } from "~/components/Portal";
-import { Dictionary } from "~/hooks/useDictionary";
-import { Properties } from "~/types";
+import type { Dictionary } from "~/hooks/useDictionary";
+import type { Properties } from "~/types";
 import Logger from "~/utils/Logger";
 import ComponentView from "./components/ComponentView";
 import EditorContext from "./components/EditorContext";
-import { NodeViewRenderer } from "./components/NodeViewRenderer";
+import type { NodeViewRenderer } from "./components/NodeViewRenderer";
 
 import WithTheme from "./components/WithTheme";
 import isNull from "lodash/isNull";
 import { isArray, map } from "lodash";
-import {
-  LightboxImage,
-  LightboxImageFactory,
-} from "@shared/editor/lib/Lightbox";
+import type { LightboxImage } from "@shared/editor/lib/Lightbox";
+import { LightboxImageFactory } from "@shared/editor/lib/Lightbox";
 import Lightbox from "~/components/Lightbox";
 import { anchorPlugin } from "@shared/editor/plugins/AnchorPlugin";
 

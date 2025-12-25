@@ -1,5 +1,5 @@
 /* oxlint-disable no-console */
-import { IncomingMessage } from "http";
+import type { IncomingMessage } from "http";
 import { styleText } from "node:util";
 import isArray from "lodash/isArray";
 import isEmpty from "lodash/isEmpty";
@@ -126,7 +126,7 @@ class Logger {
           scope.setExtra(key, this.sanitize(extra[key]));
         }
 
-        Sentry.captureException(new Error(message));
+        Sentry.captureMessage(message);
       });
     }
 
@@ -200,7 +200,7 @@ class Logger {
    */
   public fatal(message: string, error: Error, extra?: Extra) {
     this.error(message, error, extra);
-    void ShutdownHelper.execute();
+    void ShutdownHelper.execute(1);
   }
 
   /**

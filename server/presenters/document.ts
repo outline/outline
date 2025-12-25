@@ -1,8 +1,8 @@
 import { Hour } from "@shared/utils/time";
 import { traceFunction } from "@server/logging/tracing";
-import { Document } from "@server/models";
+import type { Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import presentUser from "./user";
 
 type Options = {
@@ -14,7 +14,7 @@ type Options = {
   includeText?: boolean;
   /** Always include the data of the document in the payload. */
   includeData?: boolean;
-
+  /** Include the updatedAt timestamp for public documents. */
   includeUpdatedAt?: boolean;
 };
 
@@ -56,7 +56,10 @@ async function presentDocument(
     text,
     icon: document.icon,
     color: document.color,
-    tasks: document.tasks,
+    tasks: {
+      completed: 0,
+      total: 0,
+    },
     language: document.language,
     createdAt: document.createdAt,
     createdBy: undefined,
@@ -85,6 +88,7 @@ async function presentDocument(
   if (!options.isPublic) {
     const source = await document.$get("import");
 
+    res.tasks = document.tasks;
     res.isCollectionDeleted = await document.isCollectionDeleted();
     res.collectionId = document.collectionId;
     res.parentDocumentId = document.parentDocumentId;

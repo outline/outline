@@ -1,10 +1,12 @@
 import path from "path";
-import { InferAttributes, InferCreationAttributes } from "sequelize";
+import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import sequelizeStrictAttributes from "sequelize-strict-attributes";
-import { Sequelize, SequelizeOptions } from "sequelize-typescript";
-import { Umzug, SequelizeStorage, MigrationError } from "umzug";
+import type { SequelizeOptions } from "sequelize-typescript";
+import { Sequelize } from "sequelize-typescript";
+import type { MigrationError } from "umzug";
+import { Umzug, SequelizeStorage } from "umzug";
 import env from "@server/env";
-import Model from "@server/models/base/Model";
+import type Model from "@server/models/base/Model";
 import Logger from "../logging/Logger";
 import * as models from "../models";
 
@@ -99,6 +101,10 @@ export function createDatabaseInstance(
 
     sequelizeStrictAttributes(instance);
 
+    if (env.isTest) {
+      instance = monkeyPatchSequelizeErrorsForJest(instance);
+    }
+
     // Add hooks to warn about write operations on read-only connections
     if (isReadOnly) {
       const warnWriteOperation = (operation: string) => {
@@ -133,7 +139,8 @@ export function createDatabaseInstance(
             `Failed to connect using database credentials. Please check DATABASE_HOST, DATABASE_NAME, DATABASE_USER configuration`
           )
     );
-    process.exit(1);
+    // To satisfy TypeScript that a Sequelize instance is always returned
+    throw _err;
   }
 }
 
@@ -203,6 +210,43 @@ export function createMigrationRunner(
         ),
     },
   });
+}
+
+/**
+ * Fixed in Sequelize v7, but hasn't been back-ported to Sequelize v6.
+ * See https://github.com/sequelize/sequelize/issues/14807#issuecomment-1854398131
+ */
+export function monkeyPatchSequelizeErrorsForJest(instance: Sequelize) {
+  if (typeof jest === "undefined") {
+    return instance;
+  }
+
+  const sequelizeVersion = (Sequelize as any).version;
+  const major = sequelizeVersion.split(".").map(Number)[0];
+
+  if (major >= 7) {
+    Logger.fatal(
+      "Redundant patch",
+      new Error(
+        "This patch was made redundant in Sequelize v7, you should check!"
+      )
+    );
+  }
+
+  const origQueryFunc = instance.query;
+  instance.query = async function query(this: Sequelize, ...args: any[]) {
+    let result;
+    try {
+      result = await origQueryFunc.apply(this, args as any);
+    } catch (err: any) {
+      // Ensure error appears in Jest output, not swallowed by Sequelize internals
+      Logger.error(err.message, err.parent);
+      throw err;
+    }
+    return result;
+  } as typeof origQueryFunc;
+
+  return instance;
 }
 
 export const sequelize = createDatabaseInstance(databaseConfig, models);

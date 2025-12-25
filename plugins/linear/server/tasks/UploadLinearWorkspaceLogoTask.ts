@@ -1,8 +1,9 @@
-import { IntegrationService, IntegrationType } from "@shared/types";
-import { Integration } from "@server/models";
-import { Buckets } from "@server/models/helpers/AttachmentHelper";
+import type { IntegrationType } from "@shared/types";
+import { IntegrationService, AttachmentPreset } from "@shared/types";
+import attachmentCreator from "@server/commands/attachmentCreator";
+import { createContext } from "@server/context";
+import { Integration, User } from "@server/models";
 import { BaseTask, TaskPriority } from "@server/queues/tasks/base/BaseTask";
-import FileStorage from "@server/storage/files";
 
 type Props = {
   /** The integrationId to operate on */
@@ -24,19 +25,26 @@ export default class UploadLinearWorkspaceLogoTask extends BaseTask<Props> {
       return;
     }
 
-    const res = await FileStorage.storeFromUrl(
-      props.logoUrl,
-      `${Buckets.avatars}/${integration.teamId}/${crypto.randomUUID()}`,
-      "public-read",
-      {
+    const user = await User.findByPk(integration.userId);
+    if (!user) {
+      return;
+    }
+
+    const attachment = await attachmentCreator({
+      name: "logo",
+      url: props.logoUrl,
+      user,
+      preset: AttachmentPreset.Avatar,
+      ctx: createContext({ user }),
+      fetchOptions: {
         headers: {
           Authorization: `Bearer ${integration.authentication.token}`,
         },
-      }
-    );
+      },
+    });
 
-    if (res?.url) {
-      integration.settings.linear!.workspace.logoUrl = res.url;
+    if (attachment) {
+      integration.settings.linear!.workspace.logoUrl = attachment.url;
       integration.changed("settings", true);
       await integration.save();
     }

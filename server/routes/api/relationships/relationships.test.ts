@@ -1,5 +1,5 @@
 import { CollectionPermission } from "@shared/types";
-import { Document, Relationship, User } from "@server/models";
+import type { Document, Relationship, User } from "@server/models";
 import { RelationshipType } from "@server/models/Relationship";
 import {
   buildAdmin,

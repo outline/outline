@@ -1,13 +1,13 @@
 import { createReadStream } from "fs";
 import path from "path";
-import { File } from "formidable";
-import {
+import type { File } from "formidable";
+import type {
   InferAttributes,
   InferCreationAttributes,
-  QueryTypes,
   FindOptions,
   Sequelize,
 } from "sequelize";
+import { QueryTypes } from "sequelize";
 import {
   BeforeDestroy,
   BelongsTo,
@@ -32,6 +32,7 @@ import { SkipChangeset } from "./decorators/Changeset";
 import Fix from "./decorators/Fix";
 import Length from "./validators/Length";
 import Logger from "@server/logging/Logger";
+import { Buckets } from "./helpers/AttachmentHelper";
 
 @Table({ tableName: "attachments", modelName: "attachment" })
 @Fix
@@ -76,6 +77,17 @@ class Attachment extends IdModel<
    */
   get name() {
     return path.parse(this.key).base;
+  }
+
+  /**
+   * Whether the attachment is stored in a public bucket. This does not relate
+   * to the ACL of the attachment itself. Previously "public" attachments were
+   * stored in a separate bucket – now all attachments are stored in a private
+   * bucket and ACL is checked per attachment.
+   */
+  get isStoredInPublicBucket() {
+    const bucket = this.key.split("/")[0];
+    return [Buckets.avatars, Buckets.public].includes(bucket as Buckets);
   }
 
   /**

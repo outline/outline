@@ -1,14 +1,10 @@
 import some from "lodash/some";
 import { action, observable } from "mobx";
-import {
-  EditorState,
-  NodeSelection,
-  Selection,
-  Plugin,
-  TextSelection,
-} from "prosemirror-state";
-import { EditorView } from "prosemirror-view";
-import Extension, { WidgetProps } from "@shared/editor/lib/Extension";
+import type { EditorState, Selection } from "prosemirror-state";
+import { NodeSelection, Plugin, TextSelection } from "prosemirror-state";
+import type { EditorView } from "prosemirror-view";
+import type { WidgetProps } from "@shared/editor/lib/Extension";
+import Extension from "@shared/editor/lib/Extension";
 import { isInNotice } from "@shared/editor/queries/isInNotice";
 import { isMarkActive } from "@shared/editor/queries/isMarkActive";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";

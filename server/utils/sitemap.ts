@@ -1,5 +1,5 @@
 import escape from "lodash/escape";
-import { NavigationNode } from "@shared/types";
+import type { NavigationNode } from "@shared/types";
 
 /**
  * Converts a navigation tree to a sitemap XML string, by traversing the nodes.

@@ -4,21 +4,21 @@ import { now } from "mobx-utils";
 import { UserPreferenceDefaults } from "@shared/constants";
 import {
   NotificationEventDefaults,
-  NotificationEventType,
+  type NotificationEventType,
   TeamPreference,
   UserPreference,
-  UserPreferences,
+  type UserPreferences,
   UserRole,
 } from "@shared/types";
 import type { NotificationSettings } from "@shared/types";
-import { locales } from "@shared/utils/date";
+import type { locales } from "@shared/utils/date";
 import { client } from "~/utils/ApiClient";
-import Document from "./Document";
-import Group from "./Group";
-import UserMembership from "./UserMembership";
+import type Document from "./Document";
+import type Group from "./Group";
+import type UserMembership from "./UserMembership";
 import ParanoidModel from "./base/ParanoidModel";
 import Field from "./decorators/Field";
-import { Searchable } from "./interfaces/Searchable";
+import type { Searchable } from "./interfaces/Searchable";
 
 class User extends ParanoidModel implements Searchable {
   static modelName = "User";

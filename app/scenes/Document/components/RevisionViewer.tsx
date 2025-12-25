@@ -1,13 +1,14 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { colorPalette } from "@shared/utils/collections";
-import Document from "~/models/Document";
-import Revision from "~/models/Revision";
+import type Document from "~/models/Document";
+import type Revision from "~/models/Revision";
+import type { Props as EditorProps } from "~/components/Editor";
 import Flex from "~/components/Flex";
 import { documentPath } from "~/utils/routeHelpers";
 import { Meta as DocumentMeta } from "./DocumentMeta";
 import DocumentTitle from "./DocumentTitle";
-import Editor, { Props as EditorProps } from "~/components/Editor";
+import Editor from "~/components/Editor";
 import { withUIExtensions } from "~/editor/extensions";
 import { richExtensions, withComments } from "@shared/editor/nodes";
 import Diff from "@shared/editor/extensions/Diff";

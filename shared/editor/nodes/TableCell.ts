@@ -1,17 +1,14 @@
-import { Token } from "markdown-it";
-import { NodeSpec, Slice } from "prosemirror-model";
-import { EditorState, Plugin, PluginKey } from "prosemirror-state";
-import { DecorationSet, Decoration } from "prosemirror-view";
-import { addRowBefore, selectRow, selectTable } from "../commands/table";
-import { getCellAttrs, setCellAttrs } from "../lib/table";
+import type { Token } from "markdown-it";
 import {
-  getCellsInColumn,
-  getRowIndexInMap,
-  isRowSelected,
-  isTableSelected,
-} from "../queries/table";
-import { EditorStyleHelper } from "../styles/EditorStyleHelper";
-import { cn } from "../styles/utils";
+  type Node as ProsemirrorNode,
+  type NodeSpec,
+  Slice,
+} from "prosemirror-model";
+import type { EditorState } from "prosemirror-state";
+import { Plugin, PluginKey } from "prosemirror-state";
+import { Decoration, DecorationSet } from "prosemirror-view";
+import { TableMap } from "prosemirror-tables";
+import { getCellAttrs, setCellAttrs } from "../lib/table";
 import Node from "./Node";
 
 export default class TableCell extends Node {
@@ -49,108 +46,85 @@ export default class TableCell extends Node {
   }
 
   get plugins() {
-    function buildAddRowDecoration(pos: number, index: number) {
-      const className = cn(EditorStyleHelper.tableAddRow, {
-        first: index === 0,
-      });
-
-      return Decoration.widget(
-        pos + 1,
-        () => {
-          const plus = document.createElement("a");
-          plus.role = "button";
-          plus.className = className;
-          plus.dataset.index = index.toString();
-          return plus;
-        },
-        {
-          key: cn(className, index),
-        }
-      );
-    }
-
-    const createRowDecorations = (state: EditorState) => {
-      if (!this.editor.view?.editable) {
-        return DecorationSet.empty;
-      }
-
+    const createCellDecorations = (state: EditorState) => {
       const { doc } = state;
       const decorations: Decoration[] = [];
-      const rows = getCellsInColumn(0)(state);
 
-      if (rows) {
-        rows.forEach((pos, visualIndex) => {
-          const actualRowIndex = getRowIndexInMap(visualIndex, state);
-          const index = actualRowIndex !== -1 ? actualRowIndex : visualIndex;
+      // Iterate through all tables in the document
+      doc.descendants((node: ProsemirrorNode, pos: number) => {
+        if (node.type.spec.tableRole === "table") {
+          const map = TableMap.get(node);
 
-          if (index === 0) {
-            const className = cn(EditorStyleHelper.tableGrip, {
-              selected: isTableSelected(state),
-            });
+          // Mark cells in the first column and last row of this table
+          node.descendants((cellNode: ProsemirrorNode, cellPos: number) => {
+            if (
+              cellNode.type.spec.tableRole === "cell" ||
+              cellNode.type.spec.tableRole === "header_cell"
+            ) {
+              const cellOffset = cellPos;
+              const cellIndex = map.map.indexOf(cellOffset);
 
-            decorations.push(
-              Decoration.widget(
-                pos + 1,
-                () => {
-                  const grip = document.createElement("a");
-                  grip.role = "button";
-                  grip.className = className;
-                  return grip;
-                },
-                {
-                  key: className,
+              if (cellIndex !== -1) {
+                const col = cellIndex % map.width;
+                const row = Math.floor(cellIndex / map.width);
+                const rowspan = cellNode.attrs.rowspan || 1;
+                const colspan = cellNode.attrs.colspan || 1;
+                const attrs: Record<string, string> = {};
+
+                if (col === 0) {
+                  attrs["data-first-column"] = "true";
                 }
-              )
-            );
-          }
 
-          const className = cn(EditorStyleHelper.tableGripRow, {
-            selected: isRowSelected(index)(state) || isTableSelected(state),
-            first: index === 0,
-            last: visualIndex === rows.length - 1,
-          });
+                // Mark cells that extend into the last column (accounting for colspan)
+                if (col + colspan >= map.width) {
+                  attrs["data-last-column"] = "true";
+                }
 
-          decorations.push(
-            Decoration.widget(
-              pos + 1,
-              () => {
-                const grip = document.createElement("a");
-                grip.role = "button";
-                grip.className = className;
-                grip.dataset.index = index.toString();
-                return grip;
-              },
-              {
-                key: cn(className, index),
+                // Mark cells that extend into the last row (accounting for rowspan)
+                if (row + rowspan >= map.height) {
+                  attrs["data-last-row"] = "true";
+                }
+
+                if (Object.keys(attrs).length > 0) {
+                  decorations.push(
+                    Decoration.node(
+                      pos + cellPos + 1,
+                      pos + cellPos + 1 + cellNode.nodeSize,
+                      attrs
+                    )
+                  );
+                }
               }
-            )
-          );
-
-          if (index === 0) {
-            decorations.push(buildAddRowDecoration(pos, index));
-          }
-
-          decorations.push(buildAddRowDecoration(pos, index + 1));
-        });
-      }
+            }
+          });
+        }
+      });
 
       return DecorationSet.create(doc, decorations);
     };
 
     return [
       new Plugin({
-        key: new PluginKey("table-cell-decorations"),
+        key: new PluginKey("table-cell-attributes"),
         state: {
-          init: (_, state) => createRowDecorations(state),
+          init: (_, state) => createCellDecorations(state),
           apply: (tr, pluginState, oldState, newState) => {
-            // Only recompute if selection or document changed
-            if (!tr.selectionSet && !tr.docChanged) {
+            // Only recompute if document changed
+            if (!tr.docChanged) {
               return pluginState;
             }
 
-            return createRowDecorations(newState);
+            return createCellDecorations(newState);
           },
         },
+        props: {
+          decorations(state) {
+            return this.getState(state);
+          },
+        },
+      }),
+      new Plugin({
+        key: new PluginKey("table-cell-copy-transform"),
         props: {
           transformCopied: (slice) => {
             // check if the copied selection is a single table, with a single row, with a single cell. If so,
@@ -180,54 +154,6 @@ export default class TableCell extends Node {
             }
 
             return slice;
-          },
-          handleDOMEvents: {
-            mousedown: (view, event) => {
-              if (!(event.target instanceof HTMLElement)) {
-                return false;
-              }
-
-              const targetAddRow = event.target.closest(
-                `.${EditorStyleHelper.tableAddRow}`
-              );
-              if (targetAddRow) {
-                event.preventDefault();
-                event.stopImmediatePropagation();
-                const index = Number(targetAddRow.getAttribute("data-index"));
-
-                addRowBefore({ index })(view.state, view.dispatch);
-                return true;
-              }
-
-              const targetGrip = event.target.closest(
-                `.${EditorStyleHelper.tableGrip}`
-              );
-              if (targetGrip) {
-                event.preventDefault();
-                event.stopImmediatePropagation();
-                selectTable()(view.state, view.dispatch);
-                return true;
-              }
-
-              const targetGripRow = event.target.closest(
-                `.${EditorStyleHelper.tableGripRow}`
-              );
-              if (targetGripRow) {
-                event.preventDefault();
-                event.stopImmediatePropagation();
-
-                selectRow(
-                  Number(targetGripRow.getAttribute("data-index")),
-                  event.metaKey || event.shiftKey
-                )(view.state, view.dispatch);
-                return true;
-              }
-
-              return false;
-            },
-          },
-          decorations(state) {
-            return this.getState(state);
           },
         },
       }),

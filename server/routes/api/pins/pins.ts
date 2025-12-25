@@ -11,7 +11,7 @@ import {
   presentDocument,
   presentPolicies,
 } from "@server/presenters";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -99,6 +99,13 @@ router.post(
   async (ctx: APIContext<T.PinsListReq>) => {
     const { collectionId } = ctx.input.body;
     const { user } = ctx.state.auth;
+
+    if (collectionId) {
+      const collection = await Collection.findByPk(collectionId, {
+        userId: user.id,
+      });
+      authorize(user, "read", collection);
+    }
 
     const [pins, collectionIds] = await Promise.all([
       Pin.findAll({

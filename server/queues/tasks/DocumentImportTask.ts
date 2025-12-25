@@ -1,4 +1,4 @@
-import { SourceMetadata } from "@shared/types";
+import type { SourceMetadata } from "@shared/types";
 import documentCreator from "@server/commands/documentCreator";
 import documentImporter from "@server/commands/documentImporter";
 import { createContext } from "@server/context";

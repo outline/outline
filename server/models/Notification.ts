@@ -19,7 +19,8 @@ import {
   AfterCreate,
   DefaultScope,
 } from "sequelize-typescript";
-import { NotificationData, NotificationEventType } from "@shared/types";
+import type { NotificationData } from "@shared/types";
+import { NotificationEventType } from "@shared/types";
 import { getBaseDomain } from "@shared/utils/domains";
 import env from "@server/env";
 import Model from "@server/models/base/Model";

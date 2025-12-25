@@ -34,6 +34,7 @@ You're an expert in the following areas:
 - Emphasize type safety and static analysis.
 - Follow consistent Prettier formatting.
 - Do not replace smart quotes ("") or ('') with simple quotes ("").
+- Do not create new MD files.
 
 ## Dependencies and Upgrading
 
@@ -62,8 +63,8 @@ yarn install
 2. Public static methods
 3. Public variables
 4. Public methods
-6. Protected variables & methods
-8. Private variables & methods
+5. Protected variables & methods
+6. Private variables & methods
 
 ### Exports
 
@@ -141,20 +142,21 @@ yarn sequelize migration:create --name=add-field-to-table
 - Run tests with Jest:
 
 ```bash
-# Run all tests
+# Run a specific test file (preferred)
+yarn test path/to/test.spec.ts
+
+# Run every test (avoid)
 yarn test
 
-# Run specific test suites
-yarn test:app      # Frontend tests
-yarn test:server   # Backend tests
-yarn test:shared   # Shared code tests
-
-# Run specific test file
-yarn test path/to/test.spec.ts
+# Run test suites (avoid)
+yarn test:app      # All frontend tests
+yarn test:server   # All backend tests
+yarn test:shared   # All shared code tests
 ```
 
 - Write unit tests for utilities and business logic in a collocated .test.ts file.
-- Mock external dependencies appropriately in __mocks__ folder.
+- Do not create new test directories
+- Mock external dependencies appropriately in **mocks** folder.
 - Aim for high code coverage but focus on critical paths.
 
 ## Code Quality
