@@ -66,7 +66,6 @@ export function getRowIndexInMap(
   if (!isInTable(state)) {
     return -1;
   }
-
   const rect = selectedRect(state);
   const cells = getCellsInColumn(0)(state);
 
@@ -85,6 +84,71 @@ export function getRowIndexInMap(
   }
 
   return -1;
+}
+
+/**
+ * Get the actual row positions in the table map, accounting for merged cells.
+ *
+ * Iterates through each visual row and returns the position of the first unique cell in that row.
+ * This ensures correct row identification even when cells span multiple rows (rowspan > 1).
+ *
+ * @param state The editor state
+ * @returns Array of cell positions representing the first unique cell in each row
+ */
+export function getRowsInTable(state: EditorState): number[] {
+  if (!isInTable(state)) {
+    return [];
+  }
+
+  const rect = selectedRect(state);
+  const rows: number[] = [];
+  const seenCells = new Set<number>();
+
+  for (let row = 0; row < rect.map.height; row++) {
+    // Find the leftmost cell in this row
+    for (let col = 0; col < rect.map.width; col++) {
+      const cellPos =
+        rect.tableStart + rect.map.map[row * rect.map.width + col];
+      if (!seenCells.has(cellPos)) {
+        rows.push(cellPos);
+        seenCells.add(cellPos);
+        break; // Only add the first unique cell per row
+      }
+    }
+  }
+
+  return rows;
+}
+
+/**
+ * Get the actual column positions in the table map, accounting for merged cells.
+ *
+ * @param state The editor state
+ * @returns Array of cell positions representing the first unique cell in each column
+ */
+export function getColumnsInTable(state: EditorState): number[] {
+  if (!isInTable(state)) {
+    return [];
+  }
+
+  const rect = selectedRect(state);
+  const columns: number[] = [];
+  const seenCells = new Set<number>();
+
+  for (let col = 0; col < rect.map.width; col++) {
+    // Find the topmost cell in this column
+    for (let row = 0; row < rect.map.height; row++) {
+      const cellPos =
+        rect.tableStart + rect.map.map[row * rect.map.width + col];
+      if (!seenCells.has(cellPos)) {
+        columns.push(cellPos);
+        seenCells.add(cellPos);
+        break; // Only add the first unique cell per column
+      }
+    }
+  }
+
+  return columns;
 }
 
 export function getCellsInColumn(index: number) {
@@ -196,14 +260,10 @@ export function isHeaderEnabled(
  * @returns Boolean indicating if the row is selected
  */
 export function isRowSelected(index: number) {
-  return (state: EditorState): boolean => {
-    if (isRowSelection(state)) {
-      const rect = selectedRect(state);
-      return rect.top <= index && rect.bottom > index;
-    }
-
-    return false;
-  };
+  return (state: EditorState): boolean =>
+    state.selection instanceof RowSelection && state.selection.isRowSelection()
+      ? state.selection.$index === index
+      : false;
 }
 
 /**
