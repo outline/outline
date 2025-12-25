@@ -6,8 +6,8 @@ import {
   OpenIcon,
   ReturnIcon,
 } from "outline-icons";
-import { Mark } from "prosemirror-model";
-import { EditorView } from "prosemirror-view";
+import type { Mark } from "prosemirror-model";
+import type { EditorView } from "prosemirror-view";
 import * as React from "react";
 import { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
@@ -18,7 +18,7 @@ import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
 import Flex from "~/components/Flex";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Scrollable from "~/components/Scrollable";
-import { Dictionary } from "~/hooks/useDictionary";
+import type { Dictionary } from "~/hooks/useDictionary";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import { client } from "~/utils/ApiClient";
@@ -274,7 +274,8 @@ const LinkEditor: React.FC<Props> = ({
 const InputWrapper = styled(Flex)`
   pointer-events: all;
   gap: 6px;
-  padding: 6px;
+  padding: 4px 6px;
+  align-items: center;
 `;
 
 const SearchResults = styled(Scrollable)<{ $hasResults: boolean }>`
@@ -297,7 +298,7 @@ const SearchResults = styled(Scrollable)<{ $hasResults: boolean }>`
   @media (hover: none) and (pointer: coarse) {
     position: fixed;
     top: auto;
-    bottom: 40px;
+    bottom: 46px;
     border-radius: 0;
     max-height: 50vh;
     padding: 8px 8px 4px;

@@ -9,7 +9,7 @@ import { authorize } from "@server/policies";
 import { presentPolicies } from "@server/presenters";
 import presentOAuthAuthentication from "@server/presenters/oauthAuthentication";
 import { sequelize } from "@server/storage/database";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";

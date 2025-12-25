@@ -1,5 +1,5 @@
 import { Matches } from "class-validator";
-import { InferAttributes, InferCreationAttributes } from "sequelize";
+import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
   Column,
   DataType,
@@ -47,6 +47,14 @@ class OAuthAuthorizationCode extends IdModel<
   @Column
   @SkipChangeset
   codeChallengeMethod?: string;
+
+  /**
+   * The ID of the grant that this authorization code belongs to. Used for
+   * refresh token rotation and revocation of all tokens in a grant.
+   */
+  @Column(DataType.UUID)
+  @SkipChangeset
+  grantId: string | null;
 
   /** A list of scopes that this authorization code has access to */
   @Matches(/[\/\.\w\s]*/, {

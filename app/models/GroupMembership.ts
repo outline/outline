@@ -1,5 +1,5 @@
 import { observable } from "mobx";
-import { CollectionPermission, DocumentPermission } from "@shared/types";
+import type { CollectionPermission, DocumentPermission } from "@shared/types";
 import Collection from "./Collection";
 import Document from "./Document";
 import Group from "./Group";

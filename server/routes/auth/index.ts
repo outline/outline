@@ -8,7 +8,7 @@ import authMiddleware from "@server/middlewares/authentication";
 import coalesceBody from "@server/middlewares/coaleseBody";
 import { Collection, Team, View } from "@server/models";
 import AuthenticationHelper from "@server/models/helpers/AuthenticationHelper";
-import { AppState, AppContext, APIContext } from "@server/types";
+import type { AppState, AppContext, APIContext } from "@server/types";
 import { verifyCSRFToken } from "@server/middlewares/csrf";
 
 const app = new Koa<AppState, AppContext>();
@@ -21,7 +21,11 @@ void (async () => {
   for (const provider of AuthenticationHelper.providers) {
     const resolvedRouter = await provider.value.router;
     if (resolvedRouter) {
-      router.use("/", resolvedRouter.routes());
+      router.use(
+        "/",
+        authMiddleware({ optional: true }),
+        resolvedRouter.routes()
+      );
     }
   }
 })();
@@ -30,7 +34,7 @@ router.get("/redirect", authMiddleware(), async (ctx: APIContext) => {
   const { user } = ctx.state.auth;
   const jwtToken = user.getJwtToken();
 
-  if (jwtToken === ctx.params.token) {
+  if (jwtToken === ctx.state.auth.token) {
     throw AuthenticationError("Cannot extend token");
   }
 

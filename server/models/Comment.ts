@@ -1,5 +1,5 @@
 import { Node } from "prosemirror-model";
-import { InferAttributes, InferCreationAttributes } from "sequelize";
+import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
   DataType,
   BelongsTo,
@@ -21,6 +21,7 @@ import { type HookContext } from "./base/Model";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
 import TextLength from "./validators/TextLength";
+import { SkipChangeset } from "./decorators/Changeset";
 
 @DefaultScope(() => ({
   include: [
@@ -51,6 +52,7 @@ class Comment extends ParanoidModel<
     msg: `Comment data is too large`,
   })
   @Column(DataType.JSONB)
+  @SkipChangeset
   data: ProsemirrorData;
 
   @Column(DataType.JSONB)

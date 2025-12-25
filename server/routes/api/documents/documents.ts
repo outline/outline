@@ -11,9 +11,11 @@ import isNil from "lodash/isNil";
 import remove from "lodash/remove";
 import uniq from "lodash/uniq";
 import mime from "mime-types";
-import { Op, ScopeOptions, Sequelize, WhereOptions } from "sequelize";
+import type { Order, ScopeOptions, WhereOptions } from "sequelize";
+import { Op, Sequelize } from "sequelize";
 import { randomUUID } from "crypto";
-import { NavigationNode, StatusFilter, UserRole } from "@shared/types";
+import type { NavigationNode } from "@shared/types";
+import { StatusFilter, UserRole } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import slugify from "@shared/utils/slugify";
 import documentCreator from "@server/commands/documentCreator";
@@ -65,12 +67,11 @@ import {
   presentGroupMembership,
   presentGroup,
 } from "@server/presenters";
-import DocumentImportTask, {
-  DocumentImportTaskResponse,
-} from "@server/queues/tasks/DocumentImportTask";
+import type { DocumentImportTaskResponse } from "@server/queues/tasks/DocumentImportTask";
+import DocumentImportTask from "@server/queues/tasks/DocumentImportTask";
 import EmptyTrashTask from "@server/queues/tasks/EmptyTrashTask";
 import FileStorage from "@server/storage/files";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import ZipHelper from "@server/utils/ZipHelper";
 import { getTeamFromContext } from "@server/utils/passport";
@@ -145,9 +146,13 @@ router.post(
       // index sort is special because it uses the order of the documents in the
       // collection.documentStructure rather than a database column
       if (sort === "index") {
+        // Extract all document IDs from the collection structure.
         documentIds = (collection.documentStructure || [])
           .map((node) => node.id)
-          .slice(ctx.state.pagination.offset, ctx.state.pagination.limit);
+          .slice(
+            ctx.state.pagination.offset,
+            ctx.state.pagination.offset + ctx.state.pagination.limit
+          );
         where[Op.and].push({ id: documentIds });
       } // if it's not a backlink request, filter by all collections the user has access to
     } else if (!backlinkDocumentId) {
@@ -271,30 +276,33 @@ router.post(
       });
     }
 
+    // When sorting by index, use array_position to sort by the document order
+    // in the collection structure directly in SQL, enabling correct pagination
+    const orderClause =
+      sort === "index"
+        ? documentIds.length > 0
+          ? [
+              [
+                Sequelize.literal(
+                  `array_position(ARRAY[${documentIds.map((id) => `'${id}'`).join(",")}]::uuid[], "document"."id")`
+                ),
+                direction,
+              ],
+            ]
+          : undefined
+        : [[sort, direction]];
+
+    // When sorting by index, pagination is already handled by slicing documentIds,
+    // so we skip the SQL-level offset to avoid double-pagination
     const [documents, total] = await Promise.all([
       Document.withMembershipScope(user.id).findAll({
         where,
-        order: [
-          [
-            // this needs to be done otherwise findAll will throw citing
-            // that the column "document"."index" doesn't exist – value of sort
-            // is required to be a column name
-            sort === "index" ? "updatedAt" : sort,
-            direction,
-          ],
-        ],
-        offset: ctx.state.pagination.offset,
+        order: orderClause as Order,
+        offset: sort === "index" ? 0 : ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
       }),
       Document.count({ where }),
     ]);
-
-    if (sort === "index") {
-      // sort again so as to retain the order of documents as in collection.documentStructure
-      documents.sort(
-        (a, b) => documentIds.indexOf(a.id) - documentIds.indexOf(b.id)
-      );
-    }
 
     const data = await Promise.all(
       documents.map((document) => presentDocument(ctx, document))
@@ -316,8 +324,13 @@ router.post(
   validate(T.DocumentsArchivedSchema),
   async (ctx: APIContext<T.DocumentsArchivedReq>) => {
     const { sort, direction, collectionId } = ctx.input.body;
-
     const { user } = ctx.state.auth;
+
+    if (sort === "index") {
+      throw ValidationError(
+        "Sorting archived documents by index is not supported"
+      );
+    }
 
     let where: WhereOptions<Document> = {
       teamId: user.teamId,
@@ -325,8 +338,6 @@ router.post(
         [Op.ne]: null,
       },
     };
-
-    let documentIds: string[] = [];
 
     // if a specific collection is passed then we need to check auth to view it
     if (collectionId) {
@@ -336,14 +347,7 @@ router.post(
       });
       authorize(user, "readDocument", collection);
 
-      // index sort is special because it uses the order of the documents in the
-      // collection.documentStructure rather than a database column
-      if (sort === "index") {
-        documentIds = (collection?.documentStructure || [])
-          .map((node) => node.id)
-          .slice(ctx.state.pagination.offset, ctx.state.pagination.limit);
-        where = { ...where, id: documentIds };
-      } // otherwise, filter by all collections the user has access to
+      // otherwise, filter by all collections the user has access to
     } else {
       const collectionIds = await user.collectionIds();
       where = {
@@ -354,25 +358,10 @@ router.post(
 
     const documents = await Document.withMembershipScope(user.id).findAll({
       where,
-      order: [
-        [
-          // this needs to be done otherwise findAll will throw citing
-          // that the column "document"."index" doesn't exist – value of sort
-          // is required to be a column name
-          sort === "index" ? "updatedAt" : sort,
-          direction,
-        ],
-      ],
+      order: [[sort, direction]],
       offset: ctx.state.pagination.offset,
       limit: ctx.state.pagination.limit,
     });
-
-    if (sort === "index") {
-      // sort again so as to retain the order of documents as in collection.documentStructure
-      documents.sort(
-        (a, b) => documentIds.indexOf(a.id) - documentIds.indexOf(b.id)
-      );
-    }
 
     const data = await Promise.all(
       documents.map((document) => presentDocument(ctx, document))
@@ -469,20 +458,14 @@ router.post(
           ]),
           required: true,
           where: {
+            teamId: user.teamId,
             collectionId: collectionIds,
           },
-          include: [
-            {
-              model: Collection.scope({
-                method: ["withMembership", userId],
-              }),
-              as: "collection",
-            },
-          ],
         },
       ],
       offset: ctx.state.pagination.offset,
       limit: ctx.state.pagination.limit,
+      subQuery: false,
     });
     const documents = views.map((view) => {
       const document = view.document;
@@ -522,6 +505,7 @@ router.post(
       ? [collectionId]
       : await user.collectionIds();
     const where: WhereOptions = {
+      teamId: user.teamId,
       createdById: user.id,
       collectionId: {
         [Op.or]: [{ [Op.in]: collectionIds }, { [Op.is]: null }],
@@ -1350,18 +1334,6 @@ router.post(
     });
     authorize(user, "move", document);
 
-    if (collectionId) {
-      const collection = await Collection.findByPk(collectionId, {
-        userId: user.id,
-        transaction,
-      });
-      authorize(user, "updateDocument", collection);
-    } else if (document.template) {
-      authorize(user, "updateTemplate", user.team);
-    } else if (!parentDocumentId) {
-      throw InvalidRequestError("collectionId is required to move a document");
-    }
-
     if (parentDocumentId) {
       const parent = await Document.findByPk(parentDocumentId, {
         userId: user.id,
@@ -1373,6 +1345,16 @@ router.post(
       if (!parent.publishedAt) {
         throw InvalidRequestError("Cannot move document inside a draft");
       }
+    } else if (collectionId) {
+      const collection = await Collection.findByPk(collectionId, {
+        userId: user.id,
+        transaction,
+      });
+      authorize(user, "updateDocument", collection);
+    } else if (document.template) {
+      authorize(user, "updateTemplate", user.team);
+    } else {
+      throw InvalidRequestError("collectionId is required to move a document");
     }
 
     const { documents, collectionChanged } = await documentMover(ctx, {
@@ -1532,7 +1514,6 @@ router.post(
     const acl = "private";
 
     const key = AttachmentHelper.getKey({
-      acl,
       id: randomUUID(),
       name: fileName,
       userId: user.id,
@@ -1719,27 +1700,33 @@ router.post(
       UserMemberships.length ? UserMemberships[0].index : null
     );
 
-    const [membership, isNew] = await UserMembership.findOrCreate({
+    let membership = await UserMembership.findOne({
       where: {
         documentId: id,
         userId,
-      },
-      defaults: {
-        index,
-        permission: permission || user.defaultDocumentPermission,
-        createdById: actor.id,
       },
       lock: transaction.LOCK.UPDATE,
       ...ctx.context,
     });
 
-    if (!isNew && permission) {
-      membership.permission = permission;
-
-      // disconnect from the source if the permission is manually updated
-      membership.sourceId = null;
-
-      await membership.save(ctx.context);
+    if (membership) {
+      if (permission) {
+        membership.permission = permission;
+        // disconnect from the source if the permission is manually updated
+        membership.sourceId = null;
+        await membership.save(ctx.context);
+      }
+    } else {
+      membership = await UserMembership.create(
+        {
+          documentId: id,
+          userId,
+          index,
+          permission: permission || user.defaultDocumentPermission,
+          createdById: actor.id,
+        },
+        ctx.context
+      );
     }
 
     ctx.body = {
@@ -1820,26 +1807,32 @@ router.post(
     authorize(user, "manageUsers", document);
     authorize(user, "read", group);
 
-    const [membership, created] = await GroupMembership.findOrCreate({
+    let membership = await GroupMembership.findOne({
       where: {
         documentId: id,
         groupId,
-      },
-      defaults: {
-        permission: permission || user.defaultDocumentPermission,
-        createdById: user.id,
       },
       lock: transaction.LOCK.UPDATE,
       ...ctx.context,
     });
 
-    if (!created && permission) {
-      membership.permission = permission;
-
-      // disconnect from the source if the permission is manually updated
-      membership.sourceId = null;
-
-      await membership.save(ctx.context);
+    if (membership) {
+      if (permission) {
+        membership.permission = permission;
+        // disconnect from the source if the permission is manually updated
+        membership.sourceId = null;
+        await membership.save(ctx.context);
+      }
+    } else {
+      membership = await GroupMembership.create(
+        {
+          documentId: id,
+          groupId,
+          permission: permission || user.defaultDocumentPermission,
+          createdById: user.id,
+        },
+        ctx.context
+      );
     }
 
     ctx.body = {

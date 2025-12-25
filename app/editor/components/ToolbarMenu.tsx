@@ -2,10 +2,10 @@ import { useCallback, useMemo } from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import * as Toolbar from "@radix-ui/react-toolbar";
-import { MenuItem } from "@shared/editor/types";
+import type { MenuItem } from "@shared/editor/types";
 import { s } from "@shared/styles";
 import { TooltipProvider } from "~/components/TooltipContext";
-import { MenuItem as TMenuItem } from "~/types";
+import type { MenuItem as TMenuItem } from "~/types";
 import { useEditor } from "./EditorContext";
 import { MediaDimension } from "./MediaDimension";
 import ToolbarButton from "./ToolbarButton";
@@ -72,25 +72,23 @@ function ToolbarDropdown(props: { active: boolean; item: MenuItem }) {
   }, []);
 
   return (
-    <EventBoundary>
-      <MenuProvider variant="dropdown">
-        <Menu>
-          <MenuTrigger>
-            <ToolbarButton aria-label={item.label ? undefined : item.tooltip}>
-              {item.label && <Label>{item.label}</Label>}
-              {item.icon}
-            </ToolbarButton>
-          </MenuTrigger>
-          <MenuContent
-            align="end"
-            aria-label={item.tooltip || t("More options")}
-            onCloseAutoFocus={handleCloseAutoFocus}
-          >
-            {toMenuItems(items)}
-          </MenuContent>
-        </Menu>
-      </MenuProvider>
-    </EventBoundary>
+    <MenuProvider variant="dropdown">
+      <Menu>
+        <MenuTrigger>
+          <ToolbarButton aria-label={item.label ? undefined : item.tooltip}>
+            {item.label && <Label>{item.label}</Label>}
+            {item.icon}
+          </ToolbarButton>
+        </MenuTrigger>
+        <MenuContent
+          align="end"
+          aria-label={item.tooltip || t("More options")}
+          onCloseAutoFocus={handleCloseAutoFocus}
+        >
+          <EventBoundary>{toMenuItems(items)}</EventBoundary>
+        </MenuContent>
+      </Menu>
+    </MenuProvider>
   );
 }
 

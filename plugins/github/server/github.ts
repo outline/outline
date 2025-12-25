@@ -4,17 +4,16 @@ import {
   type OAuthWebFlowAuthOptions,
   type InstallationAuthOptions,
 } from "@octokit/auth-app";
-import { Endpoints, OctokitResponse } from "@octokit/types";
+import { Sequelize } from "sequelize";
+import type { Endpoints, OctokitResponse } from "@octokit/types";
 import { Octokit } from "octokit";
 import pluralize from "pluralize";
-import {
-  IntegrationService,
-  IntegrationType,
-  UnfurlResourceType,
-} from "@shared/types";
+import type { IntegrationType } from "@shared/types";
+import { IntegrationService, UnfurlResourceType } from "@shared/types";
 import Logger from "@server/logging/Logger";
-import { Integration, User } from "@server/models";
-import { UnfurlIssueOrPR, UnfurlSignature } from "@server/types";
+import type { User } from "@server/models";
+import { Integration } from "@server/models";
+import type { UnfurlIssueOrPR, UnfurlSignature } from "@server/types";
 import { GitHubUtils } from "../shared/GitHubUtils";
 import env from "./env";
 
@@ -229,11 +228,22 @@ export class GitHub {
       return;
     }
 
+    // Find integration, prioritizing one where the installation account matches the resource owner
     const integration = (await Integration.findOne({
       where: {
         service: IntegrationService.GitHub,
         teamId: actor.teamId,
-        "settings.github.installation.account.name": resource.owner,
+      },
+      order: [
+        [
+          Sequelize.literal(
+            `CASE WHEN "settings"->'github'->'installation'->'account'->>'name' = :owner THEN 0 ELSE 1 END`
+          ),
+          "ASC",
+        ],
+      ],
+      replacements: {
+        owner: resource.owner,
       },
     })) as Integration<IntegrationType.Embed>;
 

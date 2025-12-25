@@ -1,5 +1,6 @@
 import Router from "koa-router";
-import { WhereOptions, Op } from "sequelize";
+import type { WhereOptions } from "sequelize";
+import { Op } from "sequelize";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -8,7 +9,7 @@ import { Emoji, User, Attachment } from "@server/models";
 import BaseStorage from "@server/storage/files/BaseStorage";
 import { authorize } from "@server/policies";
 import { presentEmoji, presentPolicies } from "@server/presenters";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";

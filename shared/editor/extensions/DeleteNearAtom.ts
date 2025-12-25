@@ -1,4 +1,5 @@
-import { Command, TextSelection } from "prosemirror-state";
+import type { Command } from "prosemirror-state";
+import { TextSelection } from "prosemirror-state";
 import Extension from "../lib/Extension";
 
 /**

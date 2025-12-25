@@ -1,6 +1,6 @@
 import { addMinutes, subMinutes } from "date-fns";
 import invariant from "invariant";
-import {
+import type {
   InferAttributes,
   InferCreationAttributes,
   SaveOptions,
@@ -43,7 +43,7 @@ class UserAuthentication extends IdModel<
   providerId: string;
 
   @Column(DataType.DATE)
-  expiresAt: Date;
+  expiresAt: Date | null;
 
   @Column(DataType.DATE)
   lastValidatedAt: Date;
@@ -145,7 +145,7 @@ class UserAuthentication extends IdModel<
     authenticationProvider: AuthenticationProvider,
     options: SaveOptions
   ): Promise<boolean> {
-    if (this.expiresAt > addMinutes(Date.now(), 5)) {
+    if (this.expiresAt && this.expiresAt > addMinutes(Date.now(), 5)) {
       Logger.debug(
         "authentication",
         "Existing token is still valid, skipping refresh"
@@ -186,7 +186,7 @@ class UserAuthentication extends IdModel<
         this.refreshToken = response.refreshToken;
       }
       this.accessToken = response.accessToken;
-      this.expiresAt = response.expiresAt;
+      this.expiresAt = response.expiresAt ?? null;
       await this.save(options);
     }
 

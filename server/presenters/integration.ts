@@ -1,4 +1,4 @@
-import { Integration } from "@server/models";
+import type { Integration } from "@server/models";
 
 export default function presentIntegration(integration: Integration) {
   return {

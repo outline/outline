@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { AttachmentPreset, CollectionPermission } from "@shared/types";
 import { UserMembership } from "@server/models";
 import Attachment from "@server/models/Attachment";
@@ -425,11 +426,6 @@ describe("#attachments.delete", () => {
 });
 
 describe("#attachments.redirect", () => {
-  it("should require authentication", async () => {
-    const res = await server.post("/api/attachments.redirect");
-    expect(res.status).toEqual(401);
-  });
-
   it("should return a redirect for an attachment belonging to a document user has access to", async () => {
     const user = await buildUser();
     const attachment = await buildAttachment({
@@ -516,6 +512,35 @@ describe("#attachments.redirect", () => {
       redirect: "manual",
     });
     expect(res.status).toEqual(302);
+  });
+
+  it("should return a redirect for an attachment in a public bucket without authentication", async () => {
+    const attachment = await buildAttachment({
+      key: `public/${randomUUID()}/test.png`,
+      acl: "public-read",
+    });
+    const res = await server.post("/api/attachments.redirect", {
+      body: {
+        id: attachment.id,
+      },
+      redirect: "manual",
+    });
+    expect(res.status).toEqual(302);
+    expect(res.headers.get("location")).toContain(attachment.canonicalUrl);
+  });
+
+  it("should return a redirect for a public-read attachment without authentication (not in public bucket)", async () => {
+    const attachment = await buildAttachment({
+      acl: "public-read",
+    });
+    const res = await server.post("/api/attachments.redirect", {
+      body: {
+        id: attachment.id,
+      },
+      redirect: "manual",
+    });
+    expect(res.status).toEqual(302);
+    expect(res.headers.get("location")).toContain(await attachment.signedUrl);
   });
 
   it("should not return a redirect for a private attachment belonging to a document user does not have access to", async () => {

@@ -1,5 +1,5 @@
 import * as React from "react";
-import * as TooltipPrimitive from "@radix-ui/react-tooltip";
+import type * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import styled from "styled-components";
 import Scrollable from "~/components/Scrollable";
 import {
@@ -13,7 +13,7 @@ import { MenuProvider } from "~/components/primitives/Menu/MenuContext";
 import { actionToMenuItem } from "~/actions";
 import useActionContext from "~/hooks/useActionContext";
 import useMobile from "~/hooks/useMobile";
-import {
+import type {
   ActionVariant,
   ActionWithChildren,
   MenuItem,

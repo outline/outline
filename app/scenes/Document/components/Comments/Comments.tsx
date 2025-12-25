@@ -4,13 +4,15 @@ import { useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
-import { ProsemirrorData, UserPreference } from "@shared/types";
+import type { ProsemirrorData } from "@shared/types";
+import { UserPreference } from "@shared/types";
 import ButtonSmall from "~/components/ButtonSmall";
 import { useDocumentContext } from "~/components/DocumentContext";
 import Empty from "~/components/Empty";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
+import { ArrowDownIcon } from "~/components/Icons/ArrowIcon";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import { useFocusedComment } from "~/hooks/useFocusedComment";
 import useKeyDown from "~/hooks/useKeyDown";
@@ -18,13 +20,13 @@ import usePersistedState from "~/hooks/usePersistedState";
 import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
-import { CommentSortOption, CommentSortType } from "~/types";
+import type { CommentSortOption } from "~/types";
+import { CommentSortType } from "~/types";
 import CommentForm from "./CommentForm";
 import CommentSortMenu from "./CommentSortMenu";
 import CommentThread from "./CommentThread";
-import Sidebar from "./SidebarLayout";
+import Sidebar from "../SidebarLayout";
 import useMobile from "~/hooks/useMobile";
-import { ArrowDownIcon } from "~/components/Icons/ArrowIcon";
 
 function Comments() {
   const { ui, comments, documents } = useStores();
@@ -222,6 +224,7 @@ const NoComments = styled(Flex)`
 
 const Wrapper = styled.div<{ $hasComments: boolean }>`
   height: ${(props) => (props.$hasComments ? "auto" : "100%")};
+  padding-bottom: 60px;
 `;
 
 const JumpToRecent = styled(ButtonSmall)`

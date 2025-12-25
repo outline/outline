@@ -12,7 +12,7 @@ import validate from "@server/middlewares/validate";
 import { Document, Share, Team, User, Group, GroupUser } from "@server/models";
 import { authorize, can } from "@server/policies";
 import presentUnfurl from "@server/presenters/unfurl";
-import { APIContext, Unfurl } from "@server/types";
+import type { APIContext, Unfurl } from "@server/types";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import { Hook, PluginManager } from "@server/utils/PluginManager";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";

@@ -1,4 +1,4 @@
-import { ColumnSort } from "@tanstack/react-table";
+import type { ColumnSort } from "@tanstack/react-table";
 import { observer } from "mobx-react";
 import { PlusIcon, SmileyIcon } from "outline-icons";
 import { useState, useMemo, useCallback, useEffect } from "react";
@@ -21,7 +21,7 @@ import useStores from "~/hooks/useStores";
 import { useTableRequest } from "~/hooks/useTableRequest";
 import EmojisTable from "./components/EmojisTable";
 import { StickyFilters } from "./components/StickyFilters";
-import EmojisStore from "~/stores/EmojiStore";
+import type EmojisStore from "~/stores/EmojiStore";
 
 function Emojis() {
   const location = useLocation();
@@ -126,7 +126,7 @@ function Emojis() {
           "Custom emojis can be used throughout your workspace in documents, comments, and reactions."
         )}
       </Text>
-      <StickyFilters gap={8}>
+      <StickyFilters>
         <InputSearch
           short
           value={query}

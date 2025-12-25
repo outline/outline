@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import { useTranslation, Trans } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
-import Collection from "~/models/Collection";
+import type Collection from "~/models/Collection";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";

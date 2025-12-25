@@ -431,6 +431,43 @@ describe("accountProvisioner", () => {
 
       spy.mockRestore();
     });
+
+    it("should allow connecting a new authentication provider while logged in", async () => {
+      const admin = await buildAdmin();
+      const team = admin.team;
+      const ctxWithAdmin = createContext({ ip, user: admin });
+
+      const providerId = faker.internet.domainName();
+      const { user, isNewTeam, isNewUser } = await accountProvisioner(
+        ctxWithAdmin,
+        {
+          user: {
+            name: admin.name,
+            email: admin.email!,
+          },
+          team: {
+            teamId: team.id,
+            subdomain: team.subdomain!,
+          },
+          authenticationProvider: {
+            name: "google",
+            providerId,
+          },
+          authentication: {
+            providerId: randomUUID(),
+            accessToken: "456",
+            scopes: ["read"],
+          },
+        }
+      );
+
+      expect(user.id).toEqual(admin.id);
+      expect(isNewUser).toEqual(false);
+      expect(isNewTeam).toEqual(false);
+
+      const providers = await team.$get("authenticationProviders");
+      expect(providers.find((p) => p.name === "google")).toBeTruthy();
+    });
   });
 
   describe("self hosted", () => {

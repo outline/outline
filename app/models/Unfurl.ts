@@ -1,5 +1,5 @@
 import { observable } from "mobx";
-import { UnfurlResourceType, UnfurlResponse } from "@shared/types";
+import type { UnfurlResourceType, UnfurlResponse } from "@shared/types";
 import Model from "./base/Model";
 
 class Unfurl<UnfurlType extends UnfurlResourceType> extends Model {

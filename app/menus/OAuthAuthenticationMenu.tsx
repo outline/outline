@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import OAuthAuthentication from "~/models/oauth/OAuthAuthentication";
+import type OAuthAuthentication from "~/models/oauth/OAuthAuthentication";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";

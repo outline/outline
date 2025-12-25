@@ -1,6 +1,7 @@
 import { observer } from "mobx-react";
-import { PublicTeam, TOCPosition } from "@shared/types";
-import DocumentModel from "~/models/Document";
+import type { PublicTeam } from "@shared/types";
+import { TOCPosition } from "@shared/types";
+import type DocumentModel from "~/models/Document";
 import DocumentComponent from "~/scenes/Document/components/Document";
 import { useDocumentContext } from "~/components/DocumentContext";
 import { useTeamContext } from "~/components/TeamContext";

@@ -1,24 +1,19 @@
 import copy from "copy-to-clipboard";
-import { Token } from "markdown-it";
+import type { Token } from "markdown-it";
 import { textblockTypeInputRule } from "prosemirror-inputrules";
-import {
+import type {
   NodeSpec,
   NodeType,
   Schema,
   Node as ProsemirrorNode,
 } from "prosemirror-model";
-import {
-  Command,
-  EditorState,
-  Plugin,
-  PluginKey,
-  TextSelection,
-} from "prosemirror-state";
+import type { Command, EditorState } from "prosemirror-state";
+import { Plugin, PluginKey, TextSelection } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { toast } from "sonner";
-import { Primitive } from "utility-types";
+import type { Primitive } from "utility-types";
 import type { Dictionary } from "~/hooks/useDictionary";
-import { UserPreferences } from "../../types";
+import type { UserPreferences } from "../../types";
 import { isMac } from "../../utils/browser";
 import backspaceToParagraph from "../commands/backspaceToParagraph";
 import {
@@ -39,7 +34,7 @@ import {
   setRecentlyUsedCodeLanguage,
 } from "../lib/code";
 import { isCode } from "../lib/isCode";
-import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { findNextNewline, findPreviousNewline } from "../queries/findNewlines";
 import { findParentNode } from "../queries/findParentNode";
 import { getMarkRange } from "../queries/getMarkRange";

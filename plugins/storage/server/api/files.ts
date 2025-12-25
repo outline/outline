@@ -17,8 +17,8 @@ import { Attachment } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { authorize } from "@server/policies";
 import FileStorage from "@server/storage/files";
-import LocalStorage from "@server/storage/files/LocalStorage";
-import { APIContext } from "@server/types";
+import type LocalStorage from "@server/storage/files/LocalStorage";
+import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { getJWTPayload } from "@server/utils/jwt";
 import * as T from "./schema";
@@ -93,6 +93,10 @@ router.get(
       attachment?.contentType ||
       (fileName ? mime.lookup(fileName) : undefined) ||
       "application/octet-stream";
+
+    if (contentType === "application/pdf") {
+      ctx.remove("X-Frame-Options");
+    }
 
     ctx.set("Accept-Ranges", "bytes");
     ctx.set("Access-Control-Allow-Origin", "*");

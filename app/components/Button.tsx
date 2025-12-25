@@ -1,12 +1,11 @@
-import { LocationDescriptor } from "history";
+import type { LocationDescriptor } from "history";
 import { DisclosureIcon } from "outline-icons";
 import { darken, lighten, transparentize } from "polished";
 import * as React from "react";
 import styled from "styled-components";
 import { s } from "@shared/styles";
-import ActionButton, {
-  Props as ActionButtonProps,
-} from "~/components/ActionButton";
+import type { Props as ActionButtonProps } from "~/components/ActionButton";
+import ActionButton from "~/components/ActionButton";
 import { undraggableOnDesktop } from "~/styles";
 
 type RealProps = {

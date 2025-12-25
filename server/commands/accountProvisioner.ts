@@ -9,18 +9,18 @@ import {
   AuthenticationProviderDisabledError,
 } from "@server/errors";
 import { traceFunction } from "@server/logging/tracing";
+import type { User } from "@server/models";
 import {
   AuthenticationProvider,
   Collection,
   Document,
   Team,
-  User,
 } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { sequelize } from "@server/storage/database";
 import teamProvisioner from "./teamProvisioner";
 import userProvisioner from "./userProvisioner";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import { addSeconds } from "date-fns";
 import { createContext } from "@server/context";
 
@@ -92,6 +92,34 @@ async function accountProvisioner(
 ): Promise<AccountProvisionerResult> {
   let result;
   let emailMatchOnly;
+
+  const actor = ctx.state.auth?.user;
+
+  // If the user is already logged in and is an admin of the team then we
+  // allow them to connect a new authentication provider
+  if (actor && actor.teamId === teamParams.teamId && actor.isAdmin) {
+    const team = actor.team;
+    let authenticationProvider = await AuthenticationProvider.findOne({
+      where: {
+        ...authenticationProviderParams,
+        teamId: team.id,
+      },
+    });
+
+    if (!authenticationProvider) {
+      authenticationProvider = await team.$create<AuthenticationProvider>(
+        "authenticationProvider",
+        authenticationProviderParams
+      );
+    }
+
+    return {
+      user: actor,
+      team,
+      isNewUser: false,
+      isNewTeam: false,
+    };
+  }
 
   try {
     result = await teamProvisioner(ctx, {

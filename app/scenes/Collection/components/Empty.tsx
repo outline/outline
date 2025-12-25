@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import { Trans } from "react-i18next";
 import styled from "styled-components";
-import Collection from "~/models/Collection";
+import type Collection from "~/models/Collection";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";

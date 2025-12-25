@@ -8,7 +8,8 @@ import {
   IsNotEmpty,
   IsUrl,
   IsOptional,
-  IsByteLength,
+  IsHexadecimal,
+  Length,
   IsNumber,
   IsIn,
   IsEmail,
@@ -65,8 +66,9 @@ export class Environment {
    * The secret key is used for encrypting data. Do not change this value once
    * set or your users will be unable to login.
    */
-  @IsByteLength(32, 64, {
-    message: `The SECRET_KEY environment variable is invalid (Use \`openssl rand -hex 32\` to generate a value).`,
+  @IsHexadecimal()
+  @Length(64, 64, {
+    message: `The SECRET_KEY environment variable must be exactly 64 hexadecimal characters (Use \`openssl rand -hex 32\` to generate a value).`,
   })
   public SECRET_KEY = environment.SECRET_KEY ?? "";
 
@@ -741,10 +743,11 @@ export class Environment {
     this.toOptionalNumber(environment.WEBHOOK_FAILURE_RATE_THRESHOLD) ?? 80;
 
   /**
-   * Comma-separated list of IP addresses that are allowed to be accessed
+   * Comma-separated list of IP addresses or CIDR ranges that are allowed to be accessed
    * even if they are private IP addresses. This is useful for allowing
    * connections to OIDC providers or webhooks on private networks.
-   * Example: "10.0.0.1,192.168.1.100"
+   * Supports both individual IP addresses and CIDR notation.
+   * Example: "10.0.0.1,192.168.1.0/24,172.16.0.1"
    */
   @IsOptional()
   public ALLOWED_PRIVATE_IP_ADDRESSES = this.toOptionalCommaList(

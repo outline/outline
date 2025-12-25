@@ -16,6 +16,7 @@ import {
   DrawerContent,
   DrawerTitle,
 } from "~/components/primitives/Drawer";
+import { PortalContext } from "~/components/Portal";
 
 type Props = Omit<React.HTMLAttributes<HTMLDivElement>, "title"> & {
   /* The title of the sidebar */
@@ -31,6 +32,8 @@ type Props = Omit<React.HTMLAttributes<HTMLDivElement>, "title"> & {
 function SidebarLayout({ title, onClose, children, scrollable = true }: Props) {
   const { t } = useTranslation();
   const isMobile = useMobile();
+  const [drawerElement, setDrawerElement] =
+    React.useState<HTMLDivElement | null>(null);
 
   const content = scrollable ? (
     <Scrollable hiddenScrollbars topShadow>
@@ -42,9 +45,11 @@ function SidebarLayout({ title, onClose, children, scrollable = true }: Props) {
 
   return isMobile ? (
     <Drawer onClose={onClose} defaultOpen>
-      <DrawerContent>
+      <DrawerContent ref={setDrawerElement}>
         <DrawerTitle>{title}</DrawerTitle>
-        {content}
+        <PortalContext.Provider value={drawerElement}>
+          {content}
+        </PortalContext.Provider>
       </DrawerContent>
     </Drawer>
   ) : (

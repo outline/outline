@@ -1,6 +1,6 @@
 import { action, observable } from "mobx";
 import { Plugin } from "prosemirror-state";
-import { EditorView } from "prosemirror-view";
+import type { EditorView } from "prosemirror-view";
 import Extension from "@shared/editor/lib/Extension";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import stores from "~/stores";

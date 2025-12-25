@@ -1,5 +1,5 @@
 import { m } from "framer-motion";
-import { LocationDescriptor } from "history";
+import type { LocationDescriptor } from "history";
 import isEqual from "lodash/isEqual";
 import queryString from "query-string";
 import * as React from "react";

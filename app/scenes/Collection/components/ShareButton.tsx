@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import { GlobeIcon, PadlockIcon } from "outline-icons";
 import { Suspense, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
-import Collection from "~/models/Collection";
+import type Collection from "~/models/Collection";
 import Button from "~/components/Button";
 import {
   Popover,

@@ -1,5 +1,5 @@
 import { observable } from "mobx";
-import { CollectionPermission } from "@shared/types";
+import type { CollectionPermission } from "@shared/types";
 import Collection from "./Collection";
 import User from "./User";
 import Model from "./base/Model";

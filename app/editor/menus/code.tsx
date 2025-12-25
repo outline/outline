@@ -1,13 +1,13 @@
 import { CopyIcon, ExpandedIcon } from "outline-icons";
-import { Node as ProseMirrorNode } from "prosemirror-model";
-import { EditorState } from "prosemirror-state";
+import type { Node as ProseMirrorNode } from "prosemirror-model";
+import type { EditorState } from "prosemirror-state";
 import {
   getFrequentCodeLanguages,
   codeLanguages,
   getLabelForLanguage,
 } from "@shared/editor/lib/code";
-import { MenuItem } from "@shared/editor/types";
-import { Dictionary } from "~/hooks/useDictionary";
+import type { MenuItem } from "@shared/editor/types";
+import type { Dictionary } from "~/hooks/useDictionary";
 
 export default function codeMenuItems(
   state: EditorState,

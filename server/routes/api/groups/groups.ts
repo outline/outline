@@ -1,5 +1,6 @@
 import Router from "koa-router";
-import { Op, WhereOptions } from "sequelize";
+import type { WhereOptions } from "sequelize";
+import { Op } from "sequelize";
 import { MAX_AVATAR_DISPLAY } from "@shared/constants";
 import { GroupPermission } from "@shared/types";
 import auth from "@server/middlewares/authentication";
@@ -14,7 +15,7 @@ import {
   presentPolicies,
   presentUser,
 } from "@server/presenters";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";

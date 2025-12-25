@@ -9,7 +9,7 @@ import type {
   ProsemirrorData,
 } from "@shared/types";
 import {
-  ExportContentType,
+  type ExportContentType,
   FileOperationFormat,
   NavigationNodeType,
   NotificationEventType,
@@ -17,19 +17,18 @@ import {
 import Storage from "@shared/utils/Storage";
 import { isRTL } from "@shared/utils/rtl";
 import slugify from "@shared/utils/slugify";
-import DocumentsStore from "~/stores/DocumentsStore";
+import type DocumentsStore from "~/stores/DocumentsStore";
 import User from "~/models/User";
 import type { Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
 import { settingsPath } from "~/utils/routeHelpers";
 import Collection from "./Collection";
-import Notification from "./Notification";
-import Pin from "./Pin";
-import View from "./View";
+import type Notification from "./Notification";
+import type View from "./View";
 import ArchivableModel from "./base/ArchivableModel";
 import Field from "./decorators/Field";
 import Relation from "./decorators/Relation";
-import { Searchable } from "./interfaces/Searchable";
+import type { Searchable } from "./interfaces/Searchable";
 
 type SaveOptions = JSONObject & {
   publish?: boolean;
@@ -494,16 +493,11 @@ export default class Document extends ArchivableModel implements Searchable {
   };
 
   @action
-  pin = async (collectionId?: string | null) => {
-    const pin = new Pin({}, this.store.rootStore.pins);
-
-    await pin.save({
+  pin = (collectionId?: string | null) =>
+    this.store.rootStore.pins.create({
       documentId: this.id,
       ...(collectionId ? { collectionId } : {}),
     });
-
-    return pin;
-  };
 
   @action
   unpin = (collectionId?: string) => {

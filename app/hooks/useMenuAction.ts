@@ -1,7 +1,7 @@
 import isEqual from "lodash/isEqual";
 import { useRef } from "react";
 import { createRootMenuAction } from "~/actions";
-import {
+import type {
   ActionGroup,
   ActionSeparator,
   ActionVariant,

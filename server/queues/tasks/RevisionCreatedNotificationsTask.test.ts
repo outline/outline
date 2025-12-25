@@ -1,12 +1,12 @@
 import { createContext } from "@server/context";
 import { parser } from "@server/editor";
+import type { Document } from "@server/models";
 import {
   View,
   Subscription,
   Event,
   Notification,
   Revision,
-  Document,
 } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
 import RevisionCreatedNotificationsTask from "./RevisionCreatedNotificationsTask";

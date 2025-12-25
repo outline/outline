@@ -1,8 +1,10 @@
 import { faker } from "@faker-js/faker";
-import { DeepPartial } from "utility-types";
-import { MentionType, ProsemirrorData } from "@shared/types";
+import type { DeepPartial } from "utility-types";
+import type { ProsemirrorData } from "@shared/types";
+import { MentionType } from "@shared/types";
 import { buildProseMirrorDoc, buildUser } from "@server/test/factories";
-import { MentionAttrs, ProsemirrorHelper } from "./ProsemirrorHelper";
+import type { MentionAttrs } from "./ProsemirrorHelper";
+import { ProsemirrorHelper } from "./ProsemirrorHelper";
 
 describe("ProsemirrorHelper", () => {
   describe("processMentions", () => {

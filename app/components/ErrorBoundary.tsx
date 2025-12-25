@@ -1,7 +1,8 @@
 import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { withTranslation, Trans, WithTranslation } from "react-i18next";
+import type { WithTranslation } from "react-i18next";
+import { withTranslation, Trans } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { UrlHelper } from "@shared/utils/UrlHelper";

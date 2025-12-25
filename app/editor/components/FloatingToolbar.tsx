@@ -263,10 +263,6 @@ const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
   const { height } = useWindowSize();
 
   if (isMobile) {
-    if (!props.children) {
-      return null;
-    }
-
     if (props.active && position.visible) {
       const rect = document.body.getBoundingClientRect();
       const safeAreaInsets = getSafeAreaInsets();
@@ -281,7 +277,9 @@ const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
               }px)`,
             }}
           >
-            {props.children}
+            {props.children && (
+              <MobileBackground>{props.children}</MobileBackground>
+            )}
           </MobileWrapper>
         </ReactPortal>
       );
@@ -345,13 +343,20 @@ const MobileWrapper = styled.div`
   position: absolute;
   left: 0;
   right: 0;
-
   width: 100vw;
-  padding: 10px 6px;
-  background-color: ${s("menuBackground")};
-  border-top: 1px solid ${s("divider")};
   box-sizing: border-box;
   z-index: ${depths.editorToolbar};
+
+  @media print {
+    display: none;
+  }
+`;
+
+const MobileBackground = styled.div`
+  padding: 10px 6px;
+  height: 60px;
+  background-color: ${s("menuBackground")};
+  border-top: 1px solid ${s("divider")};
 
   &:after {
     content: "";
@@ -360,10 +365,6 @@ const MobileWrapper = styled.div`
     right: 0;
     height: 100px;
     background-color: ${s("menuBackground")};
-  }
-
-  @media print {
-    display: none;
   }
 `;
 

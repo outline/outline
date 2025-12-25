@@ -1,4 +1,4 @@
-import { Import } from "@server/models";
+import type { Import } from "@server/models";
 import presentUser from "./user";
 
 export default function presentImport(
