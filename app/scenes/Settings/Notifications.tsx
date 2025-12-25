@@ -19,12 +19,12 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
 import { NotificationEventType } from "@shared/types";
-import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import Notice from "~/components/Notice";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
+import { HStack } from "~/components/primitives/HStack";
 import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -200,9 +200,9 @@ function Notifications() {
             key={option.event}
             visible={option.visible}
             label={
-              <Flex align="center" gap={4}>
+              <HStack spacing={4}>
                 {option.icon} {option.title}
-              </Flex>
+              </HStack>
             }
             name={option.event}
             description={option.description}

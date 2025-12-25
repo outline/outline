@@ -26,6 +26,7 @@ import { Bubble } from "./CommentThreadItem";
 import { HighlightedText } from "./HighlightText";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 import { mergeRefs } from "react-merge-refs";
+import { HStack } from "~/components/primitives/HStack";
 
 const CommentEditor = lazyWithRetry(() => import("./CommentEditor"));
 
@@ -332,14 +333,14 @@ function CommentForm({
           />
           {(inputFocused || draft) && (
             <Flex justify="space-between" reverse={dir === "rtl"} gap={8}>
-              <Flex gap={8}>
+              <HStack>
                 <ButtonSmall type="submit" borderOnHover>
                   {thread && !thread.isNew ? t("Reply") : t("Post")}
                 </ButtonSmall>
                 <ButtonSmall onClick={handleCancel} neutral borderOnHover>
                   {t("Cancel")}
                 </ButtonSmall>
-              </Flex>
+              </HStack>
               <Tooltip content={t("Upload image")} placement="top">
                 <NudeButton onClick={handleImageUpload}>
                   <ImageIcon color={theme.textTertiary} />

@@ -54,6 +54,7 @@ import { useEditor } from "~/editor/components/EditorContext";
 import { NodeSelection } from "prosemirror-state";
 import { ImageSource } from "@shared/editor/lib/FileHelper";
 import Desktop from "~/utils/Desktop";
+import { HStack } from "./primitives/HStack";
 
 export enum LightboxStatus {
   READY_TO_OPEN,
@@ -1098,16 +1099,13 @@ const ActionButton = styled(Button)`
   background: transparent;
 `;
 
-const Actions = styled.div<{
+const Actions = styled(HStack)<{
   animation: Animation | null;
 }>`
   position: absolute;
   top: 0;
   right: 0;
   margin: 16px 12px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
   z-index: ${depths.modal};
   background: ${(props) => transparentize(0.2, props.theme.background)};
   backdrop-filter: blur(4px);

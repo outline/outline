@@ -19,6 +19,7 @@ import Scrollable from "../Scrollable";
 import Text from "../Text";
 import Tooltip from "../Tooltip";
 import NotificationListItem from "./NotificationListItem";
+import { HStack } from "../primitives/HStack";
 
 type Props = {
   /** Callback when the notification panel wants to close. */
@@ -96,7 +97,7 @@ function Notifications(
           <Text weight="bold" as="span">
             {t("Notifications")}
           </Text>
-          <Flex gap={8} align="center">
+          <HStack>
             <StyledInputSelect
               label={t("Filter")}
               hideLabel
@@ -117,7 +118,7 @@ function Notifications(
               </Tooltip>
             )}
             <NotificationMenu />
-          </Flex>
+          </HStack>
         </Header>
         {isEmpty && (
           <EmptyNotifications>{t("You're all caught up")}.</EmptyNotifications>

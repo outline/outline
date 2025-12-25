@@ -13,6 +13,7 @@ import Flex from "~/components/Flex";
 import PlaceholderText from "~/components/PlaceholderText";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
+import { HStack } from "../primitives/HStack";
 import { CustomEmoji } from "@shared/components/CustomEmoji";
 import { isUUID } from "validator";
 
@@ -49,7 +50,7 @@ const ViewReactionsDialog: React.FC<Props> = ({ model }) => {
   }, [model.reactions, selectedTab]);
 
   if (!reactedUsersLoaded) {
-    return <PlaceHolder />;
+    return <Placeholder />;
   }
 
   return (
@@ -80,7 +81,7 @@ const ViewReactionsDialog: React.FC<Props> = ({ model }) => {
         return (
           <StyledTabPanel key={reaction.emoji} value={reaction.emoji}>
             {reactedUsers.map((user) => (
-              <UserInfo key={user.name} align="center" gap={8}>
+              <UserInfo key={user.name}>
                 <Avatar model={user} size={AvatarSize.Medium} />
                 <Text size="medium">{user.name}</Text>
               </UserInfo>
@@ -92,18 +93,18 @@ const ViewReactionsDialog: React.FC<Props> = ({ model }) => {
   );
 };
 
-const PlaceHolder = React.memo(
+const Placeholder = React.memo(
   () => (
     <>
       <TabActionsWrapper gap={8} style={{ paddingBottom: "10px" }}>
         <PlaceholderText width={40} height={32} />
         <PlaceholderText width={40} height={32} />
       </TabActionsWrapper>
-      <UserInfo align="center" gap={12}>
+      <UserInfo>
         <PlaceholderText width={AvatarSize.Medium} height={AvatarSize.Medium} />
         <PlaceholderText height={34} />
       </UserInfo>
-      <UserInfo align="center" gap={12}>
+      <UserInfo>
         <PlaceholderText width={AvatarSize.Medium} height={AvatarSize.Medium} />
         <PlaceholderText height={34} />
       </UserInfo>
@@ -111,7 +112,7 @@ const PlaceHolder = React.memo(
   ),
   () => true
 );
-PlaceHolder.displayName = "ViewReactionsPlaceholder";
+Placeholder.displayName = "ViewReactionsPlaceholder";
 
 const TabActionsWrapper = styled(Flex)`
   border-bottom: 1px solid ${s("inputBorder")};
@@ -156,7 +157,7 @@ const StyledTabPanel = styled(Tabs.Content)`
   overflow-y: auto;
 `;
 
-const UserInfo = styled(Flex)`
+const UserInfo = styled(HStack)`
   padding: 10px 8px;
 `;
 

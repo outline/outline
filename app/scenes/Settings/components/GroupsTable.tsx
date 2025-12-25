@@ -22,6 +22,7 @@ import { ViewGroupMembersDialog } from "./GroupDialogs";
 import { FILTER_HEIGHT } from "./StickyFilters";
 import NudeButton from "~/components/NudeButton";
 import { AvatarSize } from "~/components/Avatar";
+import { HStack } from "~/components/primitives/HStack";
 
 const ROW_HEIGHT = 60;
 const STICKY_OFFSET = HEADER_HEIGHT + FILTER_HEIGHT;
@@ -51,7 +52,7 @@ export function GroupsTable(props: Props) {
           header: t("Name"),
           accessor: (group) => group.name,
           component: (group) => (
-            <Flex align="center" gap={8}>
+            <HStack>
               <Image>
                 <GroupIcon size={24} />
               </Image>
@@ -66,7 +67,7 @@ export function GroupsTable(props: Props) {
                   />
                 </Text>
               </Flex>
-            </Flex>
+            </HStack>
           ),
           width: "2fr",
         },

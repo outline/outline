@@ -115,7 +115,7 @@ function Shares() {
         </Trans>
       </Text>
 
-      <StickyFilters gap={8}>
+      <StickyFilters>
         <InputSearch
           short
           value={query}

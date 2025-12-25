@@ -126,7 +126,7 @@ function Emojis() {
           "Custom emojis can be used throughout your workspace in documents, comments, and reactions."
         )}
       </Text>
-      <StickyFilters gap={8}>
+      <StickyFilters>
         <InputSearch
           short
           value={query}
