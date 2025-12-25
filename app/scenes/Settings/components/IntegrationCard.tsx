@@ -4,8 +4,9 @@ import styled from "styled-components";
 import { s, ellipsis } from "@shared/styles";
 import type { ConfigItem } from "~/hooks/useSettingsConfig";
 import Button from "../../../components/Button";
-import Flex from "../../../components/Flex";
 import Text from "../../../components/Text";
+import { HStack } from "~/components/primitives/HStack";
+import { VStack } from "~/components/primitives/VStack";
 import { Status } from "./Status";
 
 type Props = {
@@ -18,16 +19,16 @@ function IntegrationCard({ integration, isConnected }: Props) {
 
   return (
     <Card as={Link} to={integration.path}>
-      <Flex align="center" gap={8}>
+      <HStack>
         <integration.icon size={48} />
-        <Flex auto column>
+        <VStack spacing={0} align="flex-start">
           <Name>{integration.name}</Name>
           {isConnected && <Status>{t("Connected")}</Status>}
-        </Flex>
+        </VStack>
         <Button as="span" neutral>
           {isConnected ? t("Configure") : t("Connect")}
         </Button>
-      </Flex>
+      </HStack>
 
       <Description>{integration.description}</Description>
     </Card>
