@@ -611,9 +611,8 @@ export const copyDocumentAsMarkdown = createAction({
       ? stores.documents.get(activeDocumentId)
       : undefined;
     if (document) {
-      const { ProsemirrorHelper } = await import(
-        "~/models/helpers/ProsemirrorHelper"
-      );
+      const { ProsemirrorHelper } =
+        await import("~/models/helpers/ProsemirrorHelper");
       copy(ProsemirrorHelper.toMarkdown(document));
       toast.success(t("Markdown copied to clipboard"));
     }
@@ -633,9 +632,8 @@ export const copyDocumentAsPlainText = createAction({
       ? stores.documents.get(activeDocumentId)
       : undefined;
     if (document) {
-      const { ProsemirrorHelper } = await import(
-        "~/models/helpers/ProsemirrorHelper"
-      );
+      const { ProsemirrorHelper } =
+        await import("~/models/helpers/ProsemirrorHelper");
       copy(ProsemirrorHelper.toPlainText(document));
       toast.success(t("Text copied to clipboard"));
     }

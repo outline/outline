@@ -11,7 +11,7 @@
     "build": "yarn clean && yarn vite:build && yarn build:i18n && yarn build:server",
     "start": "node ./build/server/index.js",
     "dev": "NODE_ENV=development yarn concurrently -n api,collaboration  -c \"blue,magenta\" \"node --inspect=0.0.0.0 build/server/index.js --services=cron,collaboration,websockets,admin,web,worker\"",
-    "dev:backend": "NODE_ENV=development nodemon --exec \"yarn build:server && yarn dev\" -e js,ts,tsx --watch server --watch shared --watch plugins --watch .env --watch .env.local --watch .env.development --ignore *.test.ts --ignore data/ --ignore build/ --ignore app/ --ignore shared/editor --ignore server/migrations",
+    "dev:backend": "NODE_ENV=development nodemon --quiet --exec \"yarn build:server && yarn dev\" -e js,ts,tsx --watch server --watch shared --watch plugins --watch .env --watch .env.local --watch .env.development --ignore \"**/*.test.ts\" --ignore data/ --ignore build/ --ignore app/ --ignore shared/editor --ignore server/migrations",
     "dev:watch": "NODE_ENV=development yarn concurrently -n backend,frontend \"yarn dev:backend\" \"yarn vite:dev\"",
     "lint": "oxlint --type-aware app server shared plugins",
     "lint:changed": "git diff --name-only --diff-filter=ACMRTUXB | grep -E '\\.(js|jsx|ts|tsx)$' | xargs -r oxlint",
@@ -285,6 +285,7 @@
     "@relative-ci/agent": "^4.3.1",
     "@types/addressparser": "^1.0.3",
     "@types/body-scroll-lock": "^3.1.2",
+    "@types/cookie": "0.6.0",
     "@types/crypto-js": "^4.2.2",
     "@types/diff": "^5.0.9",
     "@types/dotenv": "^8.2.3",
@@ -323,7 +324,7 @@
     "@types/png-chunks-extract": "^1.0.2",
     "@types/proxy-from-env": "^1.0.4",
     "@types/quoted-printable": "^1.0.2",
-    "@types/react": "^17.0.34",
+    "@types/react": "17.0.75",
     "@types/react-avatar-editor": "^13.0.4",
     "@types/react-color": "^3.0.13",
     "@types/react-dom": "^17.0.11",
@@ -370,10 +371,12 @@
     "rimraf": "^2.5.4",
     "rollup-plugin-webpack-stats": "2.1.6",
     "terser": "^5.44.1",
-    "typescript": "^5.9.2",
-    "yarn-deduplicate": "^6.0.2"
+    "typescript": "^5.9.2"
   },
   "resolutions": {
+    "@types/react": "17.0.75",
+    "@types/koa": "2.15.0",
+    "@hocuspocus/server": "1.1.2",
     "prosemirror-transform": "1.10.0",
     "body-scroll-lock": "^4.0.0-beta.0",
     "d3": "^7.0.0",
@@ -381,8 +384,9 @@
     "node-fetch": "^2.7.0",
     "js-yaml": "^3.14.1",
     "qs": "6.9.7",
-    "prismjs": "1.30.0"
+    "prismjs": "1.30.0",
+    "cheerio": "1.0.0-rc.12"
   },
   "version": "1.1.0",
-  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+  "packageManager": "yarn@4.11.0"
 }
