@@ -1,6 +1,7 @@
 import type { IntegrationSettings, IntegrationType } from "@shared/types";
 import { IntegrationService, MentionType } from "@shared/types";
 import type Integration from "~/models/Integration";
+import env from "@shared/env";
 
 export const isURLMentionable = ({
   url,
@@ -25,6 +26,13 @@ export const isURLMentionable = ({
         hostname === "linear.app" &&
         settings.linear?.workspace.key === pathParts[1] // ensure installed workspace key matches with the provided url.
       );
+    }
+
+    case IntegrationService.GitLab: {
+      const gitlabHostname = new URL(env.GITLAB_URL || "https://gitlab.com")
+        .hostname;
+
+      return hostname === gitlabHostname;
     }
 
     default:
@@ -55,6 +63,15 @@ export const determineMentionType = ({
     case IntegrationService.Linear: {
       const type = pathParts[2];
       return type === "issue" ? MentionType.Issue : undefined;
+    }
+
+    case IntegrationService.GitLab: {
+      const type = pathParts[pathParts.length - 2];
+      return type === "merge_requests"
+        ? MentionType.PullRequest
+        : type === "issues"
+          ? MentionType.Issue
+          : undefined;
     }
 
     default:
