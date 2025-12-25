@@ -588,8 +588,8 @@ export function selectRow(index: number, expand = false): Command {
       const $pos = state.doc.resolve(rect.tableStart + pos);
       const rowSelection =
         expand && state.selection instanceof CellSelection
-          ? RowSelection.rowSelection(state.selection.$anchorCell, $pos)
-          : RowSelection.rowSelection($pos);
+          ? RowSelection.rowSelection(state.selection.$anchorCell, $pos, index)
+          : RowSelection.rowSelection($pos, $pos, index);
       dispatch(state.tr.setSelection(rowSelection));
       return true;
     }
