@@ -22,6 +22,8 @@ type Props = Omit<EditorProps, "extensions"> & {
   document: Document;
   /** The revision to display */
   revision: Revision;
+  /** Whether to show changes from the previous revision */
+  showChanges?: boolean;
   children?: React.ReactNode;
 };
 
@@ -37,7 +39,7 @@ type Props = Omit<EditorProps, "extensions"> & {
 function RevisionViewer(props: Props, ref: React.Ref<TEditor>) {
   const { document, children, revision } = props;
   const query = useQuery();
-  const showChanges = query.has("changes");
+  const showChanges = props.showChanges ?? query.has("changes");
 
   /**
    * Create editor extensions with the Diff extension configured to render
