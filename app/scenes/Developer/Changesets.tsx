@@ -10,6 +10,7 @@ import stores from "~/stores";
 import { examples } from "./components/ExampleData";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
+import usePersistedState from "~/hooks/usePersistedState";
 import Scrollable from "~/components/Scrollable";
 import Switch from "~/components/Switch";
 import { action } from "mobx";
@@ -22,7 +23,10 @@ function Changesets() {
   const { ui } = useStores();
   const history = useHistory();
   const query = useQuery();
-  const [showChangeset, setShowChangeset] = React.useState(false);
+  const [showChangeset, setShowChangeset] = usePersistedState<boolean>(
+    "show-changeset-json",
+    false
+  );
   const id = query.get("id");
   const selectedExample = examples.find((e) => e.id === id) ?? examples[0];
 
