@@ -1058,23 +1058,123 @@ export const examples: Example[] = [
           type: "embed",
           attrs: {
             href: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-            align: null,
-            width: null,
-            height: null,
-            ...{
-              html: '\u003ciframe width="560" height="315" src="https://www.youtube.com/embed/dQw4w9WgXcQ?si=7T4540C6R3_nE18L" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen\u003e\u003c/iframe\u003e',
-              url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-              provider: "YouTube",
-              title:
-                "Rick Astley - Never Gonna Give You Up (Official Music Video)",
-              description:
-                "\u201cNever Gonna Give You Up\u201d was a global smash hit for Rick Astley in 1987, taken from his debut album \u201cWhenever You Need Somebody\u201d. It was a #1 in ...",
-            },
           },
         },
         {
           type: "paragraph",
           content: [{ type: "text", text: "This is the second paragraph." }],
+        },
+      ],
+    },
+  },
+  {
+    id: "image-layouts",
+    name: "Image Layouts",
+    before: {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "An image." }],
+        },
+        {
+          type: "image",
+          attrs: {
+            src: "https://www.getoutline.com/images/screenshot.png",
+            alt: "Outline",
+          },
+        },
+      ],
+    },
+    after: {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "An image with a right-50 layout." }],
+        },
+        {
+          type: "image",
+          attrs: {
+            src: "https://www.getoutline.com/images/screenshot.png",
+            alt: "Outline",
+            layoutClass: "right-50",
+          },
+        },
+      ],
+    },
+  },
+  {
+    id: "mentions",
+    name: "Mentions",
+    before: {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "A paragraph." }],
+        },
+      ],
+    },
+    after: {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: "A paragraph with mentions to a ",
+            },
+            {
+              type: "mention",
+              attrs: {
+                type: "user",
+                label: "user",
+                modelId: "user-1",
+              },
+            },
+            {
+              type: "text",
+              text: ", a ",
+            },
+            {
+              type: "mention",
+              attrs: {
+                type: "group",
+                label: "group",
+                modelId: "group-1",
+              },
+            },
+            {
+              type: "text",
+              text: ", a ",
+            },
+            {
+              type: "mention",
+              attrs: {
+                type: "document",
+                label: "document",
+                modelId: "doc-1",
+              },
+            },
+            {
+              type: "text",
+              text: ", and a ",
+            },
+            {
+              type: "mention",
+              attrs: {
+                type: "collection",
+                label: "collection",
+                modelId: "collection-1",
+              },
+            },
+            {
+              type: "text",
+              text: ".",
+            },
+          ],
         },
       ],
     },
@@ -1112,6 +1212,189 @@ export const examples: Example[] = [
             {
               type: "paragraph",
               content: [{ type: "text", text: "This is a critical warning!" }],
+            },
+          ],
+        },
+        {
+          type: "container_notice",
+          attrs: { style: "success" },
+          content: [
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "This is a success message." }],
+            },
+          ],
+        },
+        {
+          type: "container_notice",
+          attrs: { style: "tip" },
+          content: [
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "This is a helpful tip." }],
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    id: "math",
+    name: "Math",
+    before: {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: "An equation: ",
+            },
+          ],
+        },
+      ],
+    },
+    after: {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: "An equation: ",
+            },
+            {
+              type: "math_inline",
+              content: [{ type: "text", text: "a^2 + b^2 = c^2" }],
+            },
+          ],
+        },
+        {
+          type: "math_block",
+          content: [{ type: "text", text: "E = mc^2" }],
+        },
+      ],
+    },
+  },
+  {
+    id: "pdf-attachment",
+    name: "PDF Attachment",
+    before: {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "A PDF." }],
+        },
+      ],
+    },
+    after: {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "A PDF." }],
+        },
+        {
+          type: "attachment",
+          attrs: {
+            href: "https://www.getoutline.com/dummy.pdf",
+            title: "dummy.pdf",
+            size: 12345,
+            preview: true,
+            contentType: "application/pdf",
+          },
+        },
+      ],
+    },
+  },
+  {
+    id: "video",
+    name: "Video",
+    before: {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "A video." }],
+        },
+      ],
+    },
+    after: {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "A video." }],
+        },
+        {
+          type: "video",
+          attrs: {
+            src: "https://www.getoutline.com/dummy.mp4",
+            title: "dummy.mp4",
+            width: 640,
+            height: 480,
+          },
+        },
+      ],
+    },
+  },
+  {
+    id: "collapsed-heading",
+    name: "Collapsed Heading",
+    before: {
+      type: "doc",
+      content: [
+        {
+          type: "heading",
+          attrs: { level: 1 },
+          content: [{ type: "text", text: "Heading" }],
+        },
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "Some content." }],
+        },
+      ],
+    },
+    after: {
+      type: "doc",
+      content: [
+        {
+          type: "heading",
+          attrs: { level: 1, collapsed: true },
+          content: [{ type: "text", text: "Heading" }],
+        },
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "Some content." }],
+        },
+      ],
+    },
+  },
+  {
+    id: "custom-emoji",
+    name: "Custom Emoji",
+    before: {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "A custom emoji." }],
+        },
+      ],
+    },
+    after: {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [
+            { type: "text", text: "A custom emoji: " },
+            {
+              type: "emoji",
+              attrs: { "data-name": "c4f345ab-1c37-4348-ab68-1a423aad47e3" },
             },
           ],
         },
@@ -1193,7 +1476,10 @@ export const examples: Example[] = [
         {
           type: "paragraph",
           content: [
-            { type: "text", text: "Check out this document for more info." },
+            {
+              type: "text",
+              text: "Check out this document for more info.",
+            },
           ],
         },
       ],
