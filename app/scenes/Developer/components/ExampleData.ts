@@ -759,6 +759,279 @@ export const examples: Example[] = [
     },
   },
   {
+    id: "table-remove-row",
+    name: "Table: Remove Row",
+    before: {
+      type: "doc",
+      content: [
+        {
+          type: "table",
+          content: [
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "th",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Header 1" }],
+                    },
+                  ],
+                },
+                {
+                  type: "th",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Header 2" }],
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "td",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Cell 1" }],
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Cell 2" }],
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "td",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Cell 3" }],
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Cell 4" }],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    after: {
+      type: "doc",
+      content: [
+        {
+          type: "table",
+          content: [
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "th",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Header 1" }],
+                    },
+                  ],
+                },
+                {
+                  type: "th",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Header 2" }],
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "td",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Cell 1" }],
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Cell 2" }],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    id: "table-remove-column",
+    name: "Table: Remove Column",
+    before: {
+      type: "doc",
+      content: [
+        {
+          type: "table",
+          content: [
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "th",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Header 1" }],
+                    },
+                  ],
+                },
+                {
+                  type: "th",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Header 2" }],
+                    },
+                  ],
+                },
+                {
+                  type: "th",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Header 3" }],
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "td",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Cell 1" }],
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Cell 2" }],
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Cell 3" }],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    after: {
+      type: "doc",
+      content: [
+        {
+          type: "table",
+          content: [
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "th",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Header 1" }],
+                    },
+                  ],
+                },
+                {
+                  type: "th",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Header 2" }],
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "td",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Cell 1" }],
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Cell 2" }],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     id: "notices",
     name: "Notice Nodes",
     before: {
