@@ -276,7 +276,7 @@ const codeBlockStyle = (props: Props) => css`
 `;
 
 const diffStyle = (props: Props) => css`
-  .diff-insertion,
+  .diff-insertion:not([class^="component-"]),
   .diff-insertion > * {
     color: ${props.theme.textDiffInserted};
     background-color: ${props.theme.textDiffInsertedBackground};
@@ -289,7 +289,7 @@ const diffStyle = (props: Props) => css`
     }
   }
 
-  .diff-deletion,
+  .diff-deletion:not([class^="component-"]),
   .diff-deletion > * {
     color: ${props.theme.textDiffDeleted};
     background-color: ${props.theme.textDiffDeletedBackground};
