@@ -3,6 +3,7 @@ import * as React from "react";
 import { useHistory } from "react-router-dom";
 import styled from "styled-components";
 import Flex from "~/components/Flex";
+import Heading from "~/components/Heading";
 import ListItem from "~/components/List/Item";
 import Scene from "~/components/Scene";
 import RevisionViewer from "~/scenes/Document/components/RevisionViewer";
@@ -14,6 +15,7 @@ import usePersistedState from "~/hooks/usePersistedState";
 import Scrollable from "~/components/Scrollable";
 import Switch from "~/components/Switch";
 import { action } from "mobx";
+import type { Revision } from "~/models/Revision";
 
 /**
  * Changesets scene for developer playground.
@@ -27,6 +29,8 @@ function Changesets() {
     "show-changeset-json",
     false
   );
+  const [showBeforeAfterDocs, setShowBeforeAfterDocs] =
+    usePersistedState<boolean>("show-before-after-docs", false);
   const id = query.get("id");
   const selectedExample = examples.find((e) => e.id === id) ?? examples[0];
 
@@ -38,7 +42,9 @@ function Changesets() {
   React.useEffect(
     action(() => {
       stores.revisions.data.clear();
+      stores.documents.data.clear();
 
+      // Mock the main document (after state)
       stores.documents.add({
         id: "mock-document-id",
         title: selectedExample.name,
@@ -48,38 +54,63 @@ function Changesets() {
         data: selectedExample.after,
       });
 
+      // Mock the "before" revision
+      stores.revisions.add({
+        id: "mock-before-revision-" + id,
+        documentId: "mock-document-id",
+        title: selectedExample.name + " (Before)",
+        createdAt: "2024-01-01T12:00:00.000Z",
+        data: selectedExample.before,
+        html: "", // Required for Revision model
+        text: "", // Required for Revision model
+      } as Revision);
+
+      // Mock the "after" revision
+      stores.revisions.add({
+        id: "mock-after-revision-" + id,
+        documentId: "mock-document-id",
+        title: selectedExample.name + " (After)",
+        createdAt: "2024-01-02T12:00:00.000Z",
+        data: selectedExample.after,
+        html: "", // Required for Revision model
+        text: "", // Required for Revision model
+      } as Revision);
+
+      // Mock the revision that will be used for diffing
       // Revisions are sorted by createdAt desc in the store.
       // The "before" version must be older than the "after" version.
       stores.revisions.add({
-        id: "mock-before-" + id,
-        documentId: "mock-document-id",
-        title: selectedExample.name,
-        createdAt: "2024-01-01T12:00:00.000Z",
-        data: selectedExample.before,
-      });
-
-      stores.revisions.add({
-        id: "mock-after-" + id,
+        id: "mock-diff-revision-" + id,
         documentId: "mock-document-id",
         title: selectedExample.name,
         createdAt: "2024-01-02T12:00:00.000Z",
         data: selectedExample.after,
       });
     }),
-    [selectedExample]
+    [selectedExample, id]
   );
 
   const mockDocument = stores.documents.get("mock-document-id");
-  const mockRevision = stores.revisions.get("mock-after-" + id);
+  const mockDiffRevision = stores.revisions.get("mock-diff-revision-" + id);
+  const mockBeforeRevision = stores.revisions.get("mock-before-revision-" + id);
+  const mockAfterRevision = stores.revisions.get("mock-after-revision-" + id);
 
   return (
     <Scene title="Changeset Playground" centered>
-      <Sidebar style={{ left: ui.sidebarWidth + 8 }} column>
+      <Sidebar
+        style={{ left: (ui.sidebarCollapsed ? 16 : ui.sidebarWidth) + 8 }}
+        column
+      >
         <Flex style={{ padding: "0 8px 12px" }}>
           <Switch
             label="Show JSON"
             checked={showChangeset}
             onChange={(checked) => setShowChangeset(checked)}
+          />
+          <Switch
+            label="Show Before/After Docs"
+            checked={showBeforeAfterDocs}
+            onChange={(checked) => setShowBeforeAfterDocs(checked)}
           />
         </Flex>
         <Scrollable>
@@ -99,18 +130,36 @@ function Changesets() {
         </Scrollable>
       </Sidebar>
       <Flex auto column>
-        {mockDocument && mockRevision ? (
+        {mockDocument && mockDiffRevision ? (
           <>
             <RevisionViewer
-              key={mockRevision.id} // Force remount on example change
+              key={mockDiffRevision.id} // Force remount on example change
               document={mockDocument}
-              revision={mockRevision}
-              id={mockRevision.id}
+              revision={mockDiffRevision}
+              id={mockDiffRevision.id}
               showChanges={true}
             />
+            {showBeforeAfterDocs && mockBeforeRevision && mockAfterRevision && (
+              <>
+                <Heading as="h2">Before</Heading>
+                <RevisionViewer
+                  document={mockDocument}
+                  revision={mockBeforeRevision}
+                  id={mockBeforeRevision.id}
+                  showChanges={false}
+                />
+                <Heading as="h2">After</Heading>
+                <RevisionViewer
+                  document={mockDocument}
+                  revision={mockAfterRevision}
+                  id={mockAfterRevision.id}
+                  showChanges={false}
+                />
+              </>
+            )}
             {showChangeset && (
               <Pre>
-                {JSON.stringify(mockRevision.changeset?.changes, null, 2)}
+                {JSON.stringify(mockDiffRevision.changeset?.changes, null, 2)}
               </Pre>
             )}
           </>
@@ -124,7 +173,6 @@ const Sidebar = styled(Flex)`
   position: absolute;
   top: 110px;
   bottom: 0;
-  width: 250px;
 `;
 
 const ExampleItem = styled(ListItem)<{ $active: boolean }>`
