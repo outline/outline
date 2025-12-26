@@ -11,6 +11,7 @@ import { examples } from "./components/ExampleData";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import Scrollable from "~/components/Scrollable";
+import Switch from "~/components/Switch";
 import { action } from "mobx";
 
 /**
@@ -21,6 +22,7 @@ function Changesets() {
   const { ui } = useStores();
   const history = useHistory();
   const query = useQuery();
+  const [showChangeset, setShowChangeset] = React.useState(false);
   const id = query.get("id");
   const selectedExample = examples.find((e) => e.id === id) ?? examples[0];
 
@@ -69,6 +71,13 @@ function Changesets() {
   return (
     <Scene title="Changeset Playground" centered>
       <Sidebar style={{ left: ui.sidebarWidth + 8 }} column>
+        <Flex style={{ padding: "0 8px 12px" }}>
+          <Switch
+            label="Show JSON"
+            checked={showChangeset}
+            onChange={(checked) => setShowChangeset(checked)}
+          />
+        </Flex>
         <Scrollable>
           {examples.map((example) => (
             <ExampleItem
@@ -87,13 +96,20 @@ function Changesets() {
       </Sidebar>
       <Content auto column>
         {mockDocument && mockRevision ? (
-          <RevisionViewer
-            key={mockRevision.id} // Force remount on example change
-            document={mockDocument}
-            revision={mockRevision}
-            id={mockRevision.id}
-            showChanges={true}
-          />
+          <>
+            <RevisionViewer
+              key={mockRevision.id} // Force remount on example change
+              document={mockDocument}
+              revision={mockRevision}
+              id={mockRevision.id}
+              showChanges={true}
+            />
+            {showChangeset && (
+              <Pre>
+                {JSON.stringify(mockRevision.changeset?.changes, null, 2)}
+              </Pre>
+            )}
+          </>
         ) : null}
       </Content>
     </Scene>
@@ -103,6 +119,8 @@ function Changesets() {
 const Sidebar = styled(Flex)`
   position: absolute;
   top: 110px;
+  bottom: 0;
+  width: 250px;
 `;
 
 const ExampleItem = styled(ListItem)<{ $active: boolean }>`
@@ -117,6 +135,18 @@ const ExampleItem = styled(ListItem)<{ $active: boolean }>`
 const Content = styled(Flex)`
   overflow-y: auto;
   background: ${(props) => props.theme.background};
+`;
+
+const Pre = styled.pre`
+  background: ${(props) => props.theme.codeBackground};
+  color: ${(props) => props.theme.code};
+  padding: 16px;
+  margin: 16px 0;
+  border-radius: 4px;
+  font-size: 12px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 `;
 
 export default observer(Changesets);
