@@ -553,7 +553,7 @@ export type ProsemirrorData = {
   attrs?: JSONObject;
   marks?: {
     type: string;
-    attrs: JSONObject;
+    attrs?: JSONObject;
   }[];
 };
 
