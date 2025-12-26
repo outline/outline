@@ -200,4 +200,159 @@ describe("documentDuplicator", () => {
     );
     expect(duplicatedChild?.sourceMetadata?.fileName).toEqual("child.md");
   });
+
+  it("should remap internal relative links within duplicated tree (parent↔child, sibling↔sibling) and keep absolute links unchanged", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    // Tree:
+    // parent
+    // ├── childA
+    // └── childB
+    const parent = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      title: "Parent",
+      collectionId: collection.id,
+    });
+
+    const childA = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      title: "Child A",
+      parentDocumentId: parent.id,
+      collectionId: collection.id,
+    });
+
+    const childB = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      title: "Child B",
+      parentDocumentId: parent.id,
+      collectionId: collection.id,
+    });
+
+    await collection.addDocumentToStructure(parent);
+    await collection.addDocumentToStructure(childA);
+    await collection.addDocumentToStructure(childB);
+
+    const oldParentUrlId = parent.urlId;
+    const oldBUrlId = childB.urlId;
+
+    const absoluteLink = "https://example.com/some/page?x=1#anchor";
+
+    const pm = (...paragraphs: any[]) => ({
+      type: "doc",
+      content: paragraphs,
+    });
+
+    const pLink = (href: string) => ({
+      type: "paragraph",
+      content: [
+        {
+          type: "text",
+          text: "link",
+          marks: [{ type: "link", attrs: { href } }],
+        },
+      ],
+    });
+
+    // parent -> childB + absolute link (absolute must remain unchanged)
+    await parent.update({
+      content: pm(
+        pLink(`/doc/child-b-${oldBUrlId}?x=1#h-b`),
+        pLink(absoluteLink)
+      ),
+    });
+
+    // childA -> parent + sibling childA -> childB + absolute link
+    await childA.update({
+      content: pm(
+        pLink(`/doc/parent-${oldParentUrlId}#h-top`),
+        pLink(`/doc/child-b-${oldBUrlId}#h-sib`),
+        pLink(absoluteLink)
+      ),
+    });
+
+    // childB: no child->parent scenario (not needed)
+    await childB.update({
+      content: pm(pLink(absoluteLink)),
+    });
+
+    const duplicated = await withAPIContext(user, (ctx) =>
+      documentDuplicator(ctx, {
+        document: parent,
+        collection: parent.collection,
+        recursive: true,
+      })
+    );
+
+    const dupParent = duplicated.find(
+      (d) => d.sourceMetadata?.originalDocumentId === parent.id
+    )!;
+    const dupA = duplicated.find(
+      (d) => d.sourceMetadata?.originalDocumentId === childA.id
+    )!;
+    const dupB = duplicated.find(
+      (d) => d.sourceMetadata?.originalDocumentId === childB.id
+    )!;
+
+    const collectHrefs = (pmJson: any) => {
+      const hrefs: string[] = [];
+
+      const walk = (n: any) => {
+        if (!n) {
+          return;
+        }
+
+        if (Array.isArray(n)) {
+          n.forEach(walk);
+          return;
+        }
+
+        if (typeof n !== "object") {
+          return;
+        }
+
+        if (n.marks) {
+          for (const m of n.marks) {
+            if (m.type === "link" && m.attrs?.href) {
+              hrefs.push(m.attrs.href);
+            }
+          }
+        }
+
+        if (n.content) {
+          walk(n.content);
+        }
+      };
+
+      walk(pmJson);
+      return hrefs;
+    };
+
+    const parentHrefs = collectHrefs(dupParent.content);
+    const aHrefs = collectHrefs(dupA.content);
+
+    // parent -> childB remapped
+    expect(parentHrefs).toContain(`/doc/child-b-${dupB.urlId}?x=1#h-b`);
+
+    // childA -> parent remapped
+    expect(aHrefs).toContain(`/doc/parent-${dupParent.urlId}#h-top`);
+
+    // sibling: childA -> childB remapped
+    expect(aHrefs).toContain(`/doc/child-b-${dupB.urlId}#h-sib`);
+
+    // absolute link unchanged (parent + child)
+    expect(parentHrefs).toContain(absoluteLink);
+    expect(aHrefs).toContain(absoluteLink);
+
+    // old relative links should be gone FROM HREFS
+    const allHrefs = [...parentHrefs, ...aHrefs].join("\n");
+    expect(allHrefs).not.toContain(`/doc/child-b-${oldBUrlId}`);
+    expect(allHrefs).not.toContain(`/doc/parent-${oldParentUrlId}`);
+  });
 });
