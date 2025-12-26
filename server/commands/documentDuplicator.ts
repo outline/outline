@@ -75,7 +75,7 @@ export default async function documentDuplicator(
   const idMap = new Map<string, string>();
   const urlIdMap = new Map<string, string>();
 
-  const recursiveFlag = recursive ?? true;
+  const recursiveFlag = (recursive ?? true) && !document.template;
 
   const originalCollection = document?.collectionId
     ? await Collection.findByPk(document.collectionId, {
