@@ -3,7 +3,7 @@ import type { Command } from "prosemirror-state";
 import { Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import type { Node } from "prosemirror-model";
-import { DOMSerializer } from "prosemirror-model";
+import { DOMSerializer, Fragment } from "prosemirror-model";
 import scrollIntoView from "scroll-into-view-if-needed";
 import Extension from "../lib/Extension";
 import type { Change } from "prosemirror-changeset";
@@ -133,10 +133,37 @@ export default class Diff extends Extension {
             isCurrent ? ` ${this.options.currentChangeClassName}` : ""
           }`
         );
+
+        if (!deletion.data.slice) {
+          return;
+        }
+
+        const $pos = doc.resolve(start);
+        const isInCode = !!$pos.parent.type.spec.code;
+
+        // Add a debug class to verify this code is being executed
+        dom.classList.add("diff-debug-marker");
+
+        /**
+         * Recursively unwrap nodes that are redundant or invalid given the
+         * current context.
+         */
+        const unwrap = (fragment: Fragment): Node[] => {
+          const result: Node[] = [];
+          fragment.forEach((node: Node) => {
+            if (node.isBlock && (isInCode || $pos.parent.type.inlineContent)) {
+              result.push(...unwrap(node.content));
+            } else {
+              result.push(node);
+            }
+          });
+          return result;
+        };
+
+        const fragment = Fragment.from(unwrap(deletion.data.slice.content));
+
         dom.appendChild(
-          DOMSerializer.fromSchema(doc.type.schema).serializeFragment(
-            deletion.data.slice.content
-          )
+          DOMSerializer.fromSchema(doc.type.schema).serializeFragment(fragment)
         );
 
         decorations.push(

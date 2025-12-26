@@ -93,10 +93,10 @@ export class AttributeEncoder implements TokenEncoder<string | number> {
     // Add node attributes if they exist
     let nodeStr = nodeName;
 
-    // TODO: Re-enable attribute encoding if needed
-    // if (Object.keys(node.attrs).length) {
-    //   nodeStr += ":" + JSON.stringify(node.attrs);
-    // }
+    // Enable more attribute encoding as tested
+    if (node.type.name === "mention" && Object.keys(node.attrs).length) {
+      nodeStr += ":" + JSON.stringify(node.attrs);
+    }
 
     if (!marks.length) {
       return nodeStr;

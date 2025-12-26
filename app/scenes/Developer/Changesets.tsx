@@ -15,7 +15,6 @@ import usePersistedState from "~/hooks/usePersistedState";
 import Scrollable from "~/components/Scrollable";
 import Switch from "~/components/Switch";
 import { action } from "mobx";
-import type { Revision } from "~/models/Revision";
 
 /**
  * Changesets scene for developer playground.
@@ -58,23 +57,19 @@ function Changesets() {
       stores.revisions.add({
         id: "mock-before-revision-" + id,
         documentId: "mock-document-id",
-        title: selectedExample.name + " (Before)",
+        title: "Before",
         createdAt: "2024-01-01T12:00:00.000Z",
         data: selectedExample.before,
-        html: "", // Required for Revision model
-        text: "", // Required for Revision model
-      } as Revision);
+      });
 
       // Mock the "after" revision
       stores.revisions.add({
         id: "mock-after-revision-" + id,
         documentId: "mock-document-id",
-        title: selectedExample.name + " (After)",
+        title: "After",
         createdAt: "2024-01-02T12:00:00.000Z",
         data: selectedExample.after,
-        html: "", // Required for Revision model
-        text: "", // Required for Revision model
-      } as Revision);
+      });
 
       // Mock the revision that will be used for diffing
       // Revisions are sorted by createdAt desc in the store.
@@ -101,7 +96,7 @@ function Changesets() {
         style={{ left: (ui.sidebarCollapsed ? 16 : ui.sidebarWidth) + 8 }}
         column
       >
-        <Flex style={{ padding: "0 8px 12px" }}>
+        <Flex style={{ padding: "0 8px 32px" }} column>
           <Switch
             label="Show JSON"
             checked={showChangeset}
@@ -141,14 +136,12 @@ function Changesets() {
             />
             {showBeforeAfterDocs && mockBeforeRevision && mockAfterRevision && (
               <>
-                <Heading as="h2">Before</Heading>
                 <RevisionViewer
                   document={mockDocument}
                   revision={mockBeforeRevision}
                   id={mockBeforeRevision.id}
                   showChanges={false}
                 />
-                <Heading as="h2">After</Heading>
                 <RevisionViewer
                   document={mockDocument}
                   revision={mockAfterRevision}
@@ -158,9 +151,12 @@ function Changesets() {
               </>
             )}
             {showChangeset && (
-              <Pre>
-                {JSON.stringify(mockDiffRevision.changeset?.changes, null, 2)}
-              </Pre>
+              <>
+                <Heading>Changeset</Heading>
+                <Pre>
+                  {JSON.stringify(mockDiffRevision.changeset?.changes, null, 2)}
+                </Pre>
+              </>
             )}
           </>
         ) : null}

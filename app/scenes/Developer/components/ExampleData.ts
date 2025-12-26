@@ -1075,14 +1075,7 @@ export const examples: Example[] = [
       content: [
         {
           type: "paragraph",
-          content: [{ type: "text", text: "An image." }],
-        },
-        {
-          type: "image",
-          attrs: {
-            src: "https://www.getoutline.com/images/screenshot.png",
-            alt: "Outline",
-          },
+          content: [{ type: "text", text: "An image gets added" }],
         },
       ],
     },
@@ -1091,14 +1084,13 @@ export const examples: Example[] = [
       content: [
         {
           type: "paragraph",
-          content: [{ type: "text", text: "An image with a right-50 layout." }],
+          content: [{ type: "text", text: "An image gets added" }],
         },
         {
           type: "image",
           attrs: {
             src: "https://www.getoutline.com/images/screenshot.png",
             alt: "Outline",
-            layoutClass: "right-50",
           },
         },
       ],
@@ -1108,15 +1100,6 @@ export const examples: Example[] = [
     id: "mentions",
     name: "Mentions",
     before: {
-      type: "doc",
-      content: [
-        {
-          type: "paragraph",
-          content: [{ type: "text", text: "A paragraph." }],
-        },
-      ],
-    },
-    after: {
       type: "doc",
       content: [
         {
@@ -1137,6 +1120,20 @@ export const examples: Example[] = [
             {
               type: "text",
               text: ", a ",
+            },
+          ],
+        },
+      ],
+    },
+    after: {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: "A paragraph with mentions to a ",
             },
             {
               type: "mention",
