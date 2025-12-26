@@ -1,12 +1,7 @@
 import type { Mark, Slice } from "prosemirror-model";
 import { Node, Schema } from "prosemirror-model";
-import type {
-  Change,
-  TokenEncoder} from "prosemirror-changeset";
-import {
-  ChangeSet,
-  simplifyChanges
-} from "prosemirror-changeset";
+import type { Change, TokenEncoder } from "prosemirror-changeset";
+import { ChangeSet, simplifyChanges } from "prosemirror-changeset";
 import { ReplaceStep, type Step } from "prosemirror-transform";
 import ExtensionManager from "./ExtensionManager";
 import { recreateTransform } from "./prosemirror-recreate-transform";
@@ -97,11 +92,15 @@ export class AttributeEncoder implements TokenEncoder<string | number> {
 
     // Add node attributes if they exist
     let nodeStr = nodeName;
-    if (Object.keys(node.attrs).length) {
-      nodeStr += ":" + JSON.stringify(node.attrs);
-    }
 
-    if (!marks.length) {return nodeStr;}
+    // TODO: Re-enable attribute encoding if needed
+    // if (Object.keys(node.attrs).length) {
+    //   nodeStr += ":" + JSON.stringify(node.attrs);
+    // }
+
+    if (!marks.length) {
+      return nodeStr;
+    }
 
     return `${nodeStr}:${this.encodeMarks(marks)}`;
   }
@@ -112,9 +111,10 @@ export class AttributeEncoder implements TokenEncoder<string | number> {
       type.schema.cached.changeSetIDs ||
       (type.schema.cached.changeSetIDs = Object.create(null));
     let id = cache[type.name];
-    if (id === null)
-      {cache[type.name] = id =
-        Object.keys(type.schema.nodes).indexOf(type.name) + 1;}
+    if (id === null) {
+      cache[type.name] = id =
+        Object.keys(type.schema.nodes).indexOf(type.name) + 1;
+    }
     return id;
   }
 
