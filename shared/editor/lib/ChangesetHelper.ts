@@ -1,11 +1,15 @@
-import { Node, Schema } from "prosemirror-model";
-import type { Change } from "prosemirror-changeset";
-import { ChangeSet, simplifyChanges } from "prosemirror-changeset";
+import { Node, Schema, Slice } from "prosemirror-model";
+import {
+  Change,
+  ChangeSet,
+  simplifyChanges,
+  Span,
+} from "prosemirror-changeset";
+import { ReplaceStep, type Step } from "prosemirror-transform";
 import ExtensionManager from "./ExtensionManager";
 import { recreateTransform } from "./prosemirror-recreate-transform";
 import { richExtensions, withComments } from "../nodes";
 import type { ProsemirrorData } from "../../types";
-import type { Step } from "prosemirror-transform";
 
 export type DiffChanges = {
   changes: readonly Change[];
@@ -13,6 +17,13 @@ export type DiffChanges = {
 };
 
 export class ChangesetHelper {
+  /**
+   * Calculates a changeset between two revisions of a document.
+   *
+   * @param revision - The current revision data.
+   * @param previousRevision - The previous revision data to compare against.
+   * @returns An object containing the simplified changes and the new document.
+   */
   public static getChangeset(
     revision?: ProsemirrorData | null,
     previousRevision?: ProsemirrorData | null
@@ -42,12 +53,26 @@ export class ChangesetHelper {
         wordDiffs: true,
         simplifyDiff: true,
       });
-      const changeset = ChangeSet.create<Step>(docOld).addSteps(
+
+      // Map steps to capture the actual content being replaced from the document
+      // state at that specific step. This ensures deleted content is correctly
+      // captured for diff rendering.
+      const changeset = ChangeSet.create<{
+        step: Step;
+        slice: Slice | null;
+      }>(docOld).addSteps(
         tr.doc,
         tr.mapping.maps,
-        tr.steps
+        tr.steps.map((step, i) => ({
+          step,
+          slice:
+            step instanceof ReplaceStep
+              ? tr.docs[i].slice(step.from, step.to)
+              : null,
+        }))
       );
-      const changes = simplifyChanges(changeset.changes, docNew);
+
+      let changes = simplifyChanges(changeset.changes, docNew);
 
       return {
         changes,
