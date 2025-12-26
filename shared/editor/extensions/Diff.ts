@@ -107,25 +107,27 @@ export default class Diff extends Extension {
 
     // Add insertion and deletion decorations
     changes?.forEach((change, changeIndex) => {
-      let start = change.fromB;
-      let end = start;
+      let pos = change.fromB;
       const isCurrent = changeIndex === this.currentChangeIndex;
 
       change.inserted.forEach((insertion) => {
-        end = start + insertion.length;
+        const end = pos + insertion.length;
 
         decorations.push(
-          Decoration.inline(start, end, {
+          Decoration.inline(pos, end, {
             class: `${this.options.insertionClassName}${
               isCurrent ? ` ${this.options.currentChangeClassName}` : ""
             }`,
           })
         );
+        pos = end;
       });
 
       change.deleted.forEach((deletion) => {
-        // For deletions, we create a widget decoration that shows
-        // the deleted text in a special way.
+        if (!deletion.data.slice) {
+          return;
+        }
+
         const dom = document.createElement("span");
         dom.setAttribute(
           "class",
@@ -134,15 +136,7 @@ export default class Diff extends Extension {
           }`
         );
 
-        if (!deletion.data.slice) {
-          return;
-        }
-
-        const $pos = doc.resolve(start);
-        const isInCode = !!$pos.parent.type.spec.code;
-
-        // Add a debug class to verify this code is being executed
-        dom.classList.add("diff-debug-marker");
+        const $pos = doc.resolve(change.fromB);
 
         /**
          * Recursively unwrap nodes that are redundant or invalid given the
@@ -151,7 +145,23 @@ export default class Diff extends Extension {
         const unwrap = (fragment: Fragment): Node[] => {
           const result: Node[] = [];
           fragment.forEach((node: Node) => {
-            if (node.isBlock && (isInCode || $pos.parent.type.inlineContent)) {
+            let isRedundant = false;
+
+            for (let d = 0; d <= $pos.depth; d++) {
+              const ancestor = $pos.node(d);
+              if (
+                ancestor.type.name === node.type.name ||
+                (ancestor.type.spec.code && node.type.spec.code)
+              ) {
+                isRedundant = true;
+                break;
+              }
+            }
+
+            if (
+              node.isBlock &&
+              (isRedundant || $pos.parent.type.inlineContent)
+            ) {
               result.push(...unwrap(node.content));
             } else {
               result.push(node);
@@ -167,7 +177,7 @@ export default class Diff extends Extension {
         );
 
         decorations.push(
-          Decoration.widget(start, () => dom, {
+          Decoration.widget(change.fromB, () => dom, {
             side: -1,
           })
         );
