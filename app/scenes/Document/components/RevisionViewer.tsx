@@ -9,7 +9,6 @@ import { documentPath } from "~/utils/routeHelpers";
 import { Meta as DocumentMeta } from "./DocumentMeta";
 import DocumentTitle from "./DocumentTitle";
 import Editor from "~/components/Editor";
-import { withUIExtensions } from "~/editor/extensions";
 import { richExtensions, withComments } from "@shared/editor/nodes";
 import Diff from "@shared/editor/extensions/Diff";
 import useQuery from "~/hooks/useQuery";
@@ -47,7 +46,7 @@ function RevisionViewer(props: Props, ref: React.Ref<TEditor>) {
    */
   const extensions = React.useMemo(
     () => [
-      ...withComments(withUIExtensions(richExtensions)),
+      ...withComments(richExtensions),
       ...(showChanges && revision.changeset?.changes
         ? [new Diff({ changes: revision.changeset?.changes })]
         : []),

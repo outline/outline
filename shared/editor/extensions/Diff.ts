@@ -162,7 +162,6 @@ export default class Diff extends Extension {
 
               if (
                 ancestor.type.name === node.type.name ||
-                (ancestor.type.spec.code && node.type.spec.code) ||
                 (ancestorRole === "row" &&
                   (nodeRole === "cell" || nodeRole === "header_cell")) ||
                 (ancestorRole === "table" && nodeRole === "row")

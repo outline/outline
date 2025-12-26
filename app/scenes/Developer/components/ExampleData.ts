@@ -201,6 +201,15 @@ export const examples: Example[] = [
               content: [
                 {
                   type: "paragraph",
+                  content: [{ type: "text", text: "Item two" }],
+                },
+              ],
+            },
+            {
+              type: "list_item",
+              content: [
+                {
+                  type: "paragraph",
                   content: [{ type: "text", text: "Item three (added)" }],
                 },
               ],
