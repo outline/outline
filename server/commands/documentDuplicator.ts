@@ -3,9 +3,10 @@ import { v4 as uuidv4 } from "uuid";
 import { Collection, Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
-import type { APIContext } from "@server/types";
+import { APIContext } from "@server/types";
 import documentCreator from "./documentCreator";
 import { generateUrlId } from "@server/utils/url";
+import { UrlHelper } from "@shared/utils/UrlHelper";
 
 type Props = {
   /** The document to duplicate */
@@ -35,22 +36,31 @@ function rewriteLinks(json: any, urlIdMap: Map<string, string>): any {
           const href: string = mark.attrs.href;
 
           // domain-relative only
-          if (!href.startsWith("/")) {
+          if (!href.startsWith("/doc/")) {
             continue;
           }
 
-          const match = href.match(/^\/doc\/([^/#?]+)-([A-Za-z0-9]{10})(.*)$/);
+          // remove /doc/
+          let slugUrl = href.slice("/doc/".length);
 
-          if (match) {
-            const slug = match[1];
-            const oldUrlId = match[2];
-            const tail = match[3] || "";
-
-            const newUrlId = urlIdMap.get(oldUrlId);
-            if (newUrlId) {
-              mark.attrs.href = `/doc/${slug}-${newUrlId}${tail}`;
-            }
+          // remove tail: / ? #
+          const tailIndex = slugUrl.search(/[\/?#]/);
+          if (tailIndex !== -1) {
+            slugUrl = slugUrl.slice(0, tailIndex);
           }
+
+          const match = slugUrl.match(UrlHelper.SLUG_URL_REGEX);
+          if (!match) {
+            continue;
+          }
+
+          const oldUrlId = match[1];
+          const newUrlId = urlIdMap.get(oldUrlId);
+          if (!newUrlId) {
+            continue;
+          }
+
+          mark.attrs.href = href.replace(oldUrlId, newUrlId);
         }
       }
     }
