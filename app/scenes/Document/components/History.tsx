@@ -196,7 +196,7 @@ function History() {
   return (
     <Sidebar title={t("History")} onClose={onCloseHistory}>
       <Content>
-        <Text type="secondary" size="small">
+        <Text type="secondary" size="small" as="span">
           <Switch
             label={t("Highlight changes")}
             checked={showChanges}
@@ -222,7 +222,10 @@ function History() {
 }
 
 const Content = styled.div`
-  padding: 0 16px;
+  margin: 0 16px;
+  background: ${(props) => props.theme.inputBorder};
+  border-radius: 8px;
+  padding: 8px 8px 0;
 `;
 
 export default observer(History);
