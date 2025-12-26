@@ -10,7 +10,7 @@ import {
   MenuGroup,
 } from "~/components/primitives/Menu";
 import * as Components from "~/components/primitives/components/Menu";
-import { MenuItem } from "~/types";
+import type { MenuItem } from "~/types";
 import { MouseSafeArea } from "~/components/MouseSafeArea";
 import { createRef } from "react";
 

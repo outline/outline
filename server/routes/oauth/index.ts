@@ -11,7 +11,7 @@ import validate from "@server/middlewares/validate";
 import { OAuthAuthorizationCode, OAuthClient } from "@server/models";
 import OAuthAuthentication from "@server/models/oauth/OAuthAuthentication";
 import { authorize } from "@server/policies";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { OAuthInterface } from "@server/utils/oauth/OAuthInterface";
 import oauthErrorHandler from "./middlewares/oauthErrorHandler";
@@ -46,8 +46,8 @@ router.post(
     authorize(user, "read", client);
 
     // Note: These objects are mutated by the OAuth2Server library
-    const request = new OAuth2Server.Request(ctx.request);
-    const response = new OAuth2Server.Response(ctx.response);
+    const request = new OAuth2Server.Request(ctx.request as any);
+    const response = new OAuth2Server.Response(ctx.response as any);
 
     const authorizationCode = await oauth.authorize(request, response, {
       // Require state to prevent CSRF attacks
@@ -106,8 +106,8 @@ router.post(
     }
 
     // Note: These objects are mutated by the OAuth2Server library
-    const request = new OAuth2Server.Request(ctx.request);
-    const response = new OAuth2Server.Response(ctx.response);
+    const request = new OAuth2Server.Request(ctx.request as any);
+    const response = new OAuth2Server.Response(ctx.response as any);
     const token = await oauth.token(request, response, {
       accessTokenLifetime: OAuthAuthentication.accessTokenLifetime,
       refreshTokenLifetime: OAuthAuthentication.refreshTokenLifetime,

@@ -4,7 +4,7 @@ import { DOMParser as ProsemirrorDOMParser } from "prosemirror-model";
 import { TextSelection } from "prosemirror-state";
 import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
-import { Optional } from "utility-types";
+import type { Optional } from "utility-types";
 import insertFiles from "@shared/editor/commands/insertFiles";
 import EditorContainer from "@shared/editor/components/Styles";
 import { AttachmentPreset } from "@shared/types";
@@ -51,8 +51,9 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   const previousCommentIds = React.useRef<string[]>();
 
   const handleUploadFile = React.useCallback(
-    async (file: File | string) => {
+    async (file: File | string, uploadOptions?: { id?: string }) => {
       const options = {
+        id: uploadOptions?.id,
         documentId: id,
         preset: AttachmentPreset.DocumentAttachment,
       };

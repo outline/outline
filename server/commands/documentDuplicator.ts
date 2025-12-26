@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import { Collection, Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import documentCreator from "./documentCreator";
 import { generateUrlId } from "@server/utils/url";
 

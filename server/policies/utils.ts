@@ -1,6 +1,7 @@
 import env from "@server/env";
-import { User, Team, type Group } from "@server/models";
-import Model from "@server/models/base/Model";
+import type { User } from "@server/models";
+import { Team, type Group } from "@server/models";
+import type Model from "@server/models/base/Model";
 import { GroupPermission } from "@shared/types";
 import invariant from "invariant";
 

@@ -2,7 +2,7 @@ import { action, computed, observable } from "mobx";
 import { flushSync } from "react-dom";
 import { light as defaultTheme } from "@shared/styles/theme";
 import Storage from "@shared/utils/Storage";
-import Document from "~/models/Document";
+import type Document from "~/models/Document";
 import type { ConnectionStatus } from "~/scenes/Document/components/MultiplayerEditor";
 import { startViewTransition } from "~/utils/viewTransition";
 import type RootStore from "./RootStore";

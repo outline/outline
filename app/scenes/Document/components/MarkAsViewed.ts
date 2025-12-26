@@ -1,5 +1,5 @@
 import { useRef, useEffect } from "react";
-import Document from "~/models/Document";
+import type Document from "~/models/Document";
 
 const MARK_AS_VIEWED_AFTER = 3 * 1000;
 type Props = {

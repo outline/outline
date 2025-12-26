@@ -1,4 +1,4 @@
-import { Event as TEvent, UserEvent } from "@server/types";
+import type { Event as TEvent, UserEvent } from "@server/types";
 import CleanupDemotedUserTask from "../tasks/CleanupDemotedUserTask";
 import BaseProcessor from "./BaseProcessor";
 

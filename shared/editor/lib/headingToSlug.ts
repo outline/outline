@@ -1,5 +1,5 @@
 import escape from "lodash/escape";
-import { Node } from "prosemirror-model";
+import type { Node } from "prosemirror-model";
 import slugify from "slugify";
 
 const cache = new Map<string, string>();

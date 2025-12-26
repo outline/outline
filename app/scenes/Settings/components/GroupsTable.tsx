@@ -5,7 +5,7 @@ import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { MAX_AVATAR_DISPLAY } from "@shared/constants";
 import { s, hover } from "@shared/styles";
-import Group from "~/models/Group";
+import type Group from "~/models/Group";
 import Facepile from "~/components/Facepile";
 import Flex from "~/components/Flex";
 import { HEADER_HEIGHT } from "~/components/Header";
@@ -22,6 +22,7 @@ import { ViewGroupMembersDialog } from "./GroupDialogs";
 import { FILTER_HEIGHT } from "./StickyFilters";
 import NudeButton from "~/components/NudeButton";
 import { AvatarSize } from "~/components/Avatar";
+import { HStack } from "~/components/primitives/HStack";
 
 const ROW_HEIGHT = 60;
 const STICKY_OFFSET = HEADER_HEIGHT + FILTER_HEIGHT;
@@ -51,7 +52,7 @@ export function GroupsTable(props: Props) {
           header: t("Name"),
           accessor: (group) => group.name,
           component: (group) => (
-            <Flex align="center" gap={8}>
+            <HStack>
               <Image>
                 <GroupIcon size={24} />
               </Image>
@@ -66,7 +67,7 @@ export function GroupsTable(props: Props) {
                   />
                 </Text>
               </Flex>
-            </Flex>
+            </HStack>
           ),
           width: "2fr",
         },

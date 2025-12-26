@@ -1,7 +1,7 @@
 import { createBullBoard } from "@bull-board/api";
 import { BullAdapter } from "@bull-board/api/bullAdapter";
 import { KoaAdapter } from "@bull-board/koa";
-import Koa from "koa";
+import type Koa from "koa";
 import {
   globalEventQueue,
   processorEventQueue,

@@ -1,16 +1,15 @@
 import crypto from "crypto";
 import { addHours, addMinutes, subMinutes } from "date-fns";
 import JWT from "jsonwebtoken";
-import { Context } from "koa";
-import {
+import type { Context } from "koa";
+import type {
   Transaction,
-  QueryTypes,
   SaveOptions,
-  Op,
   FindOptions,
   InferAttributes,
   InferCreationAttributes,
 } from "sequelize";
+import { QueryTypes, Op } from "sequelize";
 import { type InstanceUpdateOptions } from "sequelize";
 import {
   Table,
@@ -33,23 +32,25 @@ import {
 } from "sequelize-typescript";
 import { UserPreferenceDefaults } from "@shared/constants";
 import { languages } from "@shared/i18n";
-import type { NotificationSettings } from "@shared/types";
-import {
-  CollectionPermission,
+import type {
+  NotificationSettings,
   UserPreference,
   UserPreferences,
   NotificationEventType,
+} from "@shared/types";
+import {
+  CollectionPermission,
   NotificationEventDefaults,
   UserRole,
   DocumentPermission,
 } from "@shared/types";
 import { UserRoleHelper } from "@shared/utils/UserRoleHelper";
 import { stringToColor } from "@shared/utils/color";
-import { locales } from "@shared/utils/date";
+import type { locales } from "@shared/utils/date";
 import { UserValidation } from "@shared/validations";
 import env from "@server/env";
 import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import { VerificationCode } from "@server/utils/VerificationCode";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import { ValidationError } from "../errors";
@@ -461,28 +462,65 @@ class User extends ParanoidModel<
    * @returns An array of collection ids
    */
   public collectionIds = async (options: FindOptions<Collection> = {}) => {
-    const collectionStubs = await Collection.scope({
-      method: ["withMembership", this.id],
-    }).findAll({
-      attributes: ["id", "permission"],
+    const collectionStubs = await Collection.findAll({
+      attributes: ["id"],
       where: {
         teamId: this.teamId,
+        [Op.or]: [
+          ...(this.isGuest
+            ? []
+            : [
+                {
+                  permission: {
+                    [Op.in]: Object.values(CollectionPermission),
+                  },
+                },
+              ]),
+          {
+            "$memberships.id$": { [Op.ne]: null },
+          },
+          {
+            "$groupMemberships.id$": { [Op.ne]: null },
+          },
+        ],
       },
+      include: [
+        {
+          association: "memberships",
+          attributes: [],
+          required: false,
+          where: {
+            userId: this.id,
+          },
+        },
+        {
+          association: "groupMemberships",
+          attributes: [],
+          required: false,
+          include: [
+            {
+              association: "group",
+              attributes: [],
+              required: true,
+              include: [
+                {
+                  association: "groupUsers",
+                  attributes: [],
+                  required: true,
+                  where: {
+                    userId: this.id,
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ],
       paranoid: true,
       ...options,
     });
 
-    return collectionStubs
-      .filter(
-        (c) =>
-          (Object.values(CollectionPermission).includes(
-            c.permission as CollectionPermission
-          ) &&
-            !this.isGuest) ||
-          c.memberships.length > 0 ||
-          c.groupMemberships.length > 0
-      )
-      .map((c) => c.id);
+    return Array.from(new Set(collectionStubs.map((c) => c.id)));
   };
 
   updateActiveAt = async (ctx: Context, force = false) => {

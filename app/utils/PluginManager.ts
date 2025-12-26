@@ -1,9 +1,9 @@
 import isArray from "lodash/isArray";
 import sortBy from "lodash/sortBy";
 import { action, observable } from "mobx";
-import Team from "~/models/Team";
-import User from "~/models/User";
-import { LazyComponent } from "~/components/LazyLoad";
+import type Team from "~/models/Team";
+import type User from "~/models/User";
+import type { LazyComponent } from "~/components/LazyLoad";
 import { useComputed } from "~/hooks/useComputed";
 import Logger from "./Logger";
 import isCloudHosted from "./isCloudHosted";

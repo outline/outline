@@ -2,7 +2,7 @@ import { OpenIcon } from "outline-icons";
 import * as React from "react";
 import { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
-import { Optional } from "utility-types";
+import type { Optional } from "utility-types";
 import { s } from "../../styles";
 import { sanitizeUrl } from "../../utils/urls";
 

@@ -3,19 +3,20 @@ import { Strategy as AzureStrategy } from "@outlinewiki/passport-azure-ad-oauth2
 import jwt from "jsonwebtoken";
 import type { Context } from "koa";
 import Router from "koa-router";
-import { Profile } from "passport";
+import type { Profile } from "passport";
 import { slugifyDomain } from "@shared/utils/domains";
 import { parseEmail } from "@shared/utils/email";
 import accountProvisioner from "@server/commands/accountProvisioner";
 import { MicrosoftGraphError } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
-import { User } from "@server/models";
-import { AuthenticationResult } from "@server/types";
+import type { User } from "@server/models";
+import type { AuthenticationResult } from "@server/types";
 import {
   StateStore,
   request,
   getTeamFromContext,
-  getClientFromContext,
+  getClientFromOAuthState,
+  getUserFromOAuthState,
 } from "@server/utils/passport";
 import config from "../../plugin.json";
 import env from "../env";
@@ -96,13 +97,19 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
         }
 
         const team = await getTeamFromContext(context);
-        const client = getClientFromContext(context);
+        const client = getClientFromOAuthState(context);
+        const user =
+          context.state?.auth?.user ?? (await getUserFromOAuthState(context));
 
         const domain = parseEmail(email).domain;
         const subdomain = slugifyDomain(domain);
 
         const teamName = organization.displayName;
-        const ctx = createContext({ ip: context.ip });
+        const ctx = createContext({
+          ip: context.ip,
+          user,
+          authType: context.state?.auth?.type,
+        });
         const result = await accountProvisioner(ctx, {
           team: {
             teamId: team?.id,

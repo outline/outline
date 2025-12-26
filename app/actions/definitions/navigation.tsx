@@ -17,7 +17,7 @@ import {
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import { isMac } from "@shared/utils/browser";
 import stores from "~/stores";
-import SearchQuery from "~/models/SearchQuery";
+import type SearchQuery from "~/models/SearchQuery";
 import KeyboardShortcuts from "~/scenes/KeyboardShortcuts";
 import {
   createAction,

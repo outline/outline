@@ -1,24 +1,24 @@
-import { JobOptions } from "bull";
+import type { JobOptions } from "bull";
 import chunk from "lodash/chunk";
 import truncate from "lodash/truncate";
 import uniqBy from "lodash/uniqBy";
 import { Fragment, Node } from "prosemirror-model";
-import { Transaction, WhereOptions } from "sequelize";
+import type { WhereOptions } from "sequelize";
+import { Transaction } from "sequelize";
 import { randomUUID } from "crypto";
-import { ImportTaskInput, ImportTaskOutput } from "@shared/schema";
-import {
-  AttachmentPreset,
+import type { ImportTaskInput, ImportTaskOutput } from "@shared/schema";
+import type {
   ImportableIntegrationService,
-  ImportState,
-  ImportTaskState,
   ProsemirrorData,
   ProsemirrorDoc,
 } from "@shared/types";
+import { AttachmentPreset, ImportState, ImportTaskState } from "@shared/types";
 import { ProsemirrorHelper as SharedProseMirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { createContext } from "@server/context";
 import { schema } from "@server/editor";
 import Logger from "@server/logging/Logger";
-import { Attachment, Import, ImportTask, User } from "@server/models";
+import type { User } from "@server/models";
+import { Attachment, Import, ImportTask } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { sequelize } from "@server/storage/database";
@@ -295,7 +295,6 @@ export default abstract class APIImportTask<
           AttachmentPreset.DocumentAttachment
         );
         const key = AttachmentHelper.getKey({
-          acl,
           id: modelId,
           name: item.name,
           userId: createdBy.id,

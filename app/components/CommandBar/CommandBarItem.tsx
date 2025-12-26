@@ -1,4 +1,4 @@
-import { ActionImpl } from "kbar";
+import type { ActionImpl } from "kbar";
 import { ArrowIcon, BackIcon } from "outline-icons";
 import * as React from "react";
 import styled, { css, useTheme } from "styled-components";
@@ -7,6 +7,7 @@ import { normalizeKeyDisplay } from "@shared/utils/keyboard";
 import Flex from "~/components/Flex";
 import Key from "~/components/Key";
 import Text from "~/components/Text";
+import { HStack } from "../primitives/HStack";
 
 type Props = {
   action: ActionImpl;
@@ -35,7 +36,7 @@ function CommandBarItem(
 
   return (
     <Item active={active} ref={ref}>
-      <Content align="center" gap={8}>
+      <Content>
         <Icon>
           {action.icon ? (
             // @ts-expect-error no icon on ActionImpl
@@ -100,7 +101,7 @@ const Ancestor = styled.span`
   color: ${s("textSecondary")};
 `;
 
-const Content = styled(Flex)`
+const Content = styled(HStack)`
   ${ellipsis()}
   flex-shrink: 1;
 `;

@@ -1,8 +1,8 @@
-import Flex from "@shared/components/Flex";
 import styled from "styled-components";
 import InputSearch from "~/components/InputSearch";
+import { HStack } from "~/components/primitives/HStack";
 
-export const UserInputContainer = styled(Flex)`
+export const UserInputContainer = styled(HStack)`
   height: 48px;
   padding: 6px 12px 0px;
 `;

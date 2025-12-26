@@ -5,7 +5,8 @@ import { Minute } from "@shared/utils/time";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { TaskPriority } from "./base/BaseTask";
-import { CronTask, PartitionInfo, Props, TaskInterval } from "./base/CronTask";
+import type { PartitionInfo, Props } from "./base/CronTask";
+import { CronTask, TaskInterval } from "./base/CronTask";
 import { sequelize, sequelizeReadOnly } from "@server/storage/database";
 
 /**
@@ -25,9 +26,9 @@ const ACTIVITY_WEIGHTS = {
 };
 
 /**
- * Batch size for processing updates - kept small to minimize query duration
+ * Batch size for processing updates
  */
-const BATCH_SIZE = 50;
+const BATCH_SIZE = 250;
 
 /**
  * Statement timeout for individual queries to prevent runaway locks
@@ -152,18 +153,20 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
 
     // Populate with documents that have recent activity and are valid
     // (published, not deleted). Process in chunks to avoid long-running queries.
-    let offset = 0;
+    let lastId = startUuid;
     let insertedCount = 0;
-    const chunkSize = 500;
+    const chunkSize = 1000;
 
     while (true) {
       const result = await sequelize.query<{ documentId: string }>(
         `
         INSERT INTO ${this.workingTable} ("documentId")
-        SELECT DISTINCT d.id as "documentId"
+        SELECT d.id
         FROM documents d
         WHERE d."publishedAt" IS NOT NULL
           AND d."deletedAt" IS NULL
+          ${lastId ? (insertedCount === 0 ? "AND d.id >= :lastId" : "AND d.id > :lastId") : ""}
+          ${endUuid ? "AND d.id <= :endUuid" : ""}
           AND (
             EXISTS (
               SELECT 1 FROM revisions r
@@ -178,32 +181,32 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
               WHERE v."documentId" = d.id AND v."updatedAt" >= :threshold
             )
           )
-          ${startUuid && endUuid ? "AND d.id >= :startUuid AND d.id <= :endUuid" : ""}
         ORDER BY d.id
         LIMIT :limit
-        OFFSET :offset
         ON CONFLICT ("documentId") DO NOTHING
         RETURNING "documentId"
         `,
         {
           replacements: {
             threshold,
-            startUuid,
+            lastId,
             endUuid,
             limit: chunkSize,
-            offset,
           },
           type: QueryTypes.SELECT,
         }
       );
 
+      if (result.length === 0) {
+        break;
+      }
+
       insertedCount += result.length;
+      lastId = result[result.length - 1].documentId;
 
       if (result.length < chunkSize) {
         break;
       }
-
-      offset += chunkSize;
     }
 
     Logger.debug(
@@ -285,7 +288,7 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
       SET LOCAL statement_timeout = '${STATEMENT_TIMEOUT_MS}ms';
 
       WITH batch_docs AS (
-        SELECT unnest(ARRAY[:documentIds]::uuid[]) AS id
+        SELECT * FROM unnest(ARRAY[:documentIds]::uuid[]) AS t(id)
       ),
       revision_scores AS (
         SELECT
@@ -357,20 +360,28 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
    * Uses individual updates to minimize lock duration and contention.
    */
   private async updateDocumentScores(scores: DocumentScore[]): Promise<void> {
-    // Update documents one at a time with short statement timeout
-    // This prevents any single update from holding locks for too long
-    for (const { documentId, score } of scores) {
-      await sequelize.query(
-        `
-        UPDATE documents
-        SET "popularityScore" = :score
-        WHERE id = :documentId
-        `,
-        {
-          replacements: { documentId, score },
-        }
-      );
+    if (scores.length === 0) {
+      return;
     }
+
+    // Update documents in a single batch to improve performance and reduce round-trips.
+    // We use unnest with multiple arrays to ensure the IDs and scores stay aligned.
+    await sequelize.query(
+      `
+      UPDATE documents AS d
+      SET "popularityScore" = s.score
+      FROM (
+        SELECT * FROM unnest(ARRAY[:ids]::uuid[], ARRAY[:scores]::double precision[]) AS s(id, score)
+      ) AS s
+      WHERE d.id = s.id
+      `,
+      {
+        replacements: {
+          ids: scores.map((s) => s.documentId),
+          scores: scores.map((s) => s.score),
+        },
+      }
+    );
   }
 
   /**
@@ -381,7 +392,7 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
       `
       UPDATE ${this.workingTable}
       SET processed = TRUE
-      WHERE "documentId" IN (SELECT unnest(ARRAY[:documentIds]::uuid[]))
+      WHERE "documentId" = ANY(ARRAY[:documentIds]::uuid[])
       `,
       {
         replacements: { documentIds },

@@ -1,11 +1,8 @@
 import { GapCursor } from "prosemirror-gapcursor";
-import { Node, NodeType, Slice } from "prosemirror-model";
-import {
-  Command,
-  EditorState,
-  TextSelection,
-  Transaction,
-} from "prosemirror-state";
+import type { Node, NodeType } from "prosemirror-model";
+import { Slice } from "prosemirror-model";
+import type { Command, EditorState, Transaction } from "prosemirror-state";
+import { TextSelection } from "prosemirror-state";
 import {
   CellSelection,
   addRow,
@@ -591,8 +588,8 @@ export function selectRow(index: number, expand = false): Command {
       const $pos = state.doc.resolve(rect.tableStart + pos);
       const rowSelection =
         expand && state.selection instanceof CellSelection
-          ? RowSelection.rowSelection(state.selection.$anchorCell, $pos)
-          : RowSelection.rowSelection($pos);
+          ? RowSelection.rowSelection(state.selection.$anchorCell, $pos, index)
+          : RowSelection.rowSelection($pos, $pos, index);
       dispatch(state.tr.setSelection(rowSelection));
       return true;
     }

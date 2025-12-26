@@ -16,6 +16,9 @@ export type AttachmentsListReq = z.infer<typeof AttachmentsListSchema>;
 
 export const AttachmentsCreateSchema = BaseSchema.extend({
   body: z.object({
+    /** Attachment id */
+    id: z.string().uuid().optional(),
+
     /** Attachment name */
     name: z.string(),
 
@@ -39,6 +42,9 @@ export type AttachmentCreateReq = z.infer<typeof AttachmentsCreateSchema>;
 
 export const AttachmentsCreateFromUrlSchema = BaseSchema.extend({
   body: z.object({
+    /** Attachment id */
+    id: z.string().uuid().optional(),
+
     /** Attachment url */
     url: z.string(),
 

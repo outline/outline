@@ -9,6 +9,7 @@ import history from "~/utils/history";
 import {
   documentHistoryPath,
   matchDocumentHistory,
+  urlify,
 } from "~/utils/routeHelpers";
 
 export const restoreRevision = createAction({
@@ -73,37 +74,31 @@ export const deleteRevision = createAction({
   },
 });
 
-export const copyLinkToRevision = createAction({
-  name: ({ t }) => t("Copy link"),
-  analyticsName: "Copy link to revision",
-  icon: <LinkIcon />,
-  section: RevisionSection,
-  perform: async ({ activeDocumentId, t }) => {
-    if (!activeDocumentId) {
-      return;
-    }
+export const copyLinkToRevision = (revisionId: string) =>
+  createAction({
+    name: ({ t }) => t("Copy link"),
+    analyticsName: "Copy link to revision",
+    icon: <LinkIcon />,
+    section: RevisionSection,
+    perform: async ({ activeDocumentId, t }) => {
+      if (!activeDocumentId) {
+        return;
+      }
 
-    const match = matchPath<{ revisionId: string }>(location.pathname, {
-      path: matchDocumentHistory,
-    });
-    const revisionId = match?.params.revisionId;
-    const document = stores.documents.get(activeDocumentId);
-    if (!document) {
-      return;
-    }
+      const document = stores.documents.get(activeDocumentId);
+      if (!document) {
+        return;
+      }
 
-    const url = `${window.location.origin}${documentHistoryPath(
-      document,
-      revisionId
-    )}`;
+      const url = urlify(documentHistoryPath(document, revisionId));
 
-    copy(url, {
-      format: "text/plain",
-      onCopy: () => {
-        toast.message(t("Link copied"));
-      },
-    });
-  },
-});
+      copy(url, {
+        format: "text/plain",
+        onCopy: () => {
+          toast.message(t("Link copied"));
+        },
+      });
+    },
+  });
 
 export const rootRevisionActions = [];

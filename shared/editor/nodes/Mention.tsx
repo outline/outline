@@ -1,21 +1,18 @@
 import isMatch from "lodash/isMatch";
-import { Token } from "markdown-it";
-import {
+import type { Token } from "markdown-it";
+import type {
   NodeSpec,
   Node as ProsemirrorNode,
   NodeType,
   Schema,
 } from "prosemirror-model";
-import {
-  Command,
-  NodeSelection,
-  Plugin,
-  TextSelection,
-} from "prosemirror-state";
-import { Primitive } from "utility-types";
+import type { Command } from "prosemirror-state";
+import { NodeSelection, Plugin, TextSelection } from "prosemirror-state";
+import type { Primitive } from "utility-types";
 import { v4 as uuidv4 } from "uuid";
 import env from "../../env";
-import { MentionType, UnfurlResourceType, UnfurlResponse } from "../../types";
+import type { UnfurlResponse } from "../../types";
+import { MentionType, UnfurlResourceType } from "../../types";
 import {
   MentionCollection,
   MentionDocument,
@@ -25,13 +22,13 @@ import {
   MentionURL,
   MentionUser,
 } from "../components/Mentions";
-import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { transformListToMentions } from "../lib/mention";
 import { findParentNodeClosestToPos } from "../queries/findParentNode";
 import { isInList } from "../queries/isInList";
 import { isList } from "../queries/isList";
 import mentionRule from "../rules/mention";
-import { ComponentProps } from "../types";
+import type { ComponentProps } from "../types";
 import Node from "./Node";
 
 export default class Mention extends Node {

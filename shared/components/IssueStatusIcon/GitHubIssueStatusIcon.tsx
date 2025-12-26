@@ -1,5 +1,5 @@
 import React from "react";
-import { BaseIconProps } from ".";
+import type { BaseIconProps } from ".";
 
 export function GitHubIssueStatusIcon(props: BaseIconProps) {
   const { state, className, size = 16 } = props;

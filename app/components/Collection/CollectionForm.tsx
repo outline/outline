@@ -6,13 +6,13 @@ import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Icon from "@shared/components/Icon";
 import { randomElement } from "@shared/random";
-import { CollectionPermission, TeamPreference } from "@shared/types";
+import type { CollectionPermission } from "@shared/types";
+import { TeamPreference } from "@shared/types";
 import { IconLibrary } from "@shared/utils/IconLibrary";
 import { colorPalette } from "@shared/utils/collections";
 import { CollectionValidation } from "@shared/validations";
-import Collection from "~/models/Collection";
+import type Collection from "~/models/Collection";
 import Button from "~/components/Button";
-import Flex from "~/components/Flex";
 import Input from "~/components/Input";
 import { InputSelectPermission } from "~/components/InputSelectPermission";
 import { createLazyComponent } from "~/components/LazyLoad";
@@ -22,6 +22,7 @@ import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import { EmptySelectValue } from "~/types";
+import { HStack } from "../primitives/HStack";
 
 const IconPicker = createLazyComponent(() => import("~/components/IconPicker"));
 
@@ -140,7 +141,7 @@ export const CollectionForm = observer(function CollectionForm_({
           Collections are used to group documents and choose permissions
         </Trans>
       </Text>
-      <Flex gap={8}>
+      <HStack>
         <Input
           type="text"
           placeholder={t("Name")}
@@ -164,7 +165,7 @@ export const CollectionForm = observer(function CollectionForm_({
           autoFocus
           flex
         />
-      </Flex>
+      </HStack>
 
       {/* Following controls are available in create flow, but moved elsewhere for edit */}
       {!collection && (
@@ -222,7 +223,7 @@ export const CollectionForm = observer(function CollectionForm_({
         />
       )}
 
-      <Flex justify="flex-end">
+      <HStack justify="flex-end">
         <Button
           type="submit"
           disabled={formState.isSubmitting || !formState.isValid}
@@ -235,7 +236,7 @@ export const CollectionForm = observer(function CollectionForm_({
               ? `${t("Creating")}…`
               : t("Create")}
         </Button>
-      </Flex>
+      </HStack>
     </form>
   );
 });

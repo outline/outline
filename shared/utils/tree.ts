@@ -1,4 +1,4 @@
-import { NavigationNode } from "../types";
+import type { NavigationNode } from "../types";
 
 export const flattenTree = (root: NavigationNode) => {
   const flattened: NavigationNode[] = [];

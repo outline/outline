@@ -1,4 +1,5 @@
-import { Op, WhereOptions } from "sequelize";
+import type { WhereOptions } from "sequelize";
+import { Op } from "sequelize";
 import { BaseTask } from "./BaseTask";
 
 export enum TaskInterval {

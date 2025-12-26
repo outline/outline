@@ -5,7 +5,7 @@ import Logger from "@server/logging/Logger";
 import validate from "@server/middlewares/validate";
 import tasks from "@server/queues/tasks";
 import { CronTask, TaskInterval } from "@server/queues/tasks/base/CronTask";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import { safeEqual } from "@server/utils/crypto";
 import * as T from "./schema";
 import { Minute } from "@shared/utils/time";

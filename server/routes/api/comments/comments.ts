@@ -1,6 +1,7 @@
 import Router from "koa-router";
 import difference from "lodash/difference";
-import { FindOptions, Op, WhereOptions } from "sequelize";
+import type { FindOptions, WhereOptions } from "sequelize";
+import { Op } from "sequelize";
 import {
   CommentStatusFilter,
   TeamPreference,
@@ -19,7 +20,7 @@ import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
 import { authorize } from "@server/policies";
 import { presentComment, presentPolicies } from "@server/presenters";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";

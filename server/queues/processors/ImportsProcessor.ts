@@ -3,38 +3,33 @@ import chunk from "lodash/chunk";
 import keyBy from "lodash/keyBy";
 import truncate from "lodash/truncate";
 import { Fragment, Node } from "prosemirror-model";
-import {
-  CreateOptions,
-  CreationAttributes,
-  Transaction,
-  UniqueConstraintError,
-} from "sequelize";
+import type { CreateOptions, CreationAttributes, Transaction } from "sequelize";
+import { UniqueConstraintError } from "sequelize";
 import { randomUUID } from "crypto";
 import { randomElement } from "@shared/random";
-import { ImportInput, ImportTaskInput } from "@shared/schema";
-import {
+import type { ImportInput, ImportTaskInput } from "@shared/schema";
+import type {
   ImportableIntegrationService,
-  ImportState,
-  ImportTaskState,
-  MentionType,
   ProsemirrorData,
   ProsemirrorDoc,
   SourceMetadata,
 } from "@shared/types";
+import { ImportState, ImportTaskState, MentionType } from "@shared/types";
 import { colorPalette } from "@shared/utils/collections";
 import { CollectionValidation } from "@shared/validations";
 import { createContext } from "@server/context";
 import { schema } from "@server/editor";
 import Logger from "@server/logging/Logger";
 import { Attachment, Collection, Document, Import, User } from "@server/models";
-import ImportTask, {
+import type {
   ImportTaskAttributes,
   ImportTaskCreationAttributes,
 } from "@server/models/ImportTask";
+import ImportTask from "@server/models/ImportTask";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { sequelize } from "@server/storage/database";
-import { Event, ImportEvent } from "@server/types";
+import type { Event, ImportEvent } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
 
 export const PagePerImportTask = 3;

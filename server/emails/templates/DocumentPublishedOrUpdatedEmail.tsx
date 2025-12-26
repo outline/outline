@@ -1,14 +1,16 @@
 import * as React from "react";
 import { NotificationEventType, TeamPreference } from "@shared/types";
 import { Day } from "@shared/utils/time";
-import { Document, Collection, Revision } from "@server/models";
+import type { Collection } from "@server/models";
+import { Document, Revision } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import HTMLHelper from "@server/models/helpers/HTMLHelper";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
 import SubscriptionHelper from "@server/models/helpers/SubscriptionHelper";
 import { can } from "@server/policies";
 import { CacheHelper } from "@server/utils/CacheHelper";
-import BaseEmail, { EmailMessageCategory, EmailProps } from "./BaseEmail";
+import type { EmailProps } from "./BaseEmail";
+import BaseEmail, { EmailMessageCategory } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
 import Diff from "./components/Diff";

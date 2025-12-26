@@ -1,5 +1,5 @@
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
-import { Comment } from "@server/models";
+import type { Comment } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import presentUser from "./user";
 

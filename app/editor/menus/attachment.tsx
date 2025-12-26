@@ -1,7 +1,8 @@
 import { TrashIcon, DownloadIcon, ReplaceIcon } from "outline-icons";
-import { EditorState } from "prosemirror-state";
-import { MenuItem } from "@shared/editor/types";
-import { Dictionary } from "~/hooks/useDictionary";
+import type { EditorState } from "prosemirror-state";
+import type { MenuItem } from "@shared/editor/types";
+import type { Dictionary } from "~/hooks/useDictionary";
+import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 
 export default function attachmentMenuItems(
   state: EditorState,
@@ -11,6 +12,12 @@ export default function attachmentMenuItems(
   if (readOnly) {
     return [];
   }
+
+  const { schema } = state;
+  const isAttachmentWithPreview = isNodeActive(schema.nodes.attachment, {
+    preview: true,
+  });
+
   return [
     {
       name: "replaceAttachment",
@@ -21,6 +28,15 @@ export default function attachmentMenuItems(
       name: "deleteAttachment",
       tooltip: dictionary.deleteAttachment,
       icon: <TrashIcon />,
+    },
+    {
+      name: "separator",
+    },
+    {
+      name: "dimensions",
+      tooltip: dictionary.dimensions,
+      visible: isAttachmentWithPreview(state),
+      skipIcon: true,
     },
     {
       name: "separator",

@@ -1,4 +1,4 @@
-import {
+import type {
   InferAttributes,
   InferCreationAttributes,
   Transaction,
@@ -10,7 +10,7 @@ import {
   BelongsTo,
   Column,
 } from "sequelize-typescript";
-import { IntegrationService } from "@shared/types";
+import type { IntegrationService } from "@shared/types";
 import Logger from "../logging/Logger";
 import Team from "./Team";
 import User from "./User";

@@ -1,18 +1,14 @@
 import JSZip from "jszip";
 import omit from "lodash/omit";
-import { NavigationNode } from "@shared/types";
+import type { NavigationNode } from "@shared/types";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
-import {
-  Attachment,
-  Collection,
-  Document,
-  FileOperation,
-} from "@server/models";
+import type { Collection, FileOperation } from "@server/models";
+import { Attachment, Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { presentAttachment, presentCollection } from "@server/presenters";
-import { CollectionJSONExport, JSONExportMetadata } from "@server/types";
+import type { CollectionJSONExport, JSONExportMetadata } from "@server/types";
 import ZipHelper from "@server/utils/ZipHelper";
 import { serializeFilename } from "@server/utils/fs";
 import packageJson from "../../../package.json";

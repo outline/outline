@@ -2,10 +2,12 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { s, ellipsis } from "@shared/styles";
-import { ConfigItem } from "~/hooks/useSettingsConfig";
+import type { ConfigItem } from "~/hooks/useSettingsConfig";
 import Button from "../../../components/Button";
-import Flex from "../../../components/Flex";
 import Text from "../../../components/Text";
+import { HStack } from "~/components/primitives/HStack";
+import { VStack } from "~/components/primitives/VStack";
+import { Status } from "./Status";
 
 type Props = {
   integration: ConfigItem;
@@ -17,16 +19,16 @@ function IntegrationCard({ integration, isConnected }: Props) {
 
   return (
     <Card as={Link} to={integration.path}>
-      <Flex align="center" gap={8}>
+      <HStack>
         <integration.icon size={48} />
-        <Flex auto column>
+        <VStack spacing={0} align="flex-start">
           <Name>{integration.name}</Name>
           {isConnected && <Status>{t("Connected")}</Status>}
-        </Flex>
+        </VStack>
         <Button as="span" neutral>
           {isConnected ? t("Configure") : t("Connect")}
         </Button>
-      </Flex>
+      </HStack>
 
       <Description>{integration.description}</Description>
     </Card>
@@ -68,27 +70,4 @@ const Description = styled(Text)`
   font-size: 15px;
   max-width: 100%;
   color: ${s("textTertiary")};
-`;
-
-const Status = styled(Text).attrs({
-  type: "secondary",
-  size: "small",
-  as: "span",
-})`
-  display: inline-flex;
-  align-items: center;
-
-  &::after {
-    content: "";
-    display: inline-block;
-    width: 17px;
-    height: 17px;
-
-    background: radial-gradient(
-      circle at center,
-      ${s("accent")} 0 33%,
-      transparent 33%
-    );
-    border-radius: 50%;
-  }
 `;

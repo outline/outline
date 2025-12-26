@@ -1,4 +1,5 @@
-import MarkdownIt, { Token, StateCore } from "markdown-it";
+import type { Token, StateCore } from "markdown-it";
+import type MarkdownIt from "markdown-it";
 
 function renderMention(tokens: Token[], idx: number) {
   const id = tokens[idx].attrGet("id");

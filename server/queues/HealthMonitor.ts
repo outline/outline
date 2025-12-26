@@ -1,4 +1,4 @@
-import { Queue } from "bull";
+import type { Queue } from "bull";
 import { Second } from "@shared/utils/time";
 import Logger from "@server/logging/Logger";
 
