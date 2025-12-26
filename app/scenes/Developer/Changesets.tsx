@@ -1,5 +1,6 @@
 import { observer } from "mobx-react";
 import * as React from "react";
+import { useHistory } from "react-router-dom";
 import styled from "styled-components";
 import Flex from "~/components/Flex";
 import ListItem from "~/components/List/Item";
@@ -7,8 +8,10 @@ import Scene from "~/components/Scene";
 import RevisionViewer from "~/scenes/Document/components/RevisionViewer";
 import stores from "~/stores";
 import { examples } from "./components/ExampleData";
+import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import Scrollable from "~/components/Scrollable";
+import { action } from "mobx";
 
 /**
  * Changesets scene for developer playground.
@@ -16,51 +19,52 @@ import Scrollable from "~/components/Scrollable";
  */
 function Changesets() {
   const { ui } = useStores();
-  const [selectedExampleId, setSelectedExampleId] = React.useState(
-    examples[0].id
-  );
-
-  const selectedExample =
-    examples.find((e) => e.id === selectedExampleId) ?? examples[0];
+  const history = useHistory();
+  const query = useQuery();
+  const id = query.get("id");
+  const selectedExample = examples.find((e) => e.id === id) ?? examples[0];
 
   /**
    * We use a side effect to sync the mock models in the store when the example changes.
    * This ensures that MobX reactions in RevisionViewer and the model computed properties
    * (like `changeset`) are triggered correctly.
    */
-  // React.useEffect(() => {
-  // Clear previous mock revisions to ensure clean state
-  stores.revisions.removeAll({ documentId: "mock-document-id" });
+  React.useEffect(
+    action(() => {
+      stores.revisions.data.clear();
 
-  stores.documents.add({
-    id: "mock-document-id",
-    title: selectedExample.name,
-    urlId: "mock-document-id",
-    createdAt: "2024-01-01T12:00:00.000Z",
-    updatedAt: "2024-01-02T12:00:00.000Z",
-  });
+      stores.documents.add({
+        id: "mock-document-id",
+        title: selectedExample.name,
+        urlId: "mock-document-id",
+        createdAt: "2024-01-01T12:00:00.000Z",
+        updatedAt: "2024-01-02T12:00:00.000Z",
+        data: selectedExample.after,
+      });
 
-  // Revisions are sorted by createdAt desc in the store.
-  // The "before" version must be older than the "after" version.
-  stores.revisions.add({
-    id: "mock-revision-before",
-    documentId: "mock-document-id",
-    title: selectedExample.name,
-    createdAt: "2024-01-01T12:00:00.000Z",
-    data: selectedExample.before,
-  });
+      // Revisions are sorted by createdAt desc in the store.
+      // The "before" version must be older than the "after" version.
+      stores.revisions.add({
+        id: "mock-before-" + id,
+        documentId: "mock-document-id",
+        title: selectedExample.name,
+        createdAt: "2024-01-01T12:00:00.000Z",
+        data: selectedExample.before,
+      });
 
-  stores.revisions.add({
-    id: "mock-revision-after",
-    documentId: "mock-document-id",
-    title: selectedExample.name,
-    createdAt: "2024-01-02T12:00:00.000Z",
-    data: selectedExample.after,
-  });
-  //}, [selectedExample]);
+      stores.revisions.add({
+        id: "mock-after-" + id,
+        documentId: "mock-document-id",
+        title: selectedExample.name,
+        createdAt: "2024-01-02T12:00:00.000Z",
+        data: selectedExample.after,
+      });
+    }),
+    [selectedExample]
+  );
 
   const mockDocument = stores.documents.get("mock-document-id");
-  const mockRevision = stores.revisions.get("mock-revision-after");
+  const mockRevision = stores.revisions.get("mock-after-" + id);
 
   return (
     <Scene title="Changeset Playground" centered>
@@ -70,8 +74,12 @@ function Changesets() {
             <ExampleItem
               key={example.id}
               title={example.name}
-              onClick={() => setSelectedExampleId(example.id)}
-              $active={selectedExampleId === example.id}
+              onClick={() =>
+                history.replace({
+                  search: `?id=${example.id}`,
+                })
+              }
+              $active={selectedExample.id === example.id}
               border={false}
             />
           ))}
@@ -80,7 +88,7 @@ function Changesets() {
       <Content auto column>
         {mockDocument && mockRevision ? (
           <RevisionViewer
-            key={selectedExampleId} // Force remount on example change
+            key={mockRevision.id} // Force remount on example change
             document={mockDocument}
             revision={mockRevision}
             id={mockRevision.id}
