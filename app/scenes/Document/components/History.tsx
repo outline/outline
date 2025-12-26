@@ -19,6 +19,7 @@ import useMobile from "~/hooks/useMobile";
 import Switch from "~/components/Switch";
 import Text from "@shared/components/Text";
 import usePersistedState from "~/hooks/usePersistedState";
+import Scrollable from "~/components/Scrollable";
 
 const DocumentEvents = [
   "documents.publish",
@@ -194,7 +195,7 @@ function History() {
   useKeyDown("Escape", onCloseHistory);
 
   return (
-    <Sidebar title={t("History")} onClose={onCloseHistory}>
+    <Sidebar title={t("History")} onClose={onCloseHistory} scrollable={false}>
       <Content>
         <Text type="secondary" size="small" as="span">
           <Switch
@@ -204,26 +205,28 @@ function History() {
           />
         </Text>
       </Content>
-      {document ? (
-        <PaginatedEventList
-          aria-label={t("History")}
-          fetch={fetchHistory}
-          items={items}
-          document={document}
-          empty={
-            <Content>
-              <Empty>{t("No history yet")}</Empty>
-            </Content>
-          }
-        />
-      ) : null}
+      <Scrollable hiddenScrollbars topShadow>
+        {document ? (
+          <PaginatedEventList
+            aria-label={t("History")}
+            fetch={fetchHistory}
+            items={items}
+            document={document}
+            empty={
+              <Content>
+                <Empty>{t("No history yet")}</Empty>
+              </Content>
+            }
+          />
+        ) : null}
+      </Scrollable>
     </Sidebar>
   );
 }
 
 const Content = styled.div`
-  margin: 0 16px;
-  background: ${(props) => props.theme.inputBorder};
+  margin: 0 16px 8px;
+  border: 1px solid ${(props) => props.theme.inputBorder};
   border-radius: 8px;
   padding: 8px 8px 0;
 `;

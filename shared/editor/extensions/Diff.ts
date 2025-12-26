@@ -128,15 +128,23 @@ export default class Diff extends Extension {
           return;
         }
 
-        const dom = document.createElement("span");
+        const $pos = doc.resolve(change.fromB);
+        const parentRole = $pos.parent.type.spec.tableRole;
+        let tag = $pos.parent.type.inlineContent ? "span" : "div";
+
+        if (parentRole === "table") {
+          tag = "tr";
+        } else if (parentRole === "row") {
+          tag = "td";
+        }
+
+        const dom = document.createElement(tag);
         dom.setAttribute(
           "class",
           `${this.options.deletionClassName}${
             isCurrent ? ` ${this.options.currentChangeClassName}` : ""
           }`
         );
-
-        const $pos = doc.resolve(change.fromB);
 
         /**
          * Recursively unwrap nodes that are redundant or invalid given the
@@ -149,9 +157,15 @@ export default class Diff extends Extension {
 
             for (let d = 0; d <= $pos.depth; d++) {
               const ancestor = $pos.node(d);
+              const ancestorRole = ancestor.type.spec.tableRole;
+              const nodeRole = node.type.spec.tableRole;
+
               if (
                 ancestor.type.name === node.type.name ||
-                (ancestor.type.spec.code && node.type.spec.code)
+                (ancestor.type.spec.code && node.type.spec.code) ||
+                (ancestorRole === "row" &&
+                  (nodeRole === "cell" || nodeRole === "header_cell")) ||
+                (ancestorRole === "table" && nodeRole === "row")
               ) {
                 isRedundant = true;
                 break;
