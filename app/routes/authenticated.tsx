@@ -21,7 +21,9 @@ import {
   matchDocumentSlug as documentSlug,
   matchCollectionSlug as collectionSlug,
   trashPath,
+  debugPath,
 } from "~/utils/routeHelpers";
+import env from "~/env";
 
 const SettingsRoutes = lazy(() => import("./settings"));
 const Archive = lazy(() => import("~/scenes/Archive"));
@@ -31,6 +33,8 @@ const Drafts = lazy(() => import("~/scenes/Drafts"));
 const Home = lazy(() => import("~/scenes/Home"));
 const Search = lazy(() => import("~/scenes/Search"));
 const Trash = lazy(() => import("~/scenes/Trash"));
+const Debug = lazy(() => import("~/scenes/Developer/Debug"));
+const Changesets = lazy(() => import("~/scenes/Developer/Changesets"));
 
 const RedirectDocument = ({
   match,
@@ -120,6 +124,16 @@ function AuthenticatedRoutes() {
                 path={`${searchPath()}/:query?`}
                 component={Search}
               />
+              {env.isDevelopment && (
+                <>
+                  <Route exact path={debugPath()} component={Debug} />
+                  <Route
+                    exact
+                    path={`${debugPath()}/changesets`}
+                    component={Changesets}
+                  />
+                </>
+              )}
               <Route path="/404" component={Error404} />
               <SettingsRoutes />
               <Route component={Error404} />
