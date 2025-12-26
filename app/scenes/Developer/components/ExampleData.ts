@@ -1032,6 +1032,54 @@ export const examples: Example[] = [
     },
   },
   {
+    id: "embed-addition",
+    name: "Embed Addition",
+    before: {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "This is the first paragraph." }],
+        },
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "This is the second paragraph." }],
+        },
+      ],
+    },
+    after: {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "This is the first paragraph." }],
+        },
+        {
+          type: "embed",
+          attrs: {
+            href: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            align: null,
+            width: null,
+            height: null,
+            ...{
+              html: '\u003ciframe width="560" height="315" src="https://www.youtube.com/embed/dQw4w9WgXcQ?si=7T4540C6R3_nE18L" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen\u003e\u003c/iframe\u003e',
+              url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+              provider: "YouTube",
+              title:
+                "Rick Astley - Never Gonna Give You Up (Official Music Video)",
+              description:
+                "\u201cNever Gonna Give You Up\u201d was a global smash hit for Rick Astley in 1987, taken from his debut album \u201cWhenever You Need Somebody\u201d. It was a #1 in ...",
+            },
+          },
+        },
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "This is the second paragraph." }],
+        },
+      ],
+    },
+  },
+  {
     id: "notices",
     name: "Notice Nodes",
     before: {
