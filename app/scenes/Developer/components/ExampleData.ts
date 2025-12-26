@@ -15,7 +15,7 @@ export interface Example {
 export const examples: Example[] = [
   {
     id: "simple-text",
-    name: "Simple text change",
+    name: "Simple Text Change",
     before: {
       type: "doc",
       content: [
@@ -47,7 +47,7 @@ export const examples: Example[] = [
   },
   {
     id: "paragraph-addition",
-    name: "Paragraph addition",
+    name: "Paragraph Addition",
     before: {
       type: "doc",
       content: [
@@ -88,7 +88,7 @@ export const examples: Example[] = [
   },
   {
     id: "formatting-change",
-    name: "Formatting changes",
+    name: "Formatting Changes",
     before: {
       type: "doc",
       content: [
@@ -152,7 +152,7 @@ export const examples: Example[] = [
   },
   {
     id: "list-changes",
-    name: "Bullet list changes",
+    name: "Bullet List Changes",
     before: {
       type: "doc",
       content: [
@@ -212,7 +212,7 @@ export const examples: Example[] = [
   },
   {
     id: "ordered-list",
-    name: "Ordered list",
+    name: "Ordered List",
     before: {
       type: "doc",
       content: [
@@ -319,7 +319,7 @@ export const examples: Example[] = [
   },
   {
     id: "code-block",
-    name: "Code block",
+    name: "Code Block",
     before: {
       type: "doc",
       content: [
@@ -348,7 +348,7 @@ export const examples: Example[] = [
   },
   {
     id: "table-changes",
-    name: "Table changes",
+    name: "Table Changes",
     before: {
       type: "doc",
       content: [
@@ -487,7 +487,7 @@ export const examples: Example[] = [
   },
   {
     id: "table-add-row",
-    name: "Table: add row",
+    name: "Table: Add Row",
     before: {
       type: "doc",
       content: [
@@ -626,7 +626,7 @@ export const examples: Example[] = [
   },
   {
     id: "table-add-column",
-    name: "Table: add column",
+    name: "Table: Add Column",
     before: {
       type: "doc",
       content: [
@@ -760,7 +760,7 @@ export const examples: Example[] = [
   },
   {
     id: "table-remove-row",
-    name: "Table: remove row",
+    name: "Table: Remove Row",
     before: {
       type: "doc",
       content: [
@@ -899,7 +899,7 @@ export const examples: Example[] = [
   },
   {
     id: "table-remove-column",
-    name: "Table: remove column",
+    name: "Table: Remove Column",
     before: {
       type: "doc",
       content: [
@@ -1032,8 +1032,124 @@ export const examples: Example[] = [
     },
   },
   {
+    id: "table-header-to-cells",
+    name: "Table: Header Row to Cells",
+    before: {
+      type: "doc",
+      content: [
+        {
+          type: "table",
+          content: [
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "th",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Header 1" }],
+                    },
+                  ],
+                },
+                {
+                  type: "th",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Header 2" }],
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "td",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Cell 1" }],
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Cell 2" }],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    after: {
+      type: "doc",
+      content: [
+        {
+          type: "table",
+          content: [
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "td",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Header 1" }],
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Header 2" }],
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "td",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Cell 1" }],
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Cell 2" }],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     id: "embed-addition",
-    name: "Embed addition",
+    name: "Embed Addition",
     before: {
       type: "doc",
       content: [
@@ -1069,22 +1185,13 @@ export const examples: Example[] = [
   },
   {
     id: "image-layouts",
-    name: "Image layouts",
+    name: "Image Layouts",
     before: {
       type: "doc",
       content: [
         {
           type: "paragraph",
-          content: [{ type: "text", text: "An image gets added" }],
-        },
-      ],
-    },
-    after: {
-      type: "doc",
-      content: [
-        {
-          type: "paragraph",
-          content: [{ type: "text", text: "An image gets added" }],
+          content: [{ type: "text", text: "An image." }],
         },
         {
           type: "image",
@@ -1095,11 +1202,37 @@ export const examples: Example[] = [
         },
       ],
     },
+    after: {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "An image with a right-50 layout." }],
+        },
+        {
+          type: "image",
+          attrs: {
+            src: "https://www.getoutline.com/images/screenshot.png",
+            alt: "Outline",
+            layoutClass: "right-50",
+          },
+        },
+      ],
+    },
   },
   {
     id: "mentions",
     name: "Mentions",
     before: {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "A paragraph." }],
+        },
+      ],
+    },
+    after: {
       type: "doc",
       content: [
         {
@@ -1120,20 +1253,6 @@ export const examples: Example[] = [
             {
               type: "text",
               text: ", a ",
-            },
-          ],
-        },
-      ],
-    },
-    after: {
-      type: "doc",
-      content: [
-        {
-          type: "paragraph",
-          content: [
-            {
-              type: "text",
-              text: "A paragraph with mentions to a ",
             },
             {
               type: "mention",
@@ -1178,7 +1297,7 @@ export const examples: Example[] = [
   },
   {
     id: "notices",
-    name: "Notice nodes",
+    name: "Notice Nodes",
     before: {
       type: "doc",
       content: [
@@ -1277,7 +1396,7 @@ export const examples: Example[] = [
   },
   {
     id: "pdf-attachment",
-    name: "PDF attachment",
+    name: "PDF Attachment",
     before: {
       type: "doc",
       content: [
@@ -1340,7 +1459,7 @@ export const examples: Example[] = [
   },
   {
     id: "collapsed-heading",
-    name: "Collapsed heading",
+    name: "Collapsed Heading",
     before: {
       type: "doc",
       content: [
@@ -1366,6 +1485,34 @@ export const examples: Example[] = [
         {
           type: "paragraph",
           content: [{ type: "text", text: "Some content." }],
+        },
+      ],
+    },
+  },
+  {
+    id: "custom-emoji",
+    name: "Custom Emoji",
+    before: {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "A custom emoji." }],
+        },
+      ],
+    },
+    after: {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [
+            { type: "text", text: "A custom emoji: " },
+            {
+              type: "emoji",
+              attrs: { "data-name": "c4f345ab-1c37-4348-ab68-1a423aad47e3" },
+            },
+          ],
         },
       ],
     },
@@ -1404,7 +1551,7 @@ export const examples: Example[] = [
   },
   {
     id: "horizontal-rule",
-    name: "Horizontal rule",
+    name: "Horizontal Rule",
     before: {
       type: "doc",
       content: [
@@ -1438,17 +1585,14 @@ export const examples: Example[] = [
   },
   {
     id: "mentions-links",
-    name: "Mentions & links",
+    name: "Mentions & Links",
     before: {
       type: "doc",
       content: [
         {
           type: "paragraph",
           content: [
-            {
-              type: "text",
-              text: "Check out this document for more info.",
-            },
+            { type: "text", text: "Check out this document for more info." },
           ],
         },
       ],
