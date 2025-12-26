@@ -15,7 +15,7 @@ export interface Example {
 export const examples: Example[] = [
   {
     id: "simple-text",
-    name: "Simple Text Change",
+    name: "Simple text change",
     before: {
       type: "doc",
       content: [
@@ -47,7 +47,7 @@ export const examples: Example[] = [
   },
   {
     id: "paragraph-addition",
-    name: "Paragraph Addition",
+    name: "Paragraph addition",
     before: {
       type: "doc",
       content: [
@@ -88,7 +88,7 @@ export const examples: Example[] = [
   },
   {
     id: "formatting-change",
-    name: "Formatting Changes",
+    name: "Formatting changes",
     before: {
       type: "doc",
       content: [
@@ -152,7 +152,7 @@ export const examples: Example[] = [
   },
   {
     id: "list-changes",
-    name: "Bullet List Changes",
+    name: "Bullet list changes",
     before: {
       type: "doc",
       content: [
@@ -212,7 +212,7 @@ export const examples: Example[] = [
   },
   {
     id: "ordered-list",
-    name: "Ordered List",
+    name: "Ordered list",
     before: {
       type: "doc",
       content: [
@@ -319,7 +319,7 @@ export const examples: Example[] = [
   },
   {
     id: "code-block",
-    name: "Code Block",
+    name: "Code block",
     before: {
       type: "doc",
       content: [
@@ -348,7 +348,7 @@ export const examples: Example[] = [
   },
   {
     id: "table-changes",
-    name: "Table Changes",
+    name: "Table changes",
     before: {
       type: "doc",
       content: [
@@ -487,7 +487,7 @@ export const examples: Example[] = [
   },
   {
     id: "table-add-row",
-    name: "Table: Add Row",
+    name: "Table: add row",
     before: {
       type: "doc",
       content: [
@@ -626,7 +626,7 @@ export const examples: Example[] = [
   },
   {
     id: "table-add-column",
-    name: "Table: Add Column",
+    name: "Table: add column",
     before: {
       type: "doc",
       content: [
@@ -760,7 +760,7 @@ export const examples: Example[] = [
   },
   {
     id: "table-remove-row",
-    name: "Table: Remove Row",
+    name: "Table: remove row",
     before: {
       type: "doc",
       content: [
@@ -899,7 +899,7 @@ export const examples: Example[] = [
   },
   {
     id: "table-remove-column",
-    name: "Table: Remove Column",
+    name: "Table: remove column",
     before: {
       type: "doc",
       content: [
@@ -1033,7 +1033,7 @@ export const examples: Example[] = [
   },
   {
     id: "embed-addition",
-    name: "Embed Addition",
+    name: "Embed addition",
     before: {
       type: "doc",
       content: [
@@ -1069,7 +1069,7 @@ export const examples: Example[] = [
   },
   {
     id: "image-layouts",
-    name: "Image Layouts",
+    name: "Image layouts",
     before: {
       type: "doc",
       content: [
@@ -1181,7 +1181,7 @@ export const examples: Example[] = [
   },
   {
     id: "notices",
-    name: "Notice Nodes",
+    name: "Notice nodes",
     before: {
       type: "doc",
       content: [
@@ -1280,7 +1280,7 @@ export const examples: Example[] = [
   },
   {
     id: "pdf-attachment",
-    name: "PDF Attachment",
+    name: "PDF attachment",
     before: {
       type: "doc",
       content: [
@@ -1343,7 +1343,7 @@ export const examples: Example[] = [
   },
   {
     id: "collapsed-heading",
-    name: "Collapsed Heading",
+    name: "Collapsed heading",
     before: {
       type: "doc",
       content: [
@@ -1369,34 +1369,6 @@ export const examples: Example[] = [
         {
           type: "paragraph",
           content: [{ type: "text", text: "Some content." }],
-        },
-      ],
-    },
-  },
-  {
-    id: "custom-emoji",
-    name: "Custom Emoji",
-    before: {
-      type: "doc",
-      content: [
-        {
-          type: "paragraph",
-          content: [{ type: "text", text: "A custom emoji." }],
-        },
-      ],
-    },
-    after: {
-      type: "doc",
-      content: [
-        {
-          type: "paragraph",
-          content: [
-            { type: "text", text: "A custom emoji: " },
-            {
-              type: "emoji",
-              attrs: { "data-name": "c4f345ab-1c37-4348-ab68-1a423aad47e3" },
-            },
-          ],
         },
       ],
     },
@@ -1435,7 +1407,7 @@ export const examples: Example[] = [
   },
   {
     id: "horizontal-rule",
-    name: "Horizontal Rule",
+    name: "Horizontal rule",
     before: {
       type: "doc",
       content: [
@@ -1469,7 +1441,7 @@ export const examples: Example[] = [
   },
   {
     id: "mentions-links",
-    name: "Mentions & Links",
+    name: "Mentions & links",
     before: {
       type: "doc",
       content: [

@@ -98,7 +98,7 @@ function Changesets() {
           ))}
         </Scrollable>
       </Sidebar>
-      <Content auto column>
+      <Flex auto column>
         {mockDocument && mockRevision ? (
           <>
             <RevisionViewer
@@ -115,7 +115,7 @@ function Changesets() {
             )}
           </>
         ) : null}
-      </Content>
+      </Flex>
     </Scene>
   );
 }
@@ -134,11 +134,6 @@ const ExampleItem = styled(ListItem)<{ $active: boolean }>`
   border-radius: 4px;
   background: ${(props) =>
     props.$active ? props.theme.sidebarActiveBackground : "transparent"};
-`;
-
-const Content = styled(Flex)`
-  overflow-y: auto;
-  background: ${(props) => props.theme.background};
 `;
 
 const Pre = styled.pre`
