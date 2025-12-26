@@ -486,6 +486,279 @@ export const examples: Example[] = [
     },
   },
   {
+    id: "table-add-row",
+    name: "Table: Add Row",
+    before: {
+      type: "doc",
+      content: [
+        {
+          type: "table",
+          content: [
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "th",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Header 1" }],
+                    },
+                  ],
+                },
+                {
+                  type: "th",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Header 2" }],
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "td",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Cell 1" }],
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Cell 2" }],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    after: {
+      type: "doc",
+      content: [
+        {
+          type: "table",
+          content: [
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "th",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Header 1" }],
+                    },
+                  ],
+                },
+                {
+                  type: "th",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Header 2" }],
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "td",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Cell 1" }],
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Cell 2" }],
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "td",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "New Cell 1" }],
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "New Cell 2" }],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    id: "table-add-column",
+    name: "Table: Add Column",
+    before: {
+      type: "doc",
+      content: [
+        {
+          type: "table",
+          content: [
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "th",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Header 1" }],
+                    },
+                  ],
+                },
+                {
+                  type: "th",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Header 2" }],
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "td",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Cell 1" }],
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Cell 2" }],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    after: {
+      type: "doc",
+      content: [
+        {
+          type: "table",
+          content: [
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "th",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Header 1" }],
+                    },
+                  ],
+                },
+                {
+                  type: "th",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Header 2" }],
+                    },
+                  ],
+                },
+                {
+                  type: "th",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Header 3" }],
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "td",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Cell 1" }],
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Cell 2" }],
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Cell 3" }],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     id: "notices",
     name: "Notice Nodes",
     before: {
@@ -599,10 +872,7 @@ export const examples: Example[] = [
         {
           type: "paragraph",
           content: [
-            {
-              type: "text",
-              text: "Check out this document for more info.",
-            },
+            { type: "text", text: "Check out this document for more info." },
           ],
         },
       ],
