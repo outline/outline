@@ -36,6 +36,10 @@ export class EditorStyleHelper {
 
   static readonly diffNodeDeletion = "diff-node-deletion";
 
+  static readonly diffModification = "diff-modification";
+
+  static readonly diffNodeModification = "diff-node-modification";
+
   static readonly diffCurrentChange = "current-diff";
 
   // Tables

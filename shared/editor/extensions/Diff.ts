@@ -6,7 +6,7 @@ import type { Node, ResolvedPos } from "prosemirror-model";
 import { DOMSerializer, Fragment } from "prosemirror-model";
 import scrollIntoView from "scroll-into-view-if-needed";
 import Extension from "../lib/Extension";
-import type { Change } from "prosemirror-changeset";
+import type { ExtendedChange } from "../lib/ChangesetHelper";
 import { cn } from "../styles/utils";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 
@@ -24,6 +24,8 @@ export default class Diff extends Extension {
       deletionClassName: EditorStyleHelper.diffDeletion,
       nodeInsertionClassName: EditorStyleHelper.diffNodeInsertion,
       nodeDeletionClassName: EditorStyleHelper.diffNodeDeletion,
+      modificationClassName: EditorStyleHelper.diffModification,
+      nodeModificationClassName: EditorStyleHelper.diffNodeModification,
       currentChangeClassName: EditorStyleHelper.diffCurrentChange,
     };
   }
@@ -44,7 +46,7 @@ export default class Diff extends Extension {
 
   private goToChange(direction: number): Command {
     return (state, dispatch) => {
-      const { changes } = this.options as { changes: Change[] | null };
+      const { changes } = this.options as { changes: ExtendedChange[] | null };
 
       if (!changes || changes.length === 0) {
         return false;
@@ -106,8 +108,55 @@ export default class Diff extends Extension {
   }
 
   private createDecorations(doc: Node) {
-    const { changes } = this.options as { changes: Change[] | null };
+    const { changes } = this.options as { changes: ExtendedChange[] | null };
     const decorations: Decoration[] = [];
+
+    /**
+     * Determines if a slice should use node decoration instead of inline decoration.
+     */
+    const shouldUseNodeDecoration = (
+      slice:
+        | { content: { childCount: number; firstChild: Node | null } }
+        | null
+        | undefined
+    ): boolean => {
+      if (slice?.content.childCount === 1) {
+        const node = slice.content.firstChild;
+        if (
+          node &&
+          !node.isText &&
+          ((node.isBlock && node.type.name !== "paragraph") ||
+            (node.isInline && node.isAtom))
+        ) {
+          return true;
+        }
+      }
+      return false;
+    };
+
+    /**
+     * Adds the appropriate decoration for a change.
+     */
+    const addChangeDecoration = (
+      pos: number,
+      end: number,
+      className: string,
+      useNodeDecoration: boolean
+    ): void => {
+      if (useNodeDecoration) {
+        decorations.push(
+          Decoration.node(pos, end, {
+            class: className,
+          })
+        );
+      } else {
+        decorations.push(
+          Decoration.inline(pos, end, {
+            class: className,
+          })
+        );
+      }
+    };
 
     /**
      * Recursively unwrap nodes that are redundant or invalid given the
@@ -143,28 +192,16 @@ export default class Diff extends Extension {
       return result;
     };
 
-    // Add insertion and deletion decorations
+    // Add insertion, deletion, and modification decorations
     changes?.forEach((change, changeIndex) => {
       let pos = change.fromB;
       const isCurrent = changeIndex === this.currentChangeIndex;
 
       change.inserted.forEach((insertion) => {
         const end = pos + insertion.length;
-
-        // Check if this insertion is a single block node or inline atom
-        let useNodeDecoration = false;
-
-        if (insertion.data.step.slice?.content.childCount === 1) {
-          const node = insertion.data.step.slice.content.firstChild;
-          if (
-            node &&
-            !node.isText &&
-            ((node.isBlock && node.type.name !== "paragraph") ||
-              (node.isInline && node.isAtom))
-          ) {
-            useNodeDecoration = true;
-          }
-        }
+        const useNodeDecoration = shouldUseNodeDecoration(
+          insertion.data.step.slice
+        );
 
         const className = cn({
           [this.options.currentChangeClassName]: isCurrent,
@@ -172,21 +209,7 @@ export default class Diff extends Extension {
           [this.options.nodeInsertionClassName]: useNodeDecoration,
         });
 
-        // Use Decoration.node for block nodes and inline atoms, Decoration.inline for other inline content
-        if (useNodeDecoration) {
-          decorations.push(
-            Decoration.node(pos, end, {
-              class: className,
-            })
-          );
-        } else {
-          decorations.push(
-            Decoration.inline(pos, end, {
-              class: className,
-            })
-          );
-        }
-
+        addChangeDecoration(pos, end, className, useNodeDecoration);
         pos = end;
       });
 
@@ -205,20 +228,7 @@ export default class Diff extends Extension {
           tag = "td";
         }
 
-        // Check if this deletion is a single block node or inline atom
-        let useNodeDecoration = false;
-
-        if (deletion.data.slice.content.childCount === 1) {
-          const node = deletion.data.slice.content.firstChild;
-          if (
-            node &&
-            !node.isText &&
-            ((node.isBlock && node.type.name !== "paragraph") ||
-              (node.isInline && node.isAtom))
-          ) {
-            useNodeDecoration = true;
-          }
-        }
+        const useNodeDecoration = shouldUseNodeDecoration(deletion.data.slice);
 
         const dom = document.createElement(tag);
         dom.setAttribute(
@@ -243,6 +253,23 @@ export default class Diff extends Extension {
             side: -1,
           })
         );
+      });
+
+      // Add modification decorations
+      change.modified.forEach((modification) => {
+        const end = pos + modification.length;
+        const useNodeDecoration = shouldUseNodeDecoration(
+          modification.data.slice
+        );
+
+        const className = cn({
+          [this.options.currentChangeClassName]: isCurrent,
+          [this.options.modificationClassName]: !useNodeDecoration,
+          [this.options.nodeModificationClassName]: useNodeDecoration,
+        });
+
+        addChangeDecoration(pos, end, className, useNodeDecoration);
+        pos = end;
       });
     });
 

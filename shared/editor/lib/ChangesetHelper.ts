@@ -8,8 +8,28 @@ import { recreateTransform } from "./prosemirror-recreate-transform";
 import { richExtensions, withComments } from "../nodes";
 import type { ProsemirrorData } from "../../types";
 
+/**
+ * Represents a modification (attribute change) in the document.
+ */
+export type Modification = {
+  length: number;
+  data: {
+    step: Step;
+    slice: Slice | null;
+    oldAttrs: Record<string, unknown>;
+    newAttrs: Record<string, unknown>;
+  };
+};
+
+/**
+ * Extended Change type that includes modifications.
+ */
+export interface ExtendedChange extends Change {
+  modified: readonly Modification[];
+}
+
 export type DiffChanges = {
-  changes: readonly Change[];
+  changes: readonly ExtendedChange[];
   doc: Node;
 };
 
@@ -126,8 +146,83 @@ export class ChangesetHelper {
 
       let changes = simplifyChanges(changeset.changes, docNew);
 
+      // Post-process changes to detect modifications (attribute-only changes)
+      const extendedChanges: ExtendedChange[] = changes.map((change) => {
+        const modified: Modification[] = [];
+        const matchedDeletionIndices = new Set<number>();
+        const matchedInsertionIndices = new Set<number>();
+
+        // Look for pairs of deletion+insertion at the same position with same content
+        // but different attributes - these are modifications
+        for (let i = 0; i < change.deleted.length; i++) {
+          const deletion = change.deleted[i];
+          if (!deletion.data.slice) {
+            continue;
+          }
+
+          for (let j = 0; j < change.inserted.length; j++) {
+            const insertion = change.inserted[j];
+            if (!insertion.data.step.slice) {
+              continue;
+            }
+
+            // Check if they have the same length and same position
+            if (deletion.length !== insertion.length) {
+              continue;
+            }
+
+            const deletedSlice = deletion.data.slice;
+            const insertedSlice = insertion.data.step.slice;
+
+            // Check if both slices have a single node
+            if (
+              deletedSlice.content.childCount === 1 &&
+              insertedSlice.content.childCount === 1
+            ) {
+              const deletedNode = deletedSlice.content.firstChild;
+              const insertedNode = insertedSlice.content.firstChild;
+
+              // Same node type and same text content, but different attributes
+              if (
+                deletedNode &&
+                insertedNode &&
+                deletedNode.type.name === insertedNode.type.name &&
+                deletedNode.textContent === insertedNode.textContent &&
+                JSON.stringify(deletedNode.attrs) !==
+                  JSON.stringify(insertedNode.attrs)
+              ) {
+                modified.push({
+                  length: insertion.length,
+                  data: {
+                    step: insertion.data.step,
+                    slice: insertion.data.slice,
+                    oldAttrs: deletedNode.attrs,
+                    newAttrs: insertedNode.attrs,
+                  },
+                });
+
+                // Mark these entries as matched so they can be filtered out
+                matchedDeletionIndices.add(i);
+                matchedInsertionIndices.add(j);
+              }
+            }
+          }
+        }
+
+        return {
+          ...change,
+          deleted: change.deleted.filter(
+            (_, index) => !matchedDeletionIndices.has(index)
+          ),
+          inserted: change.inserted.filter(
+            (_, index) => !matchedInsertionIndices.has(index)
+          ),
+          modified,
+        };
+      });
+
       return {
-        changes,
+        changes: extendedChanges,
         doc: tr.doc,
       };
     } catch {
