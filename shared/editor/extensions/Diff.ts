@@ -270,19 +270,31 @@ export default class Diff extends Extension {
 
       // Add modification decorations
       change.modified.forEach((modification) => {
-        const end = pos + modification.length;
-        const useNodeDecoration = shouldUseNodeDecoration(
-          modification.data.slice
-        );
+        // A modification slice may contain multiple nodes (e.g., multiple table cells)
+        // We need to add a decoration for each node individually
+        if (!modification.data.slice) {
+          return;
+        }
 
-        const className = cn({
-          [this.options.currentChangeClassName]: isCurrent,
-          [this.options.modificationClassName]: !useNodeDecoration,
-          [this.options.nodeModificationClassName]: useNodeDecoration,
+        modification.data.slice.content.forEach((node: Node) => {
+          const nodeSize = node.nodeSize;
+          const end = pos + nodeSize;
+
+          // Check if this specific node should use node decoration
+          const useNodeDecoration =
+            !node.isText &&
+            ((node.isBlock && node.type.name !== "paragraph") ||
+              (node.isInline && node.isAtom));
+
+          const className = cn({
+            [this.options.currentChangeClassName]: isCurrent,
+            [this.options.modificationClassName]: !useNodeDecoration,
+            [this.options.nodeModificationClassName]: useNodeDecoration,
+          });
+
+          addChangeDecoration(pos, end, className, useNodeDecoration);
+          pos = end;
         });
-
-        addChangeDecoration(pos, end, className, useNodeDecoration);
-        pos = end;
       });
     });
 

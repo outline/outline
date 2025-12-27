@@ -355,6 +355,45 @@ const diffStyle = (props: Props) => css`
     th.${EditorStyleHelper.diffNodeDeletion} {
     border-color: ${props.theme.textDiffDeletedBackground};
   }
+
+  .${EditorStyleHelper.diffNodeModification},
+    .${EditorStyleHelper.diffModification}:not([class^="component-"]),
+  .${EditorStyleHelper.diffModification} > * {
+    color: ${props.theme.text};
+    background-color: ${transparentize(0.7, "#FFA500")};
+    text-decoration: none;
+
+    &.${EditorStyleHelper.diffCurrentChange} {
+      outline-color: ${lighten(0.1, "#FFA500")};
+      background-color: ${transparentize(0.5, "#FFA500")};
+      animation: ${pulse(transparentize(0.5, "#FFA500"))} 150ms 1;
+    }
+  }
+
+  .${EditorStyleHelper.diffNodeModification} {
+    background-color: ${transparentize(0.7, "#FFA500")};
+
+    &[class*="component-"] {
+      outline: 4px solid ${transparentize(0.5, "#FFA500")};
+    }
+
+    td,
+    th {
+      border-color: ${transparentize(0.5, "#FFA500")};
+    }
+  }
+
+  .${EditorStyleHelper.diffNodeModification}[class*="component-"],
+    .${EditorStyleHelper.diffNodeModification}.math-node,
+    ul.${EditorStyleHelper.diffNodeModification},
+    li.${EditorStyleHelper.diffNodeModification} {
+    border-radius: ${EditorStyleHelper.blockRadius};
+  }
+
+  td.${EditorStyleHelper.diffNodeModification},
+    th.${EditorStyleHelper.diffNodeModification} {
+    border-color: ${transparentize(0.5, "#FFA500")};
+  }
 `;
 
 const findAndReplaceStyle = () => css`

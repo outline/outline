@@ -46,7 +46,7 @@ class AttributeEncoder implements TokenEncoder<string | number> {
     let nodeStr = nodeName;
 
     // Enable more attribute encoding as tested
-    if (node.type.name === "mention" && Object.keys(node.attrs).length) {
+    if (Object.keys(node.attrs).length) {
       nodeStr += ":" + JSON.stringify(node.attrs);
     }
 

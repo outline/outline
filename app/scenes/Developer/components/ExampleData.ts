@@ -401,6 +401,70 @@ export const examples: Example[] = [
     },
   },
   {
+    id: "checkbox-checked",
+    name: "Checkbox checked",
+    before: {
+      type: "doc",
+      content: [
+        {
+          type: "checkbox_list",
+          content: [
+            {
+              type: "checkbox_item",
+              attrs: { checked: false },
+              content: [
+                {
+                  type: "paragraph",
+                  content: [{ type: "text", text: "Task to complete" }],
+                },
+              ],
+            },
+            {
+              type: "checkbox_item",
+              attrs: { checked: false },
+              content: [
+                {
+                  type: "paragraph",
+                  content: [{ type: "text", text: "Task to stay the same" }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    after: {
+      type: "doc",
+      content: [
+        {
+          type: "checkbox_list",
+          content: [
+            {
+              type: "checkbox_item",
+              attrs: { checked: true },
+              content: [
+                {
+                  type: "paragraph",
+                  content: [{ type: "text", text: "Task to complete" }],
+                },
+              ],
+            },
+            {
+              type: "checkbox_item",
+              attrs: { checked: false },
+              content: [
+                {
+                  type: "paragraph",
+                  content: [{ type: "text", text: "Task to stay the same" }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     id: "code-block",
     name: "Code block",
     before: {
