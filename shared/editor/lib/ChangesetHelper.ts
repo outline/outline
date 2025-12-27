@@ -152,58 +152,101 @@ export class ChangesetHelper {
         const matchedDeletionIndices = new Set<number>();
         const matchedInsertionIndices = new Set<number>();
 
-        // Look for pairs of deletion+insertion at the same position with same content
-        // but different attributes - these are modifications
+        // Each deletion entry contains both old (step.slice) and new (slice) content
+        // Check if the deletion represents a modification by comparing these
         for (let i = 0; i < change.deleted.length; i++) {
           const deletion = change.deleted[i];
-          if (!deletion.data.slice) {
+
+          if (!deletion.data.slice || !deletion.data.step.slice) {
             continue;
           }
 
-          for (let j = 0; j < change.inserted.length; j++) {
-            const insertion = change.inserted[j];
-            if (!insertion.data.step.slice) {
-              continue;
+          // deletion.data.step.slice = OLD content (what was in the document)
+          // deletion.data.slice = NEW content (what it changed to)
+          const oldSlice = deletion.data.step.slice;
+          const newSlice = deletion.data.slice;
+
+          // Check if both slices have the same number of nodes
+          if (
+            oldSlice.content.childCount === newSlice.content.childCount &&
+            oldSlice.content.childCount > 0
+          ) {
+            let isModification = true;
+            const nodes: Array<{
+              oldNode: Node;
+              newNode: Node;
+            }> = [];
+
+            // Check each corresponding node pair
+            for (let index = 0; index < oldSlice.content.childCount; index++) {
+              const oldNode = oldSlice.content.child(index);
+              const newNode = newSlice.content.child(index);
+
+              // For modifications, we allow:
+              // 1. Same node type with different attributes (e.g., code_block language change)
+              // 2. Related node types with same semantic group (e.g., td <-> th share "tableCell" group)
+              const isSameType = oldNode.type.name === newNode.type.name;
+
+              // Check if nodes share a common semantic group (excluding generic "block"/"inline")
+              const getSemanticGroups = (node: Node): Set<string> => {
+                const groups = node.type.spec.group?.split(" ") || [];
+                return new Set(
+                  groups.filter((g) => g !== "block" && g !== "inline")
+                );
+              };
+
+              const oldGroups = getSemanticGroups(oldNode);
+              const newGroups = getSemanticGroups(newNode);
+              const hasSharedGroup = Array.from(oldGroups).some((g) =>
+                newGroups.has(g)
+              );
+              const isRelatedNodeType = !isSameType && hasSharedGroup;
+
+              try {
+                if (
+                  oldNode.textContent !== newNode.textContent ||
+                  (!isSameType && !isRelatedNodeType)
+                ) {
+                  isModification = false;
+                } else if (
+                  isSameType &&
+                  JSON.stringify(oldNode.attrs) ===
+                    JSON.stringify(newNode.attrs)
+                ) {
+                  // Same type and same attributes = not a modification
+                  isModification = false;
+                }
+
+                nodes.push({ oldNode, newNode });
+              } catch {
+                isModification = false;
+              }
             }
 
-            // Check if they have the same length and same position
-            if (deletion.length !== insertion.length) {
-              continue;
-            }
+            if (isModification) {
+              modified.push({
+                length: deletion.length,
+                data: {
+                  step: deletion.data.step,
+                  slice: deletion.data.slice,
+                  oldAttrs: nodes.length === 1 ? nodes[0].oldNode.attrs : {},
+                  newAttrs: nodes.length === 1 ? nodes[0].newNode.attrs : {},
+                },
+              });
 
-            const deletedSlice = deletion.data.slice;
-            const insertedSlice = insertion.data.step.slice;
+              // Mark this deletion for removal
+              matchedDeletionIndices.add(i);
 
-            // Check if both slices have a single node
-            if (
-              deletedSlice.content.childCount === 1 &&
-              insertedSlice.content.childCount === 1
-            ) {
-              const deletedNode = deletedSlice.content.firstChild;
-              const insertedNode = insertedSlice.content.firstChild;
-
-              // Same node type and same text content, but different attributes
-              if (
-                deletedNode &&
-                insertedNode &&
-                deletedNode.type.name === insertedNode.type.name &&
-                deletedNode.textContent === insertedNode.textContent &&
-                JSON.stringify(deletedNode.attrs) !==
-                  JSON.stringify(insertedNode.attrs)
-              ) {
-                modified.push({
-                  length: insertion.length,
-                  data: {
-                    step: insertion.data.step,
-                    slice: insertion.data.slice,
-                    oldAttrs: deletedNode.attrs,
-                    newAttrs: insertedNode.attrs,
-                  },
-                });
-
-                // Mark these entries as matched so they can be filtered out
-                matchedDeletionIndices.add(i);
-                matchedInsertionIndices.add(j);
+              // Also find and mark corresponding insertion for removal
+              for (let j = 0; j < change.inserted.length; j++) {
+                const insertion = change.inserted[j];
+                if (
+                  insertion.length === deletion.length &&
+                  !matchedInsertionIndices.has(j)
+                ) {
+                  matchedInsertionIndices.add(j);
+                  break;
+                }
               }
             }
           }
