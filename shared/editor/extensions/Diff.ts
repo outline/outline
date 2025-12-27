@@ -112,14 +112,34 @@ export default class Diff extends Extension {
 
       change.inserted.forEach((insertion) => {
         const end = pos + insertion.length;
+        const className = `${this.options.insertionClassName}${
+          isCurrent ? ` ${this.options.currentChangeClassName}` : ""
+        }`;
 
-        decorations.push(
-          Decoration.inline(pos, end, {
-            class: `${this.options.insertionClassName}${
-              isCurrent ? ` ${this.options.currentChangeClassName}` : ""
-            }`,
-          })
-        );
+        // Check if this insertion is a single block node
+        let isSingleBlockNode = false;
+
+        if (insertion.data.step.slice?.content.childCount === 1) {
+          const node = insertion.data.step.slice.content.firstChild;
+          if (node && node.isBlock) {
+            isSingleBlockNode = true;
+          }
+        }
+
+        // Use Decoration.node for block nodes, Decoration.inline for inline content
+        if (isSingleBlockNode) {
+          decorations.push(
+            Decoration.node(pos, end, {
+              class: className,
+            })
+          );
+        } else {
+          decorations.push(
+            Decoration.inline(pos, end, {
+              class: className,
+            })
+          );
+        }
         pos = end;
       });
 

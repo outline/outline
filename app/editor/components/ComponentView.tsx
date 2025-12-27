@@ -43,8 +43,6 @@ export default class ComponentView {
   /** The DOM element that the node is rendered into. */
   dom: HTMLElement | null;
 
-  className: string;
-
   // See https://prosemirror.net/docs/ref/#view.NodeView
   constructor(
     component: FunctionComponent<ComponentProps>,
@@ -68,8 +66,7 @@ export default class ComponentView {
       ? document.createElement("span")
       : document.createElement("div");
 
-    this.className = `component-${node.type.name}`;
-    this.dom.classList.add(this.className);
+    this.dom.classList.add(`component-${node.type.name}`);
     this.renderer = new NodeViewRenderer(this.dom, this.component, this.props);
 
     // Add the renderer to the editor's set of renderers so that it is included in the React tree.
