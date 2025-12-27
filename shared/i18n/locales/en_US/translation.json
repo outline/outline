@@ -386,6 +386,8 @@
   "{{ hours }}h read": "{{ hours }}h read",
   "{{ minutes }}m read": "{{ minutes }}m read",
   "Revision deleted": "Revision deleted",
+  "{{count}} people": "{{count}} people",
+  "{{count}} people_plural": "{{count}} people",
   "Current version": "Current version",
   "{{userName}} edited": "{{userName}} edited",
   "Revision options": "Revision options",

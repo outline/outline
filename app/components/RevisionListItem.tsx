@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import styled from "styled-components";
 import EventBoundary from "@shared/components/EventBoundary";
-import { hover } from "@shared/styles";
+import { ellipsis, hover } from "@shared/styles";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import type Document from "~/models/Document";
 import type Revision from "~/models/Revision";
@@ -63,12 +63,24 @@ const RevisionListItem = ({ item, document, ...rest }: Props) => {
     meta = t("Revision deleted");
   } else {
     icon = <EditIcon size={16} />;
+
+    let collaboratorText: string | undefined;
+    if (item.collaborators && item.collaborators.length === 2) {
+      collaboratorText = `${item.collaborators[0].name} and ${item.collaborators[1].name}`;
+    } else if (item.collaborators && item.collaborators.length > 2) {
+      collaboratorText = t("{{count}} people", {
+        count: item.collaborators.length,
+      });
+    } else {
+      collaboratorText = item.createdBy?.name;
+    }
+
     meta = isLatestRevision ? (
       <>
-        {t("Current version")} &middot; {item.createdBy?.name}
+        {t("Current version")} &middot; {collaboratorText}
       </>
     ) : (
-      t("{{userName}} edited", { userName: item.createdBy?.name })
+      t("{{userName}} edited", { userName: collaboratorText })
     );
     to = {
       pathname: documentHistoryPath(
@@ -137,7 +149,7 @@ const RevisionListItem = ({ item, document, ...rest }: Props) => {
               <Avatar model={item.createdBy} size={AvatarSize.Large} />
             )
           }
-          subtitle={meta}
+          subtitle={<Meta>{meta}</Meta>}
           actions={
             isActive ? (
               <StyledEventBoundary>
@@ -153,6 +165,10 @@ const RevisionListItem = ({ item, document, ...rest }: Props) => {
     </ActionContextProvider>
   );
 };
+
+const Meta = styled.div`
+  ${ellipsis()})
+`;
 
 const IconWrapper = styled(Text)`
   height: 24px;
