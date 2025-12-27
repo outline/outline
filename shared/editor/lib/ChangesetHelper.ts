@@ -13,6 +13,61 @@ export type DiffChanges = {
   doc: Node;
 };
 
+class AttributeEncoder implements TokenEncoder<string | number> {
+  public encodeCharacter(char: number, marks: Mark[]): string | number {
+    return `${char}:${this.encodeMarks(marks)}`;
+  }
+
+  public encodeNodeStart(node: Node): string {
+    const nodeName = node.type.name;
+    const marks = node.marks;
+
+    // Add node attributes if they exist
+    let nodeStr = nodeName;
+
+    // Enable more attribute encoding as tested
+    if (node.type.name === "mention" && Object.keys(node.attrs).length) {
+      nodeStr += ":" + JSON.stringify(node.attrs);
+    }
+
+    if (!marks.length) {
+      return nodeStr;
+    }
+
+    return `${nodeStr}:${this.encodeMarks(marks)}`;
+  }
+
+  // See: https://github.com/ProseMirror/prosemirror-changeset/blob/23f67c002e5489e454a0473479e407decb238afe/src/diff.ts#L26
+  public encodeNodeEnd({ type }: Node): number {
+    let cache: Record<string, number> =
+      type.schema.cached.changeSetIDs ||
+      (type.schema.cached.changeSetIDs = Object.create(null));
+    let id = cache[type.name];
+    if (id === null) {
+      cache[type.name] = id =
+        Object.keys(type.schema.nodes).indexOf(type.name) + 1;
+    }
+    return id;
+  }
+
+  public compareTokens(a: string | number, b: string | number): boolean {
+    return a === b;
+  }
+
+  private encodeMarks(marks: readonly Mark[]): string {
+    return marks
+      .map((m) => {
+        let result = m.type.name;
+        if (Object.keys(m.attrs).length) {
+          result += ":" + JSON.stringify(m.attrs);
+        }
+        return result;
+      })
+      .sort()
+      .join(",");
+  }
+}
+
 export class ChangesetHelper {
   /**
    * Calculates a changeset between two revisions of a document.
@@ -57,7 +112,7 @@ export class ChangesetHelper {
       const changeset = ChangeSet.create<{
         step: Step;
         slice: Slice | null;
-      }>(docOld, undefined, new AttributeEncoder()).addSteps(
+      }>(docOld, undefined, this.attributeEncoder).addSteps(
         tr.doc,
         tr.mapping.maps,
         tr.steps.map((step, i) => ({
@@ -79,59 +134,6 @@ export class ChangesetHelper {
       return null;
     }
   }
-}
 
-export class AttributeEncoder implements TokenEncoder<string | number> {
-  encodeCharacter(char: number, marks: Mark[]): string | number {
-    return `${char}:${this.encodeMarks(marks)}`;
-  }
-
-  encodeNodeStart(node: Node): string {
-    const nodeName = node.type.name;
-    const marks = node.marks;
-
-    // Add node attributes if they exist
-    let nodeStr = nodeName;
-
-    // Enable more attribute encoding as tested
-    if (node.type.name === "mention" && Object.keys(node.attrs).length) {
-      nodeStr += ":" + JSON.stringify(node.attrs);
-    }
-
-    if (!marks.length) {
-      return nodeStr;
-    }
-
-    return `${nodeStr}:${this.encodeMarks(marks)}`;
-  }
-
-  // See: https://github.com/ProseMirror/prosemirror-changeset/blob/23f67c002e5489e454a0473479e407decb238afe/src/diff.ts#L26
-  encodeNodeEnd({ type }: Node): number {
-    let cache: Record<string, number> =
-      type.schema.cached.changeSetIDs ||
-      (type.schema.cached.changeSetIDs = Object.create(null));
-    let id = cache[type.name];
-    if (id === null) {
-      cache[type.name] = id =
-        Object.keys(type.schema.nodes).indexOf(type.name) + 1;
-    }
-    return id;
-  }
-
-  compareTokens(a: string | number, b: string | number): boolean {
-    return a === b;
-  }
-
-  private encodeMarks(marks: readonly Mark[]): string {
-    return marks
-      .map((m) => {
-        let result = m.type.name;
-        if (Object.keys(m.attrs).length) {
-          result += ":" + JSON.stringify(m.attrs);
-        }
-        return result;
-      })
-      .sort()
-      .join(",");
-  }
+  private static attributeEncoder = new AttributeEncoder();
 }

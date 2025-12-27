@@ -1194,20 +1194,13 @@ export const examples: Example[] = [
   },
   {
     id: "image-layouts",
-    name: "Image layouts",
+    name: "Images",
     before: {
       type: "doc",
       content: [
         {
           type: "paragraph",
           content: [{ type: "text", text: "An image." }],
-        },
-        {
-          type: "image",
-          attrs: {
-            src: "https://www.getoutline.com/images/screenshot.png",
-            alt: "Outline",
-          },
         },
       ],
     },
@@ -1216,14 +1209,13 @@ export const examples: Example[] = [
       content: [
         {
           type: "paragraph",
-          content: [{ type: "text", text: "An image with a right-50 layout." }],
+          content: [{ type: "text", text: "An image appeared." }],
         },
         {
           type: "image",
           attrs: {
             src: "https://www.getoutline.com/images/screenshot.png",
             alt: "Outline",
-            layoutClass: "right-50",
           },
         },
       ],
