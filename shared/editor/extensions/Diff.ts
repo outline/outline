@@ -121,7 +121,7 @@ export default class Diff extends Extension {
 
         if (insertion.data.step.slice?.content.childCount === 1) {
           const node = insertion.data.step.slice.content.firstChild;
-          if (node && node.isBlock) {
+          if (node && node.isBlock && node.type.name !== "paragraph") {
             isSingleBlockNode = true;
           }
         }

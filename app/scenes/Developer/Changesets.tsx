@@ -96,16 +96,18 @@ function Changesets() {
         style={{ left: (ui.sidebarCollapsed ? 16 : ui.sidebarWidth) + 8 }}
         column
       >
-        <Flex style={{ padding: "0 8px 32px" }} column>
+        <Flex style={{ padding: "0 8px 32px" }} shrink={false} column>
           <Switch
             label="Show JSON"
             checked={showChangeset}
             onChange={(checked) => setShowChangeset(checked)}
+            labelPosition="right"
           />
           <Switch
             label="Show Before/After Docs"
             checked={showBeforeAfterDocs}
             onChange={(checked) => setShowBeforeAfterDocs(checked)}
+            labelPosition="right"
           />
         </Flex>
         <Scrollable>

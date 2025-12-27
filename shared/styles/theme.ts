@@ -188,7 +188,7 @@ export const buildDarkTheme = (input: Partial<Colors>): DefaultTheme => {
     textSecondary: lighten(0.1, colors.slate),
     textTertiary: colors.slate,
     textDiffInserted: colors.almostWhite,
-    textDiffInsertedBackground: "rgba(63,185,80,0.3)",
+    textDiffInsertedBackground: "rgba(63,185,80,0.25)",
     textDiffDeleted: darken(0.1, colors.almostWhite),
     textDiffDeletedBackground: "rgba(248,81,73,0.15)",
     placeholder: "#596673",
