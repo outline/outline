@@ -116,7 +116,7 @@ function Changesets() {
               key={example.id}
               title={example.name}
               onClick={() =>
-                history.replace({
+                history.push({
                   search: `?id=${example.id}`,
                 })
               }

@@ -2,11 +2,13 @@ import { observable } from "mobx";
 import type { Command } from "prosemirror-state";
 import { Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import type { Node } from "prosemirror-model";
+import type { Node, ResolvedPos } from "prosemirror-model";
 import { DOMSerializer, Fragment } from "prosemirror-model";
 import scrollIntoView from "scroll-into-view-if-needed";
 import Extension from "../lib/Extension";
 import type { Change } from "prosemirror-changeset";
+import { cn } from "../styles/utils";
+import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 
 const pluginKey = new PluginKey("diffs");
 
@@ -18,9 +20,11 @@ export default class Diff extends Extension {
   get defaultOptions() {
     return {
       changes: null,
-      insertionClassName: "diff-insertion",
-      deletionClassName: "diff-deletion",
-      currentChangeClassName: "current-diff",
+      insertionClassName: EditorStyleHelper.diffInsertion,
+      deletionClassName: EditorStyleHelper.diffDeletion,
+      nodeInsertionClassName: EditorStyleHelper.diffNodeInsertion,
+      nodeDeletionClassName: EditorStyleHelper.diffNodeDeletion,
+      currentChangeClassName: EditorStyleHelper.diffCurrentChange,
     };
   }
 
@@ -105,6 +109,40 @@ export default class Diff extends Extension {
     const { changes } = this.options as { changes: Change[] | null };
     const decorations: Decoration[] = [];
 
+    /**
+     * Recursively unwrap nodes that are redundant or invalid given the
+     * current context.
+     */
+    const unwrap = ($pos: ResolvedPos, fragment: Fragment): Node[] => {
+      const result: Node[] = [];
+      fragment.forEach((node: Node) => {
+        let isRedundant = false;
+
+        for (let d = 0; d <= $pos.depth; d++) {
+          const ancestor = $pos.node(d);
+          const ancestorRole = ancestor.type.spec.tableRole;
+          const nodeRole = node.type.spec.tableRole;
+
+          if (
+            ancestor.type.name === node.type.name ||
+            (ancestorRole === "row" &&
+              (nodeRole === "cell" || nodeRole === "header_cell")) ||
+            (ancestorRole === "table" && nodeRole === "row")
+          ) {
+            isRedundant = true;
+            break;
+          }
+        }
+
+        if (node.isBlock && (isRedundant || $pos.parent.type.inlineContent)) {
+          result.push(...unwrap($pos, node.content));
+        } else {
+          result.push(node);
+        }
+      });
+      return result;
+    };
+
     // Add insertion and deletion decorations
     changes?.forEach((change, changeIndex) => {
       let pos = change.fromB;
@@ -112,22 +150,30 @@ export default class Diff extends Extension {
 
       change.inserted.forEach((insertion) => {
         const end = pos + insertion.length;
-        const className = `${this.options.insertionClassName}${
-          isCurrent ? ` ${this.options.currentChangeClassName}` : ""
-        }`;
 
-        // Check if this insertion is a single block node
-        let isSingleBlockNode = false;
+        // Check if this insertion is a single block node or inline atom
+        let useNodeDecoration = false;
 
         if (insertion.data.step.slice?.content.childCount === 1) {
           const node = insertion.data.step.slice.content.firstChild;
-          if (node && node.isBlock && node.type.name !== "paragraph") {
-            isSingleBlockNode = true;
+          if (
+            node &&
+            !node.isText &&
+            ((node.isBlock && node.type.name !== "paragraph") ||
+              (node.isInline && node.isAtom))
+          ) {
+            useNodeDecoration = true;
           }
         }
 
-        // Use Decoration.node for block nodes, Decoration.inline for inline content
-        if (isSingleBlockNode) {
+        const className = cn({
+          [this.options.currentChangeClassName]: isCurrent,
+          [this.options.insertionClassName]: !useNodeDecoration,
+          [this.options.nodeInsertionClassName]: useNodeDecoration,
+        });
+
+        // Use Decoration.node for block nodes and inline atoms, Decoration.inline for other inline content
+        if (useNodeDecoration) {
           decorations.push(
             Decoration.node(pos, end, {
               class: className,
@@ -140,6 +186,7 @@ export default class Diff extends Extension {
             })
           );
         }
+
         pos = end;
       });
 
@@ -158,52 +205,34 @@ export default class Diff extends Extension {
           tag = "td";
         }
 
+        // Check if this deletion is a single block node or inline atom
+        let useNodeDecoration = false;
+
+        if (deletion.data.slice.content.childCount === 1) {
+          const node = deletion.data.slice.content.firstChild;
+          if (
+            node &&
+            !node.isText &&
+            ((node.isBlock && node.type.name !== "paragraph") ||
+              (node.isInline && node.isAtom))
+          ) {
+            useNodeDecoration = true;
+          }
+        }
+
         const dom = document.createElement(tag);
         dom.setAttribute(
           "class",
-          `${this.options.deletionClassName}${
-            isCurrent ? ` ${this.options.currentChangeClassName}` : ""
-          }`
+          cn({
+            [this.options.currentChangeClassName]: isCurrent,
+            [this.options.deletionClassName]: !useNodeDecoration,
+            [this.options.nodeDeletionClassName]: useNodeDecoration,
+          })
         );
 
-        /**
-         * Recursively unwrap nodes that are redundant or invalid given the
-         * current context.
-         */
-        const unwrap = (fragment: Fragment): Node[] => {
-          const result: Node[] = [];
-          fragment.forEach((node: Node) => {
-            let isRedundant = false;
-
-            for (let d = 0; d <= $pos.depth; d++) {
-              const ancestor = $pos.node(d);
-              const ancestorRole = ancestor.type.spec.tableRole;
-              const nodeRole = node.type.spec.tableRole;
-
-              if (
-                ancestor.type.name === node.type.name ||
-                (ancestorRole === "row" &&
-                  (nodeRole === "cell" || nodeRole === "header_cell")) ||
-                (ancestorRole === "table" && nodeRole === "row")
-              ) {
-                isRedundant = true;
-                break;
-              }
-            }
-
-            if (
-              node.isBlock &&
-              (isRedundant || $pos.parent.type.inlineContent)
-            ) {
-              result.push(...unwrap(node.content));
-            } else {
-              result.push(node);
-            }
-          });
-          return result;
-        };
-
-        const fragment = Fragment.from(unwrap(deletion.data.slice.content));
+        const fragment = Fragment.from(
+          unwrap($pos, deletion.data.slice.content)
+        );
 
         dom.appendChild(
           DOMSerializer.fromSchema(doc.type.schema).serializeFragment(fragment)

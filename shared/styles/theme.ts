@@ -126,7 +126,7 @@ export const buildLightTheme = (input: Partial<Colors>): DefaultTheme => {
     textDiffInserted: colors.almostBlack,
     textDiffInsertedBackground: "rgba(18, 138, 41, 0.16)",
     textDiffDeleted: colors.slateDark,
-    textDiffDeletedBackground: "#ffebe9",
+    textDiffDeletedBackground: "rgba(255, 180, 173, 0.25)",
     placeholder: "#a2b2c3",
     sidebarBackground: colors.warmGrey,
     sidebarHoverBackground: "hsl(212 31% 90% / 1)",

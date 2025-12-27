@@ -276,30 +276,86 @@ const codeBlockStyle = (props: Props) => css`
 `;
 
 const diffStyle = (props: Props) => css`
-  .diff-insertion:not([class^="component-"]),
-  .diff-insertion:not(tr):not(th):not(td):not(ul):not(li) > * {
+  .${EditorStyleHelper.diffInsertion}:not([class^="component-"]),
+  .${EditorStyleHelper.diffInsertion} > * {
     color: ${props.theme.textDiffInserted};
     background-color: ${props.theme.textDiffInsertedBackground};
     text-decoration: none;
 
-    &.current-diff {
+    &.${EditorStyleHelper.diffCurrentChange} {
+      outline-color: ${lighten(0.2, props.theme.textDiffInserted)};
       background-color: ${lighten(0.2, props.theme.textDiffInsertedBackground)};
       animation: ${pulse(lighten(0.2, props.theme.textDiffInsertedBackground))}
         150ms 1;
     }
   }
 
-  .diff-deletion:not([class^="component-"]),
-  .diff-deletion:not(tr):not(th):not(td):not(ul):not(li) > * {
+  .${EditorStyleHelper.diffNodeInsertion} {
+    background-color: ${props.theme.textDiffInsertedBackground};
+
+    &[class*="component-"] {
+      outline: 4px solid ${props.theme.textDiffInsertedBackground};
+    }
+
+    td,
+    th {
+      border-color: ${props.theme.textDiffInsertedBackground};
+    }
+  }
+
+  .${EditorStyleHelper.diffNodeInsertion}[class*="component-"],
+    .${EditorStyleHelper.diffNodeInsertion}.math-node,
+    ul.${EditorStyleHelper.diffNodeInsertion},
+    li.${EditorStyleHelper.diffNodeInsertion} {
+    border-radius: ${EditorStyleHelper.blockRadius};
+  }
+
+  td.${EditorStyleHelper.diffNodeInsertion},
+    th.${EditorStyleHelper.diffNodeInsertion} {
+    border-color: ${props.theme.textDiffInsertedBackground};
+  }
+
+  .${EditorStyleHelper.diffDeletion}:not([class^="component-"]),
+  .${EditorStyleHelper.diffDeletion} > * {
     color: ${props.theme.textDiffDeleted};
     background-color: ${props.theme.textDiffDeletedBackground};
     text-decoration: line-through;
 
-    &.current-diff {
+    &.${EditorStyleHelper.diffCurrentChange} {
+      outline-color: ${lighten(0.2, props.theme.textDiffDeletedBackground)};
       background-color: ${lighten(0.2, props.theme.textDiffDeletedBackground)};
       animation: ${pulse(lighten(0.2, props.theme.textDiffDeletedBackground))}
         150ms 1;
     }
+  }
+
+  .${EditorStyleHelper.diffNodeDeletion} {
+    background-color: ${props.theme.textDiffDeletedBackground};
+
+    &[class*="component-"] {
+      outline: 4px solid ${props.theme.textDiffDeletedBackground};
+    }
+
+    .mention {
+      background-color: ${props.theme.textDiffDeletedBackground};
+    }
+
+    td,
+    th {
+      border-color: ${props.theme.textDiffDeletedBackground};
+    }
+  }
+
+  .${EditorStyleHelper.diffNodeDeletion}[class*="component-"],
+    .${EditorStyleHelper.diffNodeDeletion}.math-node,
+    ul.${EditorStyleHelper.diffNodeDeletion},
+    li.${EditorStyleHelper.diffNodeDeletion} {
+    border-radius: ${EditorStyleHelper.blockRadius};
+  }
+
+  td.${EditorStyleHelper.diffNodeDeletion},
+    th.${EditorStyleHelper.diffNodeDeletion} {
+    border-color: ${props.theme.textDiffDeletedBackground};
   }
 `;
 
@@ -831,6 +887,10 @@ img.ProseMirror-separator {
   display: inline;
   border: none !important;
   margin: 0 !important;
+}
+
+.component-image {
+  display: block;
 }
 
 // Removes forced paragraph spaces below images, this is needed to images

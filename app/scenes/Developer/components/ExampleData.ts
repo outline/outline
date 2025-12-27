@@ -1256,7 +1256,7 @@ export const examples: Example[] = [
         {
           type: "embed",
           attrs: {
-            href: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            href: "https://www.youtube.com/watch?v=FwpEk-fhZjY",
           },
         },
         {
@@ -1283,14 +1283,16 @@ export const examples: Example[] = [
       content: [
         {
           type: "paragraph",
-          content: [{ type: "text", text: "An image is inserted" }],
-        },
-        {
-          type: "image",
-          attrs: {
-            src: "https://www.getoutline.com/images/screenshot.png",
-            alt: "Outline",
-          },
+          content: [
+            { type: "text", text: "An image" },
+            {
+              type: "image",
+              attrs: {
+                src: "https://www.getoutline.com/images/screenshot.png",
+                alt: "Outline",
+              },
+            },
+          ],
         },
       ],
     },
@@ -1299,15 +1301,6 @@ export const examples: Example[] = [
     id: "mentions",
     name: "Mentions",
     before: {
-      type: "doc",
-      content: [
-        {
-          type: "paragraph",
-          content: [{ type: "text", text: "A paragraph." }],
-        },
-      ],
-    },
-    after: {
       type: "doc",
       content: [
         {
@@ -1325,9 +1318,19 @@ export const examples: Example[] = [
                 modelId: "user-1",
               },
             },
+          ],
+        },
+      ],
+    },
+    after: {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [
             {
               type: "text",
-              text: ", a ",
+              text: "A paragraph with mentions to a ",
             },
             {
               type: "mention",
