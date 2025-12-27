@@ -201,15 +201,6 @@ export const examples: Example[] = [
               content: [
                 {
                   type: "paragraph",
-                  content: [{ type: "text", text: "Item two" }],
-                },
-              ],
-            },
-            {
-              type: "list_item",
-              content: [
-                {
-                  type: "paragraph",
                   content: [{ type: "text", text: "Item three (added)" }],
                 },
               ],
@@ -1194,13 +1185,20 @@ export const examples: Example[] = [
   },
   {
     id: "image-layouts",
-    name: "Images",
+    name: "Image layouts",
     before: {
       type: "doc",
       content: [
         {
           type: "paragraph",
           content: [{ type: "text", text: "An image." }],
+        },
+        {
+          type: "image",
+          attrs: {
+            src: "https://www.getoutline.com/images/screenshot.png",
+            alt: "Outline",
+          },
         },
       ],
     },
@@ -1209,13 +1207,14 @@ export const examples: Example[] = [
       content: [
         {
           type: "paragraph",
-          content: [{ type: "text", text: "An image appeared." }],
+          content: [{ type: "text", text: "An image with a right-50 layout." }],
         },
         {
           type: "image",
           attrs: {
             src: "https://www.getoutline.com/images/screenshot.png",
             alt: "Outline",
+            layoutClass: "right-50",
           },
         },
       ],
@@ -1512,6 +1511,80 @@ export const examples: Example[] = [
             {
               type: "emoji",
               attrs: { "data-name": "c4f345ab-1c37-4348-ab68-1a423aad47e3" },
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    id: "new-nested-list",
+    name: "New nested list",
+    before: {
+      type: "doc",
+      content: [
+        {
+          type: "bullet_list",
+          content: [
+            {
+              type: "list_item",
+              content: [
+                {
+                  type: "paragraph",
+                  content: [{ type: "text", text: "Item 1" }],
+                },
+              ],
+            },
+            {
+              type: "list_item",
+              content: [
+                {
+                  type: "paragraph",
+                  content: [{ type: "text", text: "Item 2" }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    after: {
+      type: "doc",
+      content: [
+        {
+          type: "bullet_list",
+          content: [
+            {
+              type: "list_item",
+              content: [
+                {
+                  type: "paragraph",
+                  content: [{ type: "text", text: "Item 1" }],
+                },
+              ],
+            },
+            {
+              type: "list_item",
+              content: [
+                {
+                  type: "paragraph",
+                  content: [{ type: "text", text: "Item 2" }],
+                },
+                {
+                  type: "bullet_list",
+                  content: [
+                    {
+                      type: "list_item",
+                      content: [
+                        {
+                          type: "paragraph",
+                          content: [{ type: "text", text: "Nested item 1" }],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
             },
           ],
         },
