@@ -1,4 +1,4 @@
-import { subDays } from "date-fns";
+import { subHours } from "date-fns";
 import { FileOperationState, FileOperationType } from "@shared/types";
 import { FileOperation } from "@server/models";
 import { buildFileOperation, buildTeam } from "@server/test/factories";
@@ -13,18 +13,29 @@ const props = {
 };
 
 describe("ErrorTimedOutFileOperationsTask", () => {
+  let team: Awaited<ReturnType<typeof buildTeam>>;
+
+  beforeEach(async () => {
+    team = await buildTeam();
+    // Clean up any existing file operations for this team
+    await FileOperation.destroy({
+      where: { teamId: team.id },
+      force: true,
+    });
+  });
+
   it("should error exports older than 12 hours", async () => {
-    const team = await buildTeam();
     await buildFileOperation({
       teamId: team.id,
       type: FileOperationType.Export,
       state: FileOperationState.Creating,
-      createdAt: subDays(new Date(), 15),
+      createdAt: subHours(new Date(), 13),
     });
     await buildFileOperation({
       teamId: team.id,
       type: FileOperationType.Export,
       state: FileOperationState.Complete,
+      createdAt: subHours(new Date(), 13),
     });
 
     const task = new ErrorTimedOutFileOperationsTask();
@@ -41,11 +52,11 @@ describe("ErrorTimedOutFileOperationsTask", () => {
   });
 
   it("should not error exports created less than 12 hours ago", async () => {
-    const team = await buildTeam();
     await buildFileOperation({
       teamId: team.id,
       type: FileOperationType.Export,
       state: FileOperationState.Creating,
+      createdAt: subHours(new Date(), 11),
     });
 
     const task = new ErrorTimedOutFileOperationsTask();
