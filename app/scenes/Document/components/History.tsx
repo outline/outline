@@ -45,7 +45,7 @@ function History() {
   const isMobile = useMobile();
 
   const [defaultShowChanges, setDefaultShowChanges] =
-    usePersistedState<boolean>("history-show-changes", false);
+    usePersistedState<boolean>("history-show-changes", true);
 
   const searchParams = new URLSearchParams(history.location.search);
   const [showChanges, setShowChanges] = React.useState(

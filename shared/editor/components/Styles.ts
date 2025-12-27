@@ -276,7 +276,8 @@ const codeBlockStyle = (props: Props) => css`
 `;
 
 const diffStyle = (props: Props) => css`
-  .${EditorStyleHelper.diffInsertion}:not([class^="component-"]),
+  .${EditorStyleHelper.diffNodeInsertion},
+    .${EditorStyleHelper.diffInsertion}:not([class^="component-"]),
   .${EditorStyleHelper.diffInsertion} > * {
     color: ${props.theme.textDiffInserted};
     background-color: ${props.theme.textDiffInsertedBackground};
@@ -291,8 +292,6 @@ const diffStyle = (props: Props) => css`
   }
 
   .${EditorStyleHelper.diffNodeInsertion} {
-    background-color: ${props.theme.textDiffInsertedBackground};
-
     &[class*="component-"] {
       outline: 4px solid ${props.theme.textDiffInsertedBackground};
     }
@@ -315,7 +314,8 @@ const diffStyle = (props: Props) => css`
     border-color: ${props.theme.textDiffInsertedBackground};
   }
 
-  .${EditorStyleHelper.diffDeletion}:not([class^="component-"]),
+  .${EditorStyleHelper.diffNodeDeletion},
+    .${EditorStyleHelper.diffDeletion}:not([class^="component-"]),
   .${EditorStyleHelper.diffDeletion} > * {
     color: ${props.theme.textDiffDeleted};
     background-color: ${props.theme.textDiffDeletedBackground};
@@ -330,8 +330,6 @@ const diffStyle = (props: Props) => css`
   }
 
   .${EditorStyleHelper.diffNodeDeletion} {
-    background-color: ${props.theme.textDiffDeletedBackground};
-
     &[class*="component-"] {
       outline: 4px solid ${props.theme.textDiffDeletedBackground};
     }

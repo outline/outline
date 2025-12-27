@@ -220,15 +220,30 @@ export default class Diff extends Extension {
 
         const $pos = doc.resolve(change.fromB);
         const parentRole = $pos.parent.type.spec.tableRole;
+        const parentGroup = $pos.parent.type.spec.group;
         let tag = $pos.parent.type.inlineContent ? "span" : "div";
 
         if (parentRole === "table") {
           tag = "tr";
         } else if (parentRole === "row") {
           tag = "td";
+        } else if (parentGroup?.includes("list")) {
+          tag = "li";
         }
 
         const useNodeDecoration = shouldUseNodeDecoration(deletion.data.slice);
+
+        // Check if we're deleting a single paragraph - if so, use <p> tag
+        // and unwrap the paragraph content to avoid nested <p> tags
+        let contentToSerialize = deletion.data.slice.content;
+        if (deletion.data.slice.content.childCount === 1) {
+          const deletedNode = deletion.data.slice.content.firstChild;
+          if (deletedNode?.type.name === "paragraph") {
+            tag = "p";
+            // Unwrap the paragraph to get just its inline content
+            contentToSerialize = deletedNode.content;
+          }
+        }
 
         const dom = document.createElement(tag);
         dom.setAttribute(
@@ -240,9 +255,7 @@ export default class Diff extends Extension {
           })
         );
 
-        const fragment = Fragment.from(
-          unwrap($pos, deletion.data.slice.content)
-        );
+        const fragment = Fragment.from(unwrap($pos, contentToSerialize));
 
         dom.appendChild(
           DOMSerializer.fromSchema(doc.type.schema).serializeFragment(fragment)
