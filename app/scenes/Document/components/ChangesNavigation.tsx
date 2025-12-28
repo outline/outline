@@ -1,5 +1,7 @@
+import { observer } from "mobx-react";
 import Flex from "@shared/components/Flex";
 import { s } from "@shared/styles";
+import Diff from "@shared/editor/extensions/Diff";
 import { CaretDownIcon, CaretUpIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
@@ -14,7 +16,7 @@ type Props = {
   editorRef: React.RefObject<Editor>;
 };
 
-export const ChangesNavigation = ({ revision, editorRef }: Props) => {
+export const ChangesNavigation = observer(({ revision, editorRef }: Props) => {
   const { t } = useTranslation();
   const query = useQuery();
   const showChanges = query.get("changes");
@@ -23,14 +25,25 @@ export const ChangesNavigation = ({ revision, editorRef }: Props) => {
     return null;
   }
 
+  const diffExtension = editorRef.current?.extensions.extensions.find(
+    (ext) => ext instanceof Diff
+  ) as Diff | undefined;
+  const currentChangeIndex = diffExtension?.getCurrentChangeIndex() ?? -1;
+  const totalChanges = revision.changeset?.changes?.length ?? 0;
+
   return (
     <>
-      {revision.changeset?.changes && revision.changeset.changes.length > 0 && (
+      {totalChanges > 0 && (
         <Flex gap={4} align="center">
           <NavigationLabel>
-            {t("{{ count }} changes", {
-              count: revision.changeset.changes.length,
-            })}
+            {currentChangeIndex >= 0
+              ? t("{{ current }} of {{ count }} changes", {
+                  current: currentChangeIndex + 1,
+                  count: totalChanges,
+                })
+              : t("{{ count }} changes", {
+                  count: totalChanges,
+                })}
           </NavigationLabel>
           <Tooltip content={t("Previous change")} placement="bottom">
             <NavigationButton
@@ -50,7 +63,7 @@ export const ChangesNavigation = ({ revision, editorRef }: Props) => {
       )}
     </>
   );
-};
+});
 
 const NavigationButton = styled(Button).attrs({
   borderOnHover: true,

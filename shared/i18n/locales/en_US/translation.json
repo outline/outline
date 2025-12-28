@@ -711,6 +711,8 @@
   "Add a description": "Add a description",
   "Signing in": "Signing in",
   "You can safely close this window once the Outline desktop app has opened": "You can safely close this window once the Outline desktop app has opened",
+  "{{ current }} of {{ count }} changes": "{{ current }} of {{ count }} changes",
+  "{{ current }} of {{ count }} changes_plural": "{{ current }} of {{ count }} changes",
   "{{ count }} changes": "{{ count }} change",
   "{{ count }} changes_plural": "{{ count }} changes",
   "Previous change": "Previous change",

@@ -44,6 +44,15 @@ export default class Diff extends Extension {
     };
   }
 
+  /**
+   * Get the current change index being viewed.
+   *
+   * @returns the index of the current change, or -1 if no change is selected.
+   */
+  public getCurrentChangeIndex(): number {
+    return this.currentChangeIndex;
+  }
+
   private goToChange(direction: number): Command {
     return (state, dispatch) => {
       const { changes } = this.options as { changes: ExtendedChange[] | null };
