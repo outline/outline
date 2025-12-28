@@ -3,6 +3,7 @@ import { Node, Fragment } from "prosemirror-model";
 import ukkonen from "ukkonen";
 import { updateYFragment, yDocToProsemirrorJSON } from "y-prosemirror";
 import * as Y from "yjs";
+import type { ExtendedChange } from "@shared/editor/lib/ChangesetHelper";
 import textBetween from "@shared/editor/lib/textBetween";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import type { NavigationNode, ProsemirrorData } from "@shared/types";
@@ -35,6 +36,8 @@ type HTMLOptions = {
   signedUrls?: boolean | number;
   /** The base URL to use for relative links */
   baseUrl?: string;
+  /** Changes to highlight in the document */
+  changes?: readonly ExtendedChange[];
 };
 
 @trace()
@@ -212,6 +215,7 @@ export class DocumentHelper {
       includeHead: options?.includeHead,
       centered: options?.centered,
       baseUrl: options?.baseUrl,
+      changes: options?.changes,
     });
 
     addTags({

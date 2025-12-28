@@ -120,7 +120,7 @@ export default class Diff extends Extension {
       new Plugin({
         key: pluginKey,
         state: {
-          init: () => DecorationSet.empty,
+          init: (_, state) => this.createDecorations(state.doc),
           apply: (tr) => this.createDecorations(tr.doc),
         },
         props: {

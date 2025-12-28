@@ -5,11 +5,13 @@ import { EditorView } from "prosemirror-view";
 import flatten from "lodash/flatten";
 import isMatch from "lodash/isMatch";
 import uniq from "lodash/uniq";
-import { Node, DOMSerializer, Fragment } from "prosemirror-model";
+import { Node, Fragment } from "prosemirror-model";
 import { renderToString } from "react-dom/server";
 import styled, { ServerStyleSheet, ThemeProvider } from "styled-components";
 import { prosemirrorToYDoc } from "y-prosemirror";
 import * as Y from "yjs";
+import Diff from "@shared/editor/extensions/Diff";
+import type { ExtendedChange } from "@shared/editor/lib/ChangesetHelper";
 import EditorContainer from "@shared/editor/components/Styles";
 import GlobalStyles from "@shared/styles/globals";
 import light from "@shared/styles/theme";
@@ -39,6 +41,8 @@ export type HTMLOptions = {
   centered?: boolean;
   /** The base URL to use for relative links */
   baseUrl?: string;
+  /** Changes to highlight in the document */
+  changes?: readonly ExtendedChange[];
 };
 
 export type MentionAttrs = {
@@ -532,9 +536,13 @@ export class ProsemirrorHelper {
     g.MutationObserver = dom.window.MutationObserver;
 
     try {
+      const diffPlugins = options?.changes
+        ? new Diff({ changes: options.changes }).plugins
+        : [];
+
       const state = EditorState.create({
         doc: node,
-        plugins,
+        plugins: [...plugins, ...diffPlugins],
         schema,
       });
 

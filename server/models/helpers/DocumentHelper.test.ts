@@ -1,5 +1,7 @@
 import Revision from "@server/models/Revision";
 import { buildDocument } from "@server/test/factories";
+import { ChangesetHelper } from "@shared/editor/lib/ChangesetHelper";
+import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { DocumentHelper } from "./DocumentHelper";
 
 describe("DocumentHelper", () => {
@@ -96,6 +98,26 @@ describe("DocumentHelper", () => {
         includeStyles: false,
       });
       expect(result).toContain('<p dir="auto">This is a test paragraph</p>');
+    });
+
+    it("should render diff classes when changes provided", async () => {
+      const doc1 = await buildDocument({ text: "Hello world" });
+      const doc2 = await buildDocument({ text: "Hello modified world" });
+
+      const changeset = ChangesetHelper.getChangeset(
+        doc2.content,
+        doc1.content
+      );
+
+      expect(changeset).not.toBeNull();
+
+      const result = await DocumentHelper.toHTML(doc2, {
+        includeTitle: false,
+        includeStyles: false,
+        changes: changeset!.changes,
+      });
+
+      expect(result).toContain(EditorStyleHelper.diffInsertion);
     });
   });
 
