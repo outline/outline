@@ -31,6 +31,11 @@ export default function init(
     maxPayload: DocumentValidation.maxStateLength,
   });
 
+  // Handle WebSocket server errors to prevent crashes when maxPayload is exceeded
+  wss.on("error", (error) => {
+    Logger.error("WebSocket server error", error);
+  });
+
   const hocuspocus = Server.configure({
     debounce: 3000,
     timeout: 30000,
@@ -71,6 +76,18 @@ export default function init(
           .pop();
 
         if (documentId) {
+          // Handle socket errors that may occur during upgrade (e.g., maxPayload exceeded)
+          socket.on("error", (error) => {
+            Logger.error(
+              "Socket error during WebSocket upgrade",
+              error,
+              {
+                documentId,
+              },
+              req
+            );
+          });
+
           wss.handleUpgrade(req, socket, head, (client) => {
             // Handle websocket connection errors as soon as the client is upgraded
             client.on("error", (error) => {
