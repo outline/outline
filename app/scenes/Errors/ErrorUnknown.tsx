@@ -15,7 +15,7 @@ const ErrorUnknown = () => {
     <CenteredContent>
       <PageTitle title={t("Something went wrong")} />
       <Heading>{t("Something went wrong")}</Heading>
-      <VStack spacing={20} style={{ maxWidth: 500 }}>
+      <VStack spacing={20} style={{ maxWidth: 500 }} align="initial">
         <Empty size="large">
           <Trans>
             Sorry, an unknown error occurred loading the page. Please try again

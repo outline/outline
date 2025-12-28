@@ -16,7 +16,7 @@ const Error404 = () => {
   return (
     <Scene title={t("Not found")}>
       <Heading>{t("Not found")}</Heading>
-      <VStack spacing={20} style={{ maxWidth: 500 }}>
+      <VStack spacing={20} style={{ maxWidth: 500 }} align="initial">
         <Empty size="large">
           <Trans>
             The page you’re looking for cannot be found. It might have been

@@ -15,7 +15,7 @@ const Error403 = () => {
   return (
     <Scene title={t("No access to this doc")}>
       <Heading>{t("No access to this doc")}</Heading>
-      <VStack spacing={20} style={{ maxWidth: 500 }}>
+      <VStack spacing={20} style={{ maxWidth: 500 }} align="initial">
         <Empty size="large">
           {t(
             "It doesn’t look like you have permission to access this document."
