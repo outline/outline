@@ -28,7 +28,7 @@ export default class TrailingNode extends Extension {
             const { state } = view;
             const insertNodeAtEnd = plugin.getState(state);
 
-            if (!insertNodeAtEnd) {
+            if (!insertNodeAtEnd || !view.editable) {
               return;
             }
 

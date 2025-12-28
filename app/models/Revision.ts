@@ -6,6 +6,8 @@ import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import Field from "./decorators/Field";
 import Relation from "./decorators/Relation";
+import type RevisionsStore from "~/stores/RevisionsStore";
+import { ChangesetHelper } from "@shared/editor/lib/ChangesetHelper";
 
 class Revision extends ParanoidModel {
   static modelName = "Revision";
@@ -70,6 +72,33 @@ class Revision extends ParanoidModel {
   @computed
   get rtl() {
     return isRTL(this.title);
+  }
+
+  /**
+   * Returns the previous revision (chronologically earlier) for comparison.
+   *
+   * Revisions are sorted by creation date (newest first), so the "previous" revision
+   * is the one that comes after the current revision in the sorted list.
+   *
+   * @returns The previous revision or null if this is the first revision.
+   */
+  @computed
+  get before(): Revision | null {
+    const allRevisions = (this.store as RevisionsStore).getByDocumentId(
+      this.documentId
+    );
+
+    const currentIndex = allRevisions.findIndex(
+      (r: Revision) => r.id === this.id
+    );
+    return currentIndex >= 0 && currentIndex < allRevisions.length - 1
+      ? allRevisions[currentIndex + 1]
+      : null;
+  }
+
+  @computed
+  get changeset() {
+    return ChangesetHelper.getChangeset(this.data, this.before?.data);
   }
 }
 

@@ -30,11 +30,11 @@ You're an expert in the following areas:
 
 ## General Guidelines
 
+- Critical – Do not create new markdown (.md) files.
 - Use early returns for readability.
 - Emphasize type safety and static analysis.
 - Follow consistent Prettier formatting.
 - Do not replace smart quotes ("") or ('') with simple quotes ("").
-- Do not create new MD files.
 
 ## Dependencies and Upgrading
 
@@ -78,7 +78,7 @@ yarn install
 - Event handlers should be prefixed with "handle", like "handleClick" for onClick.
 - Avoid unnecessary re-renders by using React.memo, useMemo, and useCallback appropriately.
 - Use descriptive prop types with TypeScript interfaces.
-- You do not need to import React unless it is used directly.
+- Do not import React unless it is used directly.
 - Use styled-components for component styling.
 - Ensure high accessibility (a11y) standards using ARIA roles and semantic HTML.
 

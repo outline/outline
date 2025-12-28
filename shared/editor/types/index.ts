@@ -1,7 +1,7 @@
 import type { TFunction } from "i18next";
 import type { Node as ProsemirrorNode } from "prosemirror-model";
 import type { EditorState } from "prosemirror-state";
-import type { EditorView } from "prosemirror-view";
+import type { Decoration, EditorView } from "prosemirror-view";
 import * as React from "react";
 import type { DefaultTheme } from "styled-components";
 import type { Primitive } from "utility-types";
@@ -52,6 +52,7 @@ export type ComponentProps = {
   isSelected: boolean;
   isEditable: boolean;
   getPos: () => number;
+  decorations: Decoration[];
 };
 
 export interface NodeMarkAttr {
