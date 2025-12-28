@@ -104,9 +104,11 @@ function DataLoader({ match, children }: Props) {
 
   React.useEffect(() => {
     async function fetchRevision() {
-      if (revisionId && revisionId !== "latest") {
+      if (revisionId) {
         try {
-          await revisions.fetch(revisionId);
+          await revisions[revisionId === "latest" ? "fetchLatest" : "fetch"](
+            revisionId
+          );
         } catch (err) {
           setError(err);
         }
@@ -114,19 +116,6 @@ function DataLoader({ match, children }: Props) {
     }
     void fetchRevision();
   }, [revisions, revisionId]);
-
-  React.useEffect(() => {
-    async function fetchRevision() {
-      if (document && revisionId === "latest") {
-        try {
-          await revisions.fetchLatest(document.id);
-        } catch (err) {
-          setError(err);
-        }
-      }
-    }
-    void fetchRevision();
-  }, [document, revisionId, revisions]);
 
   React.useEffect(() => {
     async function fetchViews() {

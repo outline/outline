@@ -528,6 +528,7 @@ class DocumentScene extends React.Component<Props> {
               />
             )}
             <Header
+              editorRef={this.editor}
               document={document}
               revision={revision}
               isDraft={document.isDraft}
@@ -557,23 +558,22 @@ class DocumentScene extends React.Component<Props> {
                   </EditorContainer>
                 }
               >
-                {revision ? (
-                  <RevisionContainer docFullWidth={document.fullWidth}>
+                <MeasuredContainer
+                  name="document"
+                  as={EditorContainer}
+                  docFullWidth={document.fullWidth}
+                  showContents={showContents}
+                  tocPosition={tocPos}
+                >
+                  {revision ? (
                     <RevisionViewer
+                      ref={this.editor}
                       document={document}
                       revision={revision}
                       id={revision.id}
                     />
-                  </RevisionContainer>
-                ) : (
-                  <>
-                    <MeasuredContainer
-                      name="document"
-                      as={EditorContainer}
-                      docFullWidth={document.fullWidth}
-                      showContents={showContents}
-                      tocPosition={tocPos}
-                    >
+                  ) : (
+                    <>
                       <Notices document={document} readOnly={readOnly} />
 
                       {showContents && (
@@ -616,16 +616,16 @@ class DocumentScene extends React.Component<Props> {
                           </ReferencesWrapper>
                         ) : null}
                       </Editor>
-                    </MeasuredContainer>
-                    {showContents && (
-                      <ContentsContainer
-                        docFullWidth={document.fullWidth}
-                        position={tocPos}
-                      >
-                        <Contents />
-                      </ContentsContainer>
-                    )}
-                  </>
+                    </>
+                  )}
+                </MeasuredContainer>
+                {showContents && (
+                  <ContentsContainer
+                    docFullWidth={document.fullWidth}
+                    position={tocPos}
+                  >
+                    <Contents />
+                  </ContentsContainer>
                 )}
               </React.Suspense>
             </Main>
@@ -722,21 +722,6 @@ const EditorContainer = styled.div<EditorContainerProps>`
           : "1 / -1"
         : 2};
   `};
-`;
-
-type RevisionContainerProps = {
-  docFullWidth: boolean;
-};
-
-const RevisionContainer = styled.div<RevisionContainerProps>`
-  // Adds space to the gutter to make room for icon
-  padding: 0 40px;
-
-  ${breakpoint("tablet")`
-    grid-row: 1;
-    grid-column: ${({ docFullWidth }: RevisionContainerProps) =>
-      docFullWidth ? "1 / -1" : 2};
-  `}
 `;
 
 const Background = styled(Container)`

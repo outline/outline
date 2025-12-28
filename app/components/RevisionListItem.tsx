@@ -1,12 +1,12 @@
 import type { LocationDescriptor } from "history";
 import { observer } from "mobx-react";
 import { EditIcon, TrashIcon } from "outline-icons";
-import { useCallback, useMemo, useRef } from "react";
+import { useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import styled from "styled-components";
 import EventBoundary from "@shared/components/EventBoundary";
-import { hover } from "@shared/styles";
+import { ellipsis, hover } from "@shared/styles";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import type Document from "~/models/Document";
 import type Revision from "~/models/Revision";
@@ -21,10 +21,8 @@ import { ContextMenu } from "~/components/Menu/ContextMenu";
 import Time from "~/components/Time";
 import { ActionContextProvider } from "~/hooks/useActionContext";
 import useBoolean from "~/hooks/useBoolean";
-import useClickIntent from "~/hooks/useClickIntent";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import { useMenuAction } from "~/hooks/useMenuAction";
-import useStores from "~/hooks/useStores";
 import RevisionMenu from "~/menus/RevisionMenu";
 import { documentHistoryPath } from "~/utils/routeHelpers";
 import { EventItem, lineStyle } from "./EventListItem";
@@ -38,10 +36,8 @@ type Props = {
 
 const RevisionListItem = ({ item, document, ...rest }: Props) => {
   const { t } = useTranslation();
-  const { revisions } = useStores();
   const location = useLocation();
   const sidebarContext = useLocationSidebarContext();
-  const revisionLoadedRef = useRef(false);
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
 
   const isLatestRevision = RevisionHelper.latestId(document.id) === item.id;
@@ -60,19 +56,6 @@ const RevisionListItem = ({ item, document, ...rest }: Props) => {
     ref.current?.focus();
   };
 
-  const prefetchRevision = useCallback(async () => {
-    if (!document.isDeleted && !item.deletedAt && !revisionLoadedRef.current) {
-      if (isLatestRevision) {
-        return;
-      }
-      await revisions.fetch(item.id, { force: true });
-      revisionLoadedRef.current = true;
-    }
-  }, [document.isDeleted, item.deletedAt, isLatestRevision, revisions]);
-
-  const { handleMouseEnter, handleMouseLeave } =
-    useClickIntent(prefetchRevision);
-
   let meta, icon, to: LocationDescriptor | undefined;
 
   if (item.deletedAt) {
@@ -80,18 +63,31 @@ const RevisionListItem = ({ item, document, ...rest }: Props) => {
     meta = t("Revision deleted");
   } else {
     icon = <EditIcon size={16} />;
+
+    let collaboratorText: string | undefined;
+    if (item.collaborators && item.collaborators.length === 2) {
+      collaboratorText = `${item.collaborators[0].name} and ${item.collaborators[1].name}`;
+    } else if (item.collaborators && item.collaborators.length > 2) {
+      collaboratorText = t("{{count}} people", {
+        count: item.collaborators.length,
+      });
+    } else {
+      collaboratorText = item.createdBy?.name;
+    }
+
     meta = isLatestRevision ? (
       <>
-        {t("Current version")} &middot; {item.createdBy?.name}
+        {t("Current version")} &middot; {collaboratorText}
       </>
     ) : (
-      t("{{userName}} edited", { userName: item.createdBy?.name })
+      t("{{userName}} edited", { userName: collaboratorText })
     );
     to = {
       pathname: documentHistoryPath(
         document,
         isLatestRevision ? "latest" : item.id
       ),
+      search: location.search,
       state: {
         sidebarContext,
         retainScrollPosition: true,
@@ -153,7 +149,7 @@ const RevisionListItem = ({ item, document, ...rest }: Props) => {
               <Avatar model={item.createdBy} size={AvatarSize.Large} />
             )
           }
-          subtitle={meta}
+          subtitle={<Meta>{meta}</Meta>}
           actions={
             isActive ? (
               <StyledEventBoundary>
@@ -161,8 +157,6 @@ const RevisionListItem = ({ item, document, ...rest }: Props) => {
               </StyledEventBoundary>
             ) : undefined
           }
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
           ref={ref}
           $menuOpen={menuOpen}
           {...rest}
@@ -171,6 +165,10 @@ const RevisionListItem = ({ item, document, ...rest }: Props) => {
     </ActionContextProvider>
   );
 };
+
+const Meta = styled.div`
+  ${ellipsis()})
+`;
 
 const IconWrapper = styled(Text)`
   height: 24px;

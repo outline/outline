@@ -23,10 +23,10 @@ export const fadeIn = keyframes`
   to { opacity: 1; }
 `;
 
-export const pulse = keyframes`
-  0% { box-shadow: 0 0 0 1px rgba(255, 213, 0, 0.75) }
-  50% { box-shadow: 0 0 0 4px rgba(255, 213, 0, 0.75) }
-  100% { box-shadow: 0 0 0 1px rgba(255, 213, 0, 0.75) }
+export const pulse = (color: string) => keyframes`
+  0% { box-shadow: 0 0 0 1px ${color} }
+  50% { box-shadow: 0 0 0 4px ${color} }
+  100% { box-shadow: 0 0 0 1px ${color} }
 `;
 
 const codeMarkCursor = () => css`
@@ -275,6 +275,127 @@ const codeBlockStyle = (props: Props) => css`
   }
 `;
 
+const diffStyle = (props: Props) => css`
+  .${EditorStyleHelper.diffNodeInsertion},
+    .${EditorStyleHelper.diffInsertion}:not([class^="component-"]),
+  .${EditorStyleHelper.diffInsertion} > * {
+    color: ${props.theme.textDiffInserted};
+    background-color: ${props.theme.textDiffInsertedBackground};
+    text-decoration: none;
+
+    &.${EditorStyleHelper.diffCurrentChange} {
+      outline-color: ${lighten(0.2, props.theme.textDiffInserted)};
+      background-color: ${lighten(0.2, props.theme.textDiffInsertedBackground)};
+      animation: ${pulse(lighten(0.2, props.theme.textDiffInsertedBackground))}
+        150ms 1;
+    }
+  }
+
+  .${EditorStyleHelper.diffNodeInsertion} {
+    &[class*="component-"] {
+      outline: 4px solid ${props.theme.textDiffInsertedBackground};
+    }
+
+    td,
+    th {
+      border-color: ${props.theme.textDiffInsertedBackground};
+    }
+  }
+
+  .${EditorStyleHelper.diffNodeInsertion}[class*="component-"],
+    .${EditorStyleHelper.diffNodeInsertion}.math-node,
+    ul.${EditorStyleHelper.diffNodeInsertion},
+    li.${EditorStyleHelper.diffNodeInsertion} {
+    border-radius: ${EditorStyleHelper.blockRadius};
+  }
+
+  td.${EditorStyleHelper.diffNodeInsertion},
+    th.${EditorStyleHelper.diffNodeInsertion} {
+    border-color: ${props.theme.textDiffInsertedBackground};
+  }
+
+  .${EditorStyleHelper.diffNodeDeletion},
+    .${EditorStyleHelper.diffDeletion}:not([class^="component-"]),
+  .${EditorStyleHelper.diffDeletion} > * {
+    color: ${props.theme.textDiffDeleted};
+    background-color: ${props.theme.textDiffDeletedBackground};
+    text-decoration: line-through;
+
+    &.${EditorStyleHelper.diffCurrentChange} {
+      outline-color: ${lighten(0.2, props.theme.textDiffDeletedBackground)};
+      background-color: ${lighten(0.2, props.theme.textDiffDeletedBackground)};
+      animation: ${pulse(lighten(0.2, props.theme.textDiffDeletedBackground))}
+        150ms 1;
+    }
+  }
+
+  .${EditorStyleHelper.diffNodeDeletion} {
+    &[class*="component-"] {
+      outline: 4px solid ${props.theme.textDiffDeletedBackground};
+    }
+
+    .mention {
+      background-color: ${props.theme.textDiffDeletedBackground};
+    }
+
+    td,
+    th {
+      border-color: ${props.theme.textDiffDeletedBackground};
+    }
+  }
+
+  .${EditorStyleHelper.diffNodeDeletion}[class*="component-"],
+    .${EditorStyleHelper.diffNodeDeletion}.math-node,
+    ul.${EditorStyleHelper.diffNodeDeletion},
+    li.${EditorStyleHelper.diffNodeDeletion} {
+    border-radius: ${EditorStyleHelper.blockRadius};
+  }
+
+  td.${EditorStyleHelper.diffNodeDeletion},
+    th.${EditorStyleHelper.diffNodeDeletion} {
+    border-color: ${props.theme.textDiffDeletedBackground};
+  }
+
+  .${EditorStyleHelper.diffNodeModification},
+    .${EditorStyleHelper.diffModification}:not([class^="component-"]),
+  .${EditorStyleHelper.diffModification} > * {
+    color: ${props.theme.text};
+    background-color: ${transparentize(0.7, "#FFA500")};
+    text-decoration: none;
+
+    &.${EditorStyleHelper.diffCurrentChange} {
+      outline-color: ${lighten(0.1, "#FFA500")};
+      background-color: ${transparentize(0.5, "#FFA500")};
+      animation: ${pulse(transparentize(0.5, "#FFA500"))} 150ms 1;
+    }
+  }
+
+  .${EditorStyleHelper.diffNodeModification} {
+    background-color: ${transparentize(0.7, "#FFA500")};
+
+    &[class*="component-"] {
+      outline: 4px solid ${transparentize(0.5, "#FFA500")};
+    }
+
+    td,
+    th {
+      border-color: ${transparentize(0.5, "#FFA500")};
+    }
+  }
+
+  .${EditorStyleHelper.diffNodeModification}[class*="component-"],
+    .${EditorStyleHelper.diffNodeModification}.math-node,
+    ul.${EditorStyleHelper.diffNodeModification},
+    li.${EditorStyleHelper.diffNodeModification} {
+    border-radius: ${EditorStyleHelper.blockRadius};
+  }
+
+  td.${EditorStyleHelper.diffNodeModification},
+    th.${EditorStyleHelper.diffNodeModification} {
+    border-color: ${transparentize(0.5, "#FFA500")};
+  }
+`;
+
 const findAndReplaceStyle = () => css`
   .find-result:not(:has(.mention)),
   .find-result .mention {
@@ -284,7 +405,7 @@ const findAndReplaceStyle = () => css`
   .find-result.current-result:not(:has(.mention)),
   .find-result.current-result .mention {
       background: rgba(255, 213, 0, 0.75);
-      animation: ${pulse} 150ms 1;
+      animation: ${pulse("rgba(255, 213, 0, 0.75)")} 150ms 1;
     }
   }
 `;
@@ -803,6 +924,10 @@ img.ProseMirror-separator {
   display: inline;
   border: none !important;
   margin: 0 !important;
+}
+
+.component-image {
+  display: block;
 }
 
 // Removes forced paragraph spaces below images, this is needed to images
@@ -2107,19 +2232,18 @@ del {
   text-decoration: strikethrough;
 }
 
+// TODO: Remove once old email diff rendering is removed.
 ins[data-operation-index] {
   color: ${props.theme.textDiffInserted};
   background-color: ${props.theme.textDiffInsertedBackground};
   text-decoration: none;
 }
-
 del[data-operation-index] {
   color: ${props.theme.textDiffDeleted};
   background-color: ${props.theme.textDiffDeletedBackground};
   text-decoration: none;
-
   img {
-    opacity: .5;
+    opacity: 0.5;
   }
 }
 
@@ -2167,6 +2291,7 @@ const EditorContainer = styled.div<Props>`
   ${mathStyle}
   ${codeMarkCursor}
   ${codeBlockStyle}
+  ${diffStyle}
   ${findAndReplaceStyle}
   ${emailStyle}
   ${textStyle}

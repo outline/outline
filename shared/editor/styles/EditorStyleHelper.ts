@@ -26,6 +26,22 @@ export class EditorStyleHelper {
 
   static readonly codeWord = "code-word";
 
+  // Diffs
+
+  static readonly diffInsertion = "diff-insertion";
+
+  static readonly diffDeletion = "diff-deletion";
+
+  static readonly diffNodeInsertion = "diff-node-insertion";
+
+  static readonly diffNodeDeletion = "diff-node-deletion";
+
+  static readonly diffModification = "diff-modification";
+
+  static readonly diffNodeModification = "diff-node-modification";
+
+  static readonly diffCurrentChange = "current-diff";
+
   // Tables
 
   /** Table wrapper */

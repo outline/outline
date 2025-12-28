@@ -20,6 +20,7 @@ export default class TableCell extends Node {
     return {
       content: "block+",
       tableRole: "cell",
+      group: "cell",
       isolating: true,
       parseDOM: [{ tag: "td", getAttrs: getCellAttrs }],
       toDOM(node) {

@@ -414,7 +414,7 @@ export default class Document extends ArchivableModel implements Searchable {
 
   @computed
   get isTasks(): boolean {
-    return !!this.tasks.total;
+    return !!this.tasks?.total;
   }
 
   @computed

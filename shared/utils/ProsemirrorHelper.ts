@@ -1,4 +1,5 @@
-import type { Node, Schema } from "prosemirror-model";
+import type { Schema } from "prosemirror-model";
+import { Node } from "prosemirror-model";
 import headingToSlug from "../editor/lib/headingToSlug";
 import textBetween from "../editor/lib/textBetween";
 import type { ProsemirrorData } from "../types";
@@ -514,16 +515,20 @@ export class ProsemirrorHelper {
    * Returns the paragraphs from the data if there are only plain paragraphs
    * without any formatting. Otherwise returns undefined.
    *
-   * @param data The ProsemirrorData object
+   * @param data The ProsemirrorData object or ProsemirrorNode
    * @returns An array of paragraph nodes or undefined
    */
-  static getPlainParagraphs(data: ProsemirrorData) {
+  static getPlainParagraphs(data: ProsemirrorData | Node) {
+    // Convert ProsemirrorNode to JSON if needed
+    const jsonData =
+      data instanceof Node ? (data.toJSON() as ProsemirrorData) : data;
+
     const paragraphs: ProsemirrorData[] = [];
-    if (!data.content) {
+    if (!jsonData.content) {
       return paragraphs;
     }
 
-    for (const node of data.content) {
+    for (const node of jsonData.content) {
       if (
         node.type === "paragraph" &&
         (!node.content ||
