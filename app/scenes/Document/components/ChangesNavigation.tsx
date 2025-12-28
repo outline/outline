@@ -16,7 +16,9 @@ type Props = {
   editorRef: React.RefObject<Editor>;
 };
 
-export const ChangesNavigation = observer(({ revision, editorRef }: Props) => {
+export const ChangesNavigation = observer(function ChangesNavigation_({
+  editorRef,
+}: Props) {
   const { t } = useTranslation();
   const query = useQuery();
   const showChanges = query.get("changes");
@@ -29,7 +31,7 @@ export const ChangesNavigation = observer(({ revision, editorRef }: Props) => {
     (ext) => ext instanceof Diff
   ) as Diff | undefined;
   const currentChangeIndex = diffExtension?.getCurrentChangeIndex() ?? -1;
-  const totalChanges = revision.changeset?.changes?.length ?? 0;
+  const totalChanges = diffExtension?.getTotalChangesCount() ?? 0;
 
   return (
     <>

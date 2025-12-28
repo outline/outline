@@ -53,23 +53,44 @@ export default class Diff extends Extension {
     return this.currentChangeIndex;
   }
 
+  /**
+   * Get the total number of individual changes.
+   *
+   * @returns the total count of all inserted, deleted, and modified items.
+   */
+  public getTotalChangesCount(): number {
+    const { changes } = this.options as { changes: ExtendedChange[] | null };
+    if (!changes) {
+      return 0;
+    }
+
+    return changes.reduce(
+      (total, change) =>
+        total +
+        change.inserted.length +
+        change.deleted.length +
+        change.modified.length,
+      0
+    );
+  }
+
   private goToChange(direction: number): Command {
     return (state, dispatch) => {
-      const { changes } = this.options as { changes: ExtendedChange[] | null };
+      const totalChanges = this.getTotalChangesCount();
 
-      if (!changes || changes.length === 0) {
+      if (totalChanges === 0) {
         return false;
       }
 
       if (direction > 0) {
-        if (this.currentChangeIndex >= changes.length - 1) {
+        if (this.currentChangeIndex >= totalChanges - 1) {
           this.currentChangeIndex = 0;
         } else {
           this.currentChangeIndex += 1;
         }
       } else {
         if (this.currentChangeIndex === 0) {
-          this.currentChangeIndex = changes.length - 1;
+          this.currentChangeIndex = totalChanges - 1;
         } else {
           this.currentChangeIndex -= 1;
         }
@@ -202,27 +223,12 @@ export default class Diff extends Extension {
     };
 
     // Add insertion, deletion, and modification decorations
-    changes?.forEach((change, changeIndex) => {
+    let individualChangeIndex = 0;
+    changes?.forEach((change) => {
       let pos = change.fromB;
-      const isCurrent = changeIndex === this.currentChangeIndex;
-
-      change.inserted.forEach((insertion) => {
-        const end = pos + insertion.length;
-        const useNodeDecoration = shouldUseNodeDecoration(
-          insertion.data.step.slice
-        );
-
-        const className = cn({
-          [this.options.currentChangeClassName]: isCurrent,
-          [this.options.insertionClassName]: !useNodeDecoration,
-          [this.options.nodeInsertionClassName]: useNodeDecoration,
-        });
-
-        addChangeDecoration(pos, end, className, useNodeDecoration);
-        pos = end;
-      });
 
       change.deleted.forEach((deletion) => {
+        const isCurrent = individualChangeIndex === this.currentChangeIndex;
         if (!deletion.data.slice) {
           return;
         }
@@ -275,10 +281,30 @@ export default class Diff extends Extension {
             side: -1,
           })
         );
+        individualChangeIndex++;
+      });
+
+      change.inserted.forEach((insertion) => {
+        const isCurrent = individualChangeIndex === this.currentChangeIndex;
+        const end = pos + insertion.length;
+        const useNodeDecoration = shouldUseNodeDecoration(
+          insertion.data.step.slice
+        );
+
+        const className = cn({
+          [this.options.currentChangeClassName]: isCurrent,
+          [this.options.insertionClassName]: !useNodeDecoration,
+          [this.options.nodeInsertionClassName]: useNodeDecoration,
+        });
+
+        addChangeDecoration(pos, end, className, useNodeDecoration);
+        pos = end;
+        individualChangeIndex++;
       });
 
       // Add modification decorations
       change.modified.forEach((modification) => {
+        const isCurrent = individualChangeIndex === this.currentChangeIndex;
         // A modification slice may contain multiple nodes (e.g., multiple table cells)
         // We need to add a decoration for each node individually
         if (!modification.data.slice) {
@@ -304,6 +330,7 @@ export default class Diff extends Extension {
           addChangeDecoration(pos, end, className, useNodeDecoration);
           pos = end;
         });
+        individualChangeIndex++;
       });
     });
 
