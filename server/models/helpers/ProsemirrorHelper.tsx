@@ -551,6 +551,7 @@ export class ProsemirrorHelper {
         { mount: target as HTMLElement },
         {
           state,
+          editable: () => false,
         }
       );
     } finally {

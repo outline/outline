@@ -121,6 +121,25 @@ describe("DocumentHelper", () => {
     });
   });
 
+  describe("diff", () => {
+    it("should return html with diff", async () => {
+      const doc1 = await buildDocument({ text: "Hello world" });
+      const doc2 = await buildDocument({ text: "Hello modified world" });
+      const revision = new Revision({
+        documentId: doc2.id,
+        title: doc2.title,
+        text: doc2.text,
+      });
+
+      const result = await DocumentHelper.diff(doc1, revision, {
+        includeTitle: false,
+        includeStyles: false,
+      });
+
+      expect(result).toContain(EditorStyleHelper.diffInsertion);
+    });
+  });
+
   describe("parseMentions", () => {
     it("should not parse normal links as mentions", async () => {
       const document = await buildDocument({
@@ -226,12 +245,12 @@ same on both sides`,
       // removed
       expect(html).toContain("Content in an info block");
 
-      // unchanged
-      expect(html).not.toContain("same on both sides");
-      expect(html).not.toContain("this is a highlight");
+      // unchanged (retained as context by new diff algorithm)
+      expect(html).toContain("same on both sides");
+      expect(html).toContain("this is a highlight");
     });
 
-    it("should return undefined if no diff is renderable", async () => {
+    it("should render diff for mark changes", async () => {
       const before = new Revision({
         title: "Title",
         text: `
@@ -244,8 +263,21 @@ This is a test paragraph`,
 This is a [test paragraph](https://example.net)`,
       });
 
-      // Note: This test may fail in the future when support for diffing marks
-      // is improved.
+      const html = await DocumentHelper.toEmailDiff(before, after);
+      expect(html).toBeDefined();
+    });
+
+    it("should return undefined if no diff is detected", async () => {
+      const before = new Revision({
+        title: "Title",
+        text: "Same text",
+      });
+
+      const after = new Revision({
+        title: "Title",
+        text: "Same text",
+      });
+
       const html = await DocumentHelper.toEmailDiff(before, after);
       expect(html).toBeUndefined();
     });
