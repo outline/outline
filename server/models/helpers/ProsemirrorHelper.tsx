@@ -1,5 +1,7 @@
 import { JSDOM } from "jsdom";
 import compact from "lodash/compact";
+import { EditorState } from "prosemirror-state";
+import { EditorView } from "prosemirror-view";
 import flatten from "lodash/flatten";
 import isMatch from "lodash/isMatch";
 import uniq from "lodash/uniq";
@@ -17,7 +19,7 @@ import { attachmentRedirectRegex } from "@shared/utils/ProsemirrorHelper";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { isRTL } from "@shared/utils/rtl";
 import { isInternalUrl } from "@shared/utils/urls";
-import { schema, parser } from "@server/editor";
+import { plugins, schema, parser } from "@server/editor";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
 import Attachment from "@server/models/Attachment";
@@ -504,14 +506,50 @@ export class ProsemirrorHelper {
     const doc = dom.window.document;
     const target = doc.getElementById("content");
 
-    DOMSerializer.fromSchema(schema).serializeFragment(
-      node.content,
-      {
-        document: doc,
-      },
-      // @ts-expect-error incorrect library type, third argument is target node
-      target
-    );
+    // Patch globals for Prosemirror view
+    const g = global as any;
+
+    const globalParams = {
+      window: g.window,
+      document: g.document,
+      navigator: g.navigator,
+      getSelection: g.getSelection,
+      requestAnimationFrame: g.requestAnimationFrame,
+      cancelAnimationFrame: g.cancelAnimationFrame,
+      HTMLElement: g.HTMLElement,
+      Node: g.Node,
+      MutationObserver: g.MutationObserver,
+    };
+
+    g.window = dom.window;
+    g.document = doc;
+    g.navigator = dom.window.navigator;
+    g.getSelection = () => null;
+    g.requestAnimationFrame = (fn: any) => setTimeout(fn, 0);
+    g.cancelAnimationFrame = (id: any) => clearTimeout(id);
+    g.HTMLElement = dom.window.HTMLElement;
+    g.Node = dom.window.Node;
+    g.MutationObserver = dom.window.MutationObserver;
+
+    try {
+      const state = EditorState.create({
+        doc: node,
+        plugins,
+        schema,
+      });
+
+      // eslint-disable-next-line no-new
+      new EditorView(
+        { mount: target as HTMLElement },
+        {
+          state,
+        }
+      );
+    } finally {
+      Object.entries(globalParams).forEach(([key, value]) => {
+        g[key] = value;
+      });
+    }
 
     // Convert relative urls to absolute
     if (options?.baseUrl) {

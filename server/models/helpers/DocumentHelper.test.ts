@@ -86,6 +86,19 @@ describe("DocumentHelper", () => {
     });
   });
 
+  describe("toHTML", () => {
+    it("should return html", async () => {
+      const document = await buildDocument({
+        text: "This is a test paragraph",
+      });
+      const result = await DocumentHelper.toHTML(document, {
+        includeTitle: false,
+        includeStyles: false,
+      });
+      expect(result).toContain('<p dir="auto">This is a test paragraph</p>');
+    });
+  });
+
   describe("parseMentions", () => {
     it("should not parse normal links as mentions", async () => {
       const document = await buildDocument({
