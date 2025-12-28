@@ -1,5 +1,4 @@
 import { Schema } from "prosemirror-model";
-import Diff from "@shared/editor/extensions/Diff";
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
 import { richExtensions, withComments } from "@shared/editor/nodes";
 
@@ -17,11 +16,3 @@ export const parser = extensionManager.parser({
 });
 
 export const serializer = extensionManager.serializer();
-
-export const diffSerializer = (changes) => {
-  const extensionManager = new ExtensionManager([
-    ...extensions,
-    new Diff({ changes }),
-  ]);
-  return extensionManager.serializer();
-};
