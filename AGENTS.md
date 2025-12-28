@@ -78,10 +78,9 @@ yarn install
 - Event handlers should be prefixed with "handle", like "handleClick" for onClick.
 - Avoid unnecessary re-renders by using React.memo, useMemo, and useCallback appropriately.
 - Use descriptive prop types with TypeScript interfaces.
-- You do not need to import React unless it is used directly.
+- Do not import React unless it is used directly.
 - Use styled-components for component styling.
 - Ensure high accessibility (a11y) standards using ARIA roles and semantic HTML.
-- Do not import React unless used directly.
 
 ## MobX State Management
 

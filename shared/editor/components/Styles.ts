@@ -2232,6 +2232,21 @@ del {
   text-decoration: strikethrough;
 }
 
+// TODO: Remove once old email diff rendering is removed.
+ins[data-operation-index] {
+  color: ${props.theme.textDiffInserted};
+  background-color: ${props.theme.textDiffInsertedBackground};
+  text-decoration: none;
+}
+del[data-operation-index] {
+  color: ${props.theme.textDiffDeleted};
+  background-color: ${props.theme.textDiffDeletedBackground};
+  text-decoration: none;
+  img {
+    opacity: 0.5;
+  }
+}
+
 @media print {
   .placeholder::before,
   .block-menu-trigger,
