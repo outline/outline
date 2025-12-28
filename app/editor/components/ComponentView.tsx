@@ -42,6 +42,8 @@ export default class ComponentView {
   isSelected = false;
   /** The DOM element that the node is rendered into. */
   dom: HTMLElement | null;
+  /** The base class name for the node's DOM element. */
+  className?: string;
 
   // See https://prosemirror.net/docs/ref/#view.NodeView
   constructor(
@@ -66,21 +68,58 @@ export default class ComponentView {
       ? document.createElement("span")
       : document.createElement("div");
 
-    this.dom.classList.add(`component-${node.type.name}`);
+    this.className = `component-${node.type.name}`;
+    this.dom.classList.add(this.className);
     this.renderer = new NodeViewRenderer(this.dom, this.component, this.props);
 
     // Add the renderer to the editor's set of renderers so that it is included in the React tree.
     this.editor.renderers.add(this.renderer);
+
+    // Apply decoration classes to the DOM element.
+    this.applyDecorationClasses();
   }
 
-  update(node: ProsemirrorNode) {
+  update(node: ProsemirrorNode, decorations: Decoration[]) {
     if (node.type !== this.node.type) {
       return false;
     }
 
     this.node = node;
+    this.decorations = decorations;
+    this.applyDecorationClasses();
     this.renderer.updateProps(this.props);
     return true;
+  }
+
+  /**
+   * Apply decoration classes to the DOM element.
+   * Extracts classes from inline decorations that overlap with this node's position.
+   */
+  private applyDecorationClasses() {
+    if (!this.dom) {
+      return;
+    }
+
+    // Remove all existing decoration classes.
+    this.dom.classList.forEach((className) => {
+      if (className !== this.className) {
+        this.dom?.classList.remove(className);
+      }
+    });
+
+    // Apply classes from inline decorations.
+    this.decorations.forEach((decoration) => {
+      // For inline decorations, attrs contain the class property.
+      const attrs = (decoration as any).type?.attrs;
+      if (attrs?.class) {
+        const classes = attrs.class.split(" ");
+        classes.forEach((className: string) => {
+          if (className && this.dom) {
+            this.dom.classList.add(className);
+          }
+        });
+      }
+    });
   }
 
   selectNode() {
@@ -117,6 +156,7 @@ export default class ComponentView {
       isSelected: this.isSelected,
       isEditable: this.view.editable,
       getPos: this.getPos,
+      decorations: this.decorations,
     } as ComponentProps;
   }
 }

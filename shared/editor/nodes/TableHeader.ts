@@ -25,6 +25,7 @@ export default class TableHeader extends Node {
     return {
       content: "block+",
       tableRole: "header_cell",
+      group: "cell",
       isolating: true,
       parseDOM: [{ tag: "th", getAttrs: getCellAttrs }],
       toDOM(node) {

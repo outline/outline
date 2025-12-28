@@ -27,6 +27,14 @@ export function trashPath(): string {
   return "/trash";
 }
 
+export function debugPath(): string {
+  return "/debug";
+}
+
+export function debugChangesetsPath(): string {
+  return "/debug/changesets";
+}
+
 export function settingsPath(...args: string[]): string {
   return "/settings" + (args.length > 0 ? `/${args.join("/")}` : "");
 }
