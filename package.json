@@ -388,6 +388,6 @@
     "prismjs": "1.30.0",
     "cheerio": "1.0.0-rc.12"
   },
-  "version": "1.1.0",
+  "version": "1.2.0-0",
   "packageManager": "yarn@4.11.0"
 }
