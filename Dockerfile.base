@@ -9,7 +9,8 @@ COPY ./patches ./patches
 RUN apt-get update && apt-get install -y cmake
 ENV NODE_OPTIONS="--max-old-space-size=24000"
 
-RUN yarn install --no-optional --frozen-lockfile --network-timeout 1000000 && \
+RUN corepack enable
+RUN yarn install --immutable --network-timeout 1000000 && \
   yarn cache clean
 
 COPY . .
@@ -18,7 +19,7 @@ RUN yarn build
 
 RUN rm -rf node_modules
 
-RUN yarn install --production=true --frozen-lockfile --network-timeout 1000000 && \
+RUN yarn install --immutable --network-timeout 1000000 && \
   yarn cache clean
 
 ENV PORT=3000
