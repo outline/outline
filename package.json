@@ -351,7 +351,7 @@
     "@types/yauzl": "^2.10.3",
     "babel-jest": "^29.7.0",
     "babel-plugin-transform-inline-environment-variables": "^0.4.4",
-    "babel-plugin-transform-typescript-metadata": "^0.3.2",
+    "babel-plugin-transform-typescript-metadata": "^0.4.0",
     "babel-plugin-tsconfig-paths-module-resolver": "^1.0.4",
     "browserslist-to-esbuild": "^1.2.0",
     "concurrently": "^8.2.2",
