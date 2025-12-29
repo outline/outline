@@ -3558,11 +3558,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@hocuspocus/extension-redis@npm:1.1.2":
-  version: 1.1.2
-  resolution: "@hocuspocus/extension-redis@npm:1.1.2"
+"@hocuspocus/extension-redis@npm:1.1.3":
+  version: 1.1.3
+  resolution: "@hocuspocus/extension-redis@npm:1.1.3"
   dependencies:
-    "@hocuspocus/server": "npm:^1.1.2"
+    "@hocuspocus/server": "npm:^1.1.3"
     ioredis: "npm:^4.28.2"
     kleur: "npm:^4.1.4"
     lodash.debounce: "npm:^4.0.8"
@@ -3571,7 +3571,7 @@ __metadata:
   peerDependencies:
     y-protocols: ^1.0.5
     yjs: ^13.5.23
-  checksum: 10c0/9d90625f4592c137fe56c95d3536bdab2f2d262f350044c7ef3b08a593d9e24d57693d48e399c77d92eb2b928140d491b164eedee10c151c216a24ae7abd3834
+  checksum: 10c0/906cc537a782e4f987b04f5f27a9b1008cd06aad039821452def32c505f10fc4440e5deb68c27cf5480536136d15a361e9e51c5d0eecbc47e0174f12644cd145
   languageName: node
   linkType: hard
 
@@ -17525,7 +17525,7 @@ __metadata:
     "@fortawesome/free-solid-svg-icons": "npm:^7.1.0"
     "@fortawesome/react-fontawesome": "npm:^0.2.6"
     "@getoutline/react-roving-tabindex": "npm:^3.2.4"
-    "@hocuspocus/extension-redis": "npm:1.1.2"
+    "@hocuspocus/extension-redis": "npm:1.1.3"
     "@hocuspocus/extension-throttle": "npm:1.1.2"
     "@hocuspocus/provider": "npm:1.1.2"
     "@hocuspocus/server": "npm:1.1.2"
