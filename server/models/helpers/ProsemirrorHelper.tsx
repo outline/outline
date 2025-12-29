@@ -446,31 +446,9 @@ export class ProsemirrorHelper {
    * @param options Options for the HTML output
    * @returns The content as a HTML string
    */
-  static toHTML(node: Node, options?: HTMLOptions) {
+  public static toHTML(node: Node, options?: HTMLOptions) {
     let view;
-
-    // Patch globals for Prosemirror view
-    const g = global as any;
-
-    const globalParams = {
-      window: g.window,
-      document: g.document,
-      navigator: g.navigator,
-      getSelection: g.getSelection,
-      requestAnimationFrame: g.requestAnimationFrame,
-      cancelAnimationFrame: g.cancelAnimationFrame,
-      HTMLElement: g.HTMLElement,
-      Node: g.Node,
-      MutationObserver: g.MutationObserver,
-    };
-
-    const patch = (key: string, value: any) => {
-      try {
-        g[key] = value;
-      } catch (_err) {
-        // Ignore errors if property is read-only
-      }
-    };
+    let cleanupEnv;
 
     try {
       const sheet = new ServerStyleSheet();
@@ -536,15 +514,7 @@ export class ProsemirrorHelper {
       const doc = dom.window.document;
       const target = doc.getElementById("content");
 
-      patch("window", dom.window);
-      patch("document", doc);
-      patch("navigator", dom.window.navigator);
-      patch("getSelection", () => null);
-      patch("requestAnimationFrame", (fn: any) => setTimeout(fn, 0));
-      patch("cancelAnimationFrame", (id: any) => clearTimeout(id));
-      patch("HTMLElement", dom.window.HTMLElement);
-      patch("Node", dom.window.Node);
-      patch("MutationObserver", dom.window.MutationObserver);
+      cleanupEnv = this.patchGlobalEnv(dom.window);
 
       const diffPlugins = options?.changes
         ? new Diff({ changes: options.changes }).plugins
@@ -631,15 +601,7 @@ export class ProsemirrorHelper {
       return output;
     } finally {
       view?.destroy();
-
-      // Restore global parameters
-      Object.entries(globalParams).forEach(([key, value]) => {
-        try {
-          g[key] = value;
-        } catch (_err) {
-          // Ignore errors if property is read-only
-        }
-      });
+      cleanupEnv?.();
     }
   }
 
@@ -716,5 +678,56 @@ export class ProsemirrorHelper {
     }
 
     return transformMentions(json);
+  }
+
+  /**
+   * Patches the global environment with properties from the JSDOM window,
+   * necessary for ProseMirror to run in a Node environment.
+   *
+   * @param domWindow The JSDOM window object
+   * @returns A cleanup function to restore the global environment
+   */
+  private static patchGlobalEnv(domWindow: JSDOM["window"]) {
+    const g = global as any;
+
+    const globalParams = {
+      window: g.window,
+      document: g.document,
+      navigator: g.navigator,
+      getSelection: g.getSelection,
+      requestAnimationFrame: g.requestAnimationFrame,
+      cancelAnimationFrame: g.cancelAnimationFrame,
+      HTMLElement: g.HTMLElement,
+      Node: g.Node,
+      MutationObserver: g.MutationObserver,
+    };
+
+    const patch = (key: string, value: unknown) => {
+      try {
+        g[key] = value;
+      } catch (_err) {
+        // Ignore errors if property is read-only
+      }
+    };
+
+    patch("window", domWindow);
+    patch("document", domWindow.document);
+    patch("navigator", domWindow.navigator);
+    patch("getSelection", () => null);
+    patch("requestAnimationFrame", (fn: Function) => setTimeout(fn, 0));
+    patch("cancelAnimationFrame", (id: number) => clearTimeout(id));
+    patch("HTMLElement", domWindow.HTMLElement);
+    patch("Node", domWindow.Node);
+    patch("MutationObserver", domWindow.MutationObserver);
+
+    return () => {
+      Object.entries(globalParams).forEach(([key, value]) => {
+        try {
+          g[key] = value;
+        } catch (_err) {
+          // Ignore errors if property is read-only
+        }
+      });
+    };
   }
 }
