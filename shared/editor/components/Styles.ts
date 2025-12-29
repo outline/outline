@@ -1690,8 +1690,24 @@ mark {
     height: 0;
     overflow: hidden;
     margin: -0.5em 0 0 0;
+
     & + .mermaid-diagram-wrapper {
       cursor: zoom-in;
+    }
+}
+
+.ProseMirror.exported {
+    .code-block[data-language=mermaidjs] {
+        height: auto;
+        overflow: visible;
+
+        &::after {
+          display: none;
+        }
+    }
+
+    .mermaid-diagram-wrapper {
+        display: none;
     }
 }
 

@@ -447,68 +447,7 @@ export class ProsemirrorHelper {
    * @returns The content as a HTML string
    */
   static toHTML(node: Node, options?: HTMLOptions) {
-    const sheet = new ServerStyleSheet();
-    let html = "";
-    let styleTags = "";
-
-    const Centered = options?.centered
-      ? styled.article`
-          max-width: 46em;
-          margin: 0 auto;
-          padding: 0 1em;
-        `
-      : "article";
-
-    const rtl = isRTL(node.textContent);
-    const content = <div id="content" className="ProseMirror" />;
-    const children = (
-      <>
-        {options?.title && <h1 dir={rtl ? "rtl" : "ltr"}>{options.title}</h1>}
-        {options?.includeStyles !== false ? (
-          <EditorContainer dir={rtl ? "rtl" : "ltr"} rtl={rtl} staticHTML>
-            {content}
-          </EditorContainer>
-        ) : (
-          content
-        )}
-      </>
-    );
-
-    // First render the containing document which has all the editor styles,
-    // global styles, layout and title.
-    try {
-      html = renderToString(
-        sheet.collectStyles(
-          <ThemeProvider theme={light}>
-            <>
-              {options?.includeStyles === false ? (
-                <article>{children}</article>
-              ) : (
-                <>
-                  <GlobalStyles staticHTML />
-                  <Centered>{children}</Centered>
-                </>
-              )}
-            </>
-          </ThemeProvider>
-        )
-      );
-      styleTags = sheet.getStyleTags();
-    } catch (error) {
-      Logger.error("Failed to render styles on node HTML conversion", error);
-    } finally {
-      sheet.seal();
-    }
-
-    // Render the Prosemirror document using virtual DOM and serialize the
-    // result to a string
-    const dom = new JSDOM(
-      `<!DOCTYPE html><meta charset="utf-8">${
-        options?.includeStyles === false ? "" : styleTags
-      }${html}`
-    );
-    const doc = dom.window.document;
-    const target = doc.getElementById("content");
+    let view;
 
     // Patch globals for Prosemirror view
     const g = global as any;
@@ -533,17 +472,80 @@ export class ProsemirrorHelper {
       }
     };
 
-    patch("window", dom.window);
-    patch("document", doc);
-    patch("navigator", dom.window.navigator);
-    patch("getSelection", () => null);
-    patch("requestAnimationFrame", (fn: any) => setTimeout(fn, 0));
-    patch("cancelAnimationFrame", (id: any) => clearTimeout(id));
-    patch("HTMLElement", dom.window.HTMLElement);
-    patch("Node", dom.window.Node);
-    patch("MutationObserver", dom.window.MutationObserver);
-
     try {
+      const sheet = new ServerStyleSheet();
+      let html = "";
+      let styleTags = "";
+
+      const Centered = options?.centered
+        ? styled.article`
+            max-width: calc(52em + 88px);
+            margin: 0 auto;
+            padding: 0 1em;
+          `
+        : "article";
+
+      const rtl = isRTL(node.textContent);
+      const content = <div id="content" className="ProseMirror exported" />;
+      const children = (
+        <>
+          {options?.title && <h1 dir={rtl ? "rtl" : "ltr"}>{options.title}</h1>}
+          {options?.includeStyles !== false ? (
+            <EditorContainer dir={rtl ? "rtl" : "ltr"} rtl={rtl} staticHTML>
+              {content}
+            </EditorContainer>
+          ) : (
+            content
+          )}
+        </>
+      );
+
+      // First render the containing document which has all the editor styles,
+      // global styles, layout and title.
+      try {
+        html = renderToString(
+          sheet.collectStyles(
+            <ThemeProvider theme={light}>
+              <>
+                {options?.includeStyles === false ? (
+                  <article>{children}</article>
+                ) : (
+                  <>
+                    <GlobalStyles staticHTML />
+                    <Centered>{children}</Centered>
+                  </>
+                )}
+              </>
+            </ThemeProvider>
+          )
+        );
+        styleTags = sheet.getStyleTags();
+      } catch (error) {
+        Logger.error("Failed to render styles on node HTML conversion", error);
+      } finally {
+        sheet.seal();
+      }
+
+      // Render the Prosemirror document using virtual DOM and serialize the
+      // result to a string
+      const dom = new JSDOM(
+        `<!DOCTYPE html><meta charset="utf-8">${
+          options?.includeStyles === false ? "" : styleTags
+        }${html}`
+      );
+      const doc = dom.window.document;
+      const target = doc.getElementById("content");
+
+      patch("window", dom.window);
+      patch("document", doc);
+      patch("navigator", dom.window.navigator);
+      patch("getSelection", () => null);
+      patch("requestAnimationFrame", (fn: any) => setTimeout(fn, 0));
+      patch("cancelAnimationFrame", (id: any) => clearTimeout(id));
+      patch("HTMLElement", dom.window.HTMLElement);
+      patch("Node", dom.window.Node);
+      patch("MutationObserver", dom.window.MutationObserver);
+
       const diffPlugins = options?.changes
         ? new Diff({ changes: options.changes }).plugins
         : [];
@@ -554,15 +556,83 @@ export class ProsemirrorHelper {
         schema,
       });
 
-      // eslint-disable-next-line no-new
-      new EditorView(
+      view = new EditorView(
         { mount: target as HTMLElement },
         {
           state,
           editable: () => false,
         }
       );
+
+      // Convert relative urls to absolute
+      if (options?.baseUrl) {
+        const elements = doc.querySelectorAll("a[href]");
+        for (const el of elements) {
+          if ("href" in el && (el.href as string).startsWith("/")) {
+            el.href = new URL(el.href as string, options.baseUrl).toString();
+          }
+        }
+      }
+
+      // Inject mermaidjs scripts if the document contains mermaid diagrams
+      if (options?.includeMermaid) {
+        const mermaidElements = dom.window.document.querySelectorAll(
+          `[data-language="mermaidjs"] pre code`
+        );
+
+        // Unwrap <pre> tags to enable Mermaid script to correctly render inner content
+        for (const el of mermaidElements) {
+          const parent = el.parentNode as HTMLElement;
+          if (parent) {
+            while (el.firstChild) {
+              parent.insertBefore(el.firstChild, el);
+            }
+            parent.removeChild(el);
+            parent.setAttribute("class", "mermaid");
+          }
+        }
+
+        const element = dom.window.document.createElement("script");
+        element.setAttribute("type", "module");
+
+        // Inject Mermaid script
+        if (mermaidElements.length) {
+          element.innerHTML = `
+          import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+          mermaid.initialize({
+            startOnLoad: true,
+            fontFamily: "inherit",
+          });
+          window.status = "ready";
+        `;
+        } else {
+          element.innerHTML = `
+          window.status = "ready";
+        `;
+        }
+
+        dom.window.document.body.appendChild(element);
+      }
+
+      const output = dom.serialize();
+
+      if (options?.includeHead === false) {
+        // replace everything upto and including "<body>"
+        const body = "<body>";
+        const bodyIndex = output.indexOf(body) + body.length;
+        if (bodyIndex !== -1) {
+          return output
+            .substring(bodyIndex)
+            .replace("</body>", "")
+            .replace("</html>", "");
+        }
+      }
+
+      return output;
     } finally {
+      view?.destroy();
+
+      // Restore global parameters
       Object.entries(globalParams).forEach(([key, value]) => {
         try {
           g[key] = value;
@@ -571,72 +641,6 @@ export class ProsemirrorHelper {
         }
       });
     }
-
-    // Convert relative urls to absolute
-    if (options?.baseUrl) {
-      const elements = doc.querySelectorAll("a[href]");
-      for (const el of elements) {
-        if ("href" in el && (el.href as string).startsWith("/")) {
-          el.href = new URL(el.href as string, options.baseUrl).toString();
-        }
-      }
-    }
-
-    // Inject mermaidjs scripts if the document contains mermaid diagrams
-    if (options?.includeMermaid) {
-      const mermaidElements = dom.window.document.querySelectorAll(
-        `[data-language="mermaidjs"] pre code`
-      );
-
-      // Unwrap <pre> tags to enable Mermaid script to correctly render inner content
-      for (const el of mermaidElements) {
-        const parent = el.parentNode as HTMLElement;
-        if (parent) {
-          while (el.firstChild) {
-            parent.insertBefore(el.firstChild, el);
-          }
-          parent.removeChild(el);
-          parent.setAttribute("class", "mermaid");
-        }
-      }
-
-      const element = dom.window.document.createElement("script");
-      element.setAttribute("type", "module");
-
-      // Inject Mermaid script
-      if (mermaidElements.length) {
-        element.innerHTML = `
-          import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
-          mermaid.initialize({
-            startOnLoad: true,
-            fontFamily: "inherit",
-          });
-          window.status = "ready";
-        `;
-      } else {
-        element.innerHTML = `
-          window.status = "ready";
-        `;
-      }
-
-      dom.window.document.body.appendChild(element);
-    }
-
-    const output = dom.serialize();
-
-    if (options?.includeHead === false) {
-      // replace everything upto and including "<body>"
-      const body = "<body>";
-      const bodyIndex = output.indexOf(body) + body.length;
-      if (bodyIndex !== -1) {
-        return output
-          .substring(bodyIndex)
-          .replace("</body>", "")
-          .replace("</html>", "");
-      }
-    }
-
-    return output;
   }
 
   /**
