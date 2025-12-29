@@ -525,15 +525,23 @@ export class ProsemirrorHelper {
       MutationObserver: g.MutationObserver,
     };
 
-    g.window = dom.window;
-    g.document = doc;
-    g.navigator = dom.window.navigator;
-    g.getSelection = () => null;
-    g.requestAnimationFrame = (fn: any) => setTimeout(fn, 0);
-    g.cancelAnimationFrame = (id: any) => clearTimeout(id);
-    g.HTMLElement = dom.window.HTMLElement;
-    g.Node = dom.window.Node;
-    g.MutationObserver = dom.window.MutationObserver;
+    const patch = (key: string, value: any) => {
+      try {
+        g[key] = value;
+      } catch (err) {
+        // Ignore errors if property is read-only
+      }
+    };
+
+    patch("window", dom.window);
+    patch("document", doc);
+    patch("navigator", dom.window.navigator);
+    patch("getSelection", () => null);
+    patch("requestAnimationFrame", (fn: any) => setTimeout(fn, 0));
+    patch("cancelAnimationFrame", (id: any) => clearTimeout(id));
+    patch("HTMLElement", dom.window.HTMLElement);
+    patch("Node", dom.window.Node);
+    patch("MutationObserver", dom.window.MutationObserver);
 
     try {
       const diffPlugins = options?.changes
@@ -556,7 +564,11 @@ export class ProsemirrorHelper {
       );
     } finally {
       Object.entries(globalParams).forEach(([key, value]) => {
-        g[key] = value;
+        try {
+          g[key] = value;
+        } catch (err) {
+          // Ignore errors if property is read-only
+        }
       });
     }
 
