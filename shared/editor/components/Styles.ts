@@ -410,6 +410,21 @@ const findAndReplaceStyle = () => css`
   }
 `;
 
+const emailStyle = (props: Props) => css`
+  .attachment {
+    display: block;
+    color: ${props.theme.text} !important;
+    box-shadow: 0 0 0 1px ${props.theme.divider};
+    white-space: nowrap;
+    border-radius: 8px;
+    padding: 6px 8px;
+  }
+  .image > img {
+    width: auto;
+    height: auto;
+  }
+`;
+
 /**
  * Adjustments to line-height and paragraph margins for complex scripts. If adding
  * scripts here you also need to update the `getLangFor` method.
@@ -2284,6 +2299,7 @@ const EditorContainer = styled.div<Props>`
   ${codeBlockStyle}
   ${diffStyle}
   ${findAndReplaceStyle}
+  ${emailStyle}
   ${textStyle}
 `;
 
