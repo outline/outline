@@ -260,26 +260,34 @@ export default class Diff extends Extension {
           }
         }
 
-        const dom = document.createElement(tag);
-        dom.setAttribute(
-          "class",
-          cn({
-            [this.options.currentChangeClassName]: isCurrent,
-            [this.options.deletionClassName]: !useNodeDecoration,
-            [this.options.nodeDeletionClassName]: useNodeDecoration,
-          })
-        );
-
         const fragment = Fragment.from(unwrap($pos, contentToSerialize));
 
-        dom.appendChild(
-          DOMSerializer.fromSchema(doc.type.schema).serializeFragment(fragment)
-        );
-
         decorations.push(
-          Decoration.widget(change.fromB, () => dom, {
-            side: -1,
-          })
+          Decoration.widget(
+            change.fromB,
+            (view) => {
+              const dom = view.dom.ownerDocument.createElement(tag);
+              dom.setAttribute(
+                "class",
+                cn({
+                  [this.options.currentChangeClassName]: isCurrent,
+                  [this.options.deletionClassName]: !useNodeDecoration,
+                  [this.options.nodeDeletionClassName]: useNodeDecoration,
+                })
+              );
+
+              dom.appendChild(
+                DOMSerializer.fromSchema(doc.type.schema).serializeFragment(
+                  fragment,
+                  { document: view.dom.ownerDocument }
+                )
+              );
+              return dom;
+            },
+            {
+              side: -1,
+            }
+          )
         );
         individualChangeIndex++;
       });
