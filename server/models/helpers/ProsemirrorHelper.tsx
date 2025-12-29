@@ -528,7 +528,7 @@ export class ProsemirrorHelper {
     const patch = (key: string, value: any) => {
       try {
         g[key] = value;
-      } catch (err) {
+      } catch (_err) {
         // Ignore errors if property is read-only
       }
     };
@@ -566,7 +566,7 @@ export class ProsemirrorHelper {
       Object.entries(globalParams).forEach(([key, value]) => {
         try {
           g[key] = value;
-        } catch (err) {
+        } catch (_err) {
           // Ignore errors if property is read-only
         }
       });
