@@ -46,6 +46,7 @@ import {
   Event,
   Revision,
   SearchQuery,
+  Template,
   User,
   View,
   UserMembership,
@@ -62,6 +63,7 @@ import { authorize, can, cannot } from "@server/policies";
 import {
   presentDocument,
   presentPolicies,
+  presentTemplate,
   presentMembership,
   presentUser,
   presentGroupMembership,
@@ -91,7 +93,6 @@ router.post(
     const {
       sort,
       direction,
-      template,
       collectionId,
       backlinkDocumentId,
       parentDocumentId,
@@ -117,12 +118,6 @@ router.post(
     // Exclude archived docs by default
     if (!statusFilter) {
       where[Op.and].push({ archivedAt: { [Op.eq]: null } });
-    }
-
-    if (template) {
-      where[Op.and].push({
-        template: true,
-      });
     }
 
     // if a specific user is passed then add to filters. If the user doesn't
@@ -158,12 +153,7 @@ router.post(
     } else if (!backlinkDocumentId) {
       const collectionIds = await user.collectionIds();
       where[Op.and].push({
-        collectionId:
-          template && can(user, "readTemplate", user.team)
-            ? {
-                [Op.or]: [{ [Op.in]: collectionIds }, { [Op.is]: null }],
-              }
-            : collectionIds,
+        collectionId: collectionIds,
       });
     }
 
@@ -878,14 +868,12 @@ router.post(
         })
       : undefined;
 
-    // In case of workspace templates, both source and destination collections are undefined.
-    if (!document.isWorkspaceTemplate && !destCollection?.isActive) {
+    if (!destCollection?.isActive) {
       throw ValidationError(
         "Unable to restore, the collection may have been deleted or archived"
       );
     }
 
-    // Skip this for workspace templates and drafts of a deleted collection as they won't have sourceCollectionId.
     if (sourceCollectionId && sourceCollectionId !== destCollectionId) {
       authorize(user, "updateDocument", srcCollection);
       await srcCollection?.removeDocumentInStructure(document, {
@@ -894,10 +882,7 @@ router.post(
       });
     }
 
-    if (document.deletedAt && document.isWorkspaceTemplate) {
-      authorize(user, "restore", document);
-      await document.restoreWithCtx(ctx, { name: "restore" });
-    } else if (document.deletedAt) {
+    if (document.deletedAt) {
       authorize(user, "restore", document);
       authorize(user, "updateDocument", destCollection);
 
@@ -1153,7 +1138,7 @@ router.post(
       authorize(user, "createTemplate", user.team);
     }
 
-    const document = await Document.createWithCtx(ctx, {
+    const template = await Template.createWithCtx(ctx, {
       editorVersion: original.editorVersion,
       collectionId,
       teamId: user.teamId,
@@ -1169,14 +1154,14 @@ router.post(
     });
 
     // reload to get all of the data needed to present (user, collection etc)
-    const reloaded = await Document.findByPk(document.id, {
+    const reloaded = await Template.findByPk(template.id, {
       userId: user.id,
       transaction,
     });
-    invariant(reloaded, "document not found");
+    invariant(reloaded, "template not found");
 
     ctx.body = {
-      data: await presentDocument(ctx, reloaded),
+      data: presentTemplate(reloaded),
       policies: presentPolicies(user, [reloaded]),
     };
   }
@@ -1213,7 +1198,7 @@ router.post(
         authorize(user, "publish", document);
       }
 
-      if (!document.collectionId && !document.isWorkspaceTemplate) {
+      if (!document.collectionId) {
         assertPresent(
           collectionId,
           "collectionId is required to publish a draft without collection"
@@ -1233,8 +1218,6 @@ router.post(
           }
         );
         authorize(user, "createChildDocument", parentDocument, { collection });
-      } else if (document.isWorkspaceTemplate) {
-        authorize(user, "createTemplate", user.team);
       } else {
         authorize(user, "createDocument", collection);
       }
@@ -1282,8 +1265,6 @@ router.post(
 
     if (collection) {
       authorize(user, "updateDocument", collection);
-    } else if (document.isWorkspaceTemplate) {
-      authorize(user, "createTemplate", user.team);
     }
 
     if (parentDocumentId) {
@@ -1351,8 +1332,6 @@ router.post(
         transaction,
       });
       authorize(user, "updateDocument", collection);
-    } else if (document.template) {
-      authorize(user, "updateTemplate", user.team);
     } else {
       throw InvalidRequestError("collectionId is required to move a document");
     }
@@ -1574,7 +1553,6 @@ router.post(
       parentDocumentId,
       fullWidth,
       templateId,
-      template,
       createdAt,
     } = ctx.input.body;
     const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
@@ -1606,8 +1584,6 @@ router.post(
         transaction,
       });
       authorize(user, "createDocument", collection);
-    } else if (!!template && !collectionId) {
-      authorize(user, "createTemplate", user.team);
     }
 
     let templateDocument: Document | null | undefined;
@@ -1633,7 +1609,6 @@ router.post(
       collectionId: collection?.id,
       parentDocumentId,
       templateDocument,
-      template,
       fullWidth,
       editorVersion,
     });

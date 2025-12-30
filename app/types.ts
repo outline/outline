@@ -1,19 +1,19 @@
-import type { Location, LocationDescriptor } from "history";
-import type { TFunction } from "i18next";
-import type {
+import { Location, LocationDescriptor } from "history";
+import { TFunction } from "i18next";
+import {
   JSONValue,
   CollectionPermission,
   DocumentPermission,
   GroupPermission,
 } from "@shared/types";
-import type RootStore from "~/stores/RootStore";
-import type { SidebarContextType } from "./components/Sidebar/components/SidebarContext";
-import type Document from "./models/Document";
-import type FileOperation from "./models/FileOperation";
-import type Pin from "./models/Pin";
-import type Star from "./models/Star";
-import type User from "./models/User";
-import type UserMembership from "./models/UserMembership";
+import RootStore from "~/stores/RootStore";
+import { SidebarContextType } from "./components/Sidebar/components/SidebarContext";
+import Document from "./models/Document";
+import FileOperation from "./models/FileOperation";
+import Pin from "./models/Pin";
+import Star from "./models/Star";
+import User from "./models/User";
+import UserMembership from "./models/UserMembership";
 
 export type PartialExcept<T, K extends keyof T> = Partial<Omit<T, K>> &
   Required<Pick<T, K>>;
@@ -96,7 +96,9 @@ export type ActionContext = {
   isCommandBar: boolean;
   isButton: boolean;
   sidebarContext?: SidebarContextType;
+  // TODO: Refactor this to data structure of active models
   activeCollectionId?: string | undefined;
+  activeTemplateId?: string | undefined;
   activeDocumentId: string | undefined;
   currentUserId: string | undefined;
   currentTeamId: string | undefined;
@@ -106,7 +108,32 @@ export type ActionContext = {
   t: TFunction;
 };
 
-type BaseAction = {
+export type Action = {
+  type?: undefined;
+  id: string;
+  analyticsName?: string;
+  name: ((context: ActionContext) => string) | string;
+  section: ((context: ActionContext) => string) | string;
+  shortcut?: string[];
+  keywords?: string;
+  dangerous?: boolean;
+  /** Higher number is higher in results, default is 0. */
+  priority?: number;
+  iconInContextMenu?: boolean;
+  icon?: React.ReactNode;
+  placeholder?: ((context: ActionContext) => string) | string;
+  selected?: (context: ActionContext) => boolean;
+  visible?: (context: ActionContext) => boolean;
+  /**
+   * Perform the action – note this should generally not be called directly, use `performAction`
+   * instead. Errors will be caught and displayed to the user as a toast message.
+   */
+  perform?: (context: ActionContext) => any;
+  to?: string | { url: string; target?: string };
+  children?: ((context: ActionContext) => Action[]) | Action[];
+};
+
+type BaseActionV2 = {
   type: "action";
   id: string;
   analyticsName?: string;
@@ -124,7 +151,7 @@ type BaseAction = {
   disabled?: ((context: ActionContext) => boolean) | boolean;
 };
 
-export type Action = BaseAction & {
+export type ActionV2 = BaseActionV2 & {
   variant: "action";
   dangerous?: boolean;
   tooltip?:
@@ -133,41 +160,41 @@ export type Action = BaseAction & {
   perform: (context: ActionContext) => any;
 };
 
-export type InternalLinkAction = BaseAction & {
+export type InternalLinkActionV2 = BaseActionV2 & {
   variant: "internal_link";
   to: ((context: ActionContext) => LocationDescriptor) | LocationDescriptor;
 };
 
-export type ExternalLinkAction = BaseAction & {
+export type ExternalLinkActionV2 = BaseActionV2 & {
   variant: "external_link";
   url: string;
   target?: string;
 };
 
-export type ActionWithChildren = BaseAction & {
+export type ActionV2WithChildren = BaseActionV2 & {
   variant: "action_with_children";
   children:
     | ((
         context: ActionContext
-      ) => (ActionVariant | ActionGroup | ActionSeparator)[])
-    | (ActionVariant | ActionGroup | ActionSeparator)[];
+      ) => (ActionV2Variant | ActionV2Group | ActionV2Separator)[])
+    | (ActionV2Variant | ActionV2Group | ActionV2Separator)[];
 };
 
-export type ActionVariant =
-  | Action
-  | InternalLinkAction
-  | ExternalLinkAction
-  | ActionWithChildren;
+export type ActionV2Variant =
+  | ActionV2
+  | InternalLinkActionV2
+  | ExternalLinkActionV2
+  | ActionV2WithChildren;
 
 // Specific to menu
-export type ActionGroup = {
+export type ActionV2Group = {
   type: "action_group";
   name: string;
-  actions: (ActionVariant | ActionSeparator)[];
+  actions: (ActionV2Variant | ActionV2Separator)[];
 };
 
 // Specific to menu
-export type ActionSeparator = {
+export type ActionV2Separator = {
   type: "action_separator";
 };
 

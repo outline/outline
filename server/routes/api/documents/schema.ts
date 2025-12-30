@@ -89,9 +89,6 @@ export const DocumentsListSchema = BaseSchema.extend({
     /** Id of the parent document to which the document belongs */
     parentDocumentId: z.string().uuid().nullish(),
 
-    /** Boolean which denotes whether the document is a template */
-    template: z.boolean().optional(),
-
     /** Document statuses to include in results */
     statusFilter: z.nativeEnum(StatusFilter).array().optional(),
   }),
@@ -373,9 +370,6 @@ export const DocumentsCreateSchema = BaseSchema.extend({
 
     /** Boolean to denote if the document should occupy full width */
     fullWidth: z.boolean().optional(),
-
-    /** Whether this should be considered a template */
-    template: z.boolean().optional(),
   }),
 }).refine(
   (req) =>

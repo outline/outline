@@ -9,6 +9,7 @@ import useMeasure from "react-use-measure";
 import { altDisplay, metaDisplay } from "@shared/utils/keyboard";
 import type Document from "~/models/Document";
 import type Revision from "~/models/Revision";
+import type Template from "~/models/Template";
 import { Action, Separator } from "~/components/Actions";
 import Badge from "~/components/Badge";
 import Button from "~/components/Button";
@@ -45,7 +46,7 @@ import { ChangesNavigation } from "./ChangesNavigation";
 
 type Props = {
   editorRef: React.RefObject<Editor>;
-  document: Document;
+  document: Document | Template;
   revision: Revision | undefined;
   isDraft: boolean;
   isEditing: boolean;
@@ -53,7 +54,7 @@ type Props = {
   isPublishing: boolean;
   publishingIsDisabled: boolean;
   savingIsDisabled: boolean;
-  onSelectTemplate: (template: Document) => void;
+  onSelectTemplate: (template: Template) => void;
   onSave: (options: {
     done?: boolean;
     publish?: boolean;
@@ -109,11 +110,13 @@ function DocumentHeader({
   }, [ui, isShare]);
 
   const can = usePolicy(document);
-  const { isDeleted, isTemplate } = document;
+  const isTemplate =
+    "isTemplate" in document ? !!(document as any).isTemplate : false;
+  const { isDeleted } = document;
   const isTemplateEditable = can.update && isTemplate;
   const canToggleEmbeds = team?.documentEmbeds;
   const showContents =
-    (ui.tocVisible === true && !document.isTemplate) ||
+    (ui.tocVisible === true && !isTemplate) ||
     (isShare && ui.tocVisible !== false);
 
   const toc = (
@@ -141,7 +144,7 @@ function DocumentHeader({
     <Action>
       <Tooltip
         content={t("Edit {{noun}}", {
-          noun: document.noun,
+          noun: isTemplate ? t("template") : (document as Document).noun,
         })}
         shortcut="e"
         placement="bottom"
@@ -222,10 +225,14 @@ function DocumentHeader({
           isMobile ? (
             <TableOfContentsMenu />
           ) : (
-            <DocumentBreadcrumb document={document}>
-              {document.isTemplate ? null : (
+            <DocumentBreadcrumb document={document as Document}>
+              {isTemplate ? null : (
                 <>
-                  {toc} <Star document={document} color={theme.textSecondary} />
+                  {toc}{" "}
+                  <Star
+                    document={document as Document}
+                    color={theme.textSecondary}
+                  />
                 </>
               )}
             </DocumentBreadcrumb>
@@ -264,7 +271,7 @@ function DocumentHeader({
                 <Action>
                   <TemplatesMenu
                     isCompact={isCompact}
-                    document={document}
+                    document={document as Document}
                     onSelectTemplate={onSelectTemplate}
                   />
                 </Action>
@@ -337,7 +344,8 @@ function DocumentHeader({
                   hideOnActionDisabled
                   hideIcon
                 >
-                  {document.collectionId || document.isWorkspaceTemplate
+                  {document.collectionId ||
+                  (isTemplate && (document as Template).isWorkspaceTemplate)
                     ? t("Publish")
                     : `${t("Publish")}…`}
                 </Button>

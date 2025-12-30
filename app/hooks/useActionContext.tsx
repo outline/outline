@@ -1,10 +1,9 @@
 import { observer } from "mobx-react";
-import type { ReactNode } from "react";
-import React, { createContext, useContext } from "react";
+import React, { createContext, useContext, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router";
 import useStores from "~/hooks/useStores";
-import type { ActionContext as ActionContextType } from "~/types";
+import { ActionContext as ActionContextType } from "~/types";
 
 export const ActionContext = createContext<ActionContextType | undefined>(
   undefined

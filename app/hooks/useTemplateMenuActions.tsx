@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import Icon from "@shared/components/Icon";
 import { TextHelper } from "@shared/utils/TextHelper";
 import type Document from "~/models/Document";
+import Template from "~/models/Template";
 import { ActionSeparator, createAction, createActionGroup } from "~/actions";
 import { DocumentsSection } from "~/actions/sections";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -15,7 +16,7 @@ type Props = {
   /** The document to which the templates will be applied */
   documentId: string;
   /** Callback to handle when a template is selected */
-  onSelectTemplate?: (template: Document) => void;
+  onSelectTemplate?: (template: Template) => void;
 };
 
 /**
@@ -34,12 +35,12 @@ export function useTemplateMenuActions({
   onSelectTemplate,
 }: Props) {
   const user = useCurrentUser();
-  const { documents } = useStores();
+  const { documents, templates: templatesStore } = useStores();
   const { t } = useTranslation();
   const document = documents.get(documentId);
 
   const templateToAction = useCallback(
-    (template: Document): Action =>
+    (template: Template): Action =>
       createAction({
         name: TextHelper.replaceTemplateVariables(
           template.titleWithDefault,
@@ -66,8 +67,8 @@ export function useTemplateMenuActions({
       return [];
     }
 
-    const templates = documents.templates.filter(
-      (template) => template.publishedAt
+    const templates = templatesStore.orderedData.filter(
+      (template) => template.isActive
     );
 
     const collectionTemplatesActions = templates
@@ -90,5 +91,5 @@ export function useTemplateMenuActions({
         actions: workspaceTemplatesActions,
       }),
     ];
-  }, []);
+  }, [document?.collectionId, templateToAction, t]);
 }

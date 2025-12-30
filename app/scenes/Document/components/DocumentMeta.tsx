@@ -8,6 +8,7 @@ import styled from "styled-components";
 import { TeamPreference } from "@shared/types";
 import type Document from "~/models/Document";
 import type Revision from "~/models/Revision";
+import type Template from "~/models/Template";
 import { openDocumentInsights } from "~/actions/definitions/documents";
 import DocumentMeta, { Separator } from "~/components/DocumentMeta";
 import Fade from "~/components/Fade";
@@ -21,7 +22,7 @@ import NudeButton from "~/components/NudeButton";
 
 type Props = {
   /* The document to display meta data for */
-  document: Document;
+  document: Document | Template;
   revision?: Revision;
   to?: LocationDescriptor;
   rtl?: boolean;
@@ -37,6 +38,7 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
   const onlyYou = totalViewers === 1 && documentViews[0].userId;
   const viewsLoadedOnMount = useRef(totalViewers > 0);
   const can = usePolicy(document);
+  const isTemplate = "isTemplate" in document;
 
   const Wrapper = viewsLoadedOnMount.current ? Fragment : Fade;
 
@@ -44,13 +46,19 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
   const commentingEnabled = !!team.getPreference(TeamPreference.Commenting);
 
   return (
-    <Meta document={document} revision={revision} to={to} replace {...rest}>
-      {commentingEnabled && can.comment && (
+    <Meta
+      document={document as Document}
+      revision={revision}
+      to={to}
+      replace
+      {...rest}
+    >
+      {commentingEnabled && can.comment && !isTemplate && (
         <>
           <Separator />
           <CommentLink
             to={{
-              pathname: documentPath(document),
+              pathname: documentPath(document as Document),
               state: { sidebarContext },
             }}
             onClick={() => ui.toggleComments()}
@@ -64,8 +72,8 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
       )}
       {totalViewers &&
       can.listViews &&
-      !document.isDraft &&
-      !document.isTemplate ? (
+      !(document as Document).isDraft &&
+      !isTemplate ? (
         <Wrapper>
           <Separator />
           <InsightsButton action={openDocumentInsights}>

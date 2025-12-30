@@ -29,16 +29,14 @@ import DynamicCollectionIcon from "~/components/Icons/CollectionIcon";
 import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
 import {
   createAction,
-  createActionWithChildren,
+  createActionV2,
+  createExternalLinkAction,
   createInternalLinkAction,
 } from "~/actions";
 import { ActiveCollectionSection, CollectionSection } from "~/actions/sections";
 import { setPersistedState } from "~/hooks/usePersistedState";
-import {
-  newDocumentPath,
-  newTemplatePath,
-  searchPath,
-} from "~/utils/routeHelpers";
+import { newDocumentPath, searchPath } from "~/utils/routeHelpers";
+import { TemplateNew } from "~/components/Template/TemplateNew";
 import ExportDialog from "~/components/ExportDialog";
 import { getEventFiles } from "@shared/utils/files";
 import history from "~/utils/history";
@@ -572,7 +570,7 @@ export const createDocument = createInternalLinkAction({
   },
 });
 
-export const createTemplate = createInternalLinkAction({
+export const createTemplate = createActionV2({
   name: ({ t }) => t("New template"),
   analyticsName: "New template",
   section: ActiveCollectionSection,
@@ -583,14 +581,19 @@ export const createTemplate = createInternalLinkAction({
       !!activeCollectionId &&
       stores.policies.abilities(activeCollectionId).createDocument
     ),
-  to: ({ activeCollectionId, sidebarContext }) => {
-    const [pathname, search] = newTemplatePath(activeCollectionId).split("?");
+  perform: ({ stores, event, activeCollectionId }) => {
+    event?.preventDefault();
+    event?.stopPropagation();
 
-    return {
-      pathname,
-      search,
-      state: { sidebarContext },
-    };
+    stores.dialogs.openModal({
+      title: "",
+      content: (
+        <TemplateNew
+          collectionId={activeCollectionId}
+          onSubmit={stores.dialogs.closeAllModals}
+        />
+      ),
+    });
   },
 });
 
