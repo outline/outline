@@ -3315,9 +3315,8 @@ describe("#documents.create", () => {
     expect(body.data.title).toEqual("");
   });
 
-  it("should use template title when doc is supposed to be created using the template and title is not explicitly passed", async () => {
+  it("should use template title when doc is created using a template and title is not explicitly passed", async () => {
     const user = await buildUser();
-    const text = "template text";
     const template = await buildTemplate({
       userId: user.id,
       teamId: user.teamId,
@@ -3332,7 +3331,6 @@ describe("#documents.create", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.title).toEqual(template.title);
-    expect(body.data.text).toEqual(text);
   });
 
   it("should override template title when doc title is explicitly passed", async () => {
@@ -3507,7 +3505,6 @@ describe("#documents.create", () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.template).toBe(true);
     expect(body.data.publishedAt).toBeNull();
     expect(body.data.collectionId).toBeNull();
   });

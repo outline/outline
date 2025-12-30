@@ -15,6 +15,7 @@ function presentTemplate(template: Template) {
     updatedAt: template.updatedAt,
     updatedBy: presentUser(template.updatedBy),
     deletedAt: template.deletedAt,
+    publishedAt: template.publishedAt,
     fullWidth: template.fullWidth,
     collectionId: template.collectionId,
   };

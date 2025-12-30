@@ -4,11 +4,9 @@ import type {
   InferAttributes,
   InferCreationAttributes,
   NonNullFindOptions,
-  FindOptions} from "sequelize";
-import {
-  Op,
-  EmptyResultError,
+  FindOptions,
 } from "sequelize";
+import { Op, EmptyResultError } from "sequelize";
 import {
   Column,
   DataType,
@@ -119,6 +117,10 @@ class Template extends IdModel<
   @Default(false)
   @Column
   fullWidth: boolean;
+
+  @Default(true)
+  @Column
+  template: boolean;
 
   /** The version of the editor last used to edit this template. */
   @SimpleLength({

@@ -117,6 +117,7 @@ type AdditionalFindOptions = {
         [Op.is]: null,
       },
     },
+    template: false,
   },
   attributes: {
     include: [stateIfContentEmpty],
@@ -305,6 +306,10 @@ class Document extends ArchivableModel<
   @Default(false)
   @Column
   fullWidth: boolean;
+
+  @Default(false)
+  @Column
+  template: boolean;
 
   @Column
   insightsEnabled: boolean;
@@ -998,6 +1003,21 @@ class Document extends ArchivableModel<
       this.collectionId = collectionId;
     }
 
+    if (this.collectionId) {
+      const collection = await Collection.findByPk(this.collectionId, {
+        includeDocumentStructure: true,
+        transaction,
+        lock: Transaction.LOCK.UPDATE,
+      });
+
+      if (collection) {
+        await collection.addDocumentToStructure(this, 0, { transaction });
+        if (this.collection) {
+          this.collection.documentStructure = collection.documentStructure;
+        }
+      }
+    }
+
     // Copy the group and user memberships from the parent document, if any
     if (this.parentDocumentId) {
       await GroupMembership.copy(
@@ -1137,6 +1157,13 @@ class Document extends ArchivableModel<
       if (parent?.isDraft || !parent?.isActive) {
         this.parentDocumentId = null;
       }
+    }
+
+    if (this.publishedAt && collection?.isActive) {
+      await collection.addDocumentToStructure(this, undefined, {
+        includeArchived: true,
+        transaction,
+      });
     }
 
     if (this.deletedAt) {

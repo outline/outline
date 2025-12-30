@@ -1584,14 +1584,14 @@ router.post(
       authorize(user, "createDocument", collection);
     }
 
-    let templateDocument: Document | null | undefined;
+    let template: Template | null | undefined;
 
     if (templateId) {
-      templateDocument = await Document.findByPk(templateId, {
+      template = await Template.findByPk(templateId, {
         userId: user.id,
         transaction,
       });
-      authorize(user, "read", templateDocument);
+      authorize(user, "read", template);
     }
 
     const document = await documentCreator(ctx, {
@@ -1606,7 +1606,7 @@ router.post(
       publish,
       collectionId: collection?.id,
       parentDocumentId,
-      templateDocument,
+      template,
       fullWidth,
       editorVersion,
     });

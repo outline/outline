@@ -1,7 +1,7 @@
 import type { Optional } from "utility-types";
 import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { TextHelper } from "@shared/utils/TextHelper";
-import { Document } from "@server/models";
+import { Document, type Template } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import type { APIContext } from "@server/types";
@@ -30,7 +30,7 @@ type Props = Optional<
 > & {
   state?: Buffer;
   publish?: boolean;
-  templateDocument?: Document | null;
+  template?: Template | null;
 };
 
 export default async function documentCreator(
@@ -47,7 +47,7 @@ export default async function documentCreator(
     collectionId,
     parentDocumentId,
     content,
-    templateDocument,
+    template,
     fullWidth,
     importId,
     apiImportId,
@@ -61,11 +61,10 @@ export default async function documentCreator(
 ): Promise<Document> {
   const { user } = ctx.state.auth;
   const { transaction } = ctx.state;
-  const templateId = templateDocument ? templateDocument.id : undefined;
-
+  const templateId = template ? template.id : undefined;
   const eventData = importId || apiImportId ? { source: "import" } : undefined;
 
-  if (state && templateDocument) {
+  if (state && template) {
     throw new Error(
       "State cannot be set when creating a document from a template"
     );
@@ -86,17 +85,15 @@ export default async function documentCreator(
 
   const titleWithReplacements =
     title ??
-    (templateDocument
-      ? TextHelper.replaceTemplateVariables(templateDocument.title, user)
-      : "");
+    (template ? TextHelper.replaceTemplateVariables(template.title, user) : "");
 
   const contentWithReplacements = content
     ? content
     : text
       ? ProsemirrorHelper.toProsemirror(text).toJSON()
-      : templateDocument
+      : template
         ? SharedProsemirrorHelper.replaceTemplateVariables(
-            await DocumentHelper.toJSON(templateDocument),
+            await DocumentHelper.toJSON(template),
             user
           )
         : ProsemirrorHelper.toProsemirror("").toJSON();
@@ -117,9 +114,9 @@ export default async function documentCreator(
     importId,
     apiImportId,
     sourceMetadata,
-    fullWidth: fullWidth ?? templateDocument?.fullWidth,
-    icon: icon ?? templateDocument?.icon,
-    color: color ?? templateDocument?.color,
+    fullWidth: fullWidth ?? template?.fullWidth,
+    icon: icon ?? template?.icon,
+    color: color ?? template?.color,
     title: titleWithReplacements,
     content: contentWithReplacements,
     state,
