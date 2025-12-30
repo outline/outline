@@ -43,7 +43,7 @@ router.post(
         userId: user.id,
       });
       authorize(user, "listRevisions", document);
-      after = Revision.buildFromDocument(document as Document);
+      after = Revision.buildFromDocument(document);
       after.id = RevisionHelper.latestId(document.id);
       after.user = document.updatedBy;
 

@@ -139,7 +139,7 @@ function DocumentHeader({
     <Action>
       <Tooltip
         content={t("Edit {{noun}}", {
-          noun: isTemplate ? t("template") : (document as Document).noun,
+          noun: document.noun,
         })}
         shortcut="e"
         placement="bottom"

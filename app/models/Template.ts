@@ -131,11 +131,6 @@ export default class Template extends ParanoidModel implements Searchable {
   }
 
   @computed
-  get isTemplate(): boolean {
-    return true;
-  }
-
-  @computed
   get permanentlyDeletedAt(): string | undefined {
     if (!this.deletedAt) {
       return undefined;
