@@ -9,15 +9,10 @@ import type {
   NonNullFindOptions,
   SaveOptions,
   ScopeOptions,
-} from "sequelize";
-import {
-  Transaction,
-  Op,
   FindOptions,
   WhereOptions,
-  EmptyResultError,
-  Sequelize,
 } from "sequelize";
+import { Transaction, Op, EmptyResultError, Sequelize } from "sequelize";
 import {
   ForeignKey,
   BelongsTo,
@@ -39,7 +34,10 @@ import {
   AllowNull,
   BelongsToMany,
   Unique,
+  AfterUpdate,
+  IsFloat,
 } from "sequelize-typescript";
+import { MaxLength } from "class-validator";
 import isUUID from "validator/lib/isUUID";
 import type {
   NavigationNode,
@@ -52,6 +50,7 @@ import slugify from "@shared/utils/slugify";
 import { DocumentValidation } from "@shared/validations";
 import { ValidationError } from "@server/errors";
 import { generateUrlId } from "@server/utils/url";
+import { createContext } from "@server/context";
 import Collection from "./Collection";
 import FileOperation from "./FileOperation";
 import Group from "./Group";
@@ -70,6 +69,9 @@ import Fix from "./decorators/Fix";
 import { DocumentHelper } from "./helpers/DocumentHelper";
 import IsHexColor from "./validators/IsHexColor";
 import Length from "./validators/Length";
+import type { APIContext } from "@server/types";
+import { SkipChangeset } from "./decorators/Changeset";
+import type { HookContext } from "./base/Model";
 
 export const DOCUMENT_VERSION = 2;
 
@@ -114,7 +116,6 @@ type AdditionalFindOptions = {
         [Op.is]: null,
       },
     },
-    template: false,
   },
   attributes: {
     include: [stateIfContentEmpty],
@@ -290,6 +291,7 @@ class Document extends ArchivableModel<
     msg: `Document summary must be ${DocumentValidation.maxSummaryLength} characters or less`,
   })
   @Column
+  @SkipChangeset
   summary: string;
 
   @Column(DataType.ARRAY(DataType.STRING))
@@ -316,13 +318,9 @@ class Document extends ArchivableModel<
     msg: `editorVersion must be 255 characters or less`,
   })
   @Column
-  editorVersion: string;
+  editorVersion: string | null;
 
   /** An icon to use as the document icon. */
-  @Length({
-    max: 50,
-    msg: `icon must be 50 characters or less`,
-  })
   @Column
   icon: string | null;
 
@@ -338,12 +336,19 @@ class Document extends ArchivableModel<
    * This column will be removed in a future migration.
    */
   @Column(DataType.TEXT)
+  @SkipChangeset
   text: string;
+
+  /** The likely language of the content, in ISO 639-1 format. */
+  @Column(DataType.STRING(2))
+  @MaxLength(2)
+  language: string;
 
   /**
    * The content of the document as JSON, this is a snapshot at the last time the state was saved.
    */
   @Column(DataType.JSONB)
+  @SkipChangeset
   content: ProsemirrorData | null;
 
   /**
@@ -355,6 +360,7 @@ class Document extends ArchivableModel<
     msg: `Document collaborative state is too large, you must create a new document`,
   })
   @Column(DataType.BLOB)
+  @SkipChangeset
   state?: Uint8Array | null;
 
   /** Whether this document is part of onboarding. */
@@ -367,6 +373,13 @@ class Document extends ArchivableModel<
   @Default(0)
   @Column(DataType.INTEGER)
   revisionCount: number;
+
+  /** A score representing the popularity of this document based on views and engagement. */
+  @IsFloat
+  @Default(0)
+  @Column(DataType.FLOAT)
+  @SkipChangeset
+  popularityScore: number;
 
   /** Whether the document is published, and if so when. */
   @IsDate
@@ -431,10 +444,11 @@ class Document extends ArchivableModel<
     model: Document,
     { transaction }: SaveOptions<InferAttributes<Document>>
   ) {
-    // drafts and archived documents don't appear in the structure
+    // templates, drafts, and archived documents don't appear in the structure
     // and so never need to be updated when the title changes
     if (
       model.archivedAt ||
+      model.template ||
       !model.publishedAt ||
       !(
         model.changed("title") ||
@@ -461,7 +475,12 @@ class Document extends ArchivableModel<
 
   @AfterCreate
   static async addDocumentToCollectionStructure(model: Document) {
-    if (model.archivedAt || !model.publishedAt || !model.collectionId) {
+    if (
+      model.archivedAt ||
+      model.template ||
+      !model.publishedAt ||
+      !model.collectionId
+    ) {
       return;
     }
 
@@ -550,6 +569,20 @@ class Document extends ArchivableModel<
       throw ValidationError(
         "infinite loop detected, cannot nest a document inside itself"
       );
+    }
+  }
+
+  @AfterUpdate
+  static async publishTitleChangeEvent(
+    model: Document,
+    ctx: APIContext["context"]
+  ) {
+    if (model.changed("title")) {
+      const hookContext = {
+        ...ctx,
+        event: { publish: true, persist: false },
+      } as HookContext;
+      await this.insertEvent("title_change", model, hookContext);
     }
   }
 
@@ -853,6 +886,13 @@ class Document extends ArchivableModel<
   }
 
   /**
+   * Returns whether this document is a template created at the workspace level.
+   */
+  get isWorkspaceTemplate() {
+    return this.template && !this.collectionId;
+  }
+
+  /**
    * Revert the state of the document to match the passed revision.
    *
    * @param revision The revision to revert to.
@@ -947,23 +987,37 @@ class Document extends ArchivableModel<
   };
 
   publish = async (
-    user: User,
-    collectionId: string | null | undefined,
-    options: SaveOptions
+    ctx: APIContext,
+    {
+      collectionId,
+      silent = false,
+      event = true,
+      data,
+    }: {
+      collectionId: string | null | undefined;
+      silent?: boolean;
+      event?: boolean;
+      data?: Record<string, unknown>;
+    }
   ): Promise<this> => {
-    const { transaction } = options;
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
 
     // If the document is already published then calling publish should act like
     // a regular save
     if (this.publishedAt) {
-      return this.save(options);
+      if (event) {
+        return this.saveWithCtx(ctx, { silent }, { name: "publish", data });
+      } else {
+        return this.save({ silent, transaction });
+      }
     }
 
     if (!this.collectionId) {
       this.collectionId = collectionId;
     }
 
-    if (this.collectionId) {
+    if (!this.template && this.collectionId) {
       const collection = await Collection.findByPk(this.collectionId, {
         includeDocumentStructure: true,
         transaction,
@@ -999,7 +1053,12 @@ class Document extends ArchivableModel<
     this.lastModifiedById = user.id;
     this.updatedBy = user;
     this.publishedAt = new Date();
-    return this.save(options);
+
+    if (event) {
+      return this.saveWithCtx(ctx, { silent }, { name: "publish", data });
+    } else {
+      return this.save({ silent, transaction });
+    }
   };
 
   isCollectionDeleted = async () => {
@@ -1024,28 +1083,29 @@ class Document extends ArchivableModel<
    * @param options.detach Whether to detach the document from the containing collection
    * @returns Updated document
    */
-  unpublish = async (user: User, options: { detach: boolean }) => {
+  unpublishWithCtx = async (ctx: APIContext, options: { detach: boolean }) => {
     // If the document is already a draft then calling unpublish should act like save
     if (!this.publishedAt) {
       return this.save();
     }
 
-    await this.sequelize.transaction(async (transaction: Transaction) => {
-      const collection = this.collectionId
-        ? await Collection.findByPk(this.collectionId, {
-            includeDocumentStructure: true,
-            transaction,
-            lock: transaction.LOCK.UPDATE,
-          })
-        : undefined;
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
 
-      if (collection) {
-        await collection.removeDocumentInStructure(this, { transaction });
-        if (this.collection) {
-          this.collection.documentStructure = collection.documentStructure;
-        }
+    const collection = this.collectionId
+      ? await Collection.findByPk(this.collectionId, {
+          includeDocumentStructure: true,
+          transaction,
+          lock: transaction.LOCK.UPDATE,
+        })
+      : undefined;
+
+    if (collection) {
+      await collection.removeDocumentInStructure(this, { transaction });
+      if (this.collection) {
+        this.collection.documentStructure = collection.documentStructure;
       }
-    });
+    }
 
     // unpublishing a document converts the ownership to yourself, so that it
     // will appear in your drafts rather than the original creators
@@ -1059,13 +1119,13 @@ class Document extends ArchivableModel<
       this.collectionId = null;
     }
 
-    return this.save();
+    return this.saveWithCtx(ctx, undefined, { name: "unpublish" });
   };
 
   // Moves a document from being visible to the team within a collection
   // to the archived area, where it can be subsequently restored.
-  archive = async (user: User, options?: FindOptions) => {
-    const { transaction } = { ...options };
+  archiveWithCtx = async (ctx: APIContext) => {
+    const { transaction } = ctx.state;
     const collection = this.collectionId
       ? await Collection.findByPk(this.collectionId, {
           includeDocumentStructure: true,
@@ -1081,16 +1141,16 @@ class Document extends ArchivableModel<
       }
     }
 
-    await this.archiveWithChildren(user, { transaction });
+    await this.archiveWithChildren(ctx);
     return this;
   };
 
   // Restore an archived document back to being visible to the team
   restoreTo = async (
-    collectionId: string,
-    options: FindOptions & { user: User }
+    ctx: APIContext,
+    { collectionId }: { collectionId: string }
   ) => {
-    const { transaction } = { ...options };
+    const { transaction } = ctx.state;
     const collection = collectionId
       ? await Collection.findByPk(collectionId, {
           includeDocumentStructure: true,
@@ -1113,7 +1173,7 @@ class Document extends ArchivableModel<
       }
     }
 
-    if (this.publishedAt && collection?.isActive) {
+    if (!this.template && this.publishedAt && collection?.isActive) {
       await collection.addDocumentToStructure(this, undefined, {
         includeArchived: true,
         transaction,
@@ -1123,13 +1183,11 @@ class Document extends ArchivableModel<
     if (this.deletedAt) {
       await this.restore({ transaction });
       this.collectionId = collectionId;
-      await this.save({ transaction });
+      await this.saveWithCtx(ctx, undefined, { name: "restore" });
     }
 
     if (this.archivedAt) {
-      await this.restoreWithChildren(collectionId, options.user, {
-        transaction,
-      });
+      await this.restoreArchivedWithChildren(ctx, { collectionId });
     }
 
     if (this.collection && collection) {
@@ -1144,7 +1202,7 @@ class Document extends ArchivableModel<
     this.sequelize.transaction(async (transaction: Transaction) => {
       let deleted = false;
 
-      if (this.collectionId) {
+      if (!this.template && this.collectionId) {
         const collection = await Collection.findByPk(this.collectionId!, {
           includeDocumentStructure: true,
           transaction,
@@ -1167,7 +1225,9 @@ class Document extends ArchivableModel<
 
       this.lastModifiedById = user.id;
       this.updatedBy = user;
-      return this.save({ transaction });
+      return this.saveWithCtx(createContext({ user, transaction }), undefined, {
+        name: "delete",
+      });
     });
 
   getTimestamp = () => Math.round(new Date(this.updatedAt).getTime() / 1000);
@@ -1237,11 +1297,13 @@ class Document extends ArchivableModel<
     };
   };
 
-  private restoreWithChildren = async (
-    collectionId: string,
-    user: User,
-    options?: FindOptions<Document>
+  private restoreArchivedWithChildren = async (
+    ctx: APIContext,
+    { collectionId }: { collectionId: string }
   ) => {
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
+
     const restoreChildren = async (parentDocumentId: string) => {
       const childDocuments = await (
         this.constructor as typeof Document
@@ -1249,7 +1311,7 @@ class Document extends ArchivableModel<
         where: {
           parentDocumentId,
         },
-        ...options,
+        transaction,
       });
       for (const child of childDocuments) {
         await restoreChildren(child.id);
@@ -1257,7 +1319,7 @@ class Document extends ArchivableModel<
         child.lastModifiedById = user.id;
         child.updatedBy = user;
         child.collectionId = collectionId;
-        await child.save(options);
+        await child.save({ transaction });
       }
     };
 
@@ -1266,13 +1328,12 @@ class Document extends ArchivableModel<
     this.lastModifiedById = user.id;
     this.updatedBy = user;
     this.collectionId = collectionId;
-    return this.save(options);
+    return this.saveWithCtx(ctx, undefined, { name: "unarchive" });
   };
 
-  private archiveWithChildren = async (
-    user: User,
-    options?: FindOptions<Document>
-  ) => {
+  private archiveWithChildren = async (ctx: APIContext) => {
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
     const archivedAt = new Date();
 
     // Helper to archive all child documents for a document
@@ -1283,14 +1344,14 @@ class Document extends ArchivableModel<
         where: {
           parentDocumentId,
         },
-        ...options,
+        transaction,
       });
       for (const child of childDocuments) {
         await archiveChildren(child.id);
         child.archivedAt = archivedAt;
         child.lastModifiedById = user.id;
         child.updatedBy = user;
-        await child.save(options);
+        await child.save({ transaction });
       }
     };
 
@@ -1298,7 +1359,7 @@ class Document extends ArchivableModel<
     this.archivedAt = archivedAt;
     this.lastModifiedById = user.id;
     this.updatedBy = user;
-    return this.save(options);
+    return this.saveWithCtx(ctx, undefined, { name: "archive" });
   };
 }
 
