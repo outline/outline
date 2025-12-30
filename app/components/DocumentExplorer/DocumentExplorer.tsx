@@ -42,7 +42,13 @@ type Props = {
   showDocuments?: boolean;
 };
 
-function DocumentExplorer({ onSubmit, onSelect, items, defaultValue }: Props) {
+function DocumentExplorer({
+  onSubmit,
+  onSelect,
+  items,
+  defaultValue,
+  showDocuments,
+}: Props) {
   const isMobile = useMobile();
   const { collections, documents } = useStores();
   const { t } = useTranslation();
@@ -218,7 +224,9 @@ function DocumentExplorer({ onSubmit, onSelect, items, defaultValue }: Props) {
   };
 
   const hasChildren = (node: number) =>
-    nodes[node].children.length > 0 || nodes[node].type === "collection";
+    nodes[node].children.length > 0 ||
+    nodes[node].type === "collection" ||
+    showDocuments !== false;
 
   const toggleCollapse = (node: number) => {
     if (!hasChildren(node)) {

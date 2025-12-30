@@ -4,7 +4,7 @@ import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
 import type { NavigationNode } from "@shared/types";
-import Document from "~/models/Document";
+import type Document from "~/models/Document";
 import Button from "~/components/Button";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
@@ -72,31 +72,27 @@ function DocumentCopy({ document, onSubmit }: Props) {
         defaultValue={document.parentDocumentId || document.collectionId || ""}
       />
       <OptionsContainer>
-        {document instanceof Document && (
-          <>
-            {document.collectionId && (
-              <Text size="small">
-                <Switch
-                  name="publish"
-                  label={t("Publish")}
-                  labelPosition="right"
-                  checked={publish}
-                  onChange={setPublish}
-                />
-              </Text>
-            )}
-            {document.publishedAt && document.childDocuments.length > 0 && (
-              <Text size="small">
-                <Switch
-                  name="recursive"
-                  label={t("Include nested documents")}
-                  labelPosition="right"
-                  checked={recursive}
-                  onChange={setRecursive}
-                />
-              </Text>
-            )}
-          </>
+        {document.collectionId && (
+          <Text size="small">
+            <Switch
+              name="publish"
+              label={t("Publish")}
+              labelPosition="right"
+              checked={publish}
+              onChange={setPublish}
+            />
+          </Text>
+        )}
+        {document.publishedAt && document.childDocuments.length > 0 && (
+          <Text size="small">
+            <Switch
+              name="recursive"
+              label={t("Include nested documents")}
+              labelPosition="right"
+              checked={recursive}
+              onChange={setRecursive}
+            />
+          </Text>
         )}
       </OptionsContainer>
       <Footer justify="space-between" align="center" gap={8}>

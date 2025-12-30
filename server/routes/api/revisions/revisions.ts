@@ -8,7 +8,7 @@ import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { Document, Template, Revision } from "@server/models";
+import { Document, Revision } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { authorize } from "@server/policies";
 import { presentPolicies, presentRevision } from "@server/presenters";
@@ -32,26 +32,16 @@ router.post(
         rejectOnEmpty: true,
       });
 
-      const document =
-        (await Document.findByPk(revision.documentId, {
-          userId: user.id,
-        })) ||
-        (await Template.findByPk(revision.documentId, {
-          userId: user.id,
-          rejectOnEmpty: true,
-        }));
+      const document = await Document.findByPk(revision.documentId, {
+        userId: user.id,
+      });
       authorize(user, "listRevisions", document);
       after = revision;
       before = await revision.before();
     } else if (documentId) {
-      const document =
-        (await Document.findByPk(documentId, {
-          userId: user.id,
-        })) ||
-        (await Template.findByPk(documentId, {
-          userId: user.id,
-          rejectOnEmpty: true,
-        }));
+      const document = await Document.findByPk(documentId, {
+        userId: user.id,
+      });
       authorize(user, "listRevisions", document);
       after = Revision.buildFromDocument(document as Document);
       after.id = RevisionHelper.latestId(document.id);
@@ -93,14 +83,9 @@ router.post(
     const revision = await Revision.findByPk(id, {
       rejectOnEmpty: true,
     });
-    const document =
-      (await Document.findByPk(revision.documentId, {
-        userId: user.id,
-      })) ||
-      (await Template.findByPk(revision.documentId, {
-        userId: user.id,
-        rejectOnEmpty: true,
-      }));
+    const document = await Document.findByPk(revision.documentId, {
+      userId: user.id,
+    });
     authorize(user, "update", document);
     authorize(user, "update", revision);
 
@@ -131,14 +116,9 @@ router.post(
         level: transaction.LOCK.UPDATE,
       },
     });
-    const document =
-      (await Document.findByPk(revision.documentId, {
-        userId: user.id,
-      })) ||
-      (await Template.findByPk(revision.documentId, {
-        userId: user.id,
-        rejectOnEmpty: true,
-      }));
+    const document = await Document.findByPk(revision.documentId, {
+      userId: user.id,
+    });
     authorize(user, "read", document);
     authorize(user, "delete", revision);
 
@@ -218,16 +198,10 @@ router.post(
     const { direction, documentId, sort } = ctx.input.body;
     const { user } = ctx.state.auth;
 
-    const document =
-      (await Document.findByPk(documentId, {
-        userId: user.id,
-        paranoid: false,
-      })) ||
-      (await Template.findByPk(documentId, {
-        userId: user.id,
-        paranoid: false,
-        rejectOnEmpty: true,
-      }));
+    const document = await Document.findByPk(documentId, {
+      userId: user.id,
+      paranoid: false,
+    });
     authorize(user, "listRevisions", document);
 
     const revisions = await Revision.findAll({

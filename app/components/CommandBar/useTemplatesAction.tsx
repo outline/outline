@@ -29,7 +29,7 @@ const useTemplatesAction = () => {
           icon: template.icon ? (
             <Icon
               value={template.icon}
-              initial={template.titleWithDefault.charAt(0).toUpperCase()}
+              initial={template.initial}
               color={template.color ?? undefined}
             />
           ) : (

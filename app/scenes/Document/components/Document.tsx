@@ -457,10 +457,7 @@ class DocumentScene extends React.Component<Props> {
       ((team?.getPreference(TeamPreference.TocPosition) as TOCPosition) ||
         TOCPosition.Left);
     const showContents =
-      tocPos &&
-      (isShare
-        ? ui.tocVisible !== false
-        : !("isTemplate" in document) && ui.tocVisible === true);
+      tocPos && (isShare ? ui.tocVisible !== false : ui.tocVisible === true);
     const tocOffset =
       tocPos === TOCPosition.Left
         ? EditorStyleHelper.tocWidth / -2
@@ -588,7 +585,6 @@ class DocumentScene extends React.Component<Props> {
                         ref={this.editor}
                         multiplayer={multiplayerEditor}
                         isDraft={document.isDraft}
-                        template={"isTemplate" in document}
                         document={document}
                         value={readOnly ? document.data : undefined}
                         defaultValue={document.data}

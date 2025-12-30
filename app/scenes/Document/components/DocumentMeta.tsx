@@ -38,7 +38,6 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
   const onlyYou = totalViewers === 1 && documentViews[0].userId;
   const viewsLoadedOnMount = useRef(totalViewers > 0);
   const can = usePolicy(document);
-  const isTemplate = "isTemplate" in document;
 
   const Wrapper = viewsLoadedOnMount.current ? Fragment : Fade;
 
@@ -53,7 +52,7 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
       replace
       {...rest}
     >
-      {commentingEnabled && can.comment && !isTemplate && (
+      {commentingEnabled && can.comment && (
         <>
           <Separator />
           <CommentLink
@@ -70,10 +69,7 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
           </CommentLink>
         </>
       )}
-      {totalViewers &&
-      can.listViews &&
-      !(document as Document).isDraft &&
-      !isTemplate ? (
+      {totalViewers && can.listViews && !(document as Document).isDraft ? (
         <Wrapper>
           <Separator />
           <InsightsButton action={openDocumentInsights}>

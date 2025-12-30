@@ -21,7 +21,6 @@ import Header from "~/components/Header";
 import Star from "~/components/Star";
 import Tooltip from "~/components/Tooltip";
 import { publishDocument } from "~/actions/definitions/documents";
-import { navigateToTemplateSettings } from "~/actions/definitions/navigation";
 import { restoreRevision } from "~/actions/definitions/revisions";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -110,14 +109,10 @@ function DocumentHeader({
   }, [ui, isShare]);
 
   const can = usePolicy(document);
-  const isTemplate =
-    "isTemplate" in document ? !!(document as any).isTemplate : false;
   const { isDeleted } = document;
-  const isTemplateEditable = can.update && isTemplate;
   const canToggleEmbeds = team?.documentEmbeds;
   const showContents =
-    (ui.tocVisible === true && !isTemplate) ||
-    (isShare && ui.tocVisible !== false);
+    ui.tocVisible === true || (isShare && ui.tocVisible !== false);
 
   const toc = (
     <Tooltip
@@ -226,15 +221,11 @@ function DocumentHeader({
             <TableOfContentsMenu />
           ) : (
             <DocumentBreadcrumb document={document as Document}>
-              {isTemplate ? null : (
-                <>
-                  {toc}{" "}
-                  <Star
-                    document={document as Document}
-                    color={theme.textSecondary}
-                  />
-                </>
-              )}
+              {toc}{" "}
+              <Star
+                document={document as Document}
+                color={theme.textSecondary}
+              />
             </DocumentBreadcrumb>
           )
         }
@@ -264,24 +255,21 @@ function DocumentHeader({
                 limit={isCompact ? 3 : undefined}
               />
             )}
-            {(isEditing || !user?.separateEditMode) &&
-              !isTemplate &&
-              isNew &&
-              can.update && (
-                <Action>
-                  <TemplatesMenu
-                    isCompact={isCompact}
-                    document={document as Document}
-                    onSelectTemplate={onSelectTemplate}
-                  />
-                </Action>
-              )}
-            {!isEditing && !isRevision && !isTemplate && can.update && (
+            {(isEditing || !user?.separateEditMode) && isNew && can.update && (
+              <Action>
+                <TemplatesMenu
+                  isCompact={isCompact}
+                  document={document as Document}
+                  onSelectTemplate={onSelectTemplate}
+                />
+              </Action>
+            )}
+            {!isEditing && !isRevision && can.update && (
               <Action>
                 <ShareButton document={document} />
               </Action>
             )}
-            {(isEditing || isTemplateEditable) && (
+            {isEditing && (
               <Action>
                 <Tooltip
                   content={t("Save")}
@@ -289,8 +277,7 @@ function DocumentHeader({
                   placement="bottom"
                 >
                   <Button
-                    action={isTemplate ? navigateToTemplateSettings : undefined}
-                    onClick={isTemplate ? undefined : handleSave}
+                    onClick={handleSave}
                     disabled={savingIsDisabled}
                     neutral={isDraft}
                     hideIcon
