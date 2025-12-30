@@ -1,4 +1,4 @@
-import { ColumnSort } from "@tanstack/react-table";
+import type { ColumnSort } from "@tanstack/react-table";
 import deburr from "lodash/deburr";
 import { observer } from "mobx-react";
 import { PlusIcon, ShapesIcon } from "outline-icons";
@@ -6,7 +6,7 @@ import { useEffect, useMemo, useCallback, useState } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
 import { toast } from "sonner";
-import Template from "~/models/Template";
+import type Template from "~/models/Template";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
 import Empty from "~/components/Empty";

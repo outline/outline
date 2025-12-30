@@ -20,7 +20,6 @@ type Props = Optional<
     | "parentDocumentId"
     | "importId"
     | "apiImportId"
-    | "template"
     | "fullWidth"
     | "sourceMetadata"
     | "editorVersion"
@@ -48,7 +47,6 @@ export default async function documentCreator(
     collectionId,
     parentDocumentId,
     content,
-    template,
     templateDocument,
     fullWidth,
     importId,
@@ -89,9 +87,7 @@ export default async function documentCreator(
   const titleWithReplacements =
     title ??
     (templateDocument
-      ? template
-        ? templateDocument.title
-        : TextHelper.replaceTemplateVariables(templateDocument.title, user)
+      ? TextHelper.replaceTemplateVariables(templateDocument.title, user)
       : "");
 
   const contentWithReplacements = content
@@ -99,12 +95,10 @@ export default async function documentCreator(
     : text
       ? ProsemirrorHelper.toProsemirror(text).toJSON()
       : templateDocument
-        ? template
-          ? templateDocument.content
-          : SharedProsemirrorHelper.replaceTemplateVariables(
-              await DocumentHelper.toJSON(templateDocument),
-              user
-            )
+        ? SharedProsemirrorHelper.replaceTemplateVariables(
+            await DocumentHelper.toJSON(templateDocument),
+            user
+          )
         : ProsemirrorHelper.toProsemirror("").toJSON();
 
   const document = Document.build({
@@ -118,7 +112,6 @@ export default async function documentCreator(
     updatedAt: updatedAt ?? createdAt,
     lastModifiedById: user.id,
     createdById: user.id,
-    template,
     templateId,
     publishedAt,
     importId,
@@ -145,7 +138,7 @@ export default async function documentCreator(
   );
 
   if (publish) {
-    if (!collectionId && !template) {
+    if (!collectionId) {
       throw new Error("Collection ID is required to publish");
     }
 

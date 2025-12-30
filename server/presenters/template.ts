@@ -1,4 +1,4 @@
-import { Template } from "@server/models";
+import type { Template } from "@server/models";
 import presentUser from "./user";
 
 function presentTemplate(template: Template) {

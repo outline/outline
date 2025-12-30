@@ -1,11 +1,12 @@
 import { isUUID } from "class-validator";
-import {
+import type {
   Identifier,
   InferAttributes,
   InferCreationAttributes,
   NonNullFindOptions,
+  FindOptions} from "sequelize";
+import {
   Op,
-  FindOptions,
   EmptyResultError,
 } from "sequelize";
 import {
@@ -21,9 +22,10 @@ import {
   Unique,
   Scopes,
   BeforeValidate,
+  IsDate,
 } from "sequelize-typescript";
 import slugify from "slugify";
-import { ProsemirrorData } from "@shared/types";
+import type { ProsemirrorData } from "@shared/types";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import { DocumentValidation } from "@shared/validations";
 import { generateUrlId } from "@server/utils/url";
@@ -118,13 +120,13 @@ class Template extends IdModel<
   @Column
   fullWidth: boolean;
 
-  /** The version of the editor last used to edit this document. */
+  /** The version of the editor last used to edit this template. */
   @SimpleLength({
     max: 255,
     msg: `editorVersion must be 255 characters or less`,
   })
   @Column
-  editorVersion: string;
+  editorVersion: string | null;
 
   /** An icon to use as the template icon. */
   @Length({
@@ -182,9 +184,10 @@ class Template extends IdModel<
   @HasMany(() => Revision, "documentId")
   revisions: Revision[];
 
-  @Default(true)
+  /** Whether the template is published, and if so when. */
+  @IsDate
   @Column
-  template: boolean;
+  publishedAt: Date | null;
 
   // getters
 

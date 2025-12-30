@@ -32,6 +32,7 @@ import {
   buildTeam,
   buildGroup,
   buildAdmin,
+  buildTemplate,
 } from "@server/test/factories";
 import { getTestServer, withAPIContext } from "@server/test/support";
 
@@ -2761,58 +2762,6 @@ describe("#documents.move", () => {
     expect(res.status).toEqual(403);
   });
 
-  it("should move a template to workspace", async () => {
-    const user = await buildAdmin();
-    const collection = await buildCollection({
-      teamId: user.teamId,
-      userId: user.id,
-    });
-    const document = await buildDocument({
-      userId: user.id,
-      teamId: user.teamId,
-      collectionId: collection.id,
-      template: true,
-    });
-
-    const res = await server.post("/api/documents.move", {
-      body: {
-        token: user.getJwtToken(),
-        id: document.id,
-      },
-    });
-    const body = await res.json();
-
-    expect(res.status).toEqual(200);
-    expect(body.data.documents[0].collectionId).toBeNull();
-    expect(body.policies[0].abilities.move).toBeTruthy();
-  });
-
-  it("should move a workspace template to collection", async () => {
-    const user = await buildUser();
-    const collection = await buildCollection({
-      teamId: user.teamId,
-      userId: user.id,
-    });
-    const document = await buildDocument({
-      userId: user.id,
-      teamId: user.teamId,
-      template: true,
-    });
-
-    const res = await server.post("/api/documents.move", {
-      body: {
-        token: user.getJwtToken(),
-        id: document.id,
-        collectionId: collection.id,
-      },
-    });
-
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.documents[0].collectionId).toEqual(collection.id);
-    expect(body.policies[0].abilities.move).toBeTruthy();
-  });
-
   it("should require authentication", async () => {
     const res = await server.post("/api/documents.move");
     expect(res.status).toEqual(401);
@@ -3074,92 +3023,6 @@ describe("#documents.restore", () => {
     expect(body.data.collectionId).toEqual(anotherCollection.id);
   });
 
-  it("should allow restore of collection templates", async () => {
-    const team = await buildTeam();
-    const user = await buildUser({ teamId: team.id });
-    const collection = await buildCollection({
-      userId: user.id,
-      teamId: team.id,
-    });
-    const template = await buildDocument({
-      template: true,
-      userId: user.id,
-      collectionId: collection.id,
-      teamId: team.id,
-    });
-    await template.delete(user);
-
-    const res = await server.post("/api/documents.restore", {
-      body: {
-        token: user.getJwtToken(),
-        id: template.id,
-      },
-    });
-    const body = await res.json();
-
-    expect(res.status).toEqual(200);
-    expect(body.data.deletedAt).toEqual(null);
-    expect(body.data.collectionId).toEqual(collection.id);
-  });
-
-  it("should allow restore of templates from a deleted collection", async () => {
-    const team = await buildTeam();
-    const user = await buildUser({ teamId: team.id });
-    const collection = await buildCollection({
-      userId: user.id,
-      teamId: team.id,
-    });
-    const anotherCollection = await buildCollection({
-      userId: user.id,
-      teamId: team.id,
-    });
-    const template = await buildDocument({
-      template: true,
-      userId: user.id,
-      collectionId: collection.id,
-      teamId: team.id,
-    });
-    await template.delete(user);
-    await collection.destroy({ hooks: false });
-
-    const res = await server.post("/api/documents.restore", {
-      body: {
-        token: user.getJwtToken(),
-        id: template.id,
-        collectionId: anotherCollection.id,
-      },
-    });
-    const body = await res.json();
-
-    expect(res.status).toEqual(200);
-    expect(body.data.deletedAt).toEqual(null);
-    expect(body.data.collectionId).toEqual(anotherCollection.id);
-  });
-
-  it("should allow restore of workspace templates", async () => {
-    const team = await buildTeam();
-    const user = await buildUser({ teamId: team.id });
-    const template = await buildDocument({
-      template: true,
-      userId: user.id,
-      teamId: team.id,
-      collectionId: null,
-    });
-    await template.delete(user);
-
-    const res = await server.post("/api/documents.restore", {
-      body: {
-        token: user.getJwtToken(),
-        id: template.id,
-      },
-    });
-    const body = await res.json();
-
-    expect(res.status).toEqual(200);
-    expect(body.data.deletedAt).toEqual(null);
-    expect(body.data.collectionId).toEqual(null);
-  });
-
   it("should not allow restore of documents to a deleted collection", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
@@ -3416,12 +3279,12 @@ describe("#documents.import", () => {
 describe("#documents.create", () => {
   it("should replace template variables when a doc is created from a template", async () => {
     const user = await buildUser();
-    const template = await buildDocument({
+    const text = `This document was created by {author} on {date}`;
+    const template = await buildTemplate({
       userId: user.id,
       teamId: user.teamId,
-      template: true,
       title: "template title",
-      text: "Created by user {author} on {date}",
+      text,
     });
     const res = await server.post("/api/documents.create", {
       body: {
@@ -3435,30 +3298,8 @@ describe("#documents.create", () => {
       TextHelper.replaceTemplateVariables(template.title, user)
     );
     expect(body.data.text).toEqual(
-      TextHelper.replaceTemplateVariables(template.text, user)
+      TextHelper.replaceTemplateVariables(text, user)
     );
-  });
-
-  it("should retain template variables when a template is created from another template", async () => {
-    const user = await buildUser();
-    const template = await buildDocument({
-      userId: user.id,
-      teamId: user.teamId,
-      template: true,
-      title: "template title",
-      text: "Created by user {author} on {date}",
-    });
-    const res = await server.post("/api/documents.create", {
-      body: {
-        token: user.getJwtToken(),
-        templateId: template.id,
-        template: true,
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.title).toEqual(template.title);
-    expect(body.data.text).toEqual(template.text);
   });
 
   it("should create a document with empty title if no title is explicitly passed", async () => {
@@ -3476,12 +3317,11 @@ describe("#documents.create", () => {
 
   it("should use template title when doc is supposed to be created using the template and title is not explicitly passed", async () => {
     const user = await buildUser();
-    const template = await buildDocument({
+    const text = "template text";
+    const template = await buildTemplate({
       userId: user.id,
       teamId: user.teamId,
-      template: true,
       title: "template title",
-      text: "template text",
     });
     const res = await server.post("/api/documents.create", {
       body: {
@@ -3492,15 +3332,14 @@ describe("#documents.create", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.title).toEqual(template.title);
-    expect(body.data.text).toEqual(template.text);
+    expect(body.data.text).toEqual(text);
   });
 
   it("should override template title when doc title is explicitly passed", async () => {
     const user = await buildUser();
-    const template = await buildDocument({
+    const template = await buildTemplate({
       userId: user.id,
       teamId: user.teamId,
-      template: true,
       title: "template title",
     });
     const res = await server.post("/api/documents.create", {
@@ -3517,10 +3356,9 @@ describe("#documents.create", () => {
 
   it("should override template text when doc text is explicitly passed", async () => {
     const user = await buildUser();
-    const template = await buildDocument({
+    const template = await buildTemplate({
       userId: user.id,
       teamId: user.teamId,
-      template: true,
       text: "template text",
     });
     const res = await server.post("/api/documents.create", {
@@ -3893,39 +3731,6 @@ describe("#documents.update", () => {
     expect(body.data.text).toBe("Updated text");
   });
 
-  it("should successfully publish a draft template without collection", async () => {
-    const team = await buildTeam();
-    const user = await buildUser({ teamId: team.id });
-    const collection = await buildCollection({
-      userId: user.id,
-      teamId: team.id,
-    });
-    const document = await buildDraftDocument({
-      title: "title",
-      text: "text",
-      teamId: team.id,
-      userId: user.id,
-      collectionId: null,
-      template: true,
-    });
-    const res = await server.post("/api/documents.update", {
-      body: {
-        token: user.getJwtToken(),
-        id: document.id,
-        title: "Updated title",
-        text: "Updated text",
-        collectionId: collection.id,
-        publish: true,
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.collectionId).toBe(collection.id);
-    expect(body.data.title).toBe("Updated title");
-    expect(body.data.text).toBe("Updated text");
-    expect(body.data.publishedAt).toBeTruthy();
-  });
-
   it("should not allow publishing by another collection's user", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
@@ -4014,37 +3819,6 @@ describe("#documents.update", () => {
     expect(res.status).toEqual(200);
     expect(body.data.icon).toBeNull();
     expect(body.data.color).toBeNull();
-  });
-
-  it("should not add template to collection structure when publishing", async () => {
-    const user = await buildUser();
-    const collection = await buildCollection({
-      teamId: user.teamId,
-      userId: user.id,
-    });
-    const template = await buildDocument({
-      teamId: user.teamId,
-      userId: user.id,
-      collectionId: collection.id,
-      template: true,
-      publishedAt: null,
-    });
-    const res = await server.post("/api/documents.update", {
-      body: {
-        token: user.getJwtToken(),
-        id: template.id,
-        title: "Updated title",
-        text: "Updated text",
-        publish: true,
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.title).toBe("Updated title");
-    expect(body.data.text).toBe("Updated text");
-    expect(body.data.publishedAt).toBeTruthy();
-    await collection.reload();
-    expect(collection.documentStructure).toBe(null);
   });
 
   it("should allow publishing document in private collection", async () => {

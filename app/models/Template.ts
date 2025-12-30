@@ -4,14 +4,14 @@ import { computed, observable } from "mobx";
 import type { ProsemirrorData } from "@shared/types";
 import { isRTL } from "@shared/utils/rtl";
 import slugify from "@shared/utils/slugify";
-import TemplatesStore from "~/stores/TemplatesStore";
+import type TemplatesStore from "~/stores/TemplatesStore";
 import User from "~/models/User";
 import { settingsPath } from "~/utils/routeHelpers";
 import Collection from "./Collection";
 import ParanoidModel from "./base/ParanoidModel";
 import Field from "./decorators/Field";
 import Relation from "./decorators/Relation";
-import { Searchable } from "./interfaces/Searchable";
+import type { Searchable } from "./interfaces/Searchable";
 
 export default class Template extends ParanoidModel implements Searchable {
   static modelName = "Template";
@@ -25,6 +25,11 @@ export default class Template extends ParanoidModel implements Searchable {
   @computed
   get searchContent(): string {
     return this.title;
+  }
+
+  @computed
+  get searchSuppressed(): boolean {
+    return this.isDeleted;
   }
 
   /**

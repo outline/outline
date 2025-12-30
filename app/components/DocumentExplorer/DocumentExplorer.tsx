@@ -3,6 +3,7 @@ import concat from "lodash/concat";
 import difference from "lodash/difference";
 import fill from "lodash/fill";
 import filter from "lodash/filter";
+import flatten from "lodash/flatten";
 import includes from "lodash/includes";
 import map from "lodash/map";
 import { observer } from "mobx-react";
@@ -15,8 +16,11 @@ import scrollIntoView from "scroll-into-view-if-needed";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Icon from "@shared/components/Icon";
-import { NavigationNode } from "@shared/types";
+import type { NavigationNode } from "@shared/types";
 import { isModKey } from "@shared/utils/keyboard";
+import { ancestors, descendants, flattenTree } from "@shared/utils/tree";
+import DocumentExplorerNode from "./DocumentExplorerNode";
+import DocumentExplorerSearchResult from "./DocumentExplorerSearchResult";
 import Flex from "~/components/Flex";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import { Outline } from "~/components/Input";
@@ -24,10 +28,6 @@ import InputSearch from "~/components/InputSearch";
 import Text from "~/components/Text";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
-import { ancestors, descendants, flattenTree } from "~/utils/tree";
-import DocumentExplorerNode from "./DocumentExplorerNode";
-import DocumentExplorerSearchResult from "./DocumentExplorerSearchResult";
-import flatten from "lodash/flatten";
 
 type Props = {
   /** Action taken upon submission of selected item, could be publish, move etc. */
@@ -42,13 +42,7 @@ type Props = {
   showDocuments?: boolean;
 };
 
-function DocumentExplorer({
-  onSubmit,
-  onSelect,
-  items,
-  showDocuments,
-  defaultValue,
-}: Props) {
+function DocumentExplorer({ onSubmit, onSelect, items, defaultValue }: Props) {
   const isMobile = useMobile();
   const { collections, documents } = useStores();
   const { t } = useTranslation();
@@ -57,8 +51,13 @@ function DocumentExplorer({
   const [searchTerm, setSearchTerm] = React.useState<string>();
   const [selectedNode, selectNode] = React.useState<NavigationNode | null>(
     () => {
-      const node =
-        defaultValue && items.find((item) => item.id === defaultValue);
+      if (!defaultValue) {
+        return null;
+      }
+
+      // Search through all nodes in the tree, not just top-level items
+      const allNodes = flatten(items.map(flattenTree));
+      const node = allNodes.find((item) => item.id === defaultValue);
       return node || null;
     }
   );
@@ -67,7 +66,9 @@ function DocumentExplorer({
   const [activeNode, setActiveNode] = React.useState<number>(0);
   const [expandedNodes, setExpandedNodes] = React.useState<string[]>(() => {
     if (defaultValue) {
-      const node = items.find((item) => item.id === defaultValue);
+      // Search through all nodes in the tree, not just top-level items
+      const allNodes = flatten(items.map(flattenTree));
+      const node = allNodes.find((item) => item.id === defaultValue);
       if (node) {
         return ancestors(node).map((ancestorNode) => ancestorNode.id);
       }
@@ -112,19 +113,6 @@ function DocumentExplorer({
     );
   }, [items.length]);
 
-  React.useEffect(() => {
-    onSelect(selectedNode);
-  }, [selectedNode, onSelect]);
-
-  React.useEffect(() => {
-    if (defaultValue && selectedNode && listRef) {
-      const index = nodes.findIndex((node) => node.id === selectedNode.id);
-      if (index > 0) {
-        setTimeout(() => listRef.current?.scrollToItem(index, "center"), 50);
-      }
-    }
-  }, []);
-
   function getNodes() {
     function includeDescendants(item: NavigationNode): NavigationNode[] {
       return expandedNodes.includes(item.id)
@@ -138,11 +126,23 @@ function DocumentExplorer({
   }
 
   const nodes = getNodes();
-  const baseDepth =
-    nodes.reduce(
-      (min, node) => (node.depth ? Math.min(min, node.depth) : min),
-      Infinity
-    ) - 1;
+
+  React.useEffect(() => {
+    onSelect(selectedNode);
+  }, [selectedNode, onSelect]);
+
+  React.useEffect(() => {
+    if (defaultValue && selectedNode && listRef) {
+      const index = nodes.findIndex((node) => node.id === selectedNode.id);
+      if (index > 0) {
+        setTimeout(() => listRef.current?.scrollToItem(index, "center"), 50);
+      }
+    }
+  }, [defaultValue, selectedNode, nodes]);
+  const baseDepth = nodes.reduce(
+    (min, node) => (node.depth ? Math.min(min, node.depth) : min),
+    Infinity
+  );
   const normalizedBaseDepth = baseDepth === Infinity ? 0 : baseDepth;
 
   const scrollNodeIntoView = React.useCallback(
@@ -218,7 +218,7 @@ function DocumentExplorer({
   };
 
   const hasChildren = (node: number) =>
-    nodes[node].children.length > 0 || showDocuments !== false;
+    nodes[node].children.length > 0 || nodes[node].type === "collection";
 
   const toggleCollapse = (node: number) => {
     if (!hasChildren(node)) {
@@ -258,7 +258,7 @@ function DocumentExplorer({
         path;
 
       if (isCollection) {
-        const col = collections.get(node.id);
+        const col = collections.get(node.collectionId as string);
         renderedIcon = col && (
           <CollectionIcon collection={col} expanded={isExpanded(index)} />
         );
@@ -270,7 +270,9 @@ function DocumentExplorer({
         title = doc?.title ?? node.title;
 
         if (icon) {
-          renderedIcon = <Icon value={icon} color={color} />;
+          renderedIcon = (
+            <Icon value={icon} initial={node.title} color={color} />
+          );
         } else if (doc?.isStarred) {
           renderedIcon = <StarredIcon color={theme.yellow} />;
         } else {

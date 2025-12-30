@@ -4,11 +4,11 @@ import { toast } from "sonner";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import TemplateMove from "~/components/DocumentExplorer/TemplateMove";
 import { TemplateNew } from "~/components/Template/TemplateNew";
-import { createActionV2, createInternalLinkActionV2 } from "~/actions";
+import { createAction, createInternalLinkAction } from "~/actions";
 import { newDocumentPath } from "~/utils/routeHelpers";
 import { ActiveTemplateSection, TemplateSection } from "../sections";
 
-export const createTemplate = createActionV2({
+export const createTemplate = createAction({
   name: ({ t }) => t("New template"),
   analyticsName: "New template",
   section: TemplateSection,
@@ -27,7 +27,7 @@ export const createTemplate = createActionV2({
   },
 });
 
-export const deleteTemplate = createActionV2({
+export const deleteTemplate = createAction({
   name: ({ t }) => `${t("Delete")}…`,
   analyticsName: "Delete template",
   section: ActiveTemplateSection,
@@ -75,7 +75,7 @@ export const deleteTemplate = createActionV2({
   },
 });
 
-export const moveTemplate = createActionV2({
+export const moveTemplate = createAction({
   name: ({ t }) => t("Move"),
   analyticsName: "Move template",
   section: ActiveTemplateSection,
@@ -101,7 +101,7 @@ export const moveTemplate = createActionV2({
   },
 });
 
-export const createDocumentFromTemplate = createInternalLinkActionV2({
+export const createDocumentFromTemplate = createInternalLinkAction({
   name: ({ t }) => t("New document"),
   analyticsName: "New document from template",
   section: ActiveTemplateSection,

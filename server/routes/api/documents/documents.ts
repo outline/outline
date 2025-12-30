@@ -59,7 +59,7 @@ import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import SearchHelper from "@server/models/helpers/SearchHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
-import { authorize, can, cannot } from "@server/policies";
+import { authorize, cannot } from "@server/policies";
 import {
   presentDocument,
   presentPolicies,
@@ -1145,11 +1145,9 @@ router.post(
       publishedAt: publish ? new Date() : null,
       lastModifiedById: user.id,
       createdById: user.id,
-      template: true,
       icon: original.icon,
       color: original.color,
       title: original.title,
-      text: original.text,
       content: original.content,
     });
 

@@ -161,14 +161,9 @@ router.post(
     const revision = await Revision.findByPk(id, {
       rejectOnEmpty: true,
     });
-    const document =
-      (await Document.findByPk(revision.documentId, {
-        userId: user.id,
-      })) ||
-      (await Template.findByPk(revision.documentId, {
-        userId: user.id,
-        rejectOnEmpty: true,
-      }));
+    const document = await Document.findByPk(revision.documentId, {
+      userId: user.id,
+    });
     authorize(user, "listRevisions", document);
 
     let before;

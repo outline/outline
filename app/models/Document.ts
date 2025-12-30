@@ -21,7 +21,6 @@ import type DocumentsStore from "~/stores/DocumentsStore";
 import User from "~/models/User";
 import type { Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
-import { settingsPath } from "~/utils/routeHelpers";
 import Collection from "./Collection";
 import type Notification from "./Notification";
 import type View from "./View";

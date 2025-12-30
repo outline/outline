@@ -1,6 +1,6 @@
 import Router from "koa-router";
-import { Op, WhereOptions } from "sequelize";
-import documentCreator from "@server/commands/documentCreator";
+import type { WhereOptions } from "sequelize";
+import { Op } from "sequelize";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -8,7 +8,7 @@ import validate from "@server/middlewares/validate";
 import { Collection, Template } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentPolicies, presentTemplate } from "@server/presenters";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
@@ -38,19 +38,25 @@ router.post(
       authorize(user, "createDocument", collection);
     }
 
-    const template = (await documentCreator({
+    let template = await Template.createWithCtx(ctx, {
       id,
       title,
       icon,
       color,
       content: data,
       collectionId: collection?.id,
-      publish: true,
-      template: true,
-      user,
+      publishedAt: new Date(),
+      createdById: user.id,
+      lastModifiedById: user.id,
+      teamId: user.teamId,
       editorVersion,
-      ctx,
-    })) as unknown as Template;
+    });
+
+    template = await Template.findByPk(template.id, {
+      userId: user.id,
+      rejectOnEmpty: true,
+      transaction,
+    });
 
     ctx.body = {
       data: presentTemplate(template),
@@ -210,7 +216,7 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.TemplatesDuplicateReq>) => {
     const { transaction } = ctx.state;
-    const { id, title, collectionId, parentDocumentId } = ctx.input.body;
+    const { id, title, collectionId } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     const original = await Template.findByPk(id, {

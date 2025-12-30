@@ -3,7 +3,7 @@ import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
-import { NavigationNode } from "@shared/types";
+import type { NavigationNode } from "@shared/types";
 import Document from "~/models/Document";
 import Button from "~/components/Button";
 import Switch from "~/components/Switch";

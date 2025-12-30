@@ -5,7 +5,7 @@ import { invariant } from "mobx-utils";
 import naturalSort from "@shared/utils/naturalSort";
 import Template from "~/models/Template";
 import { client } from "~/utils/ApiClient";
-import RootStore from "./RootStore";
+import type RootStore from "./RootStore";
 import Store from "./base/Store";
 
 export default class TemplatesStore extends Store<Template> {

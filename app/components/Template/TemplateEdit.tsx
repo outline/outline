@@ -1,9 +1,8 @@
 import { observer } from "mobx-react";
 import { useCallback } from "react";
 import { toast } from "sonner";
-import useStores from "~/hooks/useStores";
 import { TemplateForm } from "./TemplateForm";
-import Template from "~/models/Template";
+import type Template from "~/models/Template";
 
 type Props = {
   template: Template;
@@ -14,8 +13,6 @@ export const TemplateEdit = observer(function TemplateEdit_({
   template,
   onSubmit,
 }: Props) {
-  const { templates } = useStores();
-
   const handleSubmit = useCallback(async () => {
     try {
       await template?.save();

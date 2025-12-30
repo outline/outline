@@ -52,7 +52,7 @@ type Props = Omit<EditorProps, "editorStyle"> & {
     autosave?: boolean;
     publish?: boolean;
   }) => void;
-  children: React.ReactNode;
+  children?: React.ReactNode;
 };
 
 /**

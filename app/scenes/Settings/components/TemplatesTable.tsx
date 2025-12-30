@@ -7,7 +7,7 @@ import styled, { useTheme } from "styled-components";
 import Flex from "@shared/components/Flex";
 import Icon from "@shared/components/Icon";
 import { hover } from "@shared/styles";
-import Template from "~/models/Template";
+import type Template from "~/models/Template";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import ButtonLink from "~/components/ButtonLink";
 import { HEADER_HEIGHT } from "~/components/Header";
@@ -17,10 +17,8 @@ import {
   SortableTable,
 } from "~/components/SortableTable";
 import { type Column as TableColumn } from "~/components/Table";
-import { TemplateEdit } from "~/components/Template/TemplateEdit";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
-import useStores from "~/hooks/useStores";
 import TemplateMenu from "~/menus/TemplateMenu";
 import { FILTER_HEIGHT } from "./StickyFilters";
 import history from "~/utils/history";
@@ -34,7 +32,6 @@ type Props = Omit<TableProps<Template>, "columns" | "rowHeight">;
 export function TemplatesTable(props: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const { dialogs } = useStores();
 
   const handleOpen = (template: Template) => () => {
     history.push(settingsPath("templates", template.id));
@@ -54,6 +51,7 @@ export function TemplatesTable(props: Props) {
                 {template.icon ? (
                   <Icon
                     value={template.icon}
+                    initial={template.initial}
                     color={template.color || undefined}
                     size={24}
                   />

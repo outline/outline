@@ -46,7 +46,7 @@ import { ChangesNavigation } from "./ChangesNavigation";
 
 type Props = {
   editorRef: React.RefObject<Editor>;
-  document: Document | Template;
+  document: Document;
   revision: Revision | undefined;
   isDraft: boolean;
   isEditing: boolean;
@@ -344,10 +344,7 @@ function DocumentHeader({
                   hideOnActionDisabled
                   hideIcon
                 >
-                  {document.collectionId ||
-                  (isTemplate && (document as Template).isWorkspaceTemplate)
-                    ? t("Publish")
-                    : `${t("Publish")}…`}
+                  {t("Publish")}…
                 </Button>
               </Action>
             )}

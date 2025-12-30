@@ -41,37 +41,24 @@ async function documentMover(
     collectionChanged,
   };
 
-  if (document.template && !collectionChanged) {
-    return result;
-  }
+  // Load the current and the next collection upfront and lock them
+  const collection = await Collection.findByPk(document.collectionId!, {
+    includeDocumentStructure: true,
+    transaction,
+    lock: Transaction.LOCK.UPDATE,
+    paranoid: false,
+  });
 
-  if (document.template) {
-    document.collectionId = collectionId;
-    document.parentDocumentId = null;
-    document.lastModifiedById = user.id;
-    document.updatedBy = user;
-    await document.save({ transaction });
-    result.documents.push(document);
-  } else {
-    // Load the current and the next collection upfront and lock them
-    const collection = await Collection.findByPk(document.collectionId!, {
-      includeDocumentStructure: true,
-      transaction,
-      lock: Transaction.LOCK.UPDATE,
-      paranoid: false,
-    });
-
-    let newCollection = collection;
-    if (collectionChanged) {
-      if (collectionId) {
-        newCollection = await Collection.findByPk(collectionId, {
-          includeDocumentStructure: true,
-          transaction,
-          lock: Transaction.LOCK.UPDATE,
-        });
-      } else {
-        newCollection = null;
-      }
+  let newCollection = collection;
+  if (collectionChanged) {
+    if (collectionId) {
+      newCollection = await Collection.findByPk(collectionId, {
+        includeDocumentStructure: true,
+        transaction,
+        lock: Transaction.LOCK.UPDATE,
+      });
+    } else {
+      newCollection = null;
     }
 
     if (document.publishedAt) {

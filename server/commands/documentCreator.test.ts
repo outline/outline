@@ -260,33 +260,6 @@ describe("documentCreator", () => {
         "State cannot be set when creating a document from a template"
       );
     });
-
-    it("should handle template flag correctly", async () => {
-      const user = await buildUser();
-      const collection = await buildCollection({
-        userId: user.id,
-        teamId: user.teamId,
-      });
-
-      const templateDocument = await buildDocument({
-        title: "Template Document",
-        text: "Template content",
-        userId: user.id,
-        teamId: user.teamId,
-        collectionId: collection.id,
-      });
-
-      const document = await withAPIContext(user, (ctx) =>
-        documentCreator(ctx, {
-          templateDocument,
-          template: true,
-          collectionId: collection.id,
-        })
-      );
-
-      expect(document.template).toBe(true);
-      expect(document.templateId).toBe(templateDocument.id);
-    });
   });
 
   describe("parent document handling", () => {

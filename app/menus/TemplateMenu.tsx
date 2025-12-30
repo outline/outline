@@ -2,9 +2,9 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { DuplicateIcon, EditIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
-import Template from "~/models/Template";
+import type Template from "~/models/Template";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
-import { ActionV2Separator, createActionV2 } from "~/actions";
+import { ActionSeparator, createAction } from "~/actions";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { useMenuAction } from "~/hooks/useMenuAction";
@@ -25,14 +25,14 @@ function TemplateMenu({ template, onEdit }: Props) {
   const section = "Template";
   const actions = React.useMemo(
     () => [
-      createActionV2({
+      createAction({
         name: `${t("Edit")}…`,
         visible: !!can.update,
         icon: <EditIcon />,
         section,
         perform: () => onEdit?.(),
       }),
-      createActionV2({
+      createAction({
         name: t("Duplicate"),
         visible: !!can.duplicate,
         icon: <DuplicateIcon />,
@@ -40,7 +40,7 @@ function TemplateMenu({ template, onEdit }: Props) {
         perform: () => templates.duplicate(template),
       }),
       moveTemplate,
-      ActionV2Separator,
+      ActionSeparator,
       deleteTemplate,
     ],
     [can.update, can.duplicate, onEdit]

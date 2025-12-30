@@ -239,6 +239,16 @@ export type DocumentEvent = BaseEvent<Document> &
     | DocumentMovedEvent
   );
 
+export type TemplateEvent = BaseEvent<Document> & {
+  name:
+    | "templates.create"
+    | "templates.update"
+    | "templates.delete"
+    | "templates.restore";
+  modelId: string;
+  collectionId?: string;
+};
+
 export type EmptyTrashEvent = {
   name: "documents.empty_trash";
   teamId: string;
@@ -471,6 +481,7 @@ export type Event =
   | ShareEvent
   | SubscriptionEvent
   | TeamEvent
+  | TemplateEvent
   | UserEvent
   | UserMembershipEvent
   | ViewEvent
@@ -516,7 +527,6 @@ export type DocumentJSONExport = {
   updatedAt: string;
   publishedAt: string | null;
   fullWidth: boolean;
-  template: boolean;
   parentDocumentId: string | null;
 };
 

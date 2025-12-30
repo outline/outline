@@ -29,9 +29,8 @@ import DynamicCollectionIcon from "~/components/Icons/CollectionIcon";
 import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
 import {
   createAction,
-  createActionV2,
-  createExternalLinkAction,
   createInternalLinkAction,
+  createActionWithChildren,
 } from "~/actions";
 import { ActiveCollectionSection, CollectionSection } from "~/actions/sections";
 import { setPersistedState } from "~/hooks/usePersistedState";
@@ -570,7 +569,7 @@ export const createDocument = createInternalLinkAction({
   },
 });
 
-export const createTemplate = createActionV2({
+export const createTemplate = createAction({
   name: ({ t }) => t("New template"),
   analyticsName: "New template",
   section: ActiveCollectionSection,

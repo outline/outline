@@ -76,10 +76,7 @@ export default class DocumentsStore extends Store<Document> {
 
   @computed
   get all(): Document[] {
-    return filter(
-      this.orderedData,
-      (d) => !d.archivedAt && !d.deletedAt && !d.template
-    );
+    return filter(this.orderedData, (d) => !d.archivedAt && !d.deletedAt);
   }
 
   @computed
@@ -211,7 +208,6 @@ export default class DocumentsStore extends Store<Document> {
     );
   }
 
-  @computed
   @computed
   get totalDrafts(): number {
     return this.drafts().length;
