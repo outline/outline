@@ -1092,7 +1092,6 @@
   "Date created": "생성 일자",
   "Crop Image": "Crop Image",
   "Crop image": "이미지 자르기",
-  "How does this work?": "어떻게 동작합니까?",
   "You can import a zip file that was previously exported from the JSON option in another instance. In {{ appName }}, open <em>Export</em> in the Settings sidebar and click on <em>Export Data</em>.": "다른 인스턴스의 JSON 옵션에서 이전에 내보낸 압축 파일을 가져올 수 있습니다. {{ appName }} 에서 설정 사이드바에서 <em>내보내기</em>를 열고 <em>데이터 내보내기</em>클릭합니다.",
   "Drag and drop the zip file from the JSON export option in {{appName}}, or click to upload": "{{appName}}의 JSON 내보내기 옵션에서 zip 파일을 드래그 앤 드롭하거나 클릭하여 업로드",
   "Canceled": "취소됨",
