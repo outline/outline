@@ -1092,7 +1092,6 @@
   "Date created": "Dato opprettet",
   "Crop Image": "Crop Image",
   "Crop image": "Beskjær bilde",
-  "How does this work?": "Hvordan fungerer dette?",
   "You can import a zip file that was previously exported from the JSON option in another instance. In {{ appName }}, open <em>Export</em> in the Settings sidebar and click on <em>Export Data</em>.": "Du kan importere en zip-fil som tidligere ble eksportert fra JSON-alternativet i en annen instans. I {{ appName }}, åpne <em>Eksport</em> i innstillingssidestolpen og klikk på <em>Eksporter Data</em>.",
   "Drag and drop the zip file from the JSON export option in {{appName}}, or click to upload": "Dra og slipp zip-filen fra JSON-eksportalternativet i {{appName}}, eller klikk for å laste opp",
   "Canceled": "Avbrutt",
