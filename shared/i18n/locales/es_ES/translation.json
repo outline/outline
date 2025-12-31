@@ -1092,7 +1092,6 @@
   "Date created": "Fecha de creación",
   "Crop Image": "Crop Image",
   "Crop image": "Recortar imagen",
-  "How does this work?": "¿Cómo funciona esto?",
   "You can import a zip file that was previously exported from the JSON option in another instance. In {{ appName }}, open <em>Export</em> in the Settings sidebar and click on <em>Export Data</em>.": "Puedes importar un archivo zip que se exportó previamente desde la opción JSON en otra instancia. En {{ appName }}, abre <em>Exportar</em> en la barra lateral de configuración y haz clic en <em>Exportar datos</em>.",
   "Drag and drop the zip file from the JSON export option in {{appName}}, or click to upload": "Arrastra y suelta el archivo zip de la opción de exportación JSON de {{appName}}, o haz clic para cargarlo",
   "Canceled": "Cancelado",
