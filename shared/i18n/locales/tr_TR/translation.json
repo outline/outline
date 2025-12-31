@@ -1092,7 +1092,6 @@
   "Date created": "Oluşturulma tarihi",
   "Crop Image": "Görseli Kırp",
   "Crop image": "Görseli kırp",
-  "How does this work?": "Bu nasıl çalışır?",
   "You can import a zip file that was previously exported from the JSON option in another instance. In {{ appName }}, open <em>Export</em> in the Settings sidebar and click on <em>Export Data</em>.": "Daha önce başka bir örnekteki JSON seçeneğinden dışa aktarılmış bir zip dosyasını içe aktarabilirsiniz. {{ appName }} uygulamasında, Ayarlar kenar çubuğunda <em>Dışa Aktar</em>'ı açın ve <em>Verileri Dışa Aktar</em>'a tıklayın.",
   "Drag and drop the zip file from the JSON export option in {{appName}}, or click to upload": "{{appName}} uygulamasındaki JSON dışa aktarma seçeneğinden zip dosyasını sürükleyip bırakın veya yüklemek için tıklayın",
   "Canceled": "İptal edildi",
