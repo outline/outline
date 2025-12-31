@@ -1092,7 +1092,6 @@
   "Date created": "Aanmaakdatum",
   "Crop Image": "Afbeelding bijsnijden",
   "Crop image": "Afbeelding bijsnijden",
-  "How does this work?": "Hoe werkt dit?",
   "You can import a zip file that was previously exported from the JSON option in another instance. In {{ appName }}, open <em>Export</em> in the Settings sidebar and click on <em>Export Data</em>.": "Je kunt een zipbestand importeren dat eerder is geëxporteerd vanuit de JSON-optie in een andere instantie. In {{ appName }}, open <em>Exporteren</em> in de zijbalk in Voorkeuren en klik op <em>Exporteer gegevens</em>.",
   "Drag and drop the zip file from the JSON export option in {{appName}}, or click to upload": "Sleep het zip-bestand vanuit de JSON exportoptie in {{appName}}, of klik om te uploaden",
   "Canceled": "Geannuleerd",
