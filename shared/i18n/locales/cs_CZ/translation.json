@@ -1092,7 +1092,6 @@
   "Date created": "Datum vytvoření",
   "Crop Image": "Crop Image",
   "Crop image": "Crop image",
-  "How does this work?": "Jak to funguje?",
   "You can import a zip file that was previously exported from the JSON option in another instance. In {{ appName }}, open <em>Export</em> in the Settings sidebar and click on <em>Export Data</em>.": "Můžete importovat soubor zip, který byl dříve exportován z možnosti JSON v jiné instanci. V {{ appName }} otevřete <em>Export</em> v postranním panelu Nastavení a klikněte na <em>Exportovat data</em>.",
   "Drag and drop the zip file from the JSON export option in {{appName}}, or click to upload": "Přetáhněte soubor zip z možnosti exportu JSON v {{appName}} nebo kliknutím nahrajte",
   "Canceled": "Zrušeno",
