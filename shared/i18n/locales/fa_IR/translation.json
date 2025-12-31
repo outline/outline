@@ -1092,7 +1092,6 @@
   "Date created": "تاریخ ایجاد",
   "Crop Image": "برش تصویر",
   "Crop image": "برش تصویر",
-  "How does this work?": "این چگونه کار می‌کند؟",
   "You can import a zip file that was previously exported from the JSON option in another instance. In {{ appName }}, open <em>Export</em> in the Settings sidebar and click on <em>Export Data</em>.": "شما می‌توانید یک فایل zip را که قبلاً از گزینه JSON در یک نمونه دیگر خروجی شده است وارد کنید. در {{ appName }}, <em>Export</em> را در نوار کناری تنظیمات باز کنید و روی <em>Export Data</em> کلیک کنید.",
   "Drag and drop the zip file from the JSON export option in {{appName}}, or click to upload": "فایل zip را از گزینه خروجی ها JSON در {{appName}} بکشید و رها کنید یا برای بارگذاری کلیک کنید",
   "Canceled": "لغو شد",
