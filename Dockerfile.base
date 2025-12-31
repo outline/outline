@@ -17,9 +17,7 @@ COPY . .
 ARG CDN_URL
 RUN yarn build
 
-RUN rm -rf node_modules
-
-RUN yarn install --immutable --network-timeout 1000000 && \
+RUN yarn workspaces focus --production && \
   yarn cache clean
 
 ENV PORT=3000
