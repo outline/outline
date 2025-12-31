@@ -1092,7 +1092,6 @@
   "Date created": "Créé le",
   "Crop Image": "Rogner l'image",
   "Crop image": "Rogner l’image",
-  "How does this work?": "Comment cela fonctionne-t-il ?",
   "You can import a zip file that was previously exported from the JSON option in another instance. In {{ appName }}, open <em>Export</em> in the Settings sidebar and click on <em>Export Data</em>.": "Vous pouvez importer un fichier zip provenant de l'export JSON d'une autre installation Outline. Dans {{ appName }}, ouvrez <em>Exporter</em> dans les paramètres et cliquez sur <em>Exporter les données</em>.",
   "Drag and drop the zip file from the JSON export option in {{appName}}, or click to upload": "Glissez et déposez le fichier zip provenant d'un export JSON de {{appName}}, ou cliquez pour le téléverser",
   "Canceled": "Annulée",
