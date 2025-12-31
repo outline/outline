@@ -1092,7 +1092,6 @@
   "Date created": "Дата створення",
   "Crop Image": "Обрізати зображення",
   "Crop image": "Обрізати зображення",
-  "How does this work?": "Як це працює?",
   "You can import a zip file that was previously exported from the JSON option in another instance. In {{ appName }}, open <em>Export</em> in the Settings sidebar and click on <em>Export Data</em>.": "Ви можете імпортувати zip-файл, який раніше було експортовано з опції JSON в інший простір. У {{ appName }} відкрийте <em>Експорт</em> на бічній панелі налаштувань і натисніть <em>Експортувати дані</em>.",
   "Drag and drop the zip file from the JSON export option in {{appName}}, or click to upload": "Перетягніть файл zip із опції експорту JSON у {{appName}} або натисніть, щоб завантажити",
   "Canceled": "Скасовано",
