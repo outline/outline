@@ -1092,7 +1092,6 @@
   "Date created": "创建日期",
   "Crop Image": "Crop Image",
   "Crop image": "裁剪图像",
-  "How does this work?": "这是如何工作的？",
   "You can import a zip file that was previously exported from the JSON option in another instance. In {{ appName }}, open <em>Export</em> in the Settings sidebar and click on <em>Export Data</em>.": "您可以导入之前从另一个实例中的JSON选项导出的zip文件。在 {{ appName }} 的侧边栏设置中打开 <em>导出</em> ，并点击 <em>导出数据</em>。",
   "Drag and drop the zip file from the JSON export option in {{appName}}, or click to upload": "拖放或单击上传从 {{appName}} 的 JSON 导出选项导出的 zip 文件",
   "Canceled": "已取消",
