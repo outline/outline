@@ -1092,7 +1092,6 @@
   "Date created": "Date created",
   "Crop Image": "Crop Image",
   "Crop image": "Crop image",
-  "How does this work?": "Bagaimana cara kerjanya?",
   "You can import a zip file that was previously exported from the JSON option in another instance. In {{ appName }}, open <em>Export</em> in the Settings sidebar and click on <em>Export Data</em>.": "Anda dapat mengimpor file zip yang sebelumnya diekspor dari opsi JSON di contoh lain. Di {{ appName }}, buka <em>Ekspor</em> di sidebar Pengaturan dan klik <em>Ekspor Data</em>.",
   "Drag and drop the zip file from the JSON export option in {{appName}}, or click to upload": "Drag and drop file zip dari opsi ekspor JSON di {{appName}}, atau klik untuk mengunggah",
   "Canceled": "Canceled",
