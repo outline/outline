@@ -3,7 +3,7 @@ FROM node:22.21.0 AS deps
 
 ARG APP_PATH
 WORKDIR $APP_PATH
-COPY ./package.json ./yarn.lock ./
+COPY ./package.json ./yarn.lock ./.yarnrc.yml ./
 COPY ./patches ./patches
 
 RUN apt-get update && apt-get install -y cmake
