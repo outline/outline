@@ -16,7 +16,9 @@ export default class GroupMentionedInCommentNotificationsTask extends BaseTask<G
   public async perform(event: GroupMentionEvent) {
     const { groupId, actorId } = event.data;
 
-    // Check if the group has mentions disabled
+    // Defensive check: ensure group has mentions enabled.
+    // This is also checked in the parent task, but we verify here
+    // for resilience in case this task is scheduled directly.
     const groupModel = await Group.findByPk(groupId);
     if (groupModel?.disableMentions) {
       return;
@@ -45,9 +47,20 @@ export default class GroupMentionedInCommentNotificationsTask extends BaseTask<G
         batchLimit: 10,
       },
       async (groupUsers) => {
+        // Batch fetch all users to reduce database queries
+        const userIds = groupUsers.map((gu) => gu.userId);
+        const users = await User.findAll({
+          where: {
+            id: userIds,
+          },
+        });
+
+        // Create a map for quick user lookup
+        const userMap = new Map(users.map((u) => [u.id, u]));
+
         await Promise.all(
           groupUsers.map(async (groupUser) => {
-            const recipient = await User.findByPk(groupUser.userId);
+            const recipient = userMap.get(groupUser.userId);
             if (
               recipient &&
               recipient.subscribedToEventType(
