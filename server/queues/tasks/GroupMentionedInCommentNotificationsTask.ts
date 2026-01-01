@@ -58,6 +58,8 @@ export default class GroupMentionedInCommentNotificationsTask extends BaseTask<G
         // Create a map for quick user lookup
         const userMap = new Map(users.map((u) => [u.id, u]));
 
+        // Process notifications for this batch (limited to 10 concurrent operations
+        // by the batch size to avoid overwhelming the database connection pool)
         await Promise.all(
           groupUsers.map(async (groupUser) => {
             const recipient = userMap.get(groupUser.userId);
