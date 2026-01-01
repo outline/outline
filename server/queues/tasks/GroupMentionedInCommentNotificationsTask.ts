@@ -1,6 +1,6 @@
 import { Op } from "sequelize";
 import { NotificationEventType } from "@shared/types";
-import { Document, Group, GroupUser, Notification, User } from "@server/models";
+import { Group, GroupUser, Notification, User } from "@server/models";
 import type { CommentEvent } from "@server/types";
 import { canUserAccessDocument } from "@server/utils/permissions";
 import { BaseTask, TaskPriority } from "./base/BaseTask";
@@ -21,16 +21,6 @@ export default class GroupMentionedInCommentNotificationsTask extends BaseTask<G
     // for resilience in case this task is scheduled directly.
     const groupModel = await Group.findByPk(groupId);
     if (groupModel?.disableMentions) {
-      return;
-    }
-
-    const document = await Document.scope("withCollection").findOne({
-      where: {
-        id: event.documentId,
-      },
-    });
-
-    if (!document) {
       return;
     }
 
@@ -68,15 +58,15 @@ export default class GroupMentionedInCommentNotificationsTask extends BaseTask<G
               recipient.subscribedToEventType(
                 NotificationEventType.GroupMentionedInComment
               ) &&
-              (await canUserAccessDocument(recipient, document.id))
+              (await canUserAccessDocument(recipient, event.documentId))
             ) {
               await Notification.create({
                 event: NotificationEventType.GroupMentionedInComment,
                 groupId,
                 userId: recipient.id,
                 actorId,
-                teamId: document.teamId,
-                documentId: document.id,
+                teamId: event.teamId,
+                documentId: event.documentId,
                 commentId: event.modelId,
               });
             }
