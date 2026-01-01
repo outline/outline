@@ -541,7 +541,8 @@ width: 100%;
     background: ${props.theme.mentionHoverBackground};
   }
 
-  &[data-type="user"] {
+  &[data-type="user"],
+  &[data-type="group"] {
     gap: 0;
   }
 
