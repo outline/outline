@@ -11,6 +11,7 @@ import styled, { ServerStyleSheet, ThemeProvider } from "styled-components";
 import { prosemirrorToYDoc } from "y-prosemirror";
 import * as Y from "yjs";
 import Diff from "@shared/editor/extensions/Diff";
+import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import type { ExtendedChange } from "@shared/editor/lib/ChangesetHelper";
 import EditorContainer from "@shared/editor/components/Styles";
 import GlobalStyles from "@shared/styles/globals";
@@ -457,7 +458,10 @@ export class ProsemirrorHelper {
 
       const Centered = options?.centered
         ? styled.article`
-            max-width: calc(52em + 88px);
+            max-width: calc(
+              ${EditorStyleHelper.documentWidth} +
+                ${EditorStyleHelper.documentGutter}
+            );
             margin: 0 auto;
             padding: 0 1em;
           `
