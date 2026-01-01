@@ -109,7 +109,7 @@ export default class CommentCreatedNotificationsTask extends BaseTask<CommentEve
         ...event,
         data: {
           groupId: group.modelId,
-          actorId: group.actorId,
+          actorId: group.actorId ?? event.actorId,
         },
       });
 

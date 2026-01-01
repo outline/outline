@@ -5,7 +5,7 @@ import type { CommentEvent } from "@server/types";
 import { canUserAccessDocument } from "@server/utils/permissions";
 import { BaseTask, TaskPriority } from "./base/BaseTask";
 
-type GroupMentionEvent = CommentEvent & {
+type GroupMentionEvent = Omit<CommentEvent, "data"> & {
   data: {
     groupId: string;
     actorId: string;

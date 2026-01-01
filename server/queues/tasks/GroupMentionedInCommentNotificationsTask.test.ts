@@ -266,8 +266,12 @@ describe("GroupMentionedInCommentNotificationsTask", () => {
   test("should not send notification if document does not exist", async () => {
     const spy = jest.spyOn(Notification, "create");
     const actor = await buildUser();
+    const document = await buildDocument({
+      teamId: actor.teamId,
+    });
     const comment = await buildComment({
       userId: actor.id,
+      documentId: document.id,
     });
 
     const group = await buildGroup({
