@@ -7,11 +7,7 @@ export type OAuthState = {
 };
 
 export class FigmaUtils {
-  public static oauthScopes = [
-    "current_user:read",
-    "file_content:read",
-    "file_metadata:read",
-  ];
+  public static oauthScopes = ["current_user:read", "file_metadata:read"];
 
   public static accountUrl = "https://api.figma.com/v1/me";
   public static tokenUrl = "https://api.figma.com/v1/oauth/token";
@@ -34,8 +30,7 @@ export class FigmaUtils {
 
   static callbackUrl(
     { baseUrl, params }: { baseUrl: string; params?: string } = {
-      // baseUrl: env.URL,
-      baseUrl: "https://redirect-cf-worker.hmacr.workers.dev",
+      baseUrl: env.URL,
       params: undefined,
     }
   ) {
