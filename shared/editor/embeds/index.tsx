@@ -273,7 +273,6 @@ const embeds: EmbedDescriptor[] = [
   new EmbedDescriptor({
     title: "Figma",
     keywords: "design svg vector",
-    matchOnInput: false,
     regexMatch: [
       new RegExp(
         "^https://([w.-]+\\.)?figma\\.com/(file|proto|board|design)/([0-9a-zA-Z]{22,128})(?:/.*)?$"

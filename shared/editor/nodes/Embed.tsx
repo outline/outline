@@ -15,7 +15,6 @@ import EmbedComponent from "../components/Embed";
 import defaultEmbeds from "../embeds";
 import { getMatchingEmbed } from "../lib/embeds";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
-import embedsRule from "../rules/embeds";
 import type { ComponentProps } from "../types";
 import Node from "./Node";
 import { isInList } from "../queries/isInList";
@@ -99,10 +98,6 @@ export default class Embed extends Node {
       },
       leafText: (node) => node.attrs.href,
     };
-  }
-
-  get rulePlugins() {
-    return [embedsRule(this.options.embeds)];
   }
 
   handleChangeSize =
