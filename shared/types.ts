@@ -129,6 +129,7 @@ export enum IntegrationService {
   Umami = "umami",
   GitHub = "github",
   Linear = "linear",
+  Figma = "figma",
   Notion = "notion",
 }
 
@@ -196,6 +197,9 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
       };
       linear?: {
         workspace: { id: string; name: string; key: string; logoUrl?: string };
+      };
+      figma?: {
+        user: { id: string };
       };
       diagrams?: {
         url: string;

@@ -34,6 +34,13 @@ class IntegrationsStore extends Store<Integration> {
       (integration) => integration.service === IntegrationService.Linear
     );
   }
+
+  @computed
+  get figma(): Integration<IntegrationType.Embed>[] {
+    return this.orderedData.filter(
+      (integration) => integration.service === IntegrationService.Figma
+    );
+  }
 }
 
 export default IntegrationsStore;
