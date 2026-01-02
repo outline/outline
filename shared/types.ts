@@ -199,7 +199,7 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
         workspace: { id: string; name: string; key: string; logoUrl?: string };
       };
       figma?: {
-        user: { id: string };
+        account: { id: string; name: string; avatarUrl: string };
       };
       diagrams?: {
         url: string;

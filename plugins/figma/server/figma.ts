@@ -13,6 +13,12 @@ const AccessTokenResponseSchema = z.object({
   user_id_string: z.string(),
 });
 
+const AccountResponseSchema = z.object({
+  id: z.string(),
+  handle: z.string(),
+  img_url: z.string(),
+});
+
 export class Figma {
   static async oauthAccess(code: string) {
     const headers = {
@@ -39,5 +45,23 @@ export class Figma {
     }
 
     return AccessTokenResponseSchema.parse(await res.json());
+  }
+
+  static async getInstalledAccount(accessToken: string) {
+    const res = await fetch(FigmaUtils.accountUrl, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (res.status !== 200) {
+      throw new Error(
+        `Error getting Figma current account; status: ${res.status} ${await res.text()}`
+      );
+    }
+
+    return AccountResponseSchema.parse(await res.json());
   }
 }

@@ -7,8 +7,13 @@ export type OAuthState = {
 };
 
 export class FigmaUtils {
-  public static oauthScopes = ["file_content:read", "file_metadata:read"];
+  public static oauthScopes = [
+    "current_user:read",
+    "file_content:read",
+    "file_metadata:read",
+  ];
 
+  public static accountUrl = "https://api.figma.com/v1/me";
   public static tokenUrl = "https://api.figma.com/v1/oauth/token";
   public static revokeUrl = "https://api.figma.com/v1/oauth/revoke";
   private static authBaseUrl = "https://www.figma.com/oauth";

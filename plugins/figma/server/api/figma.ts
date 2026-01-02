@@ -11,6 +11,7 @@ import { IntegrationService, IntegrationType } from "@shared/types";
 import { Integration, IntegrationAuthentication } from "@server/models";
 import { addSeconds } from "date-fns";
 import { Figma } from "../figma";
+import UploadIntegrationLogoTask from "@server/queues/tasks/UploadIntegrationLogoTask";
 
 const router = new Router();
 
@@ -43,6 +44,7 @@ router.get(
     try {
       // validation middleware ensures that code is non-null at this point.
       const oauth = await Figma.oauthAccess(code!);
+      const figmaAccount = await Figma.getInstalledAccount(oauth.access_token);
 
       const authentication = await IntegrationAuthentication.create(
         {
@@ -56,7 +58,9 @@ router.get(
         },
         { transaction }
       );
-      await Integration.create<Integration<IntegrationType.Embed>>(
+      const integration = await Integration.create<
+        Integration<IntegrationType.Embed>
+      >(
         {
           service: IntegrationService.Figma,
           type: IntegrationType.Embed,
@@ -65,14 +69,23 @@ router.get(
           authenticationId: authentication.id,
           settings: {
             figma: {
-              user: {
-                id: oauth.user_id_string,
+              account: {
+                id: figmaAccount.id,
+                name: figmaAccount.handle,
+                avatarUrl: figmaAccount.img_url,
               },
             },
           },
         },
         { transaction }
       );
+
+      transaction.afterCommit(async () => {
+        await new UploadIntegrationLogoTask().schedule({
+          integrationId: integration.id,
+          logoUrl: figmaAccount.img_url,
+        });
+      });
 
       ctx.redirect(FigmaUtils.successUrl());
     } catch (err) {

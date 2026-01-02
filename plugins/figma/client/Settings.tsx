@@ -5,12 +5,14 @@ import { useTranslation, Trans } from "react-i18next";
 import { IntegrationService } from "@shared/types";
 import { ConnectedButton } from "~/scenes/Settings/components/ConnectedButton";
 import { IntegrationScene } from "~/scenes/Settings/components/IntegrationScene";
+import { AvatarSize } from "~/components/Avatar";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import List from "~/components/List";
 import ListItem from "~/components/List/Item";
 import Notice from "~/components/Notice";
 import PlaceholderText from "~/components/PlaceholderText";
+import TeamLogo from "~/components/TeamLogo";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
 import env from "~/env";
@@ -79,15 +81,16 @@ function Figma() {
               </Heading>
               <List>
                 {integrations.figma.map((integration) => {
+                  const figmaAccount = integration.settings?.figma?.account;
                   const integrationCreatedBy = integration.user
                     ? integration.user.name
                     : undefined;
 
                   return (
                     <ListItem
-                      key={integration.id}
+                      key={figmaAccount?.id}
                       small
-                      title={"Figma workspace"}
+                      title={figmaAccount?.name}
                       subtitle={
                         integrationCreatedBy ? (
                           <>
@@ -103,7 +106,12 @@ function Figma() {
                           <PlaceholderText />
                         )
                       }
-                      image={undefined}
+                      image={
+                        <TeamLogo
+                          src={figmaAccount?.avatarUrl}
+                          size={AvatarSize.Large}
+                        />
+                      }
                       actions={
                         <ConnectedButton
                           onClick={integration.delete}
