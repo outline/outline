@@ -13,7 +13,7 @@ import type { Primitive } from "utility-types";
 import { sanitizeUrl } from "../../utils/urls";
 import EmbedComponent from "../components/Embed";
 import defaultEmbeds from "../embeds";
-import { getMatchingEmbed } from "../lib/embeds";
+import { getMatchingEmbed, transformListToEmbeds } from "../lib/embeds";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import type { ComponentProps } from "../types";
 import Node from "./Node";
@@ -142,7 +142,7 @@ export default class Embed extends Node {
           return true;
         },
       embed_list:
-        (attrs: Record<string, Primitive>): Command =>
+        (_attrs: Record<string, Primitive>): Command =>
         (state, dispatch) => {
           const { selection } = state;
           const position =
@@ -167,17 +167,15 @@ export default class Embed extends Node {
             from = nodeWithPos.pos,
             to = from + listNode.nodeSize;
 
-          const nodes = Object.keys(attrs).map((url) =>
-            type.create({ href: url })
-          );
-          const fragment = Fragment.fromArray(nodes);
-          const slice = Slice.maxOpen(fragment);
+          const nodes = transformListToEmbeds(listNode, this.editor.schema);
+          const slice = new Slice(Fragment.fromArray(nodes), 0, 0);
 
           const tr = state.tr.deleteRange(from, to);
           dispatch?.(
             tr
               .setSelection(TextSelection.near(tr.doc.resolve(from)))
               .replaceSelection(slice)
+              .scrollIntoView()
           );
 
           return true;

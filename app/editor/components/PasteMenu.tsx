@@ -132,7 +132,6 @@ function useItems({
   });
 
   // Check if the links can be converted to embeds.
-  const embedsToEmbedType: Record<string, EmbedDescriptor> = {};
   let embedType: string | undefined = undefined;
 
   const convertibleToEmbedList = pastedText.every((text) => {
@@ -143,10 +142,15 @@ function useItems({
     }
 
     embedType = !embedType || embedType === embed.title ? embed.title : "mixed";
-
-    embedsToEmbedType[text] = embed;
     return true;
   });
+
+  const embedIcon =
+    embedType === "mixed" ? (
+      <BrowserIcon />
+    ) : (
+      embeds.find((e) => e.title === embedType)?.icon
+    );
 
   // don't render the menu when it can't be converted to other types.
   if (!convertibleToMentionList && !convertibleToEmbedList) {
@@ -170,13 +174,8 @@ function useItems({
       name: "embed_list",
       title: t("Embed"),
       visible: !!convertibleToEmbedList,
-      icon:
-        embedType === "mixed" ? (
-          <BrowserIcon />
-        ) : (
-          Object.values(embedsToEmbedType)[0]?.icon
-        ),
-      attrs: { actorId: user?.id, ...embedsToEmbedType },
+      icon: embedIcon,
+      attrs: { actorId: user?.id },
     },
   ];
 }
