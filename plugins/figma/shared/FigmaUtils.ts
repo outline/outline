@@ -15,7 +15,7 @@ export class FigmaUtils {
 
   public static accountUrl = "https://api.figma.com/v1/me";
   public static tokenUrl = "https://api.figma.com/v1/oauth/token";
-  public static revokeUrl = "https://api.figma.com/v1/oauth/revoke";
+  public static refreshUrl = "https://api.figma.com/v1/oauth/refresh";
   private static authBaseUrl = "https://www.figma.com/oauth";
 
   private static settingsUrl = integrationSettingsPath("figma");

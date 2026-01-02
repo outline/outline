@@ -5,14 +5,11 @@ import type { UnfurlSignature } from "@server/types";
 import isEmpty from "lodash/isEmpty";
 import type { User } from "@server/models";
 import { Integration } from "@server/models";
-import type {
-  IntegrationType} from "@shared/types";
-import {
-  IntegrationService,
-  UnfurlResourceType,
-} from "@shared/types";
+import type { IntegrationType } from "@shared/types";
+import { IntegrationService, UnfurlResourceType } from "@shared/types";
 import { cdnPath } from "@shared/utils/urls";
 import Logger from "@server/logging/Logger";
+import { Minute } from "@shared/utils/time";
 
 const Credentials = Buffer.from(
   `${env.FIGMA_CLIENT_ID}:${env.FIGMA_CLIENT_SECRET}`
@@ -21,6 +18,11 @@ const Credentials = Buffer.from(
 const AccessTokenResponseSchema = z.object({
   access_token: z.string(),
   refresh_token: z.string(),
+  expires_in: z.number(),
+});
+
+const RefreshTokenResponseSchema = z.object({
+  access_token: z.string(),
   expires_in: z.number(),
 });
 
@@ -66,11 +68,36 @@ export class Figma {
 
     if (res.status !== 200) {
       throw new Error(
-        `Error exchanging Figma OAuth code; status: ${res.status} ${await res.text()}`
+        `Error exchanging Figma OAuth code; status: ${res.status}, ${await res.text()}`
       );
     }
 
     return AccessTokenResponseSchema.parse(await res.json());
+  }
+
+  static async refreshToken(refreshToken: string) {
+    const headers = {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Accept: "application/json",
+      Authorization: `Basic ${Credentials}`,
+    };
+
+    const body = new URLSearchParams();
+    body.set("refresh_token", refreshToken);
+
+    const res = await fetch(FigmaUtils.refreshUrl, {
+      method: "POST",
+      headers,
+      body,
+    });
+
+    if (res.status !== 200) {
+      throw new Error(
+        `Error while refreshing access token from Figma; status: ${res.status}, ${await res.text()}`
+      );
+    }
+
+    return RefreshTokenResponseSchema.parse(await res.json());
   }
 
   static async getInstalledAccount(accessToken: string) {
@@ -84,7 +111,7 @@ export class Figma {
 
     if (res.status !== 200) {
       throw new Error(
-        `Error getting Figma current account; status: ${res.status} ${await res.text()}`
+        `Error getting Figma current account; status: ${res.status}, ${await res.text()}`
       );
     }
 
@@ -120,9 +147,14 @@ export class Figma {
     }
 
     try {
+      const accessToken = await integration.authentication.refreshTokenIfNeeded(
+        async (refreshToken: string) => Figma.refreshToken(refreshToken),
+        5 * Minute.ms
+      );
+
       const res = await fetch(Figma.fileMetadataUrl(resource.key), {
         headers: {
-          Authorization: `Bearer ${integration.authentication.token}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       });
 
