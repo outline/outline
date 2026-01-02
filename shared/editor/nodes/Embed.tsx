@@ -1,11 +1,13 @@
 import type { Token } from "markdown-it";
-import type {
-  NodeSpec,
-  NodeType,
-  Node as ProsemirrorNode,
+import {
+  Fragment,
+  Slice,
+  type NodeSpec,
+  type NodeType,
+  type Node as ProsemirrorNode,
 } from "prosemirror-model";
 import type { Command } from "prosemirror-state";
-import { NodeSelection } from "prosemirror-state";
+import { NodeSelection, TextSelection } from "prosemirror-state";
 import * as React from "react";
 import type { Primitive } from "utility-types";
 import { sanitizeUrl } from "../../utils/urls";
@@ -16,6 +18,9 @@ import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import embedsRule from "../rules/embeds";
 import type { ComponentProps } from "../types";
 import Node from "./Node";
+import { isInList } from "../queries/isInList";
+import { findParentNodeClosestToPos } from "../queries/findParentNode";
+import { isList } from "../queries/isList";
 
 export default class Embed extends Node {
   get name() {
@@ -132,13 +137,57 @@ export default class Embed extends Node {
   };
 
   commands({ type }: { type: NodeType }) {
-    return (attrs: Record<string, Primitive>): Command =>
-      (state, dispatch) => {
-        dispatch?.(
-          state.tr.replaceSelectionWith(type.create(attrs)).scrollIntoView()
-        );
-        return true;
-      };
+    return {
+      embed:
+        (attrs: Record<string, Primitive>): Command =>
+        (state, dispatch) => {
+          dispatch?.(
+            state.tr.replaceSelectionWith(type.create(attrs)).scrollIntoView()
+          );
+          return true;
+        },
+      embed_list:
+        (attrs: Record<string, Primitive>): Command =>
+        (state, dispatch) => {
+          const { selection } = state;
+          const position =
+            selection instanceof TextSelection
+              ? selection.$cursor?.pos
+              : selection.$to.pos;
+
+          if (position === undefined || !isInList(state)) {
+            return false;
+          }
+
+          const resolvedPos = state.tr.doc.resolve(position);
+          const nodeWithPos = findParentNodeClosestToPos(resolvedPos, (node) =>
+            isList(node, this.editor.schema)
+          );
+
+          if (!nodeWithPos) {
+            return false;
+          }
+
+          const listNode = nodeWithPos.node,
+            from = nodeWithPos.pos,
+            to = from + listNode.nodeSize;
+
+          const nodes = Object.keys(attrs).map((url) =>
+            type.create({ href: url })
+          );
+          const fragment = Fragment.fromArray(nodes);
+          const slice = Slice.maxOpen(fragment);
+
+          const tr = state.tr.deleteRange(from, to);
+          dispatch?.(
+            tr
+              .setSelection(TextSelection.near(tr.doc.resolve(from)))
+              .replaceSelection(slice)
+          );
+
+          return true;
+        },
+    };
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {

@@ -447,6 +447,25 @@ export default class PasteHandler extends Extension {
     }
   };
 
+  // Not a list of embeds technically, but inserts many embeds at once.
+  private insertEmbedList = () => {
+    const { view } = this.editor;
+    const { state } = view;
+    const result = this.findPlaceholder(state, this.placeholderId());
+
+    // Remove just the placeholder here.
+    // Embed list will be created by SuggestionsMenu.
+    if (result) {
+      const tr = state.tr.setMeta(this.key, {
+        remove: { id: this.placeholderId() },
+      });
+
+      view.dispatch(
+        tr.setSelection(TextSelection.near(tr.doc.resolve(result[0])))
+      );
+    }
+  };
+
   private handleList(listNode: Node) {
     const { view, schema } = this.editor;
     const { state } = view;
@@ -545,6 +564,11 @@ export default class PasteHandler extends Extension {
       case "mention_list": {
         this.hidePasteMenu();
         this.insertMentionList();
+        break;
+      }
+      case "embed_list": {
+        this.hidePasteMenu();
+        this.insertEmbedList();
         break;
       }
       default:
