@@ -128,7 +128,7 @@ function useItems({
 
     const mentionType = integration
       ? determineMentionType({ url, integration })
-      : undefined;
+      : MentionType.URL;
 
     if (mentionType) {
       linksToMentionType[text] = mentionType;
