@@ -8,7 +8,7 @@ import { Op } from "sequelize";
 import { UserRole } from "@shared/types";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import slugify from "@shared/utils/slugify";
-import { ValidationError } from "@server/errors";
+import { ValidationError, IncorrectEditionError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -227,6 +227,10 @@ router.post(
         centered: true,
         includeMermaid: true,
       });
+    } else if (accept?.includes("application/pdf")) {
+      throw IncorrectEditionError(
+        "PDF export is not available in the community edition"
+      );
     } else if (accept?.includes("text/markdown")) {
       contentType = "text/markdown";
       content = DocumentHelper.toMarkdown(revision);
