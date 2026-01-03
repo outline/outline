@@ -22,6 +22,7 @@ import DomainManagement from "./components/DomainManagement";
 import Button from "~/components/Button";
 import { ConnectedIcon } from "~/components/Icons/ConnectedIcon";
 import { useTheme } from "styled-components";
+import { VStack } from "~/components/primitives/VStack";
 
 function Authentication() {
   const { authenticationProviders, dialogs } = useStores();
@@ -134,23 +135,28 @@ function Authentication() {
         >
           <Flex align="center" gap={12}>
             {provider.isConnected ? (
-              <Button
-                icon={
-                  provider.isEnabled ? (
-                    <ConnectedIcon />
-                  ) : (
-                    <ConnectedIcon color={theme.textSecondary} />
-                  )
-                }
-                onClick={() =>
-                  !provider.isEnabled
-                    ? handleToggleProvider(provider, true)
-                    : handleRemoveProvider(provider)
-                }
-                neutral
-              >
-                {provider.isEnabled ? t("Connected") : t("Disabled")}
-              </Button>
+              <VStack align="start">
+                <Button
+                  icon={
+                    provider.isEnabled ? (
+                      <ConnectedIcon />
+                    ) : (
+                      <ConnectedIcon color={theme.textSecondary} />
+                    )
+                  }
+                  onClick={() =>
+                    !provider.isEnabled
+                      ? handleToggleProvider(provider, true)
+                      : handleRemoveProvider(provider)
+                  }
+                  neutral
+                >
+                  {provider.isEnabled ? t("Connected") : t("Disabled")}
+                </Button>
+                <Text type="tertiary" size="small">
+                  {provider.providerId}
+                </Text>
+              </VStack>
             ) : (
               <Button
                 onClick={() => handleConnectProvider(provider.name)}
