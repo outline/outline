@@ -107,7 +107,7 @@ function SidebarLink(
 
   const unreadStyle = React.useMemo(
     () => ({
-      right: -12,
+      right: -20,
     }),
     []
   );
@@ -165,7 +165,6 @@ function SidebarLink(
       ref={ref}
       {...rest}
     >
-      {" "}
       <ContextMenu action={contextAction} ariaLabel={t("Link options")}>
         <Content>
           {hasDisclosure && (
@@ -243,7 +242,8 @@ const Link = styled(NavLink)<{
   $disabled?: boolean;
 }>`
   &:hover,
-  &:active {
+  &:active,
+  &:has([data-state="open"]) {
     --background: ${s("sidebarHoverBackground")};
   }
 
