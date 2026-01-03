@@ -16,7 +16,7 @@ beforeEach(async () => {
 });
 
 describe("GroupMentionedInCommentNotificationsTask", () => {
-  test("should send notifications to all group members with access", async () => {
+  it("should send notifications to all group members with access", async () => {
     const spy = jest.spyOn(Notification, "create");
     const actor = await buildUser();
     const document = await buildDocument({
@@ -90,7 +90,7 @@ describe("GroupMentionedInCommentNotificationsTask", () => {
     );
   });
 
-  test("should not send notification to actor", async () => {
+  it("should not send notification to actor", async () => {
     const spy = jest.spyOn(Notification, "create");
     const actor = await buildUser();
     const document = await buildDocument({
@@ -132,7 +132,7 @@ describe("GroupMentionedInCommentNotificationsTask", () => {
     expect(spy).not.toHaveBeenCalled();
   });
 
-  test("should not send notification if group has mentions disabled", async () => {
+  it("should not send notification if group has mentions disabled", async () => {
     const spy = jest.spyOn(Notification, "create");
     const actor = await buildUser();
     const document = await buildDocument({
@@ -176,7 +176,7 @@ describe("GroupMentionedInCommentNotificationsTask", () => {
     expect(spy).not.toHaveBeenCalled();
   });
 
-  test("should not send notification to users without subscription", async () => {
+  it("should not send notification to users without subscription", async () => {
     const spy = jest.spyOn(Notification, "create");
     const actor = await buildUser();
     const document = await buildDocument({
@@ -198,6 +198,11 @@ describe("GroupMentionedInCommentNotificationsTask", () => {
     });
 
     // member doesn't have notification subscription enabled
+    member.setNotificationEventType(
+      NotificationEventType.GroupMentionedInComment,
+      false
+    );
+    await member.save();
 
     const task = new GroupMentionedInCommentNotificationsTask();
     await task.perform({
@@ -216,7 +221,7 @@ describe("GroupMentionedInCommentNotificationsTask", () => {
     expect(spy).not.toHaveBeenCalled();
   });
 
-  test("should handle large groups with batching", async () => {
+  it("should handle large groups with batching", async () => {
     const spy = jest.spyOn(Notification, "create");
     const actor = await buildUser();
     const document = await buildDocument({
@@ -263,7 +268,7 @@ describe("GroupMentionedInCommentNotificationsTask", () => {
     expect(spy).toHaveBeenCalledTimes(25);
   });
 
-  test("should not send notification if document does not exist", async () => {
+  it("should not send notification if document does not exist", async () => {
     const spy = jest.spyOn(Notification, "create");
     const actor = await buildUser();
     const document = await buildDocument({
