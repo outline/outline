@@ -242,7 +242,8 @@ const Link = styled(NavLink)<{
   $disabled?: boolean;
 }>`
   &:hover,
-  &:active {
+  &:active,
+  &:has([data-state="open"]) {
     --background: ${s("sidebarHoverBackground")};
   }
 
