@@ -136,7 +136,6 @@ export const editCollectionPermissions = createAction({
 
     stores.dialogs.openModal({
       title: t("Share this collection"),
-      style: { marginBottom: -12 },
       content: (
         <SharePopover
           collection={collection}
