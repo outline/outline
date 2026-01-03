@@ -9,7 +9,6 @@ import {
   Comment,
   Document,
   Group,
-  GroupUser,
   Notification,
   User,
 } from "@server/models";
@@ -19,6 +18,7 @@ import { sequelize } from "@server/storage/database";
 import type { CommentEvent } from "@server/types";
 import { canUserAccessDocument } from "@server/utils/permissions";
 import { BaseTask, TaskPriority } from "./base/BaseTask";
+import GroupMentionedInCommentNotificationsTask from "./GroupMentionedInCommentNotificationsTask";
 
 export default class CommentCreatedNotificationsTask extends BaseTask<CommentEvent> {
   public async perform(event: CommentEvent) {
@@ -104,41 +104,14 @@ export default class CommentCreatedNotificationsTask extends BaseTask<CommentEve
         continue;
       }
 
-      const usersFromMentionedGroup = await GroupUser.findAll({
-        where: {
+      // Schedule a separate task to handle group member notifications
+      await new GroupMentionedInCommentNotificationsTask().schedule({
+        ...event,
+        data: {
           groupId: group.modelId,
+          actorId: group.actorId ?? event.actorId,
         },
-        order: [["permission", "ASC"]],
       });
-
-      const mentionedUser: string[] = [];
-      for (const user of usersFromMentionedGroup) {
-        if (mentionedUser.includes(user.userId)) {
-          continue;
-        }
-
-        const recipient = await User.findByPk(user.userId);
-        if (
-          recipient &&
-          recipient.id !== group.actorId &&
-          recipient.subscribedToEventType(
-            NotificationEventType.GroupMentionedInComment
-          ) &&
-          (await canUserAccessDocument(recipient, document.id))
-        ) {
-          await Notification.create({
-            event: NotificationEventType.GroupMentionedInComment,
-            groupId: group.modelId,
-            userId: recipient.id,
-            actorId: group.actorId,
-            teamId: document.teamId,
-            documentId: document.id,
-            commentId: comment.id,
-          });
-
-          mentionedUser.push(user.userId);
-        }
-      }
 
       mentionedGroup.push(group.modelId);
     }
