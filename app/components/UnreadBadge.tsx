@@ -8,5 +8,5 @@ export const UnreadBadge = styled.div`
   border-radius: 8px;
   align-self: center;
   position: absolute;
-  right: 4px;
+  right: 12px;
 `;
