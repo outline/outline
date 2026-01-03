@@ -216,12 +216,9 @@ const Actions = styled(EventBoundary)`
   flex-grow: 0;
   color: ${s("textSecondary")};
 
-  ${NudeButton} {
-    &:
-      ${hover},
-      &[aria-expanded= "true"] {
-      background: ${s("sidebarControlHoverBackground")};
-    }
+  ${NudeButton}:${hover},
+  ${NudeButton}[aria-expanded= "true"] {
+    background: ${s("sidebarControlHoverBackground")};
   }
 
   ${breakpoint("tablet")`
