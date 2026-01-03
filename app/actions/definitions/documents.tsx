@@ -506,7 +506,6 @@ export const shareDocument = createAction({
     }
 
     stores.dialogs.openModal({
-      style: { marginBottom: -12 },
       title: t("Share this document"),
       content: (
         <SharePopover
