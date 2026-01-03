@@ -87,7 +87,7 @@ function NotificationListItem({ notification, onNavigate }: Props) {
               />
             )}
           </Flex>
-          {notification.viewedAt ? null : <UnreadBadge style={{ right: 12 }} />}
+          {notification.viewedAt ? null : <UnreadBadge />}
         </Container>
       </StyledLink>
     </ContextMenu>
