@@ -207,6 +207,7 @@ This is a test paragraph
 A new paragraph
 
 - list item 1
+- list item 2
 
 This is a new paragraph.
 
@@ -245,9 +246,9 @@ same on both sides`,
       // removed
       expect(html).toContain("Content in an info block");
 
-      // unchanged (retained as context by new diff algorithm)
-      expect(html).toContain("same on both sides");
-      expect(html).toContain("this is a highlight");
+      // unchanged
+      expect(html).not.toContain("same on both sides");
+      expect(html).not.toContain("this is a highlight");
     });
 
     it("should render diff for mark changes", async () => {

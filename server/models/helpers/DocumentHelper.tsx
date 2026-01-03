@@ -427,7 +427,7 @@ export class DocumentHelper {
       if (
         childNode.nodeName === "P" &&
         childNode.textContent &&
-        childNode.nextElementSibling &&
+        childNode.nextElementSibling?.nodeName === "P" &&
         containsDiffElement(childNode.nextElementSibling)
       ) {
         if (previousDiffClipped) {
@@ -439,7 +439,7 @@ export class DocumentHelper {
       if (
         childNode.nodeName === "P" &&
         childNode.textContent &&
-        childNode.previousElementSibling &&
+        childNode.previousElementSibling?.nodeName === "P" &&
         containsDiffElement(childNode.previousElementSibling)
       ) {
         previousNodeRemoved = false;

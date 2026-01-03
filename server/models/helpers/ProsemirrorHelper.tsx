@@ -604,7 +604,11 @@ export class ProsemirrorHelper {
 
       return output;
     } finally {
-      view?.destroy();
+      try {
+        view?.destroy();
+      } catch (err) {
+        Logger.error("Error destroying ProseMirror view", err);
+      }
       cleanupEnv?.();
     }
   }
