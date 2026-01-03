@@ -1,7 +1,16 @@
 /**
- * Is true if we're running in the browser.
+ * Is true if we're running in the browser. Note that this will return true when rendering on the server
+ * with a tool like JSDOM as we patch the global window object.
  */
 export const isBrowser = typeof window !== "undefined";
+
+/**
+ * Is true when running on the server, always.
+ */
+export const isNode =
+  typeof process !== "undefined" &&
+  process.versions !== null &&
+  process.versions.node !== null;
 
 /**
  * Is true if the browser is running as an installed PWA on mobile or desktop

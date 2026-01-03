@@ -81,4 +81,10 @@ export class EditorStyleHelper {
 
   /** Table of contents width */
   static readonly tocWidth = 256;
+
+  /** Width of the document content area */
+  static readonly documentWidth = "52em";
+
+  /** Gutter width for the document (for decorations, etc) */
+  static readonly documentGutter = "88px";
 }

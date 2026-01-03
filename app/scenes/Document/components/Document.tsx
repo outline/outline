@@ -652,7 +652,7 @@ const Main = styled.div<MainProps>`
         ? tocPosition === TOCPosition.Left
           ? `${EditorStyleHelper.tocWidth}px minmax(0, 1fr)`
           : `minmax(0, 1fr) ${EditorStyleHelper.tocWidth}px`
-        : `1fr minmax(0, ${`calc(46em + 88px)`}) 1fr`};
+        : `1fr minmax(0, ${`calc(46em + ${EditorStyleHelper.documentGutter})`}) 1fr`};
   `};
 
   ${breakpoint("desktopLarge")`
@@ -661,7 +661,7 @@ const Main = styled.div<MainProps>`
         ? tocPosition === TOCPosition.Left
           ? `${EditorStyleHelper.tocWidth}px minmax(0, 1fr)`
           : `minmax(0, 1fr) ${EditorStyleHelper.tocWidth}px`
-        : `1fr minmax(0, ${`calc(52em + 88px)`}) 1fr`};
+        : `1fr minmax(0, ${`calc(${EditorStyleHelper.documentWidth} + ${EditorStyleHelper.documentGutter})`}) 1fr`};
   `};
 `;
 
