@@ -419,7 +419,6 @@ const emailStyle = (props: Props) => css`
     border-radius: 8px;
     padding: 6px 8px;
   }
-
   .image > img {
     width: auto;
     height: auto;
@@ -1121,6 +1120,12 @@ h6:not(.placeholder)::before {
   }
 }
 
+.ProseMirror.exported {
+  .heading-fold {
+    display: none;
+  }
+}
+
 .heading-anchor {
   box-sizing: border-box;
 }
@@ -1703,8 +1708,24 @@ mark {
     height: 0;
     overflow: hidden;
     margin: -0.5em 0 0 0;
+
     & + .mermaid-diagram-wrapper {
       cursor: zoom-in;
+    }
+}
+
+.ProseMirror.exported {
+    .code-block[data-language=mermaidjs] {
+        height: auto;
+        overflow: visible;
+
+        &::after {
+          display: none;
+        }
+    }
+
+    .mermaid-diagram-wrapper {
+        display: none;
     }
 }
 
@@ -2243,21 +2264,6 @@ table {
 del {
   color: ${props.theme.slate};
   text-decoration: strikethrough;
-}
-
-// TODO: Remove once old email diff rendering is removed.
-ins[data-operation-index] {
-  color: ${props.theme.textDiffInserted};
-  background-color: ${props.theme.textDiffInsertedBackground};
-  text-decoration: none;
-}
-del[data-operation-index] {
-  color: ${props.theme.textDiffDeleted};
-  background-color: ${props.theme.textDiffDeletedBackground};
-  text-decoration: none;
-  img {
-    opacity: 0.5;
-  }
 }
 
 @media print {

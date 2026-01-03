@@ -3,6 +3,10 @@ import { Node, Fragment } from "prosemirror-model";
 import ukkonen from "ukkonen";
 import { updateYFragment, yDocToProsemirrorJSON } from "y-prosemirror";
 import * as Y from "yjs";
+import {
+  ChangesetHelper,
+  type ExtendedChange,
+} from "@shared/editor/lib/ChangesetHelper";
 import textBetween from "@shared/editor/lib/textBetween";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import type { NavigationNode, ProsemirrorData } from "@shared/types";
@@ -12,7 +16,6 @@ import { parser, serializer, schema } from "@server/editor";
 import { addTags } from "@server/logging/tracer";
 import { trace } from "@server/logging/tracing";
 import { Collection, Document, Revision } from "@server/models";
-import diff from "@server/utils/diff";
 import type { MentionAttrs } from "./ProsemirrorHelper";
 import { ProsemirrorHelper } from "./ProsemirrorHelper";
 import { TextHelper } from "./TextHelper";
@@ -35,6 +38,8 @@ type HTMLOptions = {
   signedUrls?: boolean | number;
   /** The base URL to use for relative links */
   baseUrl?: string;
+  /** Changes to highlight in the document */
+  changes?: readonly ExtendedChange[];
 };
 
 @trace()
@@ -212,6 +217,7 @@ export class DocumentHelper {
       includeHead: options?.includeHead,
       centered: options?.centered,
       baseUrl: options?.baseUrl,
+      changes: options?.changes,
     });
 
     addTags({
@@ -277,7 +283,7 @@ export class DocumentHelper {
   static async diff(
     before: Document | Revision | null,
     after: Revision,
-    { signedUrls, ...options }: HTMLOptions = {}
+    options: HTMLOptions = {}
   ) {
     addTags({
       beforeId: before?.id,
@@ -286,44 +292,17 @@ export class DocumentHelper {
     });
 
     if (!before) {
-      return await DocumentHelper.toHTML(after, { ...options, signedUrls });
+      return await DocumentHelper.toHTML(after, options);
     }
 
-    const beforeHTML = await DocumentHelper.toHTML(before, options);
-    const afterHTML = await DocumentHelper.toHTML(after, options);
-    const beforeDOM = new JSDOM(beforeHTML);
-    const afterDOM = new JSDOM(afterHTML);
+    const beforeJSON = await DocumentHelper.toJSON(before);
+    const afterJSON = await DocumentHelper.toJSON(after);
+    const changeset = ChangesetHelper.getChangeset(afterJSON, beforeJSON);
 
-    // Extract the content from the article tag and diff the HTML, we don't
-    // care about the surrounding layout and stylesheets.
-    let diffedContentAsHTML = diff(
-      beforeDOM.window.document.getElementsByTagName("article")[0].innerHTML,
-      afterDOM.window.document.getElementsByTagName("article")[0].innerHTML
-    );
-
-    // Sign only the URLS in the diffed content
-    if (signedUrls) {
-      const teamId =
-        before instanceof Document
-          ? before.teamId
-          : (await before.$get("document"))?.teamId;
-
-      if (teamId) {
-        diffedContentAsHTML = await TextHelper.attachmentsToSignedUrls(
-          diffedContentAsHTML,
-          teamId,
-          typeof signedUrls === "number" ? signedUrls : undefined
-        );
-      }
-    }
-
-    // Inject the diffed content into the original document with styling and
-    // serialize back to a string.
-    const article = beforeDOM.window.document.querySelector("article");
-    if (article) {
-      article.innerHTML = diffedContentAsHTML;
-    }
-    return beforeDOM.serialize();
+    return DocumentHelper.toHTML(after, {
+      ...options,
+      changes: changeset ? changeset.changes : undefined,
+    });
   }
 
   /**
@@ -350,8 +329,26 @@ export class DocumentHelper {
     const dom = new JSDOM(html);
     const doc = dom.window.document;
 
-    const containsDiffElement = (node: Element | null) =>
-      node && node.innerHTML.includes("data-operation-index");
+    const containsDiffElement = (node: Element | null) => {
+      if (!node) {
+        return false;
+      }
+
+      const diffClasses = [
+        EditorStyleHelper.diffInsertion,
+        EditorStyleHelper.diffDeletion,
+        EditorStyleHelper.diffModification,
+        EditorStyleHelper.diffNodeInsertion,
+        EditorStyleHelper.diffNodeDeletion,
+        EditorStyleHelper.diffNodeModification,
+      ];
+
+      return diffClasses.some(
+        (className) =>
+          node.classList.contains(className) ||
+          node.querySelector(`.${className}`)
+      );
+    };
 
     // The diffing lib isn't able to catch all changes currently, e.g. changing
     // the type of a mark will result in an empty diff.
