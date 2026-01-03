@@ -29,7 +29,7 @@ type Props = {
   invitedInSession: string[];
 };
 
-function DocumentMembersList({ document, invitedInSession }: Props) {
+function DocumentMemberList({ document, invitedInSession }: Props) {
   const { userMemberships, groupMemberships } = useStores();
 
   const user = useCurrentUser();
@@ -211,4 +211,4 @@ const StyledLink = styled(Link)`
   text-decoration: underline;
 `;
 
-export default observer(DocumentMembersList);
+export default observer(DocumentMemberList);
