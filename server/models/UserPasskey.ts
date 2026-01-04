@@ -16,6 +16,8 @@ class UserPasskey extends IdModel<
   InferAttributes<UserPasskey>,
   Partial<InferCreationAttributes<UserPasskey>>
 > {
+  static eventNamespace = "passkeys";
+
   @Column(DataType.TEXT)
   credentialId: string;
 
@@ -29,7 +31,7 @@ class UserPasskey extends IdModel<
   transports: string[];
 
   @Column(DataType.TEXT)
-  name: string | null;
+  name: string;
 
   @Column(DataType.TEXT)
   userAgent: string | null;

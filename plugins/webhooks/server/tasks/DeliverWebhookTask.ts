@@ -246,6 +246,11 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       case "oauthClients.delete":
         // Ignored
         return;
+      case "passkeys.create":
+      case "passkeys.update":
+      case "passkeys.delete":
+        // Ignored
+        return;
       default:
         assertUnreachable(event);
     }
