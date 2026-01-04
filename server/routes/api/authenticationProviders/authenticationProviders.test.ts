@@ -135,7 +135,7 @@ describe("#authenticationProviders.list", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.length).toBe(3);
+    expect(body.data.length).toBe(4);
     expect(body.data[0].name).toBe("slack");
     expect(body.data[0].isEnabled).toBe(true);
     expect(body.data[0].isConnected).toBe(true);

@@ -104,7 +104,7 @@ export const RevisionValidation = {
   maxNameLength: 255,
 };
 
-export const PasskeyValidation = {
+export const UserPasskeyValidation = {
   minNameLength: 1,
   maxNameLength: 255,
 };

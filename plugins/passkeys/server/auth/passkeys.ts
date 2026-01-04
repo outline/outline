@@ -202,18 +202,11 @@ router.post(
           include: [{ model: Team, as: "team", required: true }],
         },
       ],
+      rejectOnEmpty: true,
     });
-
-    if (!passkey || !passkey.user) {
-      throw ValidationError("Passkey not found");
-    }
 
     const user = passkey.user;
     const team = user.team;
-
-    if (!team) {
-      throw ValidationError("Team not found");
-    }
 
     let verification;
     try {

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { BaseSchema } from "@server/routes/api/schema";
-import { PasskeyValidation } from "@shared/validations";
+import { UserPasskeyValidation } from "@shared/validations";
 
 export const PasskeysListSchema = BaseSchema.extend({
   body: z.object({}),
@@ -22,8 +22,8 @@ export const PasskeysUpdateSchema = BaseSchema.extend({
     name: z
       .string()
       .trim()
-      .min(PasskeyValidation.minNameLength)
-      .max(PasskeyValidation.maxNameLength),
+      .min(UserPasskeyValidation.minNameLength)
+      .max(UserPasskeyValidation.maxNameLength),
   }),
 });
 

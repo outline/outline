@@ -202,22 +202,3 @@ export function generatePasskeyName(
 
   return parts.join(" ");
 }
-
-/**
- * Formats a passkey name with a creation date for uniqueness.
- *
- * @param baseName the base name for the passkey.
- * @param createdAt the creation date of the passkey.
- * @returns formatted passkey name with date.
- */
-export function formatPasskeyNameWithDate(
-  baseName: string,
-  createdAt: Date
-): string {
-  const date = createdAt.toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-  return `${baseName} - ${date}`;
-}
