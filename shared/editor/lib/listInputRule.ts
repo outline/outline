@@ -27,7 +27,7 @@ export function listWrappingInputRule(
     }
 
     // Otherwise, execute the original wrappingInputRule handler
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     return (rule as any).handler(state, match, start, end);
   });
 }

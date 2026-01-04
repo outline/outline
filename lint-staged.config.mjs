@@ -1,5 +1,5 @@
 export default {
-  // Run prettier first for formatting, then oxlint for linting, and translation updates on changes to JS and
+  // Run prettier first for formatting, then oxlint for linting, then eslint for unused imports, and translation updates on changes to JS and
   // TypeScript files
   "**/*.[tj]s?(x)": [
     (f) => `prettier --write ${f.join(" ")}`,
@@ -7,6 +7,7 @@ export default {
       f.length > 20
         ? `yarn lint --fix`
         : `oxlint ${f.join(" ")} --fix --type-aware`,
+    (f) => `eslint ${f.join(" ")} --fix`,
     () => `yarn build:i18n`,
     () => "git add shared/i18n/locales/en_US/translation.json",
   ],
