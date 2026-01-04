@@ -1,13 +1,7 @@
 import invariant from "invariant";
 import { Op } from "sequelize";
 import { MentionType, NotificationEventType } from "@shared/types";
-import {
-  Comment,
-  Document,
-  Group,
-  Notification,
-  User,
-} from "@server/models";
+import { Comment, Document, Group, Notification, User } from "@server/models";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import type { CommentEvent, CommentUpdateEvent } from "@server/types";
 import { canUserAccessDocument } from "@server/utils/permissions";

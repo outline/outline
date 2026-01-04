@@ -1,7 +1,4 @@
-import type {
-  InferAttributes,
-  InferCreationAttributes,
-} from "sequelize";
+import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
   BelongsTo,
   Column,
@@ -30,6 +27,12 @@ class UserPasskey extends IdModel<
 
   @Column(DataType.ARRAY(DataType.STRING))
   transports: string[];
+
+  @Column(DataType.TEXT)
+  name: string | null;
+
+  @Column(DataType.TEXT)
+  userAgent: string | null;
 
   // associations
 

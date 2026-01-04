@@ -14,6 +14,7 @@ PluginManager.add([
     type: Hook.Settings,
     value: {
       group: "Account",
+      after: "Notifications",
       icon: PadlockIcon,
       description:
         "Manage your passkeys for passwordless authentication using biometrics or security keys.",

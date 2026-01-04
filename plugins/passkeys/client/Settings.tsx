@@ -13,9 +13,14 @@ import Time from "~/components/Time";
 import useStores from "~/hooks/useStores";
 import { client } from "~/utils/ApiClient";
 import SettingRow from "~/scenes/Settings/components/SettingRow";
+import PasskeyIcon from "./components/PasskeyIcon";
+import RenamePasskeyDialog from "./components/RenamePasskeyDialog";
 
 type Passkey = {
   id: string;
+  name: string | null;
+  userAgent: string | null;
+  transports: string[];
   createdAt: string;
   updatedAt: string;
 };
@@ -47,10 +52,16 @@ function PasskeysSettings() {
     setIsRegistering(true);
     try {
       const resp = await client.post(
-        "/auth/passkeys.generate-registration-options"
+        "/passkeys.generate-registration-options",
+        undefined,
+        {
+          baseUrl: "/auth",
+        }
       );
       const attResp = await startRegistration(resp.data);
-      await client.post("/auth/passkeys.verify-registration", attResp as any);
+      await client.post("/passkeys.verify-registration", attResp as any, {
+        baseUrl: "/auth",
+      });
       toast.success(t("Passkey added successfully"));
       await loadPasskeys();
     } catch (err) {
@@ -60,6 +71,22 @@ function PasskeysSettings() {
     } finally {
       setIsRegistering(false);
     }
+  };
+
+  const handleRename = (passkeyId: string, currentName: string | null) => {
+    dialogs.openModal({
+      title: t("Rename passkey"),
+      content: (
+        <RenamePasskeyDialog
+          passkeyId={passkeyId}
+          currentName={currentName}
+          onSuccess={async () => {
+            await loadPasskeys();
+            dialogs.closeAllModals();
+          }}
+        />
+      ),
+    });
   };
 
   const handleDelete = (passkeyId: string) => {
@@ -115,7 +142,16 @@ function PasskeysSettings() {
             <SettingRow
               key={pk.id}
               name={`passkey-${pk.id}`}
-              label={t("Passkey")}
+              label={
+                <>
+                  <PasskeyIcon
+                    transports={pk.transports}
+                    userAgent={pk.userAgent}
+                    size={20}
+                  />{" "}
+                  {pk.name || t("Passkey")}
+                </>
+              }
               description={
                 <>
                   {t("Registered")}{" "}
@@ -123,6 +159,13 @@ function PasskeysSettings() {
                 </>
               }
             >
+              <Button
+                onClick={() => handleRename(pk.id, pk.name)}
+                disabled={deletingId === pk.id}
+                neutral
+              >
+                {t("Rename")}
+              </Button>
               <Button
                 onClick={() => handleDelete(pk.id)}
                 disabled={deletingId === pk.id}

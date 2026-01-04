@@ -17,6 +17,7 @@ import {
   PlusIcon,
   InternetIcon,
   SmileyIcon,
+  BuildingBlocksIcon,
 } from "outline-icons";
 import type { ComponentProps } from "react";
 import { useEffect } from "react";
@@ -110,7 +111,7 @@ const useSettingsConfig = () => {
         preload: APIAndApps.preload,
         enabled: true,
         group: t("Account"),
-        icon: PadlockIcon,
+        icon: BuildingBlocksIcon,
       },
       // Workspace
       {

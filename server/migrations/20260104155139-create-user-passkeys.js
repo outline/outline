@@ -1,13 +1,21 @@
-'use strict';
+"use strict";
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('user_passkeys', {
+    await queryInterface.createTable("user_passkeys", {
       id: {
         type: Sequelize.UUID,
         allowNull: false,
         primaryKey: true,
+      },
+      name: {
+        type: Sequelize.TEXT,
+        allowNull: false,
+      },
+      userAgent: {
+        type: Sequelize.TEXT,
+        allowNull: true,
       },
       credentialId: {
         type: Sequelize.TEXT,
@@ -31,10 +39,10 @@ module.exports = {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: 'users',
-          key: 'id',
+          model: "users",
+          key: "id",
         },
-        onDelete: 'CASCADE',
+        onDelete: "CASCADE",
       },
       createdAt: {
         type: Sequelize.DATE,
@@ -46,13 +54,13 @@ module.exports = {
       },
     });
 
-    await queryInterface.addIndex('user_passkeys', ['userId']);
-    await queryInterface.addIndex('user_passkeys', ['credentialId'], {
+    await queryInterface.addIndex("user_passkeys", ["userId"]);
+    await queryInterface.addIndex("user_passkeys", ["credentialId"], {
       unique: true,
     });
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('user_passkeys');
+    await queryInterface.dropTable("user_passkeys");
   },
 };

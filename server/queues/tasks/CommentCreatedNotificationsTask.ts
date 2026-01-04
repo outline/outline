@@ -5,13 +5,7 @@ import {
 } from "@shared/types";
 import subscriptionCreator from "@server/commands/subscriptionCreator";
 import { createContext } from "@server/context";
-import {
-  Comment,
-  Document,
-  Group,
-  Notification,
-  User,
-} from "@server/models";
+import { Comment, Document, Group, Notification, User } from "@server/models";
 import NotificationHelper from "@server/models/helpers/NotificationHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { sequelize } from "@server/storage/database";

@@ -70,19 +70,27 @@ function AuthenticationProvider(props: Props) {
     const handlePasskeyClick = async () => {
       try {
         const resp = await client.post(
-          window.location.origin +
-            "/auth/passkeys.generate-authentication-options"
+          "/passkeys.generate-authentication-options",
+          undefined,
+          {
+            baseUrl: "/auth",
+          }
         );
         const { challengeId, ...optionsData } = resp.data;
         const authResp = await startAuthentication(optionsData);
-        const verifyResp = await client.post(
-          window.location.origin + "/auth/passkeys.verify-authentication",
-          { ...authResp, challengeId } as any
+
+        // Verify authentication with server
+        await client.post(
+          `/passkeys.verify-authentication?client=${clientType}`,
+          { ...authResp, challengeId } as any,
+          {
+            baseUrl: "/auth",
+          }
         );
 
-        if (verifyResp.data.verified) {
-          window.location.reload();
-        }
+        // After successful authentication, the server will have set cookies
+        // Reload to let the app detect the authenticated state
+        window.location.reload();
       } catch (err) {
         toast.error(err.message);
       }
@@ -91,7 +99,7 @@ function AuthenticationProvider(props: Props) {
     return (
       <ButtonLarge
         onClick={handlePasskeyClick}
-        icon={<PluginIcon id={id} />}
+        icon={<PluginIcon id={id} color="currentColor" />}
         fullwidth
         {...rest}
       >

@@ -9,13 +9,19 @@ import type { AuthenticatorTransportFuture } from "@simplewebauthn/server";
 import Router from "koa-router";
 import type { Context } from "koa";
 import { randomBytes } from "crypto";
-import { User, UserPasskey } from "@server/models";
+import { addMonths } from "date-fns";
+import { Client } from "@shared/types";
+import { User, UserPasskey, Team, Event } from "@server/models";
 import auth from "@server/middlewares/authentication";
+import validate from "@server/middlewares/validate";
 import env from "@server/env";
 import { ValidationError } from "@server/errors";
 import type { APIContext } from "@server/types";
+import { AuthenticationType } from "@server/types";
 import Logger from "@server/logging/Logger";
 import Redis from "@server/storage/redis";
+import { generatePasskeyName } from "@shared/utils/passkeys";
+import * as T from "./schema";
 
 const router = new Router();
 const rpName = env.APP_NAME;
@@ -60,171 +66,221 @@ router.post(
   }
 );
 
-router.post("passkeys.verify-registration", auth(), async (ctx: APIContext) => {
-  const user = ctx.state.auth.user;
-  const body = ctx.request.body;
+router.post(
+  "passkeys.verify-registration",
+  auth(),
+  validate(T.PasskeysVerifyRegistrationSchema),
+  async (ctx: APIContext<T.PasskeysVerifyRegistrationReq>) => {
+    const user = ctx.state.auth.user;
+    const body = ctx.input.body;
 
-  // Retrieve challenge from Redis
-  const challengeKey = `passkey:reg-challenge:${user.id}`;
-  const expectedChallenge = await Redis.defaultClient.get(challengeKey);
+    // Retrieve challenge from Redis
+    const challengeKey = `passkey:reg-challenge:${user.id}`;
+    const expectedChallenge = await Redis.defaultClient.get(challengeKey);
 
-  if (!expectedChallenge) {
-    throw ValidationError(
-      "No registration challenge found or challenge expired"
-    );
-  }
-
-  let verification;
-  try {
-    verification = await verifyRegistrationResponse({
-      response: body,
-      expectedChallenge,
-      expectedOrigin: `${ctx.protocol}://${ctx.request.host}`, // Origin includes port
-      expectedRPID: getRpID(ctx as any),
-    });
-  } catch (error) {
-    const err = error instanceof Error ? error : new Error(String(error));
-    Logger.error("passkeys: Registration verification failed", err);
-    throw ValidationError(err.message);
-  }
-
-  const { verified, registrationInfo } = verification;
-
-  if (verified && registrationInfo) {
-    const { credential } = registrationInfo;
-    // credential.id is already a Base64URL string
-    const credentialIdBase64 = credential.id;
-    const credentialPublicKey = credential.publicKey;
-    const counter = credential.counter;
-
-    // Check if already exists
-    const existing = await UserPasskey.findOne({
-      where: { credentialId: credentialIdBase64 },
-    });
-
-    if (existing) {
-      if (existing.userId !== user.id) {
-        throw ValidationError("Passkey already registered to another user");
-      }
-      // Update existing? Or just return success.
-      existing.credentialPublicKey = Buffer.from(credentialPublicKey);
-      existing.counter = counter;
-      await existing.save();
-    } else {
-      await UserPasskey.create({
-        userId: user.id,
-        credentialId: credentialIdBase64,
-        credentialPublicKey: Buffer.from(credentialPublicKey),
-        counter,
-        transports: body.response.transports || [],
-      });
+    if (!expectedChallenge) {
+      throw ValidationError(
+        "No registration challenge found or challenge expired"
+      );
     }
 
-    // Delete challenge from Redis
-    await Redis.defaultClient.del(challengeKey);
-    ctx.body = { data: { verified: true } };
-  } else {
-    throw ValidationError("Verification failed");
+    let verification;
+    try {
+      verification = await verifyRegistrationResponse({
+        response: body,
+        expectedChallenge,
+        expectedOrigin: `${ctx.protocol}://${ctx.request.host}`, // Origin includes port
+        expectedRPID: getRpID(ctx as any),
+      });
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      Logger.error("passkeys: Registration verification failed", err);
+      throw ValidationError(err.message);
+    }
+
+    const { verified, registrationInfo } = verification;
+
+    if (verified && registrationInfo) {
+      const { credential } = registrationInfo;
+      // credential.id is already a Base64URL string
+      const credentialIdBase64 = credential.id;
+      const credentialPublicKey = credential.publicKey;
+      const counter = credential.counter;
+
+      // Capture user agent and generate friendly name
+      const userAgent = ctx.request.get("user-agent");
+      const transports = body.response.transports || [];
+      const name = generatePasskeyName(userAgent, transports);
+
+      // Check if already exists
+      const existing = await UserPasskey.findOne({
+        where: { credentialId: credentialIdBase64 },
+      });
+
+      if (existing) {
+        if (existing.userId !== user.id) {
+          throw ValidationError("Passkey already registered to another user");
+        }
+        // Update existing? Or just return success.
+        existing.credentialPublicKey = Buffer.from(credentialPublicKey);
+        existing.counter = counter;
+        existing.name = name;
+        existing.userAgent = userAgent;
+        await existing.saveWithCtx(ctx);
+      } else {
+        await UserPasskey.createWithCtx(ctx, {
+          userId: user.id,
+          credentialId: credentialIdBase64,
+          credentialPublicKey: Buffer.from(credentialPublicKey),
+          counter,
+          transports,
+          name,
+          userAgent,
+        });
+      }
+
+      // Delete challenge from Redis
+      await Redis.defaultClient.del(challengeKey);
+      ctx.body = { data: { verified: true } };
+    } else {
+      throw ValidationError("Verification failed");
+    }
   }
-});
+);
 
 // --- Authentication ---
 
-router.post("passkeys.generate-authentication-options", async (ctx: any) => {
-  const options = await generateAuthenticationOptions({
-    rpID: getRpID(ctx as any),
-    userVerification: "preferred",
-  });
+router.post(
+  "passkeys.generate-authentication-options",
+  validate(T.PasskeysGenerateAuthenticationOptionsSchema),
+  async (ctx: APIContext<T.PasskeysGenerateAuthenticationOptionsReq>) => {
+    const options = await generateAuthenticationOptions({
+      rpID: getRpID(ctx as any),
+      userVerification: "preferred",
+    });
 
-  // Generate a unique challenge ID for this authentication attempt
-  const challengeId = randomBytes(32).toString("hex");
-  const challengeKey = `passkey:auth-challenge:${challengeId}`;
-  await Redis.defaultClient.set(
-    challengeKey,
-    options.challenge,
-    "PX",
-    CHALLENGE_EXPIRY * 1000
-  );
-
-  ctx.body = { data: { ...options, challengeId } };
-});
-
-router.post("passkeys.verify-authentication", async (ctx: any) => {
-  const body = ctx.request.body;
-  const { challengeId } = body;
-
-  if (!challengeId) {
-    throw ValidationError("Challenge ID is required");
-  }
-
-  // Retrieve challenge from Redis
-  const challengeKey = `passkey:auth-challenge:${challengeId}`;
-  const expectedChallenge = await Redis.defaultClient.get(challengeKey);
-
-  if (!expectedChallenge) {
-    throw ValidationError(
-      "No authentication challenge found or challenge expired"
+    // Generate a unique challenge ID for this authentication attempt
+    const challengeId = randomBytes(32).toString("hex");
+    const challengeKey = `passkey:auth-challenge:${challengeId}`;
+    await Redis.defaultClient.set(
+      challengeKey,
+      options.challenge,
+      "PX",
+      CHALLENGE_EXPIRY * 1000
     );
+
+    ctx.body = { data: { ...options, challengeId } };
   }
+);
 
-  const credentialId = body.id;
-  const passkey = await UserPasskey.findOne({
-    where: { credentialId },
-    include: [{ model: User, as: "user" }],
-  });
+router.post(
+  "passkeys.verify-authentication",
+  validate(T.PasskeysVerifyAuthenticationSchema),
+  async (ctx: APIContext<T.PasskeysVerifyAuthenticationReq>) => {
+    const body = ctx.input.body;
+    const { challengeId } = body;
 
-  if (!passkey || !passkey.user) {
-    throw ValidationError("Passkey not found");
-  }
+    if (!challengeId) {
+      throw ValidationError("Challenge ID is required");
+    }
 
-  const user = passkey.user;
+    // Retrieve challenge from Redis
+    const challengeKey = `passkey:auth-challenge:${challengeId}`;
+    const expectedChallenge = await Redis.defaultClient.get(challengeKey);
 
-  let verification;
-  try {
-    verification = await verifyAuthenticationResponse({
-      response: body,
-      expectedChallenge,
-      expectedOrigin: `${ctx.protocol}://${ctx.request.host}`,
-      expectedRPID: getRpID(ctx as any),
-      credential: {
-        id: passkey.credentialId,
-        publicKey: new Uint8Array(passkey.credentialPublicKey),
-        counter: passkey.counter,
-        transports: passkey.transports as AuthenticatorTransportFuture[],
-      },
-    });
-  } catch (error) {
-    const err = error instanceof Error ? error : new Error(String(error));
-    Logger.error("passkeys: Authentication verification failed", err);
-    throw ValidationError(err.message);
-  }
+    if (!expectedChallenge) {
+      throw ValidationError(
+        "No authentication challenge found or challenge expired"
+      );
+    }
 
-  const { verified, authenticationInfo } = verification;
-
-  if (verified && authenticationInfo) {
-    // Update counter
-    passkey.counter = authenticationInfo.newCounter;
-    await passkey.save();
-
-    // Log in user
-    await user.updateSignedIn(ctx);
-
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 90); // 90 days
-
-    ctx.cookies.set("accessToken", user.getJwtToken(expiresAt), {
-      sameSite: "lax",
-      expires: expiresAt,
-      httpOnly: false, // Outline client reads this
+    const credentialId = body.id;
+    const passkey = await UserPasskey.findOne({
+      where: { credentialId },
+      include: [
+        {
+          model: User,
+          as: "user",
+          include: [{ model: Team, as: "team", required: true }],
+        },
+      ],
     });
 
-    // Delete challenge from Redis
-    await Redis.defaultClient.del(challengeKey);
+    if (!passkey || !passkey.user) {
+      throw ValidationError("Passkey not found");
+    }
 
-    ctx.body = { data: { verified: true } };
-  } else {
-    throw ValidationError("Verification failed");
+    const user = passkey.user;
+    const team = user.team;
+
+    if (!team) {
+      throw ValidationError("Team not found");
+    }
+
+    let verification;
+    try {
+      verification = await verifyAuthenticationResponse({
+        response: body,
+        expectedChallenge,
+        expectedOrigin: `${ctx.protocol}://${ctx.request.host}`,
+        expectedRPID: getRpID(ctx as any),
+        credential: {
+          id: passkey.credentialId,
+          publicKey: new Uint8Array(passkey.credentialPublicKey),
+          counter: passkey.counter,
+          transports: passkey.transports as AuthenticatorTransportFuture[],
+        },
+      });
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      Logger.error("passkeys: Authentication verification failed", err);
+      throw ValidationError(err.message);
+    }
+
+    const { verified, authenticationInfo } = verification;
+
+    if (verified && authenticationInfo) {
+      // Update counter
+      passkey.counter = authenticationInfo.newCounter;
+      await passkey.save();
+
+      // Delete challenge from Redis
+      await Redis.defaultClient.del(challengeKey);
+
+      // Update user sign-in timestamp
+      await user.updateSignedIn(ctx);
+
+      // Create sign-in event
+      await Event.createFromContext(
+        ctx,
+        {
+          name: "users.signin",
+          userId: user.id,
+          authType: AuthenticationType.APP,
+          data: {
+            name: user.name,
+            service: "passkeys",
+          },
+        },
+        {
+          actorId: user.id,
+          teamId: team.id,
+        }
+      );
+
+      // Set authentication cookie
+      const expires = addMonths(new Date(), 3);
+      ctx.cookies.set("accessToken", user.getJwtToken(expires), {
+        sameSite: "lax",
+        expires,
+      });
+
+      // Return success for AJAX requests - client will reload
+      ctx.body = { data: { verified: true } };
+    } else {
+      throw ValidationError("Verification failed");
+    }
   }
-});
+);
 
 export default router;
