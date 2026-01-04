@@ -18,6 +18,7 @@ import {
   UserMembership,
   User,
   Import,
+  Template,
 } from "@server/models";
 import { cannot } from "@server/policies";
 import {
@@ -42,6 +43,37 @@ import type { Event } from "../../types";
 export default class WebsocketsProcessor {
   public async perform(event: Event, socketio: Server) {
     switch (event.name) {
+      case "templates.create":
+      case "templates.update":
+      case "templates.restore": {
+        const template = await Template.findByPk(event.modelId, {
+          paranoid: false,
+        });
+        if (!template) {
+          return;
+        }
+
+        const channels = await this.getTemplateEventChannels(event, template);
+
+        return socketio.to(channels).emit("entities", {
+          event: event.name,
+          invalidatedPolicies: [template.id],
+          templateIds: [
+            {
+              id: template.id,
+              updatedAt: template.updatedAt,
+            },
+          ],
+        });
+      }
+
+      case "templates.delete": {
+        return socketio.to(`team-${event.teamId}`).emit("entities", {
+          event: event.name,
+          modelId: event.modelId,
+        });
+      }
+
       case "documents.create":
       case "documents.publish":
       case "documents.restore": {
@@ -918,8 +950,6 @@ export default class WebsocketsProcessor {
         channels.push(
           ...this.getCollectionEventChannels(event, document.collection)
         );
-      } else if (document.isWorkspaceTemplate) {
-        channels.push(`team-${document.teamId}`);
       } else {
         channels.push(`collection-${document.collectionId}`);
       }
@@ -944,6 +974,31 @@ export default class WebsocketsProcessor {
 
     for (const membership of groupMemberships) {
       channels.push(`group-${membership.groupId}`);
+    }
+
+    return uniq(channels);
+  }
+
+  private async getTemplateEventChannels(
+    event: Event,
+    template: Template
+  ): Promise<string[]> {
+    const channels = [];
+
+    if (event.actorId) {
+      channels.push(`user-${event.actorId}`);
+    }
+
+    if (template.collectionId) {
+      if (template.collection) {
+        channels.push(
+          ...this.getCollectionEventChannels(event, template.collection)
+        );
+      } else {
+        channels.push(`collection-${template.collectionId}`);
+      }
+    } else {
+      channels.push(`team-${template.teamId}`);
     }
 
     return uniq(channels);

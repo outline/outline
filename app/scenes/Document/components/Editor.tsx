@@ -10,6 +10,7 @@ import { TeamPreference } from "@shared/types";
 import { colorPalette } from "@shared/utils/collections";
 import Comment from "~/models/Comment";
 import type Document from "~/models/Document";
+import type Template from "~/models/Template";
 import type { RefHandle } from "~/components/ContentEditable";
 import { useDocumentContext } from "~/components/DocumentContext";
 import type { Props as EditorProps } from "~/components/Editor";
@@ -43,7 +44,7 @@ type Props = Omit<EditorProps, "editorStyle"> & {
   onChangeTitle: (title: string) => void;
   onChangeIcon: (icon: string | null, color: string | null) => void;
   id: string;
-  document: Document;
+  document: Document | Template;
   isDraft: boolean;
   multiplayer?: boolean;
   onSave: (options: {
@@ -51,7 +52,7 @@ type Props = Omit<EditorProps, "editorStyle"> & {
     autosave?: boolean;
     publish?: boolean;
   }) => void;
-  children: React.ReactNode;
+  children?: React.ReactNode;
 };
 
 /**
@@ -213,23 +214,23 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
             {t("Last updated")} <Time dateTime={document.updatedAt} addSuffix />
           </SharedMeta>
         ) : null
-      ) : (
+      ) : !rest.template ? (
         <DocumentMeta
-          document={document}
+          document={document as Document}
           to={
             shareId
               ? undefined
               : {
                   pathname:
                     match.path === matchDocumentHistory
-                      ? documentPath(document)
-                      : documentHistoryPath(document),
+                      ? documentPath(document as Document)
+                      : documentHistoryPath(document as Document),
                   state: { sidebarContext },
                 }
           }
           rtl={direction === "rtl"}
         />
-      )}
+      ) : null}
       <EditorComponent
         ref={mergeRefs([ref, handleRefChanged])}
         lang={getLangFor(document.language)}

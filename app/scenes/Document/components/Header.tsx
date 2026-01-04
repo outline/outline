@@ -9,6 +9,7 @@ import useMeasure from "react-use-measure";
 import { altDisplay, metaDisplay } from "@shared/utils/keyboard";
 import type Document from "~/models/Document";
 import type Revision from "~/models/Revision";
+import type Template from "~/models/Template";
 import { Action, Separator } from "~/components/Actions";
 import Badge from "~/components/Badge";
 import Button from "~/components/Button";
@@ -20,7 +21,6 @@ import Header from "~/components/Header";
 import Star from "~/components/Star";
 import Tooltip from "~/components/Tooltip";
 import { publishDocument } from "~/actions/definitions/documents";
-import { navigateToTemplateSettings } from "~/actions/definitions/navigation";
 import { restoreRevision } from "~/actions/definitions/revisions";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -53,7 +53,7 @@ type Props = {
   isPublishing: boolean;
   publishingIsDisabled: boolean;
   savingIsDisabled: boolean;
-  onSelectTemplate: (template: Document) => void;
+  onSelectTemplate: (template: Template) => void;
   onSave: (options: {
     done?: boolean;
     publish?: boolean;
@@ -109,12 +109,10 @@ function DocumentHeader({
   }, [ui, isShare]);
 
   const can = usePolicy(document);
-  const { isDeleted, isTemplate } = document;
-  const isTemplateEditable = can.update && isTemplate;
+  const { isDeleted } = document;
   const canToggleEmbeds = team?.documentEmbeds;
   const showContents =
-    (ui.tocVisible === true && !document.isTemplate) ||
-    (isShare && ui.tocVisible !== false);
+    ui.tocVisible === true || (isShare && ui.tocVisible !== false);
 
   const toc = (
     <Tooltip
@@ -222,12 +220,12 @@ function DocumentHeader({
           isMobile ? (
             <TableOfContentsMenu />
           ) : (
-            <DocumentBreadcrumb document={document}>
-              {document.isTemplate ? null : (
-                <>
-                  {toc} <Star document={document} color={theme.textSecondary} />
-                </>
-              )}
+            <DocumentBreadcrumb document={document as Document}>
+              {toc}{" "}
+              <Star
+                document={document as Document}
+                color={theme.textSecondary}
+              />
             </DocumentBreadcrumb>
           )
         }
@@ -257,24 +255,21 @@ function DocumentHeader({
                 limit={isCompact ? 3 : undefined}
               />
             )}
-            {(isEditing || !user?.separateEditMode) &&
-              !isTemplate &&
-              isNew &&
-              can.update && (
-                <Action>
-                  <TemplatesMenu
-                    isCompact={isCompact}
-                    document={document}
-                    onSelectTemplate={onSelectTemplate}
-                  />
-                </Action>
-              )}
-            {!isEditing && !isRevision && !isTemplate && can.update && (
+            {(isEditing || !user?.separateEditMode) && isNew && can.update && (
+              <Action>
+                <TemplatesMenu
+                  isCompact={isCompact}
+                  document={document as Document}
+                  onSelectTemplate={onSelectTemplate}
+                />
+              </Action>
+            )}
+            {!isEditing && !isRevision && can.update && (
               <Action>
                 <ShareButton document={document} />
               </Action>
             )}
-            {(isEditing || isTemplateEditable) && (
+            {isEditing && (
               <Action>
                 <Tooltip
                   content={t("Save")}
@@ -282,8 +277,7 @@ function DocumentHeader({
                   placement="bottom"
                 >
                   <Button
-                    action={isTemplate ? navigateToTemplateSettings : undefined}
-                    onClick={isTemplate ? undefined : handleSave}
+                    onClick={handleSave}
                     disabled={savingIsDisabled}
                     neutral={isDraft}
                     hideIcon
@@ -337,9 +331,7 @@ function DocumentHeader({
                   hideOnActionDisabled
                   hideIcon
                 >
-                  {document.collectionId || document.isWorkspaceTemplate
-                    ? t("Publish")
-                    : `${t("Publish")}…`}
+                  {t("Publish")}…
                 </Button>
               </Action>
             )}

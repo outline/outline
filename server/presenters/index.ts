@@ -26,6 +26,7 @@ import presentShare from "./share";
 import presentStar from "./star";
 import presentSubscription from "./subscription";
 import presentTeam from "./team";
+import presentTemplate from "./template";
 import presentUser from "./user";
 import presentView from "./view";
 import presentEmoji from "./emoji";
@@ -60,6 +61,7 @@ export {
   presentStar,
   presentSubscription,
   presentTeam,
+  presentTemplate,
   presentUser,
   presentView,
   presentEmoji,

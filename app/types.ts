@@ -98,6 +98,7 @@ export type ActionContext = {
   sidebarContext?: SidebarContextType;
   activeCollectionId?: string | undefined;
   activeDocumentId: string | undefined;
+  activeTemplateId?: string | undefined;
   currentUserId: string | undefined;
   currentTeamId: string | undefined;
   location: Location;

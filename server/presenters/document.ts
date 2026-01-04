@@ -96,7 +96,6 @@ async function presentDocument(
     res.updatedBy = presentUser(document.updatedBy);
     res.collaboratorIds = document.collaboratorIds;
     res.templateId = document.templateId;
-    res.template = document.template;
     res.insightsEnabled = document.insightsEnabled;
     res.popularityScore = document.popularityScore;
     res.sourceMetadata = document.sourceMetadata

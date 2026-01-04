@@ -48,6 +48,7 @@ import {
   OAuthClient,
   OAuthAuthentication,
   Relationship,
+  Template,
 } from "@server/models";
 import { RelationshipType } from "@server/models/Relationship";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
@@ -427,6 +428,52 @@ export async function buildDocument(
   }
 
   return document;
+}
+
+export async function buildTemplate(
+  overrides: Omit<Partial<Template>, "collectionId"> & {
+    userId?: string;
+    text?: string;
+    collectionId?: string | null;
+  } = {}
+) {
+  if (!overrides.teamId) {
+    const team = await buildTeam();
+    overrides.teamId = team.id;
+  }
+
+  if (!overrides.userId) {
+    const user = await buildUser({
+      teamId: overrides.teamId,
+    });
+    overrides.userId = user.id;
+  }
+
+  let collection;
+  if (overrides.collectionId === undefined) {
+    collection = await buildCollection({
+      teamId: overrides.teamId,
+      userId: overrides.userId,
+    });
+    overrides.collectionId = collection.id;
+  }
+
+  const text = overrides.text ?? "This is the text in an example template";
+  const template = await Template.create(
+    {
+      title: faker.lorem.words(4),
+      content: overrides.content ?? parser.parse(text)?.toJSON(),
+      lastModifiedById: overrides.userId,
+      createdById: overrides.userId,
+      editorVersion: "12.0.0",
+      ...overrides,
+    },
+    {
+      silent: overrides.createdAt || overrides.updatedAt ? true : false,
+    }
+  );
+
+  return template;
 }
 
 export async function buildComment(overrides: {

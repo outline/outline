@@ -3,6 +3,7 @@ import { flushSync } from "react-dom";
 import { light as defaultTheme } from "@shared/styles/theme";
 import Storage from "@shared/utils/Storage";
 import type Document from "~/models/Document";
+import type Template from "~/models/Template";
 import type { ConnectionStatus } from "~/scenes/Document/components/MultiplayerEditor";
 import { startViewTransition } from "~/utils/viewTransition";
 import type RootStore from "./RootStore";
@@ -49,6 +50,9 @@ class UiStore {
 
   @observable
   activeDocumentId: string | undefined;
+
+  @observable
+  activeTemplateId: string | undefined;
 
   @observable
   activeCollectionId?: string | null;
@@ -167,6 +171,17 @@ class UiStore {
   };
 
   @action
+  setActiveTemplate = (template: Template | string): void => {
+    if (typeof template === "string") {
+      this.activeTemplateId = template;
+      return;
+    }
+
+    this.activeTemplateId = template.id;
+    this.activeCollectionId = template.collectionId;
+  };
+
+  @action
   setMultiplayerStatus = (
     status: ConnectionStatus,
     errorCode?: number
@@ -193,6 +208,7 @@ class UiStore {
   @action
   clearActiveDocument = (): void => {
     this.activeDocumentId = undefined;
+    this.activeTemplateId = undefined;
     this.observingUserId = undefined;
 
     // Unset when navigating away from a document (e.g. to another document, home, settings, etc.)

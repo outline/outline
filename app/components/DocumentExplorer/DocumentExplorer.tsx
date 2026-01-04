@@ -19,8 +19,8 @@ import Icon from "@shared/components/Icon";
 import type { NavigationNode } from "@shared/types";
 import { isModKey } from "@shared/utils/keyboard";
 import { ancestors, descendants, flattenTree } from "@shared/utils/tree";
-import DocumentExplorerNode from "~/components/DocumentExplorerNode";
-import DocumentExplorerSearchResult from "~/components/DocumentExplorerSearchResult";
+import DocumentExplorerNode from "./DocumentExplorerNode";
+import DocumentExplorerSearchResult from "./DocumentExplorerSearchResult";
 import Flex from "~/components/Flex";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import { Outline } from "~/components/Input";
@@ -38,9 +38,17 @@ type Props = {
   items: NavigationNode[];
   /** Automatically expand to and select item with the given id */
   defaultValue?: string;
+  /** Whether to show child documents */
+  showDocuments?: boolean;
 };
 
-function DocumentExplorer({ onSubmit, onSelect, items, defaultValue }: Props) {
+function DocumentExplorer({
+  onSubmit,
+  onSelect,
+  items,
+  defaultValue,
+  showDocuments,
+}: Props) {
   const isMobile = useMobile();
   const { collections, documents } = useStores();
   const { t } = useTranslation();
@@ -216,7 +224,9 @@ function DocumentExplorer({ onSubmit, onSelect, items, defaultValue }: Props) {
   };
 
   const hasChildren = (node: number) =>
-    nodes[node].children.length > 0 || nodes[node].type === "collection";
+    nodes[node].children.length > 0 ||
+    nodes[node].type === "collection" ||
+    showDocuments !== false;
 
   const toggleCollapse = (node: number) => {
     if (!hasChildren(node)) {

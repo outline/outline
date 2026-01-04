@@ -11,15 +11,15 @@ import useStores from "~/hooks/useStores";
 import { newDocumentPath } from "~/utils/routeHelpers";
 
 const useTemplatesAction = () => {
-  const { documents } = useStores();
+  const { templates } = useStores();
 
   useEffect(() => {
-    void documents.fetchAllTemplates();
-  }, [documents]);
+    void templates.fetchAll();
+  }, [templates]);
 
   const actions = useMemo(
     () =>
-      documents.templatesAlphabetical.map((template) =>
+      templates.alphabetical.map((template) =>
         createInternalLinkAction({
           name: template.titleWithDefault,
           analyticsName: "New document",
@@ -66,7 +66,7 @@ const useTemplatesAction = () => {
           },
         })
       ),
-    [documents.templatesAlphabetical]
+    [templates.alphabetical]
   );
 
   const newFromTemplate = useMemo(

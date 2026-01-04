@@ -15,6 +15,7 @@ import { determineIconType } from "@shared/utils/icon";
 import { parser, serializer, schema } from "@server/editor";
 import { addTags } from "@server/logging/tracer";
 import { trace } from "@server/logging/tracing";
+import type { Template } from "@server/models";
 import { Collection, Document, Revision } from "@server/models";
 import type { MentionAttrs } from "./ProsemirrorHelper";
 import { ProsemirrorHelper } from "./ProsemirrorHelper";
@@ -80,7 +81,7 @@ export class DocumentHelper {
    * @returns The document content as a plain JSON object
    */
   static async toJSON(
-    document: Document | Revision | Collection,
+    document: Document | Revision | Collection | Template,
     options?: {
       /** The team context */
       teamId?: string;
@@ -112,7 +113,7 @@ export class DocumentHelper {
     } else if (document instanceof Collection) {
       doc = parser.parse(document.description ?? "");
     } else {
-      doc = parser.parse(document.text ?? "");
+      doc = parser.parse("text" in document ? (document.text ?? "") : "");
     }
 
     if (doc && options?.signedUrls && options?.teamId) {

@@ -76,10 +76,7 @@ export default class DocumentsStore extends Store<Document> {
 
   @computed
   get all(): Document[] {
-    return filter(
-      this.orderedData,
-      (d) => !d.archivedAt && !d.deletedAt && !d.template
-    );
+    return filter(this.orderedData, (d) => !d.archivedAt && !d.deletedAt);
   }
 
   @computed
@@ -99,18 +96,6 @@ export default class DocumentsStore extends Store<Document> {
   @computed
   get popular(): Document[] {
     return orderBy(this.all, "popularityScore", "desc");
-  }
-
-  @computed
-  get templates(): Document[] {
-    return orderBy(
-      filter(
-        this.orderedData,
-        (d) => !d.archivedAt && !d.deletedAt && d.template
-      ),
-      "updatedAt",
-      "desc"
-    );
   }
 
   createdByUser(userId: string): Document[] {
@@ -152,21 +137,6 @@ export default class DocumentsStore extends Store<Document> {
         document.collectionId === collectionId &&
         !document.isArchived &&
         !document.isDeleted
-    );
-  }
-
-  templatesInCollection(collectionId: string): Document[] {
-    return orderBy(
-      filter(
-        this.orderedData,
-        (d) =>
-          !d.archivedAt &&
-          !d.deletedAt &&
-          d.template === true &&
-          d.collectionId === collectionId
-      ),
-      "updatedAt",
-      "desc"
     );
   }
 
@@ -236,11 +206,6 @@ export default class DocumentsStore extends Store<Document> {
     return orderBy(this.orderedData, "deletedAt", "desc").filter(
       (d) => d.deletedAt
     );
-  }
-
-  @computed
-  get templatesAlphabetical(): Document[] {
-    return naturalSort(this.templates, "title");
   }
 
   @computed
@@ -353,14 +318,6 @@ export default class DocumentsStore extends Store<Document> {
   fetchRecentlyUpdated = async (
     options?: PaginationParams
   ): Promise<Document[]> => this.fetchNamedPage("list", options);
-
-  @action
-  fetchTemplates = async (options?: PaginationParams): Promise<Document[]> =>
-    this.fetchNamedPage("list", { ...options, template: true });
-
-  @action
-  fetchAllTemplates = async (options?: PaginationParams): Promise<Document[]> =>
-    this.fetchAll({ ...options, template: true });
 
   @action
   fetchAlphabetical = async (options?: PaginationParams): Promise<Document[]> =>
@@ -488,34 +445,6 @@ export default class DocumentsStore extends Store<Document> {
     }
 
     return;
-  };
-
-  @action
-  templatize = async ({
-    id,
-    collectionId,
-    publish,
-  }: {
-    id: string;
-    collectionId: string | null;
-    publish: boolean;
-  }): Promise<Document | null | undefined> => {
-    const doc: Document | null | undefined = this.data.get(id);
-    invariant(doc, "Document should exist");
-
-    if (doc.template) {
-      return;
-    }
-
-    const res = await client.post("/documents.templatize", {
-      id,
-      collectionId,
-      publish,
-    });
-    invariant(res?.data, "Document not available");
-    this.addPolicies(res.policies);
-    this.add(res.data);
-    return this.data.get(res.data.id);
   };
 
   override fetch = (id: string, options: FetchOptions = {}) =>

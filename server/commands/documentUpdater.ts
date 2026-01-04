@@ -102,7 +102,7 @@ export default async function documentUpdater(
     data: eventData,
   };
 
-  if (publish && (document.template || cId)) {
+  if (publish && cId) {
     if (!document.collectionId) {
       document.collectionId = cId;
     }
