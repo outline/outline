@@ -59,11 +59,11 @@ router.get(
         { transaction }
       );
       const integration = await Integration.create<
-        Integration<IntegrationType.Embed>
+        Integration<IntegrationType.LinkedAccount>
       >(
         {
           service: IntegrationService.Figma,
-          type: IntegrationType.Embed,
+          type: IntegrationType.LinkedAccount,
           userId: user.id,
           teamId: user.teamId,
           authenticationId: authentication.id,
@@ -72,6 +72,7 @@ router.get(
               account: {
                 id: figmaAccount.id,
                 name: figmaAccount.handle,
+                email: figmaAccount.email,
                 avatarUrl: figmaAccount.img_url,
               },
             },

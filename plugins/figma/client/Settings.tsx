@@ -1,25 +1,23 @@
 import { observer } from "mobx-react";
-import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
-import { IntegrationService } from "@shared/types";
 import { ConnectedButton } from "~/scenes/Settings/components/ConnectedButton";
 import { IntegrationScene } from "~/scenes/Settings/components/IntegrationScene";
 import { AvatarSize } from "~/components/Avatar";
-import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import List from "~/components/List";
 import ListItem from "~/components/List/Item";
 import Notice from "~/components/Notice";
-import PlaceholderText from "~/components/PlaceholderText";
 import TeamLogo from "~/components/TeamLogo";
 import Text from "~/components/Text";
-import Time from "~/components/Time";
 import env from "~/env";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import FigmaIcon from "./Icon";
 import { FigmaConnectButton } from "./components/FigmaButton";
+import { IntegrationService, IntegrationType } from "@shared/types";
+import type Integration from "~/models/Integration";
+import Time from "~/components/Time";
 
 function Figma() {
   const { integrations } = useStores();
@@ -28,12 +26,12 @@ function Figma() {
   const error = query.get("error");
   const appName = env.APP_NAME;
 
-  React.useEffect(() => {
-    void integrations.fetchAll({
-      service: IntegrationService.Figma,
-      withRelations: true,
-    });
-  }, [integrations]);
+  const linkedAccountIntegration = integrations.find({
+    type: IntegrationType.LinkedAccount,
+    service: IntegrationService.Figma,
+  }) as Integration<IntegrationType.LinkedAccount> | undefined;
+
+  const figmaAccount = linkedAccountIntegration?.settings?.figma?.account;
 
   return (
     <IntegrationScene title="Figma" icon={<FigmaIcon />}>
@@ -67,64 +65,44 @@ function Figma() {
         <>
           <Text as="p">
             <Trans>
-              Enable previews of Figma design files in documents by connecting a
-              Figma workspace to {appName}.
+              Link your {appName} account to Figma to enable previews of design
+              files you have access to, directly within documents.
             </Trans>
           </Text>
-          {integrations.figma.length ? (
-            <>
-              <Heading as="h2">
-                <Flex justify="space-between" auto>
-                  {t("Connected")}
-                  <FigmaConnectButton icon={<PlusIcon />} />
-                </Flex>
-              </Heading>
-              <List>
-                {integrations.figma.map((integration) => {
-                  const figmaAccount = integration.settings?.figma?.account;
-                  const integrationCreatedBy = integration.user
-                    ? integration.user.name
-                    : undefined;
-
-                  return (
-                    <ListItem
-                      key={figmaAccount?.id}
-                      small
-                      title={figmaAccount?.name}
-                      subtitle={
-                        integrationCreatedBy ? (
-                          <>
-                            <Trans>Enabled by {{ integrationCreatedBy }}</Trans>{" "}
-                            &middot;{" "}
-                            <Time
-                              dateTime={integration.createdAt}
-                              relative={false}
-                              format={{ en_US: "MMMM d, y" }}
-                            />
-                          </>
-                        ) : (
-                          <PlaceholderText />
-                        )
-                      }
-                      image={
-                        <TeamLogo
-                          src={figmaAccount?.avatarUrl}
-                          size={AvatarSize.Large}
-                        />
-                      }
-                      actions={
-                        <ConnectedButton
-                          onClick={integration.delete}
-                          confirmationMessage={t(
-                            "Disconnecting will prevent previewing Figma design files from this workspace in documents. Are you sure?"
-                          )}
-                        />
-                      }
+          {linkedAccountIntegration ? (
+            <List>
+              <ListItem
+                small
+                title={`${figmaAccount?.name} (${figmaAccount?.email})`}
+                subtitle={
+                  <>
+                    <Trans>Enabled on</Trans>{" "}
+                    <Time
+                      dateTime={linkedAccountIntegration.createdAt}
+                      relative={false}
+                      format={{ en_US: "MMMM d, y" }}
                     />
-                  );
-                })}
-              </List>
-            </>
+                  </>
+                }
+                image={
+                  <TeamLogo
+                    src={
+                      linkedAccountIntegration.settings?.figma?.account
+                        ?.avatarUrl
+                    }
+                    size={AvatarSize.Large}
+                  />
+                }
+                actions={
+                  <ConnectedButton
+                    onClick={linkedAccountIntegration.delete}
+                    confirmationMessage={t(
+                      "Disconnecting will prevent previewing Figma design files from this account in documents. Are you sure?"
+                    )}
+                  />
+                }
+              />
+            </List>
           ) : (
             <p>
               <FigmaConnectButton icon={<FigmaIcon />} />

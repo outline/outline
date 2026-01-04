@@ -188,7 +188,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
               },
               { transaction }
             );
-            await Integration.create(
+            await Integration.create<Integration<IntegrationType.Post>>(
               {
                 service: IntegrationService.Slack,
                 type: IntegrationType.Post,
@@ -226,7 +226,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
               },
               { transaction }
             );
-            await Integration.create(
+            await Integration.create<Integration<IntegrationType.Command>>(
               {
                 service: IntegrationService.Slack,
                 type: IntegrationType.Command,
@@ -246,7 +246,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
         case IntegrationType.LinkedAccount: {
           // validation middleware ensures that code is non-null at this point
           const data = await Slack.oauthAccess(code!, SlackUtils.connectUrl());
-          await Integration.create({
+          await Integration.create<Integration<IntegrationType.LinkedAccount>>({
             service: IntegrationService.Slack,
             type: IntegrationType.LinkedAccount,
             userId: user.id,

@@ -5,7 +5,7 @@ import type { UnfurlSignature } from "@server/types";
 import isEmpty from "lodash/isEmpty";
 import type { User } from "@server/models";
 import { Integration } from "@server/models";
-import type { IntegrationType } from "@shared/types";
+import { IntegrationType } from "@shared/types";
 import { IntegrationService, UnfurlResourceType } from "@shared/types";
 import { cdnPath } from "@shared/utils/urls";
 import Logger from "@server/logging/Logger";
@@ -29,6 +29,7 @@ const RefreshTokenResponseSchema = z.object({
 const AccountResponseSchema = z.object({
   id: z.string(),
   handle: z.string(),
+  email: z.string(),
   img_url: z.string(),
 });
 
@@ -127,55 +128,58 @@ export class Figma {
     const integrations = (await Integration.scope("withAuthentication").findAll(
       {
         where: {
+          type: IntegrationType.LinkedAccount,
           service: IntegrationService.Figma,
+          userId: actor.id,
           teamId: actor.teamId,
         },
       }
-    )) as Integration<IntegrationType.Embed>[];
+    )) as Integration<IntegrationType.LinkedAccount>[];
 
     if (integrations.length === 0) {
       return;
     }
 
-    // Prefer integration created by the current user, otherwise pick the first one
-    const integration =
-      integrations.find((integration) => integration.userId === actor.id) ??
-      integrations[0];
+    // Try to unfurl with any of the linked accounts
+    // Note: We support only one figma account per team for now.
+    for (const integration of integrations) {
+      try {
+        const accessToken =
+          await integration.authentication.refreshTokenIfNeeded(
+            async (refreshToken: string) => Figma.refreshToken(refreshToken),
+            5 * Minute.ms
+          );
 
-    if (!integration) {
-      return;
-    }
+        const res = await fetch(Figma.fileMetadataUrl(resource.key), {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
 
-    try {
-      const accessToken = await integration.authentication.refreshTokenIfNeeded(
-        async (refreshToken: string) => Figma.refreshToken(refreshToken),
-        5 * Minute.ms
-      );
-
-      const res = await fetch(Figma.fileMetadataUrl(resource.key), {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-
-      if (res.status !== 200) {
-        return; // Fallback to iframely unfurl
+        // This connected account has access to the file.
+        if (res.status === 200) {
+          const data = await res.json();
+          return {
+            type: UnfurlResourceType.URL,
+            url,
+            title: data.file.name,
+            description: `Created by ${data.file.creator.handle}`,
+            thumbnailUrl: data.file.thumbnail_url,
+            faviconUrl: cdnPath("/images/figma.png"),
+            transformedUnfurl: true,
+          };
+        }
+      } catch (err) {
+        Logger.error(
+          `Error fetching Figma file metadata for integration ${integration.id}`,
+          err
+        );
       }
-
-      const data = await res.json();
-      return {
-        type: UnfurlResourceType.URL,
-        url,
-        title: data.file.name,
-        description: `Created by ${data.file.creator.handle}`,
-        thumbnailUrl: data.file.thumbnail_url,
-        faviconUrl: cdnPath("/images/figma.png"),
-        transformedUnfurl: true,
-      };
-    } catch (err) {
-      Logger.error("Failed to fetch file metadata from Figma", err);
-      return; // Fallback to iframely unfurl
     }
+
+    // Either no linked accounts have access to the file, or we faced an error.
+    // Fallback to iframely unfurl either way.
+    return;
   };
 
   private static parseUrl(url: string) {

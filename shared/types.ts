@@ -198,9 +198,6 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
       linear?: {
         workspace: { id: string; name: string; key: string; logoUrl?: string };
       };
-      figma?: {
-        account: { id: string; name: string; avatarUrl: string };
-      };
       diagrams?: {
         url: string;
       };
@@ -215,28 +212,38 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
           ? {
               externalWorkspace: { id: string; name: string; iconUrl?: string };
             }
-          :
-              | { url: string }
-              | {
-                  github?: {
-                    installation: {
-                      id: number;
-                      account: {
-                        id?: number;
-                        name: string;
-                        avatarUrl?: string;
+          : T extends IntegrationType.LinkedAccount
+            ? {
+                slack?: { serviceTeamId: string; serviceUserId: string };
+                figma?: {
+                  account: {
+                    id: string;
+                    name: string;
+                    email: string;
+                    avatarUrl: string;
+                  };
+                };
+              }
+            :
+                | { url: string }
+                | {
+                    github?: {
+                      installation: {
+                        id: number;
+                        account: {
+                          id?: number;
+                          name: string;
+                          avatarUrl?: string;
+                        };
                       };
                     };
-                  };
-                  diagrams?: {
-                    url: string;
-                  };
-                }
-              | { url: string; channel: string; channelId: string }
-              | { serviceTeamId: string }
-              | { measurementId: string }
-              | { slack: { serviceTeamId: string; serviceUserId: string } }
-              | undefined;
+                    diagrams?: {
+                      url: string;
+                    };
+                  }
+                | { serviceTeamId: string }
+                | { measurementId: string }
+                | undefined;
 
 export enum UserPreference {
   /** Whether reopening the app should redirect to the last viewed document. */
