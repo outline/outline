@@ -1,6 +1,8 @@
+import { startAuthentication } from "@simplewebauthn/browser";
 import { EmailIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import styled from "styled-components";
 import { Client } from "@shared/types";
 import ButtonLarge from "~/components/ButtonLarge";
@@ -63,6 +65,40 @@ function AuthenticationProvider(props: Props) {
   };
 
   const href = getRedirectUrl(authUrl);
+
+  if (id === "passkeys") {
+    const handlePasskeyClick = async () => {
+      try {
+        const resp = await client.post(
+          window.location.origin +
+            "/auth/passkeys.generate-authentication-options"
+        );
+        const { challengeId, ...optionsData } = resp.data;
+        const authResp = await startAuthentication(optionsData);
+        const verifyResp = await client.post(
+          window.location.origin + "/auth/passkeys.verify-authentication",
+          { ...authResp, challengeId } as any
+        );
+
+        if (verifyResp.data.verified) {
+          window.location.reload();
+        }
+      } catch (err) {
+        toast.error(err.message);
+      }
+    };
+
+    return (
+      <ButtonLarge
+        onClick={handlePasskeyClick}
+        icon={<PluginIcon id={id} />}
+        fullwidth
+        {...rest}
+      >
+        {t("Continue with Passkey")}
+      </ButtonLarge>
+    );
+  }
 
   if (id === "email") {
     if (isCreate) {

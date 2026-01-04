@@ -190,6 +190,29 @@ function Authentication() {
         />
       </SettingRow>
 
+      <SettingRow
+        label={
+          <Flex gap={8} align="center">
+            <PadlockIcon /> {t("Passkeys")}
+          </Flex>
+        }
+        name="passkeysEnabled"
+        description={t("Allow members to sign-in with a WebAuthn passkey")}
+      >
+        <Switch
+          id="passkeysEnabled"
+          checked={team.passkeysEnabled}
+          onChange={async (checked) => {
+            try {
+              await team.save({ passkeysEnabled: checked });
+              toast.success(t("Settings saved"));
+            } catch (err) {
+              toast.error(err.message);
+            }
+          }}
+        />
+      </SettingRow>
+
       <Heading as="h2">{t("Restrictions")}</Heading>
       <DomainManagement onSuccess={showSuccessMessage} />
     </Scene>

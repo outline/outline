@@ -16,6 +16,8 @@ export const TeamsUpdateSchema = BaseSchema.extend({
     sharing: z.boolean().optional(),
     /** Whether siginin with email is enabled */
     guestSignin: z.boolean().optional(),
+    /** Whether siginin with passkeys is enabled */
+    passkeysEnabled: z.boolean().optional(),
     /** Whether third-party document embeds are enabled */
     documentEmbeds: z.boolean().optional(),
     /** Whether team members are able to create new collections */

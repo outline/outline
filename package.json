@@ -105,6 +105,8 @@
     "@radix-ui/react-visually-hidden": "^1.2.4",
     "@sentry/node": "^7.120.4",
     "@sentry/react": "^7.120.4",
+    "@simplewebauthn/browser": "^13.2.2",
+    "@simplewebauthn/server": "^13.2.2",
     "@tanstack/react-table": "^8.21.3",
     "@tanstack/react-virtual": "^3.13.12",
     "@types/form-data": "^2.5.2",
