@@ -13,7 +13,7 @@ describe("getRefractorLangForLanguage", () => {
 describe("getLabelForLanguage", () => {
   it("should return the correct human-readable label for a given language", () => {
     expect(getLabelForLanguage("javascript")).toBe("JavaScript");
-    expect(getLabelForLanguage("mermaidjs")).toBe("Mermaid Diagram");
+    expect(getLabelForLanguage("mermaidjs")).toBe("Mermaid");
     expect(getLabelForLanguage("xml")).toBe("XML");
     expect(getLabelForLanguage("unknown")).toBe("Plain text");
     expect(getLabelForLanguage("none")).toBe("Plain text");

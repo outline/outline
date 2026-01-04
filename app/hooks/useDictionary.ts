@@ -32,6 +32,7 @@ export default function useDictionary() {
       comment: t("Comment"),
       copy: t("Copy"),
       createLink: t("Create link"),
+      editDiagram: t("Edit diagram"),
       editImageUrl: t("Edit image URL"),
       createLinkError: t("Sorry, an error occurred creating the link"),
       createNewDoc: t("Create a new doc"),

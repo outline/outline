@@ -9,13 +9,17 @@ import { Decoration, DecorationSet } from "prosemirror-view";
 import { isCode } from "../lib/isCode";
 import { isRemoteTransaction } from "../lib/multiplayer";
 import { findBlockNodes } from "../queries/findChildren";
+import { findParentNode } from "../queries/findParentNode";
 import type { NodeWithPos } from "../types";
 import type { Editor } from "../../../app/editor";
 import { LightboxImageFactory } from "../lib/Lightbox";
 
-type MermaidState = {
+export const pluginKey = new PluginKey("mermaid");
+
+export type MermaidState = {
   decorationSet: DecorationSet;
   isDark: boolean;
+  editingId?: string;
 };
 
 class Cache {
@@ -152,12 +156,10 @@ function findBestOverlapDecoration(
 
 function getNewState({
   doc,
-  name,
   pluginState,
   editor,
 }: {
   doc: Node;
-  name: string;
   pluginState: MermaidState;
   editor: Editor;
 }): MermaidState {
@@ -165,8 +167,7 @@ function getNewState({
 
   // Find all blocks that represent Mermaid diagrams
   const blocks = findBlockNodes(doc).filter(
-    (item) =>
-      item.node.type.name === name && item.node.attrs.language === "mermaidjs"
+    (item) => isCode(item.node) && item.node.attrs.language === "mermaidjs"
   );
 
   blocks.forEach((block) => {
@@ -212,22 +213,20 @@ function getNewState({
   });
 
   return {
+    ...pluginState,
     decorationSet: DecorationSet.create(doc, decorations),
-    isDark: pluginState.isDark,
   };
 }
 
 export default function Mermaid({
-  name,
   isDark,
   editor,
 }: {
-  name: string;
   isDark: boolean;
   editor: Editor;
 }) {
   return new Plugin({
-    key: new PluginKey("mermaid"),
+    key: pluginKey,
     state: {
       init: (_, { doc }) => {
         const pluginState: MermaidState = {
@@ -236,7 +235,6 @@ export default function Mermaid({
         };
         return getNewState({
           doc,
-          name,
           pluginState,
           editor,
         });
@@ -247,17 +245,59 @@ export default function Mermaid({
         oldState,
         state
       ) => {
-        const nodeName = state.selection.$head.parent.type.name;
-        const previousNodeName = oldState.selection.$head.parent.type.name;
-        const codeBlockChanged =
-          transaction.docChanged && [nodeName, previousNodeName].includes(name);
         const themeMeta = transaction.getMeta("theme");
-        const mermaidMeta = transaction.getMeta("mermaid");
+        const mermaidMeta = transaction.getMeta(pluginKey);
         const themeToggled = themeMeta?.isDark !== undefined;
 
-        if (themeToggled) {
-          pluginState.isDark = themeMeta.isDark;
+        const nextPluginState = {
+          ...pluginState,
+          isDark: themeToggled ? themeMeta.isDark : pluginState.isDark,
+          editingId:
+            mermaidMeta && "editingId" in mermaidMeta
+              ? mermaidMeta.editingId
+              : pluginState.editingId,
+          decorationSet: pluginState.decorationSet.map(
+            transaction.mapping,
+            transaction.doc
+          ),
+        };
+
+        if (
+          transaction.selectionSet &&
+          nextPluginState.editingId &&
+          !mermaidMeta
+        ) {
+          const codeBlock = findParentNode(isCode)(state.selection);
+          let isEditing =
+            codeBlock &&
+            isCode(codeBlock.node) &&
+            codeBlock.node.attrs.language === "mermaidjs";
+
+          if (isEditing && codeBlock && !transaction.docChanged) {
+            const decorations = nextPluginState.decorationSet.find(
+              codeBlock.pos,
+              codeBlock.pos + codeBlock.node.nodeSize
+            );
+            const nodeDecoration = decorations.find(
+              (d) => d.spec.diagramId && d.from === codeBlock.pos
+            );
+            if (nodeDecoration?.spec.diagramId !== nextPluginState.editingId) {
+              isEditing = false;
+            }
+          }
+
+          if (!isEditing) {
+            nextPluginState.editingId = undefined;
+          }
         }
+
+        const node = state.selection.$head.parent;
+        const previousNode = oldState.selection.$head.parent;
+        const isMermaid = (n: Node) =>
+          isCode(n) && n.attrs.language === "mermaidjs";
+        const codeBlockChanged =
+          transaction.docChanged &&
+          (isMermaid(node) || isMermaid(previousNode));
 
         if (
           mermaidMeta ||
@@ -267,23 +307,16 @@ export default function Mermaid({
         ) {
           return getNewState({
             doc: transaction.doc,
-            name,
-            pluginState,
+            pluginState: nextPluginState,
             editor,
           });
         }
 
-        return {
-          decorationSet: pluginState.decorationSet.map(
-            transaction.mapping,
-            transaction.doc
-          ),
-          isDark: pluginState.isDark,
-        };
+        return nextPluginState;
       },
     },
     view: (view) => {
-      view.dispatch(view.state.tr.setMeta("mermaid", { loaded: true }));
+      view.dispatch(view.state.tr.setMeta(pluginKey, { loaded: true }));
       return {};
     },
     props: {
