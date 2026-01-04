@@ -101,7 +101,7 @@ router.post(
     const { verified, registrationInfo } = verification;
 
     if (verified && registrationInfo) {
-      const { credential } = registrationInfo;
+      const { credential, aaguid } = registrationInfo;
       // credential.id is already a Base64URL string
       const credentialIdBase64 = credential.id;
       const credentialPublicKey = credential.publicKey;
@@ -110,7 +110,7 @@ router.post(
       // Capture user agent and generate friendly name
       const userAgent = ctx.request.get("user-agent");
       const transports = body.response.transports || [];
-      const name = generatePasskeyName(userAgent, transports);
+      const name = generatePasskeyName(aaguid, userAgent, transports);
 
       // Check if already exists
       const existing = await UserPasskey.findOne({

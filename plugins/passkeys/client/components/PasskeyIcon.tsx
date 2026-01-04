@@ -7,6 +7,7 @@ import {
   faApple,
   faAndroid,
   faWindows,
+  faGoogle,
   faLinux,
 } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -14,8 +15,10 @@ import { PadlockIcon } from "outline-icons";
 import styled from "styled-components";
 
 interface PasskeyIconProps {
-  transports?: string[];
-  userAgent?: string | null;
+  passkey: {
+    name: string;
+    userAgent: string | null;
+  };
   size?: number;
 }
 
@@ -27,7 +30,36 @@ interface PasskeyIconProps {
  * @param size - optional icon size in pixels.
  * @returns icon component representing the passkey type.
  */
-function PasskeyIcon({ userAgent, size = 24 }: PasskeyIconProps) {
+function PasskeyIcon({ passkey, size = 24 }: PasskeyIconProps) {
+  const { name, userAgent } = passkey;
+
+  // Detect name-based icons
+  const getNameIcon = () => {
+    const lowerName = name.toLowerCase();
+
+    if (
+      lowerName.includes("apple password") ||
+      lowerName.includes("icloud") ||
+      lowerName.includes("iPasswords") ||
+      lowerName.includes("touch id")
+    ) {
+      return faApple;
+    }
+
+    if (
+      lowerName.includes("windows hello") ||
+      lowerName.includes("microsoft password")
+    ) {
+      return faWindows;
+    }
+
+    if (lowerName.includes("google password")) {
+      return faGoogle;
+    }
+
+    return undefined;
+  };
+
   // Detect browser from user agent
   const getBrowserIcon = () => {
     if (!userAgent) {
@@ -96,11 +128,12 @@ function PasskeyIcon({ userAgent, size = 24 }: PasskeyIconProps) {
   };
 
   // Determine which icon to show
+  const nameIcon = getNameIcon();
   const browserIcon = getBrowserIcon();
   const deviceIcon = getDeviceIcon();
 
   // Prioritize browser icon, fall back to device icon
-  const faIcon = browserIcon || deviceIcon;
+  const faIcon = nameIcon || browserIcon || deviceIcon;
 
   if (faIcon) {
     return (

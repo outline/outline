@@ -82,13 +82,7 @@ function PasskeyListItem({
 
   return (
     <ListItem
-      image={
-        <PasskeyIcon
-          transports={passkey.transports}
-          userAgent={passkey.userAgent}
-          size={24}
-        />
-      }
+      image={<PasskeyIcon passkey={passkey} size={24} />}
       title={passkey.name}
       subtitle={
         <Text type="tertiary">
