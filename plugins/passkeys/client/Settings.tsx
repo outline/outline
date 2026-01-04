@@ -1,20 +1,27 @@
 import { startRegistration } from "@simplewebauthn/browser";
 import { observer } from "mobx-react";
-import { PadlockIcon } from "outline-icons";
+import { PadlockIcon, PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import { formatDistanceToNowStrict } from "date-fns";
 import { toast } from "sonner";
 import Button from "~/components/Button";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Heading from "~/components/Heading";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
-import Time from "~/components/Time";
 import useStores from "~/hooks/useStores";
 import { client } from "~/utils/ApiClient";
 import SettingRow from "~/scenes/Settings/components/SettingRow";
 import PasskeyIcon from "./components/PasskeyIcon";
 import RenamePasskeyDialog from "./components/RenamePasskeyDialog";
+import useCurrentUser from "~/hooks/useCurrentUser";
+import { dateLocale } from "@shared/utils/date";
+import { Action } from "~/components/Actions";
+import { HStack } from "~/components/primitives/HStack";
+import usePolicy from "~/hooks/usePolicy";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
+import Notice from "~/components/Notice";
 
 type Passkey = {
   id: string;
@@ -32,12 +39,16 @@ function PasskeysSettings() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [isRegistering, setIsRegistering] = React.useState(false);
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
+  const user = useCurrentUser();
+  const team = useCurrentTeam();
+  const locale = dateLocale(user.language);
+  const can = usePolicy(team);
 
   const loadPasskeys = React.useCallback(async () => {
     try {
       const res = await client.post("/passkeys.list");
       setPasskeys(res.data || []);
-    } catch (err) {
+    } catch (_err) {
       toast.error(t("Failed to load passkeys"));
     } finally {
       setIsLoading(false);
@@ -121,7 +132,21 @@ function PasskeysSettings() {
   };
 
   return (
-    <Scene title={t("Passkeys")} icon={<PadlockIcon />}>
+    <Scene
+      title={t("Passkeys")}
+      icon={<PadlockIcon />}
+      actions={
+        <Action>
+          <Button
+            onClick={handleRegister}
+            disabled={isRegistering || !can.createUserPasskey}
+            icon={<PlusIcon />}
+          >
+            {isRegistering ? `${t("Registering")}…` : `${t("Add Passkey")}…`}
+          </Button>
+        </Action>
+      }
+    >
       <Heading>{t("Passkeys")}</Heading>
       <Text as="p" type="secondary">
         <Trans>
@@ -130,6 +155,15 @@ function PasskeysSettings() {
           or security key.
         </Trans>
       </Text>
+
+      {team.passkeysEnabled === false && (
+        <Notice>
+          {t("Sign-in with Passkey is currently disabled for this team.")}{" "}
+          {can.update
+            ? t("Enable for all users in Settings -> Authentication.")
+            : t("Contact a workspace admin to enable it.")}
+        </Notice>
+      )}
 
       {isLoading ? (
         <Text as="p" type="secondary">
@@ -143,19 +177,23 @@ function PasskeysSettings() {
               key={pk.id}
               name={`passkey-${pk.id}`}
               label={
-                <>
+                <HStack>
                   <PasskeyIcon
                     transports={pk.transports}
                     userAgent={pk.userAgent}
                     size={20}
-                  />{" "}
+                  />
                   {pk.name || t("Passkey")}
-                </>
+                </HStack>
               }
               description={
                 <>
-                  {t("Registered")}{" "}
-                  <Time dateTime={new Date(pk.createdAt).toISOString()} />
+                  {t("Registered {{ timeAgo }}", {
+                    timeAgo: formatDistanceToNowStrict(pk.createdAt, {
+                      addSuffix: true,
+                      locale,
+                    }),
+                  })}
                 </>
               }
             >
@@ -181,11 +219,6 @@ function PasskeysSettings() {
           {t("You don't have any passkeys yet.")}
         </Text>
       )}
-
-      <br />
-      <Button onClick={handleRegister} disabled={isRegistering}>
-        {isRegistering ? `${t("Registering")}…` : t("Add Passkey")}
-      </Button>
     </Scene>
   );
 }

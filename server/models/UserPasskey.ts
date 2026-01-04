@@ -4,11 +4,14 @@ import {
   Column,
   DataType,
   ForeignKey,
+  Length,
   Table,
 } from "sequelize-typescript";
 import User from "./User";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
+import { PasskeyValidation } from "@shared/validations";
+import NotContainsUrl from "./validators/NotContainsUrl";
 
 @Table({ tableName: "user_passkeys", modelName: "user_passkey" })
 @Fix
@@ -30,6 +33,12 @@ class UserPasskey extends IdModel<
   @Column(DataType.ARRAY(DataType.STRING))
   transports: string[];
 
+  @Length({
+    min: PasskeyValidation.minNameLength,
+    max: PasskeyValidation.maxNameLength,
+    msg: `Name must be between ${PasskeyValidation.minNameLength} and ${PasskeyValidation.maxNameLength} characters`,
+  })
+  @NotContainsUrl
   @Column(DataType.TEXT)
   name: string;
 

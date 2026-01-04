@@ -10,8 +10,7 @@ import {
   faLinux,
 } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { PadlockIcon, BrowserIcon, CheckmarkIcon } from "outline-icons";
-import * as React from "react";
+import { PadlockIcon } from "outline-icons";
 import styled from "styled-components";
 
 interface PasskeyIconProps {
@@ -28,7 +27,7 @@ interface PasskeyIconProps {
  * @param size - optional icon size in pixels.
  * @returns icon component representing the passkey type.
  */
-function PasskeyIcon({ transports, userAgent, size = 24 }: PasskeyIconProps) {
+function PasskeyIcon({ userAgent, size = 24 }: PasskeyIconProps) {
   // Detect browser from user agent
   const getBrowserIcon = () => {
     if (!userAgent) {
@@ -115,30 +114,6 @@ function PasskeyIcon({ transports, userAgent, size = 24 }: PasskeyIconProps) {
         />
       </FontAwesomeWrapper>
     );
-  }
-
-  // Fall back to outline-icons based on transport type
-  if (!transports || transports.length === 0) {
-    return <PadlockIcon size={size} />;
-  }
-
-  // Platform authenticators (biometric)
-  if (transports.includes("internal")) {
-    return <CheckmarkIcon size={size} />;
-  }
-
-  // Security keys
-  if (
-    transports.includes("usb") ||
-    transports.includes("nfc") ||
-    transports.includes("ble")
-  ) {
-    return <PadlockIcon size={size} />;
-  }
-
-  // Hybrid authenticators (phone/browser)
-  if (transports.includes("hybrid")) {
-    return <BrowserIcon size={size} />;
   }
 
   return <PadlockIcon size={size} />;

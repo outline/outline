@@ -41,7 +41,7 @@ function RenamePasskeyDialog({
 
     setIsSaving(true);
     try {
-      await client.post("/passkeys.rename", {
+      await client.post("/passkeys.update", {
         id: passkeyId,
         name: name.trim(),
       });

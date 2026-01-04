@@ -1,10 +1,10 @@
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
-import { ValidationError } from "@server/errors";
 import { UserPasskey } from "@server/models";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import Router from "koa-router";
 import * as T from "./schema";
+import { authorize } from "@server/policies";
 
 const router = new Router();
 
@@ -37,38 +37,33 @@ router.post(
     const user = ctx.state.auth.user;
     const { id } = ctx.input.body;
 
-    const passkey = await UserPasskey.findOne({
-      where: { id, userId: user.id },
+    const passkey = await UserPasskey.findByPk(id, {
+      rejectOnEmpty: true,
     });
+    authorize(user, "delete", passkey);
 
-    if (!passkey) {
-      throw ValidationError("Passkey not found or does not belong to you");
-    }
-
-    await passkey.destroy();
+    await passkey.destroyWithCtx(ctx);
 
     ctx.body = { data: { success: true } };
   }
 );
 
 router.post(
-  "passkeys.rename",
+  "passkeys.update",
   auth(),
-  validate(T.PasskeysRenameSchema),
-  async (ctx: APIContext<T.PasskeysRenameReq>) => {
+  validate(T.PasskeysUpdateSchema),
+  async (ctx: APIContext<T.PasskeysUpdateReq>) => {
     const user = ctx.state.auth.user;
     const { id, name } = ctx.input.body;
 
-    const passkey = await UserPasskey.findOne({
-      where: { id, userId: user.id },
+    const passkey = await UserPasskey.findByPk(id, {
+      rejectOnEmpty: true,
     });
+    authorize(user, "update", passkey);
 
-    if (!passkey) {
-      throw ValidationError("Passkey not found or does not belong to you");
-    }
-
-    passkey.name = name;
-    await passkey.save();
+    await passkey.updateWithCtx(ctx, {
+      name,
+    });
 
     ctx.body = { data: { success: true, name: passkey.name } };
   }

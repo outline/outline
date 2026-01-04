@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { BaseSchema } from "@server/routes/api/schema";
+import { PasskeyValidation } from "@shared/validations";
 
 export const PasskeysListSchema = BaseSchema.extend({
   body: z.object({}),
@@ -15,11 +16,15 @@ export const PasskeysDeleteSchema = BaseSchema.extend({
 
 export type PasskeysDeleteReq = z.infer<typeof PasskeysDeleteSchema>;
 
-export const PasskeysRenameSchema = BaseSchema.extend({
+export const PasskeysUpdateSchema = BaseSchema.extend({
   body: z.object({
     id: z.string().uuid(),
-    name: z.string().trim().min(1).max(255),
+    name: z
+      .string()
+      .trim()
+      .min(PasskeyValidation.minNameLength)
+      .max(PasskeyValidation.maxNameLength),
   }),
 });
 
-export type PasskeysRenameReq = z.infer<typeof PasskeysRenameSchema>;
+export type PasskeysUpdateReq = z.infer<typeof PasskeysUpdateSchema>;

@@ -119,7 +119,7 @@ function getAuthenticatorType(transports?: string[]): string | undefined {
 
   // Platform authenticators typically use "internal"
   if (transports.includes("internal")) {
-    return "Biometric";
+    return undefined;
   }
 
   // Security keys typically use USB, NFC, or BLE
