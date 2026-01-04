@@ -5,10 +5,12 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
 import Button from "~/components/Button";
+import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Heading from "~/components/Heading";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
+import useStores from "~/hooks/useStores";
 import { client } from "~/utils/ApiClient";
 import SettingRow from "~/scenes/Settings/components/SettingRow";
 
@@ -20,9 +22,11 @@ type Passkey = {
 
 function PasskeysSettings() {
   const { t } = useTranslation();
+  const { dialogs } = useStores();
   const [passkeys, setPasskeys] = React.useState<Passkey[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isRegistering, setIsRegistering] = React.useState(false);
+  const [deletingId, setDeletingId] = React.useState<string | null>(null);
 
   const loadPasskeys = React.useCallback(async () => {
     try {
@@ -43,16 +47,10 @@ function PasskeysSettings() {
     setIsRegistering(true);
     try {
       const resp = await client.post(
-        "/passkeys.generate-registration-options",
-        undefined,
-        {
-          baseUrl: "/auth",
-        }
+        "/auth/passkeys.generate-registration-options"
       );
       const attResp = await startRegistration(resp.data);
-      await client.post("/passkeys.verify-registration", attResp as any, {
-        baseUrl: "/auth",
-      });
+      await client.post("/auth/passkeys.verify-registration", attResp as any);
       toast.success(t("Passkey added successfully"));
       await loadPasskeys();
     } catch (err) {
@@ -62,6 +60,37 @@ function PasskeysSettings() {
     } finally {
       setIsRegistering(false);
     }
+  };
+
+  const handleDelete = (passkeyId: string) => {
+    dialogs.openModal({
+      title: t("Delete passkey"),
+      content: (
+        <ConfirmationDialog
+          onSubmit={async () => {
+            setDeletingId(passkeyId);
+            try {
+              await client.post("/passkeys.delete", { id: passkeyId });
+              toast.success(t("Passkey deleted successfully"));
+              await loadPasskeys();
+            } catch (err) {
+              toast.error(
+                err.message || t("Failed to delete passkey. Please try again.")
+              );
+            } finally {
+              setDeletingId(null);
+            }
+          }}
+          savingText={`${t("Deleting")}…`}
+          danger
+        >
+          <Trans>
+            Are you sure you want to delete this passkey? You will no longer be
+            able to use it to sign in.
+          </Trans>
+        </ConfirmationDialog>
+      ),
+    });
   };
 
   return (
@@ -94,8 +123,12 @@ function PasskeysSettings() {
                 </>
               }
             >
-              <Button disabled neutral>
-                {t("Active")}
+              <Button
+                onClick={() => handleDelete(pk.id)}
+                disabled={deletingId === pk.id}
+                neutral
+              >
+                {deletingId === pk.id ? `${t("Deleting")}…` : t("Delete")}
               </Button>
             </SettingRow>
           ))}
