@@ -3,7 +3,6 @@ import { observer } from "mobx-react";
 import { PadlockIcon, PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
-import { formatDistanceToNowStrict } from "date-fns";
 import { toast } from "sonner";
 import Button from "~/components/Button";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
@@ -12,20 +11,17 @@ import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import { client } from "~/utils/ApiClient";
-import SettingRow from "~/scenes/Settings/components/SettingRow";
-import PasskeyIcon from "./components/PasskeyIcon";
+import PasskeyListItem from "./components/PasskeyListItem";
 import RenamePasskeyDialog from "./components/RenamePasskeyDialog";
-import useCurrentUser from "~/hooks/useCurrentUser";
-import { dateLocale } from "@shared/utils/date";
 import { Action } from "~/components/Actions";
-import { HStack } from "~/components/primitives/HStack";
 import usePolicy from "~/hooks/usePolicy";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import Notice from "~/components/Notice";
+import DelayedMount from "~/components/DelayedMount";
 
 type Passkey = {
   id: string;
-  name: string | null;
+  name: string;
   userAgent: string | null;
   transports: string[];
   createdAt: string;
@@ -38,10 +34,8 @@ function PasskeysSettings() {
   const [passkeys, setPasskeys] = React.useState<Passkey[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isRegistering, setIsRegistering] = React.useState(false);
-  const [deletingId, setDeletingId] = React.useState<string | null>(null);
-  const user = useCurrentUser();
+
   const team = useCurrentTeam();
-  const locale = dateLocale(user.language);
   const can = usePolicy(team);
 
   const loadPasskeys = React.useCallback(async () => {
@@ -63,14 +57,14 @@ function PasskeysSettings() {
     setIsRegistering(true);
     try {
       const resp = await client.post(
-        "/passkeys.generate-registration-options",
+        "/passkeys.generateRegistrationOptions",
         undefined,
         {
           baseUrl: "/auth",
         }
       );
       const attResp = await startRegistration(resp.data);
-      await client.post("/passkeys.verify-registration", attResp as any, {
+      await client.post("/passkeys.verifyRegistration", attResp as any, {
         baseUrl: "/auth",
       });
       toast.success(t("Passkey added successfully"));
@@ -106,7 +100,6 @@ function PasskeysSettings() {
       content: (
         <ConfirmationDialog
           onSubmit={async () => {
-            setDeletingId(passkeyId);
             try {
               await client.post("/passkeys.delete", { id: passkeyId });
               toast.success(t("Passkey deleted successfully"));
@@ -115,8 +108,6 @@ function PasskeysSettings() {
               toast.error(
                 err.message || t("Failed to delete passkey. Please try again.")
               );
-            } finally {
-              setDeletingId(null);
             }
           }}
           savingText={`${t("Deleting")}…`}
@@ -166,52 +157,20 @@ function PasskeysSettings() {
       )}
 
       {isLoading ? (
-        <Text as="p" type="secondary">
-          {t("Loading")}…
-        </Text>
+        <DelayedMount>
+          <Text as="p" type="secondary">
+            {t("Loading")}…
+          </Text>
+        </DelayedMount>
       ) : passkeys.length > 0 ? (
         <>
-          <Heading as="h2">{t("Your Passkeys")}</Heading>
           {passkeys.map((pk) => (
-            <SettingRow
+            <PasskeyListItem
               key={pk.id}
-              name={`passkey-${pk.id}`}
-              label={
-                <HStack>
-                  <PasskeyIcon
-                    transports={pk.transports}
-                    userAgent={pk.userAgent}
-                    size={20}
-                  />
-                  {pk.name || t("Passkey")}
-                </HStack>
-              }
-              description={
-                <>
-                  {t("Registered {{ timeAgo }}", {
-                    timeAgo: formatDistanceToNowStrict(pk.createdAt, {
-                      addSuffix: true,
-                      locale,
-                    }),
-                  })}
-                </>
-              }
-            >
-              <Button
-                onClick={() => handleRename(pk.id, pk.name)}
-                disabled={deletingId === pk.id}
-                neutral
-              >
-                {t("Rename")}
-              </Button>
-              <Button
-                onClick={() => handleDelete(pk.id)}
-                disabled={deletingId === pk.id}
-                neutral
-              >
-                {deletingId === pk.id ? `${t("Deleting")}…` : t("Delete")}
-              </Button>
-            </SettingRow>
+              passkey={pk}
+              onRename={() => handleRename(pk.id, pk.name)}
+              onDelete={() => handleDelete(pk.id)}
+            />
           ))}
         </>
       ) : (

@@ -9,23 +9,23 @@ import type { AuthenticatorTransportFuture } from "@simplewebauthn/server";
 import Router from "koa-router";
 import type { Context } from "koa";
 import { randomBytes } from "crypto";
-import { addMonths } from "date-fns";
-import { Client } from "@shared/types";
-import { User, UserPasskey, Team, Event } from "@server/models";
+import { User, UserPasskey, Team } from "@server/models";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
 import env from "@server/env";
 import { ValidationError } from "@server/errors";
 import type { APIContext } from "@server/types";
-import { AuthenticationType } from "@server/types";
 import Logger from "@server/logging/Logger";
 import Redis from "@server/storage/redis";
+import { signIn } from "@server/utils/authentication";
 import { generatePasskeyName } from "@shared/utils/passkeys";
 import * as T from "./schema";
+import { Client } from "@shared/types";
+import { Minute } from "@shared/utils/time";
 
 const router = new Router();
 const rpName = env.APP_NAME;
-const CHALLENGE_EXPIRY = 300; // 5 minutes in seconds
+const CHALLENGE_EXPIRY = Minute.seconds * 5;
 
 // Helper to get RP ID (domain)
 const getRpID = (ctx: Context) =>
@@ -35,7 +35,7 @@ const getRpID = (ctx: Context) =>
   ctx.request.hostname;
 
 router.post(
-  "passkeys.generate-registration-options",
+  "passkeys.generateRegistrationOptions",
   auth(),
   async (ctx: APIContext) => {
     const user = ctx.state.auth.user;
@@ -67,7 +67,7 @@ router.post(
 );
 
 router.post(
-  "passkeys.verify-registration",
+  "passkeys.verifyRegistration",
   auth(),
   validate(T.PasskeysVerifyRegistrationSchema),
   async (ctx: APIContext<T.PasskeysVerifyRegistrationReq>) => {
@@ -148,10 +148,8 @@ router.post(
   }
 );
 
-// --- Authentication ---
-
 router.post(
-  "passkeys.generate-authentication-options",
+  "passkeys.generateAuthenticationOptions",
   validate(T.PasskeysGenerateAuthenticationOptionsSchema),
   async (ctx: APIContext<T.PasskeysGenerateAuthenticationOptionsReq>) => {
     const options = await generateAuthenticationOptions({
@@ -174,7 +172,7 @@ router.post(
 );
 
 router.post(
-  "passkeys.verify-authentication",
+  "passkeys.verifyAuthentication",
   validate(T.PasskeysVerifyAuthenticationSchema),
   async (ctx: APIContext<T.PasskeysVerifyAuthenticationReq>) => {
     const body = ctx.input.body;
@@ -247,36 +245,14 @@ router.post(
       // Delete challenge from Redis
       await Redis.defaultClient.del(challengeKey);
 
-      // Update user sign-in timestamp
-      await user.updateSignedIn(ctx);
-
-      // Create sign-in event
-      await Event.createFromContext(
-        ctx,
-        {
-          name: "users.signin",
-          userId: user.id,
-          authType: AuthenticationType.APP,
-          data: {
-            name: user.name,
-            service: "passkeys",
-          },
-        },
-        {
-          actorId: user.id,
-          teamId: team.id,
-        }
-      );
-
-      // Set authentication cookie
-      const expires = addMonths(new Date(), 3);
-      ctx.cookies.set("accessToken", user.getJwtToken(expires), {
-        sameSite: "lax",
-        expires,
+      // Use the signIn utility which handles all sign-in logic
+      await signIn(ctx, "passkeys", {
+        user,
+        team,
+        isNewUser: false,
+        isNewTeam: false,
+        client: ctx.input.query.client ?? Client.Web,
       });
-
-      // Return success for AJAX requests - client will reload
-      ctx.body = { data: { verified: true } };
     } else {
       throw ValidationError("Verification failed");
     }

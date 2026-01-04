@@ -70,7 +70,7 @@ function AuthenticationProvider(props: Props) {
     const handlePasskeyClick = async () => {
       try {
         const resp = await client.post(
-          "/passkeys.generate-authentication-options",
+          "/passkeys.generateAuthenticationOptions",
           undefined,
           {
             baseUrl: "/auth",
@@ -81,7 +81,7 @@ function AuthenticationProvider(props: Props) {
 
         // Verify authentication with server
         await client.post(
-          `/passkeys.verify-authentication?client=${clientType}`,
+          `/passkeys.verifyAuthentication?client=${clientType}`,
           { ...authResp, challengeId } as any,
           {
             baseUrl: "/auth",

@@ -34,22 +34,17 @@ function RenamePasskeyDialog({
   const handleSubmit = async (ev: React.FormEvent) => {
     ev.preventDefault();
 
-    if (!name.trim()) {
-      toast.error(t("Please enter a name for this passkey"));
-      return;
-    }
-
     setIsSaving(true);
     try {
       await client.post("/passkeys.update", {
         id: passkeyId,
         name: name.trim(),
       });
-      toast.success(t("Passkey renamed successfully"));
+      toast.success(t("Passkey updated"));
       onSuccess();
     } catch (err) {
       toast.error(
-        err.message || t("Failed to rename passkey. Please try again.")
+        err.message || t("Failed to update passkey. Please try again.")
       );
     } finally {
       setIsSaving(false);
@@ -73,7 +68,7 @@ function RenamePasskeyDialog({
       />
       <Flex justify="flex-end" gap={8}>
         <Button type="submit" disabled={isSaving || !name.trim()}>
-          {isSaving ? `${t("Saving")}…` : t("Save")}
+          {t("Save")}
         </Button>
       </Flex>
     </form>
