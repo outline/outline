@@ -11,7 +11,7 @@ import {
   faLinux,
 } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { PadlockIcon } from "outline-icons";
+import { KeyIcon } from "outline-icons";
 import styled from "styled-components";
 
 interface PasskeyIconProps {
@@ -149,7 +149,7 @@ function PasskeyIcon({ passkey, size = 24 }: PasskeyIconProps) {
     );
   }
 
-  return <PadlockIcon size={size} />;
+  return <KeyIcon size={size} />;
 }
 
 const FontAwesomeWrapper = styled.span<{ size: number }>`

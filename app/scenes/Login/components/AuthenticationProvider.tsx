@@ -11,6 +11,8 @@ import PluginIcon from "~/components/PluginIcon";
 import { client } from "~/utils/ApiClient";
 import Desktop from "~/utils/Desktop";
 import { getRedirectUrl } from "../urls";
+import { CSRF } from "@shared/constants";
+import { getCookie } from "tiny-cookie";
 
 type Props = React.ComponentProps<typeof ButtonLarge> & {
   id: string;
@@ -28,6 +30,7 @@ function AuthenticationProvider(props: Props) {
   const [authState, setAuthState] = React.useState<AuthState>("initial");
   const [isSubmitting, setSubmitting] = React.useState(false);
   const [email, setEmail] = React.useState("");
+  const formRef = React.useRef<HTMLFormElement>(null);
   const { isCreate, id, name, authUrl, onEmailSuccess, ...rest } = props;
   const clientType = Desktop.isElectron() ? Client.Desktop : Client.Web;
 
@@ -67,7 +70,11 @@ function AuthenticationProvider(props: Props) {
   const href = getRedirectUrl(authUrl);
 
   if (id === "passkeys") {
-    const handlePasskeyClick = async () => {
+    const handleSubmitPasskey = async (
+      event: React.SyntheticEvent<HTMLFormElement>
+    ) => {
+      event.preventDefault();
+
       try {
         const resp = await client.post(
           "/passkeys.generateAuthenticationOptions",
@@ -79,32 +86,58 @@ function AuthenticationProvider(props: Props) {
         const { challengeId, ...optionsData } = resp.data;
         const authResp = await startAuthentication(optionsData);
 
-        // Verify authentication with server
-        await client.post(
-          `/passkeys.verifyAuthentication?client=${clientType}`,
-          { ...authResp, challengeId } as any,
-          {
-            baseUrl: "/auth",
-          }
-        );
+        // Populate hidden form fields with authentication data
+        if (formRef.current) {
+          const createInputs = (obj: any, prefix = "") => {
+            Object.entries(obj).forEach(([key, value]) => {
+              const fieldName = prefix ? `${prefix}[${key}]` : key;
 
-        // After successful authentication, the server will have set cookies
-        // Reload to let the app detect the authenticated state
-        window.location.reload();
+              if (value && typeof value === "object" && !Array.isArray(value)) {
+                createInputs(value, fieldName);
+              } else {
+                // Create hidden input for primitive values
+                const input = document.createElement("input");
+                input.type = "hidden";
+                input.name = fieldName;
+                input.value = String(value);
+                formRef.current?.appendChild(input);
+              }
+            });
+          };
+
+          createInputs({
+            ...authResp,
+            challengeId,
+            [CSRF.fieldName]: getCookie(CSRF.cookieName),
+            client: clientType,
+          });
+        }
+
+        // Submit form natively to let browser handle redirect and cookies
+        formRef.current?.submit();
       } catch (err) {
         toast.error(err.message);
       }
     };
 
     return (
-      <ButtonLarge
-        onClick={handlePasskeyClick}
-        icon={<PluginIcon id={id} color="currentColor" />}
-        fullwidth
-        {...rest}
-      >
-        {t("Continue with Passkey")}
-      </ButtonLarge>
+      <Wrapper>
+        <Form
+          ref={formRef}
+          method="POST"
+          action="/auth/passkeys.verifyAuthentication"
+          onSubmit={handleSubmitPasskey}
+        >
+          <ButtonLarge
+            type="submit"
+            icon={<PluginIcon id={id} color="currentColor" />}
+            fullwidth
+            {...rest}
+          >
+            {t("Continue with Passkey")}
+          </ButtonLarge>
+        </Form>
+      </Wrapper>
     );
   }
 

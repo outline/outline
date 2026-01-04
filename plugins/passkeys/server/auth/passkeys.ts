@@ -7,7 +7,6 @@ import {
 import { isoBase64URL } from "@simplewebauthn/server/helpers";
 import type { AuthenticatorTransportFuture } from "@simplewebauthn/server";
 import Router from "koa-router";
-import type { Context } from "koa";
 import { randomBytes } from "crypto";
 import { User, UserPasskey, Team } from "@server/models";
 import auth from "@server/middlewares/authentication";
@@ -27,12 +26,8 @@ const router = new Router();
 const rpName = env.APP_NAME;
 const CHALLENGE_EXPIRY = Minute.seconds * 5;
 
-// Helper to get RP ID (domain)
-const getRpID = (ctx: Context) =>
-  // In development, we might be on localhost or a local domain.
-  // In production, it should be the base domain.
-  // For simplicity, we can use the hostname but strip port.
-  ctx.request.hostname;
+// Helper to get RP ID (domain) - for simplicity, we can use the hostname but strip port.
+const getRpID = (ctx: APIContext) => ctx.request.hostname;
 
 router.post(
   "passkeys.generateRegistrationOptions",
@@ -42,7 +37,7 @@ router.post(
 
     const options = await generateRegistrationOptions({
       rpName,
-      rpID: getRpID(ctx as any),
+      rpID: getRpID(ctx),
       userID: isoBase64URL.toBuffer(user.id),
       userName: user.email || user.name,
       // Don't exclude credentials, so we can detect if one is already registered (optional)
@@ -176,7 +171,7 @@ router.post(
   validate(T.PasskeysVerifyAuthenticationSchema),
   async (ctx: APIContext<T.PasskeysVerifyAuthenticationReq>) => {
     const body = ctx.input.body;
-    const { challengeId } = body;
+    const { challengeId, client = Client.Web } = body;
 
     if (!challengeId) {
       throw ValidationError("Challenge ID is required");
@@ -214,7 +209,7 @@ router.post(
         response: body,
         expectedChallenge,
         expectedOrigin: `${ctx.protocol}://${ctx.request.host}`,
-        expectedRPID: getRpID(ctx as any),
+        expectedRPID: getRpID(ctx),
         credential: {
           id: passkey.credentialId,
           publicKey: new Uint8Array(passkey.credentialPublicKey),
@@ -222,8 +217,7 @@ router.post(
           transports: passkey.transports as AuthenticatorTransportFuture[],
         },
       });
-    } catch (error) {
-      const err = error instanceof Error ? error : new Error(String(error));
+    } catch (err) {
       Logger.error("passkeys: Authentication verification failed", err);
       throw ValidationError(err.message);
     }
@@ -244,7 +238,7 @@ router.post(
         team,
         isNewUser: false,
         isNewTeam: false,
-        client: ctx.input.query.client ?? Client.Web,
+        client,
       });
     } else {
       throw ValidationError("Verification failed");

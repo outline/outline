@@ -1,6 +1,6 @@
 import { startRegistration } from "@simplewebauthn/browser";
 import { observer } from "mobx-react";
-import { PadlockIcon, PlusIcon } from "outline-icons";
+import { KeyIcon, PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
@@ -125,7 +125,7 @@ function PasskeysSettings() {
   return (
     <Scene
       title={t("Passkeys")}
-      icon={<PadlockIcon />}
+      icon={<KeyIcon />}
       actions={
         <Action>
           <Button

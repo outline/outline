@@ -14,9 +14,25 @@ export type PasskeysGenerateAuthenticationOptionsReq = z.infer<
 >;
 
 export const PasskeysVerifyAuthenticationSchema = BaseSchema.extend({
-  body: z.any(), // WebAuthn AuthenticationResponseJSON from @simplewebauthn/browser
-  query: z.object({
+  body: z.object({
+    challengeId: z.string(),
     client: z.nativeEnum(Client).optional(),
+    id: z.string(),
+    rawId: z.string(),
+    response: z.object({
+      authenticatorData: z.string(),
+      clientDataJSON: z.string(),
+      signature: z.string(),
+      userHandle: z.string().optional(),
+    }),
+    type: z.literal("public-key"),
+    authenticatorAttachment: z.enum(["cross-platform", "platform"]).optional(),
+    clientExtensionResults: z
+      .object({
+        appid: z.boolean().optional(),
+        hmacCreateSecret: z.boolean().optional(),
+      })
+      .default({}),
   }),
 });
 
