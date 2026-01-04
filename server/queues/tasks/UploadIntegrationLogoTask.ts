@@ -23,9 +23,9 @@ type Props = {
  */
 export default class UploadIntegrationLogoTask extends BaseTask<Props> {
   public async perform(props: Props) {
-    const integration = await Integration.scope("withAuthentication").findByPk<
-      Integration<IntegrationType.Embed>
-    >(props.integrationId);
+    const integration = await Integration.scope("withAuthentication").findByPk(
+      props.integrationId
+    );
     if (!integration || !SupportedIntegrations.includes(integration.service)) {
       return;
     }
@@ -54,10 +54,14 @@ export default class UploadIntegrationLogoTask extends BaseTask<Props> {
 
     switch (integration.service) {
       case IntegrationService.Linear:
-        integration.settings.linear!.workspace.logoUrl = attachment.url;
+        (
+          integration as Integration<IntegrationType.Embed>
+        ).settings.linear!.workspace.logoUrl = attachment.url;
         break;
       case IntegrationService.Figma:
-        integration.settings.figma!.account.avatarUrl = attachment.url;
+        (
+          integration as Integration<IntegrationType.LinkedAccount>
+        ).settings.figma!.account.avatarUrl = attachment.url;
         break;
       default:
         throw new Error(
