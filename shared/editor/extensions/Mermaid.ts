@@ -6,6 +6,7 @@ import type { Node } from "prosemirror-model";
 import type { Transaction } from "prosemirror-state";
 import { Plugin, PluginKey, TextSelection } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
+import { toast } from "sonner";
 import { isCode } from "../lib/isCode";
 import { isRemoteTransaction } from "../lib/multiplayer";
 import { findBlockNodes } from "../queries/findChildren";
@@ -13,6 +14,7 @@ import { findParentNode } from "../queries/findParentNode";
 import type { NodeWithPos } from "../types";
 import type { Editor } from "../../../app/editor";
 import { LightboxImageFactory } from "../lib/Lightbox";
+import { sanitizeUrl } from "../../utils/urls";
 
 export const pluginKey = new PluginKey("mermaid");
 
@@ -225,6 +227,8 @@ export default function Mermaid({
   isDark: boolean;
   editor: Editor;
 }) {
+  const { onClickLink, dictionary } = editor.props;
+
   return new Plugin({
     key: pluginKey,
     state: {
@@ -324,12 +328,41 @@ export default function Mermaid({
         return this.getState(state)?.decorationSet;
       },
       handleDOMEvents: {
+        click(_view, event: MouseEvent) {
+          const target = event.target as HTMLElement;
+          const anchor = target?.closest("a");
+
+          if (anchor instanceof SVGAElement) {
+            event.stopPropagation();
+            event.preventDefault();
+            return false;
+          }
+
+          return true;
+        },
         mouseup(view, event) {
           const target = event.target as HTMLElement;
           const diagram = target?.closest(".mermaid-diagram-wrapper");
           const codeBlock = diagram?.previousElementSibling;
 
           if (!codeBlock) {
+            return false;
+          }
+
+          const anchor = target?.closest("a");
+          if (anchor instanceof SVGAElement) {
+            const href = anchor.getAttribute("xlink:href");
+
+            try {
+              if (onClickLink && href) {
+                event.stopPropagation();
+                event.preventDefault();
+                onClickLink(sanitizeUrl(href) ?? "");
+              }
+            } catch (_err) {
+              toast.error(dictionary.openLinkError);
+            }
+
             return false;
           }
 
