@@ -164,7 +164,7 @@ export const codeLanguages: Record<string, CodeLanguage> = {
   },
   mermaidjs: {
     lang: "mermaid",
-    label: "Mermaid Diagram",
+    label: "Mermaid",
     // @ts-expect-error Mermaid is not in types but exists
     loader: () => import("refractor/lang/mermaid").then((m) => m.default),
   },
