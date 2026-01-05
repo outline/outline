@@ -23,7 +23,6 @@ type Passkey = {
   id: string;
   name: string;
   userAgent: string | null;
-  transports: string[];
   createdAt: string;
   updatedAt: string;
 };

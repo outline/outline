@@ -15,24 +15,17 @@ type Passkey = {
   id: string;
   name: string;
   userAgent: string | null;
-  transports: string[];
   createdAt: string;
   updatedAt: string;
 };
 
-type PasskeyListItemProps = {
+type Props = {
   passkey: Passkey;
   onRename: () => void;
   onDelete: () => void;
 };
 
-type PasskeyMenuProps = {
-  passkey: Passkey;
-  onRename: () => void;
-  onDelete: () => void;
-};
-
-function PasskeyMenu({ onRename, onDelete }: PasskeyMenuProps) {
+function PasskeyMenu({ onRename, onDelete }: Props) {
   const { t } = useTranslation();
 
   const actions = React.useMemo(
@@ -71,11 +64,7 @@ function PasskeyMenu({ onRename, onDelete }: PasskeyMenuProps) {
  * @param props.onRename - Callback fired when the rename action is triggered.
  * @param props.onDelete - Callback fired when the delete action is triggered.
  */
-function PasskeyListItem({
-  passkey,
-  onRename,
-  onDelete,
-}: PasskeyListItemProps) {
+function PasskeyListItem({ passkey, onRename, onDelete }: Props) {
   const { t } = useTranslation();
   const userLocale = useUserLocale();
   const locale = dateLocale(userLocale);

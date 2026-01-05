@@ -7,6 +7,7 @@ import * as T from "./schema";
 import { authorize } from "@server/policies";
 import { transaction } from "@server/middlewares/transaction";
 import pagination from "@server/routes/api/middlewares/pagination";
+import presentUserPasskey from "../presenters/userPasskey";
 
 const router = new Router();
 
@@ -36,7 +37,7 @@ router.post(
 
     ctx.body = {
       pagination,
-      data: passkeys,
+      data: passkeys.map(presentUserPasskey),
     };
   }
 );
@@ -61,7 +62,7 @@ router.post(
       name,
     });
 
-    ctx.body = { data: { success: true, name: passkey.name } };
+    ctx.body = { data: presentUserPasskey(passkey) };
   }
 );
 

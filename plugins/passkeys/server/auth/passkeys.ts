@@ -21,6 +21,7 @@ import { generatePasskeyName } from "@shared/utils/passkeys";
 import * as T from "./schema";
 import { Client } from "@shared/types";
 import { Minute } from "@shared/utils/time";
+import { authorize } from "@server/policies";
 
 const router = new Router();
 const rpName = env.APP_NAME;
@@ -52,6 +53,7 @@ router.post(
   auth(),
   async (ctx: APIContext) => {
     const { user } = ctx.state.auth;
+    authorize(user, "createUserPasskey", user.team);
 
     const options = await generateRegistrationOptions({
       rpName,
@@ -85,6 +87,7 @@ router.post(
   async (ctx: APIContext<T.PasskeysVerifyRegistrationReq>) => {
     const { user } = ctx.state.auth;
     const body = ctx.input.body;
+    authorize(user, "createUserPasskey", user.team);
 
     // Retrieve challenge from Redis
     const expectedChallenge = await Redis.defaultClient.get(
