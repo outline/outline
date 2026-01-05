@@ -13,51 +13,61 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { KeyIcon } from "outline-icons";
 import styled from "styled-components";
+import { PasskeyBrand } from "@shared/utils/passkeys";
 
 interface PasskeyIconProps {
   passkey: {
     name: string;
     userAgent: string | null;
+    aaguid: string | null;
   };
   size?: number;
 }
 
 /**
- * Displays an appropriate icon based on the passkey's browser, device, and authenticator type.
+ * Displays an appropriate icon based on the passkey's AAGUID, browser, device, and authenticator type.
  *
- * @param transports - array of authenticator transports.
- * @param userAgent - user agent string from passkey registration.
+ * @param passkey - passkey object with aaguid, name, and userAgent.
  * @param size - optional icon size in pixels.
  * @returns icon component representing the passkey type.
  */
 function PasskeyIcon({ passkey, size = 24 }: PasskeyIconProps) {
-  const { name, userAgent } = passkey;
+  const { aaguid, userAgent } = passkey;
 
-  // Detect name-based icons
-  const getNameIcon = () => {
-    const lowerName = name.toLowerCase();
-
-    if (
-      lowerName.includes("apple password") ||
-      lowerName.includes("icloud") ||
-      lowerName.includes("iPasswords") ||
-      lowerName.includes("touch id")
-    ) {
-      return faApple;
+  // Detect icon based on AAGUID
+  const getAaguidIcon = () => {
+    if (!aaguid) {
+      return undefined;
     }
 
-    if (
-      lowerName.includes("windows hello") ||
-      lowerName.includes("microsoft password")
-    ) {
-      return faWindows;
-    }
+    switch (aaguid as PasskeyBrand) {
+      case PasskeyBrand.ApplePasswords:
+      case PasskeyBrand.ICloudKeychainManaged:
+      case PasskeyBrand.IPasswords:
+        return faApple;
 
-    if (lowerName.includes("google password")) {
-      return faGoogle;
-    }
+      case PasskeyBrand.WindowsHello1:
+      case PasskeyBrand.WindowsHello2:
+      case PasskeyBrand.WindowsHello3:
+      case PasskeyBrand.MicrosoftPasswordManager:
+        return faWindows;
 
-    return undefined;
+      case PasskeyBrand.GooglePasswordManager:
+        return faGoogle;
+
+      case PasskeyBrand.ChromeOnMac:
+      case PasskeyBrand.ChromiumBrowser:
+        return faChrome;
+
+      case PasskeyBrand.EdgeOnMac:
+        return faEdge;
+
+      case PasskeyBrand.SamsungPass:
+        return faAndroid;
+
+      default:
+        return undefined;
+    }
   };
 
   // Detect browser from user agent
@@ -128,12 +138,12 @@ function PasskeyIcon({ passkey, size = 24 }: PasskeyIconProps) {
   };
 
   // Determine which icon to show
-  const nameIcon = getNameIcon();
+  const aaguidIcon = getAaguidIcon();
   const browserIcon = getBrowserIcon();
   const deviceIcon = getDeviceIcon();
 
-  // Prioritize browser icon, fall back to device icon
-  const faIcon = nameIcon || browserIcon || deviceIcon;
+  // Prioritize AAGUID icon, then browser icon, then device icon
+  const faIcon = aaguidIcon || browserIcon || deviceIcon;
 
   if (faIcon) {
     return (

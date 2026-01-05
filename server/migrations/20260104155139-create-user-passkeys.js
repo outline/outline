@@ -29,6 +29,10 @@ module.exports = {
             type: Sequelize.BLOB,
             allowNull: false,
           },
+          aaguid: {
+            type: Sequelize.TEXT,
+            allowNull: true,
+          },
           counter: {
             type: Sequelize.BIGINT,
             allowNull: false,

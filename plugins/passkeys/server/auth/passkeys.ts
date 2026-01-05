@@ -141,6 +141,7 @@ router.post(
           credentialPublicKey: Buffer.from(credentialPublicKey),
           counter,
           userAgent,
+          aaguid,
         });
       } else {
         await UserPasskey.createWithCtx(ctx, {
@@ -151,6 +152,7 @@ router.post(
           transports,
           name: generatePasskeyName(aaguid, userAgent, transports),
           userAgent,
+          aaguid,
         });
       }
 

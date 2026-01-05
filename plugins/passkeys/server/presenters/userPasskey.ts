@@ -8,5 +8,6 @@ export default function presentUserPasskey(userPasskey: UserPasskey) {
     lastActiveAt: userPasskey.lastActiveAt,
     name: userPasskey.name,
     userAgent: userPasskey.userAgent,
+    aaguid: userPasskey.aaguid,
   };
 }

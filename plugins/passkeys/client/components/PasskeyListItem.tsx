@@ -5,7 +5,7 @@ import ListItem from "~/components/List/Item";
 import Text from "~/components/Text";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
-import { createAction } from "~/actions";
+import { ActionSeparator, createAction } from "~/actions";
 import { useMenuAction } from "~/hooks/useMenuAction";
 import PasskeyIcon from "./PasskeyIcon";
 import { dateLocale, dateToRelative } from "@shared/utils/date";
@@ -41,6 +41,7 @@ function PasskeyMenu({ onRename, onDelete }: Props) {
         section: "Passkey",
         perform: onRename,
       }),
+      ActionSeparator,
       createAction({
         name: `${t("Delete")}…`,
         icon: <TrashIcon />,

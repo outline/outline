@@ -30,6 +30,9 @@ class UserPasskey extends IdModel<
   @SkipChangeset
   credentialPublicKey: Buffer;
 
+  @Column
+  aaguid: string | null;
+
   @Column(DataType.BIGINT)
   @SkipChangeset
   counter: number;
