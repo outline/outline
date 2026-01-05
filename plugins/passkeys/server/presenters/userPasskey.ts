@@ -5,6 +5,7 @@ export default function presentUserPasskey(userPasskey: UserPasskey) {
     id: userPasskey.id,
     createdAt: userPasskey.createdAt,
     updatedAt: userPasskey.updatedAt,
+    lastActiveAt: userPasskey.lastActiveAt,
     name: userPasskey.name,
     userAgent: userPasskey.userAgent,
   };

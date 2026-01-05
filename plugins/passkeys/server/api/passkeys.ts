@@ -22,14 +22,6 @@ router.post(
 
     const passkeys = await UserPasskey.findAll({
       where: { userId: user.id },
-      attributes: [
-        "id",
-        "name",
-        "userAgent",
-        "transports",
-        "createdAt",
-        "updatedAt",
-      ],
       order: [["createdAt", "DESC"]],
       offset: pagination.offset,
       limit: pagination.limit,

@@ -10,18 +10,23 @@ import { useMenuAction } from "~/hooks/useMenuAction";
 import PasskeyIcon from "./PasskeyIcon";
 import { dateLocale, dateToRelative } from "@shared/utils/date";
 import useUserLocale from "~/hooks/useUserLocale";
+import Time from "~/components/Time";
 
 type Passkey = {
   id: string;
   name: string;
   userAgent: string | null;
+  lastActiveAt: string | null;
   createdAt: string;
   updatedAt: string;
 };
 
 type Props = {
+  /** The passkey to render. */
   passkey: Passkey;
+  /** Callback fired when the rename action is triggered. */
   onRename: () => void;
+  /** Callback fired when the delete action is triggered. */
   onDelete: () => void;
 };
 
@@ -58,11 +63,6 @@ function PasskeyMenu({ onRename, onDelete }: Props) {
 
 /**
  * Renders a single passkey list item with icon, metadata, and action menu.
- *
- * @param props - The component props.
- * @param props.passkey - The passkey object to display.
- * @param props.onRename - Callback fired when the rename action is triggered.
- * @param props.onDelete - Callback fired when the delete action is triggered.
  */
 function PasskeyListItem({ passkey, onRename, onDelete }: Props) {
   const { t } = useTranslation();
@@ -74,14 +74,20 @@ function PasskeyListItem({ passkey, onRename, onDelete }: Props) {
       image={<PasskeyIcon passkey={passkey} size={24} />}
       title={passkey.name}
       subtitle={
-        <Text type="tertiary">
-          {t("Registered {{ timeAgo }}", {
-            timeAgo: dateToRelative(Date.parse(passkey.createdAt), {
-              addSuffix: true,
-              locale,
-            }),
-          })}
-        </Text>
+        passkey.lastActiveAt ? (
+          <Text type="tertiary">
+            {t("Last used")} <Time dateTime={passkey.lastActiveAt} addSuffix />
+          </Text>
+        ) : (
+          <Text type="tertiary">
+            {t("Registered {{ timeAgo }}", {
+              timeAgo: dateToRelative(Date.parse(passkey.createdAt), {
+                addSuffix: true,
+                locale,
+              }),
+            })}
+          </Text>
+        )
       }
       actions={
         <PasskeyMenu

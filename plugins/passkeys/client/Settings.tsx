@@ -9,6 +9,7 @@ import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Heading from "~/components/Heading";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
+import PlaceholderList from "~/components/List/Placeholder";
 import useStores from "~/hooks/useStores";
 import { client } from "~/utils/ApiClient";
 import PasskeyListItem from "./components/PasskeyListItem";
@@ -23,6 +24,7 @@ type Passkey = {
   id: string;
   name: string;
   userAgent: string | null;
+  lastActiveAt: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -157,9 +159,7 @@ function PasskeysSettings() {
 
       {isLoading ? (
         <DelayedMount>
-          <Text as="p" type="secondary">
-            {t("Loading")}…
-          </Text>
+          <PlaceholderList count={5} />
         </DelayedMount>
       ) : passkeys.length > 0 ? (
         <>

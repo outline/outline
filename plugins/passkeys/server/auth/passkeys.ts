@@ -243,7 +243,8 @@ router.post(
     if (verified && authenticationInfo) {
       // Update counter
       passkey.counter = authenticationInfo.newCounter;
-      await passkey.save();
+      passkey.lastActiveAt = new Date();
+      await passkey.save({ silent: true });
 
       // Delete challenge from Redis
       await Redis.defaultClient.del(getAuthenticationChallengeKey(challengeId));

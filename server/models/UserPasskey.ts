@@ -4,6 +4,7 @@ import {
   Column,
   DataType,
   ForeignKey,
+  IsDate,
   Length,
   Table,
 } from "sequelize-typescript";
@@ -12,6 +13,7 @@ import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
 import { UserPasskeyValidation } from "@shared/validations";
 import NotContainsUrl from "./validators/NotContainsUrl";
+import { SkipChangeset } from "./decorators/Changeset";
 
 @Table({ tableName: "user_passkeys", modelName: "user_passkey" })
 @Fix
@@ -21,13 +23,15 @@ class UserPasskey extends IdModel<
 > {
   static eventNamespace = "passkeys";
 
-  @Column(DataType.TEXT)
+  @Column
   credentialId: string;
 
   @Column(DataType.BLOB)
+  @SkipChangeset
   credentialPublicKey: Buffer;
 
   @Column(DataType.BIGINT)
+  @SkipChangeset
   counter: number;
 
   @Column(DataType.ARRAY(DataType.STRING))
@@ -39,11 +43,16 @@ class UserPasskey extends IdModel<
     msg: `Name must be between ${UserPasskeyValidation.minNameLength} and ${UserPasskeyValidation.maxNameLength} characters`,
   })
   @NotContainsUrl
-  @Column(DataType.TEXT)
+  @Column
   name: string;
 
-  @Column(DataType.TEXT)
+  @Column
   userAgent: string | null;
+
+  @IsDate
+  @Column
+  @SkipChangeset
+  lastActiveAt: Date | null;
 
   // associations
 
