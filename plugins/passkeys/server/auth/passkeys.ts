@@ -235,7 +235,7 @@ router.post(
       });
     } catch (err) {
       Logger.error("passkeys: Authentication verification failed", err);
-      throw ValidationError(err.message);
+      throw ValidationError("Passkey authentication failed. Please try again.");
     }
 
     const { verified, authenticationInfo } = verification;
