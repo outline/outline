@@ -15,6 +15,7 @@ import Time from "~/components/Time";
 type Passkey = {
   id: string;
   name: string;
+  aaguid: string | null;
   userAgent: string | null;
   lastActiveAt: string | null;
   createdAt: string;

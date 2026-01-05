@@ -23,6 +23,7 @@ import DelayedMount from "~/components/DelayedMount";
 type Passkey = {
   id: string;
   name: string;
+  aaguid: string | null;
   userAgent: string | null;
   lastActiveAt: string | null;
   createdAt: string;
