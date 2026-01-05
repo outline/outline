@@ -24,16 +24,34 @@ import { Minute } from "@shared/utils/time";
 
 const router = new Router();
 const rpName = env.APP_NAME;
-const CHALLENGE_EXPIRY = Minute.seconds * 5;
+const CHALLENGE_EXPIRY_MS = Minute.ms * 5;
 
 // Helper to get RP ID (domain) - for simplicity, we can use the hostname but strip port.
 const getRpID = (ctx: APIContext) => ctx.request.hostname;
+
+/**
+ * Generate Redis key for registration challenge.
+ *
+ * @param userId - the user ID.
+ * @returns the Redis key.
+ */
+const getRegistrationChallengeKey = (userId: string): string =>
+  `passkey:reg-challenge:${userId}`;
+
+/**
+ * Generate Redis key for authentication challenge.
+ *
+ * @param challengeId - the challenge ID.
+ * @returns the Redis key.
+ */
+const getAuthenticationChallengeKey = (challengeId: string): string =>
+  `passkey:auth-challenge:${challengeId}`;
 
 router.post(
   "passkeys.generateRegistrationOptions",
   auth(),
   async (ctx: APIContext) => {
-    const user = ctx.state.auth.user;
+    const { user } = ctx.state.auth;
 
     const options = await generateRegistrationOptions({
       rpName,
@@ -49,12 +67,11 @@ router.post(
     });
 
     // Save challenge to Redis with user ID as key
-    const challengeKey = `passkey:reg-challenge:${user.id}`;
     await Redis.defaultClient.set(
-      challengeKey,
+      getRegistrationChallengeKey(user.id),
       options.challenge,
       "PX",
-      CHALLENGE_EXPIRY * 1000
+      CHALLENGE_EXPIRY_MS
     );
 
     ctx.body = { data: options };
@@ -66,12 +83,13 @@ router.post(
   auth(),
   validate(T.PasskeysVerifyRegistrationSchema),
   async (ctx: APIContext<T.PasskeysVerifyRegistrationReq>) => {
-    const user = ctx.state.auth.user;
+    const { user } = ctx.state.auth;
     const body = ctx.input.body;
 
     // Retrieve challenge from Redis
-    const challengeKey = `passkey:reg-challenge:${user.id}`;
-    const expectedChallenge = await Redis.defaultClient.get(challengeKey);
+    const expectedChallenge = await Redis.defaultClient.get(
+      getRegistrationChallengeKey(user.id)
+    );
 
     if (!expectedChallenge) {
       throw ValidationError(
@@ -85,7 +103,7 @@ router.post(
         response: body,
         expectedChallenge,
         expectedOrigin: `${ctx.protocol}://${ctx.request.host}`, // Origin includes port
-        expectedRPID: getRpID(ctx as any),
+        expectedRPID: getRpID(ctx),
       });
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error));
@@ -105,7 +123,6 @@ router.post(
       // Capture user agent and generate friendly name
       const userAgent = ctx.request.get("user-agent");
       const transports = body.response.transports || [];
-      const name = generatePasskeyName(aaguid, userAgent, transports);
 
       // Check if already exists
       const existing = await UserPasskey.findOne({
@@ -116,12 +133,12 @@ router.post(
         if (existing.userId !== user.id) {
           throw ValidationError("Passkey already registered to another user");
         }
-        // Update existing? Or just return success.
-        existing.credentialPublicKey = Buffer.from(credentialPublicKey);
-        existing.counter = counter;
-        existing.name = name;
-        existing.userAgent = userAgent;
-        await existing.saveWithCtx(ctx);
+
+        await existing.updateWithCtx(ctx, {
+          credentialPublicKey: Buffer.from(credentialPublicKey),
+          counter,
+          userAgent,
+        });
       } else {
         await UserPasskey.createWithCtx(ctx, {
           userId: user.id,
@@ -129,13 +146,13 @@ router.post(
           credentialPublicKey: Buffer.from(credentialPublicKey),
           counter,
           transports,
-          name,
+          name: generatePasskeyName(aaguid, userAgent, transports),
           userAgent,
         });
       }
 
       // Delete challenge from Redis
-      await Redis.defaultClient.del(challengeKey);
+      await Redis.defaultClient.del(getRegistrationChallengeKey(user.id));
       ctx.body = { data: { verified: true } };
     } else {
       throw ValidationError("Verification failed");
@@ -148,18 +165,17 @@ router.post(
   validate(T.PasskeysGenerateAuthenticationOptionsSchema),
   async (ctx: APIContext<T.PasskeysGenerateAuthenticationOptionsReq>) => {
     const options = await generateAuthenticationOptions({
-      rpID: getRpID(ctx as any),
+      rpID: getRpID(ctx),
       userVerification: "preferred",
     });
 
     // Generate a unique challenge ID for this authentication attempt
     const challengeId = randomBytes(32).toString("hex");
-    const challengeKey = `passkey:auth-challenge:${challengeId}`;
     await Redis.defaultClient.set(
-      challengeKey,
+      getAuthenticationChallengeKey(challengeId),
       options.challenge,
       "PX",
-      CHALLENGE_EXPIRY * 1000
+      CHALLENGE_EXPIRY_MS
     );
 
     ctx.body = { data: { ...options, challengeId } };
@@ -173,13 +189,10 @@ router.post(
     const body = ctx.input.body;
     const { challengeId, client = Client.Web } = body;
 
-    if (!challengeId) {
-      throw ValidationError("Challenge ID is required");
-    }
-
     // Retrieve challenge from Redis
-    const challengeKey = `passkey:auth-challenge:${challengeId}`;
-    const expectedChallenge = await Redis.defaultClient.get(challengeKey);
+    const expectedChallenge = await Redis.defaultClient.get(
+      getAuthenticationChallengeKey(challengeId)
+    );
 
     if (!expectedChallenge) {
       throw ValidationError(
@@ -230,7 +243,7 @@ router.post(
       await passkey.save();
 
       // Delete challenge from Redis
-      await Redis.defaultClient.del(challengeKey);
+      await Redis.defaultClient.del(getAuthenticationChallengeKey(challengeId));
 
       // Use the signIn utility which handles all sign-in logic
       await signIn(ctx, "passkeys", {

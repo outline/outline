@@ -153,7 +153,7 @@ class Team extends ParanoidModel<
   @Column
   guestSignin: boolean;
 
-  @Default(false)
+  @Default(true)
   @Column
   passkeysEnabled: boolean;
 
