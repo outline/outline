@@ -730,7 +730,11 @@ const Background = styled(Container)`
 `;
 
 const ReferencesWrapper = styled.div`
-  margin: 12px 0;
+  margin: 12px 0 60px;
+
+  ${breakpoint("tablet")`
+    margin-bottom: 12px;
+  `}
 
   @media print {
     display: none;
