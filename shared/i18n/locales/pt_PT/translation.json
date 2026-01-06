@@ -898,6 +898,7 @@
   "Mention users and more": "Mention users and more",
   "Insert block": "Insert block",
   "Continue with Passkey": "Continue with Passkey",
+  "Passkeys are not supported in the desktop app": "Passkeys are not supported in the desktop app",
   "Sign In": "Iniciar Sessão",
   "Continue with Email": "Continuar com Email",
   "Continue with {{ authProviderName }}": "Continuar com {{ authProviderName }}",
