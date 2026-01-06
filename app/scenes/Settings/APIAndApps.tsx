@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { PadlockIcon } from "outline-icons";
+import { BuildingBlocksIcon } from "outline-icons";
 import { useTranslation, Trans } from "react-i18next";
 import type ApiKey from "~/models/ApiKey";
 import type OAuthAuthentication from "~/models/oauth/OAuthAuthentication";
@@ -29,7 +29,7 @@ function APIAndApps() {
   return (
     <Scene
       title={t("API & Apps")}
-      icon={<PadlockIcon />}
+      icon={<BuildingBlocksIcon />}
       actions={
         <>
           {can.createApiKey && (

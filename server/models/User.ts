@@ -61,6 +61,7 @@ import Group from "./Group";
 import Team from "./Team";
 import UserAuthentication from "./UserAuthentication";
 import UserMembership from "./UserMembership";
+import UserPasskey from "./UserPasskey";
 import ParanoidModel from "./base/ParanoidModel";
 import Encrypted from "./decorators/Encrypted";
 import Fix from "./decorators/Fix";
@@ -248,6 +249,9 @@ class User extends ParanoidModel<
 
   @HasMany(() => UserAuthentication)
   authentications: UserAuthentication[];
+
+  @HasMany(() => UserPasskey)
+  passkeys: UserPasskey[];
 
   // getters
 
