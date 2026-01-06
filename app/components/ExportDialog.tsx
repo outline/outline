@@ -13,6 +13,8 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import history from "~/utils/history";
 import { settingsPath } from "~/utils/routeHelpers";
+import usePolicy from "~/hooks/usePolicy";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
 
 type Props = {
   collection?: Collection;
@@ -27,6 +29,8 @@ function ExportDialog({ collection, onSubmit }: Props) {
     React.useState<boolean>(true);
   const [includePrivate, setIncludePrivate] = React.useState<boolean>(true);
   const user = useCurrentUser();
+  const team = useCurrentTeam();
+  const can = usePolicy(team);
   const { collections } = useStores();
   const { t } = useTranslation();
   const appName = env.APP_NAME;
@@ -53,22 +57,28 @@ function ExportDialog({ collection, onSubmit }: Props) {
   );
 
   const handleSubmit = async () => {
+    const options = can.createExport
+      ? {
+          description: t(`Your file will be available in {{ location }} soon`, {
+            location: `"${t("Settings")} > ${t("Export")}"`,
+          }),
+          action: {
+            label: t("View"),
+            onClick: () => {
+              history.push(settingsPath("export"));
+            },
+          },
+        }
+      : {
+          description: t(`A link to your file will be sent through email soon`),
+        };
+
     if (collection) {
       await collection.export(format, includeAttachments);
-      toast.success(t("Export started"), {
-        description: t(`Your file will be available in {{ location }} soon`, {
-          location: `"${t("Settings")} > ${t("Export")}"`,
-        }),
-        action: {
-          label: t("View"),
-          onClick: () => {
-            history.push(settingsPath("export"));
-          },
-        },
-      });
+      toast.success(t("Export started"), options);
     } else {
       await collections.export({ format, includeAttachments, includePrivate });
-      toast.success(t("Export started"));
+      toast.success(t("Export started"), options);
     }
     onSubmit();
   };
