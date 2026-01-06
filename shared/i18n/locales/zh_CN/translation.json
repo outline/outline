@@ -898,6 +898,7 @@
   "Mention users and more": "提及用户等",
   "Insert block": "插入块",
   "Continue with Passkey": "Continue with Passkey",
+  "Passkeys are not supported in the desktop app": "Passkeys are not supported in the desktop app",
   "Sign In": "登录",
   "Continue with Email": "使用电子邮箱继续",
   "Continue with {{ authProviderName }}": "使用 {{ authProviderName }} 继续",
