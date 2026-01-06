@@ -898,6 +898,7 @@
   "Mention users and more": "Nämn användare och mer",
   "Insert block": "Infoga block",
   "Continue with Passkey": "Continue with Passkey",
+  "Passkeys are not supported in the desktop app": "Passkeys are not supported in the desktop app",
   "Sign In": "Logga in",
   "Continue with Email": "Fortsätt med e-post",
   "Continue with {{ authProviderName }}": "Fortsätt med {{ authProviderName }}",
