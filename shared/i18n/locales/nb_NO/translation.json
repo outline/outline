@@ -898,6 +898,7 @@
   "Mention users and more": "Nevn brukere og mer",
   "Insert block": "Sett inn blokk",
   "Continue with Passkey": "Continue with Passkey",
+  "Passkeys are not supported in the desktop app": "Passkeys are not supported in the desktop app",
   "Sign In": "Logg inn",
   "Continue with Email": "Fortsett med e-post",
   "Continue with {{ authProviderName }}": "Fortsett med {{ authProviderName }}",
