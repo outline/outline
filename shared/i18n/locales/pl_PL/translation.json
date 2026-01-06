@@ -898,6 +898,7 @@
   "Mention users and more": "Wzmianki o użytkownikach i nie tylko",
   "Insert block": "Wstaw blok",
   "Continue with Passkey": "Continue with Passkey",
+  "Passkeys are not supported in the desktop app": "Passkeys are not supported in the desktop app",
   "Sign In": "Zaloguj się",
   "Continue with Email": "Kontynuuj przy użyciu e-maila",
   "Continue with {{ authProviderName }}": "Kontynuuj za pomocą {{ authProviderName }}",
