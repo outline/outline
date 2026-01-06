@@ -153,6 +153,7 @@ export function buildTeam(
   return Team.create(
     {
       name: faker.company.name(),
+      passkeysEnabled: false,
       authenticationProviders: [
         {
           name: "slack",

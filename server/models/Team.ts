@@ -155,6 +155,10 @@ class Team extends ParanoidModel<
 
   @Default(true)
   @Column
+  passkeysEnabled: boolean;
+
+  @Default(true)
+  @Column
   documentEmbeds: boolean;
 
   @Default(true)

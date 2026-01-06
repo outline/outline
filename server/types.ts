@@ -23,6 +23,7 @@ import type {
   Team,
   User,
   UserMembership,
+  UserPasskey,
   WebhookSubscription,
   Pin,
   Star,
@@ -440,6 +441,12 @@ export type OAuthClientEvent = BaseEvent<OAuthClient> & {
   modelId: string;
 };
 
+export type UserPasskeyEvent = BaseEvent<UserPasskey> & {
+  name: "passkeys.create" | "passkeys.update" | "passkeys.delete";
+  modelId: string;
+  userId: string;
+};
+
 // oxlint-disable-next-line @typescript-eslint/no-explicit-any
 export type ImportEvent = BaseEvent<Import<any>> & {
   name:
@@ -477,6 +484,7 @@ export type Event =
   | WebhookSubscriptionEvent
   | NotificationEvent
   | OAuthClientEvent
+  | UserPasskeyEvent
   | EmptyTrashEvent
   | ImportEvent;
 

@@ -95,7 +95,7 @@ View Document: ${teamUrl}${collection.path}
           <Heading>{collection.name}</Heading>
           <p>
             {actorName} invited you to {permission} documents in the{" "}
-            <a href={collectionUrl}>{collection.name}</a>{" "}collection.
+            <a href={collectionUrl}>{collection.name}</a> collection.
           </p>
           <p>
             <Button href={collectionUrl}>View Collection</Button>

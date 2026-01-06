@@ -105,7 +105,7 @@ router.post(
     )) as AuthenticationProvider[];
 
     const data = AuthenticationHelper.providers
-      .filter((p) => p.value.id !== "email")
+      .filter((p) => p.value.id !== "email" && p.value.id !== "passkeys")
       .map((p) => {
         const row = teamAuthenticationProviders.find(
           (t) => t.name === p.value.id
