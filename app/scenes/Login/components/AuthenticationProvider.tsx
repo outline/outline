@@ -8,6 +8,7 @@ import { Client } from "@shared/types";
 import ButtonLarge from "~/components/ButtonLarge";
 import InputLarge from "~/components/InputLarge";
 import PluginIcon from "~/components/PluginIcon";
+import Tooltip from "~/components/Tooltip";
 import { client } from "~/utils/ApiClient";
 import Desktop from "~/utils/Desktop";
 import { getRedirectUrl } from "../urls";
@@ -120,6 +121,19 @@ function AuthenticationProvider(props: Props) {
       }
     };
 
+    const isDesktop = Desktop.isElectron();
+    const button = (
+      <ButtonLarge
+        type="submit"
+        icon={<PluginIcon id={id} color="currentColor" />}
+        fullwidth
+        disabled={isDesktop}
+        {...rest}
+      >
+        {t("Continue with Passkey")}
+      </ButtonLarge>
+    );
+
     return (
       <Wrapper>
         <Form
@@ -128,14 +142,15 @@ function AuthenticationProvider(props: Props) {
           action="/auth/passkeys.verifyAuthentication"
           onSubmit={handleSubmitPasskey}
         >
-          <ButtonLarge
-            type="submit"
-            icon={<PluginIcon id={id} color="currentColor" />}
-            fullwidth
-            {...rest}
-          >
-            {t("Continue with Passkey")}
-          </ButtonLarge>
+          {isDesktop ? (
+            <Tooltip
+              content={t("Passkeys are not supported in the desktop app")}
+            >
+              {button}
+            </Tooltip>
+          ) : (
+            button
+          )}
         </Form>
       </Wrapper>
     );

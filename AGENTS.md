@@ -35,6 +35,7 @@ You're an expert in the following areas:
 - Emphasize type safety and static analysis.
 - Follow consistent Prettier formatting.
 - Do not replace smart quotes ("") or ('') with simple quotes ("").
+- Do not add translation strings manually; they will be extracted automatically from the codebase.
 
 ## Dependencies and Upgrading
 
