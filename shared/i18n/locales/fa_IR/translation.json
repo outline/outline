@@ -898,6 +898,7 @@
   "Mention users and more": "منشن کاربران و بیشتر",
   "Insert block": "افزودن بلوک",
   "Continue with Passkey": "Continue with Passkey",
+  "Passkeys are not supported in the desktop app": "Passkeys are not supported in the desktop app",
   "Sign In": "ورود",
   "Continue with Email": "ادامه با ایمیل",
   "Continue with {{ authProviderName }}": "با {{ authProviderName }} ادامه دهید",
