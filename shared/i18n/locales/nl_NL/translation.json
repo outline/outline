@@ -898,6 +898,7 @@
   "Mention users and more": "Gebruikers en meer vermelden",
   "Insert block": "Voeg blok in",
   "Continue with Passkey": "Continue with Passkey",
+  "Passkeys are not supported in the desktop app": "Passkeys are not supported in the desktop app",
   "Sign In": "Aanmelden",
   "Continue with Email": "Verdergaan met e-mailadres",
   "Continue with {{ authProviderName }}": "Ga verder met {{ authProviderName }}",
