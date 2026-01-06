@@ -1,6 +1,6 @@
 import { createContext, useContext, useMemo } from "react";
 
-type MenuVariant = "dropdown" | "context";
+type MenuVariant = "dropdown" | "context" | "inline";
 
 const MenuContext = createContext<{
   variant: MenuVariant;
