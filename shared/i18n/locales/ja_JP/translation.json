@@ -898,6 +898,7 @@
   "Mention users and more": "ユーザーなどをメンションする",
   "Insert block": "ブロックの挿入",
   "Continue with Passkey": "Continue with Passkey",
+  "Passkeys are not supported in the desktop app": "Passkeys are not supported in the desktop app",
   "Sign In": "ログイン",
   "Continue with Email": "Eメール でログイン",
   "Continue with {{ authProviderName }}": "{{ authProviderName }} でログイン",
