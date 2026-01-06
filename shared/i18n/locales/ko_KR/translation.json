@@ -898,6 +898,7 @@
   "Mention users and more": "사용자 멘션 및 기타",
   "Insert block": "블록 삽입",
   "Continue with Passkey": "Continue with Passkey",
+  "Passkeys are not supported in the desktop app": "Passkeys are not supported in the desktop app",
   "Sign In": "로그인",
   "Continue with Email": "이메일로 계속하기",
   "Continue with {{ authProviderName }}": "{{ authProviderName }} 사용하여 계속하기",
