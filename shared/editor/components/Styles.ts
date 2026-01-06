@@ -1891,6 +1891,19 @@ table {
     padding: 4px 0;
   }
 
+  td[data-bgcolor] {
+    color: var(--cell-text-color);
+
+    p, a, p a {
+      color: var(--cell-text-color, inherit);
+    }
+
+    a, p a {
+      text-decoration: underline;
+      text-decoration-color: var(--cell-text-color, inherit);
+    }
+  }
+
   .selectedCell {
     ${
       props.readOnly

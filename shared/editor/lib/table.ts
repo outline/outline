@@ -2,6 +2,7 @@ import type { Attrs, Node } from "prosemirror-model";
 import type { MutableAttrs } from "prosemirror-tables";
 import { isBrowser } from "../../utils/browser";
 import type { TableLayout, NodeMarkAttr } from "../types";
+import { readableColor } from "polished";
 
 export interface TableAttrs {
   layout: TableLayout | null;
@@ -89,7 +90,8 @@ export function setCellAttrs(node: Node): Attrs {
     if (highlightMark) {
       attrs["data-bgcolor"] = highlightMark.attrs.color;
       attrs.style =
-        (attrs.style ?? "") + `background-color: ${highlightMark.attrs.color};`;
+        (attrs.style ?? "") +
+        `background-color: ${highlightMark.attrs.color}; --cell-text-color: ${readableColor(highlightMark.attrs.color)};`;
     }
   }
 

@@ -6,6 +6,7 @@ import {
   InsertLeftIcon,
   InsertRightIcon,
   MoreIcon,
+  PaletteIcon,
   TableHeaderColumnIcon,
   TableMergeCellsIcon,
   TableSplitCellsIcon,
@@ -14,16 +15,43 @@ import {
   TableColumnsDistributeIcon,
 } from "outline-icons";
 import type { EditorState } from "prosemirror-state";
+import styled from "styled-components";
 import { CellSelection, selectedRect } from "prosemirror-tables";
+import Highlight from "@shared/editor/marks/Highlight";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import {
   getAllSelectedColumns,
+  getCellsInColumn,
   isMergedCellSelection,
   isMultipleCellSelection,
 } from "@shared/editor/queries/table";
-import type { MenuItem } from "@shared/editor/types";
+import type { MenuItem, NodeMarkAttr } from "@shared/editor/types";
 import type { Dictionary } from "~/hooks/useDictionary";
 import { ArrowLeftIcon, ArrowRightIcon } from "~/components/Icons/ArrowIcon";
+import CircleIcon from "~/components/Icons/CircleIcon";
+
+/**
+ * Get the set of highlight colors used in a column
+ */
+function getColumnColors(state: EditorState, colIndex: number): Set<string> {
+  const colors = new Set<string>();
+  const cells = getCellsInColumn(colIndex)(state) || [];
+
+  cells.forEach((pos) => {
+    const node = state.doc.nodeAt(pos);
+    if (!node) {
+      return;
+    }
+    const highlightMark = (node.attrs.marks ?? []).find(
+      (mark: NodeMarkAttr) => mark.type === state.schema.marks.highlight.name
+    );
+    if (highlightMark && highlightMark.attrs.color) {
+      colors.add(highlightMark.attrs.color);
+    }
+  });
+
+  return colors;
+}
 
 export default function tableColMenuItems(
   state: EditorState,
@@ -47,6 +75,8 @@ export default function tableColMenuItems(
   }
 
   const tableMap = selectedRect(state);
+  const colColors = getColumnColors(state, index);
+  const hasHighlight = colColors.size > 0;
 
   return [
     {
@@ -99,6 +129,35 @@ export default function tableColMenuItems(
     },
     {
       name: "separator",
+    },
+    {
+      tooltip: dictionary.background,
+      icon:
+        colColors.size > 1 ? (
+          <CircleIcon color="rainbow" />
+        ) : colColors.size === 1 ? (
+          <CircleIcon color={colColors.values().next().value} />
+        ) : (
+          <PaletteIcon />
+        ),
+      children: [
+        ...(hasHighlight
+          ? [
+              {
+                name: "highlightColumn",
+                label: dictionary.none,
+                icon: <DottedCircleIcon retainColor color="transparent" />,
+                attrs: { index, color: null },
+              },
+            ]
+          : []),
+        ...Highlight.lightColors.map((color, colorIndex) => ({
+          name: "highlightColumn",
+          label: Highlight.colorNames[colorIndex],
+          icon: <CircleIcon retainColor color={color} />,
+          attrs: { index, color },
+        })),
+      ],
     },
     {
       icon: <MoreIcon />,
@@ -169,3 +228,10 @@ export default function tableColMenuItems(
     },
   ];
 }
+
+const DottedCircleIcon = styled(CircleIcon)`
+  circle {
+    stroke: ${(props) => props.theme.textSecondary};
+    stroke-dasharray: 2, 2;
+  }
+`;

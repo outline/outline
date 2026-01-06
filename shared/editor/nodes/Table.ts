@@ -33,6 +33,9 @@ import {
   deleteTableIfSelected,
   splitCellAndCollapse,
   mergeCellsAndCollapse,
+  highlightRow,
+  highlightColumn,
+  toggleCellBackground,
 } from "../commands/table";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { FixTablesPlugin } from "../plugins/FixTablesPlugin";
@@ -100,6 +103,9 @@ export default class Table extends Node {
       toggleHeaderRow: () => toggleHeader("row"),
       mergeCells: () => mergeCellsAndCollapse(),
       splitCell: () => splitCellAndCollapse(),
+      highlightRow,
+      highlightColumn,
+      toggleCellBackground,
     };
   }
 

@@ -1,11 +1,11 @@
-import { rgba } from "polished";
+import { rgba, tint } from "polished";
 import { toggleMark } from "prosemirror-commands";
 import type { MarkSpec, MarkType } from "prosemirror-model";
 import { markInputRuleForPattern } from "../lib/markInputRule";
 import markRule from "../rules/mark";
 import Mark from "./Mark";
-import { CommandFactory } from "../lib/Extension";
-import { Primitive } from "utility-types";
+import type { CommandFactory } from "../lib/Extension";
+import type { Primitive } from "utility-types";
 import { toggleHighlight } from "../commands/highlight";
 
 export default class Highlight extends Mark {
@@ -28,6 +28,8 @@ export default class Highlight extends Mark {
     "Bubblegum",
     "Neon",
   ];
+
+  static lightColors = Highlight.colors.map((color) => tint(0.5, color));
 
   /** The default opacity of the highlight */
   static opacity = 0.4;

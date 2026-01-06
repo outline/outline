@@ -19,8 +19,9 @@ import {
   Heading3Icon,
   TableMergeCellsIcon,
   TableSplitCellsIcon,
+  PaletteIcon,
 } from "outline-icons";
-import type { EditorState } from "prosemirror-state";
+import type { EditorState, Selection } from "prosemirror-state";
 import styled from "styled-components";
 import Highlight from "@shared/editor/marks/Highlight";
 import { getMarksBetween } from "@shared/editor/queries/getMarksBetween";
@@ -28,7 +29,7 @@ import { isInCode } from "@shared/editor/queries/isInCode";
 import { isInList } from "@shared/editor/queries/isInList";
 import { isMarkActive } from "@shared/editor/queries/isMarkActive";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
-import type { MenuItem } from "@shared/editor/types";
+import type { MenuItem, NodeMarkAttr } from "@shared/editor/types";
 import { metaDisplay } from "@shared/utils/keyboard";
 import CircleIcon from "~/components/Icons/CircleIcon";
 import type { Dictionary } from "~/hooks/useDictionary";
@@ -42,7 +43,6 @@ import {
 } from "@shared/editor/queries/table";
 import { CellSelection } from "prosemirror-tables";
 import { hasMarkCellSelection } from "@shared/editor/queries/getMarkRange";
-import isBoolean from "lodash/isBoolean";
 
 export default function formattingMenuItems(
   state: EditorState,
@@ -57,15 +57,34 @@ export default function formattingMenuItems(
   const isTouch = isTouchDevice();
   const isList = isInList(state);
   const isTableCell = state.selection instanceof CellSelection;
+  const colorSet = (selection: Selection) => {
+    const colors = new Set<string>();
+    if (!(selection instanceof CellSelection)) {
+      return colors;
+    }
+    selection.forEachCell((cell) => {
+      const highlightMark = (cell.attrs.marks ?? []).find(
+        (mark: NodeMarkAttr) => mark.type === state.schema.marks.highlight.name
+      );
+      if (highlightMark && highlightMark.attrs.color) {
+        colors.add(highlightMark.attrs.color);
+      }
+    });
+    return colors;
+  };
 
-  const highlight = isTableCell
+  const highlight = getMarksBetween(
+    state.selection.from,
+    state.selection.to,
+    state
+  ).find(({ mark }) => mark.type === state.schema.marks.highlight);
+
+  const cellHasBackground = isTableCell
     ? hasMarkCellSelection(
         state.selection as CellSelection,
         state.schema.marks.highlight
       )
-    : getMarksBetween(state.selection.from, state.selection.to, state).find(
-        ({ mark }) => mark.type === state.schema.marks.highlight
-      );
+    : false;
 
   return [
     {
@@ -104,20 +123,46 @@ export default function formattingMenuItems(
       visible: !isCodeBlock && (!isMobile || !isEmpty),
     },
     {
+      tooltip: dictionary.background,
+      icon:
+        colorSet(state.selection).size > 1 ? (
+          <CircleIcon color="rainbow" />
+        ) : colorSet(state.selection).size === 1 ? (
+          <CircleIcon color={colorSet(state.selection).values().next().value} />
+        ) : (
+          <PaletteIcon />
+        ),
+      visible: !isCode && (!isMobile || !isEmpty) && isTableCell,
+      children: [
+        ...(cellHasBackground
+          ? [
+              {
+                name: "toggleCellBackground",
+                label: dictionary.none,
+                icon: <DottedCircleIcon retainColor color="transparent" />,
+                active: () => false,
+                attrs: { color: null },
+              },
+            ]
+          : []),
+        ...Highlight.lightColors.map((color, index) => ({
+          name: "toggleCellBackground",
+          label: Highlight.colorNames[index],
+          icon: <CircleIcon retainColor color={color} />,
+          attrs: { color },
+        })),
+      ],
+    },
+    {
       tooltip: dictionary.mark,
       shortcut: `${metaDisplay}+⇧+H`,
-      icon:
-        isTableCell && highlight ? (
-          <CircleIcon color="rainbow" />
-        ) : highlight && !isBoolean(highlight) ? (
-          <CircleIcon
-            color={highlight.mark.attrs.color || Highlight.colors[0]}
-          />
-        ) : (
-          <HighlightIcon />
-        ),
+      icon: highlight ? (
+        <CircleIcon color={highlight.mark.attrs.color || Highlight.colors[0]} />
+      ) : (
+        <HighlightIcon />
+      ),
       active: () => !!highlight,
-      visible: !isCode && (!isMobile || !isEmpty),
+      visible: !isCode && (!isMobile || !isEmpty) && !isTableCell,
       children: [
         ...(highlight
           ? [

@@ -2,7 +2,7 @@ import { GapCursor } from "prosemirror-gapcursor";
 import type { Node, NodeType } from "prosemirror-model";
 import { Slice } from "prosemirror-model";
 import type { Command, EditorState, Transaction } from "prosemirror-state";
-import { TextSelection } from "prosemirror-state";
+import { Selection, TextSelection } from "prosemirror-state";
 import {
   CellSelection,
   addRow,
@@ -30,10 +30,11 @@ import {
   getWidthFromDom,
   getWidthFromNodes,
 } from "../queries/table";
-import { TableLayout } from "../types";
+import { type NodeMarkAttr, TableLayout } from "../types";
 import { collapseSelection } from "./collapseSelection";
 import { RowSelection } from "../selection/RowSelection";
 import { ColumnSelection } from "../selection/ColumnSelection";
+import type { Attrs } from "prosemirror-model";
 
 export function createTable({
   rowsCount,
@@ -821,4 +822,183 @@ function addRowWithAlignment(
  */
 export function mergeCellsAndCollapse(): Command {
   return chainTransactions(mergeCells, collapseSelection());
+}
+
+const createCellBackground = (
+  cell: Node,
+  pos: number,
+  attrs: Attrs,
+  tr: Transaction
+): Transaction => {
+  const existingMarks = cell.attrs.marks ?? [];
+  const newMark = {
+    type: "highlight",
+    attrs,
+  };
+  const updatedMarks = [...existingMarks, newMark];
+  return tr.setNodeAttribute(pos, "marks", updatedMarks);
+};
+
+const updateCellBackground = (
+  cell: Node,
+  pos: number,
+  attrs: Attrs,
+  tr: Transaction
+): Transaction => {
+  const existingMarks = cell.attrs.marks ?? [];
+  const updatedMarks = existingMarks.map((mark: NodeMarkAttr) =>
+    mark.type === "highlight"
+      ? { ...mark, attrs: { ...mark.attrs, ...attrs } }
+      : mark
+  );
+  return tr.setNodeAttribute(pos, "marks", updatedMarks);
+};
+
+const removeCellBackground = (
+  cell: Node,
+  pos: number,
+  tr: Transaction
+): Transaction => {
+  const existingMarks = cell.attrs.marks ?? [];
+  const updatedMarks = existingMarks.filter(
+    (mark: NodeMarkAttr) => mark.type !== "highlight"
+  );
+  return tr.setNodeAttribute(pos, "marks", updatedMarks);
+};
+
+export const toggleCellBackground =
+  (attrs: Attrs): Command =>
+  (state, dispatch) => {
+    if (!(state.selection instanceof CellSelection)) {
+      return false;
+    }
+
+    let tr = state.tr;
+    state.selection.forEachCell((cell, pos) => {
+      const highlighted = (cell.attrs.marks ?? []).find(
+        (mark: NodeMarkAttr) => mark.type === state.schema.marks.highlight.name
+      );
+      if (!highlighted && attrs.color) {
+        tr = createCellBackground(cell, pos, attrs, tr);
+      } else if (highlighted && attrs.color) {
+        tr = updateCellBackground(cell, pos, attrs, tr);
+      } else {
+        tr = removeCellBackground(cell, pos, tr);
+      }
+    });
+
+    const nextSelection =
+      Selection.findFrom(tr.doc.resolve(state.selection.to), 1, true) ??
+      TextSelection.create(tr.doc, 0);
+
+    dispatch?.(tr.setSelection(nextSelection));
+    return true;
+  };
+
+/**
+ * Set highlight color on all cells in a row.
+ *
+ * @param index The row index
+ * @param color The highlight color to set, or null to remove
+ * @returns The command
+ */
+export function highlightRow({
+  index,
+  color,
+}: {
+  index: number;
+  color: string | null;
+}): Command {
+  return (state, dispatch) => {
+    if (!isInTable(state)) {
+      return false;
+    }
+
+    if (dispatch) {
+      const cells = getCellsInRow(index)(state) || [];
+      let tr = state.tr;
+
+      cells.forEach((pos) => {
+        const node = state.doc.nodeAt(pos);
+        if (!node) {
+          return;
+        }
+
+        const highlighted = (node.attrs.marks ?? []).find(
+          (mark: NodeMarkAttr) =>
+            mark.type === state.schema.marks.highlight.name
+        );
+
+        if (color === null) {
+          tr = removeCellBackground(node, pos, tr);
+        } else if (highlighted) {
+          tr = updateCellBackground(node, pos, { color }, tr);
+        } else {
+          tr = createCellBackground(node, pos, { color }, tr);
+        }
+      });
+
+      // Reset selection after applying highlight
+      const nextSelection =
+        Selection.findFrom(tr.doc.resolve(state.selection.to), 1, true) ??
+        TextSelection.create(tr.doc, 0);
+
+      dispatch(tr.setSelection(nextSelection));
+    }
+    return true;
+  };
+}
+
+/**
+ * Set highlight color on all cells in a column.
+ *
+ * @param index The column index
+ * @param color The highlight color to set, or null to remove
+ * @returns The command
+ */
+export function highlightColumn({
+  index,
+  color,
+}: {
+  index: number;
+  color: string | null;
+}): Command {
+  return (state, dispatch) => {
+    if (!isInTable(state)) {
+      return false;
+    }
+
+    if (dispatch) {
+      const cells = getCellsInColumn(index)(state) || [];
+      let tr = state.tr;
+
+      cells.forEach((pos) => {
+        const node = state.doc.nodeAt(pos);
+        if (!node) {
+          return;
+        }
+
+        const highlighted = (node.attrs.marks ?? []).find(
+          (mark: NodeMarkAttr) =>
+            mark.type === state.schema.marks.highlight.name
+        );
+
+        if (color === null) {
+          tr = removeCellBackground(node, pos, tr);
+        } else if (highlighted) {
+          tr = updateCellBackground(node, pos, { color }, tr);
+        } else {
+          tr = createCellBackground(node, pos, { color }, tr);
+        }
+      });
+
+      // Reset selection after applying highlight
+      const nextSelection =
+        Selection.findFrom(tr.doc.resolve(state.selection.to), 1, true) ??
+        TextSelection.create(tr.doc, 0);
+
+      dispatch(tr.setSelection(nextSelection));
+    }
+    return true;
+  };
 }
