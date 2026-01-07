@@ -8,7 +8,6 @@ import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { Pagination } from "@shared/constants";
-import { hideScrollbars } from "@shared/styles";
 import type { DateFilter as TDateFilter } from "@shared/types";
 import { StatusFilter as TStatusFilter } from "@shared/types";
 import ArrowKeyNavigation from "~/components/ArrowKeyNavigation";
@@ -365,14 +364,10 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
 `;
 
 const Filters = styled(HStack)`
+  flex-wrap: wrap;
   margin-bottom: 12px;
   transition: opacity 100ms ease-in-out;
-  overflow-y: hidden;
-  overflow-x: auto;
   padding: 8px 0;
-  height: 28px;
-
-  ${hideScrollbars()}
 
   ${breakpoint("tablet")`
     padding: 0;
