@@ -228,6 +228,7 @@
   "Couldn’t copy the document, try again?": "Не вдалося скопіювати документ, спробуйте ще раз?",
   "Include nested documents": "Включаючи вкладені документи",
   "Copy to <em>{{ location }}</em>": "Скопіювати до <em>{{ location }}</em>",
+  "Copying": "Copying",
   "Search collections & documents": "Пошук колекцій і документів",
   "No results found": "Результатів не знайдено",
   "Document options": "Налаштування документа",
