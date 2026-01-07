@@ -228,6 +228,7 @@
   "Couldn’t copy the document, try again?": "Dokument nelze zkopírovat, chcete to zkusit znovu?",
   "Include nested documents": "Zahrnout vnořené dokumenty",
   "Copy to <em>{{ location }}</em>": "Zkopírovat do <em>{{ location }}</em>",
+  "Copying": "Copying",
   "Search collections & documents": "Prohledat sbírky a dokumenty",
   "No results found": "Nebyly nalezeny žádné výsledky",
   "Document options": "Možnosti dokumentů",
