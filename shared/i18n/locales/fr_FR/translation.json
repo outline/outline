@@ -228,6 +228,7 @@
   "Couldn’t copy the document, try again?": "Impossible de copier le document, veuillez réessayer ?",
   "Include nested documents": "Inclure les documents imbriqués",
   "Copy to <em>{{ location }}</em>": "Déplacer dans <em>{{ location }}</em>",
+  "Copying": "Copying",
   "Search collections & documents": "Rechercher dans les collections et documents",
   "No results found": "Aucun résultat",
   "Document options": "Options de document",
