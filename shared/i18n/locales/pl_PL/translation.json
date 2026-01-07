@@ -228,6 +228,7 @@
   "Couldn’t copy the document, try again?": "Nie udało się przenieść dokumentu, spróbować ponownie?",
   "Include nested documents": "Dołącz zagnieżdżone dokumenty",
   "Copy to <em>{{ location }}</em>": "Skopiuj do <em>{{ location }}</em>",
+  "Copying": "Copying",
   "Search collections & documents": "Przeszukaj kolekcje i dokumenty",
   "No results found": "Nie znaleziono wyników",
   "Document options": "Opcje dokumentu",
