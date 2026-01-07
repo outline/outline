@@ -4,12 +4,11 @@ import * as Components from "../components/Menu";
 import type { LocationDescriptor } from "history";
 import * as React from "react";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
 import Tooltip from "~/components/Tooltip";
 import { CheckmarkIcon } from "outline-icons";
 import { useMenuContext } from "./MenuContext";
 import useMobile from "~/hooks/useMobile";
-import { Drawer, DrawerContent, DrawerTitle } from "../Drawer";
+import { Drawer, DrawerContent } from "../Drawer";
 import Scrollable from "~/components/Scrollable";
 import { Portal as ReactPortal } from "~/components/Portal";
 
@@ -102,6 +101,7 @@ const MenuContent = React.forwardRef<
 >((props, ref) => {
   const { variant } = useMenuContext();
   const isMobile = useMobile();
+
   const { children, ...rest } = props;
   const contentRef = React.useRef<React.ElementRef<typeof DrawerContent>>(null);
 
@@ -128,28 +128,22 @@ const MenuContent = React.forwardRef<
       <DrawerContent
         ref={contentRef}
         aria-label={rest["aria-label"]}
-        aria-describedby={undefined}
         onAnimationStart={disablePointerEvents}
         onAnimationEnd={enablePointerEvents}
       >
-        <DrawerTitle>{rest["aria-label"] || "Menu"}</DrawerTitle>
-        <StyledScrollable hiddenScrollbars>{children}</StyledScrollable>
+        <StyledScrollable hiddenScrollbars overflow="scroll">
+          {children}
+        </StyledScrollable>
       </DrawerContent>
     ) : (
       <ReactPortal>
         <InlineMenuContentWrapper
           ref={ref as React.Ref<HTMLDivElement>}
           {...contentProps}
+          {...rest}
           hiddenScrollbars
           style={{
-            ["--inline-menu-max-height" as string]: "85vh",
-            ["--inline-menu-transform-origin" as string]: "top left",
-            position: "fixed",
-            height: "fit-content",
-            top: pos ? pos.top - window.scrollY + 50 : undefined,
-            left: pos ? pos.left - 30 : undefined,
-            margin: "10px",
-            zIndex: 1000,
+            top: pos ? pos.top - window.scrollY + 55 : undefined, // adding a 55px offset for better placement
           }}
         >
           {children}
@@ -538,17 +532,12 @@ const MenuLabel = React.forwardRef<
 });
 MenuLabel.displayName = "MenuLabel";
 
-// Styled wrapper for inline menu content with mobile-specific overrides
 const InlineMenuContentWrapper = styled(Components.MenuContent)`
-  ${breakpoint("mobile", "tablet")`
-    // On mobile/tablet, remove width constraints and make it full-width
-    min-width: auto;
-    max-width: none;
-    width: 100%;
-    box-shadow: none;
-    border-radius: 0;
-    padding: 0;
-  `}
+  position: absolute;
+  height: fit-content;
+  --inline-menu-max-height: 85vh;
+  --inline-menu-transform-origin: top left;
+  z-index: 1000;
 `;
 
 // Styled scrollable for mobile drawer content

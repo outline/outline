@@ -28,13 +28,13 @@ type Props = {
 /*
  * Renders an inline menu in the floating toolbar, which does not require a trigger.
  */
-function InLineMenu(props: {
-  active: boolean;
+function InlineMenu(props: {
   item: MenuItem;
   containerRef?: React.MutableRefObject<HTMLDivElement | null>;
 }) {
   const { item, containerRef } = props;
   const { commands, view } = useEditor();
+  const { t } = useTranslation();
   const fallbackRef = useRef<HTMLDivElement | null>(null);
   const pos = usePosition({
     menuRef: containerRef || fallbackRef,
@@ -57,6 +57,7 @@ function InLineMenu(props: {
         <MenuContent
           pos={pos}
           align="end"
+          aria-label={item.tooltip || t("Options")}
           onCloseAutoFocus={handleCloseAutoFocus}
         >
           <EventBoundary>{toMenuItems(items)}</EventBoundary>
@@ -150,11 +151,7 @@ function ToolbarMenu(props: Props) {
                   <MediaDimension key={index} />
                 ) : item.children ? (
                   inline ? (
-                    <InLineMenu
-                      active={isActive && !item.label}
-                      item={item}
-                      containerRef={containerRef}
-                    />
+                    <InlineMenu item={item} containerRef={containerRef} />
                   ) : (
                     <ToolbarDropdown
                       active={isActive && !item.label}
