@@ -228,7 +228,7 @@
   "Couldn’t copy the document, try again?": "无法复制文档，请重试",
   "Include nested documents": "包含子文档",
   "Copy to <em>{{ location }}</em>": "复制到 <em>{{ location }}</em>",
-  "Copying": "Copying",
+  "Copying": "",
   "Search collections & documents": "搜索文档集和文档",
   "No results found": "未找到结果",
   "Document options": "文档选项",
