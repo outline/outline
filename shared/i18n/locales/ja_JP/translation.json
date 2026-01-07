@@ -228,6 +228,7 @@
   "Couldn’t copy the document, try again?": "ドキュメントをコピーできませんでした。もう一度お試しください。",
   "Include nested documents": "子ドキュメントを含める",
   "Copy to <em>{{ location }}</em>": "<em>{{ location }}</em> にコピーする",
+  "Copying": "Copying",
   "Search collections & documents": "ドキュメントやコレクションを検索する",
   "No results found": "なにも見つかりませんでした",
   "Document options": "ドキュメントオプション",
