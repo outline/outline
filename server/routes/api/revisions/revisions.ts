@@ -34,10 +34,10 @@ router.post(
   async (ctx: APIContext<T.RevisionsInfoReq>) => {
     const { id, documentId } = ctx.input.body;
     const { user } = ctx.state.auth;
-    let before: Revision | null, after: Revision;
+    let revision: Revision;
 
     if (id) {
-      const revision = await Revision.findByPk(id, {
+      revision = await Revision.findByPk(id, {
         rejectOnEmpty: true,
       });
 
@@ -45,36 +45,21 @@ router.post(
         userId: user.id,
       });
       authorize(user, "listRevisions", document);
-      after = revision;
-      before = await revision.before();
     } else if (documentId) {
       const document = await Document.findByPk(documentId, {
         userId: user.id,
       });
       authorize(user, "listRevisions", document);
-      after = Revision.buildFromDocument(document);
-      after.id = RevisionHelper.latestId(document.id);
-      after.user = document.updatedBy;
-
-      before = await Revision.findLatest(documentId);
+      revision = Revision.buildFromDocument(document);
+      revision.id = RevisionHelper.latestId(document.id);
+      revision.user = document.updatedBy;
     } else {
       throw ValidationError("Either id or documentId must be provided");
     }
 
-    // Client no longer needs expensive HTML calculation
-    const noHTML = Number(ctx.headers["x-api-version"] ?? 0) >= 4;
-
     ctx.body = {
-      data: await presentRevision(
-        after,
-        noHTML
-          ? undefined
-          : await DocumentHelper.diff(before, after, {
-            includeTitle: false,
-            includeStyles: false,
-          })
-      ),
-      policies: presentPolicies(user, [after]),
+      data: await presentRevision(revision),
+      policies: presentPolicies(user, [revision]),
     };
   }
 );
