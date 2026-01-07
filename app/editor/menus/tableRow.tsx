@@ -17,13 +17,13 @@ import {
   isMergedCellSelection,
   isMultipleCellSelection,
 } from "@shared/editor/queries/table";
-import type { MenuItem, NodeMarkAttr } from "@shared/editor/types";
+import type { MenuItem, NodeAttrMark } from "@shared/editor/types";
 import type { Dictionary } from "~/hooks/useDictionary";
 import { ArrowDownIcon, ArrowUpIcon } from "~/components/Icons/ArrowIcon";
 import CircleIcon from "~/components/Icons/CircleIcon";
 
 /**
- * Get the set of highlight colors used in a row
+ * Get the set of background colors used in a row
  */
 function getRowColors(state: EditorState, rowIndex: number): Set<string> {
   const colors = new Set<string>();
@@ -34,11 +34,11 @@ function getRowColors(state: EditorState, rowIndex: number): Set<string> {
     if (!node) {
       return;
     }
-    const highlightMark = (node.attrs.marks ?? []).find(
-      (mark: NodeMarkAttr) => mark.type === state.schema.marks.highlight.name
+    const backgroundMark = (node.attrs.marks ?? []).find(
+      (mark: NodeAttrMark) => mark.type === "background"
     );
-    if (highlightMark && highlightMark.attrs.color) {
-      colors.add(highlightMark.attrs.color);
+    if (backgroundMark && backgroundMark.attrs.color) {
+      colors.add(backgroundMark.attrs.color);
     }
   });
 
@@ -66,7 +66,7 @@ export default function tableRowMenuItems(
 
   const tableMap = selectedRect(state);
   const rowColors = getRowColors(state, index);
-  const hasHighlight = rowColors.size > 0;
+  const hasBackground = rowColors.size > 0;
 
   return [
     {
@@ -80,10 +80,10 @@ export default function tableRowMenuItems(
           <PaletteIcon />
         ),
       children: [
-        ...(hasHighlight
+        ...(hasBackground
           ? [
               {
-                name: "highlightRow",
+                name: "toggleRowBackground",
                 label: dictionary.none,
                 icon: <DottedCircleIcon retainColor color="transparent" />,
                 attrs: { index, color: null },
@@ -91,7 +91,7 @@ export default function tableRowMenuItems(
             ]
           : []),
         ...Highlight.lightColors.map((color, colorIndex) => ({
-          name: "highlightRow",
+          name: "toggleRowBackground",
           label: Highlight.colorNames[colorIndex],
           icon: <CircleIcon retainColor color={color} />,
           attrs: { index, color },

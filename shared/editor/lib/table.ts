@@ -1,7 +1,7 @@
 import type { Attrs, Node } from "prosemirror-model";
 import type { MutableAttrs } from "prosemirror-tables";
 import { isBrowser } from "../../utils/browser";
-import type { TableLayout, NodeMarkAttr } from "../types";
+import type { TableLayout, NodeAttrMark } from "../types";
 import { readableColor } from "polished";
 
 export interface TableAttrs {
@@ -13,7 +13,7 @@ export interface CellAttrs {
   rowspan: number;
   colwidth: number[] | null;
   alignment: "center" | "left" | "right" | null;
-  marks?: NodeMarkAttr[];
+  marks?: NodeAttrMark[];
 }
 
 /**
@@ -47,7 +47,7 @@ export function getCellAttrs(dom: HTMLElement | string): Attrs {
     marks: dom.getAttribute("data-bgcolor")
       ? [
           {
-            type: "highlight",
+            type: "background",
             attrs: {
               color: dom.getAttribute("data-bgcolor"),
             },
@@ -83,15 +83,14 @@ export function setCellAttrs(node: Node): Attrs {
     }
   }
   if (node.attrs.marks) {
-    const highlightMark = node.attrs.marks.find(
-      (mark: NodeMarkAttr) =>
-        mark.type === node.type.schema.marks.highlight.name
+    const backgroundMark = node.attrs.marks.find(
+      (mark: NodeAttrMark) => mark.type === "background"
     );
-    if (highlightMark) {
-      attrs["data-bgcolor"] = highlightMark.attrs.color;
+    if (backgroundMark) {
+      attrs["data-bgcolor"] = backgroundMark.attrs.color;
       attrs.style =
         (attrs.style ?? "") +
-        `background-color: ${highlightMark.attrs.color}; --cell-text-color: ${readableColor(highlightMark.attrs.color)};`;
+        `background-color: ${backgroundMark.attrs.color}; --cell-text-color: ${readableColor(backgroundMark.attrs.color)};`;
     }
   }
 

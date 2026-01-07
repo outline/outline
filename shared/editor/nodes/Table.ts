@@ -33,8 +33,8 @@ import {
   deleteTableIfSelected,
   splitCellAndCollapse,
   mergeCellsAndCollapse,
-  highlightRow,
-  highlightColumn,
+  toggleColumnBackground,
+  toggleRowBackground,
   toggleCellBackground,
 } from "../commands/table";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
@@ -103,8 +103,8 @@ export default class Table extends Node {
       toggleHeaderRow: () => toggleHeader("row"),
       mergeCells: () => mergeCellsAndCollapse(),
       splitCell: () => splitCellAndCollapse(),
-      highlightRow,
-      highlightColumn,
+      toggleRowBackground,
+      toggleColumnBackground,
       toggleCellBackground,
     };
   }

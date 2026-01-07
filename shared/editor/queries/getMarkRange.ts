@@ -1,4 +1,4 @@
-import type { NodeMarkAttr } from "@shared/editor/types";
+import type { NodeAttrMark, NodeAttrMarkName } from "@shared/editor/types";
 import type { ResolvedPos, MarkType, Node } from "prosemirror-model";
 import type { NodeSelection } from "prosemirror-state";
 import type { CellSelection } from "prosemirror-tables";
@@ -63,7 +63,7 @@ export function getMarkRangeNodeSelection(
   type: MarkType
 ) {
   const mark = (selection.node.attrs.marks ?? []).find(
-    (mark: NodeMarkAttr) => mark.type === type.name
+    (mark: NodeAttrMark) => mark.type === type.name
   );
 
   if (!mark) {
@@ -73,9 +73,9 @@ export function getMarkRangeNodeSelection(
   return { from: selection.from, to: selection.to, mark };
 }
 
-const getCellMark = (cell: Node, type: MarkType) => {
+const getCellMark = (cell: Node, type: NodeAttrMarkName) => {
   const mark = (cell.attrs.marks ?? []).find(
-    (mark: NodeMarkAttr) => mark.type === type.name
+    (mark: NodeAttrMark) => mark.type === type
   );
 
   if (!mark) {
@@ -85,9 +85,9 @@ const getCellMark = (cell: Node, type: MarkType) => {
   return { mark };
 };
 
-export const hasMarkCellSelection = (
+export const hasNodeAttrMarkCellSelection = (
   selection: CellSelection,
-  type: MarkType
+  type: NodeAttrMarkName
 ) => {
   let hasMark = false;
   selection.forEachCell((cell) => {

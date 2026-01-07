@@ -29,7 +29,7 @@ import { isInCode } from "@shared/editor/queries/isInCode";
 import { isInList } from "@shared/editor/queries/isInList";
 import { isMarkActive } from "@shared/editor/queries/isMarkActive";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
-import type { MenuItem, NodeMarkAttr } from "@shared/editor/types";
+import type { MenuItem, NodeAttrMark } from "@shared/editor/types";
 import { metaDisplay } from "@shared/utils/keyboard";
 import CircleIcon from "~/components/Icons/CircleIcon";
 import type { Dictionary } from "~/hooks/useDictionary";
@@ -42,7 +42,7 @@ import {
   isMultipleCellSelection,
 } from "@shared/editor/queries/table";
 import { CellSelection } from "prosemirror-tables";
-import { hasMarkCellSelection } from "@shared/editor/queries/getMarkRange";
+import { hasNodeAttrMarkCellSelection } from "@shared/editor/queries/getMarkRange";
 
 export default function formattingMenuItems(
   state: EditorState,
@@ -63,11 +63,11 @@ export default function formattingMenuItems(
       return colors;
     }
     selection.forEachCell((cell) => {
-      const highlightMark = (cell.attrs.marks ?? []).find(
-        (mark: NodeMarkAttr) => mark.type === state.schema.marks.highlight.name
+      const backgroundMark = (cell.attrs.marks ?? []).find(
+        (mark: NodeAttrMark) => mark.type === "background"
       );
-      if (highlightMark && highlightMark.attrs.color) {
-        colors.add(highlightMark.attrs.color);
+      if (backgroundMark && backgroundMark.attrs.color) {
+        colors.add(backgroundMark.attrs.color);
       }
     });
     return colors;
@@ -80,9 +80,9 @@ export default function formattingMenuItems(
   ).find(({ mark }) => mark.type === state.schema.marks.highlight);
 
   const cellHasBackground = isTableCell
-    ? hasMarkCellSelection(
+    ? hasNodeAttrMarkCellSelection(
         state.selection as CellSelection,
-        state.schema.marks.highlight
+        "background"
       )
     : false;
 

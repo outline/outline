@@ -25,13 +25,13 @@ import {
   isMergedCellSelection,
   isMultipleCellSelection,
 } from "@shared/editor/queries/table";
-import type { MenuItem, NodeMarkAttr } from "@shared/editor/types";
+import type { MenuItem, NodeAttrMark } from "@shared/editor/types";
 import type { Dictionary } from "~/hooks/useDictionary";
 import { ArrowLeftIcon, ArrowRightIcon } from "~/components/Icons/ArrowIcon";
 import CircleIcon from "~/components/Icons/CircleIcon";
 
 /**
- * Get the set of highlight colors used in a column
+ * Get the set of background colors used in a column
  */
 function getColumnColors(state: EditorState, colIndex: number): Set<string> {
   const colors = new Set<string>();
@@ -42,11 +42,11 @@ function getColumnColors(state: EditorState, colIndex: number): Set<string> {
     if (!node) {
       return;
     }
-    const highlightMark = (node.attrs.marks ?? []).find(
-      (mark: NodeMarkAttr) => mark.type === state.schema.marks.highlight.name
+    const backgroundMark = (node.attrs.marks ?? []).find(
+      (mark: NodeAttrMark) => mark.type === "background"
     );
-    if (highlightMark && highlightMark.attrs.color) {
-      colors.add(highlightMark.attrs.color);
+    if (backgroundMark && backgroundMark.attrs.color) {
+      colors.add(backgroundMark.attrs.color);
     }
   });
 
@@ -76,7 +76,7 @@ export default function tableColMenuItems(
 
   const tableMap = selectedRect(state);
   const colColors = getColumnColors(state, index);
-  const hasHighlight = colColors.size > 0;
+  const hasBackground = colColors.size > 0;
 
   return [
     {
@@ -141,10 +141,10 @@ export default function tableColMenuItems(
           <PaletteIcon />
         ),
       children: [
-        ...(hasHighlight
+        ...(hasBackground
           ? [
               {
-                name: "highlightColumn",
+                name: "toggleColumnBackground",
                 label: dictionary.none,
                 icon: <DottedCircleIcon retainColor color="transparent" />,
                 attrs: { index, color: null },
@@ -152,7 +152,7 @@ export default function tableColMenuItems(
             ]
           : []),
         ...Highlight.lightColors.map((color, colorIndex) => ({
-          name: "highlightColumn",
+          name: "toggleColumnBackground",
           label: Highlight.colorNames[colorIndex],
           icon: <CircleIcon retainColor color={color} />,
           attrs: { index, color },

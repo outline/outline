@@ -30,7 +30,7 @@ import {
   getWidthFromDom,
   getWidthFromNodes,
 } from "../queries/table";
-import { type NodeMarkAttr, TableLayout } from "../types";
+import { type NodeAttrMark, TableLayout } from "../types";
 import { collapseSelection } from "./collapseSelection";
 import { RowSelection } from "../selection/RowSelection";
 import { ColumnSelection } from "../selection/ColumnSelection";
@@ -832,7 +832,7 @@ const createCellBackground = (
 ): Transaction => {
   const existingMarks = cell.attrs.marks ?? [];
   const newMark = {
-    type: "highlight",
+    type: "background",
     attrs,
   };
   const updatedMarks = [...existingMarks, newMark];
@@ -846,8 +846,8 @@ const updateCellBackground = (
   tr: Transaction
 ): Transaction => {
   const existingMarks = cell.attrs.marks ?? [];
-  const updatedMarks = existingMarks.map((mark: NodeMarkAttr) =>
-    mark.type === "highlight"
+  const updatedMarks = existingMarks.map((mark: NodeAttrMark) =>
+    mark.type === "background"
       ? { ...mark, attrs: { ...mark.attrs, ...attrs } }
       : mark
   );
@@ -861,7 +861,7 @@ const removeCellBackground = (
 ): Transaction => {
   const existingMarks = cell.attrs.marks ?? [];
   const updatedMarks = existingMarks.filter(
-    (mark: NodeMarkAttr) => mark.type !== "highlight"
+    (mark: NodeAttrMark) => mark.type !== "background"
   );
   return tr.setNodeAttribute(pos, "marks", updatedMarks);
 };
@@ -875,12 +875,12 @@ export const toggleCellBackground =
 
     let tr = state.tr;
     state.selection.forEachCell((cell, pos) => {
-      const highlighted = (cell.attrs.marks ?? []).find(
-        (mark: NodeMarkAttr) => mark.type === state.schema.marks.highlight.name
+      const hasBackground = (cell.attrs.marks ?? []).find(
+        (mark: NodeAttrMark) => mark.type === "background"
       );
-      if (!highlighted && attrs.color) {
+      if (!hasBackground && attrs.color) {
         tr = createCellBackground(cell, pos, attrs, tr);
-      } else if (highlighted && attrs.color) {
+      } else if (hasBackground && attrs.color) {
         tr = updateCellBackground(cell, pos, attrs, tr);
       } else {
         tr = removeCellBackground(cell, pos, tr);
@@ -896,13 +896,13 @@ export const toggleCellBackground =
   };
 
 /**
- * Set highlight color on all cells in a row.
+ * Set background color on all cells in a row.
  *
  * @param index The row index
- * @param color The highlight color to set, or null to remove
+ * @param color The background color to set, or null to remove
  * @returns The command
  */
-export function highlightRow({
+export function toggleRowBackground({
   index,
   color,
 }: {
@@ -924,21 +924,20 @@ export function highlightRow({
           return;
         }
 
-        const highlighted = (node.attrs.marks ?? []).find(
-          (mark: NodeMarkAttr) =>
-            mark.type === state.schema.marks.highlight.name
+        const hasBackground = (node.attrs.marks ?? []).find(
+          (mark: NodeAttrMark) => mark.type === "background"
         );
 
         if (color === null) {
           tr = removeCellBackground(node, pos, tr);
-        } else if (highlighted) {
+        } else if (hasBackground) {
           tr = updateCellBackground(node, pos, { color }, tr);
         } else {
           tr = createCellBackground(node, pos, { color }, tr);
         }
       });
 
-      // Reset selection after applying highlight
+      // Reset selection after applying background
       const nextSelection =
         Selection.findFrom(tr.doc.resolve(state.selection.to), 1, true) ??
         TextSelection.create(tr.doc, 0);
@@ -950,13 +949,13 @@ export function highlightRow({
 }
 
 /**
- * Set highlight color on all cells in a column.
+ * Set background color on all cells in a column.
  *
  * @param index The column index
- * @param color The highlight color to set, or null to remove
+ * @param color The background color to set, or null to remove
  * @returns The command
  */
-export function highlightColumn({
+export function toggleColumnBackground({
   index,
   color,
 }: {
@@ -978,21 +977,20 @@ export function highlightColumn({
           return;
         }
 
-        const highlighted = (node.attrs.marks ?? []).find(
-          (mark: NodeMarkAttr) =>
-            mark.type === state.schema.marks.highlight.name
+        const hasBackground = (node.attrs.marks ?? []).find(
+          (mark: NodeAttrMark) => mark.type === "background"
         );
 
         if (color === null) {
           tr = removeCellBackground(node, pos, tr);
-        } else if (highlighted) {
+        } else if (hasBackground) {
           tr = updateCellBackground(node, pos, { color }, tr);
         } else {
           tr = createCellBackground(node, pos, { color }, tr);
         }
       });
 
-      // Reset selection after applying highlight
+      // Reset selection after applying background
       const nextSelection =
         Selection.findFrom(tr.doc.resolve(state.selection.to), 1, true) ??
         TextSelection.create(tr.doc, 0);
