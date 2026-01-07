@@ -42,7 +42,7 @@ function DocumentTasks({ document }: Props) {
   const message = getMessage(t, total, completed);
 
   return (
-    <Flex align="center" style={{ padding: "0 1px" }} gap={2}>
+    <Flex align="center" style={{ padding: "0 1px" }} gap={2} shrink={false}>
       {completed === total ? (
         <Done
           color={theme.accent}
