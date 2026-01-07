@@ -228,6 +228,7 @@
   "Couldn’t copy the document, try again?": "Kon het document niet verplaatsen. Probeer het nog een keer?",
   "Include nested documents": "Inclusief geneste documenten",
   "Copy to <em>{{ location }}</em>": "Verplaatsen naar <em>{{ location }}</em>",
+  "Copying": "Copying",
   "Search collections & documents": "Zoeken in collecties & documenten",
   "No results found": "Geen resultaten gevonden",
   "Document options": "Documentopties",
