@@ -70,9 +70,9 @@ router.post(
         noHTML
           ? undefined
           : await DocumentHelper.diff(before, after, {
-              includeTitle: false,
-              includeStyles: false,
-            })
+            includeTitle: false,
+            includeStyles: false,
+          })
       ),
       policies: presentPolicies(user, [after]),
     };
@@ -233,10 +233,10 @@ router.post(
       );
     } else if (accept?.includes("text/markdown")) {
       contentType = "text/markdown";
-      content = DocumentHelper.toMarkdown(revision);
+      content = await DocumentHelper.toMarkdown(revision);
     } else {
       ctx.body = {
-        data: DocumentHelper.toMarkdown(revision),
+        data: await DocumentHelper.toMarkdown(revision),
       };
       return;
     }
@@ -252,11 +252,11 @@ router.post(
     );
     const attachments = attachmentIds.length
       ? await Attachment.findAll({
-          where: {
-            teamId: document.teamId,
-            id: attachmentIds,
-          },
-        })
+        where: {
+          teamId: document.teamId,
+          id: attachmentIds,
+        },
+      })
       : [];
 
     if (attachments.length === 0) {

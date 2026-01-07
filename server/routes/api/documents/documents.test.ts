@@ -525,7 +525,7 @@ describe("#documents.export", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data).toEqual(DocumentHelper.toMarkdown(document));
+    expect(body.data).toEqual(await DocumentHelper.toMarkdown(document));
   });
 
   it("should return document text with accept=text/markdown", async () => {
