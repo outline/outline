@@ -228,6 +228,7 @@
   "Couldn’t copy the document, try again?": "Non è stato possibile copiare il documento. Riprovare?",
   "Include nested documents": "Includi documenti nidificati",
   "Copy to <em>{{ location }}</em>": "copia in",
+  "Copying": "Copying",
   "Search collections & documents": "Cerca raccolte e documenti",
   "No results found": "Nessun risultato trovato",
   "Document options": "Opzioni documento",
