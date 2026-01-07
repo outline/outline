@@ -228,6 +228,7 @@
   "Couldn’t copy the document, try again?": "Kunde inte kopiera dokumentet, försök igen?",
   "Include nested documents": "Inkludera nästlade dokument",
   "Copy to <em>{{ location }}</em>": "Kopiera till <em>{{ location }}</em>",
+  "Copying": "Copying",
   "Search collections & documents": "Sök i samlingar och dokument",
   "No results found": "Inga resultat hittades",
   "Document options": "Dokumentalternativ",
