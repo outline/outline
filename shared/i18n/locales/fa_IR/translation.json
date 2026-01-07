@@ -228,6 +228,7 @@
   "Couldn’t copy the document, try again?": "امکان کپی سند وجود نداشت، دوباره تلاش شود؟",
   "Include nested documents": "شامل زیرسندها",
   "Copy to <em>{{ location }}</em>": "کپی به <em>{{ location }}</em>",
+  "Copying": "Copying",
   "Search collections & documents": "جستجوی مجموعه ها و اسناد",
   "No results found": "نتیجه‌ای یافت نشد",
   "Document options": "گزینه‌های سند",
