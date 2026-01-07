@@ -228,6 +228,7 @@
   "Couldn’t copy the document, try again?": "Không thể sao chép tài liệu, muốn thử lại?",
   "Include nested documents": "Bao gồm các tài liệu lồng nhau",
   "Copy to <em>{{ location }}</em>": "Sao chép đến <em>{{ location }}</em>",
+  "Copying": "Copying",
   "Search collections & documents": "Tìm kiếm bộ sưu tập và tài liệu",
   "No results found": "Không tìm thấy kết quả",
   "Document options": "Tùy chọn tài liệu",
