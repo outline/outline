@@ -228,6 +228,7 @@
   "Couldn’t copy the document, try again?": "문서를 복사할 수 없습니다. 다시 시도하시겠습니까?",
   "Include nested documents": "중첩된 문서 포함",
   "Copy to <em>{{ location }}</em>": "<em>{{ location }}</em>로 복사",
+  "Copying": "Copying",
   "Search collections & documents": "컬렉션 및 문서 검색",
   "No results found": "결과가 없습니다.",
   "Document options": "문서 옵션",
