@@ -228,6 +228,7 @@
   "Couldn’t copy the document, try again?": "無法複製文件，再嘗試一次？",
   "Include nested documents": "包含所有子文件",
   "Copy to <em>{{ location }}</em>": "複製到<em>{{ location }}</em>",
+  "Copying": "Copying",
   "Search collections & documents": "搜尋文件集與文件",
   "No results found": "找不到任何結果",
   "Document options": "文件選項",
