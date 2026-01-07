@@ -228,6 +228,7 @@
   "Couldn’t copy the document, try again?": "A dokumentum másolása sikertelen volt. Újrapróbálod?",
   "Include nested documents": "Beágyazott dokumentumokkal együtt",
   "Copy to <em>{{ location }}</em>": "Másolás a {{ location }} helyre",
+  "Copying": "Copying",
   "Search collections & documents": "Keresés a gyűteményekben és dokumentumokban",
   "No results found": "Nincs találat",
   "Document options": "Dokumentum beállítások",
