@@ -228,6 +228,7 @@
   "Couldn’t copy the document, try again?": "Belge kopyalanamadı, tekrar deneyin?",
   "Include nested documents": "İç içe geçmiş belgeleri dahil et",
   "Copy to <em>{{ location }}</em>": "<em>{{ location }}</em>'ye kopyala",
+  "Copying": "Copying",
   "Search collections & documents": "Koleksiyonlarda ve belgelerde arama yapın",
   "No results found": "Sonuç bulunamadı",
   "Document options": "Belge seçenekleri",
