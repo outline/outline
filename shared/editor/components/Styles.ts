@@ -600,6 +600,7 @@ width: 100%;
     line-height: inherit;
     font-weight: 600;
     cursor: text;
+    clear: both;
 
     & + p,
     // accounts for block insert trigger and other widgets between heading and paragraph
@@ -1603,6 +1604,7 @@ hr {
   position: relative;
   height: 1em;
   border: 0;
+  clear: both;
 }
 
 hr::before {
