@@ -139,7 +139,7 @@ const NavLink = ({
     (event: React.MouseEvent<HTMLAnchorElement>) => {
       onClick?.(event);
 
-      if (isActive) {
+      if (isActive && !event.defaultPrevented) {
         onActiveClick?.(event);
       }
 
