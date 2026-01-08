@@ -20,12 +20,15 @@ export type Options = {
     file: File | string,
     options?: {
       id?: string;
+      onProgress?: (fractionComplete: number) => void;
     }
   ) => Promise<string>;
   /** Callback fired when the user starts a file upload */
   onFileUploadStart?: () => void;
   /** Callback fired when the user completes a file upload */
   onFileUploadStop?: () => void;
+  /** Callback fired when file upload progress changes */
+  onFileUploadProgress?: (id: string, fractionComplete: number) => void;
   /** Attributes to overwrite */
   attrs?: {
     /** Width to use when inserting image */
@@ -45,8 +48,13 @@ const insertFiles = async function (
   files: File[],
   options: Options
 ) {
-  const { dictionary, uploadFile, onFileUploadStart, onFileUploadStop } =
-    options;
+  const {
+    dictionary,
+    uploadFile,
+    onFileUploadStart,
+    onFileUploadStop,
+    onFileUploadProgress,
+  } = options;
 
   // okay, we have some dropped files and a handler – lets stop this
   // event going any further up the stack
@@ -105,7 +113,10 @@ const insertFiles = async function (
     // start uploading the file to the server. Using "then" syntax
     // to allow all placeholders to be entered at once with the uploads
     // happening in the background in parallel.
-    uploadFile?.(upload.file, { id: upload.id })
+    uploadFile?.(upload.file, {
+      id: upload.id,
+      onProgress: (progress) => onFileUploadProgress?.(upload.id, progress),
+    })
       // then this should be able to get the full URL as well
       .then(async (src) => {
         if (view.isDestroyed) {
