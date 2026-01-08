@@ -1,5 +1,5 @@
 import type { TeamPreferences, UserPreferences } from "./types";
-import { TOCPosition, TeamPreference, UserPreference } from "./types";
+import { TOCPosition, TeamPreference, UserPreference, EmailDisplay } from "./types";
 
 export const MAX_AVATAR_DISPLAY = 6;
 
@@ -28,6 +28,7 @@ export const TeamPreferenceDefaults: TeamPreferences = {
   [TeamPreference.CustomTheme]: undefined,
   [TeamPreference.TocPosition]: TOCPosition.Left,
   [TeamPreference.PreventDocumentEmbedding]: false,
+  [TeamPreference.EmailDisplay]: EmailDisplay.Members,
 };
 
 export const UserPreferenceDefaults: UserPreferences = {

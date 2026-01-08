@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { TOCPosition, UserRole } from "@shared/types";
+import { EmailDisplay, TOCPosition, UserRole } from "@shared/types";
 import { BaseSchema } from "@server/routes/api/schema";
 
 export const TeamsUpdateSchema = BaseSchema.extend({
@@ -60,6 +60,7 @@ export const TeamsUpdateSchema = BaseSchema.extend({
           .optional(),
         /** Side to display the document's table of contents in relation to the main content. */
         tocPosition: z.nativeEnum(TOCPosition).optional(),
+        emailDisplay: z.nativeEnum(EmailDisplay).optional(),
         /** Whether to prevent shared documents from being embedded in iframes on external websites. */
         preventDocumentEmbedding: z.boolean().optional(),
       })
