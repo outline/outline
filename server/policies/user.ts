@@ -40,23 +40,23 @@ allow(User, ["update", "readDetails", "listApiKeys"], User, (actor, user) =>
 
 allow(User, "readEmail", User, (actor, user) => {
   const emailDisplay = actor.team.getPreference(TeamPreference.EmailDisplay);
-  
+
   // If emailDisplay is "none", only admins and the user themselves can see their email
   if (emailDisplay === EmailDisplay.None) {
     return or(
       //
       isTeamAdmin(actor, user),
       actor.id === user?.id
-    )(actor, user);
+    );
   }
-  
+
   // If emailDisplay is "members" (or default), members can see each other's emails
   return or(
     //
     isTeamAdmin(actor, user),
     isTeamMember(actor, user),
     actor.id === user?.id
-  )(actor, user);
+  );
 });
 
 allow(User, "delete", User, (actor, user) =>
