@@ -40,18 +40,25 @@ allow(User, ["update", "readDetails", "listApiKeys"], User, (actor, user) =>
 
 allow(User, "readEmail", User, (actor, user) => {
   const emailDisplay =
-    actor.team?.getPreference(TeamPreference.EmailDisplay) ?? EmailDisplay.None;
+    actor.team?.getPreference(TeamPreference.EmailDisplay) ??
+    EmailDisplay.Members;
 
-  // If emailDisplay is "none", only admins and the user themselves can see their email
   if (emailDisplay === EmailDisplay.None) {
     return or(isTeamAdmin(actor, user), actor.id === user?.id);
   }
 
+  if (emailDisplay === EmailDisplay.Members) {
+    return or(
+      isTeamAdmin(actor, user),
+      isTeamMember(actor, user),
+      actor.id === user?.id
+    );
+  }
+
+  // EmailDisplay.Everyone
   return or(
     //
-    isTeamAdmin(actor, user),
     isTeamModel(actor, user),
-    or(isTeamMember(actor, user), emailDisplay === EmailDisplay.Everyone),
     actor.id === user?.id
   );
 });

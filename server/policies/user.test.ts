@@ -134,24 +134,6 @@ describe("policies/user", () => {
       expect(abilities.readEmail).toBeTruthy();
     });
 
-    it("should allow guest users to read other users' emails when in same team with emailDisplay 'members'", async () => {
-      const team = await buildTeam();
-      team.setPreference(TeamPreference.EmailDisplay, EmailDisplay.Members);
-      await team.save();
-
-      const guest = await buildUser({
-        teamId: team.id,
-        role: UserRole.Guest,
-      });
-      const user = await buildUser({
-        teamId: team.id,
-      });
-
-      // Guest users can read emails because isTeamModel returns true for same team
-      const abilities = serialize(guest, user);
-      expect(abilities.readEmail).toBeTruthy();
-    });
-
     it("should NOT allow guest users to read other users' emails when emailDisplay is 'none'", async () => {
       const team = await buildTeam();
       team.setPreference(TeamPreference.EmailDisplay, EmailDisplay.None);
@@ -180,7 +162,7 @@ describe("policies/user", () => {
       expect(abilities.readEmail).toBeTruthy();
     });
 
-    it("should allow viewer users to read other users' emails when emailDisplay is 'members'", async () => {
+    it("should NOT allow viewer users to read other users' emails when emailDisplay is 'members'", async () => {
       const team = await buildTeam();
       team.setPreference(TeamPreference.EmailDisplay, EmailDisplay.Members);
       await team.save();
@@ -193,7 +175,7 @@ describe("policies/user", () => {
       });
 
       const abilities = serialize(viewer, user);
-      expect(abilities.readEmail).toBeTruthy();
+      expect(abilities.readEmail).toBeFalsy();
     });
 
     it("should NOT allow viewer users to read other users' emails when emailDisplay is 'none'", async () => {
