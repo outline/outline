@@ -1,6 +1,10 @@
 import { Schema } from "prosemirror-model";
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
-import { richExtensions, withComments } from "@shared/editor/nodes";
+import {
+  basicExtensions,
+  richExtensions,
+  withComments,
+} from "@shared/editor/nodes";
 
 const extensions = withComments(richExtensions);
 export const extensionManager = new ExtensionManager(extensions);
@@ -29,3 +33,26 @@ export const parser = extensionManager.parser({
 export const serializer = extensionManager.serializer();
 
 export const plugins = extensionManager.plugins;
+
+export const basicExtensionManager = new ExtensionManager(basicExtensions);
+
+export const basicSchema = new Schema({
+  nodes: basicExtensionManager.nodes,
+  marks: basicExtensionManager.marks,
+});
+
+for (const extension of basicExtensionManager.extensions) {
+  extension.bindEditor({
+    schema: basicSchema,
+    props: {
+      theme: {
+        isDark: false,
+      },
+    },
+  } as any);
+}
+
+export const basicParser = basicExtensionManager.parser({
+  schema: basicSchema,
+  plugins: basicExtensionManager.rulePlugins,
+});

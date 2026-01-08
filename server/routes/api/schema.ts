@@ -1,4 +1,5 @@
 import type formidable from "formidable";
+import type { Schema } from "prosemirror-model";
 import { Node } from "prosemirror-model";
 import { z } from "zod";
 import type { ProsemirrorData as TProsemirrorData } from "@shared/types";
@@ -16,15 +17,18 @@ export const BaseSchema = z.object({
  *
  * @param allowEmpty - Whether to allow an empty document.
  */
-export const ProsemirrorSchema = (options?: { allowEmpty: boolean }) =>
-  z.custom<TProsemirrorData>((val) => {
+export const ProsemirrorSchema = (options?: {
+  allowEmpty?: boolean;
+  schema?: Schema;
+}) => {
+  const s = options?.schema ?? schema;
+  return z.custom<TProsemirrorData>((val) => {
     try {
-      const node = Node.fromJSON(schema, val);
+      const node = Node.fromJSON(s, val);
       node.check();
-      return options?.allowEmpty
-        ? true
-        : !ProsemirrorHelper.isEmpty(node, schema);
+      return options?.allowEmpty ? true : !ProsemirrorHelper.isEmpty(node, s);
     } catch (_e) {
       return false;
     }
   }, "Invalid data");
+};

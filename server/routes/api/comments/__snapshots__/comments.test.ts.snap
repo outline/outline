@@ -9,59 +9,6 @@ exports[`#comments.add_reaction should require authentication 1`] = `
 }
 `;
 
-exports[`#comments.create should create a comment from markdown text 1`] = `
-{
-  "content": [
-    {
-      "attrs": {
-        "level": 2,
-      },
-      "content": [
-        {
-          "text": "heading",
-          "type": "text",
-        },
-      ],
-      "type": "heading",
-    },
-    {
-      "content": [
-        {
-          "content": [
-            {
-              "content": [
-                {
-                  "text": "list item 1",
-                  "type": "text",
-                },
-              ],
-              "type": "paragraph",
-            },
-          ],
-          "type": "list_item",
-        },
-        {
-          "content": [
-            {
-              "content": [
-                {
-                  "text": "list item 2",
-                  "type": "text",
-                },
-              ],
-              "type": "paragraph",
-            },
-          ],
-          "type": "list_item",
-        },
-      ],
-      "type": "bullet_list",
-    },
-  ],
-  "type": "doc",
-}
-`;
-
 exports[`#comments.create should require authentication 1`] = `
 {
   "error": "authentication_required",
