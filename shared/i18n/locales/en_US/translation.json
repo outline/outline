@@ -570,6 +570,7 @@
   "Divider": "Divider",
   "Image": "Image",
   "Sorry, an error occurred uploading the file": "Sorry, an error occurred uploading the file",
+  "Uploading… {{ progress }}%": "Uploading… {{ progress }}%",
   "Write a caption": "Write a caption",
   "Info": "Info",
   "Info notice": "Info notice",
