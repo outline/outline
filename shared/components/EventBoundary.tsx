@@ -14,7 +14,7 @@ export interface Props<T extends React.ElementType> {
    * Capture all events, pointer events, or click events.
    * @default "all"
    */
-  captureEvents?: "all" | "pointer" | "click" | "mouse";
+  captureEvents?: "all" | "pointer" | "click" | "mouse" | "keyboard";
 }
 
 /**
@@ -43,7 +43,14 @@ export const EventBoundary = <T extends React.ElementType = "span">({
     onClick?: React.MouseEventHandler;
     onMouseDown?: React.MouseEventHandler;
     onMouseUp?: React.MouseEventHandler;
+    onKeyDown?: React.KeyboardEventHandler;
+    onKeyUp?: React.KeyboardEventHandler;
   } = {};
+
+  if (captureEvents === "all" || captureEvents === "keyboard") {
+    eventHandlers.onKeyDown = stopEvent;
+    eventHandlers.onKeyUp = stopEvent;
+  }
 
   if (captureEvents === "all" || captureEvents === "mouse") {
     eventHandlers.onMouseDown = stopEvent;
