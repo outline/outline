@@ -55,6 +55,11 @@ function Security() {
       [
         {
           type: "item",
+          label: t("Members and guests"),
+          value: EmailDisplay.Everyone,
+        },
+        {
+          type: "item",
           label: t("Members"),
           value: EmailDisplay.Members,
         },

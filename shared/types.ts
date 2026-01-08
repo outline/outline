@@ -290,6 +290,7 @@ export enum TOCPosition {
 export enum EmailDisplay {
   None = "none",
   Members = "members",
+  Everyone = "everyone",
 }
 
 export enum TeamPreference {
