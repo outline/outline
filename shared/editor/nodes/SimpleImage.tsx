@@ -82,6 +82,8 @@ export default class SimpleImage extends Node {
           },
         ],
       ],
+      leafText: (node) =>
+        node.attrs.alt ? `(image: ${node.attrs.alt})` : "(image)",
     };
   }
 
