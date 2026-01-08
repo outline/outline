@@ -59,11 +59,12 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   const previousCommentIds = React.useRef<string[]>();
 
   // Upload progress tracking for delayed toast
+  const progressMap = React.useMemo(() => new Map<string, number>(), []);
   const uploadState = React.useRef<{
     toastId?: string | number;
     timeoutId?: ReturnType<typeof setTimeout>;
     progress: Map<string, number>;
-  }>({ progress: new Map() });
+  }>({ progress: progressMap });
 
   const handleUploadFile = React.useCallback(
     async (
@@ -94,7 +95,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   const handleFileUploadStart = React.useCallback(() => {
     uploadState.current.timeoutId = setTimeout(() => {
       uploadState.current.toastId = toast.loading(
-        dictionary.uploadingWithProgress.replace("{{ progress }}", "0")
+        dictionary.uploadingWithProgress(0)
       );
     }, 2000);
     onFileUploadStart?.();
@@ -112,13 +113,9 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
 
       // Update toast if visible
       if (uploadState.current.toastId) {
-        toast.loading(
-          dictionary.uploadingWithProgress.replace(
-            "{{ progress }}",
-            String(percent)
-          ),
-          { id: uploadState.current.toastId }
-        );
+        toast.loading(dictionary.uploadingWithProgress(percent), {
+          id: uploadState.current.toastId,
+        });
       }
     },
     [dictionary.uploadingWithProgress]

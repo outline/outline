@@ -61,7 +61,8 @@ export default function useDictionary() {
       hr: t("Divider"),
       image: t("Image"),
       fileUploadError: t("Sorry, an error occurred uploading the file"),
-      uploadingWithProgress: t("Uploading… {{ progress }}%"),
+      uploadingWithProgress: (progress: number) =>
+        t("Uploading… {{ progress }}%", { progress }),
       imageCaptionPlaceholder: t("Write a caption"),
       info: t("Info"),
       infoNotice: t("Info notice"),
