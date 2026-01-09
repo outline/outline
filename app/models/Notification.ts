@@ -33,6 +33,13 @@ class Notification extends Model {
   archivedAt: Date | null;
 
   /**
+   * Request ID on notifications for access requests.
+   */
+  @Field
+  @observable
+  accessRequestId?: string;
+
+  /**
    * The user that triggered the notification.
    */
   @Relation(() => User)

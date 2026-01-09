@@ -5,7 +5,13 @@ import {
   CollectionPermission,
 } from "@shared/types";
 import Logger from "@server/logging/Logger";
-import { Document, Notification, User, Collection } from "@server/models";
+import {
+  Document,
+  Notification,
+  User,
+  Collection,
+  AccessRequest,
+} from "@server/models";
 import { DocumentAccessRequestEvent } from "@server/types";
 import { BaseTask, TaskPriority } from "./base/BaseTask";
 import { uniq } from "lodash";
@@ -40,12 +46,19 @@ export default class DocumentAccessRequestNotificationsTask extends BaseTask<Doc
         continue;
       }
 
+      const accessReq = await AccessRequest.create({
+        documentId: document.id,
+        teamId: document.teamId,
+        userId: event.actorId,
+      });
+
       await Notification.create({
         event: NotificationEventType.RequestDocumentAccess,
         userId: recipient.id,
         actorId: event.actorId,
         teamId: event.teamId,
         documentId: event.documentId,
+        accessRequestId: accessReq.id,
       });
     }
   }
