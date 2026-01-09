@@ -479,21 +479,3 @@ export const DocumentsSitemapSchema = BaseSchema.extend({
 });
 
 export type DocumentsSitemapReq = z.infer<typeof DocumentsSitemapSchema>;
-
-export const AccessRequestsApproveSchema = BaseSchema.extend({
-  body: BaseIdSchema.extend({
-    permission: z.nativeEnum(DocumentPermission),
-  }),
-});
-
-export type AccessRequestsApproveReq = z.infer<
-  typeof AccessRequestsApproveSchema
->;
-
-export const AccessRequestsDismissSchema = BaseSchema.extend({
-  body: BaseIdSchema,
-});
-
-export type AccessRequestsDismissReq = z.infer<
-  typeof AccessRequestsDismissSchema
->;

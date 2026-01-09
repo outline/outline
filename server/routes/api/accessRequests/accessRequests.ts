@@ -66,28 +66,18 @@ router.post(
     const { transaction } = ctx.state;
 
     const accessRequest = await AccessRequest.findByPk(id, {
-      transaction,
       rejectOnEmpty: true,
     });
-
     const document = await Document.findByPk(accessRequest.documentId, {
       userId: user.id,
-      transaction,
     });
     authorize(user, "share", document);
 
-    // Check that the request is still pending
-    if (accessRequest.status !== AccessRequestStatus.Pending) {
-      ctx.throw(400, "Access request has already been responded to");
-    }
-
-    // Update the access request
     accessRequest.status = AccessRequestStatus.Approved;
     accessRequest.responderId = user.id;
     accessRequest.respondedAt = new Date();
     await accessRequest.save({ transaction });
 
-    // Grant the user access to the document
     await UserMembership.create(
       {
         userId: accessRequest.userId,
@@ -98,11 +88,12 @@ router.post(
       { transaction }
     );
 
-    // Mark all related notifications as read
+    // Mark all related notifications as read for this user
     await Notification.update(
       { viewedAt: new Date() },
       {
         where: {
+          userId: user.id,
           accessRequestId: accessRequest.id,
           viewedAt: null,
         },
@@ -129,32 +120,25 @@ router.post(
     const { transaction } = ctx.state;
 
     const accessRequest = await AccessRequest.findByPk(id, {
-      transaction,
       rejectOnEmpty: true,
     });
 
     const document = await Document.findByPk(accessRequest.documentId, {
       userId: user.id,
-      transaction,
     });
     authorize(user, "share", document);
 
-    // Check that the request is still pending
-    if (accessRequest.status !== AccessRequestStatus.Pending) {
-      ctx.throw(400, "Access request has already been responded to");
-    }
-
-    // Update the access request
     accessRequest.status = AccessRequestStatus.Dismissed;
     accessRequest.responderId = user.id;
     accessRequest.respondedAt = new Date();
     await accessRequest.save({ transaction });
 
-    // Mark all related notifications as read
+    // Mark all related notifications as read for this user
     await Notification.update(
       { viewedAt: new Date() },
       {
         where: {
+          userId: user.id,
           accessRequestId: accessRequest.id,
           viewedAt: null,
         },

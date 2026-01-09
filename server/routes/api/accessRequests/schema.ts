@@ -6,7 +6,7 @@ const BaseIdSchema = z.object({
   id: z.string().uuid(),
 });
 
-export const AccessRequestInfoSchema = z.object({
+export const AccessRequestInfoSchema = BaseSchema.extend({
   body: z.object({
     id: z.string().uuid().optional(),
     documentSlug: z.string().optional(),
