@@ -22,7 +22,7 @@ export default async function presentCollection(
 
   const res: Record<string, any> = {
     id: collection.id,
-    url: collection.url,
+    url: collection.path,
     urlId: collection.urlId,
     name: collection.name,
     data: asData

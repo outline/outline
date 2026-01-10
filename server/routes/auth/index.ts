@@ -66,7 +66,7 @@ router.get("/redirect", authMiddleware(), async (ctx: APIContext) => {
     });
 
     if (collection) {
-      ctx.redirect(`${team.url}${collection.url}`);
+      ctx.redirect(`${team.url}${collection.path}`);
       return;
     }
   }
@@ -75,7 +75,7 @@ router.get("/redirect", authMiddleware(), async (ctx: APIContext) => {
 
   ctx.redirect(
     !hasViewedDocuments && collection
-      ? `${team?.url}${collection.url}`
+      ? `${team?.url}${collection.path}/recent`
       : `${team?.url}/home`
   );
 });

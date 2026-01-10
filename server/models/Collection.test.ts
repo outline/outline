@@ -20,7 +20,7 @@ describe("#url", () => {
     const collection = new Collection({
       id: "1234",
     });
-    expect(collection.url).toBe(`/collection/untitled-${collection.urlId}`);
+    expect(collection.path).toBe(`/collection/untitled-${collection.urlId}`);
   });
 });
 

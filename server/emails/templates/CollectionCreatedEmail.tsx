@@ -73,13 +73,13 @@ ${collection.name}
 
 ${collection.user.name} created the collection "${collection.name}"
 
-Open Collection: ${teamUrl}${collection.url}
+Open Collection: ${teamUrl}${collection.path}
 `;
   }
 
   protected render(props: Props) {
     const { collection, teamUrl, unsubscribeUrl } = props;
-    const collectionLink = `${teamUrl}${collection.url}`;
+    const collectionLink = `${teamUrl}${collection.path}`;
 
     return (
       <EmailTemplate

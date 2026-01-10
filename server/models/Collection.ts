@@ -315,15 +315,6 @@ class Collection extends ParanoidModel<
 
   // getters
 
-  /**
-   * The frontend path to this collection.
-   *
-   * @deprecated Use `path` instead.
-   */
-  get url(): string {
-    return this.path;
-  }
-
   /** The frontend path to this collection. */
   get path(): string {
     if (!this.name) {
