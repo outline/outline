@@ -151,7 +151,7 @@ export async function signIn(
       });
 
       if (collection) {
-        ctx.redirect(`${team.url}${collection.url}`);
+        ctx.redirect(`${team.url}${collection.path}`);
         return;
       }
     }
@@ -171,7 +171,7 @@ export async function signIn(
 
     ctx.redirect(
       !hasViewedDocuments && collection
-        ? `${team.url}${collection.url}`
+        ? `${team.url}${collection.path}/recent`
         : `${team.url}/home`
     );
   }
