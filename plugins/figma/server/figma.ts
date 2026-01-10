@@ -119,9 +119,9 @@ export class Figma {
     return AccountResponseSchema.parse(await res.json());
   }
 
-  static unfurl: UnfurlSignature = async (url: string, actor: User) => {
+  static unfurl: UnfurlSignature = async (url: string, actor?: User) => {
     const resource = Figma.parseUrl(url);
-    if (!resource) {
+    if (!resource || !actor) {
       return;
     }
 

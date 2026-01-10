@@ -65,8 +65,8 @@ function Figma() {
         <>
           <Text as="p">
             <Trans>
-              Link your {appName} account to Figma to enable previews of design
-              files you have access to, directly within documents.
+              Link your {{ appName }} account to Figma to enable previews of
+              design files you have access to, directly within documents.
             </Trans>
           </Text>
           {linkedAccountIntegration ? (

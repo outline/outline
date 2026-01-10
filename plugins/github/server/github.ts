@@ -221,10 +221,10 @@ export class GitHub {
    * @param actor User attempting to unfurl resource url
    * @returns An object containing resource details e.g, a GitHub Pull Request details
    */
-  public static unfurl: UnfurlSignature = async (url: string, actor: User) => {
+  public static unfurl: UnfurlSignature = async (url: string, actor?: User) => {
     const resource = GitHub.parseUrl(url);
 
-    if (!resource) {
+    if (!resource || !actor) {
       return;
     }
 
