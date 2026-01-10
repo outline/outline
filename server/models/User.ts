@@ -581,12 +581,13 @@ class User extends ParanoidModel<
    * @param expiresAt The time the token will expire at
    * @returns The session token
    */
-  getJwtToken = (expiresAt?: Date) =>
+  getJwtToken = (expiresAt?: Date, service?: string) =>
     JWT.sign(
       {
         id: this.id,
         expiresAt: expiresAt ? expiresAt.toISOString() : undefined,
         type: "session",
+        service,
       },
       this.jwtSecret
     );
@@ -614,13 +615,14 @@ class User extends ParanoidModel<
    *
    * @returns The transfer token
    */
-  getTransferToken = () =>
+  getTransferToken = (service?: string) =>
     JWT.sign(
       {
         id: this.id,
         createdAt: new Date().toISOString(),
         expiresAt: addMinutes(new Date(), 1).toISOString(),
         type: "transfer",
+        service,
       },
       this.jwtSecret
     );

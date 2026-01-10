@@ -37,7 +37,10 @@ type AuthInput = {
 export default function auth(options: AuthenticationOptions = {}) {
   return async function authMiddleware(ctx: AppContext, next: Next) {
     try {
-      const { type, token, user } = await validateAuthentication(ctx, options);
+      const { type, token, user, service } = await validateAuthentication(
+        ctx,
+        options
+      );
 
       await Promise.all([
         user.updateActiveAt(ctx),
@@ -48,6 +51,7 @@ export default function auth(options: AuthenticationOptions = {}) {
         user,
         token,
         type,
+        service,
       };
 
       if (tracer) {
@@ -143,7 +147,12 @@ export function parseAuthentication(ctx: AppContext): AuthInput {
 async function validateAuthentication(
   ctx: AppContext,
   options: AuthenticationOptions
-): Promise<{ user: User; token: string; type: AuthenticationType }> {
+): Promise<{
+  user: User;
+  token: string;
+  type: AuthenticationType;
+  service?: string;
+}> {
   const { token, transport } = parseAuthentication(ctx);
 
   if (!token) {
@@ -241,7 +250,15 @@ async function validateAuthentication(
     await apiKey.updateActiveAt();
   } else {
     type = AuthenticationType.APP;
-    user = await getUserForJWT(token);
+    const result = await getUserForJWT(token);
+    user = result.user;
+
+    return {
+      user,
+      type,
+      token,
+      service: result.service,
+    };
   }
 
   if (user.isSuspended) {
