@@ -88,7 +88,7 @@ function setupColumnDragTracking(
 
     if (!isDragging) {
       isDragging = true;
-      document.body.style.cursor = "grabbing";
+      document.body.classList.add("dragging");
     }
 
     const table = tableElement.querySelector("table");
@@ -124,7 +124,7 @@ function setupColumnDragTracking(
     document.removeEventListener("mousemove", handleMouseMove);
     document.removeEventListener("mouseup", handleMouseUp);
 
-    document.body.style.cursor = "";
+    document.body.classList.remove("dragging");
     clearDragState();
 
     if (isDragging && currentToIndex !== fromIndex) {

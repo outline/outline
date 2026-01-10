@@ -132,4 +132,12 @@ export default createGlobalStyle<Props>`
       left: -9999px !important;
       top: -9999px !important;
   }
+
+  /* Table row/column drag and drop cursor */
+  &.dragging,
+  &.dragging *,
+  &.dragging *::before,
+  &.dragging *::after {
+    cursor: grabbing !important;
+  }
 `;
