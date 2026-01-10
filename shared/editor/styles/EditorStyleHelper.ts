@@ -74,6 +74,21 @@ export class EditorStyleHelper {
   /** Shadow on the left side of the table */
   static readonly tableShadowLeft = "table-shadow-left";
 
+  /** Drop indicator for table drag and drop */
+  static readonly tableDragDropIndicator = "table-drag-drop-indicator";
+
+  /** Drag indicator on left side of cell */
+  static readonly tableDragIndicatorLeft = "table-drag-indicator-left";
+
+  /** Drag indicator on right side of cell */
+  static readonly tableDragIndicatorRight = "table-drag-indicator-right";
+
+  /** Drag indicator on top side of cell */
+  static readonly tableDragIndicatorTop = "table-drag-indicator-top";
+
+  /** Drag indicator on bottom side of cell */
+  static readonly tableDragIndicatorBottom = "table-drag-indicator-bottom";
+
   // Global
 
   /** Minimum padding around editor */

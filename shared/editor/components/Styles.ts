@@ -2028,7 +2028,7 @@ table {
      * https://github.com/ProseMirror/prosemirror/issues/947 */
     &::after {
       content: "";
-      cursor: var(--pointer);
+      cursor: grab;
       position: absolute;
       top: -16px;
       left: 0;
@@ -2058,7 +2058,7 @@ table {
   .${EditorStyleHelper.tableGripRow} {
     &::after {
       content: "";
-      cursor: var(--pointer);
+      cursor: grab;
       position: absolute;
       left: -16px;
       top: 0;
@@ -2089,7 +2089,7 @@ table {
   .${EditorStyleHelper.tableGrip} {
     &::after {
       content: "";
-      cursor: var(--pointer);
+      cursor: grab;
       background: ${props.theme.divider};
       width: 13px;
       height: 13px;
@@ -2108,6 +2108,102 @@ table {
     &.selected::after {
       background: ${props.theme.tableSelected};
     }
+    &.dragging::after {
+      background: ${props.theme.accent};
+      opacity: 0.5;
+    }
+  }
+}
+
+.${EditorStyleHelper.tableDragDropIndicator} {
+  position: absolute;
+  background: ${props.theme.accent};
+  pointer-events: none;
+  z-index: 100;
+  opacity: 0;
+  transition: opacity 100ms ease-in-out;
+
+  &.active {
+    opacity: 1;
+  }
+
+  &[data-type="row"] {
+    height: 2px;
+    border-radius: 1px;
+  }
+
+  &[data-type="column"] {
+    width: 2px;
+    border-radius: 1px;
+  }
+}
+
+.${EditorStyleHelper.tableGripRow},
+.${EditorStyleHelper.tableGripColumn} {
+  &.dragging::after {
+    cursor: grabbing;
+    background: ${props.theme.accent};
+    opacity: 0.5;
+  }
+}
+
+.${EditorStyleHelper.tableDragIndicatorLeft} {
+  position: relative;
+
+  &::before {
+    content: "";
+    position: absolute;
+    left: -1px;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: ${props.theme.accent};
+    z-index: 100;
+  }
+}
+
+.${EditorStyleHelper.tableDragIndicatorRight} {
+  position: relative;
+
+  &::after {
+    content: "";
+    position: absolute;
+    right: -1px;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: ${props.theme.accent};
+    z-index: 100;
+  }
+}
+
+.${EditorStyleHelper.tableDragIndicatorTop} {
+  position: relative;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: -1px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: ${props.theme.accent};
+    z-index: 100;
+  }
+}
+
+.${EditorStyleHelper.tableDragIndicatorBottom} {
+  position: relative;
+
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: ${props.theme.accent};
+    z-index: 100;
   }
 }
 
