@@ -1,8 +1,8 @@
+import { BaseSchema } from "@server/routes/api/schema";
 import isEmpty from "lodash/isEmpty";
 import { z } from "zod";
-import { BaseSchema } from "@server/routes/api/schema";
 
-export const LinearCallbackSchema = BaseSchema.extend({
+export const FigmaCallbackSchema = BaseSchema.extend({
   query: z
     .object({
       code: z.string().nullish(),
@@ -17,4 +17,4 @@ export const LinearCallbackSchema = BaseSchema.extend({
     }),
 });
 
-export type LinearCallbackReq = z.infer<typeof LinearCallbackSchema>;
+export type FigmaCallbackReq = z.infer<typeof FigmaCallbackSchema>;
