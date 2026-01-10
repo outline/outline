@@ -8,6 +8,7 @@ import type {
 } from "@shared/types";
 import type RootStore from "~/stores/RootStore";
 import type { SidebarContextType } from "./components/Sidebar/components/SidebarContext";
+import type Model from "./models/base/Model";
 import type Document from "./models/Document";
 import type FileOperation from "./models/FileOperation";
 import type Pin from "./models/Pin";
@@ -96,8 +97,16 @@ export type ActionContext = {
   isCommandBar: boolean;
   isButton: boolean;
   sidebarContext?: SidebarContextType;
+
+  // Legacy (backward compatibility) - returns primary active model's ID
   activeCollectionId?: string | undefined;
   activeDocumentId: string | undefined;
+
+  // New API - work directly with Model instances
+  getActiveModels: <T extends Model>(modelClass: typeof Model) => T[];
+  isModelActive: (model: Model) => boolean;
+  activeModels: ReadonlySet<Model>;
+
   currentUserId: string | undefined;
   currentTeamId: string | undefined;
   location: Location;
