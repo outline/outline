@@ -25,7 +25,10 @@ interface LinkProps extends BaseProps {
    * The path to match against the current location.
    */
   to: LocationDescriptor;
-  onClick?: never;
+  /**
+   * Optional click handler called when the tab is clicked (in addition to navigation).
+   */
+  onClick?: () => void;
   active?: never;
 }
 
@@ -99,8 +102,8 @@ const Tab: React.FC<Props> = (props: Props) => {
     color: theme.textSecondary,
   };
 
-  // Button mode - controlled by onClick and active props
-  if ("onClick" in props && props.onClick) {
+  // Button mode - controlled by onClick and active props (no `to` prop)
+  if ("active" in props && !("to" in props)) {
     return (
       <TabButton $active={props.active} onClick={props.onClick}>
         {children}
