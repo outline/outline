@@ -350,14 +350,14 @@ export default class AuthStore extends Store<Team> {
       this.logoutRedirectUri = env.OIDC_LOGOUT_URI;
     }
 
+    // clear IndexedDB databases used for document caching
+    await deleteAllDatabases();
+
     // clear all credentials from cache (and local storage via autorun)
     this.currentUserId = null;
     this.currentTeamId = null;
     this.collaborationToken = null;
     this.rootStore.clear();
-
-    // clear IndexedDB databases used for document caching
-    await deleteAllDatabases();
 
     // Tell the host application we logged out, if any – allows window cleanup.
     if (Desktop.isElectron()) {
