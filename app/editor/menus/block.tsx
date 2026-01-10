@@ -234,7 +234,7 @@ export default function blockMenuItems(
       title: "Mermaid Diagram",
       icon: <Img src="/images/mermaidjs.png" alt="Mermaid Diagram" />,
       keywords: "diagram flowchart",
-      attrs: { language: "mermaidjs" },
+      attrs: { language: "mermaid" },
     },
     {
       name: "editDiagram",

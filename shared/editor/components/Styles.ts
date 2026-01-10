@@ -1676,6 +1676,7 @@ mark {
   }
 }
 
+.code-block[data-language=mermaid],
 .code-block[data-language=mermaidjs] {
   ${
     !props.staticHTML &&
@@ -1702,6 +1703,7 @@ mark {
   }
 }
 
+.ProseMirror[contenteditable="false"] .code-block[data-language=mermaid],
 .ProseMirror[contenteditable="false"] .code-block[data-language=mermaidjs] {
     height: 0;
     overflow: hidden;
@@ -1712,6 +1714,7 @@ mark {
 }
 
 .ProseMirror.exported {
+    .code-block[data-language=mermaid],
     .code-block[data-language=mermaidjs] {
         height: auto;
         overflow: visible;
