@@ -276,7 +276,7 @@ export class TableDragDropPlugin extends Plugin<DragState | null> {
 
     // Add dragging class
     gripElement.classList.add("table-dragging");
-    document.body.style.cursor = type === "row" ? "grabbing" : "grabbing";
+    document.body.style.cursor = "grabbing";
 
     // Create and position drop indicator
     this.dropIndicator = createDropIndicator();
