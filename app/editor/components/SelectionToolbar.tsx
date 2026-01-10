@@ -1,4 +1,4 @@
-import type { Selection } from "prosemirror-state";
+import type { EditorState, Selection } from "prosemirror-state";
 import { NodeSelection, TextSelection } from "prosemirror-state";
 import * as React from "react";
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
@@ -29,6 +29,10 @@ import getReadOnlyMenuItems from "../menus/readOnly";
 import getTableMenuItems from "../menus/table";
 import getTableColMenuItems from "../menus/tableCol";
 import getTableRowMenuItems from "../menus/tableRow";
+import {
+  columnDragPluginKey,
+  rowDragPluginKey,
+} from "@shared/editor/plugins/TableDragState";
 import { useEditor } from "./EditorContext";
 import { MediaLinkEditor } from "./MediaLinkEditor";
 import FloatingToolbar from "./FloatingToolbar";
@@ -53,12 +57,19 @@ type Props = {
   canUpdate?: boolean;
 };
 
-function useIsDragging() {
+function useIsDragging(state: EditorState) {
   const [isDragging, setDragging, setNotDragging] = useBoolean();
   useEventListener("dragstart", setDragging);
   useEventListener("dragend", setNotDragging);
   useEventListener("drop", setNotDragging);
-  return isDragging;
+
+  // Check if table row or column is being dragged
+  const columnDragState = columnDragPluginKey.getState(state);
+  const rowDragState = rowDragPluginKey.getState(state);
+  const isTableDragging =
+    columnDragState?.isDragging || rowDragState?.isDragging;
+
+  return isDragging || isTableDragging;
 }
 
 enum Toolbar {
@@ -74,9 +85,8 @@ export function SelectionToolbar(props: Props) {
   const menuRef = React.useRef<HTMLDivElement | null>(null);
   const isMobile = useMobile();
   const isActive = props.isActive || isMobile;
-  const isDragging = useIsDragging();
-
   const { state } = view;
+  const isDragging = useIsDragging(state);
   const { selection } = state;
   const [activeToolbar, setActiveToolbar] = React.useState<Toolbar | null>(
     null
