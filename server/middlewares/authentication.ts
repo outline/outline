@@ -161,6 +161,7 @@ async function validateAuthentication(
 
   let user: User | null;
   let type: AuthenticationType;
+  let service: string | undefined;
 
   if (OAuthAuthentication.match(token)) {
     if (transport !== "header") {
@@ -252,13 +253,7 @@ async function validateAuthentication(
     type = AuthenticationType.APP;
     const result = await getUserForJWT(token);
     user = result.user;
-
-    return {
-      user,
-      type,
-      token,
-      service: result.service,
-    };
+    service = result.service;
   }
 
   if (user.isSuspended) {
@@ -287,5 +282,6 @@ async function validateAuthentication(
     user,
     type,
     token,
+    service,
   };
 }
