@@ -23,7 +23,7 @@ type TabType = "children" | "backlinks";
 
 function References({ document }: Props) {
   const { documents } = useStores();
-  const user = useCurrentUser();
+  const user = useCurrentUser({ rejectOnEmpty: false });
   const locationSidebarContext = useLocationSidebarContext();
   const { sharedTree, isShare } = useShare();
   const [activeTab, setActiveTab] = useState<TabType>("children");
@@ -79,7 +79,7 @@ function References({ document }: Props) {
                     backlinkedDocument?.collectionId !== document.collectionId
                   }
                   sidebarContext={
-                    backlinkedDocument
+                    user && backlinkedDocument
                       ? determineSidebarContext({
                           document: backlinkedDocument,
                           user,

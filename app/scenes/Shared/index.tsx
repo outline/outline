@@ -10,7 +10,6 @@ import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import type Share from "~/models/Share";
 import Error404 from "~/scenes/Errors/Error404";
-import ClickablePadding from "~/components/ClickablePadding";
 import { DocumentContextProvider } from "~/components/DocumentContext";
 import Layout from "~/components/Layout";
 import Sidebar from "~/components/Sidebar/Shared";
@@ -255,7 +254,6 @@ function SharedScene() {
                 <CollectionScene collection={model} />
               ) : null}
             </Layout>
-            <ClickablePadding minHeight="20vh" />
           </DocumentContextProvider>
         </ThemeProvider>
       </TeamContext.Provider>
