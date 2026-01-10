@@ -49,7 +49,6 @@ import Contents from "./Contents";
 import Editor from "./Editor";
 import Header from "./Header";
 import Notices from "./Notices";
-import PublicReferences from "./PublicReferences";
 import References from "./References";
 import RevisionViewer from "./RevisionViewer";
 
@@ -606,15 +605,11 @@ class DocumentScene extends React.Component<Props> {
                         canComment={abilities.comment}
                         autoFocus={document.createdAt === document.updatedAt}
                       >
-                        {shareId ? (
-                          <ReferencesWrapper>
-                            <PublicReferences documentId={document.id} />
-                          </ReferencesWrapper>
-                        ) : !revision ? (
+                        {!revision && (
                           <ReferencesWrapper>
                             <References document={document} />
                           </ReferencesWrapper>
-                        ) : null}
+                        )}
                       </Editor>
                     </>
                   )}

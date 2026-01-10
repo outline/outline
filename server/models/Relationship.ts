@@ -51,10 +51,10 @@ class Relationship extends IdModel<
   type: RelationshipType;
 
   /**
-   * Find all backlinks for a document that the user has access to
+   * Find all backlinks for a document that the user has access to.
    *
-   * @param documentId The document ID to find backlinks for
-   * @param user The user to check access for
+   * @param documentId The document ID to find backlinks for.
+   * @param user The user to check access for.
    * @deprecated
    */
   public static async findSourceDocumentIdsForUser(
@@ -80,6 +80,29 @@ class Relationship extends IdModel<
     );
 
     return documents.map((doc) => doc.id);
+  }
+
+  /**
+   * Find all backlinks for a document that are within a shared tree.
+   *
+   * @param documentId The document ID to find backlinks for.
+   * @param allowedDocumentIds Array of document IDs that are accessible in the shared tree.
+   * @returns Array of document IDs that link to the target document and are within the shared tree.
+   */
+  public static async findSourceDocumentIdsInSharedTree(
+    documentId: string,
+    allowedDocumentIds: string[]
+  ) {
+    const relationships = await this.findAll({
+      attributes: ["reverseDocumentId"],
+      where: {
+        documentId,
+        type: RelationshipType.Backlink,
+        reverseDocumentId: allowedDocumentIds,
+      },
+    });
+
+    return relationships.map((relationship) => relationship.reverseDocumentId);
   }
 }
 
