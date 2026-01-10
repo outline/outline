@@ -29,8 +29,10 @@ import getReadOnlyMenuItems from "../menus/readOnly";
 import getTableMenuItems from "../menus/table";
 import getTableColMenuItems from "../menus/tableCol";
 import getTableRowMenuItems from "../menus/tableRow";
-import { columnDragPluginKey } from "@shared/editor/nodes/TableHeader";
-import { rowDragPluginKey } from "@shared/editor/nodes/TableRow";
+import {
+  columnDragPluginKey,
+  rowDragPluginKey,
+} from "@shared/editor/plugins/TableDragState";
 import { useEditor } from "./EditorContext";
 import { MediaLinkEditor } from "./MediaLinkEditor";
 import FloatingToolbar from "./FloatingToolbar";

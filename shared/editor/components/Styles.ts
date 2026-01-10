@@ -2089,7 +2089,7 @@ table {
   .${EditorStyleHelper.tableGrip} {
     &::after {
       content: "";
-      cursor: grab;
+      cursor: var(--pointer);
       background: ${props.theme.divider};
       width: 13px;
       height: 13px;
@@ -2147,64 +2147,42 @@ table {
   }
 }
 
-.${EditorStyleHelper.tableDragIndicatorLeft} {
-  position: relative;
+.${EditorStyleHelper.tableDragIndicatorLeft},
+.${EditorStyleHelper.tableDragIndicatorRight} {
+  position: absolute;
+  top: 0;
+  width: 3px;
+  height: 100vh;
+  background: ${props.theme.accent};
+  z-index: 100;
+  pointer-events: none;
+}
 
-  &::before {
-    content: "";
-    position: absolute;
-    left: -1px;
-    top: 0;
-    bottom: 0;
-    width: 3px;
-    background: ${props.theme.accent};
-    z-index: 100;
-  }
+.${EditorStyleHelper.tableDragIndicatorLeft} {
+  left: -1px;
 }
 
 .${EditorStyleHelper.tableDragIndicatorRight} {
-  position: relative;
+  right: -1px;
+}
 
-  &::after {
-    content: "";
-    position: absolute;
-    right: -1px;
-    top: 0;
-    bottom: 0;
-    width: 3px;
-    background: ${props.theme.accent};
-    z-index: 100;
-  }
+.${EditorStyleHelper.tableDragIndicatorTop},
+.${EditorStyleHelper.tableDragIndicatorBottom} {
+  position: absolute;
+  left: 0;
+  height: 3px;
+  width: 100vw;
+  background: ${props.theme.accent};
+  z-index: 100;
+  pointer-events: none;
 }
 
 .${EditorStyleHelper.tableDragIndicatorTop} {
-  position: relative;
-
-  &::before {
-    content: "";
-    position: absolute;
-    top: -1px;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: ${props.theme.accent};
-    z-index: 100;
-  }
+  top: -1px;
 }
 
 .${EditorStyleHelper.tableDragIndicatorBottom} {
-  position: relative;
-
-  &::after {
-    content: "";
-    position: absolute;
-    bottom: -1px;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: ${props.theme.accent};
-    z-index: 100;
-  }
+  bottom: -1px;
 }
 
 .${EditorStyleHelper.table} {

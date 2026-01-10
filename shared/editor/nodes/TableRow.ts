@@ -6,7 +6,7 @@ import { cn } from "../styles/utils";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import type { EditorView } from "prosemirror-view";
-import { Plugin, PluginKey } from "prosemirror-state";
+import { Plugin } from "prosemirror-state";
 import { addRowBefore, selectRow, selectTable } from "../commands/table";
 import {
   getCellsInRow,
@@ -14,16 +14,11 @@ import {
   isRowSelected,
   isTableSelected,
 } from "../queries/table";
-
-/** State for tracking row drag operations. */
-interface RowDragState {
-  isDragging: boolean;
-  fromIndex: number;
-  toIndex: number;
-}
-
-/** Plugin key for accessing row drag state. */
-export const rowDragPluginKey = new PluginKey<RowDragState>("row-drag");
+import {
+  rowDragPluginKey,
+  columnDragPluginKey,
+  type RowDragState,
+} from "../plugins/TableDragState";
 
 /**
  * Sets up drag tracking for row grip interactions.
@@ -136,6 +131,27 @@ function setupRowDragTracking(
 }
 
 /**
+ * Builds a widget decoration for the row drag indicator.
+ */
+function buildRowDragIndicator(pos: number, isMovingDown: boolean): Decoration {
+  const className = isMovingDown
+    ? EditorStyleHelper.tableDragIndicatorBottom
+    : EditorStyleHelper.tableDragIndicatorTop;
+
+  return Decoration.widget(
+    pos + 1,
+    () => {
+      const indicator = document.createElement("div");
+      indicator.className = className;
+      return indicator;
+    },
+    {
+      key: `row-drag-indicator-${pos}`,
+    }
+  );
+}
+
+/**
  * Creates decorations for the row drag drop indicator.
  */
 function createRowDragDecorations(state: EditorState): DecorationSet {
@@ -146,22 +162,12 @@ function createRowDragDecorations(state: EditorState): DecorationSet {
   }
 
   const decorations: Decoration[] = [];
-
-  // Get all cells in the target row to decorate them
-  const cellsInRow = getCellsInRow(dragState.toIndex)(state);
   const isMovingDown = dragState.toIndex > dragState.fromIndex;
 
-  for (const cellPos of cellsInRow) {
-    const node = state.doc.nodeAt(cellPos);
-    if (node) {
-      decorations.push(
-        Decoration.node(cellPos, cellPos + node.nodeSize, {
-          class: isMovingDown
-            ? EditorStyleHelper.tableDragIndicatorBottom
-            : EditorStyleHelper.tableDragIndicatorTop,
-        })
-      );
-    }
+  // Get first cell in the target row to place the indicator
+  const cellsInRow = getCellsInRow(dragState.toIndex)(state);
+  if (cellsInRow.length > 0) {
+    decorations.push(buildRowDragIndicator(cellsInRow[0], isMovingDown));
   }
 
   return DecorationSet.create(state.doc, decorations);
@@ -231,9 +237,11 @@ export default class TableRow extends Node {
               return;
             }
 
-            // Hide add row buttons when dragging
+            // Hide add row buttons when dragging rows or columns
             const rowDragState = rowDragPluginKey.getState(state);
-            const isDragging = rowDragState?.isDragging;
+            const columnDragState = columnDragPluginKey.getState(state);
+            const isDragging =
+              rowDragState?.isDragging || columnDragState?.isDragging;
 
             const { doc } = state;
             const decorations: Decoration[] = [];

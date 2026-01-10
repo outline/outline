@@ -16,18 +16,11 @@ import {
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { cn } from "../styles/utils";
 import Node from "./Node";
-
-/** State for tracking column drag operations. */
-interface ColumnDragState {
-  isDragging: boolean;
-  fromIndex: number;
-  toIndex: number;
-}
-
-/** Plugin key for accessing column drag state. */
-export const columnDragPluginKey = new PluginKey<ColumnDragState>(
-  "column-drag"
-);
+import {
+  rowDragPluginKey,
+  columnDragPluginKey,
+  type ColumnDragState,
+} from "../plugins/TableDragState";
 
 /**
  * Sets up drag tracking for column grip interactions.
@@ -145,6 +138,30 @@ function setupColumnDragTracking(
 }
 
 /**
+ * Builds a widget decoration for the column drag indicator.
+ */
+function buildColumnDragIndicator(
+  pos: number,
+  isMovingRight: boolean
+): Decoration {
+  const className = isMovingRight
+    ? EditorStyleHelper.tableDragIndicatorRight
+    : EditorStyleHelper.tableDragIndicatorLeft;
+
+  return Decoration.widget(
+    pos + 1,
+    () => {
+      const indicator = document.createElement("div");
+      indicator.className = className;
+      return indicator;
+    },
+    {
+      key: `column-drag-indicator-${pos}`,
+    }
+  );
+}
+
+/**
  * Creates decorations for the column drag drop indicator.
  */
 function createColumnDragDecorations(state: EditorState): DecorationSet {
@@ -155,22 +172,12 @@ function createColumnDragDecorations(state: EditorState): DecorationSet {
   }
 
   const decorations: Decoration[] = [];
-
-  // Get all cells in the target column to decorate them
-  const cellsInColumn = getCellsInColumn(dragState.toIndex)(state);
   const isMovingRight = dragState.toIndex > dragState.fromIndex;
 
-  for (const cellPos of cellsInColumn) {
-    const node = state.doc.nodeAt(cellPos);
-    if (node) {
-      decorations.push(
-        Decoration.node(cellPos, cellPos + node.nodeSize, {
-          class: isMovingRight
-            ? EditorStyleHelper.tableDragIndicatorRight
-            : EditorStyleHelper.tableDragIndicatorLeft,
-        })
-      );
-    }
+  // Get first cell in the target column to place the indicator
+  const cellsInColumn = getCellsInColumn(dragState.toIndex)(state);
+  if (cellsInColumn.length > 0) {
+    decorations.push(buildColumnDragIndicator(cellsInColumn[0], isMovingRight));
   }
 
   return DecorationSet.create(state.doc, decorations);
@@ -255,9 +262,11 @@ export default class TableHeader extends Node {
         return DecorationSet.empty;
       }
 
-      // Hide add column buttons when dragging
+      // Hide add column buttons when dragging rows or columns
       const columnDragState = columnDragPluginKey.getState(state);
-      const isDragging = columnDragState?.isDragging;
+      const rowDragState = rowDragPluginKey.getState(state);
+      const isDragging =
+        columnDragState?.isDragging || rowDragState?.isDragging;
 
       const { doc } = state;
       const decorations: Decoration[] = [];
@@ -384,7 +393,8 @@ export default class TableHeader extends Node {
             if (
               !tr.selectionSet &&
               !tr.docChanged &&
-              !tr.getMeta(columnDragPluginKey)
+              !tr.getMeta(columnDragPluginKey) &&
+              !tr.getMeta(rowDragPluginKey)
             ) {
               return pluginState;
             }
