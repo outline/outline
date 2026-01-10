@@ -21,7 +21,10 @@ class Iframely {
       const res = await fetch(
         `${apiUrl}/${type}?url=${encodeURIComponent(url)}&api_key=${
           env.IFRAMELY_API_KEY
-        }`
+        }`,
+        {
+          timeout: 10000, // 10 second timeout
+        }
       );
       return await res.json();
     } catch (err) {
