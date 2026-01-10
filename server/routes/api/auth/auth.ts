@@ -114,8 +114,11 @@ router.post("auth.config", async (ctx: APIContext<T.AuthConfigReq>) => {
   };
 });
 
+/** Authentication services that don't require SSO validation. */
+const NON_SSO_SERVICES = ["email", "passkeys"];
+
 router.post("auth.info", auth(), async (ctx: APIContext<T.AuthInfoReq>) => {
-  const { user } = ctx.state.auth;
+  const { user, service } = ctx.state.auth;
   const sessions = getSessionsInCookie(ctx);
   const signedInTeamIds = Object.keys(sessions);
 
@@ -133,8 +136,15 @@ router.post("auth.info", auth(), async (ctx: APIContext<T.AuthInfoReq>) => {
   ]);
 
   // If the user did not _just_ sign in then we need to check if they continue
-  // to have access to the workspace they are signed into.
-  if (user.lastSignedInAt && user.lastSignedInAt < subHours(new Date(), 1)) {
+  // to have access to the workspace they are signed into. This only applies
+  // to SSO sessions - email and passkey logins don't have associated
+  // UserAuthentication records that need validation.
+  const isOAuthSession = !service || !NON_SSO_SERVICES.includes(service);
+  if (
+    isOAuthSession &&
+    user.lastSignedInAt &&
+    user.lastSignedInAt < subHours(new Date(), 1)
+  ) {
     await new ValidateSSOAccessTask().schedule({ userId: user.id });
   }
 
