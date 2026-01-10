@@ -407,31 +407,4 @@ export default class FileHelper {
 
     return new File([bytes], filename, { type: mimeType });
   }
-
-  /**
-   * Extracts the mxfile XML from an SVG string containing diagrams.net data.
-   * The mxfile is stored URL-encoded in the "content" attribute of the SVG.
-   *
-   * @param svgContent - the SVG content as a string.
-   * @returns the decoded mxfile XML, or undefined if not found.
-   */
-  static extractMxfileFromSvg(svgContent: string): string | undefined {
-    // Try to extract from content attribute (URL-encoded)
-    const contentMatch = svgContent.match(/\bcontent=["']([^"']+)["']/);
-    if (contentMatch) {
-      try {
-        return decodeURIComponent(contentMatch[1]);
-      } catch (_e) {
-        // Failed to decode, try other methods
-      }
-    }
-
-    // Try to find embedded mxfile element directly
-    const mxfileMatch = svgContent.match(/<mxfile[\s\S]*?<\/mxfile>/);
-    if (mxfileMatch) {
-      return mxfileMatch[0];
-    }
-
-    return undefined;
-  }
 }
