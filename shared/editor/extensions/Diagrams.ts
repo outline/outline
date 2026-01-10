@@ -16,7 +16,7 @@ import { sanitizeUrl } from "../../utils/urls";
  * An editor extension that adds commands to insert and edit diagrams using diagrams.net.
  *
  * This extension provides a command to open the diagrams.net editor for creating
- * and editing diagrams. Diagrams are stored as PNG images with embedded XML data
+ * and editing diagrams. Diagrams are stored as SVG or PNG images with embedded XML data
  * that allows them to be re-edited later.
  */
 export default class Diagrams extends Extension {
@@ -100,31 +100,32 @@ export default class Diagrams extends Extension {
   /**
    * Called when the diagram editor is ready to receive commands.
    *
-   * @param client - the diagrams.net client.
-   * @param sourceUrl - the URL of the diagram to load.
+   * @param sourceUrl - the URL of the diagram to load, or the empty diagram constant.
    */
   private async onDiagramReady(sourceUrl: string) {
-    let base64Data: string;
+    let data: string;
 
     if (sourceUrl === EMPTY_DIAGRAM_IMAGE) {
-      base64Data = EMPTY_DIAGRAM_IMAGE;
+      // For empty diagram, send full data URI
+      data = `data:image/svg+xml;base64,${EMPTY_DIAGRAM_IMAGE}`;
     } else {
-      base64Data = await FileHelper.urlToBase64(sourceUrl);
+      // For existing diagrams, send the full data URI
+      data = await FileHelper.urlToBase64(sourceUrl);
     }
 
-    this.client.loadDiagram(base64Data);
+    this.client.loadDiagram(data);
   }
 
   /**
    * Called when a diagram has been exported from the editor.
    *
-   * @param base64Data - the exported diagram as base64 encoded PNG.
+   * @param base64Data - the exported diagram as base64 encoded SVG.
    */
   private async onDiagramExported(base64Data: string) {
     const file = FileHelper.base64ToFile(
       base64Data,
-      "diagram.png",
-      "image/png"
+      "diagram.svg",
+      "image/svg+xml"
     );
     const dimensions = await FileHelper.getImageDimensions(file);
     const uploadedUrl = await this.uploadDiagramFile(file);

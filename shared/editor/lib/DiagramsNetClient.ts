@@ -16,7 +16,7 @@ export enum DiagramsNetEvent {
  * Actions that can be sent to diagrams.net.
  */
 export enum DiagramsNetAction {
-  /** Load a diagram from base64 encoded PNG with embedded XML. */
+  /** Load a diagram from base64 encoded data with embedded XML. */
   Load = "load",
   /** Export the current diagram. */
   Export = "export",
@@ -30,12 +30,12 @@ export interface DiagramsNetMessage {
   event?: string;
   /** Action to perform in diagrams.net. */
   action?: string;
-  /** Export format (e.g., "xmlpng"). */
+  /** Export format (e.g., "xmlsvg", "xmlpng"). */
   format?: string;
-  /** Base64 encoded data. */
+  /** Base64 encoded data for export responses. */
   data?: string;
-  /** Base64 encoded PNG with embedded XML for loading. */
-  xmlpng?: string;
+  /** Data URI or base64 encoded image with embedded XML for loading. */
+  xml?: string;
   /** Loading spinner key. */
   spinKey?: string;
 }
@@ -87,24 +87,25 @@ export class DiagramsNetClient {
   }
 
   /**
-   * Loads a diagram from a base64 encoded PNG with embedded XML.
+   * Loads a diagram from a data URI containing embedded XML.
+   * Supports both PNG and SVG data URIs (e.g., "data:image/svg+xml;base64,...").
    *
-   * @param base64Png - base64 encoded PNG data containing the diagram.
+   * @param dataUri - complete data URI with the diagram data.
    */
-  loadDiagram = (base64Png: string) => {
+  loadDiagram = (dataUri: string) => {
     this.sendMessage({
       action: DiagramsNetAction.Load,
-      xmlpng: base64Png,
+      xml: dataUri,
     });
   };
 
   /**
-   * Requests an export of the current diagram as a PNG with embedded XML.
+   * Requests an export of the current diagram as an SVG with embedded XML.
    */
   exportDiagram = () => {
     this.sendMessage({
       action: DiagramsNetAction.Export,
-      format: "xmlpng",
+      format: "xmlsvg",
       spinKey: "saving",
     });
   };
@@ -156,6 +157,9 @@ export class DiagramsNetClient {
   };
 }
 
-// Base64 encoded empty diagram image (1x1 transparent PNG with embedded diagrams.net metadata)
+/**
+ * Base64 encoded empty diagram image (minimal SVG with embedded diagrams.net metadata).
+ * The mxfile XML is embedded in the content attribute of the SVG.
+ */
 export const EMPTY_DIAGRAM_IMAGE =
-  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAADz3RFWHRteGZpbGUAJTNDbXhmaWxlJTIwaG9zdCUzRCUyMmFwcC5kaWFncmFtcy5uZXQlMjIlMjBhZ2VudCUzRCUyMk1vemlsbGElMkY1LjAlMjAoTWFjaW50b3NoJTNCJTIwSW50ZWwlMjBNYWMlMjBPUyUyMFglMjAxMF8xNV83KSUyMEFwcGxlV2ViS2l0JTJGNTM3LjM2JTIwKEtIVE1MJTJDJTIwbGlrZSUyMEdlY2tvKSUyMENocm9tZSUyRjEzOS4wLjAuMCUyMFNhZmFyaSUyRjUzNy4zNiUyMiUyMHZlcnNpb24lM0QlMjIyOC4yLjglMjIlMjBzY2FsZSUzRCUyMjElMjIlMjBib3JkZXIlM0QlMjIwJTIyJTNFJTBBJTIwJTIwJTNDZGlhZ3JhbSUyMG5hbWUlM0QlMjJQYWdlLTElMjIlMjBpZCUzRCUyMloxN1hHdVRjUnQteXp1N2xJbm1ZJTIyJTNFJTBBJTIwJTIwJTIwJTIwJTNDbXhHcmFwaE1vZGVsJTIwZHglM0QlMjIxMjE2JTIyJTIwZHklM0QlMjI3NzIlMjIlMjBncmlkJTNEJTIyMSUyMiUyMGdyaWRTaXplJTNEJTIyMTAlMjIlMjBndWlkZXMlM0QlMjIxJTIyJTIwdG9vbHRpcHMlM0QlMjIxJTIyJTIwY29ubmVjdCUzRCUyMjElMjIlMjBhcnJvd3MlM0QlMjIxJTIyJTIwZm9sZCUzRCUyMjElMjIlMjBwYWdlJTNEJTIyMSUyMiUyMHBhZ2VTY2FsZSUzRCUyMjElMjIlMjBwYWdlV2lkdGglM0QlMjI4NTAlMjIlMjBwYWdlSGVpZ2h0JTNEJTIyMTEwMCUyMiUyMG1hdGglM0QlMjIwJTIyJTIwc2hhZG93JTNEJTIyMCUyMiUzRSUwQSUyMCUyMCUyMCUyMCUyMCUyMCUzQ3Jvb3QlM0UlMEElMjAlMjAlMjAlMjAlMjAlMjAlMjAlMjAlM0NteENlbGwlMjBpZCUzRCUyMjAlMjIlMjAlMkYlM0UlMEElMjAlMjAlMjAlMjAlMjAlMjAlMjAlMjAlM0NteENlbGwlMjBpZCUzRCUyMjElMjIlMjBwYXJlbnQlM0QlMjIwJTIyJTIwJTJGJTNFJTBBJTIwJTIwJTIwJTIwJTIwJTIwJTNDJTJGcm9vdCUzRSUwQSUyMCUyMCUyMCUyMCUzQyUyRm14R3JhcGhNb2RlbCUzRSUwQSUyMCUyMCUzQyUyRmRpYWdyYW0lM0UlMEElM0MlMkZteGZpbGUlM0UlMEGDoGKLAAAADUlEQVR4AWJiYGRkAAAAAP//LRIDJAAAAAZJREFUAwAAFAAF3SeUTQAAAABJRU5ErkJggg==";
+  "PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2ZXJzaW9uPSIxLjEiIHdpZHRoPSIxcHgiIGhlaWdodD0iMXB4IiB2aWV3Qm94PSItMC41IC0wLjUgMSAxIiBjb250ZW50PSIlM0NteGZpbGUlMjBob3N0JTNEJTIyYXBwLmRpYWdyYW1zLm5ldCUyMiUyMHNjYWxlJTNEJTIyMSUyMiUyMGJvcmRlciUzRCUyMjAlMjIlM0UlM0NkaWFncmFtJTIwbmFtZSUzRCUyMlBhZ2UtMSUyMiUyMGlkJTNEJTIyZW1wdHklMjIlM0UlM0NteEdyYXBoTW9kZWwlMjBkeCUzRCUyMjEwMDAlMjIlMjBkeSUzRCUyMjEwMDAlMjIlMjBncmlkJTNEJTIyMSUyMiUyMGdyaWRTaXplJTNEJTIyMTAlMjIlMjBndWlkZXMlM0QlMjIxJTIyJTIwdG9vbHRpcHMlM0QlMjIxJTIyJTIwY29ubmVjdCUzRCUyMjElMjIlMjBhcnJvd3MlM0QlMjIxJTIyJTIwZm9sZCUzRCUyMjElMjIlMjBwYWdlJTNEJTIyMSUyMiUyMHBhZ2VTY2FsZSUzRCUyMjElMjIlMjBwYWdlV2lkdGglM0QlMjI4NTAlMjIlMjBwYWdlSGVpZ2h0JTNEJTIyMTEwMCUyMiUyMG1hdGglM0QlMjIwJTIyJTIwc2hhZG93JTNEJTIyMCUyMiUzRSUzQ3Jvb3QlM0UlM0NteENlbGwlMjBpZCUzRCUyMjAlMjIlMkYlM0UlM0NteENlbGwlMjBpZCUzRCUyMjElMjIlMjBwYXJlbnQlM0QlMjIwJTIyJTJGJTNFJTNDJTJGcm9vdCUzRSUzQyUyRm14R3JhcGhNb2RlbCUzRSUzQyUyRmRpYWdyYW0lM0UlM0MlMkZteGZpbGUlM0UiLz4=";
