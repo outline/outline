@@ -126,15 +126,15 @@ export async function signIn(
     // stuck on the SSO screen.
     if (client === Client.Desktop) {
       ctx.redirect(
-        `${team.url}/desktop-redirect?token=${user.getTransferToken()}`
+        `${team.url}/desktop-redirect?token=${user.getTransferToken(service)}`
       );
     } else {
       ctx.redirect(
-        `${team.url}/auth/redirect?token=${user.getTransferToken()}`
+        `${team.url}/auth/redirect?token=${user.getTransferToken(service)}`
       );
     }
   } else {
-    ctx.cookies.set("accessToken", user.getJwtToken(expires), {
+    ctx.cookies.set("accessToken", user.getJwtToken(expires, service), {
       sameSite: "lax",
       expires,
     });
