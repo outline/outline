@@ -1,12 +1,9 @@
-import { EditorState } from "prosemirror-state";
-import {
-  CellSelection,
-  TableRect,
-  isInTable,
-  selectedRect,
-} from "prosemirror-tables";
+import type { EditorState } from "prosemirror-state";
+import type { TableRect } from "prosemirror-tables";
+import { CellSelection, isInTable, selectedRect } from "prosemirror-tables";
 import { ColumnSelection } from "../selection/ColumnSelection";
 import { RowSelection } from "../selection/RowSelection";
+import type { EditorView } from "prosemirror-view";
 
 /**
  * Checks if the current selection is a column selection.
@@ -69,7 +66,6 @@ export function getRowIndexInMap(
   if (!isInTable(state)) {
     return -1;
   }
-
   const rect = selectedRect(state);
   const cells = getCellsInColumn(0)(state);
 
@@ -88,6 +84,71 @@ export function getRowIndexInMap(
   }
 
   return -1;
+}
+
+/**
+ * Get the actual row positions in the table map, accounting for merged cells.
+ *
+ * Iterates through each visual row and returns the position of the first unique cell in that row.
+ * This ensures correct row identification even when cells span multiple rows (rowspan > 1).
+ *
+ * @param state The editor state
+ * @returns Array of cell positions representing the first unique cell in each row
+ */
+export function getRowsInTable(state: EditorState): number[] {
+  if (!isInTable(state)) {
+    return [];
+  }
+
+  const rect = selectedRect(state);
+  const rows: number[] = [];
+  const seenCells = new Set<number>();
+
+  for (let row = 0; row < rect.map.height; row++) {
+    // Find the leftmost cell in this row
+    for (let col = 0; col < rect.map.width; col++) {
+      const cellPos =
+        rect.tableStart + rect.map.map[row * rect.map.width + col];
+      if (!seenCells.has(cellPos)) {
+        rows.push(cellPos);
+        seenCells.add(cellPos);
+        break; // Only add the first unique cell per row
+      }
+    }
+  }
+
+  return rows;
+}
+
+/**
+ * Get the actual column positions in the table map, accounting for merged cells.
+ *
+ * @param state The editor state
+ * @returns Array of cell positions representing the first unique cell in each column
+ */
+export function getColumnsInTable(state: EditorState): number[] {
+  if (!isInTable(state)) {
+    return [];
+  }
+
+  const rect = selectedRect(state);
+  const columns: number[] = [];
+  const seenCells = new Set<number>();
+
+  for (let col = 0; col < rect.map.width; col++) {
+    // Find the topmost cell in this column
+    for (let row = 0; row < rect.map.height; row++) {
+      const cellPos =
+        rect.tableStart + rect.map.map[row * rect.map.width + col];
+      if (!seenCells.has(cellPos)) {
+        columns.push(cellPos);
+        seenCells.add(cellPos);
+        break; // Only add the first unique cell per column
+      }
+    }
+  }
+
+  return columns;
 }
 
 export function getCellsInColumn(index: number) {
@@ -199,14 +260,10 @@ export function isHeaderEnabled(
  * @returns Boolean indicating if the row is selected
  */
 export function isRowSelected(index: number) {
-  return (state: EditorState): boolean => {
-    if (isRowSelection(state)) {
-      const rect = selectedRect(state);
-      return rect.top <= index && rect.bottom > index;
-    }
-
-    return false;
-  };
+  return (state: EditorState): boolean =>
+    state.selection instanceof RowSelection && state.selection.isRowSelection()
+      ? state.selection.$index === index
+      : false;
 }
 
 /**
@@ -272,4 +329,80 @@ export function isMergedCellSelection(state: EditorState): boolean {
   }
 
   return false;
+}
+
+export function getAllSelectedColumns(state: EditorState): number[] {
+  const rect = selectedRect(state);
+
+  const selectedColumns: number[] = [];
+  for (let col = rect.left; col < rect.right; col++) {
+    selectedColumns.push(col);
+  }
+
+  return selectedColumns;
+}
+
+/**
+ * Get the total width of selected columns by measuring DOM elements.
+ * Uses getBoundingClientRect to get precise rendered widths including decimals.
+ *
+ * @param view The editor view
+ * @param rect The table rect
+ * @param selectedColumns Array of column indices to measure
+ * @returns The total width in px, or 0 if measurement fails
+ */
+export function getWidthFromDom({
+  view,
+  rect,
+  selectedColumns,
+}: {
+  view?: EditorView;
+  rect: TableRect;
+  selectedColumns: number[];
+}): number {
+  if (!view) {
+    return 0;
+  }
+
+  const tableDOM = view.domAtPos(rect.tableStart).node as HTMLElement;
+  const firstRow = tableDOM.closest("table")?.querySelector("tr");
+  if (!firstRow) {
+    return 0;
+  }
+
+  const cells = firstRow.querySelectorAll("td, th");
+  return selectedColumns.reduce((total, colIndex) => {
+    const cell = cells[colIndex] as HTMLElement | undefined;
+    return total + (cell?.getBoundingClientRect().width ?? 0);
+  }, 0);
+}
+
+/**
+ * Get the total width of selected columns from node attributes.
+ * Sums the colwidth values stored in the document state.
+ *
+ * @param state The editor state
+ * @param selectedColumns Array of column indices to measure
+ * @returns The total width in px from colwidth attributes
+ */
+export function getWidthFromNodes({
+  state,
+  selectedColumns,
+}: {
+  state: EditorState;
+  selectedColumns: number[];
+}): number {
+  const firstRowCells = getCellsInRow(0)(state);
+  if (!firstRowCells) {
+    return 0;
+  }
+
+  return selectedColumns.reduce((total, colIndex) => {
+    const cell =
+      firstRowCells[colIndex] !== undefined
+        ? state.doc.nodeAt(firstRowCells[colIndex])
+        : null;
+    const colwidth = cell?.attrs.colwidth;
+    return total + (colwidth?.[0] ?? 0);
+  }, 0);
 }

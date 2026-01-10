@@ -1,36 +1,34 @@
 import isMatch from "lodash/isMatch";
-import { Token } from "markdown-it";
-import {
+import type { Token } from "markdown-it";
+import type {
   NodeSpec,
   Node as ProsemirrorNode,
   NodeType,
   Schema,
 } from "prosemirror-model";
-import {
-  Command,
-  NodeSelection,
-  Plugin,
-  TextSelection,
-} from "prosemirror-state";
-import * as React from "react";
-import { Primitive } from "utility-types";
+import type { Command } from "prosemirror-state";
+import { NodeSelection, Plugin, TextSelection } from "prosemirror-state";
+import type { Primitive } from "utility-types";
 import { v4 as uuidv4 } from "uuid";
 import env from "../../env";
-import { MentionType, UnfurlResourceType, UnfurlResponse } from "../../types";
+import type { UnfurlResponse } from "../../types";
+import { MentionType, UnfurlResourceType } from "../../types";
 import {
   MentionCollection,
   MentionDocument,
+  MentionGroup,
   MentionIssue,
   MentionPullRequest,
+  MentionURL,
   MentionUser,
 } from "../components/Mentions";
-import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { transformListToMentions } from "../lib/mention";
 import { findParentNodeClosestToPos } from "../queries/findParentNode";
 import { isInList } from "../queries/isInList";
 import { isList } from "../queries/isList";
 import mentionRule from "../rules/mention";
-import { ComponentProps } from "../types";
+import type { ComponentProps } from "../types";
 import Node from "./Node";
 
 export default class Mention extends Node {
@@ -127,6 +125,8 @@ export default class Mention extends Node {
     switch (props.node.attrs.type) {
       case MentionType.User:
         return <MentionUser {...props} />;
+      case MentionType.Group:
+        return <MentionGroup {...props} />;
       case MentionType.Document:
         return <MentionDocument {...props} />;
       case MentionType.Collection:
@@ -141,6 +141,13 @@ export default class Mention extends Node {
       case MentionType.PullRequest:
         return (
           <MentionPullRequest
+            {...props}
+            onChangeUnfurl={this.handleChangeUnfurl(props)}
+          />
+        );
+      case MentionType.URL:
+        return (
+          <MentionURL
             {...props}
             onChangeUnfurl={this.handleChangeUnfurl(props)}
           />
@@ -299,7 +306,15 @@ export default class Mention extends Node {
     const label = node.attrs.label;
     const id = node.attrs.id;
 
-    state.write(`@[${label}](mention://${id}/${mType}/${mId})`);
+    // Use regular links for document and collection mentions
+    if (mType === MentionType.Document) {
+      state.write(`[${label}](/doc/${mId})`);
+    } else if (mType === MentionType.Collection) {
+      state.write(`[${label}](/collection/${mId})`);
+    } else {
+      // Keep the existing mention:// format for other types (user, group, issue, pull_request, url)
+      state.write(`@[${label}](mention://${id}/${mType}/${mId})`);
+    }
   }
 
   parseMarkdown() {
@@ -322,7 +337,8 @@ export default class Mention extends Node {
 
       const label =
         unfurl.type === UnfurlResourceType.Issue ||
-        unfurl.type === UnfurlResourceType.PR
+        unfurl.type === UnfurlResourceType.PR ||
+        unfurl.type === UnfurlResourceType.URL
           ? unfurl.title
           : undefined;
 

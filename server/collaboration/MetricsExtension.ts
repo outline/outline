@@ -1,4 +1,4 @@
-import {
+import type {
   onChangePayload,
   onDisconnectPayload,
   onLoadDocumentPayload,
@@ -6,7 +6,7 @@ import {
   connectedPayload,
 } from "@hocuspocus/server";
 import Metrics from "@server/logging/Metrics";
-import { withContext } from "./types";
+import type { withContext } from "./types";
 
 export default class MetricsExtension implements Extension {
   async onLoadDocument({

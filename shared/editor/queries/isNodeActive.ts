@@ -1,6 +1,7 @@
-import { NodeType } from "prosemirror-model";
-import { EditorState, NodeSelection } from "prosemirror-state";
-import { Primitive } from "utility-types";
+import type { NodeType } from "prosemirror-model";
+import type { EditorState } from "prosemirror-state";
+import { NodeSelection } from "prosemirror-state";
+import type { Primitive } from "utility-types";
 import { findParentNode } from "./findParentNode";
 
 type Options = {

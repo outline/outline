@@ -1,5 +1,5 @@
 import { observable } from "mobx";
-import { DocumentPermission } from "@shared/types";
+import type { DocumentPermission } from "@shared/types";
 import type UserMembershipsStore from "~/stores/UserMembershipsStore";
 import Document from "./Document";
 import User from "./User";
@@ -19,9 +19,6 @@ class UserMembership extends NavigableModel {
   /** The permission level granted to the user. */
   @observable
   permission: DocumentPermission;
-
-  /** The document ID that this membership grants the user access to. */
-  documentId?: string;
 
   /** The document that this membership grants the user access to. */
   @Relation(() => Document, { onDelete: "cascade" })

@@ -1,8 +1,10 @@
 import { differenceInMinutes, formatDistanceToNowStrict } from "date-fns";
 import { t } from "i18next";
-import { UnfurlResourceType, UnfurlResponse } from "@shared/types";
+import type { UnfurlResponse } from "@shared/types";
+import { UnfurlResourceType } from "@shared/types";
 import { dateLocale } from "@shared/utils/date";
-import { Document, User, View } from "@server/models";
+import type { Document, User, Group } from "@server/models";
+import { View } from "@server/models";
 import { opts } from "@server/utils/i18n";
 
 async function presentUnfurl(
@@ -12,6 +14,8 @@ async function presentUnfurl(
   switch (data.type) {
     case UnfurlResourceType.Mention:
       return presentMention(data, options);
+    case UnfurlResourceType.Group:
+      return presentGroup(data);
     case UnfurlResourceType.Document:
       return presentDocument(data);
     case UnfurlResourceType.PR:
@@ -19,18 +23,19 @@ async function presentUnfurl(
     case UnfurlResourceType.Issue:
       return presentIssue(data);
     default:
-      return presentOEmbed(data);
+      return presentURL(data);
   }
 }
 
-const presentOEmbed = (
+const presentURL = (
   data: Record<string, any>
-): UnfurlResponse[UnfurlResourceType.OEmbed] => ({
-  type: UnfurlResourceType.OEmbed,
+): UnfurlResponse[UnfurlResourceType.URL] => ({
+  type: UnfurlResourceType.URL,
   url: data.url,
-  title: data.title,
-  description: data.description,
-  thumbnailUrl: data.thumbnail_url,
+  title: data.meta.title,
+  description: data.meta.description,
+  thumbnailUrl: (data.links.thumbnail ?? [])[0]?.href ?? "",
+  faviconUrl: (data.links.icon ?? [])[0]?.href ?? "",
 });
 
 const presentMention = async (
@@ -50,6 +55,26 @@ const presentMention = async (
     avatarUrl: user.avatarUrl,
     color: user.color,
     lastActive: `${lastOnlineInfo} • ${lastViewedInfo}`,
+  };
+};
+
+const presentGroup = async (
+  data: Record<string, any>
+): Promise<UnfurlResponse[UnfurlResourceType.Group]> => {
+  const group: Group = data.group;
+  const memberCount = await group.memberCount;
+
+  return {
+    type: UnfurlResourceType.Group,
+    name: group.name,
+    description: group.description,
+    memberCount,
+    users: (data.users as User[]).map((user) => ({
+      id: user.id,
+      name: user.name,
+      avatarUrl: user.avatarUrl,
+      color: user.color,
+    })),
   };
 };
 

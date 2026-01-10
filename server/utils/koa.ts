@@ -1,5 +1,5 @@
-import formidable from "formidable";
-import { Request } from "koa";
+import type formidable from "formidable";
+import type { Request } from "koa";
 import isArray from "lodash/isArray";
 
 /**

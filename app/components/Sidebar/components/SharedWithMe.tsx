@@ -4,8 +4,8 @@ import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Pagination } from "@shared/constants";
-import GroupMembership from "~/models/GroupMembership";
-import UserMembership from "~/models/UserMembership";
+import type GroupMembership from "~/models/GroupMembership";
+import type UserMembership from "~/models/UserMembership";
 import DelayedMount from "~/components/DelayedMount";
 import Flex from "~/components/Flex";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -123,7 +123,7 @@ function SharedWithMe() {
               .map((membership) => (
                 <SharedWithMeLink key={membership.id} membership={membership} />
               ))}
-            {!end && (
+            {!loading && !end && (
               <SidebarLink
                 onClick={next}
                 label={`${t("Show more")}…`}

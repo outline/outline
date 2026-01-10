@@ -1,5 +1,5 @@
 import { Node } from "prosemirror-model";
-import { InferAttributes, InferCreationAttributes } from "sequelize";
+import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
   DataType,
   BelongsTo,
@@ -13,7 +13,7 @@ import {
 import type { ProsemirrorData, ReactionSummary } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { CommentValidation } from "@shared/validations";
-import { schema } from "@server/editor";
+import { basicSchema } from "@server/editor";
 import { ValidationError } from "@server/errors";
 import Document from "./Document";
 import User from "./User";
@@ -21,6 +21,7 @@ import { type HookContext } from "./base/Model";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
 import TextLength from "./validators/TextLength";
+import { SkipChangeset } from "./decorators/Changeset";
 
 @DefaultScope(() => ({
   include: [
@@ -51,6 +52,7 @@ class Comment extends ParanoidModel<
     msg: `Comment data is too large`,
   })
   @Column(DataType.JSONB)
+  @SkipChangeset
   data: ProsemirrorData;
 
   @Column(DataType.JSONB)
@@ -135,7 +137,7 @@ class Comment extends ParanoidModel<
    * @returns The plain text representation of the comment data
    */
   public toPlainText() {
-    const node = Node.fromJSON(schema, this.data);
+    const node = Node.fromJSON(basicSchema, this.data);
     return ProsemirrorHelper.toPlainText(node);
   }
 

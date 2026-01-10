@@ -13,8 +13,8 @@ import Squircle from "@shared/components/Squircle";
 import { s, hover, ellipsis } from "@shared/styles";
 import { IconType } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
-import Document from "~/models/Document";
-import Pin from "~/models/Pin";
+import type Document from "~/models/Document";
+import type Pin from "~/models/Pin";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
 import Time from "~/components/Time";
@@ -187,12 +187,12 @@ function DocumentCard(props: Props) {
 
 const DocumentSquircle = ({
   icon,
-  color,
   initial,
+  color,
 }: {
   icon: string;
+  initial: string;
   color?: string;
-  initial?: string;
 }) => {
   const theme = useTheme();
   const iconType = determineIconType(icon)!;

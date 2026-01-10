@@ -1,10 +1,10 @@
 import { BrowserIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
-import { Primitive } from "utility-types";
+import type { Primitive } from "utility-types";
 import env from "../../env";
-import { IntegrationService, IntegrationType } from "../../types";
-import type { IntegrationSettings } from "../../types";
+import { IntegrationService } from "../../types";
+import type { IntegrationSettings, IntegrationType } from "../../types";
 import { urlRegex } from "../../utils/urls";
 import Image from "../components/Img";
 import Berrycast from "./Berrycast";
@@ -20,6 +20,7 @@ import Spotify from "./Spotify";
 import Trello from "./Trello";
 import Vimeo from "./Vimeo";
 import YouTube from "./YouTube";
+import PlantUmlDiagrams from "./PlantUml";
 
 export type EmbedProps = {
   isSelected: boolean;
@@ -246,6 +247,7 @@ const embeds: EmbedDescriptor[] = [
     regexMatch: [/^https:\/\/viewer\.diagrams\.net\/(?!proxy).*(title=\\w+)?/],
     icon: <Img src="/images/diagrams.png" alt="Diagrams.net" />,
     component: Diagrams,
+    visible: false,
   }),
   new EmbedDescriptor({
     title: "Descript",
@@ -676,6 +678,15 @@ const embeds: EmbedDescriptor[] = [
     ],
     icon: <Img src="/images/youtube.png" alt="YouTube" />,
     component: YouTube,
+  }),
+  new EmbedDescriptor({
+    title: "Plant UML",
+    keywords: "plant plantuml uml",
+    regexMatch: [
+      /(?:https?:\/\/)?(?:www\.)?editor\.plantuml\.com\/uml\/([a-zA-Z0-9\-_]+)([\&\?].*)?$/i,
+    ],
+    icon: <Img src="/images/plantuml.png" alt="PlantUml" />,
+    component: PlantUmlDiagrams,
   }),
   /* The generic iframe embed should always be the last one */
   new EmbedDescriptor({

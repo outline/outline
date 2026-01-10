@@ -1,17 +1,14 @@
 import querystring from "querystring";
 import { addMonths } from "date-fns";
-import { Context } from "koa";
+import type { Context } from "koa";
 import pick from "lodash/pick";
 import { Client } from "@shared/types";
 import { getCookieDomain } from "@shared/utils/domains";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { Event, Collection, View } from "@server/models";
-import {
-  APIContext,
-  AuthenticationResult,
-  AuthenticationType,
-} from "@server/types";
+import type { APIContext, AuthenticationResult } from "@server/types";
+import { AuthenticationType } from "@server/types";
 
 /**
  * Parse and return the details from the "sessions" cookie in the request, if
@@ -129,15 +126,15 @@ export async function signIn(
     // stuck on the SSO screen.
     if (client === Client.Desktop) {
       ctx.redirect(
-        `${team.url}/desktop-redirect?token=${user.getTransferToken()}`
+        `${team.url}/desktop-redirect?token=${user.getTransferToken(service)}`
       );
     } else {
       ctx.redirect(
-        `${team.url}/auth/redirect?token=${user.getTransferToken()}`
+        `${team.url}/auth/redirect?token=${user.getTransferToken(service)}`
       );
     }
   } else {
-    ctx.cookies.set("accessToken", user.getJwtToken(expires), {
+    ctx.cookies.set("accessToken", user.getJwtToken(expires, service), {
       sameSite: "lax",
       expires,
     });
@@ -154,7 +151,7 @@ export async function signIn(
       });
 
       if (collection) {
-        ctx.redirect(`${team.url}${collection.url}`);
+        ctx.redirect(`${team.url}${collection.path}`);
         return;
       }
     }
@@ -174,7 +171,7 @@ export async function signIn(
 
     ctx.redirect(
       !hasViewedDocuments && collection
-        ? `${team.url}${collection.url}`
+        ? `${team.url}${collection.path}/recent`
         : `${team.url}/home`
     );
   }

@@ -46,7 +46,7 @@ function Integrations() {
           Configure a variety of integrations with third-party services.
         </Trans>
       </Text>
-      <StickyFilters gap={8}>
+      <StickyFilters>
         <InputSearch
           short
           value={query}

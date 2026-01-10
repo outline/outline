@@ -1,6 +1,6 @@
 import * as React from "react";
 import { richExtensions } from "@shared/editor/nodes";
-import { UnfurlResourceType, UnfurlResponse } from "@shared/types";
+import type { UnfurlResourceType, UnfurlResponse } from "@shared/types";
 import Editor from "~/components/Editor";
 import Flex from "~/components/Flex";
 import ErrorBoundary from "../ErrorBoundary";
@@ -15,7 +15,7 @@ import {
 
 type Props = Omit<UnfurlResponse[UnfurlResourceType.Document], "type">;
 
-const HoverPreviewDocument = React.forwardRef(function _HoverPreviewDocument(
+const HoverPreviewDocument = React.forwardRef(function HoverPreviewDocument_(
   { url, id, title, summary, lastActivityByViewer }: Props,
   ref: React.Ref<HTMLDivElement>
 ) {

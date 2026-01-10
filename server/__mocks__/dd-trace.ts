@@ -1,5 +1,5 @@
 /* oxlint-disable @typescript-eslint/explicit-function-return-type */
-import { Tracer } from "dd-trace";
+import type { Tracer } from "dd-trace";
 
 // oxlint-disable-next-line @typescript-eslint/no-empty-function
 const emptyFn = function () {};

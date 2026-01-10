@@ -1,14 +1,13 @@
 import { computed, observable } from "mobx";
-import { NavigationNode, PublicTeam } from "@shared/types";
-import SharesStore from "~/stores/SharesStore";
-import env from "~/env";
+import type { NavigationNode, PublicTeam } from "@shared/types";
+import type SharesStore from "~/stores/SharesStore";
 import Collection from "./Collection";
 import Document from "./Document";
 import User from "./User";
 import Model from "./base/Model";
 import Field from "./decorators/Field";
 import Relation from "./decorators/Relation";
-import { Searchable } from "./interfaces/Searchable";
+import type { Searchable } from "./interfaces/Searchable";
 
 class Share extends Model implements Searchable {
   static modelName = "Share";
@@ -86,10 +85,6 @@ class Share extends Model implements Searchable {
   @Relation(() => User, { onDelete: "null" })
   createdBy: User;
 
-  static sitemapUrl(shareId: string) {
-    return `${env.URL}/api/shares.sitemap?shareId=${shareId}`;
-  }
-
   @computed
   get title(): string {
     return this.sourceTitle ?? this.documentTitle;
@@ -103,6 +98,11 @@ class Share extends Model implements Searchable {
   @computed
   get searchContent(): string[] {
     return [this.title];
+  }
+
+  @computed
+  get searchSuppressed(): boolean {
+    return false;
   }
 
   @computed

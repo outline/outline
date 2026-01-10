@@ -1,7 +1,8 @@
 import flattenDeep from "lodash/flattenDeep";
 import padStart from "lodash/padStart";
-import { Node } from "prosemirror-model";
-import { Plugin, PluginKey, Transaction } from "prosemirror-state";
+import type { Node } from "prosemirror-model";
+import type { Transaction } from "prosemirror-state";
+import { Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import refractor from "refractor/core";
 import { getLoaderForLanguage, getRefractorLangForLanguage } from "../lib/code";
@@ -241,7 +242,7 @@ export function CodeHighlighting({
 
           void Promise.all([...languagesToImport].map(loadLanguage)).then(
             (language) => {
-              if (language && languagesToImport.size) {
+              if (language && languagesToImport.size && !view.isDestroyed) {
                 view.dispatch(
                   view.state.tr.setMeta("codeHighlighting", {
                     langLoaded: language,

@@ -4,14 +4,14 @@ import { IntegrationService, IntegrationType } from "@shared/types";
 import { Minute } from "@shared/utils/time";
 import { Document, Integration, Collection, Team } from "@server/models";
 import BaseProcessor from "@server/queues/processors/BaseProcessor";
-import {
+import type {
   DocumentEvent,
   IntegrationEvent,
   RevisionEvent,
   Event,
 } from "@server/types";
 import fetch from "@server/utils/fetch";
-import { sleep } from "@server/utils/timers";
+import { sleep } from "@shared/utils/timers";
 import env from "../env";
 import { presentMessageAttachment } from "../presenters/messageAttachment";
 
@@ -72,7 +72,7 @@ export default class SlackProcessor extends BaseProcessor {
           {
             color: collection.color,
             title: collection.name,
-            title_link: `${env.URL}${collection.url}`,
+            title_link: `${env.URL}${collection.path}`,
             text: collection.description,
           },
         ],
@@ -82,8 +82,7 @@ export default class SlackProcessor extends BaseProcessor {
 
   async documentUpdated(event: DocumentEvent | RevisionEvent) {
     // never send notifications when batch importing documents
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'data' does not exist on type 'DocumentEv... Remove this comment to see the full error message
-    if (event.data && event.data.source === "import") {
+    if (event.name === "documents.publish" && event.data?.source === "import") {
       return;
     }
     const [document, team] = await Promise.all([

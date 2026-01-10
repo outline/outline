@@ -5,7 +5,7 @@ import {
   buildLightTheme,
   buildPitchBlackTheme,
 } from "@shared/styles/theme";
-import { CustomTheme } from "@shared/types";
+import type { CustomTheme } from "@shared/types";
 import type { Theme } from "~/stores/UiStore";
 import useMediaQuery from "~/hooks/useMediaQuery";
 import useStores from "./useStores";

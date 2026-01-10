@@ -1,12 +1,13 @@
-import { TFunction } from "i18next";
+import type { TFunction } from "i18next";
 import { observer } from "mobx-react";
 import { DoneIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import styled, { useTheme } from "styled-components";
-import Document from "~/models/Document";
+import type Document from "~/models/Document";
 import CircularProgressBar from "~/components/CircularProgressBar";
 import usePrevious from "~/hooks/usePrevious";
 import { bounceIn } from "~/styles/animations";
+import Flex from "./Flex";
 
 type Props = {
   document: Document;
@@ -41,7 +42,7 @@ function DocumentTasks({ document }: Props) {
   const message = getMessage(t, total, completed);
 
   return (
-    <>
+    <Flex align="center" style={{ padding: "0 1px" }} gap={2} shrink={false}>
       {completed === total ? (
         <Done
           color={theme.accent}
@@ -51,8 +52,8 @@ function DocumentTasks({ document }: Props) {
       ) : (
         <CircularProgressBar percentage={tasksPercentage} />
       )}
-      &nbsp;{message}
-    </>
+      {message}
+    </Flex>
   );
 }
 

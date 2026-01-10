@@ -1,4 +1,4 @@
-import { v4 } from "uuid";
+import { randomUUID } from "crypto";
 import { Scope } from "@shared/types";
 import { OAuthInterface } from "./OAuthInterface";
 import {
@@ -9,10 +9,10 @@ import {
 
 describe("OAuthInterface", () => {
   const user = {
-    id: v4(),
+    id: randomUUID(),
   };
   const client = {
-    id: v4(),
+    id: randomUUID(),
     grants: ["authorization_code", "refresh_token"],
     redirectUris: ["https://example.com/callback"],
   };
@@ -112,6 +112,19 @@ describe("OAuthInterface", () => {
       const result = await OAuthInterface.validateRedirectUri(
         redirectUri,
         client
+      );
+      expect(result).toBe(false);
+    });
+
+    it("should return false for HTTP redirect URI (security requirement)", async () => {
+      const httpClient = {
+        ...client,
+        redirectUris: ["http://example.com/callback"],
+      };
+      const redirectUri = "http://example.com/callback";
+      const result = await OAuthInterface.validateRedirectUri(
+        redirectUri,
+        httpClient
       );
       expect(result).toBe(false);
     });

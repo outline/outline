@@ -1,15 +1,13 @@
 import { action, observable } from "mobx";
+import { v4 as uuidv4 } from "uuid";
 import { toggleMark } from "prosemirror-commands";
-import { Node, Slice } from "prosemirror-model";
-import {
-  EditorState,
-  Plugin,
-  PluginKey,
-  TextSelection,
-} from "prosemirror-state";
+import type { Node } from "prosemirror-model";
+import { Slice } from "prosemirror-model";
+import type { EditorState } from "prosemirror-state";
+import { Plugin, PluginKey, TextSelection } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import { v4 } from "uuid";
-import Extension, { WidgetProps } from "@shared/editor/lib/Extension";
+import type { WidgetProps } from "@shared/editor/lib/Extension";
+import Extension from "@shared/editor/lib/Extension";
 import { codeLanguages } from "@shared/editor/lib/code";
 import isMarkdown from "@shared/editor/lib/isMarkdown";
 import normalizePastedMarkdown from "@shared/editor/lib/markdown/normalize";
@@ -17,7 +15,7 @@ import { isRemoteTransaction } from "@shared/editor/lib/multiplayer";
 import { recreateTransform } from "@shared/editor/lib/prosemirror-recreate-transform";
 import { isInCode } from "@shared/editor/queries/isInCode";
 import { isList } from "@shared/editor/queries/isList";
-import { MenuItem } from "@shared/editor/types";
+import type { MenuItem } from "@shared/editor/types";
 import { IconType, MentionType } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
 import parseCollectionSlug from "@shared/utils/parseCollectionSlug";
@@ -144,7 +142,7 @@ export default class PasteHandler extends Extension {
                                   type: MentionType.Document,
                                   modelId: document.id,
                                   label: document.titleWithDefault,
-                                  id: v4(),
+                                  id: uuidv4(),
                                 })
                               )
                             );
@@ -189,7 +187,7 @@ export default class PasteHandler extends Extension {
                                   type: MentionType.Collection,
                                   modelId: collection.id,
                                   label: collection.name,
-                                  id: v4(),
+                                  id: uuidv4(),
                                 })
                               )
                             );
@@ -282,28 +280,22 @@ export default class PasteHandler extends Extension {
 
               const slice = paste.slice(0);
               const tr = view.state.tr;
-              let currentPos = view.state.selection.from;
 
-              // If the pasted content is a single paragraph then we loop over
-              // it's content and insert each node one at a time to allow it to
-              // be pasted inline with surrounding content.
+              // If the pasted content is a single paragraph then we slice
+              // the outer paragraph so that the text is inserted directly.
               const singleNode = sliceSingleNode(slice);
               if (singleNode?.type === this.editor.schema.nodes.paragraph) {
-                singleNode.forEach((node) => {
-                  tr.insert(currentPos, node);
-                  currentPos += node.nodeSize;
-                });
-              } else {
-                if (singleNode) {
-                  if (isList(singleNode, this.editor.schema)) {
-                    this.handleList(singleNode);
-                    return true;
-                  } else {
-                    tr.replaceSelectionWith(singleNode, this.shiftKey);
-                  }
+                const slice = new Slice(singleNode.content, 0, 0);
+                tr.replaceSelection(slice);
+              } else if (singleNode) {
+                if (isList(singleNode, this.editor.schema)) {
+                  this.handleList(singleNode);
+                  return true;
                 } else {
-                  tr.replaceSelection(slice);
+                  tr.replaceSelectionWith(singleNode, this.shiftKey);
                 }
+              } else {
+                tr.replaceSelection(slice);
               }
 
               view.dispatch(

@@ -1,4 +1,4 @@
-import { NodeType } from "prosemirror-model";
+import type { NodeType } from "prosemirror-model";
 import { Plugin, PluginKey } from "prosemirror-state";
 import Extension from "../lib/Extension";
 
@@ -28,7 +28,7 @@ export default class TrailingNode extends Extension {
             const { state } = view;
             const insertNodeAtEnd = plugin.getState(state);
 
-            if (!insertNodeAtEnd) {
+            if (!insertNodeAtEnd || !view.editable) {
               return;
             }
 

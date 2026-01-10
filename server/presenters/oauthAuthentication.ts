@@ -1,4 +1,4 @@
-import { OAuthAuthentication } from "@server/models";
+import type { OAuthAuthentication } from "@server/models";
 import { presentPublishedOAuthClient } from "./oauthClient";
 
 export default function presentOAuthAuthentication(

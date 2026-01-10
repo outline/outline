@@ -1,5 +1,5 @@
 import { observable } from "mobx";
-import { CollectionPermission, DocumentPermission } from "@shared/types";
+import type { CollectionPermission, DocumentPermission } from "@shared/types";
 import Collection from "./Collection";
 import Document from "./Document";
 import Group from "./Group";
@@ -19,9 +19,6 @@ class GroupMembership extends NavigableModel {
   /** The group that this membership is granted to. */
   @Relation(() => Group, { onDelete: "cascade" })
   group: Group;
-
-  /** The document ID that this membership grants the group access to. */
-  documentId: string | undefined;
 
   /** The document that this membership grants the group access to. */
   @Relation(() => Document, { onDelete: "cascade" })
@@ -46,7 +43,6 @@ class GroupMembership extends NavigableModel {
   permission: CollectionPermission | DocumentPermission;
 
   // methods
-
   /**
    * Fetches the child documents structure from the server.
    */

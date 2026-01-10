@@ -2,7 +2,7 @@ import {
   useFocusEffect,
   useRovingTabIndex,
 } from "@getoutline/react-roving-tabindex";
-import { LocationDescriptor } from "history";
+import type { LocationDescriptor } from "history";
 import * as React from "react";
 import scrollIntoView from "scroll-into-view-if-needed";
 import styled, { useTheme } from "styled-components";

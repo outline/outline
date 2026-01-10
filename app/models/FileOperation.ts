@@ -1,5 +1,5 @@
 import { computed, observable } from "mobx";
-import {
+import type {
   FileOperationFormat,
   FileOperationState,
   FileOperationType,

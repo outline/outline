@@ -1,7 +1,8 @@
-import http, { IncomingMessage } from "http";
-import { Duplex } from "stream";
+import type { IncomingMessage } from "http";
+import type http from "http";
+import type { Duplex } from "stream";
 import cookie from "cookie";
-import Koa from "koa";
+import type Koa from "koa";
 import IO from "socket.io";
 import { createAdapter } from "socket.io-redis";
 import env from "@server/env";
@@ -10,7 +11,8 @@ import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/Metrics";
 import * as Tracing from "@server/logging/tracer";
 import { traceFunction } from "@server/logging/tracing";
-import { Collection, Group, User } from "@server/models";
+import type { User } from "@server/models";
+import { Collection, Group } from "@server/models";
 import { can } from "@server/policies";
 import Redis from "@server/storage/redis";
 import ShutdownHelper, { ShutdownOrder } from "@server/utils/ShutdownHelper";
@@ -142,7 +144,7 @@ export default function init(
 
   // Handle events from event queue that should be sent to the clients down ws
   const websockets = new WebsocketsProcessor();
-  websocketQueue
+  websocketQueue()
     .process(
       traceFunction({
         serviceName: "websockets",
@@ -238,7 +240,7 @@ async function authenticate(socket: SocketWithAuth) {
     throw AuthenticationError("No access token");
   }
 
-  const user = await getUserForJWT(accessToken);
+  const { user } = await getUserForJWT(accessToken);
   socket.client.user = user;
   return user;
 }

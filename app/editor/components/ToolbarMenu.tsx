@@ -2,10 +2,10 @@ import { useCallback, useMemo } from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import * as Toolbar from "@radix-ui/react-toolbar";
-import { MenuItem } from "@shared/editor/types";
-import { s } from "@shared/styles";
+import type { MenuItem } from "@shared/editor/types";
+import { hideScrollbars, s } from "@shared/styles";
 import { TooltipProvider } from "~/components/TooltipContext";
-import { MenuItem as TMenuItem } from "~/types";
+import type { MenuItem as TMenuItem } from "~/types";
 import { useEditor } from "./EditorContext";
 import { MediaDimension } from "./MediaDimension";
 import ToolbarButton from "./ToolbarButton";
@@ -37,11 +37,15 @@ function ToolbarDropdown(props: { active: boolean; item: MenuItem }) {
         return;
       }
 
-      commands[menuItem.name](
-        typeof menuItem.attrs === "function"
-          ? menuItem.attrs(state)
-          : menuItem.attrs
-      );
+      if (commands[menuItem.name]) {
+        commands[menuItem.name](
+          typeof menuItem.attrs === "function"
+            ? menuItem.attrs(state)
+            : menuItem.attrs
+        );
+      } else if (menuItem.onClick) {
+        menuItem.onClick();
+      }
     };
 
     return item.children
@@ -68,25 +72,23 @@ function ToolbarDropdown(props: { active: boolean; item: MenuItem }) {
   }, []);
 
   return (
-    <EventBoundary>
-      <MenuProvider variant="dropdown">
-        <Menu>
-          <MenuTrigger>
-            <ToolbarButton aria-label={item.label ? undefined : item.tooltip}>
-              {item.label && <Label>{item.label}</Label>}
-              {item.icon}
-            </ToolbarButton>
-          </MenuTrigger>
-          <MenuContent
-            align="end"
-            aria-label={item.tooltip || t("More options")}
-            onCloseAutoFocus={handleCloseAutoFocus}
-          >
-            {toMenuItems(items)}
-          </MenuContent>
-        </Menu>
-      </MenuProvider>
-    </EventBoundary>
+    <MenuProvider variant="dropdown">
+      <Menu>
+        <MenuTrigger>
+          <ToolbarButton aria-label={item.label ? undefined : item.tooltip}>
+            {item.label && <Label>{item.label}</Label>}
+            {item.icon}
+          </ToolbarButton>
+        </MenuTrigger>
+        <MenuContent
+          align="end"
+          aria-label={item.tooltip || t("More options")}
+          onCloseAutoFocus={handleCloseAutoFocus}
+        >
+          <EventBoundary>{toMenuItems(items)}</EventBoundary>
+        </MenuContent>
+      </Menu>
+    </MenuProvider>
   );
 }
 
@@ -100,6 +102,13 @@ function ToolbarMenu(props: Props) {
       return;
     }
 
+    // if item has an associated onClick prop, run it
+    if (item.onClick) {
+      item.onClick();
+      return;
+    }
+
+    // otherwise, run the associated editor command
     commands[item.name](
       typeof item.attrs === "function" ? item.attrs(state) : item.attrs
     );
@@ -161,7 +170,11 @@ const FlexibleWrapper = styled.div`
 
   ${breakpoint("mobile", "tablet")`
     justify-content: space-evenly;
-    align-items: baseline;
+    align-items: center;
+    overflow-x: auto;
+    gap: 10px;
+
+    ${hideScrollbars()}
   `}
 `;
 

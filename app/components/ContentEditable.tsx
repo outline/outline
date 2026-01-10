@@ -31,7 +31,7 @@ export type RefHandle = {
  * Defines a content editable component with the same interface as a native
  * HTMLInputElement (or, as close as we can get).
  */
-const ContentEditable = React.forwardRef(function _ContentEditable(
+const ContentEditable = React.forwardRef(function ContentEditable_(
   {
     disabled,
     onChange,

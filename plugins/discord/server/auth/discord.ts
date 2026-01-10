@@ -16,12 +16,13 @@ import slugify from "@shared/utils/slugify";
 import accountProvisioner from "@server/commands/accountProvisioner";
 import { InvalidRequestError, TeamDomainRequiredError } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
-import { User } from "@server/models";
-import { AuthenticationResult } from "@server/types";
+import type { User } from "@server/models";
+import type { AuthenticationResult } from "@server/types";
 import {
   StateStore,
   getTeamFromContext,
-  getClientFromContext,
+  getClientFromOAuthState,
+  getUserFromOAuthState,
   request,
 } from "@server/utils/passport";
 import config from "../../plugin.json";
@@ -68,7 +69,7 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
       ) {
         try {
           const team = await getTeamFromContext(context);
-          const client = getClientFromContext(context);
+          const client = getClientFromOAuthState(context);
           /** Fetch the user's profile */
           const profile: RESTGetAPICurrentUserResult = await request(
             "GET",
@@ -177,11 +178,17 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
               }
             }
           }
+          const user =
+            context.state?.auth?.user ?? (await getUserFromOAuthState(context));
 
           // if a team can be inferred, we assume the user is only interested in signing into
           // that team in particular; otherwise, we will do a best effort at finding their account
           // or provisioning a new one (within AccountProvisioner)
-          const ctx = createContext({ ip: context.ip });
+          const ctx = createContext({
+            ip: context.ip,
+            user,
+            authType: context.state?.auth?.type,
+          });
           const result = await accountProvisioner(ctx, {
             team: {
               teamId: team?.id,

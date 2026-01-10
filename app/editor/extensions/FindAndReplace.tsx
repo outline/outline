@@ -1,11 +1,13 @@
 import deburr from "lodash/deburr";
 import escapeRegExp from "lodash/escapeRegExp";
 import { observable } from "mobx";
-import { Node } from "prosemirror-model";
-import { Command, Plugin, PluginKey } from "prosemirror-state";
+import type { Node } from "prosemirror-model";
+import type { Command } from "prosemirror-state";
+import { Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import scrollIntoView from "scroll-into-view-if-needed";
-import Extension, { WidgetProps } from "@shared/editor/lib/Extension";
+import type { WidgetProps } from "@shared/editor/lib/Extension";
+import Extension from "@shared/editor/lib/Extension";
 import FindAndReplace from "../components/FindAndReplace";
 
 const pluginKey = new PluginKey("find-and-replace");
@@ -293,7 +295,7 @@ export default class FindAndReplaceExtension extends Extension {
 
           // Prevent wrap around matches when the regex matches at the end of the deburred
           // string and continues matching at the start of the original string
-          if (i + this.searchTerm.length > text.length) {
+          if (i + m[0].length > text.length) {
             continue;
           }
 

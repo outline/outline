@@ -10,7 +10,7 @@ import {
   presentAuthenticationProvider,
   presentPolicies,
 } from "@server/presenters";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import * as T from "./schema";
 
 const router = new Router();
@@ -65,6 +65,35 @@ router.post(
 );
 
 router.post(
+  "authenticationProviders.delete",
+  auth({ role: UserRole.Admin }),
+  validate(T.AuthenticationProvidersDeleteSchema),
+  transaction(),
+  async (ctx: APIContext<T.AuthenticationProvidersDeleteReq>) => {
+    const { transaction } = ctx.state;
+    const { id } = ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    const authenticationProvider = await AuthenticationProvider.findByPk(id, {
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
+
+    authorize(user, "delete", authenticationProvider);
+
+    if (authenticationProvider.enabled) {
+      await authenticationProvider.disable(ctx);
+    }
+
+    await authenticationProvider.destroy({ transaction });
+
+    ctx.body = {
+      success: true,
+    };
+  }
+);
+
+router.post(
   "authenticationProviders.list",
   auth({ role: UserRole.Admin }),
   async (ctx: APIContext) => {
@@ -76,7 +105,7 @@ router.post(
     )) as AuthenticationProvider[];
 
     const data = AuthenticationHelper.providers
-      .filter((p) => p.value.id !== "email")
+      .filter((p) => p.value.id !== "email" && p.value.id !== "passkeys")
       .map((p) => {
         const row = teamAuthenticationProviders.find(
           (t) => t.name === p.value.id
@@ -91,7 +120,7 @@ router.post(
           ...(row ? presentAuthenticationProvider(row) : {}),
         };
       })
-      .sort((a) => (a.isEnabled ? -1 : 1));
+      .sort((a, b) => (a.isEnabled === b.isEnabled ? 0 : a.isEnabled ? -1 : 1));
 
     ctx.body = {
       data,

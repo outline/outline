@@ -1,8 +1,9 @@
 import fs from "fs-extra";
 import truncate from "lodash/truncate";
+import type {
+  NavigationNode} from "@shared/types";
 import {
   FileOperationState,
-  NavigationNode,
   NotificationEventType,
 } from "@shared/types";
 import { bytesToHumanReadable } from "@shared/utils/files";
@@ -22,8 +23,9 @@ import {
 } from "@server/models";
 import fileOperationPresenter from "@server/presenters/fileOperation";
 import FileStorage from "@server/storage/files";
-import BaseTask, { TaskPriority } from "./BaseTask";
+import { BaseTask, TaskPriority } from "./base/BaseTask";
 import { Op } from "sequelize";
+import { sequelizeReadOnly } from "@server/storage/database";
 
 type Props = {
   fileOperationId: string;
@@ -40,7 +42,6 @@ export default abstract class ExportTask extends BaseTask<Props> {
     const fileOperation = await FileOperation.findByPk(fileOperationId, {
       rejectOnEmpty: true,
     });
-
     const [team, user] = await Promise.all([
       Team.findByPk(fileOperation.teamId, { rejectOnEmpty: true }),
       User.findByPk(fileOperation.userId, { rejectOnEmpty: true }),
@@ -139,6 +140,7 @@ export default abstract class ExportTask extends BaseTask<Props> {
     // ensure attachment size is within limits
     if (!fileOperation.collectionId) {
       const totalAttachmentsSize = await Attachment.getTotalSizeForTeam(
+        sequelizeReadOnly,
         user.teamId
       );
 

@@ -1,4 +1,4 @@
-import { ColumnSort } from "@tanstack/react-table";
+import type { ColumnSort } from "@tanstack/react-table";
 import { observer } from "mobx-react";
 import { PlusIcon, UserIcon } from "outline-icons";
 import { useState, useMemo, useCallback, useEffect } from "react";
@@ -6,7 +6,8 @@ import { Trans, useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import styled from "styled-components";
-import UsersStore, { queriedUsers } from "~/stores/UsersStore";
+import type UsersStore from "~/stores/UsersStore";
+import { queriedUsers } from "~/stores/UsersStore";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
 import { ConditionalFade } from "~/components/Fade";
@@ -21,10 +22,12 @@ import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import { useTableRequest } from "~/hooks/useTableRequest";
+import { ExportCSV } from "./components/ExportCSV";
 import { MembersTable } from "./components/MembersTable";
 import { StickyFilters } from "./components/StickyFilters";
 import UserRoleFilter from "./components/UserRoleFilter";
 import UserStatusFilter from "./components/UserStatusFilter";
+import { HStack } from "~/components/primitives/HStack";
 
 function Members() {
   const appName = env.APP_NAME;
@@ -144,21 +147,24 @@ function Members() {
           {{ signinMethods: team.signinMethods }} but haven’t signed in yet.
         </Trans>
       </Text>
-      <StickyFilters gap={8}>
-        <InputSearch
-          short
-          value={query}
-          placeholder={`${t("Filter")}…`}
-          onChange={handleSearch}
-        />
-        <LargeUserStatusFilter
-          activeKey={reqParams.filter ?? ""}
-          onSelect={handleStatusFilter}
-        />
-        <LargeUserRoleFilter
-          activeKey={reqParams.role ?? ""}
-          onSelect={handleRoleFilter}
-        />
+      <StickyFilters justify="space-between">
+        <HStack>
+          <InputSearch
+            short
+            value={query}
+            placeholder={`${t("Filter")}…`}
+            onChange={handleSearch}
+          />
+          <LargeUserStatusFilter
+            activeKey={reqParams.filter ?? ""}
+            onSelect={handleStatusFilter}
+          />
+          <LargeUserRoleFilter
+            activeKey={reqParams.role ?? ""}
+            onSelect={handleRoleFilter}
+          />
+        </HStack>
+        <ExportCSV reqParams={reqParams} />
       </StickyFilters>
       <ConditionalFade animate={!data}>
         <MembersTable

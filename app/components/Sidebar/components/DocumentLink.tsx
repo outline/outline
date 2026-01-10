@@ -1,4 +1,4 @@
-import { Location } from "history";
+import type { Location } from "history";
 import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
@@ -6,13 +6,15 @@ import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import styled from "styled-components";
 import Icon from "@shared/components/Icon";
-import { NavigationNode, UserPreference } from "@shared/types";
+import type { NavigationNode } from "@shared/types";
+import { UserPreference } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { sortNavigationNodes } from "@shared/utils/collections";
 import { DocumentValidation } from "@shared/validations";
-import Collection from "~/models/Collection";
-import Document from "~/models/Document";
-import EditableTitle, { RefHandle } from "~/components/EditableTitle";
+import type Collection from "~/models/Collection";
+import type Document from "~/models/Document";
+import type { RefHandle } from "~/components/EditableTitle";
+import EditableTitle from "~/components/EditableTitle";
 import Fade from "~/components/Fade";
 import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
@@ -31,10 +33,11 @@ import DropCursor from "./DropCursor";
 import DropToImport from "./DropToImport";
 import Folder from "./Folder";
 import Relative from "./Relative";
-import { SidebarContextType, useSidebarContext } from "./SidebarContext";
+import type { SidebarContextType } from "./SidebarContext";
+import { useSidebarContext } from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
-import UserMembership from "~/models/UserMembership";
-import GroupMembership from "~/models/GroupMembership";
+import type UserMembership from "~/models/UserMembership";
+import type GroupMembership from "~/models/GroupMembership";
 import { ActionContextProvider } from "~/hooks/useActionContext";
 import { useDocumentMenuAction } from "~/hooks/useDocumentMenuAction";
 
@@ -130,17 +133,13 @@ function InnerDocumentLink(
     }
   }, [setCollapsed, expanded, hasChildDocuments]);
 
-  const handleDisclosureClick = React.useCallback(
-    (ev) => {
-      ev?.preventDefault();
-      if (expanded) {
-        setCollapsed();
-      } else {
-        setExpanded();
-      }
-    },
-    [setCollapsed, setExpanded, expanded]
-  );
+  const handleDisclosureClick = React.useCallback(() => {
+    if (expanded) {
+      setCollapsed();
+    } else {
+      setExpanded();
+    }
+  }, [setCollapsed, setExpanded, expanded]);
 
   const handlePrefetch = React.useCallback(() => {
     void prefetchDocument?.(node.id);
@@ -217,6 +216,19 @@ function InnerDocumentLink(
     useDropToReparentDocument(node, setExpanded, parentRef);
 
   // Drop to reorder
+  const [{ isOverReorder: isOverReorderAbove }, dropToReorderAbove] =
+    useDropToReorderDocument(node, collection, (item) => {
+      if (!collection) {
+        return;
+      }
+      return {
+        documentId: item.id,
+        collectionId: collection.id,
+        parentDocumentId: parentId,
+        index,
+      };
+    });
+
   const [{ isOverReorder, isDraggingAnyDocument }, dropToReorder] =
     useDropToReorderDocument(node, collection, (item) => {
       if (!collection) {
@@ -281,30 +293,37 @@ function InnerDocumentLink(
     [setExpanded, setCollapsed, hasChildren, expanded]
   );
 
+  const newChildTitleRef = React.useRef<RefHandle>(null);
   const [isAddingNewChild, setIsAddingNewChild, closeAddingNewChild] =
     useBoolean();
 
   const handleNewDoc = React.useCallback(
     async (input) => {
-      const newDocument = await documents.create(
-        {
-          collectionId: collection?.id,
-          parentDocumentId: node.id,
-          fullWidth:
-            doc?.fullWidth ??
-            user.getPreference(UserPreference.FullWidthDocuments),
-          title: input,
-          data: ProsemirrorHelper.getEmptyDocument(),
-        },
-        { publish: true }
-      );
-      collection?.addDocument(newDocument, node.id);
+      try {
+        newChildTitleRef.current?.setIsEditing(false);
+        const newDocument = await documents.create(
+          {
+            collectionId: collection?.id,
+            parentDocumentId: node.id,
+            fullWidth:
+              doc?.fullWidth ??
+              user.getPreference(UserPreference.FullWidthDocuments),
+            title: input,
+            data: ProsemirrorHelper.getEmptyDocument(),
+          },
+          { publish: true }
+        );
+        collection?.addDocument(newDocument, node.id);
+        membership?.addDocument(newDocument, node.id);
 
-      closeAddingNewChild();
-      history.push({
-        pathname: documentEditPath(newDocument),
-        state: { sidebarContext },
-      });
+        closeAddingNewChild();
+        history.push({
+          pathname: documentEditPath(newDocument),
+          state: { sidebarContext },
+        });
+      } catch (_err) {
+        newChildTitleRef.current?.setIsEditing(true);
+      }
     },
     [
       documents,
@@ -320,6 +339,62 @@ function InnerDocumentLink(
 
   const contextMenuAction = useDocumentMenuAction({ documentId: node.id });
 
+  const labelElement = React.useMemo(
+    () => (
+      <EditableTitle
+        title={title}
+        onSubmit={handleTitleChange}
+        isEditing={isEditing}
+        onEditing={setIsEditing}
+        canUpdate={canUpdate}
+        maxLength={DocumentValidation.maxTitleLength}
+        ref={editableTitleRef}
+      />
+    ),
+    [title, handleTitleChange, isEditing, setIsEditing, canUpdate]
+  );
+
+  const menuElement = React.useMemo(
+    () =>
+      document && !isMoving && !isEditing && !isDraggingAnyDocument ? (
+        <Fade>
+          {can.createChildDocument && (
+            <Tooltip content={t("New doc")}>
+              <NudeButton
+                aria-label={t("New nested document")}
+                onClick={(ev) => {
+                  ev.preventDefault();
+                  setIsAddingNewChild();
+                  setExpanded();
+                }}
+              >
+                <PlusIcon />
+              </NudeButton>
+            </Tooltip>
+          )}
+          <DocumentMenu
+            document={document}
+            onRename={handleRename}
+            onOpen={handleMenuOpen}
+            onClose={handleMenuClose}
+          />
+        </Fade>
+      ) : undefined,
+    [
+      document,
+      isMoving,
+      isEditing,
+      isDraggingAnyDocument,
+      can.createChildDocument,
+      t,
+      setIsAddingNewChild,
+      setExpanded,
+      handleRename,
+      handleMenuOpen,
+      handleMenuClose,
+    ]
+  );
+
   return (
     <ActionContextProvider
       value={{
@@ -327,6 +402,13 @@ function InnerDocumentLink(
       }}
     >
       <Relative ref={parentRef}>
+        {isDraggingAnyDocument && collection?.isManualSort && index === 0 && (
+          <DropCursor
+            isActiveDrop={isOverReorderAbove}
+            innerRef={dropToReorderAbove}
+            position="top"
+          />
+        )}
         <Draggable
           key={node.id}
           ref={drag}
@@ -335,7 +417,7 @@ function InnerDocumentLink(
           onKeyDown={handleKeyDown}
         >
           <div ref={dropToReparent}>
-            <DropToImport documentId={node.id} activeClassName="activeDropZone">
+            <DropToImport documentId={node.id}>
               <SidebarLink
                 // @ts-expect-error react-router type is wrong, string component is fine.
                 component={isEditing ? "div" : undefined}
@@ -345,17 +427,7 @@ function InnerDocumentLink(
                 contextAction={contextMenuAction}
                 to={toPath}
                 icon={iconElement}
-                label={
-                  <EditableTitle
-                    title={title}
-                    onSubmit={handleTitleChange}
-                    isEditing={isEditing}
-                    onEditing={setIsEditing}
-                    canUpdate={canUpdate}
-                    maxLength={DocumentValidation.maxTitleLength}
-                    ref={editableTitleRef}
-                  />
-                }
+                label={labelElement}
                 isActive={isActiveCheck}
                 isActiveDrop={isOverReparent && canDropToReparent}
                 depth={depth}
@@ -364,35 +436,7 @@ function InnerDocumentLink(
                 scrollIntoViewIfNeeded={sidebarContext === "collections"}
                 isDraft={isDraft}
                 ref={ref}
-                menu={
-                  document &&
-                  !isMoving &&
-                  !isEditing &&
-                  !isDraggingAnyDocument ? (
-                    <Fade>
-                      {can.createChildDocument && (
-                        <Tooltip content={t("New doc")}>
-                          <NudeButton
-                            aria-label={t("New nested document")}
-                            onClick={(ev) => {
-                              ev.preventDefault();
-                              setIsAddingNewChild();
-                              setExpanded();
-                            }}
-                          >
-                            <PlusIcon />
-                          </NudeButton>
-                        </Tooltip>
-                      )}
-                      <DocumentMenu
-                        document={document}
-                        onRename={handleRename}
-                        onOpen={handleMenuOpen}
-                        onClose={handleMenuClose}
-                      />
-                    </Fade>
-                  ) : undefined
-                }
+                menu={menuElement}
               />
             </DropToImport>
           </div>
@@ -414,6 +458,7 @@ function InnerDocumentLink(
               onCancel={closeAddingNewChild}
               onSubmit={handleNewDoc}
               maxLength={DocumentValidation.maxTitleLength}
+              ref={newChildTitleRef}
             />
           }
         />

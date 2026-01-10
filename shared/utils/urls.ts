@@ -131,11 +131,11 @@ export function isUrl(
     if (blockedProtocols.includes(url.protocol)) {
       return false;
     }
-    if (url.hostname) {
-      return true;
-    }
     if (requireHttps && url.protocol === "http:") {
       return false;
+    }
+    if (url.hostname) {
+      return true;
     }
 
     return (
@@ -229,4 +229,19 @@ export function urlRegex(url: string | null | undefined): RegExp | undefined {
  */
 export function getUrls(text: string) {
   return Array.from(text.match(/(?:https?):\/\/[^\s]+/gi) || []);
+}
+
+/**
+ * Converts a url to a display friendly format, removing the protocol and trailing slash.
+ *
+ * @param url The url to convert.
+ * @returns The display friendly url.
+ */
+export function toDisplayUrl(url: string) {
+  try {
+    const parsed = new URL(url);
+    return parsed.host + (parsed.pathname === "/" ? "" : parsed.pathname);
+  } catch {
+    return url;
+  }
 }

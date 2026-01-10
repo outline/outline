@@ -1,4 +1,4 @@
-import { onAuthenticatePayload, Extension } from "@hocuspocus/server";
+import type { onAuthenticatePayload, Extension } from "@hocuspocus/server";
 import { trace } from "@server/logging/tracing";
 import Document from "@server/models/Document";
 import { can } from "@server/policies";
@@ -19,12 +19,7 @@ export default class AuthenticationExtension implements Extension {
       throw AuthenticationError("Authentication required");
     }
 
-    const user = await getUserForJWT(token, ["session", "collaboration"]);
-
-    if (user.isSuspended) {
-      throw AuthenticationError("Account suspended");
-    }
-
+    const { user } = await getUserForJWT(token, ["session", "collaboration"]);
     const document = await Document.findByPk(documentId, {
       userId: user.id,
     });

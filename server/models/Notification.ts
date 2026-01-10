@@ -19,7 +19,8 @@ import {
   AfterCreate,
   DefaultScope,
 } from "sequelize-typescript";
-import { NotificationData, NotificationEventType } from "@shared/types";
+import type { NotificationData } from "@shared/types";
+import { NotificationEventType } from "@shared/types";
 import { getBaseDomain } from "@shared/utils/domains";
 import env from "@server/env";
 import Model from "@server/models/base/Model";
@@ -30,6 +31,7 @@ import Event from "./Event";
 import Revision from "./Revision";
 import Team from "./Team";
 import User from "./User";
+import Group from "./Group";
 import Fix from "./decorators/Fix";
 
 let baseDomain;
@@ -128,6 +130,13 @@ class Notification extends Model<
   event: NotificationEventType;
 
   // associations
+  @BelongsTo(() => Group, "groupId")
+  group: Group;
+
+  @AllowNull
+  @ForeignKey(() => User)
+  @Column(DataType.UUID)
+  groupId: string;
 
   @BelongsTo(() => User, "userId")
   user: User;
@@ -202,6 +211,7 @@ class Notification extends Model<
       collectionId: model.collectionId,
       actorId: model.actorId,
       membershipId: model.membershipId,
+      groupId: model.groupId,
     };
 
     if (options.transaction) {
@@ -259,6 +269,10 @@ class Notification extends Model<
       case NotificationEventType.PublishDocument:
       case NotificationEventType.UpdateDocument:
         name = `${notification.documentId}-updates`;
+        break;
+      case NotificationEventType.GroupMentionedInComment:
+      case NotificationEventType.GroupMentionedInDocument:
+        name = `${notification.documentId}-group-mentions`;
         break;
       case NotificationEventType.MentionedInDocument:
       case NotificationEventType.MentionedInComment:

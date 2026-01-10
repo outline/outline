@@ -1,4 +1,4 @@
-import { MarkSpec } from "prosemirror-model";
+import type { MarkSpec } from "prosemirror-model";
 import { Plugin, TextSelection } from "prosemirror-state";
 import { getMarkRange } from "../queries/getMarkRange";
 import markRule from "../rules/mark";

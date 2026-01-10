@@ -12,8 +12,8 @@ import {
 import { useTranslation } from "react-i18next";
 import styled, { css } from "styled-components";
 import { s } from "@shared/styles";
-import Document from "~/models/Document";
-import Event from "~/models/Event";
+import type Document from "~/models/Document";
+import type Event from "~/models/Event";
 import Time from "~/components/Time";
 import Logger from "~/utils/Logger";
 import Text from "./Text";

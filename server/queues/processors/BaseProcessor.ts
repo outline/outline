@@ -1,4 +1,4 @@
-import { Event } from "@server/types";
+import type { Event } from "@server/types";
 
 export default abstract class BaseProcessor {
   static applicableEvents: (Event["name"] | "*")[] = [];

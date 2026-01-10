@@ -1,10 +1,9 @@
 import { z } from "zod";
+import type { IntegrationService, ProsemirrorDoc } from "./types";
 import {
   CollectionPermission,
   type ImportableIntegrationService,
-  IntegrationService,
   IssueTrackerIntegrationService,
-  ProsemirrorDoc,
 } from "./types";
 import { PageType } from "plugins/notion/shared/types";
 

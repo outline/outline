@@ -6,7 +6,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { CollectionPermission } from "@shared/types";
-import Collection from "~/models/Collection";
+import type Collection from "~/models/Collection";
 import Group from "~/models/Group";
 import User from "~/models/User";
 import { Avatar, AvatarSize } from "~/components/Avatar";
@@ -19,7 +19,7 @@ import useKeyDown from "~/hooks/useKeyDown";
 import usePolicy from "~/hooks/usePolicy";
 import usePrevious from "~/hooks/usePrevious";
 import useStores from "~/hooks/useStores";
-import { Permission } from "~/types";
+import type { Permission } from "~/types";
 import { collectionPath, urlify } from "~/utils/routeHelpers";
 import { Wrapper, presence } from "../components";
 import { CopyLinkButton } from "../components/CopyLinkButton";
@@ -331,7 +331,7 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
   ) : (
     <CopyLinkButton
       key="copy-link"
-      url={urlify(collectionPath(collection.path))}
+      url={urlify(collectionPath(collection))}
       onCopy={onRequestClose}
     />
   );

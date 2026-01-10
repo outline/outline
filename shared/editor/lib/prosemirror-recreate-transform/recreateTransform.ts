@@ -1,14 +1,16 @@
-import { diffWordsWithSpace, diffChars, Change } from "diff";
-import { Node, Schema } from "prosemirror-model";
+import type { Change } from "diff";
+import { diffWordsWithSpace, diffChars } from "diff";
+import type { Node, Schema } from "prosemirror-model";
 import { Transform } from "prosemirror-transform";
-import { applyPatch, createPatch, Operation } from "rfc6902";
-import { ReplaceOperation } from "rfc6902/diff";
+import type { Operation } from "rfc6902";
+import { applyPatch, createPatch } from "rfc6902";
+import type { ReplaceOperation } from "rfc6902/diff";
 import { copy } from "./copy";
 import { getFromPath } from "./getFromPath";
 import { getReplaceStep } from "./getReplaceStep";
 import { removeMarks } from "./removeMarks";
 import { simplifyTransform } from "./simplifyTransform";
-import { JSONObject } from "./types";
+import type { JSONObject } from "./types";
 
 export interface Options {
   complexSteps?: boolean;

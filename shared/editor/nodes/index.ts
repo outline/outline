@@ -1,15 +1,16 @@
 import DateTime from "../extensions/DateTime";
+import DeleteNearAtom from "../extensions/DeleteNearAtom";
 import History from "../extensions/History";
 import MaxLength from "../extensions/MaxLength";
 import TrailingNode from "../extensions/TrailingNode";
-import Extension from "../lib/Extension";
+import type Extension from "../lib/Extension";
 import Bold from "../marks/Bold";
 import Code from "../marks/Code";
 import Comment from "../marks/Comment";
 import Highlight from "../marks/Highlight";
 import Italic from "../marks/Italic";
 import Link from "../marks/Link";
-import Mark from "../marks/Mark";
+import type Mark from "../marks/Mark";
 import TemplatePlaceholder from "../marks/Placeholder";
 import Strikethrough from "../marks/Strikethrough";
 import Underline from "../marks/Underline";
@@ -31,7 +32,7 @@ import ListItem from "./ListItem";
 import Math from "./Math";
 import MathBlock from "./MathBlock";
 import Mention from "./Mention";
-import Node from "./Node";
+import type Node from "./Node";
 import Notice from "./Notice";
 import OrderedList from "./OrderedList";
 import Paragraph from "./Paragraph";
@@ -46,10 +47,10 @@ import Video from "./Video";
 type Nodes = (typeof Node | typeof Mark | typeof Extension)[];
 
 /**
- * The basic set of nodes that are used in the editor. This is used for simple
+ * A set of inline nodes that are used in the editor. This is used for simple
  * editors that need basic formatting.
  */
-export const basicExtensions: Nodes = [
+export const inlineExtensions: Nodes = [
   Doc,
   Paragraph,
   Emoji,
@@ -66,6 +67,7 @@ export const basicExtensions: Nodes = [
   MaxLength,
   DateTime,
   HardBreak,
+  DeleteNearAtom,
 ];
 
 export const listExtensions: Nodes = [
@@ -86,11 +88,17 @@ export const tableExtensions: Nodes = [
 ];
 
 /**
+ * The basic set of nodes that are used in the editor. This is used for simple
+ * editors that need basic formatting and lists.
+ */
+export const basicExtensions: Nodes = [...inlineExtensions, ...listExtensions];
+
+/**
  * The full set of nodes that are used in the editor. This is used for rich
  * editors that need advanced formatting.
  */
 export const richExtensions: Nodes = [
-  ...basicExtensions.filter((n) => n !== SimpleImage),
+  ...inlineExtensions.filter((n) => n !== SimpleImage),
   Image,
   CodeBlock,
   CodeFence,

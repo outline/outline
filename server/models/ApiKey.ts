@@ -1,6 +1,7 @@
 import { Matches } from "class-validator";
 import { subMinutes } from "date-fns";
-import { InferAttributes, InferCreationAttributes, Op } from "sequelize";
+import type { InferAttributes, InferCreationAttributes } from "sequelize";
+import { Op } from "sequelize";
 import {
   Column,
   Table,

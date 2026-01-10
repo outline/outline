@@ -2,7 +2,7 @@ import { Blob } from "buffer";
 import { mkdir, unlink, rmdir } from "fs/promises";
 import path from "path";
 import { Readable } from "stream";
-import { PresignedPost } from "@aws-sdk/s3-presigned-post";
+import type { PresignedPost } from "@aws-sdk/s3-presigned-post";
 import fs from "fs-extra";
 import invariant from "invariant";
 import JWT from "jsonwebtoken";
@@ -12,7 +12,7 @@ import { InternalError, ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import BaseStorage from "./BaseStorage";
 import { CSRF } from "@shared/constants";
-import { AppContext } from "@server/types";
+import type { AppContext } from "@server/types";
 
 export default class LocalStorage extends BaseStorage {
   public async getPresignedPost(
@@ -167,6 +167,14 @@ export default class LocalStorage extends BaseStorage {
 
   public stat(key: string) {
     return fs.stat(this.getFilePath(key));
+  }
+
+  public getFileExists(key: string) {
+    return fs.pathExists(this.getFilePath(key));
+  }
+
+  public moveFile(fromKey: string, toKey: string): Promise<void> {
+    return fs.move(this.getFilePath(fromKey), this.getFilePath(toKey));
   }
 
   private getFilePath(key: string) {

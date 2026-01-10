@@ -4,33 +4,35 @@ import find from "lodash/find";
 import { action, observable } from "mobx";
 import { observer } from "mobx-react";
 import { createContext, Component } from "react";
-import { withTranslation, WithTranslation } from "react-i18next";
-import { io, Socket } from "socket.io-client";
+import type { WithTranslation } from "react-i18next";
+import { withTranslation } from "react-i18next";
+import type { Socket } from "socket.io-client";
+import { io } from "socket.io-client";
 import { toast } from "sonner";
 import {
   FileOperationState,
   FileOperationType,
   ImportState,
 } from "@shared/types";
-import RootStore from "~/stores/RootStore";
-import Collection from "~/models/Collection";
-import Comment from "~/models/Comment";
-import Document from "~/models/Document";
-import FileOperation from "~/models/FileOperation";
-import Group from "~/models/Group";
-import GroupMembership from "~/models/GroupMembership";
-import GroupUser from "~/models/GroupUser";
-import Import from "~/models/Import";
-import Membership from "~/models/Membership";
-import Notification from "~/models/Notification";
-import Pin from "~/models/Pin";
-import Star from "~/models/Star";
-import Subscription from "~/models/Subscription";
-import Team from "~/models/Team";
-import User from "~/models/User";
-import UserMembership from "~/models/UserMembership";
+import type RootStore from "~/stores/RootStore";
+import type Collection from "~/models/Collection";
+import type Comment from "~/models/Comment";
+import type Document from "~/models/Document";
+import type FileOperation from "~/models/FileOperation";
+import type Group from "~/models/Group";
+import type GroupMembership from "~/models/GroupMembership";
+import type GroupUser from "~/models/GroupUser";
+import type Import from "~/models/Import";
+import type Membership from "~/models/Membership";
+import type Notification from "~/models/Notification";
+import type Pin from "~/models/Pin";
+import type Star from "~/models/Star";
+import type Subscription from "~/models/Subscription";
+import type Team from "~/models/Team";
+import type User from "~/models/User";
+import type UserMembership from "~/models/UserMembership";
 import withStores from "~/components/withStores";
-import {
+import type {
   PartialExcept,
   WebsocketCollectionUpdateIndexEvent,
   WebsocketCommentReactionEvent,

@@ -1,8 +1,8 @@
 import { Hook, PluginManager } from "@server/utils/PluginManager";
 import { requireDirectory } from "@server/utils/fs";
-import BaseEmail from "./BaseEmail";
+import type BaseEmail from "./BaseEmail";
 
-const emails: Record<string, typeof BaseEmail> = {};
+const emails: Record<string, typeof BaseEmail<any>> = {};
 
 requireDirectory<{ default: typeof BaseEmail }>(__dirname).forEach(
   ([module, id]) => {

@@ -1,14 +1,19 @@
 import env from "@server/env";
-import { User, Team, type Group } from "@server/models";
-import Model from "@server/models/base/Model";
+import type { User } from "@server/models";
+import { Team, type Group } from "@server/models";
+import type Model from "@server/models/base/Model";
 import { GroupPermission } from "@shared/types";
 import invariant from "invariant";
 
 type Args = boolean | string | Args[];
 
 export function and(...args: Args[]) {
-  const filtered = args.filter(Boolean);
-  return filtered.length === args.length ? filtered : false;
+  for (const arg of args) {
+    if (!arg) {
+      return false;
+    }
+  }
+  return args;
 }
 
 export function or(...args: Args[]) {
@@ -54,6 +59,9 @@ export function isOwner(
   }
   if ("userId" in model) {
     return actor.id === model.userId;
+  }
+  if ("createdById" in model) {
+    return actor.id === model.createdById;
   }
   return false;
 }

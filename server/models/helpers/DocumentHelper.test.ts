@@ -1,5 +1,7 @@
 import Revision from "@server/models/Revision";
 import { buildDocument } from "@server/test/factories";
+import { ChangesetHelper } from "@shared/editor/lib/ChangesetHelper";
+import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { DocumentHelper } from "./DocumentHelper";
 
 describe("DocumentHelper", () => {
@@ -86,6 +88,58 @@ describe("DocumentHelper", () => {
     });
   });
 
+  describe("toHTML", () => {
+    it("should return html", async () => {
+      const document = await buildDocument({
+        text: "This is a test paragraph",
+      });
+      const result = await DocumentHelper.toHTML(document, {
+        includeTitle: false,
+        includeStyles: false,
+      });
+      expect(result).toContain('<p dir="auto">This is a test paragraph</p>');
+    });
+
+    it("should render diff classes when changes provided", async () => {
+      const doc1 = await buildDocument({ text: "Hello world" });
+      const doc2 = await buildDocument({ text: "Hello modified world" });
+
+      const changeset = ChangesetHelper.getChangeset(
+        doc2.content,
+        doc1.content
+      );
+
+      expect(changeset).not.toBeNull();
+
+      const result = await DocumentHelper.toHTML(doc2, {
+        includeTitle: false,
+        includeStyles: false,
+        changes: changeset!.changes,
+      });
+
+      expect(result).toContain(EditorStyleHelper.diffInsertion);
+    });
+  });
+
+  describe("diff", () => {
+    it("should return html with diff", async () => {
+      const doc1 = await buildDocument({ text: "Hello world" });
+      const doc2 = await buildDocument({ text: "Hello modified world" });
+      const revision = new Revision({
+        documentId: doc2.id,
+        title: doc2.title,
+        text: doc2.text,
+      });
+
+      const result = await DocumentHelper.diff(doc1, revision, {
+        includeTitle: false,
+        includeStyles: false,
+      });
+
+      expect(result).toContain(EditorStyleHelper.diffInsertion);
+    });
+  });
+
   describe("parseMentions", () => {
     it("should not parse normal links as mentions", async () => {
       const document = await buildDocument({
@@ -153,6 +207,7 @@ This is a test paragraph
 A new paragraph
 
 - list item 1
+- list item 2
 
 This is a new paragraph.
 
@@ -196,7 +251,7 @@ same on both sides`,
       expect(html).not.toContain("this is a highlight");
     });
 
-    it("should return undefined if no diff is renderable", async () => {
+    it("should render diff for mark changes", async () => {
       const before = new Revision({
         title: "Title",
         text: `
@@ -209,8 +264,21 @@ This is a test paragraph`,
 This is a [test paragraph](https://example.net)`,
       });
 
-      // Note: This test may fail in the future when support for diffing marks
-      // is improved.
+      const html = await DocumentHelper.toEmailDiff(before, after);
+      expect(html).toBeDefined();
+    });
+
+    it("should return undefined if no diff is detected", async () => {
+      const before = new Revision({
+        title: "Title",
+        text: "Same text",
+      });
+
+      const after = new Revision({
+        title: "Title",
+        text: "Same text",
+      });
+
       const html = await DocumentHelper.toEmailDiff(before, after);
       expect(html).toBeUndefined();
     });

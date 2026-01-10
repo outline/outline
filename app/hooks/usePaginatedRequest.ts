@@ -1,6 +1,6 @@
 import uniqBy from "lodash/uniqBy";
 import { useState, useEffect, useCallback } from "react";
-import { PaginationParams } from "~/types";
+import type { PaginationParams } from "~/types";
 import useRequest from "./useRequest";
 
 type RequestResponse<T> = {

@@ -3,8 +3,9 @@ import { observer } from "mobx-react";
 import { DOMParser as ProsemirrorDOMParser } from "prosemirror-model";
 import { TextSelection } from "prosemirror-state";
 import * as React from "react";
+import { toast } from "sonner";
 import { mergeRefs } from "react-merge-refs";
-import { Optional } from "utility-types";
+import type { Optional } from "utility-types";
 import insertFiles from "@shared/editor/commands/insertFiles";
 import EditorContainer from "@shared/editor/components/Styles";
 import { AttachmentPreset } from "@shared/types";
@@ -21,6 +22,7 @@ import useEmbeds from "~/hooks/useEmbeds";
 import useStores from "~/hooks/useStores";
 import { uploadFile, uploadFileFromUrl } from "~/utils/files";
 import lazyWithRetry from "~/utils/lazyWithRetry";
+import useShare from "@shared/hooks/useShare";
 
 const LazyLoadedEditor = lazyWithRetry(() => import("~/editor"));
 
@@ -33,7 +35,6 @@ export type Props = Optional<
   | "dictionary"
   | "extensions"
 > & {
-  shareId?: string | undefined;
   embedsDisabled?: boolean;
   onSynced?: () => Promise<void>;
   onPublish?: (event: React.MouseEvent) => void;
@@ -41,20 +42,43 @@ export type Props = Optional<
 };
 
 function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
-  const { id, shareId, onChange, onCreateCommentMark, onDeleteCommentMark } =
-    props;
+  const {
+    id,
+    onChange,
+    onCreateCommentMark,
+    onDeleteCommentMark,
+    onFileUploadStart,
+    onFileUploadStop,
+  } = props;
   const { comments } = useStores();
+  const { shareId } = useShare();
   const dictionary = useDictionary();
   const embeds = useEmbeds(!shareId);
   const localRef = React.useRef<SharedEditor>();
   const preferences = useCurrentUser({ rejectOnEmpty: false })?.preferences;
   const previousCommentIds = React.useRef<string[]>();
 
+  // Upload progress tracking for delayed toast
+  const progressMap = React.useMemo(() => new Map<string, number>(), []);
+  const uploadState = React.useRef<{
+    toastId?: string | number;
+    timeoutId?: ReturnType<typeof setTimeout>;
+    progress: Map<string, number>;
+  }>({ progress: progressMap });
+
   const handleUploadFile = React.useCallback(
-    async (file: File | string) => {
+    async (
+      file: File | string,
+      uploadOptions?: {
+        id?: string;
+        onProgress?: (fractionComplete: number) => void;
+      }
+    ) => {
       const options = {
+        id: uploadOptions?.id,
         documentId: id,
         preset: AttachmentPreset.DocumentAttachment,
+        onProgress: uploadOptions?.onProgress,
       };
       const result =
         file instanceof File
@@ -66,6 +90,49 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   );
 
   const { handleClickLink } = useEditorClickHandlers({ shareId });
+
+  // Show toast only after uploads have been running for 2 seconds
+  const handleFileUploadStart = React.useCallback(() => {
+    uploadState.current.timeoutId = setTimeout(() => {
+      uploadState.current.toastId = toast.loading(
+        dictionary.uploadingWithProgress(0)
+      );
+    }, 2000);
+    onFileUploadStart?.();
+  }, [onFileUploadStart, dictionary.uploadingWithProgress]);
+
+  const handleFileUploadProgress = React.useCallback(
+    (fileId: string, fractionComplete: number) => {
+      uploadState.current.progress.set(fileId, fractionComplete);
+
+      // Calculate average progress across all files
+      const progressValues = Array.from(uploadState.current.progress.values());
+      const avgProgress =
+        progressValues.reduce((a, b) => a + b, 0) / progressValues.length;
+      const percent = Math.round(avgProgress * 100);
+
+      // Update toast if visible
+      if (uploadState.current.toastId) {
+        toast.loading(dictionary.uploadingWithProgress(percent), {
+          id: uploadState.current.toastId,
+        });
+      }
+    },
+    [dictionary.uploadingWithProgress]
+  );
+
+  const handleFileUploadStop = React.useCallback(() => {
+    if (uploadState.current.timeoutId) {
+      clearTimeout(uploadState.current.timeoutId);
+      uploadState.current.timeoutId = undefined;
+    }
+    if (uploadState.current.toastId) {
+      toast.dismiss(uploadState.current.toastId);
+      uploadState.current.toastId = undefined;
+    }
+    uploadState.current.progress.clear();
+    onFileUploadStop?.();
+  }, [onFileUploadStop]);
 
   const focusAtEnd = React.useCallback(() => {
     localRef?.current?.focusAtEnd();
@@ -113,16 +180,18 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
 
       return insertFiles(view, event, pos, files, {
         uploadFile: handleUploadFile,
-        onFileUploadStart: props.onFileUploadStart,
-        onFileUploadStop: props.onFileUploadStop,
+        onFileUploadStart: handleFileUploadStart,
+        onFileUploadStop: handleFileUploadStop,
+        onFileUploadProgress: handleFileUploadProgress,
         dictionary,
         isAttachment,
       });
     },
     [
       localRef,
-      props.onFileUploadStart,
-      props.onFileUploadStop,
+      handleFileUploadStart,
+      handleFileUploadStop,
+      handleFileUploadProgress,
       dictionary,
       handleUploadFile,
     ]
@@ -202,6 +271,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
             style={props.style}
             editorStyle={props.editorStyle}
             commenting={!!props.onClickCommentMark}
+            lang={props.lang}
           >
             <div className="ProseMirror">
               {paragraphs.map((paragraph, index) => (
@@ -222,6 +292,9 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
             {...props}
             onClickLink={handleClickLink}
             onChange={handleChange}
+            onFileUploadStart={handleFileUploadStart}
+            onFileUploadStop={handleFileUploadStop}
+            onFileUploadProgress={handleFileUploadProgress}
             placeholder={props.placeholder || ""}
             defaultValue={props.defaultValue || ""}
           />

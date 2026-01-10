@@ -1,7 +1,7 @@
 import isEqual from "fast-deep-equal";
 import revisionCreator from "@server/commands/revisionCreator";
 import { Revision, Document, User } from "@server/models";
-import { DocumentEvent, RevisionEvent, Event } from "@server/types";
+import type { DocumentEvent, RevisionEvent, Event } from "@server/types";
 import DocumentUpdateTextTask from "../tasks/DocumentUpdateTextTask";
 import BaseProcessor from "./BaseProcessor";
 
@@ -17,7 +17,7 @@ export default class RevisionsProcessor extends BaseProcessor {
       case "documents.publish":
       case "documents.update.debounced":
       case "documents.update": {
-        if (event.name === "documents.update" && !event.data.done) {
+        if (event.name === "documents.update" && !event.data?.done) {
           return;
         }
 

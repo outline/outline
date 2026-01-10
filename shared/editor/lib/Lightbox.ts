@@ -1,20 +1,19 @@
-import { Node } from "prosemirror-model";
-import { isCode } from "./isCode";
-import { EditorView } from "prosemirror-view";
+import type { Node } from "prosemirror-model";
+import { isMermaid } from "./isCode";
+import type { EditorView } from "prosemirror-view";
 import { sanitizeUrl } from "@shared/utils/urls";
 
 export abstract class LightboxImage {
-  protected pos: number;
+  public pos: number;
+  public src: string;
+  public alt: string;
+  public source: string;
+
   protected element: Element;
-  protected src: string;
-  protected alt: string;
 
   constructor() {}
 
   public abstract getElement(): Element | null | undefined;
-  public abstract getSrc(): string;
-  public abstract getAlt(): string;
-  public abstract getPos(): number;
 }
 
 class LightboxRegularImage extends LightboxImage {
@@ -24,23 +23,12 @@ class LightboxRegularImage extends LightboxImage {
     const node = view.state.doc.nodeAt(pos);
     this.src = sanitizeUrl(node?.attrs.src) ?? "";
     this.alt = node?.attrs.alt ?? "";
+    this.source = node?.attrs.source;
     this.element = view.nodeDOM(pos) as HTMLSpanElement;
   }
 
   getElement() {
     return this.element.querySelector("img");
-  }
-
-  getSrc() {
-    return this.src;
-  }
-
-  getAlt() {
-    return this.alt;
-  }
-
-  getPos() {
-    return this.pos;
   }
 }
 
@@ -54,7 +42,7 @@ class LightboxMermaidImage extends LightboxImage {
   }
 
   private svgToSrc(svg: string): string {
-    return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
   }
 
   private extractSvg(): string {
@@ -67,23 +55,12 @@ class LightboxMermaidImage extends LightboxImage {
       return "";
     }
 
-    return svg.outerHTML;
+    const serializer = new XMLSerializer();
+    return serializer.serializeToString(svg);
   }
 
   getElement() {
     return this.element.nextElementSibling?.firstElementChild;
-  }
-
-  getSrc() {
-    return this.src;
-  }
-
-  getAlt() {
-    return this.alt;
-  }
-
-  getPos() {
-    return this.pos;
   }
 }
 
@@ -103,7 +80,5 @@ export class LightboxImageFactory {
 }
 
 const isImage = (node: Node) => node.type.name === "image";
-const isMermaid = (node: Node) =>
-  isCode(node) && node.attrs.language === "mermaidjs";
 
 export const isLightboxNode = (node: Node) => isImage(node) || isMermaid(node);

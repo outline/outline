@@ -1,4 +1,4 @@
-import { Location } from "history";
+import type { Location } from "history";
 import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
@@ -8,9 +8,10 @@ import { useHistory } from "react-router-dom";
 import { UserPreference } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { CollectionValidation, DocumentValidation } from "@shared/validations";
-import Collection from "~/models/Collection";
-import Document from "~/models/Document";
-import EditableTitle, { RefHandle } from "~/components/EditableTitle";
+import type Collection from "~/models/Collection";
+import type Document from "~/models/Document";
+import type { RefHandle } from "~/components/EditableTitle";
+import EditableTitle from "~/components/EditableTitle";
 import Fade from "~/components/Fade";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import NudeButton from "~/components/NudeButton";
@@ -23,15 +24,17 @@ import { documentEditPath } from "~/utils/routeHelpers";
 import { useDropToChangeCollection } from "../hooks/useDragAndDrop";
 import DropToImport from "./DropToImport";
 import Relative from "./Relative";
-import { SidebarContextType, useSidebarContext } from "./SidebarContext";
+import type { SidebarContextType } from "./SidebarContext";
+import { useSidebarContext } from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
 import { useCollectionMenuAction } from "~/hooks/useCollectionMenuAction";
 import { ActionContextProvider } from "~/hooks/useActionContext";
+import CollectionLinkChildren from "./CollectionLinkChildren";
 
 type Props = {
   collection: Collection;
   expanded?: boolean;
-  onDisclosureClick: (ev?: React.MouseEvent<HTMLButtonElement>) => void;
+  onDisclosureClick: (ev?: React.MouseEvent<HTMLElement>) => void;
   activeDocument: Document | undefined;
   isDraggingAnyCollection?: boolean;
   depth?: number;
@@ -86,27 +89,33 @@ const CollectionLink: React.FC<Props> = ({
     editableTitleRef.current?.setIsEditing(true);
   }, [editableTitleRef]);
 
+  const newChildTitleRef = React.useRef<RefHandle>(null);
   const [isAddingNewChild, setIsAddingNewChild, closeAddingNewChild] =
     useBoolean();
 
   const handleNewDoc = React.useCallback(
     async (input) => {
-      const newDocument = await documents.create(
-        {
-          collectionId: collection.id,
-          title: input,
-          fullWidth: user.getPreference(UserPreference.FullWidthDocuments),
-          data: ProsemirrorHelper.getEmptyDocument(),
-        },
-        { publish: true }
-      );
-      collection?.addDocument(newDocument);
+      try {
+        newChildTitleRef.current?.setIsEditing(false);
+        const newDocument = await documents.create(
+          {
+            collectionId: collection.id,
+            title: input,
+            fullWidth: user.getPreference(UserPreference.FullWidthDocuments),
+            data: ProsemirrorHelper.getEmptyDocument(),
+          },
+          { publish: true }
+        );
+        collection?.addDocument(newDocument);
 
-      closeAddingNewChild();
-      history.push({
-        pathname: documentEditPath(newDocument),
-        state: { sidebarContext },
-      });
+        closeAddingNewChild();
+        history.push({
+          pathname: documentEditPath(newDocument),
+          state: { sidebarContext },
+        });
+      } catch (_err) {
+        newChildTitleRef.current?.setIsEditing(true);
+      }
     },
     [user, sidebarContext, closeAddingNewChild, history, collection, documents]
   );
@@ -179,23 +188,30 @@ const CollectionLink: React.FC<Props> = ({
           />
         </DropToImport>
       </Relative>
-      {isAddingNewChild && (
-        <SidebarLink
-          depth={2}
-          isActive={() => true}
-          label={
-            <EditableTitle
-              title=""
-              canUpdate
-              isEditing
-              placeholder={`${t("New doc")}…`}
-              onCancel={closeAddingNewChild}
-              onSubmit={handleNewDoc}
-              maxLength={DocumentValidation.maxTitleLength}
-            />
-          }
-        />
-      )}
+      <CollectionLinkChildren
+        collection={collection}
+        expanded={!!expanded}
+        prefetchDocument={documents.prefetchDocument}
+      >
+        {isAddingNewChild ? (
+          <SidebarLink
+            depth={2}
+            isActive={() => true}
+            label={
+              <EditableTitle
+                title=""
+                canUpdate
+                isEditing
+                placeholder={`${t("New doc")}…`}
+                onCancel={closeAddingNewChild}
+                onSubmit={handleNewDoc}
+                maxLength={DocumentValidation.maxTitleLength}
+                ref={newChildTitleRef}
+              />
+            }
+          />
+        ) : undefined}
+      </CollectionLinkChildren>
     </ActionContextProvider>
   );
 };

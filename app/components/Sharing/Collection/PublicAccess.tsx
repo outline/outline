@@ -1,20 +1,18 @@
 import debounce from "lodash/debounce";
 import isEmpty from "lodash/isEmpty";
 import { observer } from "mobx-react";
-import { CopyIcon, GlobeIcon, InfoIcon, QuestionMarkIcon } from "outline-icons";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { CopyIcon, GlobeIcon, QuestionMarkIcon } from "outline-icons";
+import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import styled, { useTheme } from "styled-components";
+import { useTheme } from "styled-components";
 import Squircle from "@shared/components/Squircle";
-import { s } from "@shared/styles";
 import { UrlHelper } from "@shared/utils/UrlHelper";
-import Collection from "~/models/Collection";
-import Share from "~/models/Share";
+import type Collection from "~/models/Collection";
+import type Share from "~/models/Share";
 import { AvatarSize } from "~/components/Avatar";
 import CopyToClipboard from "~/components/CopyToClipboard";
 import Flex from "~/components/Flex";
-import Input, { NativeInput } from "~/components/Input";
 import NudeButton from "~/components/NudeButton";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Switch from "~/components/Switch";
@@ -23,6 +21,7 @@ import Tooltip from "~/components/Tooltip";
 import env from "~/env";
 import usePolicy from "~/hooks/usePolicy";
 import { ListItem } from "../components/ListItem";
+import { DomainPrefix, ShareLinkInput, StyledInfoIcon } from "../components";
 
 type Props = {
   /** The collection to share. */
@@ -31,21 +30,24 @@ type Props = {
   share: Share | null | undefined;
 };
 
-function InnerPublicAccess({ collection, share }: Props) {
+function InnerPublicAccess(
+  { collection, share }: Props,
+  ref: React.RefObject<HTMLDivElement>
+) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const [validationError, setValidationError] = useState("");
-  const [urlId, setUrlId] = useState(share?.urlId);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [validationError, setValidationError] = React.useState("");
+  const [urlId, setUrlId] = React.useState(share?.urlId);
+  const inputRef = React.useRef<HTMLInputElement>(null);
   const can = usePolicy(share);
   const collectionAbilities = usePolicy(collection);
   const canPublish = can.update && collectionAbilities.share;
 
-  useEffect(() => {
+  React.useEffect(() => {
     setUrlId(share?.urlId);
   }, [share?.urlId]);
 
-  const handleIndexingChanged = useCallback(
+  const handleIndexingChanged = React.useCallback(
     async (checked: boolean) => {
       try {
         await share?.save({
@@ -58,7 +60,7 @@ function InnerPublicAccess({ collection, share }: Props) {
     [share]
   );
 
-  const handleShowLastModifiedChanged = useCallback(
+  const handleShowLastModifiedChanged = React.useCallback(
     async (checked: boolean) => {
       try {
         await share?.save({
@@ -71,7 +73,7 @@ function InnerPublicAccess({ collection, share }: Props) {
     [share]
   );
 
-  const handleShowTOCChanged = useCallback(
+  const handleShowTOCChanged = React.useCallback(
     async (checked: boolean) => {
       try {
         await share?.save({
@@ -84,7 +86,7 @@ function InnerPublicAccess({ collection, share }: Props) {
     [share]
   );
 
-  const handlePublishedChange = useCallback(
+  const handlePublishedChange = React.useCallback(
     async (checked: boolean) => {
       try {
         await share?.save({
@@ -97,7 +99,7 @@ function InnerPublicAccess({ collection, share }: Props) {
     [share]
   );
 
-  const handleUrlChange = useMemo(
+  const handleUrlChange = React.useMemo(
     () =>
       debounce(async (ev) => {
         if (!share) {
@@ -128,7 +130,7 @@ function InnerPublicAccess({ collection, share }: Props) {
     [t, share]
   );
 
-  const handleCopied = useCallback(() => {
+  const handleCopied = React.useCallback(() => {
     toast.success(t("Public link copied to clipboard"));
   }, [t]);
 
@@ -143,7 +145,7 @@ function InnerPublicAccess({ collection, share }: Props) {
   );
 
   return (
-    <Wrapper>
+    <div ref={ref}>
       <ListItem
         title={t("Web")}
         subtitle={<>{t("Allow anyone with the link to access")}</>}
@@ -258,7 +260,7 @@ function InnerPublicAccess({ collection, share }: Props) {
               {copyButton}
             </ShareLinkInput>
             <Flex align="flex-start" gap={4}>
-              <StyledInfoIcon size={18} color={theme.textTertiary} />
+              <StyledInfoIcon color={theme.textTertiary} />
               <Text type="tertiary" size="xsmall">
                 {t(
                   "All documents in this collection will be shared on the web, including any new documents added later"
@@ -269,37 +271,8 @@ function InnerPublicAccess({ collection, share }: Props) {
           </>
         )}
       </ResizingHeightContainer>
-    </Wrapper>
+    </div>
   );
 }
 
-const Wrapper = styled.div`
-  padding-bottom: 8px;
-`;
-
-const DomainPrefix = styled.span`
-  padding: 0 2px 0 8px;
-  flex: 0 1 auto;
-  cursor: text;
-  color: ${s("placeholder")};
-  user-select: none;
-`;
-
-const ShareLinkInput = styled(Input)`
-  margin-top: 12px;
-  min-width: 100px;
-  flex: 1;
-
-  ${NativeInput}:not(:first-child) {
-    padding: 4px 8px 4px 0;
-    flex: 1;
-  }
-`;
-
-const StyledInfoIcon = styled(InfoIcon)`
-  width: 24px;
-  height: 24px;
-  flex-shrink: 0;
-`;
-
-export const PublicAccess = observer(InnerPublicAccess);
+export const PublicAccess = observer(React.forwardRef(InnerPublicAccess));

@@ -12,7 +12,7 @@ const BacktickSpan = styled.span`
 
 interface Props {
   /** The content to be rendered that may contain backticks. */
-  content: string;
+  content?: string;
 }
 
 /**
@@ -21,6 +21,10 @@ interface Props {
  * @returns JSX.Element - The rendered component.
  */
 export const Backticks: React.FC<Props> = ({ content }) => {
+  if (!content) {
+    return null;
+  }
+
   // Regex to match text between backticks
   const regex = /`([^`]+)`/g;
   const parts = content.split(regex);

@@ -2,7 +2,7 @@ import type { Next } from "koa";
 import { Scope } from "@shared/types";
 import env from "@server/env";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
-import { AppContext } from "@server/types";
+import type { AppContext } from "@server/types";
 import {
   generateRawToken,
   bundleToken,

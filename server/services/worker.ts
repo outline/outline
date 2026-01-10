@@ -3,7 +3,7 @@ import Logger from "@server/logging/Logger";
 import { setResource, addTags } from "@server/logging/tracer";
 import { traceFunction } from "@server/logging/tracing";
 import HealthMonitor from "@server/queues/HealthMonitor";
-import { Event } from "@server/types";
+import type { Event } from "@server/types";
 import { initI18n } from "@server/utils/i18n";
 import {
   globalEventQueue,
@@ -18,7 +18,7 @@ export default async function init() {
   await initI18n();
 
   // This queue processes the global event bus
-  globalEventQueue
+  globalEventQueue()
     .process(
       env.WORKER_CONCURRENCY_EVENTS,
       traceFunction({
@@ -52,12 +52,12 @@ export default async function init() {
             if (name === "WebsocketsProcessor") {
               // websockets are a special case on their own queue because they must
               // only be consumed by the websockets service rather than workers.
-              await websocketQueue.add(job.data);
+              await websocketQueue().add(job.data);
             } else if (
               ProcessorClass.applicableEvents.includes(event.name) ||
               ProcessorClass.applicableEvents.includes("*")
             ) {
-              await processorEventQueue.add({ event, name });
+              await processorEventQueue().add({ event, name });
             }
           } catch (error) {
             Logger.error(
@@ -80,7 +80,7 @@ export default async function init() {
 
   // Jobs for individual processors are processed here. Only applicable events
   // as unapplicable events were filtered in the global event queue above.
-  processorEventQueue
+  processorEventQueue()
     .process(
       env.WORKER_CONCURRENCY_EVENTS,
       traceFunction({
@@ -131,7 +131,7 @@ export default async function init() {
     });
 
   // Jobs for async tasks are processed here.
-  taskQueue
+  taskQueue()
     .process(
       env.WORKER_CONCURRENCY_TASKS,
       traceFunction({
@@ -173,7 +173,7 @@ export default async function init() {
       Logger.fatal("Error starting taskQueue", err);
     });
 
-  HealthMonitor.start(globalEventQueue);
-  HealthMonitor.start(processorEventQueue);
-  HealthMonitor.start(taskQueue);
+  HealthMonitor.start(globalEventQueue());
+  HealthMonitor.start(processorEventQueue());
+  HealthMonitor.start(taskQueue());
 }

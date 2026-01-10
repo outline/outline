@@ -1,7 +1,8 @@
 import * as React from "react";
 import { DocumentPermission } from "@shared/types";
 import { Document, GroupMembership, UserMembership } from "@server/models";
-import BaseEmail, { EmailMessageCategory, EmailProps } from "./BaseEmail";
+import type { EmailProps } from "./BaseEmail";
+import BaseEmail, { EmailMessageCategory } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
 import EmailTemplate from "./components/EmailLayout";

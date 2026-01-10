@@ -1,4 +1,4 @@
-import { Context, Next } from "koa";
+import type { Context, Next } from "koa";
 import defaults from "lodash/defaults";
 import env from "@server/env";
 import { RateLimitExceededError } from "@server/errors";
@@ -20,10 +20,12 @@ export function defaultRateLimiter() {
       return next();
     }
 
-    const key = RateLimiter.hasRateLimiter(ctx.path)
-      ? `${ctx.path}:${ctx.ip}`
+    const fullPath = `${ctx.mountPath ?? ""}${ctx.path}`;
+
+    const key = RateLimiter.hasRateLimiter(fullPath)
+      ? `${fullPath}:${ctx.ip}`
       : `${ctx.ip}`;
-    const limiter = RateLimiter.getRateLimiter(ctx.path);
+    const limiter = RateLimiter.getRateLimiter(fullPath);
 
     try {
       await limiter.consume(key);
@@ -38,7 +40,7 @@ export function defaultRateLimiter() {
         );
 
         Metrics.increment("rate_limit.exceeded", {
-          path: ctx.path,
+          path: fullPath,
         });
 
         throw RateLimitExceededError();

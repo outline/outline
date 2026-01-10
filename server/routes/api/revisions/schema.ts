@@ -67,3 +67,11 @@ export const RevisionsDeleteSchema = BaseSchema.extend({
 });
 
 export type RevisionsDeleteReq = z.infer<typeof RevisionsDeleteSchema>;
+
+export const RevisionsExportSchema = BaseSchema.extend({
+  body: z.object({
+    id: z.string().uuid(),
+  }),
+});
+
+export type RevisionsExportReq = z.infer<typeof RevisionsExportSchema>;

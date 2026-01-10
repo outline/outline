@@ -45,6 +45,11 @@ class OAuthClient extends ParanoidModel {
   @observable
   clientSecret: string;
 
+  /** The type of this client, confidential or public */
+  @Field
+  @observable
+  clientType: "confidential" | "public";
+
   /** Whether this app is published (available to other workspaces) */
   @Field
   @observable

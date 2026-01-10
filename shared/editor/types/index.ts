@@ -1,10 +1,10 @@
-import { TFunction } from "i18next";
-import { Node as ProsemirrorNode } from "prosemirror-model";
-import { EditorState } from "prosemirror-state";
-import { EditorView } from "prosemirror-view";
+import type { TFunction } from "i18next";
+import type { Node as ProsemirrorNode } from "prosemirror-model";
+import type { EditorState } from "prosemirror-state";
+import type { Decoration, EditorView } from "prosemirror-view";
 import * as React from "react";
-import { DefaultTheme } from "styled-components";
-import { Primitive } from "utility-types";
+import type { DefaultTheme } from "styled-components";
+import type { Primitive } from "utility-types";
 
 export type NodeWithPos = {
   pos: number;
@@ -41,6 +41,8 @@ export type MenuItem = {
   active?: (state: EditorState) => boolean;
   appendSpace?: boolean;
   skipIcon?: boolean;
+  disabled?: boolean;
+  onClick?: () => void;
 };
 
 export type ComponentProps = {
@@ -50,4 +52,10 @@ export type ComponentProps = {
   isSelected: boolean;
   isEditable: boolean;
   getPos: () => number;
+  decorations: Decoration[];
 };
+
+export interface NodeMarkAttr {
+  type: string;
+  [key: string]: any;
+}

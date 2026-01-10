@@ -1,14 +1,11 @@
 import { OpenIcon } from "outline-icons";
-import * as React from "react";
-import { DefaultTheme, ThemeProps } from "styled-components";
-import { EmbedProps as Props } from "../embeds";
+import type { EmbedProps as Props } from "../embeds";
 import Widget from "./Widget";
 
 export default function DisabledEmbed(
-  props: Omit<Props, "matches" | "attrs"> &
-    ThemeProps<DefaultTheme> & {
-      href: string;
-    }
+  props: Omit<Props, "matches" | "attrs"> & {
+    href: string;
+  }
 ) {
   return (
     <Widget
@@ -17,7 +14,6 @@ export default function DisabledEmbed(
       icon={props.embed.icon}
       context={props.href.replace(/^https?:\/\//, "")}
       isSelected={props.isSelected}
-      theme={props.theme}
     >
       <OpenIcon size={20} />
     </Widget>

@@ -1,10 +1,11 @@
-import { v4 as uuidv4 } from "uuid";
-import { AttachmentPreset } from "@shared/types";
-import { Attachment, User } from "@server/models";
+import { randomUUID } from "crypto";
+import type { AttachmentPreset } from "@shared/types";
+import type { User } from "@server/models";
+import { Attachment } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import FileStorage from "@server/storage/files";
-import { APIContext } from "@server/types";
-import { RequestInit } from "@server/utils/fetch";
+import type { APIContext } from "@server/types";
+import type { RequestInit } from "@server/utils/fetch";
 
 type BaseProps = {
   /** The ID of the attachment */
@@ -46,8 +47,7 @@ export default async function attachmentCreator({
 }: Props): Promise<Attachment | undefined> {
   const acl = AttachmentHelper.presetToAcl(preset);
   const key = AttachmentHelper.getKey({
-    acl,
-    id: uuidv4(),
+    id: randomUUID(),
     name,
     userId: user.id,
   });

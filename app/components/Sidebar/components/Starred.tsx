@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import Star from "~/models/Star";
+import type Star from "~/models/Star";
 import DelayedMount from "~/components/DelayedMount";
 import Flex from "~/components/Flex";
 import usePaginatedRequest from "~/hooks/usePaginatedRequest";
@@ -63,7 +63,7 @@ function Starred() {
             .map((star) => (
               <StarredLink key={star.id} star={star} />
             ))}
-          {!end && (
+          {!loading && !end && (
             <SidebarLink
               onClick={next}
               label={`${t("Show more")}…`}

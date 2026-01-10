@@ -1,0 +1,6 @@
+{
+  "id": "diagrams",
+  "name": "Diagrams.net",
+  "priority": 45,
+  "description": "Configure a custom Diagrams.net installation URL for embedding diagrams."
+}

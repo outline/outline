@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { stringToColor } from "@shared/utils/color";
-import User from "~/models/User";
+import type User from "~/models/User";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import Flex from "~/components/Flex";
 import ListItem from "~/components/List/Item";
@@ -146,7 +146,7 @@ function Insights({ document }: Props) {
                     <ListItem
                       key={model.id}
                       title={model.name}
-                      image={<Avatar model={model} size={32} />}
+                      image={<Avatar model={model} size={AvatarSize.Large} />}
                       subtitle={
                         model.id === document.createdBy?.id
                           ? document.sourceMetadata?.createdByName

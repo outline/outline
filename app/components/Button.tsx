@@ -1,12 +1,11 @@
-import { LocationDescriptor } from "history";
+import type { LocationDescriptor } from "history";
 import { DisclosureIcon } from "outline-icons";
 import { darken, lighten, transparentize } from "polished";
 import * as React from "react";
 import styled from "styled-components";
 import { s } from "@shared/styles";
-import ActionButton, {
-  Props as ActionButtonProps,
-} from "~/components/ActionButton";
+import type { Props as ActionButtonProps } from "~/components/ActionButton";
+import ActionButton from "~/components/ActionButton";
 import { undraggableOnDesktop } from "~/styles";
 
 type RealProps = {
@@ -34,6 +33,7 @@ const RealButton = styled(ActionButton)<RealProps>`
   cursor: var(--pointer);
   user-select: none;
   appearance: none !important;
+  transition: background 200ms ease-out;
   ${undraggableOnDesktop()}
 
   &::-moz-focus-inner {
@@ -44,6 +44,7 @@ const RealButton = styled(ActionButton)<RealProps>`
   &:hover:not(:disabled),
   &[aria-expanded="true"] {
     background: ${(props) => darken(0.05, props.theme.accent)};
+    transition: background 0s;
   }
 
   &:disabled {
@@ -78,6 +79,7 @@ const RealButton = styled(ActionButton)<RealProps>`
       box-shadow: rgba(0, 0, 0, 0.07) 0px 1px 2px, ${
         props.theme.buttonNeutralBorder
       } 0 0 0 1px inset;
+      transition: background 0s;
     }
 
     &:focus-visible {
@@ -103,6 +105,7 @@ const RealButton = styled(ActionButton)<RealProps>`
       &:hover:not(:disabled),
       &[aria-expanded="true"] {
         background: ${darken(0.05, props.theme.danger)};
+        transition: background 0s;
       }
 
       &:disabled {

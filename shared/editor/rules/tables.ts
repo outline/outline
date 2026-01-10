@@ -1,4 +1,4 @@
-import MarkdownIt from "markdown-it";
+import type MarkdownIt from "markdown-it";
 
 const BREAK_REGEX = /(?<=^|[^\\])\\n/;
 const BR_TAG_REGEX = /<br\s*\/?>/gi;
@@ -24,6 +24,12 @@ export default function markdownTables(md: MarkdownIt): void {
         tokens[i].children = [];
 
         existing.forEach((child) => {
+          // Skip processing math content to preserve LaTeX escape sequences
+          if (child.type === "math_inline") {
+            tokens[i].children?.push(child);
+            return;
+          }
+
           let content = child.content;
 
           // First handle <br> tags
@@ -47,9 +53,7 @@ export default function markdownTables(md: MarkdownIt): void {
               }
             });
           } else {
-            const token = new state.Token("text", "", 1);
-            token.content = content;
-            tokens[i].children?.push(token);
+            tokens[i].children?.push(child);
           }
         });
       }

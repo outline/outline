@@ -1,5 +1,5 @@
 import fractionalIndex from "fractional-index";
-import { FindOptions } from "sequelize";
+import type { FindOptions } from "sequelize";
 import naturalSort from "@shared/utils/naturalSort";
 import { Collection, Document, Star } from "@server/models";
 

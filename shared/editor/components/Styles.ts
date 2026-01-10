@@ -1,7 +1,8 @@
 /* oxlint-disable no-irregular-whitespace */
 import { lighten, transparentize } from "polished";
-import styled, { DefaultTheme, css, keyframes } from "styled-components";
-import { hover } from "../../styles";
+import type { DefaultTheme } from "styled-components";
+import styled, { css, keyframes } from "styled-components";
+import { breakpoints, hover } from "../../styles";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { videoStyle } from "./Video";
 
@@ -22,10 +23,10 @@ export const fadeIn = keyframes`
   to { opacity: 1; }
 `;
 
-export const pulse = keyframes`
-  0% { box-shadow: 0 0 0 1px rgba(255, 213, 0, 0.75) }
-  50% { box-shadow: 0 0 0 4px rgba(255, 213, 0, 0.75) }
-  100% { box-shadow: 0 0 0 1px rgba(255, 213, 0, 0.75) }
+export const pulse = (color: string) => keyframes`
+  0% { box-shadow: 0 0 0 1px ${color} }
+  50% { box-shadow: 0 0 0 4px ${color} }
+  100% { box-shadow: 0 0 0 1px ${color} }
 `;
 
 const codeMarkCursor = () => css`
@@ -51,7 +52,6 @@ const mathStyle = (props: Props) => css`
   .math-node {
     min-width: 1em;
     min-height: 1em;
-    font-size: 0.95em;
     font-family: ${props.theme.fontFamilyMono};
     cursor: auto;
     white-space: pre-wrap;
@@ -79,6 +79,12 @@ const mathStyle = (props: Props) => css`
     display: none;
     color: ${props.theme.codeStatement};
     tab-size: 4;
+
+    .ProseMirror-focused {
+      border-radius: 2px;
+      outline: 2px solid
+        ${props.readOnly ? "transparent" : props.theme.selected};
+    }
   }
 
   .math-node.ProseMirror-selectednode .math-src {
@@ -96,7 +102,6 @@ const mathStyle = (props: Props) => css`
 
   math-inline .math-render {
     display: inline-block;
-    font-size: 0.85em;
   }
 
   math-inline .math-src .ProseMirror {
@@ -165,13 +170,13 @@ const codeBlockStyle = (props: Props) => css`
     opacity: 0.7;
   }
 
-  .token.operator,
   .token.boolean,
   .token.number {
     color: ${props.theme.codeNumber};
   }
 
-  .token.property {
+  .token.property,
+  .token.variable {
     color: ${props.theme.codeProperty};
   }
 
@@ -179,6 +184,8 @@ const codeBlockStyle = (props: Props) => css`
     color: ${props.theme.codeTag};
   }
 
+  .token.char,
+  .token.builtin,
   .token.string {
     color: ${props.theme.codeString};
   }
@@ -188,7 +195,20 @@ const codeBlockStyle = (props: Props) => css`
   }
 
   .token.attr-name {
-    color: ${props.theme.codeAttr};
+    color: ${props.theme.codeAttrName};
+  }
+
+  .token.attr-value,
+  .token.attr-value .token.punctuation {
+    color: ${props.theme.codeAttrValue};
+  }
+
+  .token.operator {
+    color: ${props.theme.codeOperator};
+  }
+
+  .token.namespace {
+    opacity: 0.8;
   }
 
   .token.entity,
@@ -244,12 +264,141 @@ const codeBlockStyle = (props: Props) => css`
     font-weight: bold;
   }
 
+  .token.constant {
+    color: ${props.theme.codeConstant};
+  }
+
+  .token.parameter {
+    color: ${props.theme.codeParameter};
+  }
+
   .token.important {
     color: ${props.theme.codeImportant};
   }
 
   .token.entity {
     cursor: help;
+  }
+`;
+
+const diffStyle = (props: Props) => css`
+  .${EditorStyleHelper.diffNodeInsertion},
+    .${EditorStyleHelper.diffInsertion}:not([class^="component-"]),
+  .${EditorStyleHelper.diffInsertion} > * {
+    color: ${props.theme.textDiffInserted};
+    background-color: ${props.theme.textDiffInsertedBackground};
+    text-decoration: none;
+
+    &.${EditorStyleHelper.diffCurrentChange} {
+      outline-color: ${lighten(0.2, props.theme.textDiffInserted)};
+      background-color: ${lighten(0.2, props.theme.textDiffInsertedBackground)};
+      animation: ${pulse(lighten(0.2, props.theme.textDiffInsertedBackground))}
+        150ms 1;
+    }
+  }
+
+  .${EditorStyleHelper.diffNodeInsertion} {
+    &[class*="component-"] {
+      outline: 4px solid ${props.theme.textDiffInsertedBackground};
+    }
+
+    td,
+    th {
+      border-color: ${props.theme.textDiffInsertedBackground};
+    }
+  }
+
+  .${EditorStyleHelper.diffNodeInsertion}[class*="component-"],
+    .${EditorStyleHelper.diffNodeInsertion}.math-node,
+    ul.${EditorStyleHelper.diffNodeInsertion},
+    li.${EditorStyleHelper.diffNodeInsertion} {
+    border-radius: ${EditorStyleHelper.blockRadius};
+  }
+
+  td.${EditorStyleHelper.diffNodeInsertion},
+    th.${EditorStyleHelper.diffNodeInsertion} {
+    border-color: ${props.theme.textDiffInsertedBackground};
+  }
+
+  .${EditorStyleHelper.diffNodeDeletion},
+    .${EditorStyleHelper.diffDeletion}:not([class^="component-"]),
+  .${EditorStyleHelper.diffDeletion} > * {
+    color: ${props.theme.textDiffDeleted};
+    background-color: ${props.theme.textDiffDeletedBackground};
+    text-decoration: line-through;
+
+    &.${EditorStyleHelper.diffCurrentChange} {
+      outline-color: ${lighten(0.2, props.theme.textDiffDeletedBackground)};
+      background-color: ${lighten(0.2, props.theme.textDiffDeletedBackground)};
+      animation: ${pulse(lighten(0.2, props.theme.textDiffDeletedBackground))}
+        150ms 1;
+    }
+  }
+
+  .${EditorStyleHelper.diffNodeDeletion} {
+    &[class*="component-"] {
+      outline: 4px solid ${props.theme.textDiffDeletedBackground};
+    }
+
+    .mention {
+      background-color: ${props.theme.textDiffDeletedBackground};
+    }
+
+    td,
+    th {
+      border-color: ${props.theme.textDiffDeletedBackground};
+    }
+  }
+
+  .${EditorStyleHelper.diffNodeDeletion}[class*="component-"],
+    .${EditorStyleHelper.diffNodeDeletion}.math-node,
+    ul.${EditorStyleHelper.diffNodeDeletion},
+    li.${EditorStyleHelper.diffNodeDeletion} {
+    border-radius: ${EditorStyleHelper.blockRadius};
+  }
+
+  td.${EditorStyleHelper.diffNodeDeletion},
+    th.${EditorStyleHelper.diffNodeDeletion} {
+    border-color: ${props.theme.textDiffDeletedBackground};
+  }
+
+  .${EditorStyleHelper.diffNodeModification},
+    .${EditorStyleHelper.diffModification}:not([class^="component-"]),
+  .${EditorStyleHelper.diffModification} > * {
+    color: ${props.theme.text};
+    background-color: ${transparentize(0.7, "#FFA500")};
+    text-decoration: none;
+
+    &.${EditorStyleHelper.diffCurrentChange} {
+      outline-color: ${lighten(0.1, "#FFA500")};
+      background-color: ${transparentize(0.5, "#FFA500")};
+      animation: ${pulse(transparentize(0.5, "#FFA500"))} 150ms 1;
+    }
+  }
+
+  .${EditorStyleHelper.diffNodeModification} {
+    background-color: ${transparentize(0.7, "#FFA500")};
+
+    &[class*="component-"] {
+      outline: 4px solid ${transparentize(0.5, "#FFA500")};
+    }
+
+    td,
+    th {
+      border-color: ${transparentize(0.5, "#FFA500")};
+    }
+  }
+
+  .${EditorStyleHelper.diffNodeModification}[class*="component-"],
+    .${EditorStyleHelper.diffNodeModification}.math-node,
+    ul.${EditorStyleHelper.diffNodeModification},
+    li.${EditorStyleHelper.diffNodeModification} {
+    border-radius: ${EditorStyleHelper.blockRadius};
+  }
+
+  td.${EditorStyleHelper.diffNodeModification},
+    th.${EditorStyleHelper.diffNodeModification} {
+    border-color: ${transparentize(0.5, "#FFA500")};
   }
 `;
 
@@ -262,7 +411,7 @@ const findAndReplaceStyle = () => css`
   .find-result.current-result:not(:has(.mention)),
   .find-result.current-result .mention {
       background: rgba(255, 213, 0, 0.75);
-      animation: ${pulse} 150ms 1;
+      animation: ${pulse("rgba(255, 213, 0, 0.75)")} 150ms 1;
     }
   }
 `;
@@ -276,10 +425,92 @@ const emailStyle = (props: Props) => css`
     border-radius: 8px;
     padding: 6px 8px;
   }
-
   .image > img {
     width: auto;
     height: auto;
+  }
+`;
+
+/**
+ * Adjustments to line-height and paragraph margins for complex scripts. If adding
+ * scripts here you also need to update the `getLangFor` method.
+ *
+ * @returns The CSS styles for complex scripts.
+ */
+const textStyle = () => css`
+  /* Southeast Asian scripts */
+  :lang(th),  /* Thai */
+    :lang(lo),  /* Lao */
+    :lang(km),  /* Khmer */
+    :lang(my) {
+    /* Burmese */
+    p {
+      line-height: 1.7;
+    }
+
+    .ProseMirror > p {
+      margin-top: 0.8em;
+      margin-bottom: 0.8em;
+    }
+  }
+
+  /* South Asian scripts */
+  :lang(hi),  /* Hindi */
+    :lang(mr),  /* Marathi */
+    :lang(ne),  /* Nepali */
+    :lang(bn),  /* Bengali */
+    :lang(gu),  /* Gujarati */
+    :lang(pa),  /* Punjabi */
+    :lang(te),  /* Telugu */
+    :lang(ta),  /* Tamil */
+    :lang(ml),  /* Malayalam */
+    :lang(si) {
+    /* Sinhala */
+    p {
+      line-height: 1.7;
+    }
+
+    .ProseMirror > p {
+      margin-top: 0.8em;
+      margin-bottom: 0.8em;
+    }
+  }
+
+  /* Tibetan and related scripts */
+  :lang(bo) {
+    p {
+      line-height: 1.8;
+    }
+
+    .ProseMirror > p {
+      margin-top: 0.8em;
+      margin-bottom: 0.8em;
+    }
+  }
+
+  /* Middle Eastern scripts */
+  :lang(ar),  /* Arabic */
+    :lang(fa),  /* Persian */
+    :lang(ur),  /* Urdu */
+    :lang(he) {
+    /* Hebrew */
+    p {
+      line-height: 1.6;
+    }
+  }
+
+  /* Ethiopic and other complex scripts */
+  :lang(am),  /* Amharic */
+    :lang(mn) {
+    /* Mongolian */
+    p {
+      line-height: 1.7;
+    }
+
+    .ProseMirror > p {
+      margin-top: 0.8em;
+      margin-bottom: 0.8em;
+    }
   }
 `;
 
@@ -315,7 +546,8 @@ width: 100%;
     background: ${props.theme.mentionHoverBackground};
   }
 
-  &[data-type="user"] {
+  &[data-type="user"],
+  &[data-type="group"] {
     gap: 0;
   }
 
@@ -360,7 +592,7 @@ width: 100%;
 
   & > :first-child,
   & > button:first-child + * {
-    margin-top: 0;
+    margin-top: 0 !important;
   }
 
   h1,
@@ -374,6 +606,7 @@ width: 100%;
     line-height: inherit;
     font-weight: 600;
     cursor: text;
+    clear: both;
 
     & + p,
     // accounts for block insert trigger and other widgets between heading and paragraph
@@ -483,7 +716,7 @@ iframe.embed {
   width: 100%;
   height: 400px;
   border: 1px solid ${props.theme.embedBorder};
-  border-radius: 6px;
+  border-radius: ${EditorStyleHelper.blockRadius};
 }
 
 .image,
@@ -567,6 +800,31 @@ iframe.embed {
 .attachment-replacement-uploading {
   .widget {
     opacity: 0.5;
+  }
+}
+
+.pdf {
+  position: relative;
+  width: max-content;
+  height: max-content;
+  margin-right: auto;
+  margin-left: auto;
+  max-width: 100%;
+  clear: both;
+  z-index: 1;
+  transition-property: width, height;
+  transition-duration: 80ms;
+  transition-timing-function: ease-in-out;
+
+  embed {
+    display: block;
+    max-width: 100%;
+    contain: strict,
+    content-visibility: auto,
+    backface-visibility: hidden,
+    transition-property: width, height;
+    transition-duration: 80ms;
+    transition-timing-function: ease-in-out;
   }
 }
 
@@ -687,14 +945,15 @@ img.ProseMirror-separator {
   margin: 0 !important;
 }
 
+.component-image {
+  display: block;
+}
+
 // Removes forced paragraph spaces below images, this is needed to images
 // being inline nodes that are displayed like blocks
 .component-image + img.ProseMirror-separator,
 .component-image + img.ProseMirror-separator + br.ProseMirror-trailingBreak {
   display: none;
-}
-.component-image img {
-  cursor: zoom-in;
 }
 
 .${EditorStyleHelper.imageCaption} {
@@ -726,14 +985,7 @@ img.ProseMirror-separator {
   }
 }
 
-.heading-content {
-  &::before {
-    content: "​";
-    display: inline;
-  }
-}
-
-.heading-name {
+.${EditorStyleHelper.headingPositionAnchor}, .${EditorStyleHelper.imagePositionAnchor} {
   color: ${props.theme.text};
   pointer-events: none;
   display: block;
@@ -746,11 +998,11 @@ img.ProseMirror-separator {
   }
 }
 
-.heading-name:first-child,
+.${EditorStyleHelper.headingPositionAnchor}:first-child,
 // Edge case where multiplayer cursor is between start of cell and heading
-.heading-name:first-child + .ProseMirror-yjs-cursor,
+.${EditorStyleHelper.headingPositionAnchor}:first-child + .ProseMirror-yjs-cursor,
 // Edge case where table grips are between start of cell and heading
-.heading-name:first-child + [role=button] + [role=button] {
+.${EditorStyleHelper.headingPositionAnchor}:first-child + [role=button] + [role=button] {
   & + h1,
   & + h2,
   & + h3,
@@ -803,8 +1055,51 @@ h6:not(.placeholder)::before {
   }
 }
 
+.ProseMirror[contenteditable="true"] {
+  & .image-wrapper.ProseMirror-selectednode > a {
+    /* force zoom-in cursor if image node is selected */
+    cursor: zoom-in !important;
+  }
+  &.ProseMirror-focused {
+    .image-wrapper:not(.ProseMirror-selectednode) > a {
+      /* prevents cursor from turning to pointer on pointer down */
+      pointer-events: none;
+    }
+  }
+  &:not(.ProseMirror-focused) {
+    .image-wrapper  {
+      & > a[href] {
+        cursor: pointer;
+      }
+      & > a:not([href]) {
+        /* prevents cursor from turning to pointer on pointer down */
+        pointer-events: none;
+      }
+    }
+  }
+}
+
+.ProseMirror[contenteditable="false"] {
+  .image-wrapper  {
+    & > a[href] {
+      cursor: pointer;
+    }
+    & > a:not([href]) {
+      cursor: zoom-in;
+    }
+  }
+}
+
 .with-emoji {
   margin-${props.rtl ? "right" : "left"}: -1em;
+}
+
+.emoji img {
+  width: 1em;
+  height: 1em;
+  vertical-align: middle;
+  position: relative;
+  top: -0.1em;
 }
 
 .heading-anchor,
@@ -832,6 +1127,12 @@ h6:not(.placeholder)::before {
   }
 }
 
+.ProseMirror.exported {
+  .heading-fold {
+    display: none;
+  }
+}
+
 .heading-anchor {
   box-sizing: border-box;
 }
@@ -843,8 +1144,9 @@ h6:not(.placeholder)::before {
   margin-left: -26px;
   flex-direction: row;
   display: none;
-  position: relative;
-  top: -2px;
+  position: absolute;
+  left: 0;
+  top: calc(.5em - 6px);
   width: 26px;
   height: 24px;
 
@@ -1092,6 +1394,10 @@ p {
   min-height: 1.6em;
 }
 
+.heading-content {
+  position: relative;
+}
+
 .heading-content a,
 p a {
   color: ${props.theme.text};
@@ -1304,6 +1610,7 @@ hr {
   position: relative;
   height: 1em;
   border: 0;
+  clear: both;
 }
 
 hr::before {
@@ -1333,12 +1640,15 @@ code {
   border: 1px solid ${props.theme.codeBorder};
   background: ${props.theme.codeBackground};
   padding: 3px 4px;
-  color: ${props.theme.codeString};
+  color: ${props.theme.code};
   font-family: ${props.theme.fontFamilyMono};
   font-size: 90%;
 
   .${EditorStyleHelper.codeWord} {
-    white-space: nowrap;
+    @media (min-width: ${breakpoints.tablet}px) {
+      white-space: nowrap;
+    }
+    color: ${props.theme.codeKeyword};
   }
 }
 
@@ -1372,9 +1682,8 @@ mark {
   }
 }
 
+.code-block[data-language=mermaid],
 .code-block[data-language=mermaidjs] {
-  margin: 0.75em 0;
-
   ${
     !props.staticHTML &&
     css`
@@ -1394,20 +1703,35 @@ mark {
   // Hide code without display none so toolbar can still be positioned against it
   &:not(.code-active) {
     height: ${props.staticHTML || props.readOnly ? "auto" : "0"};
-    margin: -0.75em 0;
+    margin: 0.5em 0 -0.75em 0px;
     overflow: hidden;
-
-    // Allows the margin to collapse correctly by moving div out of the flow
-    position: ${props.staticHTML || props.readOnly ? "relative" : "absolute"};
+    position: relative;
   }
 }
 
+.ProseMirror[contenteditable="false"] .code-block[data-language=mermaid],
 .ProseMirror[contenteditable="false"] .code-block[data-language=mermaidjs] {
     height: 0;
     overflow: hidden;
-    margin: -0.5em 0 0 0;
+
     & + .mermaid-diagram-wrapper {
       cursor: zoom-in;
+    }
+}
+
+.ProseMirror.exported {
+    .code-block[data-language=mermaid],
+    .code-block[data-language=mermaidjs] {
+        height: auto;
+        overflow: visible;
+
+        &::after {
+          display: none;
+        }
+    }
+
+    .mermaid-diagram-wrapper {
+        display: none;
     }
 }
 
@@ -1443,7 +1767,7 @@ mark {
   margin: 0.75em 0;
   min-height: 1.6em;
   background: ${props.theme.codeBackground};
-  border-radius: 6px;
+  border-radius: ${EditorStyleHelper.blockRadius};
   border: 1px solid ${props.theme.codeBorder};
   padding: 8px;
   user-select: none;
@@ -1504,10 +1828,13 @@ pre {
 
 table {
   width: 100%;
-  border-collapse: collapse;
-  border-radius: 4px;
+  border-collapse: separate;
+  border-radius: ${EditorStyleHelper.blockRadius};
   margin-top: 1em;
   box-sizing: border-box;
+  border: 1px solid ${props.theme.divider};
+  border-left: 0;
+  border-spacing: 0;
 
   * {
     box-sizing: border-box;
@@ -1516,24 +1843,47 @@ table {
   tr {
     position: relative;
     border-bottom: 1px solid ${props.theme.divider};
+    border-color: inherit;
   }
 
   td,
   th {
     position: relative;
     vertical-align: top;
-    border: 1px solid ${props.theme.divider};
     position: relative;
     padding: 4px 8px;
     text-align: start;
     min-width: 100px;
     font-weight: normal;
+    border-left: 1px solid ${props.theme.divider};
+    border-top: 1px solid ${props.theme.divider};
   }
 
   th {
     background: ${transparentize(0.75, props.theme.divider)};
     color: ${props.theme.textSecondary};
     font-weight: 500;
+  }
+
+  tr:first-child th,
+  tr:first-child td {
+    border-top: 0;
+  }
+  tr:first-child th[data-first-column],
+  tr:first-child td[data-first-column] {
+    border-radius: ${EditorStyleHelper.blockRadius} 0 0 0;
+  }
+  th[data-first-column][data-last-row],
+  td[data-first-column][data-last-row] {
+    border-radius: 0 0 0 ${EditorStyleHelper.blockRadius};
+  }
+  tr:first-child th[data-last-column],
+  tr:first-child td[data-last-column] {
+    border-radius: 0 ${EditorStyleHelper.blockRadius} 0 0;
+  }
+  th[data-last-column][data-last-row],
+  td[data-last-column][data-last-row] {
+    border-radius: 0 0 ${EditorStyleHelper.blockRadius} 0;
   }
 
   td .component-embed {
@@ -1595,6 +1945,7 @@ table {
     left: -16px;
     width: 0;
     height: 2px;
+    z-index: 1;
 
     &::after {
       content: "";
@@ -1639,6 +1990,7 @@ table {
     right: -1px;
     width: 2px;
     height: 0;
+    z-index: 1;
 
     &::after {
       content: "";
@@ -1685,7 +2037,7 @@ table {
      * https://github.com/ProseMirror/prosemirror/issues/947 */
     &::after {
       content: "";
-      cursor: var(--pointer);
+      cursor: grab;
       position: absolute;
       top: -16px;
       left: 0;
@@ -1698,23 +2050,28 @@ table {
     &:hover::after {
       background: ${props.theme.text};
     }
+
+    body.${EditorStyleHelper.tableDragging} &:hover::after {
+      background: ${props.theme.divider};
+    }
     &.first::after {
       border-top-left-radius: 3px;
       border-bottom-left-radius: 3px;
-    }
-    &.last::after {
-      border-top-right-radius: 3px;
-      border-bottom-right-radius: 3px;
     }
     &.selected::after {
       background: ${props.theme.tableSelected};
     }
   }
 
+  [data-last-column] .${EditorStyleHelper.tableGripColumn}::after {
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+  }
+
   .${EditorStyleHelper.tableGripRow} {
     &::after {
       content: "";
-      cursor: var(--pointer);
+      cursor: grab;
       position: absolute;
       left: -16px;
       top: 0;
@@ -1728,17 +2085,22 @@ table {
     &:hover::after {
       background: ${props.theme.text};
     }
+
+    body.${EditorStyleHelper.tableDragging} &:hover::after {
+      background: ${props.theme.divider};
+    }
     &.first::after {
       border-top-left-radius: 3px;
       border-top-right-radius: 3px;
     }
-    &.last::after {
-      border-bottom-left-radius: 3px;
-      border-bottom-right-radius: 3px;
-    }
     &.selected::after {
       background: ${props.theme.tableSelected};
     }
+  }
+
+  [data-last-row] .${EditorStyleHelper.tableGripRow}::after {
+    border-bottom-left-radius: 3px;
+    border-bottom-right-radius: 3px;
   }
 
   .${EditorStyleHelper.tableGrip} {
@@ -1763,7 +2125,81 @@ table {
     &.selected::after {
       background: ${props.theme.tableSelected};
     }
+    &.dragging::after {
+      background: ${props.theme.accent};
+      opacity: 0.5;
+    }
   }
+}
+
+.${EditorStyleHelper.tableDragDropIndicator} {
+  position: absolute;
+  background: ${props.theme.accent};
+  pointer-events: none;
+  z-index: 100;
+  opacity: 0;
+  transition: opacity 100ms ease-in-out;
+
+  &.active {
+    opacity: 1;
+  }
+
+  &[data-type="row"] {
+    height: 2px;
+    border-radius: 1px;
+  }
+
+  &[data-type="column"] {
+    width: 2px;
+    border-radius: 1px;
+  }
+}
+
+.${EditorStyleHelper.tableGripRow},
+.${EditorStyleHelper.tableGripColumn} {
+  &.dragging::after {
+    cursor: grabbing;
+    background: ${props.theme.accent};
+    opacity: 0.5;
+  }
+}
+
+.${EditorStyleHelper.tableDragIndicatorLeft},
+.${EditorStyleHelper.tableDragIndicatorRight} {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: calc(var(--table-height) - ${EditorStyleHelper.padding}px - 10px);
+  background: ${props.theme.accent};
+  z-index: 100;
+  pointer-events: none;
+}
+
+.${EditorStyleHelper.tableDragIndicatorLeft} {
+  left: -1px;
+}
+
+.${EditorStyleHelper.tableDragIndicatorRight} {
+  right: -1px;
+}
+
+.${EditorStyleHelper.tableDragIndicatorTop},
+.${EditorStyleHelper.tableDragIndicatorBottom} {
+  position: absolute;
+  left: 0;
+  height: 2px;
+  width: calc(var(--table-width) - ${EditorStyleHelper.padding * 2}px - 2px);
+  background: ${props.theme.accent};
+  z-index: 100;
+  pointer-events: none;
+}
+
+.${EditorStyleHelper.tableDragIndicatorTop} {
+  top: -1px;
+}
+
+.${EditorStyleHelper.tableDragIndicatorBottom} {
+  bottom: -1px;
 }
 
 .${EditorStyleHelper.table} {
@@ -1782,6 +2218,11 @@ table {
   padding-left: ${EditorStyleHelper.padding}px;
   padding-right: ${EditorStyleHelper.padding}px;
   transition: border 250ms ease-in-out 0s;
+
+  table {
+    table-layout: fixed;
+    word-break: break-word;
+  }
 
   &:hover {
     scrollbar-color: ${props.theme.scrollbarThumb} ${
@@ -1913,22 +2354,6 @@ del {
   text-decoration: strikethrough;
 }
 
-ins[data-operation-index] {
-  color: ${props.theme.textDiffInserted};
-  background-color: ${props.theme.textDiffInsertedBackground};
-  text-decoration: none;
-}
-
-del[data-operation-index] {
-  color: ${props.theme.textDiffDeleted};
-  background-color: ${props.theme.textDiffDeletedBackground};
-  text-decoration: none;
-
-  img {
-    opacity: .5;
-  }
-}
-
 @media print {
   .placeholder::before,
   .block-menu-trigger,
@@ -1973,8 +2398,10 @@ const EditorContainer = styled.div<Props>`
   ${mathStyle}
   ${codeMarkCursor}
   ${codeBlockStyle}
+  ${diffStyle}
   ${findAndReplaceStyle}
   ${emailStyle}
+  ${textStyle}
 `;
 
 export default EditorContainer;

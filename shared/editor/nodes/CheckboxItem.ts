@@ -1,15 +1,19 @@
-import { Token } from "markdown-it";
-import { NodeSpec, Node as ProsemirrorNode, NodeType } from "prosemirror-model";
+import type { Token } from "markdown-it";
+import type {
+  NodeSpec,
+  Node as ProsemirrorNode,
+  NodeType,
+} from "prosemirror-model";
 import {
   splitListItem,
   sinkListItem,
   liftListItem,
 } from "prosemirror-schema-list";
+import { v4 as uuidv4 } from "uuid";
 import toggleCheckboxItem from "../commands/toggleCheckboxItem";
-import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import checkboxRule from "../rules/checkboxes";
 import Node from "./Node";
-import { v4 } from "uuid";
 
 export default class CheckboxItem extends Node {
   get name() {
@@ -35,7 +39,7 @@ export default class CheckboxItem extends Node {
         },
       ],
       toDOM: (node) => {
-        const id = `checkbox-${v4()}`;
+        const id = `checkbox-${uuidv4()}`;
         const checked = node.attrs.checked.toString();
         let input;
         if (typeof document !== "undefined") {

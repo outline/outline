@@ -1,20 +1,25 @@
-import { Token } from "markdown-it";
+import type { Token } from "markdown-it";
 import { DownloadIcon } from "outline-icons";
-import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
-import { Command, NodeSelection } from "prosemirror-state";
-import * as React from "react";
+import type {
+  NodeSpec,
+  NodeType,
+  Node as ProsemirrorNode,
+} from "prosemirror-model";
+import type { Command } from "prosemirror-state";
+import { NodeSelection } from "prosemirror-state";
 import { Trans } from "react-i18next";
-import { Primitive } from "utility-types";
+import type { Primitive } from "utility-types";
 import { bytesToHumanReadable, getEventFiles } from "../../utils/files";
 import { sanitizeUrl } from "../../utils/urls";
 import insertFiles from "../commands/insertFiles";
 import toggleWrap from "../commands/toggleWrap";
 import FileExtension from "../components/FileExtension";
 import Widget from "../components/Widget";
-import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import attachmentsRule from "../rules/links";
-import { ComponentProps } from "../types";
+import type { ComponentProps } from "../types";
 import Node from "./Node";
+import PdfViewer from "../components/PDF";
 
 export default class Attachment extends Node {
   get name() {
@@ -37,6 +42,19 @@ export default class Attachment extends Node {
         title: {},
         size: {
           default: 0,
+        },
+        preview: {
+          default: false,
+        },
+        width: {
+          default: null,
+        },
+        height: {
+          default: null,
+        },
+        contentType: {
+          default: null,
+          validate: "string|null",
         },
       },
       group: "block",
@@ -78,9 +96,48 @@ export default class Attachment extends Node {
       view.dispatch(transaction);
     };
 
+  handleChangeSize =
+    ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
+    ({ width, height }: { width: number; height?: number }) => {
+      if (!node.attrs.preview) {
+        return;
+      }
+
+      const { view, commands } = this.editor;
+      const { doc, tr } = view.state;
+
+      const pos = getPos();
+      const $pos = doc.resolve(pos);
+
+      view.dispatch(tr.setSelection(new NodeSelection($pos)));
+      commands["resizeAttachment"]({
+        width,
+        height: height || node.attrs.height,
+      });
+    };
+
   component = (props: ComponentProps) => {
-    const { isSelected, isEditable, theme, node } = props;
-    return (
+    const { embedsDisabled } = this.editor.props;
+    const { isSelected, isEditable, node } = props;
+    const context = node.attrs.href ? (
+      bytesToHumanReadable(node.attrs.size || "0")
+    ) : (
+      <>
+        <Trans>Uploading</Trans>…
+      </>
+    );
+
+    return node.attrs.preview &&
+      !embedsDisabled &&
+      node.attrs.contentType === "application/pdf" ? (
+      <PdfViewer
+        icon={<FileExtension title={node.attrs.title} />}
+        title={node.attrs.title}
+        context={context}
+        onChangeSize={this.handleChangeSize(props)}
+        {...props}
+      />
+    ) : (
       <Widget
         icon={<FileExtension title={node.attrs.title} />}
         href={node.attrs.href}
@@ -95,17 +152,8 @@ export default class Attachment extends Node {
             event.stopPropagation();
           }
         }}
-        context={
-          node.attrs.href ? (
-            bytesToHumanReadable(node.attrs.size || "0")
-          ) : (
-            <>
-              <Trans>Uploading</Trans>…
-            </>
-          )
-        }
+        context={context}
         isSelected={isSelected}
-        theme={theme}
       >
         {node.attrs.href && !isEditable && <DownloadIcon size={20} />}
       </Widget>
@@ -126,26 +174,39 @@ export default class Attachment extends Node {
         }
         const { view } = this.editor;
         const { node } = state.selection;
-        const { uploadFile, onFileUploadStart, onFileUploadStop } =
-          this.editor.props;
+        const {
+          uploadFile,
+          onFileUploadStart,
+          onFileUploadStop,
+          onFileUploadProgress,
+        } = this.editor.props;
 
         if (!uploadFile) {
           throw new Error("uploadFile prop is required to replace attachments");
         }
 
-        if (node.type.name !== "attachment") {
+        const accept =
+          node.attrs.contentType === "application/pdf"
+            ? ".pdf"
+            : node.type.name === "attachment"
+              ? "*"
+              : null;
+
+        if (accept === null) {
           return false;
         }
 
         // create an input element and click to trigger picker
         const inputElement = document.createElement("input");
         inputElement.type = "file";
+        inputElement.accept = accept;
         inputElement.onchange = (event) => {
           const files = getEventFiles(event);
           void insertFiles(view, event, state.selection.from, files, {
             uploadFile,
             onFileUploadStart,
             onFileUploadStop,
+            onFileUploadProgress,
             dictionary: this.options.dictionary,
             replaceExisting: true,
           });
@@ -170,6 +231,31 @@ export default class Attachment extends Node {
         document.body.removeChild(link);
         return true;
       },
+      resizeAttachment:
+        ({ width, height }: { width: number; height?: number }): Command =>
+        (state, dispatch) => {
+          if (
+            !(state.selection instanceof NodeSelection) ||
+            !state.selection.node.attrs.preview
+          ) {
+            return false;
+          }
+
+          const { view } = this.editor;
+          const { tr } = view.state;
+          const { attrs } = state.selection.node;
+
+          const transaction = tr
+            .setNodeMarkup(state.selection.from, undefined, {
+              ...attrs,
+              width,
+              height,
+            })
+            .setMeta("addToHistory", true);
+          const $pos = transaction.doc.resolve(state.selection.from);
+          dispatch?.(transaction.setSelection(new NodeSelection($pos)));
+          return true;
+        },
     };
   }
 

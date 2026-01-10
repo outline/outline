@@ -12,7 +12,7 @@ import {
 import { subtractDate } from "@shared/utils/date";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import naturalSort from "@shared/utils/naturalSort";
-import RootStore from "~/stores/RootStore";
+import type RootStore from "~/stores/RootStore";
 import Store from "~/stores/base/Store";
 import Document from "~/models/Document";
 import env from "~/env";
@@ -70,6 +70,11 @@ export default class DocumentsStore extends Store<Document> {
   }
 
   @computed
+  get importFileTypesString(): string {
+    return this.importFileTypes.join(",");
+  }
+
+  @computed
   get all(): Document[] {
     return filter(
       this.orderedData,
@@ -89,6 +94,11 @@ export default class DocumentsStore extends Store<Document> {
   @computed
   get recentlyUpdated(): Document[] {
     return orderBy(this.all, "updatedAt", "desc");
+  }
+
+  @computed
+  get popular(): Document[] {
+    return orderBy(this.all, "popularityScore", "desc");
   }
 
   @computed
@@ -201,6 +211,10 @@ export default class DocumentsStore extends Store<Document> {
 
   alphabeticalInCollection(collectionId: string): Document[] {
     return naturalSort(this.inCollection(collectionId), "title");
+  }
+
+  popularInCollection(collectionId: string): Document[] {
+    return orderBy(this.inCollection(collectionId), "popularityScore", "desc");
   }
 
   get(id: string): Document | undefined {
@@ -380,6 +394,14 @@ export default class DocumentsStore extends Store<Document> {
   fetchRecentlyViewed = async (
     options?: PaginationParams
   ): Promise<Document[]> => this.fetchNamedPage("viewed", options);
+
+  @action
+  fetchPopular = async (options?: PaginationParams): Promise<Document[]> =>
+    this.fetchNamedPage("list", {
+      sort: "popularityScore",
+      direction: "DESC",
+      ...options,
+    });
 
   @action
   fetchStarred = (options?: PaginationParams): Promise<Document[]> =>

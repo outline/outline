@@ -21,6 +21,7 @@ import { Drawer, DrawerContent, DrawerTrigger } from "../primitives/Drawer";
 import EmojiPanel from "./components/EmojiPanel";
 import IconPanel from "./components/IconPanel";
 import { PopoverButton } from "./components/PopoverButton";
+import useStores from "~/hooks/useStores";
 
 const TAB_NAMES = {
   Icon: "icon",
@@ -35,7 +36,7 @@ type Props = {
   icon: string | null;
   color: string;
   size?: number;
-  initial?: string;
+  initial: string;
   className?: string;
   popoverPosition: "bottom-start" | "right";
   allowDelete?: boolean;
@@ -61,7 +62,7 @@ const IconPicker = ({
   children,
 }: Props) => {
   const { t } = useTranslation();
-
+  const { emojis } = useStores();
   const { width: windowWidth } = useWindowSize();
   const isMobile = useMobile();
 
@@ -167,6 +168,12 @@ const IconPicker = ({
   React.useEffect(() => {
     setActiveTab(defaultTab);
   }, [defaultTab]);
+
+  React.useEffect(() => {
+    if (open) {
+      void emojis.fetchAll();
+    }
+  }, [open, emojis]);
 
   if (isMobile) {
     return (

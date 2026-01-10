@@ -24,6 +24,7 @@ import {
 import useKeyDown from "~/hooks/useKeyDown";
 import Desktop from "~/utils/Desktop";
 import { useEditor } from "./EditorContext";
+import { HStack } from "~/components/primitives/HStack";
 
 type KeyboardShortcutsProps = {
   open: boolean;
@@ -302,9 +303,8 @@ export default function FindAndReplace({
   const style: React.CSSProperties = React.useMemo(
     () => ({
       position: "fixed",
-      left: "initial",
-      top: 60,
-      right: 16,
+      top: 0,
+      right: 0,
       zIndex: depths.popover,
     }),
     []
@@ -375,6 +375,7 @@ export default function FindAndReplace({
         minWidth={420}
         scrollable={false}
         onPointerDownOutside={() => setLocalOpen(false)}
+        style={{ marginRight: 16, marginTop: 60 }}
       >
         <Content column>
           <Flex gap={4}>
@@ -438,7 +439,7 @@ export default function FindAndReplace({
           </Flex>
           <ResizingHeightContainer>
             {showReplace && !readOnly && (
-              <Flex gap={8}>
+              <HStack>
                 <StyledInput
                   maxLength={255}
                   value={replaceTerm}
@@ -470,7 +471,7 @@ export default function FindAndReplace({
                     {t("Replace all")}
                   </Button>
                 </Tooltip>
-              </Flex>
+              </HStack>
             )}
           </ResizingHeightContainer>
         </Content>

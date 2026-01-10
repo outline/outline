@@ -1,4 +1,5 @@
-import { SearchQuery, User } from "@server/models";
+import type { User } from "@server/models";
+import { SearchQuery } from "@server/models";
 import { buildSearchQuery, buildUser } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 

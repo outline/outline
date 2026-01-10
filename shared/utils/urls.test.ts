@@ -22,6 +22,51 @@ describe("isUrl", () => {
       true
     );
   });
+
+  describe("requireHttps option", () => {
+    it("should reject HTTP URLs when requireHttps is true", () => {
+      expect(
+        urlsUtils.isUrl("http://example.com", { requireHttps: true })
+      ).toBe(false);
+      expect(
+        urlsUtils.isUrl("http://example.com/callback", { requireHttps: true })
+      ).toBe(false);
+      expect(
+        urlsUtils.isUrl("http://localhost:3000/auth", { requireHttps: true })
+      ).toBe(false);
+    });
+
+    it("should accept HTTPS URLs when requireHttps is true", () => {
+      expect(
+        urlsUtils.isUrl("https://example.com", { requireHttps: true })
+      ).toBe(true);
+      expect(
+        urlsUtils.isUrl("https://example.com/callback", { requireHttps: true })
+      ).toBe(true);
+      expect(
+        urlsUtils.isUrl("https://localhost:3000/auth", { requireHttps: true })
+      ).toBe(true);
+    });
+
+    it("should accept HTTP URLs when requireHttps is false or not specified", () => {
+      expect(urlsUtils.isUrl("http://example.com")).toBe(true);
+      expect(
+        urlsUtils.isUrl("http://example.com", { requireHttps: false })
+      ).toBe(true);
+    });
+
+    it("should allow custom protocols when requireHttps is true", () => {
+      expect(
+        urlsUtils.isUrl("seafile://openfile", { requireHttps: true })
+      ).toBe(true);
+      expect(urlsUtils.isUrl("figma://launch", { requireHttps: true })).toBe(
+        true
+      );
+      expect(urlsUtils.isUrl("myapp://callback", { requireHttps: true })).toBe(
+        true
+      );
+    });
+  });
 });
 
 describe("isBase64Url", () => {

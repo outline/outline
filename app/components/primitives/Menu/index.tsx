@@ -1,7 +1,7 @@
 import * as ContextMenuPrimitive from "@radix-ui/react-context-menu";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import * as Components from "../components/Menu";
-import { LocationDescriptor } from "history";
+import type { LocationDescriptor } from "history";
 import * as React from "react";
 import Tooltip from "~/components/Tooltip";
 import { CheckmarkIcon } from "outline-icons";
@@ -276,7 +276,7 @@ const MenuButton = React.forwardRef<
         <Components.MenuLabel>{label}</Components.MenuLabel>
         {selected !== undefined && (
           <Components.SelectedIconWrapper aria-hidden>
-            {selected ? <CheckmarkIcon /> : null}
+            {selected ? <CheckmarkIcon size={18} /> : null}
           </Components.SelectedIconWrapper>
         )}
       </Components.MenuButton>

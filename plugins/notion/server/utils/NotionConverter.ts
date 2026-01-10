@@ -30,9 +30,10 @@ import type {
 } from "@notionhq/client/build/src/api-endpoints";
 import isArray from "lodash/isArray";
 import { NoticeTypes } from "@shared/editor/nodes/Notice";
-import { MentionType, ProsemirrorData, ProsemirrorDoc } from "@shared/types";
+import type { ProsemirrorData, ProsemirrorDoc } from "@shared/types";
+import { MentionType } from "@shared/types";
 import Logger from "@server/logging/Logger";
-import { Block } from "../../shared/types";
+import type { Block } from "../../shared/types";
 
 export type NotionPage = PageObjectResponse & {
   children: Block[];

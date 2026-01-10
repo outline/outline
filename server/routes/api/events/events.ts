@@ -1,13 +1,14 @@
 import Router from "koa-router";
 import intersection from "lodash/intersection";
-import { Op, WhereOptions } from "sequelize";
+import type { WhereOptions } from "sequelize";
+import { Op } from "sequelize";
 import { EventHelper } from "@shared/utils/EventHelper";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
 import { Event, User, Collection, Document } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentEvent } from "@server/presenters";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 

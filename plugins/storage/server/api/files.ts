@@ -17,8 +17,8 @@ import { Attachment } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { authorize } from "@server/policies";
 import FileStorage from "@server/storage/files";
-import LocalStorage from "@server/storage/files/LocalStorage";
-import { APIContext } from "@server/types";
+import type LocalStorage from "@server/storage/files/LocalStorage";
+import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { getJWTPayload } from "@server/utils/jwt";
 import * as T from "./schema";
@@ -94,10 +94,23 @@ router.get(
       (fileName ? mime.lookup(fileName) : undefined) ||
       "application/octet-stream";
 
+    if (contentType === "application/pdf") {
+      ctx.remove("X-Frame-Options");
+    }
+
     ctx.set("Accept-Ranges", "bytes");
+    ctx.set("Access-Control-Allow-Origin", "*");
     ctx.set("Cache-Control", cacheHeader);
     ctx.set("Content-Type", contentType);
-    ctx.set("Content-Security-Policy", "sandbox");
+    ctx.set(
+      "Content-Security-Policy",
+      // Safari will not render PDFs in an embed if the sandbox directive is used, so we use a
+      // tight CSP in that case. For all other file types we use the strict sandbox directive
+      // which blocks all content from being loaded and rendered.
+      contentType === "application/pdf"
+        ? "default-src 'self'; object-src 'self'; base-uri 'none';"
+        : "sandbox"
+    );
     ctx.set(
       "Content-Disposition",
       contentDisposition(fileName, {

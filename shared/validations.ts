@@ -2,6 +2,18 @@ export const AttachmentValidation = {
   /** The limited allowable mime-types for user and team avatars */
   avatarContentTypes: ["image/jpg", "image/jpeg", "image/png"],
 
+  /** The most widely supported mime-types across modern browsers */
+  emojiContentTypes: [
+    "image/png",
+    "image/webp",
+    "image/gif",
+    "image/jpeg",
+    "image/jpg",
+  ],
+
+  /** The maximum file size for emoji uploads */
+  emojiMaxFileSize: 1 * 1000 * 1000,
+
   /** Image mime-types commonly supported by modern browsers */
   imageContentTypes: [
     "image/jpg",
@@ -54,6 +66,11 @@ export const DocumentValidation = {
   maxRecommendedLength: 250000,
 };
 
+export const GroupValidation = {
+  /** The maximum length of the group description */
+  maxDescriptionLength: 2000,
+};
+
 export const ImportValidation = {
   /** The maximum length of the import name */
   maxNameLength: 100,
@@ -77,9 +94,17 @@ export const OAuthClientValidation = {
 
   /** The maximum length of an OAuth client redirect URI */
   maxRedirectUriLength: 1000,
+
+  /** The allowed OAuth client types */
+  clientTypes: ["confidential", "public"] as const,
 };
 
 export const RevisionValidation = {
+  minNameLength: 1,
+  maxNameLength: 255,
+};
+
+export const UserPasskeyValidation = {
   minNameLength: 1,
   maxNameLength: 255,
 };
@@ -123,4 +148,11 @@ export const UserValidation = {
 export const WebhookSubscriptionValidation = {
   /** The maximum number of webhooks per team */
   maxSubscriptions: 10,
+};
+
+export const EmojiValidation = {
+  /** The maximum length of the emoji name */
+  maxNameLength: 25,
+  /* the characters allowed in the name */
+  allowedNameCharacters: /^[a-z0-9_]*$/,
 };

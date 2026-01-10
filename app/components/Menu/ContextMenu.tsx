@@ -1,8 +1,8 @@
 import * as React from "react";
-import { actionV2ToMenuItem } from "~/actions";
+import { actionToMenuItem } from "~/actions";
 import useActionContext from "~/hooks/useActionContext";
 import useMobile from "~/hooks/useMobile";
-import { ActionV2Variant, ActionV2WithChildren } from "~/types";
+import type { ActionVariant, ActionWithChildren } from "~/types";
 import { toMenuItems } from "./transformer";
 import { observer } from "mobx-react";
 import { useComputed } from "~/hooks/useComputed";
@@ -11,7 +11,7 @@ import { MenuProvider } from "~/components/primitives/Menu/MenuContext";
 
 type Props = {
   /** Root action with children representing the menu items */
-  action?: ActionV2WithChildren;
+  action?: ActionWithChildren;
   /** Trigger for the menu */
   children: React.ReactNode;
   /** ARIA label for the menu */
@@ -30,15 +30,13 @@ export const ContextMenu = observer(
       isMenu: true,
     });
 
-    const menuItems = useComputed(() => {
-      if (!open) {
-        return [];
-      }
-
-      return ((action?.children as ActionV2Variant[]) ?? []).map(
-        (childAction) => actionV2ToMenuItem(childAction, actionContext)
-      );
-    }, [open, action?.children, actionContext]);
+    const menuItems = useComputed(
+      () =>
+        ((action?.children as ActionVariant[]) ?? []).map((childAction) =>
+          actionToMenuItem(childAction, actionContext)
+        ),
+      [action?.children, actionContext]
+    );
 
     const handleOpenChange = React.useCallback(
       (open: boolean) => {
@@ -48,7 +46,7 @@ export const ContextMenu = observer(
           onClose?.();
         }
       },
-      [onOpen, onClose]
+      [open, onOpen, onClose]
     );
 
     const enablePointerEvents = React.useCallback(() => {

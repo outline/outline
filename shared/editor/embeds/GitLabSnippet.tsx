@@ -1,6 +1,6 @@
 import * as React from "react";
 import Frame from "../components/Frame";
-import { EmbedProps as Props } from ".";
+import type { EmbedProps as Props } from ".";
 
 function GitLabSnippet(props: Props) {
   const frame = React.useRef<HTMLIFrameElement>(null);

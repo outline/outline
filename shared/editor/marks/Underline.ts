@@ -1,5 +1,5 @@
 import { toggleMark } from "prosemirror-commands";
-import { MarkSpec, MarkType } from "prosemirror-model";
+import type { MarkSpec, MarkType } from "prosemirror-model";
 import { markInputRuleForPattern } from "../lib/markInputRule";
 import underlinesRule from "../rules/underlines";
 import Mark from "./Mark";

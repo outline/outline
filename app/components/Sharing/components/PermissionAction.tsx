@@ -1,12 +1,12 @@
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Flex from "@shared/components/Flex";
-import { CollectionPermission, DocumentPermission } from "@shared/types";
+import type { CollectionPermission, DocumentPermission } from "@shared/types";
 import { Inner } from "~/components/Button";
 import ButtonSmall from "~/components/ButtonSmall";
 import Fade from "~/components/Fade";
 import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelect";
-import { Action, Permission } from "~/types";
+import type { Action, Permission } from "~/types";
 
 export function PermissionAction({
   permission,

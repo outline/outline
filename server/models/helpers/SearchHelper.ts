@@ -3,22 +3,22 @@ import escapeRegExp from "lodash/escapeRegExp";
 import find from "lodash/find";
 import map from "lodash/map";
 import queryParser from "pg-tsquery";
-import {
+import type {
   BindOrReplacements,
   FindAttributeOptions,
   FindOptions,
-  Op,
   Order,
-  Sequelize,
   WhereOptions,
 } from "sequelize";
-import { DateFilter, StatusFilter } from "@shared/types";
+import { Op, Sequelize } from "sequelize";
+import type { DateFilter } from "@shared/types";
+import { StatusFilter } from "@shared/types";
 import { regexIndexOf, regexLastIndexOf } from "@shared/utils/string";
 import { getUrls } from "@shared/utils/urls";
 import { ValidationError } from "@server/errors";
 import Collection from "@server/models/Collection";
 import Document from "@server/models/Document";
-import Share from "@server/models/Share";
+import type Share from "@server/models/Share";
 import Team from "@server/models/Team";
 import User from "@server/models/User";
 import { sequelize } from "@server/storage/database";
@@ -483,9 +483,11 @@ export default class SearchHelper {
     const order: Order = [["updatedAt", "DESC"]];
 
     if (query) {
+      // Combine text relevance with logarithmic popularity boost
+      // Popular documents get a boost, but text relevance remains primary
       attributes.push([
         Sequelize.literal(
-          `ts_rank("searchVector", to_tsquery('english', :query))`
+          `ts_rank("searchVector", to_tsquery('english', :query)) * (1 + LN(1 + COALESCE("popularityScore", 0)))`
         ),
         "searchRanking",
       ]);
@@ -572,6 +574,9 @@ export default class SearchHelper {
       ? [options.collectionId]
       : await model.collectionIds();
 
+    if (options.collectionId) {
+      where[Op.and].push({ collectionId: options.collectionId });
+    }
     if (collectionIds.length) {
       where[Op.or].push({ collectionId: collectionIds });
     }

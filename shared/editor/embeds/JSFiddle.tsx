@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useTheme } from "styled-components";
 import Frame from "../components/Frame";
-import { EmbedProps as Props } from ".";
+import type { EmbedProps as Props } from ".";
 
 function JSFiddle({ matches, ...props }: Props) {
   const normalizedUrl = props.attrs.href.replace(/(\/embedded)?\/$/, "");
@@ -14,7 +14,7 @@ function JSFiddle({ matches, ...props }: Props) {
         theme.isDark ? "dark/" : ""
       }`}
       title="JSFiddle Embed"
-      referrerPolicy="origin"
+      referrerPolicy="strict-origin-when-cross-origin"
       border
     />
   );

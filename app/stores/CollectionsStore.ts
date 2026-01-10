@@ -6,13 +6,13 @@ import { computed, action, runInAction } from "mobx";
 import {
   CollectionPermission,
   CollectionStatusFilter,
-  FileOperationFormat,
+  type FileOperationFormat,
   SubscriptionType,
 } from "@shared/types";
 import Collection from "~/models/Collection";
-import { PaginationParams, Properties } from "~/types";
+import type { PaginationParams, Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
-import RootStore from "./RootStore";
+import type RootStore from "./RootStore";
 import Store from "./base/Store";
 
 export default class CollectionsStore extends Store<Collection> {
@@ -149,13 +149,6 @@ export default class CollectionsStore extends Store<Collection> {
   }
 
   @action
-  async fetch(id: string, options?: { force: boolean }): Promise<Collection> {
-    const model = await super.fetch(id, options);
-    await model.fetchDocuments(options);
-    return model;
-  }
-
-  @action
   fetchNamedPage = async (
     request = "list",
     options:
@@ -247,9 +240,9 @@ export default class CollectionsStore extends Store<Collection> {
     await this.rootStore.documents.fetchRecentlyViewed();
   }
 
-  export = (format: FileOperationFormat, includeAttachments: boolean) =>
-    client.post("/collections.export_all", {
-      format,
-      includeAttachments,
-    });
+  export = (options: {
+    format: FileOperationFormat;
+    includeAttachments: boolean;
+    includePrivate: boolean;
+  }) => client.post("/collections.export_all", options);
 }

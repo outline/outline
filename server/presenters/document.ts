@@ -1,8 +1,8 @@
 import { Hour } from "@shared/utils/time";
 import { traceFunction } from "@server/logging/tracing";
-import { Document } from "@server/models";
+import type { Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import presentUser from "./user";
 
 type Options = {
@@ -14,8 +14,10 @@ type Options = {
   includeText?: boolean;
   /** Always include the data of the document in the payload. */
   includeData?: boolean;
-
+  /** Include the updatedAt timestamp for public documents. */
   includeUpdatedAt?: boolean;
+  /** Array of backlink document IDs to include in the response. */
+  backlinkIds?: string[];
 };
 
 async function presentDocument(
@@ -56,7 +58,11 @@ async function presentDocument(
     text,
     icon: document.icon,
     color: document.color,
-    tasks: document.tasks,
+    tasks: {
+      completed: 0,
+      total: 0,
+    },
+    language: document.language,
     createdAt: document.createdAt,
     createdBy: undefined,
     updatedAt: document.updatedAt,
@@ -71,6 +77,7 @@ async function presentDocument(
     parentDocumentId: undefined,
     lastViewedAt: undefined,
     isCollectionDeleted: undefined,
+    backlinkIds: options?.backlinkIds,
   };
 
   if (!!document.views && document.views.length > 0) {
@@ -84,6 +91,7 @@ async function presentDocument(
   if (!options.isPublic) {
     const source = await document.$get("import");
 
+    res.tasks = document.tasks;
     res.isCollectionDeleted = await document.isCollectionDeleted();
     res.collectionId = document.collectionId;
     res.parentDocumentId = document.parentDocumentId;
@@ -93,6 +101,7 @@ async function presentDocument(
     res.templateId = document.templateId;
     res.template = document.template;
     res.insightsEnabled = document.insightsEnabled;
+    res.popularityScore = document.popularityScore;
     res.sourceMetadata = document.sourceMetadata
       ? {
           importedAt: source?.createdAt ?? document.createdAt,

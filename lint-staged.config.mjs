@@ -12,5 +12,5 @@ export default {
   ],
 
   // Automatically de-duplicate packages as yarn is terrible at it
-  "(yarn.lock|package.json)": () => `yarn yarn-deduplicate yarn.lock`,
+  "(yarn.lock|package.json)": () => `yarn dedupe`,
 };

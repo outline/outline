@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import isNil from "lodash/isNil";
-import {
+import type {
   InferAttributes,
   InferCreationAttributes,
   InstanceUpdateOptions,
@@ -19,7 +19,7 @@ import {
 } from "sequelize-typescript";
 import { WebhookSubscriptionValidation } from "@shared/validations";
 import { ValidationError } from "@server/errors";
-import { Event } from "@server/types";
+import type { Event } from "@server/types";
 import Team from "./Team";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";

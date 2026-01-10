@@ -3,8 +3,8 @@ import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
-import { NavigationNode } from "@shared/types";
-import Document from "~/models/Document";
+import type { NavigationNode } from "@shared/types";
+import type Document from "~/models/Document";
 import { FlexContainer, Footer, StyledText } from "~/scenes/DocumentMove";
 import Button from "~/components/Button";
 import DocumentExplorer from "~/components/DocumentExplorer";
@@ -24,6 +24,7 @@ function DocumentCopy({ document, onSubmit }: Props) {
   const { policies } = useStores();
   const collectionTrees = useCollectionTrees();
   const [publish, setPublish] = React.useState<boolean>(!!document.publishedAt);
+  const [copying, setCopying] = React.useState<boolean>(false);
   const [recursive, setRecursive] = React.useState<boolean>(true);
   const [selectedPath, selectPath] = React.useState<NavigationNode | null>(
     null
@@ -51,6 +52,7 @@ function DocumentCopy({ document, onSubmit }: Props) {
     }
 
     try {
+      setCopying(true);
       const result = await document.duplicate({
         publish,
         recursive,
@@ -65,6 +67,8 @@ function DocumentCopy({ document, onSubmit }: Props) {
       onSubmit(result);
     } catch (_err) {
       toast.error(t("Couldn’t copy the document, try again?"));
+    } finally {
+      setCopying(false);
     }
   };
 
@@ -114,8 +118,8 @@ function DocumentCopy({ document, onSubmit }: Props) {
             t("Select a location to copy")
           )}
         </StyledText>
-        <Button disabled={!selectedPath} onClick={copy}>
-          {t("Copy")}
+        <Button disabled={!selectedPath || copying} onClick={copy}>
+          {copying ? `${t("Copying")}…` : t("Copy")}
         </Button>
       </Footer>
     </FlexContainer>

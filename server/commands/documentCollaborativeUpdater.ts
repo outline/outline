@@ -2,11 +2,12 @@ import isEqual from "fast-deep-equal";
 import uniq from "lodash/uniq";
 import { yDocToProsemirrorJSON } from "y-prosemirror";
 import * as Y from "yjs";
-import { ProsemirrorData } from "@shared/types";
+import type { ProsemirrorData } from "@shared/types";
 import Logger from "@server/logging/Logger";
 import { Document, Event } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import { AuthenticationType } from "@server/types";
+import semver from "semver";
 
 type Props = {
   /** The document ID to update. */
@@ -17,6 +18,8 @@ type Props = {
   sessionCollaboratorIds: string[];
   /** Whether the last connection to the document left. */
   isLastConnection: boolean;
+  /** The client version, if available. */
+  clientVersion: string | null;
 };
 
 export default async function documentCollaborativeUpdater({
@@ -24,8 +27,13 @@ export default async function documentCollaborativeUpdater({
   ydoc,
   sessionCollaboratorIds,
   isLastConnection,
+  clientVersion,
 }: Props) {
   return sequelize.transaction(async (transaction) => {
+    await sequelize.query(`SET LOCAL lock_timeout = '15s';`, {
+      transaction,
+    });
+
     const document = await Document.unscoped()
       .scope("withoutState")
       .findOne({
@@ -68,12 +76,24 @@ export default async function documentCollaborativeUpdater({
       ...pudIds,
     ]);
 
+    // Either the client or server version could be null, or they could both be
+    // set. In that case we want to use the greater (newer) version.
+    const editorVersion =
+      document.editorVersion && clientVersion
+        ? semver.gt(clientVersion, document.editorVersion)
+          ? clientVersion
+          : document.editorVersion
+        : clientVersion
+          ? clientVersion
+          : document.editorVersion;
+
     await document.update(
       {
         content,
         state: Buffer.from(state),
         lastModifiedById,
         collaboratorIds,
+        editorVersion,
       },
       {
         transaction,

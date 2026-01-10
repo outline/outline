@@ -295,6 +295,54 @@ describe("SearchHelper", () => {
       );
     });
 
+    it("should not return documents from other collections when filtering by specific collection without search term", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection1 = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+      const collection2 = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+      const docsInCollection1 = await Promise.all([
+        buildDocument({
+          teamId: team.id,
+          userId: user.id,
+          collectionId: collection1.id,
+          title: "document 1 in collection 1",
+        }),
+        buildDocument({
+          teamId: team.id,
+          userId: user.id,
+          collectionId: collection1.id,
+          title: "document 2 in collection 1",
+        }),
+      ]);
+      await Promise.all([
+        buildDocument({
+          teamId: team.id,
+          userId: user.id,
+          collectionId: collection2.id,
+          title: "document 1 in collection 2",
+        }),
+        buildDocument({
+          teamId: team.id,
+          userId: user.id,
+          collectionId: collection2.id,
+          title: "document 2 in collection 2",
+        }),
+      ]);
+      const { results } = await SearchHelper.searchForUser(user, {
+        collectionId: collection1.id,
+      });
+      expect(results.length).toBe(2);
+      expect(results.map((r) => r.document.id).sort()).toEqual(
+        docsInCollection1.map((doc) => doc.id).sort()
+      );
+    });
+
     it("should handle no collections", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });

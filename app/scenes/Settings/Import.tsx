@@ -6,7 +6,7 @@ import { useTranslation, Trans } from "react-i18next";
 import { Pagination } from "@shared/constants";
 import { FileOperationType } from "@shared/types";
 import { cdnPath } from "@shared/utils/urls";
-import FileOperation from "~/models/FileOperation";
+import type FileOperation from "~/models/FileOperation";
 import ImportModel from "~/models/Import";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";

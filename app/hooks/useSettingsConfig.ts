@@ -1,3 +1,4 @@
+import type { Icon } from "outline-icons";
 import {
   EmailIcon,
   ProfileIcon,
@@ -6,17 +7,20 @@ import {
   UserIcon,
   GroupIcon,
   GlobeIcon,
+  ShieldIcon,
   TeamIcon,
   BeakerIcon,
   SettingsIcon,
   ExportIcon,
   ImportIcon,
   ShapesIcon,
-  Icon,
   PlusIcon,
   InternetIcon,
+  SmileyIcon,
+  BuildingBlocksIcon,
 } from "outline-icons";
-import { ComponentProps, useEffect } from "react";
+import type { ComponentProps } from "react";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 import { createLazyComponent as lazy } from "~/components/LazyLoad";
@@ -31,6 +35,7 @@ import useStores from "./useStores";
 const ApiKeys = lazy(() => import("~/scenes/Settings/ApiKeys"));
 const Applications = lazy(() => import("~/scenes/Settings/Applications"));
 const APIAndApps = lazy(() => import("~/scenes/Settings/APIAndApps"));
+const Authentication = lazy(() => import("~/scenes/Settings/Authentication"));
 const Details = lazy(() => import("~/scenes/Settings/Details"));
 const Export = lazy(() => import("~/scenes/Settings/Export"));
 const Features = lazy(() => import("~/scenes/Settings/Features"));
@@ -44,6 +49,7 @@ const Profile = lazy(() => import("~/scenes/Settings/Profile"));
 const Security = lazy(() => import("~/scenes/Settings/Security"));
 const Shares = lazy(() => import("~/scenes/Settings/Shares"));
 const Templates = lazy(() => import("~/scenes/Settings/Templates"));
+const CustomEmojis = lazy(() => import("~/scenes/Settings/CustomEmojis"));
 
 export type ConfigItem = {
   name: string;
@@ -105,7 +111,7 @@ const useSettingsConfig = () => {
         preload: APIAndApps.preload,
         enabled: true,
         group: t("Account"),
-        icon: PadlockIcon,
+        icon: BuildingBlocksIcon,
       },
       // Workspace
       {
@@ -118,13 +124,22 @@ const useSettingsConfig = () => {
         icon: TeamIcon,
       },
       {
+        name: t("Authentication"),
+        path: settingsPath("authentication"),
+        component: Authentication.Component,
+        preload: Authentication.preload,
+        enabled: can.update,
+        group: t("Workspace"),
+        icon: PadlockIcon,
+      },
+      {
         name: t("Security"),
         path: settingsPath("security"),
         component: Security.Component,
         preload: Security.preload,
         enabled: can.update,
         group: t("Workspace"),
-        icon: PadlockIcon,
+        icon: ShieldIcon,
       },
       {
         name: t("Features"),
@@ -158,9 +173,18 @@ const useSettingsConfig = () => {
         path: settingsPath("templates"),
         component: Templates.Component,
         preload: Templates.preload,
-        enabled: can.readTemplate,
+        enabled: can.createTemplate,
         group: t("Workspace"),
         icon: ShapesIcon,
+      },
+      {
+        name: t("Emojis"),
+        path: settingsPath("emojis"),
+        component: CustomEmojis.Component,
+        preload: CustomEmojis.preload,
+        enabled: can.update,
+        group: t("Workspace"),
+        icon: SmileyIcon,
       },
       {
         name: t("API Keys"),

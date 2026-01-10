@@ -1,7 +1,8 @@
-import { OAuthClient } from "@server/models";
+import type { OAuthClient } from "@server/models";
 
 /**
- * Presents the OAuth client to the user.
+ * Presents the OAuth client to the user, including the client secret.
+ * This should ONLY be used for admin users who need to manage the OAuth client.
  *
  * @param oauthClient The OAuth client to present
  */
@@ -15,6 +16,7 @@ export default function presentOAuthClient(oauthClient: OAuthClient) {
     avatarUrl: oauthClient.avatarUrl,
     clientId: oauthClient.clientId,
     clientSecret: oauthClient.clientSecret,
+    clientType: oauthClient.clientType,
     redirectUris: oauthClient.redirectUris,
     published: oauthClient.published,
     createdAt: oauthClient.createdAt,

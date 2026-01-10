@@ -1,12 +1,8 @@
-import styled from "styled-components";
-import SuggestionsMenuItem, {
-  Props as SuggestionsMenuItemProps,
-} from "./SuggestionsMenuItem";
-
-const Emoji = styled.span`
-  font-size: 16px;
-  line-height: 1.6em;
-`;
+import type { Props as SuggestionsMenuItemProps } from "./SuggestionsMenuItem";
+import SuggestionsMenuItem from "./SuggestionsMenuItem";
+import { Emoji } from "~/components/Emoji";
+import { CustomEmoji } from "@shared/components/CustomEmoji";
+import { isUUID } from "validator";
 
 type EmojiMenuItemProps = Omit<
   SuggestionsMenuItemProps,
@@ -19,7 +15,9 @@ export default function EmojiMenuItem({ emoji, ...rest }: EmojiMenuItemProps) {
   return (
     <SuggestionsMenuItem
       {...rest}
-      icon={<Emoji className="emoji">{emoji}</Emoji>}
+      icon={
+        isUUID(emoji) ? <CustomEmoji value={emoji} /> : <Emoji>{emoji}</Emoji>
+      }
     />
   );
 }

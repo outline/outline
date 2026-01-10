@@ -32,6 +32,8 @@ export default function useDictionary() {
       comment: t("Comment"),
       copy: t("Copy"),
       createLink: t("Create link"),
+      editDiagram: t("Edit diagram"),
+      editImageUrl: t("Edit image URL"),
       createLinkError: t("Sorry, an error occurred creating the link"),
       createNewDoc: t("Create a new doc"),
       createNewChildDoc: t("Create a new child doc"),
@@ -49,6 +51,7 @@ export default function useDictionary() {
       em: t("Italic"),
       embedInvalidLink: t("Sorry, that link won’t work for this embed type"),
       file: t("File attachment"),
+      pdf: t("Embed PDF"),
       enterLink: `${t("Enter a link")}…`,
       h1: t("Big heading"),
       h2: t("Medium heading"),
@@ -58,6 +61,8 @@ export default function useDictionary() {
       hr: t("Divider"),
       image: t("Image"),
       fileUploadError: t("Sorry, an error occurred uploading the file"),
+      uploadingWithProgress: (progress: number) =>
+        t("Uploading… {{ progress }}%", { progress }),
       imageCaptionPlaceholder: t("Write a caption"),
       info: t("Info"),
       infoNotice: t("Info notice"),
@@ -108,6 +113,9 @@ export default function useDictionary() {
       untitled: t("Untitled"),
       none: t("None"),
       deleteEmbed: t("Delete embed"),
+      uploadImage: t("Upload an image"),
+      formattingControls: t("Formatting controls"),
+      distributeColumns: t("Distribute columns"),
     }),
     [t]
   );

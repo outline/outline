@@ -1,17 +1,18 @@
 import fractionalIndex from "fractional-index";
 import { StarredIcon } from "outline-icons";
 import * as React from "react";
-import { ConnectDragSource, useDrag, useDrop } from "react-dnd";
+import type { ConnectDragSource } from "react-dnd";
+import { useDrag, useDrop } from "react-dnd";
 import { getEmptyImage } from "react-dnd-html5-backend";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useTheme } from "styled-components";
 import Icon from "@shared/components/Icon";
-import { NavigationNode } from "@shared/types";
-import Collection from "~/models/Collection";
-import Document from "~/models/Document";
-import GroupMembership from "~/models/GroupMembership";
-import Star from "~/models/Star";
+import type { NavigationNode } from "@shared/types";
+import type Collection from "~/models/Collection";
+import type Document from "~/models/Document";
+import type GroupMembership from "~/models/GroupMembership";
+import type Star from "~/models/Star";
 import UserMembership from "~/models/UserMembership";
 import ConfirmMoveDialog from "~/components/ConfirmMoveDialog";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -176,6 +177,7 @@ export function useDragDocument(
 ) {
   const icon = document?.icon || node.icon || node.emoji;
   const color = document?.color || node.color;
+  const initial = document?.initial || node.title;
 
   const [{ isDragging }, draggableRef, preview] = useDrag<
     DragObject,
@@ -187,7 +189,9 @@ export function useDragDocument(
       ({
         ...node,
         depth,
-        icon: icon ? <Icon value={icon} color={color} /> : undefined,
+        icon: icon ? (
+          <Icon initial={initial} value={icon} color={color} />
+        ) : undefined,
         collectionId: document?.collectionId || "",
       }) as DragObject,
     canDrag: () => !!document?.isActive && !isEditing,
@@ -462,7 +466,7 @@ export function useDropToReorderDocument(
           } catch (err) {
             if (err instanceof AuthorizationError) {
               toast.error(
-                t("The {{ documentName }} cannot be moved here", {
+                t("{{ documentName }} cannot be moved here", {
                   documentName: item.title,
                 })
               );

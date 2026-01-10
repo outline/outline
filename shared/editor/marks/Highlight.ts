@@ -1,6 +1,6 @@
 import { rgba } from "polished";
 import { toggleMark } from "prosemirror-commands";
-import { MarkSpec, MarkType } from "prosemirror-model";
+import type { MarkSpec, MarkType } from "prosemirror-model";
 import { markInputRuleForPattern } from "../lib/markInputRule";
 import markRule from "../rules/mark";
 import Mark from "./Mark";

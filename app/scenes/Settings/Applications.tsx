@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import { InternetIcon } from "outline-icons";
 import { useTranslation, Trans } from "react-i18next";
-import OAuthClient from "~/models/oauth/OAuthClient";
+import type OAuthClient from "~/models/oauth/OAuthClient";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";

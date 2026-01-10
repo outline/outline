@@ -3,7 +3,11 @@ import * as React from "react";
 import scrollIntoView from "scroll-into-view-if-needed";
 import styled from "styled-components";
 import { usePortalContext } from "~/components/Portal";
-import { MenuButton, MenuLabel } from "~/components/primitives/components/Menu";
+import {
+  MenuButton,
+  MenuIconWrapper,
+  MenuLabel,
+} from "~/components/primitives/components/Menu";
 
 export type Props = {
   /** Whether the item is selected */
@@ -11,7 +15,7 @@ export type Props = {
   /** Whether the item is disabled */
   disabled?: boolean;
   /** Callback when the item is clicked */
-  onClick: (event: React.SyntheticEvent) => void;
+  onPointerDown: (event: React.SyntheticEvent) => void;
   /** Callback when the item is hovered */
   onPointerMove?: (event: React.SyntheticEvent) => void;
   /** An optional icon for the item */
@@ -27,7 +31,7 @@ export type Props = {
 function SuggestionsMenuItem({
   selected,
   disabled,
-  onClick,
+  onPointerDown,
   onPointerMove,
   title,
   subtitle,
@@ -56,11 +60,11 @@ function SuggestionsMenuItem({
     <MenuButton
       ref={ref}
       disabled={disabled}
-      onClick={onClick}
+      onPointerDown={onPointerDown}
       onPointerMove={disabled ? undefined : onPointerMove}
       $active={selected}
     >
-      {icon}
+      <MenuIconWrapper>{icon}</MenuIconWrapper>
       <MenuLabel>
         {title}
         {subtitle && (
@@ -88,4 +92,4 @@ const Shortcut = styled.span<{ $active?: boolean }>`
   text-align: right;
 `;
 
-export default SuggestionsMenuItem;
+export default React.memo(SuggestionsMenuItem);

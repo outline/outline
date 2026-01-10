@@ -1,9 +1,9 @@
-import {
+import type {
   InferAttributes,
   InferCreationAttributes,
-  Op,
   WhereOptions,
 } from "sequelize";
+import { Op } from "sequelize";
 import {
   ForeignKey,
   DefaultScope,
@@ -14,12 +14,8 @@ import {
   DataType,
 } from "sequelize-typescript";
 import { v4 as uuidv4 } from "uuid";
-import {
-  CollectionPermission,
-  FileOperationFormat,
-  FileOperationState,
-  FileOperationType,
-} from "@shared/types";
+import type { CollectionPermission, FileOperationFormat } from "@shared/types";
+import { FileOperationState, FileOperationType } from "@shared/types";
 import FileStorage from "@server/storage/files";
 import Collection from "./Collection";
 import Document from "./Document";
@@ -31,6 +27,7 @@ import { Buckets } from "./helpers/AttachmentHelper";
 
 export type FileOperationOptions = {
   includeAttachments?: boolean;
+  includePrivate?: boolean;
   permission?: CollectionPermission | null;
 };
 

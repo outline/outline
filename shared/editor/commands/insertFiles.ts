@@ -1,7 +1,7 @@
 import * as Sentry from "@sentry/react";
-import { EditorView } from "prosemirror-view";
-import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
+import type { EditorView } from "prosemirror-view";
+import { toast } from "sonner";
 import type { Dictionary } from "~/hooks/useDictionary";
 import FileHelper from "../lib/FileHelper";
 import uploadPlaceholderPlugin, {
@@ -16,11 +16,19 @@ export type Options = {
   /** Set to true to replace any existing image at the users selection */
   replaceExisting?: boolean;
   /** Callback fired to upload a file */
-  uploadFile?: (file: File | string) => Promise<string>;
+  uploadFile?: (
+    file: File | string,
+    options?: {
+      id?: string;
+      onProgress?: (fractionComplete: number) => void;
+    }
+  ) => Promise<string>;
   /** Callback fired when the user starts a file upload */
   onFileUploadStart?: () => void;
   /** Callback fired when the user completes a file upload */
   onFileUploadStop?: () => void;
+  /** Callback fired when file upload progress changes */
+  onFileUploadProgress?: (id: string, fractionComplete: number) => void;
   /** Attributes to overwrite */
   attrs?: {
     /** Width to use when inserting image */
@@ -40,8 +48,13 @@ const insertFiles = async function (
   files: File[],
   options: Options
 ) {
-  const { dictionary, uploadFile, onFileUploadStart, onFileUploadStop } =
-    options;
+  const {
+    dictionary,
+    uploadFile,
+    onFileUploadStart,
+    onFileUploadStop,
+    onFileUploadProgress,
+  } = options;
 
   // okay, we have some dropped files and a handler – lets stop this
   // event going any further up the stack
@@ -65,6 +78,7 @@ const insertFiles = async function (
         FileHelper.isVideo(file.type) &&
         !options.isAttachment &&
         !!schema.nodes.video;
+      const isPdf = FileHelper.isPdf(file.type) && !options.isAttachment;
       const getDimensions = isImage
         ? FileHelper.getImageDimensions
         : isVideo
@@ -72,10 +86,12 @@ const insertFiles = async function (
           : undefined;
 
       return {
-        id: `upload-${uuidv4()}`,
+        id: uuidv4(),
         dimensions: await getDimensions?.(file),
+        source: await FileHelper.getImageSourceAttr(file),
         isImage,
         isVideo,
+        isPdf,
         file,
       };
     })
@@ -97,7 +113,11 @@ const insertFiles = async function (
     // start uploading the file to the server. Using "then" syntax
     // to allow all placeholders to be entered at once with the uploads
     // happening in the background in parallel.
-    uploadFile?.(upload.file)
+    uploadFile?.(upload.file, {
+      id: upload.id,
+      onProgress: (progress) => onFileUploadProgress?.(upload.id, progress),
+    })
+      // then this should be able to get the full URL as well
       .then(async (src) => {
         if (view.isDestroyed) {
           return;
@@ -122,6 +142,7 @@ const insertFiles = async function (
                   to || from,
                   schema.nodes.image.create({
                     src,
+                    source: upload.source,
                     ...(upload.dimensions ?? {}),
                     ...options.attrs,
                   })
@@ -178,6 +199,9 @@ const insertFiles = async function (
                   href: src,
                   title: upload.file.name ?? dictionary.untitled,
                   size: upload.file.size,
+                  contentType: upload.file.type,
+                  preview: upload.isPdf,
+                  ...options.attrs,
                 })
               )
               .setMeta(uploadPlaceholderPlugin, { remove: { id: upload.id } })

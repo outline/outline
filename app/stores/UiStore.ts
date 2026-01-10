@@ -2,7 +2,7 @@ import { action, computed, observable } from "mobx";
 import { flushSync } from "react-dom";
 import { light as defaultTheme } from "@shared/styles/theme";
 import Storage from "@shared/utils/Storage";
-import Document from "~/models/Document";
+import type Document from "~/models/Document";
 import type { ConnectionStatus } from "~/scenes/Document/components/MultiplayerEditor";
 import { startViewTransition } from "~/utils/viewTransition";
 import type RootStore from "./RootStore";
@@ -85,6 +85,9 @@ class UiStore {
 
   @observable
   multiplayerErrorCode?: number;
+
+  @observable
+  debugSafeArea = false;
 
   rootStore: RootStore;
 
@@ -246,6 +249,11 @@ class UiStore {
   @action
   hideMobileSidebar = () => {
     this.mobileSidebarVisible = false;
+  };
+
+  @action
+  toggleDebugSafeArea = () => {
+    this.debugSafeArea = !this.debugSafeArea;
   };
 
   @computed

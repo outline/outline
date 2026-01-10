@@ -2,11 +2,13 @@ import { EditIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
-import { Avatar, AvatarSize, IAvatar } from "~/components/Avatar";
+import type { IAvatar } from "~/components/Avatar";
+import { Avatar, AvatarSize } from "~/components/Avatar";
 import { AvatarVariant } from "~/components/Avatar/Avatar";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
-import ImageUpload, { Props as ImageUploadProps } from "./ImageUpload";
+import type { Props as ImageUploadProps } from "./ImageUpload";
+import ImageUpload from "./ImageUpload";
 
 type Props = ImageUploadProps & {
   model: IAvatar;

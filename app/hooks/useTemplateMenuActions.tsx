@@ -3,16 +3,12 @@ import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import Icon from "@shared/components/Icon";
 import { TextHelper } from "@shared/utils/TextHelper";
-import Document from "~/models/Document";
-import {
-  ActionV2Separator,
-  createActionV2,
-  createActionV2Group,
-} from "~/actions";
+import type Document from "~/models/Document";
+import { ActionSeparator, createAction, createActionGroup } from "~/actions";
 import { DocumentsSection } from "~/actions/sections";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
-import { ActionV2 } from "~/types";
+import type { Action } from "~/types";
 import { useComputed } from "./useComputed";
 
 type Props = {
@@ -43,15 +39,19 @@ export function useTemplateMenuActions({
   const document = documents.get(documentId);
 
   const templateToAction = useCallback(
-    (template: Document): ActionV2 =>
-      createActionV2({
+    (template: Document): Action =>
+      createAction({
         name: TextHelper.replaceTemplateVariables(
           template.titleWithDefault,
           user
         ),
         section: DocumentsSection,
         icon: template.icon ? (
-          <Icon value={template.icon} color={template.color ?? undefined} />
+          <Icon
+            value={template.icon}
+            initial={template.initial}
+            color={template.color ?? undefined}
+          />
         ) : (
           <DocumentIcon />
         ),
@@ -84,8 +84,8 @@ export function useTemplateMenuActions({
 
     return [
       ...collectionTemplatesActions,
-      ActionV2Separator,
-      createActionV2Group({
+      ActionSeparator,
+      createActionGroup({
         name: t("Workspace"),
         actions: workspaceTemplatesActions,
       }),

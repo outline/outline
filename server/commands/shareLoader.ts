@@ -1,6 +1,7 @@
-import { Op, WhereOptions } from "sequelize";
+import type { WhereOptions } from "sequelize";
+import { Op } from "sequelize";
 import isUUID from "validator/lib/isUUID";
-import { NavigationNode } from "@shared/types";
+import type { NavigationNode } from "@shared/types";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import {
   AuthorizationError,
@@ -8,7 +9,8 @@ import {
   NotFoundError,
   PaymentRequiredError,
 } from "@server/errors";
-import { Collection, Document, Share, User } from "@server/models";
+import type { User } from "@server/models";
+import { Collection, Document, Share } from "@server/models";
 import { authorize, can } from "@server/policies";
 
 type LoadPublicShareProps = {
@@ -94,6 +96,10 @@ export async function loadPublicShare({
   } else if (share.document && share.includeChildDocuments) {
     sharedTree =
       associatedCollection?.getDocumentTree(share.document.id) ?? null;
+  }
+
+  if (sharedTree && share.domain) {
+    sharedTree.url = "";
   }
 
   if (collectionId && collectionId !== share.collectionId) {
@@ -230,7 +236,15 @@ export async function loadShareWithParent({
   return { share, parentShare };
 }
 
-function getAllIdsInSharedTree(sharedTree: NavigationNode | null): string[] {
+/**
+ * Recursively extracts all document IDs from a shared tree navigation node.
+ *
+ * @param sharedTree The navigation node representing the shared tree.
+ * @returns Array of all document IDs in the tree.
+ */
+export function getAllIdsInSharedTree(
+  sharedTree: NavigationNode | null
+): string[] {
   if (!sharedTree) {
     return [];
   }

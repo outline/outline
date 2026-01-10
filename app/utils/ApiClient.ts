@@ -2,7 +2,8 @@ import retry from "fetch-retry";
 import trim from "lodash/trim";
 import queryString from "query-string";
 import EDITOR_VERSION from "@shared/editor/version";
-import { JSONObject, Scope } from "@shared/types";
+import type { JSONObject } from "@shared/types";
+import { Scope } from "@shared/types";
 import stores from "~/stores";
 import Logger from "./Logger";
 import download from "./download";
@@ -33,6 +34,7 @@ interface FetchOptions {
   retry?: boolean;
   credentials?: "omit" | "same-origin" | "include";
   headers?: Record<string, string>;
+  baseUrl?: string;
 }
 
 const fetchWithRetry = retry(fetch);
@@ -96,14 +98,14 @@ class ApiClient {
     if (path.match(/^http/)) {
       urlToFetch = modifiedPath || path;
     } else {
-      urlToFetch = this.baseUrl + (modifiedPath || path);
+      urlToFetch = (options.baseUrl ?? this.baseUrl) + (modifiedPath || path);
     }
 
     const headerOptions: Record<string, string> = {
       Accept: "application/json",
       "cache-control": "no-cache",
       "x-editor-version": EDITOR_VERSION,
-      "x-api-version": "3",
+      "x-api-version": "4",
       pragma: "no-cache",
       ...options?.headers,
     };

@@ -4,7 +4,7 @@ import backend from "i18next-fs-backend";
 import { languages } from "@shared/i18n";
 import { unicodeBCP47toCLDR, unicodeCLDRtoBCP47 } from "@shared/utils/date";
 import env from "@server/env";
-import { User } from "@server/models";
+import type { User } from "@server/models";
 
 /**
  * Returns i18n options for the given user or the default server language if

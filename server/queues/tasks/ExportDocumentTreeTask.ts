@@ -1,9 +1,10 @@
 import path from "path";
-import JSZip from "jszip";
+import type JSZip from "jszip";
 import escapeRegExp from "lodash/escapeRegExp";
-import { FileOperationFormat, NavigationNode } from "@shared/types";
+import type { NavigationNode } from "@shared/types";
+import { FileOperationFormat } from "@shared/types";
 import Logger from "@server/logging/Logger";
-import { Collection } from "@server/models";
+import type { Collection } from "@server/models";
 import Attachment from "@server/models/Attachment";
 import Document from "@server/models/Document";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";

@@ -1,4 +1,4 @@
-import { LocationDescriptor } from "history";
+import type { LocationDescriptor } from "history";
 import { observer, useObserver } from "mobx-react";
 import { CommentIcon } from "outline-icons";
 import { useRef, Fragment } from "react";
@@ -6,8 +6,8 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { TeamPreference } from "@shared/types";
-import Document from "~/models/Document";
-import Revision from "~/models/Revision";
+import type Document from "~/models/Document";
+import type Revision from "~/models/Revision";
 import { openDocumentInsights } from "~/actions/definitions/documents";
 import DocumentMeta, { Separator } from "~/components/DocumentMeta";
 import Fade from "~/components/Fade";
@@ -85,12 +85,15 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
 const CommentLink = styled(Link)`
   display: inline-flex;
   align-items: center;
+  gap: 2px;
 `;
 
 const InsightsButton = styled(NudeButton)`
   background: none;
   border: none;
   padding: 0;
+  width: auto;
+  height: auto;
   color: inherit;
   font: inherit;
   text-decoration: none;

@@ -1,11 +1,12 @@
 import uniqBy from "lodash/uniqBy";
+import partition from "lodash/partition";
 import { UserRole } from "@shared/types";
 import InviteEmail from "@server/emails/templates/InviteEmail";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { User, Team } from "@server/models";
 import { UserFlag } from "@server/models/User";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import { DomainNotAllowedError } from "@server/errors";
 import { can } from "@server/policies";
 
@@ -24,6 +25,7 @@ export default async function userInviter(
   { invites }: Props
 ): Promise<{
   sent: Invite[];
+  unsent: Invite[];
   users: User[];
 }> {
   const { user } = ctx.state.auth;
@@ -61,8 +63,9 @@ export default async function userInviter(
   const existingEmails = existingUsers.map(
     (existingUser) => existingUser.email
   );
-  const filteredInvites = normalizedInvites.filter(
-    (invite) => !existingEmails.includes(invite.email)
+  const [existingInvites, filteredInvites] = partition(
+    normalizedInvites,
+    (invite) => existingEmails.includes(invite.email)
   );
   const users = [];
 
@@ -105,13 +108,14 @@ export default async function userInviter(
         "email",
         `Sign in immediately: ${
           env.URL
-        }/auth/email.callback?token=${newUser.getEmailSigninToken()}`
+        }/auth/email.callback?token=${newUser.getEmailSigninToken(ctx)}`
       );
     }
   }
 
   return {
     sent: filteredInvites,
+    unsent: existingInvites,
     users,
   };
 }

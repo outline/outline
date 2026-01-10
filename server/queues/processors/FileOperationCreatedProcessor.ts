@@ -1,6 +1,6 @@
 import { FileOperationFormat, FileOperationType } from "@shared/types";
 import { FileOperation } from "@server/models";
-import { Event as TEvent, FileOperationEvent } from "@server/types";
+import type { Event as TEvent, FileOperationEvent } from "@server/types";
 import ExportHTMLZipTask from "../tasks/ExportHTMLZipTask";
 import ExportJSONTask from "../tasks/ExportJSONTask";
 import ExportMarkdownZipTask from "../tasks/ExportMarkdownZipTask";

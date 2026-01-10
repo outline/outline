@@ -47,12 +47,18 @@ function usePosition({
 }) {
   const { view } = useEditor();
   const { selection } = view.state;
-  const menuWidth = menuRef.current?.offsetWidth ?? 0;
-  const menuHeight = menuRef.current?.offsetHeight ?? 0;
+  const [menuWidth, setMenuWidth] = React.useState(0);
+  const menuHeight = 36;
 
-  if (!active || !menuRef.current) {
-    return defaultPosition;
-  }
+  // Measure the menu width after DOM updates to ensure accurate positioning
+  React.useLayoutEffect(() => {
+    if (menuRef.current) {
+      const width = menuRef.current.offsetWidth;
+      if (width !== menuWidth) {
+        setMenuWidth(width);
+      }
+    }
+  });
 
   // based on the start and end of the selection calculate the position at
   // the center top
@@ -74,7 +80,7 @@ function usePosition({
     right: Math.max(fromPos.right, toPos.right),
   };
 
-  const offsetParent = menuRef.current.offsetParent
+  const offsetParent = menuRef.current?.offsetParent
     ? menuRef.current.offsetParent.getBoundingClientRect()
     : ({
         width: window.innerWidth,
@@ -99,10 +105,14 @@ function usePosition({
     if (position !== null) {
       const element = view.nodeDOM(position);
       const bounds = (element as HTMLElement).getBoundingClientRect();
-      selectionBounds.top = bounds.top;
+      selectionBounds.top = bounds.top + menuHeight;
       selectionBounds.left = bounds.right;
       selectionBounds.right = bounds.right;
     }
+  }
+
+  if (!active || !menuRef.current || !menuHeight) {
+    return defaultPosition;
   }
 
   // tables are an oddity, and need their own positioning logic
@@ -166,6 +176,8 @@ function usePosition({
         top: Math.round(top - menuHeight - offsetParent.top),
         offset: 0,
         visible: true,
+        blockSelection: false,
+        maxWidth: "100%",
       };
     }
   }
@@ -210,8 +222,12 @@ function usePosition({
     top: Math.round(top - offsetParent.top),
     offset: Math.round(offset),
     maxWidth: Math.min(window.innerWidth, offsetParent.width) - margin * 2,
-    blockSelection:
-      codeBlock || isColSelection || isRowSelection || noticeBlock,
+    blockSelection: !!(
+      codeBlock ||
+      isColSelection ||
+      isRowSelection ||
+      noticeBlock
+    ),
     visible: true,
   };
 }
@@ -247,10 +263,6 @@ const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
   const { height } = useWindowSize();
 
   if (isMobile) {
-    if (!props.children) {
-      return null;
-    }
-
     if (props.active && position.visible) {
       const rect = document.body.getBoundingClientRect();
       const safeAreaInsets = getSafeAreaInsets();
@@ -265,7 +277,9 @@ const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
               }px)`,
             }}
           >
-            {props.children}
+            {props.children && (
+              <MobileBackground>{props.children}</MobileBackground>
+            )}
           </MobileWrapper>
         </ReactPortal>
       );
@@ -278,17 +292,19 @@ const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
     <Portal>
       <Wrapper
         active={props.active && position.visible}
-        arrow={!position.blockSelection}
+        arrow={!!props.children && !position.blockSelection}
         ref={menuRef}
         $offset={position.offset}
         style={{
-          width: props.width,
+          minWidth: props.width,
           maxWidth: `${position.maxWidth}px`,
           top: `${position.top}px`,
           left: `${position.left}px`,
         }}
       >
-        <Background align={props.align}>{props.children}</Background>
+        {props.children && (
+          <Background align={props.align}>{props.children}</Background>
+        )}
       </Wrapper>
     </Portal>
   );
@@ -303,7 +319,7 @@ type WrapperProps = {
 const arrow = (props: WrapperProps) =>
   props.arrow
     ? css`
-        &::before {
+        &::after {
           content: "";
           display: block;
           width: 24px;
@@ -311,11 +327,14 @@ const arrow = (props: WrapperProps) =>
           transform: translateX(-50%) rotate(45deg);
           background: ${s("menuBackground")};
           border-radius: 3px;
-          z-index: -1;
+          z-index: 0;
           position: absolute;
-          bottom: -3px;
+          bottom: -2px;
           left: calc(50% - ${props.$offset || 0}px);
           pointer-events: none;
+
+          // clip to show only the bottom right corner
+          clip-path: polygon(100% 50%, 100% 100%, 50% 100%);
         }
       `
     : "";
@@ -324,13 +343,20 @@ const MobileWrapper = styled.div`
   position: absolute;
   left: 0;
   right: 0;
-
   width: 100vw;
-  padding: 10px 6px;
-  background-color: ${s("menuBackground")};
-  border-top: 1px solid ${s("divider")};
   box-sizing: border-box;
   z-index: ${depths.editorToolbar};
+
+  @media print {
+    display: none;
+  }
+`;
+
+const MobileBackground = styled.div`
+  padding: 10px 6px;
+  height: 60px;
+  background-color: ${s("menuBackground")};
+  border-top: 1px solid ${s("divider")};
 
   &:after {
     content: "";
@@ -339,10 +365,6 @@ const MobileWrapper = styled.div`
     right: 0;
     height: 100px;
     background-color: ${s("menuBackground")};
-  }
-
-  @media print {
-    display: none;
   }
 `;
 

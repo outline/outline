@@ -7,6 +7,7 @@ import {
   buildUser,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
+import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 
 const server = getTestServer();
 
@@ -126,6 +127,7 @@ describe("#revisions.update", () => {
     const admin = await buildAdmin();
     const document = await buildDocument({
       teamId: admin.teamId,
+      userId: admin.id,
     });
     const revision = await Revision.createFromDocument(
       createContext({ user: admin }),
@@ -190,8 +192,8 @@ describe("#revisions.diff", () => {
     expect(body.data).toContain("<html");
     expect(body.data).toContain("<style");
     expect(body.data).toContain("<h1");
-    expect(body.data).not.toContain("<ins");
-    expect(body.data).not.toContain("<del");
+    expect(body.data).not.toContain(`"${EditorStyleHelper.diffInsertion}`);
+    expect(body.data).not.toContain(`"${EditorStyleHelper.diffDeletion}`);
     expect(body.data).toContain(document.title);
   });
 
@@ -222,8 +224,8 @@ describe("#revisions.diff", () => {
     expect(body).toContain("<html");
     expect(body).toContain("<style");
     expect(body).toContain("<h1");
-    expect(body).not.toContain("<ins");
-    expect(body).not.toContain("<del");
+    expect(body).not.toContain(`"${EditorStyleHelper.diffInsertion}`);
+    expect(body).not.toContain(`"${EditorStyleHelper.diffDeletion}`);
     expect(body).toContain(document.title);
   });
 
@@ -270,8 +272,8 @@ describe("#revisions.diff", () => {
     expect(body.data).toContain("<html");
     expect(body.data).toContain("<style");
     expect(body.data).toContain("<h1");
-    expect(body.data).toContain("<ins");
-    expect(body.data).toContain("<del");
+    expect(body.data).toContain(`"${EditorStyleHelper.diffInsertion}`);
+    expect(body.data).toContain(`"${EditorStyleHelper.diffDeletion}`);
     expect(body.data).toContain(document.title);
   });
 
@@ -353,6 +355,116 @@ describe("#revisions.list", () => {
       body: {
         token: user.getJwtToken(),
         documentId: document.id,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+});
+
+describe("#revisions.export", () => {
+  it("should return revision as markdown by default", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const revision = await Revision.createFromDocument(
+      createContext({ user }),
+      document
+    );
+    const res = await server.post("/api/revisions.export", {
+      body: {
+        token: user.getJwtToken(),
+        id: revision.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toContain(document.title);
+  });
+
+  it("should return revision as markdown with accept header", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const revision = await Revision.createFromDocument(
+      createContext({ user }),
+      document
+    );
+    const res = await server.post("/api/revisions.export", {
+      body: {
+        token: user.getJwtToken(),
+        id: revision.id,
+      },
+      headers: {
+        accept: "text/markdown",
+      },
+    });
+    const body = await res.text();
+    expect(res.status).toEqual(200);
+    expect(body).toContain(document.title);
+  });
+
+  it("should return revision as html with accept header", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const revision = await Revision.createFromDocument(
+      createContext({ user }),
+      document
+    );
+    const res = await server.post("/api/revisions.export", {
+      body: {
+        token: user.getJwtToken(),
+        id: revision.id,
+      },
+      headers: {
+        accept: "text/html",
+      },
+    });
+    const body = await res.text();
+    expect(res.status).toEqual(200);
+    expect(body).toContain("<html");
+    expect(body).toContain(document.title);
+  });
+
+  it("should require authorization without token", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const revision = await Revision.createFromDocument(
+      createContext({ user }),
+      document
+    );
+    const res = await server.post("/api/revisions.export", {
+      body: {
+        id: revision.id,
+      },
+    });
+    expect(res.status).toEqual(401);
+  });
+
+  it("should require authorization with incorrect token", async () => {
+    const admin = await buildAdmin();
+    const document = await buildDocument({
+      teamId: admin.teamId,
+      userId: admin.id,
+    });
+    const revision = await Revision.createFromDocument(
+      createContext({ user: admin }),
+      document
+    );
+    const user = await buildUser();
+    const res = await server.post("/api/revisions.export", {
+      body: {
+        token: user.getJwtToken(),
+        id: revision.id,
       },
     });
     expect(res.status).toEqual(403);

@@ -1,4 +1,4 @@
-import { NodeSelection } from "prosemirror-state";
+import type { NodeSelection } from "prosemirror-state";
 import { useCallback, useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import Flex from "@shared/components/Flex";
@@ -26,7 +26,7 @@ export function MediaDimension() {
   const { state } = view;
   const { selection } = state;
 
-  // This component will be rendered only when the selection is image or video (NodeSelection types).
+  // This component will be rendered for specific media nodes like image, video or pdfs (NodeSelection types).
   const node = (selection as NodeSelection).node;
   const nodeType = node.type.name,
     width = node.attrs.width as number,
@@ -154,6 +154,11 @@ export function MediaDimension() {
 
     if (nodeType === "image") {
       commands["resizeImage"]({
+        width: finalWidth,
+        height: finalHeight,
+      });
+    } else if (nodeType === "attachment") {
+      commands["resizeAttachment"]({
         width: finalWidth,
         height: finalHeight,
       });

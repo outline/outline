@@ -1,4 +1,4 @@
-import { ColumnSort } from "@tanstack/react-table";
+import type { ColumnSort } from "@tanstack/react-table";
 import { useCallback } from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import useQuery from "~/hooks/useQuery";

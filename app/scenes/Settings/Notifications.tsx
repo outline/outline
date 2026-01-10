@@ -13,17 +13,18 @@ import {
   SmileyIcon,
   StarredIcon,
   UserIcon,
+  GroupIcon,
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
 import { NotificationEventType } from "@shared/types";
-import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import Notice from "~/components/Notice";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
+import { HStack } from "~/components/primitives/HStack";
 import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -68,6 +69,14 @@ function Notifications() {
       title: t("Mentioned"),
       description: t(
         "Receive a notification when someone mentions you in a document or comment"
+      ),
+    },
+    {
+      event: NotificationEventType.GroupMentionedInDocument,
+      icon: <GroupIcon />,
+      title: t("Group mentions"),
+      description: t(
+        "Receive a notification when someone mentions a group you are a member of in a document or comment"
       ),
     },
     {
@@ -191,9 +200,9 @@ function Notifications() {
             key={option.event}
             visible={option.visible}
             label={
-              <Flex align="center" gap={4}>
+              <HStack spacing={4}>
                 {option.icon} {option.title}
-              </Flex>
+              </HStack>
             }
             name={option.event}
             description={option.description}

@@ -1,5 +1,5 @@
 import invariant from "invariant";
-import Team from "~/models/Team";
+import type Team from "~/models/Team";
 import useStores from "./useStores";
 
 /**

@@ -1,8 +1,9 @@
-import emojiRegex from "emoji-regex";
 import isEmpty from "lodash/isEmpty";
 import { z } from "zod";
 import { CommentStatusFilter } from "@shared/types";
+import { basicSchema } from "@server/editor";
 import { BaseSchema, ProsemirrorSchema } from "@server/routes/api/schema";
+import { zodEmojiType } from "@server/utils/zod";
 
 const BaseIdSchema = z.object({
   /** Comment Id */
@@ -36,7 +37,7 @@ export const CommentsCreateSchema = BaseSchema.extend({
       parentCommentId: z.string().uuid().optional(),
 
       /** Create comment with this data */
-      data: ProsemirrorSchema().optional(),
+      data: ProsemirrorSchema({ schema: basicSchema }).optional(),
 
       /** Create comment with this text */
       text: z.string().optional(),
@@ -51,7 +52,7 @@ export type CommentsCreateReq = z.infer<typeof CommentsCreateSchema>;
 export const CommentsUpdateSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
     /** Update comment with this data */
-    data: ProsemirrorSchema(),
+    data: ProsemirrorSchema({ schema: basicSchema }),
   }),
 });
 
@@ -104,7 +105,7 @@ export type CommentsUnresolveReq = z.infer<typeof CommentsUnresolveSchema>;
 export const CommentsReactionSchema = z.object({
   body: BaseIdSchema.extend({
     /**  Emoji that's added to (or) removed from a comment as a reaction. */
-    emoji: z.string().regex(emojiRegex()),
+    emoji: zodEmojiType(),
   }),
 });
 

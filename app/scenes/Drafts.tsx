@@ -4,7 +4,7 @@ import queryString from "query-string";
 import { useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
-import { DateFilter as TDateFilter } from "@shared/types";
+import type { DateFilter as TDateFilter } from "@shared/types";
 import CollectionFilter from "~/scenes/Search/components/CollectionFilter";
 import { Action } from "~/components/Actions";
 import Empty from "~/components/Empty";
@@ -104,9 +104,10 @@ const Filters = styled(Flex)`
   opacity: 0.85;
   transition: opacity 100ms ease-in-out;
   position: absolute;
-  right: -8px;
+  right: 0;
   bottom: 0;
   padding: 0 0 6px;
+  gap: 4px;
 
   &:hover {
     opacity: 1;

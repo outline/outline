@@ -5,7 +5,7 @@ import uniq from "lodash/uniq";
 import { observer } from "mobx-react";
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import Document from "~/models/Document";
+import type Document from "~/models/Document";
 import { AvatarSize, AvatarWithPresence } from "~/components/Avatar";
 import DocumentViews from "~/components/DocumentViews";
 import Facepile from "~/components/Facepile";

@@ -5,12 +5,11 @@ import { useTranslation } from "react-i18next";
 import { useLocation, useParams } from "react-router-dom";
 import styled, { ThemeProvider } from "styled-components";
 import { s } from "@shared/styles";
-import { NavigationNode } from "@shared/types";
+import type { NavigationNode } from "@shared/types";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
-import Share from "~/models/Share";
+import type Share from "~/models/Share";
 import Error404 from "~/scenes/Errors/Error404";
-import ClickablePadding from "~/components/ClickablePadding";
 import { DocumentContextProvider } from "~/components/DocumentContext";
 import Layout from "~/components/Layout";
 import Sidebar from "~/components/Sidebar/Shared";
@@ -32,6 +31,8 @@ import { Collection as CollectionScene } from "./Collection";
 import { Document as DocumentScene } from "./Document";
 import DelayedMount from "~/components/DelayedMount";
 import lazyWithRetry from "~/utils/lazyWithRetry";
+import { ShareContext } from "@shared/hooks/useShare";
+import ClickablePadding from "~/components/ClickablePadding";
 
 const Login = lazyWithRetry(() => import("../Login"));
 
@@ -229,16 +230,16 @@ function SharedScene() {
   const hasSidebar = !!share.tree?.children.length;
 
   return (
-    <>
+    <ShareContext.Provider
+      value={{
+        shareId,
+        sharedTree: share.tree,
+      }}
+    >
       <Helmet>
         <link
           rel="canonical"
           href={canonicalOrigin + location.pathname.replace(/\/$/, "")}
-        />
-        <link
-          rel="sitemap"
-          type="application/xml"
-          href={Share.sitemapUrl(shareId)}
         />
       </Helmet>
       <TeamContext.Provider value={team}>
@@ -249,20 +250,16 @@ function SharedScene() {
               sidebar={hasSidebar ? <Sidebar share={share} /> : null}
             >
               {model instanceof Document ? (
-                <DocumentScene
-                  document={model}
-                  shareId={shareId}
-                  sharedTree={share.tree}
-                />
+                <DocumentScene document={model} />
               ) : model instanceof Collection ? (
-                <CollectionScene collection={model} shareId={shareId} />
+                <CollectionScene collection={model} />
               ) : null}
             </Layout>
             <ClickablePadding minHeight="20vh" />
           </DocumentContextProvider>
         </ThemeProvider>
       </TeamContext.Provider>
-    </>
+    </ShareContext.Provider>
   );
 }
 

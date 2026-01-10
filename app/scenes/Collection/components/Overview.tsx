@@ -1,6 +1,6 @@
 import debounce from "lodash/debounce";
 import { observer } from "mobx-react";
-import { useMemo, useRef, useCallback, Suspense } from "react";
+import { useMemo, useRef, useCallback, useEffect, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
@@ -8,25 +8,26 @@ import { richExtensions } from "@shared/editor/nodes";
 import { s } from "@shared/styles";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { CollectionValidation } from "@shared/validations";
-import Collection from "~/models/Collection";
-import Document from "~/models/Document";
+import type Collection from "~/models/Collection";
+import type Document from "~/models/Document";
 import Editor from "~/components/Editor";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import Text from "~/components/Text";
+import { MeasuredContainer } from "~/components/MeasuredContainer";
 import { withUIExtensions } from "~/editor/extensions";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import { Properties } from "~/types";
+import type { Properties } from "~/types";
 
 const extensions = withUIExtensions(richExtensions);
 
 type Props = {
   collection: Collection;
-  shareId?: string;
+  readOnly?: boolean;
 };
 
-function Overview({ collection, shareId }: Props) {
+function Overview({ collection, readOnly }: Props) {
   const { documents, collections } = useStores();
   const { t } = useTranslation();
   const user = useCurrentUser({ rejectOnEmpty: false });
@@ -45,6 +46,13 @@ function Overview({ collection, shareId }: Props) {
         }
       }, 1000),
     [collection, t]
+  );
+
+  useEffect(
+    () => () => {
+      handleSave.flush();
+    },
+    [handleSave]
   );
 
   const childRef = useRef<HTMLDivElement>(null);
@@ -81,20 +89,21 @@ function Overview({ collection, shareId }: Props) {
       {collections.isSaving && <LoadingIndicator />}
       {(collection.hasDescription || can.update) && (
         <Suspense fallback={<Placeholder>Loading…</Placeholder>}>
-          <Editor
-            defaultValue={collection.data}
-            onChange={handleSave}
-            placeholder={`${t("Add a description")}…`}
-            extensions={extensions}
-            maxLength={CollectionValidation.maxDescriptionLength}
-            onCreateLink={onCreateLink}
-            canUpdate={can.update}
-            readOnly={!can.update || !!shareId}
-            userId={user?.id}
-            editorStyle={editorStyle}
-            shareId={shareId}
-          />
-          <div ref={childRef} />
+          <MeasuredContainer name="document">
+            <Editor
+              defaultValue={collection.data}
+              onChange={handleSave}
+              placeholder={`${t("Add a description")}…`}
+              extensions={extensions}
+              maxLength={CollectionValidation.maxDescriptionLength}
+              onCreateLink={onCreateLink}
+              canUpdate={can.update}
+              readOnly={!can.update || readOnly}
+              userId={user?.id}
+              editorStyle={editorStyle}
+            />
+            <div ref={childRef} />
+          </MeasuredContainer>
         </Suspense>
       )}
     </>

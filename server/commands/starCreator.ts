@@ -1,7 +1,9 @@
 import fractionalIndex from "fractional-index";
-import { Sequelize, WhereOptions } from "sequelize";
-import { Star, User } from "@server/models";
-import { APIContext } from "@server/types";
+import type { WhereOptions } from "sequelize";
+import { Sequelize } from "sequelize";
+import type { User } from "@server/models";
+import { Star } from "@server/models";
+import type { APIContext } from "@server/types";
 
 type Props = {
   /** The user creating the star */

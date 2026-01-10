@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import { DownloadIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
-import FileOperation from "~/models/FileOperation";
+import type FileOperation from "~/models/FileOperation";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
 import PaginatedList from "~/components/PaginatedList";

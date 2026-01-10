@@ -3,7 +3,8 @@ import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
-import { InputSelect, Option } from "~/components/InputSelect";
+import type { Option } from "~/components/InputSelect";
+import { InputSelect } from "~/components/InputSelect";
 import useStores from "~/hooks/useStores";
 
 type DefaultCollectionInputSelectProps = {

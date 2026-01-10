@@ -1,6 +1,8 @@
 import JSZip from "jszip";
-import { FileOperationFormat, NavigationNode } from "@shared/types";
-import { Collection, Document, FileOperation } from "@server/models";
+import type { NavigationNode } from "@shared/types";
+import { FileOperationFormat } from "@shared/types";
+import type { Collection, FileOperation } from "@server/models";
+import type { Document } from "@server/models";
 import ExportDocumentTreeTask from "./ExportDocumentTreeTask";
 
 export default class ExportHTMLZipTask extends ExportDocumentTreeTask {

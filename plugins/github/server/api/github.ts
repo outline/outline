@@ -8,7 +8,7 @@ import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import validateWebhook from "@server/middlewares/validateWebhook";
 import { IntegrationAuthentication, Integration } from "@server/models";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import { GitHubUtils } from "../../shared/GitHubUtils";
 import env from "../env";
 import { GitHub } from "../github";

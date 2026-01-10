@@ -1,66 +1,63 @@
 /* global File Promise */
-import { PluginSimple } from "markdown-it";
+import type { PluginSimple } from "markdown-it";
 import { observable } from "mobx";
 import { Observer } from "mobx-react";
 import { darken, transparentize } from "polished";
 import { baseKeymap } from "prosemirror-commands";
 import { dropCursor } from "prosemirror-dropcursor";
 import { gapCursor } from "prosemirror-gapcursor";
-import { inputRules, InputRule } from "prosemirror-inputrules";
+import type { InputRule } from "prosemirror-inputrules";
+import { inputRules } from "prosemirror-inputrules";
 import { keymap } from "prosemirror-keymap";
-import { MarkdownParser } from "prosemirror-markdown";
-import {
-  Schema,
-  NodeSpec,
-  MarkSpec,
-  Node as ProsemirrorNode,
-} from "prosemirror-model";
-import { EditorState, Selection, Plugin, Transaction } from "prosemirror-state";
+import type { MarkdownParser } from "prosemirror-markdown";
+import type { NodeSpec, MarkSpec } from "prosemirror-model";
+import { Schema, Node as ProsemirrorNode } from "prosemirror-model";
+import type { Plugin, Transaction } from "prosemirror-state";
+import { EditorState, Selection } from "prosemirror-state";
 import {
   AddMarkStep,
   RemoveMarkStep,
   ReplaceAroundStep,
   ReplaceStep,
 } from "prosemirror-transform";
-import { Decoration, EditorView, NodeViewConstructor } from "prosemirror-view";
+import type { Decoration, NodeViewConstructor } from "prosemirror-view";
+import { EditorView } from "prosemirror-view";
 import * as React from "react";
-import styled, { css, DefaultTheme, ThemeProps } from "styled-components";
+import type { DefaultTheme, ThemeProps } from "styled-components";
+import styled, { css } from "styled-components";
 import insertFiles from "@shared/editor/commands/insertFiles";
 import Styles from "@shared/editor/components/Styles";
-import { EmbedDescriptor } from "@shared/editor/embeds";
-import Extension, {
-  CommandFactory,
-  WidgetProps,
-} from "@shared/editor/lib/Extension";
+import type { EmbedDescriptor } from "@shared/editor/embeds";
+import type { CommandFactory, WidgetProps } from "@shared/editor/lib/Extension";
+import type Extension from "@shared/editor/lib/Extension";
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
-import { MarkdownSerializer } from "@shared/editor/lib/markdown/serializer";
+import type { MarkdownSerializer } from "@shared/editor/lib/markdown/serializer";
 import textBetween from "@shared/editor/lib/textBetween";
-import Mark from "@shared/editor/marks/Mark";
+import type Mark from "@shared/editor/marks/Mark";
 import { basicExtensions as extensions } from "@shared/editor/nodes";
-import Node from "@shared/editor/nodes/Node";
-import ReactNode from "@shared/editor/nodes/ReactNode";
-import { ComponentProps } from "@shared/editor/types";
-import { ProsemirrorData, UserPreferences } from "@shared/types";
+import type Node from "@shared/editor/nodes/Node";
+import type ReactNode from "@shared/editor/nodes/ReactNode";
+import type { ComponentProps } from "@shared/editor/types";
+import type { ProsemirrorData, UserPreferences } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import EventEmitter from "@shared/utils/events";
-import Document from "~/models/Document";
+import type Document from "~/models/Document";
 import Flex from "~/components/Flex";
 import { PortalContext } from "~/components/Portal";
-import { Dictionary } from "~/hooks/useDictionary";
-import { Properties } from "~/types";
+import type { Dictionary } from "~/hooks/useDictionary";
+import type { Properties } from "~/types";
 import Logger from "~/utils/Logger";
 import ComponentView from "./components/ComponentView";
 import EditorContext from "./components/EditorContext";
-import { NodeViewRenderer } from "./components/NodeViewRenderer";
-import SelectionToolbar from "./components/SelectionToolbar";
+import type { NodeViewRenderer } from "./components/NodeViewRenderer";
+
 import WithTheme from "./components/WithTheme";
 import isNull from "lodash/isNull";
-import { map } from "lodash";
-import {
-  LightboxImage,
-  LightboxImageFactory,
-} from "@shared/editor/lib/Lightbox";
+import { isArray, map } from "lodash";
+import type { LightboxImage } from "@shared/editor/lib/Lightbox";
+import { LightboxImageFactory } from "@shared/editor/lib/Lightbox";
 import Lightbox from "~/components/Lightbox";
+import { anchorPlugin } from "@shared/editor/plugins/AnchorPlugin";
 
 export type Props = {
   /** An optional identifier for the editor context. It is used to persist local settings */
@@ -68,9 +65,9 @@ export type Props = {
   /** The user id of the current user */
   userId?: string;
   /** The editor content, should only be changed if you wish to reset the content */
-  value?: string | ProsemirrorData;
-  /** The initial editor content as a markdown string or JSON object */
-  defaultValue: string | object;
+  value?: string | ProsemirrorData | ProsemirrorNode;
+  /** The initial editor content as a markdown string, JSON object, or ProsemirrorNode */
+  defaultValue: string | ProsemirrorData | ProsemirrorNode;
   /** Placeholder displayed when the editor is empty */
   placeholder: string;
   /** Extensions to load into the editor */
@@ -98,7 +95,10 @@ export type Props = {
   /** Heading id to scroll to when the editor has loaded */
   scrollTo?: string;
   /** Callback for handling uploaded images, should return the url of uploaded file */
-  uploadFile?: (file: File) => Promise<string>;
+  uploadFile?: (
+    file: File | string,
+    options?: { id?: string; onProgress?: (fractionComplete: number) => void }
+  ) => Promise<string>;
   /** Callback when prosemirror nodes are initialized on document mount. */
   onInit?: () => void;
   /** Callback when prosemirror nodes are destroyed on document unmount. */
@@ -123,6 +123,8 @@ export type Props = {
   onFileUploadStart?: () => void;
   /** Callback when a file upload ends */
   onFileUploadStop?: () => void;
+  /** Callback when file upload progress changes */
+  onFileUploadProgress?: (id: string, fractionComplete: number) => void;
   /** Callback when a link is created, should return url to created document */
   onCreateLink?: (params: Properties<Document>) => Promise<string>;
   /** Callback when user clicks on any link in the document */
@@ -143,6 +145,7 @@ export type Props = {
   style?: React.CSSProperties;
   /** Optional style overrides for the contenteeditable */
   editorStyle?: React.CSSProperties;
+  lang?: string;
 };
 
 type State = {
@@ -150,8 +153,6 @@ type State = {
   isRTL: boolean;
   /** If the editor is currently focused */
   isEditorFocused: boolean;
-  /** If the toolbar for a text selection is visible */
-  selectionToolbarOpen: boolean;
   /** Image that's being currently viewed in Lightbox */
   activeLightboxImage: LightboxImage | null;
 };
@@ -182,7 +183,6 @@ export class Editor extends React.PureComponent<
   state: State = {
     isRTL: false,
     isEditorFocused: false,
-    selectionToolbarOpen: false,
     activeLightboxImage: null,
   };
 
@@ -270,19 +270,12 @@ export class Editor extends React.PureComponent<
       this.calculateDir();
     }
 
-    if (
-      !this.isBlurred &&
-      !this.state.isEditorFocused &&
-      !this.state.selectionToolbarOpen
-    ) {
+    if (!this.isBlurred && !this.state.isEditorFocused) {
       this.isBlurred = true;
       this.props.onBlur?.();
     }
 
-    if (
-      this.isBlurred &&
-      (this.state.isEditorFocused || this.state.selectionToolbarOpen)
-    ) {
+    if (this.isBlurred && this.state.isEditorFocused) {
       this.isBlurred = false;
       this.props.onFocus?.();
     }
@@ -407,7 +400,7 @@ export class Editor extends React.PureComponent<
     });
   }
 
-  private createState(value?: string | object) {
+  private createState(value?: string | ProsemirrorData | ProsemirrorNode) {
     const doc = this.createDocument(value || this.props.defaultValue);
 
     return EditorState.create({
@@ -416,6 +409,7 @@ export class Editor extends React.PureComponent<
       plugins: [
         ...this.keymaps,
         ...this.plugins,
+        anchorPlugin(),
         dropCursor({
           color: this.props.theme.cursor,
         }),
@@ -428,7 +422,12 @@ export class Editor extends React.PureComponent<
     });
   }
 
-  private createDocument(content: string | object) {
+  private createDocument(content: string | object | ProsemirrorNode) {
+    // Already a ProsemirrorNode
+    if (content instanceof ProsemirrorNode) {
+      return content;
+    }
+
     // Looks like Markdown
     if (typeof content === "string") {
       return this.parser.parse(content) || undefined;
@@ -678,19 +677,36 @@ export class Editor extends React.PureComponent<
   public removeComment = (commentId: string) => {
     const { state, dispatch } = this.view;
     const tr = state.tr;
+    let markRemoved = false;
 
     state.doc.descendants((node, pos) => {
-      if (!node.isInline) {
-        return;
+      if (markRemoved) {
+        return false;
       }
-
       const mark = node.marks.find(
         (m) => m.type === state.schema.marks.comment && m.attrs.id === commentId
       );
 
       if (mark) {
         tr.removeMark(pos, pos + node.nodeSize, mark);
+        markRemoved = true;
+        return;
       }
+
+      if (isArray(node.attrs?.marks)) {
+        const existingMarks = node.attrs.marks;
+        const updatedMarks = existingMarks.filter(
+          (mark: any) => mark.attrs.id !== commentId
+        );
+        const attrs = {
+          ...node.attrs,
+          marks: updatedMarks,
+        };
+        tr.setNodeMarkup(pos, undefined, attrs);
+        markRemoved = true;
+      }
+
+      return;
     });
 
     dispatch(tr);
@@ -699,7 +715,7 @@ export class Editor extends React.PureComponent<
   /**
    * Update all marks related to a specific comment in the document.
    *
-   * @param commentId The id of the comment to remove
+   * @param commentId The id of the comment to update
    * @param attrs The attributes to update
    */
   public updateComment = (
@@ -708,10 +724,11 @@ export class Editor extends React.PureComponent<
   ) => {
     const { state, dispatch } = this.view;
     const tr = state.tr;
+    let markUpdated = false;
 
     state.doc.descendants((node, pos) => {
-      if (!node.isInline) {
-        return;
+      if (markUpdated) {
+        return false;
       }
 
       const mark = node.marks.find(
@@ -725,9 +742,27 @@ export class Editor extends React.PureComponent<
           ...mark.attrs,
           ...attrs,
         });
-
         tr.removeMark(from, to, mark).addMark(from, to, newMark);
+        markUpdated = true;
+        return;
       }
+
+      if (isArray(node.attrs?.marks)) {
+        const existingMarks = node.attrs.marks;
+        const updatedMarks = existingMarks.map((mark: any) =>
+          mark.type === "comment" && mark.attrs.id === commentId
+            ? { ...mark, attrs: { ...mark.attrs, ...attrs } }
+            : mark
+        );
+        const newAttrs = {
+          ...node.attrs,
+          marks: updatedMarks,
+        };
+        tr.setNodeMarkup(pos, undefined, newAttrs);
+        markUpdated = true;
+      }
+
+      return;
     });
 
     dispatch(tr);
@@ -791,23 +826,6 @@ export class Editor extends React.PureComponent<
     return false;
   };
 
-  private handleOpenSelectionToolbar = () => {
-    this.setState((state) => ({
-      ...state,
-      selectionToolbarOpen: true,
-    }));
-  };
-
-  private handleCloseSelectionToolbar = () => {
-    if (!this.state.selectionToolbarOpen) {
-      return;
-    }
-    this.setState((state) => ({
-      ...state,
-      selectionToolbarOpen: false,
-    }));
-  };
-
   public render() {
     const { readOnly, canUpdate, grow, style, className, onKeyDown } =
       this.props;
@@ -835,23 +853,17 @@ export class Editor extends React.PureComponent<
               editorStyle={this.props.editorStyle}
               commenting={!!this.props.onClickCommentMark}
               ref={this.elementRef}
-              lang=""
+              lang={this.props.lang ?? ""}
             />
-            {this.view && (
-              <SelectionToolbar
-                rtl={isRTL}
-                readOnly={readOnly}
-                canUpdate={this.props.canUpdate}
-                canComment={this.props.canComment}
-                isTemplate={this.props.template === true}
-                onOpen={this.handleOpenSelectionToolbar}
-                onClose={this.handleCloseSelectionToolbar}
-                onClickLink={this.props.onClickLink}
-              />
-            )}
+
             {this.widgets &&
               Object.values(this.widgets).map((Widget, index) => (
-                <Widget key={String(index)} rtl={isRTL} readOnly={readOnly} />
+                <Widget
+                  key={String(index)}
+                  rtl={isRTL}
+                  readOnly={readOnly}
+                  selection={this.view.state.selection}
+                />
               ))}
             <Observer>
               {() => (
@@ -880,9 +892,14 @@ const EditorContainer = styled(Styles)<{
   ${(props) =>
     props.focusedCommentId &&
     css`
-      #comment-${props.focusedCommentId} {
+      span#comment-${props.focusedCommentId} {
         background: ${transparentize(0.5, props.theme.brand.marine)};
         border-bottom: 2px solid ${props.theme.commentMarkBackground};
+      }
+      a#comment-${props.focusedCommentId}
+        ~ span.component-image
+        div.image-wrapper {
+        outline: ${props.theme.commentMarkBackground} solid 2px;
       }
     `}
 
@@ -903,7 +920,7 @@ const EditorContainer = styled(Styles)<{
 `;
 
 const LazyLoadedEditor = React.forwardRef<Editor, Props>(
-  function _LazyLoadedEditor(props: Props, ref) {
+  function LazyLoadedEditor_(props: Props, ref) {
     return (
       <WithTheme>
         {(theme) => <Editor theme={theme} {...props} ref={ref} />}

@@ -1,10 +1,11 @@
 /* oxlint-disable react/prop-types */
 import * as React from "react";
-import Tooltip, { Props as TooltipProps } from "~/components/Tooltip";
-import { performAction, performActionV2, resolve } from "~/actions";
+import type { Props as TooltipProps } from "~/components/Tooltip";
+import Tooltip from "~/components/Tooltip";
+import { performAction, resolve } from "~/actions";
 import useIsMounted from "~/hooks/useIsMounted";
-import { Action, ActionV2Variant, ActionV2WithChildren } from "~/types";
 import useActionContext from "~/hooks/useActionContext";
+import type { ActionVariant, ActionWithChildren } from "~/types";
 
 export type Props = React.HTMLAttributes<HTMLButtonElement> & {
   /** Show the button in a disabled state */
@@ -12,7 +13,7 @@ export type Props = React.HTMLAttributes<HTMLButtonElement> & {
   /** Hide the button entirely if action is not applicable */
   hideOnActionDisabled?: boolean;
   /** Action to use on button */
-  action?: Action | Exclude<ActionV2Variant, ActionV2WithChildren>;
+  action?: Exclude<ActionVariant, ActionWithChildren>;
   /** If tooltip props are provided the button will be wrapped in a tooltip */
   tooltip?: Omit<TooltipProps, "children">;
 };
@@ -21,7 +22,7 @@ export type Props = React.HTMLAttributes<HTMLButtonElement> & {
  * Button that can be used to trigger an action definition.
  */
 const ActionButton = React.forwardRef<HTMLButtonElement, Props>(
-  function _ActionButton(
+  function ActionButton_(
     { action, tooltip, hideOnActionDisabled, ...rest }: Props,
     ref: React.Ref<HTMLButtonElement>
   ) {
@@ -30,19 +31,19 @@ const ActionButton = React.forwardRef<HTMLButtonElement, Props>(
     });
     const isMounted = useIsMounted();
     const [executing, setExecuting] = React.useState(false);
-    const disabled = rest.disabled;
 
     if (!actionContext || !action) {
       return <button {...rest} ref={ref} />;
     }
 
-    if (
-      action.visible &&
-      !resolve<boolean>(action.visible, actionContext) &&
-      hideOnActionDisabled
-    ) {
+    const actionIsDisabled =
+      action.visible && !resolve<boolean>(action.visible, actionContext);
+
+    if (actionIsDisabled && hideOnActionDisabled) {
       return null;
     }
+
+    const disabled = rest.disabled || actionIsDisabled;
 
     const label =
       rest["aria-label"] ??
@@ -61,10 +62,7 @@ const ActionButton = React.forwardRef<HTMLButtonElement, Props>(
             ? (ev) => {
                 ev.preventDefault();
                 ev.stopPropagation();
-                const response =
-                  "variant" in action
-                    ? performActionV2(action, actionContext)
-                    : performAction(action, actionContext);
+                const response = performAction(action, actionContext);
                 if (response?.finally) {
                   setExecuting(true);
                   void response.finally(

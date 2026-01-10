@@ -1,23 +1,31 @@
-import { Token } from "markdown-it";
+import type { Token } from "markdown-it";
 import { InputRule } from "prosemirror-inputrules";
-import { Node as ProsemirrorNode, NodeSpec, NodeType } from "prosemirror-model";
-import { TextSelection, NodeSelection, Command } from "prosemirror-state";
+import type {
+  Node as ProsemirrorNode,
+  NodeSpec,
+  NodeType,
+} from "prosemirror-model";
+import type { Command } from "prosemirror-state";
+import { TextSelection, NodeSelection } from "prosemirror-state";
 import * as React from "react";
-import { Primitive } from "utility-types";
+import type { Primitive } from "utility-types";
 import { getEventFiles } from "../../utils/files";
 import { sanitizeUrl } from "../../utils/urls";
 import { AttachmentValidation } from "../../validations";
-import insertFiles, { Options } from "../commands/insertFiles";
+import type { Options } from "../commands/insertFiles";
+import insertFiles from "../commands/insertFiles";
 import { default as ImageComponent } from "../components/Image";
-import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import uploadPlaceholderPlugin from "../lib/uploadPlaceholder";
 import { UploadPlugin } from "../plugins/UploadPlugin";
-import { ComponentProps } from "../types";
+import type { ComponentProps } from "../types";
 import Node from "./Node";
 import { LightboxImageFactory } from "../lib/Lightbox";
 
 export default class SimpleImage extends Node {
-  options: Options;
+  options: Options & {
+    userId?: string;
+  };
 
   get name() {
     return "image";
@@ -74,6 +82,8 @@ export default class SimpleImage extends Node {
           },
         ],
       ],
+      leafText: (node) =>
+        node.attrs.alt ? `(image: ${node.attrs.alt})` : "(image)",
     };
   }
 
@@ -148,8 +158,12 @@ export default class SimpleImage extends Node {
         }
         const { view } = this.editor;
         const { node } = state.selection;
-        const { uploadFile, onFileUploadStart, onFileUploadStop } =
-          this.editor.props;
+        const {
+          uploadFile,
+          onFileUploadStart,
+          onFileUploadStop,
+          onFileUploadProgress,
+        } = this.editor.props;
 
         if (!uploadFile) {
           throw new Error("uploadFile prop is required to replace images");
@@ -169,6 +183,7 @@ export default class SimpleImage extends Node {
             uploadFile,
             onFileUploadStart,
             onFileUploadStop,
+            onFileUploadProgress,
             dictionary: this.options.dictionary,
             replaceExisting: true,
             attrs: {

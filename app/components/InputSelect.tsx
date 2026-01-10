@@ -1,6 +1,5 @@
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { QuestionMarkIcon } from "outline-icons";
-import { transparentize } from "polished";
 import * as React from "react";
 import styled from "styled-components";
 import { s } from "@shared/styles";
@@ -51,7 +50,7 @@ export type Item = {
 
 export type Option = Item | Separator;
 
-type Props = {
+type Props = Omit<React.HTMLAttributes<HTMLButtonElement>, "onChange"> & {
   /* Options to display in the select menu. */
   options: Option[];
   /* Current chosen value. */
@@ -342,9 +341,9 @@ function Option({
       {option.description && (
         <>
           &nbsp;
-          <Description type="tertiary" size="small" ellipsis>
+          <Text type="tertiary" size="small" ellipsis>
             – {option.description}
-          </Description>
+          </Text>
         </>
       )}
     </OptionContainer>
@@ -358,15 +357,6 @@ const Wrapper = styled.label<{ short?: boolean }>`
 
 const OptionContainer = styled(Flex)`
   min-height: 24px;
-`;
-
-const Description = styled(Text)`
-  @media (hover: hover) {
-    &:hover,
-    &:focus {
-      color: ${(props) => transparentize(0.5, props.theme.accentText)};
-    }
-  }
 `;
 
 const IconWrapper = styled.span`

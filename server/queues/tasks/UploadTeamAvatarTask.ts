@@ -1,8 +1,8 @@
-import { v4 as uuidv4 } from "uuid";
-import { Team } from "@server/models";
-import { Buckets } from "@server/models/helpers/AttachmentHelper";
-import FileStorage from "@server/storage/files";
-import BaseTask, { TaskPriority } from "./BaseTask";
+import { AttachmentPreset } from "@shared/types";
+import attachmentCreator from "@server/commands/attachmentCreator";
+import { createContext } from "@server/context";
+import { Team, User } from "@server/models";
+import { BaseTask, TaskPriority } from "./base/BaseTask";
 
 type Props = {
   /** The teamId to operate on */
@@ -21,14 +21,26 @@ export default class UploadTeamAvatarTask extends BaseTask<Props> {
       rejectOnEmpty: true,
     });
 
-    const res = await FileStorage.storeFromUrl(
-      props.avatarUrl,
-      `${Buckets.avatars}/${team.id}/${uuidv4()}`,
-      "public-read"
-    );
+    const user = await User.findOne({
+      where: {
+        teamId: team.id,
+      },
+    });
 
-    if (res?.url) {
-      await team.update({ avatarUrl: res.url });
+    if (!user) {
+      return;
+    }
+
+    const attachment = await attachmentCreator({
+      name: "avatar",
+      url: props.avatarUrl,
+      user,
+      preset: AttachmentPreset.Avatar,
+      ctx: createContext({ user }),
+    });
+
+    if (attachment) {
+      await team.update({ avatarUrl: attachment.url });
     }
   }
 

@@ -16,7 +16,7 @@ import {
 import { id as bodyContentId } from "~/components/SkipNavContent";
 import useKeyDown from "~/hooks/useKeyDown";
 import useStores from "~/hooks/useStores";
-import { SearchResult } from "~/types";
+import type { SearchResult } from "~/types";
 import SearchListItem from "./SearchListItem";
 
 interface Props extends React.HTMLAttributes<HTMLInputElement> {
@@ -48,6 +48,11 @@ function SearchPopover({ shareId, className }: Props) {
     }
   }, [searchResults, query]);
 
+  // Clear search results when the query changes to prevent stale results
+  React.useEffect(() => {
+    setSearchResults(undefined);
+  }, [query]);
+
   const performSearch = React.useCallback(
     async ({ query: searchQuery, ...options }) => {
       if (searchQuery?.length > 0) {
@@ -58,7 +63,7 @@ function SearchPopover({ shareId, className }: Props) {
         });
 
         if (response.length) {
-          setSearchResults(response);
+          setSearchResults((state) => [...(state ?? []), ...response]);
         }
 
         return response;

@@ -2,14 +2,13 @@ import path from "path";
 import fs from "fs-extra";
 import chunk from "lodash/chunk";
 import truncate from "lodash/truncate";
-import { InferCreationAttributes } from "sequelize";
+import type { InferCreationAttributes } from "sequelize";
 import tmp from "tmp";
+import type { CollectionSort, ProsemirrorData } from "@shared/types";
 import {
   AttachmentPreset,
   CollectionPermission,
-  CollectionSort,
   FileOperationState,
-  ProsemirrorData,
 } from "@shared/types";
 import { CollectionValidation } from "@shared/validations";
 import attachmentCreator from "@server/commands/attachmentCreator";
@@ -28,7 +27,7 @@ import {
 import { sequelize } from "@server/storage/database";
 import ZipHelper from "@server/utils/ZipHelper";
 import { generateUrlId } from "@server/utils/url";
-import BaseTask, { TaskPriority } from "./BaseTask";
+import { BaseTask, TaskPriority } from "./base/BaseTask";
 import env from "@server/env";
 
 type Props = {
@@ -161,6 +160,8 @@ export default abstract class ImportTask extends BaseTask<Props> {
 
       return result;
     } catch (error) {
+      Logger.error(`ImportTask failed for ${fileOperationId}`, error);
+
       await this.updateFileOperation(
         fileOperation,
         FileOperationState.Error,
@@ -433,7 +434,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
               );
             }
 
-            const document = await documentCreator({
+            const document = await documentCreator(ctx, {
               sourceMetadata: {
                 fileName: path.basename(item.path),
                 mimeType: item.mimeType,
@@ -453,8 +454,6 @@ export default abstract class ImportTask extends BaseTask<Props> {
               publishedAt: item.updatedAt ?? item.createdAt ?? new Date(),
               parentDocumentId: item.parentDocumentId,
               importId: fileOperation.id,
-              user,
-              ctx: createContext({ user, transaction }),
             });
             documents.set(item.id, document);
 

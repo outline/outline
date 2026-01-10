@@ -1,5 +1,6 @@
 import Router from "koa-router";
-import { Sequelize, Op, WhereOptions } from "sequelize";
+import type { WhereOptions } from "sequelize";
+import { Sequelize, Op } from "sequelize";
 import {
   CollectionPermission,
   CollectionStatusFilter,
@@ -36,7 +37,7 @@ import {
   presentGroupMembership,
   presentFileOperation,
 } from "@server/presenters";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { collectionIndexing } from "@server/utils/indexing";
@@ -211,22 +212,28 @@ router.post(
     authorize(user, "update", collection);
     authorize(user, "read", group);
 
-    const [membership, created] = await GroupMembership.findOrCreate({
+    let membership = await GroupMembership.findOne({
       where: {
         collectionId: id,
         groupId,
-      },
-      defaults: {
-        permission,
-        createdById: user.id,
       },
       lock: transaction.LOCK.UPDATE,
       ...ctx.context,
     });
 
-    if (!created) {
+    if (membership) {
       membership.permission = permission;
       await membership.save(ctx.context);
+    } else {
+      membership = await GroupMembership.create(
+        {
+          collectionId: id,
+          groupId,
+          permission,
+          createdById: user.id,
+        },
+        ctx.context
+      );
     }
 
     const groupMemberships = [presentGroupMembership(membership)];
@@ -365,22 +372,28 @@ router.post(
     authorize(actor, "update", collection);
     authorize(actor, "read", user);
 
-    const [membership, isNew] = await UserMembership.findOrCreate({
+    let membership = await UserMembership.findOne({
       where: {
         collectionId: id,
         userId,
-      },
-      defaults: {
-        permission: permission || user.defaultCollectionPermission,
-        createdById: actor.id,
       },
       lock: transaction.LOCK.UPDATE,
       ...ctx.context,
     });
 
-    if (!isNew && permission) {
-      membership.permission = permission;
+    if (membership) {
+      membership.permission = permission || user.defaultCollectionPermission;
       await membership.save(ctx.context);
+    } else {
+      membership = await UserMembership.create(
+        {
+          collectionId: id,
+          userId,
+          permission: permission || user.defaultCollectionPermission,
+          createdById: actor.id,
+        },
+        ctx.context
+      );
     }
 
     ctx.body = {
@@ -498,9 +511,7 @@ router.post(
     const { id, format, includeAttachments } = ctx.input.body;
     const { transaction } = ctx.state;
     const { user } = ctx.state.auth;
-
-    const team = await Team.findByPk(user.teamId, { transaction });
-    authorize(user, "createExport", team);
+    const { team } = user;
 
     const collection = await Collection.findByPk(id, {
       userId: user.id,
@@ -510,8 +521,8 @@ router.post(
 
     const fileOperation = await collectionExporter({
       collection,
-      user,
       team,
+      user,
       format,
       includeAttachments,
       ctx,
@@ -533,7 +544,7 @@ router.post(
   validate(T.CollectionsExportAllSchema),
   transaction(),
   async (ctx: APIContext<T.CollectionsExportAllReq>) => {
-    const { format, includeAttachments } = ctx.input.body;
+    const { format, includeAttachments, includePrivate } = ctx.input.body;
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
     const team = await Team.findByPk(user.teamId, { transaction });
@@ -544,6 +555,7 @@ router.post(
       team,
       format,
       includeAttachments,
+      includePrivate,
       ctx,
     });
 
@@ -589,18 +601,28 @@ router.post(
       permission !== CollectionPermission.ReadWrite &&
       collection.permission === CollectionPermission.ReadWrite
     ) {
-      await UserMembership.findOrCreate({
+      let membership = await UserMembership.findOne({
         where: {
           collectionId: collection.id,
           userId: user.id,
         },
-        defaults: {
-          permission: CollectionPermission.Admin,
-          createdById: user.id,
-        },
         transaction,
-        hooks: false,
       });
+
+      if (!membership) {
+        await UserMembership.create(
+          {
+            collectionId: collection.id,
+            userId: user.id,
+            permission: CollectionPermission.Admin,
+            createdById: user.id,
+          },
+          {
+            transaction,
+            hooks: false,
+          }
+        );
+      }
     }
 
     let privacyChanged = false;

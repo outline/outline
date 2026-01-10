@@ -1,12 +1,10 @@
 import compact from "lodash/compact";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import styled from "styled-components";
 import Text from "@shared/components/Text";
-import User from "~/models/User";
+import type User from "~/models/User";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import Badge from "~/components/Badge";
-import Flex from "~/components/Flex";
 import { HEADER_HEIGHT } from "~/components/Header";
 import {
   type Props as TableProps,
@@ -18,6 +16,8 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import useMobile from "~/hooks/useMobile";
 import UserMenu from "~/menus/UserMenu";
 import { FILTER_HEIGHT } from "./StickyFilters";
+import { HStack } from "~/components/primitives/HStack";
+import { VStack } from "~/components/primitives/VStack";
 
 const ROW_HEIGHT = 60;
 const STICKY_OFFSET = HEADER_HEIGHT + FILTER_HEIGHT;
@@ -40,17 +40,19 @@ export function MembersTable({ canManage, ...rest }: Props) {
           header: t("Name"),
           accessor: (user) => user.name,
           component: (user) => (
-            <Flex align="center" gap={8}>
-              <Avatar model={user} size={AvatarSize.Large} />{" "}
-              <Flex column>
-                <Text>
+            <HStack>
+              <Avatar model={user} size={AvatarSize.Large} />
+              <VStack align="flex-start" spacing={0}>
+                <Text selectable>
                   {user.name} {currentUser.id === user.id && `(${t("You")})`}
                 </Text>
                 {isMobile && canManage && (
-                  <Text type="tertiary">{user.email}</Text>
+                  <Text type="tertiary" selectable>
+                    {user.email}
+                  </Text>
                 )}
-              </Flex>
-            </Flex>
+              </VStack>
+            </HStack>
           ),
           width: "4fr",
         },
@@ -83,7 +85,7 @@ export function MembersTable({ canManage, ...rest }: Props) {
           header: t("Role"),
           accessor: (user) => user.role,
           component: (user) => (
-            <Badges wrap>
+            <HStack spacing={4} wrap>
               {!user.lastActiveAt && <Badge>{t("Invited")}</Badge>}
               {user.isAdmin ? (
                 <Badge primary>{t("Admin")}</Badge>
@@ -95,7 +97,7 @@ export function MembersTable({ canManage, ...rest }: Props) {
                 <Badge>{t("Editor")}</Badge>
               )}
               {user.isSuspended && <Badge>{t("Suspended")}</Badge>}
-            </Badges>
+            </HStack>
           ),
           width: "2fr",
         },
@@ -121,8 +123,3 @@ export function MembersTable({ canManage, ...rest }: Props) {
     />
   );
 }
-
-const Badges = styled(Flex)`
-  margin-left: -10px;
-  row-gap: 4px;
-`;

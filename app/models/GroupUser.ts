@@ -1,4 +1,4 @@
-import { GroupPermission } from "@shared/types";
+import type { GroupPermission } from "@shared/types";
 import Group from "./Group";
 import User from "./User";
 import Model from "./base/Model";

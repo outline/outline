@@ -1,8 +1,8 @@
-import { ParameterizedContext, DefaultContext } from "koa";
-import { IRouterParamContext } from "koa-router";
-import { InferAttributes, Model, Transaction } from "sequelize";
-import { z } from "zod";
-import {
+import type { ParameterizedContext, DefaultContext } from "koa";
+import type { IRouterParamContext } from "koa-router";
+import type { InferAttributes, Model, Transaction } from "sequelize";
+import type { z } from "zod";
+import type {
   CollectionSort,
   NavigationNode,
   Client,
@@ -12,8 +12,8 @@ import {
   ProsemirrorData,
   UnfurlResponse,
 } from "@shared/types";
-import { BaseSchema } from "@server/routes/api/schema";
-import { AccountProvisionerResult } from "./commands/accountProvisioner";
+import type { BaseSchema } from "@server/routes/api/schema";
+import type { AccountProvisionerResult } from "./commands/accountProvisioner";
 import type {
   ApiKey,
   Attachment,
@@ -23,6 +23,7 @@ import type {
   Team,
   User,
   UserMembership,
+  UserPasskey,
   WebhookSubscription,
   Pin,
   Star,
@@ -51,9 +52,14 @@ export type AuthenticationResult = AccountProvisionerResult & {
 };
 
 export type Authentication = {
+  /** The user associated with this session. */
   user: User;
+  /** The token used for authenticating API requests, WebSocket connections, etc. */
   token: string;
+  /** The type of authentication used to create this session (e.g., "api", "app", "oauth"). */
   type?: AuthenticationType;
+  /** The authentication service used to create this session (e.g., "email", "passkeys", "google"). */
+  service?: string;
 };
 
 export type Pagination = {
@@ -74,12 +80,14 @@ export type BaseReq = z.infer<typeof BaseSchema>;
 
 export type BaseRes = unknown;
 
-export interface APIContext<ReqT = BaseReq, ResT = BaseRes>
-  extends ParameterizedContext<
-    AppState,
-    DefaultContext & IRouterParamContext<AppState>,
-    ResT
-  > {
+export interface APIContext<
+  ReqT = BaseReq,
+  ResT = BaseRes,
+> extends ParameterizedContext<
+  AppState,
+  DefaultContext & IRouterParamContext<AppState>,
+  ResT
+> {
   /** Typed and validated version of request, consisting of validated body, query, etc. */
   input: ReqT;
 
@@ -202,25 +210,19 @@ export type DocumentEvent = BaseEvent<Document> &
           | "documents.restore";
         documentId: string;
         collectionId: string;
-        data: {
-          title: string;
+        data?: {
           source?: "import";
         };
       }
     | {
         name: "documents.unpublish";
         documentId: string;
-        collectionId: string;
+        collectionId?: string;
       }
     | {
         name: "documents.unarchive";
         documentId: string;
         collectionId: string;
-        data: {
-          title: string;
-          /** Id of collection from which the document is unarchived */
-          sourceCollectionId: string;
-        };
       }
     | {
         name:
@@ -230,9 +232,7 @@ export type DocumentEvent = BaseEvent<Document> &
         documentId: string;
         collectionId: string;
         createdAt: string;
-        data: {
-          title: string;
-          autosave: boolean;
+        data?: {
           done: boolean;
         };
       }
@@ -241,10 +241,6 @@ export type DocumentEvent = BaseEvent<Document> &
         documentId: string;
         collectionId: string;
         createdAt: string;
-        data: {
-          title: string;
-          previousTitle: string;
-        };
       }
     | DocumentMovedEvent
   );
@@ -450,6 +446,12 @@ export type OAuthClientEvent = BaseEvent<OAuthClient> & {
   modelId: string;
 };
 
+export type UserPasskeyEvent = BaseEvent<UserPasskey> & {
+  name: "passkeys.create" | "passkeys.update" | "passkeys.delete";
+  modelId: string;
+  userId: string;
+};
+
 // oxlint-disable-next-line @typescript-eslint/no-explicit-any
 export type ImportEvent = BaseEvent<Import<any>> & {
   name:
@@ -487,6 +489,7 @@ export type Event =
   | WebhookSubscriptionEvent
   | NotificationEvent
   | OAuthClientEvent
+  | UserPasskeyEvent
   | EmptyTrashEvent
   | ImportEvent;
 

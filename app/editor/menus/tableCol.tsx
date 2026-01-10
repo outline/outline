@@ -11,25 +11,36 @@ import {
   TableSplitCellsIcon,
   AlphabeticalSortIcon,
   AlphabeticalReverseSortIcon,
+  TableColumnsDistributeIcon,
 } from "outline-icons";
-import { EditorState } from "prosemirror-state";
+import type { EditorState } from "prosemirror-state";
 import { CellSelection, selectedRect } from "prosemirror-tables";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import {
+  getAllSelectedColumns,
   isMergedCellSelection,
   isMultipleCellSelection,
 } from "@shared/editor/queries/table";
-import { MenuItem } from "@shared/editor/types";
-import { Dictionary } from "~/hooks/useDictionary";
+import type { MenuItem } from "@shared/editor/types";
+import type { Dictionary } from "~/hooks/useDictionary";
 import { ArrowLeftIcon, ArrowRightIcon } from "~/components/Icons/ArrowIcon";
 
 export default function tableColMenuItems(
   state: EditorState,
-  index: number,
-  rtl: boolean,
-  dictionary: Dictionary
+  readOnly: boolean,
+  dictionary: Dictionary,
+  options: {
+    index: number;
+    rtl: boolean;
+  }
 ): MenuItem[] {
+  if (readOnly) {
+    return [];
+  }
+
+  const { index, rtl } = options;
   const { schema, selection } = state;
+  const selectedCols = getAllSelectedColumns(state);
 
   if (!(selection instanceof CellSelection)) {
     return [];
@@ -138,6 +149,12 @@ export default function tableColMenuItems(
           label: dictionary.splitCell,
           icon: <TableSplitCellsIcon />,
           visible: isMergedCellSelection(state),
+        },
+        {
+          name: "distributeColumns",
+          visible: selectedCols.length > 1,
+          label: dictionary.distributeColumns,
+          icon: <TableColumnsDistributeIcon />,
         },
         {
           name: "separator",

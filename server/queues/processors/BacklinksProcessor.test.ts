@@ -21,7 +21,6 @@ describe("documents.publish", () => {
       collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: document.createdById,
-      data: { title: document.title },
       ip,
     });
     const backlinks = await Relationship.findAll({
@@ -52,7 +51,6 @@ describe("documents.publish", () => {
       collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: document.createdById,
-      data: { title: document.title },
       ip,
     });
     const backlinks = await Relationship.findAll({
@@ -80,7 +78,7 @@ describe("documents.update", () => {
       teamId: document.teamId,
       actorId: document.createdById,
       createdAt: new Date().toISOString(),
-      data: { title: document.title, autosave: false, done: true },
+      data: { done: true },
       ip,
     });
     const backlinks = await Relationship.findAll({
@@ -111,7 +109,7 @@ describe("documents.update", () => {
       teamId: document.teamId,
       actorId: document.createdById,
       createdAt: new Date().toISOString(),
-      data: { title: document.title, autosave: false, done: true },
+      data: { done: true },
       ip,
     });
     const backlinks = await Relationship.findAll({
@@ -139,7 +137,7 @@ describe("documents.update", () => {
       teamId: document.teamId,
       actorId: document.createdById,
       createdAt: new Date().toISOString(),
-      data: { title: document.title, autosave: false, done: true },
+      data: { done: true },
       ip,
     });
     const backlinks = await Relationship.findAll({
@@ -167,7 +165,6 @@ describe("documents.update", () => {
       collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: document.createdById,
-      data: { title: document.title },
       ip,
     });
     document.content = parser
@@ -186,7 +183,7 @@ describe("documents.update", () => {
       teamId: document.teamId,
       actorId: document.createdById,
       createdAt: new Date().toISOString(),
-      data: { title: document.title, autosave: false, done: true },
+      data: { done: true },
       ip,
     });
     const backlinks = await Relationship.findAll({
@@ -217,7 +214,7 @@ describe("documents.delete", () => {
       teamId: document.teamId,
       actorId: document.createdById,
       createdAt: new Date().toISOString(),
-      data: { title: document.title, autosave: false, done: true },
+      data: { done: true },
       ip,
     });
 
@@ -227,7 +224,6 @@ describe("documents.delete", () => {
       collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: document.createdById,
-      data: { title: document.title },
       ip,
     });
     const backlinks = await Relationship.findAll({

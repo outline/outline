@@ -1,5 +1,5 @@
 import isNull from "lodash/isNull";
-import { NodeSpec } from "prosemirror-model";
+import type { NodeSpec } from "prosemirror-model";
 import { PlaceholderPlugin } from "../plugins/PlaceholderPlugin";
 import Node from "./Node";
 

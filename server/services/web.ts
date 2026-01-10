@@ -1,5 +1,6 @@
 /* oxlint-disable @typescript-eslint/no-var-requires */
-import { Server } from "https";
+import type { Server } from "https";
+import type { BaseContext } from "koa";
 import Koa from "koa";
 import compress from "koa-compress";
 import { dnsPrefetchControl, referrerPolicy } from "koa-helmet";
@@ -20,6 +21,8 @@ import routes from "../routes";
 import api from "../routes/api";
 import auth from "../routes/auth";
 import oauth from "../routes/oauth";
+import type { UserAgentContext } from "koa-useragent";
+import userAgent from "koa-useragent";
 
 export default function init(app: Koa = new Koa(), server?: Server) {
   void initI18n();
@@ -45,8 +48,10 @@ export default function init(app: Koa = new Koa(), server?: Server) {
     app.proxy = true;
   }
 
+  // Make `ctx.userAgent` available
+  app.use<BaseContext, UserAgentContext>(userAgent);
+
   app.use(compress());
-  app.use(attachCSRFToken());
 
   // Monitor server connections
   if (server) {
@@ -65,6 +70,9 @@ export default function init(app: Koa = new Koa(), server?: Server) {
   });
 
   app.use(mount("/api", api));
+
+  // Generate and attach a CSRF token to the session on non-API requests
+  app.use(attachCSRFToken());
 
   // Apply CSP middleware after API as these responses are rendered in the browser
   app.use(csp());

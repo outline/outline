@@ -1,4 +1,4 @@
-import TurndownService from "turndown";
+import type TurndownService from "turndown";
 import { inHtmlContext } from "./utils";
 
 /**

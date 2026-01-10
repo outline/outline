@@ -2,13 +2,11 @@
 // This file is pulled almost 100% from react-router with the addition of one
 // thing, automatic scroll to the active link. It's worth the copy paste because
 // it avoids recalculating the link match again.
-import { Location, createLocation, LocationDescriptor } from "history";
+import type { Location, LocationDescriptor } from "history";
+import { createLocation } from "history";
 import * as React from "react";
-import {
-  __RouterContext as RouterContext,
-  matchPath,
-  match,
-} from "react-router";
+import type { match } from "react-router";
+import { __RouterContext as RouterContext, matchPath } from "react-router";
 import { Link } from "react-router-dom";
 import scrollIntoView from "scroll-into-view-if-needed";
 import history from "~/utils/history";
@@ -29,18 +27,33 @@ const normalizeToLocation = (
 const joinClassnames = (...classnames: (string | undefined)[]) =>
   classnames.filter((i) => i).join(" ");
 
+/**
+ * Props for the NavLink component.
+ * Extends standard anchor element attributes with React Router navigation functionality.
+ */
 export interface Props extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
+  /** CSS class name to apply when the link is active */
   activeClassName?: string;
+  /** Inline styles to apply when the link is active */
   activeStyle?: React.CSSProperties;
+  /** Whether to automatically scroll the link into view when it becomes active */
   scrollIntoViewIfNeeded?: boolean;
+  /** If true, only matches when the path matches the location.pathname exactly */
   exact?: boolean;
+  /** If true, use history.replace instead of history.push when navigating */
   replace?: boolean;
+  /** Custom function to determine if the link is active */
   isActive?: (match: match | null, location: Location) => boolean;
+  /** The location to match against. Defaults to the current history location */
   location?: Location;
+  /** If true, trailing slashes on the path will be considered when matching */
   strict?: boolean;
+  /** The location to navigate to. Can be a string path or location descriptor object */
   to: LocationDescriptor;
+  /** Custom component to use instead of the default anchor element */
   component?: React.ComponentType;
-  onBeforeClick?: () => void;
+  /** Callback fired when an active link is clicked */
+  onActiveClick?: (event: React.MouseEvent<HTMLAnchorElement>) => void;
 }
 
 /**
@@ -59,7 +72,7 @@ const NavLink = ({
   style: styleProp,
   scrollIntoViewIfNeeded,
   onClick,
-  onBeforeClick,
+  onActiveClick,
   to,
   ...rest
 }: Props) => {
@@ -126,6 +139,10 @@ const NavLink = ({
     (event: React.MouseEvent<HTMLAnchorElement>) => {
       onClick?.(event);
 
+      if (isActive && !event.defaultPrevented) {
+        onActiveClick?.(event);
+      }
+
       if (shouldFastClick(event)) {
         event.currentTarget.focus();
 
@@ -138,7 +155,16 @@ const NavLink = ({
         });
       }
     },
-    [onClick, navigateTo, shouldFastClick]
+    [onClick, navigateTo, isActive, shouldFastClick]
+  );
+
+  const handleClick = React.useCallback(
+    (event: React.MouseEvent<HTMLAnchorElement>) => {
+      if (isActive) {
+        event.preventDefault();
+      }
+    },
+    [isActive]
   );
 
   React.useEffect(() => {
@@ -162,6 +188,7 @@ const NavLink = ({
       // Note do not use `onPointerDown` here as it makes the mobile sidebar unscrollable
       onMouseDown={handleMouseDown}
       onKeyDown={handleKeyDown}
+      onClick={handleClick}
       aria-current={(isActive && ariaCurrent) || undefined}
       className={className}
       style={style}

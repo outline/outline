@@ -1,4 +1,4 @@
-import TurndownService from "turndown";
+import type TurndownService from "turndown";
 
 /**
  * A turndown plugin for converting u tags to underlines.

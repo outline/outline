@@ -16,6 +16,11 @@ import useStores from "~/hooks/useStores";
 import { documentPath } from "~/utils/routeHelpers";
 import Sidebar from "./SidebarLayout";
 import useMobile from "~/hooks/useMobile";
+import Switch from "~/components/Switch";
+import Text from "@shared/components/Text";
+import usePersistedState from "~/hooks/usePersistedState";
+import Scrollable from "~/components/Scrollable";
+import Flex from "@shared/components/Flex";
 
 const DocumentEvents = [
   "documents.publish",
@@ -39,6 +44,53 @@ function History() {
   const [revisionsOffset, setRevisionsOffset] = React.useState(0);
   const [eventsOffset, setEventsOffset] = React.useState(0);
   const isMobile = useMobile();
+
+  const [defaultShowChanges, setDefaultShowChanges] =
+    usePersistedState<boolean>("history-show-changes", true);
+
+  const searchParams = new URLSearchParams(history.location.search);
+  const [showChanges, setShowChanges] = React.useState(
+    searchParams.get("changes") === "true" || defaultShowChanges
+  );
+
+  const updateLocation = React.useCallback(
+    (changes: Record<string, string | null>) => {
+      const params = new URLSearchParams(history.location.search);
+
+      Object.entries(changes).forEach(([key, value]) => {
+        if (value === null) {
+          params.delete(key);
+        } else {
+          params.set(key, value);
+        }
+      });
+
+      const search = params.toString();
+      history.replace({
+        pathname: history.location.pathname,
+        search: search ? `?${search}` : "",
+        state: history.location.state,
+      });
+    },
+    [history]
+  );
+
+  // Handler for toggling the "Show Changes" switch, updating state and URL parameter
+  const handleShowChangesToggle = React.useCallback(
+    (checked: boolean) => {
+      setShowChanges(checked);
+      setDefaultShowChanges(checked);
+      updateLocation({ changes: checked ? "true" : null });
+    },
+    [history]
+  );
+
+  // Ensure that the URL parameter is in sync with the persisted state on mount
+  React.useEffect(() => {
+    if (defaultShowChanges) {
+      updateLocation({ changes: "true" });
+    }
+  }, [defaultShowChanges]);
 
   const fetchHistory = React.useCallback(async () => {
     if (!document) {
@@ -144,22 +196,45 @@ function History() {
   useKeyDown("Escape", onCloseHistory);
 
   return (
-    <Sidebar title={t("History")} onClose={onCloseHistory}>
-      {document ? (
-        <PaginatedEventList
-          aria-label={t("History")}
-          fetch={fetchHistory}
-          items={items}
-          document={document}
-          empty={<EmptyHistory>{t("No history yet")}</EmptyHistory>}
-        />
-      ) : null}
+    <Sidebar title={t("History")} onClose={onCloseHistory} scrollable={false}>
+      <Content>
+        <Text type="secondary" size="small" as="span">
+          <Switch
+            label={t("Highlight changes")}
+            checked={showChanges}
+            onChange={handleShowChangesToggle}
+          />
+        </Text>
+      </Content>
+      <Scrollable hiddenScrollbars topShadow>
+        {document ? (
+          <PaginatedEventList
+            aria-label={t("History")}
+            fetch={fetchHistory}
+            items={items}
+            document={document}
+            empty={
+              <Flex
+                align="center"
+                justify="center"
+                style={{ height: "100%" }}
+                auto
+              >
+                <Empty>{t("No history yet")}</Empty>
+              </Flex>
+            }
+          />
+        ) : null}
+      </Scrollable>
     </Sidebar>
   );
 }
 
-const EmptyHistory = styled(Empty)`
-  padding: 0 12px;
+const Content = styled.div`
+  margin: 0 16px 8px;
+  border: 1px solid ${(props) => props.theme.inputBorder};
+  border-radius: 8px;
+  padding: 8px 8px 0;
 `;
 
 export default observer(History);

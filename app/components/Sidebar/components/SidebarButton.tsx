@@ -7,6 +7,7 @@ import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import { draggableOnDesktop, undraggableOnDesktop } from "~/styles";
 import Desktop from "~/utils/Desktop";
+import { HStack } from "~/components/primitives/HStack";
 
 export type SidebarButtonProps = React.ComponentProps<typeof Button> & {
   position: "top" | "bottom";
@@ -18,13 +19,14 @@ export type SidebarButtonProps = React.ComponentProps<typeof Button> & {
 };
 
 const SidebarButton = React.forwardRef<HTMLButtonElement, SidebarButtonProps>(
-  function _SidebarButton(
+  function SidebarButton_(
     {
       position = "top",
       showMoreMenu,
       image,
       title,
       children,
+      onClick,
       ...rest
     }: SidebarButtonProps,
     ref
@@ -38,12 +40,13 @@ const SidebarButton = React.forwardRef<HTMLButtonElement, SidebarButtonProps>(
       >
         <Button
           {...rest}
+          onClick={onClick}
           $position={position}
           as="button"
           ref={ref}
           role="button"
         >
-          <Content gap={8} align="center">
+          <Content>
             {image}
             {title && <Title>{title}</Title>}
           </Content>
@@ -72,7 +75,7 @@ const Title = styled(Text)`
   text-overflow: ellipsis;
 `;
 
-const Content = styled(Flex)`
+const Content = styled(HStack)`
   flex-shrink: 1;
   flex-grow: 1;
 `;
@@ -96,17 +99,19 @@ const Button = styled(Flex)<{
   text-decoration: none;
   text-align: left;
   user-select: none;
-  cursor: var(--pointer);
   position: relative;
 
   ${undraggableOnDesktop()}
   ${extraArea(4)}
 
-  &:active,
-  &:${hover},
-  &[aria-expanded="true"] {
-    color: ${s("sidebarText")};
-    background: ${s("sidebarActiveBackground")};
+  &:not(:disabled) {
+    &:active,
+    &:${hover},
+    &[aria-expanded="true"] {
+      color: ${s("sidebarText")};
+      background: ${s("sidebarActiveBackground")};
+      cursor: var(--pointer);
+    }
   }
 
   &:last-child {

@@ -2,12 +2,12 @@ import invariant from "invariant";
 import filter from "lodash/filter";
 import { action, runInAction } from "mobx";
 import GroupUser from "~/models/GroupUser";
-import { PaginationParams } from "~/types";
+import type { PaginationParams } from "~/types";
 import { GroupPermission } from "@shared/types";
 import { client } from "~/utils/ApiClient";
-import RootStore from "./RootStore";
+import type RootStore from "./RootStore";
 import Store, {
-  PaginatedResponse,
+  type PaginatedResponse,
   PAGINATION_SYMBOL,
   RPCAction,
 } from "./base/Store";

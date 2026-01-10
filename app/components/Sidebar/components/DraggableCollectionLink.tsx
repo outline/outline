@@ -1,17 +1,17 @@
 import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
 import { useState, useEffect, useCallback } from "react";
-import { useDrop, useDrag, DropTargetMonitor } from "react-dnd";
+import type { DropTargetMonitor } from "react-dnd";
+import { useDrop, useDrag } from "react-dnd";
 import { getEmptyImage } from "react-dnd-html5-backend";
 import styled from "styled-components";
-import Collection from "~/models/Collection";
-import Document from "~/models/Document";
+import type Collection from "~/models/Collection";
+import type Document from "~/models/Document";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useStores from "~/hooks/useStores";
-import { DragObject } from "../hooks/useDragAndDrop";
+import type { DragObject } from "../hooks/useDragAndDrop";
 import CollectionLink from "./CollectionLink";
-import CollectionLinkChildren from "./CollectionLinkChildren";
 import DropCursor from "./DropCursor";
 import Relative from "./Relative";
 import { useSidebarContext } from "./SidebarContext";
@@ -19,14 +19,12 @@ import { useSidebarContext } from "./SidebarContext";
 type Props = {
   collection: Collection;
   activeDocument: Document | undefined;
-  prefetchDocument: (id: string) => Promise<Document | void>;
   belowCollection: Collection | void;
 };
 
 function DraggableCollectionLink({
   collection,
   activeDocument,
-  prefetchDocument,
   belowCollection,
 }: Props) {
   const locationSidebarContext = useLocationSidebarContext();
@@ -116,11 +114,6 @@ function DraggableCollectionLink({
         />
       </Draggable>
       <Relative>
-        <CollectionLinkChildren
-          collection={collection}
-          expanded={displayChildDocuments}
-          prefetchDocument={prefetchDocument}
-        />
         {isDraggingAnyCollection && (
           <DropCursor
             isActiveDrop={isCollectionDropping}

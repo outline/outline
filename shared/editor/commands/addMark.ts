@@ -1,5 +1,5 @@
-import { Attrs, MarkType } from "prosemirror-model";
-import { Command } from "prosemirror-state";
+import type { Attrs, MarkType } from "prosemirror-model";
+import type { Command } from "prosemirror-state";
 
 /**
  * A prosemirror command to create a mark at the current selection.

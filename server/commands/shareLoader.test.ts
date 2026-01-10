@@ -1,3 +1,4 @@
+import { faker } from "@faker-js/faker";
 import {
   buildCollection,
   buildDocument,
@@ -39,11 +40,46 @@ describe("shareLoader", () => {
       expect(result.share.id).toEqual(share.id);
       expect(result.collection?.id).toEqual(collection.id);
       expect(result.sharedTree?.id).toEqual(collection.id);
+      expect(result.sharedTree?.url).toEqual(collection.path);
       expect(result.sharedTree?.children[0].id).toEqual(document.id);
       expect(result.sharedTree?.children[0].children[0].id).toEqual(
         childDocument.id
       );
       expect(result.document).toBeNull();
+    });
+
+    it("should return correct path for root node in sharedTree for domain", async () => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const document = await buildDocument({
+        collectionId: collection.id,
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      await buildDocument({
+        parentDocumentId: document.id,
+        collectionId: collection.id,
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const share = await buildShare({
+        userId: user.id,
+        teamId: user.teamId,
+        collectionId: collection.id,
+        domain: faker.internet.domainName(),
+      });
+
+      const result = await loadPublicShare({
+        id: share.id,
+      });
+
+      expect(result.share.id).toEqual(share.id);
+      expect(result.collection?.id).toEqual(collection.id);
+      expect(result.sharedTree?.id).toEqual(collection.id);
+      expect(result.sharedTree?.url).toEqual("");
     });
 
     it("should return only share when requested with collectionId", async () => {

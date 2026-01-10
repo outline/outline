@@ -1,7 +1,7 @@
-import { Transaction } from "sequelize";
+import type { Transaction } from "sequelize";
 import { Document, GroupMembership, UserMembership } from "@server/models";
 import { sequelize } from "@server/storage/database";
-import { DocumentMovedEvent, Event } from "@server/types";
+import type { DocumentMovedEvent, Event } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
 
 export default class DocumentMovedProcessor extends BaseProcessor {

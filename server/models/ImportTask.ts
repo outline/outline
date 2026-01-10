@@ -1,4 +1,4 @@
-import { InferAttributes, InferCreationAttributes } from "sequelize";
+import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
   AllowNull,
   BelongsTo,
@@ -8,8 +8,10 @@ import {
   IsIn,
   Table,
 } from "sequelize-typescript";
-import { type ImportTaskInput, ImportTaskOutput } from "@shared/schema";
-import { ImportableIntegrationService, ImportTaskState } from "@shared/types";
+import type { ImportTaskOutput } from "@shared/schema";
+import { type ImportTaskInput } from "@shared/schema";
+import type { ImportableIntegrationService } from "@shared/types";
+import { ImportTaskState } from "@shared/types";
 import Import from "./Import";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";

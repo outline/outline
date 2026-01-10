@@ -4,11 +4,13 @@ import { AttachmentPreset } from "@shared/types";
 import attachmentCreator from "@server/commands/attachmentCreator";
 import env from "@server/env";
 import { trace } from "@server/logging/tracing";
-import { Attachment, User } from "@server/models";
+import type { User } from "@server/models";
+import { Attachment } from "@server/models";
 import FileStorage from "@server/storage/files";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import parseImages from "@server/utils/parseImages";
+import { isInternalUrl } from "@shared/utils/urls";
 
 @trace()
 export class TextHelper {
@@ -65,7 +67,11 @@ export class TextHelper {
   static async replaceImagesWithAttachments(
     ctx: APIContext,
     markdown: string,
-    user: User
+    user: User,
+    options: {
+      /** If true, only process base64 encoded images */
+      base64Only?: boolean;
+    } = {}
   ) {
     let output = markdown;
     const images = parseImages(markdown);
@@ -81,6 +87,13 @@ export class TextHelper {
           try {
             new URL(image.src);
           } catch (_e) {
+            return;
+          }
+
+          if (isInternalUrl(image.src)) {
+            return;
+          }
+          if (options.base64Only && !image.src.startsWith("data:")) {
             return;
           }
 

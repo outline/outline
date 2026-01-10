@@ -1,8 +1,5 @@
-import {
-  InferAttributes,
-  InferCreationAttributes,
-  type InstanceDestroyOptions,
-} from "sequelize";
+import type { InferAttributes, InferCreationAttributes } from "sequelize";
+import { type InstanceDestroyOptions } from "sequelize";
 import {
   ForeignKey,
   BelongsTo,
@@ -13,7 +10,7 @@ import {
   IsIn,
   AfterDestroy,
 } from "sequelize-typescript";
-import { IssueSource } from "@shared/schema";
+import type { IssueSource } from "@shared/schema";
 import { IntegrationType, IntegrationService } from "@shared/types";
 import type { IntegrationSettings } from "@shared/types";
 import Collection from "@server/models/Collection";
