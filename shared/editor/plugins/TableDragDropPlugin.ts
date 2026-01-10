@@ -275,7 +275,7 @@ export class TableDragDropPlugin extends Plugin<DragState | null> {
     };
 
     // Add dragging class
-    gripElement.classList.add("table-dragging");
+    gripElement.classList.add(EditorStyleHelper.tableDragging);
     document.body.style.cursor = "grabbing";
 
     // Create and position drop indicator
