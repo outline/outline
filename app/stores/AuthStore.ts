@@ -12,6 +12,7 @@ import env from "~/env";
 import { setPostLoginPath } from "~/hooks/useLastVisitedPath";
 import { client } from "~/utils/ApiClient";
 import Desktop from "~/utils/Desktop";
+import { deleteAllDatabases } from "~/utils/developer";
 import Logger from "~/utils/Logger";
 import isCloudHosted from "~/utils/isCloudHosted";
 import Store from "./base/Store";
@@ -348,6 +349,9 @@ export default class AuthStore extends Store<Team> {
     if (userInitiated) {
       this.logoutRedirectUri = env.OIDC_LOGOUT_URI;
     }
+
+    // clear IndexedDB databases used for document caching
+    await deleteAllDatabases();
 
     // clear all credentials from cache (and local storage via autorun)
     this.currentUserId = null;
