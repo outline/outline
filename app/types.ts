@@ -15,6 +15,7 @@ import type Pin from "./models/Pin";
 import type Star from "./models/Star";
 import type User from "./models/User";
 import type UserMembership from "./models/UserMembership";
+import type Policy from "./models/Policy";
 
 export type PartialExcept<T, K extends keyof T> = Partial<Omit<T, K>> &
   Required<Pick<T, K>>;
@@ -103,7 +104,15 @@ export type ActionContext = {
   activeDocumentId: string | undefined;
 
   // New API - work directly with Model instances
-  getActiveModels: <T extends Model>(modelClass: typeof Model) => T[];
+  getActiveModels: <T extends Model>(
+    modelClass: new (...args: any[]) => T
+  ) => T[];
+  getActiveModel: <T extends Model>(
+    modelClass: new (...args: any[]) => T
+  ) => T | undefined;
+  getActivePolicies: <T extends Model>(
+    modelClass: new (...args: any[]) => T
+  ) => Policy[];
   isModelActive: (model: Model) => boolean;
   activeModels: ReadonlySet<Model>;
 

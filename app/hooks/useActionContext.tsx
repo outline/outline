@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router";
 import useStores from "~/hooks/useStores";
 import type Model from "~/models/base/Model";
+import type Policy from "~/models/Policy";
 import type { ActionContext as ActionContextType } from "~/types";
 
 export const ActionContext = createContext<ActionContextType | undefined>(
@@ -56,10 +57,23 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
     activeDocumentId: stores.ui.activeDocumentId ?? undefined,
 
     // New API
-    getActiveModels: <T extends Model>(modelClass: typeof Model): T[] =>
-      stores.ui.getActiveModels<T>(modelClass),
-    isModelActive: (model: Model): boolean =>
-      stores.ui.isModelActive(model),
+    getActiveModels: <T extends Model>(
+      modelClass: new (...args: any[]) => T
+    ): T[] => stores.ui.getActiveModels<T>(modelClass),
+
+    getActiveModel: <T extends Model>(
+      modelClass: new (...args: any[]) => T
+    ): T | undefined => stores.ui.getActiveModels<T>(modelClass)[0],
+
+    getActivePolicies: <T extends Model>(
+      modelClass: new (...args: any[]) => T
+    ): Policy[] =>
+      stores.ui
+        .getActiveModels<T>(modelClass)
+        .map((node) => stores.policies.get(node.id))
+        .filter((policy): policy is Policy => policy !== undefined),
+
+    isModelActive: (model: Model): boolean => stores.ui.isModelActive(model),
     activeModels: stores.ui.activeModels,
 
     currentUserId: stores.auth.user?.id,
