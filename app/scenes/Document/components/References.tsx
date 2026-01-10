@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { useEffect, useRef, Fragment } from "react";
+import { useEffect, useRef, Fragment, useMemo } from "react";
 import { Trans } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import styled from "styled-components";
@@ -12,6 +12,8 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useStores from "~/hooks/useStores";
 import ReferenceListItem from "./ReferenceListItem";
+import useShare from "@shared/hooks/useShare";
+import type { NavigationNode } from "@shared/types";
 
 type Props = {
   document: Document;
@@ -22,13 +24,42 @@ function References({ document }: Props) {
   const user = useCurrentUser();
   const location = useLocation();
   const locationSidebarContext = useLocationSidebarContext();
+  const { sharedTree } = useShare();
 
   useEffect(() => {
     void documents.fetchBacklinks(document.id);
   }, [documents, document.id]);
 
+  // The sharedTree is the entire document tree starting at the shared document
+  // we must filter down the tree to only the part with the document we're
+  // currently viewing
+  const children = useMemo(() => {
+    let result: NavigationNode[];
+
+    function findChildren(node?: NavigationNode) {
+      if (!node) {
+        return;
+      }
+
+      if (node.id === document.id) {
+        result = node.children;
+      } else {
+        node.children.forEach((node) => {
+          if (result) {
+            return;
+          }
+
+          findChildren(node);
+        });
+      }
+
+      return result;
+    }
+
+    return sharedTree ? findChildren(sharedTree) || [] : document.children;
+  }, [document.id, sharedTree]);
+
   const backlinks = document.backlinks;
-  const children = document.children;
   const showBacklinks = !!backlinks.length;
   const showChildDocuments = !!children.length;
   const shouldFade = useRef(!showBacklinks && !showChildDocuments);

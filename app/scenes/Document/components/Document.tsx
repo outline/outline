@@ -49,7 +49,6 @@ import Contents from "./Contents";
 import Editor from "./Editor";
 import Header from "./Header";
 import Notices from "./Notices";
-import PublicReferences from "./PublicReferences";
 import References from "./References";
 import RevisionViewer from "./RevisionViewer";
 
@@ -608,7 +607,7 @@ class DocumentScene extends React.Component<Props> {
                       >
                         {shareId ? (
                           <ReferencesWrapper>
-                            <PublicReferences documentId={document.id} />
+                            <References document={document} />
                           </ReferencesWrapper>
                         ) : !revision ? (
                           <ReferencesWrapper>
