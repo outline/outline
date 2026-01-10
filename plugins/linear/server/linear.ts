@@ -259,7 +259,7 @@ export class Linear {
       }
 
       return { workspaceKey, type, id, name };
-    } catch (err) {
+    } catch (_err) {
       // Invalid URL format
       return;
     }

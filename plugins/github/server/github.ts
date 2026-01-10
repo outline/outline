@@ -159,7 +159,7 @@ export class GitHub {
       }
 
       return { owner, repo, type, id, url };
-    } catch (err) {
+    } catch (_err) {
       // Invalid URL format
       return;
     }
