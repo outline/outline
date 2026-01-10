@@ -1,7 +1,6 @@
 import { observer } from "mobx-react";
-import { useEffect, useRef, Fragment, useMemo } from "react";
+import { useEffect, useRef, Fragment, useMemo, useState } from "react";
 import { Trans } from "react-i18next";
-import { useLocation } from "react-router-dom";
 import styled from "styled-components";
 import type Document from "~/models/Document";
 import Fade from "~/components/Fade";
@@ -14,10 +13,106 @@ import useStores from "~/hooks/useStores";
 import ReferenceListItem from "./ReferenceListItem";
 import useShare from "@shared/hooks/useShare";
 import type { NavigationNode } from "@shared/types";
+import { flattenTree } from "@shared/utils/tree";
 
 type Props = {
   document: Document;
 };
+
+type TabType = "children" | "backlinks";
+
+function References({ document }: Props) {
+  const { documents } = useStores();
+  const user = useCurrentUser();
+  const locationSidebarContext = useLocationSidebarContext();
+  const { sharedTree, isShare } = useShare();
+  const [activeTab, setActiveTab] = useState<TabType>("children");
+
+  useEffect(() => {
+    if (!isShare) {
+      void documents.fetchBacklinks(document.id);
+    }
+  }, [isShare, documents, document.id]);
+
+  const children = useChildren(document, sharedTree);
+  const backlinks = useBacklinks(document, sharedTree);
+  const showBacklinks = !!backlinks.length;
+  const showChildDocuments = !!children.length;
+  const shouldFade = useRef(!showBacklinks && !showChildDocuments);
+  const isBacklinksTab = activeTab === "backlinks" || !showChildDocuments;
+  const height = Math.max(backlinks.length, children.length) * 40;
+  const Component = shouldFade.current ? Fade : Fragment;
+
+  return showBacklinks || showChildDocuments ? (
+    <Component>
+      <Tabs>
+        {showChildDocuments && (
+          <Tab
+            active={!isBacklinksTab}
+            onClick={() => setActiveTab("children")}
+          >
+            <Trans>Documents</Trans>
+          </Tab>
+        )}
+        {showBacklinks && (
+          <Tab
+            active={isBacklinksTab}
+            onClick={() => setActiveTab("backlinks")}
+          >
+            <Trans>Backlinks</Trans>
+          </Tab>
+        )}
+      </Tabs>
+      <Content style={{ height }}>
+        {showBacklinks && (
+          <List $active={isBacklinksTab}>
+            {backlinks.map((node) => {
+              // If we have the document in the store already then use it to get the extra
+              // contextual info, otherwise the collection node will do (only has title and id)
+              const backlinkedDocument = documents.get(node.id);
+              return (
+                <ReferenceListItem
+                  anchor={backlinkedDocument?.urlId}
+                  key={node.id}
+                  document={backlinkedDocument || node}
+                  showCollection={
+                    backlinkedDocument?.collectionId !== document.collectionId
+                  }
+                  sidebarContext={
+                    backlinkedDocument
+                      ? determineSidebarContext({
+                          document: backlinkedDocument,
+                          user,
+                          currentContext: locationSidebarContext,
+                        })
+                      : undefined
+                  }
+                />
+              );
+            })}
+          </List>
+        )}
+        {showChildDocuments && (
+          <List $active={!isBacklinksTab}>
+            {children.map((node) => {
+              // If we have the document in the store already then use it to get the extra
+              // contextual info, otherwise the collection node will do (only has title and id)
+              const document = documents.get(node.id);
+              return (
+                <ReferenceListItem
+                  key={node.id}
+                  document={document || node}
+                  showCollection={false}
+                  sidebarContext={locationSidebarContext}
+                />
+              );
+            })}
+          </List>
+        )}
+      </Content>
+    </Component>
+  ) : null;
+}
 
 /**
  * Hook to get the children of a document, filtering from the shared tree if available.
@@ -54,93 +149,22 @@ function useChildren(
   }, [document.id, document.children, sharedTree]);
 }
 
-function References({ document }: Props) {
-  const { documents } = useStores();
-  const user = useCurrentUser();
-  const location = useLocation();
-  const locationSidebarContext = useLocationSidebarContext();
-  const { sharedTree } = useShare();
-
-  useEffect(() => {
-    void documents.fetchBacklinks(document.id);
-  }, [documents, document.id]);
-
-  const children = useChildren(document, sharedTree);
-
-  const backlinks = document.backlinks;
-  const showBacklinks = !!backlinks.length;
-  const showChildDocuments = !!children.length;
-  const shouldFade = useRef(!showBacklinks && !showChildDocuments);
-  const isBacklinksTab = location.hash === "#backlinks" || !showChildDocuments;
-  const height = Math.max(backlinks.length, children.length) * 40;
-  const Component = shouldFade.current ? Fade : Fragment;
-
-  return showBacklinks || showChildDocuments ? (
-    <Component>
-      <Tabs>
-        {showChildDocuments && (
-          <Tab
-            to={{
-              hash: "#children",
-              state: { sidebarContext: locationSidebarContext },
-            }}
-            isActive={() => !isBacklinksTab}
-          >
-            <Trans>Documents</Trans>
-          </Tab>
-        )}
-        {showBacklinks && (
-          <Tab
-            to={{
-              hash: "#backlinks",
-              state: { sidebarContext: locationSidebarContext },
-            }}
-            isActive={() => isBacklinksTab}
-          >
-            <Trans>Backlinks</Trans>
-          </Tab>
-        )}
-      </Tabs>
-      <Content style={{ height }}>
-        {showBacklinks && (
-          <List $active={isBacklinksTab}>
-            {backlinks.map((backlinkedDocument) => (
-              <ReferenceListItem
-                anchor={document.urlId}
-                key={backlinkedDocument.id}
-                document={backlinkedDocument}
-                showCollection={
-                  backlinkedDocument.collectionId !== document.collectionId
-                }
-                sidebarContext={determineSidebarContext({
-                  document: backlinkedDocument,
-                  user,
-                  currentContext: locationSidebarContext,
-                })}
-              />
-            ))}
-          </List>
-        )}
-        {showChildDocuments && (
-          <List $active={!isBacklinksTab}>
-            {children.map((node) => {
-              // If we have the document in the store already then use it to get the extra
-              // contextual info, otherwise the collection node will do (only has title and id)
-              const document = documents.get(node.id);
-              return (
-                <ReferenceListItem
-                  key={node.id}
-                  document={document || node}
-                  showCollection={false}
-                  sidebarContext={locationSidebarContext}
-                />
-              );
-            })}
-          </List>
-        )}
-      </Content>
-    </Component>
-  ) : null;
+/**
+ * Hook to get backlinks for a document, filtering from the shared tree if available.
+ *
+ * @param document - the document to get backlinks for.
+ * @returns documents that link to this document.
+ */
+function useBacklinks(
+  document: Document,
+  sharedTree: NavigationNode | undefined
+): Document[] {
+  if (sharedTree) {
+    return flattenTree(sharedTree).filter((node) =>
+      document.backlinkIds?.includes(node.id)
+    ) as Document[];
+  }
+  return document.backlinks;
 }
 
 const Content = styled.div`
