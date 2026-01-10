@@ -77,6 +77,9 @@ export class EditorStyleHelper {
   /** Drop indicator for table drag and drop */
   static readonly tableDragDropIndicator = "table-drag-drop-indicator";
 
+  /** Class added to body when dragging table rows/columns */
+  static readonly tableDragging = "table-dragging";
+
   /** Drag indicator on left side of cell */
   static readonly tableDragIndicatorLeft = "table-drag-indicator-left";
 

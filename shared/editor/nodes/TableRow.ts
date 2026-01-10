@@ -86,7 +86,7 @@ function setupRowDragTracking(
 
     if (!isDragging) {
       isDragging = true;
-      document.body.classList.add("dragging");
+      document.body.classList.add(EditorStyleHelper.tableDragging);
     }
 
     const table = tableElement.querySelector("table");
@@ -117,12 +117,16 @@ function setupRowDragTracking(
     document.removeEventListener("mousemove", handleMouseMove);
     document.removeEventListener("mouseup", handleMouseUp);
 
-    document.body.classList.remove("dragging");
+    document.body.classList.remove(EditorStyleHelper.tableDragging);
     clearDragState();
 
     if (isDragging && currentToIndex !== fromIndex) {
-      const { state, dispatch } = view;
-      moveTableRow({ from: fromIndex, to: currentToIndex })(state, dispatch);
+      moveTableRow({ from: fromIndex, to: currentToIndex })(
+        view.state,
+        view.dispatch
+      );
+      // Select the row at its new position
+      selectRow(currentToIndex)(view.state, view.dispatch);
     }
   };
 

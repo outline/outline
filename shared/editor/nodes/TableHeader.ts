@@ -88,7 +88,7 @@ function setupColumnDragTracking(
 
     if (!isDragging) {
       isDragging = true;
-      document.body.classList.add("dragging");
+      document.body.classList.add(EditorStyleHelper.tableDragging);
     }
 
     const table = tableElement.querySelector("table");
@@ -124,12 +124,16 @@ function setupColumnDragTracking(
     document.removeEventListener("mousemove", handleMouseMove);
     document.removeEventListener("mouseup", handleMouseUp);
 
-    document.body.classList.remove("dragging");
+    document.body.classList.remove(EditorStyleHelper.tableDragging);
     clearDragState();
 
     if (isDragging && currentToIndex !== fromIndex) {
-      const { state, dispatch } = view;
-      moveTableColumn({ from: fromIndex, to: currentToIndex })(state, dispatch);
+      moveTableColumn({ from: fromIndex, to: currentToIndex })(
+        view.state,
+        view.dispatch
+      );
+      // Select the column at its new position
+      selectColumn(currentToIndex)(view.state, view.dispatch);
     }
   };
 

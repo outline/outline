@@ -2041,6 +2041,10 @@ table {
     &:hover::after {
       background: ${props.theme.text};
     }
+
+    body.${EditorStyleHelper.tableDragging} &:hover::after {
+      background: ${props.theme.divider};
+    }
     &.first::after {
       border-top-left-radius: 3px;
       border-bottom-left-radius: 3px;
@@ -2071,6 +2075,10 @@ table {
 
     &:hover::after {
       background: ${props.theme.text};
+    }
+
+    body.${EditorStyleHelper.tableDragging} &:hover::after {
+      background: ${props.theme.divider};
     }
     &.first::after {
       border-top-left-radius: 3px;
@@ -2151,8 +2159,8 @@ table {
 .${EditorStyleHelper.tableDragIndicatorRight} {
   position: absolute;
   top: 0;
-  width: 3px;
-  height: 100vh;
+  width: 2px;
+  height: calc(var(--table-height) - ${EditorStyleHelper.padding}px - 10px);
   background: ${props.theme.accent};
   z-index: 100;
   pointer-events: none;
@@ -2170,8 +2178,8 @@ table {
 .${EditorStyleHelper.tableDragIndicatorBottom} {
   position: absolute;
   left: 0;
-  height: 3px;
-  width: 100vw;
+  height: 2px;
+  width: calc(var(--table-width) - ${EditorStyleHelper.padding * 2}px - 2px);
   background: ${props.theme.accent};
   z-index: 100;
   pointer-events: none;

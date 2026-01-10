@@ -1,6 +1,7 @@
 import { createGlobalStyle } from "styled-components";
 import styledNormalize from "styled-normalize";
 import { breakpoints, depths, s } from ".";
+import { EditorStyleHelper } from "../editor/styles/EditorStyleHelper";
 
 type Props = {
   staticHTML?: boolean;
@@ -134,10 +135,10 @@ export default createGlobalStyle<Props>`
   }
 
   /* Table row/column drag and drop cursor */
-  &.dragging,
-  &.dragging *,
-  &.dragging *::before,
-  &.dragging *::after {
+  &.${EditorStyleHelper.tableDragging},
+  &.${EditorStyleHelper.tableDragging} *,
+  &.${EditorStyleHelper.tableDragging} *::before,
+  &.${EditorStyleHelper.tableDragging} *::after {
     cursor: grabbing !important;
   }
 `;
