@@ -24,6 +24,12 @@ export default function markdownTables(md: MarkdownIt): void {
         tokens[i].children = [];
 
         existing.forEach((child) => {
+          // Skip processing math content to preserve LaTeX escape sequences
+          if (child.type === "math_inline") {
+            tokens[i].children?.push(child);
+            return;
+          }
+
           let content = child.content;
 
           // First handle <br> tags
