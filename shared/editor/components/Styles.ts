@@ -79,6 +79,12 @@ const mathStyle = (props: Props) => css`
     display: none;
     color: ${props.theme.codeStatement};
     tab-size: 4;
+
+    .ProseMirror-focused {
+      border-radius: 2px;
+      outline: 2px solid
+        ${props.readOnly ? "transparent" : props.theme.selected};
+    }
   }
 
   .math-node.ProseMirror-selectednode .math-src {
