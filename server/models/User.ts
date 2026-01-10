@@ -579,6 +579,7 @@ class User extends ParanoidModel<
    * in the client browser cookies to remain logged in.
    *
    * @param expiresAt The time the token will expire at
+   * @param service The authentication service used to generate the token, if applicable
    * @returns The session token
    */
   getJwtToken = (expiresAt?: Date, service?: string) =>
@@ -613,6 +614,7 @@ class User extends ParanoidModel<
    * between subdomains or domains. It has a short expiry and can only be used
    * once.
    *
+   * @param The authentication service used to generate the token, if applicable
    * @returns The transfer token
    */
   getTransferToken = (service?: string) =>
@@ -631,6 +633,7 @@ class User extends ParanoidModel<
    * Returns a temporary token that is only used for logging in from an email
    * It can only be used to sign in once and has a medium length expiry
    *
+   * @param ctx The request context, used to get the IP address of the request
    * @returns The email signin token
    */
   getEmailSigninToken = (ctx: Context) =>
