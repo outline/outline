@@ -99,12 +99,11 @@ export default async function userProvisioner(
       await user.update({ email });
       await auth.update(rest);
 
-      // Remove any other UserAuthentication records for the same provider
+      // Remove any other UserAuthentication records for the user
       // to prevent expired tokens from causing premature logout
       await UserAuthentication.destroy({
         where: {
           userId: user.id,
-          authenticationProviderId,
           id: {
             [Op.ne]: auth.id,
           },
@@ -172,12 +171,11 @@ export default async function userProvisioner(
         return null;
       }
 
-      // Remove any other UserAuthentication records for the same provider
+      // Remove any other UserAuthentication records for the user
       // to prevent expired tokens from causing premature logout
       await UserAuthentication.destroy({
         where: {
           userId: existingUser.id,
-          authenticationProviderId: authentication.authenticationProviderId,
         },
         transaction,
       });

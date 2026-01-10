@@ -41,27 +41,43 @@ describe("userProvisioner", () => {
     expect(isNewUser).toEqual(false);
   });
 
-  it("should remove other UserAuthentication records for the same provider on sign-in", async () => {
+  it("should remove all other UserAuthentication records on sign-in", async () => {
     const existing = await buildUser();
     const authentications = await existing.$get("authentications");
     const existingAuth = authentications[0];
 
     // Create a second authentication record for the same provider (simulating a stale/duplicate record)
-    const staleAuth = await existing.$create("authentication", {
+    const staleAuthSameProvider = await existing.$create("authentication", {
       authenticationProviderId: existingAuth.authenticationProviderId,
       providerId: randomUUID(),
       accessToken: "old-token",
       scopes: ["read"],
     });
 
-    // Verify we have 2 auth records
+    // Create a third authentication record for a different provider
+    const team = await existing.$get("team");
+    const otherProvider = await team!.$create("authenticationProvider", {
+      name: "other-provider",
+      providerId: randomUUID(),
+    });
+    const staleAuthDifferentProvider = await existing.$create(
+      "authentication",
+      {
+        authenticationProviderId: otherProvider.id,
+        providerId: randomUUID(),
+        accessToken: "other-provider-token",
+        scopes: ["read"],
+      }
+    );
+
+    // Verify we have 3 auth records
     const authsBefore = await existing.$get("authentications");
-    expect(authsBefore.length).toEqual(2);
+    expect(authsBefore.length).toEqual(3);
 
     // Sign in with the original providerId
     const result = await userProvisioner(ctx, {
       name: existing.name,
-      email: existing.email,
+      email: existing.email!,
       avatarUrl: existing.avatarUrl,
       teamId: existing.teamId,
       authentication: {
@@ -76,16 +92,22 @@ describe("userProvisioner", () => {
     expect(authentication).toBeDefined();
     expect(authentication?.accessToken).toEqual("new-token");
 
-    // Verify the stale authentication was removed
+    // Verify all stale authentications were removed (including from different provider)
     const authsAfter = await user.$get("authentications");
     expect(authsAfter.length).toEqual(1);
     expect(authsAfter[0].id).toEqual(existingAuth.id);
     expect(authsAfter[0].accessToken).toEqual("new-token");
 
-    // Verify the stale auth was actually deleted from the database
+    // Verify both stale auths were actually deleted from the database
     const { UserAuthentication } = await import("@server/models");
-    const deletedAuth = await UserAuthentication.findByPk(staleAuth.id);
-    expect(deletedAuth).toBeNull();
+    const deletedAuth1 = await UserAuthentication.findByPk(
+      staleAuthSameProvider.id
+    );
+    expect(deletedAuth1).toBeNull();
+    const deletedAuth2 = await UserAuthentication.findByPk(
+      staleAuthDifferentProvider.id
+    );
+    expect(deletedAuth2).toBeNull();
   });
 
   it("should add authentication provider to existing users", async () => {
@@ -157,7 +179,7 @@ describe("userProvisioner", () => {
     expect(isNewUser).toEqual(true);
   });
 
-  it("should remove stale authentications when adding to invited user", async () => {
+  it("should remove all stale authentications when adding to invited user", async () => {
     const team = await buildTeam({ inviteRequired: true });
     const teamAuthProviders = await team.$get("authenticationProviders");
     const authenticationProvider = teamAuthProviders[0];
@@ -168,17 +190,32 @@ describe("userProvisioner", () => {
       teamId: team.id,
     });
 
-    // Create a stale authentication record (simulating an expired previous attempt)
-    const staleAuth = await existing.$create("authentication", {
+    // Create a stale authentication record for the same provider
+    const staleAuthSameProvider = await existing.$create("authentication", {
       authenticationProviderId: authenticationProvider.id,
       providerId: randomUUID(),
       accessToken: "old-expired-token",
       scopes: ["read"],
     });
 
-    // Verify the stale auth exists
+    // Create a stale authentication record for a different provider
+    const otherProvider = await team.$create("authenticationProvider", {
+      name: "other-provider",
+      providerId: randomUUID(),
+    });
+    const staleAuthDifferentProvider = await existing.$create(
+      "authentication",
+      {
+        authenticationProviderId: otherProvider.id,
+        providerId: randomUUID(),
+        accessToken: "other-provider-token",
+        scopes: ["read"],
+      }
+    );
+
+    // Verify the stale auths exist
     const authsBefore = await existing.$get("authentications");
-    expect(authsBefore.length).toEqual(1);
+    expect(authsBefore.length).toEqual(2);
 
     // Sign in with a new providerId
     const result = await userProvisioner(ctx, {
@@ -203,12 +240,17 @@ describe("userProvisioner", () => {
     const authsAfter = await user.$get("authentications");
     expect(authsAfter.length).toEqual(1);
     expect(authsAfter[0].accessToken).toEqual("new-token");
-    expect(authsAfter[0].id).not.toEqual(staleAuth.id);
 
-    // Verify the stale auth was deleted
+    // Verify both stale auths were deleted
     const { UserAuthentication } = await import("@server/models");
-    const deletedAuth = await UserAuthentication.findByPk(staleAuth.id);
-    expect(deletedAuth).toBeNull();
+    const deletedAuth1 = await UserAuthentication.findByPk(
+      staleAuthSameProvider.id
+    );
+    expect(deletedAuth1).toBeNull();
+    const deletedAuth2 = await UserAuthentication.findByPk(
+      staleAuthDifferentProvider.id
+    );
+    expect(deletedAuth2).toBeNull();
   });
 
   it("should create user with deleted user matching providerId", async () => {
