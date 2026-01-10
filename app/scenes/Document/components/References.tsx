@@ -19,6 +19,41 @@ type Props = {
   document: Document;
 };
 
+/**
+ * Hook to get the children of a document, filtering from the shared tree if available.
+ *
+ * @param document - the document to get children for.
+ * @param sharedTree - the shared tree to filter from, if available.
+ * @returns the children of the document.
+ */
+function useChildren(
+  document: Document,
+  sharedTree: NavigationNode | undefined
+): NavigationNode[] {
+  return useMemo(() => {
+    if (!sharedTree) {
+      return document.children;
+    }
+
+    function findChildren(node: NavigationNode): NavigationNode[] | undefined {
+      if (node.id === document.id) {
+        return node.children;
+      }
+
+      for (const child of node.children) {
+        const result = findChildren(child);
+        if (result) {
+          return result;
+        }
+      }
+
+      return undefined;
+    }
+
+    return findChildren(sharedTree) || [];
+  }, [document.id, document.children, sharedTree]);
+}
+
 function References({ document }: Props) {
   const { documents } = useStores();
   const user = useCurrentUser();
@@ -30,34 +65,7 @@ function References({ document }: Props) {
     void documents.fetchBacklinks(document.id);
   }, [documents, document.id]);
 
-  // The sharedTree is the entire document tree starting at the shared document
-  // we must filter down the tree to only the part with the document we're
-  // currently viewing
-  const children = useMemo(() => {
-    let result: NavigationNode[];
-
-    function findChildren(node?: NavigationNode) {
-      if (!node) {
-        return;
-      }
-
-      if (node.id === document.id) {
-        result = node.children;
-      } else {
-        node.children.forEach((node) => {
-          if (result) {
-            return;
-          }
-
-          findChildren(node);
-        });
-      }
-
-      return result;
-    }
-
-    return sharedTree ? findChildren(sharedTree) || [] : document.children;
-  }, [document.id, sharedTree]);
+  const children = useChildren(document, sharedTree);
 
   const backlinks = document.backlinks;
   const showBacklinks = !!backlinks.length;
