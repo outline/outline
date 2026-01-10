@@ -171,9 +171,9 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     () => ({
       padding: "0 32px",
       margin: "0 -32px",
-      paddingBottom: readOnly ? "20vh" : `calc(50vh - ${childOffsetHeight}px)`,
+      paddingBottom: `calc(50vh - ${childOffsetHeight}px)`,
     }),
-    [readOnly, childOffsetHeight]
+    [childOffsetHeight]
   );
 
   const handleInit = React.useCallback(

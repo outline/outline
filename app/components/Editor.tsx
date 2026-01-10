@@ -299,7 +299,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
             defaultValue={props.defaultValue || ""}
           />
         )}
-        {props.editorStyle?.paddingBottom && (
+        {props.editorStyle?.paddingBottom && !props.readOnly && (
           <ClickablePadding
             onClick={props.readOnly ? undefined : focusAtEnd}
             onDrop={props.readOnly ? undefined : handleDrop}

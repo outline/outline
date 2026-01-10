@@ -32,6 +32,7 @@ import { Document as DocumentScene } from "./Document";
 import DelayedMount from "~/components/DelayedMount";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 import { ShareContext } from "@shared/hooks/useShare";
+import ClickablePadding from "~/components/ClickablePadding";
 
 const Login = lazyWithRetry(() => import("../Login"));
 
@@ -254,6 +255,7 @@ function SharedScene() {
                 <CollectionScene collection={model} />
               ) : null}
             </Layout>
+            <ClickablePadding minHeight="20vh" />
           </DocumentContextProvider>
         </ThemeProvider>
       </TeamContext.Provider>
