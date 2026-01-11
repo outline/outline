@@ -39,6 +39,7 @@ import type { NavigationNode } from "@shared/types";
 import { ExportContentType, TeamPreference } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
 import type UserMembership from "~/models/UserMembership";
+import { client } from "~/utils/ApiClient";
 import DocumentDelete from "~/scenes/DocumentDelete";
 import DocumentMove from "~/scenes/DocumentMove";
 import DocumentPermanentDelete from "~/scenes/DocumentPermanentDelete";
@@ -627,9 +628,11 @@ export const copyDocumentAsMarkdown = createAction({
       ? stores.documents.get(activeDocumentId)
       : undefined;
     if (document) {
-      const { ProsemirrorHelper } =
-        await import("~/models/helpers/ProsemirrorHelper");
-      copy(ProsemirrorHelper.toMarkdown(document));
+      const res = await client.post("/documents.export", {
+        id: document.id,
+        signedUrls: 3600 * 24 * 30, // 30 days
+      });
+      copy(res.data);
       toast.success(t("Markdown copied to clipboard"));
     }
   },
