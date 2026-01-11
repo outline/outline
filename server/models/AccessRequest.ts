@@ -32,10 +32,6 @@ export enum AccessRequestStatus {
       required: true,
     },
     {
-      association: "document",
-      required: true,
-    },
-    {
       association: "responder",
       required: false,
     },
@@ -57,7 +53,18 @@ class AccessRequest extends Model<
   id: string;
 
   @Default(AccessRequestStatus.Pending)
-  @Column(DataType.STRING)
+  @Column({
+    type: DataType.STRING,
+    validate: {
+      isIn: [
+        [
+          AccessRequestStatus.Pending,
+          AccessRequestStatus.Approved,
+          AccessRequestStatus.Dismissed,
+        ],
+      ],
+    },
+  })
   status: AccessRequestStatus;
 
   @AllowNull

@@ -4,12 +4,7 @@ import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import {
-  Document,
-  AccessRequest,
-  UserMembership,
-  Notification,
-} from "@server/models";
+import { Document, AccessRequest, UserMembership } from "@server/models";
 import { AccessRequestStatus } from "@server/models/AccessRequest";
 import { authorize } from "@server/policies";
 import { presentAccessRequest, presentPolicies } from "@server/presenters";
@@ -18,12 +13,6 @@ import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import * as T from "./schema";
 
 const router = new Router();
-
-/**
- * Default permission level to grant when approving an access request
- * if no specific permission is provided.
- */
-const DEFAULT_APPROVED_PERMISSION = DocumentPermission.ReadWrite;
 
 router.post(
   "access_requests.info",
@@ -37,7 +26,10 @@ router.post(
     if (id) {
       accessReq = await AccessRequest.findByPk(id);
     } else if (documentSlug) {
-      const document = await Document.findByPk(documentSlug);
+      const document = await Document.findByPk(documentSlug, {
+        rejectOnEmpty: true,
+      });
+
       accessReq = await AccessRequest.findOne({
         where: {
           documentId: document.id,
@@ -46,7 +38,10 @@ router.post(
       });
     }
 
-    authorize(user, "read", accessReq);
+    if (!accessReq) {
+      return ctx.throw(404, "Access request not found");
+    }
+
     ctx.body = {
       data: presentAccessRequest(accessReq),
       policies: presentPolicies(user, [accessReq]),
@@ -68,6 +63,10 @@ router.post(
     const accessRequest = await AccessRequest.findByPk(id, {
       rejectOnEmpty: true,
     });
+    if (accessRequest.status !== AccessRequestStatus.Pending) {
+      return ctx.throw(400, "Access request has already been responded to");
+    }
+
     const document = await Document.findByPk(accessRequest.documentId, {
       userId: user.id,
     });
@@ -82,23 +81,10 @@ router.post(
       {
         userId: accessRequest.userId,
         documentId: accessRequest.documentId,
-        permission: permission || DEFAULT_APPROVED_PERMISSION,
+        permission: permission || DocumentPermission.ReadWrite,
         createdById: user.id,
       },
       { transaction }
-    );
-
-    // Mark all related notifications as read for this user
-    await Notification.update(
-      { viewedAt: new Date() },
-      {
-        where: {
-          userId: user.id,
-          accessRequestId: accessRequest.id,
-          viewedAt: null,
-        },
-        transaction,
-      }
     );
 
     ctx.body = {
@@ -122,6 +108,9 @@ router.post(
     const accessRequest = await AccessRequest.findByPk(id, {
       rejectOnEmpty: true,
     });
+    if (accessRequest.status !== AccessRequestStatus.Pending) {
+      return ctx.throw(400, "Access request has already been responded to");
+    }
 
     const document = await Document.findByPk(accessRequest.documentId, {
       userId: user.id,
@@ -132,19 +121,6 @@ router.post(
     accessRequest.responderId = user.id;
     accessRequest.respondedAt = new Date();
     await accessRequest.save({ transaction });
-
-    // Mark all related notifications as read for this user
-    await Notification.update(
-      { viewedAt: new Date() },
-      {
-        where: {
-          userId: user.id,
-          accessRequestId: accessRequest.id,
-          viewedAt: null,
-        },
-        transaction,
-      }
-    );
 
     ctx.body = {
       data: presentAccessRequest(accessRequest),

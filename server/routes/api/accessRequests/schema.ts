@@ -7,10 +7,15 @@ const BaseIdSchema = z.object({
 });
 
 export const AccessRequestInfoSchema = BaseSchema.extend({
-  body: z.object({
-    id: z.string().uuid().optional(),
-    documentSlug: z.string().optional(),
-  }),
+  body: z
+    .object({
+      id: z.string().uuid().optional(),
+      documentSlug: z.string().optional(),
+    })
+    .refine((data) => data.id || data.documentSlug, {
+      message: "Either 'id' or 'documentSlug' must be provided",
+      path: ["body"],
+    }),
 });
 
 export type AccessRequestInfoReq = z.infer<typeof AccessRequestInfoSchema>;

@@ -39,7 +39,8 @@ function NotificationListItem({ notification, onNavigate }: Props) {
     React.useState<DocumentPermission>(DocumentPermission.ReadWrite);
 
   const isAccessRequest =
-    notification.event === NotificationEventType.RequestDocumentAccess;
+    notification.event === NotificationEventType.RequestDocumentAccess &&
+    notification.accessRequestId;
 
   const permissions: Permission[] = React.useMemo(
     () => [

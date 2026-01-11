@@ -22,23 +22,24 @@ const Error403 = ({ documentId }: Props) => {
   const [requested, setRequested] = React.useState(false);
 
   React.useEffect(() => {
-    const getAccessRequest = async () => {
+    const checkRequested = async () => {
       const request = await client.post("/access_requests.info", {
         documentSlug: documentId,
       });
 
-      if (request.data.status === "pending") {
+      if (request?.data?.status === "pending") {
         setRequested(true);
       }
     };
 
-    getAccessRequest();
+    checkRequested();
   }, [documentId]);
 
   const handleRequestAccess = React.useCallback(async () => {
     if (!documentId || requesting || requested) {
       return;
     }
+    setRequesting(true);
 
     try {
       await client.post("/documents.request_access", { id: documentId });
@@ -58,7 +59,7 @@ const Error403 = ({ documentId }: Props) => {
         {requested ? (
           <Empty size="large">
             {t(
-              "You have sucessfully sent a request to access this document. You will be notified once access is granted."
+              "Your request to access this document has been sent. You will be notified once access is granted."
             )}{" "}
           </Empty>
         ) : (
