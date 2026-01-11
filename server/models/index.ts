@@ -69,3 +69,5 @@ export { default as WebhookDelivery } from "./WebhookDelivery";
 export { default as Subscription } from "./Subscription";
 
 export { default as Emoji } from "./Emoji";
+
+export { default as AccessRequest } from "./AccessRequest";
