@@ -7,7 +7,7 @@ import type { Transaction } from "prosemirror-state";
 import { Plugin, PluginKey, TextSelection } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { toast } from "sonner";
-import { isCode } from "../lib/isCode";
+import { isCode, isMermaid } from "../lib/isCode";
 import { isRemoteTransaction } from "../lib/multiplayer";
 import { findBlockNodes } from "../queries/findChildren";
 import { findParentNode } from "../queries/findParentNode";
@@ -167,10 +167,8 @@ function getNewState({
 }): MermaidState {
   const decorations: Decoration[] = [];
 
-  // Find all blocks that represent Mermaid diagrams
-  const blocks = findBlockNodes(doc).filter(
-    (item) => isCode(item.node) && item.node.attrs.language === "mermaidjs"
-  );
+  // Find all blocks that represent Mermaid diagrams (supports both "mermaid" and "mermaidjs")
+  const blocks = findBlockNodes(doc).filter((item) => isMermaid(item.node));
 
   blocks.forEach((block) => {
     const existingDecorations = pluginState.decorationSet.find(
@@ -272,10 +270,7 @@ export default function Mermaid({
           !mermaidMeta
         ) {
           const codeBlock = findParentNode(isCode)(state.selection);
-          let isEditing =
-            codeBlock &&
-            isCode(codeBlock.node) &&
-            codeBlock.node.attrs.language === "mermaidjs";
+          let isEditing = codeBlock && isMermaid(codeBlock.node);
 
           if (isEditing && codeBlock && !transaction.docChanged) {
             const decorations = nextPluginState.decorationSet.find(
@@ -297,8 +292,6 @@ export default function Mermaid({
 
         const node = state.selection.$head.parent;
         const previousNode = oldState.selection.$head.parent;
-        const isMermaid = (n: Node) =>
-          isCode(n) && n.attrs.language === "mermaidjs";
         const codeBlockChanged =
           transaction.docChanged &&
           (isMermaid(node) || isMermaid(previousNode));
@@ -404,11 +397,7 @@ export default function Mermaid({
               );
               const nextBlock = $pos.nodeAfter;
 
-              if (
-                nextBlock &&
-                isCode(nextBlock) &&
-                nextBlock.attrs.language === "mermaidjs"
-              ) {
+              if (nextBlock && isMermaid(nextBlock)) {
                 view.dispatch(
                   view.state.tr
                     .setSelection(
@@ -430,11 +419,7 @@ export default function Mermaid({
               );
               const prevBlock = $pos.nodeBefore;
 
-              if (
-                prevBlock &&
-                isCode(prevBlock) &&
-                prevBlock.attrs.language === "mermaidjs"
-              ) {
+              if (prevBlock && isMermaid(prevBlock)) {
                 view.dispatch(
                   view.state.tr
                     .setSelection(

@@ -230,6 +230,13 @@ export default class Document extends ArchivableModel implements Searchable {
   isCollectionDeleted: boolean;
 
   /**
+   * Array of backlink document IDs for publicly shared documents.
+   * Only populated when viewing through a share link.
+   */
+  @observable
+  backlinkIds?: string[];
+
+  /**
    * Returns the notifications associated with this document.
    */
   @computed
@@ -347,11 +354,18 @@ export default class Document extends ArchivableModel implements Searchable {
 
   /**
    * Returns the documents that link to this document.
+   * For publicly shared documents, uses the backlinkIds provided by the server.
+   * For authenticated users, uses the store's backlink data.
    *
-   * @returns documents that link to this document
+   * @returns documents that link to this document.
    */
   @computed
   get backlinks(): Document[] {
+    if (this.backlinkIds) {
+      return this.backlinkIds
+        .map((id) => this.store.get(id))
+        .filter(Boolean) as Document[];
+    }
     return this.store.getBacklinkedDocuments(this.id);
   }
 
@@ -688,14 +702,21 @@ export default class Document extends ArchivableModel implements Searchable {
     );
   }
 
-  download = (contentType: ExportContentType) =>
+  download = ({
+    contentType,
+    includeChildDocuments,
+  }: {
+    contentType: ExportContentType;
+    includeChildDocuments?: boolean;
+  }) =>
     client.post(
       `/documents.export`,
       {
         id: this.id,
+        includeChildDocuments: includeChildDocuments ?? false,
       },
       {
-        download: true,
+        ...(includeChildDocuments ? {} : { download: true }),
         headers: {
           accept: contentType,
         },

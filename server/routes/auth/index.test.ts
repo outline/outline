@@ -30,7 +30,7 @@ describe("auth/redirect", () => {
     );
     expect(res.status).toEqual(302);
     expect(res.headers.get("location")).not.toBeNull();
-    expect(res.headers.get("location")!.endsWith(collection.url)).toBeTruthy();
+    expect(res.headers.get("location")!.includes(collection.path)).toBeTruthy();
   });
 
   it("should prevent token extension by rejecting JWT tokens", async () => {

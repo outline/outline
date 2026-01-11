@@ -9,7 +9,7 @@ import {
   IconType,
 } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
-import { parser } from "@server/editor";
+import { basicParser } from "@server/editor";
 import auth from "@server/middlewares/authentication";
 import { feature } from "@server/middlewares/feature";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -52,7 +52,7 @@ router.post(
           user
         )
       : undefined;
-    const data = text ? parser.parse(text).toJSON() : ctx.input.body.data;
+    const data = text ? basicParser.parse(text).toJSON() : ctx.input.body.data;
 
     const comment = await Comment.createWithCtx(ctx, {
       id,

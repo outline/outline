@@ -10,6 +10,7 @@ import {
   codeLanguages,
   getLabelForLanguage,
 } from "@shared/editor/lib/code";
+import { isMermaid } from "@shared/editor/lib/isCode";
 import type { MenuItem } from "@shared/editor/types";
 import type { Dictionary } from "~/hooks/useDictionary";
 
@@ -61,7 +62,7 @@ export default function codeMenuItems(
       tooltip: dictionary.editDiagram,
       visible:
         !(mermaidPluginKey.getState(state) as MermaidState)?.editingId &&
-        node?.attrs.language === "mermaidjs" &&
+        isMermaid(node) &&
         !readOnly,
     },
     {

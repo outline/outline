@@ -62,6 +62,7 @@ export type Props<T extends MenuItem = MenuItem> = {
   uploadFile?: (file: File) => Promise<string>;
   onFileUploadStart?: () => void;
   onFileUploadStop?: () => void;
+  onFileUploadProgress?: (id: string, fractionComplete: number) => void;
   /** Callback when the menu is closed */
   onClose: (insertNewLine?: boolean) => void;
   /** Optional callback when a suggestion is selected */
@@ -376,7 +377,12 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     // Re-focus the editor as it loses focus when file picker is opened on iOS
     view.focus();
 
-    const { uploadFile, onFileUploadStart, onFileUploadStop } = props;
+    const {
+      uploadFile,
+      onFileUploadStart,
+      onFileUploadStop,
+      onFileUploadProgress,
+    } = props;
     const files = getEventFiles(event);
     const parent = findParentNode((node) => !!node)(view.state.selection);
     const attrs = event.currentTarget.dataset.attrs
@@ -394,6 +400,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         uploadFile,
         onFileUploadStart,
         onFileUploadStop,
+        onFileUploadProgress,
         dictionary,
         isAttachment: inputRef.current?.accept === "*",
         attrs,

@@ -102,7 +102,15 @@ router.get(
     ctx.set("Access-Control-Allow-Origin", "*");
     ctx.set("Cache-Control", cacheHeader);
     ctx.set("Content-Type", contentType);
-    ctx.set("Content-Security-Policy", "sandbox");
+    ctx.set(
+      "Content-Security-Policy",
+      // Safari will not render PDFs in an embed if the sandbox directive is used, so we use a
+      // tight CSP in that case. For all other file types we use the strict sandbox directive
+      // which blocks all content from being loaded and rendered.
+      contentType === "application/pdf"
+        ? "default-src 'self'; object-src 'self'; base-uri 'none';"
+        : "sandbox"
+    );
     ctx.set(
       "Content-Disposition",
       contentDisposition(fileName, {

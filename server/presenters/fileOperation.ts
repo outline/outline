@@ -7,11 +7,15 @@ export default function presentFileOperation(data: FileOperation) {
     id: data.id,
     type: data.type,
     format: data.format,
-    name: data.collection?.name || path.basename(data.key || ""),
+    name:
+      data.collection?.name ||
+      data.document?.titleWithDefault ||
+      path.basename(data.key || ""),
     state: data.state,
     error: data.error,
     size: data.size,
     collectionId: data.collectionId,
+    documentId: data.documentId,
     user: presentUser(data.user),
     createdAt: data.createdAt,
     updatedAt: data.updatedAt,

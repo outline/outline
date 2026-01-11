@@ -193,7 +193,8 @@ export async function getUserFromOAuthState(ctx: Context) {
   }
 
   try {
-    return await getUserForJWT(token);
+    const { user } = await getUserForJWT(token);
+    return user;
   } catch (_err) {
     return undefined;
   }

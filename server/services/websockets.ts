@@ -240,7 +240,7 @@ async function authenticate(socket: SocketWithAuth) {
     throw AuthenticationError("No access token");
   }
 
-  const user = await getUserForJWT(accessToken);
+  const { user } = await getUserForJWT(accessToken);
   socket.client.user = user;
   return user;
 }

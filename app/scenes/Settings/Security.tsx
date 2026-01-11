@@ -5,7 +5,7 @@ import { useState } from "react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
-import { TeamPreference } from "@shared/types";
+import { TeamPreference, EmailDisplay } from "@shared/types";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Heading from "~/components/Heading";
 import type { Option } from "~/components/InputSelect";
@@ -45,6 +45,28 @@ function Security() {
           type: "item",
           label: t("Viewer"),
           value: "viewer",
+        },
+      ] satisfies Option[],
+    [t]
+  );
+
+  const emailDisplayOptions: Option[] = React.useMemo(
+    () =>
+      [
+        {
+          type: "item",
+          label: t("Members"),
+          value: EmailDisplay.Members,
+        },
+        {
+          type: "item",
+          label: t("Members and guests"),
+          value: EmailDisplay.Everyone,
+        },
+        {
+          type: "item",
+          label: t("No one"),
+          value: EmailDisplay.None,
         },
       ] satisfies Option[],
     [t]
@@ -140,6 +162,17 @@ function Security() {
       const preferences = {
         ...team.preferences,
         [TeamPreference.MembersCanDeleteAccount]: checked,
+      };
+      await saveData({ preferences });
+    },
+    [saveData, team.preferences]
+  );
+
+  const handleEmailDisplayChange = React.useCallback(
+    async (emailDisplay: string) => {
+      const preferences = {
+        ...team.preferences,
+        [TeamPreference.EmailDisplay]: emailDisplay,
       };
       await saveData({ preferences });
     },
@@ -305,6 +338,22 @@ function Security() {
           id="documentEmbeds"
           checked={data.documentEmbeds}
           onChange={handleDocumentEmbedsChange}
+        />
+      </SettingRow>
+      <SettingRow
+        label={t("Email address visibility")}
+        name={TeamPreference.EmailDisplay}
+        description={t(
+          "Controls who can see user email addresses in the workspace"
+        )}
+      >
+        <InputSelect
+          value={team.getPreference(TeamPreference.EmailDisplay) as string}
+          options={emailDisplayOptions}
+          onChange={handleEmailDisplayChange}
+          label={t("Email address visibility")}
+          hideLabel
+          short
         />
       </SettingRow>
       <SettingRow

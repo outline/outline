@@ -15,7 +15,13 @@ import type { Order, ScopeOptions, WhereOptions } from "sequelize";
 import { Op, Sequelize } from "sequelize";
 import { randomUUID } from "crypto";
 import type { NavigationNode } from "@shared/types";
-import { StatusFilter, UserRole } from "@shared/types";
+import {
+  FileOperationFormat,
+  FileOperationState,
+  FileOperationType,
+  StatusFilter,
+  UserRole,
+} from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import slugify from "@shared/utils/slugify";
 import documentCreator from "@server/commands/documentCreator";
@@ -52,6 +58,7 @@ import {
   Group,
   GroupUser,
   GroupMembership,
+  FileOperation,
 } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -66,6 +73,7 @@ import {
   presentUser,
   presentGroupMembership,
   presentGroup,
+  presentFileOperation,
 } from "@server/presenters";
 import type { DocumentImportTaskResponse } from "@server/queues/tasks/DocumentImportTask";
 import DocumentImportTask from "@server/queues/tasks/DocumentImportTask";
@@ -78,7 +86,10 @@ import { getTeamFromContext } from "@server/utils/passport";
 import { assertPresent } from "@server/validation";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
-import { loadPublicShare } from "@server/commands/shareLoader";
+import {
+  loadPublicShare,
+  getAllIdsInSharedTree,
+} from "@server/commands/shareLoader";
 
 const router = new Router();
 
@@ -583,10 +594,21 @@ router.post(
 
       isPublic = cannot(user, "read", document);
 
+      // Get backlinks that are within the shared tree
+      let backlinkIds: string[] | undefined;
+      if (result.sharedTree) {
+        const allowedDocumentIds = getAllIdsInSharedTree(result.sharedTree);
+        backlinkIds = await Relationship.findSourceDocumentIdsInSharedTree(
+          document.id,
+          allowedDocumentIds
+        );
+      }
+
       serializedDocument = await presentDocument(ctx, document, {
         isPublic,
         shareId,
         includeUpdatedAt: result.share.showLastUpdated,
+        backlinkIds,
       });
     } else {
       if (!user) {
@@ -730,7 +752,7 @@ router.post(
   auth(),
   validate(T.DocumentsExportSchema),
   async (ctx: APIContext<T.DocumentsExportReq>) => {
-    const { id, signedUrls } = ctx.input.body;
+    const { id, signedUrls, includeChildDocuments } = ctx.input.body;
     const { user } = ctx.state.auth;
     const accept = ctx.request.headers["accept"];
 
@@ -741,6 +763,57 @@ router.post(
       includeState: !accept?.includes("text/markdown"),
     });
 
+    authorize(user, "download", document);
+
+    const format = accept?.includes("text/html")
+      ? FileOperationFormat.HTMLZip
+      : accept?.includes("text/markdown")
+        ? FileOperationFormat.MarkdownZip
+        : accept?.includes("application/pdf")
+          ? FileOperationFormat.PDF
+          : null;
+
+    if (format === FileOperationFormat.PDF) {
+      throw IncorrectEditionError(
+        "PDF export is not available in the community edition"
+      );
+    }
+
+    if (includeChildDocuments) {
+      if (!format) {
+        throw InvalidRequestError(
+          "format needed for exporting nested documents"
+        );
+      }
+
+      const fileOperation = await FileOperation.createWithCtx(ctx, {
+        type: FileOperationType.Export,
+        state: FileOperationState.Creating,
+        format,
+        key: FileOperation.getExportKey({
+          name: document.titleWithDefault,
+          teamId: document.teamId,
+          format,
+        }),
+        url: null,
+        size: 0,
+        documentId: document.id,
+        userId: user.id,
+        teamId: document.teamId,
+      });
+
+      fileOperation.user = user;
+      fileOperation.document = document;
+
+      ctx.body = {
+        success: true,
+        data: {
+          fileOperation: presentFileOperation(fileOperation),
+        },
+      };
+      return;
+    }
+
     let contentType: string;
     let content: string;
 
@@ -750,17 +823,13 @@ router.post(
         teamId: user.teamId,
       });
 
-    if (accept?.includes("text/html")) {
+    if (format === FileOperationFormat.HTMLZip) {
       contentType = "text/html";
       content = await DocumentHelper.toHTML(document, {
         centered: true,
         includeMermaid: true,
       });
-    } else if (accept?.includes("application/pdf")) {
-      throw IncorrectEditionError(
-        "PDF export is not available in the community edition"
-      );
-    } else if (accept?.includes("text/markdown")) {
+    } else if (format === FileOperationFormat.MarkdownZip) {
       contentType = "text/markdown";
       content = await toMarkdown();
     } else {
