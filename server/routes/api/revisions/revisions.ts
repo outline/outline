@@ -218,10 +218,10 @@ router.post(
       );
     } else if (accept?.includes("text/markdown")) {
       contentType = "text/markdown";
-      content = DocumentHelper.toMarkdown(revision);
+      content = await DocumentHelper.toMarkdown(revision);
     } else {
       ctx.body = {
-        data: DocumentHelper.toMarkdown(revision),
+        data: await DocumentHelper.toMarkdown(revision),
       };
       return;
     }

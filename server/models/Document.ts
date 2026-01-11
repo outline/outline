@@ -897,13 +897,13 @@ class Document extends ArchivableModel<
    *
    * @param revision The revision to revert to.
    */
-  restoreFromRevision = (revision: Revision) => {
+  restoreFromRevision = async (revision: Revision) => {
     if (revision.documentId !== this.id) {
       throw new Error("Revision does not belong to this document");
     }
 
     this.content = revision.content;
-    this.text = DocumentHelper.toMarkdown(revision, {
+    this.text = await DocumentHelper.toMarkdown(revision, {
       includeTitle: false,
     });
     this.title = revision.title;
