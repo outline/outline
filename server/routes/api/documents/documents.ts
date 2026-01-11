@@ -13,7 +13,7 @@ import uniq from "lodash/uniq";
 import mime from "mime-types";
 import type { Order, ScopeOptions, WhereOptions } from "sequelize";
 import { Op, Sequelize } from "sequelize";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
 import type { NavigationNode } from "@shared/types";
 import {
   FileOperationFormat,
@@ -1583,7 +1583,7 @@ router.post(
     const acl = "private";
 
     const key = AttachmentHelper.getKey({
-      id: uuidv4(),
+      id: randomUUID(),
       name: fileName,
       userId: user.id,
     });

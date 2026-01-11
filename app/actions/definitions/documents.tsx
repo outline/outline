@@ -36,7 +36,7 @@ import {
 import { toast } from "sonner";
 import Icon from "@shared/components/Icon";
 import type { NavigationNode } from "@shared/types";
-import { TeamPreference } from "@shared/types";
+import { ExportContentType, TeamPreference } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
 import type UserMembership from "~/models/UserMembership";
 import DocumentDelete from "~/scenes/DocumentDelete";
@@ -78,6 +78,7 @@ import capitalize from "lodash/capitalize";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import type { Action, ActionGroup, ActionSeparator } from "~/types";
 import lazyWithRetry from "~/utils/lazyWithRetry";
+import env from "~/env";
 
 const Insights = lazyWithRetry(
   () => import("~/scenes/Document/components/Insights")
@@ -542,6 +543,73 @@ export const downloadDocument = createAction({
           onSubmit={stores.dialogs.closeAllModals}
         />
       ),
+    });
+  },
+});
+
+export const downloadDocumentAsMarkdown = createAction({
+  name: ({ t }) => t("Downloas as Markdown"),
+  analyticsName: "Download document as Markdown",
+  section: ActiveDocumentSection,
+  keywords: "md markdown export",
+  icon: <DownloadIcon />,
+  visible: ({ activeDocumentId, stores }) =>
+    !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
+  perform: async ({ activeDocumentId, stores }) => {
+    if (!activeDocumentId) {
+      return;
+    }
+
+    const document = stores.documents.get(activeDocumentId);
+    await document?.download({
+      contentType: ExportContentType.Markdown,
+      includeChildDocuments: false,
+    });
+  },
+});
+
+export const downloadDocumentAsHTML = createAction({
+  name: ({ t }) => t("Download as HTML"),
+  analyticsName: "Download document as HTML",
+  section: ActiveDocumentSection,
+  keywords: "xml html export",
+  icon: <DownloadIcon />,
+  visible: ({ activeDocumentId, stores }) =>
+    !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
+  perform: async ({ activeDocumentId, stores }) => {
+    if (!activeDocumentId) {
+      return;
+    }
+
+    const document = stores.documents.get(activeDocumentId);
+    await document?.download({
+      contentType: ExportContentType.Html,
+      includeChildDocuments: false,
+    });
+  },
+});
+
+export const downloadDocumentAsPDF = createAction({
+  name: ({ t }) => t("Download as PDF"),
+  analyticsName: "Download document as PDF",
+  section: ActiveDocumentSection,
+  keywords: "pdf export",
+  icon: <DownloadIcon />,
+  visible: ({ activeDocumentId, stores }) =>
+    !!(
+      activeDocumentId &&
+      stores.policies.abilities(activeDocumentId).download &&
+      env.PDF_EXPORT_ENABLED
+    ),
+  perform: async ({ activeDocumentId, stores }) => {
+    if (!activeDocumentId) {
+      return;
+    }
+
+    const document = stores.documents.get(activeDocumentId);
+    await document?.download({
+      contentType: ExportContentType.Pdf,
+      includeChildDocuments: false,
     });
   },
 });
@@ -1389,6 +1457,9 @@ export const rootDocumentActions = [
   deleteDocument,
   importDocument,
   downloadDocument,
+  downloadDocumentAsMarkdown,
+  downloadDocumentAsHTML,
+  downloadDocumentAsPDF,
   copyDocumentLink,
   copyDocumentShareLink,
   copyDocumentAsMarkdown,

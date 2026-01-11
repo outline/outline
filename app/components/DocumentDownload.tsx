@@ -12,6 +12,8 @@ import env from "~/env";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import history from "~/utils/history";
 import { settingsPath } from "~/utils/routeHelpers";
+import usePolicy from "~/hooks/usePolicy";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
 
 type Props = {
   document: Document;
@@ -21,7 +23,9 @@ type Props = {
 export const DocumentDownload = observer(({ document, onSubmit }: Props) => {
   const { t } = useTranslation();
   const user = useCurrentUser();
+  const team = useCurrentTeam();
   const hasChildDocuments = !!document.childDocuments.length;
+  const can = usePolicy(team);
 
   const [contentType, setContentType] = useState<ExportContentType>(
     ExportContentType.Markdown
@@ -50,17 +54,27 @@ export const DocumentDownload = observer(({ document, onSubmit }: Props) => {
     });
 
     if (includeChildDocuments) {
-      toast.success(t("Export started"), {
-        description: t(`Your file will be available in {{ location }} soon`, {
-          location: `"${t("Settings")} > ${t("Export")}"`,
-        }),
-        action: {
-          label: t("View"),
-          onClick: () => {
-            history.push(settingsPath("export"));
-          },
-        },
-      });
+      const options = can.createExport
+        ? {
+            description: t(
+              `Your file will be available in {{ location }} soon`,
+              {
+                location: `"${t("Settings")} > ${t("Export")}"`,
+              }
+            ),
+            action: {
+              label: t("View"),
+              onClick: () => {
+                history.push(settingsPath("export"));
+              },
+            },
+          }
+        : {
+            description: t(
+              `A link to your file will be sent through email soon`
+            ),
+          };
+      toast.success(t("Export started"), options);
     }
 
     onSubmit();
@@ -70,22 +84,16 @@ export const DocumentDownload = observer(({ document, onSubmit }: Props) => {
     const radioItems = [
       {
         title: "Markdown",
-        description: includeChildDocuments
-          ? t(
-              "A ZIP file containing the images, and documents in the Markdown format."
-            )
-          : t(
-              "Document, along with the images, will be downloaded in the Markdown format."
-            ),
+        description: t(
+          "A file containing the selected documents in Markdown format."
+        ),
         value: ExportContentType.Markdown,
       },
       {
         title: "HTML",
-        description: includeChildDocuments
-          ? t("A ZIP file containing the images, and documents as HTML files.")
-          : t(
-              "Document, along with the images, will be downloaded as a HTML file."
-            ),
+        description: t(
+          "A file containing the selected documents in HTML format."
+        ),
         value: ExportContentType.Html,
       },
     ];
@@ -93,11 +101,9 @@ export const DocumentDownload = observer(({ document, onSubmit }: Props) => {
     if (env.PDF_EXPORT_ENABLED) {
       radioItems.push({
         title: "PDF",
-        description: includeChildDocuments
-          ? t("A ZIP file containing the images, and documents as PDF files.")
-          : t(
-              "Document, along with the images, will be downloaded as a PDF file."
-            ),
+        description: t(
+          "A file containing the selected documents in PDF format."
+        ),
         value: ExportContentType.Pdf,
       });
     }
@@ -106,7 +112,10 @@ export const DocumentDownload = observer(({ document, onSubmit }: Props) => {
   }, [t, includeChildDocuments]);
 
   return (
-    <ConfirmationDialog onSubmit={handleSubmit} submitText={t("Export")}>
+    <ConfirmationDialog
+      onSubmit={handleSubmit}
+      submitText={includeChildDocuments ? t("Export") : t("Download")}
+    >
       <Flex gap={12} column>
         {items.map((item) => (
           <Option key={item.value}>
@@ -132,7 +141,7 @@ export const DocumentDownload = observer(({ document, onSubmit }: Props) => {
       </Flex>
       {hasChildDocuments && (
         <>
-          <hr />
+          <hr style={{ margin: "16px 0 " }} />
           <Option>
             <StyledInput
               type="checkbox"
