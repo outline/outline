@@ -2,7 +2,6 @@ import {
   TrashIcon,
   InsertAboveIcon,
   InsertBelowIcon,
-  MoreIcon,
   TableHeaderRowIcon,
   TableSplitCellsIcon,
   TableMergeCellsIcon,
@@ -40,7 +39,7 @@ export default function tableRowMenuItems(
 
   return [
     {
-      icon: <MoreIcon />,
+      skipIcon: true,
       children: [
         {
           name: "toggleHeaderRow",
