@@ -168,9 +168,7 @@ function getNewState({
   const decorations: Decoration[] = [];
 
   // Find all blocks that represent Mermaid diagrams (supports both "mermaid" and "mermaidjs")
-  const blocks = findBlockNodes(doc).filter(
-    (item) => isMermaid(item.node)
-  );
+  const blocks = findBlockNodes(doc).filter((item) => isMermaid(item.node));
 
   blocks.forEach((block) => {
     const existingDecorations = pluginState.decorationSet.find(
@@ -272,9 +270,7 @@ export default function Mermaid({
           !mermaidMeta
         ) {
           const codeBlock = findParentNode(isCode)(state.selection);
-          let isEditing =
-            codeBlock &&
-            isMermaid(codeBlock.node);
+          let isEditing = codeBlock && isMermaid(codeBlock.node);
 
           if (isEditing && codeBlock && !transaction.docChanged) {
             const decorations = nextPluginState.decorationSet.find(
@@ -401,10 +397,7 @@ export default function Mermaid({
               );
               const nextBlock = $pos.nodeAfter;
 
-              if (
-                nextBlock &&
-                isMermaid(nextBlock)
-              ) {
+              if (nextBlock && isMermaid(nextBlock)) {
                 view.dispatch(
                   view.state.tr
                     .setSelection(
@@ -426,10 +419,7 @@ export default function Mermaid({
               );
               const prevBlock = $pos.nodeBefore;
 
-              if (
-                prevBlock &&
-                isMermaid(prevBlock)
-              ) {
+              if (prevBlock && isMermaid(prevBlock)) {
                 view.dispatch(
                   view.state.tr
                     .setSelection(
