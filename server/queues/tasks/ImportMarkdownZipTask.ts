@@ -49,11 +49,39 @@ export default class ImportMarkdownZipTask extends ImportTask {
       attachments: [],
     };
 
-    const docPathToIdMap = new Map<string, string>();
+    const pathToIdMap = new Map<string, string>();
+
+    const isDocumentNode = (node: FileTreeNode): boolean => {
+      // Folders are not document nodes in this context
+      if (node.children.length > 0) {
+        return false;
+      }
+      const mimeType = mime.lookup(node.path) || "application/octet-stream";
+      return (
+        [
+          "text/markdown",
+          "text/x-markdown",
+          "text/html",
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "application/msword",
+          "text/csv",
+          "text/plain",
+        ].includes(mimeType) ||
+        node.path.endsWith(".md") ||
+        node.path.endsWith(".markdown")
+      );
+    };
+
+    const hasDocument = (node: FileTreeNode): boolean => {
+      if (isDocumentNode(node)) {
+        return true;
+      }
+      return node.children.some(hasDocument);
+    };
 
     async function parseNodeChildren(
       children: FileTreeNode[],
-      collectionId: string,
+      collectionId?: string,
       parentDocumentId?: string
     ): Promise<void> {
       await Promise.all(
@@ -66,36 +94,54 @@ export default class ImportMarkdownZipTask extends ImportTask {
               (child.path.includes(`/${Buckets.public}/`) ||
                 child.path.includes(`/${Buckets.uploads}/`)))
           ) {
-            return parseNodeChildren(child.children, collectionId);
+            return parseNodeChildren(
+              child.children,
+              collectionId,
+              parentDocumentId
+            );
           }
 
           const id = randomUUID();
+          const mimeType = mime.lookup(child.path) || "application/octet-stream";
+          const isDoc = isDocumentNode(child);
 
           // this is an attachment
-          if (
-            child.children.length === 0 &&
-            (child.path.includes(`/${Buckets.uploads}/`) ||
-              child.path.includes(`/${Buckets.public}/`))
-          ) {
+          if (child.children.length === 0 && !isDoc) {
             output.attachments.push({
               id,
               name: child.name,
               path: child.path,
-              mimeType: mime.lookup(child.path) || "application/octet-stream",
+              mimeType,
               buffer: () => fs.readFile(child.path),
             });
+            pathToIdMap.set(child.path, id);
             return;
+          }
+
+          // if no collectionId, we can't create a document
+          if (!collectionId) {
+            if (child.children.length > 0) {
+              await parseNodeChildren(child.children, undefined);
+            }
+            return;
+          }
+
+          // If it's a folder, only create a document if it or its children contain a markdown file
+          if (child.children.length > 0 && !hasDocument(child)) {
+            return parseNodeChildren(
+              child.children,
+              collectionId,
+              parentDocumentId
+            );
           }
 
           const { title, icon, text } = await sequelize.transaction(
             async (transaction) =>
               documentImporter({
-                mimeType: "text/markdown",
+                mimeType: child.children.length > 0 ? "text/markdown" : mimeType,
                 fileName: child.name,
                 content:
-                  child.children.length > 0
-                    ? ""
-                    : await fs.readFile(child.path, "utf8"),
+                  child.children.length > 0 ? "" : await fs.readFile(child.path),
                 user,
                 ctx: createContext({ user, transaction }),
               })
@@ -110,22 +156,22 @@ export default class ImportMarkdownZipTask extends ImportTask {
 
           const existingDocument = output.documents[existingDocumentIndex];
 
-          // When there is a file and a folder with the same name this handles
-          // the case by combining the two into one document with nested children
           if (existingDocument) {
-            docPathToIdMap.set(child.path, existingDocument.id);
+            pathToIdMap.set(child.path, existingDocument.id);
 
-            if (existingDocument.text === "") {
+            if (existingDocument.text === "" && text !== "") {
               output.documents[existingDocumentIndex].text = text;
             }
 
-            await parseNodeChildren(
-              child.children,
-              collectionId,
-              existingDocument.id
-            );
+            if (child.children.length > 0) {
+              await parseNodeChildren(
+                child.children,
+                collectionId,
+                existingDocument.id
+              );
+            }
           } else {
-            docPathToIdMap.set(child.path, id);
+            pathToIdMap.set(child.path, id);
 
             output.documents.push({
               id,
@@ -138,41 +184,61 @@ export default class ImportMarkdownZipTask extends ImportTask {
               mimeType: "text/markdown",
             });
 
-            await parseNodeChildren(child.children, collectionId, id);
+            if (child.children.length > 0) {
+              await parseNodeChildren(child.children, collectionId, id);
+            }
           }
         })
       );
     }
 
-    // All nodes in the root level should be collections
-    for (const node of tree) {
-      if (node.children.length > 0) {
+    const standaloneNodes = tree.filter((node) => node.children.length === 0);
+    const folderNodes = tree.filter((node) => node.children.length > 0);
+
+    // 1. Identify standalone documents at root
+    const standaloneDocuments = standaloneNodes.filter(isDocumentNode);
+    if (standaloneDocuments.length > 0) {
+      const collectionId = randomUUID();
+      output.collections.push({
+        id: collectionId,
+        name: "Imported",
+      });
+      await parseNodeChildren(standaloneNodes, collectionId);
+    } else {
+      // Process root files as attachments if no docs at root
+      await parseNodeChildren(standaloneNodes, undefined);
+    }
+
+    // 2. Process root folders
+    for (const node of folderNodes) {
+      if (node.name === Buckets.uploads || node.name === Buckets.public) {
+        await parseNodeChildren(node.children, undefined);
+        continue;
+      }
+
+      if (hasDocument(node)) {
         const collectionId = randomUUID();
         output.collections.push({
           id: collectionId,
           name: node.title,
         });
+        // Original behavior: root folder children go to root of collection
         await parseNodeChildren(node.children, collectionId);
       } else {
-        Logger.debug("task", `Unhandled file in zip: ${node.path}`, {
-          fileOperationId: fileOperation.id,
-        });
+        // Asset-only folder, process children as attachments
+        await parseNodeChildren(node.children, undefined);
       }
     }
 
+    // Link resolution
     for (const document of output.documents) {
-      // Check all of the attachments we've created against urls in the text
-      // and replace them out with attachment redirect urls before continuing.
+      const basePath = path.dirname(document.path);
+
+      // Resolve attachments
       for (const attachment of output.attachments) {
         const encodedPath = encodeURI(attachment.path);
-
-        // Pull the collection and subdirectory out of the path name, upload
-        // folders in an export are relative to the document itself
         const normalizedAttachmentPath = encodedPath
-          .replace(
-            new RegExp(`(.*)/${Buckets.uploads}/`),
-            `${Buckets.uploads}/`
-          )
+          .replace(new RegExp(`(.*)/${Buckets.uploads}/`), `${Buckets.uploads}/`)
           .replace(new RegExp(`(.*)/${Buckets.public}/`), `${Buckets.public}/`);
 
         const reference = `<<${attachment.id}>>`;
@@ -184,25 +250,31 @@ export default class ImportMarkdownZipTask extends ImportTask {
           );
       }
 
-      const basePath = path.dirname(document.path);
+      // Resolve internal links
+      const links = [...document.text.matchAll(/\[[^\]]*\]\(([^)]+)\)/g)];
 
-      // check internal document links in the text and replace them with placeholders.
-      // When persisting, the placeholders will be replaced with the right urls.
-      const internalLinks = [
-        ...document.text.matchAll(/\[[^\]]+\]\(([^)]+\.md)\)/g),
-      ];
+      links.forEach((match) => {
+        const referredPath = match[1];
 
-      internalLinks.forEach((match) => {
-        const referredDocPath = match[1];
-        const normalizedDocPath = decodeURI(
-          path.normalize(`${basePath}/${referredDocPath}`)
+        if (
+          referredPath.startsWith("http") ||
+          referredPath.startsWith("mailto:") ||
+          referredPath.startsWith("#") ||
+          referredPath.startsWith("<<")
+        ) {
+          return;
+        }
+
+        const [referredPathWithoutQuery] = referredPath.split(/[?#]/);
+        const normalizedPath = decodeURI(
+          path.normalize(path.join(basePath, referredPathWithoutQuery))
         );
 
-        const referredDocId = docPathToIdMap.get(normalizedDocPath);
-        if (referredDocId) {
+        const referredId = pathToIdMap.get(normalizedPath);
+        if (referredId) {
           document.text = document.text.replace(
-            referredDocPath,
-            `<<${referredDocId}>>`
+            new RegExp(escapeRegExp(referredPath), "g"),
+            `<<${referredId}>>`
           );
         }
       });
