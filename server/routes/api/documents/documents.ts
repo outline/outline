@@ -161,8 +161,8 @@ router.post(
         collectionId:
           template && can(user, "readTemplate", user.team)
             ? {
-              [Op.or]: [{ [Op.in]: collectionIds }, { [Op.is]: null }],
-            }
+                [Op.or]: [{ [Op.in]: collectionIds }, { [Op.is]: null }],
+              }
             : collectionIds,
       });
     }
@@ -282,13 +282,13 @@ router.post(
       sort === "index"
         ? documentIds.length > 0
           ? [
-            [
-              Sequelize.literal(
-                `array_position(ARRAY[${documentIds.map((id) => `'${id}'`).join(",")}]::uuid[], "document"."id")`
-              ),
-              direction,
-            ],
-          ]
+              [
+                Sequelize.literal(
+                  `array_position(ARRAY[${documentIds.map((id) => `'${id}'`).join(",")}]::uuid[], "document"."id")`
+                ),
+                direction,
+              ],
+            ]
           : undefined
         : [[sort, direction]];
 
@@ -606,8 +606,8 @@ router.post(
       data:
         apiVersion >= 2
           ? {
-            document: serializedDocument,
-          }
+              document: serializedDocument,
+            }
           : serializedDocument,
       policies: isPublic ? undefined : presentPolicies(user, [document]),
     };
@@ -653,10 +653,10 @@ router.post(
         },
         collection?.permission
           ? {
-            role: {
-              [Op.ne]: UserRole.Guest,
-            },
-          }
+              role: {
+                [Op.ne]: UserRole.Guest,
+              },
+            }
           : {},
       ],
     };
@@ -781,11 +781,11 @@ router.post(
     );
     const attachments = attachmentIds.length
       ? await Attachment.findAll({
-        where: {
-          teamId: document.teamId,
-          id: attachmentIds,
-        },
-      })
+          where: {
+            teamId: document.teamId,
+            id: attachmentIds,
+          },
+        })
       : [];
 
     if (attachments.length === 0) {
@@ -869,19 +869,19 @@ router.post(
 
     const srcCollection = sourceCollectionId
       ? await Collection.findByPk(sourceCollectionId, {
-        userId: user.id,
-        includeDocumentStructure: true,
-        paranoid: false,
-        transaction,
-      })
+          userId: user.id,
+          includeDocumentStructure: true,
+          paranoid: false,
+          transaction,
+        })
       : undefined;
 
     const destCollection = destCollectionId
       ? await Collection.findByPk(destCollectionId, {
-        userId: user.id,
-        includeDocumentStructure: true,
-        transaction,
-      })
+          userId: user.id,
+          includeDocumentStructure: true,
+          transaction,
+        })
       : undefined;
 
     // In case of workspace templates, both source and destination collections are undefined.
@@ -1281,9 +1281,9 @@ router.post(
 
     const collection = collectionId
       ? await Collection.findByPk(collectionId, {
-        userId: user.id,
-        transaction,
-      })
+          userId: user.id,
+          transaction,
+        })
       : document?.collection;
 
     if (collection) {
@@ -2069,11 +2069,11 @@ router.post(
 function getAPIVersion(ctx: APIContext) {
   return Number(
     ctx.headers["x-api-version"] ??
-    (typeof ctx.input.body === "object" &&
-      ctx.input.body &&
-      "apiVersion" in ctx.input.body &&
-      ctx.input.body.apiVersion) ??
-    0
+      (typeof ctx.input.body === "object" &&
+        ctx.input.body &&
+        "apiVersion" in ctx.input.body &&
+        ctx.input.body.apiVersion) ??
+      0
   );
 }
 

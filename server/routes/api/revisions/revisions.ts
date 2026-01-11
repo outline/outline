@@ -237,11 +237,11 @@ router.post(
     );
     const attachments = attachmentIds.length
       ? await Attachment.findAll({
-        where: {
-          teamId: document.teamId,
-          id: attachmentIds,
-        },
-      })
+          where: {
+            teamId: document.teamId,
+            id: attachmentIds,
+          },
+        })
       : [];
 
     if (attachments.length === 0) {
