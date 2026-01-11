@@ -4,7 +4,7 @@ import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
 import { ExportContentType, NotificationEventType } from "@shared/types";
-import Document from "~/models/Document";
+import type Document from "~/models/Document";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
