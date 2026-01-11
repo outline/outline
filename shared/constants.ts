@@ -1,5 +1,10 @@
 import type { TeamPreferences, UserPreferences } from "./types";
-import { TOCPosition, TeamPreference, UserPreference, EmailDisplay } from "./types";
+import {
+  TOCPosition,
+  TeamPreference,
+  UserPreference,
+  EmailDisplay,
+} from "./types";
 
 export const MAX_AVATAR_DISPLAY = 6;
 

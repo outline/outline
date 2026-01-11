@@ -11,5 +11,8 @@ export function isCode(node: Node) {
  * @returns true if the node is a Mermaid code block.
  */
 export function isMermaid(node: Node) {
-  return isCode(node) && (node.attrs.language === "mermaid" || node.attrs.language === "mermaidjs");
+  return (
+    isCode(node) &&
+    (node.attrs.language === "mermaid" || node.attrs.language === "mermaidjs")
+  );
 }

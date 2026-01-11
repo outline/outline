@@ -57,7 +57,8 @@ const FileOperationListItem = ({ fileOperation }: Props) => {
   const format = formatMapping[fileOperation.format];
   const title =
     fileOperation.type === FileOperationType.Import ||
-    fileOperation.collectionId
+    fileOperation.collectionId ||
+    fileOperation.documentId
       ? fileOperation.name
       : t("All collections");
 
