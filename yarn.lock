@@ -6521,10 +6521,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rolldown/pluginutils@npm:1.0.0-beta.11":
-  version: 1.0.0-beta.11
-  resolution: "@rolldown/pluginutils@npm:1.0.0-beta.11"
-  checksum: 10c0/140088e33a4dd3bc21d06fa0cbe79b52e95487c9737d425aa5729e52446dc70f066fbce632489a53e45bb567f1e86c19835677c98fe5d4123ae1e2fef53f8d97
+"@rolldown/pluginutils@npm:1.0.0-beta.47":
+  version: 1.0.0-beta.47
+  resolution: "@rolldown/pluginutils@npm:1.0.0-beta.47"
+  checksum: 10c0/eb0cfa7334d66f090c47eaac612174936b05f26e789352428cb6e03575b590f355de30d26b42576ea4e613d8887b587119d19b2e4b3a8909ceb232ca1cf746c8
   languageName: node
   linkType: hard
 
@@ -9149,14 +9149,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vitejs/plugin-react-oxc@npm:^0.2.3":
-  version: 0.2.3
-  resolution: "@vitejs/plugin-react-oxc@npm:0.2.3"
+"@vitejs/plugin-react-oxc@npm:^0.4.3":
+  version: 0.4.3
+  resolution: "@vitejs/plugin-react-oxc@npm:0.4.3"
   dependencies:
-    "@rolldown/pluginutils": "npm:1.0.0-beta.11"
+    "@rolldown/pluginutils": "npm:1.0.0-beta.47"
   peerDependencies:
-    vite: ^6.3.0 || ^7.0.0-beta.0
-  checksum: 10c0/0baf44affb20c3fc4fa3f321f1b11e069b9bb3323252551adc5cc980cea2eeb9919c61a3d676a564076887ceac69bdda486544bea918cb134ee9ffb444bd1cba
+    vite: ^6.3.0 || ^7.0.0
+  checksum: 10c0/59cde596f96abad9382b303ddbd770787c7079b09bcb160faa6187931f5b1ca4ef2c1134229cae99919fe34e7149070600fb974814a4dee1eb3c68c2f76eef0e
   languageName: node
   linkType: hard
 
@@ -17814,7 +17814,7 @@ __metadata:
     "@types/utf8": "npm:^3.0.3"
     "@types/validator": "npm:^13.15.3"
     "@types/yauzl": "npm:^2.10.3"
-    "@vitejs/plugin-react-oxc": "npm:^0.2.3"
+    "@vitejs/plugin-react-oxc": "npm:^0.4.3"
     addressparser: "npm:^1.0.1"
     async-sema: "npm:^3.1.1"
     autotrack: "npm:^2.4.1"
