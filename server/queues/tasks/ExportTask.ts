@@ -1,11 +1,7 @@
 import fs from "fs-extra";
 import truncate from "lodash/truncate";
-import type {
-  NavigationNode} from "@shared/types";
-import {
-  FileOperationState,
-  NotificationEventType,
-} from "@shared/types";
+import type { NavigationNode } from "@shared/types";
+import { FileOperationState, NotificationEventType } from "@shared/types";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import ExportFailureEmail from "@server/emails/templates/ExportFailureEmail";
 import ExportSuccessEmail from "@server/emails/templates/ExportSuccessEmail";
@@ -26,6 +22,7 @@ import FileStorage from "@server/storage/files";
 import { BaseTask, TaskPriority } from "./base/BaseTask";
 import { Op } from "sequelize";
 import { sequelizeReadOnly } from "@server/storage/database";
+import type { WhereOptions } from "sequelize";
 
 type Props = {
   fileOperationId: string;
@@ -159,17 +156,23 @@ export default abstract class ExportTask extends BaseTask<Props> {
       }
     }
 
-    const where = fileOperation.collectionId
-      ? {
-          teamId: user.teamId,
-          id: fileOperation.collectionId,
-        }
-      : {
-          teamId: user.teamId,
-          archivedAt: {
-            [Op.ne]: null,
-          },
-        };
+    const where: WhereOptions<Collection> = {
+      teamId: user.teamId,
+    };
+
+    if (!fileOperation.options?.includePrivate) {
+      where.permission = {
+        [Op.ne]: null,
+      };
+    }
+
+    if (fileOperation.collectionId) {
+      where.id = fileOperation.collectionId;
+    } else {
+      where.archivedAt = {
+        [Op.eq]: null,
+      };
+    }
 
     const collections = await Collection.scope("withDocumentStructure").findAll(
       {
