@@ -17931,7 +17931,7 @@ __metadata:
     prosemirror-schema-list: "npm:^1.5.1"
     prosemirror-state: "npm:^1.4.4"
     prosemirror-tables: "npm:^1.8.1"
-    prosemirror-transform: "npm:1.10.0"
+    prosemirror-transform: "npm:1.10.5"
     prosemirror-view: "npm:^1.41.4"
     proxy-from-env: "npm:^1.1.0"
     query-string: "npm:^7.1.3"
@@ -19087,12 +19087,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prosemirror-transform@npm:1.10.0":
-  version: 1.10.0
-  resolution: "prosemirror-transform@npm:1.10.0"
+"prosemirror-transform@npm:1.10.5":
+  version: 1.10.5
+  resolution: "prosemirror-transform@npm:1.10.5"
   dependencies:
     prosemirror-model: "npm:^1.21.0"
-  checksum: 10c0/72c10b7689e0e7a575e2df66ee58980ae612f7bbad78b6781828276b5872763e05cb8fb1a92920f77e30ce5dd061d67c3de081dc4c060f23db5cbb2083100928
+  checksum: 10c0/64e5aeaa30f15a2873214913b3fda6fe9973802e6291d5913a549c71bf6de3e167ab0d967ee880041e3fecdcb3d950388346d805f21b3a1b6ec77285c17f40bd
   languageName: node
   linkType: hard
 
