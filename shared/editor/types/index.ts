@@ -55,7 +55,18 @@ export type ComponentProps = {
   decorations: Decoration[];
 };
 
-export interface NodeMarkAttr {
-  type: string;
-  [key: string]: any;
+export type NodeAttrMarkName =
+  | "strong"
+  | "em"
+  | "code_inline"
+  | "link"
+  | "background"
+  | "strikethrough"
+  | "underline"
+  | "placeholder"
+  | "comment";
+
+export interface NodeAttrMark {
+  type: NodeAttrMarkName;
+  attrs?: Record<string, unknown>;
 }
