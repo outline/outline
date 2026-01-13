@@ -7,6 +7,8 @@ import Logger from "@server/logging/Logger";
 type RedisAdapterOptions = RedisOptions & {
   /** Suffix to append to the connection name that will be displayed in Redis */
   connectionNameSuffix?: string;
+  /** Whether to skip the key prefix for this client (used for Bull queues) */
+  skipKeyPrefix?: boolean;
 };
 
 const defaultOptions: RedisOptions = {
@@ -40,7 +42,7 @@ const defaultOptions: RedisOptions = {
 export default class RedisAdapter extends Redis {
   constructor(
     url: string | undefined,
-    { connectionNameSuffix, ...options }: RedisAdapterOptions = {}
+    { connectionNameSuffix, skipKeyPrefix, ...options }: RedisAdapterOptions = {}
   ) {
     /**
      * For debugging. The connection name is based on the services running in
@@ -51,10 +53,18 @@ export default class RedisAdapter extends Redis {
       `${connectionNamePrefix}:${env.SERVICES.join("-")}` +
       (connectionNameSuffix ? `:${connectionNameSuffix}` : "");
 
+    // Apply keyPrefix only if not skipped. Bull clients need to skip this because
+    // Bull's Lua scripts construct keys at runtime without awareness of ioredis's
+    // keyPrefix configuration.
+    const keyPrefixOption =
+      !skipKeyPrefix && env.REDIS_KEY_PREFIX
+        ? { keyPrefix: env.REDIS_KEY_PREFIX }
+        : {};
+
     if (!url || !url.startsWith("ioredis://")) {
       super(
         url || env.REDIS_URL || "",
-        defaults(options, { connectionName }, defaultOptions)
+        defaults(options, { connectionName }, keyPrefixOption, defaultOptions)
       );
     } else {
       let customOptions = {};
@@ -67,7 +77,7 @@ export default class RedisAdapter extends Redis {
 
       try {
         super(
-          defaults(options, { connectionName }, customOptions, defaultOptions)
+          defaults(options, { connectionName }, keyPrefixOption, customOptions, defaultOptions)
         );
       } catch (error) {
         throw new Error(`Failed to initialize redis client: ${error}`);
@@ -91,6 +101,8 @@ export default class RedisAdapter extends Redis {
   private static client: RedisAdapter;
   private static subscriber: RedisAdapter;
   private static collabClient: RedisAdapter;
+  private static bullClient: RedisAdapter;
+  private static bullSubscriber: RedisAdapter;
 
   public static get defaultClient(): RedisAdapter {
     return (
@@ -107,6 +119,35 @@ export default class RedisAdapter extends Redis {
       (this.subscriber = new this(env.REDIS_URL, {
         maxRetriesPerRequest: null,
         connectionNameSuffix: "subscriber",
+      }))
+    );
+  }
+
+  /**
+   * A Redis adapter for Bull queue operations. Bull's Lua scripts construct
+   * keys at runtime without awareness of ioredis's keyPrefix, so we use
+   * Bull's native `prefix` option instead.
+   */
+  public static get defaultBullClient(): RedisAdapter {
+    return (
+      this.bullClient ||
+      (this.bullClient = new this(env.REDIS_URL, {
+        connectionNameSuffix: "bull-client",
+        skipKeyPrefix: true,
+      }))
+    );
+  }
+
+  /**
+   * A Redis subscriber for Bull queue operations.
+   */
+  public static get defaultBullSubscriber(): RedisAdapter {
+    return (
+      this.bullSubscriber ||
+      (this.bullSubscriber = new this(env.REDIS_URL, {
+        maxRetriesPerRequest: null,
+        connectionNameSuffix: "bull-subscriber",
+        skipKeyPrefix: true,
       }))
     );
   }

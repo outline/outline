@@ -199,6 +199,13 @@ export class Environment {
   public REDIS_COLLABORATION_URL = environment.REDIS_COLLABORATION_URL;
 
   /**
+   * An optional key prefix for all Redis keys. Useful for key namespacing when
+   * sharing a Redis instance between multiple applications.
+   */
+  @IsOptional()
+  public REDIS_KEY_PREFIX = this.toOptionalString(environment.REDIS_KEY_PREFIX);
+
+  /**
    * The fully qualified, external facing domain name of the server.
    */
   @Public
