@@ -10,10 +10,7 @@ import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import env from "~/env";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import history from "~/utils/history";
-import { settingsPath } from "~/utils/routeHelpers";
-import usePolicy from "~/hooks/usePolicy";
-import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useStores from "~/hooks/useStores";
 
 type Props = {
   document: Document;
@@ -22,10 +19,9 @@ type Props = {
 
 export const DocumentDownload = observer(({ document, onSubmit }: Props) => {
   const { t } = useTranslation();
+  const { ui } = useStores();
   const user = useCurrentUser();
-  const team = useCurrentTeam();
   const hasChildDocuments = !!document.childDocuments.length;
-  const can = usePolicy(team);
 
   const [contentType, setContentType] = useState<ExportContentType>(
     ExportContentType.Markdown
@@ -48,37 +44,35 @@ export const DocumentDownload = observer(({ document, onSubmit }: Props) => {
   );
 
   const handleSubmit = useCallback(async () => {
-    await document.download({
+    const response = await document.download({
       contentType,
       includeChildDocuments,
     });
 
-    if (includeChildDocuments) {
-      const options = can.createExport
-        ? {
-            description: t(
-              `Your file will be available in {{ location }} soon`,
-              {
-                location: `"${t("Settings")} > ${t("Export")}"`,
-              }
-            ),
-            action: {
-              label: t("View"),
-              onClick: () => {
-                history.push(settingsPath("export"));
-              },
-            },
-          }
-        : {
-            description: t(
-              `A link to your file will be sent through email soon`
-            ),
-          };
-      toast.success(t("Export started"), options);
+    if (includeChildDocuments && response?.data?.fileOperation) {
+      const fileOperationId = response.data.fileOperation.id;
+      const toastId = `export-${fileOperationId}`;
+
+      const timeoutId = setTimeout(() => {
+        toast.success(t("Export started"), {
+          id: toastId,
+          description: t("A link to your file will be sent through email soon"),
+          duration: 3000,
+        });
+        ui.exportToasts.delete(fileOperationId);
+      }, 6000);
+
+      ui.registerExportToast(fileOperationId, toastId, timeoutId);
+
+      toast.loading(t("Export started"), {
+        id: toastId,
+        description: `${t("Preparing your download")}…`,
+        duration: Infinity,
+      });
     }
 
     onSubmit();
-  }, [t, document, contentType, includeChildDocuments, onSubmit]);
+  }, [t, ui, document, contentType, includeChildDocuments, onSubmit]);
 
   const items = useMemo(() => {
     const radioItems = [
@@ -109,7 +103,7 @@ export const DocumentDownload = observer(({ document, onSubmit }: Props) => {
     }
 
     return radioItems;
-  }, [t, includeChildDocuments]);
+  }, [t]);
 
   return (
     <ConfirmationDialog
