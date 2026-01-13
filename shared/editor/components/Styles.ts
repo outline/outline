@@ -1462,6 +1462,7 @@ ol li {
   position: relative;
   white-space: initial;
   text-align: start;
+  margin-top: .25em;
 
   p {
     white-space: pre-wrap;
