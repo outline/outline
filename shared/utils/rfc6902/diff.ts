@@ -187,10 +187,10 @@ function isArrayRemove(
 }
 
 interface DynamicAlternative {
-  /**
-   * track prev key position for less memory usage
-   */
-  prev: string | null;
+  /** Previous i coordinate (-1 means no previous) */
+  prevI: number;
+  /** Previous j coordinate (-1 means no previous) */
+  prevJ: number;
   operation: ArrayOperation | null;
   /**
    * cost indicates the total cost of getting to this position.
@@ -208,10 +208,9 @@ function buildOperations(
     throw new Error("invalid memo");
   }
   const operations: ArrayOperation[] = [];
-  while (memoized && memoized.prev && memoized.operation) {
+  while (memoized && memoized.prevI >= 0 && memoized.operation) {
     operations.push(memoized.operation);
-    const index = memoized.prev.split(",");
-    memoized = memo[Number(index[0])][Number(index[1])];
+    memoized = memo[memoized.prevI][memoized.prevJ];
   }
   return operations.reverse();
 }
@@ -250,15 +249,27 @@ export function diffArrays<T>(
   ptr: Pointer,
   diff: Diff = diffAny
 ): Operation[] {
-  // set up cost matrix (very simple initialization: just a map)
+  // handle weird objects masquerading as Arrays that don't have proper length
+  // properties by using 0 for everything but positive numbers
   const input_length =
     isNaN(input.length) || input.length <= 0 ? 0 : input.length;
   const output_length =
     isNaN(output.length) || output.length <= 0 ? 0 : output.length;
+
+  // Skip matching prefix
+  let start = 0;
+  while (
+    start < input_length &&
+    start < output_length &&
+    isEqual(input[start], output[start])
+  ) {
+    start++;
+  }
+
+  // Skip matching suffix
   let input_end = input_length;
   let output_end = output_length;
-  while (input_end > 0 && output_end > 0) {
-    // accelerate same arrays
+  while (input_end > start && output_end > start) {
     if (isEqual(input[input_end - 1], output[output_end - 1])) {
       input_end--;
       output_end--;
@@ -266,56 +277,44 @@ export function diffArrays<T>(
       break;
     }
   }
-  const memo: Array<Array<DynamicAlternative>> = new Array(input_end + 1);
-  for (let i = 0; i <= input_end; i++) {
-    memo[i] = new Array(output_end + 1);
+
+  // Calculate the size of the subproblem
+  const subInput = input_end - start;
+  const subOutput = output_end - start;
+
+  const memo: Array<Array<DynamicAlternative>> = new Array(subInput + 1);
+  for (let i = 0; i <= subInput; i++) {
+    memo[i] = new Array(subOutput + 1);
   }
-  memo[0][0] = { prev: null, operation: null, cost: 0 };
-  /**
-   * Calculate the cheapest sequence of operations required to get from
-   * input.slice(0, i) to output.slice(0, j).
-   * There may be other valid sequences with the same cost, but none cheaper.
-   *
-   * @param i The row in the layout above
-   * @param j The column in the layout above
-   * @returns An object containing a list of operations, along with the total cost
-   *          of applying them (+1 for each add/remove/replace operation)
-   */
-  // handle weird objects masquerading as Arrays that don't have proper length
-  // properties by using 0 for everything but positive numbers
-  for (let i = 0; i <= input_end; i++) {
-    for (let j = 0; j <= output_end; j++) {
+  memo[0][0] = { prevI: -1, prevJ: -1, operation: null, cost: 0 };
+
+  for (let i = 0; i <= subInput; i++) {
+    for (let j = 0; j <= subOutput; j++) {
       let memoized = memo[i][j];
       if (memoized) {
         continue;
       }
-      const add_prev_key = `${i},${j - 1}`;
-      const remove_prev_key = `${i - 1},${j}`;
-      const replace_prev_key = `${i - 1},${j - 1}`;
-      const remove_operation: ArrayRemove = {
-        op: "remove",
-        index: i - 1,
-      };
-      const add_operation: ArrayAdd = {
-        op: "add",
-        index: i - 1,
-        value: output[j - 1],
-      };
+
+      // Map back to original array indices
+      const inputIdx = start + i - 1;
+      const outputIdx = start + j - 1;
 
       if (j === 0) {
         memoized = {
-          prev: remove_prev_key,
-          operation: remove_operation,
+          prevI: i - 1,
+          prevJ: j,
+          operation: { op: "remove", index: inputIdx },
           cost: memo[i - 1][j].cost + 1,
         };
       } else if (i === 0) {
         memoized = {
-          prev: add_prev_key,
-          operation: add_operation,
+          prevI: i,
+          prevJ: j - 1,
+          operation: { op: "add", index: inputIdx, value: output[outputIdx] },
           cost: memo[i][j - 1].cost + 1,
         };
       } else {
-        if (isEqual(input[i - 1], output[j - 1])) {
+        if (isEqual(input[inputIdx], output[outputIdx])) {
           memoized = memo[i - 1][j - 1];
         } else {
           const remove_prev = memo[i - 1][j];
@@ -328,27 +327,33 @@ export function diffArrays<T>(
           );
           if (remove_prev.cost === min_cost) {
             memoized = {
-              prev: remove_prev_key,
-              operation: remove_operation,
-              cost: memo[i - 1][j].cost + 1,
+              prevI: i - 1,
+              prevJ: j,
+              operation: { op: "remove", index: inputIdx },
+              cost: remove_prev.cost + 1,
             };
           } else if (add_prev.cost === min_cost) {
             memoized = {
-              prev: add_prev_key,
-              operation: add_operation,
-              cost: memo[i][j - 1].cost + 1,
+              prevI: i,
+              prevJ: j - 1,
+              operation: {
+                op: "add",
+                index: inputIdx,
+                value: output[outputIdx],
+              },
+              cost: add_prev.cost + 1,
             };
           } else {
-            const replace_operation: ArrayReplace = {
-              op: "replace",
-              index: i - 1,
-              original: input[i - 1],
-              value: output[j - 1],
-            };
             memoized = {
-              prev: replace_prev_key,
-              operation: replace_operation,
-              cost: memo[i - 1][j - 1].cost + 1,
+              prevI: i - 1,
+              prevJ: j - 1,
+              operation: {
+                op: "replace",
+                index: inputIdx,
+                original: input[inputIdx],
+                value: output[outputIdx],
+              },
+              cost: replace_prev.cost + 1,
             };
           }
         }
@@ -356,7 +361,7 @@ export function diffArrays<T>(
       memo[i][j] = memoized;
     }
   }
-  const array_operations = buildOperations(memo, input_end, output_end);
+  const array_operations = buildOperations(memo, subInput, subOutput);
   const [padded_operations] = array_operations.reduce<[Operation[], number]>(
     ([operations, padding], array_operation) => {
       if (isArrayAdd(array_operation)) {
