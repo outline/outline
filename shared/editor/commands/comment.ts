@@ -13,55 +13,71 @@ export const addComment = (attrs: Attrs): Command =>
 
 const addCommentNodeSelection =
   (attrs: Attrs): Command =>
-  (state, dispatch) => {
-    if (!(state.selection instanceof NodeSelection)) {
-      return false;
-    }
-    const { selection } = state;
-    const existingMarks = selection.node.attrs.marks ?? [];
-    const newMark = {
-      type: "comment",
-      attrs: {
-        id: uuidv4(),
-        userId: attrs.userId,
-        draft: true,
-      },
+    (state, dispatch) => {
+      if (!(state.selection instanceof NodeSelection)) {
+        return false;
+      }
+      const { selection } = state;
+      const existingMarks = selection.node.attrs.marks ?? [];
+      const newMark = {
+        type: "comment",
+        attrs: {
+          id: uuidv4(),
+          userId: attrs.userId,
+          draft: true,
+        },
+      };
+      const newAttrs = {
+        ...selection.node.attrs,
+        marks: [...existingMarks, newMark],
+      };
+      dispatch?.(state.tr.setNodeMarkup(selection.from, undefined, newAttrs));
+      return true;
     };
-    const newAttrs = {
-      ...selection.node.attrs,
-      marks: [...existingMarks, newMark],
-    };
-    dispatch?.(state.tr.setNodeMarkup(selection.from, undefined, newAttrs));
-    return true;
-  };
 
 const addCommentTextSelection =
   (attrs: Attrs): Command =>
-  (state, dispatch) => {
-    if (!(state.selection instanceof TextSelection)) {
-      return false;
-    }
+    (state, dispatch, view) => {
+      console.log("addCommentTextSelection", state.selection)
+      if (!(state.selection instanceof TextSelection)) {
+        return false;
+      }
 
-    if (
-      isMarkActive(
-        state.schema.marks.comment,
-        {
-          resolved: false,
-        },
-        { exact: true }
-      )(state)
-    ) {
-      return false;
-    }
+      // Handle empty selection - open the sidebar
+      if (state.selection.empty) {
+        // Access the UI store from the editor view's DOM
+        const editorElement = view?.dom;
+        if (editorElement) {
+          // Trigger a custom event that the Document component can listen to
+          const event = new CustomEvent('openCommentsSidebar', {
+            detail: { autoFocus: true }
+          });
+          document.dispatchEvent(event);
+        }
+        return true;
+      }
 
-    chainTransactions(
-      addMark(state.schema.marks.comment, {
-        id: uuidv4(),
-        userId: attrs.userId,
-        draft: true,
-      }),
-      collapseSelection()
-    )(state, dispatch);
+      if (
+        isMarkActive(
+          state.schema.marks.comment,
+          {
+            resolved: false,
+          },
+          { exact: true }
+        )(state)
+      ) {
+        return false;
+      }
 
-    return true;
-  };
+      chainTransactions(
+        addMark(state.schema.marks.comment, {
+          id: uuidv4(),
+          userId: attrs.userId,
+          draft: true,
+        }),
+        collapseSelection()
+      )(state, dispatch);
+
+      return true;
+    };
+
