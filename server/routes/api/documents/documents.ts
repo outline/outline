@@ -7,7 +7,6 @@ import JSZip from "jszip";
 import Router from "koa-router";
 import escapeRegExp from "lodash/escapeRegExp";
 import has from "lodash/has";
-import isNil from "lodash/isNil";
 import remove from "lodash/remove";
 import uniq from "lodash/uniq";
 import mime from "mime-types";
@@ -82,6 +81,7 @@ import FileStorage from "@server/storage/files";
 import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import ZipHelper from "@server/utils/ZipHelper";
+import { convertBareUrlsToEmbedMarkdown } from "@server/utils/embedHelper";
 import { getTeamFromContext } from "@server/utils/passport";
 import { assertPresent } from "@server/validation";
 import pagination from "../middlewares/pagination";
@@ -1695,12 +1695,19 @@ router.post(
       authorize(user, "read", templateDocument);
     }
 
+    // Pre-process text to convert bare embed URLs to markdown link format
+    const processedText = text ? convertBareUrlsToEmbedMarkdown(text) : text;
+
     const document = await documentCreator(ctx, {
       id,
       title,
-      text: !isNil(text)
-        ? await TextHelper.replaceImagesWithAttachments(ctx, text, user)
-        : text,
+      text: processedText
+        ? await TextHelper.replaceImagesWithAttachments(
+            ctx,
+            processedText,
+            user
+          )
+        : processedText,
       icon,
       color,
       createdAt,
