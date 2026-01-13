@@ -89,7 +89,7 @@ function NotificationListItem({ notification, onNavigate }: Props) {
 
       setProcessing(true);
       try {
-        await client.post("/access_requests.approve", {
+        await client.post("/accessRequests.approve", {
           id: notification.accessRequestId,
           permission: selectedPermission,
         });
@@ -119,7 +119,7 @@ function NotificationListItem({ notification, onNavigate }: Props) {
 
       setProcessing(true);
       try {
-        await client.post("/access_requests.dismiss", {
+        await client.post("/accessRequests.dismiss", {
           id: notification.accessRequestId,
         });
         toast.success(t("Access request dismissed"));

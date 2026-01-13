@@ -3,21 +3,20 @@ import {
   Table,
   ForeignKey,
   Column,
-  PrimaryKey,
-  IsUUID,
-  CreatedAt,
-  UpdatedAt,
   BelongsTo,
   DataType,
   Default,
   AllowNull,
   DefaultScope,
+  BeforeCreate,
 } from "sequelize-typescript";
-import Model from "@server/models/base/Model";
 import Document from "./Document";
 import Team from "./Team";
 import User from "./User";
 import Fix from "./decorators/Fix";
+import IdModel from "./base/IdModel";
+import { IsIn } from "class-validator";
+import { ValidationError } from "@server/errors";
 
 export enum AccessRequestStatus {
   Pending = "pending",
@@ -42,40 +41,18 @@ export enum AccessRequestStatus {
   modelName: "access_request",
 })
 @Fix
-class AccessRequest extends Model<
+class AccessRequest extends IdModel<
   InferAttributes<AccessRequest>,
   Partial<InferCreationAttributes<AccessRequest>>
 > {
-  @IsUUID(4)
-  @PrimaryKey
-  @Default(DataType.UUIDV4)
-  @Column(DataType.UUID)
-  id: string;
-
   @Default(AccessRequestStatus.Pending)
-  @Column({
-    type: DataType.STRING,
-    validate: {
-      isIn: [
-        [
-          AccessRequestStatus.Pending,
-          AccessRequestStatus.Approved,
-          AccessRequestStatus.Dismissed,
-        ],
-      ],
-    },
-  })
+  @IsIn([Object.values(AccessRequestStatus)])
+  @Column(DataType.STRING)
   status: AccessRequestStatus;
 
   @AllowNull
   @Column
   respondedAt: Date | null;
-
-  @CreatedAt
-  createdAt: Date;
-
-  @UpdatedAt
-  updatedAt: Date;
 
   // associations
   @BelongsTo(() => Document, "documentId")
@@ -106,6 +83,19 @@ class AccessRequest extends Model<
   @ForeignKey(() => User)
   @Column(DataType.UUID)
   responderId: string | null;
+
+  @BeforeCreate
+  static async validateNoDuplicatePendingRequest(instance: AccessRequest) {
+    const { documentId, userId } = instance;
+
+    const existingRequest = await this.hasPendingRequest(documentId, userId);
+
+    if (existingRequest) {
+      throw ValidationError(
+        "A pending access request already exists for this document and user."
+      );
+    }
+  }
 
   /**
    * Check if the user has a pending request on this document.

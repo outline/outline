@@ -15,6 +15,7 @@ import {
 import { DocumentAccessRequestEvent } from "@server/types";
 import { BaseTask, TaskPriority } from "./base/BaseTask";
 import { uniq } from "lodash";
+import { AccessRequestStatus } from "@server/models/AccessRequest";
 
 /**
  * Notification task that sends notifications to users who can manage a document
@@ -34,6 +35,23 @@ export default class DocumentAccessRequestNotificationsTask extends BaseTask<Doc
       return;
     }
 
+    // users can only have one pending access request per document
+    const accessRequest = await AccessRequest.findOne({
+      where: {
+        documentId: document.id,
+        userId: event.actorId,
+        status: AccessRequestStatus.Pending,
+      },
+    });
+
+    if (!accessRequest) {
+      Logger.debug("task", `Access request not found for notification`, {
+        documentId: event.documentId,
+        userId: event.actorId,
+      });
+      return;
+    }
+
     const recipients = await this.findDocumentManagers(document);
     for (const recipient of recipients) {
       if (
@@ -46,19 +64,13 @@ export default class DocumentAccessRequestNotificationsTask extends BaseTask<Doc
         continue;
       }
 
-      const accessReq = await AccessRequest.create({
-        documentId: document.id,
-        teamId: document.teamId,
-        userId: event.actorId,
-      });
-
       await Notification.create({
         event: NotificationEventType.RequestDocumentAccess,
         userId: recipient.id,
         actorId: event.actorId,
         teamId: event.teamId,
         documentId: event.documentId,
-        accessRequestId: accessReq.id,
+        accessRequestId: accessRequest.id,
       });
     }
   }

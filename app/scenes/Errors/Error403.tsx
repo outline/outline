@@ -23,8 +23,8 @@ const Error403 = ({ documentId }: Props) => {
 
   React.useEffect(() => {
     const checkRequested = async () => {
-      const request = await client.post("/access_requests.info", {
-        documentSlug: documentId,
+      const request = await client.post("/accessRequests.info", {
+        documentId,
       });
 
       if (request?.data?.status === "pending") {
@@ -42,7 +42,7 @@ const Error403 = ({ documentId }: Props) => {
     setRequesting(true);
 
     try {
-      await client.post("/documents.request_access", { id: documentId });
+      await client.post("/accessRequests.create", { documentId });
       setRequested(true);
       toast.success(t("Access request sent"));
     } catch {
