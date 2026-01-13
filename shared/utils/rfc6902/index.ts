@@ -80,6 +80,7 @@ function createTest(input: unknown, path: string): TestOperation | undefined {
   if (endpoint !== undefined) {
     return { op: "test", path, value: endpoint.value };
   }
+  return undefined;
 }
 
 /**
