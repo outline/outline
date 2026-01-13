@@ -17961,7 +17961,6 @@ __metadata:
     refractor: "npm:^3.6.0"
     request-filtering-agent: "npm:^3.2.0"
     resolve-path: "npm:^1.4.0"
-    rfc6902: "npm:^5.1.2"
     rimraf: "npm:^2.5.4"
     rollup-plugin-webpack-stats: "npm:2.1.6"
     sanitize-filename: "npm:^1.6.3"
@@ -20041,13 +20040,6 @@ __metadata:
   version: 1.1.0
   resolution: "reusify@npm:1.1.0"
   checksum: 10c0/4eff0d4a5f9383566c7d7ec437b671cc51b25963bd61bf127c3f3d3f68e44a026d99b8d2f1ad344afff8d278a8fe70a8ea092650a716d22287e8bef7126bb2fa
-  languageName: node
-  linkType: hard
-
-"rfc6902@npm:^5.1.2":
-  version: 5.1.2
-  resolution: "rfc6902@npm:5.1.2"
-  checksum: 10c0/29d944ea416230e9589476a646e68a8684437f6ea2883b6447abd3a1a741f12bbedd7a15e300055b35a938ff3944116e5f3ae95a30b3d2f9f0c980957566b364
   languageName: node
   linkType: hard
 
