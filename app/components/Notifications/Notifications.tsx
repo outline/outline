@@ -86,8 +86,8 @@ function Notifications(
       <Flex
         style={{
           width: "100%",
-          minHeight: "200px",
-          height: "calc(var(--radix-popover-content-available-height) - 44px)",
+          height:
+            "min(300px, calc(var(--radix-popover-content-available-height) - 44px))",
         }}
         column
       >
@@ -118,8 +118,8 @@ function Notifications(
             <NotificationMenu />
           </HStack>
         </Header>
-        <React.Suspense fallback={null}>
-          <Scrollable ref={ref} flex topShadow hiddenScrollbars>
+        <Scrollable ref={ref} flex topShadow hiddenScrollbars>
+          <React.Suspense fallback={null}>
             <PaginatedList<Notification>
               fetch={notifications.fetchPage}
               options={{ archived: false }}
@@ -137,8 +137,8 @@ function Notifications(
                 />
               )}
             />
-          </Scrollable>
-        </React.Suspense>
+          </React.Suspense>
+        </Scrollable>
       </Flex>
     </ErrorBoundary>
   );
