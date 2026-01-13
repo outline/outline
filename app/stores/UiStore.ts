@@ -89,6 +89,12 @@ class UiStore {
   @observable
   debugSafeArea = false;
 
+  /** Tracks active export toasts for in-place updates when export completes */
+  exportToasts = observable.map<
+    string,
+    { toastId: string; timeoutId: ReturnType<typeof setTimeout> }
+  >();
+
   rootStore: RootStore;
 
   constructor(rootStore: RootStore) {
@@ -254,6 +260,24 @@ class UiStore {
   @action
   toggleDebugSafeArea = () => {
     this.debugSafeArea = !this.debugSafeArea;
+  };
+
+  @action
+  registerExportToast = (
+    fileOperationId: string,
+    toastId: string,
+    timeoutId: ReturnType<typeof setTimeout>
+  ) => {
+    this.exportToasts.set(fileOperationId, { toastId, timeoutId });
+  };
+
+  @action
+  removeExportToast = (fileOperationId: string) => {
+    const tracked = this.exportToasts.get(fileOperationId);
+    if (tracked) {
+      clearTimeout(tracked.timeoutId);
+      this.exportToasts.delete(fileOperationId);
+    }
   };
 
   @computed
