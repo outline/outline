@@ -1,4 +1,4 @@
-import { isDeepStrictEqual } from "util";
+import isEqual from "lodash/isEqual";
 import type { Pointer } from "./pointer";
 import { hasOwnProperty, objectType } from "./util";
 
@@ -259,7 +259,7 @@ export function diffArrays<T>(
   let output_end = output_length;
   while (input_end > 0 && output_end > 0) {
     // accelerate same arrays
-    if (isDeepStrictEqual(input[input_end - 1], output[output_end - 1])) {
+    if (isEqual(input[input_end - 1], output[output_end - 1])) {
       input_end--;
       output_end--;
     } else {
@@ -315,7 +315,7 @@ export function diffArrays<T>(
           cost: memo[i][j - 1].cost + 1,
         };
       } else {
-        if (isDeepStrictEqual(input[i - 1], output[j - 1])) {
+        if (isEqual(input[i - 1], output[j - 1])) {
           memoized = memo[i - 1][j - 1];
         } else {
           const remove_prev = memo[i - 1][j];
