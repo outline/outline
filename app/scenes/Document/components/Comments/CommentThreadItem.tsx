@@ -372,9 +372,8 @@ const Action = styled.span<{ $rounded?: boolean }>`
     opacity: 0.5;
   }
 
-  &:
-    ${hover},
-    &[aria-expanded= "true"] {
+  &[aria-expanded="true"],
+  &:${hover} {
     background: ${s("backgroundQuaternary")};
 
     svg {
