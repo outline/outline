@@ -1,4 +1,5 @@
 import { computed, observable } from "mobx";
+import { t } from "i18next";
 import { toast } from "sonner";
 import {
   FileOperationState,
@@ -73,12 +74,12 @@ class FileOperation extends Model {
       previousAttributes.state !== model.state &&
       model.state === FileOperationState.Complete
     ) {
-      toast.success("Export complete", {
+      toast.success(t("Export complete"), {
         id: tracked.toastId,
         description: model.name,
         duration: Infinity,
         action: {
-          label: "Download",
+          label: t("Download"),
           onClick: () => window.open(model.downloadUrl, "_blank"),
         },
       });
@@ -89,10 +90,9 @@ class FileOperation extends Model {
       previousAttributes.state !== model.state &&
       model.state === FileOperationState.Error
     ) {
-      toast.error("Export failed", {
+      toast.error(t("Export failed"), {
         id: tracked.toastId,
-        duration: Infinity,
-        description: model.error || "An unexpected error occurred",
+        description: model.error || t("An unexpected error occurred"),
       });
       ui.removeExportToast(model.id);
     }
