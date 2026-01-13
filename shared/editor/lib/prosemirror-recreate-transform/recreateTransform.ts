@@ -231,7 +231,7 @@ export class RecreateTransform {
     const op2Doc = this.schema.nodeFromJSON(afterOP2JSON);
 
     // get text diffs
-    const finalText = op.value;
+    const finalText = op.value as string;
     const currentText = getFromPath(this.currentJSON, op.path) as string;
     const textDiffs = this.wordDiffs
       ? diffWordsWithSpace(currentText, finalText)
