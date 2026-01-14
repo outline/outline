@@ -38,22 +38,13 @@ const addCommentNodeSelection =
 const addCommentTextSelection =
   (attrs: Attrs): Command =>
     (state, dispatch, view) => {
-      console.log("addCommentTextSelection", state.selection)
       if (!(state.selection instanceof TextSelection)) {
         return false;
       }
 
       // Handle empty selection - open the sidebar
       if (state.selection.empty) {
-        // Access the UI store from the editor view's DOM
-        const editorElement = view?.dom;
-        if (editorElement) {
-          // Trigger a custom event that the Document component can listen to
-          const event = new CustomEvent('openCommentsSidebar', {
-            detail: { autoFocus: true }
-          });
-          document.dispatchEvent(event);
-        }
+        view?.props.onOpenCommentsSidebar?.();
         return true;
       }
 

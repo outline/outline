@@ -20,7 +20,7 @@ import {
   ReplaceAroundStep,
   ReplaceStep,
 } from "prosemirror-transform";
-import type { Decoration, NodeViewConstructor } from "prosemirror-view";
+import type { Decoration, DirectEditorProps, NodeViewConstructor } from "prosemirror-view";
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
 import type { DefaultTheme, ThemeProps } from "styled-components";
@@ -58,7 +58,6 @@ import type { LightboxImage } from "@shared/editor/lib/Lightbox";
 import { LightboxImageFactory } from "@shared/editor/lib/Lightbox";
 import Lightbox from "~/components/Lightbox";
 import { anchorPlugin } from "@shared/editor/plugins/AnchorPlugin";
-
 export type Props = {
   /** An optional identifier for the editor context. It is used to persist local settings */
   id?: string;
@@ -119,6 +118,8 @@ export type Props = {
   onCreateCommentMark?: (commentId: string, userId: string) => void;
   /** Callback when a comment mark is removed */
   onDeleteCommentMark?: (commentId: string) => void;
+  /** Callback when comments sidebar should be opened */
+  onOpenCommentsSidebar?: () => void;
   /** Callback when a file upload begins */
   onFileUploadStart?: () => void;
   /** Callback when a file upload ends */
@@ -446,7 +447,7 @@ export class Editor extends React.PureComponent<
         (step) =>
           (step instanceof ReplaceAroundStep || step instanceof ReplaceStep) &&
           step.slice.content?.firstChild?.type.name ===
-            this.schema.nodes.checkbox_item.name
+          this.schema.nodes.checkbox_item.name
       );
 
     const isEditingComment = (tr: Transaction) =>
@@ -468,6 +469,7 @@ export class Editor extends React.PureComponent<
       state: this.createState(this.props.value),
       editable: () => !this.props.readOnly,
       nodeViews: this.nodeViews,
+      onOpenCommentsSidebar: this.props.onOpenCommentsSidebar,
       dispatchTransaction(this: EditorView, transaction) {
         if (this.isDestroyed) {
           return;
@@ -885,7 +887,7 @@ export class Editor extends React.PureComponent<
   }
 }
 
-const EditorContainer = styled(Styles)<{
+const EditorContainer = styled(Styles) <{
   userId?: string;
   focusedCommentId?: string;
 }>`
@@ -912,8 +914,8 @@ const EditorContainer = styled(Styles)<{
 
         &.ProseMirror-selectednode {
           outline-color: ${props.readOnly
-            ? "transparent"
-            : darken(0.2, props.theme.textHighlight)};
+        ? "transparent"
+        : darken(0.2, props.theme.textHighlight)};
         }
       }
     `}
