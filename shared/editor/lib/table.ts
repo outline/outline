@@ -64,11 +64,10 @@ export function setCellAttrs(node: Node): Attrs {
   }
   if (node.attrs.colwidth) {
     if (isBrowser) {
-      attrs["data-colwidth"] = node.attrs.colwidth.map(parseInt).join(",");
+      attrs["data-colwidth"] = node.attrs.colwidth.map(Number).join(",");
     } else {
       attrs.style =
-        (attrs.style ?? "") +
-        `min-width: ${parseInt(node.attrs.colwidth[0])}px;`;
+        (attrs.style ?? "") + `min-width: ${Number(node.attrs.colwidth[0])}px;`;
     }
   }
 
