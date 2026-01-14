@@ -1872,19 +1872,19 @@ table {
   }
   tr:first-child th[data-first-column],
   tr:first-child td[data-first-column] {
-    border-radius: ${EditorStyleHelper.blockRadius} 0 0 0;
+    border-top-left-radius: ${EditorStyleHelper.blockRadius};
   }
   th[data-first-column][data-last-row],
   td[data-first-column][data-last-row] {
-    border-radius: 0 0 0 ${EditorStyleHelper.blockRadius};
+    border-bottom-left-radius: ${EditorStyleHelper.blockRadius};
   }
   tr:first-child th[data-last-column],
   tr:first-child td[data-last-column] {
-    border-radius: 0 ${EditorStyleHelper.blockRadius} 0 0;
+    border-top-right-radius: ${EditorStyleHelper.blockRadius};
   }
   th[data-last-column][data-last-row],
   td[data-last-column][data-last-row] {
-    border-radius: 0 0 ${EditorStyleHelper.blockRadius} 0;
+    border-bottom-right-radius: ${EditorStyleHelper.blockRadius};
   }
 
   td .component-embed {
@@ -2219,11 +2219,6 @@ table {
   padding-left: ${EditorStyleHelper.padding}px;
   padding-right: ${EditorStyleHelper.padding}px;
   transition: border 250ms ease-in-out 0s;
-
-  table {
-    table-layout: fixed;
-    word-break: break-word;
-  }
 
   &:hover {
     scrollbar-color: ${props.theme.scrollbarThumb} ${
