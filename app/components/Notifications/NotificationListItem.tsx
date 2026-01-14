@@ -78,12 +78,7 @@ function NotificationListItem({ notification, onNavigate }: Props) {
       event.preventDefault();
       event.stopPropagation();
 
-      if (
-        !collection ||
-        !notification.actor ||
-        processing ||
-        !notification.accessRequestId
-      ) {
+      if (!collection || !notification.actor || processing) {
         return;
       }
 
@@ -113,7 +108,7 @@ function NotificationListItem({ notification, onNavigate }: Props) {
       event.preventDefault();
       event.stopPropagation();
 
-      if (!notification.accessRequestId || processing) {
+      if (processing) {
         return;
       }
 

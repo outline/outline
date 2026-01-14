@@ -29,6 +29,8 @@ const Error403 = ({ documentId }: Props) => {
 
       if (request?.data?.status === "pending") {
         setRequested(true);
+      } else {
+        setRequested(false);
       }
     };
 

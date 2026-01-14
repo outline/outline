@@ -59,29 +59,16 @@ router.post(
 
 router.post(
   "accessRequests.info",
-  rateLimiter(RateLimiterStrategy.TenPerMinute),
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth(),
   validate(T.AccessRequestInfoSchema),
   async (ctx: APIContext<T.AccessRequestInfoReq>) => {
     const { user } = ctx.state.auth;
     const { id, documentId } = ctx.input.body;
 
-    let accessReq: AccessRequest | null = null;
-    if (id) {
-      accessReq = await AccessRequest.findByPk(id);
-    } else if (documentId) {
-      const document = await Document.findByPk(documentId, {
-        userId: user.id,
-        rejectOnEmpty: true,
-      });
-
-      accessReq = await AccessRequest.findOne({
-        where: {
-          documentId: document.id,
-          userId: user.id,
-        },
-      });
-    }
+    const accessReq = id
+      ? await AccessRequest.findByPk(id)
+      : await AccessRequest.pendingRequest({ documentId, userId: user.id });
 
     if (!accessReq) {
       return ctx.throw(404, "Access request not found");
@@ -97,7 +84,7 @@ router.post(
 
 router.post(
   "accessRequests.approve",
-  rateLimiter(RateLimiterStrategy.TenPerMinute),
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth(),
   validate(T.AccessRequestsApproveSchema),
   transaction(),
@@ -157,7 +144,7 @@ router.post(
 
 router.post(
   "accessRequests.dismiss",
-  rateLimiter(RateLimiterStrategy.TenPerMinute),
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth(),
   validate(T.AccessRequestsDismissSchema),
   transaction(),

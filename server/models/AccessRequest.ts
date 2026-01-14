@@ -88,7 +88,7 @@ class AccessRequest extends IdModel<
   static async validateNoDuplicatePendingRequest(instance: AccessRequest) {
     const { documentId, userId } = instance;
 
-    const existingRequest = await this.hasPendingRequest(documentId, userId);
+    const existingRequest = await this.pendingRequest({ documentId, userId });
 
     if (existingRequest) {
       throw ValidationError(
@@ -98,28 +98,37 @@ class AccessRequest extends IdModel<
   }
 
   /**
-   * Check if the user has a pending request on this document.
+   * get the user's pending request.
    *
-   * @param documentId The document ID.
+   * @param documentId The document ID or slug.
    * @param userId The user ID.
-   * @returns True if there's a pending request.
+   *
+   * @returns the pending request or null.
    */
-  public static async hasPendingRequest(
-    documentId: string,
-    userId: string
-  ): Promise<boolean> {
+  public static async pendingRequest({
+    documentId,
+    userId,
+  }: {
+    documentId?: string;
+    userId?: string;
+  }): Promise<AccessRequest | null> {
     if (!documentId || !userId) {
-      return false;
+      return null;
     }
 
-    const count = await this.count({
+    const document = await Document.findByPk(documentId);
+    if (!document) {
+      return null;
+    }
+
+    const req = await this.findOne({
       where: {
-        documentId,
+        documentId: document.id,
         userId,
         status: AccessRequestStatus.Pending,
       },
     });
-    return count > 0;
+    return req;
   }
 }
 
