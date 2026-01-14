@@ -4,7 +4,6 @@ import type { UserRole } from "@shared/types";
 import InviteAcceptedEmail from "@server/emails/templates/InviteAcceptedEmail";
 import {
   DomainNotAllowedError,
-  InternalError,
   InvalidAuthenticationError,
   InviteRequiredError,
 } from "@server/errors";
@@ -81,12 +80,20 @@ export default async function userProvisioner(
 
     // We found an authentication record that matches the user id, but it's
     // associated with a different authentication provider, (eg a different
-    // hosted google domain). This is possible in Google Auth when moving domains.
-    // In the future we may auto-migrate these.
+    // hosted google domain or Discord server). This can happen when moving
+    // domains or changing server configurations. Auto-migrate to the new provider.
     if (auth.authenticationProviderId !== authenticationProviderId) {
-      throw InternalError(
-        `User authentication ${providerId} already exists for ${auth.authenticationProviderId}, tried to assign to ${authenticationProviderId}`
+      Logger.info(
+        "authentication",
+        "Migrating user to new authentication provider",
+        {
+          userId: user?.id,
+          providerId,
+          fromAuthenticationProviderId: auth.authenticationProviderId,
+          toAuthenticationProviderId: authenticationProviderId,
+        }
       );
+      await auth.update({ authenticationProviderId });
     }
 
     if (user) {
