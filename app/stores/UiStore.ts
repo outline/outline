@@ -43,6 +43,10 @@ class UiStore {
   @observable
   theme: Theme;
 
+  // themeOverride is set when a theme query parameter is detected, persists for the session
+  @observable
+  themeOverride: Theme | undefined;
+
   // systemTheme represents the system UI theme (Settings -> General in macOS)
   @observable
   systemTheme: SystemTheme;
@@ -154,6 +158,17 @@ class UiStore {
         this.persist();
       });
     });
+  };
+
+  /**
+   * Set a theme override from a query parameter. This persists for the session
+   * but is not saved to localStorage.
+   *
+   * @param theme The theme to override with, or undefined to clear.
+   */
+  @action
+  setThemeOverride = (theme: Theme | undefined) => {
+    this.themeOverride = theme;
   };
 
   @action
@@ -300,6 +315,10 @@ class UiStore {
 
   @computed
   get resolvedTheme(): Theme | SystemTheme {
+    if (this.themeOverride) {
+      return this.themeOverride;
+    }
+
     if (this.theme === "system") {
       return this.systemTheme;
     }
