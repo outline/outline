@@ -21,7 +21,7 @@ export const isPWA =
 
 /**
  * Returns true if the client is a touch device. Note that laptops with touch screens are
- * considered touch devices.
+ * considered touch devices, this does not neccessarily map to a small screen.
  */
 export function isTouchDevice(): boolean {
   if (!isBrowser) {
@@ -31,7 +31,7 @@ export function isTouchDevice(): boolean {
 }
 
 /**
- * Returns true if the client is a mobile device.
+ * Returns true if the client is the size of a mobile device.
  */
 export function isMobile(): boolean {
   if (!isBrowser) {
@@ -69,43 +69,29 @@ export function getSafeAreaInsets(): {
 }
 
 /**
- * Returns true if the client is running on a Mac.
+ * Is true if the client is running on a Mac.
  */
-export function isMac(): boolean {
-  if (!isBrowser) {
-    return false;
-  }
-  return window.navigator.platform === "MacIntel";
-}
+export const isMac = isBrowser && window.navigator.platform === "MacIntel";
 
 /**
- * Returns true if the client is running on Windows.
+ * Is true if the client is running on Windows.
  */
-export function isWindows(): boolean {
-  if (!isBrowser) {
-    return false;
-  }
-  return window.navigator.platform === "Win32";
-}
+export const isWindows = isBrowser && window.navigator.platform === "Win32";
 
-export function isSafari(): boolean {
-  if (!isBrowser) {
-    return false;
-  }
-  const userAgent = window.navigator.userAgent;
-  return (
-    userAgent.includes("Safari") &&
-    !userAgent.includes("Chrome") &&
-    !userAgent.includes("Chromium")
-  );
-}
+/**
+ * Is true if the client is running Safari.
+ */
+export const isSafari =
+  isBrowser &&
+  window.navigator.userAgent.includes("Safari") &&
+  !window.navigator.userAgent.includes("Chrome") &&
+  !window.navigator.userAgent.includes("Chromium");
 
-export function isFirefox(): boolean {
-  if (!isBrowser) {
-    return false;
-  }
-  return window.navigator.userAgent.includes("Firefox");
-}
+/**
+ * Is true if the client is running Firefox.
+ */
+export const isFirefox =
+  isBrowser && window.navigator.userAgent.includes("Firefox");
 
 let supportsPassive = false;
 
