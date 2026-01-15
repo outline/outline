@@ -188,20 +188,16 @@ export class DocumentHelper {
       .replace(/’/g, "'")
       .trim();
 
-    if (document instanceof Collection) {
-      return text;
-    }
-
     if (
-      (document instanceof Document || document instanceof Revision) &&
+      (document instanceof Collection ||
+        document instanceof Document ||
+        document instanceof Revision) &&
       options?.includeTitle !== false
     ) {
       const iconType = determineIconType(document.icon);
-
-      const title = `${iconType === IconType.Emoji ? document.icon + " " : ""}${
-        document.title
-      }`;
-
+      const name =
+        document instanceof Collection ? document.name : document.title;
+      const title = `${iconType === IconType.Emoji ? document.icon + " " : ""}${name}`;
       return `# ${title}\n\n${text}`;
     }
 
