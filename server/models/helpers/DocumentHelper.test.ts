@@ -315,6 +315,228 @@ This is a [test paragraph](https://example.net)`,
     });
   });
 
+  describe("toMarkdown", () => {
+    it("should export bullet lists inside table cells with br tags", async () => {
+      // Create a document with a table containing a bullet list in a cell
+      // This tests the renderList inTable handling
+      const document = await buildDocument({
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "table",
+              content: [
+                {
+                  type: "tr",
+                  content: [
+                    {
+                      type: "th",
+                      attrs: { colspan: 1, rowspan: 1 },
+                      content: [
+                        {
+                          type: "paragraph",
+                          content: [{ type: "text", text: "Header" }],
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "tr",
+                  content: [
+                    {
+                      type: "td",
+                      attrs: { colspan: 1, rowspan: 1 },
+                      content: [
+                        {
+                          type: "bullet_list",
+                          content: [
+                            {
+                              type: "list_item",
+                              content: [
+                                {
+                                  type: "paragraph",
+                                  content: [{ type: "text", text: "item 1" }],
+                                },
+                              ],
+                            },
+                            {
+                              type: "list_item",
+                              content: [
+                                {
+                                  type: "paragraph",
+                                  content: [{ type: "text", text: "item 2" }],
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      });
+      const result = await DocumentHelper.toMarkdown(document, {
+        includeTitle: false,
+      });
+      // Lists inside tables should use <br> tags instead of newlines
+      expect(result).toContain("<br>");
+      expect(result).toContain("* item 1");
+      expect(result).toContain("* item 2");
+      // Should not have newlines between list items within the table cell
+      expect(result).not.toMatch(/\* item 1\n\* item 2/);
+    });
+
+    it("should export ordered lists inside table cells with br tags", async () => {
+      const document = await buildDocument({
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "table",
+              content: [
+                {
+                  type: "tr",
+                  content: [
+                    {
+                      type: "th",
+                      attrs: { colspan: 1, rowspan: 1 },
+                      content: [
+                        {
+                          type: "paragraph",
+                          content: [{ type: "text", text: "Header" }],
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "tr",
+                  content: [
+                    {
+                      type: "td",
+                      attrs: { colspan: 1, rowspan: 1 },
+                      content: [
+                        {
+                          type: "ordered_list",
+                          attrs: { order: 1 },
+                          content: [
+                            {
+                              type: "list_item",
+                              content: [
+                                {
+                                  type: "paragraph",
+                                  content: [{ type: "text", text: "first" }],
+                                },
+                              ],
+                            },
+                            {
+                              type: "list_item",
+                              content: [
+                                {
+                                  type: "paragraph",
+                                  content: [{ type: "text", text: "second" }],
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      });
+      const result = await DocumentHelper.toMarkdown(document, {
+        includeTitle: false,
+      });
+      // Ordered lists inside tables should use <br> tags
+      expect(result).toContain("<br>");
+      expect(result).toContain("1. first");
+      expect(result).toContain("2. second");
+    });
+
+    it("should export checkbox lists inside table cells with br tags", async () => {
+      const document = await buildDocument({
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "table",
+              content: [
+                {
+                  type: "tr",
+                  content: [
+                    {
+                      type: "th",
+                      attrs: { colspan: 1, rowspan: 1 },
+                      content: [
+                        {
+                          type: "paragraph",
+                          content: [{ type: "text", text: "Header" }],
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "tr",
+                  content: [
+                    {
+                      type: "td",
+                      attrs: { colspan: 1, rowspan: 1 },
+                      content: [
+                        {
+                          type: "checkbox_list",
+                          content: [
+                            {
+                              type: "checkbox_item",
+                              attrs: { checked: false },
+                              content: [
+                                {
+                                  type: "paragraph",
+                                  content: [{ type: "text", text: "todo" }],
+                                },
+                              ],
+                            },
+                            {
+                              type: "checkbox_item",
+                              attrs: { checked: true },
+                              content: [
+                                {
+                                  type: "paragraph",
+                                  content: [{ type: "text", text: "done" }],
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      });
+      const result = await DocumentHelper.toMarkdown(document, {
+        includeTitle: false,
+      });
+      // Checkbox lists inside tables should use <br> tags
+      expect(result).toContain("<br>");
+      expect(result).toContain("[ ] todo");
+      expect(result).toContain("[x] done");
+    });
+  });
+
   describe("toPlainText", () => {
     it("should return only plain text", async () => {
       const revision = new Revision({

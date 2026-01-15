@@ -68,6 +68,7 @@ export class MarkdownSerializerState {
   inTightList = false;
   closed = false;
   delim = "";
+  out = "";
   options: Options;
 
   constructor(nodes, marks, options) {
@@ -328,6 +329,19 @@ export class MarkdownSerializerState {
   // `firstDelim` is a function going from an item index to a
   // delimiter for the first line of the item.
   renderList(node, delim, firstDelim) {
+    // In tables, render list items inline separated by <br> to avoid
+    // breaking the table structure with newlines
+    if (this.inTable) {
+      node.forEach((child, _, i) => {
+        if (i > 0) {
+          this.out += " <br> ";
+        }
+        this.out += firstDelim(i).trim() + " ";
+        this.render(child, node, i);
+      });
+      return;
+    }
+
     if (this.closed && this.closed.type === node.type) {
       this.flushClose(3);
     } else if (this.inTightList) {
