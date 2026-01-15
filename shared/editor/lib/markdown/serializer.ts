@@ -371,54 +371,63 @@ export class MarkdownSerializerState {
   renderTable(node) {
     this.flushClose(1);
 
-    let headerBuffer = "";
     const prevTable = this.inTable;
     this.inTable = true;
 
-    // ensure there is an empty newline above all tables
+    // Calculate column widths from header row
+    const columnWidths: number[] = [];
+    const headerRow = node.child(0);
+    headerRow.forEach((cell, _, j) => {
+      // Use textContent length as minimum width (minimum 3 for separator)
+      columnWidths[j] = Math.max(cell.textContent.length, 3);
+    });
+
+    // Ensure there is an empty newline above all tables
     this.out += "\n";
 
-    // rows
+    // Render rows
     node.forEach((row, _, i) => {
-      // cols
       row.forEach((cell, _, j) => {
         this.out += j === 0 ? "| " : " | ";
 
+        const startPos = this.out.length;
+
         cell.forEach((cellNode) => {
-          // just padding the output so that empty cells take up the same space
-          // as headings.
-          // TODO: Ideally we'd calc the longest cell length and use that
-          // to pad all the others.
           if (
-            cellNode.textContent === "" &&
-            cellNode.content.size === 0 &&
-            cellNode.type.name === "paragraph"
+            !(
+              cellNode.textContent === "" &&
+              cellNode.content.size === 0 &&
+              cellNode.type.name === "paragraph"
+            )
           ) {
-            this.out += "  ";
-          } else {
             this.closed = false;
             this.render(cellNode, row, j);
           }
         });
 
-        if (i === 0) {
-          if (cell.attrs.alignment === "center") {
-            headerBuffer += "|:---:";
-          } else if (cell.attrs.alignment === "left") {
-            headerBuffer += "|:---";
-          } else if (cell.attrs.alignment === "right") {
-            headerBuffer += "|---:";
-          } else {
-            headerBuffer += "|----";
-          }
-        }
+        // Pad to column width
+        const contentLength = this.out.length - startPos;
+        const padding = Math.max(0, columnWidths[j] - contentLength);
+        this.out += " ".repeat(padding);
       });
 
       this.out += " |\n";
 
-      if (headerBuffer) {
-        this.out += `${headerBuffer}|\n`;
-        headerBuffer = undefined;
+      // Header separator after first row
+      if (i === 0) {
+        headerRow.forEach((cell, _, j) => {
+          const width = columnWidths[j];
+          if (cell.attrs.alignment === "center") {
+            this.out += "|:" + "-".repeat(width) + ":";
+          } else if (cell.attrs.alignment === "left") {
+            this.out += "|:" + "-".repeat(width + 1);
+          } else if (cell.attrs.alignment === "right") {
+            this.out += "|" + "-".repeat(width + 1) + ":";
+          } else {
+            this.out += "|" + "-".repeat(width + 2);
+          }
+        });
+        this.out += "|\n";
       }
     });
 

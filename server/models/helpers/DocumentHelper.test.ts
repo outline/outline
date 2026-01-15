@@ -463,6 +463,79 @@ This is a [test paragraph](https://example.net)`,
       expect(result).toContain("2. second");
     });
 
+    it("should pad table cells to match header width", async () => {
+      const document = await buildDocument({
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "table",
+              content: [
+                {
+                  type: "tr",
+                  content: [
+                    {
+                      type: "th",
+                      attrs: { colspan: 1, rowspan: 1 },
+                      content: [
+                        {
+                          type: "paragraph",
+                          content: [{ type: "text", text: "Long Header" }],
+                        },
+                      ],
+                    },
+                    {
+                      type: "th",
+                      attrs: { colspan: 1, rowspan: 1 },
+                      content: [
+                        {
+                          type: "paragraph",
+                          content: [{ type: "text", text: "Col 2" }],
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "tr",
+                  content: [
+                    {
+                      type: "td",
+                      attrs: { colspan: 1, rowspan: 1 },
+                      content: [
+                        {
+                          type: "paragraph",
+                          content: [{ type: "text", text: "A" }],
+                        },
+                      ],
+                    },
+                    {
+                      type: "td",
+                      attrs: { colspan: 1, rowspan: 1 },
+                      content: [
+                        {
+                          type: "paragraph",
+                          content: [{ type: "text", text: "B" }],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      });
+      const result = await DocumentHelper.toMarkdown(document, {
+        includeTitle: false,
+      });
+      // Cells should be padded to match header width
+      // "A" padded to 11 chars (length of "Long Header")
+      // "B" padded to 5 chars (length of "Col 2")
+      expect(result).toContain("| A           |"); // A + 10 spaces = 11 chars
+      expect(result).toContain("| B     |"); // B + 4 spaces = 5 chars
+    });
+
     it("should export checkbox lists inside table cells with br tags", async () => {
       const document = await buildDocument({
         content: {
