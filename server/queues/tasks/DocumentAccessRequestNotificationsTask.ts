@@ -5,10 +5,17 @@ import {
   CollectionPermission,
 } from "@shared/types";
 import Logger from "@server/logging/Logger";
-import { Document, Notification, User, Collection } from "@server/models";
+import {
+  Document,
+  Notification,
+  User,
+  Collection,
+  AccessRequest,
+} from "@server/models";
 import { DocumentAccessRequestEvent } from "@server/types";
 import { BaseTask, TaskPriority } from "./base/BaseTask";
 import { uniq } from "lodash";
+import { AccessRequestStatus } from "@server/models/AccessRequest";
 
 /**
  * Notification task that sends notifications to users who can manage a document
@@ -25,6 +32,23 @@ export default class DocumentAccessRequestNotificationsTask extends BaseTask<Doc
           documentId: event.documentId,
         }
       );
+      return;
+    }
+
+    // users can only have one pending access request per document
+    const accessRequest = await AccessRequest.findOne({
+      where: {
+        documentId: document.id,
+        userId: event.actorId,
+        status: AccessRequestStatus.Pending,
+      },
+    });
+
+    if (!accessRequest) {
+      Logger.debug("task", `Access request not found for notification`, {
+        documentId: event.documentId,
+        userId: event.actorId,
+      });
       return;
     }
 
@@ -46,6 +70,7 @@ export default class DocumentAccessRequestNotificationsTask extends BaseTask<Doc
         actorId: event.actorId,
         teamId: event.teamId,
         documentId: event.documentId,
+        accessRequestId: accessRequest.id,
       });
     }
   }

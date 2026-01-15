@@ -18,6 +18,7 @@ import Time from "../Time";
 import { UnreadBadge } from "../UnreadBadge";
 import { Permission } from "~/types";
 import lazyWithRetry from "~/utils/lazyWithRetry";
+import { client } from "~/utils/ApiClient";
 
 const CommentEditor = lazyWithRetry(
   () => import("~/scenes/Document/components/CommentEditor")
@@ -30,15 +31,16 @@ type Props = {
 
 function NotificationListItem({ notification, onNavigate }: Props) {
   const { t } = useTranslation();
-  const { collections, userMemberships } = useStores();
+  const { collections } = useStores();
   const collectionId = notification.document?.collectionId;
   const collection = collectionId ? collections.get(collectionId) : undefined;
   const [processing, setProcessing] = React.useState(false);
   const [selectedPermission, setSelectedPermission] =
-    React.useState<DocumentPermission>(DocumentPermission.ReadWrite);
+    React.useState<DocumentPermission>(DocumentPermission.Read);
 
   const isAccessRequest =
-    notification.event === NotificationEventType.RequestDocumentAccess;
+    notification.event === NotificationEventType.RequestDocumentAccess &&
+    notification.accessRequestId;
 
   const permissions: Permission[] = React.useMemo(
     () => [
@@ -76,13 +78,14 @@ function NotificationListItem({ notification, onNavigate }: Props) {
       event.preventDefault();
       event.stopPropagation();
 
-      if (!collection || !notification.actor || processing) {return;}
+      if (!collection || !notification.actor || processing) {
+        return;
+      }
 
       setProcessing(true);
       try {
-        await userMemberships.create({
-          documentId: notification.documentId,
-          userId: notification.actor?.id,
+        await client.post("/accessRequests.approve", {
+          id: notification.accessRequestId,
           permission: selectedPermission,
         });
         toast.success(
@@ -97,14 +100,32 @@ function NotificationListItem({ notification, onNavigate }: Props) {
         setProcessing(false);
       }
     },
-    [
-      notification,
-      processing,
-      selectedPermission,
-      t,
-      userMemberships,
-      collection,
-    ]
+    [notification, processing, selectedPermission, t, collection]
+  );
+
+  const handleDismiss = React.useCallback(
+    async (event: React.MouseEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (processing) {
+        return;
+      }
+
+      setProcessing(true);
+      try {
+        await client.post("/accessRequests.dismiss", {
+          id: notification.accessRequestId,
+        });
+        toast.success(t("Access request dismissed"));
+        void notification.markAsRead();
+      } catch {
+        toast.error(t("Failed to dismiss access request"));
+      } finally {
+        setProcessing(false);
+      }
+    },
+    [notification, processing, t]
   );
 
   return (
@@ -148,7 +169,7 @@ function NotificationListItem({ notification, onNavigate }: Props) {
                 {t("Approve")}
               </Button>
               <Button
-                onClick={() => void notification.markAsRead()}
+                onClick={handleDismiss}
                 disabled={processing}
                 neutral
                 size="small"

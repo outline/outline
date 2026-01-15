@@ -46,6 +46,7 @@ import urls from "./urls";
 import userMemberships from "./userMemberships";
 import users from "./users";
 import views from "./views";
+import accessRequests from "./accessRequests";
 
 const api = new Koa<AppState, AppContext>();
 const router = new Router();
@@ -85,6 +86,7 @@ router.use("/", users.routes());
 router.use("/", collections.routes());
 router.use("/", comments.routes());
 router.use("/", documents.routes());
+router.use("/", accessRequests.routes());
 router.use("/", emojis.routes());
 router.use("/", pins.routes());
 router.use("/", revisions.routes());

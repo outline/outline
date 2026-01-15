@@ -29,6 +29,7 @@ import presentTeam from "./team";
 import presentUser from "./user";
 import presentView from "./view";
 import presentEmoji from "./emoji";
+import presentAccessRequest from "./accessRequests";
 
 export {
   presentApiKey,
@@ -63,4 +64,5 @@ export {
   presentUser,
   presentView,
   presentEmoji,
+  presentAccessRequest,
 };
