@@ -206,7 +206,7 @@ export default class CodeFence extends Node {
       "Mod-[": outdentInCode,
     };
 
-    if (isMac()) {
+    if (isMac) {
       return {
         ...output,
         "Ctrl-a": moveToPreviousNewline,
