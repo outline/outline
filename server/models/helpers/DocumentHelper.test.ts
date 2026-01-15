@@ -1,5 +1,5 @@
 import Revision from "@server/models/Revision";
-import { buildDocument } from "@server/test/factories";
+import { buildCollection, buildDocument } from "@server/test/factories";
 import { ChangesetHelper } from "@shared/editor/lib/ChangesetHelper";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { DocumentHelper } from "./DocumentHelper";
@@ -607,6 +607,64 @@ This is a [test paragraph](https://example.net)`,
       expect(result).toContain("<br>");
       expect(result).toContain("[ ] todo");
       expect(result).toContain("[x] done");
+    });
+
+    it("should include collection title by default", async () => {
+      const collection = await buildCollection({
+        name: "Test Collection",
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "Collection description" }],
+            },
+          ],
+        },
+      });
+      const result = await DocumentHelper.toMarkdown(collection);
+      expect(result).toContain("# Test Collection");
+      expect(result).toContain("Collection description");
+    });
+
+    it("should include collection emoji icon in title", async () => {
+      const collection = await buildCollection({
+        name: "Test Collection",
+        icon: "📚",
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "Collection description" }],
+            },
+          ],
+        },
+      });
+      const result = await DocumentHelper.toMarkdown(collection);
+      expect(result).toContain("# 📚 Test Collection");
+    });
+
+    it("should not include collection title when includeTitle is false", async () => {
+      const collection = await buildCollection({
+        name: "Test Collection",
+        icon: "📚",
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "Collection description" }],
+            },
+          ],
+        },
+      });
+      const result = await DocumentHelper.toMarkdown(collection, {
+        includeTitle: false,
+      });
+      expect(result).not.toContain("# ");
+      expect(result).not.toContain("Test Collection");
+      expect(result).toContain("Collection description");
     });
   });
 
