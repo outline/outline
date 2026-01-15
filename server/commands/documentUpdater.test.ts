@@ -1,8 +1,17 @@
+import { randomUUID } from "crypto";
+import * as Y from "yjs";
+import { APIUpdateExtension } from "@server/collaboration/APIUpdateExtension";
 import { Event } from "@server/models";
+import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { buildDocument, buildUser } from "@server/test/factories";
 import { withAPIContext } from "@server/test/support";
 import documentUpdater from "./documentUpdater";
-import { randomUUID } from "crypto";
+
+jest.mock("@server/collaboration/APIUpdateExtension", () => ({
+  APIUpdateExtension: {
+    notifyUpdate: jest.fn(),
+  },
+}));
 
 describe("documentUpdater", () => {
   it("should change lastModifiedById", async () => {
@@ -216,5 +225,48 @@ describe("documentUpdater", () => {
         },
       ],
     });
+  });
+
+  it("should notify collaboration server when text changes", async () => {
+    jest.clearAllMocks();
+    const user = await buildUser();
+    let document = await buildDocument({
+      teamId: user.teamId,
+      text: "Initial text",
+    });
+
+    // Create initial collaborative state (simulating an active collaboration session)
+    const ydoc = ProsemirrorHelper.toYDoc("Initial text");
+    document.state = Buffer.from(Y.encodeStateAsUpdate(ydoc));
+    await document.save();
+
+    document = await withAPIContext(user, (ctx) =>
+      documentUpdater(ctx, {
+        text: "Changed content",
+        document,
+      })
+    );
+
+    expect(APIUpdateExtension.notifyUpdate).toHaveBeenCalledWith(
+      document.id,
+      user.id
+    );
+  });
+
+  it("should not notify collaboration server when only title changes", async () => {
+    jest.clearAllMocks();
+    const user = await buildUser();
+    let document = await buildDocument({
+      teamId: user.teamId,
+    });
+
+    document = await withAPIContext(user, (ctx) =>
+      documentUpdater(ctx, {
+        title: "New Title",
+        document,
+      })
+    );
+
+    expect(APIUpdateExtension.notifyUpdate).not.toHaveBeenCalled();
   });
 });

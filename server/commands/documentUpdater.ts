@@ -1,3 +1,4 @@
+import { APIUpdateExtension } from "@server/collaboration/APIUpdateExtension";
 import { Event, Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
@@ -93,6 +94,8 @@ export default async function documentUpdater(
   }
 
   const changed = document.changed();
+  const textChanged =
+    text !== undefined && Array.isArray(changed) && changed.includes("state");
   const eventData = done !== undefined ? { done } : undefined;
 
   const event = {
@@ -118,6 +121,13 @@ export default async function documentUpdater(
       teamId: document.teamId,
     });
   }
+
+  transaction.afterCommit(async () => {
+    // Notify collaboration server of the text change
+    if (textChanged) {
+      await APIUpdateExtension.notifyUpdate(document.id, user.id);
+    }
+  });
 
   return await Document.findByPk(document.id, {
     userId: user.id,
