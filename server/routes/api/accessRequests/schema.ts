@@ -35,7 +35,7 @@ export const AccessRequestsApproveSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
     permission: z
       .nativeEnum(DocumentPermission)
-      .default(DocumentPermission.ReadWrite),
+      .default(DocumentPermission.Read),
   }),
 });
 

@@ -304,7 +304,6 @@ describe("#accessRequests.approve", () => {
       teamId: team.id,
     });
 
-    // add non-manager to the document with editor access
     await UserMembership.create({
       userId: admin.id,
       documentId: document.id,
@@ -461,7 +460,6 @@ describe("#accessRequests.dismiss", () => {
       body: {
         token: admin.getJwtToken(),
         id: accessRequest.id,
-        permission: DocumentPermission.ReadWrite,
       },
     });
 
