@@ -288,6 +288,15 @@ export default class ListItem extends Node {
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
+    if (state.inTable) {
+      node.forEach((block, _, i) => {
+        if (i > 0) {
+          state.out += " ";
+        }
+        state.renderInline(block);
+      });
+      return;
+    }
     state.renderContent(node);
   }
 
