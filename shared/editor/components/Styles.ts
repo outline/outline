@@ -52,11 +52,16 @@ const mathStyle = (props: Props) => css`
   .math-node {
     min-width: 1em;
     min-height: 1em;
-    font-family: ${props.theme.fontFamilyMono};
     cursor: auto;
     white-space: pre-wrap;
     overflow-x: auto;
     overflow-y: hidden;
+  }
+
+  /* KaTeX 必须使用 Computer Modern 衬线体字体 */
+  .math-node .katex,
+  .math-node .katex * {
+    font-family: KaTeX_Main, "Times New Roman", serif !important;
   }
 
   .math-node.empty-math .math-render::before {
@@ -78,6 +83,7 @@ const mathStyle = (props: Props) => css`
   .math-node .math-src {
     display: none;
     color: ${props.theme.codeStatement};
+    font-family: ${props.theme.fontFamilyMono};
     tab-size: 4;
 
     .ProseMirror-focused {
@@ -139,6 +145,12 @@ const mathStyle = (props: Props) => css`
 
   math-block .katex-display {
     margin: 0;
+  }
+
+  /* 块级公式 KaTeX 必须使用 Computer Modern 衬线体字体 */
+  math-block .katex,
+  math-block .katex * {
+    font-family: KaTeX_Main, "Times New Roman", serif !important;
   }
 
   .katex-html *::selection {

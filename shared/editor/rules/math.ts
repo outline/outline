@@ -1,9 +1,9 @@
 import type { StateBlock, StateInline } from "markdown-it";
 import type MarkdownIt from "markdown-it";
 
-export const REGEX_INLINE_MATH_DOLLARS = /\$\$(.+)\$\$$/;
+export const REGEX_INLINE_MATH_DOLLARS = /\$([^\$]+)\$$/;
 
-export const REGEX_BLOCK_MATH_DOLLARS = /\$\$\$\s+$/;
+export const REGEX_BLOCK_MATH_DOLLARS = /\$\$\s$/;
 
 const inlineMathDelimiter = "$";
 const blockMathDelimiter = "$$";
@@ -165,7 +165,7 @@ function mathDisplay(
       break;
     }
 
-    if (state.src.slice(pos, max).trim().slice(-3) === blockMathDelimiter) {
+    if (state.src.slice(pos, max).trim().slice(-blockMathDelimiter.length) === blockMathDelimiter) {
       lastPos = state.src.slice(0, max).lastIndexOf(blockMathDelimiter);
       lastLine = state.src.slice(pos, lastPos);
       found = true;

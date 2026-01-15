@@ -35,6 +35,7 @@ export function createMathView(displayMode: boolean): NodeViewConstructor {
           displayMode,
           output: "html",
           macros: pluginState.macros,
+          throwOnError: true,
         },
       },
       MATH_PLUGIN_KEY,

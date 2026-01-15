@@ -101,7 +101,6 @@ async function start(_id: number, disconnect: () => void) {
     method: "GET" | "POST" = "GET"
   ) {
     this.type = "text/html";
-
     if (method === "POST") {
       // For POST method, create a form that auto-submits
       const urlObj = new URL(url);

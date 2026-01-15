@@ -4,4 +4,7 @@
   "typescript.validate.enable": true,
   "typescript.format.enable": true,
   "editor.formatOnSave": true,
+  "files.watcherExclude": {
+    "**/target": true
+  },
 }
