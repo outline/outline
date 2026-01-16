@@ -104,11 +104,10 @@ export class Linear {
    * @param actor User attempting to unfurl resource url
    * @returns An object containing resource details e.g, a Linear issue details
    */
-  static unfurl: UnfurlSignature = async (url: string, actor: User) => {
-    // Early return if URL doesn't match Linear pattern (before any DB queries)
+  static unfurl: UnfurlSignature = async (url: string, actor?: User) => {
     const resource = Linear.parseUrl(url);
 
-    if (!resource) {
+    if (!resource || !actor) {
       return;
     }
 

@@ -5,23 +5,28 @@ import { createContext } from "@server/context";
 import { Integration, User } from "@server/models";
 import { BaseTask, TaskPriority } from "@server/queues/tasks/base/BaseTask";
 
+const SupportedIntegrations = [
+  IntegrationService.Linear,
+  IntegrationService.Figma,
+];
+
 type Props = {
   /** The integrationId to operate on */
   integrationId: string;
-  /** The original logoUrl from Linear */
+  /** The original logoUrl from third-party service */
   logoUrl: string;
 };
 
 /**
  * A task that uploads the provided logoUrl to storage and updates the
- * Linear integration record with the new url.
+ * associated integration record with the new url.
  */
-export default class UploadLinearWorkspaceLogoTask extends BaseTask<Props> {
+export default class UploadIntegrationLogoTask extends BaseTask<Props> {
   public async perform(props: Props) {
-    const integration = await Integration.scope("withAuthentication").findByPk<
-      Integration<IntegrationType.Embed>
-    >(props.integrationId);
-    if (!integration || integration.service !== IntegrationService.Linear) {
+    const integration = await Integration.scope("withAuthentication").findByPk(
+      props.integrationId
+    );
+    if (!integration || !SupportedIntegrations.includes(integration.service)) {
       return;
     }
 
@@ -43,11 +48,29 @@ export default class UploadLinearWorkspaceLogoTask extends BaseTask<Props> {
       },
     });
 
-    if (attachment) {
-      integration.settings.linear!.workspace.logoUrl = attachment.url;
-      integration.changed("settings", true);
-      await integration.save();
+    if (!attachment) {
+      return;
     }
+
+    switch (integration.service) {
+      case IntegrationService.Linear:
+        (
+          integration as Integration<IntegrationType.Embed>
+        ).settings.linear!.workspace.logoUrl = attachment.url;
+        break;
+      case IntegrationService.Figma:
+        (
+          integration as Integration<IntegrationType.LinkedAccount>
+        ).settings.figma!.account.avatarUrl = attachment.url;
+        break;
+      default:
+        throw new Error(
+          `Unsupported integration service: ${integration.service}`
+        ); // This should never happen
+    }
+
+    integration.changed("settings", true);
+    await integration.save();
   }
 
   public get options() {
