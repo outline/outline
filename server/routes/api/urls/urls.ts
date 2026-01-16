@@ -1,5 +1,6 @@
 import dns from "dns";
 import Router from "koa-router";
+import tracer from "@server/logging/tracer";
 import { MentionType, UnfurlResourceType } from "@shared/types";
 import { getBaseDomain, parseDomain } from "@shared/utils/domains";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
@@ -133,7 +134,18 @@ router.post(
     }
 
     for (const plugin of plugins) {
-      const unfurl = await plugin.value.unfurl(url, actor);
+      const pluginName = plugin.name ?? "unknown";
+      const unfurl = await tracer.trace(
+        "unfurl.plugin",
+        {
+          resource: pluginName,
+          tags: {
+            "unfurl.plugin": pluginName,
+            "unfurl.url_host": urlObj.hostname,
+          },
+        },
+        () => plugin.value.unfurl(url, actor)
+      );
       if (unfurl) {
         if ("error" in unfurl) {
           return (ctx.response.status = 204);
