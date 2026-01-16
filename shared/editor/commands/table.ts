@@ -1,3 +1,4 @@
+import { parse, isValid } from "date-fns";
 import { GapCursor } from "prosemirror-gapcursor";
 import type { Node, NodeType } from "prosemirror-model";
 import { Slice } from "prosemirror-model";
@@ -81,10 +82,10 @@ export function createTableInner(
     const attrs =
       colWidth && index < colsCount - 1
         ? {
-            colwidth: [colWidth],
-            colspan: 1,
-            rowspan: 1,
-          }
+          colwidth: [colWidth],
+          colspan: 1,
+          rowspan: 1,
+        }
         : null;
     const cell = createCell(types.cell, attrs);
 
@@ -268,6 +269,67 @@ function isNullWidth({
   return !colwidth?.[0];
 }
 
+/**
+ * Attempts to parse a date string in various common formats.
+ *
+ * @param dateStr The date string to parse.
+ * @returns A Date object if parsing is successful, null otherwise.
+ */
+function parseDate(dateStr: string): Date | null {
+  if (!dateStr) {
+    return null;
+  }
+
+  // Remove any trailing alphabetic text (e.g., "Uhr", "at", "o'clock", etc.)
+  const cleaned = dateStr.trim().replace(/\s*[a-zA-Z]+\s*$/g, "");
+
+  // Common date formats used in tables (with and without time, with and without year)
+  const formats = [
+    // ISO formats
+    "yyyy-MM-dd HH:mm:ss",
+    "yyyy-MM-dd HH:mm",
+    "yyyy-MM-dd",
+    // European dot formats
+    "dd.MM.yyyy HH:mm:ss",
+    "dd.MM.yyyy HH:mm",
+    "dd.MM.yyyy",
+    "dd.MM. HH:mm:ss",
+    "dd.MM. HH:mm",
+    "dd.MM.",
+    "d.M.yyyy HH:mm:ss",
+    "d.M.yyyy HH:mm",
+    "d.M.yyyy",
+    "d.M. HH:mm:ss",
+    "d.M. HH:mm",
+    "d.M.",
+    // European slash formats
+    "dd/MM/yyyy HH:mm:ss",
+    "dd/MM/yyyy HH:mm",
+    "dd/MM/yyyy",
+    "dd/MM HH:mm:ss",
+    "dd/MM HH:mm",
+    "dd/MM",
+    // US formats
+    "MM/dd/yyyy HH:mm:ss",
+    "MM/dd/yyyy HH:mm",
+    "MM/dd/yyyy",
+    "MM/dd HH:mm:ss",
+    "MM/dd HH:mm",
+    "MM/dd",
+  ];
+
+  const referenceDate = new Date();
+
+  for (const format of formats) {
+    const date = parse(cleaned, format, referenceDate);
+    if (isValid(date)) {
+      return date;
+    }
+  }
+
+  return null;
+}
+
 export function sortTable({
   index,
   direction,
@@ -297,12 +359,6 @@ export function sortTable({
         table.push(cells);
       }
 
-      // check if all the cells in the column are a number
-      const compareAsText = table.some((row) => {
-        const cell = row[index]?.textContent;
-        return cell === "" ? false : isNaN(parseFloat(cell));
-      });
-
       const hasHeaderRow = table[0].every(
         (cell) => cell.type === state.schema.nodes.th
       );
@@ -313,17 +369,46 @@ export function sortTable({
       // column data before sort
       const columnData = table.map((row) => row[index]?.textContent ?? "");
 
+      // determine sorting type: date, number, or text
+      let compareAsDate = false;
+      let compareAsNumber = false;
+
+      const nonEmptyCells = table
+        .map((row) => row[index]?.textContent?.trim())
+        .filter((cell) => cell && cell.length > 0);
+
+      if (nonEmptyCells.length > 0) {
+        // check if all non-empty cells are valid dates
+        compareAsDate = nonEmptyCells.every((cell) => parseDate(cell!) !== null);
+
+        // if not dates, check if all non-empty cells are numbers
+        if (!compareAsDate) {
+          compareAsNumber = nonEmptyCells.every(
+            (cell) => !isNaN(parseFloat(cell!))
+          );
+        }
+      }
+
       // sort table data based on column at index
       table.sort((a, b) => {
-        if (compareAsText) {
-          return (a[index]?.textContent ?? "").localeCompare(
-            b[index]?.textContent ?? ""
-          );
+        const aContent = a[index]?.textContent ?? "";
+        const bContent = b[index]?.textContent ?? "";
+
+        // empty cells always go to the end
+        if (!aContent) return bContent ? 1 : 0;
+        if (!bContent) return -1;
+
+        if (compareAsDate) {
+          const aDate = parseDate(aContent);
+          const bDate = parseDate(bContent);
+          if (aDate && bDate) {
+            return aDate.getTime() - bDate.getTime();
+          }
+          return 0;
+        } else if (compareAsNumber) {
+          return parseFloat(aContent) - parseFloat(bContent);
         } else {
-          return (
-            parseFloat(a[index]?.textContent ?? "") -
-            parseFloat(b[index]?.textContent ?? "")
-          );
+          return aContent.localeCompare(bContent);
         }
       });
 
