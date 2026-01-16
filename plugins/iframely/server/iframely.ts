@@ -4,6 +4,7 @@ import Logger from "@server/logging/Logger";
 import type { UnfurlError, UnfurlSignature } from "@server/types";
 import fetch from "@server/utils/fetch";
 import env from "./env";
+import { cdnPath } from "@shared/utils/urls";
 
 class Iframely {
   public static defaultUrl = "https://iframe.ly";
@@ -40,9 +41,25 @@ class Iframely {
    */
   public static unfurl: UnfurlSignature = async (url: string) => {
     const data = await Iframely.requestResource(url);
-    return "error" in data // In addition to our custom UnfurlError, sometimes iframely returns error in the response body.
-      ? ({ error: data.error } as UnfurlError)
-      : { ...data, type: UnfurlResourceType.URL };
+
+    if ("error" in data) {
+      return { error: data.error } as UnfurlError; // In addition to our custom UnfurlError, sometimes iframely returns error in the response body.
+    }
+
+    const parsedData = data as Record<string, any>;
+
+    return {
+      type: UnfurlResourceType.URL,
+      url: parsedData.url,
+      title: parsedData.meta.title,
+      description: parsedData.meta.description,
+      thumbnailUrl: (parsedData.links.thumbnail ?? [])[0]?.href ?? "",
+      faviconUrl:
+        parsedData.meta.site === "Figma"
+          ? cdnPath("/images/figma.png")
+          : ((parsedData.links.icon ?? [])[0]?.href ?? ""),
+      transformedUnfurl: true,
+    };
   };
 }
 
