@@ -9,6 +9,13 @@ function useAgent(url, options = {}) {
   const parsedUrl = new URL(url);
   const isHttps = parsedUrl.protocol === "https:";
 
+  // Validate that the URL protocol is supported
+  if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
+    throw new TypeError(
+      `Protocol "${parsedUrl.protocol}" not supported. Expected "http:" or "https:"`
+    );
+  }
+
   // Create a basic agent based on the protocol
   const Agent = isHttps ? https.Agent : http.Agent;
 
