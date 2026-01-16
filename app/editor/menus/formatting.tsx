@@ -21,6 +21,7 @@ import {
   TableSplitCellsIcon,
   PaletteIcon,
 } from "outline-icons";
+import ColorPicker from "../components/ColorPicker";
 import type { EditorState, Selection } from "prosemirror-state";
 import styled from "styled-components";
 import Highlight from "@shared/editor/marks/Highlight";
@@ -137,7 +138,7 @@ export default function formattingMenuItems(
         ...(cellHasBackground
           ? [
               {
-                name: "toggleCellBackground",
+                name: "toggleCellBackgroundAndCollapseSelection",
                 label: dictionary.none,
                 icon: <DottedCircleIcon retainColor color="transparent" />,
                 active: () => false,
@@ -146,11 +147,24 @@ export default function formattingMenuItems(
             ]
           : []),
         ...Highlight.lightColors.map((color, index) => ({
-          name: "toggleCellBackground",
+          name: "toggleCellBackgroundAndCollapseSelection",
           label: Highlight.colorNames[index],
           icon: <CircleIcon retainColor color={color} />,
           attrs: { color },
         })),
+        {
+          icon: <CircleIcon retainColor color="rainbow" />,
+          label: "Custom",
+          children: [
+            {
+              content: <ColorPicker command="toggleCellBackground" />,
+              preventCloseCondition: () =>
+                !!document.activeElement?.matches(
+                  ".ProseMirror.ProseMirror-focused"
+                ),
+            },
+          ],
+        },
       ],
     },
     {

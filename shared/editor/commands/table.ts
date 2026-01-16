@@ -2,7 +2,7 @@ import { GapCursor } from "prosemirror-gapcursor";
 import type { Node, NodeType } from "prosemirror-model";
 import { Slice } from "prosemirror-model";
 import type { Command, EditorState, Transaction } from "prosemirror-state";
-import { Selection, TextSelection } from "prosemirror-state";
+import { TextSelection } from "prosemirror-state";
 import {
   CellSelection,
   addRow,
@@ -29,12 +29,15 @@ import {
   isTableSelected,
   getWidthFromDom,
   getWidthFromNodes,
+  getRowIndex,
+  getColumnIndex,
 } from "../queries/table";
 import { type NodeAttrMark, TableLayout } from "../types";
 import { collapseSelection } from "./collapseSelection";
 import { RowSelection } from "../selection/RowSelection";
 import { ColumnSelection } from "../selection/ColumnSelection";
 import type { Attrs } from "prosemirror-model";
+import isUndefined from "lodash/isUndefined";
 
 export function createTable({
   rowsCount,
@@ -866,6 +869,15 @@ const removeCellBackground = (
   return tr.setNodeAttribute(pos, "marks", updatedMarks);
 };
 
+export const toggleCellBackgroundAndCollapseSelection = (attrs: Attrs) =>
+  chainTransactions(toggleCellBackground(attrs), collapseSelection());
+
+export const toggleRowBackgroundAndCollapseSelection = (attrs: Attrs) =>
+  chainTransactions(toggleRowBackground(attrs), collapseSelection());
+
+export const toggleColumnBackgroundAndCollapseSelection = (attrs: Attrs) =>
+  chainTransactions(toggleColumnBackground(attrs), collapseSelection());
+
 export const toggleCellBackground =
   (attrs: Attrs): Command =>
   (state, dispatch) => {
@@ -887,11 +899,7 @@ export const toggleCellBackground =
       }
     });
 
-    const nextSelection =
-      Selection.findFrom(tr.doc.resolve(state.selection.to), 1, true) ??
-      TextSelection.create(tr.doc, 0);
-
-    dispatch?.(tr.setSelection(nextSelection));
+    dispatch?.(tr);
     return true;
   };
 
@@ -902,20 +910,20 @@ export const toggleCellBackground =
  * @param color The background color to set, or null to remove
  * @returns The command
  */
-export function toggleRowBackground({
-  index,
-  color,
-}: {
-  index: number;
-  color: string | null;
-}): Command {
+export function toggleRowBackground(attrs: Attrs): Command {
   return (state, dispatch) => {
+    const { color } = attrs;
     if (!isInTable(state)) {
       return false;
     }
 
+    const rowIndex = getRowIndex(state);
+    if (isUndefined(rowIndex)) {
+      return false;
+    }
+
     if (dispatch) {
-      const cells = getCellsInRow(index)(state) || [];
+      const cells = getCellsInRow(rowIndex)(state) || [];
       let tr = state.tr;
 
       cells.forEach((pos) => {
@@ -937,12 +945,16 @@ export function toggleRowBackground({
         }
       });
 
-      // Reset selection after applying background
-      const nextSelection =
-        Selection.findFrom(tr.doc.resolve(state.selection.to), 1, true) ??
-        TextSelection.create(tr.doc, 0);
+      // It was noticed that the selection went to the last table cell of the
+      // row after command execution.
+      // Instead, we want to preserve the original row selection so that the color
+      // picker can be prevented from closing.
+      const rect = selectedRect(state);
+      const pos = rect.map.positionAt(rowIndex, 0, rect.table);
+      const $pos = tr.doc.resolve(rect.tableStart + pos);
+      tr.setSelection(RowSelection.rowSelection($pos, $pos, rowIndex));
 
-      dispatch(tr.setSelection(nextSelection));
+      dispatch(tr);
     }
     return true;
   };
@@ -955,20 +967,20 @@ export function toggleRowBackground({
  * @param color The background color to set, or null to remove
  * @returns The command
  */
-export function toggleColumnBackground({
-  index,
-  color,
-}: {
-  index: number;
-  color: string | null;
-}): Command {
+export function toggleColumnBackground(attrs: Attrs): Command {
   return (state, dispatch) => {
+    const { color } = attrs;
     if (!isInTable(state)) {
       return false;
     }
 
+    const colIndex = getColumnIndex(state);
+    if (isUndefined(colIndex)) {
+      return false;
+    }
+
     if (dispatch) {
-      const cells = getCellsInColumn(index)(state) || [];
+      const cells = getCellsInColumn(colIndex)(state) || [];
       let tr = state.tr;
 
       cells.forEach((pos) => {
@@ -990,12 +1002,16 @@ export function toggleColumnBackground({
         }
       });
 
-      // Reset selection after applying background
-      const nextSelection =
-        Selection.findFrom(tr.doc.resolve(state.selection.to), 1, true) ??
-        TextSelection.create(tr.doc, 0);
+      // It was noticed that the selection went to the last table cell of the column
+      // after command execution.
+      // Instead, we want to preserve the original column selection so that the color
+      // picker can be prevented from closing
+      const rect = selectedRect(state);
+      const pos = rect.map.positionAt(0, colIndex, rect.table);
+      const $pos = tr.doc.resolve(rect.tableStart + pos);
+      tr.setSelection(ColumnSelection.colSelection($pos));
 
-      dispatch(tr.setSelection(nextSelection));
+      dispatch(tr);
     }
     return true;
   };

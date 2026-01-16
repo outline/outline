@@ -23,7 +23,7 @@ export default function CircleIcon({
       height={size}
       viewBox="0 0 24 24"
       version="1.1"
-      style={retainColor && !isGradient ? { fill: color } : undefined}
+      style={retainColor ? { fill: fillValue } : undefined}
       {...rest}
     >
       {isGradient && (

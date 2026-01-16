@@ -36,6 +36,9 @@ import {
   toggleColumnBackground,
   toggleRowBackground,
   toggleCellBackground,
+  toggleCellBackgroundAndCollapseSelection,
+  toggleRowBackgroundAndCollapseSelection,
+  toggleColumnBackgroundAndCollapseSelection,
 } from "../commands/table";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { FixTablesPlugin } from "../plugins/FixTablesPlugin";
@@ -104,8 +107,11 @@ export default class Table extends Node {
       mergeCells: () => mergeCellsAndCollapse(),
       splitCell: () => splitCellAndCollapse(),
       toggleRowBackground,
+      toggleRowBackgroundAndCollapseSelection,
       toggleColumnBackground,
+      toggleColumnBackgroundAndCollapseSelection,
       toggleCellBackground,
+      toggleCellBackgroundAndCollapseSelection,
     };
   }
 

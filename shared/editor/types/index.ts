@@ -43,6 +43,10 @@ export type MenuItem = {
   skipIcon?: boolean;
   disabled?: boolean;
   onClick?: () => void;
+  /** Custom React content to render instead of a standard menu item */
+  content?: React.ReactNode;
+  /** Condition to check before preventing the submenu from closing */
+  preventCloseCondition?: () => boolean;
 };
 
 export type ComponentProps = {

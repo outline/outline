@@ -21,6 +21,7 @@ import type { MenuItem, NodeAttrMark } from "@shared/editor/types";
 import type { Dictionary } from "~/hooks/useDictionary";
 import { ArrowDownIcon, ArrowUpIcon } from "~/components/Icons/ArrowIcon";
 import CircleIcon from "~/components/Icons/CircleIcon";
+import ColorPicker from "../components/ColorPicker";
 
 /**
  * Get the set of background colors used in a row
@@ -83,19 +84,32 @@ export default function tableRowMenuItems(
         ...(hasBackground
           ? [
               {
-                name: "toggleRowBackground",
+                name: "toggleRowBackgroundAndCollapseSelection",
                 label: dictionary.none,
                 icon: <DottedCircleIcon retainColor color="transparent" />,
-                attrs: { index, color: null },
+                attrs: { color: null },
               },
             ]
           : []),
         ...Highlight.lightColors.map((color, colorIndex) => ({
-          name: "toggleRowBackground",
+          name: "toggleRowBackgroundAndCollapseSelection",
           label: Highlight.colorNames[colorIndex],
           icon: <CircleIcon retainColor color={color} />,
-          attrs: { index, color },
+          attrs: { color },
         })),
+        {
+          icon: <CircleIcon retainColor color="rainbow" />,
+          label: "Custom",
+          children: [
+            {
+              content: <ColorPicker command="toggleRowBackground" />,
+              preventCloseCondition: () =>
+                !!document.activeElement?.matches(
+                  ".ProseMirror.ProseMirror-focused"
+                ),
+            },
+          ],
+        },
       ],
     },
     {

@@ -48,23 +48,44 @@ function ToolbarDropdown(props: { active: boolean; item: MenuItem }) {
       }
     };
 
-    return item.children
-      ? item.children.map((child) => {
-          if (child.name === "separator") {
-            return { type: "separator", visible: child.visible };
-          }
+    const mapChildren = (children: MenuItem[]): TMenuItem[] =>
+      children.map((child) => {
+        if (child.name === "separator") {
+          return { type: "separator", visible: child.visible };
+        }
+        if ("content" in child) {
           return {
-            type: "button",
+            type: "custom",
+            visible: child.visible,
+            content: child.content,
+          };
+        }
+        if (child.children) {
+          const childWithPreventClose = child.children.find(
+            (c) => "preventCloseCondition" in c
+          );
+          return {
+            type: "submenu",
             title: child.label,
             icon: child.icon,
-            dangerous: child.dangerous,
             visible: child.visible,
-            selected:
-              child.active !== undefined ? child.active(state) : undefined,
-            onClick: handleClick(child),
+            preventCloseCondition: childWithPreventClose?.preventCloseCondition,
+            items: mapChildren(child.children),
           };
-        })
-      : [];
+        }
+        return {
+          type: "button",
+          title: child.label,
+          icon: child.icon,
+          dangerous: child.dangerous,
+          visible: child.visible,
+          selected:
+            child.active !== undefined ? child.active(state) : undefined,
+          onClick: handleClick(child),
+        };
+      });
+
+    return item.children ? mapChildren(item.children) : [];
   }, [item.children, commands, state]);
 
   const handleCloseAutoFocus = useCallback((ev: Event) => {
