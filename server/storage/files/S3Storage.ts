@@ -152,8 +152,11 @@ export default class S3Storage extends BaseStorage {
     if (isDocker) {
       return `${this.getPublicEndpoint()}/${key}`;
     } else {
+      // Ensure expiration does not exceed AWS S3 Signature V4 limit of 7 days
+      const clampedExpiresIn = Math.min(expiresIn, S3Storage.maxSignedUrlExpires);
+
       const command = new GetObjectCommand(params);
-      const url = await getSignedUrl(this.client, command, { expiresIn });
+      const url = await getSignedUrl(this.client, command, { expiresIn: clampedExpiresIn });
 
       if (env.AWS_S3_ACCELERATE_URL) {
         return url.replace(

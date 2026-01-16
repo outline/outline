@@ -4,6 +4,7 @@ import type { PresignedPost } from "@aws-sdk/s3-presigned-post";
 import omit from "lodash/omit";
 import FileHelper from "@shared/editor/lib/FileHelper";
 import { isBase64Url, isInternalUrl } from "@shared/utils/urls";
+import { Week } from "@shared/utils/time";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import type { RequestInit } from "@server/utils/fetch";
@@ -13,6 +14,12 @@ import type { AppContext } from "@server/types";
 export default abstract class BaseStorage {
   /** The default number of seconds until a signed URL expires. */
   public static defaultSignedUrlExpires = 300;
+
+  /**
+   * The maximum number of seconds until a signed URL expires for S3 Signature V4.
+   * AWS S3 Signature V4 presigned URLs must have an expiration date less than one week in the future.
+   */
+  public static maxSignedUrlExpires = Week.seconds;
 
   /**
    * Returns a presigned post for uploading files to the storage provider.

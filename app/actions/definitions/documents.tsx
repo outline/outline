@@ -38,6 +38,7 @@ import Icon from "@shared/components/Icon";
 import type { NavigationNode } from "@shared/types";
 import { ExportContentType, TeamPreference } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
+import { Week } from "@shared/utils/time";
 import type UserMembership from "~/models/UserMembership";
 import { client } from "~/utils/ApiClient";
 import DocumentDelete from "~/scenes/DocumentDelete";
@@ -630,7 +631,7 @@ export const copyDocumentAsMarkdown = createAction({
     if (document) {
       const res = await client.post("/documents.export", {
         id: document.id,
-        signedUrls: 3600 * 24 * 30, // 30 days
+        signedUrls: Week.seconds, // 7 days (AWS S3 max for presigned URLs)
       });
       copy(res.data);
       toast.success(t("Markdown copied to clipboard"));
