@@ -3,7 +3,7 @@ import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import * as Toolbar from "@radix-ui/react-toolbar";
 import type { MenuItem } from "@shared/editor/types";
-import { s } from "@shared/styles";
+import { hideScrollbars, s } from "@shared/styles";
 import { TooltipProvider } from "~/components/TooltipContext";
 import type { MenuItem as TMenuItem } from "~/types";
 import { useEditor } from "./EditorContext";
@@ -171,6 +171,10 @@ const FlexibleWrapper = styled.div`
   ${breakpoint("mobile", "tablet")`
     justify-content: space-evenly;
     align-items: center;
+    overflow-x: auto;
+    gap: 10px;
+
+    ${hideScrollbars()}
   `}
 `;
 

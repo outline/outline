@@ -49,7 +49,6 @@ import Contents from "./Contents";
 import Editor from "./Editor";
 import Header from "./Header";
 import Notices from "./Notices";
-import PublicReferences from "./PublicReferences";
 import References from "./References";
 import RevisionViewer from "./RevisionViewer";
 
@@ -606,15 +605,11 @@ class DocumentScene extends React.Component<Props> {
                         canComment={abilities.comment}
                         autoFocus={document.createdAt === document.updatedAt}
                       >
-                        {shareId ? (
-                          <ReferencesWrapper>
-                            <PublicReferences documentId={document.id} />
-                          </ReferencesWrapper>
-                        ) : !revision ? (
+                        {!revision && (
                           <ReferencesWrapper>
                             <References document={document} />
                           </ReferencesWrapper>
-                        ) : null}
+                        )}
                       </Editor>
                     </>
                   )}
@@ -652,7 +647,7 @@ const Main = styled.div<MainProps>`
         ? tocPosition === TOCPosition.Left
           ? `${EditorStyleHelper.tocWidth}px minmax(0, 1fr)`
           : `minmax(0, 1fr) ${EditorStyleHelper.tocWidth}px`
-        : `1fr minmax(0, ${`calc(46em + 88px)`}) 1fr`};
+        : `1fr minmax(0, ${`calc(46em + ${EditorStyleHelper.documentGutter})`}) 1fr`};
   `};
 
   ${breakpoint("desktopLarge")`
@@ -661,7 +656,7 @@ const Main = styled.div<MainProps>`
         ? tocPosition === TOCPosition.Left
           ? `${EditorStyleHelper.tocWidth}px minmax(0, 1fr)`
           : `minmax(0, 1fr) ${EditorStyleHelper.tocWidth}px`
-        : `1fr minmax(0, ${`calc(52em + 88px)`}) 1fr`};
+        : `1fr minmax(0, ${`calc(${EditorStyleHelper.documentWidth} + ${EditorStyleHelper.documentGutter})`}) 1fr`};
   `};
 `;
 
@@ -730,7 +725,11 @@ const Background = styled(Container)`
 `;
 
 const ReferencesWrapper = styled.div`
-  margin: 12px 0;
+  margin: 12px 0 60px;
+
+  ${breakpoint("tablet")`
+    margin-bottom: 12px;
+  `}
 
   @media print {
     display: none;

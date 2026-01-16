@@ -18,21 +18,19 @@ ENV NODE_ENV=production
 RUN addgroup --gid 1001 nodejs && \
     adduser --uid 1001 --ingroup nodejs nodejs && \
     mkdir -p /var/lib/outline && \
-    chown -R nodejs:nodejs /var/lib/outline
+    chown -R nodejs:nodejs /var/lib/outline && \
+    chown -R nodejs:nodejs $APP_PATH
 
 COPY --from=base --chown=nodejs:nodejs $APP_PATH/build ./build
-COPY --from=base $APP_PATH/server ./server
-COPY --from=base $APP_PATH/public ./public
-COPY --from=base $APP_PATH/.sequelizerc ./.sequelizerc
-COPY --from=base $APP_PATH/node_modules ./node_modules
-COPY --from=base $APP_PATH/package.json ./package.json
-
+COPY --from=base --chown=nodejs:nodejs $APP_PATH/server ./server
+COPY --from=base --chown=nodejs:nodejs $APP_PATH/public ./public
+COPY --from=base --chown=nodejs:nodejs $APP_PATH/.sequelizerc ./.sequelizerc
+COPY --from=base --chown=nodejs:nodejs $APP_PATH/node_modules ./node_modules
+COPY --from=base --chown=nodejs:nodejs $APP_PATH/package.json ./package.json
 # Install wget to healthcheck the server
 RUN  apt-get update \
     && apt-get install -y wget \
     && rm -rf /var/lib/apt/lists/*
-
-RUN corepack enable
 
 ENV FILE_STORAGE_LOCAL_ROOT_DIR=/var/lib/outline/data
 RUN mkdir -p "$FILE_STORAGE_LOCAL_ROOT_DIR" && \
@@ -46,4 +44,4 @@ USER nodejs
 HEALTHCHECK --interval=1m CMD wget -qO- "http://localhost:${PORT:-3000}/_health" | grep -q "OK" || exit 1
 
 EXPOSE 3000
-CMD ["yarn", "start"]
+CMD ["node", "build/server/index.js"]

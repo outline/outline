@@ -21,6 +21,7 @@ function DocumentMove({ document }: Props) {
   const { dialogs, policies } = useStores();
   const { t } = useTranslation();
   const collectionTrees = useCollectionTrees();
+  const [moving, setMoving] = useState<boolean>(false);
   const [selectedPath, selectPath] = useState<NavigationNode | null>(null);
 
   const items = useMemo(() => {
@@ -66,6 +67,7 @@ function DocumentMove({ document }: Props) {
     }
 
     try {
+      setMoving(true);
       const { type, id: parentDocumentId } = selectedPath;
 
       const collectionId = selectedPath.collectionId as string;
@@ -81,6 +83,8 @@ function DocumentMove({ document }: Props) {
       dialogs.closeAllModals();
     } catch (_err) {
       toast.error(t("Couldn’t move the document, try again?"));
+    } finally {
+      setMoving(false);
     }
   };
 
@@ -103,8 +107,8 @@ function DocumentMove({ document }: Props) {
             t("Select a location to move")
           )}
         </StyledText>
-        <Button disabled={!selectedPath} onClick={move}>
-          {t("Move")}
+        <Button disabled={!selectedPath || moving} onClick={move}>
+          {moving ? `${t("Moving")}…` : t("Move")}
         </Button>
       </Footer>
     </FlexContainer>

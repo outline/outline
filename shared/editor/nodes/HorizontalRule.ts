@@ -54,7 +54,7 @@ export default class HorizontalRule extends Node {
 
   inputRules({ type }: { type: NodeType }) {
     return [
-      new InputRule(/^(?:---|___\s|\*\*\*\s)$/, (state, match, start, end) => {
+      new InputRule(/^(?:---|___|\*\*\*)$/, (state, match, start, end) => {
         const { tr } = state;
 
         if (match[0]) {

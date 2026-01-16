@@ -298,6 +298,12 @@ export enum TOCPosition {
   Right = "right",
 }
 
+export enum EmailDisplay {
+  None = "none",
+  Members = "members",
+  Everyone = "everyone",
+}
+
 export enum TeamPreference {
   /** Whether documents have a separate edit mode instead of always editing. */
   SeamlessEdit = "seamlessEdit",
@@ -321,6 +327,8 @@ export enum TeamPreference {
   TocPosition = "tocPosition",
   /** Whether to prevent shared documents from being embedded in iframes on external websites. */
   PreventDocumentEmbedding = "preventDocumentEmbedding",
+  /** Who can see user email addresses. */
+  EmailDisplay = "emailDisplay",
 }
 
 export type TeamPreferences = {
@@ -335,6 +343,7 @@ export type TeamPreferences = {
   [TeamPreference.CustomTheme]?: Partial<CustomTheme>;
   [TeamPreference.TocPosition]?: TOCPosition;
   [TeamPreference.PreventDocumentEmbedding]?: boolean;
+  [TeamPreference.EmailDisplay]?: EmailDisplay;
 };
 
 export enum NavigationNodeType {

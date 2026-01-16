@@ -14,7 +14,7 @@ export function bytesToHumanReadable(bytes: number | undefined) {
   }
 
   // Use decimal units (base 1000) on macOS, binary units (base 1024) on other platforms
-  const useMacUnits = isMac();
+  const useMacUnits = isMac;
   const base = useMacUnits ? 1000 : 1024;
   const threshold = useMacUnits ? 1000 : 1024;
 

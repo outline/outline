@@ -487,7 +487,7 @@ describe("#comments.create", () => {
       teamId: user.teamId,
     });
 
-    const text = "## heading\n\n- list item 1\n- list item 2";
+    const text = "test\n\n- list item 1\n- list item 2";
 
     const res = await server.post("/api/comments.create", {
       body: {
@@ -500,7 +500,9 @@ describe("#comments.create", () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.data).toMatchSnapshot();
+    expect(body.data.data.content[0].type).toEqual("paragraph");
+    expect(body.data.data.content[0].content[0].text).toEqual("test");
+    expect(body.data.data.content[1].type).toEqual("bullet_list");
   });
 
   it("should not allow empty comment data", async () => {
@@ -651,6 +653,124 @@ describe("#comments.create", () => {
 
     expect(res.status).toEqual(400);
   });
+
+  it("should not allow rich formatting nodes", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/comments.create", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: document.id,
+        data: {
+          type: "doc",
+          content: [
+            {
+              type: "heading",
+              attrs: { level: 1 },
+              content: [{ type: "text", text: "Heading" }],
+            },
+          ],
+        },
+      },
+    });
+
+    expect(res.status).toEqual(400);
+  });
+
+  it("should allow list nodes", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/comments.create", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: document.id,
+        data: {
+          type: "doc",
+          content: [
+            {
+              type: "bullet_list",
+              content: [
+                {
+                  type: "list_item",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Item 1" }],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      },
+    });
+
+    expect(res.status).toEqual(200);
+  });
+
+  it("should allow mention nodes", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const mentionedUser = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/comments.create", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: document.id,
+        data: {
+          type: "doc",
+          content: [
+            {
+              type: "paragraph",
+              content: [
+                { type: "text", text: "Hello " },
+                {
+                  type: "mention",
+                  attrs: {
+                    type: "user",
+                    label: mentionedUser.name,
+                    modelId: mentionedUser.id,
+                    id: mentionedUser.id,
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      },
+    });
+
+    expect(res.status).toEqual(200);
+    expect(res.json()).resolves.toMatchObject({
+      data: {
+        data: {
+          content: [
+            {
+              type: "paragraph",
+              content: expect.arrayContaining([
+                expect.objectContaining({ type: "mention" }),
+              ]),
+            },
+          ],
+        },
+      },
+    });
+  });
 });
 
 describe("#comments.update", () => {
@@ -689,6 +809,38 @@ describe("#comments.update", () => {
     expect(body.policies[0].abilities.read).toBeTruthy();
     expect(body.policies[0].abilities.update).toBeTruthy();
     expect(body.policies[0].abilities.delete).toBeTruthy();
+  });
+
+  it("should not allow rich formatting nodes in update", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const comment = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+    });
+
+    const res = await server.post("/api/comments.update", {
+      body: {
+        token: user.getJwtToken(),
+        id: comment.id,
+        data: {
+          type: "doc",
+          content: [
+            {
+              type: "heading",
+              attrs: { level: 1 },
+              content: [{ type: "text", text: "Heading" }],
+            },
+          ],
+        },
+      },
+    });
+
+    expect(res.status).toEqual(400);
   });
 });
 

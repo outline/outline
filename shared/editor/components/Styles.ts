@@ -79,6 +79,12 @@ const mathStyle = (props: Props) => css`
     display: none;
     color: ${props.theme.codeStatement};
     tab-size: 4;
+
+    .ProseMirror-focused {
+      border-radius: 2px;
+      outline: 2px solid
+        ${props.readOnly ? "transparent" : props.theme.selected};
+    }
   }
 
   .math-node.ProseMirror-selectednode .math-src {
@@ -419,7 +425,6 @@ const emailStyle = (props: Props) => css`
     border-radius: 8px;
     padding: 6px 8px;
   }
-
   .image > img {
     width: auto;
     height: auto;
@@ -441,6 +446,9 @@ const textStyle = () => css`
     /* Burmese */
     p {
       line-height: 1.7;
+    }
+
+    .ProseMirror > p {
       margin-top: 0.8em;
       margin-bottom: 0.8em;
     }
@@ -460,6 +468,9 @@ const textStyle = () => css`
     /* Sinhala */
     p {
       line-height: 1.7;
+    }
+
+    .ProseMirror > p {
       margin-top: 0.8em;
       margin-bottom: 0.8em;
     }
@@ -469,6 +480,9 @@ const textStyle = () => css`
   :lang(bo) {
     p {
       line-height: 1.8;
+    }
+
+    .ProseMirror > p {
       margin-top: 0.8em;
       margin-bottom: 0.8em;
     }
@@ -491,6 +505,9 @@ const textStyle = () => css`
     /* Mongolian */
     p {
       line-height: 1.7;
+    }
+
+    .ProseMirror > p {
       margin-top: 0.8em;
       margin-bottom: 0.8em;
     }
@@ -529,7 +546,8 @@ width: 100%;
     background: ${props.theme.mentionHoverBackground};
   }
 
-  &[data-type="user"] {
+  &[data-type="user"],
+  &[data-type="group"] {
     gap: 0;
   }
 
@@ -574,7 +592,7 @@ width: 100%;
 
   & > :first-child,
   & > button:first-child + * {
-    margin-top: 0;
+    margin-top: 0 !important;
   }
 
   h1,
@@ -588,6 +606,7 @@ width: 100%;
     line-height: inherit;
     font-weight: 600;
     cursor: text;
+    clear: both;
 
     & + p,
     // accounts for block insert trigger and other widgets between heading and paragraph
@@ -1108,6 +1127,12 @@ h6:not(.placeholder)::before {
   }
 }
 
+.ProseMirror.exported {
+  .heading-fold {
+    display: none;
+  }
+}
+
 .heading-anchor {
   box-sizing: border-box;
 }
@@ -1437,6 +1462,7 @@ ol li {
   position: relative;
   white-space: initial;
   text-align: start;
+  margin-top: .25em;
 
   p {
     white-space: pre-wrap;
@@ -1585,6 +1611,7 @@ hr {
   position: relative;
   height: 1em;
   border: 0;
+  clear: both;
 }
 
 hr::before {
@@ -1656,9 +1683,8 @@ mark {
   }
 }
 
+.code-block[data-language=mermaid],
 .code-block[data-language=mermaidjs] {
-  margin: 0.75em 0;
-
   ${
     !props.staticHTML &&
     css`
@@ -1678,20 +1704,35 @@ mark {
   // Hide code without display none so toolbar can still be positioned against it
   &:not(.code-active) {
     height: ${props.staticHTML || props.readOnly ? "auto" : "0"};
-    margin: -0.75em 0;
+    margin: 0.5em 0 -0.75em 0px;
     overflow: hidden;
-
-    // Allows the margin to collapse correctly by moving div out of the flow
-    position: ${props.staticHTML || props.readOnly ? "relative" : "absolute"};
+    position: relative;
   }
 }
 
+.ProseMirror[contenteditable="false"] .code-block[data-language=mermaid],
 .ProseMirror[contenteditable="false"] .code-block[data-language=mermaidjs] {
     height: 0;
     overflow: hidden;
-    margin: -0.5em 0 0 0;
+
     & + .mermaid-diagram-wrapper {
       cursor: zoom-in;
+    }
+}
+
+.ProseMirror.exported {
+    .code-block[data-language=mermaid],
+    .code-block[data-language=mermaidjs] {
+        height: auto;
+        overflow: visible;
+
+        &::after {
+          display: none;
+        }
+    }
+
+    .mermaid-diagram-wrapper {
+        display: none;
     }
 }
 
@@ -1831,19 +1872,19 @@ table {
   }
   tr:first-child th[data-first-column],
   tr:first-child td[data-first-column] {
-    border-radius: ${EditorStyleHelper.blockRadius} 0 0 0;
+    border-top-left-radius: ${EditorStyleHelper.blockRadius};
   }
   th[data-first-column][data-last-row],
   td[data-first-column][data-last-row] {
-    border-radius: 0 0 0 ${EditorStyleHelper.blockRadius};
+    border-bottom-left-radius: ${EditorStyleHelper.blockRadius};
   }
   tr:first-child th[data-last-column],
   tr:first-child td[data-last-column] {
-    border-radius: 0 ${EditorStyleHelper.blockRadius} 0 0;
+    border-top-right-radius: ${EditorStyleHelper.blockRadius};
   }
   th[data-last-column][data-last-row],
   td[data-last-column][data-last-row] {
-    border-radius: 0 0 ${EditorStyleHelper.blockRadius} 0;
+    border-bottom-right-radius: ${EditorStyleHelper.blockRadius};
   }
 
   td .component-embed {
@@ -1997,7 +2038,7 @@ table {
      * https://github.com/ProseMirror/prosemirror/issues/947 */
     &::after {
       content: "";
-      cursor: var(--pointer);
+      cursor: grab;
       position: absolute;
       top: -16px;
       left: 0;
@@ -2009,6 +2050,10 @@ table {
 
     &:hover::after {
       background: ${props.theme.text};
+    }
+
+    body.${EditorStyleHelper.tableDragging} &:hover::after {
+      background: ${props.theme.divider};
     }
     &.first::after {
       border-top-left-radius: 3px;
@@ -2027,7 +2072,7 @@ table {
   .${EditorStyleHelper.tableGripRow} {
     &::after {
       content: "";
-      cursor: var(--pointer);
+      cursor: grab;
       position: absolute;
       left: -16px;
       top: 0;
@@ -2040,6 +2085,10 @@ table {
 
     &:hover::after {
       background: ${props.theme.text};
+    }
+
+    body.${EditorStyleHelper.tableDragging} &:hover::after {
+      background: ${props.theme.divider};
     }
     &.first::after {
       border-top-left-radius: 3px;
@@ -2077,7 +2126,81 @@ table {
     &.selected::after {
       background: ${props.theme.tableSelected};
     }
+    &.dragging::after {
+      background: ${props.theme.accent};
+      opacity: 0.5;
+    }
   }
+}
+
+.${EditorStyleHelper.tableDragDropIndicator} {
+  position: absolute;
+  background: ${props.theme.accent};
+  pointer-events: none;
+  z-index: 100;
+  opacity: 0;
+  transition: opacity 100ms ease-in-out;
+
+  &.active {
+    opacity: 1;
+  }
+
+  &[data-type="row"] {
+    height: 2px;
+    border-radius: 1px;
+  }
+
+  &[data-type="column"] {
+    width: 2px;
+    border-radius: 1px;
+  }
+}
+
+.${EditorStyleHelper.tableGripRow},
+.${EditorStyleHelper.tableGripColumn} {
+  &.dragging::after {
+    cursor: grabbing;
+    background: ${props.theme.accent};
+    opacity: 0.5;
+  }
+}
+
+.${EditorStyleHelper.tableDragIndicatorLeft},
+.${EditorStyleHelper.tableDragIndicatorRight} {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: calc(var(--table-height) - ${EditorStyleHelper.padding}px - 10px);
+  background: ${props.theme.accent};
+  z-index: 100;
+  pointer-events: none;
+}
+
+.${EditorStyleHelper.tableDragIndicatorLeft} {
+  left: -1px;
+}
+
+.${EditorStyleHelper.tableDragIndicatorRight} {
+  right: -1px;
+}
+
+.${EditorStyleHelper.tableDragIndicatorTop},
+.${EditorStyleHelper.tableDragIndicatorBottom} {
+  position: absolute;
+  left: 0;
+  height: 2px;
+  width: calc(var(--table-width) - ${EditorStyleHelper.padding * 2}px - 2px);
+  background: ${props.theme.accent};
+  z-index: 100;
+  pointer-events: none;
+}
+
+.${EditorStyleHelper.tableDragIndicatorTop} {
+  top: -1px;
+}
+
+.${EditorStyleHelper.tableDragIndicatorBottom} {
+  bottom: -1px;
 }
 
 .${EditorStyleHelper.table} {
@@ -2096,11 +2219,6 @@ table {
   padding-left: ${EditorStyleHelper.padding}px;
   padding-right: ${EditorStyleHelper.padding}px;
   transition: border 250ms ease-in-out 0s;
-
-  table {
-    table-layout: fixed;
-    word-break: break-word;
-  }
 
   &:hover {
     scrollbar-color: ${props.theme.scrollbarThumb} ${
@@ -2230,21 +2348,6 @@ table {
 del {
   color: ${props.theme.slate};
   text-decoration: strikethrough;
-}
-
-// TODO: Remove once old email diff rendering is removed.
-ins[data-operation-index] {
-  color: ${props.theme.textDiffInserted};
-  background-color: ${props.theme.textDiffInsertedBackground};
-  text-decoration: none;
-}
-del[data-operation-index] {
-  color: ${props.theme.textDiffDeleted};
-  background-color: ${props.theme.textDiffDeletedBackground};
-  text-decoration: none;
-  img {
-    opacity: 0.5;
-  }
 }
 
 @media print {

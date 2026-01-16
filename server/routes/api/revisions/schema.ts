@@ -17,15 +17,6 @@ export const RevisionsInfoSchema = BaseSchema.extend({
 
 export type RevisionsInfoReq = z.infer<typeof RevisionsInfoSchema>;
 
-export const RevisionsDiffSchema = BaseSchema.extend({
-  body: z.object({
-    id: z.string().uuid(),
-    compareToId: z.string().uuid().optional(),
-  }),
-});
-
-export type RevisionsDiffReq = z.infer<typeof RevisionsDiffSchema>;
-
 export const RevisionsUpdateSchema = BaseSchema.extend({
   body: z.object({
     id: z.string().uuid(),
@@ -67,3 +58,11 @@ export const RevisionsDeleteSchema = BaseSchema.extend({
 });
 
 export type RevisionsDeleteReq = z.infer<typeof RevisionsDeleteSchema>;
+
+export const RevisionsExportSchema = BaseSchema.extend({
+  body: z.object({
+    id: z.string().uuid(),
+  }),
+});
+
+export type RevisionsExportReq = z.infer<typeof RevisionsExportSchema>;

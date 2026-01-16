@@ -140,24 +140,29 @@ export class GitHub {
    * @returns {object} Containing resource identifiers - `owner`, `repo`, `type` and `id`.
    */
   public static parseUrl(url: string) {
-    const { hostname, pathname } = new URL(url);
-    if (hostname !== "github.com") {
+    try {
+      const { hostname, pathname } = new URL(url);
+      if (hostname !== "github.com") {
+        return;
+      }
+
+      const parts = pathname.split("/");
+      const owner = parts[1];
+      const repo = parts[2];
+      const type = parts[3]
+        ? (pluralize.singular(parts[3]) as UnfurlResourceType)
+        : undefined;
+      const id = Number(parts[4]);
+
+      if (!type || !GitHub.supportedResources.includes(type)) {
+        return;
+      }
+
+      return { owner, repo, type, id, url };
+    } catch (_err) {
+      // Invalid URL format
       return;
     }
-
-    const parts = pathname.split("/");
-    const owner = parts[1];
-    const repo = parts[2];
-    const type = parts[3]
-      ? (pluralize.singular(parts[3]) as UnfurlResourceType)
-      : undefined;
-    const id = Number(parts[4]);
-
-    if (!type || !GitHub.supportedResources.includes(type)) {
-      return;
-    }
-
-    return { owner, repo, type, id, url };
   }
 
   private static authenticateAsApp = () => {

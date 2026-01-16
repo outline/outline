@@ -224,13 +224,13 @@ export const openKeyboardShortcuts = createAction({
 export const downloadApp = createExternalLinkAction({
   name: ({ t }) =>
     t("Download {{ platform }} app", {
-      platform: isMac() ? "macOS" : "Windows",
+      platform: isMac ? "macOS" : "Windows",
     }),
   analyticsName: "Download app",
   section: NavigationSection,
   iconInContextMenu: false,
   icon: <BrowserIcon />,
-  visible: () => !Desktop.isElectron() && isMac() && isCloudHosted,
+  visible: () => !Desktop.isElectron() && isMac && isCloudHosted,
   url: "https://desktop.getoutline.com",
   target: "_blank",
 });

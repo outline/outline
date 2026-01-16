@@ -1,5 +1,5 @@
 import { computed, observable } from "mobx";
-import { type ProsemirrorData } from "@shared/types";
+import { type ExportContentType, type ProsemirrorData } from "@shared/types";
 import { isRTL } from "@shared/utils/rtl";
 import Document from "./Document";
 import User from "./User";
@@ -8,6 +8,7 @@ import Field from "./decorators/Field";
 import Relation from "./decorators/Relation";
 import type RevisionsStore from "~/stores/RevisionsStore";
 import { ChangesetHelper } from "@shared/editor/lib/ChangesetHelper";
+import { client } from "~/utils/ApiClient";
 
 class Revision extends ParanoidModel {
   static modelName = "Revision";
@@ -100,6 +101,26 @@ class Revision extends ParanoidModel {
   get changeset() {
     return ChangesetHelper.getChangeset(this.data, this.before?.data);
   }
+
+  /**
+   * Triggers a download of the revision in the specified format.
+   *
+   * @param contentType The format to download the revision in.
+   * @returns A promise that resolves when the download is triggered.
+   */
+  download = (contentType: ExportContentType) =>
+    client.post(
+      `/revisions.export`,
+      {
+        id: this.id,
+      },
+      {
+        download: true,
+        headers: {
+          accept: contentType,
+        },
+      }
+    );
 }
 
 export default Revision;

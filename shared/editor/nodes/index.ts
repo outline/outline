@@ -47,10 +47,10 @@ import Video from "./Video";
 type Nodes = (typeof Node | typeof Mark | typeof Extension)[];
 
 /**
- * The basic set of nodes that are used in the editor. This is used for simple
+ * A set of inline nodes that are used in the editor. This is used for simple
  * editors that need basic formatting.
  */
-export const basicExtensions: Nodes = [
+export const inlineExtensions: Nodes = [
   Doc,
   Paragraph,
   Emoji,
@@ -88,11 +88,17 @@ export const tableExtensions: Nodes = [
 ];
 
 /**
+ * The basic set of nodes that are used in the editor. This is used for simple
+ * editors that need basic formatting and lists.
+ */
+export const basicExtensions: Nodes = [...inlineExtensions, ...listExtensions];
+
+/**
  * The full set of nodes that are used in the editor. This is used for rich
  * editors that need advanced formatting.
  */
 export const richExtensions: Nodes = [
-  ...basicExtensions.filter((n) => n !== SimpleImage),
+  ...inlineExtensions.filter((n) => n !== SimpleImage),
   Image,
   CodeBlock,
   CodeFence,

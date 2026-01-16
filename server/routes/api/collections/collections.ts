@@ -86,7 +86,9 @@ router.post(
     });
 
     if (data) {
-      collection.description = DocumentHelper.toMarkdown(collection);
+      collection.description = await DocumentHelper.toMarkdown(collection, {
+        includeTitle: false,
+      });
     }
 
     await collection.saveWithCtx(ctx);
@@ -641,7 +643,9 @@ router.post(
 
     if (data !== undefined) {
       collection.content = data;
-      collection.description = DocumentHelper.toMarkdown(collection);
+      collection.description = await DocumentHelper.toMarkdown(collection, {
+        includeTitle: false,
+      });
     }
 
     if (icon !== undefined) {

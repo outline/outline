@@ -241,31 +241,45 @@ export class NotionClient {
     let cursor: string | undefined;
     let hasMore = true;
 
-    while (hasMore) {
-      const response = await this.fetchWithRetry(() =>
-        this.client.blocks.children.list({
-          block_id: blockId,
-          start_cursor: cursor,
-          page_size: this.pageSize,
+    try {
+      while (hasMore) {
+        const response = await this.fetchWithRetry(() =>
+          this.client.blocks.children.list({
+            block_id: blockId,
+            start_cursor: cursor,
+            page_size: this.pageSize,
+          })
+        );
+
+        blocks.push(...(response.results as BlockObjectResponse[]));
+
+        hasMore = response.has_more;
+        cursor = response.next_cursor ?? undefined;
+      }
+
+      await Promise.all(
+        blocks.map(async (block) => {
+          if (
+            block.has_children &&
+            !this.skipChildrenForBlock.includes(block.type)
+          ) {
+            block.children = await this.fetchBlockChildren(block.id);
+          }
         })
       );
-
-      blocks.push(...(response.results as BlockObjectResponse[]));
-
-      hasMore = response.has_more;
-      cursor = response.next_cursor ?? undefined;
+    } catch (error) {
+      if (
+        error instanceof APIResponseError &&
+        (error.code === APIErrorCode.ObjectNotFound ||
+          error.code === APIErrorCode.Unauthorized)
+      ) {
+        Logger.warn(
+          `Skipping Notion block children for ${blockId} - Error code: ${error.code}`
+        );
+        return [];
+      }
+      throw error;
     }
-
-    await Promise.all(
-      blocks.map(async (block) => {
-        if (
-          block.has_children &&
-          !this.skipChildrenForBlock.includes(block.type)
-        ) {
-          block.children = await this.fetchBlockChildren(block.id);
-        }
-      })
-    );
 
     return blocks;
   }
@@ -276,37 +290,51 @@ export class NotionClient {
     let cursor: string | undefined;
     let hasMore = true;
 
-    while (hasMore) {
-      const response = await this.fetchWithRetry(() =>
-        this.client.databases.query({
-          database_id: databaseId,
-          filter_properties: ["title"],
-          start_cursor: cursor,
-          page_size: this.pageSize,
-        })
-      );
+    try {
+      while (hasMore) {
+        const response = await this.fetchWithRetry(() =>
+          this.client.databases.query({
+            database_id: databaseId,
+            filter_properties: ["title"],
+            start_cursor: cursor,
+            page_size: this.pageSize,
+          })
+        );
 
-      const pagesFromRes = compact(
-        response.results.map<Page | undefined>((item) => {
-          if (!isFullPage(item)) {
-            return;
-          }
+        const pagesFromRes = compact(
+          response.results.map<Page | undefined>((item) => {
+            if (!isFullPage(item)) {
+              return;
+            }
 
-          return {
-            type: PageType.Page,
-            id: item.id,
-            name: this.parseTitle(item, {
-              maxLength: DocumentValidation.maxTitleLength,
-            }),
-            emoji: this.parseEmoji(item),
-          };
-        })
-      );
+            return {
+              type: PageType.Page,
+              id: item.id,
+              name: this.parseTitle(item, {
+                maxLength: DocumentValidation.maxTitleLength,
+              }),
+              emoji: this.parseEmoji(item),
+            };
+          })
+        );
 
-      pages.push(...pagesFromRes);
+        pages.push(...pagesFromRes);
 
-      hasMore = response.has_more;
-      cursor = response.next_cursor ?? undefined;
+        hasMore = response.has_more;
+        cursor = response.next_cursor ?? undefined;
+      }
+    } catch (error) {
+      if (
+        error instanceof APIResponseError &&
+        (error.code === APIErrorCode.ObjectNotFound ||
+          error.code === APIErrorCode.Unauthorized)
+      ) {
+        Logger.warn(
+          `Skipping Notion database query for ${databaseId} - Error code: ${error.code}`
+        );
+        return [];
+      }
+      throw error;
     }
 
     return pages;

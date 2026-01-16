@@ -54,6 +54,10 @@ class Team extends Model {
 
   @Field
   @observable
+  passkeysEnabled: boolean;
+
+  @Field
+  @observable
   subdomain: string | null | undefined;
 
   @Field

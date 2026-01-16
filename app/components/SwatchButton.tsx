@@ -96,8 +96,8 @@ const StyledContent = styled(PopoverContent)`
   padding: 8px;
 `;
 
-const ColorPicker = lazyWithRetry(
-  () => import("react-color/lib/components/chrome/Chrome")
+const ColorPicker = lazyWithRetry(() =>
+  import("react-color").then((mod) => ({ default: mod.ChromePicker }))
 );
 
 const StyledColorPicker = styled(ColorPicker)`

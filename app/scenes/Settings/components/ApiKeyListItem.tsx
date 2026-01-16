@@ -26,27 +26,42 @@ const ApiKeyListItem = ({ apiKey }: Props) => {
   const userLocale = useUserLocale();
   const user = useCurrentUser();
 
+  const creatorText =
+    apiKey.userId === user.id
+      ? ""
+      : t(`by {{ name }}`, { name: apiKey.user.name });
+
   const subtitle = (
     <>
-      <Text type="tertiary">
-        {t(`Created`)} <Time dateTime={apiKey.createdAt} addSuffix />{" "}
-        {apiKey.userId === user.id
-          ? ""
-          : t(`by {{ name }}`, { name: apiKey.user.name })}{" "}
-        &middot;{" "}
-      </Text>
-      {apiKey.lastActiveAt && (
+      {apiKey.isExpired ? (
+        <>
+          <Text type="danger">
+            {t(`Expired`)} <Time dateTime={apiKey.expiresAt!} addSuffix />
+          </Text>
+          <Text type="tertiary"> {creatorText}</Text>
+        </>
+      ) : (
         <Text type="tertiary">
-          {t("Last used")} <Time dateTime={apiKey.lastActiveAt} addSuffix />{" "}
-          &middot;{" "}
+          {t(`Created`)} <Time dateTime={apiKey.createdAt} addSuffix />{" "}
+          {creatorText}
         </Text>
       )}
-      <Text type={apiKey.isExpired ? "danger" : "tertiary"}>
-        {apiKey.expiresAt
-          ? dateToExpiry(apiKey.expiresAt, t, userLocale)
-          : t("No expiry")}
-        {apiKey.scope && <> &middot; </>}
-      </Text>
+      {apiKey.lastActiveAt && (
+        <Text type="tertiary">
+          {" "}
+          &middot; {t("Last used")}{" "}
+          <Time dateTime={apiKey.lastActiveAt} addSuffix />
+        </Text>
+      )}
+      {!apiKey.isExpired && (
+        <Text type="tertiary">
+          {" "}
+          &middot;{" "}
+          {apiKey.expiresAt
+            ? dateToExpiry(apiKey.expiresAt, t, userLocale)
+            : t("No expiry")}
+        </Text>
+      )}
       {apiKey.scope && (
         <Tooltip
           content={apiKey.scope.map((s) => (
@@ -56,7 +71,7 @@ const ApiKeyListItem = ({ apiKey }: Props) => {
             </>
           ))}
         >
-          <Text type="tertiary">{t("Restricted scope")}</Text>
+          <Text type="tertiary"> &middot; {t("Restricted scope")}</Text>
         </Tooltip>
       )}
     </>

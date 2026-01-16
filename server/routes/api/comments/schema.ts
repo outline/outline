@@ -1,6 +1,7 @@
 import isEmpty from "lodash/isEmpty";
 import { z } from "zod";
 import { CommentStatusFilter } from "@shared/types";
+import { commentSchema } from "@server/editor";
 import { BaseSchema, ProsemirrorSchema } from "@server/routes/api/schema";
 import { zodEmojiType } from "@server/utils/zod";
 
@@ -36,7 +37,7 @@ export const CommentsCreateSchema = BaseSchema.extend({
       parentCommentId: z.string().uuid().optional(),
 
       /** Create comment with this data */
-      data: ProsemirrorSchema().optional(),
+      data: ProsemirrorSchema({ schema: commentSchema }).optional(),
 
       /** Create comment with this text */
       text: z.string().optional(),
@@ -51,7 +52,7 @@ export type CommentsCreateReq = z.infer<typeof CommentsCreateSchema>;
 export const CommentsUpdateSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
     /** Update comment with this data */
-    data: ProsemirrorSchema(),
+    data: ProsemirrorSchema({ schema: commentSchema }),
   }),
 });
 

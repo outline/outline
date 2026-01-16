@@ -23,6 +23,7 @@ import type {
   Team,
   User,
   UserMembership,
+  UserPasskey,
   WebhookSubscription,
   Pin,
   Star,
@@ -51,9 +52,14 @@ export type AuthenticationResult = AccountProvisionerResult & {
 };
 
 export type Authentication = {
+  /** The user associated with this session. */
   user: User;
+  /** The token used for authenticating API requests, WebSocket connections, etc. */
   token: string;
+  /** The type of authentication used to create this session (e.g., "api", "app", "oauth"). */
   type?: AuthenticationType;
+  /** The authentication service used to create this session (e.g., "email", "passkeys", "google"). */
+  service?: string;
 };
 
 export type Pagination = {
@@ -440,6 +446,12 @@ export type OAuthClientEvent = BaseEvent<OAuthClient> & {
   modelId: string;
 };
 
+export type UserPasskeyEvent = BaseEvent<UserPasskey> & {
+  name: "passkeys.create" | "passkeys.update" | "passkeys.delete";
+  modelId: string;
+  userId: string;
+};
+
 // oxlint-disable-next-line @typescript-eslint/no-explicit-any
 export type ImportEvent = BaseEvent<Import<any>> & {
   name:
@@ -477,6 +489,7 @@ export type Event =
   | WebhookSubscriptionEvent
   | NotificationEvent
   | OAuthClientEvent
+  | UserPasskeyEvent
   | EmptyTrashEvent
   | ImportEvent;
 

@@ -11,6 +11,8 @@ class AuthenticationProvider extends Model {
 
   name: string;
 
+  providerId: string;
+
   @observable
   isConnected: boolean;
 

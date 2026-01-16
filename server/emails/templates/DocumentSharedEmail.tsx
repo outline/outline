@@ -94,7 +94,7 @@ View Document: ${teamUrl}${document.path}
           <Heading>{document.titleWithDefault}</Heading>
           <p>
             {actorName} invited you to {permission} the{" "}
-            <a href={documentUrl}>{document.titleWithDefault}</a>{" "}document.
+            <a href={documentUrl}>{document.titleWithDefault}</a> document.
           </p>
           <p>
             <Button href={documentUrl}>View Document</Button>

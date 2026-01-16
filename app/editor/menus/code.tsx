@@ -1,11 +1,16 @@
-import { CopyIcon, ExpandedIcon } from "outline-icons";
+import { CopyIcon, EditIcon, ExpandedIcon } from "outline-icons";
 import type { Node as ProseMirrorNode } from "prosemirror-model";
 import type { EditorState } from "prosemirror-state";
+import {
+  pluginKey as mermaidPluginKey,
+  type MermaidState,
+} from "@shared/editor/extensions/Mermaid";
 import {
   getFrequentCodeLanguages,
   codeLanguages,
   getLabelForLanguage,
 } from "@shared/editor/lib/code";
+import { isMermaid } from "@shared/editor/lib/isCode";
 import type { MenuItem } from "@shared/editor/types";
 import type { Dictionary } from "~/hooks/useDictionary";
 
@@ -47,6 +52,18 @@ export default function codeMenuItems(
         ? getLabelForLanguage(node.attrs.language ?? "none")
         : undefined,
       tooltip: dictionary.copy,
+    },
+    {
+      name: "separator",
+    },
+    {
+      name: "edit_mermaid",
+      icon: <EditIcon />,
+      tooltip: dictionary.editDiagram,
+      visible:
+        !(mermaidPluginKey.getState(state) as MermaidState)?.editingId &&
+        isMermaid(node) &&
+        !readOnly,
     },
     {
       name: "separator",

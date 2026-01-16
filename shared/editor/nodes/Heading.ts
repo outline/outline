@@ -11,6 +11,7 @@ import { Plugin, Selection } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { toast } from "sonner";
 import type { Primitive } from "utility-types";
+import { isSafari } from "../../utils/browser";
 import Storage from "../../utils/Storage";
 import backspaceToParagraph from "../commands/backspaceToParagraph";
 import splitHeading from "../commands/splitHeading";
@@ -220,12 +221,18 @@ export default class Heading extends Node {
 
           decorations.push(
             // Contains the heading actions
-            Decoration.widget(pos + 1, container, {
-              side: -1,
-              ignoreSelection: true,
-              relaxedSide: true,
-              key: pos.toString(),
-            })
+            Decoration.widget(
+              // Safari requires the widget to be placed at the end of the node rather than the beginning
+              // or caret selection is not correct, browser quirk – see issue #1234
+              isSafari ? pos + node.nodeSize - 1 : pos + 1,
+              container,
+              {
+                side: -1,
+                ignoreSelection: true,
+                relaxedSide: false,
+                key: pos.toString(),
+              }
+            )
           );
 
           // Creates a "space" for the caret to move to before the widget.

@@ -72,7 +72,7 @@ export default class SlackProcessor extends BaseProcessor {
           {
             color: collection.color,
             title: collection.name,
-            title_link: `${env.URL}${collection.url}`,
+            title_link: `${env.URL}${collection.path}`,
             text: collection.description,
           },
         ],

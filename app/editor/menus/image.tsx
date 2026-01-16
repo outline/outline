@@ -92,7 +92,7 @@ export default function imageMenuItems(
     },
     {
       name: "editDiagram",
-      tooltip: "Edit diagram",
+      tooltip: dictionary.editDiagram,
       icon: <EditIcon />,
       visible: isDiagram(state) && !Desktop.isElectron(),
     },

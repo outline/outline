@@ -1,13 +1,14 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import { s, ellipsis } from "@shared/styles";
+import { s, ellipsis, hover } from "@shared/styles";
 import type { ConfigItem } from "~/hooks/useSettingsConfig";
 import Button from "../../../components/Button";
 import Text from "../../../components/Text";
 import { HStack } from "~/components/primitives/HStack";
 import { VStack } from "~/components/primitives/VStack";
 import { Status } from "./Status";
+import Flex from "@shared/components/Flex";
 
 type Props = {
   integration: ConfigItem;
@@ -19,16 +20,18 @@ function IntegrationCard({ integration, isConnected }: Props) {
 
   return (
     <Card as={Link} to={integration.path}>
-      <HStack>
-        <integration.icon size={48} />
-        <VStack spacing={0} align="flex-start">
-          <Name>{integration.name}</Name>
-          {isConnected && <Status>{t("Connected")}</Status>}
-        </VStack>
+      <Flex justify="space-between" align="center">
+        <HStack>
+          <integration.icon size={32} />
+          <VStack spacing={0} align="flex-start">
+            <Name>{integration.name}</Name>
+            {isConnected && <Status>{t("Connected")}</Status>}
+          </VStack>
+        </HStack>
         <Button as="span" neutral>
           {isConnected ? t("Configure") : t("Connect")}
         </Button>
-      </HStack>
+      </Flex>
 
       <Description>{integration.description}</Description>
     </Card>
@@ -50,7 +53,7 @@ const Card = styled.div`
   transition: box-shadow 200ms ease;
   cursor: var(--pointer);
 
-  &:hover {
+  &: ${hover} {
     box-shadow:
       rgba(0, 0, 0, 0.08) 0px 2px 4px,
       rgba(0, 0, 0, 0.06) 0px 4px 8px;
@@ -58,7 +61,7 @@ const Card = styled.div`
 `;
 
 const Name = styled(Text)`
-  margin: 0;
+  margin: 0 0 -4px;
   font-size: 16px;
   font-weight: 600;
   color: ${s("text")};
@@ -66,7 +69,7 @@ const Name = styled(Text)`
 `;
 
 const Description = styled(Text)`
-  margin: 8px 0 0;
+  margin: 12px 0 0;
   font-size: 15px;
   max-width: 100%;
   color: ${s("textTertiary")};

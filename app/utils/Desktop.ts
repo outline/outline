@@ -12,14 +12,14 @@ export default class Desktop {
    * Returns true if the client is running in the macOS app.
    */
   static isMacApp() {
-    return this.isElectron() && isMac();
+    return this.isElectron() && isMac;
   }
 
   /**
    * Returns true if the client is running in the Windows app.
    */
   static isWindowsApp() {
-    return this.isElectron() && isWindows();
+    return this.isElectron() && isWindows;
   }
 
   /**

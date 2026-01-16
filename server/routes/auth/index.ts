@@ -31,8 +31,8 @@ void (async () => {
 })();
 
 router.get("/redirect", authMiddleware(), async (ctx: APIContext) => {
-  const { user } = ctx.state.auth;
-  const jwtToken = user.getJwtToken();
+  const { user, service } = ctx.state.auth;
+  const jwtToken = user.getJwtToken(undefined, service);
 
   if (jwtToken === ctx.state.auth.token) {
     throw AuthenticationError("Cannot extend token");
@@ -66,7 +66,7 @@ router.get("/redirect", authMiddleware(), async (ctx: APIContext) => {
     });
 
     if (collection) {
-      ctx.redirect(`${team.url}${collection.url}`);
+      ctx.redirect(`${team.url}${collection.path}`);
       return;
     }
   }
@@ -75,7 +75,7 @@ router.get("/redirect", authMiddleware(), async (ctx: APIContext) => {
 
   ctx.redirect(
     !hasViewedDocuments && collection
-      ? `${team?.url}${collection.url}`
+      ? `${team?.url}${collection.path}/recent`
       : `${team?.url}/home`
   );
 });

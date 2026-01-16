@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { TOCPosition, UserRole } from "@shared/types";
+import { EmailDisplay, TOCPosition, UserRole } from "@shared/types";
 import { BaseSchema } from "@server/routes/api/schema";
 
 export const TeamsUpdateSchema = BaseSchema.extend({
@@ -14,8 +14,10 @@ export const TeamsUpdateSchema = BaseSchema.extend({
     subdomain: z.string().nullish(),
     /** Whether public sharing is enabled */
     sharing: z.boolean().optional(),
-    /** Whether siginin with email is enabled */
+    /** Whether signin with email is enabled */
     guestSignin: z.boolean().optional(),
+    /** Whether signin with passkeys is enabled */
+    passkeysEnabled: z.boolean().optional(),
     /** Whether third-party document embeds are enabled */
     documentEmbeds: z.boolean().optional(),
     /** Whether team members are able to create new collections */
@@ -58,6 +60,7 @@ export const TeamsUpdateSchema = BaseSchema.extend({
           .optional(),
         /** Side to display the document's table of contents in relation to the main content. */
         tocPosition: z.nativeEnum(TOCPosition).optional(),
+        emailDisplay: z.nativeEnum(EmailDisplay).optional(),
         /** Whether to prevent shared documents from being embedded in iframes on external websites. */
         preventDocumentEmbedding: z.boolean().optional(),
       })

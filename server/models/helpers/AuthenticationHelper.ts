@@ -26,7 +26,9 @@ export default class AuthenticationHelper {
     const isCloudHosted = env.isCloudHosted;
 
     return AuthenticationHelper.providers
-      .sort((hook) => (hook.value.id === "email" ? 1 : -1))
+      .sort((hook) =>
+        hook.value.id === "email" || hook.value.id === "passkeys" ? 1 : -1
+      )
       .filter((hook) => {
         // Email sign-in is an exception as it does not have an authentication
         // provider using passport, instead it exists as a boolean option.
@@ -34,7 +36,13 @@ export default class AuthenticationHelper {
           return team?.emailSigninEnabled;
         }
 
-        // If no team return all possible authentication providers except email.
+        // Passkeys is an exception as it does not have an authentication
+        // provider using passport, instead it exists as a boolean option.
+        if (hook.value.id === "passkeys") {
+          return team?.passkeysEnabled;
+        }
+
+        // If no team return all possible authentication providers except email and passkeys.
         if (!team) {
           return true;
         }
