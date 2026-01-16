@@ -199,16 +199,8 @@ function buildAgent(
     });
 
     if (parsedProxyURL.tunnelMethod?.startsWith("httpOver")) {
-      const proxyURL = new URL(parsedProxyURL.href);
-      proxyURL.pathname = (parsedURL.protocol ?? "")
-        .concat("//")
-        .concat(parsedURL.host ?? "")
-        .concat(parsedURL.pathname + parsedURL.search);
-      if (parsedProxyURL.username || parsedProxyURL.password) {
-        proxyURL.username = parsedProxyURL.username;
-        proxyURL.password = parsedProxyURL.password;
-      }
-      agent = useFilteringAgent(proxyURL.toString(), filteringOptions);
+      // Use tunnel agent for HTTP-over-HTTP/HTTPS proxy scenarios
+      agent = buildTunnel(parsedProxyURL, agentOptions);
     } else {
       // Note request filtering agent does not support https tunneling via a proxy
       agent =
