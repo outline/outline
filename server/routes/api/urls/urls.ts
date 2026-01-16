@@ -1,6 +1,6 @@
 import dns from "dns";
 import Router from "koa-router";
-import tracer from "@server/logging/tracer";
+import { traceFunction } from "@server/logging/tracing";
 import { MentionType, UnfurlResourceType } from "@shared/types";
 import { getBaseDomain, parseDomain } from "@shared/utils/domains";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
@@ -122,7 +122,8 @@ router.post(
         });
         return;
       }
-      return (ctx.response.status = 204);
+      ctx.response.status = 204;
+      return;
     }
 
     // External resources
@@ -138,17 +139,14 @@ router.post(
       async (): Promise<CacheResult<Unfurl | { error: true }> | undefined> => {
         for (const plugin of plugins) {
           const pluginName = plugin.name ?? "unknown";
-          const unfurl = await tracer.trace(
-            "unfurl.plugin",
-            {
-              resource: pluginName,
-              tags: {
-                "unfurl.plugin": pluginName,
-                "unfurl.url_host": urlObj.hostname,
-              },
+          const unfurl = await traceFunction({
+            spanName: "unfurl.plugin",
+            resourceName: pluginName,
+            tags: {
+              "unfurl.plugin": pluginName,
+              "unfurl.url_host": urlObj.hostname,
             },
-            () => plugin.value.unfurl(url, actor)
-          );
+          })(() => plugin.value.unfurl(url, actor))();
           if (unfurl) {
             if ("error" in unfurl) {
               return { data: { error: true as const }, expiry: 60 };
@@ -170,6 +168,7 @@ router.post(
     }
 
     ctx.body = await presentUnfurl(unfurlResult);
+    return;
   }
 );
 
