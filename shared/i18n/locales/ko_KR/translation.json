@@ -1378,7 +1378,7 @@
   "Something went wrong while authenticating your request. Please try logging in again.": "요청을 인증하던 중 문제가 발생했습니다. 다시 로그인해 주세요.",
   "Something went wrong while processing your request. Please try again.": "요청을 처리하는 중에 문제가 발생했습니다. 다시 시도해 주세요.",
   "Link your {{appName}} account to Figma to enable previews of design files you have access to, directly within documents.": "Figma 문서 내에서 접근 권한이 있는 디자인 파일의 미리보기를 바로 사용할 수 있도록, {{appName}} 계정을 Figma에 연결하세요.",
-  "Enabled on": "Enabled on",
+  "Enabled on": "활성화됨",
   "Disconnecting will prevent previewing Figma design files from this account in documents. Are you sure?": "연결을 해제하면 문서에서 이 계정의 Figma 디자인 파일을 미리 볼 수 없게 됩니다. 계속할까요?",
   "The Figma integration is currently disabled. Please set the associated environment variables and restart the server to enable the integration.": "Figma 연동 기능이 현재 비활성화되어 있습니다. 연동 기능을 활성화하려면 관련 환경 변수를 설정하고 서버를 재시작하세요.",
   "Whoops, you need to accept the permissions in GitHub to connect {{appName}} to your workspace. Try again?": "죄송합니다. {{appName}} 을 워크스페이스에 연결하려면 GitHub에서 권한을 수락해야 합니다. 다시 시도하시겠습니까?",
