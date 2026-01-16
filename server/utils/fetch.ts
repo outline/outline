@@ -199,7 +199,10 @@ function buildAgent(
     });
 
     if (parsedProxyURL.tunnelMethod?.startsWith("httpOver")) {
-      // Use tunnel agent for HTTP-over-HTTP/HTTPS proxy scenarios
+      // Use tunnel agent for HTTP-over-HTTP/HTTPS proxy scenarios.
+      // Tunnel agents properly handle protocol differences and proxy authentication
+      // without requiring URL manipulation, unlike useFilteringAgent which would
+      // fail with protocol validation errors if passed a modified proxy URL.
       agent = buildTunnel(parsedProxyURL, agentOptions);
     } else {
       // Note request filtering agent does not support https tunneling via a proxy
