@@ -4,6 +4,16 @@ import Redis from "@server/storage/redis";
 import { MutexLock } from "./MutexLock";
 
 /**
+ * Result type for cache callbacks that need to specify a dynamic expiry.
+ */
+export interface CacheResult<T> {
+  /** The data to cache. */
+  data: T;
+  /** Cache expiry in seconds. If not provided, uses the default expiry passed to getDataOrSet. */
+  expiry?: number;
+}
+
+/**
  * A Helper class for server-side cache management
  */
 export class CacheHelper {
@@ -15,15 +25,19 @@ export class CacheHelper {
    * If data is not found, it will call the callback to get the data and save it in cache
    * using a distributed lock to prevent multiple writes.
    *
+   * The callback can return either:
+   * - A plain value of type T (uses the default expiry)
+   * - A CacheResult<T> object with { data, expiry } for dynamic expiry
+   *
    * @param key Cache key
    * @param callback Callback to get the data if not found in cache
-   * @param expiry Cache data expiry in seconds
+   * @param expiry Default cache data expiry in seconds
    * @param lockTimeout Lock timeout in milliseconds
    * @returns The data from cache or the result of the callback
    */
   public static async getDataOrSet<T>(
     key: string,
-    callback: () => Promise<T | undefined>,
+    callback: () => Promise<T | CacheResult<T> | undefined>,
     expiry: number,
     lockTimeout: number = MutexLock.defaultLockTimeout
   ): Promise<T | undefined> {
@@ -48,11 +62,25 @@ export class CacheHelper {
       }
 
       // Get the data from the callback and save it in cache
-      const value = await callback();
-      if (value) {
-        await this.setData<T>(key, value, expiry);
+      const result = await callback();
+      if (result) {
+        // Check if result is a CacheResult with dynamic expiry
+        const isCacheResult =
+          typeof result === "object" &&
+          result !== null &&
+          "data" in result &&
+          Object.keys(result).every((k) => k === "data" || k === "expiry");
+
+        if (isCacheResult) {
+          const { data, expiry: dynamicExpiry } = result as CacheResult<T>;
+          await this.setData<T>(key, data, dynamicExpiry ?? expiry);
+          return data;
+        }
+
+        await this.setData<T>(key, result as T, expiry);
+        return result as T;
       }
-      return value;
+      return undefined;
     } finally {
       if (lock) {
         await MutexLock.release(lock);
