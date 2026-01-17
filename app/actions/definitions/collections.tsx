@@ -6,7 +6,7 @@ import {
   EditIcon,
   ExportIcon,
   ImportIcon,
-  ManualSortIcon,
+  SortManualIcon,
   NewDocumentIcon,
   PadlockIcon,
   PlusIcon,
@@ -206,7 +206,7 @@ export const sortCollection = createActionWithChildren({
         <SortAlphabeticalReverseIcon />
       )
     ) : (
-      <ManualSortIcon />
+      <SortManualIcon />
     );
   },
   children: [
