@@ -423,7 +423,7 @@ export default class WebsocketsProcessor {
 
       case "collections.remove_group": {
         // let everyone with access to the collection know a group was removed
-        // this includes those in the the group itself
+        // this includes those in the group itself
         socketio
           .to(`collection-${event.collectionId}`)
           .emit("collections.remove_group", {
