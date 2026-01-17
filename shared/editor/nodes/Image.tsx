@@ -304,7 +304,7 @@ export default class Image extends SimpleImage {
         return;
       }
 
-      // Pressing Backspace in an an empty caption field focused the image.
+      // Pressing Backspace in an empty caption field focused the image.
       if (event.key === "Backspace" && event.currentTarget.innerText === "") {
         event.preventDefault();
         event.stopPropagation();
