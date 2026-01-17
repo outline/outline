@@ -376,11 +376,9 @@ export function sortTable({
       const nonEmptyCells = table
         .map((row) => row[index]?.textContent?.trim())
         .filter((cell) => cell && cell.length > 0);
-
       if (nonEmptyCells.length > 0) {
         // check if all non-empty cells are valid dates
         compareAsDate = nonEmptyCells.every((cell) => parseDate(cell!) !== null);
-
         // if not dates, check if all non-empty cells are numbers
         if (!compareAsDate) {
           compareAsNumber = nonEmptyCells.every(
@@ -395,8 +393,8 @@ export function sortTable({
         const bContent = b[index]?.textContent ?? "";
 
         // empty cells always go to the end
-        if (!aContent) return bContent ? 1 : 0;
-        if (!bContent) return -1;
+        if (!aContent) { return bContent ? 1 : 0; }
+        if (!bContent) { return -1; }
 
         if (compareAsDate) {
           const aDate = parseDate(aContent);
