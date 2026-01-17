@@ -170,6 +170,7 @@ export class Editor extends React.PureComponent<
     defaultValue: "",
     dir: "auto",
     placeholder: "Write something nice…",
+    readOnly: false,
     onFileUploadStart: () => {
       // no default behavior
     },

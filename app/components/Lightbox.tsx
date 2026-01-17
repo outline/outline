@@ -98,7 +98,7 @@ type Props = {
   /** Callback triggered when Lightbox closes */
   onClose: () => void;
   /** Whether the editor is read only */
-  readOnly: boolean;
+  readOnly?: boolean;
 };
 
 const ZoomPanPinchContext = createContext({ isImagePanning: false });
