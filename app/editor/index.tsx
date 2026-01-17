@@ -873,10 +873,11 @@ export class Editor extends React.PureComponent<
           </Flex>
           {!isNull(this.state.activeLightboxImage) && (
             <Lightbox
+              readOnly={readOnly}
               images={this.getLightboxImages()}
               activeImage={this.state.activeLightboxImage}
               onUpdate={this.updateActiveLightboxImage}
-              onClose={() => this.view.focus()}
+              onClose={this.view.focus}
             />
           )}
         </EditorContext.Provider>
