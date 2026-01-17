@@ -7,6 +7,8 @@ import {
   subMonths,
   subWeeks,
   subYears,
+  isValid,
+  parse,
 } from "date-fns";
 import {
   cs,
@@ -33,6 +35,99 @@ import {
   zhTW,
 } from "date-fns/locale";
 import type { DateFilter } from "../types";
+import { isBrowser } from "./browser";
+
+/**
+ * Determines if the user's locale uses month-first date format (MM/dd).
+ *
+ * @returns true if locale uses MM/dd format, false for dd/MM format.
+ */
+export function usesMonthFirstFormat(): boolean {
+  if (!isBrowser || typeof Intl === "undefined") {
+    return false;
+  }
+
+  // Format a known date and check if month comes before day
+  const formatted = new Intl.DateTimeFormat(undefined, {
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date(2000, 11, 25)); // Dec 25, 2000
+
+  // If it starts with "12", month comes first
+  return formatted.startsWith("12");
+}
+
+/**
+ * Attempts to parse a date string in various common formats.
+ *
+ * @param dateStr The date string to parse.
+ * @returns a Date object if parsing is successful, null otherwise.
+ */
+export function parseDate(dateStr: string): Date | null {
+  if (!dateStr) {
+    return null;
+  }
+
+  // Remove any trailing alphabetic text (e.g., "Uhr", "at", "o'clock", etc.)
+  const cleaned = dateStr.trim().replace(/\s*[a-zA-Z]+\s*$/, "");
+
+  const monthFirst = [
+    "MM/dd/yyyy HH:mm:ss",
+    "MM/dd/yyyy HH:mm",
+    "MM/dd/yyyy",
+    "MM/dd HH:mm:ss",
+    "MM/dd HH:mm",
+    "MM/dd",
+  ];
+
+  const dayFirst = [
+    "dd/MM/yyyy HH:mm:ss",
+    "dd/MM/yyyy HH:mm",
+    "dd/MM/yyyy",
+    "dd/MM HH:mm:ss",
+    "dd/MM HH:mm",
+    "dd/MM",
+  ];
+
+  // Ambiguous slash formats - order based on user's locale
+  const slashFormats = usesMonthFirstFormat()
+    ? [...monthFirst, ...dayFirst]
+    : [...dayFirst, ...monthFirst];
+
+  // Common date formats used in tables (with and without time, with and without year)
+  const formats = [
+    // ISO formats
+    "yyyy-MM-dd HH:mm:ss",
+    "yyyy-MM-dd HH:mm",
+    "yyyy-MM-dd",
+    // European dot formats
+    "dd.MM.yyyy HH:mm:ss",
+    "dd.MM.yyyy HH:mm",
+    "dd.MM.yyyy",
+    "dd.MM. HH:mm:ss",
+    "dd.MM. HH:mm",
+    "dd.MM.",
+    "d.M.yyyy HH:mm:ss",
+    "d.M.yyyy HH:mm",
+    "d.M.yyyy",
+    "d.M. HH:mm:ss",
+    "d.M. HH:mm",
+    "d.M.",
+    // Locale-dependent slash formats
+    ...slashFormats,
+  ];
+
+  const referenceDate = new Date();
+
+  for (const format of formats) {
+    const date = parse(cleaned, format, referenceDate);
+    if (isValid(date)) {
+      return date;
+    }
+  }
+
+  return null;
+}
 
 export function subtractDate(date: Date, period: DateFilter) {
   switch (period) {
