@@ -84,6 +84,15 @@ export default class ComponentView {
       return false;
     }
 
+    // Ensure we don't reuse NodeViews for different nodes that have a distinct identity
+    // This prevents attribute swapping during drag operations.
+    if (
+      this.node.attrs.id !== undefined &&
+      node.attrs.id !== this.node.attrs.id
+    ) {
+      return false;
+    }
+
     this.node = node;
     this.decorations = decorations;
     this.applyDecorationClasses();
@@ -137,7 +146,11 @@ export default class ComponentView {
   }
 
   stopEvent(event: Event) {
-    return event.type !== "mousedown" && !event.type.startsWith("drag");
+    return (
+      event.type !== "mousedown" &&
+      !event.type.startsWith("drag") &&
+      !event.type.startsWith("drop")
+    );
   }
 
   destroy() {
