@@ -124,15 +124,25 @@ export async function signIn(
     // back to a screen in the web app that will immediately redirect to the desktop. The reason
     // to do this from the client is that if you redirect from the server then the browser ends up
     // stuck on the SSO screen.
+    const token = user.getTransferToken(service);
     if (client === Client.Desktop) {
-      ctx.redirect(
-        `${team.url}/desktop-redirect?token=${user.getTransferToken(service)}`
-      );
+      const baseUrl = `${team.url}/desktop-redirect`;
+      const query =
+        service === "oidc"
+          ? `?token=${token}&provider=oidc`
+          : `?token=${token}`;
+      ctx.redirect(`${baseUrl}${query}`);
     } else {
-      ctx.redirect(
-        `${team.url}/auth/redirect?token=${user.getTransferToken(service)}`
-      );
+      ctx.redirect(`${team.url}/auth/redirect?token=${token}`);
     }
+    //   ctx.redirect(
+    //     `${team.url}/desktop-redirect?token=${user.getTransferToken(service)}`
+    //   );
+    // } else {
+    //   ctx.redirect(
+    //     `${team.url}/auth/redirect?token=${user.getTransferToken(service)}`
+    //   );
+    // }
   } else {
     ctx.cookies.set("accessToken", user.getJwtToken(expires, service), {
       sameSite: "lax",
