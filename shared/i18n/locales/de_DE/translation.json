@@ -1044,7 +1044,7 @@
   "Allow members to sign-in using their email address": "Mitgliedern erlauben, sich mit ihrer E-Mail-Adresse anzumelden",
   "The server must have SMTP configured to enable this setting": "Der Server muss SMTP konfiguriert haben, um diese Einstellung zu aktivieren",
   "Passkeys": "Passkeys",
-  "Allow members to sign-in with a WebAuthn passkey": "Allow members to sign-in with a WebAuthn passkey",
+  "Allow members to sign-in with a WebAuthn passkey": "Mitgliedern erlauben, sich mit einem WebAuthn Passkey anzumelden",
   "Restrictions": "Beschränkungen",
   "by {{ name }}": "von {{ name }}",
   "Expired": "Abgelaufen",
