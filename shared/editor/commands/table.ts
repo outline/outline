@@ -19,6 +19,7 @@ import {
 } from "prosemirror-tables";
 import { ProsemirrorHelper } from "../../utils/ProsemirrorHelper";
 import { CSVHelper } from "../../utils/csv";
+import { parseDate } from "../../utils/date";
 import { chainTransactions } from "../lib/chainTransactions";
 import {
   getAllSelectedColumns,
@@ -297,12 +298,6 @@ export function sortTable({
         table.push(cells);
       }
 
-      // check if all the cells in the column are a number
-      const compareAsText = table.some((row) => {
-        const cell = row[index]?.textContent;
-        return cell === "" ? false : isNaN(parseFloat(cell));
-      });
-
       const hasHeaderRow = table[0].every(
         (cell) => cell.type === state.schema.nodes.th
       );
@@ -313,17 +308,48 @@ export function sortTable({
       // column data before sort
       const columnData = table.map((row) => row[index]?.textContent ?? "");
 
+      // determine sorting type: date, number, or text
+      let compareAsDate = false;
+      let compareAsNumber = false;
+
+      const nonEmptyCells = table
+        .map((row) => row[index]?.textContent?.trim())
+        .filter((cell): cell is string => !!cell && cell.length > 0);
+      if (nonEmptyCells.length > 0) {
+        // check if all non-empty cells are valid dates
+        compareAsDate = nonEmptyCells.every((cell) => parseDate(cell) !== null);
+        // if not dates, check if all non-empty cells are numbers
+        if (!compareAsDate) {
+          compareAsNumber = nonEmptyCells.every(
+            (cell) => !isNaN(parseFloat(cell))
+          );
+        }
+      }
+
       // sort table data based on column at index
       table.sort((a, b) => {
-        if (compareAsText) {
-          return (a[index]?.textContent ?? "").localeCompare(
-            b[index]?.textContent ?? ""
-          );
+        const aContent = a[index]?.textContent ?? "";
+        const bContent = b[index]?.textContent ?? "";
+
+        // empty cells always go to the end
+        if (!aContent) {
+          return bContent ? 1 : 0;
+        }
+        if (!bContent) {
+          return -1;
+        }
+
+        if (compareAsDate) {
+          const aDate = parseDate(aContent);
+          const bDate = parseDate(bContent);
+          if (aDate && bDate) {
+            return aDate.getTime() - bDate.getTime();
+          }
+          return 0;
+        } else if (compareAsNumber) {
+          return parseFloat(aContent) - parseFloat(bContent);
         } else {
-          return (
-            parseFloat(a[index]?.textContent ?? "") -
-            parseFloat(b[index]?.textContent ?? "")
-          );
+          return aContent.localeCompare(bContent);
         }
       });
 
