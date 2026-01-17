@@ -97,6 +97,8 @@ type Props = {
   onUpdate: (activeImage: LightboxImage | null) => void;
   /** Callback triggered when Lightbox closes */
   onClose: () => void;
+  /** Whether the editor is read only */
+  readOnly?: boolean;
 };
 
 const ZoomPanPinchContext = createContext({ isImagePanning: false });
@@ -216,7 +218,7 @@ function usePanning() {
   };
 }
 
-function Lightbox({ images, activeImage, onUpdate, onClose }: Props) {
+function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
   const isIdle = useIdle(3 * Second.ms);
   const { t } = useTranslation();
   const imgRef = useRef<HTMLImageElement | null>(null);
@@ -769,7 +771,8 @@ function Lightbox({ images, activeImage, onUpdate, onClose }: Props) {
               />
             </Tooltip>
             {activeImage.source === ImageSource.DiagramsNet &&
-              !Desktop.isElectron() && (
+              !Desktop.isElectron() &&
+              !readOnly && (
                 <Tooltip content={t("Edit diagram")} placement="bottom">
                   <ActionButton
                     tabIndex={-1}

@@ -170,6 +170,7 @@ export class Editor extends React.PureComponent<
     defaultValue: "",
     dir: "auto",
     placeholder: "Write something nice…",
+    readOnly: false,
     onFileUploadStart: () => {
       // no default behavior
     },
@@ -873,10 +874,11 @@ export class Editor extends React.PureComponent<
           </Flex>
           {!isNull(this.state.activeLightboxImage) && (
             <Lightbox
+              readOnly={readOnly}
               images={this.getLightboxImages()}
               activeImage={this.state.activeLightboxImage}
               onUpdate={this.updateActiveLightboxImage}
-              onClose={() => this.view.focus()}
+              onClose={this.view.focus}
             />
           )}
         </EditorContext.Provider>
