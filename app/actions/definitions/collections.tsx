@@ -1,6 +1,6 @@
 import {
-  AlphabeticalReverseSortIcon,
-  AlphabeticalSortIcon,
+  SortAlphabeticalReverseIcon,
+  SortAlphabeticalIcon,
   ArchiveIcon,
   CollectionIcon,
   EditIcon,
@@ -201,9 +201,9 @@ export const sortCollection = createActionWithChildren({
 
     return sortAlphabetical ? (
       sortDir === "asc" ? (
-        <AlphabeticalSortIcon />
+        <SortAlphabeticalIcon />
       ) : (
-        <AlphabeticalReverseSortIcon />
+        <SortAlphabeticalReverseIcon />
       )
     ) : (
       <ManualSortIcon />

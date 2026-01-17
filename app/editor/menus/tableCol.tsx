@@ -9,8 +9,8 @@ import {
   TableHeaderColumnIcon,
   TableMergeCellsIcon,
   TableSplitCellsIcon,
-  AlphabeticalSortIcon,
-  AlphabeticalReverseSortIcon,
+  SortAscendingIcon,
+  SortDescendingIcon,
   TableColumnsDistributeIcon,
 } from "outline-icons";
 import type { EditorState } from "prosemirror-state";
@@ -89,13 +89,13 @@ export default function tableColMenuItems(
       name: "sortTable",
       tooltip: dictionary.sortAsc,
       attrs: { index, direction: "asc" },
-      icon: <AlphabeticalSortIcon />,
+      icon: <SortAscendingIcon />,
     },
     {
       name: "sortTable",
       tooltip: dictionary.sortDesc,
       attrs: { index, direction: "desc" },
-      icon: <AlphabeticalReverseSortIcon />,
+      icon: <SortDescendingIcon />,
     },
     {
       name: "separator",
