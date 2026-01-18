@@ -70,7 +70,7 @@ const LinkEditor: React.FC<Props> = ({
     React.useCallback(async () => {
       const res = await client.post("/suggestions.mention", { query });
       res.data.documents.map(documents.add);
-    }, [query])
+    }, [documents, query])
   );
 
   useEffect(() => {
@@ -235,8 +235,8 @@ const LinkEditor: React.FC<Props> = ({
             <>
               {results.map((doc, index) => (
                 <SuggestionsMenuItem
-                  onPointerDown={() => {
-                    !mark ? addLink(doc.url) : updateLink(doc.url);
+                  onClick={() => {
+                    !mark ? addLink(doc.path) : updateLink(doc.path);
                   }}
                   onPointerMove={() => setSelectedIndex(index)}
                   selected={index === selectedIndex}

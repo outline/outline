@@ -15,7 +15,7 @@ export type Props = {
   /** Whether the item is disabled */
   disabled?: boolean;
   /** Callback when the item is clicked */
-  onPointerDown: (event: React.SyntheticEvent) => void;
+  onClick: (event: React.SyntheticEvent) => void;
   /** Callback when the item is hovered */
   onPointerMove?: (event: React.SyntheticEvent) => void;
   /** An optional icon for the item */
@@ -31,7 +31,7 @@ export type Props = {
 function SuggestionsMenuItem({
   selected,
   disabled,
-  onPointerDown,
+  onClick,
   onPointerMove,
   title,
   subtitle,
@@ -60,7 +60,7 @@ function SuggestionsMenuItem({
     <MenuButton
       ref={ref}
       disabled={disabled}
-      onPointerDown={onPointerDown}
+      onClick={onClick}
       onPointerMove={disabled ? undefined : onPointerMove}
       $active={selected}
     >
