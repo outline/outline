@@ -35,46 +35,6 @@ export default function DocumentScene(props: Props) {
   }, [currentPath, setLastVisitedPath]);
 
   useEffect(() => () => ui.clearActiveDocument(), [ui]);
-  //  Listen for opening comments sidebar from keyboard shortcut
-  useEffect(() => {
-    const handleOpenCommentsSidebar = (event: Event) => {
-      ui.toggleComments();
-
-      const customEvent = event as CustomEvent;
-      if (customEvent.detail?.autoFocus) {
-        const focusComment = (attempts = 0) => {
-          // Get all ProseMirror editors
-          const allEditors = document.querySelectorAll('.ProseMirror[role="textbox"]');
-
-          // The comment editor should be the one with the "Add a comment…" placeholder
-          let commentInput: HTMLDivElement | null = null;
-          allEditors.forEach((editor) => {
-            const placeholder = editor.querySelector('p[data-empty-text="Add a comment…"]');
-            if (placeholder) {
-              commentInput = editor as HTMLDivElement;
-            }
-          });
-
-          if (commentInput) {
-            (commentInput as HTMLDivElement).focus();
-            (commentInput as HTMLDivElement).click();
-          } else if (attempts < 20) {
-            setTimeout(() => focusComment(attempts + 1), 100);
-          } else {
-            console.log("Failed to find comment input after 20 attempts");
-          }
-        };
-
-        setTimeout(focusComment, 100);
-      }
-    };
-
-    document.addEventListener('openCommentsSidebar', handleOpenCommentsSidebar);
-
-    return () => {
-      document.removeEventListener('openCommentsSidebar', handleOpenCommentsSidebar);
-    };
-  }, [ui]);
 
   useEffect(() => {
     // When opening a document directly on app load, sidebarContext will not be set.
