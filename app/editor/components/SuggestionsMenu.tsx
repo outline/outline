@@ -111,8 +111,10 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       hasActivated.current = true;
       // Save the selection position when the menu opens. On mobile, the editor
       // may lose focus/selection when tapping on menu items, so we restore it.
-      const { from, to } = view.state.selection;
-      selectionRef.current = { from, to };
+      requestAnimationFrame(() => {
+        const { from, to } = view.state.selection;
+        selectionRef.current = { from, to };
+      });
     } else {
       selectionRef.current = null;
     }
@@ -197,9 +199,10 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
 
   const handleClearSearch = React.useCallback(() => {
     const { state, dispatch } = view;
+    const selection = selectionRef.current ?? state.selection;
     const poss = state.doc.cut(
-      state.selection.from - (props.search ?? "").length - props.trigger.length,
-      state.selection.from
+      selection.from - (props.search ?? "").length - props.trigger.length,
+      selection.from
     );
     const trimTrigger = poss.textContent.startsWith(props.trigger);
 
@@ -213,11 +216,11 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         "",
         Math.max(
           0,
-          state.selection.from -
+          selection.from -
             (props.search ?? "").length -
             (trimTrigger ? props.trigger.length : 0)
         ),
-        state.selection.to
+        selection.to
       )
     );
   }, [props.search, props.trigger, view]);
