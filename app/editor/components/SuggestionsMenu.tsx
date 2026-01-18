@@ -199,7 +199,8 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
 
   const handleClearSearch = React.useCallback(() => {
     const { state, dispatch } = view;
-    const selection = selectionRef.current ?? state.selection;
+    const selection =
+      isMobile && selectionRef.current ? selectionRef.current : state.selection;
     const poss = state.doc.cut(
       selection.from - (props.search ?? "").length - props.trigger.length,
       selection.from
