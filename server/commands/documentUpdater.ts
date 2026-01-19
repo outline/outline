@@ -95,7 +95,7 @@ export default async function documentUpdater(
   }
 
   const changed = document.changed();
-  const textChanged =
+  const stateChanged =
     text !== undefined && Array.isArray(changed) && changed.includes("state");
   const eventData = done !== undefined ? { done } : undefined;
 
@@ -125,7 +125,7 @@ export default async function documentUpdater(
 
   transaction.afterCommit(async () => {
     // Notify collaboration server of the text change
-    if (textChanged) {
+    if (stateChanged) {
       await APIUpdateExtension.notifyUpdate(document.id, user.id);
     }
   });
