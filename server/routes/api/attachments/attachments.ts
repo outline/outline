@@ -124,6 +124,7 @@ router.post(
       id: modelId,
       name,
       userId: user.id,
+      preset,
     });
 
     const attachment = await Attachment.createWithCtx(ctx, {
@@ -190,6 +191,7 @@ router.post(
       id: modelId,
       name,
       userId: user.id,
+      preset,
     });
 
     // Does not use transaction middleware, as attachment must be persisted

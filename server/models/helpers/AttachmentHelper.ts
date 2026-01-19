@@ -19,17 +19,23 @@ export default class AttachmentHelper {
    * @param id The ID of the attachment
    * @param name The name of the attachment
    * @param userId The ID of the user uploading the attachment
+   * @param preset The attachment preset (optional, affects storage location)
    */
   static getKey({
     id,
     name,
     userId,
+    preset,
   }: {
     id: string;
     name: string;
     userId: string;
+    preset?: AttachmentPreset;
   }) {
-    const keyPrefix = `${Buckets.uploads}/${userId}/${id}`;
+    // Use avatars bucket for public avatar uploads, uploads bucket for everything else
+    const bucket =
+      preset === AttachmentPreset.Avatar ? Buckets.avatars : Buckets.uploads;
+    const keyPrefix = `${bucket}/${userId}/${id}`;
     return ValidateKey.sanitize(
       `${keyPrefix}/${name.slice(0, this.maximumFileNameLength)}`
     );

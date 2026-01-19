@@ -50,6 +50,7 @@ export default async function attachmentCreator({
     id: randomUUID(),
     name,
     userId: user.id,
+    preset,
   });
 
   let attachment;

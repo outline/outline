@@ -291,13 +291,13 @@ export default abstract class APIImportTask<
     await sequelize.transaction(async (transaction) => {
       const dbPromises = attachmentsData.map(async (item) => {
         const modelId = randomUUID();
-        const acl = AttachmentHelper.presetToAcl(
-          AttachmentPreset.DocumentAttachment
-        );
+        const preset = AttachmentPreset.DocumentAttachment;
+        const acl = AttachmentHelper.presetToAcl(preset);
         const key = AttachmentHelper.getKey({
           id: modelId,
           name: item.name,
           userId: createdBy.id,
+          preset,
         });
 
         const attachment = await Attachment.create(
