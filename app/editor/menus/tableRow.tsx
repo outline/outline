@@ -70,6 +70,10 @@ export default function tableRowMenuItems(
   const hasBackground = rowColors.size > 0;
   const activeColor =
     rowColors.size === 1 ? rowColors.values().next().value : null;
+  const customColor =
+    rowColors.size === 1
+      ? [...rowColors].find((c) => !Highlight.lightColors.includes(c))
+      : undefined;
 
   return [
     {
@@ -83,22 +87,33 @@ export default function tableRowMenuItems(
           <PaletteIcon />
         ),
       children: [
-        ...(hasBackground
-          ? [
-              {
-                name: "toggleRowBackgroundAndCollapseSelection",
-                label: dictionary.none,
-                icon: <DottedCircleIcon retainColor color="transparent" />,
-                attrs: { color: null },
-              },
-            ]
-          : []),
+        ...[
+          {
+            name: "toggleRowBackgroundAndCollapseSelection",
+            label: dictionary.none,
+            icon: <DottedCircleIcon retainColor color="transparent" />,
+            active: () => (hasBackground ? false : true),
+            attrs: { color: null },
+          },
+        ],
         ...Highlight.lightColors.map((color, colorIndex) => ({
           name: "toggleRowBackgroundAndCollapseSelection",
           label: Highlight.colorNames[colorIndex],
           icon: <CircleIcon retainColor color={color} />,
+          active: () => rowColors.size === 1 && rowColors.has(color),
           attrs: { color },
         })),
+        ...(customColor
+          ? [
+              {
+                name: "toggleRowBackgroundAndCollapseSelection",
+                label: customColor,
+                icon: <CircleIcon retainColor color={customColor} />,
+                active: () => true,
+                attrs: { color: customColor },
+              },
+            ]
+          : []),
         {
           icon: <CircleIcon retainColor color="rainbow" />,
           label: "Custom",

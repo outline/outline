@@ -80,6 +80,10 @@ export default function tableColMenuItems(
   const hasBackground = colColors.size > 0;
   const activeColor =
     colColors.size === 1 ? colColors.values().next().value : null;
+  const customColor =
+    colColors.size === 1 && !Highlight.lightColors.includes(activeColor)
+      ? activeColor
+      : undefined;
 
   return [
     {
@@ -144,22 +148,33 @@ export default function tableColMenuItems(
           <PaletteIcon />
         ),
       children: [
-        ...(hasBackground
-          ? [
-              {
-                name: "toggleColumnBackgroundAndCollapseSelection",
-                label: dictionary.none,
-                icon: <DottedCircleIcon retainColor color="transparent" />,
-                attrs: { color: null },
-              },
-            ]
-          : []),
+        ...[
+          {
+            name: "toggleColumnBackgroundAndCollapseSelection",
+            label: dictionary.none,
+            icon: <DottedCircleIcon retainColor color="transparent" />,
+            active: () => (hasBackground ? false : true),
+            attrs: { color: null },
+          },
+        ],
         ...Highlight.lightColors.map((color, colorIndex) => ({
           name: "toggleColumnBackgroundAndCollapseSelection",
           label: Highlight.colorNames[colorIndex],
           icon: <CircleIcon retainColor color={color} />,
+          active: () => colColors.size === 1 && colColors.has(color),
           attrs: { color },
         })),
+        ...(customColor
+          ? [
+              {
+                name: "toggleColumnBackgroundAndCollapseSelection",
+                label: customColor,
+                icon: <CircleIcon retainColor color={customColor} />,
+                active: () => true,
+                attrs: { color: customColor },
+              },
+            ]
+          : []),
         {
           icon: <CircleIcon retainColor color="rainbow" />,
           label: "Custom",
