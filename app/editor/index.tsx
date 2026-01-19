@@ -20,7 +20,7 @@ import {
   ReplaceAroundStep,
   ReplaceStep,
 } from "prosemirror-transform";
-import type { Decoration, DirectEditorProps, NodeViewConstructor } from "prosemirror-view";
+import type { Decoration, NodeViewConstructor } from "prosemirror-view";
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
 import type { DefaultTheme, ThemeProps } from "styled-components";
