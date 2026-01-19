@@ -97,6 +97,8 @@ export default async function documentCollaborativeUpdater({
       },
       {
         transaction,
+        // Hooks MUST NOT be called or the AfterUpdate hook in Document model may
+        // result in infinite processing.
         hooks: false,
       }
     );

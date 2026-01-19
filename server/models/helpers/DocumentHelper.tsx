@@ -10,7 +10,7 @@ import {
 import textBetween from "@shared/editor/lib/textBetween";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import type { NavigationNode, ProsemirrorData } from "@shared/types";
-import { IconType } from "@shared/types";
+import { IconType, TextEditMode } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
 import { parser, serializer, schema } from "@server/editor";
 import { addTags } from "@server/logging/tracer";
@@ -472,18 +472,17 @@ export class DocumentHelper {
    *
    * @param document The document to apply the changes to
    * @param text The markdown to apply
-   * @param append If true appends the markdown instead of replacing existing
-   * content
+   * @param editMode The edit mode to use: "replace" (default), "append", or "prepend"
    * @returns The document
    */
   static applyMarkdownToDocument(
     document: Document,
     text: string,
-    append = false
+    editMode: TextEditMode = TextEditMode.Replace
   ) {
     let doc: Node;
 
-    if (append) {
+    if (editMode === TextEditMode.Append) {
       const existingDoc = DocumentHelper.toProsemirror(document);
       const newDoc = parser.parse(text);
       const lastChild = existingDoc.lastChild;
@@ -507,6 +506,31 @@ export class DocumentHelper {
         );
       } else {
         doc = existingDoc.copy(existingDoc.content.append(newDoc.content));
+      }
+    } else if (editMode === TextEditMode.Prepend) {
+      const existingDoc = DocumentHelper.toProsemirror(document);
+      const newDoc = parser.parse(text);
+      const lastChild = newDoc.lastChild;
+      const firstChild = existingDoc.firstChild;
+
+      if (
+        !text.match(/\n\s*$/) &&
+        lastChild &&
+        firstChild &&
+        lastChild.type.name === "paragraph" &&
+        firstChild.type.name === "paragraph"
+      ) {
+        const mergedPara = lastChild.copy(
+          lastChild.content.append(firstChild.content)
+        );
+        doc = existingDoc.copy(
+          newDoc.content
+            .cut(0, newDoc.content.size - lastChild.nodeSize)
+            .append(Fragment.from(mergedPara))
+            .append(existingDoc.content.cut(firstChild.nodeSize))
+        );
+      } else {
+        doc = existingDoc.copy(newDoc.content.append(existingDoc.content));
       }
     } else {
       doc = parser.parse(text);

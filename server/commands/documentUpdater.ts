@@ -1,3 +1,4 @@
+import type { TextEditMode } from "@shared/types";
 import { Event, Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
@@ -24,8 +25,8 @@ type Props = {
   fullWidth?: boolean;
   /** Whether insights should be visible on the document */
   insightsEnabled?: boolean;
-  /** Whether the text be appended to the end instead of replace */
-  append?: boolean;
+  /** The edit mode: "replace", "append", or "prepend" */
+  editMode?: TextEditMode;
   /** Whether the document should be published to the collection */
   publish?: boolean;
   /** The ID of the collection to publish the document to */
@@ -51,7 +52,7 @@ export default async function documentUpdater(
     templateId,
     fullWidth,
     insightsEnabled,
-    append,
+    editMode,
     publish,
     collectionId,
     done,
@@ -88,7 +89,7 @@ export default async function documentUpdater(
       await TextHelper.replaceImagesWithAttachments(ctx, text, user, {
         base64Only: true,
       }),
-      append
+      editMode
     );
   }
 
