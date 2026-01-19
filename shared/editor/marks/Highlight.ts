@@ -1,4 +1,4 @@
-import { rgba, tint } from "polished";
+import { rgba, transparentize } from "polished";
 import { toggleMark } from "prosemirror-commands";
 import type { MarkSpec, MarkType } from "prosemirror-model";
 import { markInputRuleForPattern } from "../lib/markInputRule";
@@ -29,7 +29,9 @@ export default class Highlight extends Mark {
     "Neon",
   ];
 
-  static lightColors = Highlight.colors.map((color) => tint(0.5, color));
+  static lightColors = Highlight.colors.map((color) =>
+    transparentize(0.3, color)
+  );
 
   /** The default opacity of the highlight */
   static opacity = 0.4;
