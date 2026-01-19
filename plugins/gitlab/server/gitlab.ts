@@ -29,9 +29,9 @@ export class GitLab {
   private static clientSecret = env.GITLAB_CLIENT_SECRET;
   private static clientId = env.GITLAB_CLIENT_ID;
 
-  public static async getGitLabUrl() {
+  public static async getGitLabUrl(teamId: string) {
     const integrations = await Integration.findOne({
-      where: { service: IntegrationService.GitLab },
+      where: { service: IntegrationService.GitLab, teamId },
     });
 
     const customUrl = (integrations?.settings as { gitlab: { url: string } })
@@ -46,14 +46,20 @@ export class GitLab {
    * @param accessToken - Access token received from OAuth flow.
    * @returns User information.
    */
-  public static async getCurrentUser(accessToken: string) {
-    const customUrl = await this.getGitLabUrl();
+  public static async getCurrentUser({
+    accessToken,
+    teamId,
+  }: {
+    accessToken: string;
+    teamId: string;
+  }) {
+    const customUrl = await this.getGitLabUrl(teamId);
     const client = GitLabUtils.createClient(accessToken, customUrl);
 
     const userData = await client.Users.showCurrentUser({
       showExpanded: false,
     });
-    return { ...userData, url: client.url };
+    return { ...userData, url: customUrl };
   }
 
   /**
@@ -62,8 +68,14 @@ export class GitLab {
    * @param accessToken - Access token for authentication.
    * @returns Array of projects.
    */
-  public static async getProjects(accessToken: string) {
-    const customUrl = await this.getGitLabUrl();
+  public static async getProjects({
+    accessToken,
+    teamId,
+  }: {
+    accessToken: string;
+    teamId: string;
+  }) {
+    const customUrl = await this.getGitLabUrl(teamId);
     const client = GitLabUtils.createClient(accessToken, customUrl);
 
     const projects = await client.Projects.all({
@@ -126,7 +138,8 @@ export class GitLab {
       const projectPath = `${resource.owner}/${resource.repo}`;
       const token =
         await matchedIntegration.authentication.refreshTokenIfNeeded(
-          async (refreshToken: string) => GitLab.refreshToken(refreshToken)
+          async (refreshToken: string) =>
+            GitLab.refreshToken({ refreshToken, customUrl })
         );
 
       if (resource.type === UnfurlResourceType.Issue) {
@@ -155,8 +168,14 @@ export class GitLab {
     }
   };
 
-  public static oauthAccess = async (code?: string | null) => {
-    const customUrl = await this.getGitLabUrl();
+  public static oauthAccess = async ({
+    code,
+    teamId,
+  }: {
+    code?: string | null;
+    teamId: string;
+  }) => {
+    const customUrl = await this.getGitLabUrl(teamId);
     const res = await fetch(GitLabUtils.getOauthUrl(customUrl) + "/token", {
       method: "POST",
       headers: {
@@ -180,7 +199,13 @@ export class GitLab {
     return AccessTokenResponseSchema.parse(await res.json());
   };
 
-  private static async refreshToken(refreshToken: string) {
+  private static async refreshToken({
+    refreshToken,
+    customUrl,
+  }: {
+    refreshToken: string;
+    customUrl?: string;
+  }) {
     const queryParams = new URLSearchParams({
       client_id: this.clientId!,
       client_secret: this.clientSecret!,
@@ -189,7 +214,6 @@ export class GitLab {
       redirect_uri: GitLabUtils.callbackUrl(),
     });
 
-    const customUrl = await this.getGitLabUrl();
     const res = await fetch(
       `${GitLabUtils.getOauthUrl(customUrl)}/token?${queryParams.toString()}`,
       {
