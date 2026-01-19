@@ -6,17 +6,14 @@ import { HexColorPicker, HexColorInput } from "react-colorful";
 import styled, { useTheme } from "styled-components";
 import { s } from "@shared/styles";
 import { darken } from "polished";
-import { useEditor } from "./EditorContext";
 
 type Props = {
-  /** The editor command to execute when a color is selected */
-  command: string;
+  onSelect: (color: string) => void;
   /** The currently active color */
   activeColor?: string | null;
 };
 
-function ColorPicker({ activeColor, command }: Props) {
-  const { commands } = useEditor();
+function ColorPicker({ activeColor, onSelect }: Props) {
   const [color, setColor] = useState(activeColor || "");
   const [copied, setCopied] = useState(false);
   const theme = useTheme();
@@ -28,15 +25,13 @@ function ColorPicker({ activeColor, command }: Props) {
       const activeElement = document.activeElement as HTMLElement | null;
       const hadFocusInside = wrapperRef.current?.contains(activeElement);
 
-      if (commands[command]) {
-        commands[command]({ color: newColor });
-      }
+      onSelect(newColor);
 
       if (hadFocusInside && activeElement) {
         activeElement.focus();
       }
     },
-    [commands, command]
+    [onSelect]
   );
 
   const debouncedApplyColor = useMemo(

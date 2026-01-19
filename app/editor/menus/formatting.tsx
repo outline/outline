@@ -21,7 +21,7 @@ import {
   TableSplitCellsIcon,
   PaletteIcon,
 } from "outline-icons";
-import ColorPicker from "../components/ColorPicker";
+import CellBackgroundColorPicker from "../components/CellBackgroundColorPicker";
 import type { EditorState, Selection } from "prosemirror-state";
 import styled from "styled-components";
 import Highlight from "@shared/editor/marks/Highlight";
@@ -95,7 +95,6 @@ export default function formattingMenuItems(
       ? [...colors].find((c) => !Highlight.lightColors.includes(c))
       : undefined;
   const hasMultipleColors = colors.size > 1;
-  const activeColor = colors.size === 1 ? customColor : null;
 
   return [
     {
@@ -184,9 +183,8 @@ export default function formattingMenuItems(
           children: [
             {
               content: (
-                <ColorPicker
-                  activeColor={activeColor}
-                  command="toggleCellBackground"
+                <CellBackgroundColorPicker
+                  activeColor={colors.size === 1 ? [...colors][0] : ""}
                 />
               ),
               preventCloseCondition: () =>
