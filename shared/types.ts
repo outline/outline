@@ -588,6 +588,16 @@ export enum IconType {
   Custom = "custom",
 }
 
+/** Edit modes for document text updates. */
+export enum TextEditMode {
+  /** Replace existing content with new content (default). */
+  Replace = "replace",
+  /** Append new content to the end of the document. */
+  Append = "append",
+  /** Prepend new content to the beginning of the document. */
+  Prepend = "prepend",
+}
+
 export enum EmojiCategory {
   People = "People",
   Nature = "Nature",

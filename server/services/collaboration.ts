@@ -8,6 +8,7 @@ import { Server } from "@hocuspocus/server";
 import type Koa from "koa";
 import WebSocket from "ws";
 import { DocumentValidation } from "@shared/validations";
+import { APIUpdateExtension } from "@server/collaboration/APIUpdateExtension";
 import { ConnectionLimitExtension } from "@server/collaboration/ConnectionLimitExtension";
 import { ViewsExtension } from "@server/collaboration/ViewsExtension";
 import env from "@server/env";
@@ -58,6 +59,7 @@ export default function init(
       new EditorVersionExtension(),
       new AuthenticationExtension(),
       new PersistenceExtension(),
+      new APIUpdateExtension(),
       new ViewsExtension(),
       new LoggerExtension(),
       new MetricsExtension(),
