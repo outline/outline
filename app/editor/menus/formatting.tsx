@@ -19,8 +19,10 @@ import {
   Heading3Icon,
   TableMergeCellsIcon,
   TableSplitCellsIcon,
+  PaletteIcon,
 } from "outline-icons";
-import type { EditorState } from "prosemirror-state";
+import ColorPicker from "../components/ColorPicker";
+import type { EditorState, Selection } from "prosemirror-state";
 import styled from "styled-components";
 import Highlight from "@shared/editor/marks/Highlight";
 import { getMarksBetween } from "@shared/editor/queries/getMarksBetween";
@@ -28,7 +30,7 @@ import { isInCode } from "@shared/editor/queries/isInCode";
 import { isInList } from "@shared/editor/queries/isInList";
 import { isMarkActive } from "@shared/editor/queries/isMarkActive";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
-import type { MenuItem } from "@shared/editor/types";
+import type { MenuItem, NodeAttrMark } from "@shared/editor/types";
 import { metaDisplay } from "@shared/utils/keyboard";
 import CircleIcon from "~/components/Icons/CircleIcon";
 import type { Dictionary } from "~/hooks/useDictionary";
@@ -37,6 +39,8 @@ import {
   isTouchDevice,
 } from "@shared/utils/browser";
 import {
+  hasNodeAttrMarkCellSelection,
+  hasNodeAttrMarkWithAttrsCellSelection,
   isMergedCellSelection,
   isMultipleCellSelection,
 } from "@shared/editor/queries/table";
@@ -55,12 +59,42 @@ export default function formattingMenuItems(
   const isTouch = isTouchDevice();
   const isList = isInList(state);
   const isTableCell = state.selection instanceof CellSelection;
+  const colorSet = (selection: Selection) => {
+    const colors = new Set<string>();
+    if (!(selection instanceof CellSelection)) {
+      return colors;
+    }
+    selection.forEachCell((cell) => {
+      const backgroundMark = (cell.attrs.marks ?? []).find(
+        (mark: NodeAttrMark) => mark.type === "background"
+      );
+      if (backgroundMark && backgroundMark.attrs.color) {
+        colors.add(backgroundMark.attrs.color);
+      }
+    });
+    return colors;
+  };
 
   const highlight = getMarksBetween(
     state.selection.from,
     state.selection.to,
     state
-  ).find(({ mark }) => mark.type.name === "highlight");
+  ).find(({ mark }) => mark.type === state.schema.marks.highlight);
+
+  const cellHasBackground = isTableCell
+    ? hasNodeAttrMarkCellSelection(
+        state.selection as CellSelection,
+        "background"
+      )
+    : false;
+
+  // Check if there's a custom color (not in predefined colors)
+  const colors = colorSet(state.selection);
+  const customColor =
+    colors.size === 1
+      ? [...colors].find((c) => !Highlight.lightColors.includes(c))
+      : undefined;
+  const hasMultipleColors = colors.size > 1;
 
   return [
     {
@@ -99,6 +133,66 @@ export default function formattingMenuItems(
       visible: !isCodeBlock && (!isMobile || !isEmpty),
     },
     {
+      tooltip: dictionary.background,
+      icon:
+        colorSet(state.selection).size > 1 ? (
+          <CircleIcon color="rainbow" />
+        ) : colorSet(state.selection).size === 1 ? (
+          <CircleIcon color={colorSet(state.selection).values().next().value} />
+        ) : (
+          <PaletteIcon />
+        ),
+      visible: !isCode && (!isMobile || !isEmpty) && isTableCell,
+      children: [
+        ...[
+          {
+            name: "toggleCellBackgroundAndCollapseSelection",
+            label: dictionary.none,
+            icon: <DottedCircleIcon retainColor color="transparent" />,
+            active: () => (cellHasBackground ? false : true),
+            attrs: { color: null },
+          },
+        ],
+        ...Highlight.lightColors.map((color, index) => ({
+          name: "toggleCellBackgroundAndCollapseSelection",
+          label: Highlight.colorNames[index],
+          icon: <CircleIcon retainColor color={color} />,
+          active: () =>
+            !hasMultipleColors &&
+            hasNodeAttrMarkWithAttrsCellSelection(
+              state.selection as CellSelection,
+              "background",
+              { color }
+            ),
+          attrs: { color },
+        })),
+        ...(customColor
+          ? [
+              {
+                name: "toggleCellBackgroundAndCollapseSelection",
+                label: customColor,
+                icon: <CircleIcon retainColor color={customColor} />,
+                active: () => true,
+                attrs: { color: customColor },
+              },
+            ]
+          : []),
+        {
+          icon: <CircleIcon retainColor color="rainbow" />,
+          label: "Custom",
+          children: [
+            {
+              content: <ColorPicker command="toggleCellBackground" />,
+              preventCloseCondition: () =>
+                !!document.activeElement?.matches(
+                  ".ProseMirror.ProseMirror-focused"
+                ),
+            },
+          ],
+        },
+      ],
+    },
+    {
       tooltip: dictionary.mark,
       shortcut: `${metaDisplay}+⇧+H`,
       icon: highlight ? (
@@ -107,7 +201,7 @@ export default function formattingMenuItems(
         <HighlightIcon />
       ),
       active: () => !!highlight,
-      visible: !isCode && (!isMobile || !isEmpty),
+      visible: !isCode && (!isMobile || !isEmpty) && !isTableCell,
       children: [
         ...(highlight
           ? [
@@ -116,7 +210,7 @@ export default function formattingMenuItems(
                 label: dictionary.none,
                 icon: <DottedCircleIcon retainColor color="transparent" />,
                 active: () => false,
-                attrs: { color: highlight.mark.attrs.color },
+                attrs: { color: null },
               },
             ]
           : []),

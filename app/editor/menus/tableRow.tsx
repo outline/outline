@@ -3,19 +3,48 @@ import {
   InsertAboveIcon,
   InsertBelowIcon,
   MoreIcon,
+  PaletteIcon,
   TableHeaderRowIcon,
   TableSplitCellsIcon,
   TableMergeCellsIcon,
 } from "outline-icons";
 import type { EditorState } from "prosemirror-state";
+import styled from "styled-components";
 import { CellSelection, selectedRect } from "prosemirror-tables";
+import Highlight from "@shared/editor/marks/Highlight";
 import {
+  getCellsInRow,
   isMergedCellSelection,
   isMultipleCellSelection,
 } from "@shared/editor/queries/table";
-import type { MenuItem } from "@shared/editor/types";
+import type { MenuItem, NodeAttrMark } from "@shared/editor/types";
 import type { Dictionary } from "~/hooks/useDictionary";
 import { ArrowDownIcon, ArrowUpIcon } from "~/components/Icons/ArrowIcon";
+import CircleIcon from "~/components/Icons/CircleIcon";
+import ColorPicker from "../components/ColorPicker";
+
+/**
+ * Get the set of background colors used in a row
+ */
+function getRowColors(state: EditorState, rowIndex: number): Set<string> {
+  const colors = new Set<string>();
+  const cells = getCellsInRow(rowIndex)(state) || [];
+
+  cells.forEach((pos) => {
+    const node = state.doc.nodeAt(pos);
+    if (!node) {
+      return;
+    }
+    const backgroundMark = (node.attrs.marks ?? []).find(
+      (mark: NodeAttrMark) => mark.type === "background"
+    );
+    if (backgroundMark && backgroundMark.attrs.color) {
+      colors.add(backgroundMark.attrs.color);
+    }
+  });
+
+  return colors;
+}
 
 export default function tableRowMenuItems(
   state: EditorState,
@@ -37,8 +66,52 @@ export default function tableRowMenuItems(
   }
 
   const tableMap = selectedRect(state);
+  const rowColors = getRowColors(state, index);
+  const hasBackground = rowColors.size > 0;
 
   return [
+    {
+      tooltip: dictionary.background,
+      icon:
+        rowColors.size > 1 ? (
+          <CircleIcon color="rainbow" />
+        ) : rowColors.size === 1 ? (
+          <CircleIcon color={rowColors.values().next().value} />
+        ) : (
+          <PaletteIcon />
+        ),
+      children: [
+        ...(hasBackground
+          ? [
+              {
+                name: "toggleRowBackgroundAndCollapseSelection",
+                label: dictionary.none,
+                icon: <DottedCircleIcon retainColor color="transparent" />,
+                attrs: { color: null },
+              },
+            ]
+          : []),
+        ...Highlight.lightColors.map((color, colorIndex) => ({
+          name: "toggleRowBackgroundAndCollapseSelection",
+          label: Highlight.colorNames[colorIndex],
+          icon: <CircleIcon retainColor color={color} />,
+          attrs: { color },
+        })),
+        {
+          icon: <CircleIcon retainColor color="rainbow" />,
+          label: "Custom",
+          children: [
+            {
+              content: <ColorPicker command="toggleRowBackground" />,
+              preventCloseCondition: () =>
+                !!document.activeElement?.matches(
+                  ".ProseMirror.ProseMirror-focused"
+                ),
+            },
+          ],
+        },
+      ],
+    },
     {
       icon: <MoreIcon />,
       children: [
@@ -102,3 +175,10 @@ export default function tableRowMenuItems(
     },
   ];
 }
+
+const DottedCircleIcon = styled(CircleIcon)`
+  circle {
+    stroke: ${(props) => props.theme.textSecondary};
+    stroke-dasharray: 2, 2;
+  }
+`;

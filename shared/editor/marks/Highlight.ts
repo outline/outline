@@ -1,9 +1,12 @@
-import { rgba } from "polished";
+import { rgba, transparentize } from "polished";
 import { toggleMark } from "prosemirror-commands";
 import type { MarkSpec, MarkType } from "prosemirror-model";
 import { markInputRuleForPattern } from "../lib/markInputRule";
 import markRule from "../rules/mark";
 import Mark from "./Mark";
+import type { CommandFactory } from "../lib/Extension";
+import type { Primitive } from "utility-types";
+import { toggleHighlight } from "../commands/highlight";
 
 export default class Highlight extends Mark {
   /** The colors that can be used for highlighting */
@@ -25,6 +28,10 @@ export default class Highlight extends Mark {
     "Bubblegum",
     "Neon",
   ];
+
+  static lightColors = Highlight.colors.map((color) =>
+    transparentize(0.3, color)
+  );
 
   /** The default opacity of the highlight */
   static opacity = 0.4;
@@ -74,6 +81,10 @@ export default class Highlight extends Mark {
     return {
       "Mod-Shift-h": toggleMark(type),
     };
+  }
+
+  commands(): Record<string, CommandFactory> | CommandFactory | undefined {
+    return (attrs) => toggleHighlight(attrs as Record<string, Primitive>);
   }
 
   get rulePlugins() {

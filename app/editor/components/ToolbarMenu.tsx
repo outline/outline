@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import * as Toolbar from "@radix-ui/react-toolbar";
@@ -30,6 +30,11 @@ function ToolbarDropdown(props: { active: boolean; item: MenuItem }) {
   const { t } = useTranslation();
   const { item } = props;
   const { state } = view;
+  const [isOpen, setIsOpen] = useState<boolean | null>(null);
+
+  const handleOpenChange = useCallback((open: boolean) => {
+    setIsOpen(open);
+  }, []);
 
   const items: TMenuItem[] = useMemo(() => {
     const handleClick = (menuItem: MenuItem) => () => {
@@ -48,24 +53,45 @@ function ToolbarDropdown(props: { active: boolean; item: MenuItem }) {
       }
     };
 
-    return item.children
-      ? item.children.map((child) => {
-          if (child.name === "separator") {
-            return { type: "separator", visible: child.visible };
-          }
+    const mapChildren = (children: MenuItem[]): TMenuItem[] =>
+      children.map((child) => {
+        if (child.name === "separator") {
+          return { type: "separator", visible: child.visible };
+        }
+        if ("content" in child) {
           return {
-            type: "button",
+            type: "custom",
+            visible: child.visible,
+            content: child.content,
+          };
+        }
+        if (child.children) {
+          const childWithPreventClose = child.children.find(
+            (c) => "preventCloseCondition" in c
+          );
+          return {
+            type: "submenu",
             title: child.label,
             icon: child.icon,
-            dangerous: child.dangerous,
             visible: child.visible,
-            selected:
-              child.active !== undefined ? child.active(state) : undefined,
-            onClick: handleClick(child),
+            preventCloseCondition: childWithPreventClose?.preventCloseCondition,
+            items: mapChildren(child.children),
           };
-        })
-      : [];
-  }, [item.children, commands, state]);
+        }
+        return {
+          type: "button",
+          title: child.label,
+          icon: child.icon,
+          dangerous: child.dangerous,
+          visible: child.visible,
+          selected:
+            child.active !== undefined ? child.active(state) : undefined,
+          onClick: handleClick(child),
+        };
+      });
+
+    return item.children ? mapChildren(item.children) : [];
+  }, [isOpen, commands]);
 
   const handleCloseAutoFocus = useCallback((ev: Event) => {
     ev.stopImmediatePropagation();
@@ -73,7 +99,7 @@ function ToolbarDropdown(props: { active: boolean; item: MenuItem }) {
 
   return (
     <MenuProvider variant="dropdown">
-      <Menu>
+      <Menu onOpenChange={handleOpenChange}>
         <MenuTrigger>
           <ToolbarButton aria-label={item.label ? undefined : item.tooltip}>
             {item.label && <Label>{item.label}</Label>}
