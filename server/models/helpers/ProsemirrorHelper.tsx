@@ -87,7 +87,7 @@ export class ProsemirrorHelper {
   }
 
   /**
-   * Converts a plain object into a Prosemirror Node.
+   * Converts a plain object or Markdown string into a Prosemirror Node.
    *
    * @param data The ProsemirrorData object or string to parse.
    * @returns The content as a Prosemirror Node
