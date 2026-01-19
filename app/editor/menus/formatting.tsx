@@ -184,6 +184,7 @@ export default function formattingMenuItems(
             {
               content: (
                 <CellBackgroundColorPicker
+                  command="toggleCellBackground"
                   activeColor={colors.size === 1 ? [...colors][0] : ""}
                 />
               ),

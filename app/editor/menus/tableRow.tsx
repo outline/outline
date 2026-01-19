@@ -21,7 +21,7 @@ import type { MenuItem, NodeAttrMark } from "@shared/editor/types";
 import type { Dictionary } from "~/hooks/useDictionary";
 import { ArrowDownIcon, ArrowUpIcon } from "~/components/Icons/ArrowIcon";
 import CircleIcon from "~/components/Icons/CircleIcon";
-import ColorPicker from "../components/ColorPicker";
+import CellBackgroundColorPicker from "../components/CellBackgroundColorPicker";
 
 /**
  * Get the set of background colors used in a row
@@ -68,6 +68,8 @@ export default function tableRowMenuItems(
   const tableMap = selectedRect(state);
   const rowColors = getRowColors(state, index);
   const hasBackground = rowColors.size > 0;
+  const activeColor =
+    rowColors.size === 1 ? rowColors.values().next().value : null;
 
   return [
     {
@@ -102,7 +104,12 @@ export default function tableRowMenuItems(
           label: "Custom",
           children: [
             {
-              content: <ColorPicker command="toggleRowBackground" />,
+              content: (
+                <CellBackgroundColorPicker
+                  activeColor={activeColor}
+                  command="toggleRowBackground"
+                />
+              ),
               preventCloseCondition: () =>
                 !!document.activeElement?.matches(
                   ".ProseMirror.ProseMirror-focused"
