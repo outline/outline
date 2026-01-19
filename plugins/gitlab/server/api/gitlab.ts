@@ -60,6 +60,7 @@ router.get(
         { transaction }
       );
 
+      const url = new URL(userInfo.url).origin;
       await Integration.createWithCtx(createContext({ user, transaction }), {
         service: IntegrationService.GitLab,
         type: IntegrationType.Embed,
@@ -68,6 +69,7 @@ router.get(
         authenticationId: authentication.id,
         settings: {
           gitlab: {
+            url,
             installation: {
               id: userInfo.id,
               account: {
