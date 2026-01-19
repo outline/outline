@@ -220,12 +220,12 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
             shareId
               ? undefined
               : {
-                  pathname:
-                    match.path === matchDocumentHistory
-                      ? documentPath(document)
-                      : documentHistoryPath(document),
-                  state: { sidebarContext },
-                }
+                pathname:
+                  match.path === matchDocumentHistory
+                    ? documentPath(document)
+                    : documentHistoryPath(document),
+                state: { sidebarContext },
+              }
           }
           rtl={direction === "rtl"}
         />
@@ -247,6 +247,9 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         }
         onDeleteCommentMark={
           commentingEnabled && can.comment ? handleRemoveComment : undefined
+        }
+        onOpenCommentsSidebar={
+          commentingEnabled && can.comment ? () => ui.toggleComments() : undefined
         }
         onInit={handleInit}
         onDestroy={handleDestroy}

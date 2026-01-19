@@ -41,7 +41,7 @@ export default function DocumentScene(props: Props) {
     if (!props.location.state?.sidebarContext) {
       history.replace({
         ...props.location,
-        state: { ...props.location.state, sidebarContext: "collections" }, // optimistic preference of "collections"
+        state: { ...props.location.state, sidebarContext: "collections" },
       });
     }
   }, [props.location, history]);
