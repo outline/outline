@@ -4,6 +4,8 @@ import { CellSelection, isInTable, selectedRect } from "prosemirror-tables";
 import { ColumnSelection } from "../selection/ColumnSelection";
 import { RowSelection } from "../selection/RowSelection";
 import type { EditorView } from "prosemirror-view";
+import type { NodeAttrMark, NodeAttrMarkName } from "../types";
+import type { Node } from "prosemirror-model";
 
 /**
  * Checks if the current selection is a column selection.
@@ -406,3 +408,59 @@ export function getWidthFromNodes({
     return total + (colwidth?.[0] ?? 0);
   }, 0);
 }
+
+const getCellMark = (cell: Node, type: NodeAttrMarkName) => {
+  const mark = (cell.attrs.marks ?? []).find(
+    (mark: NodeAttrMark) => mark.type === type
+  );
+
+  if (!mark) {
+    return false;
+  }
+
+  return { mark };
+};
+
+export const hasNodeAttrMarkCellSelection = (
+  selection: CellSelection,
+  type: NodeAttrMarkName
+) => {
+  let hasMark = false;
+  selection.forEachCell((cell) => {
+    if (!hasMark) {
+      hasMark = !!getCellMark(cell, type);
+    }
+  });
+
+  return hasMark;
+};
+
+/**
+ * Returns true if any cell in the selection has a mark of the given type
+ * with matching attributes.
+ *
+ * @param selection The CellSelection to check.
+ * @param type The mark type to look for.
+ * @param attrs The attributes to match against.
+ * @returns True if any cell has the mark with matching attributes.
+ */
+export const hasNodeAttrMarkWithAttrsCellSelection = (
+  selection: CellSelection,
+  type: NodeAttrMarkName,
+  attrs: Record<string, unknown>
+) => {
+  let hasMark = false;
+  selection.forEachCell((cell) => {
+    if (!hasMark) {
+      const result = getCellMark(cell, type);
+      if (result) {
+        const markAttrs = result.mark.attrs ?? {};
+        hasMark = Object.entries(attrs).every(
+          ([key, value]) => markAttrs[key] === value
+        );
+      }
+    }
+  });
+
+  return hasMark;
+};

@@ -39,11 +39,12 @@ import {
   isTouchDevice,
 } from "@shared/utils/browser";
 import {
+  hasNodeAttrMarkCellSelection,
+  hasNodeAttrMarkWithAttrsCellSelection,
   isMergedCellSelection,
   isMultipleCellSelection,
 } from "@shared/editor/queries/table";
 import { CellSelection } from "prosemirror-tables";
-import { hasNodeAttrMarkCellSelection } from "@shared/editor/queries/getMarkRange";
 
 export default function formattingMenuItems(
   state: EditorState,
@@ -86,6 +87,14 @@ export default function formattingMenuItems(
         "background"
       )
     : false;
+
+  // Check if there's a custom color (not in predefined colors)
+  const colors = colorSet(state.selection);
+  const customColor =
+    colors.size === 1
+      ? [...colors].find((c) => !Highlight.lightColors.includes(c))
+      : undefined;
+  const hasMultipleColors = colors.size > 1;
 
   return [
     {
@@ -135,23 +144,39 @@ export default function formattingMenuItems(
         ),
       visible: !isCode && (!isMobile || !isEmpty) && isTableCell,
       children: [
-        ...(cellHasBackground
-          ? [
-              {
-                name: "toggleCellBackgroundAndCollapseSelection",
-                label: dictionary.none,
-                icon: <DottedCircleIcon retainColor color="transparent" />,
-                active: () => false,
-                attrs: { color: null },
-              },
-            ]
-          : []),
+        ...[
+          {
+            name: "toggleCellBackgroundAndCollapseSelection",
+            label: dictionary.none,
+            icon: <DottedCircleIcon retainColor color="transparent" />,
+            active: () => (cellHasBackground ? false : true),
+            attrs: { color: null },
+          },
+        ],
         ...Highlight.lightColors.map((color, index) => ({
           name: "toggleCellBackgroundAndCollapseSelection",
           label: Highlight.colorNames[index],
           icon: <CircleIcon retainColor color={color} />,
+          active: () =>
+            !hasMultipleColors &&
+            hasNodeAttrMarkWithAttrsCellSelection(
+              state.selection as CellSelection,
+              "background",
+              { color }
+            ),
           attrs: { color },
         })),
+        ...(customColor
+          ? [
+              {
+                name: "toggleCellBackgroundAndCollapseSelection",
+                label: customColor,
+                icon: <CircleIcon retainColor color={customColor} />,
+                active: () => true,
+                attrs: { color: customColor },
+              },
+            ]
+          : []),
         {
           icon: <CircleIcon retainColor color="rainbow" />,
           label: "Custom",

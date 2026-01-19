@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import * as Toolbar from "@radix-ui/react-toolbar";
@@ -30,6 +30,11 @@ function ToolbarDropdown(props: { active: boolean; item: MenuItem }) {
   const { t } = useTranslation();
   const { item } = props;
   const { state } = view;
+  const [isOpen, setIsOpen] = useState<boolean | null>(null);
+
+  const handleOpenChange = useCallback((open: boolean) => {
+    setIsOpen(open);
+  }, []);
 
   const items: TMenuItem[] = useMemo(() => {
     const handleClick = (menuItem: MenuItem) => () => {
@@ -86,7 +91,7 @@ function ToolbarDropdown(props: { active: boolean; item: MenuItem }) {
       });
 
     return item.children ? mapChildren(item.children) : [];
-  }, [item.children, commands, state]);
+  }, [isOpen, commands]);
 
   const handleCloseAutoFocus = useCallback((ev: Event) => {
     ev.stopImmediatePropagation();
@@ -94,7 +99,7 @@ function ToolbarDropdown(props: { active: boolean; item: MenuItem }) {
 
   return (
     <MenuProvider variant="dropdown">
-      <Menu>
+      <Menu onOpenChange={handleOpenChange}>
         <MenuTrigger>
           <ToolbarButton aria-label={item.label ? undefined : item.tooltip}>
             {item.label && <Label>{item.label}</Label>}
