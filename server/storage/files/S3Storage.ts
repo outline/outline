@@ -52,7 +52,7 @@ export default class S3Storage extends BaseStorage {
       Fields: {
         "Content-Disposition": this.getContentDisposition(contentType),
         key,
-        acl,
+        ...(acl && { acl }),
       },
       Expires: 3600,
     };
@@ -114,7 +114,7 @@ export default class S3Storage extends BaseStorage {
     const upload = new Upload({
       client: this.client,
       params: {
-        ACL: acl as ObjectCannedACL,
+        ...(acl && { ACL: acl as ObjectCannedACL }),
         Bucket: this.getBucket(),
         Key: key,
         ContentType: contentType,
