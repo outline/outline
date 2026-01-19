@@ -662,5 +662,111 @@ describe("ProsemirrorHelper", () => {
       expect(secondText.type.name).toBe("text");
       expect(secondText.text).toBe("Next line");
     });
+
+    it("should convert markdown with unchecked checklist items", () => {
+      const markdown = "- [ ] Task one\n- [ ] Task two";
+
+      const doc = ProsemirrorHelper.toProsemirror(markdown);
+
+      expect(doc.type.name).toBe("doc");
+      expect(doc.content.childCount).toBe(1);
+
+      const checkboxList = doc.content.child(0);
+      expect(checkboxList.type.name).toBe("checkbox_list");
+      expect(checkboxList.content.childCount).toBe(2);
+
+      // Check first item
+      const firstItem = checkboxList.content.child(0);
+      expect(firstItem.type.name).toBe("checkbox_item");
+      expect(firstItem.attrs.checked).toBe(false);
+      expect(firstItem.textContent).toBe("Task one");
+
+      // Check second item
+      const secondItem = checkboxList.content.child(1);
+      expect(secondItem.type.name).toBe("checkbox_item");
+      expect(secondItem.attrs.checked).toBe(false);
+      expect(secondItem.textContent).toBe("Task two");
+    });
+
+    it("should convert markdown with checked checklist items", () => {
+      const markdown = "- [x] Completed task\n- [X] Another completed";
+
+      const doc = ProsemirrorHelper.toProsemirror(markdown);
+
+      expect(doc.type.name).toBe("doc");
+      expect(doc.content.childCount).toBe(1);
+
+      const checkboxList = doc.content.child(0);
+      expect(checkboxList.type.name).toBe("checkbox_list");
+      expect(checkboxList.content.childCount).toBe(2);
+
+      // Check first item is checked
+      const firstItem = checkboxList.content.child(0);
+      expect(firstItem.type.name).toBe("checkbox_item");
+      expect(firstItem.attrs.checked).toBe(true);
+      expect(firstItem.textContent).toBe("Completed task");
+
+      // Check second item is checked (uppercase X)
+      const secondItem = checkboxList.content.child(1);
+      expect(secondItem.type.name).toBe("checkbox_item");
+      expect(secondItem.attrs.checked).toBe(true);
+      expect(secondItem.textContent).toBe("Another completed");
+    });
+
+    it("should convert markdown with mixed checked and unchecked items", () => {
+      const markdown = "- [x] Done\n- [ ] Not done\n- [x] Also done";
+
+      const doc = ProsemirrorHelper.toProsemirror(markdown);
+
+      expect(doc.type.name).toBe("doc");
+      expect(doc.content.childCount).toBe(1);
+
+      const checkboxList = doc.content.child(0);
+      expect(checkboxList.type.name).toBe("checkbox_list");
+      expect(checkboxList.content.childCount).toBe(3);
+
+      expect(checkboxList.content.child(0).attrs.checked).toBe(true);
+      expect(checkboxList.content.child(1).attrs.checked).toBe(false);
+      expect(checkboxList.content.child(2).attrs.checked).toBe(true);
+    });
+
+    it("should convert markdown table with multiple checklist items in cell separated by br", () => {
+      const markdown = `| Tasks |
+| --- |
+| [ ] First<br>[ ] Second<br>[x] Third |`;
+
+      const doc = ProsemirrorHelper.toProsemirror(markdown);
+
+      expect(doc.type.name).toBe("doc");
+
+      const table = doc.content.child(0);
+      expect(table.type.name).toBe("table");
+
+      const dataRow = table.content.child(1);
+      const cell = dataRow.content.child(0);
+
+      // Cell should contain a single checkbox_list with 3 items
+      const checkboxList = cell.content.child(0);
+      expect(checkboxList.type.name).toBe("checkbox_list");
+      expect(checkboxList.content.childCount).toBe(3);
+
+      // First item - unchecked
+      const firstItem = checkboxList.content.child(0);
+      expect(firstItem.type.name).toBe("checkbox_item");
+      expect(firstItem.attrs.checked).toBe(false);
+      expect(firstItem.textContent).toBe("First");
+
+      // Second item - unchecked
+      const secondItem = checkboxList.content.child(1);
+      expect(secondItem.type.name).toBe("checkbox_item");
+      expect(secondItem.attrs.checked).toBe(false);
+      expect(secondItem.textContent).toBe("Second");
+
+      // Third item - checked
+      const thirdItem = checkboxList.content.child(2);
+      expect(thirdItem.type.name).toBe("checkbox_item");
+      expect(thirdItem.attrs.checked).toBe(true);
+      expect(thirdItem.textContent).toBe("Third");
+    });
   });
 });
