@@ -8,12 +8,6 @@ import { buildDocument, buildUser } from "@server/test/factories";
 import { withAPIContext } from "@server/test/support";
 import documentUpdater from "./documentUpdater";
 
-jest.mock("@server/collaboration/APIUpdateExtension", () => ({
-  APIUpdateExtension: {
-    notifyUpdate: jest.fn(),
-  },
-}));
-
 describe("documentUpdater", () => {
   it("should change lastModifiedById", async () => {
     const user = await buildUser();
@@ -323,7 +317,10 @@ describe("documentUpdater", () => {
   });
 
   it("should notify collaboration server when text changes", async () => {
-    jest.clearAllMocks();
+    const notifyUpdateSpy = jest
+      .spyOn(APIUpdateExtension, "notifyUpdate")
+      .mockResolvedValue(undefined);
+
     const user = await buildUser();
     let document = await buildDocument({
       teamId: user.teamId,
@@ -342,14 +339,15 @@ describe("documentUpdater", () => {
       })
     );
 
-    expect(APIUpdateExtension.notifyUpdate).toHaveBeenCalledWith(
-      document.id,
-      user.id
-    );
+    expect(notifyUpdateSpy).toHaveBeenCalledWith(document.id, user.id);
+    notifyUpdateSpy.mockRestore();
   });
 
   it("should not notify collaboration server when only title changes", async () => {
-    jest.clearAllMocks();
+    const notifyUpdateSpy = jest
+      .spyOn(APIUpdateExtension, "notifyUpdate")
+      .mockResolvedValue(undefined);
+
     const user = await buildUser();
     let document = await buildDocument({
       teamId: user.teamId,
@@ -362,6 +360,7 @@ describe("documentUpdater", () => {
       })
     );
 
-    expect(APIUpdateExtension.notifyUpdate).not.toHaveBeenCalled();
+    expect(notifyUpdateSpy).not.toHaveBeenCalled();
+    notifyUpdateSpy.mockRestore();
   });
 });

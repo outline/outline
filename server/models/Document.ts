@@ -70,6 +70,7 @@ import { DocumentHelper } from "./helpers/DocumentHelper";
 import IsHexColor from "./validators/IsHexColor";
 import Length from "./validators/Length";
 import type { APIContext } from "@server/types";
+import { APIUpdateExtension } from "@server/collaboration/APIUpdateExtension";
 import { SkipChangeset } from "./decorators/Changeset";
 import type { HookContext } from "./base/Model";
 
@@ -583,6 +584,17 @@ class Document extends ArchivableModel<
         event: { publish: true, persist: false },
       } as HookContext;
       await this.insertEvent("title_change", model, hookContext);
+    }
+  }
+
+  @AfterUpdate
+  static notifyCollaborationServer(model: Document, ctx: HookContext) {
+    if (model.changed("state") && ctx.transaction && ctx.auth?.user?.id) {
+      const actorId = ctx.auth.user.id;
+      const transaction = ctx.transaction.parent || ctx.transaction;
+      transaction.afterCommit(async () => {
+        await APIUpdateExtension.notifyUpdate(model.id, actorId);
+      });
     }
   }
 
