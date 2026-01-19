@@ -11,11 +11,13 @@ import { useEditor } from "./EditorContext";
 type Props = {
   /** The editor command to execute when a color is selected */
   command: string;
+  /** The currently active color */
+  activeColor?: string | null;
 };
 
-function ColorPicker({ command }: Props) {
+function ColorPicker({ activeColor, command }: Props) {
   const { commands } = useEditor();
-  const [color, setColor] = useState("");
+  const [color, setColor] = useState(activeColor || "");
   const [copied, setCopied] = useState(false);
   const theme = useTheme();
   const wrapperRef = useRef<HTMLDivElement>(null);

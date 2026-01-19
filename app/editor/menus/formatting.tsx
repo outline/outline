@@ -95,6 +95,7 @@ export default function formattingMenuItems(
       ? [...colors].find((c) => !Highlight.lightColors.includes(c))
       : undefined;
   const hasMultipleColors = colors.size > 1;
+  const activeColor = colors.size === 1 ? customColor : null;
 
   return [
     {
@@ -182,7 +183,12 @@ export default function formattingMenuItems(
           label: "Custom",
           children: [
             {
-              content: <ColorPicker command="toggleCellBackground" />,
+              content: (
+                <ColorPicker
+                  activeColor={activeColor}
+                  command="toggleCellBackground"
+                />
+              ),
               preventCloseCondition: () =>
                 !!document.activeElement?.matches(
                   ".ProseMirror.ProseMirror-focused"
