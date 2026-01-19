@@ -50,29 +50,43 @@ export class APIUpdateExtension implements Extension {
     }
     this.configured = true;
 
-    // Create a dedicated subscriber for API update notifications
-    this.subscriber = new RedisAdapter(
-      env.REDIS_COLLABORATION_URL || env.REDIS_URL,
-      {
-        connectionNameSuffix: "collab-api-updates",
-        maxRetriesPerRequest: null,
-      }
-    );
-
-    // Subscribe to the API update channel pattern
-    this.subscriber.psubscribe(`${CHANNEL_PREFIX}:*`, (err) => {
-      if (err) {
-        Logger.error("Failed to subscribe to API update channel", err);
-        return;
-      }
-      Logger.debug(
-        "multiplayer",
-        `Subscribed to ${CHANNEL_PREFIX}:* for API updates`
+    try {
+      // Create a dedicated subscriber for API update notifications
+      this.subscriber = new RedisAdapter(
+        env.REDIS_COLLABORATION_URL || env.REDIS_URL,
+        {
+          connectionNameSuffix: "collab-api-updates",
+          maxRetriesPerRequest: null,
+        }
       );
-    });
 
-    // Handle incoming messages
-    this.subscriber.on("pmessage", this.handleMessage);
+      // Handle Redis connection errors
+      this.subscriber.on("error", (err) => {
+        Logger.error("Redis subscriber error in APIUpdateExtension", err);
+      });
+
+      // Subscribe to the API update channel pattern
+      this.subscriber.psubscribe(`${CHANNEL_PREFIX}:*`, (err) => {
+        if (err) {
+          Logger.error("Failed to subscribe to API update channel", err);
+          return;
+        }
+        Logger.debug(
+          "multiplayer",
+          `Subscribed to ${CHANNEL_PREFIX}:* for API updates`
+        );
+      });
+
+      // Handle incoming messages
+      this.subscriber.on("pmessage", this.handleMessage);
+    } catch (error) {
+      Logger.error(
+        "Failed to configure APIUpdateExtension Redis subscriber",
+        error as Error
+      );
+      this.subscriber = null;
+      this.configured = false;
+    }
   }
 
   async afterLoadDocument({
