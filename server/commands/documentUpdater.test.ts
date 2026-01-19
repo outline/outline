@@ -1,5 +1,6 @@
 import { randomUUID } from "crypto";
 import * as Y from "yjs";
+import { TextEditMode } from "@shared/types";
 import { APIUpdateExtension } from "@server/collaboration/APIUpdateExtension";
 import { Event } from "@server/models";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
@@ -92,7 +93,7 @@ describe("documentUpdater", () => {
       documentUpdater(ctx, {
         text: "Appended",
         document,
-        append: true,
+        editMode: TextEditMode.Append,
       })
     );
 
@@ -119,7 +120,7 @@ describe("documentUpdater", () => {
       documentUpdater(ctx, {
         text: "Appended",
         document,
-        append: true,
+        editMode: TextEditMode.Append,
       })
     );
 
@@ -171,7 +172,7 @@ describe("documentUpdater", () => {
       documentUpdater(ctx, {
         text: "Appended",
         document,
-        append: true,
+        editMode: TextEditMode.Append,
       })
     );
 
@@ -207,7 +208,7 @@ describe("documentUpdater", () => {
       documentUpdater(ctx, {
         text: "\n\nAppended",
         document,
-        append: true,
+        editMode: TextEditMode.Append,
       })
     );
 
@@ -222,6 +223,100 @@ describe("documentUpdater", () => {
         {
           type: "paragraph",
           content: [{ type: "text", text: "Appended" }],
+        },
+      ],
+    });
+  });
+
+  it("should prepend document content when requested", async () => {
+    const user = await buildUser();
+    let document = await buildDocument({
+      teamId: user.teamId,
+      text: "Existing",
+    });
+
+    document = await withAPIContext(user, (ctx) =>
+      documentUpdater(ctx, {
+        text: "Prepended",
+        document,
+        editMode: TextEditMode.Prepend,
+      })
+    );
+
+    expect(document.text).toEqual("PrependedExisting");
+    expect(document.content).toMatchObject({
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "PrependedExisting" }],
+        },
+      ],
+    });
+  });
+
+  it("should preserve rich content when prepending", async () => {
+    const user = await buildUser();
+    let document = await buildDocument({
+      teamId: user.teamId,
+      text: "**Bold**",
+    });
+
+    document = await withAPIContext(user, (ctx) =>
+      documentUpdater(ctx, {
+        text: "Prepended",
+        document,
+        editMode: TextEditMode.Prepend,
+      })
+    );
+
+    expect(document.content).toMatchObject({
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: "Prepended",
+            },
+            {
+              type: "text",
+              marks: [{ type: "strong" }],
+              text: "Bold",
+            },
+          ],
+        },
+      ],
+    });
+  });
+
+  it("should create new paragraph when prepending with newline", async () => {
+    const user = await buildUser();
+    let document = await buildDocument({
+      teamId: user.teamId,
+      text: "Existing",
+    });
+
+    document = await withAPIContext(user, (ctx) =>
+      documentUpdater(ctx, {
+        text: "Prepended\n\n",
+        document,
+        editMode: TextEditMode.Prepend,
+      })
+    );
+
+    expect(document.text).toEqual("Prepended\n\nExisting");
+    expect(document.content).toMatchObject({
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "Prepended" }],
+        },
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "Existing" }],
         },
       ],
     });
