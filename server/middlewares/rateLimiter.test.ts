@@ -1,7 +1,9 @@
+import JWT from "jsonwebtoken";
 import type { Context } from "koa";
 import env from "@server/env";
+import { ApiKey } from "@server/models";
 import RateLimiter from "@server/utils/RateLimiter";
-import { rateLimiter } from "./rateLimiter";
+import { defaultRateLimiter, rateLimiter } from "./rateLimiter";
 
 describe("rateLimiter middleware", () => {
   const originalRateLimiterEnabled = env.RATE_LIMITER_ENABLED;
@@ -138,5 +140,106 @@ describe("rateLimiter middleware", () => {
 
     // Expected key format: "/api/documents.export:127.0.0.1"
     expect(key).toBe("/api/documents.export:127.0.0.1");
+  });
+
+  describe("user-based rate limiting", () => {
+    it("should use user ID from JWT when authenticated", async () => {
+      const userId = "test-user-id-123";
+      const token = JWT.sign({ id: userId, type: "session" }, "secret");
+
+      const middleware = defaultRateLimiter();
+      const consumeSpy = jest.spyOn(RateLimiter.defaultRateLimiter, "consume");
+
+      const mockCtx = {
+        path: "/some/path",
+        mountPath: undefined,
+        ip: "192.168.1.1",
+        set: jest.fn(),
+        request: {
+          get: () => `Bearer ${token}`,
+        },
+        cookies: {
+          get: () => undefined,
+        },
+      } as unknown as Context;
+
+      await middleware(mockCtx, jest.fn());
+
+      expect(consumeSpy).toHaveBeenCalledWith(`user:${userId}`);
+      consumeSpy.mockRestore();
+    });
+
+    it("should fall back to IP when no token is provided", async () => {
+      const middleware = defaultRateLimiter();
+      const consumeSpy = jest.spyOn(RateLimiter.defaultRateLimiter, "consume");
+
+      const mockCtx = {
+        path: "/some/path",
+        mountPath: undefined,
+        ip: "192.168.1.1",
+        set: jest.fn(),
+        request: {
+          get: () => undefined,
+          body: {},
+          query: {},
+        },
+        cookies: {
+          get: () => undefined,
+        },
+      } as unknown as Context;
+
+      await middleware(mockCtx, jest.fn());
+
+      expect(consumeSpy).toHaveBeenCalledWith("192.168.1.1");
+      consumeSpy.mockRestore();
+    });
+
+    it("should fall back to IP for API key tokens", async () => {
+      const apiKeyToken = `${ApiKey.prefix}${"a".repeat(38)}`;
+
+      const middleware = defaultRateLimiter();
+      const consumeSpy = jest.spyOn(RateLimiter.defaultRateLimiter, "consume");
+
+      const mockCtx = {
+        path: "/some/path",
+        mountPath: undefined,
+        ip: "192.168.1.1",
+        set: jest.fn(),
+        request: {
+          get: () => `Bearer ${apiKeyToken}`,
+        },
+        cookies: {
+          get: () => undefined,
+        },
+      } as unknown as Context;
+
+      await middleware(mockCtx, jest.fn());
+
+      expect(consumeSpy).toHaveBeenCalledWith("192.168.1.1");
+      consumeSpy.mockRestore();
+    });
+
+    it("should fall back to IP when JWT is malformed", async () => {
+      const middleware = defaultRateLimiter();
+      const consumeSpy = jest.spyOn(RateLimiter.defaultRateLimiter, "consume");
+
+      const mockCtx = {
+        path: "/some/path",
+        mountPath: undefined,
+        ip: "192.168.1.1",
+        set: jest.fn(),
+        request: {
+          get: () => "Bearer invalid-token",
+        },
+        cookies: {
+          get: () => undefined,
+        },
+      } as unknown as Context;
+
+      await middleware(mockCtx, jest.fn());
+
+      expect(consumeSpy).toHaveBeenCalledWith("192.168.1.1");
+      consumeSpy.mockRestore();
+    });
   });
 });
