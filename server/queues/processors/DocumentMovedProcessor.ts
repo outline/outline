@@ -46,27 +46,39 @@ export default class DocumentMovedProcessor extends BaseProcessor {
           : [],
       ]);
 
-      await this.recalculateUserMemberships(userMemberships, transaction);
+      await this.recalculateUserMemberships(
+        userMemberships,
+        transaction,
+        document.id
+      );
       await this.recalculateUserMemberships(
         parentDocumentUserMemberships,
-        transaction
+        transaction,
+        document.id
       );
-      await this.recalculateGroupMemberships(groupMemberships, transaction);
+      await this.recalculateGroupMemberships(
+        groupMemberships,
+        transaction,
+        document.id
+      );
       await this.recalculateGroupMemberships(
         parentDocumentGroupMemberships,
-        transaction
+        transaction,
+        document.id
       );
     });
   }
 
   private async recalculateUserMemberships(
     memberships: UserMembership[],
-    transaction?: Transaction
+    transaction?: Transaction,
+    documentId?: string
   ) {
     await Promise.all(
       memberships.map((membership) =>
         UserMembership.createSourcedMemberships(membership, {
           transaction,
+          documentId,
         })
       )
     );
@@ -74,12 +86,14 @@ export default class DocumentMovedProcessor extends BaseProcessor {
 
   private async recalculateGroupMemberships(
     memberships: GroupMembership[],
-    transaction?: Transaction
+    transaction?: Transaction,
+    documentId?: string
   ) {
     await Promise.all(
       memberships.map((membership) =>
         GroupMembership.createSourcedMemberships(membership, {
           transaction,
+          documentId,
         })
       )
     );

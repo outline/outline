@@ -203,7 +203,7 @@ class UserMembership extends IdModel<
   @AfterCreate
   static async createSourcedMemberships(
     model: UserMembership,
-    options: SaveOptions<UserMembership>
+    options: SaveOptions<UserMembership> & { documentId?: string }
   ) {
     if (model.sourceId || !model.documentId) {
       return;
@@ -302,12 +302,12 @@ class UserMembership extends IdModel<
    */
   static async recreateSourcedMemberships(
     model: UserMembership,
-    options: SaveOptions<UserMembership>
+    options: SaveOptions<UserMembership> & { documentId?: string }
   ) {
     if (!model.documentId) {
       return;
     }
-    const { transaction } = options;
+    const { transaction, documentId } = options;
 
     await this.destroy({
       where: {
@@ -330,16 +330,22 @@ class UserMembership extends IdModel<
       return;
     }
 
-    const childDocumentIds = await document.findAllChildDocumentIds(
-      {
-        publishedAt: {
-          [Op.ne]: null,
+    let childDocumentIds: string[] = [];
+
+    if (documentId) {
+      childDocumentIds = [documentId];
+    } else {
+      childDocumentIds = await document.findAllChildDocumentIds(
+        {
+          publishedAt: {
+            [Op.ne]: null,
+          },
         },
-      },
-      {
-        transaction,
-      }
-    );
+        {
+          transaction,
+        }
+      );
+    }
 
     for (const childDocumentId of childDocumentIds) {
       await this.create(

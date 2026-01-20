@@ -204,7 +204,7 @@ class GroupMembership extends ParanoidModel<
   @AfterCreate
   static async createSourcedMemberships(
     model: GroupMembership,
-    options: SaveOptions<GroupMembership>
+    options: SaveOptions<UserMembership> & { documentId?: string }
   ) {
     if (model.sourceId || !model.documentId) {
       return;
@@ -326,12 +326,12 @@ class GroupMembership extends ParanoidModel<
    */
   static async recreateSourcedMemberships(
     model: GroupMembership,
-    options: SaveOptions<GroupMembership>
+    options: SaveOptions<UserMembership> & { documentId?: string }
   ) {
     if (!model.documentId) {
       return;
     }
-    const { transaction } = options;
+    const { transaction, documentId } = options;
 
     await this.destroy({
       where: {
@@ -354,16 +354,22 @@ class GroupMembership extends ParanoidModel<
       return;
     }
 
-    const childDocumentIds = await document.findAllChildDocumentIds(
-      {
-        publishedAt: {
-          [Op.ne]: null,
+    let childDocumentIds: string[] = [];
+
+    if (documentId) {
+      childDocumentIds = [documentId];
+    } else {
+      childDocumentIds = await document.findAllChildDocumentIds(
+        {
+          publishedAt: {
+            [Op.ne]: null,
+          },
         },
-      },
-      {
-        transaction,
-      }
-    );
+        {
+          transaction,
+        }
+      );
+    }
 
     for (const childDocumentId of childDocumentIds) {
       await this.create(
