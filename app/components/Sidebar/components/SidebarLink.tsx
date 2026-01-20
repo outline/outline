@@ -180,7 +180,7 @@ function SidebarLink(
           {unreadBadge && <UnreadBadge style={unreadStyle} />}
         </Content>
       </ContextMenu>
-      {menu && <Actions showActions={showActions}>{menu}</Actions>}
+      {menu && <Actions>{menu}</Actions>}
     </Link>
   );
 }
@@ -201,7 +201,7 @@ const Content = styled.span`
   width: 100%;
 `;
 
-const Actions = styled(EventBoundary)<{ showActions?: boolean }>`
+const Actions = styled(EventBoundary)`
   display: inline-flex;
   visibility: ${(props) => (props.showActions ? "visible" : "hidden")};
   position: absolute;
