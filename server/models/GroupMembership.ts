@@ -372,21 +372,34 @@ class GroupMembership extends ParanoidModel<
     }
 
     for (const childDocumentId of childDocumentIds) {
-      await this.create(
-        {
-          documentId: childDocumentId,
-          groupId: model.groupId,
-          permission: model.permission,
-          sourceId: model.id,
-          createdById: model.createdById,
-          createdAt: model.createdAt,
-          updatedAt: model.updatedAt,
-        },
-        {
-          transaction,
-          hooks: false,
-        }
-      );
+      const childDoc = await Document.findByPk(childDocumentId, {
+        include: [
+          {
+            association: "groupMemberships",
+            required: true,
+          },
+        ],
+      });
+
+      if (
+        !childDoc?.groupMemberships?.some((m) => m.groupId === model.groupId)
+      ) {
+        await this.create(
+          {
+            documentId: childDocumentId,
+            groupId: model.groupId,
+            permission: model.permission,
+            sourceId: model.id,
+            createdById: model.createdById,
+            createdAt: model.createdAt,
+            updatedAt: model.updatedAt,
+          },
+          {
+            transaction,
+            hooks: false,
+          }
+        );
+      }
     }
   }
 

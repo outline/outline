@@ -348,21 +348,32 @@ class UserMembership extends IdModel<
     }
 
     for (const childDocumentId of childDocumentIds) {
-      await this.create(
-        {
-          documentId: childDocumentId,
-          userId: model.userId,
-          permission: model.permission,
-          sourceId: model.id,
-          createdById: model.createdById,
-          createdAt: model.createdAt,
-          updatedAt: model.updatedAt,
-        },
-        {
-          transaction,
-          hooks: false,
-        }
-      );
+      const childDoc = await Document.findByPk(childDocumentId, {
+        include: [
+          {
+            association: "memberships",
+            required: true,
+          },
+        ],
+      });
+
+      if (!childDoc?.memberships.some((m) => m.userId === model.userId)) {
+        await this.create(
+          {
+            documentId: childDocumentId,
+            userId: model.userId,
+            permission: model.permission,
+            sourceId: model.id,
+            createdById: model.createdById,
+            createdAt: model.createdAt,
+            updatedAt: model.updatedAt,
+          },
+          {
+            transaction,
+            hooks: false,
+          }
+        );
+      }
     }
   }
 
