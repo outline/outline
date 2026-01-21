@@ -550,7 +550,7 @@ export const downloadDocument = createAction({
 });
 
 export const downloadDocumentAsMarkdown = createAction({
-  name: ({ t }) => t("Downloas as Markdown"),
+  name: ({ t }) => t("Download as Markdown"),
   analyticsName: "Download document as Markdown",
   section: ActiveDocumentSection,
   keywords: "md markdown export",
