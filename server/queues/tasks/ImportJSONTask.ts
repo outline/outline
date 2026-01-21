@@ -100,17 +100,28 @@ export default class ImportJSONTask extends ImportTask {
       });
     }
 
-    async function mapAttachments(attachments: {
+    function mapAttachments(attachments: {
       [id: string]: AttachmentJSONExport;
     }) {
       Object.values(attachments).forEach((node) => {
         const id = randomUUID();
         const mimeType = mime.lookup(node.key) || "application/octet-stream";
+        const filePath = path.join(rootPath, node.key);
+
+        // Block path traversal attempts
+        if (node.key.includes("..")) {
+          throw new Error(`Invalid attachment path: ${node.key}`);
+        }
+
+        const resolvedPath = path.resolve(filePath);
+        if (!resolvedPath.startsWith(path.resolve(rootPath) + path.sep)) {
+          throw new Error(`Invalid attachment path: ${node.key}`);
+        }
 
         output.attachments.push({
           id,
           name: node.name,
-          buffer: () => fs.readFile(path.join(rootPath, node.key)),
+          buffer: () => fs.readFile(filePath),
           mimeType,
           path: node.key,
           externalId: node.id,
