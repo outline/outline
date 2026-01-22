@@ -296,7 +296,11 @@ export default function Mermaid({
           transaction.docChanged &&
           (isMermaid(node) || isMermaid(previousNode));
 
+        // @ts-expect-error accessing private field.
+        const isPaste = transaction.meta?.paste;
+
         if (
+          isPaste ||
           mermaidMeta ||
           themeToggled ||
           codeBlockChanged ||
