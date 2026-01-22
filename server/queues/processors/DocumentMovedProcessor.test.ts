@@ -137,7 +137,7 @@ describe("DocumentMovedProcessor", () => {
         },
       });
 
-      // Ensure user2's permission on doc3 remains removed
+      // sourced permission from user2 remains removed
       const userMemberships = await UserMembership.findAll({
         where: { documentId: doc2.id, userId: user2.id },
       });
