@@ -1,4 +1,4 @@
-import { rgba, transparentize } from "polished";
+import { rgba } from "polished";
 import { toggleMark } from "prosemirror-commands";
 import type { MarkSpec, MarkType } from "prosemirror-model";
 import { markInputRuleForPattern } from "../lib/markInputRule";
@@ -7,31 +7,14 @@ import Mark from "./Mark";
 import type { CommandFactory } from "../lib/Extension";
 import type { Primitive } from "utility-types";
 import { toggleHighlight } from "../commands/highlight";
+import { presetColorNames, presetColors } from "../presetColors";
 
 export default class Highlight extends Mark {
   /** The colors that can be used for highlighting */
-  static colors = [
-    "#FDEA9B",
-    "#FED46A",
-    "#FA551E",
-    "#B4DC19",
-    "#C8AFF0",
-    "#3CBEFC",
-  ];
+  static colors = presetColors;
 
   /** The names of the colors that can be used for highlighting, must match length of array above */
-  static colorNames = [
-    "Coral",
-    "Apricot",
-    "Sunset",
-    "Smoothie",
-    "Bubblegum",
-    "Neon",
-  ];
-
-  static lightColors = Highlight.colors.map((color) =>
-    transparentize(0.3, color)
-  );
+  static colorNames = presetColorNames;
 
   /** The default opacity of the highlight */
   static opacity = 0.4;

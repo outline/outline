@@ -46,6 +46,7 @@ import {
   isMultipleCellSelection,
 } from "@shared/editor/queries/table";
 import { CellSelection } from "prosemirror-tables";
+import TableCell from "@shared/editor/nodes/TableCell";
 
 export default function formattingMenuItems(
   state: EditorState,
@@ -78,7 +79,7 @@ export default function formattingMenuItems(
   const colors = getColorSetForSelectedCells(state.selection);
   const customColor =
     colors.size === 1
-      ? [...colors].find((c) => !Highlight.lightColors.includes(c))
+      ? [...colors].find((c) => !TableCell.presetColors.includes(c))
       : undefined;
   const hasMultipleColors = colors.size > 1;
 
@@ -141,9 +142,9 @@ export default function formattingMenuItems(
           active: () => (cellSelectionHasBackground ? false : true),
           attrs: { color: null },
         },
-        ...Highlight.lightColors.map((color, index) => ({
+        ...TableCell.presetColors.map((color, index) => ({
           name: "toggleCellSelectionBackgroundAndCollapseSelection",
-          label: Highlight.colorNames[index],
+          label: TableCell.presetColorNames[index],
           icon: <CircleIcon retainColor color={color} />,
           active: () =>
             !hasMultipleColors &&

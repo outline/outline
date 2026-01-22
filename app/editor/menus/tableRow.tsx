@@ -11,7 +11,6 @@ import {
 import type { EditorState } from "prosemirror-state";
 import styled from "styled-components";
 import { CellSelection, selectedRect } from "prosemirror-tables";
-import Highlight from "@shared/editor/marks/Highlight";
 import {
   getCellsInRow,
   isMergedCellSelection,
@@ -22,6 +21,7 @@ import type { Dictionary } from "~/hooks/useDictionary";
 import { ArrowDownIcon, ArrowUpIcon } from "~/components/Icons/ArrowIcon";
 import CircleIcon from "~/components/Icons/CircleIcon";
 import CellBackgroundColorPicker from "../components/CellBackgroundColorPicker";
+import TableCell from "@shared/editor/nodes/TableCell";
 
 /**
  * Get the set of background colors used in a row
@@ -72,7 +72,7 @@ export default function tableRowMenuItems(
     rowColors.size === 1 ? rowColors.values().next().value : null;
   const customColor =
     rowColors.size === 1
-      ? [...rowColors].find((c) => !Highlight.lightColors.includes(c))
+      ? [...rowColors].find((c) => !TableCell.presetColors.includes(c))
       : undefined;
 
   return [
@@ -96,9 +96,9 @@ export default function tableRowMenuItems(
             attrs: { color: null },
           },
         ],
-        ...Highlight.lightColors.map((color, colorIndex) => ({
+        ...TableCell.presetColors.map((color, colorIndex) => ({
           name: "toggleRowBackgroundAndCollapseSelection",
-          label: Highlight.colorNames[colorIndex],
+          label: TableCell.presetColorNames[colorIndex],
           icon: <CircleIcon retainColor color={color} />,
           active: () => rowColors.size === 1 && rowColors.has(color),
           attrs: { color },

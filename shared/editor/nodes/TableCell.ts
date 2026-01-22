@@ -10,8 +10,14 @@ import { Decoration, DecorationSet } from "prosemirror-view";
 import { TableMap } from "prosemirror-tables";
 import { getCellAttrs, setCellAttrs } from "../lib/table";
 import Node from "./Node";
+import { presetColorNames, presetColors } from "../presetColors";
+import { transparentize } from "polished";
 
 export default class TableCell extends Node {
+  static presetColors = presetColors.map((color) => transparentize(0.3, color));
+
+  static presetColorNames = presetColorNames;
+
   get name() {
     return "td";
   }
