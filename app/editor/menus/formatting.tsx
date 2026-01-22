@@ -22,7 +22,7 @@ import {
   PaletteIcon,
 } from "outline-icons";
 import CellBackgroundColorPicker from "../components/CellBackgroundColorPicker";
-import type { EditorState, Selection } from "prosemirror-state";
+import type { EditorState } from "prosemirror-state";
 import styled from "styled-components";
 import Highlight from "@shared/editor/marks/Highlight";
 import { getMarksBetween } from "@shared/editor/queries/getMarksBetween";
@@ -30,7 +30,7 @@ import { isInCode } from "@shared/editor/queries/isInCode";
 import { isInList } from "@shared/editor/queries/isInList";
 import { isMarkActive } from "@shared/editor/queries/isMarkActive";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
-import type { MenuItem, NodeAttrMark } from "@shared/editor/types";
+import type { MenuItem } from "@shared/editor/types";
 import { metaDisplay } from "@shared/utils/keyboard";
 import CircleIcon from "~/components/Icons/CircleIcon";
 import type { Dictionary } from "~/hooks/useDictionary";
@@ -39,6 +39,7 @@ import {
   isTouchDevice,
 } from "@shared/utils/browser";
 import {
+  getColorSetForSelectedCells,
   hasNodeAttrMarkCellSelection,
   hasNodeAttrMarkWithAttrsCellSelection,
   isMergedCellSelection,
@@ -59,21 +60,6 @@ export default function formattingMenuItems(
   const isTouch = isTouchDevice();
   const isList = isInList(state);
   const isTableCell = state.selection instanceof CellSelection;
-  const colorSet = (selection: Selection) => {
-    const colors = new Set<string>();
-    if (!(selection instanceof CellSelection)) {
-      return colors;
-    }
-    selection.forEachCell((cell) => {
-      const backgroundMark = (cell.attrs.marks ?? []).find(
-        (mark: NodeAttrMark) => mark.type === "background"
-      );
-      if (backgroundMark && backgroundMark.attrs.color) {
-        colors.add(backgroundMark.attrs.color);
-      }
-    });
-    return colors;
-  };
 
   const highlight = getMarksBetween(
     state.selection.from,
@@ -89,7 +75,7 @@ export default function formattingMenuItems(
     : false;
 
   // Check if there's a custom color (not in predefined colors)
-  const colors = colorSet(state.selection);
+  const colors = getColorSetForSelectedCells(state.selection);
   const customColor =
     colors.size === 1
       ? [...colors].find((c) => !Highlight.lightColors.includes(c))
@@ -135,10 +121,14 @@ export default function formattingMenuItems(
     {
       tooltip: dictionary.background,
       icon:
-        colorSet(state.selection).size > 1 ? (
+        getColorSetForSelectedCells(state.selection).size > 1 ? (
           <CircleIcon color="rainbow" />
-        ) : colorSet(state.selection).size === 1 ? (
-          <CircleIcon color={colorSet(state.selection).values().next().value} />
+        ) : getColorSetForSelectedCells(state.selection).size === 1 ? (
+          <CircleIcon
+            color={
+              getColorSetForSelectedCells(state.selection).values().next().value
+            }
+          />
         ) : (
           <PaletteIcon />
         ),

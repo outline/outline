@@ -6,6 +6,7 @@ import { RowSelection } from "../selection/RowSelection";
 import type { EditorView } from "prosemirror-view";
 import type { NodeAttrMark, NodeAttrMarkName } from "../types";
 import type { Node } from "prosemirror-model";
+import type { Selection } from "prosemirror-state";
 
 /**
  * Checks if the current selection is a column selection.
@@ -434,6 +435,29 @@ export const hasNodeAttrMarkCellSelection = (
 
   return hasMark;
 };
+
+/**
+ * Returns the set of background colors applied to selected cells.
+ *
+ * @param selection - The current selection.
+ * @returns A set of color strings from background marks on selected cells.
+ */
+export function getColorSetForSelectedCells(selection: Selection): Set<string> {
+  const colors = new Set<string>();
+  if (!(selection instanceof CellSelection)) {
+    // If not a CellSelection, return empty set
+    return colors;
+  }
+  selection.forEachCell((cell) => {
+    const backgroundMark = (cell.attrs.marks ?? []).find(
+      (mark: NodeAttrMark) => mark.type === "background"
+    );
+    if (backgroundMark && backgroundMark.attrs.color) {
+      colors.add(backgroundMark.attrs.color);
+    }
+  });
+  return colors;
+}
 
 /**
  * Returns true if any cell in the selection has a mark of the given type
