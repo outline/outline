@@ -869,19 +869,30 @@ const removeCellBackground = (
   return tr.setNodeAttribute(pos, "marks", updatedMarks);
 };
 
-export const toggleCellSelectionBackgroundAndCollapseSelection = (
-  attrs: Attrs
-) =>
-  chainTransactions(toggleCellSelectionBackground(attrs), collapseSelection());
+export const toggleCellSelectionBackgroundAndCollapseSelection = ({
+  color,
+}: {
+  color: string | null;
+}) =>
+  chainTransactions(
+    toggleCellSelectionBackground({ color }),
+    collapseSelection()
+  );
 
-export const toggleRowBackgroundAndCollapseSelection = (attrs: Attrs) =>
-  chainTransactions(toggleRowBackground(attrs), collapseSelection());
+export const toggleRowBackgroundAndCollapseSelection = ({
+  color,
+}: {
+  color: string | null;
+}) => chainTransactions(toggleRowBackground({ color }), collapseSelection());
 
-export const toggleColumnBackgroundAndCollapseSelection = (attrs: Attrs) =>
-  chainTransactions(toggleColumnBackground(attrs), collapseSelection());
+export const toggleColumnBackgroundAndCollapseSelection = ({
+  color,
+}: {
+  color: string | null;
+}) => chainTransactions(toggleColumnBackground({ color }), collapseSelection());
 
 export const toggleCellSelectionBackground =
-  (attrs: Attrs): Command =>
+  ({ color }: { color: string | null }): Command =>
   (state, dispatch) => {
     if (!(state.selection instanceof CellSelection)) {
       return false;
@@ -892,10 +903,10 @@ export const toggleCellSelectionBackground =
       const hasBackground = (cell.attrs.marks ?? []).find(
         (mark: NodeAttrMark) => mark.type === "background"
       );
-      if (!hasBackground && attrs.color) {
-        tr = createCellBackground(cell, pos, attrs, tr);
-      } else if (hasBackground && attrs.color) {
-        tr = updateCellBackground(cell, pos, attrs, tr);
+      if (!hasBackground && color) {
+        tr = createCellBackground(cell, pos, { color }, tr);
+      } else if (hasBackground && color) {
+        tr = updateCellBackground(cell, pos, { color }, tr);
       } else {
         tr = removeCellBackground(cell, pos, tr);
       }
@@ -908,13 +919,15 @@ export const toggleCellSelectionBackground =
 /**
  * Set background color on all cells in a row.
  *
- * @param index The row index
  * @param color The background color to set, or null to remove
  * @returns The command
  */
-export function toggleRowBackground(attrs: Attrs): Command {
+export function toggleRowBackground({
+  color,
+}: {
+  color: string | null;
+}): Command {
   return (state, dispatch) => {
-    const { color } = attrs;
     if (!isInTable(state)) {
       return false;
     }
@@ -965,13 +978,15 @@ export function toggleRowBackground(attrs: Attrs): Command {
 /**
  * Set background color on all cells in a column.
  *
- * @param index The column index
  * @param color The background color to set, or null to remove
  * @returns The command
  */
-export function toggleColumnBackground(attrs: Attrs): Command {
+export function toggleColumnBackground({
+  color,
+}: {
+  color: string | null;
+}): Command {
   return (state, dispatch) => {
-    const { color } = attrs;
     if (!isInTable(state)) {
       return false;
     }
