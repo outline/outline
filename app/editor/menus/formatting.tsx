@@ -134,15 +134,13 @@ export default function formattingMenuItems(
         ),
       visible: !isCode && (!isMobile || !isEmpty) && isTableCell,
       children: [
-        ...[
-          {
-            name: "toggleCellSelectionBackgroundAndCollapseSelection",
-            label: dictionary.none,
-            icon: <DottedCircleIcon retainColor color="transparent" />,
-            active: () => (cellSelectionHasBackground ? false : true),
-            attrs: { color: null },
-          },
-        ],
+        {
+          name: "toggleCellSelectionBackgroundAndCollapseSelection",
+          label: dictionary.none,
+          icon: <DottedCircleIcon retainColor color="transparent" />,
+          active: () => (cellSelectionHasBackground ? false : true),
+          attrs: { color: null },
+        },
         ...Highlight.lightColors.map((color, index) => ({
           name: "toggleCellSelectionBackgroundAndCollapseSelection",
           label: Highlight.colorNames[index],
