@@ -330,7 +330,15 @@ export default class TableRow extends Node {
                     decorations.push(buildAddRowDecoration(pos, index));
                   }
 
-                  decorations.push(buildAddRowDecoration(pos, index + 1));
+                  // Calculate the rowspan of the first column cell to determine the
+                  // correct index for the "add row after" button. When cells are
+                  // merged vertically, we need to insert after all merged rows.
+                  const firstCellNode =
+                    currentFirstCellPos !== undefined
+                      ? doc.nodeAt(currentFirstCellPos)
+                      : null;
+                  const rowspan = firstCellNode?.attrs.rowspan ?? 1;
+                  decorations.push(buildAddRowDecoration(pos, index + rowspan));
                 }
               });
             }
