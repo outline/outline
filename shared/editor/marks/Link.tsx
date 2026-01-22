@@ -267,7 +267,12 @@ export default class Link extends Mark {
               return false;
             }
 
-            const textContent = selection.$from.parent.textContent;
+            let textContent = "";
+            selection.$from.parent.forEach((node) => {
+              if (node.isText && node.text) {
+                textContent += node.text;
+              }
+            });
             const words = textContent.split(/\s+/);
             if (!words.length) {
               return false;
