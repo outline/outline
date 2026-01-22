@@ -410,16 +410,12 @@ export function getWidthFromNodes({
   }, 0);
 }
 
-const getCellMark = (cell: Node, type: NodeAttrMarkName) => {
+const getCellAttrMark = (cell: Node, type: NodeAttrMarkName) => {
   const mark = (cell.attrs.marks ?? []).find(
     (mark: NodeAttrMark) => mark.type === type
   );
 
-  if (!mark) {
-    return false;
-  }
-
-  return { mark };
+  return mark;
 };
 
 export const hasNodeAttrMarkCellSelection = (
@@ -429,7 +425,7 @@ export const hasNodeAttrMarkCellSelection = (
   let hasMark = false;
   selection.forEachCell((cell) => {
     if (!hasMark) {
-      hasMark = !!getCellMark(cell, type);
+      hasMark = !!getCellAttrMark(cell, type);
     }
   });
 
@@ -473,18 +469,15 @@ export const hasNodeAttrMarkWithAttrsCellSelection = (
   type: NodeAttrMarkName,
   attrs: Record<string, unknown>
 ) => {
-  let hasMark = false;
+  let attrsMatch = true;
   selection.forEachCell((cell) => {
-    if (!hasMark) {
-      const result = getCellMark(cell, type);
-      if (result) {
-        const markAttrs = result.mark.attrs ?? {};
-        hasMark = Object.entries(attrs).every(
-          ([key, value]) => markAttrs[key] === value
-        );
-      }
-    }
+    const cellMark = getCellAttrMark(cell, type);
+    attrsMatch &&=
+      !!cellMark &&
+      Object.entries(attrs).every(
+        ([key, value]) => (cellMark.attrs ?? {})[key] === value
+      );
   });
 
-  return hasMark;
+  return attrsMatch;
 };

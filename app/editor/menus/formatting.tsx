@@ -81,7 +81,6 @@ export default function formattingMenuItems(
     colors.size === 1
       ? [...colors].find((c) => !TableCell.presetColors.includes(c))
       : undefined;
-  const hasMultipleColors = colors.size > 1;
 
   return [
     {
@@ -147,7 +146,6 @@ export default function formattingMenuItems(
           label: TableCell.presetColorNames[index],
           icon: <CircleIcon retainColor color={color} />,
           active: () =>
-            !hasMultipleColors &&
             hasNodeAttrMarkWithAttrsCellSelection(
               state.selection as CellSelection,
               "background",
