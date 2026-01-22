@@ -87,7 +87,11 @@ function DocumentMemberList({ document, invitedInSession }: Props) {
   const members = React.useMemo(
     () =>
       orderBy(
-        document.members,
+        Array.from(
+          new Map(
+            document.members.map((memberUser) => [memberUser.id, memberUser])
+          ).values()
+        ),
         (memberUser) =>
           (invitedInSession.includes(memberUser.id) ? "_" : "") +
           memberUser.name.toLocaleLowerCase(),
