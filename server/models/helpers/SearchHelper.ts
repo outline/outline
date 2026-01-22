@@ -12,6 +12,7 @@ import type {
 } from "sequelize";
 import { Op, Sequelize } from "sequelize";
 import type { DateFilter } from "@shared/types";
+import { DirectionFilter, SortFilter } from "@shared/types";
 import { StatusFilter } from "@shared/types";
 import { regexIndexOf, regexLastIndexOf } from "@shared/utils/string";
 import { getUrls } from "@shared/utils/urls";
@@ -60,6 +61,10 @@ type SearchOptions = {
   snippetMinWords?: number;
   /** The maximum number of words to be returned in the contextual snippet */
   snippetMaxWords?: number;
+  /** The field to sort results by */
+  sort?: SortFilter;
+  /** The sort direction */
+  direction?: DirectionFilter;
 };
 
 type RankedDocument = Document & {
@@ -249,7 +254,11 @@ export default class SearchHelper {
       });
     }
 
-    const findOptions = this.buildFindOptions(query);
+    const findOptions = this.buildFindOptions(
+      query,
+      options.sort,
+      options.direction
+    );
 
     try {
       const resultsQuery = Document.unscoped().findAll({
@@ -399,7 +408,11 @@ export default class SearchHelper {
 
     const where = await this.buildWhere(user, options);
 
-    const findOptions = this.buildFindOptions(query);
+    const findOptions = this.buildFindOptions(
+      query,
+      options.sort,
+      options.direction
+    );
 
     const include = [
       {
@@ -477,10 +490,14 @@ export default class SearchHelper {
     }
   }
 
-  private static buildFindOptions(query?: string): FindOptions {
+  private static buildFindOptions(
+    query?: string,
+    sort?: SortFilter,
+    direction?: DirectionFilter
+  ): FindOptions {
     const attributes: FindAttributeOptions = ["id"];
     const replacements: BindOrReplacements = {};
-    const order: Order = [["updatedAt", "DESC"]];
+    const order: Order = [];
 
     if (query) {
       // Combine text relevance with logarithmic popularity boost
@@ -492,7 +509,23 @@ export default class SearchHelper {
         "searchRanking",
       ]);
       replacements["query"] = this.webSearchQuery(query);
-      order.unshift(["searchRanking", "DESC"]);
+      // Only prioritize search ranking if no custom sort is specified
+      if (!sort) {
+        order.push(["searchRanking", "DESC"]);
+      }
+    }
+
+    // Apply custom sort or default to updatedAt DESC
+    const sortField = sort ?? SortFilter.UpdatedAt;
+    const sortDirection = direction ?? DirectionFilter.DESC;
+
+    if (sortField === "title") {
+      order.push([
+        Sequelize.fn("LOWER", Sequelize.col("title")),
+        sortDirection,
+      ]);
+    } else {
+      order.push([sortField, sortDirection]);
     }
 
     return { attributes, replacements, order };

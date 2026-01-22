@@ -28,6 +28,7 @@ type Props = {
   showFilter?: boolean;
   fetchQuery?: (options: FetchPageParams) => Promise<PaginatedItem[]>;
   fetchQueryOptions?: Record<string, string>;
+  noSort?: boolean;
 };
 
 const FilterOptions = ({
@@ -38,6 +39,7 @@ const FilterOptions = ({
   showFilter,
   fetchQuery,
   fetchQueryOptions,
+  noSort = false,
   ...rest
 }: Props) => {
   const { t } = useTranslation();
@@ -89,6 +91,10 @@ const FilterOptions = ({
         )
       : options;
 
+    if (noSort) {
+      return filtered;
+    }
+
     return filtered.sort((a, b) => {
       const aSelected = selectedKeys.includes(a.key);
       const bSelected = selectedKeys.includes(b.key);
@@ -121,7 +127,7 @@ const FilterOptions = ({
 
       return 0;
     });
-  }, [options, query, selectedKeys]);
+  }, [options, query, selectedKeys, noSort]);
 
   const handleKeyDown = React.useCallback(
     (ev: React.KeyboardEvent) => {
