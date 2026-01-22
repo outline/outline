@@ -104,9 +104,7 @@ export default abstract class ExportTask extends BaseTask<Props> {
       }
       throw error;
     } finally {
-      // Destroy the read stream first to release the file handle before deletion.
-      // This prevents disk space leaks where deleted files remain allocated because
-      // the Node.js process still holds open file handles.
+      // Destroy the read stream first to release the file handle before deletion
       if (readStream) {
         readStream.destroy();
       }
