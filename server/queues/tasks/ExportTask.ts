@@ -45,6 +45,7 @@ export default abstract class ExportTask extends BaseTask<Props> {
     ]);
 
     let filePath: string | undefined;
+    let readStream: fs.ReadStream | undefined;
 
     try {
       Logger.info("task", `ExportTask processing data for ${fileOperationId}`, {
@@ -64,8 +65,9 @@ export default abstract class ExportTask extends BaseTask<Props> {
       });
 
       const stat = await fs.stat(filePath);
+      readStream = fs.createReadStream(filePath);
       const url = await FileStorage.store({
-        body: fs.createReadStream(filePath),
+        body: readStream,
         contentLength: stat.size,
         contentType: "application/zip",
         key: fileOperation.key,
@@ -102,6 +104,12 @@ export default abstract class ExportTask extends BaseTask<Props> {
       }
       throw error;
     } finally {
+      // Destroy the read stream first to release the file handle before deletion.
+      // This prevents disk space leaks where deleted files remain allocated because
+      // the Node.js process still holds open file handles.
+      if (readStream) {
+        readStream.destroy();
+      }
       if (filePath) {
         void fs.unlink(filePath).catch((error) => {
           Logger.error(`Failed to delete temporary file ${filePath}`, error);
