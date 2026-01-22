@@ -136,7 +136,7 @@ export default function formattingMenuItems(
       children: [
         ...[
           {
-            name: "toggleCellBackgroundAndCollapseSelection",
+            name: "toggleCellSelectionBackgroundAndCollapseSelection",
             label: dictionary.none,
             icon: <DottedCircleIcon retainColor color="transparent" />,
             active: () => (cellHasBackground ? false : true),
@@ -144,7 +144,7 @@ export default function formattingMenuItems(
           },
         ],
         ...Highlight.lightColors.map((color, index) => ({
-          name: "toggleCellBackgroundAndCollapseSelection",
+          name: "toggleCellSelectionBackgroundAndCollapseSelection",
           label: Highlight.colorNames[index],
           icon: <CircleIcon retainColor color={color} />,
           active: () =>
@@ -159,7 +159,7 @@ export default function formattingMenuItems(
         ...(customColor
           ? [
               {
-                name: "toggleCellBackgroundAndCollapseSelection",
+                name: "toggleCellSelectionBackgroundAndCollapseSelection",
                 label: customColor,
                 icon: <CircleIcon retainColor color={customColor} />,
                 active: () => true,
@@ -174,7 +174,7 @@ export default function formattingMenuItems(
             {
               content: (
                 <CellBackgroundColorPicker
-                  command="toggleCellBackground"
+                  command="toggleCellSelectionBackground"
                   activeColor={colors.size === 1 ? [...colors][0] : ""}
                 />
               ),

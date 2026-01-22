@@ -35,8 +35,8 @@ import {
   mergeCellsAndCollapse,
   toggleColumnBackground,
   toggleRowBackground,
-  toggleCellBackground,
-  toggleCellBackgroundAndCollapseSelection,
+  toggleCellSelectionBackground,
+  toggleCellSelectionBackgroundAndCollapseSelection,
   toggleRowBackgroundAndCollapseSelection,
   toggleColumnBackgroundAndCollapseSelection,
 } from "../commands/table";
@@ -110,8 +110,8 @@ export default class Table extends Node {
       toggleRowBackgroundAndCollapseSelection,
       toggleColumnBackground,
       toggleColumnBackgroundAndCollapseSelection,
-      toggleCellBackground,
-      toggleCellBackgroundAndCollapseSelection,
+      toggleCellSelectionBackground,
+      toggleCellSelectionBackgroundAndCollapseSelection,
     };
   }
 

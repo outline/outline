@@ -869,8 +869,10 @@ const removeCellBackground = (
   return tr.setNodeAttribute(pos, "marks", updatedMarks);
 };
 
-export const toggleCellBackgroundAndCollapseSelection = (attrs: Attrs) =>
-  chainTransactions(toggleCellBackground(attrs), collapseSelection());
+export const toggleCellSelectionBackgroundAndCollapseSelection = (
+  attrs: Attrs
+) =>
+  chainTransactions(toggleCellSelectionBackground(attrs), collapseSelection());
 
 export const toggleRowBackgroundAndCollapseSelection = (attrs: Attrs) =>
   chainTransactions(toggleRowBackground(attrs), collapseSelection());
@@ -878,7 +880,7 @@ export const toggleRowBackgroundAndCollapseSelection = (attrs: Attrs) =>
 export const toggleColumnBackgroundAndCollapseSelection = (attrs: Attrs) =>
   chainTransactions(toggleColumnBackground(attrs), collapseSelection());
 
-export const toggleCellBackground =
+export const toggleCellSelectionBackground =
   (attrs: Attrs): Command =>
   (state, dispatch) => {
     if (!(state.selection instanceof CellSelection)) {
