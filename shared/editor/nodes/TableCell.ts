@@ -18,6 +18,10 @@ export default class TableCell extends Node {
 
   static presetColorNames = presetColorNames;
 
+  static isPresetColor(color: string) {
+    return TableCell.presetColors.includes(color);
+  }
+
   get name() {
     return "td";
   }

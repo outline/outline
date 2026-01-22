@@ -75,12 +75,7 @@ export default function formattingMenuItems(
       )
     : false;
 
-  // Check if there's a custom color (not in predefined colors)
-  const colors = getColorSetForSelectedCells(state.selection);
-  const customColor =
-    colors.size === 1
-      ? [...colors].find((c) => !TableCell.presetColors.includes(c))
-      : undefined;
+  const selectedCellsColorSet = getColorSetForSelectedCells(state.selection);
 
   return [
     {
@@ -153,14 +148,20 @@ export default function formattingMenuItems(
             ),
           attrs: { color },
         })),
-        ...(customColor
+        ...(selectedCellsColorSet.size === 1 &&
+        !TableCell.isPresetColor(selectedCellsColorSet.values().next().value)
           ? [
               {
                 name: "toggleCellSelectionBackgroundAndCollapseSelection",
-                label: customColor,
-                icon: <CircleIcon retainColor color={customColor} />,
+                label: selectedCellsColorSet.values().next().value,
+                icon: (
+                  <CircleIcon
+                    retainColor
+                    color={selectedCellsColorSet.values().next().value}
+                  />
+                ),
                 active: () => true,
-                attrs: { color: customColor },
+                attrs: { color: selectedCellsColorSet.values().next().value },
               },
             ]
           : []),
@@ -172,7 +173,11 @@ export default function formattingMenuItems(
               content: (
                 <CellBackgroundColorPicker
                   command="toggleCellSelectionBackground"
-                  activeColor={colors.size === 1 ? [...colors][0] : ""}
+                  activeColor={
+                    selectedCellsColorSet.size === 1
+                      ? selectedCellsColorSet.values().next().value
+                      : ""
+                  }
                 />
               ),
               preventCloseCondition: () =>
