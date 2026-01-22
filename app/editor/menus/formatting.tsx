@@ -67,7 +67,7 @@ export default function formattingMenuItems(
     state
   ).find(({ mark }) => mark.type === state.schema.marks.highlight);
 
-  const cellHasBackground = isTableCell
+  const cellSelectionHasBackground = isTableCell
     ? hasNodeAttrMarkCellSelection(
         state.selection as CellSelection,
         "background"
@@ -139,7 +139,7 @@ export default function formattingMenuItems(
             name: "toggleCellSelectionBackgroundAndCollapseSelection",
             label: dictionary.none,
             icon: <DottedCircleIcon retainColor color="transparent" />,
-            active: () => (cellHasBackground ? false : true),
+            active: () => (cellSelectionHasBackground ? false : true),
             attrs: { color: null },
           },
         ],
