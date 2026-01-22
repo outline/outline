@@ -1,11 +1,9 @@
 import type { EditorState } from "prosemirror-state";
 import { Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import * as React from "react";
 import ReactDOM from "react-dom";
 import FileExtension from "../components/FileExtension";
-import { isRemoteTransaction } from "./multiplayer";
-import { recreateTransform } from "./prosemirror-recreate-transform";
+import { mapDecorations } from "./multiplayer";
 
 // based on the example at: https://prosemirror.net/examples/upload/
 const uploadPlaceholder = new Plugin({
@@ -14,29 +12,10 @@ const uploadPlaceholder = new Plugin({
       return DecorationSet.empty;
     },
     apply(tr, set: DecorationSet) {
-      let mapping = tr.mapping;
-
       // See if the transaction adds or removes any placeholders – the placeholder display is
       // different depending on if we're uploading an image, video or plain file
       const action = tr.getMeta(this);
-      const hasDecorations = set.find().length;
-
-      // Note: We always rebuild the mapping if the transaction comes from this plugin as otherwise
-      // with the default mapping decorations are wiped out when you upload multiple files at a time.
-      if (hasDecorations && (isRemoteTransaction(tr) || action)) {
-        try {
-          mapping = recreateTransform(tr.before, tr.doc, {
-            complexSteps: true,
-            wordDiffs: false,
-            simplifyDiff: true,
-          }).mapping;
-        } catch (err) {
-          // oxlint-disable-next-line no-console
-          console.warn("Failed to recreate transform: ", err);
-        }
-      }
-
-      set = set.map(mapping, tr.doc);
+      set = mapDecorations(set, tr, !!action);
 
       if (action?.add) {
         if (action.add.replaceExisting) {
