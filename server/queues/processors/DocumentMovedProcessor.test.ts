@@ -51,7 +51,7 @@ describe("DocumentMovedProcessor", () => {
         where: { documentId: childDocument.id, groupId: group.id },
       });
 
-      // tigger move event on childDocument
+      // trigger move event on childDocument
       const processor = new DocumentMovedProcessor();
       await processor.perform({
         name: "documents.move",
@@ -122,7 +122,7 @@ describe("DocumentMovedProcessor", () => {
         where: { documentId: doc2.id, groupId: group.id },
       });
 
-      // tigger move event on doc1
+      // trigger move event on doc1
       const processor = new DocumentMovedProcessor();
       await processor.perform({
         name: "documents.move",

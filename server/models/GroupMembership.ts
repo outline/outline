@@ -204,7 +204,7 @@ class GroupMembership extends ParanoidModel<
   @AfterCreate
   static async createSourcedMemberships(
     model: GroupMembership,
-    options: SaveOptions<UserMembership> & { documentId?: string }
+    options: SaveOptions<GroupMembership> & { documentId?: string }
   ) {
     if (model.sourceId || !model.documentId) {
       return;
@@ -326,7 +326,7 @@ class GroupMembership extends ParanoidModel<
    */
   static async recreateSourcedMemberships(
     model: GroupMembership,
-    options: SaveOptions<UserMembership> & { documentId?: string }
+    options: SaveOptions<GroupMembership> & { documentId?: string }
   ) {
     if (!model.documentId) {
       return;
