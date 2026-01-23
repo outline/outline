@@ -199,6 +199,14 @@ export const DocumentsSearchTitlesSchema = BaseSchema.extend({
   body: BaseSearchSchema.extend({
     /** Query for search */
     query: z.string().refine((val) => val.trim() !== ""),
+
+    /** Specifies the attributes by which search results will be sorted */
+    sort: z.enum(Object.values(SortFilter) as [string, ...string[]]).optional(),
+
+    /** Specifies the sort order with respect to sort field */
+    direction: z
+      .enum(Object.values(DirectionFilter) as [string, ...string[]])
+      .optional(),
   }),
 });
 

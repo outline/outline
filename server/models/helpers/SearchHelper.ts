@@ -254,11 +254,11 @@ export default class SearchHelper {
       });
     }
 
-    const findOptions = this.buildFindOptions(
+    const findOptions = this.buildFindOptions({
       query,
-      options.sort,
-      options.direction
-    );
+      sort: options.sort,
+      direction: options.direction,
+    });
 
     try {
       const resultsQuery = Document.unscoped().findAll({
@@ -364,7 +364,12 @@ export default class SearchHelper {
     }).findAll({
       where,
       subQuery: false,
-      order: [["updatedAt", "DESC"]],
+      order: [
+        [
+          options.sort ?? SortFilter.UpdatedAt,
+          options.direction ?? DirectionFilter.DESC,
+        ],
+      ],
       include,
       offset,
       limit,
@@ -408,11 +413,11 @@ export default class SearchHelper {
 
     const where = await this.buildWhere(user, options);
 
-    const findOptions = this.buildFindOptions(
+    const findOptions = this.buildFindOptions({
       query,
-      options.sort,
-      options.direction
-    );
+      sort: options.sort,
+      direction: options.direction,
+    });
 
     const include = [
       {
@@ -490,11 +495,15 @@ export default class SearchHelper {
     }
   }
 
-  private static buildFindOptions(
-    query?: string,
-    sort?: SortFilter,
-    direction?: DirectionFilter
-  ): FindOptions {
+  private static buildFindOptions({
+    query,
+    sort,
+    direction,
+  }: {
+    query?: string;
+    sort?: SortFilter;
+    direction?: DirectionFilter;
+  }): FindOptions {
     const attributes: FindAttributeOptions = ["id"];
     const replacements: BindOrReplacements = {};
     const order: Order = [];
@@ -519,7 +528,7 @@ export default class SearchHelper {
     const sortField = sort ?? SortFilter.UpdatedAt;
     const sortDirection = direction ?? DirectionFilter.DESC;
 
-    if (sortField === "title") {
+    if (sortField === SortFilter.Title) {
       order.push([
         Sequelize.fn("LOWER", Sequelize.col("title")),
         sortDirection,

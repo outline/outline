@@ -1014,8 +1014,15 @@ router.post(
   rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsSearchTitlesSchema),
   async (ctx: APIContext<T.DocumentsSearchTitlesReq>) => {
-    const { query, statusFilter, dateFilter, collectionId, userId } =
-      ctx.input.body;
+    const {
+      query,
+      statusFilter,
+      dateFilter,
+      collectionId,
+      userId,
+      sort,
+      direction,
+    } = ctx.input.body;
     const { offset, limit } = ctx.state.pagination;
     const { user } = ctx.state.auth;
     let collaboratorIds = undefined;
@@ -1039,6 +1046,8 @@ router.post(
       collaboratorIds,
       offset,
       limit,
+      sort: sort as SortFilter,
+      direction: direction as DirectionFilter,
     });
     const policies = presentPolicies(user, documents);
     const data = await Promise.all(
