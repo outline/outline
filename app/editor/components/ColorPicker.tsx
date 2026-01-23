@@ -5,9 +5,7 @@ import { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import { HexColorInput, HexAlphaColorPicker } from "react-colorful";
 import styled, { useTheme } from "styled-components";
 import { s } from "@shared/styles";
-import { darken, parseToRgb, transparentize } from "polished";
-import { rgbaToHex } from "@shared/utils/color";
-import type { RgbaColor } from "polished/lib/types/color";
+import { darken } from "polished";
 
 type Props = {
   onSelect: (color: string) => void;
@@ -15,9 +13,7 @@ type Props = {
   activeColor?: string | null;
 };
 
-const DEFAULT_COLOR = rgbaToHex(
-  parseToRgb(transparentize(0.3, "#000000")) as RgbaColor
-);
+const DEFAULT_COLOR = "#7e3d3db3";
 
 function ColorPicker({ activeColor, onSelect }: Props) {
   const [color, setColor] = useState(activeColor || DEFAULT_COLOR);
