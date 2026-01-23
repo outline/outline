@@ -58,6 +58,7 @@ import type { LightboxImage } from "@shared/editor/lib/Lightbox";
 import { LightboxImageFactory } from "@shared/editor/lib/Lightbox";
 import Lightbox from "~/components/Lightbox";
 import { anchorPlugin } from "@shared/editor/plugins/AnchorPlugin";
+
 export type Props = {
   /** An optional identifier for the editor context. It is used to persist local settings */
   id?: string;
