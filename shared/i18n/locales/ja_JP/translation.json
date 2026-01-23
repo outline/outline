@@ -1421,7 +1421,7 @@
   "Passkeys allow you to sign in safely without a password using your device's biometric authentication (Face ID, Touch ID, Windows Hello) or security key.": "Passkeys allow you to sign in safely without a password using your device's biometric authentication (Face ID, Touch ID, Windows Hello) or security key.",
   "Sign-in with Passkey is currently disabled for this team.": "Sign-in with Passkey is currently disabled for this team.",
   "Enable for all users in Settings -> Authentication.": "Enable for all users in Settings -> Authentication.",
-  "Contact a workspace admin to enable it.": "Contact a workspace admin to enable it.",
+  "Contact a workspace admin to enable it.": "有効にするにはワークスペース管理者にご連絡ください。",
   "You don't have any passkeys yet.": "You don't have any passkeys yet.",
   "Add to Slack": "Slack に追加",
   "document published": "ドキュメントを公開",
@@ -1481,7 +1481,7 @@
   "{{ user }} created {{ timeAgo }}": "{{ user }} が {{ timeAgo }} に作成しました",
   "Caption": "Caption",
   "Empty diagram": "Empty diagram",
-  "Double click to edit": "Double click to edit",
-  "Open": "Open",
+  "Double click to edit": "ダブルクリックで編集",
+  "Open": "開く",
   "Error loading data": "データ読込エラー"
 }
