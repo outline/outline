@@ -23,7 +23,6 @@ import {
 } from "outline-icons";
 import CellBackgroundColorPicker from "../components/CellBackgroundColorPicker";
 import type { EditorState } from "prosemirror-state";
-import styled from "styled-components";
 import Highlight from "@shared/editor/marks/Highlight";
 import { getMarksBetween } from "@shared/editor/queries/getMarksBetween";
 import { isInCode } from "@shared/editor/queries/isInCode";
@@ -47,6 +46,7 @@ import {
 } from "@shared/editor/queries/table";
 import { CellSelection } from "prosemirror-tables";
 import TableCell from "@shared/editor/nodes/TableCell";
+import { DottedCircleIcon } from "~/components/Icons/DottedCircleIcon";
 
 export default function formattingMenuItems(
   state: EditorState,
@@ -378,10 +378,3 @@ export default function formattingMenuItems(
     },
   ];
 }
-
-const DottedCircleIcon = styled(CircleIcon)`
-  circle {
-    stroke: ${(props) => props.theme.textSecondary};
-    stroke-dasharray: 2, 2;
-  }
-`;

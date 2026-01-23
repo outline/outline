@@ -9,7 +9,6 @@ import {
   TableMergeCellsIcon,
 } from "outline-icons";
 import type { EditorState } from "prosemirror-state";
-import styled from "styled-components";
 import { CellSelection, selectedRect } from "prosemirror-tables";
 import {
   getCellsInRow,
@@ -22,6 +21,7 @@ import { ArrowDownIcon, ArrowUpIcon } from "~/components/Icons/ArrowIcon";
 import CircleIcon from "~/components/Icons/CircleIcon";
 import CellBackgroundColorPicker from "../components/CellBackgroundColorPicker";
 import TableCell from "@shared/editor/nodes/TableCell";
+import { DottedCircleIcon } from "~/components/Icons/DottedCircleIcon";
 
 /**
  * Get the set of background colors used in a row
@@ -197,10 +197,3 @@ export default function tableRowMenuItems(
     },
   ];
 }
-
-const DottedCircleIcon = styled(CircleIcon)`
-  circle {
-    stroke: ${(props) => props.theme.textSecondary};
-    stroke-dasharray: 2, 2;
-  }
-`;
