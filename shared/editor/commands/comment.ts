@@ -7,6 +7,7 @@ import { chainTransactions } from "../lib/chainTransactions";
 import { addMark } from "./addMark";
 import { collapseSelection } from "./collapseSelection";
 import { chainCommands } from "prosemirror-commands";
+import { commentPluginKey } from "../plugins/OpenCommentsPlugin";
 
 export const addComment = (attrs: Attrs): Command =>
   chainCommands(addCommentTextSelection(attrs), addCommentNodeSelection(attrs));
@@ -44,9 +45,15 @@ const addCommentTextSelection =
 
       // Handle empty selection - open the sidebar
       if (state.selection.empty) {
-        view?.props.onOpenCommentsSidebar?.();
+      const pluginState = commentPluginKey.getState(state);
+      const callback = pluginState?.onOpenCommentsSidebar;
+      
+      if (callback) {
+        callback();
         return true;
       }
+      return false;
+    }
 
       if (
         isMarkActive(

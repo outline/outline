@@ -58,6 +58,7 @@ import type { LightboxImage } from "@shared/editor/lib/Lightbox";
 import { LightboxImageFactory } from "@shared/editor/lib/Lightbox";
 import Lightbox from "~/components/Lightbox";
 import { anchorPlugin } from "@shared/editor/plugins/AnchorPlugin";
+import { createCommentPlugin } from "@shared/editor/plugins/OpenCommentsPlugin";
 
 export type Props = {
   /** An optional identifier for the editor context. It is used to persist local settings */
@@ -420,6 +421,7 @@ export class Editor extends React.PureComponent<
           rules: this.inputRules,
         }),
         keymap(baseKeymap),
+        createCommentPlugin(this.props.onOpenCommentsSidebar)
       ],
     });
   }
@@ -470,7 +472,6 @@ export class Editor extends React.PureComponent<
       state: this.createState(this.props.value),
       editable: () => !this.props.readOnly,
       nodeViews: this.nodeViews,
-      onOpenCommentsSidebar: this.props.onOpenCommentsSidebar,
       dispatchTransaction(this: EditorView, transaction) {
         if (this.isDestroyed) {
           return;
