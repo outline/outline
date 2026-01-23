@@ -176,6 +176,7 @@ class ApiClient {
       if (!this.shareId) {
         await stores.auth.logout({
           savePath: true,
+          clearCache: false,
           revokeToken: false,
         });
       }
