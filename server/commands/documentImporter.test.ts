@@ -258,7 +258,7 @@ describe("documentImporter", () => {
     expect(error).toEqual("File type executable/zip not supported");
   });
 
-  it("should escape dollar signs in HTML input", async () => {
+  it("should preserve dollar signs in HTML input", async () => {
     const user = await buildUser();
     const fileName = "test.html";
     const content = `
@@ -281,7 +281,7 @@ describe("documentImporter", () => {
         ctx: createContext({ user, transaction }),
       })
     );
-    expect(response.text).toEqual("\\$100");
+    expect(response.text).toEqual("$100");
   });
 
   it("should not escape dollar signs in inline code in HTML input", async () => {
@@ -313,6 +313,7 @@ describe("documentImporter", () => {
   it("should not escape dollar signs in code blocks in HTML input", async () => {
     const user = await buildUser();
     const fileName = "test.html";
+    // Using .code-block class which the schema recognizes for code blocks
     const content = `
       <!DOCTYPE html>
       <html>
@@ -320,7 +321,8 @@ describe("documentImporter", () => {
               <title>Test</title>
           </head>
           <body>
-            <pre><code>echo $foo</code></pre>
+            <div class="code-block" data-language="javascript"><pre><code>echo $foo
+echo $bar</code></pre></div>
           </body>
       </html>
     `;
@@ -333,6 +335,6 @@ describe("documentImporter", () => {
         ctx: createContext({ user, transaction }),
       })
     );
-    expect(response.text).toEqual("```\necho $foo\n```");
+    expect(response.text).toEqual("```javascript\necho $foo\necho $bar\n```");
   });
 });

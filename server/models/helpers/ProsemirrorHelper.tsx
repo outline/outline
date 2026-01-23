@@ -1,3 +1,4 @@
+import emojiRegex from "emoji-regex";
 import { JSDOM } from "jsdom";
 import compact from "lodash/compact";
 import { EditorState } from "prosemirror-state";
@@ -5,7 +6,11 @@ import { EditorView } from "prosemirror-view";
 import flatten from "lodash/flatten";
 import isMatch from "lodash/isMatch";
 import uniq from "lodash/uniq";
-import { Node, Fragment } from "prosemirror-model";
+import {
+  Node,
+  Fragment,
+  DOMParser as ProsemirrorDOMParser,
+} from "prosemirror-model";
 import { renderToString } from "react-dom/server";
 import styled, { ServerStyleSheet, ThemeProvider } from "styled-components";
 import { prosemirrorToYDoc } from "y-prosemirror";
@@ -686,6 +691,144 @@ export class ProsemirrorHelper {
     }
 
     return transformMentions(json);
+  }
+
+  /**
+   * Removes the first heading from the document if it is an H1.
+   *
+   * @param doc The Prosemirror document node.
+   * @returns A new document with the first H1 removed, or the original if no H1 found.
+   */
+  static removeFirstHeading(doc: Node): Node {
+    const firstChild = doc.firstChild;
+
+    if (
+      firstChild &&
+      firstChild.type.name === "heading" &&
+      firstChild.attrs.level === 1
+    ) {
+      const content: Node[] = [];
+      doc.forEach((node, _offset, index) => {
+        if (index > 0) {
+          content.push(node);
+        }
+      });
+
+      // If removing the heading leaves an empty document, return a doc with empty paragraph
+      if (content.length === 0) {
+        return doc.type.create(null, schema.nodes.paragraph.create());
+      }
+
+      return doc.copy(Fragment.fromArray(content));
+    }
+
+    return doc;
+  }
+
+  /**
+   * Extracts an emoji from the beginning of the document's first text content.
+   * If found, returns the emoji and a new document with the emoji removed.
+   *
+   * @param doc The Prosemirror document node.
+   * @returns An object with the extracted emoji (or undefined) and the modified document.
+   */
+  static extractEmojiFromStart(doc: Node): { emoji?: string; doc: Node } {
+    // Get the text content from the beginning of the document
+    let textContent = "";
+    let foundTextNode: Node | null = null;
+    let foundTextPos = -1;
+
+    doc.descendants((node, pos) => {
+      if (foundTextNode) {
+        return false;
+      }
+      if (node.isText && node.text) {
+        textContent = node.text;
+        foundTextNode = node;
+        foundTextPos = pos;
+        return false;
+      }
+      return true;
+    });
+
+    if (!textContent) {
+      return { doc };
+    }
+
+    const regex = emojiRegex();
+    const match = regex.exec(textContent.slice(0, 10));
+
+    if (!match || match.index !== 0) {
+      return { doc };
+    }
+
+    const emoji = match[0];
+
+    // Create a new document with the emoji removed from the text
+    const json = doc.toJSON();
+
+    function removeEmojiFromNode(node: any): any {
+      if (node.type === "text" && node.text && node.text.startsWith(emoji)) {
+        return {
+          ...node,
+          text: node.text.slice(emoji.length),
+        };
+      }
+      if (node.content) {
+        let found = false;
+        return {
+          ...node,
+          content: node.content.map((child: any) => {
+            if (found) {
+              return child;
+            }
+            const result = removeEmojiFromNode(child);
+            if (result !== child) {
+              found = true;
+            }
+            return result;
+          }),
+        };
+      }
+      return node;
+    }
+
+    const modifiedJson = removeEmojiFromNode(json);
+    return {
+      emoji,
+      doc: Node.fromJSON(schema, modifiedJson),
+    };
+  }
+
+  /**
+   * Convert HTML content directly to a Prosemirror document node.
+   *
+   * @param content The HTML content as a string or Buffer.
+   * @returns A Prosemirror Node representing the document.
+   */
+  public static htmlToProsemirror(content: Buffer | string): Node {
+    if (typeof content !== "string") {
+      content = content.toString("utf8");
+    }
+
+    const dom = new JSDOM(content);
+    const document = dom.window.document;
+
+    // Remove problematic elements before parsing
+    const elementsToRemove = document.querySelectorAll(
+      "script, style, title, head, meta, link"
+    );
+    elementsToRemove.forEach((el) => el.remove());
+
+    // Patch global environment for Prosemirror DOMParser
+    const cleanup = this.patchGlobalEnv(dom.window);
+
+    try {
+      const domParser = ProsemirrorDOMParser.fromSchema(schema);
+      return domParser.parse(document.body);
+    } finally {
+      cleanup();
+    }
   }
 
   /**

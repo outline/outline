@@ -2,7 +2,9 @@ import emojiRegex from "emoji-regex";
 import mime from "mime-types";
 import truncate from "lodash/truncate";
 import parseTitle from "@shared/utils/parseTitle";
+import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { DocumentValidation } from "@shared/validations";
+import { serializer } from "@server/editor";
 import { traceFunction } from "@server/logging/tracing";
 import type { User } from "@server/models";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
@@ -31,12 +33,6 @@ async function documentImporter({
   title: string;
   state: Buffer;
 }> {
-  let text = await DocumentConverter.convertToMarkdown(
-    content,
-    fileName,
-    mimeType
-  );
-
   // find valid extensions and remove them from the title
   const extensions = [
     "docx",
@@ -48,6 +44,54 @@ async function documentImporter({
   let title = fileName.replace(
     new RegExp(`\\.(${extensions.join("|")})$`, "i"),
     ""
+  );
+
+  // Check if this is an HTML import
+  const isHtml = mimeType === "text/html" || fileName.endsWith(".html");
+
+  if (isHtml) {
+    // Direct HTML to Prosemirror conversion path
+    let doc = DocumentConverter.htmlToProsemirror(content);
+
+    // Extract title from first H1 if present
+    const headings = SharedProsemirrorHelper.getHeadings(doc);
+    if (headings.length > 0 && headings[0].level === 1) {
+      title = headings[0].title;
+      doc = ProsemirrorHelper.removeFirstHeading(doc);
+    }
+
+    // Extract emoji from start of document
+    const { emoji: icon, doc: docWithoutEmoji } =
+      ProsemirrorHelper.extractEmojiFromStart(doc);
+    doc = docWithoutEmoji;
+
+    // Replace external images with attachments
+    doc = await TextHelper.replaceImagesWithAttachmentsInNode(ctx, doc, user);
+
+    // Serialize to markdown for text field
+    const text = serializer.serialize(doc);
+
+    // It's better to truncate particularly long titles than fail the import
+    title = truncate(title, { length: DocumentValidation.maxTitleLength });
+
+    // Convert to Y.Doc for state field
+    const ydoc = ProsemirrorHelper.toYDoc(doc.toJSON());
+    const state = ProsemirrorHelper.toState(ydoc);
+
+    if (state.length > DocumentValidation.maxStateLength) {
+      throw InvalidRequestError(
+        `The document "${title}" is too large to import, please reduce the length and try again`
+      );
+    }
+
+    return { text, state, title, icon };
+  }
+
+  // Existing path for other formats (docx, md, csv, etc.)
+  let text = await DocumentConverter.convertToMarkdown(
+    content,
+    fileName,
+    mimeType
   );
 
   // find and extract emoji near the beginning of the document.
