@@ -73,6 +73,11 @@ export default class Comment extends Mark {
     return this.options.onCreateCommentMark
       ? {
           "Mod-Alt-m": (state, dispatch) => {
+            // Handle empty selection - open sidebar
+          if (state.selection.empty && this.options.onOpenCommentsSidebar) {
+            this.options.onOpenCommentsSidebar();
+            return true;
+          }
             if (
               isMarkActive(state.schema.marks.comment, {
                 resolved: false,
@@ -98,7 +103,9 @@ export default class Comment extends Mark {
 
   commands() {
     return this.options.onCreateCommentMark
-      ? (): Command => addComment({ userId: this.options.userId })
+      ? (): Command => addComment({ userId: this.options.userId,
+        onOpenCommentsSidebar: this.options.onOpenCommentsSidebar 
+      })
       : undefined;
   }
 
