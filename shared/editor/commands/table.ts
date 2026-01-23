@@ -38,6 +38,7 @@ import { RowSelection } from "../selection/RowSelection";
 import { ColumnSelection } from "../selection/ColumnSelection";
 import type { Attrs } from "prosemirror-model";
 import isUndefined from "lodash/isUndefined";
+import find from "lodash/find";
 
 export function createTable({
   rowsCount,
@@ -827,21 +828,6 @@ export function mergeCellsAndCollapse(): Command {
   return chainTransactions(mergeCells, collapseSelection());
 }
 
-const createCellBackground = (
-  cell: Node,
-  pos: number,
-  attrs: Attrs,
-  tr: Transaction
-): Transaction => {
-  const existingMarks = cell.attrs.marks ?? [];
-  const newMark = {
-    type: "background",
-    attrs,
-  };
-  const updatedMarks = [...existingMarks, newMark];
-  return tr.setNodeAttribute(pos, "marks", updatedMarks);
-};
-
 const updateCellBackground = (
   cell: Node,
   pos: number,
@@ -849,11 +835,14 @@ const updateCellBackground = (
   tr: Transaction
 ): Transaction => {
   const existingMarks = cell.attrs.marks ?? [];
-  const updatedMarks = existingMarks.map((mark: NodeAttrMark) =>
-    mark.type === "background"
-      ? { ...mark, attrs: { ...mark.attrs, ...attrs } }
-      : mark
-  );
+  const backgroundMark = find(existingMarks, (m) => m.type === "background");
+  const updatedMarks = !backgroundMark
+    ? [...existingMarks, { type: "background", attrs }]
+    : existingMarks.map((mark: NodeAttrMark) =>
+        mark.type === "background"
+          ? { ...mark, attrs: { ...mark.attrs, ...attrs } }
+          : mark
+      );
   return tr.setNodeAttribute(pos, "marks", updatedMarks);
 };
 
@@ -900,15 +889,10 @@ export const toggleCellSelectionBackground =
 
     let tr = state.tr;
     state.selection.forEachCell((cell, pos) => {
-      const hasBackground = (cell.attrs.marks ?? []).find(
-        (mark: NodeAttrMark) => mark.type === "background"
-      );
-      if (!hasBackground && color) {
-        tr = createCellBackground(cell, pos, { color }, tr);
-      } else if (hasBackground && color) {
-        tr = updateCellBackground(cell, pos, { color }, tr);
-      } else {
+      if (color === null) {
         tr = removeCellBackground(cell, pos, tr);
+      } else {
+        tr = updateCellBackground(cell, pos, { color }, tr);
       }
     });
 
@@ -947,16 +931,10 @@ export function toggleRowBackground({
           return;
         }
 
-        const hasBackground = (node.attrs.marks ?? []).find(
-          (mark: NodeAttrMark) => mark.type === "background"
-        );
-
         if (color === null) {
           tr = removeCellBackground(node, pos, tr);
-        } else if (hasBackground) {
-          tr = updateCellBackground(node, pos, { color }, tr);
         } else {
-          tr = createCellBackground(node, pos, { color }, tr);
+          tr = updateCellBackground(node, pos, { color }, tr);
         }
       });
 
@@ -1006,16 +984,10 @@ export function toggleColumnBackground({
           return;
         }
 
-        const hasBackground = (node.attrs.marks ?? []).find(
-          (mark: NodeAttrMark) => mark.type === "background"
-        );
-
         if (color === null) {
           tr = removeCellBackground(node, pos, tr);
-        } else if (hasBackground) {
-          tr = updateCellBackground(node, pos, { color }, tr);
         } else {
-          tr = createCellBackground(node, pos, { color }, tr);
+          tr = updateCellBackground(node, pos, { color }, tr);
         }
       });
 
