@@ -2,10 +2,12 @@ import copy from "copy-to-clipboard";
 import debounce from "lodash/debounce";
 import { CheckmarkIcon, CopyIcon } from "outline-icons";
 import { useMemo, useState, useEffect, useRef, useCallback } from "react";
-import { HexColorPicker, HexColorInput } from "react-colorful";
+import { HexColorInput, HexAlphaColorPicker } from "react-colorful";
 import styled, { useTheme } from "styled-components";
 import { s } from "@shared/styles";
-import { darken } from "polished";
+import { darken, parseToRgb, transparentize } from "polished";
+import { rgbaToHex } from "@shared/utils/color";
+import type { RgbaColor } from "polished/lib/types/color";
 
 type Props = {
   onSelect: (color: string) => void;
@@ -13,8 +15,12 @@ type Props = {
   activeColor?: string | null;
 };
 
+const DEFAULT_COLOR = rgbaToHex(
+  parseToRgb(transparentize(0.3, "#000000")) as RgbaColor
+);
+
 function ColorPicker({ activeColor, onSelect }: Props) {
-  const [color, setColor] = useState(activeColor || "");
+  const [color, setColor] = useState(activeColor || DEFAULT_COLOR);
   const [copied, setCopied] = useState(false);
   const theme = useTheme();
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -65,12 +71,16 @@ function ColorPicker({ activeColor, onSelect }: Props) {
 
   return (
     <Wrapper ref={wrapperRef} tabIndex={-1}>
-      <StyledHexColorPicker color={color} onChange={handleColorChangePicker} />
+      <StyledHexAlphaColorPicker
+        color={color}
+        onChange={handleColorChangePicker}
+      />
       <InputRow>
         <StyledHexColorInput
           color={color}
           onChange={handleColorChangeInput}
           prefixed
+          alpha
         />
         <CopyButton ref={buttonRef} onClick={handleCopy} type="button">
           {copied ? (
@@ -88,13 +98,12 @@ const Wrapper = styled.div`
   padding: 8px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 16px;
 `;
 
-const StyledHexColorPicker = styled(HexColorPicker)`
+const StyledHexAlphaColorPicker = styled(HexAlphaColorPicker)`
   &.react-colorful {
     width: auto;
-    height: 150px;
 
     & > .react-colorful__saturation {
       border-radius: 4px 4px 0 0;
@@ -112,6 +121,12 @@ const StyledHexColorPicker = styled(HexColorPicker)`
     & > .react-colorful__hue {
       height: 8px;
       border-radius: 0 0 4px 4px;
+      margin-bottom: 16px;
+    }
+
+    & > .react-colorful__alpha {
+      height: 8px;
+      border-radius: 4px;
     }
   }
 `;

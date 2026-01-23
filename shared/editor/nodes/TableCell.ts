@@ -11,10 +11,14 @@ import { TableMap } from "prosemirror-tables";
 import { getCellAttrs, setCellAttrs } from "../lib/table";
 import Node from "./Node";
 import { presetColorNames, presetColors } from "../presetColors";
-import { transparentize } from "polished";
+import { parseToRgb, transparentize } from "polished";
+import { rgbaToHex } from "@shared/utils/color";
+import type { RgbaColor } from "polished/lib/types/color";
 
 export default class TableCell extends Node {
-  static presetColors = presetColors.map((color) => transparentize(0.3, color));
+  static presetColors = presetColors.map((color) =>
+    rgbaToHex(parseToRgb(transparentize(0.3, color)) as RgbaColor)
+  );
 
   static presetColorNames = presetColorNames;
 
