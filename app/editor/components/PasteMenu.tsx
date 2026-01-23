@@ -50,6 +50,20 @@ export const PasteMenu = observer(({ pastedText, embeds, ...props }: Props) => {
   );
 });
 
+/** Find integration for a URL if it's mentionable */
+function findIntegrationForUrl(
+  text: string,
+  integrations: { find: (fn: (i: Integration) => boolean) => Integration | undefined }
+): Integration | undefined {
+  if (!isUrl(text)) {
+    return undefined;
+  }
+  const url = new URL(text);
+  return integrations.find((intg: Integration) =>
+    isURLMentionable({ url, integration: intg })
+  );
+}
+
 function useItems({
   pastedText,
   embeds,
@@ -60,17 +74,18 @@ function useItems({
 
   // single item is pasted.
   if (typeof pastedText === "string") {
+    const integration = findIntegrationForUrl(pastedText, integrations);
     let mentionType: MentionType | undefined;
 
-    if (pastedText && isUrl(pastedText)) {
-      const url = new URL(pastedText);
-      const integration = integrations.find((intg: Integration) =>
-        isURLMentionable({ url, integration: intg })
-      );
-
+    try {
       mentionType = integration
-        ? determineMentionType({ url, integration })
-        : MentionType.URL;
+        ? determineMentionType({ url: new URL(pastedText), integration })
+        : isUrl(pastedText)
+          ? MentionType.URL
+          : undefined;
+    } catch {
+      // Invalid URL, skip mention type detection
+      mentionType = undefined;
     }
 
     const embed = getMatchingEmbed(embeds, pastedText)?.embed;
@@ -99,7 +114,7 @@ function useItems({
       {
         name: "embed",
         title: t("Embed"),
-        visible: !!embed,
+        visible: !!embed && !integration?.shouldHideEmbed,
         icon: embed?.icon,
         keywords: embed?.keywords,
       },
@@ -108,6 +123,15 @@ function useItems({
 
   // list is pasted.
 
+  // Cache integration lookups to avoid redundant URL parsing
+  const integrationCache = new Map<string, Integration | undefined>();
+  const getIntegration = (text: string) => {
+    if (!integrationCache.has(text)) {
+      integrationCache.set(text, findIntegrationForUrl(text, integrations));
+    }
+    return integrationCache.get(text);
+  };
+
   // Check if the links can be converted to mentions.
   const linksToMentionType: Record<string, MentionType> = {};
   const convertibleToMentionList = pastedText.every((text) => {
@@ -115,20 +139,21 @@ function useItems({
       return false;
     }
 
-    const url = new URL(text);
-    const integration = integrations.find((intg: Integration) =>
-      isURLMentionable({ url, integration: intg })
-    );
+    try {
+      const integration = getIntegration(text);
+      const mentionType = integration
+        ? determineMentionType({ url: new URL(text), integration })
+        : MentionType.URL;
 
-    const mentionType = integration
-      ? determineMentionType({ url, integration })
-      : MentionType.URL;
+      if (mentionType) {
+        linksToMentionType[text] = mentionType;
+      }
 
-    if (mentionType) {
-      linksToMentionType[text] = mentionType;
+      return !!mentionType;
+    } catch {
+      // Invalid URL, skip this item
+      return false;
     }
-
-    return !!mentionType;
   });
 
   // Check if the links can be converted to embeds.
@@ -144,6 +169,11 @@ function useItems({
     embedType = !embedType || embedType === embed.title ? embed.title : "mixed";
     return true;
   });
+
+  // Check if any URL has shouldHideEmbed enabled
+  const hasHiddenEmbed = pastedText.some(
+    (text) => getIntegration(text)?.shouldHideEmbed
+  );
 
   const embedIcon =
     embedType === "mixed" ? (
@@ -173,7 +203,7 @@ function useItems({
     {
       name: "embed_list",
       title: t("Embed"),
-      visible: !!convertibleToEmbedList,
+      visible: !!convertibleToEmbedList && !hasHiddenEmbed,
       icon: embedIcon,
       attrs: { actorId: user?.id },
     },

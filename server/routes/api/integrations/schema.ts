@@ -98,6 +98,19 @@ export const IntegrationsUpdateSchema = BaseSchema.extend({
         })
       )
       .or(z.object({ serviceTeamId: z.string() }))
+      .or(
+        z.object({
+          linear: z.object({
+            workspace: z.object({
+              id: z.string(),
+              name: z.string(),
+              key: z.string(),
+              logoUrl: z.string().url().optional(),
+            }),
+            hideEmbedOption: z.boolean().optional(),
+          }),
+        })
+      )
       .optional(),
 
     /** Integration events */

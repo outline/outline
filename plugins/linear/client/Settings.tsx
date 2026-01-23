@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import { toast } from "sonner";
 import { IntegrationService } from "@shared/types";
 import { ConnectedButton } from "~/scenes/Settings/components/ConnectedButton";
 import { IntegrationScene } from "~/scenes/Settings/components/IntegrationScene";
@@ -12,6 +13,7 @@ import List from "~/components/List";
 import ListItem from "~/components/List/Item";
 import Notice from "~/components/Notice";
 import PlaceholderText from "~/components/PlaceholderText";
+import Switch from "~/components/Switch";
 import TeamLogo from "~/components/TeamLogo";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
@@ -125,6 +127,45 @@ function Linear() {
                   );
                 })}
               </List>
+              <Switch
+                label={t("Hide embed option")}
+                note={t("Hide 'Embed' in paste menu for Linear links")}
+                checked={integrations.linear.some(
+                  (i) => i.settings?.linear?.hideEmbedOption
+                )}
+                onChange={async (checked: boolean) => {
+                  try {
+                    await Promise.all(
+                      integrations.linear.map((integration) => {
+                        const workspace =
+                          integration.settings?.linear?.workspace;
+                        if (!workspace) {
+                          return Promise.resolve();
+                        }
+                        const newSettings = {
+                          ...integration.settings,
+                          linear: {
+                            workspace,
+                            hideEmbedOption: checked,
+                          },
+                        };
+                        integration.settings = newSettings;
+                        return integration.save({
+                          settings: newSettings,
+                          events: integration.events ?? [],
+                        });
+                      })
+                    );
+                    toast.success(t("Settings saved"));
+                  } catch (error) {
+                    toast.error(
+                      error instanceof Error
+                        ? error.message
+                        : t("Failed to save settings")
+                    );
+                  }
+                }}
+              />
             </>
           ) : (
             <p>

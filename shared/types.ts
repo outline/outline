@@ -197,6 +197,7 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
       };
       linear?: {
         workspace: { id: string; name: string; key: string; logoUrl?: string };
+        hideEmbedOption?: boolean;
       };
       diagrams?: {
         url: string;
