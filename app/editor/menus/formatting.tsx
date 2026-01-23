@@ -207,7 +207,7 @@ export default function formattingMenuItems(
                 label: dictionary.none,
                 icon: <DottedCircleIcon retainColor color="transparent" />,
                 active: () => false,
-                attrs: { color: null },
+                attrs: { color: highlight.mark.attrs.color },
               },
             ]
           : []),
