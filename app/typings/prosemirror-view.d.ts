@@ -11,10 +11,4 @@ declare module "prosemirror-view" {
     plainText: boolean,
     $context: ResolvedPos
   );
-  interface DirectEditorProps {
-    /**
-     * Callback when comments sidebar should be opened without selection
-     */
-    onOpenCommentsSidebar?: () => void;
-  }
 }
