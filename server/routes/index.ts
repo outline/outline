@@ -157,7 +157,7 @@ router.get("*", async (ctx, next) => {
   if (env.isCloudHosted) {
     // Redirect to main domain if no team is found
     if (!team || team.isSuspended) {
-      if (ctx.hostname !== parseDomain(env.URL).host) {
+      if (env.isProduction && ctx.hostname !== parseDomain(env.URL).host) {
         ctx.redirect(env.URL);
         return;
       }
