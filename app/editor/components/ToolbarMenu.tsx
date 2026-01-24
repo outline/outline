@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import * as Toolbar from "@radix-ui/react-toolbar";
@@ -22,14 +22,22 @@ type Props = {
   items: MenuItem[];
 };
 
-/*
+type ToolbarDropdownProps = {
+  active: boolean;
+  item: MenuItem;
+  tooltip?: string;
+  shortcut?: string;
+};
+
+/**
  * Renders a dropdown menu in the floating toolbar.
  */
-function ToolbarDropdown(props: { active: boolean; item: MenuItem }) {
+function ToolbarDropdown(props: ToolbarDropdownProps) {
   const { commands, view } = useEditor();
   const { t } = useTranslation();
-  const { item } = props;
+  const { item, tooltip, shortcut } = props;
   const { state } = view;
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const items: TMenuItem[] = useMemo(() => {
     const handleClick = (menuItem: MenuItem) => () => {
@@ -72,23 +80,25 @@ function ToolbarDropdown(props: { active: boolean; item: MenuItem }) {
   }, []);
 
   return (
-    <MenuProvider variant="dropdown">
-      <Menu>
-        <MenuTrigger>
-          <ToolbarButton aria-label={item.label ? undefined : item.tooltip}>
-            {item.label && <Label>{item.label}</Label>}
-            {item.icon}
-          </ToolbarButton>
-        </MenuTrigger>
-        <MenuContent
-          align="end"
-          aria-label={item.tooltip || t("More options")}
-          onCloseAutoFocus={handleCloseAutoFocus}
-        >
-          <EventBoundary>{toMenuItems(items)}</EventBoundary>
-        </MenuContent>
-      </Menu>
-    </MenuProvider>
+    <Tooltip shortcut={shortcut} content={tooltip} disabled={isMenuOpen}>
+      <MenuProvider variant="dropdown">
+        <Menu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+          <MenuTrigger>
+            <ToolbarButton aria-label={item.label ? undefined : item.tooltip}>
+              {item.label && <Label>{item.label}</Label>}
+              {item.icon}
+            </ToolbarButton>
+          </MenuTrigger>
+          <MenuContent
+            align="end"
+            aria-label={item.tooltip || t("More options")}
+            onCloseAutoFocus={handleCloseAutoFocus}
+          >
+            <EventBoundary>{toMenuItems(items)}</EventBoundary>
+          </MenuContent>
+        </Menu>
+      </MenuProvider>
+    </Tooltip>
   );
 }
 
@@ -127,6 +137,20 @@ function ToolbarMenu(props: Props) {
             }
             const isActive = item.active ? item.active(state) : false;
 
+            if (item.children) {
+              return (
+                <ToolbarDropdown
+                  key={index}
+                  active={isActive && !item.label}
+                  item={item}
+                  tooltip={
+                    item.label === item.tooltip ? undefined : item.tooltip
+                  }
+                  shortcut={item.shortcut}
+                />
+              );
+            }
+
             return (
               <Tooltip
                 key={index}
@@ -135,11 +159,6 @@ function ToolbarMenu(props: Props) {
               >
                 {item.name === "dimensions" ? (
                   <MediaDimension key={index} />
-                ) : item.children ? (
-                  <ToolbarDropdown
-                    active={isActive && !item.label}
-                    item={item}
-                  />
                 ) : (
                   <Toolbar.Button asChild>
                     <ToolbarButton
