@@ -41,6 +41,9 @@ const addCommentTextSelection =
     if (!(state.selection instanceof TextSelection)) {
       return false;
     }
+    if (state.selection.empty) {
+      return false;
+    }
 
     if (
       isMarkActive(
