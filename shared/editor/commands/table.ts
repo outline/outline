@@ -742,12 +742,62 @@ export function deleteCellSelection(
 }
 
 /**
- * A command that splits a cell and collapses the selection.
+ * A command that splits the first merged cell found in the selection and
+ * collapses the selection. Works with both single cell and multi-cell selections.
  *
  * @returns The command
  */
 export function splitCellAndCollapse(): Command {
-  return chainTransactions(splitCell, collapseSelection());
+  return (state, dispatch) => {
+    if (!isInTable(state)) {
+      return false;
+    }
+
+    const { selection } = state;
+
+    // Handle CellSelection (including RowSelection and ColumnSelection which extend it)
+    if (
+      selection instanceof CellSelection ||
+      selection instanceof RowSelection ||
+      selection instanceof ColumnSelection
+    ) {
+      // Find the first merged cell in the selection
+      let mergedCellPos: number | null = null;
+      selection.forEachCell((cell, pos) => {
+        if (
+          mergedCellPos === null &&
+          (cell.attrs.colspan > 1 || cell.attrs.rowspan > 1)
+        ) {
+          mergedCellPos = pos;
+        }
+      });
+
+      // If no merged cell found, nothing to split
+      if (mergedCellPos === null) {
+        return false;
+      }
+
+      if (dispatch) {
+        // Create a CellSelection for the merged cell and apply splitCell
+        const $cell = state.doc.resolve(mergedCellPos);
+        const cellSelection = new CellSelection($cell);
+        const stateWithCellSelection = state.apply(
+          state.tr.setSelection(cellSelection)
+        );
+
+        // Apply splitCell and collapse
+        chainTransactions(splitCell, collapseSelection())(
+          stateWithCellSelection,
+          dispatch
+        );
+      }
+
+      return true;
+    }
+
+    // Fallback to standard splitCell for non-cell selections
+    return chainTransactions(splitCell, collapseSelection())(state, dispatch);
+  };
 }
 
 /**
