@@ -19,7 +19,6 @@ type LocationState = {
   restore?: boolean;
   revisionId?: string;
   sidebarContext?: SidebarContextType;
-  searchTerm?: string;
 };
 
 type Props = RouteComponentProps<Params, StaticContext, LocationState>;
