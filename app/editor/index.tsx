@@ -119,6 +119,8 @@ export type Props = {
   onCreateCommentMark?: (commentId: string, userId: string) => void;
   /** Callback when a comment mark is removed */
   onDeleteCommentMark?: (commentId: string) => void;
+  /** Callback when comments sidebar should be opened */
+  onOpenCommentsSidebar?: () => void;
   /** Callback when a file upload begins */
   onFileUploadStart?: () => void;
   /** Callback when a file upload ends */
