@@ -22,7 +22,6 @@ export enum StatusFilter {
 }
 
 export enum SortFilter {
-  Relevance = "searchRanking",
   CreatedAt = "createdAt",
   UpdatedAt = "updatedAt",
   Title = "title",

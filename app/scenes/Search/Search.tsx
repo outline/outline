@@ -162,6 +162,11 @@ function Search() {
     sort?: string | undefined;
     direction?: string | undefined;
   }) => {
+    if (search.sort === "relevance") {
+      search.sort = undefined;
+      search.direction = undefined;
+    }
+
     history.replace({
       pathname: location.pathname,
       search: queryString.stringify(

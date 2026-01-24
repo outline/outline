@@ -366,7 +366,7 @@ export default class SearchHelper {
       subQuery: false,
       order: [
         [
-          options.sort ?? SortFilter.Relevance,
+          options.sort ?? SortFilter.UpdatedAt,
           options.direction ?? DirectionFilter.DESC,
         ],
       ],
@@ -521,7 +521,7 @@ export default class SearchHelper {
     }
 
     // Apply custom sort or default to updatedAt DESC
-    const sortField = sort ?? SortFilter.Relevance;
+    const sortField = sort ?? SortFilter.UpdatedAt;
     const sortDirection = direction ?? DirectionFilter.DESC;
 
     if (sortField === SortFilter.Title) {
@@ -534,7 +534,7 @@ export default class SearchHelper {
     }
 
     // Always prioritize search ranking as a secondary sort criterion
-    if (query && sort !== SortFilter.Relevance) {
+    if (query) {
       order.push(["searchRanking", "DESC"]);
     }
 

@@ -17,7 +17,7 @@ const SortFilter = ({ sort, direction, onSelect }: Props) => {
   const options = useMemo(
     () => [
       {
-        key: "searchRanking-DESC",
+        key: "relevance-DESC",
         label: t("Relevance"),
       },
       {
@@ -49,7 +49,7 @@ const SortFilter = ({ sort, direction, onSelect }: Props) => {
   );
 
   const selectedKey =
-    sort && direction ? `${sort}-${direction}` : "searchRanking-DESC";
+    sort && direction ? `${sort}-${direction}` : "relevance-DESC";
 
   const handleSelect = (key: string) => {
     const [sortField, sortDirection] = key.split("-");
