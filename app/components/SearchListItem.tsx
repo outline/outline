@@ -53,6 +53,7 @@ function DocumentListItem(
         pathname: shareId
           ? sharedModelPath(shareId, document.url)
           : document.url,
+        search: highlight ? `?q=${encodeURIComponent(highlight)}` : undefined,
         state: {
           title: document.titleWithDefault,
         },

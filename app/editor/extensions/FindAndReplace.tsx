@@ -147,6 +147,8 @@ export default class FindAndReplaceExtension extends Extension {
       this.currentResultIndex = 0;
 
       dispatch?.(state.tr.setMeta(pluginKey, {}));
+      this.scrollToCurrentMatch();
+
       return true;
     };
   }
@@ -192,18 +194,21 @@ export default class FindAndReplaceExtension extends Extension {
       }
 
       dispatch?.(state.tr.setMeta(pluginKey, {}));
-
-      const element = window.document.querySelector(
-        `.${this.options.resultCurrentClassName}`
-      );
-      if (element) {
-        scrollIntoView(element, {
-          scrollMode: "if-needed",
-          block: "center",
-        });
-      }
+      this.scrollToCurrentMatch();
       return true;
     };
+  }
+
+  private scrollToCurrentMatch() {
+    const element = window.document.querySelector(
+      `.${this.options.resultCurrentClassName}`
+    );
+    if (element) {
+      scrollIntoView(element, {
+        scrollMode: "if-needed",
+        block: "center",
+      });
+    }
   }
 
   private rebaseNextResult(replace: string, index: number, lastOffset = 0) {
