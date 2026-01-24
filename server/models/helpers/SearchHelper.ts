@@ -366,7 +366,7 @@ export default class SearchHelper {
       subQuery: false,
       order: [
         [
-          options.sort ?? SortFilter.UpdatedAt,
+          options.sort ?? SortFilter.Relevance,
           options.direction ?? DirectionFilter.DESC,
         ],
       ],
@@ -518,14 +518,10 @@ export default class SearchHelper {
         "searchRanking",
       ]);
       replacements["query"] = this.webSearchQuery(query);
-      // Only prioritize search ranking if no custom sort is specified
-      if (!sort) {
-        order.push(["searchRanking", "DESC"]);
-      }
     }
 
     // Apply custom sort or default to updatedAt DESC
-    const sortField = sort ?? SortFilter.UpdatedAt;
+    const sortField = sort ?? SortFilter.Relevance;
     const sortDirection = direction ?? DirectionFilter.DESC;
 
     if (sortField === SortFilter.Title) {
@@ -535,6 +531,11 @@ export default class SearchHelper {
       ]);
     } else {
       order.push([sortField, sortDirection]);
+    }
+
+    // Always prioritize search ranking as a secondary sort criterion
+    if (query && sort !== SortFilter.Relevance) {
+      order.push(["searchRanking", "DESC"]);
     }
 
     return { attributes, replacements, order };
