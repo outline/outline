@@ -313,7 +313,11 @@ export function isMultipleCellSelection(state: EditorState): boolean {
  */
 export function isMergedCellSelection(state: EditorState): boolean {
   const { selection } = state;
-  if (selection instanceof CellSelection) {
+  if (
+    selection instanceof CellSelection ||
+    selection instanceof RowSelection ||
+    selection instanceof ColumnSelection
+  ) {
     // Check if any cell in the selection has a colspan or rowspan > 1
     let hasMergedCells = false;
     selection.forEachCell((cell) => {
