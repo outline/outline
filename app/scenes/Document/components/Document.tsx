@@ -65,6 +65,7 @@ type LocationState = {
   restore?: boolean;
   revisionId?: string;
   sidebarContext?: SidebarContextType;
+  searchTerm?: string;
 };
 
 type Props = WithTranslation &
@@ -197,9 +198,19 @@ class DocumentScene extends React.Component<Props> {
     const { history, location, t } = this.props;
     const restore = location.state?.restore;
     const revisionId = location.state?.revisionId;
+    const searchTerm = location.state?.searchTerm;
     const editorRef = this.editor.current;
 
-    if (!editorRef || !restore) {
+    if (!editorRef) {
+      return;
+    }
+
+    // Highlight search term when navigating from search results
+    if (searchTerm) {
+      editorRef.commands.find({ text: searchTerm });
+    }
+
+    if (!restore) {
       return;
     }
 

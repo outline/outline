@@ -124,6 +124,7 @@ function DocumentListItem(
             state: {
               title: document.titleWithDefault,
               sidebarContext,
+              searchTerm: highlight,
             },
           }}
           {...rest}

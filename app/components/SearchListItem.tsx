@@ -55,6 +55,7 @@ function DocumentListItem(
           : document.url,
         state: {
           title: document.titleWithDefault,
+          searchTerm: highlight,
         },
       }}
       {...rest}
