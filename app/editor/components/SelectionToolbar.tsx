@@ -275,6 +275,7 @@ export function SelectionToolbar(props: Props) {
 
   return (
     <FloatingToolbar
+      inline={rowIndex !== undefined}
       align={align}
       active={isActive}
       ref={menuRef}
@@ -311,7 +312,12 @@ export function SelectionToolbar(props: Props) {
           onClickOutside={handleClickOutsideLinkEditor}
         />
       ) : activeToolbar === Toolbar.Menu && items.length ? (
-        <ToolbarMenu items={items} {...rest} />
+        <ToolbarMenu
+          items={items}
+          inline={rowIndex !== undefined}
+          containerRef={menuRef}
+          {...rest}
+        />
       ) : null}
     </FloatingToolbar>
   );
