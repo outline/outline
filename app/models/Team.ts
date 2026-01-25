@@ -38,6 +38,10 @@ class Team extends Model {
 
   @Field
   @observable
+  blockedEmbedDomains: string[] | null;
+
+  @Field
+  @observable
   defaultCollectionId: string | null;
 
   @Field

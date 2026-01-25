@@ -20,6 +20,30 @@ export const TeamsUpdateSchema = BaseSchema.extend({
     passkeysEnabled: z.boolean().optional(),
     /** Whether third-party document embeds are enabled */
     documentEmbeds: z.boolean().optional(),
+    /** List of domains for which embed option is blocked in the editor */
+    blockedEmbedDomains: z
+      .array(
+        z
+          .string()
+          .toLowerCase()
+          .regex(/^[a-z0-9.-]*$/, "Invalid domain format")
+          .refine((d) => d === "" || (!d.startsWith(".") && !d.endsWith(".")), {
+            message: "Domain cannot start or end with a dot",
+          })
+          .refine((d) => d === "" || !/\.\./.test(d), {
+            message: "Domain cannot contain consecutive dots",
+          })
+          .refine((d) => d === "" || d === "localhost" || d.includes("."), {
+            message: "Domain must contain at least one dot",
+          })
+          .refine(
+            (d) => d === "" || !d.split(".").some((label) => /^-|-$/.test(label)),
+            { message: "Labels cannot start or end with a hyphen" }
+          )
+      )
+      .max(100, "Maximum 100 blocked domains allowed")
+      .transform((domains) => domains.filter((d) => d !== ""))
+      .optional(),
     /** Whether team members are able to create new collections */
     memberCollectionCreate: z.boolean().optional(),
     /** Whether team members are able to create new workspaces */

@@ -161,6 +161,9 @@ class Team extends ParanoidModel<
   @Column
   documentEmbeds: boolean;
 
+  @Column(DataType.ARRAY(DataType.STRING))
+  blockedEmbedDomains: string[] | null;
+
   @Default(true)
   @Column
   memberCollectionCreate: boolean;
