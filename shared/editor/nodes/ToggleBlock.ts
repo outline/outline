@@ -140,12 +140,15 @@ export default class ToggleBlock extends Node {
 
         let tr: Transaction | null = null;
 
-        // 1. Assign IDs to blocks that need them
+        // 1. Assign IDs to blocks that need them and set fold state for creator
         const blocksNeedingIds = toggleBlocks.filter((b) => !b.node.attrs.id);
         if (blocksNeedingIds.length > 0) {
           tr = newState.tr;
           blocksNeedingIds.forEach((block) => {
-            tr!.setNodeAttribute(block.pos, "id", v4());
+            const id = v4();
+            tr!.setNodeAttribute(block.pos, "id", id);
+            // Set unfolded for the user who created the toggle
+            Storage.set(`${id}:${userId}`, { fold: false });
           });
         }
 
@@ -233,11 +236,25 @@ export default class ToggleBlock extends Node {
               (spec) => spec.target === "container_toggle"
             );
 
-            // If counts differ, rebuild decorations
+            // If counts differ, check for new blocks and update fold state
             if (currentBlocks.length !== decoratedBlocks.length) {
+              const newFoldedIds = new Set(pluginState.foldedIds);
+
+              // For any new blocks, check storage and default to folded
+              currentBlocks.forEach((block) => {
+                const id = block.node.attrs.id as string;
+                if (!pluginState.foldedIds.has(id)) {
+                  const stored = Storage.get(`${id}:${userId}`);
+                  // Default to folded if no stored state (new block from sync)
+                  if (stored?.fold !== false) {
+                    newFoldedIds.add(id);
+                  }
+                }
+              });
+
               return {
-                foldedIds: pluginState.foldedIds,
-                decorations: buildDecorations(tr.doc, pluginState.foldedIds),
+                foldedIds: newFoldedIds,
+                decorations: buildDecorations(tr.doc, newFoldedIds),
               };
             }
 
