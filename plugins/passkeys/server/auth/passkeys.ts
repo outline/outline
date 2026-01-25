@@ -64,7 +64,6 @@ router.post(
       authenticatorSelection: {
         residentKey: "preferred",
         userVerification: "preferred",
-        authenticatorAttachment: "platform",
       },
     });
 
