@@ -106,7 +106,10 @@ function useItems({
       {
         name: "embed",
         title: t("Embed"),
-        visible: !!embed && !isDomainBlocked(pastedText, blockedDomains),
+        visible:
+          team.documentEmbeds &&
+          !!embed &&
+          !isDomainBlocked(pastedText, blockedDomains),
         icon: embed?.icon,
         keywords: embed?.keywords,
       },
@@ -181,6 +184,7 @@ function useItems({
       name: "embed_list",
       title: t("Embed"),
       visible:
+        team.documentEmbeds &&
         !!convertibleToEmbedList &&
         !pastedText.some((text) => isDomainBlocked(text, blockedDomains)),
       icon: embedIcon,
