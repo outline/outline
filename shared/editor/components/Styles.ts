@@ -2479,12 +2479,13 @@ del {
     margin: 2px 0 0 0;
     padding: 0;
     height: calc(var(--line-height) * var(--font-size));
-    width: 24px;
+    width: 20px;
+    overflow: unset;
+
     &:focus,
     &:hover {
       opacity: 1;
     }
-    overflow: unset;
 
     > svg {
       transition: transform 200ms ease-out;
