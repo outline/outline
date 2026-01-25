@@ -584,6 +584,7 @@
   "Info notice": "アラート - INFO",
   "Link": "リンク",
   "Highlight": "ハイライト",
+  "Background color": "Background color",
   "Type '/' to insert": "文字を入力するか、「/」でコマンドを呼び出します...",
   "Keep typing to filter": "入力を続けてフィルターを適用",
   "Open link": "リンクを開く",
