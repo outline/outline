@@ -114,11 +114,8 @@ export default function useDictionary() {
       untitled: t("Untitled"),
       none: t("None"),
       toggleBlock: t("Toggle block"),
-      emptyToggleBlockHead: t("Toggle"),
-      emptyToggleBlockBody: `${t("Click to type here")}…`,
-      emptyTextBlockWithinToggleBlock: `${t(
-        "Type or press 'Shift-Tab' to exit"
-      )}…`,
+      emptyToggleBlockHead: `${t("Add title")}…`,
+      emptyToggleBlockBody: `${t("Add content")}…`,
       deleteEmbed: t("Delete embed"),
       uploadImage: t("Upload an image"),
       formattingControls: t("Formatting controls"),

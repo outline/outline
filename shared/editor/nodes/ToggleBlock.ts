@@ -480,7 +480,7 @@ export default class ToggleBlock extends Node {
             node.isTextblock &&
             node.textContent === "" &&
             (state.selection as TextSelection).$cursor?.pos === $start.pos,
-          text: this.options.dictionary?.emptyTextBlockWithinToggleBlock,
+          text: this.options.dictionary?.newLineEmpty,
         },
       ]),
     ];
