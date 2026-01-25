@@ -36,6 +36,7 @@ import { findBlockNodes } from "../queries/findChildren";
 import { findCutAfterHeading } from "../queries/findCutAfterHeading";
 import { isNodeActive } from "../queries/isNodeActive";
 import toggleBlocksRule from "../rules/toggleBlocks";
+import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { ancestors, height, liftChildrenOfNodeAt } from "../utils";
 import { isToggleBlock, getToggleBlockDepth } from "../queries/toggleBlock";
 import Node from "./Node";
@@ -86,7 +87,7 @@ function buildDecorations(
         Decoration.node(
           block.pos + 1,
           block.pos + 1 + block.node.firstChild!.nodeSize,
-          { nodeName: "div", class: "toggle-block-head" },
+          { nodeName: "div", class: EditorStyleHelper.toggleBlockHead },
           { nodeId: id, target: "container_toggle>:firstChild" }
         )
       );
@@ -113,8 +114,8 @@ export default class ToggleBlock extends Node {
       },
       toDOM: () => [
         "div",
-        { class: "toggle-block" },
-        ["div", { class: "toggle-block-content" }, 0],
+        { class: EditorStyleHelper.toggleBlock },
+        ["div", { class: EditorStyleHelper.toggleBlockContent }, 0],
       ],
     };
   }

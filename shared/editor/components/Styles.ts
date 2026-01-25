@@ -2476,7 +2476,7 @@ del {
     background: none;
     outline: none;
     border: 0;
-    margin: 0;
+    margin: 2px 0 0 0;
     padding: 0;
     height: calc(var(--line-height) * var(--font-size));
     width: 24px;
