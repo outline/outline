@@ -26,18 +26,18 @@ export const TeamsUpdateSchema = BaseSchema.extend({
         z
           .string()
           .toLowerCase()
-          .regex(/^[a-z0-9.-]+$/, "Invalid domain format")
-          .refine((d) => !d.startsWith(".") && !d.endsWith("."), {
+          .regex(/^[a-z0-9.-]*$/, "Invalid domain format")
+          .refine((d) => d === "" || (!d.startsWith(".") && !d.endsWith(".")), {
             message: "Domain cannot start or end with a dot",
           })
-          .refine((d) => !/\.\./.test(d), {
+          .refine((d) => d === "" || !/\.\./.test(d), {
             message: "Domain cannot contain consecutive dots",
           })
-          .refine((d) => d === "localhost" || d.includes("."), {
+          .refine((d) => d === "" || d === "localhost" || d.includes("."), {
             message: "Domain must contain at least one dot",
           })
           .refine(
-            (d) => !d.split(".").some((label) => /^-|-$/.test(label)),
+            (d) => d === "" || !d.split(".").some((label) => /^-|-$/.test(label)),
             { message: "Labels cannot start or end with a hyphen" }
           )
       )
