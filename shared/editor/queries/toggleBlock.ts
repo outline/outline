@@ -1,7 +1,7 @@
 import type { Node as ProsemirrorNode, ResolvedPos } from "prosemirror-model";
 import type { EditorState, Transaction } from "prosemirror-state";
 import { Slice } from "prosemirror-model";
-import ToggleBlock from "../nodes/ToggleBlock";
+import { toggleFoldPluginKey } from "../nodes/ToggleBlock";
 import { ancestors } from "../utils";
 import { findParentNodeClosestToPos } from "./findParentNode";
 
@@ -27,7 +27,7 @@ export function isToggleBlockFolded(
   state: EditorState,
   toggleBlock: ProsemirrorNode
 ): boolean {
-  const pluginState = ToggleBlock.actionPluginKey.getState(state);
+  const pluginState = toggleFoldPluginKey.getState(state);
   return pluginState?.foldedIds.has(toggleBlock.attrs.id) ?? false;
 }
 

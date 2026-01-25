@@ -53,6 +53,12 @@ interface ToggleFoldState {
   decorations: DecorationSet;
 }
 
+/** Plugin key for toggle block fold state management. */
+export const toggleFoldPluginKey = new PluginKey<ToggleFoldState>("toggleFold");
+
+/** Plugin key for toggle block fold/unfold events. */
+export const toggleEventPluginKey = new PluginKey("toggleBlockEvent");
+
 /**
  * Build decorations for all toggle blocks based on fold state.
  *
@@ -97,10 +103,6 @@ function buildDecorations(
 }
 
 export default class ToggleBlock extends Node {
-  static actionPluginKey = new PluginKey<ToggleFoldState>("toggleFold");
-
-  static eventPluginKey = new PluginKey("toggleBlockEvent");
-
   get name() {
     return "container_toggle";
   }
@@ -123,7 +125,7 @@ export default class ToggleBlock extends Node {
   get plugins() {
     const userId = this.editor.props.userId;
 
-    // Plugin 1: Fix toggle blocks - assign IDs, fix positions, auto-fold empty
+    // Assign IDs, fix positions, auto-fold empty
     const fixToggleBlocksPlugin = new Plugin({
       appendTransaction: (transactions, _oldState, newState) => {
         if (!transactions.some((tr) => tr.docChanged)) {
@@ -183,7 +185,7 @@ export default class ToggleBlock extends Node {
         // 3. Auto-fold toggle blocks with empty bodies
         // Only if no structural changes were made (positions would be invalid)
         if (!tr) {
-          const pluginState = ToggleBlock.actionPluginKey.getState(newState);
+          const pluginState = toggleFoldPluginKey.getState(newState);
           if (pluginState) {
             const emptyBodyBlock = toggleBlocks.find(
               (b) =>
@@ -193,7 +195,7 @@ export default class ToggleBlock extends Node {
             );
 
             if (emptyBodyBlock) {
-              return newState.tr.setMeta(ToggleBlock.actionPluginKey, {
+              return newState.tr.setMeta(toggleFoldPluginKey, {
                 type: Action.FOLD,
                 at: emptyBodyBlock.pos,
               });
@@ -205,9 +207,9 @@ export default class ToggleBlock extends Node {
       },
     });
 
-    // Plugin 2: Main fold state management
+    // Main fold state management
     const foldPlugin = new Plugin<ToggleFoldState>({
-      key: ToggleBlock.actionPluginKey,
+      key: toggleFoldPluginKey,
 
       state: {
         init: () => ({
@@ -216,7 +218,7 @@ export default class ToggleBlock extends Node {
         }),
 
         apply: (tr, pluginState, _oldState, newState) => {
-          const action = tr.getMeta(ToggleBlock.actionPluginKey);
+          const action = tr.getMeta(toggleFoldPluginKey);
 
           // No action - just map decorations through the transaction
           if (!action) {
@@ -318,7 +320,7 @@ export default class ToggleBlock extends Node {
 
       props: {
         decorations: (state) =>
-          ToggleBlock.actionPluginKey.getState(state)?.decorations,
+          toggleFoldPluginKey.getState(state)?.decorations,
         nodeViews: {
           [this.name]: (node, view, getPos, decorations, innerDecorations) =>
             new ToggleBlockView(
@@ -333,7 +335,7 @@ export default class ToggleBlock extends Node {
       },
     });
 
-    // Plugin 3: Initialize fold state on document load
+    // Initialize fold state on document load
     const initPlugin = new Plugin({
       view: () => {
         let initialized = false;
@@ -360,7 +362,7 @@ export default class ToggleBlock extends Node {
             // Set flag before dispatch to prevent re-entry
             initialized = true;
             view.dispatch(
-              view.state.tr.setMeta(ToggleBlock.actionPluginKey, {
+              view.state.tr.setMeta(toggleFoldPluginKey, {
                 type: Action.INIT,
               })
             );
@@ -369,19 +371,19 @@ export default class ToggleBlock extends Node {
       },
     });
 
-    // Plugin 4: Handle fold/unfold side effects (cursor management, empty body handling)
+    // Handle fold/unfold side effects (cursor management, empty body handling)
     const eventPlugin = new Plugin({
-      key: ToggleBlock.eventPluginKey,
+      key: toggleEventPluginKey,
 
       appendTransaction: (transactions, _oldState, newState) => {
         const eventTr = transactions.find((tr) =>
-          tr.getMeta(ToggleBlock.eventPluginKey)
+          tr.getMeta(toggleEventPluginKey)
         );
 
         let tr: Transaction | null = null;
 
         if (eventTr) {
-          const event = eventTr.getMeta(ToggleBlock.eventPluginKey);
+          const event = eventTr.getMeta(toggleEventPluginKey);
           const node = newState.doc.nodeAt(event.at);
 
           if (node) {
@@ -413,11 +415,11 @@ export default class ToggleBlock extends Node {
         // Auto-unfold if cursor is in body of folded toggle
         // Skip if we're handling a fold event (cursor will be moved out of body)
         const isFoldEvent =
-          eventTr?.getMeta(ToggleBlock.eventPluginKey)?.type === Action.FOLD;
+          eventTr?.getMeta(toggleEventPluginKey)?.type === Action.FOLD;
 
         if (!isFoldEvent) {
           const { $from } = newState.selection;
-          const pluginState = ToggleBlock.actionPluginKey.getState(newState);
+          const pluginState = toggleFoldPluginKey.getState(newState);
           const isToggle = isToggleBlock(newState);
 
           if (pluginState) {
@@ -433,7 +435,7 @@ export default class ToggleBlock extends Node {
               const posAtEnd = $from.end(d);
 
               if ($from.pos > posAfterHead && $from.pos < posAtEnd) {
-                tr = (tr ?? newState.tr).setMeta(ToggleBlock.actionPluginKey, {
+                tr = (tr ?? newState.tr).setMeta(toggleFoldPluginKey, {
                   type: Action.UNFOLD,
                   at: $from.before(d),
                 });

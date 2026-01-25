@@ -2,7 +2,11 @@ import type { Node as ProsemirrorNode } from "prosemirror-model";
 import type { EditorView, NodeView, DecorationSource } from "prosemirror-view";
 import type { Decoration } from "prosemirror-view";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
-import ToggleBlock, { Action } from "./ToggleBlock";
+import {
+  Action,
+  toggleEventPluginKey,
+  toggleFoldPluginKey,
+} from "./ToggleBlock";
 
 /**
  * Custom NodeView for toggle blocks that handles fold/unfold UI interactions.
@@ -72,11 +76,11 @@ export class ToggleBlockView implements NodeView {
 
     this.view.dispatch(
       this.view.state.tr
-        .setMeta(ToggleBlock.actionPluginKey, {
+        .setMeta(toggleFoldPluginKey, {
           type: isFolded ? Action.UNFOLD : Action.FOLD,
           at: pos,
         })
-        .setMeta(ToggleBlock.eventPluginKey, {
+        .setMeta(toggleEventPluginKey, {
           type: isFolded ? Action.UNFOLD : Action.FOLD,
           at: pos,
         })
@@ -100,11 +104,11 @@ export class ToggleBlockView implements NodeView {
 
       this.view.dispatch(
         this.view.state.tr
-          .setMeta(ToggleBlock.actionPluginKey, {
+          .setMeta(toggleFoldPluginKey, {
             type: newFoldState.fold ? Action.FOLD : Action.UNFOLD,
             at: pos,
           })
-          .setMeta(ToggleBlock.eventPluginKey, {
+          .setMeta(toggleEventPluginKey, {
             type: newFoldState.fold ? Action.FOLD : Action.UNFOLD,
             at: pos,
           })

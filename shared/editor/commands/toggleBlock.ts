@@ -8,7 +8,11 @@ import type { Command } from "prosemirror-state";
 import { NodeSelection, TextSelection } from "prosemirror-state";
 import { liftTarget, ReplaceAroundStep } from "prosemirror-transform";
 import { v4 } from "uuid";
-import ToggleBlock, { Action } from "../nodes/ToggleBlock";
+import ToggleBlock, {
+  Action,
+  toggleEventPluginKey,
+  toggleFoldPluginKey,
+} from "../nodes/ToggleBlock";
 import {
   isToggleBlock,
   isToggleBlockFolded,
@@ -244,11 +248,11 @@ export const toggleBlock: Command = (state, dispatch) => {
 
   dispatch?.(
     state.tr
-      .setMeta(ToggleBlock.actionPluginKey, {
+      .setMeta(toggleFoldPluginKey, {
         type: isFolded ? Action.UNFOLD : Action.FOLD,
         at: pos,
       })
-      .setMeta(ToggleBlock.eventPluginKey, {
+      .setMeta(toggleEventPluginKey, {
         type: isFolded ? Action.UNFOLD : Action.FOLD,
         at: pos,
       })
