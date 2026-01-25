@@ -12,11 +12,14 @@ import Tooltip from "~/components/Tooltip";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import SettingRow from "./SettingRow";
 
+/** Fields on Team that contain domain arrays */
+type DomainFieldName = "allowedDomains" | "blockedEmbedDomains";
+
 type Props = {
   /** Callback when domains are saved successfully */
   onSuccess: () => void;
   /** Team field name to save to */
-  fieldName: string;
+  fieldName: DomainFieldName;
   /** Label for the setting row */
   label: string;
   /** Description for the setting row */
@@ -36,7 +39,7 @@ function DomainManagement({
   const { t } = useTranslation();
 
   const [domains, setDomains] = React.useState([
-    ...((team[fieldName] as string[] | null) ?? defaultValue),
+    ...(team[fieldName] ?? defaultValue),
   ]);
   const [lastKnownDomainCount, updateLastKnownDomainCount] = React.useState(
     domains.length
