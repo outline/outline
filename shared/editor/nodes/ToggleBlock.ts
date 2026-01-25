@@ -7,7 +7,7 @@ import type {
   Node as ProsemirrorNode,
   Schema,
 } from "prosemirror-model";
-import type { Command, EditorState, Transaction } from "prosemirror-state";
+import type { Command, Transaction } from "prosemirror-state";
 import { Plugin, PluginKey, TextSelection } from "prosemirror-state";
 import { findWrapping } from "prosemirror-transform";
 import type { DecorationSource, EditorView, NodeView } from "prosemirror-view";
@@ -38,13 +38,7 @@ import { findCutAfterHeading } from "../queries/findCutAfterHeading";
 import { isNodeActive } from "../queries/isNodeActive";
 import toggleBlocksRule from "../rules/toggleBlocks";
 import { ancestors, height, liftChildrenOfNodeAt } from "../utils";
-import {
-  isToggleBlock,
-  isToggleBlockFolded,
-  getToggleBlockDepth,
-  isSelectionInToggleBlock,
-  isSelectionInToggleBlockHead,
-} from "../queries/toggleBlock";
+import { isToggleBlock, getToggleBlockDepth } from "../queries/toggleBlock";
 import Node from "./Node";
 
 export enum Action {
@@ -587,50 +581,6 @@ export default class ToggleBlock extends Node {
       }
     }
     return true;
-  }
-
-  /**
-   * Get utility functions for working with toggle blocks.
-   *
-   * @param state - the editor state.
-   * @returns object containing toggle block utility functions.
-   * @deprecated Use individual query functions from queries/toggleBlock.ts instead.
-   */
-  static getUtils(state: EditorState) {
-    const isToggle = isToggleBlock(state);
-
-    return {
-      folded: (toggleBlock: ProsemirrorNode) =>
-        isToggleBlockFolded(state, toggleBlock),
-      depth: (toggleBlock: ProsemirrorNode) =>
-        getToggleBlockDepth(state.selection.$from, toggleBlock),
-      isToggleBlock: isToggle,
-      isSelectionWithinToggleBlock: () => isSelectionInToggleBlock(state),
-      isSelectionWithinToggleBlockHead: () =>
-        isSelectionInToggleBlockHead(state),
-      isSelectionWithinToggleBlockBody: () =>
-        isSelectionInToggleBlock(state) && !isSelectionInToggleBlockHead(state),
-      isSelectionAtStartOfToggleBlockHead: () =>
-        isSelectionInToggleBlockHead(state) &&
-        state.selection.$from.parentOffset === 0,
-      isSelectionInMiddleOfToggleBlockHead: () => {
-        if (!isSelectionInToggleBlockHead(state)) {
-          return false;
-        }
-        const { $from } = state.selection;
-        return (
-          $from.parentOffset > 0 &&
-          $from.parentOffset < $from.node().content.size
-        );
-      },
-      isSelectionAtEndOfToggleBlockHead: () => {
-        if (!isSelectionInToggleBlockHead(state)) {
-          return false;
-        }
-        const { $from } = state.selection;
-        return $from.parentOffset === $from.node().content.size;
-      },
-    };
   }
 }
 
