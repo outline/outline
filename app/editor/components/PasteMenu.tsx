@@ -14,7 +14,12 @@ import { determineMentionType, isURLMentionable } from "~/utils/mention";
 import type { Props as SuggestionsMenuProps } from "./SuggestionsMenu";
 import SuggestionsMenu from "./SuggestionsMenu";
 import SuggestionsMenuItem from "./SuggestionsMenuItem";
+import {
+  isDomainBlocked,
+  DEFAULT_BLOCKED_EMBED_DOMAINS,
+} from "@shared/editor/lib/embedBlocklist";
 import { getMatchingEmbed } from "@shared/editor/lib/embeds";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
 
 type Props = Omit<
   SuggestionsMenuProps,
@@ -57,6 +62,8 @@ function useItems({
   const { t } = useTranslation();
   const { integrations } = useStores();
   const user = useCurrentUser({ rejectOnEmpty: false });
+  const team = useCurrentTeam();
+  const blockedDomains = team.blockedEmbedDomains ?? DEFAULT_BLOCKED_EMBED_DOMAINS;
 
   // single item is pasted.
   if (typeof pastedText === "string") {
@@ -99,7 +106,7 @@ function useItems({
       {
         name: "embed",
         title: t("Embed"),
-        visible: !!embed,
+        visible: !!embed && !isDomainBlocked(pastedText, blockedDomains),
         icon: embed?.icon,
         keywords: embed?.keywords,
       },
@@ -173,7 +180,9 @@ function useItems({
     {
       name: "embed_list",
       title: t("Embed"),
-      visible: !!convertibleToEmbedList,
+      visible:
+        !!convertibleToEmbedList &&
+        !pastedText.some((text) => isDomainBlocked(text, blockedDomains)),
       icon: embedIcon,
       attrs: { actorId: user?.id },
     },
