@@ -376,6 +376,59 @@ export const dedentBlocks: Command = (state, dispatch) => {
   return true;
 };
 
+/**
+ * Exit toggle block when pressing Enter in the last empty paragraph within the body.
+ */
+export const exitToggleBlockOnEmptyParagraph: Command = (state, dispatch) => {
+  const { $cursor } = state.selection as TextSelection;
+  if (!$cursor) {
+    return false;
+  }
+
+  if (!isSelectionInToggleBlockBody(state)) {
+    return false;
+  }
+
+  // Check if current node is an empty paragraph
+  const node = $cursor.parent;
+  if (node.type !== state.schema.nodes.paragraph || node.content.size > 0) {
+    return false;
+  }
+
+  // Check if this is the last node in the toggle block body
+  const parentOfParagraph = $cursor.node(-1);
+  if ($cursor.index(-1) !== parentOfParagraph.childCount - 1) {
+    return false;
+  }
+
+  // Find the toggle block ancestor
+  const isToggle = isToggleBlock(state);
+  const ancestor = nearest(ancestors($cursor).filter(isToggle));
+  if (!ancestor) {
+    return false;
+  }
+
+  // Create a range scoped to the toggle block ancestor
+  const d = getToggleBlockDepth($cursor, ancestor);
+  const $start = state.doc.resolve($cursor.start(d + 1));
+  const $end = state.doc.resolve($cursor.end(d + 1));
+  const range = $start.blockRange($end, (n) => n.eq(ancestor));
+  if (range === null) {
+    return false;
+  }
+
+  const target = liftTarget(range);
+  if (target === null) {
+    return false;
+  }
+
+  const tr = state.tr;
+  tr.lift(range, target);
+  dispatch?.(tr);
+
+  return true;
+};
+
 export const splitBlockPreservingBody: Command = (state, dispatch) => {
   const { $cursor } = state.selection as TextSelection;
 

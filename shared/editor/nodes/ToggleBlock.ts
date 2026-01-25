@@ -28,6 +28,7 @@ import {
   indentBlock,
   dedentBlocks,
   splitTopLevelBlockWithinBody,
+  exitToggleBlockOnEmptyParagraph,
 } from "../commands/toggleBlock";
 import type { CommandFactory } from "../lib/Extension";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
@@ -501,6 +502,7 @@ export default class ToggleBlock extends Node {
         newlineInCode,
         createParagraphNearPreservingBody,
         liftAllEmptyChildBlocks,
+        exitToggleBlockOnEmptyParagraph,
         splitBlockPreservingBody,
         splitTopLevelBlockWithinBody
       ),
