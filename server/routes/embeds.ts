@@ -1,5 +1,5 @@
 import escape from "escape-html";
-import { Context, Next } from "koa";
+import type { Context, Next } from "koa";
 import env from "@server/env";
 import { InvalidRequestError } from "@server/errors";
 

@@ -1,11 +1,12 @@
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
 import {
   FileOperationFormat,
   FileOperationType,
   FileOperationState,
 } from "@shared/types";
 import { traceFunction } from "@server/logging/tracing";
-import { Collection, Team, User, FileOperation } from "@server/models";
+import type { Collection, Team, User } from "@server/models";
+import { FileOperation } from "@server/models";
 import { Buckets } from "@server/models/helpers/AttachmentHelper";
 import { type APIContext } from "@server/types";
 
@@ -15,6 +16,7 @@ type Props = {
   user: User;
   format?: FileOperationFormat;
   includeAttachments?: boolean;
+  includePrivate?: boolean;
   ctx: APIContext;
 };
 
@@ -25,7 +27,7 @@ function getKeyForFileOp(
 ) {
   return `${
     Buckets.uploads
-  }/${teamId}/${uuidv4()}/${name}-export.${format.replace(/outline-/, "")}.zip`;
+  }/${teamId}/${randomUUID()}/${name}-export.${format.replace(/outline-/, "")}.zip`;
 }
 
 async function collectionExporter({
@@ -34,6 +36,7 @@ async function collectionExporter({
   user,
   format = FileOperationFormat.MarkdownZip,
   includeAttachments = true,
+  includePrivate = true,
   ctx,
 }: Props) {
   const collectionId = collection?.id;
@@ -52,6 +55,7 @@ async function collectionExporter({
     collectionId,
     options: {
       includeAttachments,
+      includePrivate,
     },
     userId: user.id,
     teamId: user.teamId,

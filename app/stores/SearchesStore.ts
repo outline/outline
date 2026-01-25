@@ -1,7 +1,7 @@
 import uniqBy from "lodash/uniqBy";
 import { computed } from "mobx";
 import SearchQuery from "~/models/SearchQuery";
-import RootStore from "./RootStore";
+import type RootStore from "./RootStore";
 import Store, { RPCAction } from "./base/Store";
 
 export default class SearchesStore extends Store<SearchQuery> {

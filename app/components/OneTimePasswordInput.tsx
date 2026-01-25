@@ -9,7 +9,7 @@ type Props = React.ComponentProps<typeof OneTimePasswordRoot> & {
 };
 
 export const OneTimePasswordInput = React.forwardRef(
-  function _OneTimePasswordInput(
+  function OneTimePasswordInput_(
     { length = 6, ...rest }: Props,
     ref: React.RefObject<HTMLInputElement>
   ) {

@@ -1,20 +1,28 @@
-import { Token } from "markdown-it";
-import { toggleMark } from "prosemirror-commands";
+import type { Token } from "markdown-it";
 import { InputRule } from "prosemirror-inputrules";
-import { MarkdownSerializerState } from "prosemirror-markdown";
-import {
+import type { MarkdownSerializerState } from "prosemirror-markdown";
+import type {
+  Attrs,
   MarkSpec,
   MarkType,
   Node,
   Mark as ProsemirrorMark,
 } from "prosemirror-model";
-import { Command, EditorState, Plugin, TextSelection } from "prosemirror-state";
-import { EditorView } from "prosemirror-view";
+import type { Command, EditorState } from "prosemirror-state";
+import { Plugin, TextSelection } from "prosemirror-state";
+import type { EditorView } from "prosemirror-view";
 import { toast } from "sonner";
-import { sanitizeUrl } from "../../utils/urls";
+import { isUrl, sanitizeUrl } from "../../utils/urls";
 import { getMarkRange } from "../queries/getMarkRange";
-import { isMarkActive } from "../queries/isMarkActive";
 import Mark from "./Mark";
+import {
+  addLink,
+  openLink,
+  removeLink,
+  updateLink,
+  toggleLink,
+} from "../commands/link";
+import { isInCode } from "../queries/isInCode";
 
 const LINK_INPUT_REGEX = /\[([^[]+)]\((\S+)\)$/;
 
@@ -104,36 +112,20 @@ export default class Link extends Mark {
     ];
   }
 
-  keys({ type }: { type: MarkType }): Record<string, Command> {
+  keys(): Record<string, Command> {
     return {
-      "Mod-k": (state, dispatch) => {
-        if (state.selection.empty) {
-          return false;
-        }
+      "Mod-Enter": openLink(this.options.onClickLink, this.options.dictionary),
+    };
+  }
 
-        return toggleMark(type, { href: "" })(state, dispatch);
-      },
-      "Mod-Enter": (state) => {
-        if (isMarkActive(type)(state)) {
-          const range = getMarkRange(
-            state.selection.$from,
-            state.schema.marks.link
-          );
-          if (range && range.mark && this.options.onClickLink) {
-            try {
-              const event = new KeyboardEvent("keydown", { metaKey: false });
-              this.options.onClickLink(
-                sanitizeUrl(range.mark.attrs.href),
-                event
-              );
-            } catch (_err) {
-              toast.error(this.options.dictionary.openLinkError);
-            }
-            return true;
-          }
-        }
-        return false;
-      },
+  commands() {
+    return {
+      link: (attrs: Attrs) => toggleLink(attrs),
+      addLink,
+      updateLink,
+      openLink: (): Command =>
+        openLink(this.options.onClickLink, this.options.dictionary),
+      removeLink,
     };
   }
 
@@ -193,6 +185,19 @@ export default class Link extends Mark {
               return false;
             }
 
+            // If an image is selected in write mode, disallow navigation to its href
+            const selectedDOMNode = view.nodeDOM(view.state.selection.from);
+            if (
+              view.editable &&
+              selectedDOMNode &&
+              selectedDOMNode instanceof HTMLSpanElement &&
+              selectedDOMNode.classList.contains("component-image") &&
+              event.target instanceof HTMLImageElement &&
+              selectedDOMNode.contains(event.target)
+            ) {
+              return false;
+            }
+
             // clicking a link while editing should show the link toolbar,
             // clicking in read-only will navigate
             if (!view.editable || (view.editable && !view.hasFocus())) {
@@ -203,7 +208,7 @@ export default class Link extends Mark {
                   : "");
 
               try {
-                if (this.options.onClickLink) {
+                if (this.options.onClickLink && href) {
                   event.stopPropagation();
                   event.preventDefault();
                   this.options.onClickLink(sanitizeUrl(href), event);
@@ -230,7 +235,7 @@ export default class Link extends Mark {
           click: (_view: EditorView, event: MouseEvent) => {
             if (
               !(event.target instanceof HTMLAnchorElement) ||
-              event.button !== 0
+              (event.button !== 0 && event.button !== 1)
             ) {
               return false;
             }
@@ -248,6 +253,72 @@ export default class Link extends Mark {
               event.stopPropagation();
               event.preventDefault();
             }
+
+            return false;
+          },
+          keydown: (view: EditorView, event: KeyboardEvent) => {
+            if (event.key !== " " && event.key !== "Enter") {
+              return false;
+            }
+
+            const { state } = view;
+            const { selection, schema } = state;
+            if (!selection.empty || !selection.$from.parent.isTextblock) {
+              return false;
+            }
+
+            let textContent = "";
+            selection.$from.parent.forEach((node) => {
+              if (node.isText && node.text) {
+                textContent += node.text;
+              }
+            });
+            const words = textContent.split(/\s+/);
+            if (!words.length) {
+              return false;
+            }
+
+            // check if there is a code mark at the current cursor position
+            const hasCodeMark = schema.marks.code_inline.isInSet(
+              selection.$from.marks()
+            );
+            if (hasCodeMark) {
+              return false;
+            }
+
+            // check if we are in a code block or code fence
+            if (isInCode(view.state, { onlyBlock: true })) {
+              return false;
+            }
+
+            const lastWord = words[words.length - 1];
+            if (
+              !lastWord ||
+              !isUrl(lastWord, {
+                requireProtocol: false,
+              })
+            ) {
+              return false;
+            }
+
+            const lastWordIndex = textContent.lastIndexOf(lastWord);
+            if (lastWordIndex === -1) {
+              return false;
+            }
+
+            const start = selection.$from.start() + lastWordIndex;
+            const end = start + lastWord.length;
+            const href = lastWord.startsWith("www.")
+              ? `https://${lastWord}`
+              : lastWord;
+
+            const tr = state.tr.addMark(
+              start,
+              end,
+              schema.marks.link.create({ href })
+            );
+
+            view.dispatch(tr);
 
             return false;
           },

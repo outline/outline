@@ -7,7 +7,6 @@ import { depths, s } from "@shared/styles";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import Flex from "~/components/Flex";
 import ResizeBorder from "~/components/Sidebar/components/ResizeBorder";
-import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 import { sidebarAppearDuration } from "~/styles/animations";
 
@@ -20,7 +19,6 @@ function Right({ children, border, className }: Props) {
   const theme = useTheme();
   const { ui } = useStores();
   const [isResizing, setResizing] = React.useState(false);
-  const isMobile = useMobile();
   const maxWidth = theme.sidebarMaxWidth;
   const minWidth = theme.sidebarMinWidth + 16; // padding
 
@@ -100,13 +98,11 @@ function Right({ children, border, className }: Props) {
     <Sidebar {...animationProps} $border={border} className={className}>
       <Position style={style} column>
         <ErrorBoundary>{children}</ErrorBoundary>
-        {!isMobile && (
-          <ResizeBorder
-            onMouseDown={handleMouseDown}
-            onDoubleClick={handleReset}
-            dir="right"
-          />
-        )}
+        <ResizeBorder
+          onMouseDown={handleMouseDown}
+          onDoubleClick={handleReset}
+          dir="right"
+        />
       </Position>
     </Sidebar>
   );

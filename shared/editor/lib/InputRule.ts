@@ -1,5 +1,5 @@
 import { InputRule as ProsemirrorInputRule } from "prosemirror-inputrules";
-import { EditorState } from "prosemirror-state";
+import type { EditorState } from "prosemirror-state";
 import { isInCode } from "../queries/isInCode";
 
 /**

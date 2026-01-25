@@ -1,4 +1,4 @@
-import {
+import type {
   Extension,
   connectedPayload,
   onConnectPayload,
@@ -9,7 +9,7 @@ import { TooManyConnections } from "@shared/collaboration/CloseEvents";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
-import { withContext } from "./types";
+import type { withContext } from "./types";
 
 @trace()
 export class ConnectionLimitExtension implements Extension {

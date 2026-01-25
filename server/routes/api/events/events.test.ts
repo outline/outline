@@ -128,6 +128,82 @@ describe("#events.list", () => {
     expect(body.data[0].id).toEqual(auditEvent.id);
   });
 
+  it("should not allow members to filter by actorId", async () => {
+    const user = await buildUser();
+    const admin = await buildAdmin({ teamId: user.teamId });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: user.teamId,
+    });
+    // audit event
+    await buildEvent({
+      name: "users.promote",
+      teamId: user.teamId,
+      actorId: admin.id,
+      userId: user.id,
+    });
+    // event viewable in activity stream
+    await buildEvent({
+      name: "documents.publish",
+      collectionId: collection.id,
+      documentId: document.id,
+      teamId: user.teamId,
+      actorId: user.id,
+    });
+    const res = await server.post("/api/events.list", {
+      body: {
+        token: user.getJwtToken(),
+        actorId: admin.id,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should allow filtering by actorId when it's the current user", async () => {
+    const user = await buildUser();
+    const admin = await buildAdmin({ teamId: user.teamId });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: user.teamId,
+    });
+    // event by admin
+    await buildEvent({
+      name: "documents.create",
+      collectionId: collection.id,
+      documentId: document.id,
+      teamId: user.teamId,
+      actorId: admin.id,
+    });
+    // event by user
+    const userEvent = await buildEvent({
+      name: "documents.publish",
+      collectionId: collection.id,
+      documentId: document.id,
+      teamId: user.teamId,
+      actorId: user.id,
+    });
+    const res = await server.post("/api/events.list", {
+      body: {
+        token: user.getJwtToken(),
+        actorId: user.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(userEvent.id);
+  });
+
   it("should allow filtering by documentId", async () => {
     const user = await buildUser();
     const admin = await buildAdmin({ teamId: user.teamId });
@@ -184,9 +260,7 @@ describe("#events.list", () => {
         documentId: document.id,
       },
     });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.length).toEqual(0);
+    expect(res.status).toEqual(403);
   });
 
   it("should allow filtering by event name", async () => {

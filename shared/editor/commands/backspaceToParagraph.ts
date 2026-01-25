@@ -1,5 +1,5 @@
-import { NodeType } from "prosemirror-model";
-import { Command } from "prosemirror-state";
+import type { NodeType } from "prosemirror-model";
+import type { Command } from "prosemirror-state";
 
 /**
  * Converts the current node to a paragraph when pressing backspace at the

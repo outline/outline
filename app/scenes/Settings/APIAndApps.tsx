@@ -1,8 +1,8 @@
 import { observer } from "mobx-react";
-import { PadlockIcon } from "outline-icons";
+import { BuildingBlocksIcon } from "outline-icons";
 import { useTranslation, Trans } from "react-i18next";
-import ApiKey from "~/models/ApiKey";
-import OAuthAuthentication from "~/models/oauth/OAuthAuthentication";
+import type ApiKey from "~/models/ApiKey";
+import type OAuthAuthentication from "~/models/oauth/OAuthAuthentication";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
@@ -11,7 +11,6 @@ import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import { createApiKey } from "~/actions/definitions/apiKeys";
 import env from "~/env";
-import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
@@ -25,13 +24,12 @@ function APIAndApps() {
   const { t } = useTranslation();
   const { apiKeys, oauthAuthentications } = useStores();
   const can = usePolicy(team);
-  const context = useActionContext();
   const appName = env.APP_NAME;
 
   return (
     <Scene
       title={t("API & Apps")}
-      icon={<PadlockIcon />}
+      icon={<BuildingBlocksIcon />}
       actions={
         <>
           {can.createApiKey && (
@@ -40,7 +38,6 @@ function APIAndApps() {
                 type="submit"
                 value={`${t("New API key")}…`}
                 action={createApiKey}
-                context={context}
               />
             </Action>
           )}

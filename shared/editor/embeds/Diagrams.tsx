@@ -1,7 +1,7 @@
 import * as React from "react";
 import Frame from "../components/Frame";
 import Image from "../components/Img";
-import { EmbedProps as Props } from ".";
+import type { EmbedProps as Props } from ".";
 
 function Diagrams({ matches, ...props }: Props) {
   const { embed } = props;

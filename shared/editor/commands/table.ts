@@ -1,11 +1,8 @@
 import { GapCursor } from "prosemirror-gapcursor";
-import { Node, NodeType, Slice } from "prosemirror-model";
-import {
-  Command,
-  EditorState,
-  TextSelection,
-  Transaction,
-} from "prosemirror-state";
+import type { Node, NodeType } from "prosemirror-model";
+import { Slice } from "prosemirror-model";
+import type { Command, EditorState, Transaction } from "prosemirror-state";
+import { TextSelection } from "prosemirror-state";
 import {
   CellSelection,
   addRow,
@@ -22,15 +19,26 @@ import {
 } from "prosemirror-tables";
 import { ProsemirrorHelper } from "../../utils/ProsemirrorHelper";
 import { CSVHelper } from "../../utils/csv";
+import { parseDate } from "../../utils/date";
 import { chainTransactions } from "../lib/chainTransactions";
 import {
+  getAllSelectedColumns,
   getCellsInColumn,
   getCellsInRow,
   isHeaderEnabled,
   isTableSelected,
+  getWidthFromDom,
+  getWidthFromNodes,
+  getRowIndex,
+  getColumnIndex,
 } from "../queries/table";
-import { TableLayout } from "../types";
+import { type NodeAttrMark, TableLayout } from "../types";
 import { collapseSelection } from "./collapseSelection";
+import { RowSelection } from "../selection/RowSelection";
+import { ColumnSelection } from "../selection/ColumnSelection";
+import type { Attrs } from "prosemirror-model";
+import isUndefined from "lodash/isUndefined";
+import find from "lodash/find";
 
 export function createTable({
   rowsCount,
@@ -143,7 +151,7 @@ export function exportTable({
         .map((row) =>
           row
             .map((cell) => {
-              let value = ProsemirrorHelper.toPlainText(cell, state.schema);
+              let value = ProsemirrorHelper.toPlainText(cell);
 
               // Escape double quotes by doubling them
               if (value.includes('"')) {
@@ -170,6 +178,100 @@ export function exportTable({
 
     return true;
   };
+}
+
+/**
+ * A Commands that distributes the width of all selected columns evenly between them in the current table selection.
+ *
+ *
+ * @returns {Command}
+ */
+export function distributeColumns(): Command {
+  return (state, dispatch, view) => {
+    if (!isInTable(state) || !dispatch) {
+      return false;
+    }
+
+    const rect = selectedRect(state);
+    const { tr, doc } = state;
+    const { map } = rect;
+    const selectedColumns = getAllSelectedColumns(state);
+    if (selectedColumns.length <= 1) {
+      return false;
+    }
+
+    const hasNullWidth = selectedColumns.some((colIndex) =>
+      isNullWidth({ state, colIndex })
+    );
+
+    // whenever we can, we want to take the column width that prose-mirror sets
+    // since that will always be accurate, when set
+    const totalWidth = hasNullWidth
+      ? getWidthFromDom({ view, rect, selectedColumns })
+      : getWidthFromNodes({ state, selectedColumns });
+
+    if (totalWidth < 1) {
+      return false;
+    }
+
+    const evenWidth = totalWidth / selectedColumns.length;
+    const isLastColSelected = selectedColumns.includes(map.width - 1);
+
+    const tableNode = doc.nodeAt(rect.tableStart - 1);
+    const isFullWidth = tableNode?.attrs.layout === TableLayout.fullWidth;
+
+    for (let row = 0; row < map.height; row++) {
+      const cellsInRow = getCellsInRow(row)(state);
+      if (!cellsInRow || cellsInRow.length < 1) {
+        continue;
+      }
+
+      selectedColumns.forEach((colIndex) => {
+        const pos = cellsInRow[colIndex];
+        const cell = pos !== undefined ? doc.nodeAt(pos) : null;
+        if (!cell) {
+          return;
+        }
+
+        const isLastColumn = colIndex === map.width - 1;
+        const shouldKeepNull =
+          isLastColumn && isLastColSelected && isFullWidth && hasNullWidth;
+
+        tr.setNodeMarkup(pos, undefined, {
+          ...cell.attrs,
+          colwidth: shouldKeepNull ? null : [evenWidth],
+        });
+      });
+    }
+
+    dispatch(tr);
+    return true;
+  };
+}
+
+/**
+ * Determines whether the width of a specified column is null.
+ *
+ * @param state - The current editor state.
+ * @param colIndex - The index of the column to check.
+ *
+ * @returns {boolean} True if the column width is null, false otherwise.
+ */
+function isNullWidth({
+  state,
+  colIndex,
+}: {
+  state: EditorState;
+  colIndex: number;
+}): boolean {
+  const firstRowCells = getCellsInRow(0)(state);
+  const cell =
+    firstRowCells?.[colIndex] !== undefined
+      ? state.doc.nodeAt(firstRowCells[colIndex])
+      : null;
+
+  const colwidth = cell?.attrs.colwidth;
+  return !colwidth?.[0];
 }
 
 export function sortTable({
@@ -201,12 +303,6 @@ export function sortTable({
         table.push(cells);
       }
 
-      // check if all the cells in the column are a number
-      const compareAsText = table.some((row) => {
-        const cell = row[index]?.textContent;
-        return cell === "" ? false : isNaN(parseFloat(cell));
-      });
-
       const hasHeaderRow = table[0].every(
         (cell) => cell.type === state.schema.nodes.th
       );
@@ -217,17 +313,48 @@ export function sortTable({
       // column data before sort
       const columnData = table.map((row) => row[index]?.textContent ?? "");
 
+      // determine sorting type: date, number, or text
+      let compareAsDate = false;
+      let compareAsNumber = false;
+
+      const nonEmptyCells = table
+        .map((row) => row[index]?.textContent?.trim())
+        .filter((cell): cell is string => !!cell && cell.length > 0);
+      if (nonEmptyCells.length > 0) {
+        // check if all non-empty cells are valid dates
+        compareAsDate = nonEmptyCells.every((cell) => parseDate(cell) !== null);
+        // if not dates, check if all non-empty cells are numbers
+        if (!compareAsDate) {
+          compareAsNumber = nonEmptyCells.every(
+            (cell) => !isNaN(parseFloat(cell))
+          );
+        }
+      }
+
       // sort table data based on column at index
       table.sort((a, b) => {
-        if (compareAsText) {
-          return (a[index]?.textContent ?? "").localeCompare(
-            b[index]?.textContent ?? ""
-          );
+        const aContent = a[index]?.textContent ?? "";
+        const bContent = b[index]?.textContent ?? "";
+
+        // empty cells always go to the end
+        if (!aContent) {
+          return bContent ? 1 : 0;
+        }
+        if (!bContent) {
+          return -1;
+        }
+
+        if (compareAsDate) {
+          const aDate = parseDate(aContent);
+          const bDate = parseDate(bContent);
+          if (aDate && bDate) {
+            return aDate.getTime() - bDate.getTime();
+          }
+          return 0;
+        } else if (compareAsNumber) {
+          return parseFloat(aContent) - parseFloat(bContent);
         } else {
-          return (
-            parseFloat(a[index]?.textContent ?? "") -
-            parseFloat(b[index]?.textContent ?? "")
-          );
+          return aContent.localeCompare(bContent);
         }
       });
 
@@ -492,8 +619,8 @@ export function selectRow(index: number, expand = false): Command {
       const $pos = state.doc.resolve(rect.tableStart + pos);
       const rowSelection =
         expand && state.selection instanceof CellSelection
-          ? CellSelection.rowSelection(state.selection.$anchorCell, $pos)
-          : CellSelection.rowSelection($pos);
+          ? RowSelection.rowSelection(state.selection.$anchorCell, $pos, index)
+          : RowSelection.rowSelection($pos, $pos, index);
       dispatch(state.tr.setSelection(rowSelection));
       return true;
     }
@@ -509,8 +636,8 @@ export function selectColumn(index: number, expand = false): Command {
       const $pos = state.doc.resolve(rect.tableStart + pos);
       const colSelection =
         expand && state.selection instanceof CellSelection
-          ? CellSelection.colSelection(state.selection.$anchorCell, $pos)
-          : CellSelection.colSelection($pos);
+          ? ColumnSelection.colSelection(state.selection.$anchorCell, $pos)
+          : ColumnSelection.colSelection($pos);
       dispatch(state.tr.setSelection(colSelection));
       return true;
     }
@@ -620,12 +747,62 @@ export function deleteCellSelection(
 }
 
 /**
- * A command that splits a cell and collapses the selection.
+ * A command that splits the first merged cell found in the selection and
+ * collapses the selection. Works with both single cell and multi-cell selections.
  *
  * @returns The command
  */
 export function splitCellAndCollapse(): Command {
-  return chainTransactions(splitCell, collapseSelection());
+  return (state, dispatch) => {
+    if (!isInTable(state)) {
+      return false;
+    }
+
+    const { selection } = state;
+
+    // Handle CellSelection (including RowSelection and ColumnSelection which extend it)
+    if (
+      selection instanceof CellSelection ||
+      selection instanceof RowSelection ||
+      selection instanceof ColumnSelection
+    ) {
+      // Find the first merged cell in the selection
+      let mergedCellPos: number | null = null;
+      selection.forEachCell((cell, pos) => {
+        if (
+          mergedCellPos === null &&
+          (cell.attrs.colspan > 1 || cell.attrs.rowspan > 1)
+        ) {
+          mergedCellPos = pos;
+        }
+      });
+
+      // If no merged cell found, nothing to split
+      if (mergedCellPos === null) {
+        return false;
+      }
+
+      if (dispatch) {
+        // Create a CellSelection for the merged cell and apply splitCell
+        const $cell = state.doc.resolve(mergedCellPos);
+        const cellSelection = new CellSelection($cell);
+        const stateWithCellSelection = state.apply(
+          state.tr.setSelection(cellSelection)
+        );
+
+        // Apply splitCell and collapse
+        chainTransactions(splitCell, collapseSelection())(
+          stateWithCellSelection,
+          dispatch
+        );
+      }
+
+      return true;
+    }
+
+    // Fallback to standard splitCell for non-cell selections
+    return chainTransactions(splitCell, collapseSelection())(state, dispatch);
+  };
 }
 
 /**
@@ -699,4 +876,182 @@ function addRowWithAlignment(
  */
 export function mergeCellsAndCollapse(): Command {
   return chainTransactions(mergeCells, collapseSelection());
+}
+
+const updateCellBackground = (
+  cell: Node,
+  pos: number,
+  attrs: Attrs,
+  tr: Transaction
+): Transaction => {
+  const existingMarks = cell.attrs.marks ?? [];
+  const backgroundMark = find(existingMarks, (m) => m.type === "background");
+  const updatedMarks = !backgroundMark
+    ? [...existingMarks, { type: "background", attrs }]
+    : existingMarks.map((mark: NodeAttrMark) =>
+        mark.type === "background"
+          ? { ...mark, attrs: { ...mark.attrs, ...attrs } }
+          : mark
+      );
+  return tr.setNodeAttribute(pos, "marks", updatedMarks);
+};
+
+const removeCellBackground = (
+  cell: Node,
+  pos: number,
+  tr: Transaction
+): Transaction => {
+  const existingMarks = cell.attrs.marks ?? [];
+  const updatedMarks = existingMarks.filter(
+    (mark: NodeAttrMark) => mark.type !== "background"
+  );
+  return tr.setNodeAttribute(pos, "marks", updatedMarks);
+};
+
+export const toggleCellSelectionBackgroundAndCollapseSelection = ({
+  color,
+}: {
+  color: string | null;
+}) =>
+  chainTransactions(
+    toggleCellSelectionBackground({ color }),
+    collapseSelection()
+  );
+
+export const toggleRowBackgroundAndCollapseSelection = ({
+  color,
+}: {
+  color: string | null;
+}) => chainTransactions(toggleRowBackground({ color }), collapseSelection());
+
+export const toggleColumnBackgroundAndCollapseSelection = ({
+  color,
+}: {
+  color: string | null;
+}) => chainTransactions(toggleColumnBackground({ color }), collapseSelection());
+
+export const toggleCellSelectionBackground =
+  ({ color }: { color: string | null }): Command =>
+  (state, dispatch) => {
+    if (!(state.selection instanceof CellSelection)) {
+      return false;
+    }
+
+    let tr = state.tr;
+    state.selection.forEachCell((cell, pos) => {
+      if (color === null) {
+        tr = removeCellBackground(cell, pos, tr);
+      } else {
+        tr = updateCellBackground(cell, pos, { color }, tr);
+      }
+    });
+
+    dispatch?.(tr);
+    return true;
+  };
+
+/**
+ * Set background color on all cells in a row.
+ *
+ * @param color The background color to set, or null to remove
+ * @returns The command
+ */
+export function toggleRowBackground({
+  color,
+}: {
+  color: string | null;
+}): Command {
+  return (state, dispatch) => {
+    if (!isInTable(state)) {
+      return false;
+    }
+
+    const rowIndex = getRowIndex(state);
+    if (isUndefined(rowIndex)) {
+      return false;
+    }
+
+    if (dispatch) {
+      const cells = getCellsInRow(rowIndex)(state) || [];
+      let tr = state.tr;
+
+      cells.forEach((pos) => {
+        const node = state.doc.nodeAt(pos);
+        if (!node) {
+          return;
+        }
+
+        if (color === null) {
+          tr = removeCellBackground(node, pos, tr);
+        } else {
+          tr = updateCellBackground(node, pos, { color }, tr);
+        }
+      });
+
+      // It was noticed that the selection went to the last table cell of the
+      // row after command execution.
+      // Instead, we want to preserve the original row selection so that the color
+      // picker can be prevented from closing.
+      const rect = selectedRect(state);
+      const pos = rect.map.positionAt(rowIndex, 0, rect.table);
+      const $pos = tr.doc.resolve(rect.tableStart + pos);
+      tr.setSelection(RowSelection.rowSelection($pos, $pos, rowIndex));
+
+      dispatch(tr);
+    }
+    return true;
+  };
+}
+
+/**
+ * Set background color on all cells in a column.
+ *
+ * @param color The background color to set, or null to remove
+ * @returns The command
+ */
+export function toggleColumnBackground({
+  color,
+}: {
+  color: string | null;
+}): Command {
+  return (state, dispatch) => {
+    if (!isInTable(state)) {
+      return false;
+    }
+
+    const colIndex = getColumnIndex(state);
+    if (isUndefined(colIndex)) {
+      return false;
+    }
+
+    if (dispatch) {
+      const cells = getCellsInColumn(colIndex)(state) || [];
+      let tr = state.tr;
+
+      cells.forEach((pos) => {
+        const node = state.doc.nodeAt(pos);
+        if (!node) {
+          return;
+        }
+
+        if (color === null) {
+          tr = removeCellBackground(node, pos, tr);
+        } else {
+          tr = updateCellBackground(node, pos, { color }, tr);
+        }
+      });
+
+      // It was noticed that the selection went to the last table cell of the column
+      // after command execution.
+      // Instead, we want to preserve the original column selection so that the color
+      // picker can be prevented from closing
+      const rect = selectedRect(state);
+      const pos = rect.map.positionAt(0, colIndex, rect.table);
+      const $pos = tr.doc.resolve(rect.tableStart + pos);
+      tr.setSelection(ColumnSelection.colSelection($pos));
+
+      dispatch(tr);
+    }
+    return true;
+  };
 }

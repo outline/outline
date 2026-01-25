@@ -1,6 +1,6 @@
 import { Op } from "sequelize";
 import { OAuthAuthentication, OAuthClient, User } from "@server/models";
-import { OAuthClientEvent, Event as TEvent } from "@server/types";
+import type { OAuthClientEvent, Event as TEvent } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
 
 export default class OAuthClientUnpublishedProcessor extends BaseProcessor {

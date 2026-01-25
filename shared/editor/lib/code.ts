@@ -162,9 +162,15 @@ export const codeLanguages: Record<string, CodeLanguage> = {
     label: "Markdown",
     loader: () => import("refractor/lang/markdown").then((m) => m.default),
   },
+  mermaid: {
+    lang: "mermaid",
+    label: "Mermaid",
+    // @ts-expect-error Mermaid is not in types but exists
+    loader: () => import("refractor/lang/mermaid").then((m) => m.default),
+  },
   mermaidjs: {
     lang: "mermaid",
-    label: "Mermaid Diagram",
+    label: "Mermaid",
     // @ts-expect-error Mermaid is not in types but exists
     loader: () => import("refractor/lang/mermaid").then((m) => m.default),
   },
@@ -425,3 +431,11 @@ export const getFrequentCodeLanguages = () => {
 
 const sortFrequencies = <T>(freqs: [T, number][]) =>
   freqs.sort((a, b) => (a[1] >= b[1] ? -1 : 1));
+
+export const languagesWithFourSpaceIndent = [
+  "python",
+  "java",
+  "cpp",
+  "csharp",
+  "rust",
+];

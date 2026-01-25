@@ -5,13 +5,15 @@ import findIndex from "lodash/findIndex";
 import isNil from "lodash/isNil";
 import remove from "lodash/remove";
 import uniq from "lodash/uniq";
-import {
+import type {
   Identifier,
   Transaction,
   FindOptions,
   NonNullFindOptions,
   InferAttributes,
   InferCreationAttributes,
+} from "sequelize";
+import {
   EmptyResultError,
   type CreateOptions,
   type UpdateOptions,
@@ -45,14 +47,19 @@ import {
   AfterSave,
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
-import type { CollectionSort, ProsemirrorData } from "@shared/types";
-import { CollectionPermission, NavigationNode } from "@shared/types";
+import type {
+  CollectionSort,
+  ProsemirrorData,
+  SourceMetadata,
+  NavigationNode,
+} from "@shared/types";
+import { CollectionPermission } from "@shared/types";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import { sortNavigationNodes } from "@shared/utils/collections";
 import slugify from "@shared/utils/slugify";
 import { CollectionValidation } from "@shared/validations";
 import { ValidationError } from "@server/errors";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import removeIndexCollision from "@server/utils/removeIndexCollision";
 import { generateUrlId } from "@server/utils/url";
@@ -234,10 +241,6 @@ class Collection extends ParanoidModel<
   content: ProsemirrorData | null;
 
   /** An icon (or) emoji to use as the collection icon. */
-  @Length({
-    max: 50,
-    msg: `icon must be 50 characters or less`,
-  })
   @Column
   icon: string | null;
 
@@ -306,16 +309,11 @@ class Collection extends ParanoidModel<
   @Column(DataType.BOOLEAN)
   commenting: boolean | null;
 
-  // getters
+  @AllowNull
+  @Column(DataType.JSONB)
+  sourceMetadata: SourceMetadata | null;
 
-  /**
-   * The frontend path to this collection.
-   *
-   * @deprecated Use `path` instead.
-   */
-  get url(): string {
-    return this.path;
-  }
+  // getters
 
   /** The frontend path to this collection. */
   get path(): string {

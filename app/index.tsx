@@ -25,6 +25,7 @@ import Logger from "./utils/Logger";
 import { PluginManager } from "./utils/PluginManager";
 import history from "./utils/history";
 import { initSentry } from "./utils/sentry";
+import { ActionContextProvider } from "./hooks/useActionContext";
 
 // Load plugins as soon as possible
 void PluginManager.loadPlugins();
@@ -52,27 +53,29 @@ if (element) {
       <HelmetProvider>
         <Provider {...stores}>
           <Analytics>
-            <Theme>
-              <ErrorBoundary showTitle>
-                <KBarProvider actions={[]} options={commandBarOptions}>
-                  <LazyPolyfill>
-                    <LazyMotion features={loadFeatures}>
-                      <Router history={history}>
-                        <PageScroll>
-                          <PageTheme />
-                          <ScrollToTop>
-                            <Routes />
-                          </ScrollToTop>
-                          <Toasts />
-                          <Dialogs />
-                          <Desktop />
-                        </PageScroll>
-                      </Router>
-                    </LazyMotion>
-                  </LazyPolyfill>
-                </KBarProvider>
-              </ErrorBoundary>
-            </Theme>
+            <Router history={history}>
+              <Theme>
+                <ActionContextProvider>
+                  <ErrorBoundary showTitle>
+                    <KBarProvider actions={[]} options={commandBarOptions}>
+                      <LazyPolyfill>
+                        <LazyMotion features={loadFeatures}>
+                          <PageScroll>
+                            <PageTheme />
+                            <ScrollToTop>
+                              <Routes />
+                            </ScrollToTop>
+                            <Toasts />
+                            <Dialogs />
+                            <Desktop />
+                          </PageScroll>
+                        </LazyMotion>
+                      </LazyPolyfill>
+                    </KBarProvider>
+                  </ErrorBoundary>
+                </ActionContextProvider>
+              </Theme>
+            </Router>
           </Analytics>
         </Provider>
       </HelmetProvider>

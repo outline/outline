@@ -2,12 +2,14 @@
 // oxlint-disable-next-line import/order
 import environment from "./utils/environment";
 import os from "os";
+import wellKnownServices from "nodemailer/lib/well-known/services.json";
 import {
   validate,
   IsNotEmpty,
   IsUrl,
   IsOptional,
-  IsByteLength,
+  IsHexadecimal,
+  Length,
   IsNumber,
   IsIn,
   IsEmail,
@@ -21,6 +23,7 @@ import {
   CannotUseWithout,
   CannotUseWithAny,
   IsInCaseInsensitive,
+  IsDatabaseUrl,
 } from "@server/utils/validators";
 import Deprecated from "./models/decorators/Deprecated";
 import { getArg } from "./utils/args";
@@ -63,8 +66,9 @@ export class Environment {
    * The secret key is used for encrypting data. Do not change this value once
    * set or your users will be unable to login.
    */
-  @IsByteLength(32, 64, {
-    message: `The SECRET_KEY environment variable is invalid (Use \`openssl rand -hex 32\` to generate a value).`,
+  @IsHexadecimal()
+  @Length(64, 64, {
+    message: `The SECRET_KEY environment variable must be exactly 64 hexadecimal characters (Use \`openssl rand -hex 32\` to generate a value).`,
   })
   public SECRET_KEY = environment.SECRET_KEY ?? "";
 
@@ -78,12 +82,8 @@ export class Environment {
   /**
    * The url of the database.
    */
-  @IsNotEmpty()
-  @IsUrl({
-    require_tld: false,
-    allow_underscores: true,
-    protocols: ["postgres", "postgresql"],
-  })
+  @IsOptional()
+  @IsDatabaseUrl()
   @CannotUseWithAny([
     "DATABASE_HOST",
     "DATABASE_PORT",
@@ -91,7 +91,17 @@ export class Environment {
     "DATABASE_USER",
     "DATABASE_PASSWORD",
   ])
-  public DATABASE_URL = environment.DATABASE_URL ?? "";
+  public DATABASE_URL = this.toOptionalString(environment.DATABASE_URL);
+
+  /**
+   * Optional database URL for read replica to distribute read queries
+   * and reduce load on primary database.
+   */
+  @IsOptional()
+  @IsDatabaseUrl()
+  public DATABASE_URL_READ_ONLY = this.toOptionalString(
+    environment.DATABASE_URL_READ_ONLY
+  );
 
   /**
    * Database host for individual component configuration.
@@ -141,11 +151,7 @@ export class Environment {
    * The url of the database pool.
    */
   @IsOptional()
-  @IsUrl({
-    require_tld: false,
-    allow_underscores: true,
-    protocols: ["postgres", "postgresql"],
-  })
+  @IsDatabaseUrl()
   public DATABASE_CONNECTION_POOL_URL = this.toOptionalString(
     environment.DATABASE_CONNECTION_POOL_URL
   );
@@ -356,37 +362,7 @@ export class Environment {
    * See https://community.nodemailer.com/2-0-0-beta/setup-smtp/well-known-services/
    */
   @CannotUseWith("SMTP_HOST")
-  @IsInCaseInsensitive([
-    "1und1",
-    "AOL",
-    "DebugMail.io",
-    "DynectEmail",
-    "FastMail",
-    "GandiMail",
-    "Gmail",
-    "Godaddy",
-    "GodaddyAsia",
-    "GodaddyEurope",
-    "hot.ee",
-    "Hotmail",
-    "iCloud",
-    "mail.ee",
-    "Mail.ru",
-    "Mailgun",
-    "Mailjet",
-    "Mandrill",
-    "Naver",
-    "Postmark",
-    "QQ",
-    "QQex",
-    "SendCloud",
-    "SendGrid",
-    "SES",
-    "Sparkpost",
-    "Yahoo",
-    "Yandex",
-    "Zoho",
-  ])
+  @IsInCaseInsensitive(Object.keys(wellKnownServices))
   public SMTP_SERVICE = this.toOptionalString(environment.SMTP_SERVICE);
 
   @Public
@@ -445,6 +421,17 @@ export class Environment {
    * encrypted connection.
    */
   public SMTP_SECURE = this.toBoolean(environment.SMTP_SECURE ?? "true");
+
+  /**
+   * If true then STARTTLS is disabled even if the server supports it.
+   * If false (the default) then STARTTLS is used if server supports it.
+   *
+   * Setting secure to false therefore does not mean that you would not use an
+   * encrypted connection.
+   */
+  public SMTP_DISABLE_STARTTLS = this.toBoolean(
+    environment.SMTP_DISABLE_STARTTLS ?? "false"
+  );
 
   /**
    * Dropbox app key for embedding Dropbox files
@@ -666,6 +653,13 @@ export class Environment {
     1000000;
 
   /**
+   * Timeout in milliseconds for downloading files from remote locations to file storage.
+   */
+  @IsNumber()
+  public FILE_STORAGE_IMPORT_TIMEOUT =
+    this.toOptionalNumber(environment.FILE_STORAGE_IMPORT_TIMEOUT) ?? 60000;
+
+  /**
    * Set max allowed upload size for imports at workspace level.
    */
   @IsNumber()
@@ -749,10 +743,40 @@ export class Environment {
     this.toOptionalNumber(environment.WEBHOOK_FAILURE_RATE_THRESHOLD) ?? 80;
 
   /**
+   * Comma-separated list of IP addresses or CIDR ranges that are allowed to be accessed
+   * even if they are private IP addresses. This is useful for allowing
+   * connections to OIDC providers or webhooks on private networks.
+   * Supports both individual IP addresses and CIDR notation.
+   * Example: "10.0.0.1,192.168.1.0/24,172.16.0.1"
+   */
+  @IsOptional()
+  public ALLOWED_PRIVATE_IP_ADDRESSES = this.toOptionalCommaList(
+    environment.ALLOWED_PRIVATE_IP_ADDRESSES
+  );
+
+  /**
    * The product name
    */
   @Public
   public APP_NAME = "Outline";
+
+  /**
+   * Gravity constant for time decay in popularity scoring. Higher values cause
+   * faster decay of older content. Default is 0.7.
+   */
+  @IsOptional()
+  @IsNumber()
+  public POPULARITY_GRAVITY =
+    this.toOptionalNumber(environment.POPULARITY_GRAVITY) ?? 0.7;
+
+  /**
+   * Number of weeks of activity to consider when calculating popularity scores.
+   * Default is 2 weeks.
+   */
+  @IsOptional()
+  @IsNumber()
+  public POPULARITY_ACTIVITY_THRESHOLD_WEEKS =
+    this.toOptionalNumber(environment.POPULARITY_ACTIVITY_THRESHOLD_WEEKS) ?? 2;
 
   /**
    * Returns true if the current installation is the cloud hosted version at

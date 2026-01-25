@@ -1,3 +1,4 @@
+import type { DragEndEvent } from "@dnd-kit/core";
 import {
   DndContext,
   closestCenter,
@@ -5,7 +6,6 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  DragEndEvent,
 } from "@dnd-kit/core";
 import { restrictToParentElement } from "@dnd-kit/modifiers";
 import {
@@ -20,7 +20,7 @@ import { observer } from "mobx-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import Pin from "~/models/Pin";
+import type Pin from "~/models/Pin";
 import DocumentCard from "~/components/DocumentCard";
 import useStores from "~/hooks/useStores";
 import { ResizingHeightContainer } from "./ResizingHeightContainer";

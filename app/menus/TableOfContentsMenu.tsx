@@ -3,7 +3,7 @@ import { TableOfContentsIcon } from "outline-icons";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import { createActionV2, createActionV2Group } from "~/actions";
+import { createAction, createActionGroup } from "~/actions";
 import { ActiveDocumentSection } from "~/actions/sections";
 import Button from "~/components/Button";
 import { useDocumentContext } from "~/components/DocumentContext";
@@ -23,7 +23,7 @@ function TableOfContentsMenu() {
       headings
         .filter((heading) => heading.level < 4)
         .map((heading) =>
-          createActionV2({
+          createAction({
             name: (
               <HeadingWrapper $level={heading.level - minHeading}>
                 {t(heading.title)}
@@ -46,7 +46,7 @@ function TableOfContentsMenu() {
 
     if (!childActions.length) {
       childActions = [
-        createActionV2({
+        createAction({
           name: (
             <HeadingWrapper>
               {t("Headings you add to the document will appear here")}
@@ -60,7 +60,7 @@ function TableOfContentsMenu() {
     }
 
     return [
-      createActionV2Group({
+      createActionGroup({
         name: t("Contents"),
         actions: childActions,
       }),

@@ -1,12 +1,12 @@
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
 import env from "@server/env";
 import SubscriptionHelper from "./SubscriptionHelper";
 
 describe("SubscriptionHelper", () => {
   describe("unsubscribeUrl", () => {
     it("should return a valid unsubscribe URL", () => {
-      const userId = uuidv4();
-      const documentId = uuidv4();
+      const userId = randomUUID();
+      const documentId = randomUUID();
 
       const unsubscribeUrl = SubscriptionHelper.unsubscribeUrl(
         userId,

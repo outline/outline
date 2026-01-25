@@ -6,11 +6,12 @@ import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { IntegrationAuthentication, Integration } from "@server/models";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import { Linear } from "../linear";
-import UploadLinearWorkspaceLogoTask from "../tasks/UploadLinearWorkspaceLogoTask";
+import UploadIntegrationLogoTask from "@server/queues/tasks/UploadIntegrationLogoTask";
 import * as T from "./schema";
 import { LinearUtils } from "plugins/linear/shared/LinearUtils";
+import { addSeconds } from "date-fns";
 
 const router = new Router();
 
@@ -52,6 +53,10 @@ router.get(
           userId: user.id,
           teamId: user.teamId,
           token: oauth.access_token,
+          refreshToken: oauth.refresh_token,
+          expiresAt: oauth.expires_in
+            ? addSeconds(Date.now(), oauth.expires_in)
+            : undefined,
           scopes: oauth.scope.split(" "),
         },
         { transaction }
@@ -81,7 +86,7 @@ router.get(
 
       transaction.afterCommit(async () => {
         if (workspace.logoUrl) {
-          await new UploadLinearWorkspaceLogoTask().schedule({
+          await new UploadIntegrationLogoTask().schedule({
             integrationId: integration.id,
             logoUrl: workspace.logoUrl,
           });

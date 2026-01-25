@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import { GroupIcon } from "outline-icons";
 import * as React from "react";
-import Group from "~/models/Group";
+import type Group from "~/models/Group";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import Folder from "./Folder";
 import Relative from "./Relative";

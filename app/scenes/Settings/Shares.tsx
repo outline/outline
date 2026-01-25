@@ -1,4 +1,4 @@
-import { ColumnSort } from "@tanstack/react-table";
+import type { ColumnSort } from "@tanstack/react-table";
 import { observer } from "mobx-react";
 import { GlobeIcon, WarningIcon } from "outline-icons";
 import { useState, useMemo, useCallback, useEffect } from "react";
@@ -115,7 +115,7 @@ function Shares() {
         </Trans>
       </Text>
 
-      <StickyFilters gap={8}>
+      <StickyFilters>
         <InputSearch
           short
           value={query}

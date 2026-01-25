@@ -1,18 +1,17 @@
-import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
+import type {
+  NodeSpec,
+  NodeType,
+  Node as ProsemirrorNode,
+} from "prosemirror-model";
 import {
   splitListItem,
   sinkListItem,
   liftListItem,
 } from "prosemirror-schema-list";
-import {
-  Transaction,
-  EditorState,
-  Plugin,
-  TextSelection,
-  Command,
-} from "prosemirror-state";
+import type { Transaction, EditorState, Command } from "prosemirror-state";
+import { Plugin, TextSelection } from "prosemirror-state";
 import { DecorationSet, Decoration } from "prosemirror-view";
-import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { findParentNodeClosestToPos } from "../queries/findParentNode";
 import { getParentListItem } from "../queries/getParentListItem";
 import { isInList } from "../queries/isInList";
@@ -289,6 +288,15 @@ export default class ListItem extends Node {
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
+    if (state.inTable) {
+      node.forEach((block, _, i) => {
+        if (i > 0) {
+          state.out += " ";
+        }
+        state.renderInline(block);
+      });
+      return;
+    }
     state.renderContent(node);
   }
 

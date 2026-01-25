@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { DateFilter as TDateFilter } from "@shared/types";
+import type { DateFilter as TDateFilter } from "@shared/types";
 import FilterOptions from "~/components/FilterOptions";
 
 type Props = {

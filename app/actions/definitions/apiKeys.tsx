@@ -1,9 +1,9 @@
 import { PlusIcon, TrashIcon } from "outline-icons";
 import stores from "~/stores";
-import ApiKey from "~/models/ApiKey";
+import type ApiKey from "~/models/ApiKey";
 import ApiKeyNew from "~/scenes/ApiKeyNew";
 import ApiKeyRevokeDialog from "~/scenes/Settings/components/ApiKeyRevokeDialog";
-import { createAction, createActionV2 } from "..";
+import { createAction } from "..";
 import { SettingsSection } from "../sections";
 
 export const createApiKey = createAction({
@@ -26,9 +26,9 @@ export const createApiKey = createAction({
 });
 
 export const revokeApiKeyFactory = ({ apiKey }: { apiKey: ApiKey }) =>
-  createActionV2({
-    name: ({ t, isContextMenu }) =>
-      isContextMenu
+  createAction({
+    name: ({ t, isMenu }) =>
+      isMenu
         ? apiKey.isExpired
           ? t("Delete")
           : `${t("Revoke")}…`

@@ -8,7 +8,8 @@ import authMiddleware from "@server/middlewares/authentication";
 import coalesceBody from "@server/middlewares/coaleseBody";
 import { Collection, Team, View } from "@server/models";
 import AuthenticationHelper from "@server/models/helpers/AuthenticationHelper";
-import { AppState, AppContext, APIContext } from "@server/types";
+import type { AppState, AppContext, APIContext } from "@server/types";
+import { verifyCSRFToken } from "@server/middlewares/csrf";
 
 const app = new Koa<AppState, AppContext>();
 const router = new Router();
@@ -20,16 +21,20 @@ void (async () => {
   for (const provider of AuthenticationHelper.providers) {
     const resolvedRouter = await provider.value.router;
     if (resolvedRouter) {
-      router.use("/", resolvedRouter.routes());
+      router.use(
+        "/",
+        authMiddleware({ optional: true }),
+        resolvedRouter.routes()
+      );
     }
   }
 })();
 
 router.get("/redirect", authMiddleware(), async (ctx: APIContext) => {
-  const { user } = ctx.state.auth;
-  const jwtToken = user.getJwtToken();
+  const { user, service } = ctx.state.auth;
+  const jwtToken = user.getJwtToken(undefined, service);
 
-  if (jwtToken === ctx.params.token) {
+  if (jwtToken === ctx.state.auth.token) {
     throw AuthenticationError("Cannot extend token");
   }
 
@@ -61,7 +66,7 @@ router.get("/redirect", authMiddleware(), async (ctx: APIContext) => {
     });
 
     if (collection) {
-      ctx.redirect(`${team.url}${collection.url}`);
+      ctx.redirect(`${team.url}${collection.path}`);
       return;
     }
   }
@@ -70,17 +75,14 @@ router.get("/redirect", authMiddleware(), async (ctx: APIContext) => {
 
   ctx.redirect(
     !hasViewedDocuments && collection
-      ? `${team?.url}${collection.url}`
+      ? `${team?.url}${collection.path}/recent`
       : `${team?.url}/home`
   );
 });
 
-app.use(
-  bodyParser({
-    multipart: true,
-  })
-);
+app.use(bodyParser());
 app.use(coalesceBody());
+app.use(verifyCSRFToken());
 app.use(router.routes());
 
 export default app;

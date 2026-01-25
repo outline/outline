@@ -1,5 +1,4 @@
 import { useTranslation, Trans } from "react-i18next";
-import Flex from "@shared/components/Flex";
 import Button from "~/components/Button";
 import Empty from "~/components/Empty";
 import Heading from "~/components/Heading";
@@ -8,31 +7,31 @@ import {
   navigateToHome,
   navigateToSearch,
 } from "~/actions/definitions/navigation";
-import useActionContext from "~/hooks/useActionContext";
+import { HStack } from "~/components/primitives/HStack";
+import { VStack } from "~/components/primitives/VStack";
 
 const Error404 = () => {
   const { t } = useTranslation();
-  const context = useActionContext();
 
   return (
     <Scene title={t("Not found")}>
       <Heading>{t("Not found")}</Heading>
-      <Flex gap={20} style={{ maxWidth: 500 }} column>
+      <VStack spacing={20} style={{ maxWidth: 500 }} align="initial">
         <Empty size="large">
           <Trans>
             The page you’re looking for cannot be found. It might have been
             deleted or the link is incorrect.
           </Trans>
         </Empty>
-        <Flex gap={8}>
-          <Button action={navigateToHome} context={context} neutral hideIcon>
+        <HStack>
+          <Button action={navigateToHome} neutral hideIcon>
             {t("Home")}
           </Button>
-          <Button action={navigateToSearch} context={context} neutral>
+          <Button action={navigateToSearch} neutral>
             {t("Search")}…
           </Button>
-        </Flex>
-      </Flex>
+        </HStack>
+      </VStack>
     </Scene>
   );
 };

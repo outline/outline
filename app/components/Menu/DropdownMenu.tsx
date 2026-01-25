@@ -1,5 +1,5 @@
 import * as React from "react";
-import * as TooltipPrimitive from "@radix-ui/react-tooltip";
+import type * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import styled from "styled-components";
 import Scrollable from "~/components/Scrollable";
 import {
@@ -8,30 +8,24 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "~/components/primitives/Drawer";
-import {
-  DropdownMenu as DropdownMenuRoot,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-} from "~/components/primitives/DropdownMenu";
-import { actionV2ToMenuItem } from "~/actions";
+import { Menu, MenuContent, MenuTrigger } from "~/components/primitives/Menu";
+import { MenuProvider } from "~/components/primitives/Menu/MenuContext";
+import { actionToMenuItem } from "~/actions";
 import useActionContext from "~/hooks/useActionContext";
 import useMobile from "~/hooks/useMobile";
-import {
-  ActionContext,
-  ActionV2Variant,
-  ActionV2WithChildren,
+import type {
+  ActionVariant,
+  ActionWithChildren,
   MenuItem,
   MenuItemWithChildren,
 } from "~/types";
-import { toDropdownMenuItems, toMobileMenuItems } from "./transformer";
+import { toMenuItems, toMobileMenuItems } from "./transformer";
 import { observer } from "mobx-react";
 import { useComputed } from "~/hooks/useComputed";
 
 type Props = {
   /** Root action with children representing the menu items */
-  action: ActionV2WithChildren;
-  /** Action context to use - new context will be created if not provided */
-  context?: ActionContext;
+  action: ActionWithChildren;
   /** Trigger for the menu */
   children: React.ReactNode;
   /** Alignment w.r.t trigger - defaults to start */
@@ -52,7 +46,6 @@ export const DropdownMenu = observer(
     (
       {
         action,
-        context,
         children,
         align = "start",
         ariaLabel,
@@ -66,21 +59,18 @@ export const DropdownMenu = observer(
       const [open, setOpen] = React.useState(false);
       const isMobile = useMobile();
       const contentRef =
-        React.useRef<React.ElementRef<typeof DropdownMenuContent>>(null);
-
-      const actionContext =
-        context ??
-        useActionContext({
-          isContextMenu: true,
-        });
+        React.useRef<React.ElementRef<typeof MenuContent>>(null);
+      const actionContext = useActionContext({
+        isMenu: true,
+      });
 
       const menuItems = useComputed(() => {
         if (!open) {
           return [];
         }
 
-        return (action.children as ActionV2Variant[]).map((childAction) =>
-          actionV2ToMenuItem(childAction, actionContext)
+        return (action.children as ActionVariant[]).map((childAction) =>
+          actionToMenuItem(childAction, actionContext)
         );
       }, [open, action.children, actionContext]);
 
@@ -126,24 +116,26 @@ export const DropdownMenu = observer(
         );
       }
 
-      const content = toDropdownMenuItems(menuItems);
+      const content = toMenuItems(menuItems);
 
       return (
-        <DropdownMenuRoot open={open} onOpenChange={handleOpenChange}>
-          <DropdownMenuTrigger ref={ref} aria-label={ariaLabel} {...rest}>
-            {children}
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align={align}
-            aria-label={ariaLabel}
-            onAnimationStart={disablePointerEvents}
-            onAnimationEnd={enablePointerEvents}
-            onCloseAutoFocus={handleCloseAutoFocus}
-          >
-            {content}
-            {append}
-          </DropdownMenuContent>
-        </DropdownMenuRoot>
+        <MenuProvider variant="dropdown">
+          <Menu open={open} onOpenChange={handleOpenChange}>
+            <MenuTrigger ref={ref} aria-label={ariaLabel} {...rest}>
+              {children}
+            </MenuTrigger>
+            <MenuContent
+              align={align}
+              aria-label={ariaLabel}
+              onAnimationStart={disablePointerEvents}
+              onAnimationEnd={enablePointerEvents}
+              onCloseAutoFocus={handleCloseAutoFocus}
+            >
+              {content}
+              {append}
+            </MenuContent>
+          </Menu>
+        </MenuProvider>
       );
     }
   )

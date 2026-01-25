@@ -1,5 +1,5 @@
 import { OAuthAuthentication } from "@server/models";
-import { OAuthClientEvent, Event as TEvent } from "@server/types";
+import type { OAuthClientEvent, Event as TEvent } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
 
 export default class OAuthClientDeletedProcessor extends BaseProcessor {

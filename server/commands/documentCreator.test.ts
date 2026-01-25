@@ -23,13 +23,11 @@ describe("documentCreator", () => {
       ).toJSON();
 
       const document = await withAPIContext(user, (ctx) =>
-        documentCreator({
+        documentCreator(ctx, {
           title: "Test Document",
           text: testText,
           content: testContent,
           collectionId: collection.id,
-          user,
-          ctx,
         })
       );
 
@@ -48,12 +46,10 @@ describe("documentCreator", () => {
       const testText = "This is plain text";
 
       const document = await withAPIContext(user, (ctx) =>
-        documentCreator({
+        documentCreator(ctx, {
           title: "Test Document",
           text: testText,
           collectionId: collection.id,
-          user,
-          ctx,
         })
       );
 
@@ -68,11 +64,9 @@ describe("documentCreator", () => {
       });
 
       const document = await withAPIContext(user, (ctx) =>
-        documentCreator({
+        documentCreator(ctx, {
           title: "Empty Document",
           collectionId: collection.id,
-          user,
-          ctx,
         })
       );
 
@@ -90,12 +84,10 @@ describe("documentCreator", () => {
       });
 
       const document = await withAPIContext(user, (ctx) =>
-        documentCreator({
+        documentCreator(ctx, {
           title: "Test Document",
           text: "This is a test document",
           collectionId: collection.id,
-          user,
-          ctx,
         })
       );
 
@@ -115,15 +107,13 @@ describe("documentCreator", () => {
       });
 
       const document = await withAPIContext(user, (ctx) =>
-        documentCreator({
+        documentCreator(ctx, {
           title: "Custom Document",
           text: "Custom content",
           icon: "📄",
           color: "#FF0000",
           fullWidth: true,
           collectionId: collection.id,
-          user,
-          ctx,
         })
       );
 
@@ -140,13 +130,11 @@ describe("documentCreator", () => {
       });
 
       const document = await withAPIContext(user, (ctx) =>
-        documentCreator({
+        documentCreator(ctx, {
           title: "Draft Document",
           text: "Draft content",
           collectionId: collection.id,
           publish: false,
-          user,
-          ctx,
         })
       );
 
@@ -161,13 +149,11 @@ describe("documentCreator", () => {
       });
 
       const document = await withAPIContext(user, (ctx) =>
-        documentCreator({
+        documentCreator(ctx, {
           title: "Published Document",
           text: "Published content",
           collectionId: collection.id,
           publish: true,
-          user,
-          ctx,
         })
       );
 
@@ -179,12 +165,10 @@ describe("documentCreator", () => {
 
       await expect(
         withAPIContext(user, (ctx) =>
-          documentCreator({
+          documentCreator(ctx, {
             title: "Invalid Document",
             text: "Content",
             publish: true,
-            user,
-            ctx,
           })
         )
       ).rejects.toThrow("Collection ID is required to publish");
@@ -211,12 +195,10 @@ describe("documentCreator", () => {
       });
 
       const document = await withAPIContext(user, (ctx) =>
-        documentCreator({
+        documentCreator(ctx, {
           title: "From Template",
           templateDocument,
           collectionId: collection.id,
-          user,
-          ctx,
         })
       );
 
@@ -242,11 +224,9 @@ describe("documentCreator", () => {
       });
 
       const document = await withAPIContext(user, (ctx) =>
-        documentCreator({
+        documentCreator(ctx, {
           templateDocument,
           collectionId: collection.id,
-          user,
-          ctx,
         })
       );
 
@@ -270,12 +250,10 @@ describe("documentCreator", () => {
 
       await expect(
         withAPIContext(user, (ctx) =>
-          documentCreator({
+          documentCreator(ctx, {
             templateDocument,
             state: Buffer.from("some state"),
             collectionId: collection.id,
-            user,
-            ctx,
           })
         )
       ).rejects.toThrow(
@@ -299,12 +277,10 @@ describe("documentCreator", () => {
       });
 
       const document = await withAPIContext(user, (ctx) =>
-        documentCreator({
+        documentCreator(ctx, {
           templateDocument,
           template: true,
           collectionId: collection.id,
-          user,
-          ctx,
         })
       );
 
@@ -330,13 +306,11 @@ describe("documentCreator", () => {
       });
 
       const document = await withAPIContext(user, (ctx) =>
-        documentCreator({
+        documentCreator(ctx, {
           title: "Child Document",
           text: "Child content",
           parentDocumentId: parentDocument.id,
           collectionId: collection.id,
-          user,
-          ctx,
         })
       );
 
@@ -359,14 +333,12 @@ describe("documentCreator", () => {
       const sourceMetadata = { fileName: "test" };
 
       const document = await withAPIContext(user, (ctx) =>
-        documentCreator({
+        documentCreator(ctx, {
           title: "fileOperation Document",
           text: "fileOperation content",
           importId: fileOperation.id,
           sourceMetadata,
           collectionId: collection.id,
-          user,
-          ctx,
         })
       );
 

@@ -86,15 +86,17 @@
         "@typescript-eslint/no-require-imports": "off",
         "import/no-named-as-default": "off",
         "import/no-named-as-default-member": "off",
+        "typescript/consistent-type-imports": "error",
         "no-unused-vars": [
-          "warn",
+          "error",
           {
             "argsIgnorePattern": "^_",
             "caughtErrorsIgnorePattern": "^_",
             "args": "after-used",
             "ignoreRestSiblings": true
           }
-        ]
+        ],
+        "react/rules-of-hooks": "error"
       },
       "plugins": ["eslint", "oxc", "react", "typescript", "import"]
     }

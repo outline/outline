@@ -10,7 +10,7 @@ import {
   presentGroupMembership,
   presentPolicies,
 } from "@server/presenters";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -26,7 +26,9 @@ router.post(
     const { user } = ctx.state.auth;
     const userId = user.id;
 
-    const memberships = await GroupMembership.findAll({
+    const { count, rows: memberships } = await GroupMembership.findAndCountAll({
+      distinct: true,
+      col: "id",
       where: {
         documentId: {
           [Op.ne]: null,
@@ -77,7 +79,7 @@ router.post(
     ]);
 
     ctx.body = {
-      pagination: ctx.state.pagination,
+      pagination: { ...ctx.state.pagination, total: count },
       data: {
         groups: await Promise.all(groups.map(presentGroup)),
         groupMemberships: memberships.map(presentGroupMembership),

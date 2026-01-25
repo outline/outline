@@ -1,6 +1,6 @@
 import { Matches } from "class-validator";
 import { subMinutes } from "date-fns";
-import {
+import type {
   FindOptions,
   InferAttributes,
   InferCreationAttributes,
@@ -20,7 +20,7 @@ import User from "@server/models/User";
 import ParanoidModel from "@server/models/base/ParanoidModel";
 import { SkipChangeset } from "@server/models/decorators/Changeset";
 import Fix from "@server/models/decorators/Fix";
-import AuthenticationHelper from "@server/models/helpers/AuthenticationHelper";
+import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import { hash } from "@server/utils/crypto";
 import OAuthClient from "./OAuthClient";
 
@@ -73,6 +73,14 @@ class OAuthAuthentication extends ParanoidModel<
   @IsDate
   @Column
   refreshTokenExpiresAt: Date;
+
+  /**
+   * The ID of the grant that this authentication belongs to. Used for
+   * refresh token rotation and revocation of all tokens in a grant.
+   */
+  @Column(DataType.UUID)
+  @SkipChangeset
+  grantId: string | null;
 
   /** A list of scopes that this authentication has access to */
   @Matches(/[\/\.\w\s]*/, {

@@ -31,7 +31,7 @@ export default async function removeIndexCollision(
     where: {
       teamId,
       deletedAt: null,
-      index: Sequelize.literal(`"collection"."index" collate "C" > '${index}'`),
+      index: Sequelize.literal(`"collection"."index" collate "C" > :index`),
     },
     attributes: ["id", "index"],
     limit: 1,
@@ -39,6 +39,7 @@ export default async function removeIndexCollision(
       Sequelize.literal('"collection"."index" collate "C"'),
       ["updatedAt", "DESC"],
     ],
+    replacements: { index },
     ...options,
   });
   const nextCollectionIndex = nextCollection.length

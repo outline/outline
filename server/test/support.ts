@@ -1,13 +1,14 @@
 import { faker } from "@faker-js/faker";
-import { Transaction } from "sequelize";
+import type { Transaction } from "sequelize";
 import sharedEnv from "@shared/env";
 import { createContext } from "@server/context";
 import env from "@server/env";
-import { User } from "@server/models";
+import type { User } from "@server/models";
 import onerror from "@server/onerror";
 import webService from "@server/services/web";
 import { sequelize } from "@server/storage/database";
-import { APIContext, AuthenticationType } from "@server/types";
+import type { APIContext } from "@server/types";
+import { AuthenticationType } from "@server/types";
 import TestServer from "./TestServer";
 
 export function getTestServer() {
@@ -53,4 +54,21 @@ export function withAPIContext<T>(
       },
     } as APIContext);
   });
+}
+
+/**
+ * Helper function to convert an object to form-urlencoded string.
+ * Useful for testing OAuth endpoints that expect application/x-www-form-urlencoded content type.
+ *
+ * @param obj Object to convert to form-urlencoded string
+ * @returns Form-urlencoded string representation of the object
+ */
+export function toFormData(obj: Record<string, any>): string {
+  return Object.entries(obj)
+    .filter(([_, value]) => value !== undefined)
+    .map(
+      ([key, value]) =>
+        `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
+    )
+    .join("&");
 }

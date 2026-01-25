@@ -4,6 +4,7 @@ import { mergeRefs } from "react-merge-refs";
 import styled from "styled-components";
 import { depths, s } from "@shared/styles";
 import { fadeAndScaleIn } from "~/styles/animations";
+import { usePortalContext } from "../Portal";
 
 const Popover = PopoverPrimitive.Root;
 
@@ -27,6 +28,8 @@ type ContentProps = {
   width?: number;
   /** The minimum width of the popover, use instead of width if contents adjusts size. */
   minWidth?: number;
+  /** The minimum height of the popover. */
+  minHeight?: number;
   /** Whether the popover should be scrollable, defaults to true. */
   scrollable?: boolean;
   /** Shrink the padding of the popover */
@@ -38,10 +41,12 @@ const PopoverContent = React.forwardRef<
   ContentProps
 >((props, forwardedRef) => {
   const ref = React.useRef<React.ElementRef<typeof PopoverPrimitive.Content>>();
-
+  const timeoutRef = React.useRef<NodeJS.Timeout>();
+  const container = usePortalContext();
   const {
     width = 380,
     minWidth,
+    minHeight,
     scrollable = true,
     shrink = false,
     sideOffset = 4,
@@ -50,6 +55,9 @@ const PopoverContent = React.forwardRef<
   } = props;
 
   const enablePointerEvents = React.useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
     if (ref.current) {
       ref.current.style.pointerEvents = "auto";
     }
@@ -59,15 +67,20 @@ const PopoverContent = React.forwardRef<
     if (ref.current) {
       ref.current.style.pointerEvents = "none";
     }
-  }, []);
+    // Fallback: re-enable pointer events after 500ms, onAnimationEnd is not always called.
+    timeoutRef.current = setTimeout(() => {
+      enablePointerEvents();
+    }, 500);
+  }, [enablePointerEvents]);
 
   return (
-    <PopoverPrimitive.Portal>
+    <PopoverPrimitive.Portal container={container}>
       <StyledContent
         ref={mergeRefs([ref, forwardedRef])}
         sideOffset={sideOffset}
         $width={width}
         $minWidth={minWidth}
+        $minHeight={minHeight}
         $scrollable={scrollable}
         $shrink={shrink}
         onAnimationStart={disablePointerEvents}
@@ -84,13 +97,14 @@ PopoverContent.displayName = PopoverPrimitive.Content.displayName;
 type StyledContentProps = {
   $width?: number;
   $minWidth?: number;
+  $minHeight?: number;
   $scrollable: boolean;
   $shrink: boolean;
 };
 
 const StyledContent = styled(PopoverPrimitive.Content)<StyledContentProps>`
   z-index: ${depths.modal};
-  max-height: var(--radix-popover-content-available-height);
+  max-height: min(85vh, var(--radix-popover-content-available-height));
   transform-origin: var(--radix-popover-content-transform-origin);
 
   background: ${s("menuBackground")};
@@ -102,6 +116,7 @@ const StyledContent = styled(PopoverPrimitive.Content)<StyledContentProps>`
 
   ${({ $width }) => $width && `width: ${$width}px`};
   ${({ $minWidth }) => $minWidth && `min-width: ${$minWidth}px`};
+  ${({ $minHeight }) => $minHeight && `min-height: ${$minHeight}px`};
 
   ${({ $scrollable }) =>
     $scrollable

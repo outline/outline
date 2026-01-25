@@ -12,16 +12,17 @@ import { observable, action, computed, runInAction } from "mobx";
 import pluralize from "pluralize";
 import { Pagination } from "@shared/constants";
 import { type JSONObject } from "@shared/types";
-import RootStore from "~/stores/RootStore";
-import Policy from "~/models/Policy";
-import ArchivableModel from "~/models/base/ArchivableModel";
-import Model from "~/models/base/Model";
+import type RootStore from "~/stores/RootStore";
+import type Policy from "~/models/Policy";
+import type ArchivableModel from "~/models/base/ArchivableModel";
+import type Model from "~/models/base/Model";
 import { LifecycleManager } from "~/models/decorators/Lifecycle";
 import { getInverseRelationsForModelClass } from "~/models/decorators/Relation";
-import { Searchable } from "~/models/interfaces/Searchable";
+import type { Searchable } from "~/models/interfaces/Searchable";
 import type { PaginationParams, PartialExcept, Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
 import { AuthorizationError, NotFoundError } from "~/utils/errors";
+import ParanoidModel from "~/models/base/ParanoidModel";
 
 export enum RPCAction {
   Info = "info",
@@ -100,24 +101,13 @@ export default abstract class Store<T extends Model> {
 
     if (!normalized) {
       return this.orderedData
-        .filter((item) => {
-          if ("deletedAt" in item && item.deletedAt) {
-            return false;
-          }
-          if ("archivedAt" in item && item.archivedAt) {
-            return false;
-          }
-          return true;
-        })
+        .filter((item: T & Searchable) => !item.searchSuppressed)
         .slice(0, options?.maxResults);
     }
 
     return this.orderedData
       .filter((item: T & Searchable) => {
-        if ("deletedAt" in item && item.deletedAt) {
-          return false;
-        }
-        if ("archivedAt" in item && item.archivedAt) {
+        if (item.searchSuppressed) {
           return false;
         }
         if ("searchContent" in item) {
@@ -212,7 +202,13 @@ export default abstract class Store<T extends Model> {
     }
 
     LifecycleManager.executeHooks(model.constructor, "beforeRemove", model);
-    this.data.delete(id);
+
+    if (model instanceof ParanoidModel) {
+      model.deletedAt = new Date().toISOString();
+    } else {
+      this.data.delete(id);
+    }
+
     LifecycleManager.executeHooks(model.constructor, "afterRemove", model);
   }
 
@@ -276,7 +272,7 @@ export default abstract class Store<T extends Model> {
    * @param id The ID of the item to get.
    */
   get(id: string): T | undefined {
-    return this.data.get(id);
+    return id ? this.data.get(id) : undefined;
   }
 
   @action

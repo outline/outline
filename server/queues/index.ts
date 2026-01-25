@@ -1,29 +1,54 @@
 import { createQueue } from "@server/queues/queue";
+import { Second } from "@shared/utils/time";
 
-export const globalEventQueue = createQueue("globalEvents", {
-  attempts: 5,
-  backoff: {
-    type: "exponential",
-    delay: 1000,
-  },
-});
+let cachedGlobalEventQueue: ReturnType<typeof createQueue> | undefined;
+export const globalEventQueue = () => {
+  if (!cachedGlobalEventQueue) {
+    cachedGlobalEventQueue = createQueue("globalEvents", {
+      attempts: 5,
+      backoff: {
+        type: "exponential",
+        delay: Second.ms,
+      },
+    });
+  }
+  return cachedGlobalEventQueue;
+};
 
-export const processorEventQueue = createQueue("processorEvents", {
-  attempts: 5,
-  backoff: {
-    type: "exponential",
-    delay: 10 * 1000,
-  },
-});
+let cachedProcessorEventQueue: ReturnType<typeof createQueue> | undefined;
+export const processorEventQueue = () => {
+  if (!cachedProcessorEventQueue) {
+    cachedProcessorEventQueue = createQueue("processorEvents", {
+      attempts: 5,
+      backoff: {
+        type: "exponential",
+        delay: 10 * Second.ms,
+      },
+    });
+  }
+  return cachedProcessorEventQueue;
+};
 
-export const websocketQueue = createQueue("websockets", {
-  timeout: 10 * 1000,
-});
+let cachedWebsocketQueue: ReturnType<typeof createQueue> | undefined;
+export const websocketQueue = () => {
+  if (!cachedWebsocketQueue) {
+    cachedWebsocketQueue = createQueue("websockets", {
+      timeout: 10 * Second.ms,
+    });
+  }
+  return cachedWebsocketQueue;
+};
 
-export const taskQueue = createQueue("tasks", {
-  attempts: 5,
-  backoff: {
-    type: "exponential",
-    delay: 10 * 1000,
-  },
-});
+let cachedTaskQueue: ReturnType<typeof createQueue> | undefined;
+export const taskQueue = () => {
+  if (!cachedTaskQueue) {
+    cachedTaskQueue = createQueue("tasks", {
+      attempts: 5,
+      backoff: {
+        type: "exponential",
+        delay: 10 * Second.ms,
+      },
+    });
+  }
+  return cachedTaskQueue;
+};

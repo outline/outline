@@ -1,25 +1,24 @@
 import JSZip from "jszip";
 import omit from "lodash/omit";
-import { NavigationNode } from "@shared/types";
+import type { NavigationNode } from "@shared/types";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
-import {
-  Attachment,
-  Collection,
-  Document,
-  FileOperation,
-} from "@server/models";
+import type { Collection, FileOperation } from "@server/models";
+import { Attachment, Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { presentAttachment, presentCollection } from "@server/presenters";
-import { CollectionJSONExport, JSONExportMetadata } from "@server/types";
+import type { CollectionJSONExport, JSONExportMetadata } from "@server/types";
 import ZipHelper from "@server/utils/ZipHelper";
 import { serializeFilename } from "@server/utils/fs";
 import packageJson from "../../../package.json";
 import ExportTask from "./ExportTask";
 
 export default class ExportJSONTask extends ExportTask {
-  public async export(collections: Collection[], fileOperation: FileOperation) {
+  public async exportCollections(
+    collections: Collection[],
+    fileOperation: FileOperation
+  ) {
     const zip = new JSZip();
 
     // serial to avoid overloading, slow and steady wins the race
@@ -72,6 +71,35 @@ export default class ExportJSONTask extends ExportTask {
       attachments: {},
     };
 
+    async function addAttachments(attachments: Attachment[]) {
+      await Promise.all(
+        attachments.map(async (attachment) => {
+          zip.file(
+            attachment.key,
+            new Promise<Buffer>((resolve) => {
+              attachment.buffer.then(resolve).catch((err) => {
+                Logger.warn(`Failed to read attachment from storage`, {
+                  attachmentId: attachment.id,
+                  teamId: attachment.teamId,
+                  error: err.message,
+                });
+                resolve(Buffer.from(""));
+              });
+            }),
+            {
+              date: attachment.updatedAt,
+              createFolders: true,
+            }
+          );
+
+          output.attachments[attachment.id] = {
+            ...omit(presentAttachment(attachment), "url"),
+            key: attachment.key,
+          };
+        })
+      );
+    }
+
     async function addDocumentTree(nodes: NavigationNode[]) {
       for (const node of nodes) {
         const document = await Document.findByPk(node.id, {
@@ -82,7 +110,7 @@ export default class ExportJSONTask extends ExportTask {
           continue;
         }
 
-        const attachments = includeAttachments
+        const documentAttachments = includeAttachments
           ? await Attachment.findAll({
               where: {
                 teamId: document.teamId,
@@ -93,32 +121,7 @@ export default class ExportJSONTask extends ExportTask {
             })
           : [];
 
-        await Promise.all(
-          attachments.map(async (attachment) => {
-            zip.file(
-              attachment.key,
-              new Promise<Buffer>((resolve) => {
-                attachment.buffer.then(resolve).catch((err) => {
-                  Logger.warn(`Failed to read attachment from storage`, {
-                    attachmentId: attachment.id,
-                    teamId: attachment.teamId,
-                    error: err.message,
-                  });
-                  resolve(Buffer.from(""));
-                });
-              }),
-              {
-                date: attachment.updatedAt,
-                createFolders: true,
-              }
-            );
-
-            output.attachments[attachment.id] = {
-              ...omit(presentAttachment(attachment), "url"),
-              key: attachment.key,
-            };
-          })
-        );
+        await addAttachments(documentAttachments);
 
         output.documents[document.id] = {
           id: document.id,
@@ -146,6 +149,19 @@ export default class ExportJSONTask extends ExportTask {
       }
     }
 
+    const collectionAttachments = includeAttachments
+      ? await Attachment.findAll({
+          where: {
+            teamId: collection.teamId,
+            id: ProsemirrorHelper.parseAttachmentIds(
+              DocumentHelper.toProsemirror(collection)
+            ),
+          },
+        })
+      : [];
+
+    await addAttachments(collectionAttachments);
+
     if (collection.documentStructure) {
       await addDocumentTree(collection.documentStructure);
     }
@@ -156,5 +172,9 @@ export default class ExportJSONTask extends ExportTask {
         ? JSON.stringify(output, null, 2)
         : JSON.stringify(output)
     );
+  }
+
+  public async exportDocument(): Promise<string> {
+    throw new Error("JSON export unsupported for individual document.");
   }
 }

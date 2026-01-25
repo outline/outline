@@ -7,7 +7,8 @@ import { ApiKeyValidation } from "@shared/validations";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
-import { InputSelect, Option } from "~/components/InputSelect";
+import type { Option } from "~/components/InputSelect";
+import { InputSelect } from "~/components/InputSelect";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import useUserLocale from "~/hooks/useUserLocale";
@@ -24,7 +25,7 @@ function ApiKeyNew({ onSubmit }: Props) {
   const [name, setName] = React.useState("");
   const [scope, setScope] = React.useState("");
   const [expiryType, setExpiryType] = React.useState<ExpiryType>(
-    ExpiryType.Week
+    ExpiryType.Month
   );
   const currentDate = React.useRef<Date>(new Date());
   const [expiresAt, setExpiresAt] = React.useState<Date | undefined>(() =>

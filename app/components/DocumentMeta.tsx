@@ -1,12 +1,12 @@
-import { LocationDescriptor } from "history";
+import type { LocationDescriptor } from "history";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { s, ellipsis } from "@shared/styles";
-import Document from "~/models/Document";
-import Revision from "~/models/Revision";
+import type Document from "~/models/Document";
+import type Revision from "~/models/Revision";
 import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
 import DocumentTasks from "~/components/DocumentTasks";
 import Flex from "~/components/Flex";
@@ -155,26 +155,22 @@ const DocumentMeta: React.FC<Props> = ({
       }
       return (
         <Viewed>
-          •&nbsp;<Modified highlight>{t("Never viewed")}</Modified>
+          <Separator />
+          <Modified highlight>{t("Never viewed")}</Modified>
         </Viewed>
       );
     }
 
     return (
       <Viewed>
-        •&nbsp;{t("Viewed")} <Time dateTime={lastViewedAt} addSuffix shorten />
+        <Separator />
+        {t("Viewed")} <Time dateTime={lastViewedAt} addSuffix shorten />
       </Viewed>
     );
   };
 
   return (
-    <Container
-      align="center"
-      rtl={document.dir === "rtl"}
-      {...rest}
-      dir="ltr"
-      lang=""
-    >
+    <Container align="center" rtl={document.dir === "rtl"} {...rest} dir="ltr">
       {to ? (
         <Link to={to} replace={replace}>
           {content}
@@ -186,22 +182,23 @@ const DocumentMeta: React.FC<Props> = ({
         <span>
           &nbsp;{t("in")}&nbsp;
           <Strong>
-            <DocumentBreadcrumb document={document} onlyText />
+            <DocumentBreadcrumb document={document} maxDepth={1} onlyText />
           </Strong>
         </span>
       )}
       {showParentDocuments && nestedDocumentsCount > 0 && (
         <span>
-          &nbsp;• {nestedDocumentsCount}{" "}
+          <Separator />
+          {nestedDocumentsCount}{" "}
           {t("nested document", {
             count: nestedDocumentsCount,
           })}
         </span>
       )}
-      &nbsp;{timeSinceNow()}
+      {timeSinceNow()}
       {canShowProgressBar && (
         <>
-          &nbsp;•&nbsp;
+          <Separator />
           <DocumentTasks document={document} />
         </>
       )}
@@ -209,6 +206,14 @@ const DocumentMeta: React.FC<Props> = ({
     </Container>
   );
 };
+
+export const Separator = styled.span`
+  padding: 0 0.4em;
+
+  &::after {
+    content: "•";
+  }
+`;
 
 const Strong = styled.strong`
   font-weight: 550;

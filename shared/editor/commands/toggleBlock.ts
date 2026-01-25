@@ -6,7 +6,8 @@ import {
   splitBlock,
 } from "prosemirror-commands";
 import { Slice, Fragment } from "prosemirror-model";
-import { Command, NodeSelection, TextSelection } from "prosemirror-state";
+import type { Command } from "prosemirror-state";
+import { NodeSelection, TextSelection } from "prosemirror-state";
 import { liftTarget, ReplaceAroundStep } from "prosemirror-transform";
 import { v4 } from "uuid";
 import ToggleBlock, { Action, On } from "../nodes/ToggleBlock";

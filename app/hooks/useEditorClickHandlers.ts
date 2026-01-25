@@ -5,6 +5,7 @@ import { isDocumentUrl, isInternalUrl } from "@shared/utils/urls";
 import { sharedModelPath } from "~/utils/routeHelpers";
 import { isHash } from "~/utils/urls";
 import useStores from "./useStores";
+import { isFirefox } from "@shared/utils/browser";
 
 type Params = {
   /** The share ID of the document being viewed, if any */
@@ -24,12 +25,19 @@ export default function useEditorClickHandlers({ shareId }: Params) {
 
       let navigateTo = href;
 
+      // Middle-click events in Firefox are not prevented in the same way as other browsers
+      // so we need to explicitly return here to prevent two tabs from being opened when
+      // middle-clicking a link (#10083).
+      if (event?.button === 1 && isFirefox) {
+        return;
+      }
+
       if (isInternalUrl(href)) {
         // probably absolute
         if (href[0] !== "/") {
           try {
             const url = new URL(href);
-            navigateTo = url.pathname + url.hash;
+            navigateTo = url.pathname + url.search + url.hash;
           } catch (_err) {
             navigateTo = href;
           }
@@ -57,7 +65,7 @@ export default function useEditorClickHandlers({ shareId }: Params) {
         }
 
         if (isDocumentUrl(navigateTo)) {
-          const document = documents.getByUrl(navigateTo);
+          const document = documents.get(navigateTo);
           if (document) {
             navigateTo = document.path;
           }

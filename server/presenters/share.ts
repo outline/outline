@@ -1,4 +1,4 @@
-import { Share } from "@server/models";
+import type { Share } from "@server/models";
 import { presentUser } from ".";
 
 export default function presentShare(share: Share, isAdmin = false) {
@@ -17,6 +17,7 @@ export default function presentShare(share: Share, isAdmin = false) {
     includeChildDocuments: share.includeChildDocuments,
     allowIndexing: share.allowIndexing,
     showLastUpdated: share.showLastUpdated,
+    showTOC: share.showTOC,
     lastAccessedAt: share.lastAccessedAt || undefined,
     views: share.views || 0,
     domain: share.domain,

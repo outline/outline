@@ -5,8 +5,8 @@ import Logger from "@server/logging/Logger";
 import { Document, Subscription, User } from "@server/models";
 import { can } from "@server/policies";
 import { sequelize } from "@server/storage/database";
-import { DocumentUserEvent } from "@server/types";
-import BaseTask from "./BaseTask";
+import type { DocumentUserEvent } from "@server/types";
+import { BaseTask } from "./base/BaseTask";
 
 export default class DocumentSubscriptionRemoveUserTask extends BaseTask<DocumentUserEvent> {
   public async perform(event: DocumentUserEvent) {

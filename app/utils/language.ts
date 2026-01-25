@@ -1,8 +1,7 @@
-import { i18n } from "i18next";
-import { locales, unicodeCLDRtoBCP47 } from "@shared/utils/date";
+import type { i18n } from "i18next";
+import type { locales } from "@shared/utils/date";
+import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
 import Desktop from "./Desktop";
-import User from "~/models/User";
-import useUserLocale from "~/hooks/useUserLocale";
 
 /**
  * Formats a number using the user's locale where possible. Use `useFormatNumber` hook
@@ -50,4 +49,47 @@ export async function changeLanguage(
     await instance.changeLanguage(localeBCP);
     await Desktop.bridge?.setSpellCheckerLanguages(["en-US", localeBCP]);
   }
+}
+
+/**
+ * Languages with special styling, in ISO 639-1 format.
+ */
+const scriptsWithLang = new Set([
+  "th", // Thai
+  "lo", // Lao
+  "km", // Khmer
+  "my", // Burmese
+  "hi", // Hindi
+  "mr", // Marathi
+  "ne", // Nepali
+  "bn", // Bengali
+  "gu", // Gujarati
+  "pa", // Punjabi
+  "te", // Telugu
+  "ta", // Tamil
+  "ml", // Malayalam
+  "si", // Sinhala
+  "bo", // Tibetan
+  "ar", // Arabic
+  "fa", // Persian
+  "ur", // Urdu
+  "he", // Hebrew
+  "am", // Amharic
+  "mn", // Mongolian
+]);
+
+/**
+ * Returns the language code if it requires special text styling, otherwise undefined.
+ * This is used to determine if a lang attribute should be set on elements for CSS styling.
+ *
+ * @param langCode The language code to check, in ISO 639-1 format
+ * @returns The language code if it requires special styling, otherwise undefined
+ */
+export function getLangFor(
+  langCode: string | null | undefined
+): string | undefined {
+  if (!langCode) {
+    return undefined;
+  }
+  return scriptsWithLang.has(langCode) ? langCode : undefined;
 }

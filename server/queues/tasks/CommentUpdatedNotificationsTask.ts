@@ -1,11 +1,12 @@
 import invariant from "invariant";
 import { Op } from "sequelize";
 import { MentionType, NotificationEventType } from "@shared/types";
-import { Comment, Document, Notification, User } from "@server/models";
+import { Comment, Document, Group, Notification, User } from "@server/models";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
-import { CommentEvent, CommentUpdateEvent } from "@server/types";
+import type { CommentEvent, CommentUpdateEvent } from "@server/types";
 import { canUserAccessDocument } from "@server/utils/permissions";
-import BaseTask, { TaskPriority } from "./BaseTask";
+import { BaseTask, TaskPriority } from "./base/BaseTask";
+import GroupMentionedInCommentNotificationsTask from "./GroupMentionedInCommentNotificationsTask";
 
 export default class CommentUpdatedNotificationsTask extends BaseTask<CommentEvent> {
   public async perform(event: CommentUpdateEvent) {
@@ -68,6 +69,35 @@ export default class CommentUpdatedNotificationsTask extends BaseTask<CommentEve
         });
         userIdsMentioned.push(mention.modelId);
       }
+    }
+
+    const groupMentions = ProsemirrorHelper.parseMentions(
+      ProsemirrorHelper.toProsemirror(comment.data),
+      { type: MentionType.Group }
+    ).filter((mention) => newMentionIds.includes(mention.id));
+
+    const mentionedGroup: string[] = [];
+    for (const group of groupMentions) {
+      if (mentionedGroup.includes(group.modelId)) {
+        continue;
+      }
+
+      // Check if the group has mentions disabled
+      const groupModel = await Group.findByPk(group.modelId);
+      if (groupModel?.disableMentions) {
+        continue;
+      }
+
+      // Schedule a separate task to handle group member notifications
+      await new GroupMentionedInCommentNotificationsTask().schedule({
+        ...event,
+        data: {
+          groupId: group.modelId,
+          actorId: group.actorId ?? event.actorId,
+        },
+      });
+
+      mentionedGroup.push(group.modelId);
     }
   }
 

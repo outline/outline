@@ -109,6 +109,12 @@ import {
   faHandsClapping,
   faFolderClosed,
   faFlaskVial,
+  faCircle,
+  faSquare,
+  faPentagon,
+  faHexagon,
+  faDiamond,
+  faSpiral,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import intersection from "lodash/intersection";
@@ -571,6 +577,12 @@ export class IconLibrary {
         faShopify,
         faSwift,
         faSlack,
+        faCircle,
+        faSquare,
+        faPentagon,
+        faHexagon,
+        faDiamond,
+        faSpiral,
       ].map((icon) => [
         icon.iconName,
         {

@@ -1,8 +1,8 @@
 import { NotificationEventType } from "@shared/types";
 import { Collection, Notification } from "@server/models";
 import NotificationHelper from "@server/models/helpers/NotificationHelper";
-import { CollectionEvent } from "@server/types";
-import BaseTask, { TaskPriority } from "./BaseTask";
+import type { CollectionEvent } from "@server/types";
+import { BaseTask, TaskPriority } from "./base/BaseTask";
 
 export default class CollectionCreatedNotificationsTask extends BaseTask<CollectionEvent> {
   public async perform(event: CollectionEvent) {

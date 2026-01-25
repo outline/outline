@@ -1,10 +1,10 @@
-import { TFunction } from "i18next";
-import { Node as ProsemirrorNode } from "prosemirror-model";
-import { EditorState } from "prosemirror-state";
-import { EditorView } from "prosemirror-view";
+import type { TFunction } from "i18next";
+import type { Node as ProsemirrorNode } from "prosemirror-model";
+import type { EditorState } from "prosemirror-state";
+import type { Decoration, EditorView } from "prosemirror-view";
 import * as React from "react";
-import { DefaultTheme } from "styled-components";
-import { Primitive } from "utility-types";
+import type { DefaultTheme } from "styled-components";
+import type { Primitive } from "utility-types";
 
 export type NodeWithPos = {
   pos: number;
@@ -41,6 +41,12 @@ export type MenuItem = {
   active?: (state: EditorState) => boolean;
   appendSpace?: boolean;
   skipIcon?: boolean;
+  disabled?: boolean;
+  onClick?: () => void;
+  /** Custom React content to render instead of a standard menu item */
+  content?: React.ReactNode;
+  /** Condition to check before preventing the submenu from closing */
+  preventCloseCondition?: () => boolean;
 };
 
 export type ComponentProps = {
@@ -50,4 +56,21 @@ export type ComponentProps = {
   isSelected: boolean;
   isEditable: boolean;
   getPos: () => number;
+  decorations: Decoration[];
 };
+
+export type NodeAttrMarkName =
+  | "strong"
+  | "em"
+  | "code_inline"
+  | "link"
+  | "background"
+  | "strikethrough"
+  | "underline"
+  | "placeholder"
+  | "comment";
+
+export interface NodeAttrMark {
+  type: NodeAttrMarkName;
+  attrs?: Record<string, unknown>;
+}

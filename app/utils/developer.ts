@@ -1,6 +1,6 @@
 import flatten from "lodash/flatten";
 import stores from "~/stores";
-import { flattenTree } from "./tree";
+import { flattenTree } from "@shared/utils/tree";
 
 /**
  * Delete all databases in the browser.

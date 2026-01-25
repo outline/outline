@@ -1,7 +1,9 @@
-import addressparser, { EmailAddress } from "addressparser";
-import Bull from "bull";
+import type { EmailAddress } from "addressparser";
+import addressparser from "addressparser";
+import type Bull from "bull";
 import invariant from "invariant";
-import { Node } from "prosemirror-model";
+import { subMinutes } from "date-fns";
+import type { Node } from "prosemirror-model";
 import { randomString } from "@shared/random";
 import { TeamPreference } from "@shared/types";
 import { Day } from "@shared/utils/time";
@@ -9,20 +11,21 @@ import mailer from "@server/emails/mailer";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/Metrics";
-import { Team } from "@server/models";
+import type { Team } from "@server/models";
 import Notification from "@server/models/Notification";
 import HTMLHelper from "@server/models/helpers/HTMLHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
 import { taskQueue } from "@server/queues";
-import { TaskPriority } from "@server/queues/tasks/BaseTask";
-import { NotificationMetadata } from "@server/types";
+import { TaskPriority } from "@server/queues/tasks/base/BaseTask";
+import type { NotificationMetadata } from "@server/types";
 
 export enum EmailMessageCategory {
   Authentication = "authentication",
   Invitation = "invitation",
   Notification = "notification",
   Marketing = "marketing",
+  Internal = "internal",
 }
 
 export interface EmailProps {
@@ -66,7 +69,7 @@ export default abstract class BaseEmail<
 
     // Ideally we'd use EmailTask.schedule here but importing creates a circular
     // dependency so we're pushing onto the task queue in the expected format
-    return taskQueue.add(
+    return taskQueue().add(
       {
         name: "EmailTask",
         props: {
@@ -143,12 +146,21 @@ export default abstract class BaseEmail<
       ? await Notification.emailReferences(notification)
       : undefined;
 
+    // Check if notification is considerably delayed and annotate
+    // the subject. This is incase of extended downtime or queue backlogs
+    let subject = this.subject(data);
+    if (notification) {
+      if (notification.createdAt < subMinutes(new Date(), 30)) {
+        subject = `Delayed notification: ${subject}`;
+      }
+    }
+
     try {
       await mailer.sendMail({
         to: this.props.to,
         replyTo: this.replyTo?.(data),
         from: this.from(data),
-        subject: this.subject(data),
+        subject,
         messageId,
         references,
         previewText: this.preview(data),

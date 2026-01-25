@@ -5,14 +5,14 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Icon from "@shared/components/Icon";
 import type { NavigationNode } from "@shared/types";
-import Document from "~/models/Document";
+import type Document from "~/models/Document";
 import Breadcrumb from "~/components/Breadcrumb";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { archivePath, settingsPath, trashPath } from "~/utils/routeHelpers";
-import { createInternalLinkActionV2 } from "~/actions";
+import { createInternalLinkAction } from "~/actions";
 import { ActiveDocumentSection } from "~/actions/sections";
 
 type Props = {
@@ -53,28 +53,28 @@ function DocumentBreadcrumb(
     }
 
     const outputActions = [
-      createInternalLinkActionV2({
+      createInternalLinkAction({
         name: t("Trash"),
         section: ActiveDocumentSection,
         icon: <TrashIcon />,
         visible: document.isDeleted,
         to: trashPath(),
       }),
-      createInternalLinkActionV2({
+      createInternalLinkAction({
         name: t("Archive"),
         section: ActiveDocumentSection,
         icon: <ArchiveIcon />,
         visible: document.isArchived,
         to: archivePath(),
       }),
-      createInternalLinkActionV2({
+      createInternalLinkAction({
         name: t("Templates"),
         section: ActiveDocumentSection,
         icon: <ShapesIcon />,
         visible: document.template,
         to: settingsPath("templates"),
       }),
-      createInternalLinkActionV2({
+      createInternalLinkAction({
         name: collection?.name,
         section: ActiveDocumentSection,
         icon: collection ? (
@@ -88,7 +88,7 @@ function DocumentBreadcrumb(
             }
           : "",
       }),
-      createInternalLinkActionV2({
+      createInternalLinkAction({
         name: t("Deleted Collection"),
         section: ActiveDocumentSection,
         visible: document.isCollectionDeleted,
@@ -96,10 +96,15 @@ function DocumentBreadcrumb(
       }),
       ...path.map((node) => {
         const title = node.title || t("Untitled");
-        return createInternalLinkActionV2({
+        return createInternalLinkAction({
           name: node.icon ? (
             <>
-              <StyledIcon value={node.icon} color={node.color} /> {title}
+              <StyledIcon
+                value={node.icon}
+                color={node.color}
+                initial={node.title.charAt(0).toUpperCase()}
+              />{" "}
+              {title}
             </>
           ) : (
             title

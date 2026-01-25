@@ -1,4 +1,4 @@
-import { CSSProperties } from "react";
+import type { CSSProperties } from "react";
 import styled from "styled-components";
 
 type JustifyValues = CSSProperties["justifyContent"];
@@ -9,7 +9,19 @@ type AlignValues = CSSProperties["alignItems"];
  * Flex is a styled component that provides a flexible box layout with convenient props.
  * It simplifies the use of flexbox CSS properties with a clean, declarative API.
  */
-const Flex = styled.div<{
+const Flex = styled.div.withConfig({
+  shouldForwardProp: (prop) =>
+    ![
+      "auto",
+      "column",
+      "align",
+      "justify",
+      "wrap",
+      "shrink",
+      "reverse",
+      "gap",
+    ].includes(prop),
+})<{
   /** Makes the component grow to fill available space */
   auto?: boolean;
   /** Changes flex direction to column */
@@ -42,7 +54,7 @@ const Flex = styled.div<{
   flex-wrap: ${({ wrap }) => (wrap ? "wrap" : "initial")};
   flex-shrink: ${({ shrink }) =>
     shrink === true ? 1 : shrink === false ? 0 : "initial"};
-  gap: ${({ gap }) => (gap ? `${gap}px` : "initial")};
+  gap: ${({ gap }) => (gap !== undefined ? `${gap}px` : "initial")};
   min-height: 0;
   min-width: 0;
 `;

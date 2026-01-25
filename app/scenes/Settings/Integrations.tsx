@@ -12,8 +12,9 @@ import useStores from "~/hooks/useStores";
 import { settingsPath } from "~/utils/routeHelpers";
 import IntegrationCard from "./components/IntegrationCard";
 import { StickyFilters } from "./components/StickyFilters";
+import { observer } from "mobx-react";
 
-export function Integrations() {
+function Integrations() {
   const { t } = useTranslation();
   const { integrations } = useStores();
   const items = useSettingsConfig();
@@ -45,7 +46,7 @@ export function Integrations() {
           Configure a variety of integrations with third-party services.
         </Trans>
       </Text>
-      <StickyFilters gap={8}>
+      <StickyFilters>
         <InputSearch
           short
           value={query}
@@ -70,3 +71,5 @@ const Cards = styled(Flex)`
   margin-top: 20px;
   width: "100%";
 `;
+
+export default observer(Integrations);

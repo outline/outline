@@ -3,15 +3,16 @@ import invariant from "invariant";
 import isNil from "lodash/isNil";
 import { observable, action, computed, autorun, runInAction } from "mobx";
 import { getCookie, setCookie } from "tiny-cookie";
-import { CustomTheme } from "@shared/types";
+import type { CustomTheme } from "@shared/types";
 import Storage from "@shared/utils/Storage";
 import { getCookieDomain, parseDomain } from "@shared/utils/domains";
-import RootStore from "~/stores/RootStore";
+import type RootStore from "~/stores/RootStore";
 import Team from "~/models/Team";
 import env from "~/env";
 import { setPostLoginPath } from "~/hooks/useLastVisitedPath";
 import { client } from "~/utils/ApiClient";
 import Desktop from "~/utils/Desktop";
+import { deleteAllDatabases } from "~/utils/developer";
 import Logger from "~/utils/Logger";
 import isCloudHosted from "~/utils/isCloudHosted";
 import Store from "./base/Store";
@@ -115,6 +116,7 @@ export default class AuthStore extends Store<Team> {
           if (isNil(newData.user)) {
             void this.logout({
               savePath: false,
+              clearCache: false,
               revokeToken: false,
               userInitiated: true,
             });
@@ -242,8 +244,8 @@ export default class AuthStore extends Store<Team> {
         // Update the user's timezone if it has changed
         const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
         if (data.user.timezone !== timezone) {
-          const user = this.rootStore.users.get(data.user.id)!;
-          void user.save({ timezone });
+          const user = this.rootStore.users.get(data.user.id);
+          void user?.save({ timezone });
         }
       });
     } catch (err) {
@@ -305,18 +307,22 @@ export default class AuthStore extends Store<Team> {
   /**
    * Logs the user out and optionally revokes the authentication token.
    *
-   * @param savePath Whether the current path should be saved and returned to after login.
+   * @param clearCache Whether to clear the IndexedDB databases used for document caching.
    * @param revokeToken Whether the auth token should attempt to be revoked, this should be
+   * @param savePath Whether the current path should be saved and returned to after login.
+   * @param userInitiated Whether the logout was initiated by the user.
    * disabled with requests from ApiClient to prevent infinite loops.
    */
   @action
   logout = async ({
-    savePath = false,
+    clearCache = true,
     revokeToken = true,
+    savePath = false,
     userInitiated = false,
   }: {
-    savePath?: boolean;
+    clearCache?: boolean;
     revokeToken?: boolean;
+    savePath?: boolean;
     userInitiated?: boolean;
   }) => {
     // if this logout was forced from an authenticated route then
@@ -347,6 +353,11 @@ export default class AuthStore extends Store<Team> {
 
     if (userInitiated) {
       this.logoutRedirectUri = env.OIDC_LOGOUT_URI;
+    }
+
+    if (clearCache) {
+      // clear IndexedDB databases used for document caching
+      await deleteAllDatabases();
     }
 
     // clear all credentials from cache (and local storage via autorun)

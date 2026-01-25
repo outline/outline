@@ -1,5 +1,5 @@
-import { Next } from "koa";
-import { AppContext } from "@server/types";
+import type { Next } from "koa";
+import type { AppContext } from "@server/types";
 
 // remove after https://github.com/koajs/koa-body/issues/218 is resolved
 export default function coalesceBody() {

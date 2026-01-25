@@ -2,13 +2,13 @@ import Router from "koa-router";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
 import { Document, Relationship } from "@server/models";
-import { authorize, can } from "@server/policies";
+import { authorize } from "@server/policies";
 import {
   presentRelationship,
   presentDocument,
   presentPolicies,
 } from "@server/presenters";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 

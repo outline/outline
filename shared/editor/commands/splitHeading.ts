@@ -1,5 +1,6 @@
-import { NodeType } from "prosemirror-model";
-import { Command, TextSelection } from "prosemirror-state";
+import type { NodeType } from "prosemirror-model";
+import type { Command } from "prosemirror-state";
+import { TextSelection } from "prosemirror-state";
 import { findBlockNodes } from "../queries/findChildren";
 import { findCollapsedNodes } from "../queries/findCollapsedNodes";
 
@@ -23,8 +24,9 @@ export default function splitHeading(type: NodeType): Command {
       const previousBlockIsCollapsed = !!collapsedNodes.find(
         (a) => a.pos === previousBlock?.pos
       );
+      const isEmpty = $from.parent.content.size === 0;
 
-      if (previousBlockIsCollapsed) {
+      if (previousBlockIsCollapsed && !isEmpty) {
         // Insert a new heading directly before this one
         const transaction = state.tr.insert(
           $from.before(),

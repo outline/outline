@@ -1,7 +1,8 @@
-import { Attrs, Node } from "prosemirror-model";
-import { MutableAttrs } from "prosemirror-tables";
+import type { Attrs, Node } from "prosemirror-model";
+import type { MutableAttrs } from "prosemirror-tables";
 import { isBrowser } from "../../utils/browser";
-import { TableLayout } from "../types";
+import type { TableLayout, NodeAttrMark } from "../types";
+import { readableColor } from "polished";
 
 export interface TableAttrs {
   layout: TableLayout | null;
@@ -12,6 +13,7 @@ export interface CellAttrs {
   rowspan: number;
   colwidth: number[] | null;
   alignment: "center" | "left" | "right" | null;
+  marks?: NodeAttrMark[];
 }
 
 /**
@@ -42,6 +44,16 @@ export function getCellAttrs(dom: HTMLElement | string): Attrs {
         : dom.style.textAlign === "right"
           ? "right"
           : null,
+    marks: dom.getAttribute("data-bgcolor")
+      ? [
+          {
+            type: "background",
+            attrs: {
+              color: dom.getAttribute("data-bgcolor"),
+            },
+          },
+        ]
+      : undefined,
   } satisfies CellAttrs;
 }
 
@@ -64,11 +76,21 @@ export function setCellAttrs(node: Node): Attrs {
   }
   if (node.attrs.colwidth) {
     if (isBrowser) {
-      attrs["data-colwidth"] = node.attrs.colwidth.map(parseInt).join(",");
+      attrs["data-colwidth"] = node.attrs.colwidth.map(Number).join(",");
     } else {
       attrs.style =
+        (attrs.style ?? "") + `min-width: ${Number(node.attrs.colwidth[0])}px;`;
+    }
+  }
+  if (node.attrs.marks) {
+    const backgroundMark = node.attrs.marks.find(
+      (mark: NodeAttrMark) => mark.type === "background"
+    );
+    if (backgroundMark) {
+      attrs["data-bgcolor"] = backgroundMark.attrs.color;
+      attrs.style =
         (attrs.style ?? "") +
-        `min-width: ${parseInt(node.attrs.colwidth[0])}px;`;
+        `background-color: ${backgroundMark.attrs.color}; --cell-text-color: ${readableColor(backgroundMark.attrs.color)};`;
     }
   }
 

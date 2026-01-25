@@ -1,5 +1,6 @@
 import { HttpsProxyAgent } from "https-proxy-agent";
-import OAuth2Strategy, { Strategy } from "passport-oauth2";
+import type OAuth2Strategy from "passport-oauth2";
+import { Strategy } from "passport-oauth2";
 
 export class OIDCStrategy extends Strategy {
   constructor(

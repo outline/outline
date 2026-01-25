@@ -1,4 +1,4 @@
-import { NodeType } from "prosemirror-model";
+import type { NodeType } from "prosemirror-model";
 import { Plugin, PluginKey } from "prosemirror-state";
 import Extension from "../lib/Extension";
 
@@ -28,7 +28,7 @@ export default class TrailingNode extends Extension {
             const { state } = view;
             const insertNodeAtEnd = plugin.getState(state);
 
-            if (!insertNodeAtEnd) {
+            if (!insertNodeAtEnd || !view.editable) {
               return;
             }
 
@@ -41,6 +41,16 @@ export default class TrailingNode extends Extension {
         state: {
           init: (_, state) => {
             const lastNode = state.tr.doc.lastChild;
+
+            // If paragraph has no text (only images/media), add trailing node
+            if (
+              lastNode?.type.name === "paragraph" &&
+              lastNode.content.size > 0 &&
+              lastNode.textContent.length === 0
+            ) {
+              return true;
+            }
+
             return lastNode ? !disabledNodes.includes(lastNode.type) : false;
           },
           apply: (tr, value) => {
@@ -49,6 +59,16 @@ export default class TrailingNode extends Extension {
             }
 
             const lastNode = tr.doc.lastChild;
+
+            // If paragraph has no text (only images/media), add trailing node
+            if (
+              lastNode?.type.name === "paragraph" &&
+              lastNode.content.size > 0 &&
+              lastNode.textContent.length === 0
+            ) {
+              return true;
+            }
+
             return lastNode ? !disabledNodes.includes(lastNode.type) : false;
           },
         },

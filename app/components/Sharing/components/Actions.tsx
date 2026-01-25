@@ -10,7 +10,12 @@ import { Theme } from "~/stores/UiStore";
 export const AppearanceAction = observer(() => {
   const { t } = useTranslation();
   const { ui } = useStores();
-  const { resolvedTheme } = ui;
+  const { resolvedTheme, themeOverride } = ui;
+
+  // Hide when theme is locked via query parameter
+  if (themeOverride) {
+    return null;
+  }
 
   return (
     <Action>
@@ -24,6 +29,11 @@ export const AppearanceAction = observer(() => {
           icon={resolvedTheme === "light" ? <SunIcon /> : <MoonIcon />}
           onClick={() =>
             ui.setTheme(resolvedTheme === "light" ? Theme.Dark : Theme.Light)
+          }
+          aria-label={
+            resolvedTheme === "light"
+              ? t("Switch to dark")
+              : t("Switch to light")
           }
           neutral
           borderOnHover

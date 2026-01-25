@@ -1,5 +1,5 @@
 import { faker } from "@faker-js/faker";
-import { v4 as uuid } from "uuid";
+import { randomUUID } from "crypto";
 import { TeamPreference } from "@shared/types";
 import { buildDocument, buildTeam } from "@server/test/factories";
 import User from "../User";
@@ -40,7 +40,7 @@ describe("Model", () => {
     });
 
     it("should return full array if value changed", async () => {
-      const collaboratorId = uuid();
+      const collaboratorId = randomUUID();
       const document = await buildDocument();
       const prev = document.collaboratorIds;
 

@@ -4,7 +4,8 @@ import { init, Data } from "emoji-mart";
 import FuzzySearch from "fuzzy-search";
 import capitalize from "lodash/capitalize";
 import sortBy from "lodash/sortBy";
-import { Emoji, EmojiCategory, EmojiSkinTone, EmojiVariants } from "../types";
+import type { Emoji, EmojiVariants } from "../types";
+import { EmojiCategory, EmojiSkinTone } from "../types";
 
 init({ data: RawData });
 
@@ -28,7 +29,7 @@ const isFlagEmojiSupported = (): boolean => {
     const CANVAS_WIDTH = 20;
     const textSize = Math.floor(CANVAS_HEIGHT / 2);
 
-    // Initialize convas context
+    // Initialize canvas context
     ctx.font = textSize + "px Arial, Sans-Serif";
     ctx.textBaseline = "top";
     ctx.canvas.width = CANVAS_WIDTH * 2;
@@ -56,7 +57,7 @@ const isFlagEmojiSupported = (): boolean => {
     }
 
     // Emoji has immutable color, so we check the color of the emoji in two different colors
-    // the result show be the same.
+    // the result should be the same.
     const x = CANVAS_WIDTH + ((i / 4) % CANVAS_WIDTH);
     const y = Math.floor(i / 4 / CANVAS_WIDTH);
     const b = ctx.getImageData(x, y, 1, 1).data;
@@ -191,16 +192,25 @@ export const getEmojisWithCategory = ({
 export const getEmojiVariants = ({ id }: { id: string }) =>
   EMOJI_ID_TO_VARIANTS[id];
 
+type CustomEmoji = {
+  id: string;
+  name: string;
+  url: string;
+};
+
 export const search = ({
   query,
   skinTone,
+  customEmojis = [],
 }: {
   query: string;
   skinTone?: EmojiSkinTone;
+  customEmojis?: CustomEmoji[];
 }) => {
   const queryLowercase = query.toLowerCase();
   const emojiSkinTone = skinTone ?? EmojiSkinTone.Default;
 
+  // Search built-in emojis
   const matchedEmojis = searcher
     .search(queryLowercase)
     .map(
@@ -208,14 +218,36 @@ export const search = ({
         EMOJI_ID_TO_VARIANTS[emoji.id][emojiSkinTone] ??
         EMOJI_ID_TO_VARIANTS[emoji.id][EmojiSkinTone.Default]
     );
-  return sortBy(matchedEmojis, (emoji) => {
+
+  // Search custom emojis
+  const matchedCustomEmojis = customEmojis
+    .filter((emoji) => {
+      const nameLower = emoji.name.toLowerCase();
+      const idLower = emoji.id.toLowerCase();
+      return (
+        nameLower.includes(queryLowercase) || idLower.includes(queryLowercase)
+      );
+    })
+    .map(
+      (customEmoji) =>
+        ({
+          id: customEmoji.id,
+          name: customEmoji.name,
+          value: customEmoji.id,
+        }) as Emoji
+    );
+
+  // Combine and sort all results
+  const allEmojis = [...matchedEmojis, ...matchedCustomEmojis];
+
+  return sortBy(allEmojis, (emoji) => {
     const nlc = emoji.name.toLowerCase();
     return query === nlc ? -1 : nlc.startsWith(queryLowercase) ? 0 : 1;
   });
 };
 
 /**
- * Get am emoji's human-readable ID from its string.
+ * Get an emoji's human-readable ID from its string.
  *
  * @param emoji - The string representation of the emoji.
  * @returns The emoji id, if found.

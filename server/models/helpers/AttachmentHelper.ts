@@ -2,6 +2,7 @@ import { addHours } from "date-fns";
 import { AttachmentPreset } from "@shared/types";
 import env from "@server/env";
 import { ValidateKey } from "@server/validation";
+import { AttachmentValidation } from "@shared/validations";
 
 export enum Buckets {
   public = "public",
@@ -15,24 +16,20 @@ export default class AttachmentHelper {
   /**
    * Get the upload location for the given upload details
    *
-   * @param acl The ACL to use
    * @param id The ID of the attachment
    * @param name The name of the attachment
    * @param userId The ID of the user uploading the attachment
    */
   static getKey({
-    acl,
     id,
     name,
     userId,
   }: {
-    acl: string;
     id: string;
     name: string;
     userId: string;
   }) {
-    const bucket = acl === "public-read" ? Buckets.public : Buckets.uploads;
-    const keyPrefix = `${bucket}/${userId}/${id}`;
+    const keyPrefix = `${Buckets.uploads}/${userId}/${id}`;
     return ValidateKey.sanitize(
       `${keyPrefix}/${name.slice(0, this.maximumFileNameLength)}`
     );
@@ -109,6 +106,8 @@ export default class AttachmentHelper {
         return env.FILE_STORAGE_IMPORT_MAX_SIZE;
       case AttachmentPreset.WorkspaceImport:
         return env.FILE_STORAGE_WORKSPACE_IMPORT_MAX_SIZE;
+      case AttachmentPreset.Emoji:
+        return AttachmentValidation.emojiMaxFileSize;
       case AttachmentPreset.Avatar:
       case AttachmentPreset.DocumentAttachment:
       default:

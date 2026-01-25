@@ -13,31 +13,20 @@ import some from "lodash/some";
 import uniqWith from "lodash/uniqWith";
 import { chainCommands, newlineInCode } from "prosemirror-commands";
 import { wrappingInputRule } from "prosemirror-inputrules";
-import { ParseSpec } from "prosemirror-markdown";
-import {
+import type { ParseSpec } from "prosemirror-markdown";
+import type {
   Fragment,
   NodeSpec,
   NodeType,
   Node as ProsemirrorNode,
   Schema,
-  Slice,
 } from "prosemirror-model";
-import {
-  Command,
-  EditorState,
-  Plugin,
-  PluginKey,
-  TextSelection,
-  Transaction,
-} from "prosemirror-state";
+import { Slice } from "prosemirror-model";
+import type { Command, EditorState, Transaction } from "prosemirror-state";
+import { Plugin, PluginKey, TextSelection } from "prosemirror-state";
 import { findWrapping } from "prosemirror-transform";
-import {
-  Decoration,
-  DecorationSet,
-  DecorationSource,
-  EditorView,
-  NodeView,
-} from "prosemirror-view";
+import type { DecorationSource, EditorView, NodeView } from "prosemirror-view";
+import { Decoration, DecorationSet } from "prosemirror-view";
 import { v4 } from "uuid";
 import Storage from "../../utils/Storage";
 import {
@@ -56,8 +45,8 @@ import {
   dedentBlocks,
   splitTopLevelBlockWithinBody,
 } from "../commands/toggleBlock";
-import { CommandFactory } from "../lib/Extension";
-import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import type { CommandFactory } from "../lib/Extension";
+import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { PlaceholderPlugin } from "../plugins/PlaceholderPlugin";
 import { findBlockNodes } from "../queries/findChildren";
 import { findCutAfterHeading } from "../queries/findCutAfterHeading";

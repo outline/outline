@@ -1,5 +1,6 @@
-import { InferCreationAttributes } from "sequelize";
-import { UserRole } from "@shared/types";
+import type { InferCreationAttributes } from "sequelize";
+import { Op } from "sequelize";
+import type { UserRole } from "@shared/types";
 import InviteAcceptedEmail from "@server/emails/templates/InviteAcceptedEmail";
 import {
   DomainNotAllowedError,
@@ -9,7 +10,9 @@ import {
 import Logger from "@server/logging/Logger";
 import { Team, User, UserAuthentication } from "@server/models";
 import { sequelize } from "@server/storage/database";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
+import { UserFlag } from "@server/models/User";
+import UploadUserAvatarTask from "@server/queues/tasks/UploadUserAvatarTask";
 
 type UserProvisionerResult = {
   user: User;
@@ -77,19 +80,32 @@ export default async function userProvisioner(
 
     // We found an authentication record that matches the user id, but it's
     // associated with a different authentication provider, (eg a different
-    // hosted google domain). This is possible in Google Auth when moving domains.
-    // In the future we may auto-migrate these.
+    // hosted google domain or Discord server). This can happen when moving
+    // domains or changing server configurations. Auto-migrate to the new provider.
     if (auth.authenticationProviderId !== authenticationProviderId) {
-      throw new Error(
-        `User authentication ${providerId} already exists for ${auth.authenticationProviderId}, tried to assign to ${authenticationProviderId}`
+      Logger.info(
+        "authentication",
+        "Migrating user to new authentication provider",
+        {
+          userId: user?.id,
+          providerId,
+          fromAuthenticationProviderId: auth.authenticationProviderId,
+          toAuthenticationProviderId: authenticationProviderId,
+        }
       );
+      await auth.update({ authenticationProviderId });
     }
 
     if (user) {
-      await user.update({
-        email,
-      });
+      if (avatarUrl && !user.getFlag(UserFlag.AvatarUpdated)) {
+        await new UploadUserAvatarTask().schedule({
+          userId: user.id,
+          avatarUrl,
+        });
+      }
+      await user.update({ email });
       await auth.update(rest);
+
       return {
         user,
         authentication: auth,
@@ -110,9 +126,10 @@ export default async function userProvisioner(
     "withTeam",
   ]).findOne({
     where: {
-      // Email from auth providers may be capitalized and we should respect that
-      // however any existing invites will always be lowercased.
-      email: email.toLowerCase(),
+      // Email from auth providers may be capitalized
+      email: {
+        [Op.iLike]: email,
+      },
       teamId,
     },
   });
@@ -179,7 +196,9 @@ export default async function userProvisioner(
   } else if (!authentication && !team?.allowedDomains.length) {
     // There's no existing invite or user that matches the external auth email
     // and there is no possibility of matching an allowed domain.
-    throw InvalidAuthenticationError();
+    throw InvalidAuthenticationError(
+      "No matching user for email or allowed domain"
+    );
   }
 
   //

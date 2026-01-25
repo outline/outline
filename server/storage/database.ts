@@ -1,10 +1,12 @@
 import path from "path";
-import { InferAttributes, InferCreationAttributes } from "sequelize";
+import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import sequelizeStrictAttributes from "sequelize-strict-attributes";
-import { Sequelize, SequelizeOptions } from "sequelize-typescript";
-import { Umzug, SequelizeStorage, MigrationError } from "umzug";
+import type { SequelizeOptions } from "sequelize-typescript";
+import { Sequelize } from "sequelize-typescript";
+import type { MigrationError } from "umzug";
+import { Umzug, SequelizeStorage } from "umzug";
 import env from "@server/env";
-import Model from "@server/models/base/Model";
+import type Model from "@server/models/base/Model";
 import Logger from "../logging/Logger";
 import * as models from "../models";
 
@@ -47,10 +49,12 @@ export function createDatabaseInstance(
       InferAttributes<Model>,
       InferCreationAttributes<Model>
     >;
-  }
+  },
+  options?: { readOnly?: boolean }
 ): Sequelize {
   try {
     let instance;
+    const isReadOnly = options?.readOnly ?? false;
 
     // Common options for both URL and object configurations
     const commonOptions: SequelizeOptions = {
@@ -70,17 +74,21 @@ export function createDatabaseInstance(
       },
       models: Object.values(input),
       pool: {
-        max: poolMax,
+        // Read-only connections can have larger pools since there's no write contention
+        max: isReadOnly ? poolMax * 2 : poolMax,
         min: poolMin,
         acquire: 30000,
         idle: 10000,
       },
-      retry: {
-        match: [/deadlock/i],
-        max: 3,
-        backoffBase: 200,
-        backoffExponent: 1.5,
-      },
+      // Only retry on deadlocks for write connections
+      retry: isReadOnly
+        ? undefined
+        : {
+            match: [/deadlock/i],
+            max: 3,
+            backoffBase: 200,
+            backoffExponent: 1.5,
+          },
       schema,
     };
 
@@ -92,6 +100,33 @@ export function createDatabaseInstance(
     }
 
     sequelizeStrictAttributes(instance);
+
+    if (env.isTest) {
+      instance = monkeyPatchSequelizeErrorsForJest(instance);
+    }
+
+    // Add hooks to warn about write operations on read-only connections
+    if (isReadOnly) {
+      const warnWriteOperation = (operation: string) => {
+        Logger.warn(
+          `Attempted ${operation} operation on read-only database connection`
+        );
+      };
+
+      instance.addHook("beforeCreate", () => warnWriteOperation("CREATE"));
+      instance.addHook("beforeUpdate", () => warnWriteOperation("UPDATE"));
+      instance.addHook("beforeDestroy", () => warnWriteOperation("DELETE"));
+      instance.addHook("beforeBulkCreate", () =>
+        warnWriteOperation("BULK CREATE")
+      );
+      instance.addHook("beforeBulkUpdate", () =>
+        warnWriteOperation("BULK UPDATE")
+      );
+      instance.addHook("beforeBulkDestroy", () =>
+        warnWriteOperation("BULK DELETE")
+      );
+    }
+
     return instance;
   } catch (_err) {
     Logger.fatal(
@@ -104,7 +139,8 @@ export function createDatabaseInstance(
             `Failed to connect using database credentials. Please check DATABASE_HOST, DATABASE_NAME, DATABASE_USER configuration`
           )
     );
-    process.exit(1);
+    // To satisfy TypeScript that a Sequelize instance is always returned
+    throw _err;
   }
 }
 
@@ -176,7 +212,58 @@ export function createMigrationRunner(
   });
 }
 
+/**
+ * Fixed in Sequelize v7, but hasn't been back-ported to Sequelize v6.
+ * See https://github.com/sequelize/sequelize/issues/14807#issuecomment-1854398131
+ */
+export function monkeyPatchSequelizeErrorsForJest(instance: Sequelize) {
+  if (typeof jest === "undefined") {
+    return instance;
+  }
+
+  const sequelizeVersion = (Sequelize as any).version;
+  const major = sequelizeVersion.split(".").map(Number)[0];
+
+  if (major >= 7) {
+    Logger.fatal(
+      "Redundant patch",
+      new Error(
+        "This patch was made redundant in Sequelize v7, you should check!"
+      )
+    );
+  }
+
+  const origQueryFunc = instance.query;
+  instance.query = async function query(this: Sequelize, ...args: any[]) {
+    let result;
+    try {
+      result = await origQueryFunc.apply(this, args as any);
+    } catch (err: any) {
+      // Ensure error appears in Jest output, not swallowed by Sequelize internals
+      Logger.error(err.message, err.parent);
+      throw err;
+    }
+    return result;
+  } as typeof origQueryFunc;
+
+  return instance;
+}
+
 export const sequelize = createDatabaseInstance(databaseConfig, models);
+
+/**
+ * Read-only database connection for read replicas.
+ * Falls back to the main connection if DATABASE_URL_READ_ONLY is not set.
+ */
+export const sequelizeReadOnly = env.DATABASE_URL_READ_ONLY
+  ? createDatabaseInstance(
+      env.DATABASE_URL_READ_ONLY,
+      {},
+      {
+        readOnly: true,
+      }
+    )
+  : sequelize;
 
 export const migrations = createMigrationRunner(sequelize, [
   "migrations/*.js",

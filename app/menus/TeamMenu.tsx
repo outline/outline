@@ -12,7 +12,7 @@ import {
 } from "~/actions/definitions/teams";
 import useActionContext from "~/hooks/useActionContext";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
-import { ActionV2Separator } from "~/actions";
+import { ActionSeparator } from "~/actions";
 import { useMenuAction } from "~/hooks/useMenuAction";
 
 type Props = {
@@ -21,7 +21,7 @@ type Props = {
 
 const TeamMenu: React.FC = ({ children }: Props) => {
   const { t } = useTranslation();
-  const context = useActionContext({ isContextMenu: true });
+  const context = useActionContext({ isMenu: true });
 
   // NOTE: it's useful to memoize on the team id and session because the action
   // menu is not cached at all.
@@ -30,7 +30,7 @@ const TeamMenu: React.FC = ({ children }: Props) => {
       ...switchTeamsList(context),
       createTeam,
       desktopLoginTeam,
-      ActionV2Separator,
+      ActionSeparator,
       navigateToWorkspaceSettings,
       logout,
     ],

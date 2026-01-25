@@ -1,8 +1,6 @@
 import crypto from "crypto";
-import {
-  NotificationEventDefaults,
-  NotificationEventType,
-} from "@shared/types";
+import type { NotificationEventType } from "@shared/types";
+import { NotificationEventDefaults } from "@shared/types";
 import env from "@server/env";
 
 /**

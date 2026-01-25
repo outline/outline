@@ -3,7 +3,7 @@ import { PlusIcon } from "outline-icons";
 import { Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import ReactDOM from "react-dom";
-import { WidgetProps } from "@shared/editor/lib/Extension";
+import type { WidgetProps } from "@shared/editor/lib/Extension";
 import { PlaceholderPlugin } from "@shared/editor/plugins/PlaceholderPlugin";
 import { findParentNode } from "@shared/editor/queries/findParentNode";
 import Suggestion from "~/editor/extensions/Suggestion";
@@ -120,6 +120,7 @@ export default class BlockMenuExtension extends Suggestion {
         uploadFile={props.uploadFile}
         onFileUploadStart={props.onFileUploadStart}
         onFileUploadStop={props.onFileUploadStop}
+        onFileUploadProgress={props.onFileUploadProgress}
         embeds={props.embeds}
       />
     );

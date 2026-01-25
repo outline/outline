@@ -1,15 +1,17 @@
 import "reflect-metadata";
 import sharedEnv from "@shared/env";
 import env from "@server/env";
+import { EventEmitter } from "events";
 
-require("@server/storage/database");
+// Increase the default max listeners for EventEmitter to prevent warnings in tests
+// This needs to be done before any modules that use EventEmitter are loaded
+EventEmitter.defaultMaxListeners = 100;
 
-// Enable mocks for Redis-related modules
-jest.mock("@server/storage/redis");
-jest.mock("@server/utils/MutexLock");
-jest.mock("@server/utils/CacheHelper");
+// Enable fetch mocks for testing
+require("jest-fetch-mock").enableMocks();
+fetchMock.dontMock();
 
-// We never want to make real S3 requests in test environment
+// Mock AWS SDK S3 client and related commands
 jest.mock("@aws-sdk/client-s3", () => ({
   S3Client: jest.fn(() => ({
     send: jest.fn(),
@@ -33,6 +35,19 @@ jest.mock("@aws-sdk/s3-request-presigner", () => ({
   getSignedUrl: jest.fn(),
 }));
 
+// Initialize the database models
+require("@server/storage/database");
+
+// Import Redis after mocking
+const Redis = require("ioredis");
+
 beforeEach(() => {
   env.URL = sharedEnv.URL = "https://app.outline.dev";
+});
+
+afterEach(async () => {
+  // Create a new Redis instance for cleanup
+  const redis = new Redis();
+  await redis.flushall();
+  redis.disconnect();
 });

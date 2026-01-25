@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import dotenv from "dotenv";
+import dotenv from "@dotenvx/dotenvx";
 
 let environment: Record<string, string> = {};
 

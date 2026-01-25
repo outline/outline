@@ -1,4 +1,5 @@
 import { observer } from "mobx-react";
+import { v4 as uuidv4 } from "uuid";
 import queryString from "query-string";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -6,13 +7,9 @@ import { useHistory, useLocation, useRouteMatch } from "react-router-dom";
 import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { v4 as uuidv4 } from "uuid";
 import { Pagination } from "@shared/constants";
-import { hideScrollbars } from "@shared/styles";
-import {
-  DateFilter as TDateFilter,
-  StatusFilter as TStatusFilter,
-} from "@shared/types";
+import type { DateFilter as TDateFilter } from "@shared/types";
+import { StatusFilter as TStatusFilter } from "@shared/types";
 import ArrowKeyNavigation from "~/components/ArrowKeyNavigation";
 import DocumentListItem from "~/components/DocumentListItem";
 import Fade from "~/components/Fade";
@@ -26,7 +23,7 @@ import env from "~/env";
 import usePaginatedRequest from "~/hooks/usePaginatedRequest";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
-import { SearchResult } from "~/types";
+import type { SearchResult } from "~/types";
 import { searchPath } from "~/utils/routeHelpers";
 import { decodeURIComponentSafe } from "~/utils/urls";
 import CollectionFilter from "./components/CollectionFilter";
@@ -36,6 +33,7 @@ import DocumentTypeFilter from "./components/DocumentTypeFilter";
 import RecentSearches from "./components/RecentSearches";
 import SearchInput from "./components/SearchInput";
 import UserFilter from "./components/UserFilter";
+import { HStack } from "~/components/primitives/HStack";
 
 function Search() {
   const { t } = useTranslation();
@@ -126,8 +124,11 @@ function Search() {
   });
 
   const updateLocation = (query: string) => {
+    // If query came from route params, navigate to base search path
+    const pathname = routeMatch.params.query ? searchPath() : location.pathname;
+
     history.replace({
-      pathname: location.pathname,
+      pathname,
       search: queryString.stringify(
         { ...queryString.parse(location.search), q: query },
         {
@@ -362,16 +363,11 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
   flex: 1;
 `;
 
-const Filters = styled(Flex)`
+const Filters = styled(HStack)`
+  flex-wrap: wrap;
   margin-bottom: 12px;
   transition: opacity 100ms ease-in-out;
-  overflow-y: hidden;
-  overflow-x: auto;
   padding: 8px 0;
-  height: 28px;
-  gap: 8px;
-
-  ${hideScrollbars()}
 
   ${breakpoint("tablet")`
     padding: 0;

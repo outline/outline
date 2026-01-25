@@ -47,7 +47,13 @@ describe("#apiKeys.create", () => {
       body: {
         token: user.getJwtToken(),
         name: "My API Key",
-        scope: ["/api/documents.list", "*.info", "users.*"],
+        scope: [
+          "/api/documents.list",
+          "/revisions.list",
+          "*.info",
+          "users.*",
+          "collections:read",
+        ],
       },
     });
     const body = await res.json();
@@ -56,8 +62,10 @@ describe("#apiKeys.create", () => {
     expect(body.data.name).toEqual("My API Key");
     expect(body.data.scope).toEqual([
       "/api/documents.list",
+      "/api/revisions.list",
       "/api/*.info",
       "/api/users.*",
+      "collections:read",
     ]);
   });
 

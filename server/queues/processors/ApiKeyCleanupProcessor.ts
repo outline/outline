@@ -2,7 +2,7 @@ import { Op } from "sequelize";
 import { TeamPreference, UserRole } from "@shared/types";
 import Logger from "@server/logging/Logger";
 import { ApiKey, User } from "@server/models";
-import { Event, TeamEvent } from "@server/types";
+import type { Event, TeamEvent } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
 
 export default class ApiKeyCleanupProcessor extends BaseProcessor {

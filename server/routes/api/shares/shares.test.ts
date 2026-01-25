@@ -655,6 +655,20 @@ describe("#shares.info", () => {
     expect(body.data.shares[0].id).toBe(share.id);
     expect(body.data.shares[0].published).toBe(true);
   });
+  it("should allow reading share by documentId", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/shares.info", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: document.id,
+      },
+    });
+    expect(res.status).toEqual(204);
+  });
   it("should return share for parent document with includeChildDocuments=true", async () => {
     const user = await buildUser();
     const collection = await buildCollection({

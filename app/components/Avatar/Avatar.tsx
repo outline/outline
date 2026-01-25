@@ -2,6 +2,7 @@ import * as React from "react";
 import styled from "styled-components";
 import useBoolean from "~/hooks/useBoolean";
 import Initials from "./Initials";
+import Tooltip from "../Tooltip";
 
 export enum AvatarSize {
   Small = 16,
@@ -22,6 +23,7 @@ export interface IAvatar {
   avatarUrl: string | null;
   color?: string;
   initial?: string;
+  name?: string;
   id?: string;
 }
 
@@ -42,6 +44,8 @@ type Props = {
   className?: string;
   /** Optional style */
   style?: React.CSSProperties;
+  /** Whether to show a tooltip */
+  showTooltip?: boolean;
 };
 
 function Avatar(props: Props) {
@@ -50,12 +54,15 @@ function Avatar(props: Props) {
     style,
     variant = AvatarVariant.Round,
     className,
+    showTooltip,
     ...rest
   } = props;
   const src = props.src || model?.avatarUrl;
   const [error, handleError] = useBoolean(false);
+  const initial =
+    model?.initial || (model?.name ? model.name[0] : "").toUpperCase();
 
-  return (
+  const content = (
     <Relative
       style={style}
       $variant={variant}
@@ -66,12 +73,18 @@ function Avatar(props: Props) {
         <Image onError={handleError} src={src} {...rest} />
       ) : model ? (
         <Initials color={model.color} {...rest}>
-          {model.initial}
+          {initial}
         </Initials>
       ) : (
         <Initials {...rest} />
       )}
     </Relative>
+  );
+
+  return showTooltip ? (
+    <Tooltip content={props.alt || model?.name || ""}>{content}</Tooltip>
+  ) : (
+    content
   );
 }
 

@@ -1,7 +1,8 @@
 import Router from "koa-router";
 import truncate from "lodash/truncate";
-import { WhereOptions } from "sequelize";
-import { ImportState, IntegrationType, UserRole } from "@shared/types";
+import type { WhereOptions } from "sequelize";
+import type { IntegrationType } from "@shared/types";
+import { ImportState, UserRole } from "@shared/types";
 import { ImportValidation } from "@shared/validations";
 import { UnprocessableEntityError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
@@ -11,7 +12,7 @@ import { Integration } from "@server/models";
 import Import from "@server/models/Import";
 import { authorize } from "@server/policies";
 import { presentImport, presentPolicies } from "@server/presenters";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 

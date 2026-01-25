@@ -61,6 +61,7 @@ export const randomString = (options: number | RandomStringOptions) => {
             : lowercase + uppercase + numeric;
 
   const array = new Uint8Array(length);
+  // oxlint-disable-next-line no-restricted-globals
   crypto.getRandomValues(array);
   return Array.from(array, (x) => chars[x % chars.length]).join("");
 };

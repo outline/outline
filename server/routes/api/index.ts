@@ -1,12 +1,15 @@
-import Koa, { BaseContext } from "koa";
+import type { BaseContext } from "koa";
+import Koa from "koa";
 import bodyParser from "koa-body";
 import Router from "koa-router";
-import userAgent, { UserAgentContext } from "koa-useragent";
+import type { UserAgentContext } from "koa-useragent";
+import userAgent from "koa-useragent";
 import env from "@server/env";
 import { NotFoundError } from "@server/errors";
 import coalesceBody from "@server/middlewares/coaleseBody";
 import requestTracer from "@server/middlewares/requestTracer";
-import { AppState, AppContext } from "@server/types";
+import { verifyCSRFToken } from "@server/middlewares/csrf";
+import type { AppState, AppContext } from "@server/types";
 import { Hook, PluginManager } from "@server/utils/PluginManager";
 import apiKeys from "./apiKeys";
 import attachments from "./attachments";
@@ -17,6 +20,7 @@ import comments from "./comments/comments";
 import cron from "./cron";
 import developer from "./developer";
 import documents from "./documents";
+import emojis from "./emojis";
 import events from "./events";
 import fileOperationsRoute from "./fileOperations";
 import groupMemberships from "./groupMemberships";
@@ -59,6 +63,7 @@ api.use(
       ),
       maxFieldsSize: 10 * 1024 * 1024,
     },
+    jsonLimit: 5 * 1024 * 1024, // 5MB limit for JSON payloads
   })
 );
 api.use(coalesceBody());
@@ -67,6 +72,7 @@ api.use(requestTracer());
 api.use(apiResponse());
 api.use(apiErrorHandler());
 api.use(editor());
+api.use(verifyCSRFToken());
 
 // Register plugin API routes before others to allow for overrides
 PluginManager.getHooks(Hook.API).forEach((hook) =>
@@ -81,6 +87,7 @@ router.use("/", users.routes());
 router.use("/", collections.routes());
 router.use("/", comments.routes());
 router.use("/", documents.routes());
+router.use("/", emojis.routes());
 router.use("/", pins.routes());
 router.use("/", revisions.routes());
 router.use("/", views.routes());

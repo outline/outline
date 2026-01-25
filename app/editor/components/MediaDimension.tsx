@@ -1,4 +1,4 @@
-import { NodeSelection } from "prosemirror-state";
+import type { NodeSelection } from "prosemirror-state";
 import { useCallback, useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import Flex from "@shared/components/Flex";
@@ -7,6 +7,7 @@ import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { extraArea } from "@shared/styles";
 import Input, { NativeInput, Outline } from "~/components/Input";
 import { useEditor } from "./EditorContext";
+import { useTranslation } from "react-i18next";
 
 type Dimension = {
   width: string;
@@ -20,19 +21,20 @@ export function MediaDimension() {
     width: { min: number; max: number };
     height: { min: number; max: number };
   }>();
+  const { t } = useTranslation();
   const { view, commands } = useEditor();
   const { state } = view;
   const { selection } = state;
 
-  // This component will be rendered only when the selection is image or video (NodeSelection types).
+  // This component will be rendered for specific media nodes like image, video or pdfs (NodeSelection types).
   const node = (selection as NodeSelection).node;
   const nodeType = node.type.name,
     width = node.attrs.width as number,
     height = node.attrs.height as number;
 
   const [localDimension, setLocalDimension] = useState<Dimension>(() => ({
-    width: String(width),
-    height: String(height),
+    width: width ? String(width) : "",
+    height: height ? String(height) : "",
     changed: "none",
   }));
   const [error, setError] = useState<{ width: boolean; height: boolean }>({
@@ -57,8 +59,8 @@ export function MediaDimension() {
 
   const reset = useCallback(() => {
     setLocalDimension({
-      width: String(width),
-      height: String(height),
+      width: width ? String(width) : "",
+      height: height ? String(height) : "",
       changed: "none",
     });
     setError({ width: false, height: false });
@@ -155,6 +157,11 @@ export function MediaDimension() {
         width: finalWidth,
         height: finalHeight,
       });
+    } else if (nodeType === "attachment") {
+      commands["resizeAttachment"]({
+        width: finalWidth,
+        height: finalHeight,
+      });
     }
   }, [commands, width, height, localDimension, nodeType, error, reset]);
 
@@ -205,6 +212,9 @@ export function MediaDimension() {
   return (
     <StyledFlex ref={ref} align="center">
       <StyledInput
+        label={t("Image width")}
+        labelHidden
+        placeholder={t("Width")}
         value={localDimension.width}
         onChange={handleChange("width")}
         onBlur={handleBlur}
@@ -212,9 +222,12 @@ export function MediaDimension() {
         $error={error.width}
       />
       <Text size="xsmall" type="tertiary">
-        x
+        ×
       </Text>
       <StyledInput
+        label={t("Image height")}
+        labelHidden
+        placeholder={t("Height")}
         value={localDimension.height}
         onChange={handleChange("height")}
         onBlur={handleBlur}

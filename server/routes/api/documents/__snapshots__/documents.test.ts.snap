@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`#documents.create should error with invalid parentDocument 1`] = `
 {
@@ -15,6 +15,24 @@ exports[`#documents.delete should require authentication 1`] = `
   "message": "Authentication required",
   "ok": false,
   "status": 401,
+}
+`;
+
+exports[`#documents.documents should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
+exports[`#documents.documents should return 403 if user does not have access to the document 1`] = `
+{
+  "error": "authorization_error",
+  "message": "Authorization error",
+  "ok": false,
+  "status": 403,
 }
 `;
 
@@ -75,7 +93,7 @@ exports[`#documents.update should require authentication 1`] = `
 exports[`#documents.update should require text while appending 1`] = `
 {
   "error": "validation_error",
-  "message": "text is required while appending",
+  "message": "text is required when using append, prepend, or editMode",
   "ok": false,
   "status": 400,
 }

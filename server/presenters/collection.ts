@@ -1,7 +1,7 @@
 import { Hour } from "@shared/utils/time";
-import Collection from "@server/models/Collection";
+import type Collection from "@server/models/Collection";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import presentUser from "./user";
 
 type Options = {
@@ -22,7 +22,7 @@ export default async function presentCollection(
 
   const res: Record<string, any> = {
     id: collection.id,
-    url: collection.url,
+    url: collection.path,
     urlId: collection.urlId,
     name: collection.name,
     data: asData
@@ -59,6 +59,13 @@ export default async function presentCollection(
   if (!options.isPublic) {
     res.archivedBy =
       collection.archivedBy && presentUser(collection.archivedBy);
+    res.sourceMetadata = collection.sourceMetadata
+      ? {
+          externalId: collection.sourceMetadata.externalId,
+          externalName: collection.sourceMetadata.externalName,
+          createdByName: collection.sourceMetadata.createdByName,
+        }
+      : undefined;
   }
 
   return res;

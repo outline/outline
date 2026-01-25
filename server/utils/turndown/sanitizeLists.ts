@@ -1,4 +1,4 @@
-import TurndownService from "turndown";
+import type TurndownService from "turndown";
 import { inHtmlContext } from "./utils";
 
 /**
@@ -16,7 +16,7 @@ export default function sanitizeLists(turndownService: TurndownService) {
       content = content
         .replace(/^\n+/, "") // remove leading newlines
         .replace(/\n+$/, "\n") // replace trailing newlines with just a single one
-        .replace(/\n/gm, "\n  "); // 2 space indent
+        .replace(/\n/gm, "\n    "); // 4 space indent
 
       let prefix = options.bulletListMarker + " ";
       const parent = node.parentNode;

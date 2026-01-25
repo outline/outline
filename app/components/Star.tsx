@@ -3,14 +3,14 @@ import { StarredIcon, UnstarredIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import styled, { useTheme } from "styled-components";
 import { hover } from "@shared/styles";
-import Collection from "~/models/Collection";
-import Document from "~/models/Document";
+import type Collection from "~/models/Collection";
+import type Document from "~/models/Document";
 import {
   starCollection,
   unstarCollection,
 } from "~/actions/definitions/collections";
 import { starDocument, unstarDocument } from "~/actions/definitions/documents";
-import useActionContext from "~/hooks/useActionContext";
+import { ActionContextProvider } from "~/hooks/useActionContext";
 import NudeButton from "./NudeButton";
 
 type Props = {
@@ -27,10 +27,6 @@ type Props = {
 function Star({ size, document, collection, color, ...rest }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const context = useActionContext({
-    activeDocumentId: document?.id,
-    activeCollectionId: collection?.id,
-  });
 
   const target = document || collection;
 
@@ -39,37 +35,43 @@ function Star({ size, document, collection, color, ...rest }: Props) {
   }
 
   return (
-    <NudeButton
-      context={context}
-      hideOnActionDisabled
-      tooltip={{
-        content: target.isStarred ? t("Unstar document") : t("Star document"),
-        delay: 500,
+    <ActionContextProvider
+      value={{
+        activeDocumentId: document?.id,
+        activeCollectionId: collection?.id,
       }}
-      action={
-        collection
-          ? collection.isStarred
-            ? unstarCollection
-            : starCollection
-          : document
-            ? document.isStarred
-              ? unstarDocument
-              : starDocument
-            : undefined
-      }
-      size={size}
-      {...rest}
     >
-      {target.isStarred ? (
-        <AnimatedStar size={size} color={theme.yellow} />
-      ) : (
-        <AnimatedStar
-          size={size}
-          color={color ?? theme.textTertiary}
-          as={UnstarredIcon}
-        />
-      )}
-    </NudeButton>
+      <NudeButton
+        hideOnActionDisabled
+        tooltip={{
+          content: target.isStarred ? t("Unstar document") : t("Star document"),
+          delay: 500,
+        }}
+        action={
+          collection
+            ? collection.isStarred
+              ? unstarCollection
+              : starCollection
+            : document
+              ? document.isStarred
+                ? unstarDocument
+                : starDocument
+              : undefined
+        }
+        size={size}
+        {...rest}
+      >
+        {target.isStarred ? (
+          <AnimatedStar size={size} color={theme.yellow} />
+        ) : (
+          <AnimatedStar
+            size={size}
+            color={color ?? theme.textTertiary}
+            as={UnstarredIcon}
+          />
+        )}
+      </NudeButton>
+    </ActionContextProvider>
   );
 }
 

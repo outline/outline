@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import ApiKey from "~/models/ApiKey";
+import type ApiKey from "~/models/ApiKey";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
 import { revokeApiKeyFactory } from "~/actions/definitions/apiKeys";

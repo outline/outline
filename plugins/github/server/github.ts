@@ -4,17 +4,16 @@ import {
   type OAuthWebFlowAuthOptions,
   type InstallationAuthOptions,
 } from "@octokit/auth-app";
-import { Endpoints, OctokitResponse } from "@octokit/types";
+import { Sequelize } from "sequelize";
+import type { Endpoints, OctokitResponse } from "@octokit/types";
 import { Octokit } from "octokit";
 import pluralize from "pluralize";
-import {
-  IntegrationService,
-  IntegrationType,
-  UnfurlResourceType,
-} from "@shared/types";
+import type { IntegrationType } from "@shared/types";
+import { IntegrationService, UnfurlResourceType } from "@shared/types";
 import Logger from "@server/logging/Logger";
-import { Integration, User } from "@server/models";
-import { UnfurlIssueOrPR, UnfurlSignature } from "@server/types";
+import type { User } from "@server/models";
+import { Integration } from "@server/models";
+import type { UnfurlIssueOrPR, UnfurlSignature } from "@server/types";
 import { GitHubUtils } from "../shared/GitHubUtils";
 import env from "./env";
 
@@ -141,24 +140,29 @@ export class GitHub {
    * @returns {object} Containing resource identifiers - `owner`, `repo`, `type` and `id`.
    */
   public static parseUrl(url: string) {
-    const { hostname, pathname } = new URL(url);
-    if (hostname !== "github.com") {
+    try {
+      const { hostname, pathname } = new URL(url);
+      if (hostname !== "github.com") {
+        return;
+      }
+
+      const parts = pathname.split("/");
+      const owner = parts[1];
+      const repo = parts[2];
+      const type = parts[3]
+        ? (pluralize.singular(parts[3]) as UnfurlResourceType)
+        : undefined;
+      const id = Number(parts[4]);
+
+      if (!type || !GitHub.supportedResources.includes(type)) {
+        return;
+      }
+
+      return { owner, repo, type, id, url };
+    } catch (_err) {
+      // Invalid URL format
       return;
     }
-
-    const parts = pathname.split("/");
-    const owner = parts[1];
-    const repo = parts[2];
-    const type = parts[3]
-      ? (pluralize.singular(parts[3]) as UnfurlResourceType)
-      : undefined;
-    const id = Number(parts[4]);
-
-    if (!type || !GitHub.supportedResources.includes(type)) {
-      return;
-    }
-
-    return { owner, repo, type, id, url };
   }
 
   private static authenticateAsApp = () => {
@@ -222,18 +226,29 @@ export class GitHub {
    * @param actor User attempting to unfurl resource url
    * @returns An object containing resource details e.g, a GitHub Pull Request details
    */
-  public static unfurl: UnfurlSignature = async (url: string, actor: User) => {
+  public static unfurl: UnfurlSignature = async (url: string, actor?: User) => {
     const resource = GitHub.parseUrl(url);
 
-    if (!resource) {
+    if (!resource || !actor) {
       return;
     }
 
+    // Find integration, prioritizing one where the installation account matches the resource owner
     const integration = (await Integration.findOne({
       where: {
         service: IntegrationService.GitHub,
         teamId: actor.teamId,
-        "settings.github.installation.account.name": resource.owner,
+      },
+      order: [
+        [
+          Sequelize.literal(
+            `CASE WHEN "settings"->'github'->'installation'->'account'->>'name' = :owner THEN 0 ELSE 1 END`
+          ),
+          "ASC",
+        ],
+      ],
+      replacements: {
+        owner: resource.owner,
       },
     })) as Integration<IntegrationType.Embed>;
 

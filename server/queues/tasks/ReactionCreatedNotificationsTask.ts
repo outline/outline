@@ -1,8 +1,8 @@
 import { NotificationEventType } from "@shared/types";
 import { Comment, Document, Notification, User } from "@server/models";
-import { CommentReactionEvent } from "@server/types";
+import type { CommentReactionEvent } from "@server/types";
 import { canUserAccessDocument } from "@server/utils/permissions";
-import BaseTask, { TaskPriority } from "./BaseTask";
+import { BaseTask, TaskPriority } from "./base/BaseTask";
 
 export default class ReactionCreatedNotificationsTask extends BaseTask<CommentReactionEvent> {
   public async perform(event: CommentReactionEvent) {

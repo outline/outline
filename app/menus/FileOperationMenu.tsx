@@ -2,13 +2,13 @@ import { DownloadIcon, TrashIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { FileOperationState, FileOperationType } from "@shared/types";
-import FileOperation from "~/models/FileOperation";
+import type FileOperation from "~/models/FileOperation";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
 import {
-  ActionV2Separator,
-  createActionV2,
-  createExternalLinkActionV2,
+  ActionSeparator,
+  createAction,
+  createExternalLinkAction,
 } from "~/actions";
 import { useMenuAction } from "~/hooks/useMenuAction";
 import usePolicy from "~/hooks/usePolicy";
@@ -25,7 +25,7 @@ function FileOperationMenu({ fileOperation, onDelete }: Props) {
 
   const actions = React.useMemo(
     () => [
-      createExternalLinkActionV2({
+      createExternalLinkAction({
         name: t("Download"),
         icon: <DownloadIcon />,
         section,
@@ -34,8 +34,8 @@ function FileOperationMenu({ fileOperation, onDelete }: Props) {
           fileOperation.state === FileOperationState.Complete,
         url: fileOperation.downloadUrl,
       }),
-      ActionV2Separator,
-      createActionV2({
+      ActionSeparator,
+      createAction({
         name: t("Delete"),
         icon: <TrashIcon />,
         section,

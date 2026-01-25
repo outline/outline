@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import { ShapesIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
-import Document from "~/models/Document";
+import type Document from "~/models/Document";
 import Button from "~/components/Button";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { useMenuAction } from "~/hooks/useMenuAction";
@@ -18,7 +18,10 @@ type Props = {
 
 function TemplatesMenu({ isCompact, onSelectTemplate, document }: Props) {
   const { t } = useTranslation();
-  const allActions = useTemplateMenuActions({ onSelectTemplate, document });
+  const allActions = useTemplateMenuActions({
+    onSelectTemplate,
+    documentId: document.id,
+  });
   const rootAction = useMenuAction(allActions);
 
   if (!allActions.length) {

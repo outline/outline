@@ -20,7 +20,7 @@ type Props = {
   description: string;
 };
 
-const HoverPreviewLink = React.forwardRef(function _HoverPreviewLink(
+const HoverPreviewLink = React.forwardRef(function HoverPreviewLink_(
   { url, thumbnailUrl, title, description }: Props,
   ref: React.Ref<HTMLDivElement>
 ) {

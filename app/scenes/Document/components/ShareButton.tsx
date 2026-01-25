@@ -1,10 +1,9 @@
 import { observer } from "mobx-react";
 import { GlobeIcon } from "outline-icons";
-import { useCallback, useState } from "react";
+import { Suspense, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
-import Document from "~/models/Document";
+import type Document from "~/models/Document";
 import Button from "~/components/Button";
-import SharePopover from "~/components/Sharing/Document";
 import {
   Popover,
   PopoverTrigger,
@@ -12,6 +11,11 @@ import {
 } from "~/components/primitives/Popover";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
+import lazyWithRetry from "~/utils/lazyWithRetry";
+
+const SharePopover = lazyWithRetry(
+  () => import("~/components/Sharing/Document")
+);
 
 type Props = {
   /** Document being shared */
@@ -31,6 +35,10 @@ function ShareButton({ document }: Props) {
     setOpen(false);
   }, []);
 
+  const handleMouseEnter = useCallback(() => {
+    void document.share();
+  }, [document]);
+
   if (isMobile) {
     return null;
   }
@@ -40,21 +48,24 @@ function ShareButton({ document }: Props) {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger>
-        <Button icon={icon} neutral>
+        <Button icon={icon} neutral onMouseEnter={handleMouseEnter}>
           {t("Share")} {domain && <>&middot; {domain}</>}
         </Button>
       </PopoverTrigger>
       <PopoverContent
         aria-label={t("Share")}
         width={400}
+        minHeight={175}
         side="bottom"
         align="end"
       >
-        <SharePopover
-          document={document}
-          onRequestClose={closePopover}
-          visible={open}
-        />
+        <Suspense fallback={null}>
+          <SharePopover
+            document={document}
+            onRequestClose={closePopover}
+            visible={open}
+          />
+        </Suspense>
       </PopoverContent>
     </Popover>
   );

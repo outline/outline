@@ -18,13 +18,16 @@ import {
 } from "@shared/utils/date";
 import { isModKey } from "@shared/utils/keyboard";
 import { DocumentValidation } from "@shared/validations";
-import ContentEditable, { RefHandle } from "~/components/ContentEditable";
+import type { RefHandle } from "~/components/ContentEditable";
+import ContentEditable from "~/components/ContentEditable";
 import { useDocumentContext } from "~/components/DocumentContext";
 import { PopoverButton } from "~/components/IconPicker/components/PopoverButton";
 import useBoolean from "~/hooks/useBoolean";
 import usePolicy from "~/hooks/usePolicy";
+import { useTranslation } from "react-i18next";
+import lazyWithRetry from "~/utils/lazyWithRetry";
 
-const IconPicker = React.lazy(() => import("~/components/IconPicker"));
+const IconPicker = lazyWithRetry(() => import("~/components/IconPicker"));
 
 type Props = {
   /** ID of the associated document */
@@ -54,7 +57,7 @@ type Props = {
 const lineHeight = "1.25";
 const fontSize = "2.25em";
 
-const DocumentTitle = React.forwardRef(function _DocumentTitle(
+const DocumentTitle = React.forwardRef(function DocumentTitle_(
   {
     documentId,
     title,
@@ -70,6 +73,7 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
   }: Props,
   externalRef: React.RefObject<RefHandle>
 ) {
+  const { t } = useTranslation();
   const ref = React.useRef<RefHandle>(null);
   const [iconPickerIsOpen, handleOpen, setIconPickerClosed] = useBoolean();
   const { editor } = useDocumentContext();
@@ -230,9 +234,9 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
   );
 
   const dir = ref.current?.getComputedDirection();
-  const initial = title.slice(0, 1).toUpperCase();
+  const initial = title.charAt(0).toUpperCase();
   const fallbackIcon = icon ? (
-    <Icon value={icon} color={color} size={40} />
+    <Icon value={icon} initial={initial} color={color} size={40} />
   ) : null;
 
   return (
@@ -249,6 +253,7 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
       autoFocus={!title}
       maxLength={DocumentValidation.maxTitleLength}
       readOnly={readOnly}
+      aria-label={t("Document title")}
       dir="auto"
       ref={mergeRefs([ref, externalRef])}
     >
@@ -290,10 +295,8 @@ const StyledIconPicker = styled(IconPicker)`
 const Title = styled(ContentEditable)<TitleProps>`
   position: relative;
   line-height: ${lineHeight};
-  margin-top: 6vh;
+  margin-top: 10vh;
   margin-bottom: 0.5em;
-  margin-left: ${(props) =>
-    props.$containsIcon || props.$iconPickerIsOpen ? "40px" : "0px"};
   font-size: ${fontSize};
   font-weight: 600;
   border: 0;
@@ -315,8 +318,6 @@ const Title = styled(ContentEditable)<TitleProps>`
     css`
       &:focus-within,
       &:focus {
-        margin-left: 40px;
-
         ${PopoverButton} {
           opacity: 1 !important;
         }
@@ -329,12 +330,8 @@ const Title = styled(ContentEditable)<TitleProps>`
   }
 
   ${breakpoint("tablet")`
+    margin-top: 6vh;
     margin-left: 0;
-
-    &:focus-within,
-    &:focus {
-      margin-left: 0;
-    }
 
     &:hover {
       ${PopoverButton} {

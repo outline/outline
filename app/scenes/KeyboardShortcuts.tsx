@@ -123,7 +123,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key symbol>{isMac() ? metaDisplay : "⇧"}</Key> + <Key>Esc</Key>
+                <Key symbol>{isMac ? metaDisplay : "⇧"}</Key> + <Key>Esc</Key>
               </>
             ),
             label: t("Cancel editing"),

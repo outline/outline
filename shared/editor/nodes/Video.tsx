@@ -1,15 +1,19 @@
-import { Token } from "markdown-it";
-import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
+import type { Token } from "markdown-it";
+import type {
+  NodeSpec,
+  NodeType,
+  Node as ProsemirrorNode,
+} from "prosemirror-model";
 import { NodeSelection, TextSelection } from "prosemirror-state";
 import * as React from "react";
-import { Primitive } from "utility-types";
+import type { Primitive } from "utility-types";
 import { sanitizeUrl } from "../../utils/urls";
 import toggleWrap from "../commands/toggleWrap";
 import Caption from "../components/Caption";
 import VideoComponent from "../components/Video";
-import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import attachmentsRule from "../rules/links";
-import { ComponentProps } from "../types";
+import type { ComponentProps } from "../types";
 import Node from "./Node";
 
 export default class Video extends Node {
@@ -77,7 +81,7 @@ export default class Video extends Node {
           String(node.attrs.title),
         ],
       ],
-      toPlainText: (node) => node.attrs.title,
+      leafText: (node) => node.attrs.title,
     };
   }
 
@@ -125,7 +129,7 @@ export default class Video extends Node {
         return;
       }
 
-      // Pressing Backspace in an an empty caption field focuses the video.
+      // Pressing Backspace in an empty caption field focuses the video.
       if (event.key === "Backspace" && event.currentTarget.innerText === "") {
         event.preventDefault();
         event.stopPropagation();

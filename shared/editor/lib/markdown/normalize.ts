@@ -15,8 +15,5 @@ export default function normalizePastedMarkdown(text: string): string {
   // find multiple newlines and insert a hard break to ensure they are respected
   text = text.replace(/\n{3,}/g, "\n\n\\\n");
 
-  // find single newlines and insert an extra to ensure they are treated as paragraphs
-  text = text.replace(/\b\n\b/g, "\n\n");
-
   return text;
 }

@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
 import { IntegrationType, IntegrationService } from "@shared/types";
-import Integration from "~/models/Integration";
+import type Integration from "~/models/Integration";
 import { IntegrationScene } from "~/scenes/Settings/components/IntegrationScene";
 import SettingRow from "~/scenes/Settings/components/SettingRow";
 import Button from "~/components/Button";
@@ -15,7 +15,6 @@ import Input from "~/components/Input";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import { disconnectAnalyticsIntegrationFactory } from "~/actions/definitions/integrations";
-import useActionContext from "~/hooks/useActionContext";
 import Flex from "~/components/Flex";
 import styled from "styled-components";
 
@@ -26,7 +25,6 @@ type FormData = {
 function GoogleAnalytics() {
   const { integrations } = useStores();
   const { t } = useTranslation();
-  const context = useActionContext();
 
   const integration = find(integrations.orderedData, {
     type: IntegrationType.Analytics,
@@ -108,7 +106,6 @@ function GoogleAnalytics() {
 
           <Button
             action={disconnectAnalyticsIntegrationFactory(integration)}
-            context={context}
             disabled={formState.isSubmitting}
             neutral
             hideIcon

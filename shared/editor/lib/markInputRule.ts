@@ -1,7 +1,7 @@
 import escapeRegExp from "lodash/escapeRegExp";
 import { InputRule } from "prosemirror-inputrules";
-import { MarkType } from "prosemirror-model";
-import { EditorState } from "prosemirror-state";
+import type { MarkType } from "prosemirror-model";
+import type { EditorState } from "prosemirror-state";
 import { getMarksBetween } from "../queries/getMarksBetween";
 
 /**

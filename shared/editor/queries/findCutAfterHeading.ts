@@ -1,5 +1,5 @@
 import filter from "lodash/filter";
-import { ResolvedPos } from "prosemirror-model";
+import type { ResolvedPos } from "prosemirror-model";
 import { findBlockNodes } from "./findChildren";
 
 export function findCutAfterHeading($pos: ResolvedPos): ResolvedPos {

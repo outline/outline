@@ -5,11 +5,11 @@ import isUndefined from "lodash/isUndefined";
 import orderBy from "lodash/orderBy";
 import { action, computed, observable } from "mobx";
 import type { NavigationNode, PublicTeam } from "@shared/types";
-import Document from "~/models/Document";
+import type Document from "~/models/Document";
 import Share from "~/models/Share";
 import type { PartialExcept } from "~/types";
 import { client } from "~/utils/ApiClient";
-import RootStore from "./RootStore";
+import type RootStore from "./RootStore";
 import Store, { RPCAction } from "./base/Store";
 
 export default class SharesStore extends Store<Share> {
@@ -167,9 +167,9 @@ export default class SharesStore extends Store<Share> {
     find(this.orderedData, (share) => share.documentId === documentId);
 
   get(id: string): Share | undefined {
-    return (
-      this.data.get(id) ??
-      this.orderedData.find((share) => id.endsWith(share.urlId))
-    );
+    return id
+      ? (this.data.get(id) ??
+          this.orderedData.find((share) => id.endsWith(share.urlId)))
+      : undefined;
   }
 }

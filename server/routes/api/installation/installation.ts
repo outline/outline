@@ -7,7 +7,7 @@ import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { Team, User } from "@server/models";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import { signIn } from "@server/utils/authentication";
 import { getVersion, getVersionInfo } from "@server/utils/getInstallationInfo";
 import * as T from "./schema";

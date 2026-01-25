@@ -9,6 +9,7 @@ describe("isUrl", () => {
     expect(urlsUtils.isUrl("mailto:")).toBe(false);
     expect(urlsUtils.isUrl("sms:")).toBe(false);
     expect(urlsUtils.isUrl("://")).toBe(false);
+    expect(urlsUtils.isUrl("www.example.com")).toBe(false);
   });
 
   it("should return true for valid urls", () => {
@@ -17,6 +18,54 @@ describe("isUrl", () => {
     expect(urlsUtils.isUrl("seafile://openfile")).toBe(true);
     expect(urlsUtils.isUrl("figma://launch")).toBe(true);
     expect(urlsUtils.isUrl("outline:https://getoutline.com")).toBe(true);
+    expect(urlsUtils.isUrl("www.example.com", { requireProtocol: false })).toBe(
+      true
+    );
+  });
+
+  describe("requireHttps option", () => {
+    it("should reject HTTP URLs when requireHttps is true", () => {
+      expect(
+        urlsUtils.isUrl("http://example.com", { requireHttps: true })
+      ).toBe(false);
+      expect(
+        urlsUtils.isUrl("http://example.com/callback", { requireHttps: true })
+      ).toBe(false);
+      expect(
+        urlsUtils.isUrl("http://localhost:3000/auth", { requireHttps: true })
+      ).toBe(false);
+    });
+
+    it("should accept HTTPS URLs when requireHttps is true", () => {
+      expect(
+        urlsUtils.isUrl("https://example.com", { requireHttps: true })
+      ).toBe(true);
+      expect(
+        urlsUtils.isUrl("https://example.com/callback", { requireHttps: true })
+      ).toBe(true);
+      expect(
+        urlsUtils.isUrl("https://localhost:3000/auth", { requireHttps: true })
+      ).toBe(true);
+    });
+
+    it("should accept HTTP URLs when requireHttps is false or not specified", () => {
+      expect(urlsUtils.isUrl("http://example.com")).toBe(true);
+      expect(
+        urlsUtils.isUrl("http://example.com", { requireHttps: false })
+      ).toBe(true);
+    });
+
+    it("should allow custom protocols when requireHttps is true", () => {
+      expect(
+        urlsUtils.isUrl("seafile://openfile", { requireHttps: true })
+      ).toBe(true);
+      expect(urlsUtils.isUrl("figma://launch", { requireHttps: true })).toBe(
+        true
+      );
+      expect(urlsUtils.isUrl("myapp://callback", { requireHttps: true })).toBe(
+        true
+      );
+    });
   });
 });
 

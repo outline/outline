@@ -1,6 +1,7 @@
 import { Matches } from "class-validator";
 import { subMinutes } from "date-fns";
-import { InferAttributes, InferCreationAttributes, Op } from "sequelize";
+import type { InferAttributes, InferCreationAttributes } from "sequelize";
+import { Op } from "sequelize";
 import {
   Column,
   Table,
@@ -21,7 +22,7 @@ import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import { SkipChangeset } from "./decorators/Changeset";
 import Fix from "./decorators/Fix";
-import AuthenticationHelper from "./helpers/AuthenticationHelper";
+import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import Length from "./validators/Length";
 
 @Table({ tableName: "apiKeys", modelName: "apiKey" })

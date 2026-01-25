@@ -13,6 +13,7 @@ import useStores from "~/hooks/useStores";
 import LoadingIndicator from "../LoadingIndicator";
 import { CARD_MARGIN } from "./Components";
 import HoverPreviewDocument from "./HoverPreviewDocument";
+import HoverPreviewGroup from "./HoverPreviewGroup";
 import HoverPreviewIssue from "./HoverPreviewIssue";
 import HoverPreviewLink from "./HoverPreviewLink";
 import HoverPreviewMention from "./HoverPreviewMention";
@@ -116,11 +117,30 @@ const HoverPreviewDesktop = observer(
         <Position top={cardTop} left={cardLeft} aria-hidden>
           {isVisible ? (
             <Animate
-              initial={{ opacity: 0, y: -20, pointerEvents: "none" }}
+              initial={{
+                opacity: 0,
+                y: -20,
+                filter: "blur(5px)",
+                pointerEvents: "none",
+              }}
               animate={{
                 opacity: 1,
                 y: 0,
+                filter: "blur(0px)",
                 transitionEnd: { pointerEvents: "auto" },
+              }}
+              transition={{
+                y: {
+                  type: "spring",
+                  stiffness: 400,
+                  damping: 25,
+                },
+                opacity: {
+                  duration: 0.2,
+                },
+                filter: {
+                  duration: 0.2,
+                },
               }}
             >
               {data.type === UnfurlResourceType.Mention ? (
@@ -131,6 +151,14 @@ const HoverPreviewDesktop = observer(
                   color={data.color}
                   lastActive={data.lastActive}
                   email={data.email}
+                />
+              ) : data.type === UnfurlResourceType.Group ? (
+                <HoverPreviewGroup
+                  ref={cardRef}
+                  name={data.name}
+                  description={data.description}
+                  memberCount={data.memberCount}
+                  users={data.users}
                 />
               ) : data.type === UnfurlResourceType.Document ? (
                 <HoverPreviewDocument
@@ -295,10 +323,10 @@ const Pointer = styled.div<{ top: number; left: number; direction: Direction }>`
 
   &:before {
     border: 8px solid transparent;
-    ${({ direction, theme }) =>
+    ${({ direction }) =>
       direction === Direction.UP
-        ? `border-bottom-color: ${theme.menuBorder || "rgba(0, 0, 0, 0.1)"}`
-        : `border-top-color: ${theme.menuBorder || "rgba(0, 0, 0, 0.1)"}`};
+        ? `border-bottom-color: rgba(0, 0, 0, 0.1)`
+        : `border-top-color: rgba(0, 0, 0, 0.1)`};
     ${({ direction }) =>
       direction === Direction.UP ? "right: -1px" : "left: -1px"};
   }

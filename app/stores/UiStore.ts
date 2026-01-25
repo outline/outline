@@ -2,7 +2,7 @@ import { action, computed, observable } from "mobx";
 import { flushSync } from "react-dom";
 import { light as defaultTheme } from "@shared/styles/theme";
 import Storage from "@shared/utils/Storage";
-import Document from "~/models/Document";
+import type Document from "~/models/Document";
 import type { ConnectionStatus } from "~/scenes/Document/components/MultiplayerEditor";
 import { startViewTransition } from "~/utils/viewTransition";
 import type RootStore from "./RootStore";
@@ -42,6 +42,10 @@ class UiStore {
   // theme represents the users UI preference (defaults to system)
   @observable
   theme: Theme;
+
+  // themeOverride is set when a theme query parameter is detected, persists for the session
+  @observable
+  themeOverride: Theme | undefined;
 
   // systemTheme represents the system UI theme (Settings -> General in macOS)
   @observable
@@ -85,6 +89,15 @@ class UiStore {
 
   @observable
   multiplayerErrorCode?: number;
+
+  @observable
+  debugSafeArea = false;
+
+  /** Tracks active export toasts for in-place updates when export completes */
+  exportToasts = observable.map<
+    string,
+    { toastId: string; timeoutId: ReturnType<typeof setTimeout> }
+  >();
 
   rootStore: RootStore;
 
@@ -145,6 +158,17 @@ class UiStore {
         this.persist();
       });
     });
+  };
+
+  /**
+   * Set a theme override from a query parameter. This persists for the session
+   * but is not saved to localStorage.
+   *
+   * @param theme The theme to override with, or undefined to clear.
+   */
+  @action
+  setThemeOverride = (theme: Theme | undefined) => {
+    this.themeOverride = theme;
   };
 
   @action
@@ -248,6 +272,29 @@ class UiStore {
     this.mobileSidebarVisible = false;
   };
 
+  @action
+  toggleDebugSafeArea = () => {
+    this.debugSafeArea = !this.debugSafeArea;
+  };
+
+  @action
+  registerExportToast = (
+    fileOperationId: string,
+    toastId: string,
+    timeoutId: ReturnType<typeof setTimeout>
+  ) => {
+    this.exportToasts.set(fileOperationId, { toastId, timeoutId });
+  };
+
+  @action
+  removeExportToast = (fileOperationId: string) => {
+    const tracked = this.exportToasts.get(fileOperationId);
+    if (tracked) {
+      clearTimeout(tracked.timeoutId);
+      this.exportToasts.delete(fileOperationId);
+    }
+  };
+
   @computed
   get readyToShow() {
     return (
@@ -268,6 +315,10 @@ class UiStore {
 
   @computed
   get resolvedTheme(): Theme | SystemTheme {
+    if (this.themeOverride) {
+      return this.themeOverride;
+    }
+
     if (this.theme === "system") {
       return this.systemTheme;
     }

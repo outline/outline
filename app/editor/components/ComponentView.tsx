@@ -1,9 +1,9 @@
-import { Node as ProsemirrorNode } from "prosemirror-model";
-import { EditorView, Decoration } from "prosemirror-view";
-import { FunctionComponent } from "react";
-import Extension from "@shared/editor/lib/Extension";
-import { ComponentProps } from "@shared/editor/types";
-import { Editor } from "~/editor";
+import type { Node as ProsemirrorNode } from "prosemirror-model";
+import type { EditorView, Decoration } from "prosemirror-view";
+import type { FunctionComponent } from "react";
+import type Extension from "@shared/editor/lib/Extension";
+import type { ComponentProps } from "@shared/editor/types";
+import type { Editor } from "~/editor";
 import { NodeViewRenderer } from "./NodeViewRenderer";
 
 type ComponentViewConstructor = {
@@ -42,6 +42,8 @@ export default class ComponentView {
   isSelected = false;
   /** The DOM element that the node is rendered into. */
   dom: HTMLElement | null;
+  /** The base class name for the node's DOM element. */
+  className?: string;
 
   // See https://prosemirror.net/docs/ref/#view.NodeView
   constructor(
@@ -66,21 +68,67 @@ export default class ComponentView {
       ? document.createElement("span")
       : document.createElement("div");
 
-    this.dom.classList.add(`component-${node.type.name}`);
+    this.className = `component-${node.type.name}`;
+    this.dom.classList.add(this.className);
     this.renderer = new NodeViewRenderer(this.dom, this.component, this.props);
 
     // Add the renderer to the editor's set of renderers so that it is included in the React tree.
     this.editor.renderers.add(this.renderer);
+
+    // Apply decoration classes to the DOM element.
+    this.applyDecorationClasses();
   }
 
-  update(node: ProsemirrorNode) {
+  update(node: ProsemirrorNode, decorations: Decoration[]) {
     if (node.type !== this.node.type) {
       return false;
     }
 
+    // Ensure we don't reuse NodeViews for different nodes that have a distinct identity
+    // This prevents attribute swapping during drag operations.
+    if (
+      this.node.attrs.id !== undefined &&
+      node.attrs.id !== this.node.attrs.id
+    ) {
+      return false;
+    }
+
     this.node = node;
+    this.decorations = decorations;
+    this.applyDecorationClasses();
     this.renderer.updateProps(this.props);
     return true;
+  }
+
+  /**
+   * Apply decoration classes to the DOM element.
+   * Extracts classes from inline decorations that overlap with this node's position.
+   */
+  private applyDecorationClasses() {
+    if (!this.dom) {
+      return;
+    }
+
+    // Remove all existing decoration classes.
+    this.dom.classList.forEach((className) => {
+      if (className !== this.className) {
+        this.dom?.classList.remove(className);
+      }
+    });
+
+    // Apply classes from inline decorations.
+    this.decorations.forEach((decoration) => {
+      // For inline decorations, attrs contain the class property.
+      const attrs = (decoration as any).type?.attrs;
+      if (attrs?.class) {
+        const classes = attrs.class.split(" ");
+        classes.forEach((className: string) => {
+          if (className && this.dom) {
+            this.dom.classList.add(className);
+          }
+        });
+      }
+    });
   }
 
   selectNode() {
@@ -98,7 +146,11 @@ export default class ComponentView {
   }
 
   stopEvent(event: Event) {
-    return event.type !== "mousedown" && !event.type.startsWith("drag");
+    return (
+      event.type !== "mousedown" &&
+      !event.type.startsWith("drag") &&
+      !event.type.startsWith("drop")
+    );
   }
 
   destroy() {
@@ -117,6 +169,7 @@ export default class ComponentView {
       isSelected: this.isSelected,
       isEditable: this.view.editable,
       getPos: this.getPos,
+      decorations: this.decorations,
     } as ComponentProps;
   }
 }

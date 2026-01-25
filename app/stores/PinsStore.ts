@@ -1,10 +1,10 @@
 import invariant from "invariant";
 import { action, runInAction, computed } from "mobx";
 import Pin from "~/models/Pin";
-import { PaginationParams } from "~/types";
+import type { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
 import { AuthorizationError, NotFoundError } from "~/utils/errors";
-import RootStore from "./RootStore";
+import type RootStore from "./RootStore";
 import Store from "./base/Store";
 
 type FetchParams = PaginationParams & { collectionId?: string };
@@ -37,6 +37,9 @@ export default class PinsStore extends Store<Pin> {
         documentId,
         collectionId,
       });
+      if (!res) {
+        return;
+      }
       invariant(res?.data, "Data should be available");
       return this.add(res.data);
     } catch (err) {

@@ -22,7 +22,7 @@ export class GitHubUtils {
    */
   public static callbackUrl(
     { baseUrl, params }: { baseUrl: string; params?: string } = {
-      baseUrl: `${env.URL}`,
+      baseUrl: env.URL,
       params: undefined,
     }
   ) {

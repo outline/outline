@@ -125,11 +125,10 @@ export const LabelText = styled.div`
   display: inline-block;
 `;
 
-export interface Props
-  extends Omit<
-    React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement>,
-    "prefix"
-  > {
+export interface Props extends Omit<
+  React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement>,
+  "prefix"
+> {
   type?: "text" | "email" | "checkbox" | "search" | "textarea" | "password";
   labelHidden?: boolean;
   label?: string;

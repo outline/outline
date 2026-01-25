@@ -2,6 +2,7 @@ import * as React from "react";
 import styled from "styled-components";
 import { s } from "../../styles";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   /** Callback triggered when the caption is blurred */
@@ -23,6 +24,7 @@ type Props = {
  * A component that renders a caption for an image or video.
  */
 function Caption({ placeholder, children, isSelected, width, ...rest }: Props) {
+  const { t } = useTranslation();
   const handlePaste = (event: React.ClipboardEvent<HTMLParagraphElement>) => {
     event.preventDefault();
     const text = event.clipboardData.getData("text/plain");
@@ -42,6 +44,7 @@ function Caption({ placeholder, children, isSelected, width, ...rest }: Props) {
       onPaste={handlePaste}
       className={EditorStyleHelper.imageCaption}
       tabIndex={-1}
+      aria-label={t("Caption")}
       role="textbox"
       contentEditable
       suppressContentEditableWarning

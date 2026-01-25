@@ -1,11 +1,13 @@
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import invariant from "invariant";
 import { observer } from "mobx-react";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import Dropzone from "react-dropzone";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled, { css } from "styled-components";
 import LoadingIndicator from "~/components/LoadingIndicator";
+import useEventListener from "~/hooks/useEventListener";
 import useImportDocument from "~/hooks/useImportDocument";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -21,6 +23,7 @@ type Props = {
 function DropToImport({ disabled, children, collectionId, documentId }: Props) {
   const { t } = useTranslation();
   const { documents } = useStores();
+  const [prerender, setPreRendered] = useState(false);
   const { handleFiles, isImporting } = useImportDocument(
     collectionId,
     documentId
@@ -29,6 +32,7 @@ function DropToImport({ disabled, children, collectionId, documentId }: Props) {
     collectionId || documentId,
     "Must provide either collectionId or documentId"
   );
+  useEventListener("dragenter", () => setPreRendered(true));
 
   const canCollection = usePolicy(collectionId);
   const canDocument = usePolicy(documentId);
@@ -41,6 +45,7 @@ function DropToImport({ disabled, children, collectionId, documentId }: Props) {
 
   if (
     disabled ||
+    !prerender ||
     (collectionId && !canCollection.createDocument) ||
     (documentId && !canDocument.createChildDocument)
   ) {
@@ -49,7 +54,7 @@ function DropToImport({ disabled, children, collectionId, documentId }: Props) {
 
   return (
     <Dropzone
-      accept={documents.importFileTypes.join(", ")}
+      accept={documents.importFileTypesString}
       onDropAccepted={handleFiles}
       onDropRejected={handleRejection}
       noClick
@@ -61,7 +66,12 @@ function DropToImport({ disabled, children, collectionId, documentId }: Props) {
           $isDragActive={isDragActive}
           tabIndex={-1}
         >
-          <input {...getInputProps()} />
+          <VisuallyHidden>
+            <label>
+              {t("Import files")}
+              <input {...getInputProps()} />
+            </label>
+          </VisuallyHidden>
           {isImporting && <LoadingIndicator />}
           {children}
         </DropzoneContainer>

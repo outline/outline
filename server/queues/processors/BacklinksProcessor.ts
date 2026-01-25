@@ -2,7 +2,7 @@ import { Op } from "sequelize";
 import { Document, Relationship } from "@server/models";
 import { RelationshipType } from "@server/models/Relationship";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
-import { Event, DocumentEvent, RevisionEvent } from "@server/types";
+import type { Event, DocumentEvent, RevisionEvent } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
 
 export default class BacklinksProcessor extends BaseProcessor {
@@ -19,10 +19,15 @@ export default class BacklinksProcessor extends BaseProcessor {
         if (!document) {
           return;
         }
+
+        // Note: These can be UUID or slugs
         const linkIds = DocumentHelper.parseDocumentIds(document);
+
         await Promise.all(
           linkIds.map(async (linkId) => {
-            const linkedDocument = await Document.findByPk(linkId);
+            const linkedDocument = await Document.findByPk(linkId, {
+              attributes: ["id"],
+            });
 
             if (!linkedDocument || linkedDocument.id === event.documentId) {
               return;
@@ -61,7 +66,9 @@ export default class BacklinksProcessor extends BaseProcessor {
         // create or find existing backlink records for referenced docs
         await Promise.all(
           linkIds.map(async (linkId) => {
-            const linkedDocument = await Document.findByPk(linkId);
+            const linkedDocument = await Document.findByPk(linkId, {
+              attributes: ["id"],
+            });
 
             if (!linkedDocument || linkedDocument.id === event.documentId) {
               return;

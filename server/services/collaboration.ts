@@ -1,12 +1,14 @@
-import http, { IncomingMessage } from "http";
-import { Duplex } from "stream";
+import type { IncomingMessage } from "http";
+import type http from "http";
+import type { Duplex } from "stream";
 import url from "url";
 import { Redis } from "@hocuspocus/extension-redis";
 import { Throttle } from "@hocuspocus/extension-throttle";
 import { Server } from "@hocuspocus/server";
-import Koa from "koa";
+import type Koa from "koa";
 import WebSocket from "ws";
 import { DocumentValidation } from "@shared/validations";
+import { APIUpdateExtension } from "@server/collaboration/APIUpdateExtension";
 import { ConnectionLimitExtension } from "@server/collaboration/ConnectionLimitExtension";
 import { ViewsExtension } from "@server/collaboration/ViewsExtension";
 import env from "@server/env";
@@ -28,6 +30,11 @@ export default function init(
   const wss = new WebSocket.Server({
     noServer: true,
     maxPayload: DocumentValidation.maxStateLength,
+  });
+
+  // Handle WebSocket server errors to prevent crashes when maxPayload is exceeded
+  wss.on("error", (error) => {
+    Logger.error("WebSocket server error", error);
   });
 
   const hocuspocus = Server.configure({
@@ -52,6 +59,7 @@ export default function init(
       new EditorVersionExtension(),
       new AuthenticationExtension(),
       new PersistenceExtension(),
+      new APIUpdateExtension(),
       new ViewsExtension(),
       new LoggerExtension(),
       new MetricsExtension(),
@@ -70,6 +78,18 @@ export default function init(
           .pop();
 
         if (documentId) {
+          // Handle socket errors that may occur during upgrade (e.g., maxPayload exceeded)
+          socket.on("error", (error) => {
+            Logger.error(
+              "Socket error during WebSocket upgrade",
+              error,
+              {
+                documentId,
+              },
+              req
+            );
+          });
+
           wss.handleUpgrade(req, socket, head, (client) => {
             // Handle websocket connection errors as soon as the client is upgraded
             client.on("error", (error) => {

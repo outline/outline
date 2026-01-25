@@ -1,7 +1,8 @@
 import { faker } from "@faker-js/faker";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
 import { UserRole } from "@shared/types";
-import { TeamDomain } from "@server/models";
+import { AuthenticationProvider, TeamDomain } from "@server/models";
+import { randomString } from "@shared/random";
 import {
   buildUser,
   buildTeam,
@@ -60,7 +61,7 @@ describe("userProvisioner", () => {
       teamId: existing.teamId,
       authentication: {
         authenticationProviderId: authenticationProvider.id,
-        providerId: uuidv4(),
+        providerId: randomUUID(),
         accessToken: "123",
         scopes: ["read"],
       },
@@ -94,7 +95,7 @@ describe("userProvisioner", () => {
       teamId: existing.teamId,
       authentication: {
         authenticationProviderId: authenticationProvider.id,
-        providerId: uuidv4(),
+        providerId: randomUUID(),
         accessToken: "123",
         scopes: ["read"],
       },
@@ -136,29 +137,39 @@ describe("userProvisioner", () => {
     expect(isNewUser).toEqual(true);
   });
 
-  it("should handle duplicate providerId for different iDP", async () => {
+  it("should migrate user to new authentication provider when provider changes", async () => {
     const existing = await buildUser();
     const authentications = await existing.$get("authentications");
     const existingAuth = authentications[0];
-    let error;
 
-    try {
-      await userProvisioner(ctx, {
-        name: "Test Name",
-        email: "test@example.com",
-        teamId: existing.teamId,
-        authentication: {
-          authenticationProviderId: uuidv4(),
-          providerId: existingAuth.providerId,
-          accessToken: "123",
-          scopes: ["read"],
-        },
-      });
-    } catch (err) {
-      error = err;
-    }
+    // Create a new authentication provider for the same team (simulates
+    // changing DISCORD_SERVER_ID or moving Google domains)
+    const newAuthProvider = await AuthenticationProvider.create({
+      name: "slack",
+      providerId: randomString(32),
+      teamId: existing.teamId,
+    });
 
-    expect(error && error.toString()).toContain("already exists for");
+    const result = await userProvisioner(ctx, {
+      name: "Test Name",
+      email: "test@example.com",
+      teamId: existing.teamId,
+      authentication: {
+        authenticationProviderId: newAuthProvider.id,
+        providerId: existingAuth.providerId,
+        accessToken: "123",
+        scopes: ["read"],
+      },
+    });
+
+    const { user, authentication, isNewUser } = result;
+    expect(user.id).toEqual(existing.id);
+    expect(authentication).toBeDefined();
+    expect(authentication?.authenticationProviderId).toEqual(
+      newAuthProvider.id
+    );
+    expect(authentication?.accessToken).toEqual("123");
+    expect(isNewUser).toEqual(false);
   });
 
   it("should create a new user", async () => {
@@ -186,7 +197,7 @@ describe("userProvisioner", () => {
     expect(isNewUser).toEqual(true);
   });
 
-  it("should prefer isAdmin argument over defaultUserRole", async () => {
+  it("should prefer role argument over defaultUserRole", async () => {
     const team = await buildTeam({
       defaultUserRole: UserRole.Viewer,
     });
@@ -208,7 +219,7 @@ describe("userProvisioner", () => {
     expect(user.role).toEqual(UserRole.Admin);
   });
 
-  it("should prefer defaultUserRole when isAdmin is undefined or false", async () => {
+  it("should prefer defaultUserRole when role is undefined or false", async () => {
     const team = await buildTeam({
       defaultUserRole: UserRole.Viewer,
     });

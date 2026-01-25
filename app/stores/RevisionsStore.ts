@@ -1,4 +1,4 @@
-import RootStore from "~/stores/RootStore";
+import type RootStore from "~/stores/RootStore";
 import Store from "~/stores/base/Store";
 import Revision from "~/models/Revision";
 import { client } from "~/utils/ApiClient";

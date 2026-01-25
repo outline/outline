@@ -4,7 +4,7 @@ import config from "../plugin.json";
 import router from "./api/linear";
 import env from "./env";
 import { Linear } from "./linear";
-import UploadLinearWorkspaceLogoTask from "./tasks/UploadLinearWorkspaceLogoTask";
+import UploadIntegrationLogoTask from "@server/queues/tasks/UploadIntegrationLogoTask";
 import { uninstall } from "./uninstall";
 
 const enabled = !!env.LINEAR_CLIENT_ID && !!env.LINEAR_CLIENT_SECRET;
@@ -18,7 +18,7 @@ if (enabled) {
     },
     {
       type: Hook.Task,
-      value: UploadLinearWorkspaceLogoTask,
+      value: UploadIntegrationLogoTask,
     },
     {
       type: Hook.UnfurlProvider,

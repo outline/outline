@@ -1,6 +1,7 @@
 import Router from "koa-router";
 import isUndefined from "lodash/isUndefined";
-import { FindOptions, Op, WhereAttributeHash, WhereOptions } from "sequelize";
+import type { FindOptions, WhereAttributeHash, WhereOptions } from "sequelize";
+import { Op } from "sequelize";
 import { TeamPreference } from "@shared/types";
 import { AuthenticationError, NotFoundError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
@@ -16,7 +17,7 @@ import {
   presentCollection,
   presentDocument,
 } from "@server/presenters";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { getTeamFromContext } from "@server/utils/passport";
 import { navigationNodeToSitemap } from "@server/utils/sitemap";
@@ -26,6 +27,7 @@ import {
   loadPublicShare,
   loadShareWithParent,
 } from "@server/commands/shareLoader";
+import shareDomains from "@server/middlewares/shareDomains";
 
 const router = new Router();
 
@@ -86,7 +88,7 @@ router.post(
       ctx.body = {
         data: {
           shares: [presentShare(share, user?.isAdmin ?? false)],
-          sharedTree: sharedTree,
+          sharedTree,
           team: serializedTeam,
           collection: serializedCollection,
           document: serializedDocument,
@@ -102,25 +104,31 @@ router.post(
       throw AuthenticationError("Authentication required");
     }
 
-    const { share, parentShare } = await loadShareWithParent({
-      collectionId,
-      documentId,
-      user,
-    });
+    try {
+      const { share, parentShare } = await loadShareWithParent({
+        collectionId,
+        documentId,
+        user,
+      });
 
-    const shares = [share, parentShare].filter(Boolean) as Share[];
+      const shares = [share, parentShare].filter(Boolean) as Share[];
+      if (!shares.length) {
+        throw NotFoundError();
+      }
 
-    if (!shares.length) {
-      ctx.response.status = 204;
-      return;
+      ctx.body = {
+        data: {
+          shares: shares.map((s) => presentShare(s, user.isAdmin ?? false)),
+        },
+        policies: presentPolicies(user, shares),
+      };
+    } catch (err) {
+      if (err.id === "not_found") {
+        ctx.response.status = 204;
+        return;
+      }
+      throw err;
     }
-
-    ctx.body = {
-      data: {
-        shares: shares.map((s) => presentShare(s, user.isAdmin ?? false)),
-      },
-      policies: presentPolicies(user, shares),
-    };
   }
 );
 
@@ -238,6 +246,7 @@ router.post(
       includeChildDocuments,
       allowIndexing,
       showLastUpdated,
+      showTOC,
     } = ctx.input.body;
     const { user } = ctx.state.auth;
     authorize(user, "createShare", user.team);
@@ -274,6 +283,7 @@ router.post(
         includeChildDocuments,
         allowIndexing,
         showLastUpdated,
+        showTOC,
         urlId,
       },
     });
@@ -303,6 +313,7 @@ router.post(
       urlId,
       allowIndexing,
       showLastUpdated,
+      showTOC,
     } = ctx.input.body;
 
     const { user } = ctx.state.auth;
@@ -333,9 +344,11 @@ router.post(
     if (allowIndexing !== undefined) {
       share.allowIndexing = allowIndexing;
     }
-
     if (showLastUpdated !== undefined) {
       share.showLastUpdated = showLastUpdated;
+    }
+    if (showTOC !== undefined) {
+      share.showTOC = showTOC;
     }
 
     await share.saveWithCtx(ctx);
@@ -374,6 +387,7 @@ router.post(
 router.get(
   "shares.sitemap",
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
+  shareDomains(),
   validate(T.SharesSitemapSchema),
   async (ctx: APIContext<T.SharesSitemapReq>) => {
     const { id } = ctx.input.query;
@@ -384,13 +398,17 @@ router.get(
       teamId: team?.id,
     });
 
-    const baseUrl = `${process.env.URL}/s/${id}`;
+    if (!share.allowIndexing) {
+      ctx.status = 404;
+      return;
+    }
+
+    const baseUrl = share.domain
+      ? `https://${share.domain}`
+      : `${share.team.url ?? process.env.URL}/s/${id}`;
 
     ctx.set("Content-Type", "application/xml");
-    ctx.body = navigationNodeToSitemap(
-      share.allowIndexing ? sharedTree : undefined,
-      baseUrl
-    );
+    ctx.body = navigationNodeToSitemap(sharedTree, baseUrl);
   }
 );
 

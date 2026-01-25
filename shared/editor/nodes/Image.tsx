@@ -1,20 +1,25 @@
-import { Token } from "markdown-it";
+import type { Token } from "markdown-it";
 import { InputRule } from "prosemirror-inputrules";
-import { Node as ProsemirrorNode, NodeSpec, NodeType } from "prosemirror-model";
-import {
-  NodeSelection,
-  Plugin,
-  Command,
-  TextSelection,
-} from "prosemirror-state";
+import type {
+  Node as ProsemirrorNode,
+  NodeSpec,
+  NodeType,
+} from "prosemirror-model";
+import type { Command } from "prosemirror-state";
+import { NodeSelection, Plugin, TextSelection } from "prosemirror-state";
 import * as React from "react";
 import { sanitizeUrl } from "../../utils/urls";
 import Caption from "../components/Caption";
 import ImageComponent from "../components/Image";
-import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
-import { ComponentProps } from "../types";
+import type { ComponentProps } from "../types";
 import SimpleImage from "./SimpleImage";
+import { LightboxImageFactory } from "../lib/Lightbox";
+import { ImageSource } from "../lib/FileHelper";
+import { DiagramPlaceholder } from "../components/DiagramPlaceholder";
+import { addComment } from "../commands/comment";
+import { addLink } from "../commands/link";
 
 const imageSizeRegex = /\s=(\d+)?x(\d+)?$/;
 
@@ -55,22 +60,35 @@ const parseTitleAttribute = (tokenTitle: string): TitleAttributes => {
   return attributes;
 };
 
-const downloadImageNode = async (node: ProsemirrorNode) => {
-  const image = await fetch(node.attrs.src);
-  const imageBlob = await image.blob();
-  const imageURL = URL.createObjectURL(imageBlob);
-  const extension = imageBlob.type.split(/\/|\+/g)[1];
-  const potentialName = node.attrs.alt || "image";
+export const downloadImageNode = async (
+  node: ProsemirrorNode,
+  cache?: RequestCache
+) => {
+  try {
+    const image = await fetch(node.attrs.src, {
+      cache,
+    });
+    const imageBlob = await image.blob();
+    const imageURL = URL.createObjectURL(imageBlob);
+    const extension = imageBlob.type.split(/\/|\+/g)[1];
+    const potentialName = node.attrs.alt || "image";
 
-  // create a temporary link node and click it with our image data
-  const link = document.createElement("a");
-  link.href = imageURL;
-  link.download = `${potentialName}.${extension}`;
-  document.body.appendChild(link);
-  link.click();
+    // create a temporary link node and click it with our image data
+    const link = document.createElement("a");
+    link.href = imageURL;
+    link.download = `${potentialName}.${extension}`;
+    document.body.appendChild(link);
+    link.click();
 
-  // cleanup
-  document.body.removeChild(link);
+    // cleanup
+    document.body.removeChild(link);
+  } catch {
+    if (cache !== "reload") {
+      downloadImageNode(node, "reload");
+    } else {
+      window.open(sanitizeUrl(node.attrs.src), "_blank");
+    }
+  }
 };
 
 export default class Image extends SimpleImage {
@@ -92,6 +110,10 @@ export default class Image extends SimpleImage {
           default: null,
           validate: "string|null",
         },
+        source: {
+          default: null,
+          validate: "string|null",
+        },
         layoutClass: {
           default: null,
           validate: "string|null",
@@ -99,6 +121,9 @@ export default class Image extends SimpleImage {
         title: {
           default: null,
           validate: "string|null",
+        },
+        marks: {
+          default: undefined,
         },
       },
       content: "text*",
@@ -128,6 +153,7 @@ export default class Image extends SimpleImage {
               src: img?.getAttribute("src"),
               alt: img?.getAttribute("alt"),
               title: img?.getAttribute("title"),
+              source: img?.getAttribute("source"),
               width: width ? parseInt(width, 10) : undefined,
               height: height ? parseInt(height, 10) : undefined,
               layoutClass,
@@ -137,6 +163,14 @@ export default class Image extends SimpleImage {
         {
           tag: "img",
           getAttrs: (dom: HTMLImageElement) => {
+            // Don't parse images from our own editor with this rule.
+            if (
+              dom.parentElement?.classList.contains("image") ||
+              dom.parentElement?.classList.contains("emoji")
+            ) {
+              return false;
+            }
+
             // First try HTML attributes
             let width = dom.getAttribute("width");
             let height = dom.getAttribute("height");
@@ -199,7 +233,7 @@ export default class Image extends SimpleImage {
           ...children,
         ];
       },
-      toPlainText: (node) =>
+      leafText: (node) =>
         node.attrs.alt ? `(image: ${node.attrs.alt})` : "(image)",
     };
   }
@@ -235,7 +269,7 @@ export default class Image extends SimpleImage {
   }
 
   handleChangeSize =
-    ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
+    ({ node, getPos }: ComponentProps) =>
     ({ width, height }: { width: number; height?: number }) => {
       const { view, commands } = this.editor;
       const { doc, tr } = view.state;
@@ -250,16 +284,8 @@ export default class Image extends SimpleImage {
       });
     };
 
-  handleDownload =
-    ({ node }: { node: ProsemirrorNode }) =>
-    (event: React.MouseEvent) => {
-      event.preventDefault();
-      event.stopPropagation();
-      void downloadImageNode(node);
-    };
-
   handleCaptionKeyDown =
-    ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
+    ({ node, getPos }: ComponentProps) =>
     (event: React.KeyboardEvent<HTMLParagraphElement>) => {
       // Pressing Enter in the caption field should move the cursor/selection
       // below the image and create a new paragraph.
@@ -278,7 +304,7 @@ export default class Image extends SimpleImage {
         return;
       }
 
-      // Pressing Backspace in an an empty caption field focused the image.
+      // Pressing Backspace in an empty caption field focused the image.
       if (event.key === "Backspace" && event.currentTarget.innerText === "") {
         event.preventDefault();
         event.stopPropagation();
@@ -292,7 +318,7 @@ export default class Image extends SimpleImage {
     };
 
   handleCaptionBlur =
-    ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
+    ({ node, getPos }: ComponentProps) =>
     (event: React.FocusEvent<HTMLParagraphElement>) => {
       const caption = event.currentTarget.innerText;
       if (caption === node.attrs.alt) {
@@ -311,23 +337,73 @@ export default class Image extends SimpleImage {
       view.dispatch(transaction);
     };
 
-  component = (props: ComponentProps) => (
-    <ImageComponent
-      {...props}
-      onDownload={this.handleDownload(props)}
-      onChangeSize={this.handleChangeSize(props)}
-    >
-      <Caption
-        width={props.node.attrs.width}
-        onBlur={this.handleCaptionBlur(props)}
-        onKeyDown={this.handleCaptionKeyDown(props)}
-        isSelected={props.isSelected}
-        placeholder={this.options.dictionary.imageCaptionPlaceholder}
+  handleZoomIn =
+    ({ getPos, view }: ComponentProps) =>
+    () => {
+      this.editor.updateActiveLightboxImage(
+        LightboxImageFactory.createLightboxImage(view, getPos())
+      );
+    };
+
+  handleClick =
+    ({ getPos, view }: ComponentProps) =>
+    () => {
+      this.editor.updateActiveLightboxImage(
+        LightboxImageFactory.createLightboxImage(view, getPos())
+      );
+    };
+
+  handleDownload =
+    ({ node }: ComponentProps) =>
+    (event: React.MouseEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+      return downloadImageNode(node);
+    };
+
+  handleEditDiagram =
+    ({ getPos, view }: ComponentProps) =>
+    () => {
+      const { commands } = this.editor;
+      const pos = getPos();
+      const $pos = view.state.doc.resolve(pos);
+      view.dispatch(view.state.tr.setSelection(new NodeSelection($pos)));
+      commands.editDiagram();
+    };
+
+  component = (props: ComponentProps) => {
+    if (
+      props.node.attrs.source === ImageSource.DiagramsNet &&
+      !props.node.attrs.src
+    ) {
+      return (
+        <DiagramPlaceholder
+          onDoubleClick={this.handleEditDiagram(props)}
+          {...props}
+        />
+      );
+    }
+
+    return (
+      <ImageComponent
+        {...props}
+        onClick={this.handleClick(props)}
+        onDownload={this.handleDownload(props)}
+        onZoomIn={this.handleZoomIn(props)}
+        onChangeSize={this.handleChangeSize(props)}
       >
-        {props.node.attrs.alt}
-      </Caption>
-    </ImageComponent>
-  );
+        <Caption
+          width={props.node.attrs.width}
+          onBlur={this.handleCaptionBlur(props)}
+          onKeyDown={this.handleCaptionKeyDown(props)}
+          isSelected={props.isSelected}
+          placeholder={this.options.dictionary.imageCaptionPlaceholder}
+        >
+          {props.node.attrs.alt}
+        </Caption>
+      </ImageComponent>
+    );
+  };
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     // Skip the preceding space for images at the start of a list item or Markdown parsers may
@@ -369,6 +445,12 @@ export default class Image extends SimpleImage {
         alt: token.content || null,
         ...parseTitleAttribute(token?.attrGet("title") || ""),
       }),
+    };
+  }
+
+  keys(): Record<string, Command> {
+    return {
+      "Mod-Alt-m": addComment({ userId: this.options.userId }),
     };
   }
 
@@ -463,6 +545,9 @@ export default class Image extends SimpleImage {
           dispatch?.(tr.setSelection(new NodeSelection($pos)));
           return true;
         },
+      commentOnImage: (): Command =>
+        addComment({ userId: this.options.userId }),
+      linkOnImage: (): Command => addLink({ href: "" }),
     };
   }
 

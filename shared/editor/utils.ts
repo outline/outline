@@ -1,26 +1,16 @@
 import filter from "lodash/filter";
 import isNull from "lodash/isNull";
-import {
-  Node,
-  NodeType,
-  ResolvedPos,
-  Slice,
-  Fragment,
-  Attrs,
-} from "prosemirror-model";
-import {
-  NodeSelection,
-  Selection,
-  TextSelection,
-  Transaction,
-} from "prosemirror-state";
+import type { Node, NodeType, ResolvedPos, Attrs } from "prosemirror-model";
+import { Slice, Fragment } from "prosemirror-model";
+import type { TextSelection, Transaction } from "prosemirror-state";
+import { NodeSelection, Selection } from "prosemirror-state";
+import type { ReplaceStep } from "prosemirror-transform";
 import {
   canJoin,
   findWrapping,
   liftTarget,
   ReplaceAroundStep,
   replaceStep,
-  ReplaceStep,
 } from "prosemirror-transform";
 
 const textblockAt = (node: Node, side: "start" | "end", only = false) => {

@@ -1,9 +1,6 @@
 import { observable } from "mobx";
-import {
-  IntegrationService,
-  type IntegrationSettings,
-  type IntegrationType,
-} from "@shared/types";
+import type { IntegrationService } from "@shared/types";
+import { type IntegrationSettings, type IntegrationType } from "@shared/types";
 import User from "~/models/User";
 import Model from "~/models/base/Model";
 import Field from "~/models/decorators/Field";

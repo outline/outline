@@ -1,19 +1,17 @@
-import flatten from "lodash/flatten";
 import { observer } from "mobx-react";
 import { useState, useMemo } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
 import { ellipsis } from "@shared/styles";
-import { NavigationNode } from "@shared/types";
-import Document from "~/models/Document";
+import type { NavigationNode } from "@shared/types";
+import type Document from "~/models/Document";
 import Button from "~/components/Button";
 import DocumentExplorer from "~/components/DocumentExplorer";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import useCollectionTrees from "~/hooks/useCollectionTrees";
 import useStores from "~/hooks/useStores";
-import { flattenTree } from "~/utils/tree";
 
 type Props = {
   /** Document to publish */
@@ -27,7 +25,7 @@ function DocumentPublish({ document }: Props) {
   const [selectedPath, selectPath] = useState<NavigationNode | null>(null);
   const publishOptions = useMemo(
     () =>
-      flatten(collectionTrees.map(flattenTree)).filter((node) =>
+      collectionTrees.filter((node) =>
         node.collectionId
           ? policies.get(node.collectionId)?.abilities.createDocument
           : true

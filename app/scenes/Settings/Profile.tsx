@@ -72,6 +72,7 @@ const Profile = () => {
           description={t("Choose a photo or image to represent yourself.")}
         >
           <ImageInput
+            alt={t("Profile picture")}
             onSuccess={handleAvatarChange}
             onError={handleAvatarError}
             model={user}

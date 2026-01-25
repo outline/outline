@@ -1,24 +1,34 @@
 import { useMemo } from "react";
 import { sortNavigationNodes } from "@shared/utils/collections";
-import Collection from "~/models/Collection";
-import Document from "~/models/Document";
+import type Collection from "~/models/Collection";
+import type Document from "~/models/Document";
 
 export default function useCollectionDocuments(
   collection: Collection | undefined,
   activeDocument: Document | undefined
 ) {
+  const insertDraftDocument = useMemo(
+    () =>
+      activeDocument &&
+      activeDocument.isActive &&
+      activeDocument.isDraft &&
+      activeDocument.collectionId === collection?.id &&
+      !activeDocument.parentDocumentId,
+    [
+      activeDocument?.isActive,
+      activeDocument?.isDraft,
+      activeDocument?.collectionId,
+      activeDocument?.parentDocumentId,
+      collection?.id,
+    ]
+  );
+
   return useMemo(() => {
     if (!collection?.sortedDocuments) {
       return undefined;
     }
 
-    const insertDraftDocument =
-      activeDocument?.isActive &&
-      activeDocument?.isDraft &&
-      activeDocument?.collectionId === collection.id &&
-      !activeDocument?.parentDocumentId;
-
-    return insertDraftDocument
+    return insertDraftDocument && activeDocument
       ? sortNavigationNodes(
           [activeDocument.asNavigationNode, ...collection.sortedDocuments],
           collection.sort,
@@ -26,14 +36,9 @@ export default function useCollectionDocuments(
         )
       : collection.sortedDocuments;
   }, [
-    activeDocument?.isActive,
-    activeDocument?.isDraft,
-    activeDocument?.collectionId,
-    activeDocument?.parentDocumentId,
+    insertDraftDocument,
     activeDocument?.asNavigationNode,
-    collection,
     collection?.sortedDocuments,
-    collection?.id,
     collection?.sort,
   ]);
 }

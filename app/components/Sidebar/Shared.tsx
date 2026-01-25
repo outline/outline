@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { hover } from "@shared/styles";
 import { metaDisplay } from "@shared/utils/keyboard";
-import Share from "~/models/Share";
+import type Share from "~/models/Share";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
 import SearchPopover from "~/components/SearchPopover";
@@ -22,6 +22,8 @@ import { SharedCollectionLink } from "./components/SharedCollectionLink";
 import { SharedDocumentLink } from "./components/SharedDocumentLink";
 import SidebarButton from "./components/SidebarButton";
 import ToggleButton from "./components/ToggleButton";
+import { useEffect } from "react";
+import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 
 type Props = {
   share: Share;
@@ -30,31 +32,40 @@ type Props = {
 function SharedSidebar({ share }: Props) {
   const team = useTeamContext();
   const user = useCurrentUser({ rejectOnEmpty: false });
-  const { ui, documents } = useStores();
+  const { ui, documents, collections } = useStores();
   const { t } = useTranslation();
 
   const teamAvailable = !!team?.name;
   const rootNode = share.tree;
   const shareId = share.urlId || share.id;
+  const collection = collections.get(rootNode?.id);
+  const hideRootNode = collection
+    ? ProsemirrorHelper.isEmptyData(collection?.data)
+    : false;
+
+  useEffect(() => {
+    ui.tocVisible = share.showTOC;
+  }, []);
 
   if (!rootNode?.children.length) {
     return null;
   }
 
   return (
-    <StyledSidebar $hoverTransition={!teamAvailable}>
+    <StyledSidebar $hoverTransition={!teamAvailable} canCollapse={false}>
       {teamAvailable && (
         <SidebarButton
           title={team.name}
           image={
             <TeamLogo model={team} size={AvatarSize.XLarge} alt={t("Logo")} />
           }
-          onClick={() =>
-            history.push(user ? homePath() : sharedModelPath(shareId))
+          disabled={hideRootNode}
+          onClick={
+            hideRootNode
+              ? undefined
+              : () => history.push(user ? homePath() : sharedModelPath(shareId))
           }
-        >
-          <ToggleSidebar />
-        </SidebarButton>
+        />
       )}
       <ScrollContainer topShadow flex>
         <TopSection>
@@ -69,11 +80,16 @@ function SharedSidebar({ share }: Props) {
         </TopSection>
         <Section>
           {share.collectionId ? (
-            <SharedCollectionLink node={rootNode} shareId={shareId} />
+            <SharedCollectionLink
+              node={rootNode}
+              shareId={shareId}
+              hideRootNode={hideRootNode}
+            />
           ) : (
             <SharedDocumentLink
               index={0}
-              depth={0}
+              // If the root node has an icon we need some extra space for it
+              depth={rootNode.icon ? 1 : 0}
               shareId={shareId}
               node={rootNode}
               prefetchDocument={documents.prefetchDocument}
@@ -96,6 +112,9 @@ const ToggleSidebar = () => {
       <ToggleButton
         position="bottom"
         image={<SidebarIcon />}
+        aria-label={
+          ui.sidebarCollapsed ? t("Expand sidebar") : t("Collapse sidebar")
+        }
         onClick={() => {
           ui.toggleCollapsedSidebar();
           (document.activeElement as HTMLElement)?.blur();
@@ -138,7 +157,8 @@ const StyledSidebar = styled(Sidebar)<{ $hoverTransition: boolean }>`
   ${({ $hoverTransition }) =>
     $hoverTransition &&
     `
-      &: ${hover} {
+      @media (hover: hover) {
+        &:${hover} {
         ${StyledSearchPopover} {
           width: 85%;
         }
@@ -146,6 +166,7 @@ const StyledSidebar = styled(Sidebar)<{ $hoverTransition: boolean }>`
         ${ToggleWrapper} {
           opacity: 1;
           transform: translateX(0);
+          }
         }
       }
     `}

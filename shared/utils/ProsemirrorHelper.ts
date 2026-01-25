@@ -1,10 +1,13 @@
-import { Node, Schema } from "prosemirror-model";
+import type { Schema } from "prosemirror-model";
+import { Node } from "prosemirror-model";
 import headingToSlug from "../editor/lib/headingToSlug";
 import textBetween from "../editor/lib/textBetween";
-import { getTextSerializers } from "../editor/lib/textSerializers";
-import { ProsemirrorData } from "../types";
+import type { ProsemirrorData } from "../types";
 import { TextHelper } from "./TextHelper";
 import env from "../env";
+import { findChildren } from "@shared/editor/queries/findChildren";
+import { isLightboxNode } from "@shared/editor/lib/Lightbox";
+import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 
 export type Heading = {
   /* The heading in plain text */
@@ -23,6 +26,8 @@ export type CommentMark = {
   /* The text of the comment */
   text: string;
 };
+
+export type NodeAnchor = { pos: number; id: string; className: string };
 
 export type Task = {
   /* The text of the task */
@@ -91,9 +96,8 @@ export class ProsemirrorHelper {
    * @param schema The schema to use.
    * @returns The document content as plain text without formatting.
    */
-  static toPlainText(root: Node, schema: Schema) {
-    const textSerializers = getTextSerializers(schema);
-    return textBetween(root, 0, root.content.size, textSerializers);
+  static toPlainText(root: Node) {
+    return textBetween(root, 0, root.content.size);
   }
 
   /**
@@ -102,7 +106,6 @@ export class ProsemirrorHelper {
    * @returns True if the editor is empty
    */
   static trim(doc: Node) {
-    const { schema } = doc.type;
     let index = 0,
       start = 0,
       end = doc.nodeSize - 2,
@@ -118,7 +121,7 @@ export class ProsemirrorHelper {
       if (!node) {
         break;
       }
-      isEmpty = ProsemirrorHelper.toPlainText(node, schema).trim() === "";
+      isEmpty = ProsemirrorHelper.toPlainText(node).trim() === "";
       if (isEmpty) {
         start += node.nodeSize;
       }
@@ -131,7 +134,7 @@ export class ProsemirrorHelper {
       if (!node) {
         break;
       }
-      isEmpty = ProsemirrorHelper.toPlainText(node, schema).trim() === "";
+      isEmpty = ProsemirrorHelper.toPlainText(node).trim() === "";
       if (isEmpty) {
         end -= node.nodeSize;
       }
@@ -150,8 +153,6 @@ export class ProsemirrorHelper {
       return !doc || doc.textContent.trim() === "";
     }
 
-    const textSerializers = getTextSerializers(schema);
-
     let empty = true;
     doc.descendants((child: Node) => {
       // If we've already found non-empty data, we can stop descending further
@@ -159,9 +160,8 @@ export class ProsemirrorHelper {
         return false;
       }
 
-      const toPlainText = textSerializers[child.type.name];
-      if (toPlainText) {
-        empty = !toPlainText(child).trim();
+      if (child.type.spec.leafText) {
+        empty = !child.type.spec.leafText(child).trim();
       } else if (child.isText) {
         empty = !child.text?.trim();
       }
@@ -191,10 +191,78 @@ export class ProsemirrorHelper {
         }
       });
 
+      (node.attrs.marks ?? []).forEach((mark: any) => {
+        if (mark.type === "comment") {
+          comments.push({
+            ...mark.attrs,
+            // For image nodes, we don't have any text content, so we set it to an empty string
+            text: "",
+          } as CommentMark);
+        }
+      });
+
       return true;
     });
 
     return comments;
+  }
+
+  private static getAnchorsForHeadingNodes(doc: Node): NodeAnchor[] {
+    const previouslySeen: Record<string, number> = {};
+    const anchors: NodeAnchor[] = [];
+    doc.descendants((node, pos) => {
+      if (node.type.name !== "heading") {
+        return;
+      }
+
+      // calculate the optimal id
+      const slug = headingToSlug(node);
+      let id = slug;
+
+      // check if we've already used it, and if so how many times?
+      // Make the new id based on that number ensuring that we have
+      // unique ID's even when headings are identical
+      if (previouslySeen[slug] > 0) {
+        id = headingToSlug(node, previouslySeen[slug]);
+      }
+
+      // record that we've seen this slug for the next loop
+      previouslySeen[slug] =
+        previouslySeen[slug] !== undefined ? previouslySeen[slug] + 1 : 1;
+
+      anchors.push({
+        pos,
+        id,
+        className: EditorStyleHelper.headingPositionAnchor,
+      });
+    });
+    return anchors;
+  }
+
+  private static getAnchorsForImageNodes(doc: Node): NodeAnchor[] {
+    const anchors: NodeAnchor[] = [];
+    doc.descendants((node, pos) => {
+      if (Array.isArray(node.attrs?.marks)) {
+        node.attrs.marks.forEach((mark: any) => {
+          if (mark?.type === "comment" && mark?.attrs?.id) {
+            anchors.push({
+              pos,
+              id: `comment-${mark.attrs.id}`,
+              className: EditorStyleHelper.imagePositionAnchor,
+            });
+          }
+        });
+      }
+    });
+
+    return anchors;
+  }
+
+  static getAnchors(doc: Node): NodeAnchor[] {
+    return [
+      ...ProsemirrorHelper.getAnchorsForHeadingNodes(doc),
+      ...ProsemirrorHelper.getAnchorsForImageNodes(doc),
+    ];
   }
 
   /**
@@ -234,6 +302,15 @@ export class ProsemirrorHelper {
 
     return images;
   }
+
+  /**
+   * Iterates through the document to find all valid Lightbox nodes.
+   *
+   * @param doc Prosemirror document node
+   * @returns Array<NodeWithPos> of nodes allowed in Lightbox
+   */
+  static getLightboxNodes = (doc: Node) =>
+    findChildren(doc, isLightboxNode, true);
 
   /**
    * Iterates through the document to find all of the videos.
@@ -331,10 +408,9 @@ export class ProsemirrorHelper {
    * Iterates through the document to find all of the headings and their level.
    *
    * @param doc Prosemirror document node
-   * @param schema Prosemirror schema
    * @returns Array<Heading>
    */
-  static getHeadings(doc: Node, schema: Schema) {
+  static getHeadings(doc: Node) {
     const headings: Heading[] = [];
     const previouslySeen: Record<string, number> = {};
 
@@ -356,7 +432,7 @@ export class ProsemirrorHelper {
           previouslySeen[id] !== undefined ? previouslySeen[id] + 1 : 1;
 
         headings.push({
-          title: ProsemirrorHelper.toPlainText(node, schema),
+          title: ProsemirrorHelper.toPlainText(node),
           level: node.attrs.level,
           id: name,
         });
@@ -439,16 +515,20 @@ export class ProsemirrorHelper {
    * Returns the paragraphs from the data if there are only plain paragraphs
    * without any formatting. Otherwise returns undefined.
    *
-   * @param data The ProsemirrorData object
+   * @param data The ProsemirrorData object or ProsemirrorNode
    * @returns An array of paragraph nodes or undefined
    */
-  static getPlainParagraphs(data: ProsemirrorData) {
+  static getPlainParagraphs(data: ProsemirrorData | Node) {
+    // Convert ProsemirrorNode to JSON if needed
+    const jsonData =
+      data instanceof Node ? (data.toJSON() as ProsemirrorData) : data;
+
     const paragraphs: ProsemirrorData[] = [];
-    if (!data.content) {
+    if (!jsonData.content) {
       return paragraphs;
     }
 
-    for (const node of data.content) {
+    for (const node of jsonData.content) {
       if (
         node.type === "paragraph" &&
         (!node.content ||

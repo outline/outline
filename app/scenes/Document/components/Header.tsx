@@ -1,15 +1,14 @@
 import { observer } from "mobx-react";
-import { TableOfContentsIcon, EditIcon, MoreIcon } from "outline-icons";
+import { TableOfContentsIcon, EditIcon } from "outline-icons";
 import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
 import Icon from "@shared/components/Icon";
 import useMeasure from "react-use-measure";
-import { NavigationNode } from "@shared/types";
 import { altDisplay, metaDisplay } from "@shared/utils/keyboard";
-import Document from "~/models/Document";
-import Revision from "~/models/Revision";
+import type Document from "~/models/Document";
+import type Revision from "~/models/Revision";
 import { Action, Separator } from "~/components/Actions";
 import Badge from "~/components/Badge";
 import Button from "~/components/Button";
@@ -23,7 +22,6 @@ import Tooltip from "~/components/Tooltip";
 import { publishDocument } from "~/actions/definitions/documents";
 import { navigateToTemplateSettings } from "~/actions/definitions/navigation";
 import { restoreRevision } from "~/actions/definitions/revisions";
-import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useEditingFocus from "~/hooks/useEditingFocus";
@@ -41,12 +39,14 @@ import ObservingBanner from "./ObservingBanner";
 import PublicBreadcrumb from "./PublicBreadcrumb";
 import ShareButton from "./ShareButton";
 import { AppearanceAction } from "~/components/Sharing/components/Actions";
+import useShare from "@shared/hooks/useShare";
+import { type Editor } from "~/editor";
+import { ChangesNavigation } from "./ChangesNavigation";
 
 type Props = {
+  editorRef: React.RefObject<Editor>;
   document: Document;
   revision: Revision | undefined;
-  sharedTree: NavigationNode | undefined;
-  shareId: string | null | undefined;
   isDraft: boolean;
   isEditing: boolean;
   isSaving: boolean;
@@ -62,16 +62,15 @@ type Props = {
 };
 
 function DocumentHeader({
+  editorRef,
   document,
   revision,
-  shareId,
   isEditing,
   isDraft,
   isPublishing,
   isSaving,
   savingIsDisabled,
   publishingIsDisabled,
-  sharedTree,
   onSelectTemplate,
   onSave,
 }: Props) {
@@ -86,8 +85,8 @@ function DocumentHeader({
   const { hasHeadings, editor } = useDocumentContext();
   const sidebarContext = useLocationSidebarContext();
   const [measureRef, size] = useMeasure();
+  const { isShare, shareId, sharedTree } = useShare();
   const isMobile = isMobileMedia || size.width < 700;
-  const isShare = !!shareId;
 
   // We cache this value for as long as the component is mounted so that if you
   // apply a template there is still the option to replace it until the user
@@ -108,10 +107,6 @@ function DocumentHeader({
       ui.set({ tocVisible: !ui.tocVisible });
     }
   }, [ui, isShare]);
-
-  const context = useActionContext({
-    activeDocumentId: document?.id,
-  });
 
   const can = usePolicy(document);
   const { isDeleted, isTemplate } = document;
@@ -134,6 +129,7 @@ function DocumentHeader({
       placement="bottom"
     >
       <Button
+        aria-label={t("Show contents")}
         onClick={handleToggle}
         icon={<TableOfContentsIcon />}
         borderOnHover
@@ -166,7 +162,7 @@ function DocumentHeader({
   );
 
   useKeyDown(
-    (event) => event.ctrlKey && event.altKey && event.key === "˙",
+    (event) => event.ctrlKey && event.altKey && event.code === "KeyH",
     handleToggle,
     {
       allowInInput: true,
@@ -181,7 +177,11 @@ function DocumentHeader({
         title={
           <Flex gap={4}>
             {document.icon && (
-              <Icon value={document.icon} color={document.color ?? undefined} />
+              <Icon
+                value={document.icon}
+                initial={document.initial}
+                color={document.color ?? undefined}
+              />
             )}
             {document.title}
           </Flex>
@@ -234,7 +234,11 @@ function DocumentHeader({
         title={
           <Flex gap={4} align="center">
             {document.icon && (
-              <Icon value={document.icon} color={document.color ?? undefined} />
+              <Icon
+                value={document.icon}
+                initial={document.initial}
+                color={document.color ?? undefined}
+              />
             )}
             {document.title}
             {document.isArchived && <Badge>{t("Archived")}</Badge>}
@@ -278,7 +282,6 @@ function DocumentHeader({
                   placement="bottom"
                 >
                   <Button
-                    context={context}
                     action={isTemplate ? navigateToTemplateSettings : undefined}
                     onClick={isTemplate ? undefined : handleSave}
                     disabled={savingIsDisabled}
@@ -304,25 +307,32 @@ function DocumentHeader({
                   <NewChildDocumentMenu document={document} />
                 </Action>
               )}
-            {revision && revision.createdAt !== document.updatedAt && (
-              <Action>
-                <Tooltip content={t("Restore version")} placement="bottom">
-                  <Button
-                    action={restoreRevision}
-                    context={context}
-                    neutral
-                    hideOnActionDisabled
-                  >
-                    {t("Restore")}
-                  </Button>
-                </Tooltip>
-              </Action>
+            {revision && (
+              <>
+                <Action>
+                  <ChangesNavigation
+                    revision={revision}
+                    editorRef={editorRef}
+                  />
+                </Action>
+                <Action>
+                  <Tooltip content={t("Restore version")} placement="bottom">
+                    <Button
+                      action={restoreRevision}
+                      disabled={revision.createdAt === document.updatedAt}
+                      neutral
+                      hideOnActionDisabled
+                    >
+                      {t("Restore")}
+                    </Button>
+                  </Tooltip>
+                </Action>
+              </>
             )}
             {can.publish && (
               <Action>
                 <Button
                   action={publishDocument}
-                  context={context}
                   disabled={publishingIsDisabled}
                   hideOnActionDisabled
                   hideIcon

@@ -2,38 +2,33 @@ import { addDays, differenceInDays } from "date-fns";
 import i18n, { t } from "i18next";
 import capitalize from "lodash/capitalize";
 import floor from "lodash/floor";
-import { action, autorun, computed, observable, set } from "mobx";
-import { Node, Schema } from "prosemirror-model";
-import ExtensionManager from "@shared/editor/lib/ExtensionManager";
-import { richExtensions, withComments } from "@shared/editor/nodes";
+import { action, autorun, comparer, computed, observable, set } from "mobx";
 import type {
   JSONObject,
   NavigationNode,
   ProsemirrorData,
 } from "@shared/types";
 import {
-  ExportContentType,
+  type ExportContentType,
   FileOperationFormat,
   NavigationNodeType,
   NotificationEventType,
 } from "@shared/types";
-import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import Storage from "@shared/utils/Storage";
 import { isRTL } from "@shared/utils/rtl";
 import slugify from "@shared/utils/slugify";
-import DocumentsStore from "~/stores/DocumentsStore";
+import type DocumentsStore from "~/stores/DocumentsStore";
 import User from "~/models/User";
 import type { Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
 import { settingsPath } from "~/utils/routeHelpers";
 import Collection from "./Collection";
-import Notification from "./Notification";
-import Pin from "./Pin";
-import View from "./View";
+import type Notification from "./Notification";
+import type View from "./View";
 import ArchivableModel from "./base/ArchivableModel";
 import Field from "./decorators/Field";
 import Relation from "./decorators/Relation";
-import { Searchable } from "./interfaces/Searchable";
+import type { Searchable } from "./interfaces/Searchable";
 
 type SaveOptions = JSONObject & {
   publish?: boolean;
@@ -93,6 +88,11 @@ export default class Document extends ArchivableModel implements Searchable {
     return this.title;
   }
 
+  @computed
+  get searchSuppressed(): boolean {
+    return this.isDeleted || this.isArchived;
+  }
+
   /**
    * The name of the original data source, if imported.
    */
@@ -132,6 +132,9 @@ export default class Document extends ArchivableModel implements Searchable {
   @Field
   @observable
   title: string;
+
+  /** The likely language of the document, in ISO 639-1 format.  */
+  language: string | undefined;
 
   /**
    * An icon (or) emoji to use as the document icon.
@@ -183,7 +186,7 @@ export default class Document extends ArchivableModel implements Searchable {
   /**
    * Parent document that this is a child of, if any.
    */
-  @Relation(() => Document, { onArchive: "cascade" })
+  @Relation(() => Document, { onArchive: "cascade", onDelete: "cascade" })
   parentDocument?: Document;
 
   @observable
@@ -198,6 +201,9 @@ export default class Document extends ArchivableModel implements Searchable {
 
   @observable
   publishedAt: string | undefined;
+
+  @observable
+  popularityScore: number;
 
   /**
    * @deprecated Use path instead
@@ -222,6 +228,13 @@ export default class Document extends ArchivableModel implements Searchable {
    */
   @observable
   isCollectionDeleted: boolean;
+
+  /**
+   * Array of backlink document IDs for publicly shared documents.
+   * Only populated when viewing through a share link.
+   */
+  @observable
+  backlinkIds?: string[];
 
   /**
    * Returns the notifications associated with this document.
@@ -341,11 +354,18 @@ export default class Document extends ArchivableModel implements Searchable {
 
   /**
    * Returns the documents that link to this document.
+   * For publicly shared documents, uses the backlinkIds provided by the server.
+   * For authenticated users, uses the store's backlink data.
    *
-   * @returns documents that link to this document
+   * @returns documents that link to this document.
    */
   @computed
   get backlinks(): Document[] {
+    if (this.backlinkIds) {
+      return this.backlinkIds
+        .map((id) => this.store.get(id))
+        .filter(Boolean) as Document[];
+    }
     return this.store.getBacklinkedDocuments(this.id);
   }
 
@@ -408,7 +428,7 @@ export default class Document extends ArchivableModel implements Searchable {
 
   @computed
   get isTasks(): boolean {
-    return !!this.tasks.total;
+    return !!this.tasks?.total;
   }
 
   @computed
@@ -487,16 +507,11 @@ export default class Document extends ArchivableModel implements Searchable {
   };
 
   @action
-  pin = async (collectionId?: string | null) => {
-    const pin = new Pin({}, this.store.rootStore.pins);
-
-    await pin.save({
+  pin = (collectionId?: string | null) =>
+    this.store.rootStore.pins.create({
       documentId: this.id,
       ...(collectionId ? { collectionId } : {}),
     });
-
-    return pin;
-  };
 
   @action
   unpin = (collectionId?: string) => {
@@ -651,7 +666,7 @@ export default class Document extends ArchivableModel implements Searchable {
     );
   }
 
-  @computed
+  @computed({ equals: comparer.structural })
   get asNavigationNode(): NavigationNode {
     return {
       type: NavigationNodeType.Document,
@@ -666,55 +681,42 @@ export default class Document extends ArchivableModel implements Searchable {
   }
 
   /**
-   * Returns the markdown representation of the document derived from the ProseMirror data.
+   * Returns all children of the document.
+   * This is determined by the collection structure, or the user/group memberships in case it's a shared document.
    *
-   * @returns The markdown representation of the document as a string.
+   * @returns An array of NavigationNode objects.
    */
-  toMarkdown = () => {
-    const extensionManager = new ExtensionManager(withComments(richExtensions));
-    const serializer = extensionManager.serializer();
-    const schema = new Schema({
-      nodes: extensionManager.nodes,
-      marks: extensionManager.marks,
-    });
+  @computed
+  get children(): NavigationNode[] {
+    const { userMemberships, groupMemberships } = this.store.rootStore;
+    const collection = this.collection;
 
-    const doc = Node.fromJSON(
-      schema,
-      ProsemirrorHelper.attachmentsToAbsoluteUrls(this.data)
+    const membership =
+      userMemberships.getByDocumentId(this.id) ??
+      groupMemberships.getByDocumentId(this.id);
+
+    return (
+      collection?.getChildrenForDocument(this.id) ??
+      membership?.getChildrenForDocument(this.id) ??
+      []
     );
+  }
 
-    const markdown = serializer.serialize(doc, {
-      softBreak: true,
-    });
-    return markdown;
-  };
-
-  /**
-   * Returns the plain text representation of the document derived from the ProseMirror data.
-   *
-   * @returns The plain text representation of the document as a string.
-   */
-  toPlainText = () => {
-    const extensionManager = new ExtensionManager(withComments(richExtensions));
-    const schema = new Schema({
-      nodes: extensionManager.nodes,
-      marks: extensionManager.marks,
-    });
-    const text = ProsemirrorHelper.toPlainText(
-      Node.fromJSON(schema, this.data),
-      schema
-    );
-    return text;
-  };
-
-  download = (contentType: ExportContentType) =>
+  download = ({
+    contentType,
+    includeChildDocuments,
+  }: {
+    contentType: ExportContentType;
+    includeChildDocuments?: boolean;
+  }) =>
     client.post(
       `/documents.export`,
       {
         id: this.id,
+        includeChildDocuments: includeChildDocuments ?? false,
       },
       {
-        download: true,
+        ...(includeChildDocuments ? {} : { download: true }),
         headers: {
           accept: contentType,
         },

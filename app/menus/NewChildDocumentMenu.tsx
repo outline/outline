@@ -1,12 +1,12 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
-import Document from "~/models/Document";
+import type Document from "~/models/Document";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { newDocumentPath, newNestedDocumentPath } from "~/utils/routeHelpers";
-import { createInternalLinkActionV2 } from "~/actions";
+import { createInternalLinkAction } from "~/actions";
 import { ActiveDocumentSection } from "~/actions/sections";
 import { useMenuAction } from "~/hooks/useMenuAction";
 import Tooltip from "~/components/Tooltip";
@@ -29,7 +29,7 @@ function NewChildDocumentMenu({ document }: Props) {
 
   const actions = React.useMemo(
     () => [
-      createInternalLinkActionV2({
+      createInternalLinkAction({
         name: (
           <Trans
             defaults="New document in <em>{{ collectionName }}</em>"
@@ -45,7 +45,7 @@ function NewChildDocumentMenu({ document }: Props) {
         visible: !!canCollection.createDocument,
         to: newDocumentPath(document.collectionId),
       }),
-      createInternalLinkActionV2({
+      createInternalLinkAction({
         name: (
           <Trans
             defaults="New document in <em>{{ collectionName }}</em>"

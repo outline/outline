@@ -1,4 +1,5 @@
-import { InferAttributes, InferCreationAttributes, Op } from "sequelize";
+import type { InferAttributes, InferCreationAttributes } from "sequelize";
+import { Op } from "sequelize";
 import {
   DataType,
   BelongsTo,
@@ -12,7 +13,7 @@ import {
 } from "sequelize-typescript";
 import type { ProsemirrorData } from "@shared/types";
 import { DocumentValidation, RevisionValidation } from "@shared/validations";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 import Document from "./Document";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
@@ -48,7 +49,7 @@ class Revision extends ParanoidModel<
   })
   @Column
   @SkipChangeset
-  editorVersion: string;
+  editorVersion: string | null;
 
   /** The document title at the time of the revision */
   @Length({
@@ -85,10 +86,6 @@ class Revision extends ParanoidModel<
   content: ProsemirrorData | null;
 
   /** The icon at the time of the revision. */
-  @Length({
-    max: 50,
-    msg: `icon must be 50 characters or less`,
-  })
   @Column
   @SkipChangeset
   icon: string | null;

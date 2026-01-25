@@ -1,8 +1,9 @@
-import { v4 as uuidv4 } from "uuid";
+import { createHash } from "crypto";
+import { AttachmentPreset } from "@shared/types";
+import attachmentCreator from "@server/commands/attachmentCreator";
+import { createContext } from "@server/context";
 import { User } from "@server/models";
-import { Buckets } from "@server/models/helpers/AttachmentHelper";
-import FileStorage from "@server/storage/files";
-import BaseTask, { TaskPriority } from "./BaseTask";
+import { BaseTask, TaskPriority } from "./base/BaseTask";
 
 type Props = {
   /** The userId to operate on */
@@ -21,14 +22,23 @@ export default class UploadUserAvatarTask extends BaseTask<Props> {
       rejectOnEmpty: true,
     });
 
-    const res = await FileStorage.storeFromUrl(
-      props.avatarUrl,
-      `${Buckets.avatars}/${user.id}/${uuidv4()}`,
-      "public-read"
-    );
+    const hash = createHash("sha256").update(props.avatarUrl).digest("hex");
 
-    if (res?.url) {
-      await user.update({ avatarUrl: res.url });
+    // If the user's avatar URL already contains this hash, skip the upload
+    if (user.avatarUrl?.includes(hash)) {
+      return;
+    }
+
+    const attachment = await attachmentCreator({
+      name: hash,
+      url: props.avatarUrl,
+      user,
+      preset: AttachmentPreset.Avatar,
+      ctx: createContext({ user }),
+    });
+
+    if (attachment) {
+      await user.update({ avatarUrl: attachment.url });
     }
   }
 

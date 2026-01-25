@@ -1,4 +1,4 @@
-import MarkdownIt from "markdown-it";
+import type MarkdownIt from "markdown-it";
 
 export default function markdownUnderlines(md: MarkdownIt) {
   md.inline.ruler2.after("emphasis", "underline", (state) => {

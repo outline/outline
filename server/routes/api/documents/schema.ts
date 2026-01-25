@@ -1,11 +1,9 @@
-import formidable from "formidable";
+import type formidable from "formidable";
 import isEmpty from "lodash/isEmpty";
-import isUUID from "validator/lib/isUUID";
 import { z } from "zod";
-import { DocumentPermission, StatusFilter } from "@shared/types";
-import { UrlHelper } from "@shared/utils/UrlHelper";
+import { DocumentPermission, StatusFilter, TextEditMode } from "@shared/types";
 import { BaseSchema } from "@server/routes/api/schema";
-import { zodIconType, zodIdType } from "@server/utils/zod";
+import { zodIconType, zodIdType, zodShareIdType } from "@server/utils/zod";
 import { ValidateColor } from "@server/validation";
 
 const DocumentsSortParamsSchema = z.object({
@@ -13,7 +11,14 @@ const DocumentsSortParamsSchema = z.object({
   sort: z
     .string()
     .refine((val) =>
-      ["createdAt", "updatedAt", "publishedAt", "index", "title"].includes(val)
+      [
+        "createdAt",
+        "updatedAt",
+        "publishedAt",
+        "index",
+        "title",
+        "popularityScore",
+      ].includes(val)
     )
     .default("updatedAt"),
 
@@ -50,10 +55,7 @@ const BaseSearchSchema = DateFilterSchema.extend({
   statusFilter: z.nativeEnum(StatusFilter).array().optional(),
 
   /** Filter results for the team derived from shareId */
-  shareId: z
-    .string()
-    .refine((val) => isUUID(val) || UrlHelper.SHARE_URL_SLUG_REGEX.test(val))
-    .optional(),
+  shareId: zodShareIdType().optional(),
 
   /** Min words to be shown in the results snippets */
   snippetMinWords: z.number().default(20),
@@ -139,11 +141,7 @@ export const DocumentsInfoSchema = BaseSchema.extend({
   body: z.object({
     id: zodIdType().optional(),
     /** Share Id, if available */
-    shareId: z
-      .string()
-      .refine((val) => isUUID(val) || UrlHelper.SHARE_URL_SLUG_REGEX.test(val))
-      .optional(),
-
+    shareId: zodShareIdType().optional(),
     /** @deprecated Version of the API to be used, remove in a few releases */
     apiVersion: z.number().optional(),
   }),
@@ -154,7 +152,10 @@ export const DocumentsInfoSchema = BaseSchema.extend({
 export type DocumentsInfoReq = z.infer<typeof DocumentsInfoSchema>;
 
 export const DocumentsExportSchema = BaseSchema.extend({
-  body: BaseIdSchema,
+  body: BaseIdSchema.extend({
+    signedUrls: z.number().optional(),
+    includeChildDocuments: z.boolean().default(false),
+  }),
 });
 
 export type DocumentsExportReq = z.infer<typeof DocumentsExportSchema>;
@@ -251,8 +252,11 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
     /** Doc collection Id */
     collectionId: z.string().uuid().nullish(),
 
-    /** Boolean to denote if text should be appended */
+    /** @deprecated Use editMode instead */
     append: z.boolean().optional(),
+
+    /** The edit mode for text updates: "replace", "append", or "prepend" */
+    editMode: z.nativeEnum(TextEditMode).optional(),
 
     /** @deprecated Version of the API to be used, remove in a few releases */
     apiVersion: z.number().optional(),
@@ -260,9 +264,27 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
     /** Whether the editing session is complete */
     done: z.boolean().optional(),
   }),
-}).refine((req) => !(req.body.append && !req.body.text), {
-  message: "text is required while appending",
-});
+})
+  .refine(
+    (req) =>
+      !(
+        (req.body.append ||
+          req.body.editMode === TextEditMode.Append ||
+          req.body.editMode === TextEditMode.Prepend) &&
+        !req.body.text
+      ),
+    {
+      message: "text is required when using append, prepend, or editMode",
+    }
+  )
+  .transform((req) => {
+    // Transform deprecated append to editMode for backwards compatibility
+    if (req.body.append && !req.body.editMode) {
+      req.body.editMode = TextEditMode.Append;
+    }
+    delete req.body.append;
+    return req;
+  });
 
 export type DocumentsUpdateReq = z.infer<typeof DocumentsUpdateSchema>;
 
@@ -311,16 +333,23 @@ export const DocumentsUnpublishSchema = BaseSchema.extend({
 export type DocumentsUnpublishReq = z.infer<typeof DocumentsUnpublishSchema>;
 
 export const DocumentsImportSchema = BaseSchema.extend({
-  body: z.object({
-    /** Whether to publish the imported docs. String as this is always multipart/form-data */
-    publish: z.preprocess((val) => val === "true", z.boolean()).optional(),
+  body: z
+    .object({
+      /** Whether to publish the imported docs. String as this is always multipart/form-data */
+      publish: z.preprocess((val) => val === "true", z.boolean()).optional(),
 
-    /** Import docs to this collection */
-    collectionId: z.string().uuid(),
+      /** Import docs to this collection */
+      collectionId: z.string().uuid().nullish(),
 
-    /** Import under this parent doc */
-    parentDocumentId: z.string().uuid().nullish(),
-  }),
+      /** Import under this parent doc */
+      parentDocumentId: z.string().uuid().nullish(),
+    })
+    .refine(
+      (req) => !(isEmpty(req.collectionId) && isEmpty(req.parentDocumentId)),
+      {
+        message: "one of collectionId or parentDocumentId is required",
+      }
+    ),
   file: z.custom<formidable.File>(),
 });
 
@@ -393,6 +422,12 @@ export const DocumentsUsersSchema = BaseSchema.extend({
 
 export type DocumentsUsersReq = z.infer<typeof DocumentsUsersSchema>;
 
+export const DocumentsChildrenSchema = BaseSchema.extend({
+  body: BaseIdSchema,
+});
+
+export type DocumentsChildrenReq = z.infer<typeof DocumentsChildrenSchema>;
+
 export const DocumentsAddUserSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
     /** Id of the user who is to be added */
@@ -455,7 +490,7 @@ export type DocumentsMembershipsReq = z.infer<
 
 export const DocumentsSitemapSchema = BaseSchema.extend({
   query: z.object({
-    shareId: z.string(),
+    shareId: zodShareIdType().optional(),
   }),
 });
 

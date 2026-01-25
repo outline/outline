@@ -2,7 +2,7 @@ import { OpenIcon } from "outline-icons";
 import * as React from "react";
 import { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
-import { Optional } from "utility-types";
+import type { Optional } from "utility-types";
 import { s } from "../../styles";
 import { sanitizeUrl } from "../../utils/urls";
 
@@ -82,7 +82,7 @@ const Frame = ({
           ref={forwardedRef}
           $showBottomBar={showBottomBar}
           sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms allow-downloads allow-storage-access-by-user-activation"
-          allow="fullscreen; encrypted-media; picture-in-picture"
+          allow="fullscreen; encrypted-media; picture-in-picture; clipboard-read; clipboard-write"
           style={style}
           frameBorder="0"
           title="embed"

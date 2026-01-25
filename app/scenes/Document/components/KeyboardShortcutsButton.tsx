@@ -23,7 +23,11 @@ function KeyboardShortcutsButton() {
 
   return (
     <Tooltip content={t("Keyboard shortcuts")} shortcut="?">
-      <Button onClick={handleOpenKeyboardShortcuts} $hidden={isEditingFocus}>
+      <Button
+        onClick={handleOpenKeyboardShortcuts}
+        $hidden={isEditingFocus}
+        aria-label={t("Keyboard shortcuts")}
+      >
         <KeyboardIcon />
       </Button>
     </Tooltip>

@@ -1,12 +1,17 @@
-import { Token } from "markdown-it";
-import { NodeSpec, Node as ProsemirrorNode, NodeType } from "prosemirror-model";
+import type { Token } from "markdown-it";
+import type {
+  NodeSpec,
+  Node as ProsemirrorNode,
+  NodeType,
+} from "prosemirror-model";
 import {
   splitListItem,
   sinkListItem,
   liftListItem,
 } from "prosemirror-schema-list";
+import { v4 as uuidv4 } from "uuid";
 import toggleCheckboxItem from "../commands/toggleCheckboxItem";
-import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import checkboxRule from "../rules/checkboxes";
 import Node from "./Node";
 
@@ -34,6 +39,7 @@ export default class CheckboxItem extends Node {
         },
       ],
       toDOM: (node) => {
+        const id = `checkbox-${uuidv4()}`;
         const checked = node.attrs.checked.toString();
         let input;
         if (typeof document !== "undefined") {
@@ -41,6 +47,7 @@ export default class CheckboxItem extends Node {
           input.tabIndex = -1;
           input.className = "checkbox";
           input.setAttribute("aria-checked", checked);
+          input.setAttribute("aria-labelledby", id);
           input.setAttribute("role", "checkbox");
           input.addEventListener("click", this.handleClick);
         }
@@ -60,7 +67,7 @@ export default class CheckboxItem extends Node {
               ? [input]
               : [["span", { class: "checkbox", "aria-checked": checked }]]),
           ],
-          ["div", 0],
+          ["div", { id }, 0],
         ];
       },
     };
@@ -109,7 +116,16 @@ export default class CheckboxItem extends Node {
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
-    state.write(node.attrs.checked ? "[x] " : "[ ] ");
+    state.out += node.attrs.checked ? "[x] " : "[ ] ";
+    if (state.inTable) {
+      node.forEach((block, _, i) => {
+        if (i > 0) {
+          state.out += " ";
+        }
+        state.renderInline(block);
+      });
+      return;
+    }
     state.renderContent(node);
   }
 

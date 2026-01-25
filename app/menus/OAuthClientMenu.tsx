@@ -1,16 +1,16 @@
 import { observer } from "mobx-react";
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import OAuthClient from "~/models/oauth/OAuthClient";
+import type OAuthClient from "~/models/oauth/OAuthClient";
 import OAuthClientDeleteDialog from "~/scenes/Settings/components/OAuthClientDeleteDialog";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
 import useStores from "~/hooks/useStores";
 import { settingsPath } from "~/utils/routeHelpers";
 import {
-  ActionV2Separator,
-  createActionV2,
-  createInternalLinkActionV2,
+  ActionSeparator,
+  createAction,
+  createInternalLinkAction,
 } from "~/actions";
 import { useMenuAction } from "~/hooks/useMenuAction";
 
@@ -41,14 +41,14 @@ function OAuthClientMenu({ oauthClient, showEdit }: Props) {
 
   const actions = useMemo(
     () => [
-      createInternalLinkActionV2({
+      createInternalLinkAction({
         name: `${t("Edit")}…`,
         section: Section,
         visible: showEdit,
         to: settingsPath("applications", oauthClient.id),
       }),
-      ActionV2Separator,
-      createActionV2({
+      ActionSeparator,
+      createAction({
         name: `${t("Delete")}…`,
         section: Section,
         dangerous: true,

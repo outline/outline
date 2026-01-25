@@ -1,4 +1,4 @@
-import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
+import type * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { MoreIcon } from "outline-icons";
 import * as React from "react";
 import Button from "~/components/Button";

@@ -1,9 +1,10 @@
 import path from "path";
-import JSZip from "jszip";
+import type JSZip from "jszip";
 import escapeRegExp from "lodash/escapeRegExp";
-import { FileOperationFormat, NavigationNode } from "@shared/types";
+import type { NavigationNode } from "@shared/types";
+import { FileOperationFormat } from "@shared/types";
 import Logger from "@server/logging/Logger";
-import { Collection } from "@server/models";
+import type { Collection } from "@server/models";
 import Attachment from "@server/models/Attachment";
 import Document from "@server/models/Document";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -21,7 +22,7 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
    * @param pathInZip The path in the zip to add the document to
    * @param format The format to export in
    */
-  protected async addDocumentToArchive({
+  protected async processDocument({
     zip,
     pathInZip,
     documentId,
@@ -45,7 +46,7 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
     let text =
       format === FileOperationFormat.HTMLZip
         ? await DocumentHelper.toHTML(document, { centered: true })
-        : DocumentHelper.toMarkdown(document);
+        : await DocumentHelper.toMarkdown(document);
 
     const attachmentIds = includeAttachments
       ? ProsemirrorHelper.parseAttachmentIds(
@@ -153,11 +154,61 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
       const documentId = path[0].replace("/doc/", "");
       const pathInZip = path[1];
 
-      await this.addDocumentToArchive({
+      await this.processDocument({
         zip,
         pathInZip,
         documentId,
         includeAttachments,
+        format,
+        pathMap,
+      });
+    }
+
+    Logger.debug("task", "Completed adding documents to archive");
+
+    return await ZipHelper.toTmpFile(zip);
+  }
+
+  protected async addDocumentToArchive({
+    document,
+    format,
+    documentStructure,
+    zip,
+  }: {
+    document: Document;
+    format: FileOperationFormat;
+    documentStructure: NavigationNode[];
+    zip: JSZip;
+  }) {
+    const pathMap = new Map<string, string>();
+
+    const extension = format === FileOperationFormat.HTMLZip ? "html" : "md";
+    const rootFolderName = serializeFilename(document.titleWithDefault);
+
+    // entry for root document
+    pathMap.set(document.path, `${rootFolderName}.${extension}`);
+
+    this.addDocumentTreeToPathMap(
+      pathMap,
+      documentStructure,
+      serializeFilename(document.titleWithDefault),
+      format
+    );
+
+    Logger.debug(
+      "task",
+      `Start adding ${Object.values(pathMap).length} documents to archive`
+    );
+
+    for (const entry of pathMap) {
+      const documentId = entry[0].replace("/doc/", "");
+      const pathInZip = entry[1];
+
+      await this.processDocument({
+        zip,
+        pathInZip,
+        documentId,
+        includeAttachments: true,
         format,
         pathMap,
       });

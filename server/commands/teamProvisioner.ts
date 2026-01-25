@@ -6,10 +6,11 @@ import {
   InvalidAuthenticationError,
   TeamPendingDeletionError,
 } from "@server/errors";
+import Logger from "@server/logging/Logger";
 import { traceFunction } from "@server/logging/tracing";
 import { Team, AuthenticationProvider } from "@server/models";
 import { sequelize } from "@server/storage/database";
-import { APIContext } from "@server/types";
+import type { APIContext } from "@server/types";
 
 type TeamProvisionerResult = {
   team: Team;
@@ -56,7 +57,10 @@ async function teamProvisioner(
         paranoid: false,
       },
     ],
-    order: [["enabled", "DESC"]],
+    order: [
+      [Team, "deletedAt", "DESC"],
+      ["enabled", "DESC"],
+    ],
   });
 
   // This authentication provider already exists which means we have a team and
@@ -74,7 +78,12 @@ async function teamProvisioner(
   } else if (teamId) {
     // The user is attempting to log into a team with an unfamiliar SSO provider
     if (env.isCloudHosted) {
-      throw InvalidAuthenticationError();
+      const err = InvalidAuthenticationError();
+      Logger.error("Authentication provider does not exist for team", err, {
+        authenticationProvider,
+        teamId,
+      });
+      throw err;
     }
 
     // This team + auth provider combination has not been seen before in self hosted

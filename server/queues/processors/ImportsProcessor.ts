@@ -3,37 +3,33 @@ import chunk from "lodash/chunk";
 import keyBy from "lodash/keyBy";
 import truncate from "lodash/truncate";
 import { Fragment, Node } from "prosemirror-model";
-import {
-  CreateOptions,
-  CreationAttributes,
-  Transaction,
-  UniqueConstraintError,
-} from "sequelize";
-import { v4 as uuidv4 } from "uuid";
+import type { CreateOptions, CreationAttributes, Transaction } from "sequelize";
+import { UniqueConstraintError } from "sequelize";
+import { randomUUID } from "crypto";
 import { randomElement } from "@shared/random";
-import { ImportInput, ImportTaskInput } from "@shared/schema";
-import {
+import type { ImportInput, ImportTaskInput } from "@shared/schema";
+import type {
   ImportableIntegrationService,
-  ImportState,
-  ImportTaskState,
-  MentionType,
   ProsemirrorData,
   ProsemirrorDoc,
+  SourceMetadata,
 } from "@shared/types";
+import { ImportState, ImportTaskState, MentionType } from "@shared/types";
 import { colorPalette } from "@shared/utils/collections";
 import { CollectionValidation } from "@shared/validations";
 import { createContext } from "@server/context";
 import { schema } from "@server/editor";
 import Logger from "@server/logging/Logger";
 import { Attachment, Collection, Document, Import, User } from "@server/models";
-import ImportTask, {
+import type {
   ImportTaskAttributes,
   ImportTaskCreationAttributes,
 } from "@server/models/ImportTask";
+import ImportTask from "@server/models/ImportTask";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { sequelize } from "@server/storage/database";
-import { Event, ImportEvent } from "@server/types";
+import type { Event, ImportEvent } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
 
 export const PagePerImportTask = 3;
@@ -307,16 +303,15 @@ export default abstract class ImportsProcessor<
 
           for (const input of importTask.input) {
             const externalId = input.externalId;
-            const internalId = this.getInternalId(externalId, idMap);
-
+            const internalId = await this.getInternalId(externalId, idMap);
             const parentExternalId = input.parentExternalId;
             const parentInternalId = parentExternalId
-              ? this.getInternalId(parentExternalId, idMap)
+              ? await this.getInternalId(parentExternalId, idMap)
               : undefined;
 
             const collectionExternalId = input.collectionExternalId;
             const collectionInternalId = collectionExternalId
-              ? this.getInternalId(collectionExternalId, idMap)
+              ? await this.getInternalId(collectionExternalId, idMap)
               : undefined;
 
             const output = outputMap[externalId];
@@ -338,24 +333,32 @@ export default abstract class ImportsProcessor<
               transaction,
             });
 
-            const transformedContent = this.updateMentionsAndAttachments({
+            const transformedContent = await this.updateMentionsAndAttachments({
               content: output.content,
               attachments,
               importInput,
               idMap,
               actorId: importModel.createdById,
+              teamId: importModel.teamId,
             });
 
             if (collectionItem) {
               // imported collection will be placed in the beginning.
               collectionIdx = fractionalIndex(null, collectionIdx);
 
-              const description = DocumentHelper.toMarkdown(
+              const description = await DocumentHelper.toMarkdown(
                 transformedContent,
                 {
                   includeTitle: false,
                 }
               );
+
+              // Build sourceMetadata for the collection
+              const sourceMetadata: SourceMetadata = {
+                externalId: externalId,
+                externalName: output.title,
+                createdByName: output.author,
+              };
 
               const collection = Collection.build({
                 id: internalId,
@@ -372,6 +375,7 @@ export default abstract class ImportsProcessor<
                 index: collectionIdx,
                 sort: Collection.DEFAULT_SORT,
                 permission: collectionItem.permission,
+                sourceMetadata,
                 createdAt: output.createdAt ?? now,
                 updatedAt: output.updatedAt ?? now,
               });
@@ -399,12 +403,11 @@ export default abstract class ImportsProcessor<
             const isRootDocument =
               !parentExternalId || !!importInput[parentExternalId];
 
-            const document = Document.build({
-              id: internalId,
+            const defaults = {
               title: output.title,
               icon: output.emoji,
               content: transformedContent,
-              text: DocumentHelper.toMarkdown(transformedContent, {
+              text: await DocumentHelper.toMarkdown(transformedContent, {
                 includeTitle: false,
               }),
               collectionId: collectionInternalId,
@@ -421,16 +424,39 @@ export default abstract class ImportsProcessor<
               createdAt: output.createdAt ?? now,
               updatedAt: output.updatedAt ?? now,
               publishedAt: output.updatedAt ?? output.createdAt ?? now,
-            });
+            };
 
-            await document.saveWithCtx(
-              ctx,
-              { silent: true },
-              {
-                name: "create",
-                data: { title: output.title, source: "import" },
+            try {
+              await Document.findOrCreateWithCtx(
+                ctx,
+                {
+                  where: {
+                    id: internalId,
+                  },
+                  defaults,
+                  silent: true,
+                },
+                {
+                  name: "create",
+                  data: { title: output.title, source: "import" },
+                }
+              );
+            } catch (err) {
+              if (err instanceof UniqueConstraintError) {
+                Logger.error(
+                  `ImportsProcessor document creation failed due to unique constraint error (${internalId}: ${defaults.title})`,
+                  err,
+                  {
+                    fields: err.fields,
+                    documentId: internalId,
+                    title: defaults.title,
+                    collectionId: defaults.collectionId,
+                    parentDocumentId: defaults.parentDocumentId,
+                  }
+                );
               }
-            );
+              throw err;
+            }
 
             // Update document id for attachments in document content.
             await Attachment.update(
@@ -455,12 +481,13 @@ export default abstract class ImportsProcessor<
    * @param actorId ID of the user who created the import.
    * @returns Updated ProseMirrorDoc.
    */
-  private updateMentionsAndAttachments({
+  private async updateMentionsAndAttachments({
     content,
     attachments,
     idMap,
     importInput,
     actorId,
+    teamId,
   }: {
     content: ProsemirrorDoc;
     attachments: Attachment[];
@@ -468,7 +495,8 @@ export default abstract class ImportsProcessor<
     // oxlint-disable-next-line @typescript-eslint/no-explicit-any
     importInput: Record<string, ImportInput<any>[number]>;
     actorId: string;
-  }): ProsemirrorDoc {
+    teamId: string;
+  }): Promise<ProsemirrorDoc> {
     // special case when the doc content is empty.
     if (!content.content.length) {
       return content;
@@ -477,15 +505,15 @@ export default abstract class ImportsProcessor<
     const attachmentsMap = keyBy(attachments, "id");
     const doc = ProsemirrorHelper.toProsemirror(content);
 
-    const transformMentionNode = (node: Node): Node => {
+    const transformMentionNode = async (node: Node): Promise<Node> => {
       const json = node.toJSON() as ProsemirrorData;
       const attrs = json.attrs ?? {};
 
-      attrs.id = uuidv4();
+      attrs.id = randomUUID();
       attrs.actorId = actorId;
 
       const externalId = attrs.modelId as string;
-      attrs.modelId = this.getInternalId(externalId, idMap);
+      attrs.modelId = await this.getInternalId(externalId, idMap, teamId);
 
       const isCollectionMention = !!importInput[externalId]; // the referenced externalId is a root page.
       attrs.type = isCollectionMention
@@ -500,43 +528,72 @@ export default abstract class ImportsProcessor<
       const json = node.toJSON() as ProsemirrorData;
       const attrs = json.attrs ?? {};
 
-      attrs.size = attachmentsMap[attrs.id as string].size;
+      attrs.size = attachmentsMap[attrs.id as string]?.size;
 
       json.attrs = attrs;
       return Node.fromJSON(schema, json);
     };
 
-    const transformFragment = (fragment: Fragment): Fragment => {
-      const nodes: Node[] = [];
+    const transformFragment = async (fragment: Fragment): Promise<Fragment> => {
+      const nodePromises: Promise<Node>[] = [];
 
       fragment.forEach((node) => {
-        nodes.push(
-          node.type.name === "mention"
-            ? transformMentionNode(node)
-            : node.type.name === "attachment"
-              ? transformAttachmentNode(node)
-              : node.copy(transformFragment(node.content))
-        );
+        if (node.type.name === "mention") {
+          nodePromises.push(transformMentionNode(node));
+        } else if (node.type.name === "attachment") {
+          nodePromises.push(Promise.resolve(transformAttachmentNode(node)));
+        } else {
+          nodePromises.push(
+            transformFragment(node.content).then((transformedContent) =>
+              node.copy(transformedContent)
+            )
+          );
+        }
       });
 
+      const nodes = await Promise.all(nodePromises);
       return Fragment.fromArray(nodes);
     };
 
-    return doc.copy(transformFragment(doc.content)).toJSON();
+    return doc.copy(await transformFragment(doc.content)).toJSON();
   }
 
   /**
    * Get internalId for the given externalId.
    * Returned internalId will be used as "id" for collections and documents created in the import.
    *
+   * @param teamId teamId associated with the import.
    * @param externalId externalId from a source.
    * @param idMap Map of internalId to externalId.
    * @returns Mapped internalId.
    */
-  private getInternalId(externalId: string, idMap: Record<string, string>) {
-    const internalId = idMap[externalId] ?? uuidv4();
-    idMap[externalId] = internalId;
-    return internalId;
+  private async getInternalId(
+    externalId: string,
+    idMap: Record<string, string>,
+    teamId?: string
+  ) {
+    let internalId = idMap[externalId];
+
+    if (!internalId && teamId) {
+      const existingId = (
+        await Document.findOne({
+          attributes: ["id"],
+          where: {
+            teamId,
+            sourceMetadata: {
+              externalId,
+            },
+          },
+        })
+      )?.id;
+
+      if (existingId) {
+        return existingId;
+      }
+    }
+
+    idMap[externalId] = internalId ?? randomUUID();
+    return idMap[externalId];
   }
 
   /**

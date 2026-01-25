@@ -24,6 +24,7 @@ import {
 import useKeyDown from "~/hooks/useKeyDown";
 import Desktop from "~/utils/Desktop";
 import { useEditor } from "./EditorContext";
+import { HStack } from "~/components/primitives/HStack";
 
 type KeyboardShortcutsProps = {
   open: boolean;
@@ -302,9 +303,8 @@ export default function FindAndReplace({
   const style: React.CSSProperties = React.useMemo(
     () => ({
       position: "fixed",
-      left: "initial",
-      top: 60,
-      right: 16,
+      top: 0,
+      right: 0,
       zIndex: depths.popover,
     }),
     []
@@ -347,6 +347,7 @@ export default function FindAndReplace({
         <ButtonLarge
           disabled={disabled}
           onClick={() => editor.commands.prevSearchMatch()}
+          aria-label={t("Previous match")}
         >
           <CaretUpIcon />
         </ButtonLarge>
@@ -355,6 +356,7 @@ export default function FindAndReplace({
         <ButtonLarge
           disabled={disabled}
           onClick={() => editor.commands.nextSearchMatch()}
+          aria-label={t("Next match")}
         >
           <CaretDownIcon />
         </ButtonLarge>
@@ -373,6 +375,7 @@ export default function FindAndReplace({
         minWidth={420}
         scrollable={false}
         onPointerDownOutside={() => setLocalOpen(false)}
+        style={{ marginRight: 16, marginTop: 60 }}
       >
         <Content column>
           <Flex gap={4}>
@@ -390,7 +393,10 @@ export default function FindAndReplace({
                   shortcut={`${altDisplay}+${metaDisplay}+c`}
                   placement="bottom"
                 >
-                  <ButtonSmall onClick={handleCaseSensitive}>
+                  <ButtonSmall
+                    onClick={handleCaseSensitive}
+                    aria-label={t("Match case")}
+                  >
                     <CaseSensitiveIcon
                       color={caseSensitive ? theme.accent : theme.textSecondary}
                     />
@@ -401,7 +407,10 @@ export default function FindAndReplace({
                   shortcut={`${altDisplay}+${metaDisplay}+r`}
                   placement="bottom"
                 >
-                  <ButtonSmall onClick={handleRegex}>
+                  <ButtonSmall
+                    onClick={handleRegex}
+                    aria-label={t("Enable regex")}
+                  >
                     <RegexIcon
                       color={regexEnabled ? theme.accent : theme.textSecondary}
                     />
@@ -416,7 +425,10 @@ export default function FindAndReplace({
                 shortcut={`${altDisplay}+${metaDisplay}+f`}
                 placement="bottom"
               >
-                <ButtonLarge onClick={handleMore}>
+                <ButtonLarge
+                  onClick={handleMore}
+                  aria-label={t("Replace options")}
+                >
                   <ReplaceIcon color={theme.textSecondary} />
                 </ButtonLarge>
               </Tooltip>
@@ -427,7 +439,7 @@ export default function FindAndReplace({
           </Flex>
           <ResizingHeightContainer>
             {showReplace && !readOnly && (
-              <Flex gap={8}>
+              <HStack>
                 <StyledInput
                   maxLength={255}
                   value={replaceTerm}
@@ -459,7 +471,7 @@ export default function FindAndReplace({
                     {t("Replace all")}
                   </Button>
                 </Tooltip>
-              </Flex>
+              </HStack>
             )}
           </ResizingHeightContainer>
         </Content>

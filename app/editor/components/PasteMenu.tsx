@@ -1,20 +1,20 @@
 import { observer } from "mobx-react";
-import { EmailIcon, LinkIcon } from "outline-icons";
-import React from "react";
+import { v4 as uuidv4 } from "uuid";
+import { BrowserIcon, EmailIcon, LinkIcon } from "outline-icons";
+import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { v4 } from "uuid";
-import { EmbedDescriptor } from "@shared/editor/embeds";
-import { MenuItem } from "@shared/editor/types";
+import type { EmbedDescriptor } from "@shared/editor/embeds";
+import type { MenuItem } from "@shared/editor/types";
 import { MentionType } from "@shared/types";
 import { isUrl } from "@shared/utils/urls";
-import Integration from "~/models/Integration";
+import type Integration from "~/models/Integration";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import { determineMentionType, isURLMentionable } from "~/utils/mention";
-import SuggestionsMenu, {
-  Props as SuggestionsMenuProps,
-} from "./SuggestionsMenu";
+import type { Props as SuggestionsMenuProps } from "./SuggestionsMenu";
+import SuggestionsMenu from "./SuggestionsMenu";
 import SuggestionsMenuItem from "./SuggestionsMenuItem";
+import { getMatchingEmbed } from "@shared/editor/lib/embeds";
 
 type Props = Omit<
   SuggestionsMenuProps,
@@ -27,6 +27,13 @@ type Props = Omit<
 export const PasteMenu = observer(({ pastedText, embeds, ...props }: Props) => {
   const items = useItems({ pastedText, embeds });
 
+  const renderMenuItem = useCallback(
+    (item, _index, options) => (
+      <SuggestionsMenuItem {...options} title={item.title} icon={item.icon} />
+    ),
+    []
+  );
+
   if (!items) {
     props.onClose();
     return null;
@@ -37,14 +44,7 @@ export const PasteMenu = observer(({ pastedText, embeds, ...props }: Props) => {
       {...props}
       trigger=""
       filterable={false}
-      renderMenuItem={(item, _index, options) => (
-        <SuggestionsMenuItem
-          onClick={options.onClick}
-          selected={options.selected}
-          title={item.title}
-          icon={item.icon}
-        />
-      )}
+      renderMenuItem={renderMenuItem}
       items={items}
     />
   );
@@ -58,18 +58,6 @@ function useItems({
   const { integrations } = useStores();
   const user = useCurrentUser({ rejectOnEmpty: false });
 
-  const embed = React.useMemo(() => {
-    if (typeof pastedText === "string") {
-      for (const e of embeds) {
-        const matches = e.matcher(pastedText);
-        if (matches) {
-          return e;
-        }
-      }
-    }
-    return;
-  }, [embeds, pastedText]);
-
   // single item is pasted.
   if (typeof pastedText === "string") {
     let mentionType: MentionType | undefined;
@@ -82,8 +70,10 @@ function useItems({
 
       mentionType = integration
         ? determineMentionType({ url, integration })
-        : undefined;
+        : MentionType.URL;
     }
+
+    const embed = getMatchingEmbed(embeds, pastedText)?.embed;
 
     return [
       {
@@ -97,11 +87,11 @@ function useItems({
         icon: <EmailIcon />,
         visible: !!mentionType,
         attrs: {
-          id: v4(),
+          id: uuidv4(),
           type: mentionType,
           label: pastedText,
           href: pastedText,
-          modelId: v4(),
+          modelId: uuidv4(),
           actorId: user?.id,
         },
         appendSpace: true,
@@ -109,14 +99,17 @@ function useItems({
       {
         name: "embed",
         title: t("Embed"),
+        visible: !!embed,
         icon: embed?.icon,
         keywords: embed?.keywords,
       },
     ];
   }
-  const linksToMentionType: Record<string, MentionType> = {};
 
   // list is pasted.
+
+  // Check if the links can be converted to mentions.
+  const linksToMentionType: Record<string, MentionType> = {};
   const convertibleToMentionList = pastedText.every((text) => {
     if (!isUrl(text)) {
       return false;
@@ -129,7 +122,7 @@ function useItems({
 
     const mentionType = integration
       ? determineMentionType({ url, integration })
-      : undefined;
+      : MentionType.URL;
 
     if (mentionType) {
       linksToMentionType[text] = mentionType;
@@ -138,8 +131,29 @@ function useItems({
     return !!mentionType;
   });
 
-  // don't render the menu when it can't be converted to mention.
-  if (!convertibleToMentionList) {
+  // Check if the links can be converted to embeds.
+  let embedType: string | undefined = undefined;
+
+  const convertibleToEmbedList = pastedText.every((text) => {
+    const embed = getMatchingEmbed(embeds, text)?.embed;
+
+    if (!embed) {
+      return false;
+    }
+
+    embedType = !embedType || embedType === embed.title ? embed.title : "mixed";
+    return true;
+  });
+
+  const embedIcon =
+    embedType === "mixed" ? (
+      <BrowserIcon />
+    ) : (
+      embeds.find((e) => e.title === embedType)?.icon
+    );
+
+  // don't render the menu when it can't be converted to other types.
+  if (!convertibleToMentionList && !convertibleToEmbedList) {
     return;
   }
 
@@ -152,8 +166,16 @@ function useItems({
     {
       name: "mention_list",
       title: t("Mention"),
+      visible: !!convertibleToMentionList,
       icon: <EmailIcon />,
       attrs: { actorId: user?.id, ...linksToMentionType },
+    },
+    {
+      name: "embed_list",
+      title: t("Embed"),
+      visible: !!convertibleToEmbedList,
+      icon: embedIcon,
+      attrs: { actorId: user?.id },
     },
   ];
 }

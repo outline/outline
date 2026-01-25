@@ -1,9 +1,9 @@
+import type { TeamPreferences, UserPreferences } from "./types";
 import {
   TOCPosition,
   TeamPreference,
-  TeamPreferences,
   UserPreference,
-  UserPreferences,
+  EmailDisplay,
 } from "./types";
 
 export const MAX_AVATAR_DISPLAY = 6;
@@ -13,6 +13,12 @@ export const Pagination = {
   defaultOffset: 0,
   maxLimit: 100,
   sidebarLimit: 10,
+};
+
+export const CSRF = {
+  cookieName: "csrfToken",
+  headerName: "x-csrf-token",
+  fieldName: "_csrf",
 };
 
 export const TeamPreferenceDefaults: TeamPreferences = {
@@ -26,6 +32,8 @@ export const TeamPreferenceDefaults: TeamPreferences = {
   [TeamPreference.Commenting]: true,
   [TeamPreference.CustomTheme]: undefined,
   [TeamPreference.TocPosition]: TOCPosition.Left,
+  [TeamPreference.PreventDocumentEmbedding]: false,
+  [TeamPreference.EmailDisplay]: EmailDisplay.Members,
 };
 
 export const UserPreferenceDefaults: UserPreferences = {

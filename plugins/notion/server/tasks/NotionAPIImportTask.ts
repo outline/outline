@@ -1,17 +1,18 @@
 import { APIResponseError, APIErrorCode } from "@notionhq/client";
-import { ImportTaskInput, ImportTaskOutput } from "@shared/schema";
-import { IntegrationService, ProsemirrorDoc } from "@shared/types";
+import type { ImportTaskInput, ImportTaskOutput } from "@shared/schema";
+import type { IntegrationService, ProsemirrorDoc } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { CollectionValidation, DocumentValidation } from "@shared/validations";
 import Logger from "@server/logging/Logger";
 import { Integration } from "@server/models";
-import ImportTask from "@server/models/ImportTask";
-import APIImportTask, {
-  ProcessOutput,
-} from "@server/queues/tasks/APIImportTask";
-import { Block, PageType } from "../../shared/types";
+import type ImportTask from "@server/models/ImportTask";
+import type { ProcessOutput } from "@server/queues/tasks/APIImportTask";
+import APIImportTask from "@server/queues/tasks/APIImportTask";
+import type { Block } from "../../shared/types";
+import { PageType } from "../../shared/types";
 import { NotionClient } from "../notion";
-import { NotionConverter, NotionPage } from "../utils/NotionConverter";
+import type { NotionPage } from "../utils/NotionConverter";
+import { NotionConverter } from "../utils/NotionConverter";
 
 type ChildPage = { type: PageType; externalId: string };
 
@@ -21,6 +22,11 @@ type ParsePageOutput = ImportTaskOutput[number] & {
 };
 
 export default class NotionAPIImportTask extends APIImportTask<IntegrationService.Notion> {
+  private skippableErrorMessages = [
+    "Database retrievals do not support linked databases",
+    "does not contain any data sources accessible by this API bot", // error msg for linked database views
+  ];
+
   /**
    * Process the Notion import task.
    * This fetches data from Notion and converts it to task output.
@@ -138,8 +144,8 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
         if (
           error.code === APIErrorCode.ObjectNotFound ||
           error.code === APIErrorCode.Unauthorized ||
-          error.message.includes(
-            "Database retrievals do not support linked databases"
+          this.skippableErrorMessages.some((errorMsg) =>
+            error.message.includes(errorMsg)
           )
         ) {
           Logger.warn(

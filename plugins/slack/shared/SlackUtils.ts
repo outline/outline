@@ -1,5 +1,5 @@
 import env from "@shared/env";
-import { IntegrationType } from "@shared/types";
+import type { IntegrationType } from "@shared/types";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 
 export class SlackUtils {
@@ -35,7 +35,7 @@ export class SlackUtils {
 
   static callbackUrl(
     { baseUrl, params }: { baseUrl: string; params?: string } = {
-      baseUrl: `${env.URL}`,
+      baseUrl: env.URL,
       params: undefined,
     }
   ) {
@@ -46,7 +46,7 @@ export class SlackUtils {
 
   static connectUrl(
     { baseUrl, params }: { baseUrl: string; params?: string } = {
-      baseUrl: `${env.URL}`,
+      baseUrl: env.URL,
       params: undefined,
     }
   ) {

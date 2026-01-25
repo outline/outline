@@ -1,11 +1,8 @@
-import { ColumnSort } from "@tanstack/react-table";
+import type { ColumnSort } from "@tanstack/react-table";
 import orderBy from "lodash/orderBy";
 import { useState, useRef, useCallback, useEffect } from "react";
-import {
-  FetchPageParams,
-  PaginatedResponse,
-  PAGINATION_SYMBOL,
-} from "~/stores/base/Store";
+import type { FetchPageParams, PaginatedResponse } from "~/stores/base/Store";
+import { PAGINATION_SYMBOL } from "~/stores/base/Store";
 import useRequest from "./useRequest";
 
 const INITIAL_OFFSET = 0;

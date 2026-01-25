@@ -1,8 +1,9 @@
-import { NodeType } from "prosemirror-model";
-import { EditorState, NodeSelection } from "prosemirror-state";
-import { Primitive } from "utility-types";
-import ToggleBlock from "../nodes/ToggleBlock";
+import { NodeSelection } from "prosemirror-state";
+import type { NodeType } from "prosemirror-model";
+import type { EditorState } from "prosemirror-state";
+import type { Primitive } from "utility-types";
 import { findParentNode } from "./findParentNode";
+import ToggleBlock from "../nodes/ToggleBlock";
 
 type Options = {
   /** Only return match if the range and attrs is exact */

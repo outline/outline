@@ -1,4 +1,4 @@
-import { Relationship } from "@server/models";
+import type { Relationship } from "@server/models";
 
 export default function presentRelationship(relationship: Relationship) {
   return {

@@ -1,7 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
 import Frame from "../components/Frame";
-import { EmbedProps as Props } from ".";
+import type { EmbedProps as Props } from ".";
 
 function Spotify({ matches, ...props }: Props) {
   let pathname = "";

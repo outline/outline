@@ -1,11 +1,11 @@
 import * as React from "react";
 import styled from "styled-components";
-import {
-  IntegrationService,
+import type {
   IssueTrackerIntegrationService,
   UnfurlResourceType,
   UnfurlResponse,
 } from "../../types";
+import { IntegrationService } from "../../types";
 import { GitHubIssueStatusIcon } from "./GitHubIssueStatusIcon";
 import { LinearIssueStatusIcon } from "./LinearIssueStatusIcon";
 

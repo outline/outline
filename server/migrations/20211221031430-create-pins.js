@@ -1,7 +1,5 @@
 "use strict";
 
-const { v4 } = require("uuid");
-
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable("pins", {
@@ -85,7 +83,7 @@ module.exports = {
       `,
         {
           replacements: {
-            id: v4(),
+            id: crypto.randomUUID(),
             documentId: document.id,
             collectionId: document.collectionId,
             teamId: document.teamId,

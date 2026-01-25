@@ -1,13 +1,16 @@
 import invariant from "invariant";
 import { action, runInAction } from "mobx";
-import { CollectionPermission, DocumentPermission } from "@shared/types";
+import {
+  type CollectionPermission,
+  type DocumentPermission,
+} from "@shared/types";
 import GroupMembership from "~/models/GroupMembership";
-import { PaginationParams } from "~/types";
+import type { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
-import RootStore from "./RootStore";
+import type RootStore from "./RootStore";
 import Store, {
   PAGINATION_SYMBOL,
-  PaginatedResponse,
+  type PaginatedResponse,
   RPCAction,
 } from "./base/Store";
 
@@ -140,4 +143,20 @@ export default class GroupMembershipsStore extends Store<GroupMembership> {
    */
   inDocument = (documentId: string) =>
     this.orderedData.filter((cgm) => cgm.documentId === documentId);
+
+  /**
+   * Returns the group membership associated with the document.
+   */
+  getByDocumentId = (documentId: string): GroupMembership | undefined => {
+    const membership = this.find({ documentId });
+
+    if (membership) {
+      return membership;
+    }
+
+    const document = this.rootStore.documents.get(documentId);
+    return document?.parentDocumentId
+      ? this.getByDocumentId(document.parentDocumentId)
+      : undefined;
+  };
 }

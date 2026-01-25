@@ -1,12 +1,13 @@
 import compact from "lodash/compact";
 import orderBy from "lodash/orderBy";
-import { Op, WhereOptions } from "sequelize";
+import type { WhereOptions } from "sequelize";
+import { Op } from "sequelize";
 import { CollectionPermission, DocumentPermission } from "@shared/types";
+import type { User } from "@server/models";
 import {
   Document,
   Group,
   GroupMembership,
-  User,
   UserMembership,
 } from "@server/models";
 import { authorize } from "@server/policies";

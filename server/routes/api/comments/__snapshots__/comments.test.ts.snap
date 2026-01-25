@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`#comments.add_reaction should require authentication 1`] = `
 {
@@ -6,59 +6,6 @@ exports[`#comments.add_reaction should require authentication 1`] = `
   "message": "Authentication required",
   "ok": false,
   "status": 401,
-}
-`;
-
-exports[`#comments.create should create a comment from markdown text 1`] = `
-{
-  "content": [
-    {
-      "attrs": {
-        "level": 2,
-      },
-      "content": [
-        {
-          "text": "heading",
-          "type": "text",
-        },
-      ],
-      "type": "heading",
-    },
-    {
-      "content": [
-        {
-          "content": [
-            {
-              "content": [
-                {
-                  "text": "list item 1",
-                  "type": "text",
-                },
-              ],
-              "type": "paragraph",
-            },
-          ],
-          "type": "list_item",
-        },
-        {
-          "content": [
-            {
-              "content": [
-                {
-                  "text": "list item 2",
-                  "type": "text",
-                },
-              ],
-              "type": "paragraph",
-            },
-          ],
-          "type": "list_item",
-        },
-      ],
-      "type": "bullet_list",
-    },
-  ],
-  "type": "doc",
 }
 `;
 

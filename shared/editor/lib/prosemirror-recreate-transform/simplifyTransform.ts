@@ -1,5 +1,6 @@
-import { Node } from "prosemirror-model";
-import { Transform, ReplaceStep, Step } from "prosemirror-transform";
+import type { Node } from "prosemirror-model";
+import type { Step } from "prosemirror-transform";
+import { Transform, ReplaceStep } from "prosemirror-transform";
 import { getReplaceStep } from "./getReplaceStep";
 
 // join adjacent ReplaceSteps

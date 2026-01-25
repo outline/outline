@@ -487,11 +487,11 @@ describe("#collections.export", () => {
   });
 
   it("should return unauthorized if user is not admin", async () => {
-    const team = await buildTeam();
-    const user = await buildUser({ teamId: team.id });
+    const admin = await buildAdmin();
+    const user = await buildUser({ teamId: admin.teamId });
     const collection = await buildCollection({
-      userId: user.id,
-      teamId: team.id,
+      userId: admin.id,
+      teamId: admin.teamId,
     });
     const res = await server.post("/api/collections.export", {
       body: {

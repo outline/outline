@@ -1,8 +1,8 @@
 import { CommentIcon } from "outline-icons";
-import { EditorState } from "prosemirror-state";
+import type { EditorState } from "prosemirror-state";
 import { isMarkActive } from "@shared/editor/queries/isMarkActive";
-import { MenuItem } from "@shared/editor/types";
-import { Dictionary } from "~/hooks/useDictionary";
+import type { MenuItem } from "@shared/editor/types";
+import type { Dictionary } from "~/hooks/useDictionary";
 
 export default function readOnlyMenuItems(
   state: EditorState,

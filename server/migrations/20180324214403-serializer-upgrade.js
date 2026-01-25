@@ -10,7 +10,9 @@ module.exports = {
     for (const document of documents) {
       const id = document.id;
       const fixedText = document.text.replace(/\n{2,}/gi, "\n\n");
-      if (fixedText === document.text) continue;
+      if (fixedText === document.text) {
+        continue;
+      }
       // raw query to avoid hooks
       await queryInterface.sequelize.query(
         `

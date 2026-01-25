@@ -1,6 +1,6 @@
 import * as React from "react";
 import Frame from "../components/Frame";
-import { EmbedProps as Props } from ".";
+import type { EmbedProps as Props } from ".";
 
 function Vimeo({ matches, ...props }: Props) {
   const videoId = matches[4];
@@ -15,7 +15,7 @@ function Vimeo({ matches, ...props }: Props) {
       title={`Vimeo Embed (${videoId})`}
       height="412px"
       border={false}
-      referrerPolicy="origin"
+      referrerPolicy="strict-origin-when-cross-origin"
     />
   );
 }

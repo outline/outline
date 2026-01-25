@@ -125,6 +125,7 @@ const Actions = styled(Flex)`
   flex-basis: 0;
   min-width: auto;
   padding-left: 8px;
+  gap: 12px;
 
   ${breakpoint("tablet")`
     position: unset;

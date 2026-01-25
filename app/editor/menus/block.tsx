@@ -9,6 +9,7 @@ import {
   HorizontalRuleIcon,
   OrderedListIcon,
   PageBreakIcon,
+  PDFIcon,
   TableIcon,
   TodoListIcon,
   ImageIcon,
@@ -26,9 +27,10 @@ import {
 import * as React from "react";
 import styled from "styled-components";
 import Image from "@shared/editor/components/Img";
-import { MenuItem } from "@shared/editor/types";
+import type { MenuItem } from "@shared/editor/types";
 import { metaDisplay } from "@shared/utils/keyboard";
-import { Dictionary } from "~/hooks/useDictionary";
+import type { Dictionary } from "~/hooks/useDictionary";
+import Desktop from "~/utils/Desktop";
 
 const Img = styled(Image)`
   border-radius: 2px;
@@ -45,7 +47,7 @@ export default function blockMenuItems(
 ): MenuItem[] {
   const documentWidth = documentRef.current?.clientWidth ?? 0;
 
-  return [
+  const items = [
     {
       name: "heading",
       title: dictionary.h1,
@@ -114,6 +116,17 @@ export default function blockMenuItems(
       title: dictionary.video,
       icon: <EmbedIcon />,
       keywords: "mov avi upload player",
+    },
+    {
+      name: "attachment",
+      title: dictionary.pdf,
+      icon: <PDFIcon />,
+      keywords: "pdf upload attach",
+      attrs: {
+        accept: "application/pdf",
+        width: 300,
+        height: 424,
+      },
     },
     {
       name: "attachment",
@@ -222,7 +235,13 @@ export default function blockMenuItems(
       title: "Mermaid Diagram",
       icon: <Img src="/images/mermaidjs.png" alt="Mermaid Diagram" />,
       keywords: "diagram flowchart",
-      attrs: { language: "mermaidjs" },
+      attrs: { language: "mermaid" },
+    },
+    {
+      name: "editDiagram",
+      title: "Diagrams.net Diagram",
+      icon: <Img src="/images/diagrams.png" alt="Diagrams.net Diagram" />,
+      keywords: "diagram flowchart draw.io",
     },
     {
       name: "container_toggle",
@@ -231,4 +250,9 @@ export default function blockMenuItems(
       keywords: "toggle",
     },
   ];
+
+  // Filter out diagrams.net in desktop app
+  return Desktop.isElectron()
+    ? items.filter((item) => item.name !== "editDiagram")
+    : items;
 }

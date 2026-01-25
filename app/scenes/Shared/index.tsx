@@ -1,16 +1,15 @@
 import { observer } from "mobx-react";
-import { useCallback, useEffect } from "react";
+import { Suspense, useCallback, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
 import { useLocation, useParams } from "react-router-dom";
 import styled, { ThemeProvider } from "styled-components";
 import { s } from "@shared/styles";
-import { NavigationNode } from "@shared/types";
+import type { NavigationNode } from "@shared/types";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
-import Share from "~/models/Share";
+import type Share from "~/models/Share";
 import Error404 from "~/scenes/Errors/Error404";
-import ClickablePadding from "~/components/ClickablePadding";
 import { DocumentContextProvider } from "~/components/DocumentContext";
 import Layout from "~/components/Layout";
 import Sidebar from "~/components/Sidebar/Shared";
@@ -28,10 +27,14 @@ import isCloudHosted from "~/utils/isCloudHosted";
 import { changeLanguage, detectLanguage } from "~/utils/language";
 import Loading from "../Document/components/Loading";
 import ErrorOffline from "../Errors/ErrorOffline";
-import Login from "../Login";
 import { Collection as CollectionScene } from "./Collection";
 import { Document as DocumentScene } from "./Document";
 import DelayedMount from "~/components/DelayedMount";
+import lazyWithRetry from "~/utils/lazyWithRetry";
+import { ShareContext } from "@shared/hooks/useShare";
+import ClickablePadding from "~/components/ClickablePadding";
+
+const Login = lazyWithRetry(() => import("../Login"));
 
 // Parse the canonical origin from the SSR HTML, only needs to be done once.
 const canonicalUrl = document
@@ -194,21 +197,23 @@ function SharedScene() {
     if (error instanceof AuthorizationError) {
       setPostLoginPath(location.pathname);
       return (
-        <Login>
-          {(config) =>
-            config?.name && isCloudHosted ? (
-              <Content>
-                {t(
-                  "{{ teamName }} is using {{ appName }} to share documents, please login to continue.",
-                  {
-                    teamName: config.name,
-                    appName: env.APP_NAME,
-                  }
-                )}
-              </Content>
-            ) : null
-          }
-        </Login>
+        <Suspense fallback={null}>
+          <Login>
+            {(config) =>
+              config?.name && isCloudHosted ? (
+                <Content>
+                  {t(
+                    "{{ teamName }} is using {{ appName }} to share documents, please login to continue.",
+                    {
+                      teamName: config.name,
+                      appName: env.APP_NAME,
+                    }
+                  )}
+                </Content>
+              ) : null
+            }
+          </Login>
+        </Suspense>
       );
     }
     return <Error404 />;
@@ -222,38 +227,39 @@ function SharedScene() {
     );
   }
 
+  const hasSidebar = !!share.tree?.children.length;
+
   return (
-    <>
+    <ShareContext.Provider
+      value={{
+        shareId,
+        sharedTree: share.tree,
+      }}
+    >
       <Helmet>
         <link
           rel="canonical"
           href={canonicalOrigin + location.pathname.replace(/\/$/, "")}
         />
-        <link
-          rel="sitemap"
-          type="application/xml"
-          href={Share.sitemapUrl(shareId)}
-        />
       </Helmet>
       <TeamContext.Provider value={team}>
         <ThemeProvider theme={theme}>
           <DocumentContextProvider>
-            <Layout title={pageTitle} sidebar={<Sidebar share={share} />}>
+            <Layout
+              title={pageTitle}
+              sidebar={hasSidebar ? <Sidebar share={share} /> : null}
+            >
               {model instanceof Document ? (
-                <DocumentScene
-                  document={model}
-                  shareId={shareId}
-                  sharedTree={share.tree}
-                />
+                <DocumentScene document={model} />
               ) : model instanceof Collection ? (
-                <CollectionScene collection={model} shareId={shareId} />
+                <CollectionScene collection={model} />
               ) : null}
             </Layout>
             <ClickablePadding minHeight="20vh" />
           </DocumentContextProvider>
         </ThemeProvider>
       </TeamContext.Provider>
-    </>
+    </ShareContext.Provider>
   );
 }
 

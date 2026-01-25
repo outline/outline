@@ -1,11 +1,13 @@
 import deburr from "lodash/deburr";
 import escapeRegExp from "lodash/escapeRegExp";
 import { observable } from "mobx";
-import { Node } from "prosemirror-model";
-import { Command, Plugin, PluginKey } from "prosemirror-state";
+import type { Node } from "prosemirror-model";
+import type { Command } from "prosemirror-state";
+import { Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import scrollIntoView from "scroll-into-view-if-needed";
-import Extension, { WidgetProps } from "@shared/editor/lib/Extension";
+import type { WidgetProps } from "@shared/editor/lib/Extension";
+import Extension from "@shared/editor/lib/Extension";
 import FindAndReplace from "../components/FindAndReplace";
 
 const pluginKey = new PluginKey("find-and-replace");
@@ -145,6 +147,8 @@ export default class FindAndReplaceExtension extends Extension {
       this.currentResultIndex = 0;
 
       dispatch?.(state.tr.setMeta(pluginKey, {}));
+      this.scrollToCurrentMatch();
+
       return true;
     };
   }
@@ -190,18 +194,21 @@ export default class FindAndReplaceExtension extends Extension {
       }
 
       dispatch?.(state.tr.setMeta(pluginKey, {}));
-
-      const element = window.document.querySelector(
-        `.${this.options.resultCurrentClassName}`
-      );
-      if (element) {
-        scrollIntoView(element, {
-          scrollMode: "if-needed",
-          block: "center",
-        });
-      }
+      this.scrollToCurrentMatch();
       return true;
     };
+  }
+
+  private scrollToCurrentMatch() {
+    const element = window.document.querySelector(
+      `.${this.options.resultCurrentClassName}`
+    );
+    if (element) {
+      scrollIntoView(element, {
+        scrollMode: "if-needed",
+        block: "center",
+      });
+    }
   }
 
   private rebaseNextResult(replace: string, index: number, lastOffset = 0) {
@@ -290,6 +297,12 @@ export default class FindAndReplaceExtension extends Extension {
           const i = m.index >= text.length ? m.index - text.length : m.index;
           const from = type === "inline" ? pos + i : pos;
           const to = from + (type === "inline" ? m[0].length : node.nodeSize);
+
+          // Prevent wrap around matches when the regex matches at the end of the deburred
+          // string and continues matching at the start of the original string
+          if (i + m[0].length > text.length) {
+            continue;
+          }
 
           // Check if already exists in results, possible due to duplicated
           // search string on L257

@@ -1,8 +1,7 @@
 import compact from "lodash/compact";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
-import Share from "~/models/Share";
+import type Share from "~/models/Share";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import Badge from "~/components/Badge";
 import Flex from "~/components/Flex";
@@ -15,6 +14,7 @@ import { type Column as TableColumn } from "~/components/Table";
 import Time from "~/components/Time";
 import ShareMenu from "~/menus/ShareMenu";
 import { useFormatNumber } from "~/hooks/useFormatNumber";
+import { HStack } from "~/components/primitives/HStack";
 
 const ROW_HEIGHT = 50;
 
@@ -51,14 +51,14 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
           accessor: (share) => share.createdBy,
           sortable: false,
           component: (share) => (
-            <Flex align="center" gap={8}>
+            <HStack>
               {share.createdBy && (
                 <>
                   <Avatar model={share.createdBy} size={AvatarSize.Small} />
                   {share.createdBy.name}
                 </>
               )}
-            </Flex>
+            </HStack>
           ),
           width: "2fr",
         },

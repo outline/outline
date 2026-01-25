@@ -1,4 +1,5 @@
-import { Command, TextSelection } from "prosemirror-state";
+import type { Command } from "prosemirror-state";
+import { TextSelection } from "prosemirror-state";
 
 /**
  * A prosemirror command to collapse the current selection to a cursor at the start of the selection.

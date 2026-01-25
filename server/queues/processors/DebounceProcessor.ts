@@ -1,6 +1,6 @@
 import env from "@server/env";
 import Document from "@server/models/Document";
-import { Event } from "@server/types";
+import type { Event } from "@server/types";
 import { globalEventQueue } from "..";
 import BaseProcessor from "./BaseProcessor";
 
@@ -13,7 +13,7 @@ export default class DebounceProcessor extends BaseProcessor {
   async perform(event: Event) {
     switch (event.name) {
       case "documents.update": {
-        await globalEventQueue.add(
+        await globalEventQueue().add(
           { ...event, name: "documents.update.delayed" },
           {
             // speed up revision creation in development, we don't have all the
@@ -41,7 +41,7 @@ export default class DebounceProcessor extends BaseProcessor {
           return;
         }
 
-        await globalEventQueue.add({
+        await globalEventQueue().add({
           ...event,
           name: "documents.update.debounced",
         });

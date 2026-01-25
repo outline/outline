@@ -1,14 +1,14 @@
 import { PlusIcon } from "outline-icons";
-import { UserRole } from "@shared/types";
+import type { UserRole } from "@shared/types";
 import { UserRoleHelper } from "@shared/utils/UserRoleHelper";
 import stores from "~/stores";
-import User from "~/models/User";
+import type User from "~/models/User";
 import Invite from "~/scenes/Invite";
 import {
   UserChangeRoleDialog,
   UserDeleteDialog,
 } from "~/components/UserDialogs";
-import { createAction, createActionV2 } from "~/actions";
+import { createAction } from "~/actions";
 import { UserSection } from "~/actions/sections";
 
 export const inviteUser = createAction({
@@ -22,13 +22,14 @@ export const inviteUser = createAction({
   perform: ({ t }) => {
     stores.dialogs.openModal({
       title: t("Invite to workspace"),
+      width: "500px",
       content: <Invite onSubmit={stores.dialogs.closeAllModals} />,
     });
   },
 });
 
 export const updateUserRoleActionFactory = (user: User, role: UserRole) =>
-  createActionV2({
+  createAction({
     name: ({ t }) =>
       UserRoleHelper.isRoleHigher(role, user!.role)
         ? `${t("Promote to {{ role }}", {
@@ -63,7 +64,7 @@ export const updateUserRoleActionFactory = (user: User, role: UserRole) =>
   });
 
 export const deleteUserActionFactory = (userId: string) =>
-  createActionV2({
+  createAction({
     name: ({ t }) => `${t("Delete user")}…`,
     analyticsName: "Delete user",
     keywords: "leave",

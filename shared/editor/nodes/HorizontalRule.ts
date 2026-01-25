@@ -1,9 +1,13 @@
-import { Token } from "markdown-it";
+import type { Token } from "markdown-it";
 import { InputRule } from "prosemirror-inputrules";
-import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
-import { Command } from "prosemirror-state";
-import { Primitive } from "utility-types";
-import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import type {
+  NodeSpec,
+  NodeType,
+  Node as ProsemirrorNode,
+} from "prosemirror-model";
+import type { Command } from "prosemirror-state";
+import type { Primitive } from "utility-types";
+import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import Node from "./Node";
 
 export default class HorizontalRule extends Node {
@@ -50,7 +54,7 @@ export default class HorizontalRule extends Node {
 
   inputRules({ type }: { type: NodeType }) {
     return [
-      new InputRule(/^(?:---|___\s|\*\*\*\s)$/, (state, match, start, end) => {
+      new InputRule(/^(?:---|___|\*\*\*)$/, (state, match, start, end) => {
         const { tr } = state;
 
         if (match[0]) {

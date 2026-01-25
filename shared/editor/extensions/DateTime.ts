@@ -1,5 +1,5 @@
-import { Schema } from "prosemirror-model";
-import { Command } from "prosemirror-state";
+import type { Schema } from "prosemirror-model";
+import type { Command } from "prosemirror-state";
 import {
   getCurrentDateAsString,
   getCurrentDateTimeAsString,
