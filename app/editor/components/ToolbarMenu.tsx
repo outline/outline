@@ -35,9 +35,9 @@ type ToolbarDropdownProps = {
 function ToolbarDropdown(props: ToolbarDropdownProps) {
   const { commands, view } = useEditor();
   const { t } = useTranslation();
-  const { item } = props;
+  const { item, shortcut, tooltip } = props;
   const { state } = view;
-  const [isOpen, setIsOpen] = useState<boolean | null>(null);
+  const [isOpen, setIsOpen] = useState<boolean>(false);
 
   const handleOpenChange = useCallback((open: boolean) => {
     setIsOpen(open);
@@ -105,23 +105,25 @@ function ToolbarDropdown(props: ToolbarDropdownProps) {
   }, []);
 
   return (
-    <MenuProvider variant="dropdown">
-      <Menu onOpenChange={handleOpenChange}>
-        <MenuTrigger>
-          <ToolbarButton aria-label={item.label ? undefined : item.tooltip}>
-            {item.label && <Label>{item.label}</Label>}
-            {item.icon}
-          </ToolbarButton>
-        </MenuTrigger>
-        <MenuContent
-          align="end"
-          aria-label={item.tooltip || t("More options")}
-          onCloseAutoFocus={handleCloseAutoFocus}
-        >
-          <EventBoundary>{toMenuItems(items)}</EventBoundary>
-        </MenuContent>
-      </Menu>
-    </MenuProvider>
+    <Tooltip shortcut={shortcut} content={tooltip} disabled={isOpen}>
+      <MenuProvider variant="dropdown">
+        <Menu open={isOpen} onOpenChange={handleOpenChange}>
+          <MenuTrigger>
+            <ToolbarButton aria-label={item.label ? undefined : item.tooltip}>
+              {item.label && <Label>{item.label}</Label>}
+              {item.icon}
+            </ToolbarButton>
+          </MenuTrigger>
+          <MenuContent
+            align="end"
+            aria-label={item.tooltip || t("More options")}
+            onCloseAutoFocus={handleCloseAutoFocus}
+          >
+            <EventBoundary>{toMenuItems(items)}</EventBoundary>
+          </MenuContent>
+        </Menu>
+      </MenuProvider>
+    </Tooltip>
   );
 }
 
