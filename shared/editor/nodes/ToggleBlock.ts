@@ -411,26 +411,33 @@ export default class ToggleBlock extends Node {
         }
 
         // Auto-unfold if cursor is in body of folded toggle
-        const { $from } = newState.selection;
-        const pluginState = ToggleBlock.actionPluginKey.getState(newState);
-        const isToggle = isToggleBlock(newState);
+        // Skip if we're handling a fold event (cursor will be moved out of body)
+        const isFoldEvent =
+          eventTr?.getMeta(ToggleBlock.eventPluginKey)?.type === Action.FOLD;
 
-        if (pluginState) {
-          const toggleBlockAncestor = ancestors($from).find(
-            (node) => isToggle(node) && pluginState.foldedIds.has(node.attrs.id)
-          );
+        if (!isFoldEvent) {
+          const { $from } = newState.selection;
+          const pluginState = ToggleBlock.actionPluginKey.getState(newState);
+          const isToggle = isToggleBlock(newState);
 
-          if (toggleBlockAncestor) {
-            const d = getToggleBlockDepth($from, toggleBlockAncestor);
-            const posAfterHead =
-              $from.start(d) + toggleBlockAncestor.firstChild!.nodeSize;
-            const posAtEnd = $from.end(d);
+          if (pluginState) {
+            const toggleBlockAncestor = ancestors($from).find(
+              (node) =>
+                isToggle(node) && pluginState.foldedIds.has(node.attrs.id)
+            );
 
-            if ($from.pos > posAfterHead && $from.pos < posAtEnd) {
-              tr = (tr ?? newState.tr).setMeta(ToggleBlock.actionPluginKey, {
-                type: Action.UNFOLD,
-                at: $from.before(d),
-              });
+            if (toggleBlockAncestor) {
+              const d = getToggleBlockDepth($from, toggleBlockAncestor);
+              const posAfterHead =
+                $from.start(d) + toggleBlockAncestor.firstChild!.nodeSize;
+              const posAtEnd = $from.end(d);
+
+              if ($from.pos > posAfterHead && $from.pos < posAtEnd) {
+                tr = (tr ?? newState.tr).setMeta(ToggleBlock.actionPluginKey, {
+                  type: Action.UNFOLD,
+                  at: $from.before(d),
+                });
+              }
             }
           }
         }
