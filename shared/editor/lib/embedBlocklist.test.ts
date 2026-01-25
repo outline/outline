@@ -1,5 +1,4 @@
-import { isDomainBlocked, isEmbedBlockedByDomains } from "./embedBlocklist";
-import type { EmbedDescriptor } from "../embeds";
+import { isDomainBlocked } from "./embedBlocklist";
 
 describe("isDomainBlocked", () => {
   const blockedDomains = ["linear.app", "github.com", "atlassian.net"];
@@ -41,47 +40,5 @@ describe("isDomainBlocked", () => {
 
   it("returns false for empty blockedDomains array", () => {
     expect(isDomainBlocked("https://linear.app/issue", [])).toBe(false);
-  });
-});
-
-describe("isEmbedBlockedByDomains", () => {
-  // Mock embed descriptor with a matcher that matches github.com URLs
-  // Note: isEmbedBlockedByDomains passes "https://<domain>" without path,
-  // so matcher must handle URLs without trailing path
-  const githubEmbed: EmbedDescriptor = {
-    title: "GitHub",
-    icon: () => null,
-    matcher: (url: string) => url.match(/^https:\/\/(www\.)?github\.com/),
-  } as unknown as EmbedDescriptor;
-
-  // Mock embed descriptor that matches youtube.com URLs
-  const youtubeEmbed: EmbedDescriptor = {
-    title: "YouTube",
-    icon: () => null,
-    matcher: (url: string) => url.match(/^https:\/\/(www\.)?youtube\.com\/watch/),
-  } as unknown as EmbedDescriptor;
-
-  it("returns true when embed matches a blocked domain", () => {
-    expect(isEmbedBlockedByDomains(githubEmbed, ["github.com"])).toBe(true);
-  });
-
-  it("returns false when embed does not match any blocked domain", () => {
-    expect(isEmbedBlockedByDomains(youtubeEmbed, ["github.com", "linear.app"])).toBe(false);
-  });
-
-  it("returns false for empty blockedDomains array", () => {
-    expect(isEmbedBlockedByDomains(githubEmbed, [])).toBe(false);
-  });
-
-  it("handles matcher that throws an error gracefully", () => {
-    const brokenEmbed: EmbedDescriptor = {
-      title: "Broken",
-      icon: () => null,
-      matcher: () => {
-        throw new Error("matcher error");
-      },
-    } as unknown as EmbedDescriptor;
-
-    expect(isEmbedBlockedByDomains(brokenEmbed, ["example.com"])).toBe(false);
   });
 });

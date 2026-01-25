@@ -1,5 +1,3 @@
-import type { EmbedDescriptor } from "../embeds";
-
 /**
  * Default list of domains where embedding is typically not useful or desired.
  * These may block iframe embedding via CSP or are better referenced as links.
@@ -34,30 +32,4 @@ export function isDomainBlocked(url: string, blockedDomains: string[]): boolean 
   } catch {
     return false;
   }
-}
-
-/**
- * Checks if an embed descriptor matches any of the blocked domains.
- * Runs each blocked domain through the descriptor's matcher to determine
- * if the embed service is blocked.
- *
- * @param embed - The embed descriptor to check
- * @param blockedDomains - List of blocked domain strings
- * @returns true if the embed matches any blocked domain
- */
-export function isEmbedBlockedByDomains(
-  embed: EmbedDescriptor,
-  blockedDomains: string[]
-): boolean {
-  if (!blockedDomains.length) {
-    return false;
-  }
-
-  return blockedDomains.some((domain) => {
-    try {
-      return !!embed.matcher("https://" + domain);
-    } catch {
-      return false;
-    }
-  });
 }
