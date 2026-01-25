@@ -162,8 +162,14 @@ function useItems({
       embeds.find((e) => e.title === embedType)?.icon
     );
 
+  // Check if embed option would actually be visible (respects documentEmbeds setting)
+  const embedVisible =
+    team.documentEmbeds &&
+    convertibleToEmbedList &&
+    !pastedText.some((text) => isDomainBlocked(text, blockedDomains));
+
   // don't render the menu when it can't be converted to other types.
-  if (!convertibleToMentionList && !convertibleToEmbedList) {
+  if (!convertibleToMentionList && !embedVisible) {
     return;
   }
 
@@ -183,10 +189,7 @@ function useItems({
     {
       name: "embed_list",
       title: t("Embed"),
-      visible:
-        team.documentEmbeds &&
-        !!convertibleToEmbedList &&
-        !pastedText.some((text) => isDomainBlocked(text, blockedDomains)),
+      visible: embedVisible,
       icon: embedIcon,
       attrs: { actorId: user?.id },
     },
