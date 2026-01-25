@@ -701,13 +701,13 @@ class Document extends ArchivableModel<
         {
           association: "memberships",
           required: false,
-          ...(permission && { where: { permission } }),
+          ...(permission ? { where: { permission } } : {}),
           separate: true,
         },
         {
           association: "groupMemberships",
           required: false,
-          ...(permission && { where: { permission } }),
+          ...(permission ? { where: { permission } } : {}),
           separate: true,
         },
       ],

@@ -26,6 +26,7 @@ import {
   notificationArchive,
 } from "~/actions/definitions/notifications";
 import { NotificationSection } from "~/actions/sections";
+import { client } from "~/utils/ApiClient";
 
 const CommentEditor = lazyWithRetry(
   () => import("~/scenes/Document/components/Comments/CommentEditor")
@@ -38,7 +39,7 @@ type Props = {
 
 function NotificationListItem({ notification, onNavigate }: Props) {
   const { t } = useTranslation();
-  const { collections, userMemberships } = useStores();
+  const { collections } = useStores();
   const collectionId = notification.document?.collectionId;
   const collection = collectionId ? collections.get(collectionId) : undefined;
   const [processing, setProcessing] = React.useState(false);
@@ -104,9 +105,8 @@ function NotificationListItem({ notification, onNavigate }: Props) {
 
       setProcessing(true);
       try {
-        await userMemberships.create({
-          documentId: notification.documentId,
-          userId: notification.actor?.id,
+        await client.post("/accessRequests.approve", {
+          id: notification.accessRequestId,
           permission: selectedPermission,
         });
         toast.success(
@@ -124,11 +124,37 @@ function NotificationListItem({ notification, onNavigate }: Props) {
     [
       notification,
       processing,
+      setProcessing,
       selectedPermission,
       t,
-      userMemberships,
       collection,
+      client,
     ]
+  );
+
+  const handleDismiss = React.useCallback(
+    async (event: React.MouseEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (processing) {
+        return;
+      }
+
+      setProcessing(true);
+      try {
+        await client.post("/accessRequests.dismiss", {
+          id: notification.accessRequestId,
+        });
+        toast.success(t("Access request dismissed"));
+        void notification.markAsRead();
+      } catch {
+        toast.error(t("Failed to dismiss access request"));
+      } finally {
+        setProcessing(false);
+      }
+    },
+    [notification, processing, t, client, setProcessing]
   );
 
   return (
@@ -173,7 +199,7 @@ function NotificationListItem({ notification, onNavigate }: Props) {
                   {t("Approve")}
                 </Button>
                 <Button
-                  onClick={() => void notification.markAsRead()}
+                  onClick={handleDismiss}
                   disabled={processing}
                   neutral
                   size="small"

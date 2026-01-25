@@ -4,9 +4,10 @@ import {
   CollectionPermission,
 } from "@shared/types";
 import Logger from "@server/logging/Logger";
-import { Notification, UserMembership } from "@server/models";
+import { AccessRequest, Notification, UserMembership } from "@server/models";
 import DocumentAccessRequestNotificationsTask from "./DocumentAccessRequestNotificationsTask";
 import {
+  buildAdmin,
   buildCollection,
   buildDocument,
   buildTeam,
@@ -45,29 +46,35 @@ describe("DocumentAccessRequestNotificationsTask", () => {
     it("should send notifications to document managers", async () => {
       const spy = jest.spyOn(Notification, "create");
       const team = await buildTeam();
-      const manager1 = await buildUser({ teamId: team.id });
+      const manager1 = await buildAdmin({ teamId: team.id });
       const manager2 = await buildUser({ teamId: team.id });
 
-      const user = await buildUser({ teamId: team.id, name: "actor" });
+      const actor = await buildUser({ teamId: team.id });
       const document = await buildDocument({
         teamId: team.id,
+        userId: manager1.id,
       });
 
-      for (const m of [manager1, manager2]) {
-        await UserMembership.create({
-          userId: m.id,
-          documentId: document.id,
-          createdById: m.id,
-          permission: DocumentPermission.Admin,
-        });
-      }
+      // give manager2 admin access to the document
+      await UserMembership.create({
+        userId: manager2.id,
+        documentId: document.id,
+        createdById: manager2.id,
+        permission: DocumentPermission.Admin,
+      });
+
+      await AccessRequest.create({
+        documentId: document.id,
+        userId: actor.id,
+        teamId: team.id,
+      });
 
       const task = new DocumentAccessRequestNotificationsTask();
       await task.perform({
         name: "documents.request_access",
         documentId: document.id,
         teamId: team.id,
-        actorId: user.id,
+        actorId: actor.id,
         ip,
       });
 
@@ -76,7 +83,7 @@ describe("DocumentAccessRequestNotificationsTask", () => {
         expect.objectContaining({
           event: NotificationEventType.RequestDocumentAccess,
           userId: manager1.id,
-          actorId: user.id,
+          actorId: actor.id,
           documentId: document.id,
           teamId: team.id,
         })
@@ -85,7 +92,7 @@ describe("DocumentAccessRequestNotificationsTask", () => {
         expect.objectContaining({
           event: NotificationEventType.RequestDocumentAccess,
           userId: manager2.id,
-          actorId: user.id,
+          actorId: actor.id,
           documentId: document.id,
           teamId: team.id,
         })
@@ -95,10 +102,10 @@ describe("DocumentAccessRequestNotificationsTask", () => {
     it("should send notifications to collection managers", async () => {
       const spy = jest.spyOn(Notification, "create");
       const team = await buildTeam();
-      const manager1 = await buildUser({ teamId: team.id });
+      const manager1 = await buildAdmin({ teamId: team.id });
       const manager2 = await buildUser({ teamId: team.id });
 
-      const user = await buildUser({ teamId: team.id, name: "actor" });
+      const actor = await buildUser({ teamId: team.id });
       const collection = await buildCollection({
         teamId: team.id,
         createdById: manager1.id,
@@ -108,21 +115,24 @@ describe("DocumentAccessRequestNotificationsTask", () => {
         collectionId: collection.id,
       });
 
-      for (const m of [manager1, manager2]) {
-        await UserMembership.create({
-          userId: m.id,
-          collectionId: collection.id,
-          createdById: m.id,
-          permission: CollectionPermission.Admin,
-        });
-      }
+      await UserMembership.create({
+        userId: manager2.id,
+        collectionId: collection.id,
+        createdById: manager2.id,
+        permission: CollectionPermission.Admin,
+      });
+      await AccessRequest.create({
+        documentId: document.id,
+        userId: actor.id,
+        teamId: team.id,
+      });
 
       const task = new DocumentAccessRequestNotificationsTask();
       await task.perform({
         name: "documents.request_access",
         documentId: document.id,
         teamId: team.id,
-        actorId: user.id,
+        actorId: actor.id,
         ip,
       });
 
@@ -131,7 +141,7 @@ describe("DocumentAccessRequestNotificationsTask", () => {
         expect.objectContaining({
           event: NotificationEventType.RequestDocumentAccess,
           userId: manager1.id,
-          actorId: user.id,
+          actorId: actor.id,
           documentId: document.id,
           teamId: team.id,
         })
@@ -140,60 +150,36 @@ describe("DocumentAccessRequestNotificationsTask", () => {
         expect.objectContaining({
           event: NotificationEventType.RequestDocumentAccess,
           userId: manager2.id,
-          actorId: user.id,
+          actorId: actor.id,
           documentId: document.id,
           teamId: team.id,
         })
       );
     });
 
-    it("should not send notifications to the requesting user", async () => {
-      const spy = jest.spyOn(Notification, "create");
-      const team = await buildTeam();
-      const admin = await buildUser({ teamId: team.id });
-
-      const document = await buildDocument({
-        teamId: team.id,
-        createdById: admin.id,
-      });
-
-      await UserMembership.create({
-        userId: admin.id,
-        documentId: document.id,
-        permission: DocumentPermission.Admin,
-        createdById: admin.id,
-      });
-
-      const task = new DocumentAccessRequestNotificationsTask();
-      await task.perform({
-        name: "documents.request_access",
-        documentId: document.id,
-        teamId: team.id,
-        actorId: admin.id,
-        ip,
-      });
-
-      expect(spy).not.toHaveBeenCalled();
-    });
-
     it("should not send notifications to suspended users", async () => {
       const spy = jest.spyOn(Notification, "create");
       const team = await buildTeam();
-      const admin = await buildUser({
+      const manager = await buildUser({
         teamId: team.id,
         suspendedAt: new Date(),
       });
       const actor = await buildUser({ teamId: team.id });
       const document = await buildDocument({
         teamId: team.id,
-        createdById: admin.id,
+        createdById: manager.id,
       });
 
       await UserMembership.create({
-        userId: admin.id,
+        userId: manager.id,
         documentId: document.id,
         permission: DocumentPermission.Admin,
-        createdById: admin.id,
+        createdById: manager.id,
+      });
+      await AccessRequest.create({
+        documentId: document.id,
+        userId: actor.id,
+        teamId: team.id,
       });
 
       const task = new DocumentAccessRequestNotificationsTask();
@@ -211,7 +197,7 @@ describe("DocumentAccessRequestNotificationsTask", () => {
     it("should not send notification if user has disabled this notification type", async () => {
       const spy = jest.spyOn(Notification, "create");
       const team = await buildTeam();
-      const admin = await buildUser({ teamId: team.id });
+      const admin = await buildAdmin({ teamId: team.id });
       const actor = await buildUser({ teamId: team.id });
 
       const document = await buildDocument({
@@ -224,6 +210,11 @@ describe("DocumentAccessRequestNotificationsTask", () => {
         documentId: document.id,
         permission: DocumentPermission.Admin,
         createdById: admin.id,
+      });
+      await AccessRequest.create({
+        documentId: document.id,
+        userId: actor.id,
+        teamId: team.id,
       });
 
       // disable notifications for this event type

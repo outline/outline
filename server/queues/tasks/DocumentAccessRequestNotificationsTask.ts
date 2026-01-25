@@ -5,8 +5,14 @@ import {
   CollectionPermission,
 } from "@shared/types";
 import Logger from "@server/logging/Logger";
-import { Document, Notification, User, Collection } from "@server/models";
-import { DocumentAccessRequestEvent } from "@server/types";
+import {
+  Document,
+  Notification,
+  User,
+  Collection,
+  AccessRequest,
+} from "@server/models";
+import type { DocumentAccessRequestEvent } from "@server/types";
 import { BaseTask, TaskPriority } from "./base/BaseTask";
 import { uniq } from "lodash";
 
@@ -28,6 +34,20 @@ export default class DocumentAccessRequestNotificationsTask extends BaseTask<Doc
       return;
     }
 
+    // users can only have one pending access request per document
+    const pendingRequest = await AccessRequest.pendingRequest({
+      documentId: document.id,
+      userId: event.actorId,
+    });
+
+    if (!pendingRequest) {
+      Logger.debug("task", `Access request not found for notification`, {
+        documentId: event.documentId,
+        userId: event.actorId,
+      });
+      return;
+    }
+
     const recipients = await this.findDocumentManagers(document);
     for (const recipient of recipients) {
       if (
@@ -46,6 +66,7 @@ export default class DocumentAccessRequestNotificationsTask extends BaseTask<Doc
         actorId: event.actorId,
         teamId: event.teamId,
         documentId: event.documentId,
+        accessRequestId: pendingRequest.id,
       });
     }
   }

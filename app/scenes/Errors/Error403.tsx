@@ -22,6 +22,22 @@ const Error403 = ({ documentId }: Props) => {
   const [requesting, setRequesting] = React.useState(false);
   const [requested, setRequested] = React.useState(false);
 
+  React.useEffect(() => {
+    const checkRequested = async () => {
+      const request = await client.post("/accessRequests.info", {
+        documentId,
+      });
+
+      if (request?.data?.status === "pending") {
+        setRequested(true);
+      } else {
+        setRequested(false);
+      }
+    };
+
+    checkRequested();
+  }, [documentId]);
+
   const handleRequestAccess = React.useCallback(async () => {
     if (!documentId || requesting || requested) {
       return;
@@ -29,7 +45,7 @@ const Error403 = ({ documentId }: Props) => {
 
     setRequesting(true);
     try {
-      await client.post("/documents.request_access", { id: documentId });
+      await client.post("/accessRequests.create", { documentId });
       setRequested(true);
       toast.success(t("Access request sent"));
     } catch {
@@ -43,12 +59,20 @@ const Error403 = ({ documentId }: Props) => {
     <Scene title={t("No access to this doc")}>
       <Heading>{t("No access to this doc")}</Heading>
       <VStack spacing={20} style={{ maxWidth: 500 }} align="initial">
-        <Empty size="large">
-          {t(
-            "It doesn’t look like you have permission to access this document."
-          )}{" "}
-          {t("You can request access from a document manager.")}
-        </Empty>
+        {requested ? (
+          <Empty size="large">
+            {t(
+              "Your request to access this document has been sent. You will be notified once access is granted."
+            )}{" "}
+          </Empty>
+        ) : (
+          <Empty size="large">
+            {t(
+              "It doesn't look like you have permission to access this document."
+            )}{" "}
+            {t("You can request access from a document manager.")}
+          </Empty>
+        )}
         <HStack gap={8}>
           {documentId && (
             <Button

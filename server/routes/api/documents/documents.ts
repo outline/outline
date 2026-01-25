@@ -2141,31 +2141,6 @@ router.post(
   }
 );
 
-router.post(
-  "documents.request_access",
-  auth(),
-  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
-  validate(T.DocumentsRequestAccessSchema),
-  async (ctx: APIContext<T.DocumentsRequestAccessReq>) => {
-    const { id } = ctx.input.body;
-
-    const document = await Document.findByPk(id);
-
-    if (!document) {
-      throw NotFoundError("Document could not be found");
-    }
-
-    await Event.createFromContext(ctx, {
-      name: "documents.request_access",
-      documentId: document.id,
-    });
-
-    ctx.body = {
-      success: true,
-    };
-  }
-);
-
 // Remove this helper once apiVersion is removed (#6175)
 function getAPIVersion(ctx: APIContext) {
   return Number(
