@@ -53,11 +53,6 @@ export enum Action {
   UNFOLD,
 }
 
-export enum On {
-  FOLD,
-  UNFOLD,
-}
-
 interface ToggleFoldState {
   foldedIds: Set<string>;
   decorations: DecorationSet;
@@ -321,7 +316,7 @@ export default class ToggleBlock extends Node {
           const node = newState.doc.nodeAt(event.at);
 
           if (node) {
-            if (event.type === On.FOLD) {
+            if (event.type === Action.FOLD) {
               // Move cursor out of body if folding
               const { $anchor } = newState.selection;
               const startOfNode = event.at + 1;
@@ -334,7 +329,7 @@ export default class ToggleBlock extends Node {
                   TextSelection.near($endOfFirstChild, -1)
                 );
               }
-            } else if (event.type === On.UNFOLD) {
+            } else if (event.type === Action.UNFOLD) {
               // Insert empty paragraph if body is empty (for placeholder visibility)
               if (node.childCount === 1) {
                 tr = newState.tr.insert(
@@ -725,7 +720,7 @@ class ToggleBlockView implements NodeView {
           at: pos,
         })
         .setMeta(ToggleBlock.eventPluginKey, {
-          type: isFolded ? On.UNFOLD : On.FOLD,
+          type: isFolded ? Action.UNFOLD : Action.FOLD,
           at: pos,
         })
     );
@@ -753,7 +748,7 @@ class ToggleBlockView implements NodeView {
             at: pos,
           })
           .setMeta(ToggleBlock.eventPluginKey, {
-            type: newFoldState.fold ? On.FOLD : On.UNFOLD,
+            type: newFoldState.fold ? Action.FOLD : Action.UNFOLD,
             at: pos,
           })
       );
