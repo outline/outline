@@ -2451,22 +2451,22 @@ del {
     }
 
     &:has(+ .toggle-block-content > .toggle-block-head > h1) {
-      --line-height: var(--line-height-h);
+      --line-height: calc(var(--line-height-h) + 0.2);
       --font-size: var(--font-size-h1);
     }
 
     &:has(+ .toggle-block-content > .toggle-block-head > h2) {
-      --line-height: var(--line-height-h);
+      --line-height: calc(var(--line-height-h) + 0.2);
       --font-size: var(--font-size-h2);
     }
 
     &:has(+ .toggle-block-content > .toggle-block-head > h3) {
-      --line-height: var(--line-height-h);
+      --line-height: calc(var(--line-height-h) + 0.2);
       --font-size: var(--font-size-h3);
     }
 
     &:has(+ .toggle-block-content > .toggle-block-head > h4) {
-      --line-height: var(--line-height-h);
+      --line-height: calc(var(--line-height-h) + 0.2);
       --font-size: var(--font-size-h4);
     }
 
@@ -2476,7 +2476,7 @@ del {
     background: none;
     outline: none;
     border: 0;
-    margin: 2px 0 0 0;
+    margin: 0;
     padding: 0;
     height: calc(var(--line-height) * var(--font-size));
     width: 20px;
@@ -2489,6 +2489,7 @@ del {
 
     > svg {
       transition: transform 200ms ease-out;
+      flex-shrink: 0;
     }
   }
 
