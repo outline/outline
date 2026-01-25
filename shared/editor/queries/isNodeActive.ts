@@ -3,7 +3,7 @@ import type { NodeType } from "prosemirror-model";
 import type { EditorState } from "prosemirror-state";
 import type { Primitive } from "utility-types";
 import { findParentNode } from "./findParentNode";
-import ToggleBlock from "../nodes/ToggleBlock";
+import { isSelectionInToggleBlockHead } from "./toggleBlock";
 
 type Options = {
   /** Only return match if the range and attrs is exact */
@@ -30,8 +30,7 @@ export const isNodeActive =
     if (type === state.schema.nodes.container_toggle) {
       // `container_toggle` is a special case where it's considered active
       // only when the selection lies within its head
-      const { isSelectionWithinToggleBlockHead } = ToggleBlock.getUtils(state);
-      return isSelectionWithinToggleBlockHead();
+      return isSelectionInToggleBlockHead(state);
     }
 
     let nodeWithPos;
