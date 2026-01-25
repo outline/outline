@@ -338,30 +338,31 @@ export default class ToggleBlock extends Node {
         let initialized = false;
         return {
           update: (view, prevState) => {
-            // Initialize on first update with content, or when doc changes significantly
+            if (initialized) {
+              return;
+            }
+
             const hasContent = view.state.doc.content.size > 2;
+            if (!hasContent) {
+              return;
+            }
+
             const isMultiplayer = this.editor.props.extensions?.some(
               (e: { name: string }) => e.name === "multiplayer"
             );
 
-            if (!initialized && hasContent) {
-              // For multiplayer, wait for first docChanged
-              if (isMultiplayer && prevState.doc.content.size <= 2) {
-                view.dispatch(
-                  view.state.tr.setMeta(ToggleBlock.actionPluginKey, {
-                    type: Action.INIT,
-                  })
-                );
-                initialized = true;
-              } else if (!isMultiplayer) {
-                view.dispatch(
-                  view.state.tr.setMeta(ToggleBlock.actionPluginKey, {
-                    type: Action.INIT,
-                  })
-                );
-                initialized = true;
-              }
+            // For multiplayer, wait for first real content load
+            if (isMultiplayer && prevState.doc.content.size > 2) {
+              return;
             }
+
+            // Set flag before dispatch to prevent re-entry
+            initialized = true;
+            view.dispatch(
+              view.state.tr.setMeta(ToggleBlock.actionPluginKey, {
+                type: Action.INIT,
+              })
+            );
           },
         };
       },
