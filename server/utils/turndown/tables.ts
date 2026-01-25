@@ -109,25 +109,50 @@ rules.table = {
     // Ensure there are no blank lines
     content = content.replace(/\n+/g, "\n");
 
-    // If table has no heading, add an empty one so as to get a valid Markdown table
-    const secondLineParts = content.trim().split("\n");
-    let secondLine = "";
-    if (secondLineParts.length >= 2) {
-      secondLine = secondLineParts[1];
+    // Check if table has a proper heading row
+    const rows = node.rows;
+    let hasProperHeader = false;
+
+    if (rows && rows.length > 0) {
+      const firstRow = rows[0];
+
+      // Check if first row is in THEAD or has TH cells
+      const isInThead = firstRow.parentNode?.nodeName === "THEAD";
+      const hasTh = Array.from(firstRow.childNodes).some((n) => n.nodeName === "TH");
+
+      // Check if first row cells contain heading tags (h1-h6)
+      const hasHeadingTags = Array.from(firstRow.childNodes).some((cell) => {
+        return nodeContains(cell as HTMLElement, ['H1', 'H2', 'H3', 'H4', 'H5', 'H6']);
+      });
+      hasProperHeader = isInThead || hasTh || hasHeadingTags;
     }
+
+    // Split content into lines
+    const lines = content.trim().split("\n");
+    const secondLine = lines.length >= 2 ? lines[1] : "";
     const secondLineIsDivider = /\| :?---/.test(secondLine);
 
     const columnCount = tableColCount(node);
-    let emptyHeader = "";
+    let finalContent = content;
     if (columnCount && !secondLineIsDivider) {
-      emptyHeader = "|" + "     |".repeat(columnCount) + "\n" + "|";
-      for (let columnIndex = 0; columnIndex < columnCount; ++columnIndex) {
-        emptyHeader +=
-          " " + getBorder(getColumnAlignment(node, columnIndex)) + " |";
+      if (hasProperHeader && lines.length > 0) {
+        // First row IS a header, just add the divider after it
+        let dividerLine = "|";
+        for (let columnIndex = 0; columnIndex < columnCount; ++columnIndex) {
+          dividerLine += " " + getBorder(getColumnAlignment(node, columnIndex)) + " |";
+        }
+        lines.splice(1, 0, dividerLine);
+        finalContent = lines.join("\n");
+      } else {
+        // No header detected, add empty header
+        let emptyHeader = "|" + "     |".repeat(columnCount) + "\n|";
+        for (let columnIndex = 0; columnIndex < columnCount; ++columnIndex) {
+          emptyHeader += " " + getBorder(getColumnAlignment(node, columnIndex)) + " |";
+        }
+        finalContent = emptyHeader + content;
       }
     }
-
-    return "\n\n" + emptyHeader + content + "\n\n";
+    return "\n\n" + finalContent + "\n\n";
   },
 };
 
