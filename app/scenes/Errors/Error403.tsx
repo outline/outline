@@ -45,7 +45,7 @@ const Error403 = ({ documentId }: Props) => {
       <VStack spacing={20} style={{ maxWidth: 500 }} align="initial">
         <Empty size="large">
           {t(
-            "It doesn't look like you have permission to access this document."
+            "It doesn’t look like you have permission to access this document."
           )}{" "}
           {t("You can request access from a document manager.")}
         </Empty>

@@ -48,6 +48,7 @@ class Notification extends Model {
         NotificationEventType.UpdateDocument,
         NotificationEventType.CreateRevision,
         NotificationEventType.AddUserToDocument,
+        NotificationEventType.RequestDocumentAccess,
       ],
       collections: [
         NotificationEventType.CreateCollection,

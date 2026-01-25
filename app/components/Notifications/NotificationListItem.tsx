@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import styled from "styled-components";
 import { s, hover, truncateMultiline } from "@shared/styles";
 import { DocumentPermission, NotificationEventType } from "@shared/types";
-import Notification from "~/models/Notification";
+import type Notification from "~/models/Notification";
 import useStores from "~/hooks/useStores";
 import { Avatar, AvatarSize, AvatarVariant } from "../Avatar";
 import Button from "../Button";
@@ -16,7 +16,7 @@ import InputMemberPermissionSelect from "../InputMemberPermissionSelect";
 import Text from "../Text";
 import Time from "../Time";
 import { UnreadBadge } from "../UnreadBadge";
-import { Permission } from "~/types";
+import type { Permission } from "~/types";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 import { ContextMenu } from "../Menu/ContextMenu";
 import { createActionWithChildren } from "~/actions";
@@ -136,7 +136,7 @@ function NotificationListItem({ notification, onNavigate }: Props) {
       <StyledLink to={notification.path ?? ""} onClick={handleClick}>
         <Container gap={8} $unread={!notification.viewedAt}>
           <StyledAvatar model={notification.actor} />
-          <Flex column gap={4} style={{ flex: 1 }}>
+          <Flex column>
             <Text as="div" size="small">
               <Text weight="bold">
                 {notification.actor?.name ?? t("Unknown")}
@@ -183,7 +183,7 @@ function NotificationListItem({ notification, onNavigate }: Props) {
               </ActionButtons>
             )}
           </Flex>
-          {notification.viewedAt ? null : <UnreadBadge style={{ right: 20 }} />}
+          {notification.viewedAt ? null : <UnreadBadge />}
         </Container>
       </StyledLink>
     </ContextMenu>
