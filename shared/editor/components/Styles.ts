@@ -2445,10 +2445,8 @@ del {
     justify-content: center;
     align-items: center;
 
-    &:has(+ .toggle-block-content > .toggle-block-head > p) {
-      --line-height: var(--line-height-p);
-      --font-size: var(--font-size-p);
-    }
+    --line-height: var(--line-height-p);
+    --font-size: var(--font-size-p);
 
     &:has(+ .toggle-block-content > .toggle-block-head > h1) {
       --line-height: calc(var(--line-height-h) + 0.2);
