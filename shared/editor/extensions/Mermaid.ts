@@ -8,7 +8,7 @@ import { Plugin, PluginKey, TextSelection } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { toast } from "sonner";
 import { isCode, isMermaid } from "../lib/isCode";
-import { isRemoteTransaction } from "../lib/multiplayer";
+import { isRemoteTransaction, mapDecorations } from "../lib/multiplayer";
 import { findBlockNodes } from "../queries/findChildren";
 import { findParentNode } from "../queries/findParentNode";
 import type { NodeWithPos } from "../types";
@@ -258,10 +258,7 @@ export default function Mermaid({
             mermaidMeta && "editingId" in mermaidMeta
               ? mermaidMeta.editingId
               : pluginState.editingId,
-          decorationSet: pluginState.decorationSet.map(
-            transaction.mapping,
-            transaction.doc
-          ),
+          decorationSet: mapDecorations(pluginState.decorationSet, transaction),
         };
 
         if (
@@ -296,7 +293,11 @@ export default function Mermaid({
           transaction.docChanged &&
           (isMermaid(node) || isMermaid(previousNode));
 
+        // @ts-expect-error accessing private field.
+        const isPaste = transaction.meta?.paste;
+
         if (
+          isPaste ||
           mermaidMeta ||
           themeToggled ||
           codeBlockChanged ||

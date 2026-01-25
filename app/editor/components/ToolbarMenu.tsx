@@ -22,10 +22,17 @@ type Props = {
   items: MenuItem[];
 };
 
-/*
+type ToolbarDropdownProps = {
+  active: boolean;
+  item: MenuItem;
+  tooltip?: string;
+  shortcut?: string;
+};
+
+/**
  * Renders a dropdown menu in the floating toolbar.
  */
-function ToolbarDropdown(props: { active: boolean; item: MenuItem }) {
+function ToolbarDropdown(props: ToolbarDropdownProps) {
   const { commands, view } = useEditor();
   const { t } = useTranslation();
   const { item } = props;
@@ -153,6 +160,20 @@ function ToolbarMenu(props: Props) {
             }
             const isActive = item.active ? item.active(state) : false;
 
+            if (item.children) {
+              return (
+                <ToolbarDropdown
+                  key={index}
+                  active={isActive && !item.label}
+                  item={item}
+                  tooltip={
+                    item.label === item.tooltip ? undefined : item.tooltip
+                  }
+                  shortcut={item.shortcut}
+                />
+              );
+            }
+
             return (
               <Tooltip
                 key={index}
@@ -161,11 +182,6 @@ function ToolbarMenu(props: Props) {
               >
                 {item.name === "dimensions" ? (
                   <MediaDimension key={index} />
-                ) : item.children ? (
-                  <ToolbarDropdown
-                    active={isActive && !item.label}
-                    item={item}
-                  />
                 ) : (
                   <Toolbar.Button asChild>
                     <ToolbarButton
