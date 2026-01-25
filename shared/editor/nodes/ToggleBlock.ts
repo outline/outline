@@ -128,25 +128,81 @@ export default class ToggleBlock extends Node {
   get plugins() {
     const userId = this.editor.props.userId;
 
-    // Plugin 1: Assign IDs to toggle blocks that don't have one
-    const idPlugin = new Plugin({
+    // Plugin 1: Fix toggle blocks - assign IDs, fix positions, auto-fold empty
+    const fixToggleBlocksPlugin = new Plugin({
       appendTransaction: (transactions, _oldState, newState) => {
         if (!transactions.some((tr) => tr.docChanged)) {
           return null;
         }
 
-        const blocksNeedingIds = findBlockNodes(newState.doc, true).filter(
-          (b) => b.node.type.name === this.name && !b.node.attrs.id
+        // Single pass to find all toggle blocks
+        const toggleBlocks = findBlockNodes(newState.doc, true).filter(
+          (b) => b.node.type.name === this.name
         );
 
-        if (blocksNeedingIds.length === 0) {
+        if (toggleBlocks.length === 0) {
           return null;
         }
 
-        const tr = newState.tr;
-        blocksNeedingIds.forEach((block) => {
-          tr.setNodeAttribute(block.pos, "id", v4());
+        let tr: Transaction | null = null;
+
+        // 1. Assign IDs to blocks that need them
+        const blocksNeedingIds = toggleBlocks.filter((b) => !b.node.attrs.id);
+        if (blocksNeedingIds.length > 0) {
+          tr = newState.tr;
+          blocksNeedingIds.forEach((block) => {
+            tr!.setNodeAttribute(block.pos, "id", v4());
+          });
+        }
+
+        // 2. Fix invalid positions (toggle at start of list item)
+        // Use the updated doc if we made changes, process in reverse order
+        const doc = tr?.doc ?? newState.doc;
+        const currentBlocks = tr
+          ? findBlockNodes(doc, true).filter(
+              (b) => b.node.type.name === this.name
+            )
+          : toggleBlocks;
+
+        const invalidBlocks = currentBlocks.filter((block) => {
+          const $pos = doc.resolve(block.pos);
+          return (
+            $pos.parent.type === newState.schema.nodes.list_item &&
+            $pos.parentOffset === 0
+          );
         });
+
+        if (invalidBlocks.length > 0) {
+          tr = tr ?? newState.tr;
+          for (let i = invalidBlocks.length - 1; i >= 0; i--) {
+            tr.insert(
+              invalidBlocks[i].pos,
+              newState.schema.nodes.paragraph.create({})
+            );
+          }
+        }
+
+        // 3. Auto-fold toggle blocks with empty bodies
+        // Only if no structural changes were made (positions would be invalid)
+        if (!tr) {
+          const pluginState = ToggleBlock.actionPluginKey.getState(newState);
+          if (pluginState) {
+            const emptyBodyBlock = toggleBlocks.find(
+              (b) =>
+                b.node.childCount === 1 &&
+                b.node.attrs.id &&
+                !pluginState.foldedIds.has(b.node.attrs.id)
+            );
+
+            if (emptyBodyBlock) {
+              return newState.tr.setMeta(ToggleBlock.actionPluginKey, {
+                type: Action.FOLD,
+                at: emptyBodyBlock.pos,
+              });
+            }
+          }
+        }
+
         return tr;
       },
     });
@@ -370,85 +426,11 @@ export default class ToggleBlock extends Node {
       },
     });
 
-    // Plugin 5: Auto-fold toggle blocks with empty bodies
-    const autoFoldPlugin = new Plugin({
-      appendTransaction: (transactions, _oldState, newState) => {
-        if (!transactions.some((tr) => tr.docChanged)) {
-          return null;
-        }
-
-        const pluginState = ToggleBlock.actionPluginKey.getState(newState);
-        if (!pluginState) {
-          return null;
-        }
-
-        // Find unfolded toggle blocks with only a head (no body content)
-        const emptyBodyBlocks = findBlockNodes(newState.doc, true).filter(
-          (b) =>
-            b.node.type.name === this.name &&
-            b.node.childCount === 1 &&
-            b.node.attrs.id &&
-            !pluginState.foldedIds.has(b.node.attrs.id)
-        );
-
-        if (emptyBodyBlocks.length === 0) {
-          return null;
-        }
-
-        // Fold the first one (subsequent ones will be handled in next transaction)
-        const block = emptyBodyBlocks[0];
-        return newState.tr.setMeta(ToggleBlock.actionPluginKey, {
-          type: Action.FOLD,
-          at: block.pos,
-        });
-      },
-    });
-
-    // Plugin 6: Resolve invalid positions (e.g., toggle at start of list item)
-    const positionResolverPlugin = new Plugin({
-      appendTransaction: (transactions, _oldState, newState) => {
-        if (!transactions.some((tr) => tr.docChanged)) {
-          return null;
-        }
-
-        // Find toggle blocks at the start of list items and push them down
-        const invalidBlocks = findBlockNodes(newState.doc, true).filter(
-          (block) => {
-            if (block.node.type.name !== this.name) {
-              return false;
-            }
-            const $pos = newState.doc.resolve(block.pos);
-            return (
-              $pos.parent.type === newState.schema.nodes.list_item &&
-              $pos.parentOffset === 0
-            );
-          }
-        );
-
-        if (invalidBlocks.length === 0) {
-          return null;
-        }
-
-        // Process in reverse order to maintain position validity
-        let tr = newState.tr;
-        for (let i = invalidBlocks.length - 1; i >= 0; i--) {
-          tr = tr.insert(
-            invalidBlocks[i].pos,
-            newState.schema.nodes.paragraph.create({})
-          );
-        }
-
-        return tr;
-      },
-    });
-
     return [
-      idPlugin,
+      fixToggleBlocksPlugin,
       foldPlugin,
       initPlugin,
       eventPlugin,
-      autoFoldPlugin,
-      positionResolverPlugin,
       new PlaceholderPlugin([
         {
           condition: ({ node, $start, parent }) =>
