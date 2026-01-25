@@ -1,7 +1,8 @@
 import type { EmbedDescriptor } from "../embeds";
 
 /**
- * Default list of domains known to block iframe embedding via CSP frame-ancestors.
+ * Default list of domains where embedding is typically not useful or desired.
+ * These may block iframe embedding via CSP or are better referenced as links.
  * Used as initial value when team has no custom blocklist configured.
  */
 export const DEFAULT_BLOCKED_EMBED_DOMAINS = [

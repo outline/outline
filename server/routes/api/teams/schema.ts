@@ -41,6 +41,7 @@ export const TeamsUpdateSchema = BaseSchema.extend({
             { message: "Labels cannot start or end with a hyphen" }
           )
       )
+      .transform((domains) => domains.filter((d) => d !== ""))
       .max(100, "Maximum 100 blocked domains allowed")
       .optional(),
     /** Whether team members are able to create new collections */
