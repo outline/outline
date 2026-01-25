@@ -1,4 +1,4 @@
-import type { NodeMarkAttr } from "@shared/editor/types";
+import type { NodeAttrMark } from "@shared/editor/types";
 import type { ResolvedPos, MarkType } from "prosemirror-model";
 import type { NodeSelection } from "prosemirror-state";
 
@@ -62,7 +62,7 @@ export function getMarkRangeNodeSelection(
   type: MarkType
 ) {
   const mark = (selection.node.attrs.marks ?? []).find(
-    (mark: NodeMarkAttr) => mark.type === type.name
+    (mark: NodeAttrMark) => mark.type === type.name
   );
 
   if (!mark) {

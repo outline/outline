@@ -1891,13 +1891,29 @@ table {
     padding: 4px 0;
   }
 
+  td[data-bgcolor] {
+    color: var(--cell-text-color);
+
+    p, a, p a {
+      color: var(--cell-text-color, inherit);
+    }
+
+    a, p a {
+      text-decoration: underline;
+      text-decoration-color: var(--cell-text-color, inherit);
+    }
+  }
+
   .selectedCell {
-    background: ${
-      props.readOnly ? "inherit" : props.theme.tableSelectedBackground
-    };
+    ${
+      props.readOnly
+        ? "background: inherit;"
+        : `/* Using box-shadow inset instead of background to allow overlay on cell background colors */
+    box-shadow: inset 0 0 0 9999px ${props.theme.tableSelectedBackground};`
+    }
 
     /* fixes Firefox background color painting over border:
-     * https://bugzilla.mozilla.org/show_bug.cgi?id=688556 */
+      * https://bugzilla.mozilla.org/show_bug.cgi?id=688556 */
     background-clip: padding-box;
   }
 

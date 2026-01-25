@@ -6,7 +6,7 @@ import { getMarkRange } from "../queries/getMarkRange";
 import { toast } from "sonner";
 import { sanitizeUrl } from "@shared/utils/urls";
 import { getMarkRangeNodeSelection } from "../queries/getMarkRange";
-import type { NodeMarkAttr } from "@shared/editor/types";
+import type { NodeAttrMark } from "@shared/editor/types";
 
 const addLinkTextSelection =
   (attrs: Attrs): Command =>
@@ -85,7 +85,7 @@ const openLinkNodeSelection =
     }
 
     const marks = state.selection.node.attrs.marks ?? [];
-    const linkMark = marks.find((mark: NodeMarkAttr) => mark.type === "link");
+    const linkMark = marks.find((mark: NodeAttrMark) => mark.type === "link");
     if (!linkMark) {
       return false;
     }
@@ -139,7 +139,7 @@ const updateLinkNodeSelection =
     }
 
     const existingMarks = state.selection.node.attrs.marks ?? [];
-    const updatedMarks = existingMarks.map((mark: NodeMarkAttr) =>
+    const updatedMarks = existingMarks.map((mark: NodeAttrMark) =>
       mark.type === "link"
         ? { ...mark, attrs: { ...mark.attrs, ...attrs } }
         : mark
@@ -189,7 +189,7 @@ const removeLinkNodeSelection = (): Command => (state, dispatch) => {
 
   const existingMarks = state.selection.node.attrs.marks ?? [];
   const updatedMarks = existingMarks.filter(
-    (mark: NodeMarkAttr) => mark.type !== "link"
+    (mark: NodeAttrMark) => mark.type !== "link"
   );
 
   const nextValidSelection =
@@ -222,7 +222,7 @@ const toggleLinkNodeSelection =
 
     const existingMarks = state.selection.node.attrs.marks ?? [];
     const linkMark = existingMarks.find(
-      (mark: NodeMarkAttr) => mark.type === "link"
+      (mark: NodeAttrMark) => mark.type === "link"
     );
     if (linkMark) {
       return removeLinkNodeSelection()(state, dispatch);

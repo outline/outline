@@ -37,7 +37,8 @@ export type MenuItemWithChildren = {
   disabled?: boolean;
   style?: React.CSSProperties;
   hover?: boolean;
-
+  /** Condition to check before preventing the submenu from closing */
+  preventCloseCondition?: () => boolean;
   items: MenuItem[];
   icon?: React.ReactNode;
 };
@@ -82,6 +83,12 @@ export type MenuGroup = {
   items: MenuItem[];
 };
 
+export type MenuCustomContent = {
+  type: "custom";
+  visible?: boolean;
+  content: React.ReactNode;
+};
+
 export type MenuItem =
   | MenuInternalLink
   | MenuItemButton
@@ -89,7 +96,8 @@ export type MenuItem =
   | MenuItemWithChildren
   | MenuSeparator
   | MenuHeading
-  | MenuGroup;
+  | MenuGroup
+  | MenuCustomContent;
 
 export type ActionContext = {
   isMenu: boolean;

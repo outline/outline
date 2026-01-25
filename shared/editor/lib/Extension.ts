@@ -4,7 +4,7 @@ import type { NodeType, MarkType, Schema } from "prosemirror-model";
 import type { Command, Plugin, Selection } from "prosemirror-state";
 import type { Editor } from "../../../app/editor";
 
-export type CommandFactory = (attrs?: unknown) => Command;
+export type CommandFactory = (attrs?: unknown, options?: unknown) => Command;
 
 export type WidgetProps = {
   rtl: boolean;

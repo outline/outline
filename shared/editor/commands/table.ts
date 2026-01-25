@@ -29,11 +29,16 @@ import {
   isTableSelected,
   getWidthFromDom,
   getWidthFromNodes,
+  getRowIndex,
+  getColumnIndex,
 } from "../queries/table";
-import { TableLayout } from "../types";
+import { type NodeAttrMark, TableLayout } from "../types";
 import { collapseSelection } from "./collapseSelection";
 import { RowSelection } from "../selection/RowSelection";
 import { ColumnSelection } from "../selection/ColumnSelection";
+import type { Attrs } from "prosemirror-model";
+import isUndefined from "lodash/isUndefined";
+import find from "lodash/find";
 
 export function createTable({
   rowsCount,
@@ -871,4 +876,182 @@ function addRowWithAlignment(
  */
 export function mergeCellsAndCollapse(): Command {
   return chainTransactions(mergeCells, collapseSelection());
+}
+
+const updateCellBackground = (
+  cell: Node,
+  pos: number,
+  attrs: Attrs,
+  tr: Transaction
+): Transaction => {
+  const existingMarks = cell.attrs.marks ?? [];
+  const backgroundMark = find(existingMarks, (m) => m.type === "background");
+  const updatedMarks = !backgroundMark
+    ? [...existingMarks, { type: "background", attrs }]
+    : existingMarks.map((mark: NodeAttrMark) =>
+        mark.type === "background"
+          ? { ...mark, attrs: { ...mark.attrs, ...attrs } }
+          : mark
+      );
+  return tr.setNodeAttribute(pos, "marks", updatedMarks);
+};
+
+const removeCellBackground = (
+  cell: Node,
+  pos: number,
+  tr: Transaction
+): Transaction => {
+  const existingMarks = cell.attrs.marks ?? [];
+  const updatedMarks = existingMarks.filter(
+    (mark: NodeAttrMark) => mark.type !== "background"
+  );
+  return tr.setNodeAttribute(pos, "marks", updatedMarks);
+};
+
+export const toggleCellSelectionBackgroundAndCollapseSelection = ({
+  color,
+}: {
+  color: string | null;
+}) =>
+  chainTransactions(
+    toggleCellSelectionBackground({ color }),
+    collapseSelection()
+  );
+
+export const toggleRowBackgroundAndCollapseSelection = ({
+  color,
+}: {
+  color: string | null;
+}) => chainTransactions(toggleRowBackground({ color }), collapseSelection());
+
+export const toggleColumnBackgroundAndCollapseSelection = ({
+  color,
+}: {
+  color: string | null;
+}) => chainTransactions(toggleColumnBackground({ color }), collapseSelection());
+
+export const toggleCellSelectionBackground =
+  ({ color }: { color: string | null }): Command =>
+  (state, dispatch) => {
+    if (!(state.selection instanceof CellSelection)) {
+      return false;
+    }
+
+    let tr = state.tr;
+    state.selection.forEachCell((cell, pos) => {
+      if (color === null) {
+        tr = removeCellBackground(cell, pos, tr);
+      } else {
+        tr = updateCellBackground(cell, pos, { color }, tr);
+      }
+    });
+
+    dispatch?.(tr);
+    return true;
+  };
+
+/**
+ * Set background color on all cells in a row.
+ *
+ * @param color The background color to set, or null to remove
+ * @returns The command
+ */
+export function toggleRowBackground({
+  color,
+}: {
+  color: string | null;
+}): Command {
+  return (state, dispatch) => {
+    if (!isInTable(state)) {
+      return false;
+    }
+
+    const rowIndex = getRowIndex(state);
+    if (isUndefined(rowIndex)) {
+      return false;
+    }
+
+    if (dispatch) {
+      const cells = getCellsInRow(rowIndex)(state) || [];
+      let tr = state.tr;
+
+      cells.forEach((pos) => {
+        const node = state.doc.nodeAt(pos);
+        if (!node) {
+          return;
+        }
+
+        if (color === null) {
+          tr = removeCellBackground(node, pos, tr);
+        } else {
+          tr = updateCellBackground(node, pos, { color }, tr);
+        }
+      });
+
+      // It was noticed that the selection went to the last table cell of the
+      // row after command execution.
+      // Instead, we want to preserve the original row selection so that the color
+      // picker can be prevented from closing.
+      const rect = selectedRect(state);
+      const pos = rect.map.positionAt(rowIndex, 0, rect.table);
+      const $pos = tr.doc.resolve(rect.tableStart + pos);
+      tr.setSelection(RowSelection.rowSelection($pos, $pos, rowIndex));
+
+      dispatch(tr);
+    }
+    return true;
+  };
+}
+
+/**
+ * Set background color on all cells in a column.
+ *
+ * @param color The background color to set, or null to remove
+ * @returns The command
+ */
+export function toggleColumnBackground({
+  color,
+}: {
+  color: string | null;
+}): Command {
+  return (state, dispatch) => {
+    if (!isInTable(state)) {
+      return false;
+    }
+
+    const colIndex = getColumnIndex(state);
+    if (isUndefined(colIndex)) {
+      return false;
+    }
+
+    if (dispatch) {
+      const cells = getCellsInColumn(colIndex)(state) || [];
+      let tr = state.tr;
+
+      cells.forEach((pos) => {
+        const node = state.doc.nodeAt(pos);
+        if (!node) {
+          return;
+        }
+
+        if (color === null) {
+          tr = removeCellBackground(node, pos, tr);
+        } else {
+          tr = updateCellBackground(node, pos, { color }, tr);
+        }
+      });
+
+      // It was noticed that the selection went to the last table cell of the column
+      // after command execution.
+      // Instead, we want to preserve the original column selection so that the color
+      // picker can be prevented from closing
+      const rect = selectedRect(state);
+      const pos = rect.map.positionAt(0, colIndex, rect.table);
+      const $pos = tr.doc.resolve(rect.tableStart + pos);
+      tr.setSelection(ColumnSelection.colSelection($pos));
+
+      dispatch(tr);
+    }
+    return true;
+  };
 }

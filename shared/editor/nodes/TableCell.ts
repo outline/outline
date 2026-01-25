@@ -10,8 +10,22 @@ import { Decoration, DecorationSet } from "prosemirror-view";
 import { TableMap } from "prosemirror-tables";
 import { getCellAttrs, setCellAttrs } from "../lib/table";
 import Node from "./Node";
+import { presetColorNames, presetColors } from "../presetColors";
+import { parseToRgb, transparentize } from "polished";
+import { rgbaToHex } from "@shared/utils/color";
+import type { RgbaColor } from "polished/lib/types/color";
 
 export default class TableCell extends Node {
+  static presetColors = presetColors.map((color) =>
+    rgbaToHex(parseToRgb(transparentize(0.3, color)) as RgbaColor)
+  );
+
+  static presetColorNames = presetColorNames;
+
+  static isPresetColor(color: string) {
+    return TableCell.presetColors.includes(color);
+  }
+
   get name() {
     return "td";
   }
@@ -31,6 +45,9 @@ export default class TableCell extends Node {
         rowspan: { default: 1 },
         alignment: { default: null },
         colwidth: { default: null },
+        marks: {
+          default: undefined,
+        },
       },
     };
   }
