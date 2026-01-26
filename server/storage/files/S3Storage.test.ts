@@ -31,8 +31,11 @@ describe("S3Storage", () => {
 
     it("should clamp values that exceed the limit", () => {
       const thirtyDays = 30 * Day.seconds;
-      const clampedValue = Math.min(thirtyDays, BaseStorage.maxSignedUrlExpires);
-      
+      const clampedValue = Math.min(
+        thirtyDays,
+        BaseStorage.maxSignedUrlExpires
+      );
+
       expect(clampedValue).toBe(BaseStorage.maxSignedUrlExpires);
       expect(clampedValue).toBe(Week.seconds);
     });
