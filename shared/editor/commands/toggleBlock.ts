@@ -401,6 +401,11 @@ export const exitToggleBlockOnEmptyParagraph: Command = (state, dispatch) => {
     return false;
   }
 
+  // Check if the paragraph is a direct child of the toggle block
+  if (parentOfParagraph.type !== state.schema.nodes.container_toggle) {
+    return false;
+  }
+
   // Find the toggle block ancestor
   const isToggle = isToggleBlock(state);
   const ancestor = nearest(ancestors($cursor).filter(isToggle));
