@@ -2415,6 +2415,10 @@ del {
 .toggle-block {
   display: flex;
 
+  &:focus-within {
+    transition-delay: 0.1s;
+  }
+
   &.folded {
     &:dir(rtl) {
       --rotate-by: 90deg;
@@ -2433,7 +2437,6 @@ del {
         transform: rotate(var(--rotate-by));
         pointer-events: none;
       }
-      transition-delay: 0.1s;
       opacity: 1;
     }
   }

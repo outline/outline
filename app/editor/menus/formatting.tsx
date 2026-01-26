@@ -287,8 +287,6 @@ export default function formattingMenuItems(
     },
     {
       name: "container_toggle",
-      // tooltip: dictionary.quote,
-      // shortcut: `${metaDisplay}+]`,
       icon: <CollapsedIcon />,
       active: isNodeActive(schema.nodes.container_toggle),
       attrs: { id: uuidv4() },
