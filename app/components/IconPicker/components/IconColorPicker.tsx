@@ -12,7 +12,7 @@ type Props = {
   onSelect: (color: string) => void;
 };
 
-const ColorPicker = ({ activeColor, onSelect }: Props) => {
+const IconColorPicker = ({ activeColor, onSelect }: Props) => {
   const [selectedColor, setSelectedColor] = React.useState(activeColor);
   const isBuiltInColor = colorPalette.includes(selectedColor);
   const color = isBuiltInColor ? undefined : selectedColor;
@@ -75,4 +75,4 @@ const Container = styled(Flex)`
   border-bottom: 1px solid ${s("inputBorder")};
 `;
 
-export default ColorPicker;
+export default IconColorPicker;
