@@ -120,15 +120,24 @@ router.post(
       throw AuthorizationError();
     }
 
-    await UserMembership.create(
-      {
+    const membership = await UserMembership.findOne({
+      where: {
         userId: accessRequest.userId,
         documentId: accessRequest.documentId,
-        permission: permission,
-        createdById: user.id,
       },
-      ctx.context
-    );
+      lock: transaction.LOCK.UPDATE,
+      ...ctx.context,
+    });
+
+    if (membership) {
+      throw InvalidRequestError("User already has access to the document");
+    }
+    await UserMembership.createWithCtx(ctx, {
+      userId: accessRequest.userId,
+      documentId: accessRequest.documentId,
+      permission: permission,
+      createdById: user.id,
+    });
 
     accessRequest.status = AccessRequestStatus.Approved;
     accessRequest.responderId = user.id;
