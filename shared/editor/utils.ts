@@ -159,7 +159,13 @@ const deleteBarrier = (
   return null;
 };
 
-export const findCutAfter = ($pos: ResolvedPos) => {
+/**
+ * Finds the position after the current block where a cut can be made.
+ *
+ * @param $pos - the resolved position to search from.
+ * @returns the resolved position after the cut point, or null if none found.
+ */
+export const findCutAfter = ($pos: ResolvedPos): ResolvedPos | null => {
   if (!$pos.parent.type.spec.isolating) {
     for (let i = $pos.depth - 1; i >= 0; i--) {
       const parent = $pos.node(i);
@@ -174,6 +180,12 @@ export const findCutAfter = ($pos: ResolvedPos) => {
   return null;
 };
 
+/**
+ * Returns the cursor position if it's at the end of a text block.
+ *
+ * @param selection - the current selection.
+ * @returns the cursor position if at block end, or null otherwise.
+ */
 export const atBlockEnd = (selection: Selection): ResolvedPos | null => {
   const { $cursor } = selection as TextSelection;
   if (!$cursor || $cursor.parentOffset < $cursor.parent.content.size) {
@@ -182,6 +194,12 @@ export const atBlockEnd = (selection: Selection): ResolvedPos | null => {
   return $cursor;
 };
 
+/**
+ * Deletes the current selection if it's not empty.
+ *
+ * @param tr - the transaction to modify.
+ * @returns the modified transaction.
+ */
 export const deleteSelectionTr = (tr: Transaction): Transaction => {
   if (tr.selection.empty) {
     return tr;
@@ -189,6 +207,12 @@ export const deleteSelectionTr = (tr: Transaction): Transaction => {
   return tr.deleteSelection();
 };
 
+/**
+ * Joins the current block with the next block when at the end of a text block.
+ *
+ * @param tr - the transaction to modify.
+ * @returns the modified transaction.
+ */
 export const joinForwardTr = (tr: Transaction): Transaction => {
   const $cursor = atBlockEnd(tr.selection);
   if (!$cursor) {
@@ -243,6 +267,12 @@ export const joinForwardTr = (tr: Transaction): Transaction => {
   return tr;
 };
 
+/**
+ * Selects the next node when at the end of a text block.
+ *
+ * @param tr - the transaction to modify.
+ * @returns the modified transaction with the next node selected.
+ */
 export const selectNodeForwardTr = (tr: Transaction): Transaction => {
   const { $head, empty } = tr.selection;
   let $cut: ResolvedPos | null = $head;
@@ -264,6 +294,15 @@ export const selectNodeForwardTr = (tr: Transaction): Transaction => {
     .scrollIntoView();
 };
 
+/**
+ * Wraps the node at the given position with the specified node type.
+ *
+ * @param pos - the position of the node to wrap.
+ * @param nodeType - the type of wrapper node to create.
+ * @param attrs - optional attributes for the wrapper node.
+ * @param tr - the transaction to modify.
+ * @returns the modified transaction.
+ */
 export const wrapNodeAt = (
   pos: number,
   nodeType: NodeType,
@@ -280,6 +319,12 @@ export const wrapNodeAt = (
   return tr.wrap(range!, wrapping).scrollIntoView();
 };
 
+/**
+ * Finds the position before the current block where a cut can be made.
+ *
+ * @param $pos - the resolved position to search from.
+ * @returns the resolved position before the cut point, or null if none found.
+ */
 export const findCutBefore = ($pos: ResolvedPos): ResolvedPos | null => {
   if (!$pos.parent.type.spec.isolating) {
     for (let i = $pos.depth - 1; i >= 0; i--) {
@@ -294,6 +339,12 @@ export const findCutBefore = ($pos: ResolvedPos): ResolvedPos | null => {
   return null;
 };
 
+/**
+ * Selects the previous node when at the start of a text block.
+ *
+ * @param tr - the transaction to modify.
+ * @returns the modified transaction with the previous node selected.
+ */
 export const selectNodeBackwardTr = (tr: Transaction): Transaction => {
   const { $head, empty } = tr.selection;
   let $cut: ResolvedPos | null = $head;
@@ -316,6 +367,12 @@ export const selectNodeBackwardTr = (tr: Transaction): Transaction => {
     .scrollIntoView();
 };
 
+/**
+ * Returns the cursor position if it's at the start of a text block.
+ *
+ * @param selection - the current selection.
+ * @returns the cursor position if at block start, or null otherwise.
+ */
 export const atBlockStart = (selection: Selection): ResolvedPos | null => {
   const { $cursor } = selection as TextSelection;
   if (!$cursor || $cursor.parentOffset > 0) {
@@ -324,6 +381,12 @@ export const atBlockStart = (selection: Selection): ResolvedPos | null => {
   return $cursor;
 };
 
+/**
+ * Joins the current block with the previous block when at the start of a text block.
+ *
+ * @param tr - the transaction to modify.
+ * @returns the modified transaction.
+ */
 export const joinBackwardTr = (tr: Transaction): Transaction => {
   const $cursor = atBlockStart(tr.selection);
   if (!$cursor) {
@@ -392,10 +455,17 @@ export const joinBackwardTr = (tr: Transaction): Transaction => {
   return tr;
 };
 
+/**
+ * Returns an array of ancestor nodes for the given position, ordered by increasing depth.
+ *
+ * @param $from - the resolved position to get ancestors for.
+ * @param pred - optional predicate to filter ancestors.
+ * @returns an array of ancestor nodes, where index corresponds to depth in the document.
+ */
 export const ancestors = (
   $from: ResolvedPos,
   pred?: (ancestor: Node, index?: number, arr?: Node[]) => boolean
-) => {
+): Node[] => {
   const ancestorArray: Node[] = [];
 
   // Notice that ancestors are arranged in increasing order of depth
@@ -414,19 +484,21 @@ export const ancestors = (
   return ancestorArray;
 };
 
-// Few words of caution here––the following `nearest` and `furthest`
-// functions are defined as standalone utils but are actually
-// coupled with the `ancestors` function above, semantically.
-// Therefore, these are expected to be used only in conjunction
-// with the `ancestors` function.
-export const nearest = (ancestors: Node[]) =>
-  // Since the ancestors are arranged in increasing order of depth,
-  // the last element of the array is the nearest ancestor.
-  ancestors.pop();
+/**
+ * Returns the nearest ancestor from an array produced by the `ancestors` function.
+ *
+ * @param ancestors - an array of ancestor nodes ordered by increasing depth.
+ * @returns the nearest (deepest) ancestor node.
+ */
+export const nearest = (ancestors: Node[]): Node | undefined => ancestors.pop();
 
-export const furthest = (ancestors: Node[]) => ancestors.shift();
-
-export const height = (node: Node) => {
+/**
+ * Calculates the height of a ProseMirror node tree.
+ *
+ * @param node - the node to calculate the height for.
+ * @returns the height of the node (0 for leaf nodes).
+ */
+export const height = (node: Node): number => {
   if (node.isLeaf) {
     return 0;
   }
@@ -440,7 +512,17 @@ export const height = (node: Node) => {
   return 1 + h;
 };
 
-export const prevSibling = ($from: ResolvedPos, depth?: number) => {
+/**
+ * Returns the previous sibling node at the specified depth.
+ *
+ * @param $from - the resolved position to search from.
+ * @param depth - optional depth level to look for siblings.
+ * @returns the previous sibling node, or null if none exists.
+ */
+export const prevSibling = (
+  $from: ResolvedPos,
+  depth?: number
+): Node | null => {
   const ancestor = $from.node(depth);
   const index = $from.index(depth);
   if (index === 0) {
@@ -449,6 +531,13 @@ export const prevSibling = ($from: ResolvedPos, depth?: number) => {
   return ancestor.child(index - 1);
 };
 
+/**
+ * Lifts all children of the node at the given position up one level.
+ *
+ * @param pos - the position of the parent node whose children should be lifted.
+ * @param tr - the transaction to modify.
+ * @returns the modified transaction.
+ */
 export const liftChildrenOfNodeAt = (
   pos: number,
   tr: Transaction
