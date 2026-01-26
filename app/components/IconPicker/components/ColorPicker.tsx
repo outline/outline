@@ -1,5 +1,4 @@
 import * as React from "react";
-import debounce from "lodash/debounce";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { colorPalette } from "@shared/utils/collections";
@@ -18,28 +17,13 @@ const ColorPicker = ({ activeColor, onSelect }: Props) => {
   const isBuiltInColor = colorPalette.includes(selectedColor);
   const color = isBuiltInColor ? undefined : selectedColor;
 
-  const debouncedOnSelect = React.useMemo(
-    () =>
-      debounce((color: string) => {
-        onSelect(color);
-      }, 250),
-    [onSelect]
-  );
-
-  React.useEffect(
-    () => () => {
-      debouncedOnSelect.cancel();
-    },
-    [debouncedOnSelect]
-  );
-
   React.useEffect(() => {
     setSelectedColor(activeColor);
   }, [activeColor]);
 
   const handleSelect = (color: string) => {
     setSelectedColor(color);
-    debouncedOnSelect(color);
+    onSelect(color);
   };
 
   return (
