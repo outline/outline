@@ -42,6 +42,23 @@ export class EditorStyleHelper {
 
   static readonly diffCurrentChange = "current-diff";
 
+  // Toggle blocks
+
+  /** Toggle block wrapper */
+  static readonly toggleBlock = "toggle-block";
+
+  /** Toggle block button */
+  static readonly toggleBlockButton = "toggle-block-button";
+
+  /** Toggle block content area */
+  static readonly toggleBlockContent = "toggle-block-content";
+
+  /** Toggle block head (first child) */
+  static readonly toggleBlockHead = "toggle-block-head";
+
+  /** Toggle block folded state */
+  static readonly toggleBlockFolded = "folded";
+
   // Tables
 
   /** Table wrapper */

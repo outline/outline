@@ -15,6 +15,11 @@ export default createGlobalStyle<Props>`
     box-sizing: border-box;
   }
 
+  html {
+    --line-height-body: 1.5;
+    --font-size-body: 16px;
+  }
+
   html,
   body {
     width: 100%;
@@ -29,6 +34,9 @@ export default createGlobalStyle<Props>`
     @media print {
       background: none !important;
     }
+
+    --line-height-p: var(--line-height-body);
+    --line-height-h: 1.25;
   }
 
   body,
@@ -41,8 +49,8 @@ export default createGlobalStyle<Props>`
   }
 
   body {
-    font-size: 16px;
-    line-height: 1.5;
+    font-size: var(--font-size-body);
+    line-height: var(--line-height-body);
     color: ${s("text")};
     overscroll-behavior-y: none;
     -moz-osx-font-smoothing: grayscale;
@@ -88,7 +96,7 @@ export default createGlobalStyle<Props>`
   h5,
   h6 {
     font-weight: 500;
-    line-height: 1.25;
+    line-height: var(--line-height-h);
     margin-top: 1em;
     margin-bottom: 0.5em;
   }

@@ -20,7 +20,9 @@ import {
   TableMergeCellsIcon,
   TableSplitCellsIcon,
   PaletteIcon,
+  CollapsedIcon,
 } from "outline-icons";
+import { v4 as uuidv4 } from "uuid";
 import CellBackgroundColorPicker from "../components/CellBackgroundColorPicker";
 import type { EditorState } from "prosemirror-state";
 import Highlight from "@shared/editor/marks/Highlight";
@@ -282,6 +284,13 @@ export default function formattingMenuItems(
       tooltip: dictionary.splitCell,
       icon: <TableSplitCellsIcon />,
       visible: isMergedCellSelection(state),
+    },
+    {
+      name: "container_toggle",
+      icon: <CollapsedIcon />,
+      active: isNodeActive(schema.nodes.container_toggle),
+      attrs: { id: uuidv4() },
+      visible: !isCodeBlock && (!isMobile || isEmpty),
     },
     {
       name: "separator",

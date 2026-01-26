@@ -515,6 +515,14 @@ const textStyle = () => css`
 `;
 
 const style = (props: Props) => css`
+--font-size-p: var(--font-size-body);
+--font-size-h1: 28px;
+--font-size-h2: 22px;
+--font-size-h3: 18px;
+--font-size-h4: 16px;
+--font-size-h5: 15px;
+--font-size-h6: 15px;
+
 flex-grow: ${props.grow ? 1 : 0};
 justify-content: start;
 color: ${props.theme.text};
@@ -644,12 +652,12 @@ width: 100%;
 
   // all of heading sizes are stepped down one from global styles, except h1
   // which is between h1 and h2
-  h1 { font-size: 28px; }
-  h2 { font-size: 22px; }
-  h3 { font-size: 18px; }
-  h4 { font-size: 16px; }
-  h5 { font-size: 15px; }
-  h6 { font-size: 15px; }
+  h1 { font-size: var(--font-size-h1); }
+  h2 { font-size: var(--font-size-h2); }
+  h3 { font-size: var(--font-size-h3); }
+  h4 { font-size: var(--font-size-h4); }
+  h5 { font-size: var(--font-size-h5); }
+  h6 { font-size: var(--font-size-h6); }
 
   .ProseMirror-yjs-selection {
     transition: background-color 500ms ease-in-out;
@@ -2401,6 +2409,105 @@ del {
   em,
   blockquote {
     font-family: "SF Pro Text", ${props.theme.fontFamily};
+  }
+}
+
+.toggle-block {
+  display: flex;
+
+  &:focus-within {
+    transition-delay: 0.1s;
+  }
+
+  &.folded {
+    &:dir(rtl) {
+      --rotate-by: 90deg;
+    }
+    &:dir(ltr) {
+      --rotate-by: -90deg;
+    }
+    > .toggle-block-content > :is(:not(.toggle-block-head)) {
+      display: none;
+    }
+    > .toggle-block-content > :is(a.heading-name) {
+      display: unset;
+    }
+    > .toggle-block-button {
+      svg {
+        transform: rotate(var(--rotate-by));
+        pointer-events: none;
+      }
+      opacity: 1;
+    }
+  }
+
+  > .toggle-block-button {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    --line-height: var(--line-height-p);
+    --font-size: var(--font-size-p);
+
+    &:has(+ .toggle-block-content > .toggle-block-head > h1) {
+      --line-height: calc(var(--line-height-h) + 0.2);
+      --font-size: var(--font-size-h1);
+    }
+
+    &:has(+ .toggle-block-content > .toggle-block-head > h2) {
+      --line-height: calc(var(--line-height-h) + 0.2);
+      --font-size: var(--font-size-h2);
+    }
+
+    &:has(+ .toggle-block-content > .toggle-block-head > h3) {
+      --line-height: calc(var(--line-height-h) + 0.2);
+      --font-size: var(--font-size-h3);
+    }
+
+    &:has(+ .toggle-block-content > .toggle-block-head > h4) {
+      --line-height: calc(var(--line-height-h) + 0.2);
+      --font-size: var(--font-size-h4);
+    }
+
+    color: ${props.theme.text};
+    opacity: 0.75;
+    cursor: var(--pointer);
+    background: none;
+    outline: none;
+    border: 0;
+    margin: 0;
+    padding: 0;
+    height: calc(var(--line-height) * var(--font-size));
+    width: 20px;
+    overflow: unset;
+
+    &:focus,
+    &:hover {
+      opacity: 1;
+    }
+
+    > svg {
+      transition: transform 200ms ease-out;
+      flex-shrink: 0;
+    }
+  }
+
+  > .toggle-block-content {
+    > :is(:not(.toggle-block-head)) {
+      margin-top: 0.5em;
+    }
+    > :is(:first-child) {
+      margin-top: 0;
+    }
+    > .toggle-block-head {
+      > * {
+        margin-top: 0;
+      }
+    }
+    flex-grow: 1;
+    overflow: unset;
   }
 }
 `;

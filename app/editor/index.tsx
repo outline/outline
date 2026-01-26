@@ -9,11 +9,11 @@ import { gapCursor } from "prosemirror-gapcursor";
 import type { InputRule } from "prosemirror-inputrules";
 import { inputRules } from "prosemirror-inputrules";
 import { keymap } from "prosemirror-keymap";
-import type { MarkdownParser } from "prosemirror-markdown";
 import type { NodeSpec, MarkSpec } from "prosemirror-model";
 import { Schema, Node as ProsemirrorNode } from "prosemirror-model";
 import type { Plugin, Transaction } from "prosemirror-state";
-import { EditorState, Selection } from "prosemirror-state";
+import { EditorState, Selection, TextSelection } from "prosemirror-state";
+import type { MarkdownParser } from "prosemirror-markdown";
 import {
   AddMarkStep,
   RemoveMarkStep,
@@ -531,6 +531,13 @@ export class Editor extends React.PureComponent<
       this.mutationObserver = observe(
         hash,
         (element) => {
+          const pos = this.view.posAtDOM(element, 0, 1);
+          this.view.dispatch(
+            this.view.state.tr.setSelection(
+              TextSelection.near(this.view.state.doc.resolve(pos), 1)
+            )
+          );
+
           if (isVisible(element)) {
             element.scrollIntoView();
           }
