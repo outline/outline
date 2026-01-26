@@ -172,6 +172,7 @@ export const UserCreatableIntegrationService = {
   GoogleAnalytics: IntegrationService.GoogleAnalytics,
   Matomo: IntegrationService.Matomo,
   Umami: IntegrationService.Umami,
+  GitLab: IntegrationService.GitLab,
 } as const;
 
 export enum CollectionPermission {
