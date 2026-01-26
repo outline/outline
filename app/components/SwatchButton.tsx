@@ -11,7 +11,7 @@ import {
 } from "./primitives/Drawer";
 import { Popover, PopoverTrigger, PopoverContent } from "./primitives/Popover";
 import { ColorButton } from "./ColorButton";
-import ColorPicker from "~/editor/components/ColorPicker";
+import ColorPicker from "@shared/components/ColorPicker";
 import EventBoundary from "@shared/components/EventBoundary";
 
 /**

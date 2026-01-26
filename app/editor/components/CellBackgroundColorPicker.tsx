@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import ColorPicker from "./ColorPicker";
+import ColorPicker from "@shared/components/ColorPicker";
 import { useEditor } from "./EditorContext";
 
 type Props = {

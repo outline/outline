@@ -8,7 +8,7 @@ import {
   HexColorPicker,
 } from "react-colorful";
 import styled, { useTheme } from "styled-components";
-import { s } from "@shared/styles";
+import { s } from "../styles";
 import { darken } from "polished";
 
 type Props = {
