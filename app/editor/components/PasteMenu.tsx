@@ -62,8 +62,9 @@ function useItems({
   const { t } = useTranslation();
   const { integrations } = useStores();
   const user = useCurrentUser({ rejectOnEmpty: false });
-  const team = useCurrentTeam();
-  const blockedDomains = team.blockedEmbedDomains ?? DEFAULT_BLOCKED_EMBED_DOMAINS;
+  const team = useCurrentTeam({ rejectOnEmpty: false });
+  const blockedDomains = team?.blockedEmbedDomains ?? DEFAULT_BLOCKED_EMBED_DOMAINS;
+  const documentEmbeds = team?.documentEmbeds ?? true;
 
   // single item is pasted.
   if (typeof pastedText === "string") {
@@ -107,7 +108,7 @@ function useItems({
         name: "embed",
         title: t("Embed"),
         visible:
-          team.documentEmbeds &&
+          documentEmbeds &&
           !!embed &&
           !isDomainBlocked(pastedText, blockedDomains),
         icon: embed?.icon,
@@ -164,7 +165,7 @@ function useItems({
 
   // Check if embed option would actually be visible (respects documentEmbeds setting)
   const embedVisible =
-    team.documentEmbeds &&
+    documentEmbeds &&
     convertibleToEmbedList &&
     !pastedText.some((text) => isDomainBlocked(text, blockedDomains));
 
