@@ -14,6 +14,38 @@ export interface Example {
  */
 export const examples: Example[] = [
   {
+    id: "word-replacement",
+    name: "Word replacement (interleaved)",
+    before: {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: "no-await-in-loop",
+            },
+          ],
+        },
+      ],
+    },
+    after: {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: "jsx-no-jsx-as-prop",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     id: "simple-text",
     name: "Simple text change",
     before: {
@@ -628,6 +660,846 @@ export const examples: Example[] = [
               ],
             },
           ],
+        },
+      ],
+    },
+  },
+  {
+    id: "tc",
+    name: "More table changes",
+    before: {
+      type: "doc",
+      content: [
+        {
+          type: "heading",
+          attrs: {
+            level: 1,
+          },
+          content: [
+            {
+              text: "Perf:",
+              type: "text",
+            },
+          ],
+        },
+        {
+          type: "paragraph",
+          content: [
+            {
+              text: "Code that can be written to run faster.",
+              type: "text",
+            },
+          ],
+        },
+        {
+          type: "table",
+          content: [
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        {
+                          text: "Rule name",
+                          type: "text",
+                          marks: [
+                            {
+                              type: "strong",
+                              attrs: {},
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        {
+                          text: "Source",
+                          type: "text",
+                          marks: [
+                            {
+                              type: "strong",
+                              attrs: {},
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        {
+                          text: "Default",
+                          type: "text",
+                          marks: [
+                            {
+                              type: "strong",
+                              attrs: {},
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        {
+                          text: "Fixable?",
+                          type: "text",
+                          marks: [
+                            {
+                              type: "strong",
+                              attrs: {},
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        {
+                          text: "no-await-in-loop",
+                          type: "text",
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        {
+                          text: "eslint",
+                          type: "text",
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        {
+                          text: "prefer-set-has",
+                          type: "text",
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        {
+                          text: "unicorn",
+                          type: "text",
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        {
+                          text: "\ud83d\udee0\ufe0f",
+                          type: "text",
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        {
+                          text: "no-map-spread",
+                          type: "text",
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        {
+                          text: "oxc",
+                          type: "text",
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        {
+                          text: "\ud83d\udee0\ufe0f\ud83d\udca1",
+                          type: "text",
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        {
+                          text: "no-array-index-key",
+                          type: "text",
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        {
+                          text: "react",
+                          type: "text",
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          type: "paragraph",
+        },
+      ],
+    },
+    after: {
+      type: "doc",
+      content: [
+        {
+          type: "heading",
+          attrs: {
+            level: 1,
+          },
+          content: [
+            {
+              text: "Perf:",
+              type: "text",
+            },
+          ],
+        },
+        {
+          type: "paragraph",
+          content: [
+            {
+              text: "Code that can be written to run faster.",
+              type: "text",
+            },
+          ],
+        },
+        {
+          type: "table",
+          content: [
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        {
+                          text: "Rule name",
+                          type: "text",
+                          marks: [
+                            {
+                              type: "strong",
+                              attrs: {},
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        {
+                          text: "Source",
+                          type: "text",
+                          marks: [
+                            {
+                              type: "strong",
+                              attrs: {},
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        {
+                          text: "Default",
+                          type: "text",
+                          marks: [
+                            {
+                              type: "strong",
+                              attrs: {},
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        {
+                          text: "Fixable?",
+                          type: "text",
+                          marks: [
+                            {
+                              type: "strong",
+                              attrs: {},
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        {
+                          text: "jsx-no-jsx-as-prop",
+                          type: "text",
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        {
+                          text: "react-perf",
+                          type: "text",
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        {
+                          text: "no-map-spread",
+                          type: "text",
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        {
+                          text: "oxc",
+                          type: "text",
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        {
+                          text: "\ud83d\udee0\ufe0f",
+                          type: "text",
+                        },
+                        {
+                          type: "emoji",
+                          attrs: {
+                            "data-name": "bulb",
+                          },
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        {
+                          text: "prefer-array-find",
+                          type: "text",
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        {
+                          text: "unicorn",
+                          type: "text",
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        {
+                          type: "emoji",
+                          attrs: {
+                            "data-name": "construction",
+                          },
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        {
+                          text: "prefer-set-has",
+                          type: "text",
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        {
+                          text: "unicorn",
+                          type: "text",
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        {
+                          type: "emoji",
+                          attrs: {
+                            "data-name": "warning",
+                          },
+                        },
+                        {
+                          type: "emoji",
+                          attrs: {
+                            "data-name": "hammer_and_wrench",
+                          },
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          type: "paragraph",
         },
       ],
     },
