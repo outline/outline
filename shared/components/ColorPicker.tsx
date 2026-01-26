@@ -7,7 +7,7 @@ import {
   HexAlphaColorPicker,
   HexColorPicker,
 } from "react-colorful";
-import styled, { useTheme } from "styled-components";
+import styled, { css, useTheme } from "styled-components";
 import { s } from "../styles";
 import { darken } from "polished";
 
@@ -104,12 +104,12 @@ function ColorPicker({ activeColor, onSelect, alpha }: Props) {
 }
 
 const Wrapper = styled.div`
-  padding: 8px;
+  padding: 4px;
   display: flex;
   flex-direction: column;
 `;
 
-const StyledHexNonAlphaColorPicker = styled(HexColorPicker)`
+const colorPickerStyles = css`
   &.react-colorful {
     width: auto;
 
@@ -134,35 +134,18 @@ const StyledHexNonAlphaColorPicker = styled(HexColorPicker)`
   }
 `;
 
+const StyledHexNonAlphaColorPicker = styled(HexColorPicker)`
+  ${colorPickerStyles}
+`;
+
 const StyledHexAlphaColorPicker = styled(HexAlphaColorPicker)`
-  &.react-colorful {
-    width: auto;
+  ${colorPickerStyles}
 
-    & > .react-colorful__saturation {
-      border-radius: 4px 4px 0 0;
-    }
-
-    & .react-colorful__pointer {
-      width: 14px;
-      height: 14px;
-    }
-
-    & .react-colorful__interactive:focus .react-colorful__pointer {
-      transform: translate(-50%, -50%) scale(1.25);
-    }
-
-    & > .react-colorful__hue {
-      height: 8px;
-      border-radius: 0 0 4px 4px;
-      margin-bottom: 8px;
-    }
-
-    & > .react-colorful__alpha {
-      height: 8px;
-      border-radius: 4px;
-      margin-top: 8px;
-      margin-bottom: 8px;
-    }
+  &.react-colorful > .react-colorful__alpha {
+    height: 8px;
+    border-radius: 4px;
+    margin-top: 8px;
+    margin-bottom: 8px;
   }
 `;
 
