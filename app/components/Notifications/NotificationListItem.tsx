@@ -44,7 +44,7 @@ function NotificationListItem({ notification, onNavigate }: Props) {
   const collection = collectionId ? collections.get(collectionId) : undefined;
   const [processing, setProcessing] = React.useState(false);
   const [selectedPermission, setSelectedPermission] =
-    React.useState<DocumentPermission>(DocumentPermission.ReadWrite);
+    React.useState<DocumentPermission>(DocumentPermission.Read);
 
   const isAccessRequest =
     notification.event === NotificationEventType.RequestDocumentAccess;
@@ -99,7 +99,7 @@ function NotificationListItem({ notification, onNavigate }: Props) {
       event.preventDefault();
       event.stopPropagation();
 
-      if (!collection || !notification.actor || processing) {
+      if (!notification.actor || processing) {
         return;
       }
 
@@ -121,15 +121,7 @@ function NotificationListItem({ notification, onNavigate }: Props) {
         setProcessing(false);
       }
     },
-    [
-      notification,
-      processing,
-      setProcessing,
-      selectedPermission,
-      t,
-      collection,
-      client,
-    ]
+    [notification, processing, setProcessing, selectedPermission, t, client]
   );
 
   const handleDismiss = React.useCallback(
