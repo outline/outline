@@ -299,26 +299,26 @@ export const createParagraphNearPreservingBody: Command = (state, dispatch) => {
 
 export const liftAllEmptyChildBlocks: Command = (state, dispatch) => {
   const { $cursor } = state.selection as TextSelection;
-  if (!isSelectionAtStartOfToggleBlockHead(state)) {
+  if (!$cursor || !isSelectionAtStartOfToggleBlockHead(state)) {
     return false;
   }
 
-  const toggle = $cursor!.node(-1);
+  const toggle = $cursor.node(-1);
   if (!ToggleBlock.isEmpty(toggle)) {
     return false;
   }
 
-  dispatch?.(liftChildrenOfNodeAt($cursor!.before(-1), state.tr));
+  dispatch?.(liftChildrenOfNodeAt($cursor.before(-1), state.tr));
   return true;
 };
 
 export const liftAllChildBlocksOfNodeBefore: Command = (state, dispatch) => {
   const { $cursor } = state.selection as TextSelection;
-  if (!isSelectionAtStartOfToggleBlockHead(state)) {
+  if (!$cursor || !isSelectionAtStartOfToggleBlockHead(state)) {
     return false;
   }
 
-  dispatch?.(liftChildrenOfNodeAt($cursor!.before(-1), state.tr));
+  dispatch?.(liftChildrenOfNodeAt($cursor.before(-1), state.tr));
   return true;
 };
 

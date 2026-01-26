@@ -22,7 +22,7 @@ import {
   MathIcon,
   DoneIcon,
   EmbedIcon,
-  CollapsedIcon,
+  CollapseIcon,
 } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
@@ -246,8 +246,8 @@ export default function blockMenuItems(
     {
       name: "container_toggle",
       title: dictionary.toggleBlock,
-      icon: <CollapsedIcon />,
-      keywords: "toggle",
+      icon: <CollapseIcon />,
+      keywords: "toggle collapsible collapse fold",
     },
   ];
 

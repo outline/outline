@@ -227,44 +227,30 @@ export default class ToggleBlock extends Node {
               return pluginState;
             }
 
-            // Map existing decorations and rebuild to handle any structural changes
-            const mapped = pluginState.decorations.map(tr.mapping, tr.doc);
-
-            // Check if any toggle blocks were added/removed by comparing counts
+            // Check if any toggle blocks were added and need fold state
             const currentBlocks = findBlockNodes(tr.doc, true).filter(
               (b) => b.node.type.name === this.name && b.node.attrs.id
             );
-            const decoratedBlocks = mapped.find(
-              undefined,
-              undefined,
-              (spec) => spec.target === "container_toggle"
-            );
 
-            // If counts differ, check for new blocks and update fold state
-            if (currentBlocks.length !== decoratedBlocks.length) {
-              const newFoldedIds = new Set(pluginState.foldedIds);
+            const newFoldedIds = new Set(pluginState.foldedIds);
 
-              // For any new blocks, check storage and default to folded
-              currentBlocks.forEach((block) => {
-                const id = block.node.attrs.id as string;
-                if (!pluginState.foldedIds.has(id)) {
-                  const stored = Storage.get(`${id}:${userId}`);
-                  // Default to folded if no stored state (new block from sync)
-                  if (stored?.fold !== false) {
-                    newFoldedIds.add(id);
-                  }
+            // For any new blocks, check storage and default to folded
+            currentBlocks.forEach((block) => {
+              const id = block.node.attrs.id as string;
+              if (!pluginState.foldedIds.has(id)) {
+                const stored = Storage.get(`${id}:${userId}`);
+                // Default to folded if no stored state (new block from sync)
+                if (stored?.fold !== false) {
+                  newFoldedIds.add(id);
                 }
-              });
+              }
+            });
 
-              return {
-                foldedIds: newFoldedIds,
-                decorations: buildDecorations(tr.doc, newFoldedIds),
-              };
-            }
-
+            // Always rebuild decorations to ensure head positions are correct
+            // (mapping can produce incorrect positions when first child changes)
             return {
-              foldedIds: pluginState.foldedIds,
-              decorations: mapped,
+              foldedIds: newFoldedIds,
+              decorations: buildDecorations(tr.doc, newFoldedIds),
             };
           }
 
