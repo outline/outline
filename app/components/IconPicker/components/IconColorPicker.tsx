@@ -27,7 +27,8 @@ const IconColorPicker = ({ activeColor, onSelect }: Props) => {
   };
 
   return (
-    <BuiltinColors activeColor={selectedColor} onClick={handleSelect}>
+    <Container justify="space-between" align="center" auto>
+      <PresetColors activeColor={selectedColor} onClick={handleSelect} />
       <Divider />
       <SwatchButton
         color={color}
@@ -35,7 +36,7 @@ const IconColorPicker = ({ activeColor, onSelect }: Props) => {
         onChange={handleSelect}
         pickerInModal
       />
-    </BuiltinColors>
+    </Container>
   );
 };
 
@@ -45,18 +46,14 @@ const Divider = styled.div`
   background-color: ${s("inputBorder")};
 `;
 
-const BuiltinColors = ({
+const PresetColors = ({
   activeColor,
   onClick,
-  className,
-  children,
 }: {
   activeColor: string;
   onClick: (color: string) => void;
-  className?: string;
-  children?: React.ReactNode;
 }) => (
-  <Container className={className} justify="space-between" align="center" auto>
+  <>
     {colorPalette.map((color) => (
       <ColorButton
         key={color}
@@ -65,8 +62,7 @@ const BuiltinColors = ({
         onClick={() => onClick(color)}
       />
     ))}
-    {children}
-  </Container>
+  </>
 );
 
 const Container = styled(Flex)`
