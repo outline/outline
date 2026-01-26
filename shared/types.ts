@@ -163,6 +163,7 @@ export type UserCreatableIntegrationService = Extract<
   | IntegrationService.GoogleAnalytics
   | IntegrationService.Matomo
   | IntegrationService.Umami
+  | IntegrationService.GitLab
 >;
 
 export const UserCreatableIntegrationService = {
@@ -200,7 +201,8 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
         };
       };
       gitlab?: {
-        installation: {
+        url?: string;
+        installation?: {
           id: number;
           account: { id: number; name: string; avatarUrl: string };
         };
@@ -248,7 +250,8 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
                       };
                     };
                     gitlab?: {
-                      installation: {
+                      url?: string;
+                      installation?: {
                         id: number;
                         account: {
                           id?: number;

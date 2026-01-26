@@ -42,8 +42,11 @@ router.get(
     }
 
     try {
-      const oauth = await GitLab.oauthAccess(code);
-      const userInfo = await GitLab.getCurrentUser(oauth.access_token);
+      const oauth = await GitLab.oauthAccess({ code, teamId: user.teamId });
+      const userInfo = await GitLab.getCurrentUser({
+        accessToken: oauth.access_token,
+        teamId: user.teamId,
+      });
 
       const authentication = await IntegrationAuthentication.create(
         {
@@ -68,6 +71,7 @@ router.get(
         authenticationId: authentication.id,
         settings: {
           gitlab: {
+            url: userInfo.url,
             installation: {
               id: userInfo.id,
               account: {
