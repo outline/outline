@@ -17,7 +17,9 @@ data/*
 
 # Yarn Berry
 .yarn/*
+.yarnrc.yml
 !.yarn/patches
 !.yarn/plugins
 !.yarn/releases
+.yarn/releases
 !.yarn/sdks

@@ -33,9 +33,10 @@ export class GitLabIssueProvider extends BaseIssueProvider {
     const sources: IssueSource[] = [];
 
     try {
-      const projects = await GitLab.getProjects(
-        integration.authentication.token
-      );
+      const projects = await GitLab.getProjects({
+        accessToken: integration.authentication.token,
+        teamId: integration.teamId,
+      });
 
       sources.push(
         ...projects.map<IssueSource>((project) => ({
