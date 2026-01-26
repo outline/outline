@@ -89,7 +89,7 @@ function ColorPicker({ activeColor, onSelect, alpha }: Props) {
           color={color}
           onChange={handleColorChangeInput}
           prefixed
-          alpha
+          alpha={alpha}
         />
         <CopyButton ref={buttonRef} onClick={handleCopy} type="button">
           {copied ? (
@@ -168,11 +168,13 @@ const StyledHexAlphaColorPicker = styled(HexAlphaColorPicker)`
 
 const InputRow = styled.div`
   display: flex;
+  justify-content: space-between;
   gap: 4px;
   margin-top: 8px;
 `;
 
 const StyledHexColorInput = styled(HexColorInput)`
+  flex: 1;
   padding: 4px 6px;
   border: 1px solid ${s("inputBorder")};
   border-radius: 4px;
