@@ -3,6 +3,7 @@ import { TableOfContentsIcon } from "outline-icons";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { EmojiText } from "@shared/components/EmojiText";
 import { createAction, createActionGroup } from "~/actions";
 import { ActiveDocumentSection } from "~/actions/sections";
 import Button from "~/components/Button";
@@ -26,7 +27,7 @@ function TableOfContentsMenu() {
           createAction({
             name: (
               <HeadingWrapper $level={heading.level - minHeading}>
-                {t(heading.title)}
+                <EmojiText>{heading.title}</EmojiText>
               </HeadingWrapper>
             ),
             section: ActiveDocumentSection,
@@ -38,7 +39,7 @@ function TableOfContentsMenu() {
               ),
           })
         ),
-    [t, headings, minHeading]
+    [headings, minHeading]
   );
 
   const actions = useMemo(() => {

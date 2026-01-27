@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { EmojiText } from "@shared/components/EmojiText";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { depths, hideScrollbars, s } from "@shared/styles";
 import { useDocumentContext } from "~/components/DocumentContext";
@@ -80,7 +81,9 @@ function Contents() {
               level={heading.level - headingAdjustment}
               active={activeSlug === heading.id}
             >
-              <Link href={`#${heading.id}`}>{heading.title}</Link>
+              <Link href={`#${heading.id}`}>
+                <EmojiText>{heading.title}</EmojiText>
+              </Link>
             </ListItem>
           ))}
       </List>

@@ -63,7 +63,15 @@ export default class Emoji extends Extension {
           getEmojiFromName(name),
         ];
       },
-      leafText: (node) => getEmojiFromName(node.attrs["data-name"]),
+      leafText: (node) => {
+        const name = node.attrs["data-name"];
+        // Custom emojis are stored as UUIDs, preserve the shortcode format
+        // so they can be rendered by EmojiText component
+        if (isUUID(name)) {
+          return `:${name}:`;
+        }
+        return getEmojiFromName(name);
+      },
     };
   }
 
