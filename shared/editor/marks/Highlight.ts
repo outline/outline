@@ -4,17 +4,24 @@ import type { MarkSpec, MarkType } from "prosemirror-model";
 import { markInputRuleForPattern } from "../lib/markInputRule";
 import markRule from "../rules/mark";
 import Mark from "./Mark";
-import { presetColorNames, presetColors } from "../presetColors";
+import { presetColors } from "@shared/utils/color";
 
 export default class Highlight extends Mark {
-  /** The colors that can be used for highlighting */
-  static colors = presetColors;
-
-  /** The names of the colors that can be used for highlighting, must match length of array above */
-  static colorNames = presetColorNames;
-
   /** The default opacity of the highlight */
   static opacity = 0.4;
+
+  /** Preset colors available for highlighting */
+  static presetColors = presetColors;
+
+  /**
+   * Checks if a color is one of the highlight preset colors.
+   *
+   * @param color - A hex color string to check.
+   * @returns true if the color matches a preset color's hex value.
+   */
+  static isPresetColor(color: string): boolean {
+    return Highlight.presetColors.some((c) => c.hex === color);
+  }
 
   get name() {
     return "highlight";
@@ -35,7 +42,7 @@ export default class Highlight extends Mark {
             const color = dom.getAttribute("data-color") || "";
 
             return {
-              color: Highlight.colors.includes(color) ? color : null,
+              color: Highlight.isPresetColor(color) ? color : null,
             };
           },
         },
@@ -45,7 +52,7 @@ export default class Highlight extends Mark {
         {
           "data-color": node.attrs.color,
           style: `background-color: ${rgba(
-            node.attrs.color || Highlight.colors[0],
+            node.attrs.color || Highlight.presetColors[0].hex,
             Highlight.opacity
           )}`,
         },
