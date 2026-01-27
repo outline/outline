@@ -2998,6 +2998,31 @@ describe("#documents.restore", () => {
     expect(body.data.collectionId).toEqual(collection.id);
   });
 
+  it("should not allow restore of another user's trashed draft", async () => {
+    const user = await buildUser();
+    const anotherUser = await buildUser({ teamId: user.teamId });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDraftDocument({
+      userId: anotherUser.id,
+      teamId: user.teamId,
+      collectionId: null,
+    });
+    await document.destroy();
+
+    const res = await server.post("/api/documents.restore", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        collectionId: collection.id,
+      },
+    });
+
+    expect(res.status).toEqual(403);
+  });
+
   it("should allow restore of trashed documents", async () => {
     const user = await buildUser();
     const document = await buildDocument({
@@ -4494,6 +4519,24 @@ describe("#documents.delete", () => {
     expect(deletedDoc).toBeDefined();
     expect(deletedDoc).not.toBeNull();
     expect(deletedDoc?.deletedAt).toBeTruthy();
+  });
+
+  it("should not allow deleting another user's draft without collection", async () => {
+    const user = await buildUser();
+    const anotherUser = await buildUser({ teamId: user.teamId });
+    const document = await buildDraftDocument({
+      teamId: user.teamId,
+      userId: anotherUser.id,
+      collectionId: null,
+    });
+    const res = await server.post("/api/documents.delete", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+      },
+    });
+
+    expect(res.status).toEqual(403);
   });
 
   it("should delete a draft under deleted collection", async () => {

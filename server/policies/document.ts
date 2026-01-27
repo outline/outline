@@ -211,7 +211,11 @@ allow(User, "delete", Document, (actor, document) =>
     or(
       can(actor, "unarchive", document),
       can(actor, "update", document),
-      and(!document?.isWorkspaceTemplate, !document?.collection)
+      and(
+        !document?.isWorkspaceTemplate,
+        !document?.collection,
+        actor.id === document?.createdById
+      )
     )
   )
 );
@@ -231,8 +235,7 @@ allow(User, "restore", Document, (actor, document) =>
       and(
         !!document?.isWorkspaceTemplate,
         can(actor, "updateTemplate", actor.team)
-      ),
-      !document?.collection
+      )
     )
   )
 );
