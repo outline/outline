@@ -214,8 +214,13 @@ router.post(
           include: [{ model: Team, as: "team", required: true }],
         },
       ],
-      rejectOnEmpty: true,
     });
+
+    if (!passkey) {
+      throw ValidationError(
+        "Passkey not found. It may have been removed or registered on a different account."
+      );
+    }
 
     const user = passkey.user;
     const team = user.team;
