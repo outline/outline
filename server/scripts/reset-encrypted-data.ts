@@ -1,5 +1,5 @@
 import "./bootstrap";
-import * as readline from "readline";
+import * as readline from "node:readline";
 import { Transaction } from "sequelize";
 
 import {

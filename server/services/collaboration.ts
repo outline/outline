@@ -1,7 +1,7 @@
-import type { IncomingMessage } from "http";
-import type http from "http";
-import type { Duplex } from "stream";
-import url from "url";
+import type { IncomingMessage } from "node:http";
+import type http from "node:http";
+import type { Duplex } from "node:stream";
+import url from "node:url";
 import { Redis } from "@hocuspocus/extension-redis";
 import { Throttle } from "@hocuspocus/extension-throttle";
 import { Server } from "@hocuspocus/server";

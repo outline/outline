@@ -1,6 +1,6 @@
-import { existsSync, copyFileSync } from "fs";
-import { readFile } from "fs/promises";
-import path from "path";
+import { existsSync, copyFileSync } from "node:fs";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import FormData from "form-data";
 import { ensureDirSync } from "fs-extra";
 import { FileOperationState, FileOperationType } from "@shared/types";
@@ -15,7 +15,7 @@ import {
   buildUser,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 
 const server = getTestServer();
 

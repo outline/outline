@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import sharedEnv from "@shared/env";
 import env from "@server/env";
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 
 // Increase the default max listeners for EventEmitter to prevent warnings in tests
 // This needs to be done before any modules that use EventEmitter are loaded

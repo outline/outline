@@ -4,7 +4,7 @@ import isNull from "lodash/isNull";
 import { Node } from "prosemirror-model";
 import type { InferCreationAttributes } from "sequelize";
 import type { DeepPartial } from "utility-types";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import { randomString } from "@shared/random";
 import type { ProsemirrorData, ReactionSummary } from "@shared/types";
 import {

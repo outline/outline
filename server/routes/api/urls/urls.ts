@@ -1,4 +1,4 @@
-import dns from "dns";
+import dns from "node:dns";
 import Router from "koa-router";
 import { traceFunction } from "@server/logging/tracing";
 import { MentionType, UnfurlResourceType } from "@shared/types";

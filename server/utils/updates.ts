@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import crypto from "node:crypto";
 import env from "@server/env";
 import Collection from "@server/models/Collection";
 import Document from "@server/models/Document";

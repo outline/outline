@@ -1,9 +1,9 @@
-import path from "path";
+import path from "node:path";
 import fs from "fs-extra";
 import find from "lodash/find";
 import mime from "mime-types";
 import { Fragment, Node } from "prosemirror-model";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import type { ProsemirrorData } from "@shared/types";
 import { schema, serializer } from "@server/editor";
 import Logger from "@server/logging/Logger";

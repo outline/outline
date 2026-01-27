@@ -1,4 +1,4 @@
-import querystring from "querystring";
+import querystring from "node:querystring";
 import type { Next } from "koa";
 import { Pagination } from "@shared/constants";
 import { InvalidRequestError } from "@server/errors";

@@ -1,7 +1,7 @@
-import { Blob } from "buffer";
-import { mkdir, unlink, rmdir } from "fs/promises";
-import path from "path";
-import { Readable } from "stream";
+import { Blob } from "node:buffer";
+import { mkdir, unlink, rmdir } from "node:fs/promises";
+import path from "node:path";
+import { Readable } from "node:stream";
 import type { PresignedPost } from "@aws-sdk/s3-presigned-post";
 import fs from "fs-extra";
 import invariant from "invariant";

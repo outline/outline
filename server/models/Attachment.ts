@@ -1,5 +1,5 @@
-import { createReadStream } from "fs";
-import path from "path";
+import { createReadStream } from "node:fs";
+import path from "node:path";
 import type { File } from "formidable";
 import type {
   InferAttributes,

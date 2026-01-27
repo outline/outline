@@ -1,6 +1,6 @@
-import fs from "fs";
-import path from "path";
-import util from "util";
+import fs from "node:fs";
+import path from "node:path";
+import util from "node:util";
 import type { Context, Next } from "koa";
 import escape from "lodash/escape";
 import { Sequelize } from "sequelize";
