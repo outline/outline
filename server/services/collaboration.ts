@@ -79,7 +79,11 @@ export default function init(
 
         if (documentId) {
           // Handle socket errors that may occur during upgrade (e.g., maxPayload exceeded)
-          socket.on("error", (error) => {
+          socket.on("error", (error: NodeJS.ErrnoException) => {
+            // ECONNRESET is common when clients disconnect abruptly, no need to log
+            if (error.code === "ECONNRESET") {
+              return;
+            }
             Logger.error(
               "Socket error during WebSocket upgrade",
               error,
