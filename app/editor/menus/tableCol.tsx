@@ -81,7 +81,7 @@ export default function tableColMenuItems(
   const activeColor =
     colColors.size === 1 ? colColors.values().next().value : null;
   const customColor =
-    colColors.size === 1 && !TableCell.presetColors.includes(activeColor)
+    colColors.size === 1 && !TableCell.isPresetColor(activeColor)
       ? activeColor
       : undefined;
 
@@ -157,12 +157,12 @@ export default function tableColMenuItems(
             attrs: { color: null },
           },
         ],
-        ...TableCell.presetColors.map((color, colorIndex) => ({
+        ...TableCell.presetColors.map((preset) => ({
           name: "toggleColumnBackgroundAndCollapseSelection",
-          label: TableCell.presetColorNames[colorIndex],
-          icon: <CircleIcon retainColor color={color} />,
-          active: () => colColors.size === 1 && colColors.has(color),
-          attrs: { color },
+          label: preset.name,
+          icon: <CircleIcon retainColor color={preset.hex} />,
+          active: () => colColors.size === 1 && colColors.has(preset.hex),
+          attrs: { color: preset.hex },
         })),
         ...(customColor
           ? [

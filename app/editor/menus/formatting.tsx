@@ -25,7 +25,7 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import CellBackgroundColorPicker from "../components/CellBackgroundColorPicker";
 import type { EditorState } from "prosemirror-state";
-import Highlight from "@shared/editor/marks/Highlight";
+
 import { getMarksBetween } from "@shared/editor/queries/getMarksBetween";
 import { isInCode } from "@shared/editor/queries/isInCode";
 import { isInList } from "@shared/editor/queries/isInList";
@@ -48,6 +48,7 @@ import {
 } from "@shared/editor/queries/table";
 import { CellSelection } from "prosemirror-tables";
 import TableCell from "@shared/editor/nodes/TableCell";
+import Highlight from "@shared/editor/marks/Highlight";
 import { DottedCircleIcon } from "~/components/Icons/DottedCircleIcon";
 
 export default function formattingMenuItems(
@@ -138,17 +139,17 @@ export default function formattingMenuItems(
           active: () => (cellSelectionHasBackground ? false : true),
           attrs: { color: null },
         },
-        ...TableCell.presetColors.map((color, index) => ({
+        ...TableCell.presetColors.map((preset) => ({
           name: "toggleCellSelectionBackgroundAndCollapseSelection",
-          label: TableCell.presetColorNames[index],
-          icon: <CircleIcon retainColor color={color} />,
+          label: preset.name,
+          icon: <CircleIcon retainColor color={preset.hex} />,
           active: () =>
             hasNodeAttrMarkWithAttrsCellSelection(
               state.selection as CellSelection,
               "background",
-              { color }
+              { color: preset.hex }
             ),
-          attrs: { color },
+          attrs: { color: preset.hex },
         })),
         ...(selectedCellsColorSet.size === 1 &&
         !TableCell.isPresetColor(selectedCellsColorSet.values().next().value)
@@ -195,7 +196,9 @@ export default function formattingMenuItems(
       tooltip: dictionary.mark,
       shortcut: `${metaDisplay}+⇧+H`,
       icon: highlight ? (
-        <CircleIcon color={highlight.mark.attrs.color || Highlight.colors[0]} />
+        <CircleIcon
+          color={highlight.mark.attrs.color || Highlight.presetColors[0].hex}
+        />
       ) : (
         <HighlightIcon />
       ),
@@ -213,12 +216,12 @@ export default function formattingMenuItems(
               },
             ]
           : []),
-        ...Highlight.colors.map((color, index) => ({
+        ...Highlight.presetColors.map((preset) => ({
           name: "highlight",
-          label: Highlight.colorNames[index],
-          icon: <CircleIcon retainColor color={color} />,
-          active: isMarkActive(schema.marks.highlight, { color }),
-          attrs: { color },
+          label: preset.name,
+          icon: <CircleIcon retainColor color={preset.hex} />,
+          active: isMarkActive(schema.marks.highlight, { color: preset.hex }),
+          attrs: { color: preset.hex },
         })),
       ],
     },
