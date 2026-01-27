@@ -1,5 +1,4 @@
 import * as React from "react";
-import debounce from "lodash/debounce";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { colorPalette } from "@shared/utils/collections";
@@ -13,25 +12,10 @@ type Props = {
   onSelect: (color: string) => void;
 };
 
-const ColorPicker = ({ activeColor, onSelect }: Props) => {
+const IconColorPicker = ({ activeColor, onSelect }: Props) => {
   const [selectedColor, setSelectedColor] = React.useState(activeColor);
   const isBuiltInColor = colorPalette.includes(selectedColor);
   const color = isBuiltInColor ? undefined : selectedColor;
-
-  const debouncedOnSelect = React.useMemo(
-    () =>
-      debounce((color: string) => {
-        onSelect(color);
-      }, 250),
-    [onSelect]
-  );
-
-  React.useEffect(
-    () => () => {
-      debouncedOnSelect.cancel();
-    },
-    [debouncedOnSelect]
-  );
 
   React.useEffect(() => {
     setSelectedColor(activeColor);
@@ -39,11 +23,12 @@ const ColorPicker = ({ activeColor, onSelect }: Props) => {
 
   const handleSelect = (color: string) => {
     setSelectedColor(color);
-    debouncedOnSelect(color);
+    onSelect(color);
   };
 
   return (
-    <BuiltinColors activeColor={selectedColor} onClick={handleSelect}>
+    <Container justify="space-between" align="center" auto>
+      <PresetColors activeColor={selectedColor} onClick={handleSelect} />
       <Divider />
       <SwatchButton
         color={color}
@@ -51,7 +36,7 @@ const ColorPicker = ({ activeColor, onSelect }: Props) => {
         onChange={handleSelect}
         pickerInModal
       />
-    </BuiltinColors>
+    </Container>
   );
 };
 
@@ -61,18 +46,14 @@ const Divider = styled.div`
   background-color: ${s("inputBorder")};
 `;
 
-const BuiltinColors = ({
+const PresetColors = ({
   activeColor,
   onClick,
-  className,
-  children,
 }: {
   activeColor: string;
   onClick: (color: string) => void;
-  className?: string;
-  children?: React.ReactNode;
 }) => (
-  <Container className={className} justify="space-between" align="center" auto>
+  <>
     {colorPalette.map((color) => (
       <ColorButton
         key={color}
@@ -81,8 +62,7 @@ const BuiltinColors = ({
         onClick={() => onClick(color)}
       />
     ))}
-    {children}
-  </Container>
+  </>
 );
 
 const Container = styled(Flex)`
@@ -91,4 +71,4 @@ const Container = styled(Flex)`
   border-bottom: 1px solid ${s("inputBorder")};
 `;
 
-export default ColorPicker;
+export default IconColorPicker;

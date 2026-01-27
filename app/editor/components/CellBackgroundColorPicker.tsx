@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import ColorPicker from "./ColorPicker";
+import ColorPicker from "@shared/components/ColorPicker";
 import { useEditor } from "./EditorContext";
 
 type Props = {
@@ -20,7 +20,9 @@ function CellBackgroundColorPicker({ activeColor, command }: Props) {
     [commands, command]
   );
 
-  return <ColorPicker activeColor={activeColor} onSelect={handleSelect} />;
+  return (
+    <ColorPicker alpha activeColor={activeColor} onSelect={handleSelect} />
+  );
 }
 
 export default CellBackgroundColorPicker;

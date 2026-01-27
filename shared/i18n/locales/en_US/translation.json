@@ -493,7 +493,6 @@
   "Unstar document": "Unstar document",
   "Star document": "Star document",
   "Select a color": "Select a color",
-  "Loading": "Loading",
   "Template created, go ahead and customize it": "Template created, go ahead and customize it",
   "Creating a template from <em>{{titleWithDefault}}</em> is a non-destructive action – we'll make a copy of the document and turn it into a template that can be used as a starting point for new documents.": "Creating a template from <em>{{titleWithDefault}}</em> is a non-destructive action – we'll make a copy of the document and turn it into a template that can be used as a starting point for new documents.",
   "Enable other members to use the template immediately": "Enable other members to use the template immediately",
@@ -1491,5 +1490,6 @@
   "Empty diagram": "Empty diagram",
   "Double click to edit": "Double click to edit",
   "Open": "Open",
+  "Loading": "Loading",
   "Error loading data": "Error loading data"
 }

@@ -2,20 +2,25 @@ import copy from "copy-to-clipboard";
 import debounce from "lodash/debounce";
 import { CheckmarkIcon, CopyIcon } from "outline-icons";
 import { useMemo, useState, useEffect, useRef, useCallback } from "react";
-import { HexColorInput, HexAlphaColorPicker } from "react-colorful";
-import styled, { useTheme } from "styled-components";
-import { s } from "@shared/styles";
+import {
+  HexColorInput,
+  HexAlphaColorPicker,
+  HexColorPicker,
+} from "react-colorful";
+import styled, { css, useTheme } from "styled-components";
+import { s } from "../styles";
 import { darken } from "polished";
 
 type Props = {
   onSelect: (color: string) => void;
   /** The currently active color */
   activeColor?: string | null;
+  alpha: boolean;
 };
 
 const DEFAULT_COLOR = "#7e3d3db3";
 
-function ColorPicker({ activeColor, onSelect }: Props) {
+function ColorPicker({ activeColor, onSelect, alpha }: Props) {
   const [color, setColor] = useState(activeColor || DEFAULT_COLOR);
   const [copied, setCopied] = useState(false);
   const theme = useTheme();
@@ -67,16 +72,24 @@ function ColorPicker({ activeColor, onSelect }: Props) {
 
   return (
     <Wrapper ref={wrapperRef} tabIndex={-1}>
-      <StyledHexAlphaColorPicker
-        color={color}
-        onChange={handleColorChangePicker}
-      />
+      {alpha ? (
+        <StyledHexAlphaColorPicker
+          color={color}
+          onChange={handleColorChangePicker}
+        />
+      ) : (
+        <StyledHexNonAlphaColorPicker
+          color={color}
+          onChange={handleColorChangePicker}
+        />
+      )}
+
       <InputRow>
         <StyledHexColorInput
           color={color}
           onChange={handleColorChangeInput}
           prefixed
-          alpha
+          alpha={alpha}
         />
         <CopyButton ref={buttonRef} onClick={handleCopy} type="button">
           {copied ? (
@@ -91,13 +104,12 @@ function ColorPicker({ activeColor, onSelect }: Props) {
 }
 
 const Wrapper = styled.div`
-  padding: 8px;
+  padding: 4px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
 `;
 
-const StyledHexAlphaColorPicker = styled(HexAlphaColorPicker)`
+const colorPickerStyles = css`
   &.react-colorful {
     width: auto;
 
@@ -117,22 +129,35 @@ const StyledHexAlphaColorPicker = styled(HexAlphaColorPicker)`
     & > .react-colorful__hue {
       height: 8px;
       border-radius: 0 0 4px 4px;
-      margin-bottom: 16px;
+      margin-bottom: 8px;
     }
+  }
+`;
 
-    & > .react-colorful__alpha {
-      height: 8px;
-      border-radius: 4px;
-    }
+const StyledHexNonAlphaColorPicker = styled(HexColorPicker)`
+  ${colorPickerStyles}
+`;
+
+const StyledHexAlphaColorPicker = styled(HexAlphaColorPicker)`
+  ${colorPickerStyles}
+
+  &.react-colorful > .react-colorful__alpha {
+    height: 8px;
+    border-radius: 4px;
+    margin-top: 8px;
+    margin-bottom: 8px;
   }
 `;
 
 const InputRow = styled.div`
   display: flex;
+  justify-content: space-between;
   gap: 4px;
+  margin-top: 8px;
 `;
 
 const StyledHexColorInput = styled(HexColorInput)`
+  flex: 1;
   padding: 4px 6px;
   border: 1px solid ${s("inputBorder")};
   border-radius: 4px;
