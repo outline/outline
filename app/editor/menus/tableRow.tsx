@@ -72,7 +72,7 @@ export default function tableRowMenuItems(
     rowColors.size === 1 ? rowColors.values().next().value : null;
   const customColor =
     rowColors.size === 1
-      ? [...rowColors].find((c) => !TableCell.presetColors.includes(c))
+      ? [...rowColors].find((c) => !TableCell.isPresetColor(c))
       : undefined;
 
   return [
@@ -96,12 +96,12 @@ export default function tableRowMenuItems(
             attrs: { color: null },
           },
         ],
-        ...TableCell.presetColors.map((color, colorIndex) => ({
+        ...TableCell.presetColors.map((preset) => ({
           name: "toggleRowBackgroundAndCollapseSelection",
-          label: TableCell.presetColorNames[colorIndex],
-          icon: <CircleIcon retainColor color={color} />,
-          active: () => rowColors.size === 1 && rowColors.has(color),
-          attrs: { color },
+          label: preset.name,
+          icon: <CircleIcon retainColor color={preset.hex} />,
+          active: () => rowColors.size === 1 && rowColors.has(preset.hex),
+          attrs: { color: preset.hex },
         })),
         ...(customColor
           ? [

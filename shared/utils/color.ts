@@ -67,6 +67,20 @@ export const rgbaToHex = ({ red, green, blue, alpha }: RgbaColor): string => {
   return "#" + toHex(red) + toHex(green) + toHex(blue) + alphaHex;
 };
 
+interface PresetColor {
+  hex: string;
+  name: string;
+}
+
+export const presetColors: PresetColor[] = [
+  { hex: "#FDEA9B", name: "Coral" },
+  { hex: "#FED46A", name: "Apricot" },
+  { hex: "#FA551E", name: "Sunset" },
+  { hex: "#B4DC19", name: "Smoothie" },
+  { hex: "#C8AFF0", name: "Bubblegum" },
+  { hex: "#3CBEFC", name: "Neon" },
+];
+
 export const hexToRgba = (hex: string): RgbaColor => {
   if (hex[0] === "#") {
     hex = hex.substring(1);
