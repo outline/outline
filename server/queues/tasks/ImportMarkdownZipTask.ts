@@ -1,8 +1,8 @@
-import path from "path";
+import path from "node:path";
 import fs from "fs-extra";
 import escapeRegExp from "lodash/escapeRegExp";
 import mime from "mime-types";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import documentImporter from "@server/commands/documentImporter";
 import { createContext } from "@server/context";
 import Logger from "@server/logging/Logger";

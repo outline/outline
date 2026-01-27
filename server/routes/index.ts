@@ -1,5 +1,5 @@
-import crypto from "crypto";
-import path from "path";
+import crypto from "node:crypto";
+import path from "node:path";
 import { formatRFC7231 } from "date-fns";
 import Koa from "koa";
 import Router from "koa-router";

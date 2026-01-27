@@ -11,7 +11,7 @@ declare module "@outlinewiki/koa-passport" {
   // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
   // TypeScript Version: 2.3
 
-  import { IncomingMessage } from "http";
+  import { IncomingMessage } from "node:http";
   // oxlint-disable-next-line
   import Express from "express";
   import { Request } from "koa";

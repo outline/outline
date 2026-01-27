@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { subWeeks } from "date-fns";
 import { QueryTypes } from "sequelize";
 import { Minute } from "@shared/utils/time";

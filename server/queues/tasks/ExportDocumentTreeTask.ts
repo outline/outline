@@ -1,4 +1,4 @@
-import path from "path";
+import path from "node:path";
 import type JSZip from "jszip";
 import escapeRegExp from "lodash/escapeRegExp";
 import type { NavigationNode } from "@shared/types";

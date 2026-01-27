@@ -7,7 +7,7 @@ import {
 import { isoBase64URL } from "@simplewebauthn/server/helpers";
 import type { AuthenticatorTransportFuture } from "@simplewebauthn/server";
 import Router from "koa-router";
-import { randomBytes } from "crypto";
+import { randomBytes } from "node:crypto";
 import { User, UserPasskey, Team } from "@server/models";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";

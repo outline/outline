@@ -1,4 +1,4 @@
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import { randomString } from "@shared/random";
 import slugify from "@shared/utils/slugify";
 import {

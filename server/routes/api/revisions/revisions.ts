@@ -1,4 +1,4 @@
-import path from "path";
+import path from "node:path";
 import Router from "koa-router";
 import contentDisposition from "content-disposition";
 import JSZip from "jszip";

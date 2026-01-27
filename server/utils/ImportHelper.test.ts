@@ -1,6 +1,6 @@
-import path from "path";
+import path from "node:path";
 import fs from "fs-extra";
-import { tmpdir } from "os";
+import { tmpdir } from "node:os";
 import ImportHelper from "./ImportHelper";
 
 describe("ImportHelper", () => {

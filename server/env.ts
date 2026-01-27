@@ -1,7 +1,7 @@
 /* oxlint-disable no-console */
 // oxlint-disable-next-line import/order
 import environment from "./utils/environment";
-import os from "os";
+import os from "node:os";
 import wellKnownServices from "nodemailer/lib/well-known/services.json";
 import {
   validate,

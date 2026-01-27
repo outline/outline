@@ -1,6 +1,6 @@
 declare module "tunnel-agent" {
-  import { Agent as HttpAgent } from "http";
-  import { Agent as HttpsAgent } from "https";
+  import { Agent as HttpAgent } from "node:http";
+  import { Agent as HttpsAgent } from "node:https";
 
   interface TunnelOptions {
     proxy: {
