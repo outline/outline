@@ -1,5 +1,5 @@
 /* oxlint-disable @typescript-eslint/no-var-requires */
-import type { Server } from "https";
+import type { Server } from "node:https";
 import type { BaseContext } from "koa";
 import Koa from "koa";
 import compress from "koa-compress";

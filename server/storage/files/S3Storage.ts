@@ -1,5 +1,5 @@
-import path from "path";
-import type { Readable } from "stream";
+import path from "node:path";
+import type { Readable } from "node:stream";
 import type { ObjectCannedACL } from "@aws-sdk/client-s3";
 import {
   S3Client,

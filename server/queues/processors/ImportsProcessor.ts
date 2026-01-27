@@ -5,7 +5,7 @@ import truncate from "lodash/truncate";
 import { Fragment, Node } from "prosemirror-model";
 import type { CreateOptions, CreationAttributes, Transaction } from "sequelize";
 import { UniqueConstraintError } from "sequelize";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import { randomElement } from "@shared/random";
 import type { ImportInput, ImportTaskInput } from "@shared/schema";
 import type {

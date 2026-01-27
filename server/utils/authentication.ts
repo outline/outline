@@ -1,4 +1,4 @@
-import querystring from "querystring";
+import querystring from "node:querystring";
 import { addMonths } from "date-fns";
 import type { Context } from "koa";
 import pick from "lodash/pick";

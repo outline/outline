@@ -1,4 +1,4 @@
-import path from "path";
+import path from "node:path";
 import i18n from "i18next";
 import backend from "i18next-fs-backend";
 import { languages } from "@shared/i18n";

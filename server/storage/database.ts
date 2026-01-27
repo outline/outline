@@ -1,4 +1,4 @@
-import path from "path";
+import path from "node:path";
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import sequelizeStrictAttributes from "sequelize-strict-attributes";
 import type { SequelizeOptions } from "sequelize-typescript";

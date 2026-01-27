@@ -1,5 +1,5 @@
-import crypto from "crypto";
-import { URL } from "url";
+import crypto from "node:crypto";
+import { URL } from "node:url";
 import { subMinutes } from "date-fns";
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import { type SaveOptions } from "sequelize";
