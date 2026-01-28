@@ -323,20 +323,18 @@ class UserMembership extends IdModel<
       .findOne({
         attributes: ["id"],
         where: {
-          id: model.documentId,
+          id: documentId ?? model.documentId,
         },
         transaction,
       });
+
     if (!document) {
       return;
     }
 
-    let childDocumentIds: string[] = [];
-
-    if (documentId) {
-      childDocumentIds = [documentId];
-    } else {
-      childDocumentIds = await document.findAllChildDocumentIds(
+    const childDocumentIds = [
+      ...(documentId ? [documentId] : []),
+      ...(await document.findAllChildDocumentIds(
         {
           publishedAt: {
             [Op.ne]: null,
@@ -345,10 +343,19 @@ class UserMembership extends IdModel<
         {
           transaction,
         }
-      );
-    }
+      )),
+    ];
 
     for (const childDocumentId of childDocumentIds) {
+      await this.destroy({
+        where: {
+          userId: model.userId,
+          sourceId: model.id,
+          documentId: childDocumentId,
+        },
+        transaction,
+      });
+
       await this.create(
         {
           documentId: childDocumentId,

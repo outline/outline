@@ -333,21 +333,12 @@ class GroupMembership extends ParanoidModel<
     }
     const { transaction, documentId } = options;
 
-    await this.destroy({
-      where: {
-        groupId: model.groupId,
-        sourceId: model.id,
-        ...(documentId ? { documentId } : {}),
-      },
-      transaction,
-    });
-
     const document = await Document.unscoped()
       .scope("withoutState")
       .findOne({
         attributes: ["id"],
         where: {
-          id: model.documentId,
+          id: documentId ?? model.documentId,
         },
         transaction,
       });
@@ -355,12 +346,9 @@ class GroupMembership extends ParanoidModel<
       return;
     }
 
-    let childDocumentIds: string[] = [];
-
-    if (documentId) {
-      childDocumentIds = [documentId];
-    } else {
-      childDocumentIds = await document.findAllChildDocumentIds(
+    const childDocumentIds = [
+      ...(documentId ? [documentId] : []),
+      ...(await document.findAllChildDocumentIds(
         {
           publishedAt: {
             [Op.ne]: null,
@@ -369,10 +357,19 @@ class GroupMembership extends ParanoidModel<
         {
           transaction,
         }
-      );
-    }
+      )),
+    ];
 
     for (const childDocumentId of childDocumentIds) {
+      await this.destroy({
+        where: {
+          groupId: model.groupId,
+          sourceId: model.id,
+          documentId: childDocumentId,
+        },
+        transaction,
+      });
+
       await this.create(
         {
           documentId: childDocumentId,
