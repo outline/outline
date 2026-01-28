@@ -87,7 +87,11 @@ function DocumentMemberList({ document, invitedInSession }: Props) {
   const members = React.useMemo(
     () =>
       orderBy(
-        document.members,
+        Array.from(
+          new Map(
+            document.members.map((memberUser) => [memberUser.id, memberUser])
+          ).values()
+        ),
         (memberUser) =>
           (invitedInSession.includes(memberUser.id) ? "_" : "") +
           memberUser.name.toLocaleLowerCase(),
@@ -122,12 +126,19 @@ function DocumentMemberList({ document, invitedInSession }: Props) {
 
   return (
     <>
-      {groupMemberships
-        .inDocument(document.id)
+      {Array.from(
+        new Map(
+          groupMemberships
+            .inDocument(document.id)
+            .map((membership) => [membership.group.id, membership])
+        ).values()
+      )
         .sort((a, b) =>
           (
             (invitedInSession.includes(a.group.id) ? "_" : "") + a.group.name
-          ).localeCompare(b.group.name)
+          ).localeCompare(
+            (invitedInSession.includes(b.group.id) ? "_" : "") + b.group.name
+          )
         )
         .map((membership) => {
           const MaybeLink = membership?.source ? StyledLink : React.Fragment;
