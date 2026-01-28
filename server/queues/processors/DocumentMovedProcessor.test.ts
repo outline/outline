@@ -218,7 +218,7 @@ describe("DocumentMovedProcessor", () => {
       expect(doc2GroupMemberships.length).toBe(1);
     });
 
-    it.only("should propagate sourced permissions to child documents of the moved document", async () => {
+    it.only("should propagate sourced permissions to direct child documents of the moved document", async () => {
       const team = await buildTeam();
       const user = await buildAdmin({ teamId: team.id });
       const user2 = await buildUser({ teamId: team.id });
@@ -236,10 +236,6 @@ describe("DocumentMovedProcessor", () => {
         teamId: team.id,
         parentDocumentId: topDocument.id,
       });
-      const grandChildDocument = await buildDocument({
-        teamId: team.id,
-        parentDocumentId: childDocument.id,
-      });
 
       const sourceUserMembership = await UserMembership.create({
         userId: user2.id,
@@ -252,18 +248,12 @@ describe("DocumentMovedProcessor", () => {
         createdById: user.id,
       });
 
-      // Remove sourced permissions from childDocument and grandChildDocument
+      // Remove sourced permissions from childDocument
       await UserMembership.destroy({
         where: { documentId: childDocument.id, userId: user2.id },
       });
       await GroupMembership.destroy({
         where: { documentId: childDocument.id, groupId: group.id },
-      });
-      await UserMembership.destroy({
-        where: { documentId: grandChildDocument.id, userId: user2.id },
-      });
-      await GroupMembership.destroy({
-        where: { documentId: grandChildDocument.id, groupId: group.id },
       });
 
       // Trigger move event on childDocument
@@ -292,6 +282,74 @@ describe("DocumentMovedProcessor", () => {
       expect(childGroupMemberships.length).toBe(1);
       expect(childUserMemberships[0].sourceId).toBe(sourceUserMembership.id);
       expect(childGroupMemberships[0].sourceId).toBe(sourceGroupMembership.id);
+    });
+
+    it.only("should propagate sourced permissions to all deep child documents of the moved document", async () => {
+      const team = await buildTeam();
+      const user = await buildAdmin({ teamId: team.id });
+      const user2 = await buildUser({ teamId: team.id });
+      const group = await buildGroup({ teamId: team.id });
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: team.id,
+      });
+
+      const topDocument = await buildDocument({
+        collectionId: collection.id,
+        teamId: team.id,
+      });
+      const childDocument = await buildDocument({
+        teamId: team.id,
+        parentDocumentId: topDocument.id,
+      });
+      const grandChildDocument = await buildDocument({
+        teamId: team.id,
+        parentDocumentId: childDocument.id,
+      });
+      const greatGrandChildDocument = await buildDocument({
+        teamId: team.id,
+        parentDocumentId: grandChildDocument.id,
+      });
+
+      const sourceUserMembership = await UserMembership.create({
+        userId: user2.id,
+        documentId: topDocument.id,
+        createdById: user.id,
+      });
+      const sourceGroupMembership = await GroupMembership.create({
+        groupId: group.id,
+        documentId: topDocument.id,
+        createdById: user.id,
+      });
+
+      // Remove sourced permissions from grandChildDocument and greatGrandChildDocument
+      await UserMembership.destroy({
+        where: { documentId: grandChildDocument.id, userId: user2.id },
+      });
+      await GroupMembership.destroy({
+        where: { documentId: grandChildDocument.id, groupId: group.id },
+      });
+      await UserMembership.destroy({
+        where: { documentId: greatGrandChildDocument.id, userId: user2.id },
+      });
+      await GroupMembership.destroy({
+        where: { documentId: greatGrandChildDocument.id, groupId: group.id },
+      });
+
+      // Trigger move event on childDocument
+      const processor = new DocumentMovedProcessor();
+      await processor.perform({
+        name: "documents.move",
+        documentId: childDocument.id,
+        collectionId: collection.id,
+        teamId: team.id,
+        actorId: user.id,
+        ip,
+        data: {
+          collectionIds: [],
+          documentIds: [],
+        },
+      });
 
       // Verify permissions for grandChildDocument
       const grandChildUserMemberships = await UserMembership.findAll({
@@ -306,6 +364,22 @@ describe("DocumentMovedProcessor", () => {
         sourceUserMembership.id
       );
       expect(grandChildGroupMemberships[0].sourceId).toBe(
+        sourceGroupMembership.id
+      );
+
+      // Verify permissions for greatGrandChildDocument
+      const greatGrandChildUserMemberships = await UserMembership.findAll({
+        where: { documentId: greatGrandChildDocument.id, userId: user2.id },
+      });
+      const greatGrandChildGroupMemberships = await GroupMembership.findAll({
+        where: { documentId: greatGrandChildDocument.id, groupId: group.id },
+      });
+      expect(greatGrandChildUserMemberships.length).toBe(1);
+      expect(greatGrandChildGroupMemberships.length).toBe(1);
+      expect(greatGrandChildUserMemberships[0].sourceId).toBe(
+        sourceUserMembership.id
+      );
+      expect(greatGrandChildGroupMemberships[0].sourceId).toBe(
         sourceGroupMembership.id
       );
     });
