@@ -1,0 +1,7 @@
+{
+  "id": "gitlab",
+  "name": "GitLab",
+  "priority": 11,
+  "description": "Adds a GitLab integration for link unfurling.",
+  "after": "github"
+}

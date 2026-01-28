@@ -63,6 +63,23 @@ export const IntegrationsCreateSchema = BaseSchema.extend({
           diagrams: z.object({ url: z.string().url() }),
         })
       )
+      .or(
+        z.object({
+          gitlab: z.object({
+            url: z.string().url().optional(),
+            installation: z
+              .object({
+                id: z.number(),
+                account: z.object({
+                  id: z.number(),
+                  name: z.string(),
+                  avatarUrl: z.string(),
+                }),
+              })
+              .optional(),
+          }),
+        })
+      )
       .or(z.object({ serviceTeamId: z.string() }))
       .optional(),
   }),
@@ -95,6 +112,23 @@ export const IntegrationsUpdateSchema = BaseSchema.extend({
       .or(
         z.object({
           diagrams: z.object({ url: z.string().url() }),
+        })
+      )
+      .or(
+        z.object({
+          gitlab: z.object({
+            url: z.string().url().optional(),
+            installation: z
+              .object({
+                id: z.number(),
+                account: z.object({
+                  id: z.number(),
+                  name: z.string(),
+                  avatarUrl: z.string(),
+                }),
+              })
+              .optional(),
+          }),
         })
       )
       .or(z.object({ serviceTeamId: z.string() }))

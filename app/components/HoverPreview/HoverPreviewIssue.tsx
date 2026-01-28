@@ -18,6 +18,7 @@ import {
   Label,
   Info,
 } from "./Components";
+import env from "@shared/env";
 
 type Props = Omit<UnfurlResponse[UnfurlResourceType.Issue], "type">;
 
@@ -28,9 +29,11 @@ const HoverPreviewIssue = React.forwardRef(function HoverPreviewIssue_(
   const authorName = author.name;
   const urlObj = new URL(url);
   const service =
-    urlObj.hostname === "github.com"
-      ? IntegrationService.GitHub
-      : IntegrationService.Linear;
+    urlObj.hostname === new URL(env.GITLAB_URL ?? "https://gitlab.com").hostname
+      ? IntegrationService.GitLab
+      : urlObj.hostname === "github.com"
+        ? IntegrationService.GitHub
+        : IntegrationService.Linear;
 
   return (
     <Preview as="a" href={url} target="_blank" rel="noopener noreferrer">
