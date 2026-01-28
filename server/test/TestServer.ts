@@ -1,5 +1,5 @@
-import http from "http";
-import type { AddressInfo } from "net";
+import http from "node:http";
+import type { AddressInfo } from "node:net";
 import type Koa from "koa";
 // oxlint-disable-next-line no-restricted-imports
 import nodeFetch from "node-fetch";

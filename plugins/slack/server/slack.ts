@@ -1,4 +1,4 @@
-import querystring from "querystring";
+import querystring from "node:querystring";
 import { InvalidRequestError } from "@server/errors";
 import fetch from "@server/utils/fetch";
 import { SlackUtils } from "../shared/SlackUtils";

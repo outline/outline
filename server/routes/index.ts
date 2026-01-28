@@ -1,5 +1,5 @@
-import crypto from "crypto";
-import path from "path";
+import crypto from "node:crypto";
+import path from "node:path";
 import { formatRFC7231 } from "date-fns";
 import Koa from "koa";
 import Router from "koa-router";
@@ -155,8 +155,16 @@ router.get("*", async (ctx, next) => {
   const team = await getTeamFromContext(ctx);
 
   if (env.isCloudHosted) {
+    // Redirect to main domain if no team is found
+    if (!team || team.isSuspended) {
+      if (env.isProduction && ctx.hostname !== parseDomain(env.URL).host) {
+        ctx.redirect(env.URL);
+        return;
+      }
+    }
+
     // Redirect all requests to custom domain if one is set
-    if (team?.domain) {
+    else if (team?.domain) {
       if (team.domain !== ctx.hostname) {
         ctx.redirect(ctx.href.replace(ctx.hostname, team.domain));
         return;

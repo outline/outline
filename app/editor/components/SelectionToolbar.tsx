@@ -163,6 +163,7 @@ export function SelectionToolbar(props: Props) {
         ev.key.toLowerCase() === "k" &&
         !view.state.selection.empty
       ) {
+        ev.preventDefault();
         ev.stopPropagation();
         if (activeToolbar === Toolbar.Link) {
           setActiveToolbar(Toolbar.Menu);

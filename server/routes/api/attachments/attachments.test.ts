@@ -1,4 +1,4 @@
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import { AttachmentPreset, CollectionPermission } from "@shared/types";
 import { UserMembership } from "@server/models";
 import Attachment from "@server/models/Attachment";

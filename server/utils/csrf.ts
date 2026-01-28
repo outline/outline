@@ -1,4 +1,4 @@
-import { randomBytes, createHmac } from "crypto";
+import { randomBytes, createHmac } from "node:crypto";
 import { safeEqual } from "./crypto";
 
 /**

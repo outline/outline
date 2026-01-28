@@ -19,10 +19,13 @@ import {
   Heading3Icon,
   TableMergeCellsIcon,
   TableSplitCellsIcon,
+  PaletteIcon,
+  CollapsedIcon,
 } from "outline-icons";
+import { v4 as uuidv4 } from "uuid";
+import CellBackgroundColorPicker from "../components/CellBackgroundColorPicker";
 import type { EditorState } from "prosemirror-state";
-import styled from "styled-components";
-import Highlight from "@shared/editor/marks/Highlight";
+
 import { getMarksBetween } from "@shared/editor/queries/getMarksBetween";
 import { isInCode } from "@shared/editor/queries/isInCode";
 import { isInList } from "@shared/editor/queries/isInList";
@@ -37,10 +40,16 @@ import {
   isTouchDevice,
 } from "@shared/utils/browser";
 import {
+  getColorSetForSelectedCells,
+  hasNodeAttrMarkCellSelection,
+  hasNodeAttrMarkWithAttrsCellSelection,
   isMergedCellSelection,
   isMultipleCellSelection,
 } from "@shared/editor/queries/table";
 import { CellSelection } from "prosemirror-tables";
+import TableCell from "@shared/editor/nodes/TableCell";
+import Highlight from "@shared/editor/marks/Highlight";
+import { DottedCircleIcon } from "~/components/Icons/DottedCircleIcon";
 
 export default function formattingMenuItems(
   state: EditorState,
@@ -60,7 +69,16 @@ export default function formattingMenuItems(
     state.selection.from,
     state.selection.to,
     state
-  ).find(({ mark }) => mark.type.name === "highlight");
+  ).find(({ mark }) => mark.type === state.schema.marks.highlight);
+
+  const cellSelectionHasBackground = isTableCell
+    ? hasNodeAttrMarkCellSelection(
+        state.selection as CellSelection,
+        "background"
+      )
+    : false;
+
+  const selectedCellsColorSet = getColorSetForSelectedCells(state.selection);
 
   return [
     {
@@ -99,15 +117,93 @@ export default function formattingMenuItems(
       visible: !isCodeBlock && (!isMobile || !isEmpty),
     },
     {
+      tooltip: dictionary.background,
+      icon:
+        getColorSetForSelectedCells(state.selection).size > 1 ? (
+          <CircleIcon color="rainbow" />
+        ) : getColorSetForSelectedCells(state.selection).size === 1 ? (
+          <CircleIcon
+            color={
+              getColorSetForSelectedCells(state.selection).values().next().value
+            }
+          />
+        ) : (
+          <PaletteIcon />
+        ),
+      visible: !isCode && (!isMobile || !isEmpty) && isTableCell,
+      children: [
+        {
+          name: "toggleCellSelectionBackgroundAndCollapseSelection",
+          label: dictionary.none,
+          icon: <DottedCircleIcon retainColor color="transparent" />,
+          active: () => (cellSelectionHasBackground ? false : true),
+          attrs: { color: null },
+        },
+        ...TableCell.presetColors.map((preset) => ({
+          name: "toggleCellSelectionBackgroundAndCollapseSelection",
+          label: preset.name,
+          icon: <CircleIcon retainColor color={preset.hex} />,
+          active: () =>
+            hasNodeAttrMarkWithAttrsCellSelection(
+              state.selection as CellSelection,
+              "background",
+              { color: preset.hex }
+            ),
+          attrs: { color: preset.hex },
+        })),
+        ...(selectedCellsColorSet.size === 1 &&
+        !TableCell.isPresetColor(selectedCellsColorSet.values().next().value)
+          ? [
+              {
+                name: "toggleCellSelectionBackgroundAndCollapseSelection",
+                label: selectedCellsColorSet.values().next().value,
+                icon: (
+                  <CircleIcon
+                    retainColor
+                    color={selectedCellsColorSet.values().next().value}
+                  />
+                ),
+                active: () => true,
+                attrs: { color: selectedCellsColorSet.values().next().value },
+              },
+            ]
+          : []),
+        {
+          icon: <CircleIcon retainColor color="rainbow" />,
+          label: "Custom",
+          children: [
+            {
+              content: (
+                <CellBackgroundColorPicker
+                  command="toggleCellSelectionBackground"
+                  activeColor={
+                    selectedCellsColorSet.size === 1
+                      ? selectedCellsColorSet.values().next().value
+                      : ""
+                  }
+                />
+              ),
+              preventCloseCondition: () =>
+                !!document.activeElement?.matches(
+                  ".ProseMirror.ProseMirror-focused"
+                ),
+            },
+          ],
+        },
+      ],
+    },
+    {
       tooltip: dictionary.mark,
       shortcut: `${metaDisplay}+⇧+H`,
       icon: highlight ? (
-        <CircleIcon color={highlight.mark.attrs.color || Highlight.colors[0]} />
+        <CircleIcon
+          color={highlight.mark.attrs.color || Highlight.presetColors[0].hex}
+        />
       ) : (
         <HighlightIcon />
       ),
       active: () => !!highlight,
-      visible: !isCode && (!isMobile || !isEmpty),
+      visible: !isCode && (!isMobile || !isEmpty) && !isTableCell,
       children: [
         ...(highlight
           ? [
@@ -120,12 +216,12 @@ export default function formattingMenuItems(
               },
             ]
           : []),
-        ...Highlight.colors.map((color, index) => ({
+        ...Highlight.presetColors.map((preset) => ({
           name: "highlight",
-          label: Highlight.colorNames[index],
-          icon: <CircleIcon retainColor color={color} />,
-          active: isMarkActive(schema.marks.highlight, { color }),
-          attrs: { color },
+          label: preset.name,
+          icon: <CircleIcon retainColor color={preset.hex} />,
+          active: isMarkActive(schema.marks.highlight, { color: preset.hex }),
+          attrs: { color: preset.hex },
         })),
       ],
     },
@@ -191,6 +287,13 @@ export default function formattingMenuItems(
       tooltip: dictionary.splitCell,
       icon: <TableSplitCellsIcon />,
       visible: isMergedCellSelection(state),
+    },
+    {
+      name: "container_toggle",
+      icon: <CollapsedIcon />,
+      active: isNodeActive(schema.nodes.container_toggle),
+      attrs: { id: uuidv4() },
+      visible: !isCodeBlock && (!isMobile || isEmpty),
     },
     {
       name: "separator",
@@ -287,10 +390,3 @@ export default function formattingMenuItems(
     },
   ];
 }
-
-const DottedCircleIcon = styled(CircleIcon)`
-  circle {
-    stroke: ${(props) => props.theme.textSecondary};
-    stroke-dasharray: 2, 2;
-  }
-`;

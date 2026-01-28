@@ -1,5 +1,5 @@
-import type { Blob } from "buffer";
-import type { Readable } from "stream";
+import type { Blob } from "node:buffer";
+import type { Readable } from "node:stream";
 import type { PresignedPost } from "@aws-sdk/s3-presigned-post";
 import omit from "lodash/omit";
 import FileHelper from "@shared/editor/lib/FileHelper";

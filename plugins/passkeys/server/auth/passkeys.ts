@@ -7,7 +7,7 @@ import {
 import { isoBase64URL } from "@simplewebauthn/server/helpers";
 import type { AuthenticatorTransportFuture } from "@simplewebauthn/server";
 import Router from "koa-router";
-import { randomBytes } from "crypto";
+import { randomBytes } from "node:crypto";
 import { User, UserPasskey, Team } from "@server/models";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
@@ -64,7 +64,6 @@ router.post(
       authenticatorSelection: {
         residentKey: "preferred",
         userVerification: "preferred",
-        authenticatorAttachment: "platform",
       },
     });
 
@@ -215,8 +214,13 @@ router.post(
           include: [{ model: Team, as: "team", required: true }],
         },
       ],
-      rejectOnEmpty: true,
     });
+
+    if (!passkey) {
+      throw ValidationError(
+        "Passkey not found. It may have been removed or registered on a different account."
+      );
+    }
 
     const user = passkey.user;
     const team = user.team;
