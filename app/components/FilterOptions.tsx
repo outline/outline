@@ -26,9 +26,10 @@ type Props = {
   className?: string;
   onSelect: (key: string | null | undefined) => void;
   showFilter?: boolean;
+  showIcons?: boolean;
   fetchQuery?: (options: FetchPageParams) => Promise<PaginatedItem[]>;
   fetchQueryOptions?: Record<string, string>;
-  noSort?: boolean;
+  disclosure?: boolean;
 };
 
 const FilterOptions = ({
@@ -37,9 +38,10 @@ const FilterOptions = ({
   className,
   onSelect,
   showFilter,
+  showIcons = true,
   fetchQuery,
   fetchQueryOptions,
-  noSort = false,
+  disclosure = true,
   ...rest
 }: Props) => {
   const { t } = useTranslation();
@@ -60,7 +62,7 @@ const FilterOptions = ({
       <MenuButton
         key={option.key}
         icon={
-          option.icon ? (
+          option.icon && showIcons ? (
             <MenuIconWrapper aria-hidden>{option.icon}</MenuIconWrapper>
           ) : undefined
         }
@@ -72,7 +74,7 @@ const FilterOptions = ({
         selected={selectedKeys.includes(option.key)}
       />
     ),
-    [onSelect, selectedKeys]
+    [onSelect, showIcons, selectedKeys]
   );
 
   const handleFilter = React.useCallback(
@@ -90,10 +92,6 @@ const FilterOptions = ({
           deburr(option.label).toLowerCase().includes(normalizedQuery)
         )
       : options;
-
-    if (noSort) {
-      return filtered;
-    }
 
     return filtered.sort((a, b) => {
       const aSelected = selectedKeys.includes(a.key);
@@ -127,7 +125,7 @@ const FilterOptions = ({
 
       return 0;
     });
-  }, [options, query, selectedKeys, noSort]);
+  }, [options, query, selectedKeys]);
 
   const handleKeyDown = React.useCallback(
     (ev: React.KeyboardEvent) => {
@@ -187,8 +185,8 @@ const FilterOptions = ({
           <StyledButton
             className={className}
             icon={selectedItems[0]?.key && selectedItems[0]?.icon}
+            disclosure={disclosure}
             neutral
-            disclosure
           >
             {selectedItems.length ? selectedLabel : defaultLabel}
           </StyledButton>

@@ -1,4 +1,5 @@
 import type { DirectionFilter, SortFilter as TSortFilter } from "@shared/types";
+import { SortAscendingIcon, SortDescendingIcon } from "outline-icons";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import FilterOptions from "~/components/FilterOptions";
@@ -12,37 +13,44 @@ type Props = {
   onSelect: (sort: string, direction: string) => void;
 };
 
-const SortFilter = ({ sort, direction, onSelect }: Props) => {
+export const SortInput = ({ sort, direction, onSelect }: Props) => {
   const { t } = useTranslation();
   const options = useMemo(
     () => [
       {
         key: "relevance-DESC",
         label: t("Relevance"),
+        icon: <SortDescendingIcon size={20} />,
       },
       {
         key: "updatedAt-DESC",
         label: t("Recently updated"),
+        icon: <SortDescendingIcon size={20} />,
       },
       {
         key: "updatedAt-ASC",
         label: t("Least recently updated"),
+        icon: <SortAscendingIcon size={20} />,
       },
       {
         key: "createdAt-DESC",
         label: t("Newest"),
+        icon: <SortDescendingIcon size={20} />,
       },
       {
         key: "createdAt-ASC",
         label: t("Oldest"),
+        icon: <SortAscendingIcon size={20} />,
       },
       {
         key: "title-ASC",
         label: t("A → Z"),
+        icon: <SortAscendingIcon size={20} />,
       },
       {
         key: "title-DESC",
         label: t("Z → A"),
+        icon: <SortDescendingIcon size={20} />,
       },
     ],
     [t]
@@ -58,8 +66,9 @@ const SortFilter = ({ sort, direction, onSelect }: Props) => {
 
   return (
     <FilterOptions
-      noSort
       showFilter={false}
+      showIcons={false}
+      disclosure={false}
       options={options}
       selectedKeys={[selectedKey]}
       onSelect={handleSelect}
@@ -67,5 +76,3 @@ const SortFilter = ({ sort, direction, onSelect }: Props) => {
     />
   );
 };
-
-export default SortFilter;
