@@ -493,7 +493,6 @@
   "Unstar document": "Belgenin yıldızını kaldır",
   "Star document": "Belgeyi yıldızla",
   "Select a color": "Bir renk seçin",
-  "Loading": "Yükleniyor",
   "Template created, go ahead and customize it": "Şablon oluşturuldu, devam edin ve özelleştirin",
   "Creating a template from <em>{{titleWithDefault}}</em> is a non-destructive action – we'll make a copy of the document and turn it into a template that can be used as a starting point for new documents.": "<em>{{titleWithDefault}}</em> belgesinden şablon oluşturmak bozucu olmayan bir işlemdir – belgenin bir kopyasını oluşturacağız ve onu yeni belgeler için başlangıç noktası olarak kullanılabilecek bir şablona dönüştüreceğiz.",
   "Enable other members to use the template immediately": "Diğer üyelerin şablonu hemen kullanmasını sağla",
@@ -1008,6 +1007,11 @@
   "Remove document filter": "Belge filtresini kaldır",
   "Any status": "Herhangi bir durum",
   "Remove search": "Aramayı kaldır",
+  "Relevance": "Relevance",
+  "Newest": "Newest",
+  "Oldest": "Oldest",
+  "A → Z": "A → Z",
+  "Z → A": "Z → A",
   "Any author": "Herhangi bir yazar",
   "Search titles only": "Sadece başlıklarda ara",
   "Please try again or contact support if the problem persists": "Lütfen tekrar deneyin veya sorun devam ederse destek ile iletişime geçin",
@@ -1491,5 +1495,6 @@
   "Empty diagram": "Empty diagram",
   "Double click to edit": "Double click to edit",
   "Open": "Aç",
+  "Loading": "Yükleniyor",
   "Error loading data": "Veri yüklenirken hata"
 }
