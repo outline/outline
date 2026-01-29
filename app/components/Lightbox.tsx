@@ -573,8 +573,10 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
   };
 
   const svgDataURLToBlob = (dataURL: string) => {
-    // Match the SVG data URL format
-    const match = dataURL.match(/^data:image\/svg\+xml,(.*)$/i);
+    // Match the SVG data URL format (with or without charset)
+    const match = dataURL.match(
+      /^data:image\/svg\+xml(?:;charset=utf-8)?,(.*)$/i
+    );
     if (!match) {
       return;
     }
