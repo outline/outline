@@ -493,7 +493,6 @@
   "Unstar document": "Odebrat dokument z oblíbených",
   "Star document": "Přidat dokument k oblíbeným",
   "Select a color": "Vybrat barvu",
-  "Loading": "Načítání...",
   "Template created, go ahead and customize it": "Šablona byla vytvořena, nyní ji můžete upravit.",
   "Creating a template from <em>{{titleWithDefault}}</em> is a non-destructive action – we'll make a copy of the document and turn it into a template that can be used as a starting point for new documents.": "Vytvoření šablony z <em>{{titleWithDefault}}</em> je nedestruktivní akce – vytvoříme kopii dokumentu, kterou můžete použít jako výchozí bod pro nové dokumenty.",
   "Enable other members to use the template immediately": "Povolit ostatním členům okamžité použití šablony",
@@ -1008,6 +1007,11 @@
   "Remove document filter": "Odebrat filtr dokumentů",
   "Any status": "Jakýkoliv stav",
   "Remove search": "Zrušit vyhledávání",
+  "Relevance": "Relevance",
+  "Newest": "Newest",
+  "Oldest": "Oldest",
+  "A → Z": "A → Z",
+  "Z → A": "Z → A",
   "Any author": "Jakýkoliv autor",
   "Search titles only": "Hledat pouze v názvech",
   "Please try again or contact support if the problem persists": "Zkuste to znovu, nebo v případě přetrvávajících potíží kontaktujte podporu.",
@@ -1491,5 +1495,6 @@
   "Empty diagram": "Prázdný diagram",
   "Double click to edit": "Dvojklikem upravíte",
   "Open": "Otevřít",
+  "Loading": "Načítání...",
   "Error loading data": "Chyba při načítání dat"
 }
