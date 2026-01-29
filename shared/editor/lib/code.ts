@@ -56,6 +56,11 @@ export const codeLanguages: Record<string, CodeLanguage> = {
     label: "Dart",
     loader: () => import("refractor/lang/dart").then((m) => m.default),
   },
+  diff: {
+    lang: "diff",
+    label: "Diff",
+    loader: () => import("refractor/lang/diff").then((m) => m.default),
+  },
   docker: {
     lang: "docker",
     label: "Docker",
