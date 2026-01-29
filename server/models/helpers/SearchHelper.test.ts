@@ -1,4 +1,9 @@
-import { DocumentPermission, StatusFilter } from "@shared/types";
+import {
+  DirectionFilter,
+  DocumentPermission,
+  SortFilter,
+  StatusFilter,
+} from "@shared/types";
 import SearchHelper from "@server/models/helpers/SearchHelper";
 import {
   buildDocument,
@@ -1061,6 +1066,162 @@ describe("SearchHelper", () => {
       expect(results.length).toBe(2);
       expect(results[0].id).toBe(collection1.id);
       expect(results[1].id).toBe(collection2.id);
+    });
+  });
+
+  describe("sorting", () => {
+    it("should sort search results by title ascending", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+      const doc1 = await buildDocument({
+        teamId: team.id,
+        collectionId: collection.id,
+        userId: user.id,
+        title: "Zebra Document",
+      });
+      const doc2 = await buildDocument({
+        teamId: team.id,
+        collectionId: collection.id,
+        userId: user.id,
+        title: "Alpha Document",
+      });
+      const doc3 = await buildDocument({
+        teamId: team.id,
+        collectionId: collection.id,
+        userId: user.id,
+        title: "Beta Document",
+      });
+
+      const { results } = await SearchHelper.searchForUser(user, {
+        sort: SortFilter.Title,
+        direction: DirectionFilter.ASC,
+      });
+
+      expect(results.length).toBe(3);
+      expect(results[0].document.id).toBe(doc2.id);
+      expect(results[1].document.id).toBe(doc3.id);
+      expect(results[2].document.id).toBe(doc1.id);
+    });
+
+    it("should sort search results by title descending", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+      const doc1 = await buildDocument({
+        teamId: team.id,
+        collectionId: collection.id,
+        userId: user.id,
+        title: "Zebra Document",
+      });
+      const doc2 = await buildDocument({
+        teamId: team.id,
+        collectionId: collection.id,
+        userId: user.id,
+        title: "Alpha Document",
+      });
+      const doc3 = await buildDocument({
+        teamId: team.id,
+        collectionId: collection.id,
+        userId: user.id,
+        title: "Beta Document",
+      });
+
+      const { results } = await SearchHelper.searchForUser(user, {
+        sort: SortFilter.Title,
+        direction: DirectionFilter.DESC,
+      });
+
+      expect(results.length).toBe(3);
+      expect(results[0].document.id).toBe(doc1.id);
+      expect(results[1].document.id).toBe(doc3.id);
+      expect(results[2].document.id).toBe(doc2.id);
+    });
+
+    it("should sort search results by createdAt ascending", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+      const doc1 = await buildDocument({
+        teamId: team.id,
+        collectionId: collection.id,
+        userId: user.id,
+        title: "First Document",
+        createdAt: new Date("2023-01-01"),
+        updatedAt: new Date("2023-12-03"),
+      });
+      const doc2 = await buildDocument({
+        teamId: team.id,
+        collectionId: collection.id,
+        userId: user.id,
+        title: "Second Document",
+        createdAt: new Date("2023-06-01"),
+        updatedAt: new Date("2023-12-02"),
+      });
+      const doc3 = await buildDocument({
+        teamId: team.id,
+        collectionId: collection.id,
+        userId: user.id,
+        title: "Third Document",
+        createdAt: new Date("2023-12-01"),
+        updatedAt: new Date("2023-12-01"),
+      });
+
+      const { results } = await SearchHelper.searchForUser(user, {
+        sort: SortFilter.CreatedAt,
+        direction: DirectionFilter.ASC,
+      });
+
+      expect(results.length).toBe(3);
+      expect(results[0].document.id).toBe(doc1.id);
+      expect(results[1].document.id).toBe(doc2.id);
+      expect(results[2].document.id).toBe(doc3.id);
+    });
+
+    it("should sort search results by updatedAt descending by default", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+      const doc1 = await buildDocument({
+        teamId: team.id,
+        collectionId: collection.id,
+        userId: user.id,
+        title: "Document 1",
+        updatedAt: new Date("2023-01-01"),
+      });
+      const doc2 = await buildDocument({
+        teamId: team.id,
+        collectionId: collection.id,
+        userId: user.id,
+        title: "Document 2",
+        updatedAt: new Date("2023-12-01"),
+      });
+      const doc3 = await buildDocument({
+        teamId: team.id,
+        collectionId: collection.id,
+        userId: user.id,
+        title: "Document 3",
+        updatedAt: new Date("2023-06-01"),
+      });
+
+      const { results } = await SearchHelper.searchForUser(user);
+
+      expect(results.length).toBe(3);
+      expect(results[0].document.id).toBe(doc2.id);
+      expect(results[1].document.id).toBe(doc3.id);
+      expect(results[2].document.id).toBe(doc1.id);
     });
   });
 

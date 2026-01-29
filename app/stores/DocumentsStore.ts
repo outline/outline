@@ -4,6 +4,7 @@ import filter from "lodash/filter";
 import omitBy from "lodash/omitBy";
 import orderBy from "lodash/orderBy";
 import { observable, action, computed, runInAction } from "mobx";
+import type { DirectionFilter, SortFilter } from "@shared/types";
 import {
   SubscriptionType,
   type DateFilter,
@@ -39,6 +40,8 @@ export type SearchParams = {
   collectionId?: string;
   userId?: string;
   shareId?: string;
+  sort?: SortFilter;
+  direction?: DirectionFilter;
 };
 
 type ImportOptions = {

@@ -1,7 +1,13 @@
 import type formidable from "formidable";
 import isEmpty from "lodash/isEmpty";
 import { z } from "zod";
-import { DocumentPermission, StatusFilter, TextEditMode } from "@shared/types";
+import {
+  DirectionFilter,
+  DocumentPermission,
+  StatusFilter,
+  TextEditMode,
+  SortFilter,
+} from "@shared/types";
 import { BaseSchema } from "@server/routes/api/schema";
 import { zodIconType, zodIdType, zodShareIdType } from "@server/utils/zod";
 import { ValidateColor } from "@server/validation";
@@ -176,6 +182,14 @@ export const DocumentsSearchSchema = BaseSchema.extend({
   body: BaseSearchSchema.extend({
     /** Query for search */
     query: z.string().optional(),
+
+    /** Specifies the attributes by which search results will be sorted */
+    sort: z.enum(Object.values(SortFilter) as [string, ...string[]]).optional(),
+
+    /** Specifies the sort order with respect to sort field */
+    direction: z
+      .enum(Object.values(DirectionFilter) as [string, ...string[]])
+      .optional(),
   }),
 });
 
@@ -185,6 +199,14 @@ export const DocumentsSearchTitlesSchema = BaseSchema.extend({
   body: BaseSearchSchema.extend({
     /** Query for search */
     query: z.string().refine((val) => val.trim() !== ""),
+
+    /** Specifies the attributes by which search results will be sorted */
+    sort: z.enum(Object.values(SortFilter) as [string, ...string[]]).optional(),
+
+    /** Specifies the sort order with respect to sort field */
+    direction: z
+      .enum(Object.values(DirectionFilter) as [string, ...string[]])
+      .optional(),
   }),
 });
 
