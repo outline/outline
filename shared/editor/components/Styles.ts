@@ -247,11 +247,13 @@ const codeBlockStyle = (props: Props) => css`
   }
 
   .token.deleted {
-    text-decoration: line-through;
+    color: ${props.theme.textDiffDeleted};
+    background-color: ${props.theme.textDiffDeletedBackground};
   }
 
   .token.inserted {
-    border-bottom: 1px dotted ${props.theme.codeInserted};
+    color: ${props.theme.textDiffInserted};
+    background-color: ${props.theme.textDiffInsertedBackground};
     text-decoration: none;
   }
 
