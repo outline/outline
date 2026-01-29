@@ -493,7 +493,6 @@
   "Unstar document": "取消收藏文档",
   "Star document": "收藏文档",
   "Select a color": "选择颜色",
-  "Loading": "加载中",
   "Template created, go ahead and customize it": "模板已创建，继续进行自定义",
   "Creating a template from <em>{{titleWithDefault}}</em> is a non-destructive action – we'll make a copy of the document and turn it into a template that can be used as a starting point for new documents.": "从 <em>{{titleWithDefault}}</em> 创建模板是一个非破坏性的操作 - 我们将制作一个文档副本，并将其变成一个可以用作新文档起点的模板。",
   "Enable other members to use the template immediately": "允许其他成员立即使用该模板",
@@ -1008,6 +1007,11 @@
   "Remove document filter": "移除文档过滤",
   "Any status": "任何状态",
   "Remove search": "移除搜索",
+  "Relevance": "Relevance",
+  "Newest": "Newest",
+  "Oldest": "Oldest",
+  "A → Z": "A → Z",
+  "Z → A": "Z → A",
   "Any author": "任何作者",
   "Search titles only": "仅搜索标题",
   "Please try again or contact support if the problem persists": "如果问题持续存在，请重试或联系支持人员。",
@@ -1491,5 +1495,6 @@
   "Empty diagram": "空白图表",
   "Double click to edit": "双击以编辑",
   "Open": "打开",
+  "Loading": "加载中",
   "Error loading data": "加载数据时出错"
 }
