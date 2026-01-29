@@ -493,7 +493,6 @@
   "Unstar document": "Unstar document",
   "Star document": "Star document",
   "Select a color": "Pilih warna",
-  "Loading": "Memuat",
   "Template created, go ahead and customize it": "Template telah dibuat, silakan disesuaikan",
   "Creating a template from <em>{{titleWithDefault}}</em> is a non-destructive action – we'll make a copy of the document and turn it into a template that can be used as a starting point for new documents.": "Membuat template dari <em>{{titleWithDefault}}</em> adalah tindakan yang tidak merusak – kami akan membuat salinan dokumen dan mengubahnya menjadi template yang dapat digunakan sebagai titik awal untuk dokumen baru.",
   "Enable other members to use the template immediately": "Enable other members to use the template immediately",
@@ -1008,6 +1007,11 @@
   "Remove document filter": "Remove document filter",
   "Any status": "Any status",
   "Remove search": "Hapus pencarian",
+  "Relevance": "Relevance",
+  "Newest": "Newest",
+  "Oldest": "Oldest",
+  "A → Z": "A → Z",
+  "Z → A": "Z → A",
   "Any author": "Semua penulis",
   "Search titles only": "Cari judul saja",
   "Please try again or contact support if the problem persists": "Please try again or contact support if the problem persists",
@@ -1491,5 +1495,6 @@
   "Empty diagram": "Empty diagram",
   "Double click to edit": "Double click to edit",
   "Open": "Open",
+  "Loading": "Memuat",
   "Error loading data": "Error loading data"
 }
