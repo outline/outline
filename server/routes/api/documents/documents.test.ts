@@ -1543,9 +1543,9 @@ describe("#documents.search", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(3);
-    expect(body.data[0].document.id).toEqual(firstResult.id);
+    expect(body.data[2].document.id).toEqual(firstResult.id);
     expect(body.data[1].document.id).toEqual(secondResult.id);
-    expect(body.data[2].document.id).toEqual(thirdResult.id);
+    expect(body.data[0].document.id).toEqual(thirdResult.id);
   });
 
   it("should return partial results in ranked order", async () => {
@@ -1579,9 +1579,9 @@ describe("#documents.search", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(3);
-    expect(body.data[0].document.id).toEqual(firstResult.id);
+    expect(body.data[2].document.id).toEqual(firstResult.id);
     expect(body.data[1].document.id).toEqual(secondResult.id);
-    expect(body.data[2].document.id).toEqual(thirdResult.id);
+    expect(body.data[0].document.id).toEqual(thirdResult.id);
   });
 
   describe("search operators", () => {

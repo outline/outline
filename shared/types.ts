@@ -21,6 +21,17 @@ export enum StatusFilter {
   Draft = "draft",
 }
 
+export enum SortFilter {
+  CreatedAt = "createdAt",
+  UpdatedAt = "updatedAt",
+  Title = "title",
+}
+
+export enum DirectionFilter {
+  ASC = "ASC",
+  DESC = "DESC",
+}
+
 export enum CollectionStatusFilter {
   Archived = "archived",
 }

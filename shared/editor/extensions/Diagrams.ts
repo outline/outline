@@ -217,7 +217,7 @@ export default class Diagrams extends Extension {
     const integration = this.editor.props.embeds?.find(
       (integ) => integ.name === IntegrationService.Diagrams
     );
-    const uiTheme = this.editor.props.theme.isDark ? 'dark' : 'atlas';
+    const uiTheme = this.editor.props.theme.isDark ? "dark" : "atlas";
     return (
       sanitizeUrl(
         integration?.settings?.diagrams?.url ?? "https://embed.diagrams.net/"
