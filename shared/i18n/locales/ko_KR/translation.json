@@ -493,7 +493,6 @@
   "Unstar document": "문서 별표 해제",
   "Star document": "문서 별표 표시",
   "Select a color": "색상 선택",
-  "Loading": "로딩 중",
   "Template created, go ahead and customize it": "템플릿이 생성되었습니다. 커스터마이징이 가능합니다.",
   "Creating a template from <em>{{titleWithDefault}}</em> is a non-destructive action – we'll make a copy of the document and turn it into a template that can be used as a starting point for new documents.": "<em>{{titleWithDefault}}</em>에서 템플릿을 만들더라도 원본 문서는 수정되지 않습니다. 이 문서의 복사본을 생성해서 새 문서의 시작점으로 사용할 수 있는 템플릿을 만듭니다.",
   "Enable other members to use the template immediately": "다른 멤버가 템플릿을 즉시 사용할 수 있도록 설정",
@@ -1008,6 +1007,11 @@
   "Remove document filter": "문서 검색 필터 제거",
   "Any status": "모든 상태",
   "Remove search": "검색 기록 제거",
+  "Relevance": "Relevance",
+  "Newest": "Newest",
+  "Oldest": "Oldest",
+  "A → Z": "A → Z",
+  "Z → A": "Z → A",
   "Any author": "모든 작성자",
   "Search titles only": "제목에서만 찾기",
   "Please try again or contact support if the problem persists": "다시 한 번 시도해 보시고 문제가 계속된다면 문의해주세요",
@@ -1491,5 +1495,6 @@
   "Empty diagram": "빈 다이어그램",
   "Double click to edit": "두 번 클릭하여 편집",
   "Open": "열기",
+  "Loading": "로딩 중",
   "Error loading data": "데이터 로딩 오류"
 }

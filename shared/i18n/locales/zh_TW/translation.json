@@ -493,7 +493,6 @@
   "Unstar document": "取消星號",
   "Star document": "標示星號",
   "Select a color": "選擇顏色",
-  "Loading": "正在讀取",
   "Template created, go ahead and customize it": "範本已經建立，繼續將其客製化",
   "Creating a template from <em>{{titleWithDefault}}</em> is a non-destructive action – we'll make a copy of the document and turn it into a template that can be used as a starting point for new documents.": "從 <em>{{titleWithDefault}}</em> 建立範本是不會對原本的文件造成影響－我們會將文件複製後並將其轉換為可以用來建立新文件的範本。",
   "Enable other members to use the template immediately": "允許其它成員立即使用此範本",
@@ -1008,6 +1007,11 @@
   "Remove document filter": "移除文件篩選器",
   "Any status": "任何狀態",
   "Remove search": "刪除搜索",
+  "Relevance": "Relevance",
+  "Newest": "Newest",
+  "Oldest": "Oldest",
+  "A → Z": "A → Z",
+  "Z → A": "Z → A",
   "Any author": "任何作者",
   "Search titles only": "僅搜尋標題",
   "Please try again or contact support if the problem persists": "Please try again or contact support if the problem persists",
@@ -1491,5 +1495,6 @@
   "Empty diagram": "Empty diagram",
   "Double click to edit": "Double click to edit",
   "Open": "Open",
+  "Loading": "正在讀取",
   "Error loading data": "Error loading data"
 }

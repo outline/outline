@@ -493,7 +493,6 @@
   "Unstar document": "Fjern stjerne fra dokument",
   "Star document": "Stjernemarker dokument",
   "Select a color": "Velg en farge",
-  "Loading": "Laster",
   "Template created, go ahead and customize it": "Mal opprettet, gå videre og tilpass den",
   "Creating a template from <em>{{titleWithDefault}}</em> is a non-destructive action – we'll make a copy of the document and turn it into a template that can be used as a starting point for new documents.": "Å opprette en mal fra <em>{{titleWithDefault}}</em> er en ikke-destruktiv handling – vi vil lage en kopi av dokumentet og gjøre det til en mal som kan brukes som utgangspunkt for nye dokumenter.",
   "Enable other members to use the template immediately": "Tillat andre medlemmer å bruke malen nå",
@@ -1008,6 +1007,11 @@
   "Remove document filter": "Fjern dokumentfilter",
   "Any status": "Valgfri status",
   "Remove search": "Fjern søk",
+  "Relevance": "Relevance",
+  "Newest": "Newest",
+  "Oldest": "Oldest",
+  "A → Z": "A → Z",
+  "Z → A": "Z → A",
   "Any author": "Enhver forfatter",
   "Search titles only": "Søk kun i titler",
   "Please try again or contact support if the problem persists": "Prøv igjen eller kontakt kundestøtte hvis problemet vedvarer",
@@ -1491,5 +1495,6 @@
   "Empty diagram": "Empty diagram",
   "Double click to edit": "Double click to edit",
   "Open": "Åpen",
+  "Loading": "Laster",
   "Error loading data": "Feil ved lasting av data"
 }

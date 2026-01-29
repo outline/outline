@@ -493,7 +493,6 @@
   "Unstar document": "Unstar document",
   "Star document": "Star document",
   "Select a color": "Select a color",
-  "Loading": "กำลังโหลด",
   "Template created, go ahead and customize it": "สร้างเทมเพลตแล้ว ปรับแต่งได้เลย",
   "Creating a template from <em>{{titleWithDefault}}</em> is a non-destructive action – we'll make a copy of the document and turn it into a template that can be used as a starting point for new documents.": "การสร้างเทมเพลตจาก <em>{{titleWithDefault}}</em> เป็นการกระทำที่ไม่ทำลายเอกสารเก่า - เราจะทำสำเนาและเปลี่ยนเป็นเทมเพลตที่สามารถใช้ในการสร้างเอกสารใหม่ได้",
   "Enable other members to use the template immediately": "Enable other members to use the template immediately",
@@ -1008,6 +1007,11 @@
   "Remove document filter": "Remove document filter",
   "Any status": "Any status",
   "Remove search": "Remove search",
+  "Relevance": "Relevance",
+  "Newest": "Newest",
+  "Oldest": "Oldest",
+  "A → Z": "A → Z",
+  "Z → A": "Z → A",
   "Any author": "Any author",
   "Search titles only": "Search titles only",
   "Please try again or contact support if the problem persists": "Please try again or contact support if the problem persists",
@@ -1491,5 +1495,6 @@
   "Empty diagram": "Empty diagram",
   "Double click to edit": "Double click to edit",
   "Open": "Open",
+  "Loading": "กำลังโหลด",
   "Error loading data": "Error loading data"
 }

@@ -493,7 +493,6 @@
   "Unstar document": "Видалити з обраного",
   "Star document": "Додати до обраного",
   "Select a color": "Виберіть колір",
-  "Loading": "Завантаження",
   "Template created, go ahead and customize it": "Шаблон створено, тепер налаштуйте його під ваші потреби",
   "Creating a template from <em>{{titleWithDefault}}</em> is a non-destructive action – we'll make a copy of the document and turn it into a template that can be used as a starting point for new documents.": "Створення шаблону з <em>{{titleWithDefault}}</em> не є руйнівною дією – ми зробимо копію документа та перетворимо її на шаблон, який можна використовувати як основу для нових документів.",
   "Enable other members to use the template immediately": "Дозволити іншим учасникам відразу використовувати шаблон",
@@ -1008,6 +1007,11 @@
   "Remove document filter": "Remove document filter",
   "Any status": "Any status",
   "Remove search": "Видалити пошук",
+  "Relevance": "Relevance",
+  "Newest": "Newest",
+  "Oldest": "Oldest",
+  "A → Z": "A → Z",
+  "Z → A": "Z → A",
   "Any author": "Будь-який автор",
   "Search titles only": "Шукати тільки в назві",
   "Please try again or contact support if the problem persists": "Please try again or contact support if the problem persists",
@@ -1491,5 +1495,6 @@
   "Empty diagram": "Empty diagram",
   "Double click to edit": "Double click to edit",
   "Open": "Open",
+  "Loading": "Завантаження",
   "Error loading data": "Error loading data"
 }
