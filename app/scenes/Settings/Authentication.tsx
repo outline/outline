@@ -214,7 +214,14 @@ function Authentication() {
       </SettingRow>
 
       <Heading as="h2">{t("Restrictions")}</Heading>
-      <DomainManagement onSuccess={showSuccessMessage} />
+      <DomainManagement
+        onSuccess={showSuccessMessage}
+        fieldName="allowedDomains"
+        label={t("Allowed domains")}
+        description={t(
+          "The domains which should be allowed to create new accounts using SSO. Changing this setting does not affect existing user accounts."
+        )}
+      />
     </Scene>
   );
 }

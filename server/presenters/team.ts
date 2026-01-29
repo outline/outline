@@ -11,6 +11,7 @@ export default function presentTeam(team: Team) {
     memberTeamCreate: team.memberTeamCreate,
     defaultCollectionId: team.defaultCollectionId,
     documentEmbeds: team.documentEmbeds,
+    blockedEmbedDomains: team.blockedEmbedDomains,
     guestSignin: team.emailSigninEnabled,
     passkeysEnabled: team.passkeysEnabled,
     subdomain: team.subdomain,

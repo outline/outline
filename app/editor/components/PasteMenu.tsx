@@ -14,7 +14,12 @@ import { determineMentionType, isURLMentionable } from "~/utils/mention";
 import type { Props as SuggestionsMenuProps } from "./SuggestionsMenu";
 import SuggestionsMenu from "./SuggestionsMenu";
 import SuggestionsMenuItem from "./SuggestionsMenuItem";
+import {
+  isDomainBlocked,
+  DEFAULT_BLOCKED_EMBED_DOMAINS,
+} from "@shared/editor/lib/embedBlocklist";
 import { getMatchingEmbed } from "@shared/editor/lib/embeds";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
 
 type Props = Omit<
   SuggestionsMenuProps,
@@ -57,6 +62,9 @@ function useItems({
   const { t } = useTranslation();
   const { integrations } = useStores();
   const user = useCurrentUser({ rejectOnEmpty: false });
+  const team = useCurrentTeam({ rejectOnEmpty: false });
+  const blockedDomains = team?.blockedEmbedDomains ?? DEFAULT_BLOCKED_EMBED_DOMAINS;
+  const documentEmbeds = team?.documentEmbeds ?? true;
 
   // single item is pasted.
   if (typeof pastedText === "string") {
@@ -99,7 +107,10 @@ function useItems({
       {
         name: "embed",
         title: t("Embed"),
-        visible: !!embed,
+        visible:
+          documentEmbeds &&
+          !!embed &&
+          !isDomainBlocked(pastedText, blockedDomains),
         icon: embed?.icon,
         keywords: embed?.keywords,
       },
@@ -152,8 +163,14 @@ function useItems({
       embeds.find((e) => e.title === embedType)?.icon
     );
 
+  // Check if embed option would actually be visible (respects documentEmbeds setting)
+  const embedVisible =
+    documentEmbeds &&
+    convertibleToEmbedList &&
+    !pastedText.some((text) => isDomainBlocked(text, blockedDomains));
+
   // don't render the menu when it can't be converted to other types.
-  if (!convertibleToMentionList && !convertibleToEmbedList) {
+  if (!convertibleToMentionList && !embedVisible) {
     return;
   }
 
@@ -173,7 +190,7 @@ function useItems({
     {
       name: "embed_list",
       title: t("Embed"),
-      visible: !!convertibleToEmbedList,
+      visible: embedVisible,
       icon: embedIcon,
       attrs: { actorId: user?.id },
     },

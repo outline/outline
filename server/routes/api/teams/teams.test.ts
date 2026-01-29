@@ -175,6 +175,96 @@ describe("#team.update", () => {
     expect(await TeamDomain.findByPk(existingTeamDomain.id)).toBeNull();
   });
 
+  it("should update blockedEmbedDomains", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const res = await server.post("/api/team.update", {
+      body: {
+        token: admin.getJwtToken(),
+        blockedEmbedDomains: ["linear.app", "github.com"],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.blockedEmbedDomains).toEqual(["linear.app", "github.com"]);
+  });
+
+  it("should filter empty strings from blockedEmbedDomains", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const res = await server.post("/api/team.update", {
+      body: {
+        token: admin.getJwtToken(),
+        blockedEmbedDomains: ["linear.app", "", "github.com", ""],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.blockedEmbedDomains).toEqual(["linear.app", "github.com"]);
+  });
+
+  it("should allow clearing blockedEmbedDomains", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+
+    // First set some domains
+    await server.post("/api/team.update", {
+      body: {
+        token: admin.getJwtToken(),
+        blockedEmbedDomains: ["linear.app"],
+      },
+    });
+
+    // Then clear them
+    const res = await server.post("/api/team.update", {
+      body: {
+        token: admin.getJwtToken(),
+        blockedEmbedDomains: [],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.blockedEmbedDomains).toEqual([]);
+  });
+
+  it("should reject invalid domain format in blockedEmbedDomains", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const res = await server.post("/api/team.update", {
+      body: {
+        token: admin.getJwtToken(),
+        blockedEmbedDomains: ["not a valid domain!"],
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should reject domain without dot in blockedEmbedDomains", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const res = await server.post("/api/team.update", {
+      body: {
+        token: admin.getJwtToken(),
+        blockedEmbedDomains: ["nodotdomain"],
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should allow localhost in blockedEmbedDomains", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const res = await server.post("/api/team.update", {
+      body: {
+        token: admin.getJwtToken(),
+        blockedEmbedDomains: ["localhost"],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.blockedEmbedDomains).toEqual(["localhost"]);
+  });
+
   it("should only allow member,viewer or admin as default role", async () => {
     const admin = await buildAdmin();
     const res = await server.post("/api/team.update", {

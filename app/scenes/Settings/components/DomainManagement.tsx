@@ -12,19 +12,37 @@ import Tooltip from "~/components/Tooltip";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import SettingRow from "./SettingRow";
 
+/** Fields on Team that contain domain arrays */
+type DomainFieldName = "allowedDomains" | "blockedEmbedDomains";
+
 type Props = {
+  /** Callback when domains are saved successfully */
   onSuccess: () => void;
+  /** Team field name to save to */
+  fieldName: DomainFieldName;
+  /** Label for the setting row */
+  label: string;
+  /** Description for the setting row */
+  description: string;
+  /** Default value when team field is null */
+  defaultValue?: string[];
 };
 
-function DomainManagement({ onSuccess }: Props) {
+function DomainManagement({
+  onSuccess,
+  fieldName,
+  label,
+  description,
+  defaultValue = [],
+}: Props) {
   const team = useCurrentTeam();
   const { t } = useTranslation();
 
-  const [allowedDomains, setAllowedDomains] = React.useState([
-    ...(team.allowedDomains ?? []),
+  const [domains, setDomains] = React.useState([
+    ...(team[fieldName] ?? defaultValue),
   ]);
   const [lastKnownDomainCount, updateLastKnownDomainCount] = React.useState(
-    allowedDomains.length
+    domains.length
   );
 
   const [existingDomainsTouched, setExistingDomainsTouched] =
@@ -32,19 +50,19 @@ function DomainManagement({ onSuccess }: Props) {
 
   const handleSaveDomains = React.useCallback(async () => {
     try {
-      await team.save({ allowedDomains });
+      await team.save({ [fieldName]: domains });
       onSuccess();
       setExistingDomainsTouched(false);
-      updateLastKnownDomainCount(allowedDomains.length);
+      updateLastKnownDomainCount(domains.length);
     } catch (err) {
       toast.error(err.message);
     }
-  }, [team, allowedDomains, onSuccess]);
+  }, [team, domains, fieldName, onSuccess]);
 
   const handleRemoveDomain = async (index: number) => {
-    const newDomains = allowedDomains.filter((_, i) => index !== i);
+    const newDomains = domains.filter((_, i) => index !== i);
 
-    setAllowedDomains(newDomains);
+    setDomains(newDomains);
 
     const touchedExistingDomain = index < lastKnownDomainCount;
     if (touchedExistingDomain) {
@@ -53,17 +71,17 @@ function DomainManagement({ onSuccess }: Props) {
   };
 
   const handleAddDomain = () => {
-    const newDomains = [...allowedDomains, ""];
+    const newDomains = [...domains, ""];
 
-    setAllowedDomains(newDomains);
+    setDomains(newDomains);
   };
 
   const createOnDomainChangedHandler =
     (index: number) => (ev: React.ChangeEvent<HTMLInputElement>) => {
-      const newDomains = allowedDomains.slice();
+      const newDomains = domains.slice();
 
       newDomains[index] = ev.currentTarget.value;
-      setAllowedDomains(newDomains);
+      setDomains(newDomains);
 
       const touchedExistingDomain = index < lastKnownDomainCount;
       if (touchedExistingDomain) {
@@ -73,22 +91,16 @@ function DomainManagement({ onSuccess }: Props) {
 
   const showSaveChanges =
     existingDomainsTouched ||
-    allowedDomains.filter((value: string) => value !== "").length > // New domains were added
+    domains.filter((value: string) => value !== "").length > // New domains were added
       lastKnownDomainCount;
 
   return (
-    <SettingRow
-      label={t("Allowed domains")}
-      name="allowedDomains"
-      description={t(
-        "The domains which should be allowed to create new accounts using SSO. Changing this setting does not affect existing user accounts."
-      )}
-    >
-      {allowedDomains.map((domain, index) => (
+    <SettingRow label={label} name={fieldName} description={description}>
+      {domains.map((domain, index) => (
         <Flex key={index} gap={4}>
           <Input
             key={index}
-            id={`allowedDomains${index}`}
+            id={`${fieldName}${index}`}
             value={domain}
             autoFocus={!domain}
             placeholder="example.com"
@@ -107,10 +119,9 @@ function DomainManagement({ onSuccess }: Props) {
       ))}
 
       <Flex justify="space-between" gap={4} style={{ flexWrap: "wrap" }}>
-        {!allowedDomains.length ||
-        allowedDomains[allowedDomains.length - 1] !== "" ? (
+        {!domains.length || domains[domains.length - 1] !== "" ? (
           <Button type="button" onClick={handleAddDomain} neutral>
-            {allowedDomains.length ? (
+            {domains.length ? (
               <Trans>Add another</Trans>
             ) : (
               <Trans>Add a domain</Trans>

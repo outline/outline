@@ -5,7 +5,9 @@ import { useState } from "react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
+import { DEFAULT_BLOCKED_EMBED_DOMAINS } from "@shared/editor/lib/embedBlocklist";
 import { TeamPreference, EmailDisplay } from "@shared/types";
+import DomainManagement from "./components/DomainManagement";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Heading from "~/components/Heading";
 import type { Option } from "~/components/InputSelect";
@@ -340,6 +342,17 @@ function Security() {
           onChange={handleDocumentEmbedsChange}
         />
       </SettingRow>
+      {data.documentEmbeds && (
+        <DomainManagement
+          onSuccess={showSuccessMessage}
+          fieldName="blockedEmbedDomains"
+          label={t("Blocked embed domains")}
+          description={t(
+            "Domains listed here will not show the embed option when pasting URLs."
+          )}
+          defaultValue={DEFAULT_BLOCKED_EMBED_DOMAINS}
+        />
+      )}
       <SettingRow
         label={t("Email address visibility")}
         name={TeamPreference.EmailDisplay}
