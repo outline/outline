@@ -493,7 +493,6 @@
   "Unstar document": "お気に入りから削除",
   "Star document": "お気に入りに追加",
   "Select a color": "色を選択",
-  "Loading": "ローディング",
   "Template created, go ahead and customize it": "テンプレートが作成されました",
   "Creating a template from <em>{{titleWithDefault}}</em> is a non-destructive action – we'll make a copy of the document and turn it into a template that can be used as a starting point for new documents.": "<em>{{titleWithDefault}}</em>のドキュメントからテンプレートを作成すると、元のドキュメントはコピーされ、テンプレートになります。",
   "Enable other members to use the template immediately": "他のメンバーがテンプレートをすぐに利用できるようにする",
@@ -1008,6 +1007,11 @@
   "Remove document filter": "フィルターを解除する",
   "Any status": "全てのステータス",
   "Remove search": "検索履歴を削除",
+  "Relevance": "Relevance",
+  "Newest": "Newest",
+  "Oldest": "Oldest",
+  "A → Z": "A → Z",
+  "Z → A": "Z → A",
   "Any author": "全ての作成者",
   "Search titles only": "タイトルのみ検索",
   "Please try again or contact support if the problem persists": "問題が解決しない場合は、もう一度やり直すか、サポートにお問い合わせください",
@@ -1491,5 +1495,6 @@
   "Empty diagram": "Empty diagram",
   "Double click to edit": "ダブルクリックで編集",
   "Open": "開く",
+  "Loading": "ローディング",
   "Error loading data": "データ読込エラー"
 }
