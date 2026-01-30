@@ -200,6 +200,7 @@ export class Environment {
 
   /**
    * The fully qualified, external facing domain name of the server.
+   * If not set, will be derived from HEROKU_APP_NAME for Heroku deployments.
    */
   @Public
   @IsNotEmpty()
@@ -208,7 +209,12 @@ export class Environment {
     require_protocol: true,
     require_tld: false,
   })
-  public URL = (environment.URL ?? "").replace(/\/$/, "");
+  public URL = (
+    environment.URL ??
+    (environment.HEROKU_APP_NAME
+      ? `https://${environment.HEROKU_APP_NAME}.herokuapp.com`
+      : "")
+  ).replace(/\/$/, "");
 
   /**
    * If using a Cloudfront/Cloudflare distribution or similar it can be set below.

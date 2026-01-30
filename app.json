@@ -21,7 +21,23 @@
     }
   ],
   "scripts": {
-    "postdeploy": "yarn sequelize db:migrate"
+    "postdeploy": "yarn sequelize db:migrate",
+    "pr-predeploy": "yarn sequelize db:migrate"
+  },
+  "environments": {
+    "review": {
+      "scripts": {
+        "postdeploy": "yarn sequelize db:migrate"
+      },
+      "addons": [
+        {
+          "plan": "heroku-redis:mini"
+        },
+        {
+          "plan": "heroku-postgresql:essential-0"
+        }
+      ]
+    }
   },
   "env": {
     "NODE_ENV": {
@@ -43,8 +59,12 @@
       "required": true
     },
     "URL": {
-      "description": "https://{your app name}.herokuapp.com, or the domain you are binding to",
-      "required": true
+      "description": "https://{your app name}.herokuapp.com, or the domain you are binding to. For review apps, this is auto-generated.",
+      "required": false
+    },
+    "HEROKU_APP_NAME": {
+      "description": "Automatically set by Heroku for review apps",
+      "required": false
     },
     "GOOGLE_CLIENT_ID": {
       "description": "See https://developers.google.com/identity/protocols/OAuth2 to create a new Google OAuth client. You must configure at least one of Slack or Google to control login.",
