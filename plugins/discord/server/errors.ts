@@ -5,6 +5,7 @@ export function DiscordGuildError(
 ) {
   return httpErrors(400, message, {
     id: "discord_guild_error",
+    isReportable: false,
   });
 }
 
@@ -13,5 +14,6 @@ export function DiscordGuildRoleError(
 ) {
   return httpErrors(400, message, {
     id: "discord_guild_role_error",
+    isReportable: false,
   });
 }
