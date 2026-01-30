@@ -8,7 +8,12 @@ import Flex from "~/components/Flex";
 import InputSearch from "~/components/InputSearch";
 import Key from "~/components/Key";
 
-function KeyboardShortcuts() {
+type Props = {
+  /** Initial search query to filter shortcuts */
+  defaultQuery?: string;
+};
+
+function KeyboardShortcuts({ defaultQuery = "" }: Props) {
   const { t } = useTranslation();
   const categories = useMemo(
     () => [
@@ -533,7 +538,7 @@ function KeyboardShortcuts() {
     ],
     [t]
   );
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(defaultQuery);
   const normalizedSearchTerm = searchTerm.toLocaleLowerCase();
   const handleChange = useCallback((event) => {
     setSearchTerm(event.target.value);
