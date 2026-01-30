@@ -355,7 +355,7 @@ function KeyboardShortcuts() {
                 <Key symbol>{metaDisplay}</Key> + <Key>Enter</Key>
               </>
             ),
-            label: t("Open / Close"),
+            label: t("Open / close"),
           },
           {
             shortcut: <Key>{t("Tab")}</Key>,
@@ -557,10 +557,15 @@ function KeyboardShortcuts() {
         />
       </StickySearch>
       {categories.map((category, x) => {
+        const titleMatches = category.title
+          .toLocaleLowerCase()
+          .includes(normalizedSearchTerm);
         const filtered = searchTerm
-          ? category.items.filter((item) =>
-              item.label.toLocaleLowerCase().includes(normalizedSearchTerm)
-            )
+          ? titleMatches
+            ? category.items
+            : category.items.filter((item) =>
+                item.label.toLocaleLowerCase().includes(normalizedSearchTerm)
+              )
           : category.items;
 
         if (!filtered.length) {
