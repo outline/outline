@@ -201,7 +201,7 @@ const LinkEditor: React.FC<Props> = ({
 
   return (
     <div ref={wrapperRef}>
-      <InputWrapper ref={wrapperRef}>
+      <InputWrapper>
         <Input
           ref={inputRef}
           value={query}
@@ -274,7 +274,7 @@ const LinkEditor: React.FC<Props> = ({
 const InputWrapper = styled(Flex)`
   pointer-events: all;
   gap: 6px;
-  padding: 4px 6px;
+  padding: 6px;
   align-items: center;
 `;
 

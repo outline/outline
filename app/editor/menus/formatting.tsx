@@ -20,7 +20,7 @@ import {
   TableMergeCellsIcon,
   TableSplitCellsIcon,
   PaletteIcon,
-  CollapsedIcon,
+  CollapseIcon,
 } from "outline-icons";
 import { v4 as uuidv4 } from "uuid";
 import CellBackgroundColorPicker from "../components/CellBackgroundColorPicker";
@@ -290,7 +290,8 @@ export default function formattingMenuItems(
     },
     {
       name: "container_toggle",
-      icon: <CollapsedIcon />,
+      icon: <CollapseIcon />,
+      tooltip: dictionary.toggleBlock,
       active: isNodeActive(schema.nodes.container_toggle),
       attrs: { id: uuidv4() },
       visible: !isCodeBlock && (!isMobile || isEmpty),
