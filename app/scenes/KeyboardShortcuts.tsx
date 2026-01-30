@@ -8,7 +8,12 @@ import Flex from "~/components/Flex";
 import InputSearch from "~/components/InputSearch";
 import Key from "~/components/Key";
 
-function KeyboardShortcuts() {
+type Props = {
+  /** Initial search query to filter shortcuts */
+  defaultQuery?: string;
+};
+
+function KeyboardShortcuts({ defaultQuery = "" }: Props) {
   const { t } = useTranslation();
   const categories = useMemo(
     () => [
@@ -355,7 +360,7 @@ function KeyboardShortcuts() {
                 <Key symbol>{metaDisplay}</Key> + <Key>Enter</Key>
               </>
             ),
-            label: t("Open / Close"),
+            label: t("Open / close"),
           },
           {
             shortcut: <Key>{t("Tab")}</Key>,
@@ -533,7 +538,7 @@ function KeyboardShortcuts() {
     ],
     [t]
   );
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(defaultQuery);
   const normalizedSearchTerm = searchTerm.toLocaleLowerCase();
   const handleChange = useCallback((event) => {
     setSearchTerm(event.target.value);
@@ -557,10 +562,15 @@ function KeyboardShortcuts() {
         />
       </StickySearch>
       {categories.map((category, x) => {
+        const titleMatches = category.title
+          .toLocaleLowerCase()
+          .includes(normalizedSearchTerm);
         const filtered = searchTerm
-          ? category.items.filter((item) =>
-              item.label.toLocaleLowerCase().includes(normalizedSearchTerm)
-            )
+          ? titleMatches
+            ? category.items
+            : category.items.filter((item) =>
+                item.label.toLocaleLowerCase().includes(normalizedSearchTerm)
+              )
           : category.items;
 
         if (!filtered.length) {
