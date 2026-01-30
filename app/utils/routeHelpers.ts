@@ -113,13 +113,19 @@ export function newDocumentPath(
     templateId?: string;
   } = {}
 ): string {
+  const search = queryString.stringify(params);
+
   return collectionId
-    ? `/collection/${collectionId}/new?${queryString.stringify(params)}`
-    : `/doc/new?${queryString.stringify(params)}`;
+    ? `/collection/${collectionId}/new${search ? `?${search}` : ""}`
+    : `/doc/new${search ? `?${search}` : ""}`;
 }
 
 export function newNestedDocumentPath(parentDocumentId?: string): string {
-  return `/doc/new?${queryString.stringify({ parentDocumentId })}`;
+  const search = parentDocumentId
+    ? `?${queryString.stringify({ parentDocumentId })}`
+    : "";
+
+  return `/doc/new${search}`;
 }
 
 export function searchPath({
@@ -133,15 +139,14 @@ export function searchPath({
   documentId?: string;
   ref?: string;
 } = {}): string {
-  let search = queryString.stringify({
+  const search = queryString.stringify({
     q: query,
     collectionId,
     documentId,
     ref,
   });
 
-  search = search ? `?${search}` : "";
-  return `/search${search}`;
+  return `/search${search ? `?${search}` : ""}`;
 }
 
 export function sharedModelPath(shareId: string, modelPath?: string) {
