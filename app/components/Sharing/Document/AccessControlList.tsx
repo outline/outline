@@ -119,7 +119,27 @@ export const AccessControlList = observer(
             maxHeight: maxHeight ? maxHeight - publicAccessHeight : undefined,
           }}
         >
-          {collection && canCollection.readDocument ? (
+          {document.isDraft ? (
+            <>
+              <ListItem
+                image={<Avatar model={document.createdBy} />}
+                title={document.createdBy?.name}
+                actions={
+                  <AccessTooltip content={t("Created the document")}>
+                    {t("Can edit")}
+                  </AccessTooltip>
+                }
+              />
+              {showLoading ? (
+                <Placeholder />
+              ) : (
+                <DocumentMemberList
+                  document={document}
+                  invitedInSession={invitedInSession}
+                />
+              )}
+            </>
+          ) : collection && canCollection.readDocument ? (
             <>
               {collection.permission ? (
                 <ListItem
@@ -153,26 +173,6 @@ export const AccessControlList = observer(
                   actions={<AccessTooltip>{t("Can edit")}</AccessTooltip>}
                 />
               )}
-              {showLoading ? (
-                <Placeholder />
-              ) : (
-                <DocumentMemberList
-                  document={document}
-                  invitedInSession={invitedInSession}
-                />
-              )}
-            </>
-          ) : document.isDraft ? (
-            <>
-              <ListItem
-                image={<Avatar model={document.createdBy} />}
-                title={document.createdBy?.name}
-                actions={
-                  <AccessTooltip content={t("Created the document")}>
-                    {t("Can edit")}
-                  </AccessTooltip>
-                }
-              />
               {showLoading ? (
                 <Placeholder />
               ) : (
