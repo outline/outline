@@ -5,7 +5,7 @@ export function DiscordGuildError(
 ) {
   return httpErrors(400, message, {
     id: "discord_guild_error",
-    isSentryReported: false,
+    isReportable: false,
   });
 }
 
@@ -14,6 +14,6 @@ export function DiscordGuildRoleError(
 ) {
   return httpErrors(400, message, {
     id: "discord_guild_role_error",
-    isSentryReported: false,
+    isReportable: false,
   });
 }
