@@ -106,8 +106,7 @@ function InnerDocumentLink(
       membership?.pathToDocument(activeDocument.id);
 
     return !!(
-      pathToDocument?.map((entry) => entry.id).includes(node.id) ||
-      isActiveDocument
+      pathToDocument?.some((entry) => entry.id === node.id) || isActiveDocument
     );
   }, [
     hasChildDocuments,
