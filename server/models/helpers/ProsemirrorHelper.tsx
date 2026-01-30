@@ -736,16 +736,14 @@ export class ProsemirrorHelper {
     // Get the text content from the beginning of the document
     let textContent = "";
     let foundTextNode: Node | null = null;
-    let foundTextPos = -1;
 
-    doc.descendants((node, pos) => {
+    doc.descendants((node) => {
       if (foundTextNode) {
         return false;
       }
       if (node.isText && node.text) {
         textContent = node.text;
         foundTextNode = node;
-        foundTextPos = pos;
         return false;
       }
       return true;
