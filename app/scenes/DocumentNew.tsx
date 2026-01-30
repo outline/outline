@@ -79,7 +79,8 @@ function DocumentNew({ template }: Props) {
     }
 
     void createDocument();
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <Flex column auto>
