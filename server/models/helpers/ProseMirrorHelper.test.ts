@@ -769,4 +769,269 @@ describe("ProsemirrorHelper", () => {
       expect(thirdItem.textContent).toBe("Third");
     });
   });
+
+  describe("removeFirstHeading", () => {
+    it("should remove an H1 that is the first child", () => {
+      const doc = buildProseMirrorDoc([
+        {
+          type: "heading",
+          attrs: { level: 1 },
+          content: [{ type: "text", text: "Title" }],
+        },
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "Content" }],
+        },
+      ]);
+
+      const result = ProsemirrorHelper.removeFirstHeading(doc);
+
+      expect(result.content.childCount).toBe(1);
+      expect(result.content.child(0).type.name).toBe("paragraph");
+      expect(result.content.child(0).textContent).toBe("Content");
+    });
+
+    it("should not remove an H2 heading", () => {
+      const doc = buildProseMirrorDoc([
+        {
+          type: "heading",
+          attrs: { level: 2 },
+          content: [{ type: "text", text: "Subtitle" }],
+        },
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "Content" }],
+        },
+      ]);
+
+      const result = ProsemirrorHelper.removeFirstHeading(doc);
+
+      expect(result.content.childCount).toBe(2);
+      expect(result.content.child(0).type.name).toBe("heading");
+      expect(result.content.child(0).attrs.level).toBe(2);
+    });
+
+    it("should not remove a paragraph that is the first child", () => {
+      const doc = buildProseMirrorDoc([
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "First paragraph" }],
+        },
+        {
+          type: "heading",
+          attrs: { level: 1 },
+          content: [{ type: "text", text: "Title" }],
+        },
+      ]);
+
+      const result = ProsemirrorHelper.removeFirstHeading(doc);
+
+      expect(result.content.childCount).toBe(2);
+      expect(result.content.child(0).type.name).toBe("paragraph");
+    });
+
+    it("should return document with empty paragraph when H1 is only content", () => {
+      const doc = buildProseMirrorDoc([
+        {
+          type: "heading",
+          attrs: { level: 1 },
+          content: [{ type: "text", text: "Only Title" }],
+        },
+      ]);
+
+      const result = ProsemirrorHelper.removeFirstHeading(doc);
+
+      expect(result.content.childCount).toBe(1);
+      expect(result.content.child(0).type.name).toBe("paragraph");
+      expect(result.content.child(0).textContent).toBe("");
+    });
+  });
+
+  describe("extractEmojiFromStart", () => {
+    it("should extract an emoji from the start of the document", () => {
+      const doc = buildProseMirrorDoc([
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "🚀 Launch day" }],
+        },
+      ]);
+
+      const result = ProsemirrorHelper.extractEmojiFromStart(doc);
+
+      expect(result.emoji).toBe("🚀");
+      expect(result.doc.content.child(0).textContent).toBe(" Launch day");
+    });
+
+    it("should return undefined emoji when no emoji at start", () => {
+      const doc = buildProseMirrorDoc([
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "No emoji here" }],
+        },
+      ]);
+
+      const result = ProsemirrorHelper.extractEmojiFromStart(doc);
+
+      expect(result.emoji).toBeUndefined();
+      expect(result.doc.content.child(0).textContent).toBe("No emoji here");
+    });
+
+    it("should not extract emoji that is not at position 0", () => {
+      const doc = buildProseMirrorDoc([
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "Hello 🚀 world" }],
+        },
+      ]);
+
+      const result = ProsemirrorHelper.extractEmojiFromStart(doc);
+
+      expect(result.emoji).toBeUndefined();
+    });
+
+    it("should handle empty document", () => {
+      const doc = buildProseMirrorDoc([
+        {
+          type: "paragraph",
+          content: [],
+        },
+      ]);
+
+      const result = ProsemirrorHelper.extractEmojiFromStart(doc);
+
+      expect(result.emoji).toBeUndefined();
+    });
+
+    it("should extract emoji from nested content", () => {
+      const doc = buildProseMirrorDoc([
+        {
+          type: "heading",
+          attrs: { level: 1 },
+          content: [{ type: "text", text: "📚 Documentation" }],
+        },
+      ]);
+
+      const result = ProsemirrorHelper.extractEmojiFromStart(doc);
+
+      expect(result.emoji).toBe("📚");
+      expect(result.doc.content.child(0).textContent).toBe(" Documentation");
+    });
+
+    it("should handle flag emoji", () => {
+      const doc = buildProseMirrorDoc([
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "🇺🇸 United States" }],
+        },
+      ]);
+
+      const result = ProsemirrorHelper.extractEmojiFromStart(doc);
+
+      expect(result.emoji).toBe("🇺🇸");
+      expect(result.doc.content.child(0).textContent).toBe(" United States");
+    });
+  });
+
+  describe("htmlToProsemirror", () => {
+    it("should convert basic HTML to Prosemirror", () => {
+      const html = "<p>Hello world</p>";
+
+      const doc = ProsemirrorHelper.htmlToProsemirror(html);
+
+      expect(doc.type.name).toBe("doc");
+      expect(doc.content.childCount).toBe(1);
+      expect(doc.content.child(0).type.name).toBe("paragraph");
+      expect(doc.content.child(0).textContent).toBe("Hello world");
+    });
+
+    it("should convert HTML with heading", () => {
+      const html = "<h1>Title</h1><p>Content</p>";
+
+      const doc = ProsemirrorHelper.htmlToProsemirror(html);
+
+      expect(doc.content.childCount).toBe(2);
+      expect(doc.content.child(0).type.name).toBe("heading");
+      expect(doc.content.child(0).attrs.level).toBe(1);
+      expect(doc.content.child(0).textContent).toBe("Title");
+      expect(doc.content.child(1).type.name).toBe("paragraph");
+    });
+
+    it("should remove script tags", () => {
+      const html = "<p>Safe content</p><script>alert('xss')</script>";
+
+      const doc = ProsemirrorHelper.htmlToProsemirror(html);
+
+      expect(doc.textContent).toBe("Safe content");
+      expect(doc.textContent).not.toContain("alert");
+    });
+
+    it("should remove style tags", () => {
+      const html = "<style>body { color: red; }</style><p>Content</p>";
+
+      const doc = ProsemirrorHelper.htmlToProsemirror(html);
+
+      expect(doc.textContent).toBe("Content");
+      expect(doc.textContent).not.toContain("color");
+    });
+
+    it("should handle Buffer input", () => {
+      const html = Buffer.from("<p>From buffer</p>", "utf8");
+
+      const doc = ProsemirrorHelper.htmlToProsemirror(html);
+
+      expect(doc.content.child(0).textContent).toBe("From buffer");
+    });
+
+    it("should convert HTML with lists", () => {
+      const html = "<ul><li>Item 1</li><li>Item 2</li></ul>";
+
+      const doc = ProsemirrorHelper.htmlToProsemirror(html);
+
+      expect(doc.content.childCount).toBe(1);
+      expect(doc.content.child(0).type.name).toBe("bullet_list");
+      expect(doc.content.child(0).content.childCount).toBe(2);
+    });
+
+    it("should convert HTML with bold and italic", () => {
+      const html = "<p><strong>Bold</strong> and <em>italic</em></p>";
+
+      const doc = ProsemirrorHelper.htmlToProsemirror(html);
+
+      const paragraph = doc.content.child(0);
+      expect(paragraph.type.name).toBe("paragraph");
+
+      // Check that marks are applied
+      const boldText = paragraph.content.child(0);
+      expect(boldText.text).toBe("Bold");
+      expect(boldText.marks.some((m) => m.type.name === "strong")).toBe(true);
+
+      const italicText = paragraph.content.child(2);
+      expect(italicText.text).toBe("italic");
+      expect(italicText.marks.some((m) => m.type.name === "em")).toBe(true);
+    });
+
+    it("should handle full HTML document", () => {
+      const html = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Test</title>
+            <meta charset="utf-8">
+          </head>
+          <body>
+            <h1>Document Title</h1>
+            <p>Paragraph content</p>
+          </body>
+        </html>
+      `;
+
+      const doc = ProsemirrorHelper.htmlToProsemirror(html);
+
+      expect(doc.content.childCount).toBe(2);
+      expect(doc.content.child(0).type.name).toBe("heading");
+      expect(doc.content.child(0).textContent).toBe("Document Title");
+      expect(doc.content.child(1).type.name).toBe("paragraph");
+      expect(doc.content.child(1).textContent).toBe("Paragraph content");
+    });
+  });
 });
