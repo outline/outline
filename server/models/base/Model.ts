@@ -12,7 +12,7 @@ import type {
   NonAttribute,
   SaveOptions,
 } from "sequelize";
-import { DataTypes } from "sequelize";
+import { DataTypes, UniqueConstraintError } from "sequelize";
 import {
   AfterCreate,
   AfterDestroy,
@@ -123,15 +123,20 @@ class Model<
   }
 
   /**
-   * Find a row that matches the query, or build and save the row if none is found
+   * Find a row that matches the query, or build and save the row if none is found.
    * The successful result of the promise will be (instance, created) - Make sure to use `.then(([...]))`
+   *
+   * @param ctx The API context.
+   * @param options The find or create options.
+   * @param eventOpts Optional event override options.
+   * @returns a tuple of the instance and a boolean indicating if it was created.
    */
-  public static findOrCreateWithCtx<M extends Model>(
+  public static async findOrCreateWithCtx<M extends Model>(
     this: ModelStatic<M>,
     ctx: APIContext,
     options: FindOrCreateOptions<Attributes<M>, CreationAttributes<M>>,
     eventOpts?: EventOverrideOptions
-  ) {
+  ): Promise<[M, boolean]> {
     const hookContext: HookContext = {
       ...ctx.context,
       event: {
@@ -139,10 +144,37 @@ class Model<
         publish: true,
       },
     };
-    return this.findOrCreate({
-      ...options,
-      ...hookContext,
+    const transaction = ctx.context.transaction;
+
+    // First, try to find an existing record
+    const existing = await this.findOne({
+      where: options.where,
+      transaction,
     });
+
+    if (existing) {
+      return [existing as M, false];
+    }
+
+    // Record not found, try to create it
+    try {
+      const created = await this.create(
+        { ...options.defaults, ...options.where } as CreationAttributes<M>,
+        { ...hookContext, transaction }
+      );
+      return [created as M, true];
+    } catch (err) {
+      // Handle race condition: another request created the record first
+      if (err instanceof UniqueConstraintError) {
+        const found = await this.findOne({
+          where: options.where,
+          transaction,
+          rejectOnEmpty: true,
+        });
+        return [found as M, false];
+      }
+      throw err;
+    }
   }
 
   /**

@@ -360,7 +360,7 @@ router.post(
       userPermission !== undefined &&
       groupUser.permission !== userPermission
     ) {
-      await groupUser.update({ permission: userPermission });
+      await groupUser.updateWithCtx(ctx, { permission: userPermission });
     }
 
     groupUser.user = user;

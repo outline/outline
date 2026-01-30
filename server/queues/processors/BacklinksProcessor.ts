@@ -33,17 +33,22 @@ export default class BacklinksProcessor extends BaseProcessor {
               return;
             }
 
-            await Relationship.findOrCreate({
+            const existing = await Relationship.findOne({
               where: {
                 documentId: linkedDocument.id,
                 reverseDocumentId: event.documentId,
                 type: RelationshipType.Backlink,
               },
-              defaults: {
+            });
+
+            if (!existing) {
+              await Relationship.create({
+                documentId: linkedDocument.id,
+                reverseDocumentId: event.documentId,
                 userId: document.lastModifiedById,
                 type: RelationshipType.Backlink,
-              },
-            });
+              });
+            }
           })
         );
         break;
@@ -74,17 +79,22 @@ export default class BacklinksProcessor extends BaseProcessor {
               return;
             }
 
-            await Relationship.findOrCreate({
+            const existing = await Relationship.findOne({
               where: {
                 documentId: linkedDocument.id,
                 reverseDocumentId: event.documentId,
                 type: RelationshipType.Backlink,
               },
-              defaults: {
+            });
+
+            if (!existing) {
+              await Relationship.create({
+                documentId: linkedDocument.id,
+                reverseDocumentId: event.documentId,
                 userId: document.lastModifiedById,
                 type: RelationshipType.Backlink,
-              },
-            });
+              });
+            }
             linkedDocumentIds.push(linkedDocument.id);
           })
         );
