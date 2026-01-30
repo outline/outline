@@ -283,7 +283,7 @@
   "Square images with transparent backgrounds work best. If your image is too large, we’ll try to resize it for you.": "Square images with transparent backgrounds work best. If your image is too large, we’ll try to resize it for you.",
   "Upload an image": "Bir görsel yükle",
   "Click or drag to replace": "Click or drag to replace",
-  "Drop the image here": "Drop the image here",
+  "Drop the image here": "Dosyayı buradan seçin",
   "Click, drop, or paste an image here": "Click, drop, or paste an image here",
   "PNG, JPG, GIF, or WebP up to {{ size }}": "PNG, JPG, GIF, or WebP up to {{ size }}",
   "Choose a name": "Choose a name",
