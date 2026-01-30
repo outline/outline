@@ -108,7 +108,11 @@ export function SelectionToolbar(props: Props) {
 
     if (isEmbedSelection && !readOnly) {
       setActiveToolbar(Toolbar.Media);
-    } else if (linkMark && !activeToolbar && !readOnly) {
+    } else if (
+      linkMark &&
+      (activeToolbar === null || activeToolbar === Toolbar.Link) &&
+      !readOnly
+    ) {
       setActiveToolbar(Toolbar.Link);
     } else if (isCodeSelection) {
       setActiveToolbar(Toolbar.Menu);
@@ -120,6 +124,19 @@ export function SelectionToolbar(props: Props) {
       setActiveToolbar(null);
     }
   }, [readOnly, selection]);
+
+  // Refocus the editor when the link toolbar closes to prevent focus loss
+  const prevActiveToolbar = React.useRef(activeToolbar);
+  React.useEffect(() => {
+    if (
+      prevActiveToolbar.current === Toolbar.Link &&
+      activeToolbar !== Toolbar.Link &&
+      !readOnly
+    ) {
+      view.focus();
+    }
+    prevActiveToolbar.current = activeToolbar;
+  }, [activeToolbar, readOnly, view]);
 
   React.useEffect(() => {
     const handleClickOutside = (ev: MouseEvent): void => {
