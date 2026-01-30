@@ -130,7 +130,7 @@ export function SelectionToolbar(props: Props) {
   React.useEffect(() => {
     if (
       prevActiveToolbar.current === Toolbar.Link &&
-      activeToolbar === null &&
+      activeToolbar !== Toolbar.Link &&
       !readOnly
     ) {
       view.focus();
