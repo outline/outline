@@ -419,14 +419,19 @@ router.post(
       authorize(user, "read", customEmoji);
     }
 
-    await Reaction.findOrCreate({
-      where: {
-        emoji,
-        userId: user.id,
-        commentId: id,
+    await Reaction.findOrCreateWithCtx(
+      ctx,
+      {
+        where: {
+          emoji,
+          userId: user.id,
+          commentId: id,
+        },
       },
-      ...ctx.context,
-    });
+      {
+        persist: false,
+      }
+    );
 
     ctx.body = {
       success: true,
