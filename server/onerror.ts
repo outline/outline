@@ -29,12 +29,17 @@ export default function onerror(app: Koa) {
       }
     }
 
-    // Push only unknown and 500 status errors to sentry
-    if (
-      typeof err.status !== "number" ||
-      !http.STATUS_CODES[err.status] ||
-      err.status === 500
-    ) {
+    // Push only errors explicitly marked for Sentry reporting.
+    // For unknown errors without isSentryReported property, report them as well
+    // to ensure we don't miss unexpected errors.
+    const shouldReport =
+      err.isSentryReported === true ||
+      (err.isSentryReported !== false &&
+        (typeof err.status !== "number" ||
+          !http.STATUS_CODES[err.status] ||
+          err.status === 500));
+
+    if (shouldReport) {
       requestErrorHandler(err, this);
 
       if (!(err instanceof InternalError)) {
