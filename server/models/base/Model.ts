@@ -159,7 +159,7 @@ class Model<
     // Record not found, try to create it
     try {
       const created = await this.create(
-        { ...options.where, ...options.defaults } as CreationAttributes<M>,
+        { ...options.defaults, ...options.where } as CreationAttributes<M>,
         { ...hookContext, transaction }
       );
       return [created as M, true];
