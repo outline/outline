@@ -58,12 +58,12 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
   private workingTable: string = "";
 
   public async perform({ partition }: Props) {
-    // Only run every 6 hours (at hours 0, 6, 12, 18)
+    // Only run every X hours, skip other hours
     const currentHour = new Date().getHours();
-    if (currentHour % 6 !== 0) {
+    if (currentHour % env.POPULARITY_UPDATE_INTERVAL_HOURS !== 0) {
       Logger.debug(
         "task",
-        `Skipping popularity score update, will run at next 6-hour interval (current hour: ${currentHour})`
+        `Skipping popularity score update, will run at next ${env.POPULARITY_UPDATE_INTERVAL_HOURS}-hour interval (current hour: ${currentHour})`
       );
       return;
     }
@@ -164,14 +164,15 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
 
     // Populate with documents that have recent activity and are valid
     // (published, not deleted). Process in chunks to avoid long-running queries.
+    // Read from replica to avoid excessive locking on primary.
     let lastId = startUuid;
     let insertedCount = 0;
     const chunkSize = 1000;
 
     while (true) {
-      const result = await sequelize.query<{ documentId: string }>(
+      // Step 1: Read document IDs from readonly replica to avoid locking
+      const documentIds = await sequelizeReadOnly.query<{ id: string }>(
         `
-        INSERT INTO ${this.workingTable} ("documentId")
         SELECT d.id
         FROM documents d
         WHERE d."publishedAt" IS NOT NULL
@@ -194,8 +195,6 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
           )
         ORDER BY d.id
         LIMIT :limit
-        ON CONFLICT ("documentId") DO NOTHING
-        RETURNING "documentId"
         `,
         {
           replacements: {
@@ -208,14 +207,29 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
         }
       );
 
-      if (result.length === 0) {
+      if (documentIds.length === 0) {
         break;
       }
 
-      insertedCount += result.length;
-      lastId = result[result.length - 1].documentId;
+      // Step 2: Insert the IDs into the working table on primary
+      const ids = documentIds.map((d) => d.id);
+      const result = await sequelize.query<{ documentId: string }>(
+        `
+        INSERT INTO ${this.workingTable} ("documentId")
+        SELECT * FROM unnest(ARRAY[:ids]::uuid[])
+        ON CONFLICT ("documentId") DO NOTHING
+        RETURNING "documentId"
+        `,
+        {
+          replacements: { ids },
+          type: QueryTypes.SELECT,
+        }
+      );
 
-      if (result.length < chunkSize) {
+      insertedCount += result.length;
+      lastId = documentIds[documentIds.length - 1].id;
+
+      if (documentIds.length < chunkSize) {
         break;
       }
     }
@@ -385,14 +399,19 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
 
     // Update documents in a single batch to improve performance and reduce round-trips.
     // We use unnest with multiple arrays to ensure the IDs and scores stay aligned.
+    // We also use SKIP LOCKED to avoid waiting on locked rows from other concurrent tasks.
     await sequelize.query(
       `
+      WITH lockable AS (
+        SELECT id FROM documents WHERE id = ANY(ARRAY[:ids]::uuid[]) FOR UPDATE SKIP LOCKED
+      )
       UPDATE documents AS d
       SET "popularityScore" = s.score
       FROM (
         SELECT * FROM unnest(ARRAY[:ids]::uuid[], ARRAY[:scores]::double precision[]) AS s(id, score)
       ) AS s
       WHERE d.id = s.id
+      AND d.id IN (SELECT id FROM lockable)
       `,
       {
         replacements: {

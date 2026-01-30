@@ -785,6 +785,15 @@ export class Environment {
     this.toOptionalNumber(environment.POPULARITY_ACTIVITY_THRESHOLD_WEEKS) ?? 2;
 
   /**
+   * Interval in hours at which popularity scores are recalculated.
+   * Default is 12 hours.
+   */
+  @IsOptional()
+  @IsNumber()
+  public POPULARITY_UPDATE_INTERVAL_HOURS =
+    this.toOptionalNumber(environment.POPULARITY_UPDATE_INTERVAL_HOURS) ?? 12;
+
+  /**
    * Returns true if the current installation is the cloud hosted version at
    * getoutline.com
    */
