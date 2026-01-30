@@ -63,7 +63,7 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
     if (currentHour % env.POPULARITY_UPDATE_INTERVAL_HOURS !== 0) {
       Logger.debug(
         "task",
-        `Skipping popularity score update, will run at next 6-hour interval (current hour: ${currentHour})`
+        `Skipping popularity score update, will run at next ${env.POPULARITY_UPDATE_INTERVAL_HOURS}-hour interval (current hour: ${currentHour})`
       );
       return;
     }
