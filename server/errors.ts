@@ -3,7 +3,7 @@ import httpErrors from "http-errors";
 export function InternalError(message = "Internal error") {
   return httpErrors(500, message, {
     id: "internal_error",
-    isSentryReported: true,
+    isReportable: true,
   });
 }
 
@@ -14,7 +14,7 @@ export function AuthenticationError(
   return httpErrors(401, message, {
     redirectPath,
     id: "authentication_required",
-    isSentryReported: false,
+    isReportable: false,
   });
 }
 
@@ -25,21 +25,21 @@ export function InvalidAuthenticationError(
   return httpErrors(401, message, {
     redirectPath,
     id: "invalid_authentication",
-    isSentryReported: false,
+    isReportable: false,
   });
 }
 
 export function AuthorizationError(message = "Authorization error") {
   return httpErrors(403, message, {
     id: "authorization_error",
-    isSentryReported: false,
+    isReportable: false,
   });
 }
 
 export function CSRFError(message = "Authorization error") {
   return httpErrors(403, message, {
     id: "csrf_error",
-    isSentryReported: false,
+    isReportable: false,
   });
 }
 
@@ -48,7 +48,7 @@ export function RateLimitExceededError(
 ) {
   return httpErrors(429, message, {
     id: "rate_limit_exceeded",
-    isSentryReported: false,
+    isReportable: false,
   });
 }
 
@@ -57,7 +57,7 @@ export function InviteRequiredError(
 ) {
   return httpErrors(403, message, {
     id: "invite_required",
-    isSentryReported: false,
+    isReportable: false,
   });
 }
 
@@ -66,7 +66,7 @@ export function DomainNotAllowedError(
 ) {
   return httpErrors(403, message, {
     id: "domain_not_allowed",
-    isSentryReported: false,
+    isReportable: false,
   });
 }
 
@@ -75,7 +75,7 @@ export function AdminRequiredError(
 ) {
   return httpErrors(403, message, {
     id: "admin_required",
-    isSentryReported: false,
+    isReportable: false,
   });
 }
 
@@ -92,7 +92,7 @@ export function UserSuspendedError({
       errorData: {
         adminEmail,
       },
-      isSentryReported: false,
+      isReportable: false,
     }
   );
 }
@@ -100,35 +100,35 @@ export function UserSuspendedError({
 export function InvalidRequestError(message = "Request invalid") {
   return httpErrors(400, message, {
     id: "invalid_request",
-    isSentryReported: false,
+    isReportable: false,
   });
 }
 
 export function PaymentRequiredError(message = "Payment required") {
   return httpErrors(402, message, {
     id: "payment_required",
-    isSentryReported: false,
+    isReportable: false,
   });
 }
 
 export function NotFoundError(message = "Resource not found") {
   return httpErrors(404, message, {
     id: "not_found",
-    isSentryReported: false,
+    isReportable: false,
   });
 }
 
 export function ParamRequiredError(message = "Required parameter missing") {
   return httpErrors(400, message, {
     id: "param_required",
-    isSentryReported: false,
+    isReportable: false,
   });
 }
 
 export function ValidationError(message = "Validation failed") {
   return httpErrors(400, message, {
     id: "validation_error",
-    isSentryReported: false,
+    isReportable: false,
   });
 }
 
@@ -137,7 +137,7 @@ export function IncorrectEditionError(
 ) {
   return httpErrors(402, message, {
     id: "incorrect_edition",
-    isSentryReported: false,
+    isReportable: false,
   });
 }
 
@@ -146,14 +146,14 @@ export function EditorUpdateError(
 ) {
   return httpErrors(400, message, {
     id: "editor_update_required",
-    isSentryReported: false,
+    isReportable: false,
   });
 }
 
 export function FileImportError(message = "The file could not be imported") {
   return httpErrors(400, message, {
     id: "import_error",
-    isSentryReported: false,
+    isReportable: false,
   });
 }
 
@@ -162,7 +162,7 @@ export function OAuthStateMismatchError(
 ) {
   return httpErrors(400, message, {
     id: "state_mismatch",
-    isSentryReported: false,
+    isReportable: false,
   });
 }
 
@@ -171,7 +171,7 @@ export function TeamPendingDeletionError(
 ) {
   return httpErrors(403, message, {
     id: "pending_deletion",
-    isSentryReported: false,
+    isReportable: false,
   });
 }
 
@@ -182,7 +182,7 @@ export function EmailAuthenticationRequiredError(
   return httpErrors(400, message, {
     redirectPath,
     id: "email_auth_required",
-    isSentryReported: false,
+    isReportable: false,
   });
 }
 
@@ -191,7 +191,7 @@ export function MicrosoftGraphError(
 ) {
   return httpErrors(400, message, {
     id: "graph_error",
-    isSentryReported: false,
+    isReportable: false,
   });
 }
 
@@ -200,7 +200,7 @@ export function TeamDomainRequiredError(
 ) {
   return httpErrors(400, message, {
     id: "domain_required",
-    isSentryReported: false,
+    isReportable: false,
   });
 }
 
@@ -209,7 +209,7 @@ export function GmailAccountCreationError(
 ) {
   return httpErrors(400, message, {
     id: "gmail_account_creation",
-    isSentryReported: false,
+    isReportable: false,
   });
 }
 
@@ -218,7 +218,7 @@ export function OIDCMalformedUserInfoError(
 ) {
   return httpErrors(400, message, {
     id: "malformed_user_info",
-    isSentryReported: false,
+    isReportable: false,
   });
 }
 
@@ -229,7 +229,7 @@ export function AuthenticationProviderDisabledError(
   return httpErrors(400, message, {
     redirectPath,
     id: "authentication_provider_disabled",
-    isSentryReported: false,
+    isReportable: false,
   });
 }
 
@@ -238,7 +238,7 @@ export function UnprocessableEntityError(
 ) {
   return httpErrors(422, message, {
     id: "unprocessable_entity",
-    isSentryReported: false,
+    isReportable: false,
   });
 }
 
@@ -247,6 +247,6 @@ export function ClientClosedRequestError(
 ) {
   return httpErrors(499, message, {
     id: "client_closed_request",
-    isSentryReported: false,
+    isReportable: false,
   });
 }

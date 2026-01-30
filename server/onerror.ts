@@ -30,11 +30,11 @@ export default function onerror(app: Koa) {
     }
 
     // Push only errors explicitly marked for Sentry reporting.
-    // For unknown errors without isSentryReported property, report them as well
+    // For unknown errors without isReportable property, report them as well
     // to ensure we don't miss unexpected errors.
     const shouldReport =
-      err.isSentryReported === true ||
-      (err.isSentryReported !== false &&
+      err.isReportable === true ||
+      (err.isReportable !== false &&
         (typeof err.status !== "number" ||
           !http.STATUS_CODES[err.status] ||
           err.status === 500));

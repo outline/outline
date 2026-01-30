@@ -67,7 +67,7 @@ describe("onerror", () => {
     expect(ctx.status).toBe(404);
   });
 
-  it("should report unknown errors without isSentryReported property to Sentry", () => {
+  it("should report unknown errors without isReportable property to Sentry", () => {
     const error = new Error("Unknown error") as any;
     error.status = 500;
 
@@ -85,20 +85,20 @@ describe("onerror", () => {
     expect(requestErrorHandler).toHaveBeenCalledWith(error, ctx);
   });
 
-  it("should not report errors explicitly marked with isSentryReported: false", () => {
+  it("should not report errors explicitly marked with isReportable: false", () => {
     const error = new Error("Custom error") as any;
     error.status = 500;
-    error.isSentryReported = false;
+    error.isReportable = false;
 
     app.context.onerror.call(ctx, error);
 
     expect(requestErrorHandler).not.toHaveBeenCalled();
   });
 
-  it("should report errors explicitly marked with isSentryReported: true", () => {
+  it("should report errors explicitly marked with isReportable: true", () => {
     const error = new Error("Custom error") as any;
     error.status = 400;
-    error.isSentryReported = true;
+    error.isReportable = true;
 
     app.context.onerror.call(ctx, error);
 

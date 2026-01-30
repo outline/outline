@@ -4,7 +4,7 @@ describe("errors", () => {
   describe("InternalError", () => {
     it("should be marked for Sentry reporting", () => {
       const error = errors.InternalError();
-      expect(error.isSentryReported).toBe(true);
+      expect(error.isReportable).toBe(true);
     });
 
     it("should have status 500", () => {
@@ -46,7 +46,7 @@ describe("errors", () => {
     userInputErrors.forEach(({ name, fn }) => {
       it(`${name} should not be marked for Sentry reporting`, () => {
         const error = fn();
-        expect(error.isSentryReported).toBe(false);
+        expect(error.isReportable).toBe(false);
       });
     });
   });
@@ -54,7 +54,7 @@ describe("errors", () => {
   describe("UserSuspendedError", () => {
     it("should not be marked for Sentry reporting", () => {
       const error = errors.UserSuspendedError({ adminEmail: "test@example.com" });
-      expect(error.isSentryReported).toBe(false);
+      expect(error.isReportable).toBe(false);
     });
   });
 });
