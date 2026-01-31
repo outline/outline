@@ -36,7 +36,6 @@ describe("passkeys origin handling", () => {
 
       // Expected: https://outline.example.com:10081
       // This is what our fix should produce
-      const expectedOrigin = "https://outline.example.com:10081";
 
       // We can't directly test the private function, but we document the expected behavior
       expect(ctx.protocol).toBe("https");
