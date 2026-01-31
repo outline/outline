@@ -6,11 +6,7 @@ import { EditorView } from "prosemirror-view";
 import flatten from "lodash/flatten";
 import isMatch from "lodash/isMatch";
 import uniq from "lodash/uniq";
-import {
-  Node,
-  Fragment,
-  DOMParser as ProsemirrorDOMParser,
-} from "prosemirror-model";
+import { Node, Fragment } from "prosemirror-model";
 import { renderToString } from "react-dom/server";
 import styled, { ServerStyleSheet, ThemeProvider } from "styled-components";
 import { prosemirrorToYDoc } from "y-prosemirror";
@@ -799,87 +795,13 @@ export class ProsemirrorHelper {
   }
 
   /**
-   * Convert HTML content directly to a Prosemirror document node.
-   *
-   * @param content The HTML content as a string or Buffer.
-   * @returns A Prosemirror Node representing the document.
-   */
-  public static htmlToProsemirror(content: Buffer | string): Node {
-    if (typeof content !== "string") {
-      content = content.toString("utf8");
-    }
-
-    const dom = new JSDOM(content);
-    const document = dom.window.document;
-
-    // Remove problematic elements before parsing
-    const elementsToRemove = document.querySelectorAll(
-      "script, style, title, head, meta, link"
-    );
-    elementsToRemove.forEach((el) => el.remove());
-
-    // Preprocess the DOM to handle edge cases
-    this.preprocessHtmlForImport(document);
-
-    // Patch global environment for Prosemirror DOMParser
-    const cleanup = this.patchGlobalEnv(dom.window);
-
-    try {
-      const domParser = ProsemirrorDOMParser.fromSchema(schema);
-      return domParser.parse(document.body);
-    } finally {
-      cleanup();
-    }
-  }
-
-  /**
-   * Preprocesses HTML DOM before Prosemirror parsing to cleanup
-   * images and other elements.
-   *
-   * @param document The DOM document to preprocess.
-   */
-  private static preprocessHtmlForImport(document: Document): void {
-    // Handle images: filter emoticons, remove Jira icons, apply Confluence sizing
-    const images = document.querySelectorAll("img");
-    images.forEach((img) => {
-      const className = img.className || "";
-
-      // Skip emoticon images (they'll be dropped)
-      if (className.includes("emoticon")) {
-        img.remove();
-        return;
-      }
-
-      // Remove Jira icon images
-      if (
-        className === "icon" &&
-        img.parentElement?.className.includes("jira-issue-key")
-      ) {
-        img.remove();
-        return;
-      }
-
-      // Handle Confluence image sizing: data-width/data-height → width/height
-      const dataWidth = img.getAttribute("data-width");
-      const dataHeight = img.getAttribute("data-height");
-      const width = img.getAttribute("width");
-
-      if (dataWidth && dataHeight && width) {
-        const ratio = parseInt(dataWidth) / parseInt(width);
-        const calculatedHeight = Math.round(parseInt(dataHeight) / ratio);
-        img.setAttribute("height", String(calculatedHeight));
-      }
-    });
-  }
-
-  /**
    * Patches the global environment with properties from the JSDOM window,
    * necessary for ProseMirror to run in a Node environment.
    *
-   * @param domWindow The JSDOM window object
-   * @returns A cleanup function to restore the global environment
+   * @param domWindow The JSDOM window object.
+   * @returns A cleanup function to restore the global environment.
    */
-  private static patchGlobalEnv(domWindow: JSDOM["window"]) {
+  public static patchGlobalEnv(domWindow: JSDOM["window"]) {
     const g = global as any;
 
     const globalParams = {

@@ -1,11 +1,13 @@
 import { parse } from "@fast-csv/parse";
+import { JSDOM } from "jsdom";
 import escapeRegExp from "lodash/escapeRegExp";
 import { simpleParser } from "mailparser";
 import mammoth from "mammoth";
-import type { Node } from "prosemirror-model";
+import type { Node} from "prosemirror-model";
+import { DOMParser as ProsemirrorDOMParser } from "prosemirror-model";
 import type { ProsemirrorData } from "@shared/types";
 import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
-import { serializer } from "@server/editor";
+import { schema, serializer } from "@server/editor";
 import { FileImportError } from "@server/errors";
 import { trace, traceFunction } from "@server/logging/tracing";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
@@ -73,6 +75,80 @@ export class DocumentConverter {
       title,
       icon,
     };
+  }
+
+  /**
+   * Convert HTML content directly to a Prosemirror document node.
+   *
+   * @param content The HTML content as a string or Buffer.
+   * @returns A Prosemirror Node representing the document.
+   */
+  public static htmlToProsemirror(content: Buffer | string): Node {
+    if (typeof content !== "string") {
+      content = content.toString("utf8");
+    }
+
+    const dom = new JSDOM(content);
+    const document = dom.window.document;
+
+    // Remove problematic elements before parsing
+    const elementsToRemove = document.querySelectorAll(
+      "script, style, title, head, meta, link"
+    );
+    elementsToRemove.forEach((el) => el.remove());
+
+    // Preprocess the DOM to handle edge cases
+    this.preprocessHtmlForImport(document);
+
+    // Patch global environment for Prosemirror DOMParser
+    const cleanup = ProsemirrorHelper.patchGlobalEnv(dom.window);
+
+    try {
+      const domParser = ProsemirrorDOMParser.fromSchema(schema);
+      return domParser.parse(document.body);
+    } finally {
+      cleanup();
+    }
+  }
+
+  /**
+   * Preprocesses HTML DOM before Prosemirror parsing to cleanup
+   * images and other elements.
+   *
+   * @param document The DOM document to preprocess.
+   */
+  private static preprocessHtmlForImport(document: Document): void {
+    // Handle images: filter emoticons, remove Jira icons, apply Confluence sizing
+    const images = document.querySelectorAll("img");
+    images.forEach((img) => {
+      const className = img.className || "";
+
+      // Skip emoticon images (they'll be dropped)
+      if (className.includes("emoticon")) {
+        img.remove();
+        return;
+      }
+
+      // Remove Jira icon images
+      if (
+        className === "icon" &&
+        img.parentElement?.className.includes("jira-issue-key")
+      ) {
+        img.remove();
+        return;
+      }
+
+      // Handle Confluence image sizing: data-width/data-height → width/height
+      const dataWidth = img.getAttribute("data-width");
+      const dataHeight = img.getAttribute("data-height");
+      const width = img.getAttribute("width");
+
+      if (dataWidth && dataHeight && width) {
+        const ratio = parseInt(dataWidth) / parseInt(width);
+        const calculatedHeight = Math.round(parseInt(dataHeight) / ratio);
+        img.setAttribute("height", String(calculatedHeight));
+      }
+    });
   }
 
   /**
@@ -210,16 +286,6 @@ export class DocumentConverter {
     }
 
     return html;
-  }
-
-  /**
-   * Convert HTML content directly to a Prosemirror document node.
-   *
-   * @param content The HTML content as a string or Buffer.
-   * @returns A Prosemirror Node representing the document.
-   */
-  private static htmlToProsemirror(content: Buffer | string): Node {
-    return ProsemirrorHelper.htmlToProsemirror(content);
   }
 
   /**
