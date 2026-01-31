@@ -1033,5 +1033,40 @@ describe("ProsemirrorHelper", () => {
       expect(doc.content.child(1).type.name).toBe("paragraph");
       expect(doc.content.child(1).textContent).toBe("Paragraph content");
     });
+
+    it("should remove emoticon images", () => {
+      const html = `<p>Hello <img class="emoticon" src="smile.png" alt=":)"> world</p>`;
+
+      const doc = ProsemirrorHelper.htmlToProsemirror(html);
+
+      // Emoticon image should be removed, text content remains
+      expect(doc.textContent).not.toContain(":)");
+      expect(doc.textContent).toContain("Hello");
+      expect(doc.textContent).toContain("world");
+    });
+
+    it("should remove Jira icon images", () => {
+      const html = `
+        <p>Issue: <span class="jira-issue-key"><img class="icon" src="icon.png">ABC-123</span></p>
+      `;
+
+      const doc = ProsemirrorHelper.htmlToProsemirror(html);
+
+      expect(doc.textContent).toBe("Issue: ABC-123");
+    });
+
+    it("should apply Confluence image sizing", () => {
+      const html = `
+        <p><img src="image.png" data-width="800" data-height="600" width="400"></p>
+      `;
+
+      const doc = ProsemirrorHelper.htmlToProsemirror(html);
+
+      const paragraph = doc.content.child(0);
+      const image = paragraph.content.child(0);
+      expect(image.type.name).toBe("image");
+      expect(image.attrs.width).toBe(400);
+      expect(image.attrs.height).toBe(300);
+    });
   });
 });

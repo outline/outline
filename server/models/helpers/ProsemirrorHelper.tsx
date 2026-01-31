@@ -818,6 +818,9 @@ export class ProsemirrorHelper {
     );
     elementsToRemove.forEach((el) => el.remove());
 
+    // Preprocess the DOM to handle cases that turndown plugins handled
+    this.preprocessHtmlForImport(document);
+
     // Patch global environment for Prosemirror DOMParser
     const cleanup = this.patchGlobalEnv(dom.window);
 
@@ -827,6 +830,46 @@ export class ProsemirrorHelper {
     } finally {
       cleanup();
     }
+  }
+
+  /**
+   * Preprocesses HTML DOM before Prosemirror parsing to cleanup
+   * images and other elements.
+   *
+   * @param document The DOM document to preprocess.
+   */
+  private static preprocessHtmlForImport(document: Document): void {
+    // Handle images: filter emoticons, remove Jira icons, apply Confluence sizing
+    const images = document.querySelectorAll("img");
+    images.forEach((img) => {
+      const className = img.className || "";
+
+      // Skip emoticon images (they'll be dropped)
+      if (className.includes("emoticon")) {
+        img.remove();
+        return;
+      }
+
+      // Remove Jira icon images
+      if (
+        className === "icon" &&
+        img.parentElement?.className.includes("jira-issue-key")
+      ) {
+        img.remove();
+        return;
+      }
+
+      // Handle Confluence image sizing: data-width/data-height → width/height
+      const dataWidth = img.getAttribute("data-width");
+      const dataHeight = img.getAttribute("data-height");
+      const width = img.getAttribute("width");
+
+      if (dataWidth && dataHeight && width) {
+        const ratio = parseInt(dataWidth) / parseInt(width);
+        const calculatedHeight = Math.round(parseInt(dataHeight) / ratio);
+        img.setAttribute("height", String(calculatedHeight));
+      }
+    });
   }
 
   /**
