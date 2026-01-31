@@ -151,14 +151,14 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
                     <DocumentIcon />
                   ),
                   title: doc.title,
-                  subtitle: (
+                  subtitle: doc.collectionId ? (
                     <DocumentBreadcrumb
                       document={doc}
                       onlyText
                       reverse
                       maxDepth={2}
                     />
-                  ),
+                  ) : undefined,
                   section: DocumentsSection,
                   appendSpace: true,
                   attrs: {

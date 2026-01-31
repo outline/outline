@@ -1,4 +1,5 @@
 import type { EditorState, Selection } from "prosemirror-state";
+import Suggestion from "~/editor/extensions/Suggestion";
 import { NodeSelection, TextSelection } from "prosemirror-state";
 import * as React from "react";
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
@@ -80,7 +81,7 @@ enum Toolbar {
 
 export function SelectionToolbar(props: Props) {
   const { readOnly = false } = props;
-  const { view, commands } = useEditor();
+  const { view, extensions, commands } = useEditor();
   const dictionary = useDictionary();
   const menuRef = React.useRef<HTMLDivElement | null>(null);
   const isMobile = useMobile();
@@ -155,13 +156,23 @@ export function SelectionToolbar(props: Props) {
         return;
       }
 
+      // Don't collapse selection if any suggestion menu is open
+      const isSuggestionMenuOpen = extensions.extensions.some(
+        (ext) => ext instanceof Suggestion && ext.isOpen
+      );
+      if (isSuggestionMenuOpen) {
+        return;
+      }
+
       if (!window.getSelection()?.isCollapsed) {
         return;
       }
 
       const { dispatch } = view;
       dispatch(
-        view.state.tr.setSelection(new TextSelection(view.state.doc.resolve(0)))
+        view.state.tr.setSelection(
+          TextSelection.near(view.state.doc.resolve(0))
+        )
       );
     };
 

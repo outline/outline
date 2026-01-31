@@ -75,4 +75,9 @@ export default class Suggestion extends Extension {
     open: false,
     query: "",
   });
+
+  /** Whether the suggestion menu is currently open. */
+  get isOpen(): boolean {
+    return this.state.open;
+  }
 }
