@@ -818,7 +818,7 @@ export class ProsemirrorHelper {
     );
     elementsToRemove.forEach((el) => el.remove());
 
-    // Preprocess the DOM to handle cases that turndown plugins handled
+    // Preprocess the DOM to handle edge cases
     this.preprocessHtmlForImport(document);
 
     // Patch global environment for Prosemirror DOMParser
