@@ -157,4 +157,15 @@ export class CacheHelper {
   public static getCollectionDocumentsKey(collectionId: string) {
     return `cd:${collectionId}`;
   }
+
+  /**
+   * Gets key for caching embed check results. This is a global cache key
+   * (not team-specific) since embed headers are the same for all users.
+   *
+   * @param url The URL to generate a cache key for.
+   * @returns the cache key string.
+   */
+  public static getEmbedCheckKey(url: string) {
+    return `embed:${url}`;
+  }
 }
