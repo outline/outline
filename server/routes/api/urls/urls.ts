@@ -191,7 +191,9 @@ router.post(
       Day.seconds
     );
 
-    ctx.body = result ?? { embeddable: false, reason: "error" };
+    ctx.body = result
+      ? { embeddable: result.embeddable, reason: result.reason }
+      : { embeddable: false, reason: "error" };
   }
 );
 
