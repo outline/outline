@@ -56,4 +56,8 @@ export class CacheHelper {
   public static getCollectionDocumentsKey(collectionId: string) {
     return `cd:${collectionId}`;
   }
+
+  public static getEmbedCheckKey(url: string) {
+    return `embed:${url}`;
+  }
 }

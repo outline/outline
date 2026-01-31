@@ -82,7 +82,7 @@ import FileStorage from "@server/storage/files";
 import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import ZipHelper from "@server/utils/ZipHelper";
-import { convertBareUrlsToEmbedMarkdown } from "@server/utils/embedHelper";
+import { convertBareUrlsToEmbedMarkdown } from "@server/utils/embeds";
 import { getTeamFromContext } from "@server/utils/passport";
 import { assertPresent } from "@server/validation";
 import pagination from "../middlewares/pagination";

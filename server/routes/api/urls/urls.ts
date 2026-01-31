@@ -17,8 +17,13 @@ import type { APIContext, Unfurl } from "@server/types";
 import { CacheHelper, type CacheResult } from "@server/utils/CacheHelper";
 import { Hook, PluginManager } from "@server/utils/PluginManager";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
+import {
+  checkEmbeddability,
+  type EmbedCheckResult,
+} from "@server/utils/embeds";
 import * as T from "./schema";
 import { MAX_AVATAR_DISPLAY } from "@shared/constants";
+import { Day } from "@shared/utils/time";
 
 const router = new Router();
 const plugins = PluginManager.getHooks(Hook.UnfurlProvider);
@@ -169,6 +174,26 @@ router.post(
 
     ctx.body = await presentUnfurl(unfurlResult);
     return;
+  }
+);
+
+router.post(
+  "urls.checkEmbed",
+  rateLimiter(RateLimiterStrategy.OneHundredPerHour),
+  auth(),
+  validate(T.UrlsCheckEmbedSchema),
+  async (ctx: APIContext<T.UrlsCheckEmbedReq>) => {
+    const { url } = ctx.input.body;
+
+    const result = await CacheHelper.getDataOrSet<EmbedCheckResult>(
+      CacheHelper.getEmbedCheckKey(url),
+      () => checkEmbeddability(url),
+      Day.seconds
+    );
+
+    ctx.body = result
+      ? { embeddable: result.embeddable, reason: result.reason }
+      : { embeddable: false, reason: "error" };
   }
 );
 
