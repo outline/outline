@@ -2,8 +2,10 @@ import { parse } from "@fast-csv/parse";
 import escapeRegExp from "lodash/escapeRegExp";
 import { simpleParser } from "mailparser";
 import mammoth from "mammoth";
+import type { Node } from "prosemirror-model";
 import { FileImportError } from "@server/errors";
 import { trace, traceFunction } from "@server/logging/tracing";
+import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import turndownService from "@server/utils/turndown";
 
 @trace()
@@ -82,6 +84,16 @@ export class DocumentConverter {
     }
 
     return turndownService.turndown(content);
+  }
+
+  /**
+   * Convert HTML content directly to a Prosemirror document node.
+   *
+   * @param content The HTML content as a string or Buffer.
+   * @returns A Prosemirror Node representing the document.
+   */
+  public static htmlToProsemirror(content: Buffer | string): Node {
+    return ProsemirrorHelper.htmlToProsemirror(content);
   }
 
   public static csvToMarkdown(content: Buffer | string): Promise<string> {
