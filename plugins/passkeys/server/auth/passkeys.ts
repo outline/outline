@@ -40,18 +40,18 @@ const getRpID = (ctx: APIContext) => ctx.request.hostname;
 const getExpectedOrigin = (ctx: APIContext): string => {
   const protocol = ctx.protocol;
   const hostname = ctx.request.hostname;
-  
+
   // When behind a proxy with app.proxy = true, Koa uses X-Forwarded-Host
   // which typically doesn't include the port. We need to check X-Forwarded-Port.
   const forwardedPort = ctx.request.get("X-Forwarded-Port");
-  
+
   // ctx.request.host includes port if present (e.g., "example.com:3000")
   // ctx.request.hostname excludes port (e.g., "example.com")
   const hostWithPort = ctx.request.host;
-  
+
   // Determine if we need to add a port to the origin
   let origin = `${protocol}://${hostname}`;
-  
+
   // Check if X-Forwarded-Port exists (when behind a proxy)
   if (forwardedPort) {
     const port = parseInt(forwardedPort, 10);
@@ -63,7 +63,7 @@ const getExpectedOrigin = (ctx: APIContext): string => {
     // hostWithPort includes port, use it directly
     origin = `${protocol}://${hostWithPort}`;
   }
-  
+
   return origin;
 };
 
