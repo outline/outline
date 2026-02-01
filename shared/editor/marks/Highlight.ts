@@ -42,7 +42,7 @@ export default class Highlight extends Mark {
             const color = dom.getAttribute("data-color") || "";
 
             return {
-              color: Highlight.isPresetColor(color) ? color : null,
+              color: color || null,
             };
           },
         },
