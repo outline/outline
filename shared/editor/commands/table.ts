@@ -327,7 +327,7 @@ export function sortTable({
         compareAsDate = nonEmptyCells.every((cell) => parseDate(cell) !== null);
 
         // if not dates, check if cells are currency values
-        // allow one non-matching cell (likely a header) if most cells match
+        // treat as currency if at least 50% of non-empty cells look like currency values
         if (!compareAsDate) {
           const currencyCells = nonEmptyCells.filter((cell) =>
             isCurrency(cell)
