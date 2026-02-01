@@ -5,7 +5,6 @@ import { simpleParser } from "mailparser";
 import mammoth from "mammoth";
 import type { Node } from "prosemirror-model";
 import { DOMParser as ProsemirrorDOMParser } from "prosemirror-model";
-import type { ProsemirrorData } from "@shared/types";
 import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { schema, serializer } from "@server/editor";
 import { FileImportError } from "@server/errors";
@@ -15,8 +14,8 @@ import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 export interface ConvertResult {
   /** The document content as markdown text. */
   text: string;
-  /** The document content as Prosemirror JSON. */
-  data: ProsemirrorData;
+  /** The document content as Prosemirror. */
+  doc: Node;
   /** The extracted title (from H1 heading if present). */
   title: string;
   /** The extracted emoji/icon from start of document. */
@@ -71,7 +70,7 @@ export class DocumentConverter {
 
     return {
       text,
-      data: doc.toJSON() as ProsemirrorData,
+      doc,
       title,
       icon,
     };

@@ -1,5 +1,6 @@
 import emojiRegex from "emoji-regex";
 import { JSDOM } from "jsdom";
+import chunk from "lodash/chunk";
 import compact from "lodash/compact";
 import { EditorState } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
@@ -18,17 +19,23 @@ import EditorContainer from "@shared/editor/components/Styles";
 import GlobalStyles from "@shared/styles/globals";
 import light from "@shared/styles/theme";
 import type { ProsemirrorData, UnfurlResponse } from "@shared/types";
-import { MentionType } from "@shared/types";
-import { attachmentRedirectRegex } from "@shared/utils/ProsemirrorHelper";
+import { AttachmentPreset, MentionType } from "@shared/types";
+import {
+  attachmentRedirectRegex,
+  ProsemirrorHelper as SharedProsemirrorHelper,
+} from "@shared/utils/ProsemirrorHelper";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { isRTL } from "@shared/utils/rtl";
 import { isInternalUrl } from "@shared/utils/urls";
+import attachmentCreator from "@server/commands/attachmentCreator";
 import { plugins, schema, parser } from "@server/editor";
+import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
 import Attachment from "@server/models/Attachment";
 import User from "@server/models/User";
 import FileStorage from "@server/storage/files";
+import type { APIContext } from "@server/types";
 
 export type HTMLOptions = {
   /** A title, if it should be included */
@@ -843,5 +850,110 @@ export class ProsemirrorHelper {
         }
       });
     };
+  }
+
+  /**
+   * Replaces remote and base64 encoded images in the given Prosemirror node
+   * with attachment urls and uploads the images to the storage provider.
+   *
+   * @param ctx The API context.
+   * @param doc The Prosemirror node to process.
+   * @param user The user context.
+   * @returns A new Prosemirror node with images replaced.
+   */
+  static async replaceImagesWithAttachments(
+    ctx: APIContext,
+    doc: Node,
+    user: User
+  ): Promise<Node> {
+    const images = SharedProsemirrorHelper.getImages(doc);
+    const videos = SharedProsemirrorHelper.getVideos(doc);
+    const nodes = [...images, ...videos];
+
+    if (!nodes.length) {
+      return doc;
+    }
+
+    const timeoutPerImage = Math.floor(
+      Math.min(env.REQUEST_TIMEOUT / nodes.length, 10000)
+    );
+
+    const urlToAttachment: Map<string, Attachment> = new Map();
+    const chunks = chunk(nodes, 10);
+
+    for (const nodeChunk of chunks) {
+      await Promise.all(
+        nodeChunk.map(async (node) => {
+          const src = String(node.attrs.src ?? "");
+
+          // Skip invalid URLs
+          try {
+            new URL(src);
+          } catch {
+            return;
+          }
+
+          // Skip internal URLs
+          if (isInternalUrl(src)) {
+            return;
+          }
+
+          // Skip already processed
+          if (urlToAttachment.has(src)) {
+            return;
+          }
+
+          try {
+            const attachment = await attachmentCreator({
+              name: String(node.attrs.alt ?? node.type.name),
+              url: src,
+              preset: AttachmentPreset.DocumentAttachment,
+              user,
+              fetchOptions: {
+                timeout: timeoutPerImage,
+              },
+              ctx,
+            });
+
+            if (attachment) {
+              urlToAttachment.set(src, attachment);
+            }
+          } catch (err) {
+            Logger.warn("Failed to download image for attachment", {
+              error: err.message,
+              src,
+            });
+          }
+        })
+      );
+    }
+
+    // Transform the document to replace image/video src attributes
+    const transformFragment = (fragment: Fragment): Fragment => {
+      const transformedNodes: Node[] = [];
+
+      fragment.forEach((node) => {
+        if (node.type.name === "image" || node.type.name === "video") {
+          const src = String(node.attrs.src ?? "");
+          const attachment = urlToAttachment.get(src);
+
+          if (attachment) {
+            const json = node.toJSON();
+            json.attrs = { ...json.attrs, src: attachment.redirectUrl };
+            transformedNodes.push(Node.fromJSON(schema, json));
+          } else {
+            transformedNodes.push(node);
+          }
+        } else if (node.content.size > 0) {
+          transformedNodes.push(node.copy(transformFragment(node.content)));
+        } else {
+          transformedNodes.push(node);
+        }
+      });
+
+      return Fragment.fromArray(transformedNodes);
+    };
+
+    return doc.copy(transformFragment(doc.content));
   }
 }

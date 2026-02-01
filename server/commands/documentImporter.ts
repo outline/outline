@@ -6,7 +6,6 @@ import { serializer } from "@server/editor";
 import { traceFunction } from "@server/logging/tracing";
 import type { User } from "@server/models";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
-import { TextHelper } from "@server/models/helpers/TextHelper";
 import type { APIContext } from "@server/types";
 import { DocumentConverter } from "@server/utils/DocumentConverter";
 import { InvalidRequestError } from "../errors";
@@ -68,7 +67,7 @@ async function documentImporter({
 
   // Convert document using unified converter
   const {
-    data,
+    doc,
     title: extractedTitle,
     icon,
   } = await DocumentConverter.convert(content, fileName, mimeType);
@@ -76,14 +75,15 @@ async function documentImporter({
   // Use extracted title or fall back to filename
   let title = extractedTitle || fileTitle;
 
-  // Convert Prosemirror data back to Node for image processing
-  let doc = ProsemirrorHelper.toProsemirror(data);
-
   // Replace external images with attachments
-  doc = await TextHelper.replaceImagesWithAttachmentsInNode(ctx, doc, user);
+  const processedDoc = await ProsemirrorHelper.replaceImagesWithAttachments(
+    ctx,
+    doc,
+    user
+  );
 
   // Serialize final text and handle empty documents
-  let text = serializer.serialize(doc).trim();
+  let text = serializer.serialize(processedDoc).trim();
   // Empty paragraphs serialize to escaped newlines/backslashes, treat as empty
   if (/^[\\\s]*$/.test(text)) {
     text = "";
@@ -91,7 +91,7 @@ async function documentImporter({
 
   // Truncate title and validate size
   title = truncate(title, { length: DocumentValidation.maxTitleLength });
-  const state = convertToState(doc.toJSON() as ProsemirrorData, title);
+  const state = convertToState(processedDoc.toJSON() as ProsemirrorData, title);
 
   return { text, state, title, icon };
 }
