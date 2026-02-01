@@ -29,6 +29,7 @@ import {
 import { cn } from "../styles/utils";
 import type { ComponentProps } from "../types";
 import { toDisplayUrl, cdnPath } from "../../utils/urls";
+import env from "../../env";
 
 type Attrs = {
   className: string;
@@ -313,10 +314,14 @@ export const MentionIssue = observer((props: IssuePrProps) => {
   const issue = unfurl as UnfurlResponse[UnfurlResourceType.Issue];
 
   const url = new URL(issue.url);
+  const gitlabUrl = new URL(env.GITLAB_URL || "https://gitlab.com");
+
   const service =
-    url.hostname === "github.com"
-      ? IntegrationService.GitHub
-      : IntegrationService.Linear;
+    url.hostname === gitlabUrl.hostname
+      ? IntegrationService.GitLab
+      : url.hostname === "github.com"
+        ? IntegrationService.GitHub
+        : IntegrationService.Linear;
 
   return (
     <a
