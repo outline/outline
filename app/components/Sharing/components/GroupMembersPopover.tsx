@@ -37,6 +37,8 @@ export const GroupMembersPopover = observer(({ group, children }: Props) => {
     async (offset = 0) => {
       setLoading(true);
       try {
+        // The groups.memberships API requires 'id' parameter, but PaginationParams type
+        // doesn't include it. This is a known limitation in the GroupUsersStore.fetchPage signature.
         const result = await groupUsers.fetchPage({
           id: group.id,
           limit: Pagination.defaultLimit,
