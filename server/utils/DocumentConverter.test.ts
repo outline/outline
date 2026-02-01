@@ -36,6 +36,64 @@ John;25
         expect(result.text).toContain("John");
         expect(result.text).toContain('Joan "the bone", Anne');
       });
+
+      it("should handle csv with title row before headers", async () => {
+        // Some financial exports have a title row before the actual headers
+        const csv = `"Report for Account"
+
+"Symbol","Name","Value",
+"ABC","Test Corp","$100",
+"XYZ","Other Inc","$200",`;
+
+        const result = await DocumentConverter.convert(
+          csv,
+          "test.csv",
+          "text/csv"
+        );
+
+        // The actual data headers should be used, not the title row
+        expect(result.text).toContain("| Symbol | Name | Value |");
+        expect(result.text).toContain("ABC");
+        expect(result.text).toContain("Test Corp");
+        expect(result.text).toContain("XYZ");
+      });
+
+      it("should handle csv with trailing comma on each line", async () => {
+        const csv = `name,age,city,
+John,25,NYC,
+Jane,24,LA,`;
+
+        const result = await DocumentConverter.convert(
+          csv,
+          "test.csv",
+          "text/csv"
+        );
+
+        expect(result.text).toContain("| name | age | city |");
+        expect(result.text).toContain("John");
+        expect(result.text).toContain("Jane");
+        // Should not have trailing empty column
+        expect(result.text).not.toContain("| city |  |");
+        expect(result.text).not.toContain("| city | |");
+      });
+
+      it("should preserve intentionally empty cells at end of rows", async () => {
+        const csv = `name,age,city
+John,25,NYC
+Jane,24,`;
+
+        const result = await DocumentConverter.convert(
+          csv,
+          "test.csv",
+          "text/csv"
+        );
+
+        expect(result.text).toContain("| name | age | city |");
+        expect(result.text).toContain("John");
+        expect(result.text).toContain("NYC");
+        // Jane's row should have 3 columns (empty city preserved)
+        expect(result.text).toMatch(/\| Jane \| 24\s*\|\s*\|/);
+      });
     });
 
     describe("html", () => {

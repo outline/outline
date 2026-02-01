@@ -3,7 +3,7 @@ import { JSDOM } from "jsdom";
 import escapeRegExp from "lodash/escapeRegExp";
 import { simpleParser } from "mailparser";
 import mammoth from "mammoth";
-import type { Node} from "prosemirror-model";
+import type { Node } from "prosemirror-model";
 import { DOMParser as ProsemirrorDOMParser } from "prosemirror-model";
 import type { ProsemirrorData } from "@shared/types";
 import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
@@ -297,13 +297,18 @@ export class DocumentConverter {
   private static csvToMarkdown(content: Buffer | string): Promise<string> {
     return new Promise((resolve, reject) => {
       const text = this.bufferToString(content).trim();
-      const firstLine = text.split("\n")[0];
+      const textLines = text.split("\n");
+
+      // Find the first non-empty line to determine the delimiter
+      const firstNonEmptyLine =
+        textLines.find((line) => line.trim().length > 0) || "";
 
       // Determine the separator used in the CSV file based on number of occurrences of each separator on first line
       const delimiter = [";", ",", "\t"].reduce(
         (acc, separator) => {
           const count = (
-            firstLine.match(new RegExp(escapeRegExp(separator), "g")) || []
+            firstNonEmptyLine.match(new RegExp(escapeRegExp(separator), "g")) ||
+            []
           ).length;
           return count > acc.count ? { count, separator } : acc;
         },
@@ -319,9 +324,64 @@ export class DocumentConverter {
         })
         .on("data", (row) => lines.push(row))
         .on("end", () => {
-          const headers = lines[0];
-          const table = lines
-            .slice(1)
+          // Filter out completely empty rows
+          const nonEmptyLines = lines.filter((row) =>
+            row.some((cell) => cell.trim() !== "")
+          );
+
+          if (nonEmptyLines.length === 0) {
+            resolve("");
+            return;
+          }
+
+          // Check if all rows have a trailing empty cell (trailing comma artifact)
+          // Only trim if ALL non-empty rows end with an empty cell
+          let trimmedLines = nonEmptyLines;
+          while (
+            trimmedLines.length > 0 &&
+            trimmedLines.every(
+              (row) => row.length > 0 && row[row.length - 1].trim() === ""
+            )
+          ) {
+            trimmedLines = trimmedLines.map((row) => row.slice(0, -1));
+          }
+
+          // Find the most common column count
+          const columnCounts = new Map<number, number>();
+          for (const row of trimmedLines) {
+            if (row.length > 0) {
+              columnCounts.set(
+                row.length,
+                (columnCounts.get(row.length) || 0) + 1
+              );
+            }
+          }
+
+          // Get the column count that appears most frequently
+          let expectedColumns = 0;
+          let maxFrequency = 0;
+          for (const [count, frequency] of columnCounts) {
+            if (frequency > maxFrequency) {
+              maxFrequency = frequency;
+              expectedColumns = count;
+            }
+          }
+
+          // Find the first row with the expected column count (this is the header)
+          const headerIndex = trimmedLines.findIndex(
+            (row) => row.length === expectedColumns
+          );
+          if (headerIndex === -1) {
+            resolve("");
+            return;
+          }
+
+          const headers = trimmedLines[headerIndex];
+          const dataRows = trimmedLines
+            .slice(headerIndex + 1)
+            .filter((row) => row.length === expectedColumns);
+
+          const table = dataRows
             .map((cells) => `| ${cells.join(" | ")} |`)
             .join("\n");
 
