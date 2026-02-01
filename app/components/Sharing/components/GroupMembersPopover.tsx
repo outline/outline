@@ -8,8 +8,8 @@ import { Avatar, AvatarSize } from "~/components/Avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/primitives/Popover";
 import Scrollable from "~/components/Scrollable";
 import Text from "~/components/Text";
-import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
+import { PAGINATION_SYMBOL } from "~/stores/base/Store";
 import { ListItem } from "./ListItem";
 import { Placeholder } from "./Placeholder";
 
@@ -25,42 +25,44 @@ export const GroupMembersPopover = observer(({ group, children }: Props) => {
   const { groupUsers } = useStores();
   const [open, setOpen] = React.useState(false);
   const [hasMore, setHasMore] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
   const scrollableRef = React.useRef<HTMLDivElement>(null);
-
-  const { loading, request } = useRequest(
-    React.useCallback(
-      async (options?: { offset?: number }) => {
-        const result = await groupUsers.fetchPage({
-          id: group.id,
-          limit: Pagination.defaultLimit,
-          offset: options?.offset || 0,
-        });
-        
-        const pagination = (result as any)[Symbol.for("pagination")];
-        setHasMore(pagination && pagination.nextPage !== undefined);
-        
-        return result;
-      },
-      [groupUsers, group.id]
-    )
-  );
 
   const members = React.useMemo(
     () => groupUsers.inGroup(group.id),
     [groupUsers, group.id]
   );
 
+  const loadMembers = React.useCallback(
+    async (offset = 0) => {
+      setLoading(true);
+      try {
+        const result = await groupUsers.fetchPage({
+          id: group.id,
+          limit: Pagination.defaultLimit,
+          offset,
+        } as any);
+        
+        const pagination = result[PAGINATION_SYMBOL];
+        setHasMore(!!pagination?.nextPath);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [groupUsers, group.id]
+  );
+
   React.useEffect(() => {
     if (open && members.length === 0) {
-      void request();
+      void loadMembers();
     }
-  }, [open, request, members.length]);
+  }, [open, loadMembers, members.length]);
 
   const handleLoadMore = React.useCallback(() => {
     if (!loading && hasMore) {
-      void request({ offset: members.length });
+      void loadMembers(members.length);
     }
-  }, [loading, hasMore, members.length, request]);
+  }, [loading, hasMore, members.length, loadMembers]);
 
   const handleScroll = React.useCallback(
     (event: React.UIEvent<HTMLDivElement>) => {
