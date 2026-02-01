@@ -2,9 +2,13 @@ import { faker } from "@faker-js/faker";
 import type { DeepPartial } from "utility-types";
 import type { ProsemirrorData } from "@shared/types";
 import { MentionType } from "@shared/types";
+import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
+import { createContext } from "@server/context";
 import { buildProseMirrorDoc, buildUser } from "@server/test/factories";
 import type { MentionAttrs } from "./ProsemirrorHelper";
 import { ProsemirrorHelper } from "./ProsemirrorHelper";
+
+jest.mock("@server/storage/files");
 
 describe("ProsemirrorHelper", () => {
   describe("processMentions", () => {
@@ -932,141 +936,166 @@ describe("ProsemirrorHelper", () => {
     });
   });
 
-  describe("htmlToProsemirror", () => {
-    it("should convert basic HTML to Prosemirror", () => {
-      const html = "<p>Hello world</p>";
+  describe("replaceImagesWithAttachments", () => {
+    it("should return the same document when there are no images", async () => {
+      const user = await buildUser();
+      const ctx = createContext({ user });
 
-      const doc = ProsemirrorHelper.htmlToProsemirror(html);
+      const doc = buildProseMirrorDoc([
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "No images here" }],
+        },
+      ]);
 
-      expect(doc.type.name).toBe("doc");
-      expect(doc.content.childCount).toBe(1);
-      expect(doc.content.child(0).type.name).toBe("paragraph");
-      expect(doc.content.child(0).textContent).toBe("Hello world");
+      const result = await ProsemirrorHelper.replaceImagesWithAttachments(
+        ctx,
+        doc,
+        user
+      );
+
+      expect(result.toJSON()).toEqual(doc.toJSON());
     });
 
-    it("should convert HTML with heading", () => {
-      const html = "<h1>Title</h1><p>Content</p>";
+    it("should correctly identify images in a document", () => {
+      const doc = buildProseMirrorDoc([
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "image",
+              attrs: {
+                src: "https://example.com/image.png",
+                alt: "Test image",
+              },
+            },
+          ],
+        },
+      ]);
 
-      const doc = ProsemirrorHelper.htmlToProsemirror(html);
-
-      expect(doc.content.childCount).toBe(2);
-      expect(doc.content.child(0).type.name).toBe("heading");
-      expect(doc.content.child(0).attrs.level).toBe(1);
-      expect(doc.content.child(0).textContent).toBe("Title");
-      expect(doc.content.child(1).type.name).toBe("paragraph");
+      const images = SharedProsemirrorHelper.getImages(doc);
+      expect(images.length).toBe(1);
+      expect(images[0].attrs.src).toBe("https://example.com/image.png");
+      expect(images[0].attrs.alt).toBe("Test image");
     });
 
-    it("should remove script tags", () => {
-      const html = "<p>Safe content</p><script>alert('xss')</script>";
+    it("should skip images with invalid URLs", async () => {
+      const user = await buildUser();
+      const ctx = createContext({ user });
 
-      const doc = ProsemirrorHelper.htmlToProsemirror(html);
+      const doc = buildProseMirrorDoc([
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "image",
+              attrs: {
+                src: "not-a-valid-url",
+                alt: "Invalid",
+              },
+            },
+          ],
+        },
+      ]);
 
-      expect(doc.textContent).toBe("Safe content");
-      expect(doc.textContent).not.toContain("alert");
+      const result = await ProsemirrorHelper.replaceImagesWithAttachments(
+        ctx,
+        doc,
+        user
+      );
+
+      // Document should remain unchanged since URL is invalid
+      expect(result.toJSON()).toEqual(doc.toJSON());
     });
 
-    it("should remove style tags", () => {
-      const html = "<style>body { color: red; }</style><p>Content</p>";
+    it("should skip images with internal URLs", async () => {
+      const user = await buildUser();
+      const ctx = createContext({ user });
 
-      const doc = ProsemirrorHelper.htmlToProsemirror(html);
+      const doc = buildProseMirrorDoc([
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "image",
+              attrs: {
+                src: "/api/attachments.redirect?id=existing-id",
+                alt: "Internal",
+              },
+            },
+          ],
+        },
+      ]);
 
-      expect(doc.textContent).toBe("Content");
-      expect(doc.textContent).not.toContain("color");
+      const result = await ProsemirrorHelper.replaceImagesWithAttachments(
+        ctx,
+        doc,
+        user
+      );
+
+      // Document should remain unchanged since URL is internal
+      expect(result.toJSON()).toEqual(doc.toJSON());
     });
 
-    it("should handle Buffer input", () => {
-      const html = Buffer.from("<p>From buffer</p>", "utf8");
+    it("should handle document with multiple node types", async () => {
+      const user = await buildUser();
+      const ctx = createContext({ user });
 
-      const doc = ProsemirrorHelper.htmlToProsemirror(html);
+      const doc = buildProseMirrorDoc([
+        {
+          type: "heading",
+          attrs: { level: 1 },
+          content: [{ type: "text", text: "Title" }],
+        },
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "Some text" }],
+        },
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "image",
+              attrs: {
+                src: "invalid-url",
+                alt: "Image",
+              },
+            },
+          ],
+        },
+      ]);
 
-      expect(doc.content.child(0).textContent).toBe("From buffer");
+      const result = await ProsemirrorHelper.replaceImagesWithAttachments(
+        ctx,
+        doc,
+        user
+      );
+
+      // Document structure should be preserved
+      expect(result.content.childCount).toBe(3);
+      expect(result.content.child(0).type.name).toBe("heading");
+      expect(result.content.child(1).type.name).toBe("paragraph");
+      expect(result.content.child(2).type.name).toBe("paragraph");
     });
 
-    it("should convert HTML with lists", () => {
-      const html = "<ul><li>Item 1</li><li>Item 2</li></ul>";
+    it("should handle empty document", async () => {
+      const user = await buildUser();
+      const ctx = createContext({ user });
 
-      const doc = ProsemirrorHelper.htmlToProsemirror(html);
+      const doc = buildProseMirrorDoc([
+        {
+          type: "paragraph",
+          content: [],
+        },
+      ]);
 
-      expect(doc.content.childCount).toBe(1);
-      expect(doc.content.child(0).type.name).toBe("bullet_list");
-      expect(doc.content.child(0).content.childCount).toBe(2);
-    });
+      const result = await ProsemirrorHelper.replaceImagesWithAttachments(
+        ctx,
+        doc,
+        user
+      );
 
-    it("should convert HTML with bold and italic", () => {
-      const html = "<p><strong>Bold</strong> and <em>italic</em></p>";
-
-      const doc = ProsemirrorHelper.htmlToProsemirror(html);
-
-      const paragraph = doc.content.child(0);
-      expect(paragraph.type.name).toBe("paragraph");
-
-      // Check that marks are applied
-      const boldText = paragraph.content.child(0);
-      expect(boldText.text).toBe("Bold");
-      expect(boldText.marks.some((m) => m.type.name === "strong")).toBe(true);
-
-      const italicText = paragraph.content.child(2);
-      expect(italicText.text).toBe("italic");
-      expect(italicText.marks.some((m) => m.type.name === "em")).toBe(true);
-    });
-
-    it("should handle full HTML document", () => {
-      const html = `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <title>Test</title>
-            <meta charset="utf-8">
-          </head>
-          <body>
-            <h1>Document Title</h1>
-            <p>Paragraph content</p>
-          </body>
-        </html>
-      `;
-
-      const doc = ProsemirrorHelper.htmlToProsemirror(html);
-
-      expect(doc.content.childCount).toBe(2);
-      expect(doc.content.child(0).type.name).toBe("heading");
-      expect(doc.content.child(0).textContent).toBe("Document Title");
-      expect(doc.content.child(1).type.name).toBe("paragraph");
-      expect(doc.content.child(1).textContent).toBe("Paragraph content");
-    });
-
-    it("should remove emoticon images", () => {
-      const html = `<p>Hello <img class="emoticon" src="smile.png" alt=":)"> world</p>`;
-
-      const doc = ProsemirrorHelper.htmlToProsemirror(html);
-
-      // Emoticon image should be removed, text content remains
-      expect(doc.textContent).not.toContain(":)");
-      expect(doc.textContent).toContain("Hello");
-      expect(doc.textContent).toContain("world");
-    });
-
-    it("should remove Jira icon images", () => {
-      const html = `
-        <p>Issue: <span class="jira-issue-key"><img class="icon" src="icon.png">ABC-123</span></p>
-      `;
-
-      const doc = ProsemirrorHelper.htmlToProsemirror(html);
-
-      expect(doc.textContent).toBe("Issue: ABC-123");
-    });
-
-    it("should apply Confluence image sizing", () => {
-      const html = `
-        <p><img src="image.png" data-width="800" data-height="600" width="400"></p>
-      `;
-
-      const doc = ProsemirrorHelper.htmlToProsemirror(html);
-
-      const paragraph = doc.content.child(0);
-      const image = paragraph.content.child(0);
-      expect(image.type.name).toBe("image");
-      expect(image.attrs.width).toBe(400);
-      expect(image.attrs.height).toBe(300);
+      expect(result.toJSON()).toEqual(doc.toJSON());
     });
   });
 });

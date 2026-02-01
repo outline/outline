@@ -4079,13 +4079,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@joplin/turndown-plugin-gfm@npm:^1.0.49":
-  version: 1.0.64
-  resolution: "@joplin/turndown-plugin-gfm@npm:1.0.64"
-  checksum: 10c0/cbbcba0f111e420535fc1693c1ff859ca7fae5a869a7891ec6cd9ead2f94cec8e858938dcb6ba379c160d086a7fbfadadd53cc9e79d755100a4d0b1cf77947fc
-  languageName: node
-  linkType: hard
-
 "@jridgewell/gen-mapping@npm:^0.3.12, @jridgewell/gen-mapping@npm:^0.3.5":
   version: 0.3.13
   resolution: "@jridgewell/gen-mapping@npm:0.3.13"
@@ -4365,13 +4358,6 @@ __metadata:
   dependencies:
     langium: "npm:3.3.1"
   checksum: 10c0/9711174ff31f32d93c8da03ed6b1a1380f5ccfb27ffcdfaf42236da4b381aa0602752b3afc7893582d5ccdfc79b0465c69afe963b825328049575831f4ddd28e
-  languageName: node
-  linkType: hard
-
-"@mixmark-io/domino@npm:^2.2.0":
-  version: 2.2.0
-  resolution: "@mixmark-io/domino@npm:2.2.0"
-  checksum: 10c0/aa468a15f9217d425220fe6a4b3f9416cbe8e566ee14efc191c6d5cc04fe39338b16a90bbac190f28d44e69465db5f2cf95f479c621ce38060ca6b2a3d346e9d
   languageName: node
   linkType: hard
 
@@ -8771,13 +8757,6 @@ __metadata:
   version: 2.0.7
   resolution: "@types/trusted-types@npm:2.0.7"
   checksum: 10c0/4c4855f10de7c6c135e0d32ce462419d8abbbc33713b31d294596c0cc34ae1fa6112a2f9da729c8f7a20707782b0d69da3b1f8df6645b0366d08825ca1522e0c
-  languageName: node
-  linkType: hard
-
-"@types/turndown@npm:^5.0.6":
-  version: 5.0.6
-  resolution: "@types/turndown@npm:5.0.6"
-  checksum: 10c0/cc5648c115b67ba413782fd0a8ae273ad6b87940df770ab9a5fefe0303c368704013fca2a55dd08f46a2132a747912fd47f96a83162c47fd189babf1352ac4be
   languageName: node
   linkType: hard
 
@@ -17313,7 +17292,6 @@ __metadata:
     "@hocuspocus/extension-throttle": "npm:1.1.2"
     "@hocuspocus/provider": "npm:1.1.2"
     "@hocuspocus/server": "npm:1.1.2"
-    "@joplin/turndown-plugin-gfm": "npm:^1.0.49"
     "@juggle/resize-observer": "npm:^3.4.0"
     "@linear/sdk": "npm:^58.1.0"
     "@node-oauth/oauth2-server": "npm:^5.2.0"
@@ -17404,7 +17382,6 @@ __metadata:
     "@types/styled-components": "npm:^5.1.32"
     "@types/throng": "npm:^5.0.7"
     "@types/tmp": "npm:^0.2.6"
-    "@types/turndown": "npm:^5.0.6"
     "@types/utf8": "npm:^3.0.3"
     "@types/validator": "npm:^13.15.3"
     "@types/yauzl": "npm:^2.10.3"
@@ -17580,7 +17557,6 @@ __metadata:
     tiny-cookie: "npm:^2.5.1"
     tmp: "npm:^0.2.5"
     tunnel-agent: "npm:^0.6.0"
-    turndown: "npm:^7.2.2"
     typescript: "npm:^5.9.2"
     ukkonen: "npm:^2.2.0"
     umzug: "npm:^3.8.2"
@@ -21351,15 +21327,6 @@ __metadata:
   dependencies:
     safe-buffer: "npm:^5.0.1"
   checksum: 10c0/4c7a1b813e7beae66fdbf567a65ec6d46313643753d0beefb3c7973d66fcec3a1e7f39759f0a0b4465883499c6dc8b0750ab8b287399af2e583823e40410a17a
-  languageName: node
-  linkType: hard
-
-"turndown@npm:^7.2.2":
-  version: 7.2.2
-  resolution: "turndown@npm:7.2.2"
-  dependencies:
-    "@mixmark-io/domino": "npm:^2.2.0"
-  checksum: 10c0/ee09f7bd67c468505aad6c3a26b11269ca49ffce07eaa9c212926d068f242b11b4e955b31a58289f26674ff29f91209b29454907551dcaec7da712e524cc78c2
   languageName: node
   linkType: hard
 

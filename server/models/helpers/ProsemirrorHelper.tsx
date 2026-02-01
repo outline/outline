@@ -1,16 +1,13 @@
 import emojiRegex from "emoji-regex";
 import { JSDOM } from "jsdom";
+import chunk from "lodash/chunk";
 import compact from "lodash/compact";
 import { EditorState } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import flatten from "lodash/flatten";
 import isMatch from "lodash/isMatch";
 import uniq from "lodash/uniq";
-import {
-  Node,
-  Fragment,
-  DOMParser as ProsemirrorDOMParser,
-} from "prosemirror-model";
+import { Node, Fragment } from "prosemirror-model";
 import { renderToString } from "react-dom/server";
 import styled, { ServerStyleSheet, ThemeProvider } from "styled-components";
 import { prosemirrorToYDoc } from "y-prosemirror";
@@ -22,17 +19,23 @@ import EditorContainer from "@shared/editor/components/Styles";
 import GlobalStyles from "@shared/styles/globals";
 import light from "@shared/styles/theme";
 import type { ProsemirrorData, UnfurlResponse } from "@shared/types";
-import { MentionType } from "@shared/types";
-import { attachmentRedirectRegex } from "@shared/utils/ProsemirrorHelper";
+import { AttachmentPreset, MentionType } from "@shared/types";
+import {
+  attachmentRedirectRegex,
+  ProsemirrorHelper as SharedProsemirrorHelper,
+} from "@shared/utils/ProsemirrorHelper";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { isRTL } from "@shared/utils/rtl";
 import { isInternalUrl } from "@shared/utils/urls";
+import attachmentCreator from "@server/commands/attachmentCreator";
 import { plugins, schema, parser } from "@server/editor";
+import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
 import Attachment from "@server/models/Attachment";
 import User from "@server/models/User";
 import FileStorage from "@server/storage/files";
+import type { APIContext } from "@server/types";
 
 export type HTMLOptions = {
   /** A title, if it should be included */
@@ -799,87 +802,13 @@ export class ProsemirrorHelper {
   }
 
   /**
-   * Convert HTML content directly to a Prosemirror document node.
-   *
-   * @param content The HTML content as a string or Buffer.
-   * @returns A Prosemirror Node representing the document.
-   */
-  public static htmlToProsemirror(content: Buffer | string): Node {
-    if (typeof content !== "string") {
-      content = content.toString("utf8");
-    }
-
-    const dom = new JSDOM(content);
-    const document = dom.window.document;
-
-    // Remove problematic elements before parsing
-    const elementsToRemove = document.querySelectorAll(
-      "script, style, title, head, meta, link"
-    );
-    elementsToRemove.forEach((el) => el.remove());
-
-    // Preprocess the DOM to handle cases that turndown plugins handled
-    this.preprocessHtmlForImport(document);
-
-    // Patch global environment for Prosemirror DOMParser
-    const cleanup = this.patchGlobalEnv(dom.window);
-
-    try {
-      const domParser = ProsemirrorDOMParser.fromSchema(schema);
-      return domParser.parse(document.body);
-    } finally {
-      cleanup();
-    }
-  }
-
-  /**
-   * Preprocesses HTML DOM before Prosemirror parsing to cleanup
-   * images and other elements.
-   *
-   * @param document The DOM document to preprocess.
-   */
-  private static preprocessHtmlForImport(document: Document): void {
-    // Handle images: filter emoticons, remove Jira icons, apply Confluence sizing
-    const images = document.querySelectorAll("img");
-    images.forEach((img) => {
-      const className = img.className || "";
-
-      // Skip emoticon images (they'll be dropped)
-      if (className.includes("emoticon")) {
-        img.remove();
-        return;
-      }
-
-      // Remove Jira icon images
-      if (
-        className === "icon" &&
-        img.parentElement?.className.includes("jira-issue-key")
-      ) {
-        img.remove();
-        return;
-      }
-
-      // Handle Confluence image sizing: data-width/data-height → width/height
-      const dataWidth = img.getAttribute("data-width");
-      const dataHeight = img.getAttribute("data-height");
-      const width = img.getAttribute("width");
-
-      if (dataWidth && dataHeight && width) {
-        const ratio = parseInt(dataWidth) / parseInt(width);
-        const calculatedHeight = Math.round(parseInt(dataHeight) / ratio);
-        img.setAttribute("height", String(calculatedHeight));
-      }
-    });
-  }
-
-  /**
    * Patches the global environment with properties from the JSDOM window,
    * necessary for ProseMirror to run in a Node environment.
    *
-   * @param domWindow The JSDOM window object
-   * @returns A cleanup function to restore the global environment
+   * @param domWindow The JSDOM window object.
+   * @returns A cleanup function to restore the global environment.
    */
-  private static patchGlobalEnv(domWindow: JSDOM["window"]) {
+  public static patchGlobalEnv(domWindow: JSDOM["window"]) {
     const g = global as any;
 
     const globalParams = {
@@ -921,5 +850,110 @@ export class ProsemirrorHelper {
         }
       });
     };
+  }
+
+  /**
+   * Replaces remote and base64 encoded images in the given Prosemirror node
+   * with attachment urls and uploads the images to the storage provider.
+   *
+   * @param ctx The API context.
+   * @param doc The Prosemirror node to process.
+   * @param user The user context.
+   * @returns A new Prosemirror node with images replaced.
+   */
+  static async replaceImagesWithAttachments(
+    ctx: APIContext,
+    doc: Node,
+    user: User
+  ): Promise<Node> {
+    const images = SharedProsemirrorHelper.getImages(doc);
+    const videos = SharedProsemirrorHelper.getVideos(doc);
+    const nodes = [...images, ...videos];
+
+    if (!nodes.length) {
+      return doc;
+    }
+
+    const timeoutPerImage = Math.floor(
+      Math.min(env.REQUEST_TIMEOUT / nodes.length, 10000)
+    );
+
+    const urlToAttachment: Map<string, Attachment> = new Map();
+    const chunks = chunk(nodes, 10);
+
+    for (const nodeChunk of chunks) {
+      await Promise.all(
+        nodeChunk.map(async (node) => {
+          const src = String(node.attrs.src ?? "");
+
+          // Skip invalid URLs
+          try {
+            new URL(src);
+          } catch {
+            return;
+          }
+
+          // Skip internal URLs
+          if (isInternalUrl(src)) {
+            return;
+          }
+
+          // Skip already processed
+          if (urlToAttachment.has(src)) {
+            return;
+          }
+
+          try {
+            const attachment = await attachmentCreator({
+              name: String(node.attrs.alt ?? node.type.name),
+              url: src,
+              preset: AttachmentPreset.DocumentAttachment,
+              user,
+              fetchOptions: {
+                timeout: timeoutPerImage,
+              },
+              ctx,
+            });
+
+            if (attachment) {
+              urlToAttachment.set(src, attachment);
+            }
+          } catch (err) {
+            Logger.warn("Failed to download image for attachment", {
+              error: err.message,
+              src,
+            });
+          }
+        })
+      );
+    }
+
+    // Transform the document to replace image/video src attributes
+    const transformFragment = (fragment: Fragment): Fragment => {
+      const transformedNodes: Node[] = [];
+
+      fragment.forEach((node) => {
+        if (node.type.name === "image" || node.type.name === "video") {
+          const src = String(node.attrs.src ?? "");
+          const attachment = urlToAttachment.get(src);
+
+          if (attachment) {
+            const json = node.toJSON();
+            json.attrs = { ...json.attrs, src: attachment.redirectUrl };
+            transformedNodes.push(Node.fromJSON(schema, json));
+          } else {
+            transformedNodes.push(node);
+          }
+        } else if (node.content.size > 0) {
+          transformedNodes.push(node.copy(transformFragment(node.content)));
+        } else {
+          transformedNodes.push(node);
+        }
+      });
+
+      return Fragment.fromArray(transformedNodes);
+    };
+
+    return doc.copy(transformFragment(doc.content));
   }
 }
