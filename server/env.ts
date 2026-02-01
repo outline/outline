@@ -99,8 +99,9 @@ export class Environment {
    */
   @IsOptional()
   @IsDatabaseUrl()
-  public DATABASE_URL_READ_ONLY = this.toOptionalString(
-    environment.DATABASE_URL_READ_ONLY
+  public DATABASE_READ_ONLY_URL = this.toOptionalString(
+    // Support deprecated variable name for backwards compatibility
+    environment.DATABASE_READ_ONLY_URL ?? environment.DATABASE_URL_READ_ONLY
   );
 
   /**
