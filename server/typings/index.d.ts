@@ -11,15 +11,6 @@ declare module "email-providers" {
   export default list;
 }
 
-declare module "@joplin/turndown-plugin-gfm" {
-  import { Plugin } from "turndown";
-
-  export const strikethrough: Plugin;
-  export const tables: Plugin;
-  export const taskListItems: Plugin;
-  export const gfm: Plugin;
-}
-
 declare module "ukkonen" {
   export default function ukkonen(
     first: string,

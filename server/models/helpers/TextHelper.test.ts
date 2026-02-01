@@ -1,12 +1,12 @@
 import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { createContext } from "@server/context";
 import { buildProseMirrorDoc, buildUser } from "@server/test/factories";
-import { TextHelper } from "./TextHelper";
+import { ProsemirrorHelper } from "./ProsemirrorHelper";
 
 jest.mock("@server/storage/files");
 
-describe("TextHelper", () => {
-  describe("replaceImagesWithAttachmentsInNode", () => {
+describe("ProsemirrorHelper", () => {
+  describe("replaceImagesWithAttachments", () => {
     it("should return the same document when there are no images", async () => {
       const user = await buildUser();
       const ctx = createContext({ user });
@@ -18,7 +18,7 @@ describe("TextHelper", () => {
         },
       ]);
 
-      const result = await TextHelper.replaceImagesWithAttachmentsInNode(
+      const result = await ProsemirrorHelper.replaceImagesWithAttachments(
         ctx,
         doc,
         user
@@ -68,7 +68,7 @@ describe("TextHelper", () => {
         },
       ]);
 
-      const result = await TextHelper.replaceImagesWithAttachmentsInNode(
+      const result = await ProsemirrorHelper.replaceImagesWithAttachments(
         ctx,
         doc,
         user
@@ -97,7 +97,7 @@ describe("TextHelper", () => {
         },
       ]);
 
-      const result = await TextHelper.replaceImagesWithAttachmentsInNode(
+      const result = await ProsemirrorHelper.replaceImagesWithAttachments(
         ctx,
         doc,
         user
@@ -135,7 +135,7 @@ describe("TextHelper", () => {
         },
       ]);
 
-      const result = await TextHelper.replaceImagesWithAttachmentsInNode(
+      const result = await ProsemirrorHelper.replaceImagesWithAttachments(
         ctx,
         doc,
         user
@@ -159,7 +159,7 @@ describe("TextHelper", () => {
         },
       ]);
 
-      const result = await TextHelper.replaceImagesWithAttachmentsInNode(
+      const result = await ProsemirrorHelper.replaceImagesWithAttachments(
         ctx,
         doc,
         user
