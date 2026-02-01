@@ -204,7 +204,7 @@ class GroupMembership extends ParanoidModel<
   @AfterCreate
   static async createSourcedMemberships(
     model: GroupMembership,
-    options: SaveOptions<GroupMembership>
+    options: SaveOptions<GroupMembership> & { documentId?: string }
   ) {
     if (model.sourceId || !model.documentId) {
       return;
@@ -326,27 +326,19 @@ class GroupMembership extends ParanoidModel<
    */
   static async recreateSourcedMemberships(
     model: GroupMembership,
-    options: SaveOptions<GroupMembership>
+    options: SaveOptions<GroupMembership> & { documentId?: string }
   ) {
     if (!model.documentId) {
       return;
     }
-    const { transaction } = options;
-
-    await this.destroy({
-      where: {
-        groupId: model.groupId,
-        sourceId: model.id,
-      },
-      transaction,
-    });
+    const { transaction, documentId } = options;
 
     const document = await Document.unscoped()
       .scope("withoutState")
       .findOne({
         attributes: ["id"],
         where: {
-          id: model.documentId,
+          id: documentId ?? model.documentId,
         },
         transaction,
       });
@@ -354,18 +346,30 @@ class GroupMembership extends ParanoidModel<
       return;
     }
 
-    const childDocumentIds = await document.findAllChildDocumentIds(
-      {
-        publishedAt: {
-          [Op.ne]: null,
+    const childDocumentIds = [
+      ...(documentId ? [documentId] : []),
+      ...(await document.findAllChildDocumentIds(
+        {
+          publishedAt: {
+            [Op.ne]: null,
+          },
         },
-      },
-      {
-        transaction,
-      }
-    );
+        {
+          transaction,
+        }
+      )),
+    ];
 
     for (const childDocumentId of childDocumentIds) {
+      await this.destroy({
+        where: {
+          groupId: model.groupId,
+          sourceId: model.id,
+          documentId: childDocumentId,
+        },
+        transaction,
+      });
+
       await this.create(
         {
           documentId: childDocumentId,

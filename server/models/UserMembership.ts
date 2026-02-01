@@ -203,7 +203,7 @@ class UserMembership extends IdModel<
   @AfterCreate
   static async createSourcedMemberships(
     model: UserMembership,
-    options: SaveOptions<UserMembership>
+    options: SaveOptions<UserMembership> & { documentId?: string }
   ) {
     if (model.sourceId || !model.documentId) {
       return;
@@ -302,17 +302,18 @@ class UserMembership extends IdModel<
    */
   static async recreateSourcedMemberships(
     model: UserMembership,
-    options: SaveOptions<UserMembership>
+    options: SaveOptions<UserMembership> & { documentId?: string }
   ) {
     if (!model.documentId) {
       return;
     }
-    const { transaction } = options;
+    const { transaction, documentId } = options;
 
     await this.destroy({
       where: {
         userId: model.userId,
         sourceId: model.id,
+        ...(documentId ? { documentId } : {}),
       },
       transaction,
     });
@@ -322,26 +323,39 @@ class UserMembership extends IdModel<
       .findOne({
         attributes: ["id"],
         where: {
-          id: model.documentId,
+          id: documentId ?? model.documentId,
         },
         transaction,
       });
+
     if (!document) {
       return;
     }
 
-    const childDocumentIds = await document.findAllChildDocumentIds(
-      {
-        publishedAt: {
-          [Op.ne]: null,
+    const childDocumentIds = [
+      ...(documentId ? [documentId] : []),
+      ...(await document.findAllChildDocumentIds(
+        {
+          publishedAt: {
+            [Op.ne]: null,
+          },
         },
-      },
-      {
-        transaction,
-      }
-    );
+        {
+          transaction,
+        }
+      )),
+    ];
 
     for (const childDocumentId of childDocumentIds) {
+      await this.destroy({
+        where: {
+          userId: model.userId,
+          sourceId: model.id,
+          documentId: childDocumentId,
+        },
+        transaction,
+      });
+
       await this.create(
         {
           documentId: childDocumentId,
