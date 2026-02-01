@@ -20,6 +20,7 @@ import {
 } from "prosemirror-tables";
 import { ProsemirrorHelper } from "../../utils/ProsemirrorHelper";
 import { CSVHelper } from "../../utils/csv";
+import { isCurrency, parseCurrency } from "../../utils/currency";
 import { parseDate } from "../../utils/date";
 import { chainTransactions } from "../lib/chainTransactions";
 import {
@@ -336,8 +337,9 @@ export function sortTable({
       // column data before sort
       const columnData = table.map((row) => row[index]?.textContent ?? "");
 
-      // determine sorting type: date, number, or text
+      // determine sorting type: date, currency, number, or text
       let compareAsDate = false;
+      let compareAsCurrency = false;
       let compareAsNumber = false;
 
       const nonEmptyCells = table
@@ -346,11 +348,24 @@ export function sortTable({
       if (nonEmptyCells.length > 0) {
         // check if all non-empty cells are valid dates
         compareAsDate = nonEmptyCells.every((cell) => parseDate(cell) !== null);
-        // if not dates, check if all non-empty cells are numbers
+
+        // if not dates, check if cells are currency values
+        // treat as currency if at least 50% of non-empty cells look like currency values
         if (!compareAsDate) {
-          compareAsNumber = nonEmptyCells.every(
+          const currencyCells = nonEmptyCells.filter((cell) =>
+            isCurrency(cell)
+          );
+          const currencyRatio = currencyCells.length / nonEmptyCells.length;
+          compareAsCurrency = currencyCells.length >= 2 && currencyRatio >= 0.5;
+        }
+
+        // if not currency, check if cells are numbers (same logic)
+        if (!compareAsDate && !compareAsCurrency) {
+          const numberCells = nonEmptyCells.filter(
             (cell) => !isNaN(parseFloat(cell))
           );
+          const numberRatio = numberCells.length / nonEmptyCells.length;
+          compareAsNumber = numberCells.length >= 2 && numberRatio >= 0.5;
         }
       }
 
@@ -370,12 +385,36 @@ export function sortTable({
         if (compareAsDate) {
           const aDate = parseDate(aContent);
           const bDate = parseDate(bContent);
-          if (aDate && bDate) {
-            return aDate.getTime() - bDate.getTime();
+          // non-date cells go to the end (like empty cells)
+          if (!aDate) {
+            return bDate ? 1 : 0;
           }
-          return 0;
+          if (!bDate) {
+            return -1;
+          }
+          return aDate.getTime() - bDate.getTime();
+        } else if (compareAsCurrency) {
+          const aValue = parseCurrency(aContent);
+          const bValue = parseCurrency(bContent);
+          // non-currency cells go to the end (like empty cells)
+          if (aValue === null) {
+            return bValue !== null ? 1 : 0;
+          }
+          if (bValue === null) {
+            return -1;
+          }
+          return aValue - bValue;
         } else if (compareAsNumber) {
-          return parseFloat(aContent) - parseFloat(bContent);
+          const aNum = parseFloat(aContent);
+          const bNum = parseFloat(bContent);
+          // non-number cells go to the end (like empty cells)
+          if (isNaN(aNum)) {
+            return !isNaN(bNum) ? 1 : 0;
+          }
+          if (isNaN(bNum)) {
+            return -1;
+          }
+          return aNum - bNum;
         } else {
           return aContent.localeCompare(bContent);
         }
