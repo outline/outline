@@ -20,7 +20,7 @@ import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import type { Permission } from "~/types";
 import { EmptySelectValue } from "~/types";
-import { Separator } from "../components";
+import { Separator, GroupMembersPopover } from "../components";
 import { ListItem } from "../components/ListItem";
 import { Placeholder } from "../components/Placeholder";
 import { PublicAccess } from "./PublicAccess";
@@ -165,52 +165,56 @@ export const AccessControlList = observer(
                     ).localeCompare(b.group.name)
                   )
                   .map((membership) => (
-                    <ListItem
+                    <GroupMembersPopover
                       key={membership.id}
-                      image={
-                        <GroupAvatar
-                          group={membership.group}
-                          backgroundColor={theme.modalBackground}
-                        />
-                      }
-                      title={membership.group.name}
-                      subtitle={t("{{ count }} member", {
-                        count: membership.group.memberCount,
-                      })}
-                      actions={
-                        <div style={{ marginRight: -8 }}>
-                          <InputMemberPermissionSelect
-                            permissions={permissions}
-                            onChange={async (
-                              permission:
-                                | CollectionPermission
-                                | typeof EmptySelectValue
-                            ) => {
-                              try {
-                                if (permission === EmptySelectValue) {
-                                  await groupMemberships.delete({
-                                    collectionId: collection.id,
-                                    groupId: membership.groupId,
-                                  });
-                                } else {
-                                  await groupMemberships.create({
-                                    collectionId: collection.id,
-                                    groupId: membership.groupId,
-                                    permission,
-                                  });
-                                }
-                              } catch (err) {
-                                toast.error(err.message);
-                                return false;
-                              }
-                              return true;
-                            }}
-                            disabled={!can.update}
-                            value={membership.permission}
+                      group={membership.group}
+                    >
+                      <ListItem
+                        image={
+                          <GroupAvatar
+                            group={membership.group}
+                            backgroundColor={theme.modalBackground}
                           />
-                        </div>
-                      }
-                    />
+                        }
+                        title={membership.group.name}
+                        subtitle={t("{{ count }} member", {
+                          count: membership.group.memberCount,
+                        })}
+                        actions={
+                          <div style={{ marginRight: -8 }}>
+                            <InputMemberPermissionSelect
+                              permissions={permissions}
+                              onChange={async (
+                                permission:
+                                  | CollectionPermission
+                                  | typeof EmptySelectValue
+                              ) => {
+                                try {
+                                  if (permission === EmptySelectValue) {
+                                    await groupMemberships.delete({
+                                      collectionId: collection.id,
+                                      groupId: membership.groupId,
+                                    });
+                                  } else {
+                                    await groupMemberships.create({
+                                      collectionId: collection.id,
+                                      groupId: membership.groupId,
+                                      permission,
+                                    });
+                                  }
+                                } catch (err) {
+                                  toast.error(err.message);
+                                  return false;
+                                }
+                                return true;
+                              }}
+                              disabled={!can.update}
+                              value={membership.permission}
+                            />
+                          </div>
+                        }
+                      />
+                    </GroupMembersPopover>
                   ))}
                 {membershipsInCollection
                   .filter((membership) => membership.user)

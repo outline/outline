@@ -18,6 +18,7 @@ import type { Permission } from "~/types";
 import { EmptySelectValue } from "~/types";
 import { homePath } from "~/utils/routeHelpers";
 import { ListItem } from "../components/ListItem";
+import { GroupMembersPopover } from "../components";
 import DocumentMemberListItem from "./DocumentMemberListItem";
 
 type Props = {
@@ -132,58 +133,59 @@ function DocumentMemberList({ document, invitedInSession }: Props) {
         .map((membership) => {
           const MaybeLink = membership?.source ? StyledLink : React.Fragment;
           return (
-            <ListItem
-              key={membership.id}
-              image={
-                <GroupAvatar
-                  group={membership.group}
-                  backgroundColor={theme.modalBackground}
-                />
-              }
-              title={membership.group.name}
-              subtitle={
-                membership.sourceId ? (
-                  <Trans>
-                    Has access through{" "}
-                    <MaybeLink
-                      // @ts-expect-error to prop does not exist on React.Fragment
-                      to={membership.source?.document?.path ?? ""}
-                    >
-                      parent
-                    </MaybeLink>
-                  </Trans>
-                ) : (
-                  t("{{ count }} member", {
-                    count: membership.group.memberCount,
-                  })
-                )
-              }
-              actions={
-                <div style={{ marginRight: -8 }}>
-                  <InputMemberPermissionSelect
-                    permissions={permissions}
-                    onChange={async (
-                      permission: DocumentPermission | typeof EmptySelectValue
-                    ) => {
-                      if (permission === EmptySelectValue) {
-                        await groupMemberships.delete({
-                          documentId: document.id,
-                          groupId: membership.groupId,
-                        });
-                      } else {
-                        await groupMemberships.create({
-                          documentId: document.id,
-                          groupId: membership.groupId,
-                          permission,
-                        });
-                      }
-                    }}
-                    disabled={!can.manageUsers}
-                    value={membership.permission}
+            <GroupMembersPopover key={membership.id} group={membership.group}>
+              <ListItem
+                image={
+                  <GroupAvatar
+                    group={membership.group}
+                    backgroundColor={theme.modalBackground}
                   />
-                </div>
-              }
-            />
+                }
+                title={membership.group.name}
+                subtitle={
+                  membership.sourceId ? (
+                    <Trans>
+                      Has access through{" "}
+                      <MaybeLink
+                        // @ts-expect-error to prop does not exist on React.Fragment
+                        to={membership.source?.document?.path ?? ""}
+                      >
+                        parent
+                      </MaybeLink>
+                    </Trans>
+                  ) : (
+                    t("{{ count }} member", {
+                      count: membership.group.memberCount,
+                    })
+                  )
+                }
+                actions={
+                  <div style={{ marginRight: -8 }}>
+                    <InputMemberPermissionSelect
+                      permissions={permissions}
+                      onChange={async (
+                        permission: DocumentPermission | typeof EmptySelectValue
+                      ) => {
+                        if (permission === EmptySelectValue) {
+                          await groupMemberships.delete({
+                            documentId: document.id,
+                            groupId: membership.groupId,
+                          });
+                        } else {
+                          await groupMemberships.create({
+                            documentId: document.id,
+                            groupId: membership.groupId,
+                            permission,
+                          });
+                        }
+                      }}
+                      disabled={!can.manageUsers}
+                      value={membership.permission}
+                    />
+                  </div>
+                }
+              />
+            </GroupMembersPopover>
           );
         })}
       {members.map((item) => (

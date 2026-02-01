@@ -430,6 +430,7 @@
   "{{ count }} people and {{ count2 }} groups added to the collection_plural": "{{ count }} people and {{ count2 }} groups added to the collection",
   "Switch to dark": "Switch to dark",
   "Switch to light": "Switch to light",
+  "{{ groupName }} members": "{{ groupName }} members",
   "Add": "Add",
   "Add or invite": "Add or invite",
   "Viewer": "Viewer",
