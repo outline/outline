@@ -237,7 +237,9 @@ export default function formattingMenuItems(
                     color={highlight.mark.attrs.color}
                   />
                 ),
-                active: () => true,
+                active: isMarkActive(schema.marks.highlight, {
+                  color: highlight.mark.attrs.color,
+                }),
                 attrs: { color: highlight.mark.attrs.color },
               },
             ]
