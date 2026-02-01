@@ -1,0 +1,114 @@
+import { Op } from "sequelize";
+import {
+  NotificationEventType,
+  DocumentPermission,
+  CollectionPermission,
+} from "@shared/types";
+import Logger from "@server/logging/Logger";
+import {
+  Document,
+  Notification,
+  User,
+  Collection,
+  AccessRequest,
+} from "@server/models";
+import type { DocumentAccessRequestEvent } from "@server/types";
+import { BaseTask, TaskPriority } from "./base/BaseTask";
+import { uniq } from "lodash";
+
+/**
+ * Notification task that sends notifications to users who can manage a document
+ * when someone requests access to it.
+ */
+export default class DocumentAccessRequestNotificationsTask extends BaseTask<DocumentAccessRequestEvent> {
+  public async perform(event: DocumentAccessRequestEvent) {
+    const document = await Document.findByPk(event.documentId);
+    if (!document) {
+      Logger.debug(
+        "task",
+        `Document not found for access request notification`,
+        {
+          documentId: event.documentId,
+        }
+      );
+      return;
+    }
+
+    // users can only have one pending access request per document
+    const pendingRequest = await AccessRequest.pendingRequest({
+      documentId: document.id,
+      userId: event.actorId,
+    });
+
+    if (!pendingRequest) {
+      Logger.debug("task", `Access request not found for notification`, {
+        documentId: event.documentId,
+        userId: event.actorId,
+      });
+      return;
+    }
+
+    const recipients = await this.findDocumentManagers(document);
+    for (const recipient of recipients) {
+      if (
+        recipient.id === event.actorId ||
+        recipient.isSuspended ||
+        !recipient.subscribedToEventType(
+          NotificationEventType.RequestDocumentAccess
+        )
+      ) {
+        continue;
+      }
+
+      await Notification.create({
+        event: NotificationEventType.RequestDocumentAccess,
+        userId: recipient.id,
+        actorId: event.actorId,
+        teamId: event.teamId,
+        documentId: event.documentId,
+        accessRequestId: pendingRequest.id,
+      });
+    }
+  }
+
+  /**
+   * Find all users who can manage the document (have admin/manage permissions).
+   *
+   * @param document - the document to find managers for.
+   * @returns list of users who can manage the document.
+   */
+  private async findDocumentManagers(document: Document): Promise<User[]> {
+    const documentMemberships = await Document.membershipUserIds(
+      document.id,
+      DocumentPermission.Admin
+    );
+
+    let collectionMemberships: string[] = [];
+    if (document.collectionId) {
+      collectionMemberships = await Collection.membershipUserIds(
+        document.collectionId,
+        CollectionPermission.Admin
+      );
+    }
+
+    const managerIds = uniq([...documentMemberships, ...collectionMemberships]);
+
+    // Fetch the actual user objects
+    const users = await User.findAll({
+      where: {
+        id: {
+          [Op.in]: Array.from(managerIds),
+        },
+        teamId: document.teamId,
+      },
+    });
+
+    return users;
+  }
+
+  public get options() {
+    return {
+      priority: TaskPriority.Background,
+    };
+  }
+}

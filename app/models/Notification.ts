@@ -48,6 +48,7 @@ class Notification extends Model {
         NotificationEventType.UpdateDocument,
         NotificationEventType.CreateRevision,
         NotificationEventType.AddUserToDocument,
+        NotificationEventType.RequestDocumentAccess,
       ],
       collections: [
         NotificationEventType.CreateCollection,
@@ -74,6 +75,13 @@ class Notification extends Model {
   @Field
   @observable
   archivedAt: Date | null;
+
+  /**
+   * Request ID on notifications for access requests.
+   */
+  @Field
+  @observable
+  accessRequestId?: string;
 
   /**
    * The user that triggered the notification.
@@ -195,6 +203,8 @@ class Notification extends Model {
         return t("shared");
       case NotificationEventType.AddUserToCollection:
         return t("invited you to");
+      case NotificationEventType.RequestDocumentAccess:
+        return t("is requesting access to");
       default:
         return this.event;
     }
@@ -237,6 +247,7 @@ class Notification extends Model {
           : undefined;
         return collection ? collectionPath(collection) : "";
       }
+      case NotificationEventType.RequestDocumentAccess:
       case NotificationEventType.AddUserToDocument:
       case NotificationEventType.GroupMentionedInDocument:
       case NotificationEventType.MentionedInDocument: {
