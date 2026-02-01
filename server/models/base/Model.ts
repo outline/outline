@@ -13,6 +13,7 @@ import type {
   SaveOptions,
 } from "sequelize";
 import { DataTypes, UniqueConstraintError } from "sequelize";
+import type { Sequelize } from "sequelize-typescript";
 import {
   AfterCreate,
   AfterDestroy,
@@ -26,6 +27,12 @@ import Logger from "@server/logging/Logger";
 import type { Replace, APIContext } from "@server/types";
 import { getChangsetSkipped } from "../decorators/Changeset";
 import { InternalError } from "@server/errors";
+
+/**
+ * Lazy reference to the read-only Sequelize instance.
+ * Imported dynamically to avoid circular dependencies.
+ */
+let _sequelizeReadOnly: Sequelize | undefined;
 
 type EventOverrideOptions = {
   /** Override the default event name. */
@@ -55,6 +62,30 @@ class Model<
    * The namespace to use for events - defaults to the table name if none is provided.
    */
   static eventNamespace: string | undefined;
+
+  /**
+   * Returns this model bound to the read-only database connection (read replica).
+   * Use this for queries that can tolerate slight replication lag and don't need
+   * to read-your-writes consistency.
+   *
+   * @example
+   * // Opt-in to read replica
+   * const documents = await Document.replica.findAll({ where: { teamId } });
+   *
+   * // Default behavior uses primary
+   * const document = await Document.findOne({ where: { id } });
+   *
+   * @returns the model bound to the read replica connection.
+   */
+  static get replica(): typeof this {
+    if (!_sequelizeReadOnly) {
+      // Lazy import to avoid circular dependencies
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      _sequelizeReadOnly =
+        require("@server/storage/database").sequelizeReadOnly;
+    }
+    return _sequelizeReadOnly!.models[this.name] as typeof this;
+  }
 
   /**
    * Validates this instance, and if the validation passes, persists it to the database.

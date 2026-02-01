@@ -256,13 +256,9 @@ export const sequelize = createDatabaseInstance(databaseConfig, models);
  * Falls back to the main connection if DATABASE_URL_READ_ONLY is not set.
  */
 export const sequelizeReadOnly = env.DATABASE_URL_READ_ONLY
-  ? createDatabaseInstance(
-      env.DATABASE_URL_READ_ONLY,
-      {},
-      {
-        readOnly: true,
-      }
-    )
+  ? createDatabaseInstance(env.DATABASE_URL_READ_ONLY, models, {
+      readOnly: true,
+    })
   : sequelize;
 
 export const migrations = createMigrationRunner(sequelize, [
