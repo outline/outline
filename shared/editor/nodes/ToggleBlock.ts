@@ -115,6 +115,16 @@ export default class ToggleBlock extends Node {
       attrs: {
         id: { default: undefined },
       },
+      parseDOM: [
+        {
+          tag: "div[data-type='container_toggle']",
+          preserveWhitespace: "full",
+        },
+        {
+          tag: `div.${EditorStyleHelper.toggleBlock}`,
+          preserveWhitespace: "full",
+        },
+      ],
       toDOM: () => [
         "div",
         { class: EditorStyleHelper.toggleBlock },
