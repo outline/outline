@@ -16,6 +16,7 @@ import {
   deleteTable,
   mergeCells,
   splitCell,
+  TableMap,
 } from "prosemirror-tables";
 import { ProsemirrorHelper } from "../../utils/ProsemirrorHelper";
 import { CSVHelper } from "../../utils/csv";
@@ -39,6 +40,28 @@ import { ColumnSelection } from "../selection/ColumnSelection";
 import type { Attrs } from "prosemirror-model";
 import isUndefined from "lodash/isUndefined";
 import find from "lodash/find";
+
+/**
+ * Restores column selection after a table operation that may have changed cell
+ * positions or content.
+ *
+ * @param tr The transaction to update.
+ * @param tableStart The position inside the table (after the table node).
+ * @param columnIndex The column index to select.
+ */
+function restoreColumnSelection(
+  tr: Transaction,
+  tableStart: number,
+  columnIndex: number
+): void {
+  const table = tr.doc.nodeAt(tableStart - 1);
+  if (table) {
+    const map = TableMap.get(table);
+    const pos = map.positionAt(0, columnIndex, table);
+    const $pos = tr.doc.resolve(tableStart + pos);
+    tr.setSelection(ColumnSelection.colSelection($pos));
+  }
+}
 
 export function createTable({
   rowsCount,
@@ -393,6 +416,7 @@ export function sortTable({
         nodes
       );
 
+      restoreColumnSelection(tr, rect.tableStart, index);
       dispatch(tr.scrollIntoView());
     }
     return true;
@@ -568,17 +592,24 @@ export function setColumnAttr({
   alignment: string;
 }): Command {
   return (state, dispatch) => {
+    if (!isInTable(state)) {
+      return false;
+    }
+
     if (dispatch) {
+      const rect = selectedRect(state);
       const cells = getCellsInColumn(index)(state) || [];
-      let transaction = state.tr;
+      let tr = state.tr;
       cells.forEach((pos) => {
         const node = state.doc.nodeAt(pos);
-        transaction = transaction.setNodeMarkup(pos, undefined, {
+        tr = tr.setNodeMarkup(pos, undefined, {
           ...node?.attrs,
           alignment,
         });
       });
-      dispatch(transaction);
+
+      restoreColumnSelection(tr, rect.tableStart, index);
+      dispatch(tr);
     }
     return true;
   };
@@ -1025,6 +1056,7 @@ export function toggleColumnBackground({
     }
 
     if (dispatch) {
+      const rect = selectedRect(state);
       const cells = getCellsInColumn(colIndex)(state) || [];
       let tr = state.tr;
 
@@ -1041,15 +1073,7 @@ export function toggleColumnBackground({
         }
       });
 
-      // It was noticed that the selection went to the last table cell of the column
-      // after command execution.
-      // Instead, we want to preserve the original column selection so that the color
-      // picker can be prevented from closing
-      const rect = selectedRect(state);
-      const pos = rect.map.positionAt(0, colIndex, rect.table);
-      const $pos = tr.doc.resolve(rect.tableStart + pos);
-      tr.setSelection(ColumnSelection.colSelection($pos));
-
+      restoreColumnSelection(tr, rect.tableStart, colIndex);
       dispatch(tr);
     }
     return true;
