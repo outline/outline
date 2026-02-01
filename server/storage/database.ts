@@ -253,11 +253,11 @@ export const sequelize = createDatabaseInstance(databaseConfig, models);
 
 /**
  * Read-only database connection for read replicas.
- * Falls back to the main connection if DATABASE_URL_READ_ONLY is not set.
+ * Falls back to the main connection if DATABASE_READ_ONLY_URL is not set.
  */
-export const sequelizeReadOnly = env.DATABASE_URL_READ_ONLY
+export const sequelizeReadOnly = env.DATABASE_READ_ONLY_URL
   ? createDatabaseInstance(
-      env.DATABASE_URL_READ_ONLY,
+      env.DATABASE_READ_ONLY_URL,
       {},
       {
         readOnly: true,
