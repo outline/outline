@@ -38,7 +38,7 @@ export default class CheckboxList extends Node {
   }
 
   inputRules({ type }: { type: NodeType }) {
-    return [listWrappingInputRule(/^-?\s*(\[ \])\s$/i, type)];
+    return [listWrappingInputRule(/^-?\s*(\[\s?\])\s$/i, type)];
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {

@@ -2,6 +2,8 @@ import { CrossIcon, DownloadIcon, GlobeIcon, ZoomInIcon } from "outline-icons";
 import type { EditorView } from "prosemirror-view";
 import * as React from "react";
 import styled from "styled-components";
+import { useTranslation } from "react-i18next";
+import find from "lodash/find";
 import Flex from "../../components/Flex";
 import { s } from "../../styles";
 import { isExternalUrl, sanitizeUrl } from "../../utils/urls";
@@ -9,8 +11,6 @@ import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import type { ComponentProps } from "../types";
 import { ResizeLeft, ResizeRight } from "./ResizeHandle";
 import useDragResize from "./hooks/useDragResize";
-import { useTranslation } from "react-i18next";
-import find from "lodash/find";
 
 type Props = ComponentProps & {
   /** Callback triggered when the image is clicked */
@@ -161,8 +161,11 @@ const Image = (props: Props) => {
           </Actions>
         )}
         {error ? (
-          <Error style={widthStyle} className={EditorStyleHelper.imageHandle}>
-            <CrossIcon size={16} /> Image failed to load
+          <Error className={EditorStyleHelper.imageHandle}>
+            <Flex gap={4} align="center">
+              <CrossIcon size={16} />
+              {width > 300 ? t("Image failed to load") : null}
+            </Flex>
           </Error>
         ) : (
           <a
@@ -249,7 +252,6 @@ export const Error = styled(Flex)`
   font-size: 14px;
   background: ${s("backgroundSecondary")};
   border-radius: ${EditorStyleHelper.blockRadius};
-  min-width: 33vw;
   height: 80px;
   align-items: center;
   justify-content: center;

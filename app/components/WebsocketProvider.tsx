@@ -372,10 +372,7 @@ class WebsocketProvider extends Component<Props> {
         const group = groups.get(event.groupId!);
 
         // Any existing child policies are now invalid
-        if (
-          currentUserId &&
-          group?.users.map((u) => u.id).includes(currentUserId)
-        ) {
+        if (currentUserId && group?.users.some((u) => u.id === currentUserId)) {
           const document = documents.get(event.documentId!);
           if (document) {
             document.childDocuments.forEach((childDocument) => {

@@ -8,6 +8,9 @@ import { Decoration, DecorationSet } from "prosemirror-view";
 import scrollIntoView from "scroll-into-view-if-needed";
 import type { WidgetProps } from "@shared/editor/lib/Extension";
 import Extension from "@shared/editor/lib/Extension";
+import { Action, toggleFoldPluginKey } from "@shared/editor/nodes/ToggleBlock";
+import { isToggleBlock } from "@shared/editor/queries/toggleBlock";
+import { ancestors } from "@shared/editor/utils";
 import FindAndReplace from "../components/FindAndReplace";
 
 const pluginKey = new PluginKey("find-and-replace");
@@ -147,6 +150,9 @@ export default class FindAndReplaceExtension extends Extension {
       this.currentResultIndex = 0;
 
       dispatch?.(state.tr.setMeta(pluginKey, {}));
+      this.expandFoldedTogglesForCurrentMatch();
+      this.scrollToCurrentMatch();
+
       return true;
     };
   }
@@ -192,18 +198,75 @@ export default class FindAndReplaceExtension extends Extension {
       }
 
       dispatch?.(state.tr.setMeta(pluginKey, {}));
-
-      const element = window.document.querySelector(
-        `.${this.options.resultCurrentClassName}`
-      );
-      if (element) {
-        scrollIntoView(element, {
-          scrollMode: "if-needed",
-          block: "center",
-        });
-      }
+      this.expandFoldedTogglesForCurrentMatch();
+      this.scrollToCurrentMatch();
       return true;
     };
+  }
+
+  private scrollToCurrentMatch() {
+    const element = window.document.querySelector(
+      `.${this.options.resultCurrentClassName}`
+    );
+    if (element) {
+      scrollIntoView(element, {
+        scrollMode: "if-needed",
+        block: "center",
+      });
+    }
+  }
+
+  /**
+   * Expand any folded toggle blocks that contain the current match.
+   */
+  private expandFoldedTogglesForCurrentMatch() {
+    const result = this.results[this.currentResultIndex];
+    if (!result) {
+      return;
+    }
+
+    const state = this.editor.view.state;
+    const pluginState = toggleFoldPluginKey.getState(state);
+    if (!pluginState) {
+      return;
+    }
+
+    const $pos = state.doc.resolve(result.from);
+    const isToggle = isToggleBlock(state);
+
+    // Find all ancestor toggle block IDs that are folded
+    const foldedToggleIds = ancestors($pos)
+      .filter(
+        (node) => isToggle(node) && pluginState.foldedIds.has(node.attrs.id)
+      )
+      .map((node) => node.attrs.id as string);
+
+    // Unfold each toggle by ID (getting fresh state after each dispatch)
+    foldedToggleIds.forEach((toggleId) => {
+      const currentState = this.editor.view.state;
+
+      // Find the position of this toggle in the current document
+      let togglePos: number | null = null;
+      currentState.doc.descendants((node, pos) => {
+        if (
+          node.type.name === "container_toggle" &&
+          node.attrs.id === toggleId
+        ) {
+          togglePos = pos;
+          return false;
+        }
+        return true;
+      });
+
+      if (togglePos !== null) {
+        this.editor.view.dispatch(
+          currentState.tr.setMeta(toggleFoldPluginKey, {
+            type: Action.UNFOLD,
+            at: togglePos,
+          })
+        );
+      }
+    });
   }
 
   private rebaseNextResult(replace: string, index: number, lastOffset = 0) {

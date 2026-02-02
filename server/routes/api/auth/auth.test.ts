@@ -1,5 +1,5 @@
 import { faker } from "@faker-js/faker";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import { buildUser, buildTeam } from "@server/test/factories";
 import { getTestServer, setSelfHosted } from "@server/test/support";
 

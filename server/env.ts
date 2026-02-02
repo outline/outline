@@ -1,7 +1,7 @@
 /* oxlint-disable no-console */
 // oxlint-disable-next-line import/order
 import environment from "./utils/environment";
-import os from "os";
+import os from "node:os";
 import wellKnownServices from "nodemailer/lib/well-known/services.json";
 import {
   validate,
@@ -99,8 +99,9 @@ export class Environment {
    */
   @IsOptional()
   @IsDatabaseUrl()
-  public DATABASE_URL_READ_ONLY = this.toOptionalString(
-    environment.DATABASE_URL_READ_ONLY
+  public DATABASE_READ_ONLY_URL = this.toOptionalString(
+    // Support deprecated variable name for backwards compatibility
+    environment.DATABASE_READ_ONLY_URL ?? environment.DATABASE_URL_READ_ONLY
   );
 
   /**
@@ -200,6 +201,7 @@ export class Environment {
 
   /**
    * The fully qualified, external facing domain name of the server.
+   * If not set, will be derived from HEROKU_APP_NAME for Heroku deployments.
    */
   @Public
   @IsNotEmpty()
@@ -208,7 +210,12 @@ export class Environment {
     require_protocol: true,
     require_tld: false,
   })
-  public URL = (environment.URL ?? "").replace(/\/$/, "");
+  public URL = (
+    environment.URL ??
+    (environment.HEROKU_APP_NAME
+      ? `https://${environment.HEROKU_APP_NAME}.herokuapp.com`
+      : "")
+  ).replace(/\/$/, "");
 
   /**
    * If using a Cloudfront/Cloudflare distribution or similar it can be set below.
@@ -777,6 +784,15 @@ export class Environment {
   @IsNumber()
   public POPULARITY_ACTIVITY_THRESHOLD_WEEKS =
     this.toOptionalNumber(environment.POPULARITY_ACTIVITY_THRESHOLD_WEEKS) ?? 2;
+
+  /**
+   * Interval in hours at which popularity scores are recalculated.
+   * Default is 12 hours.
+   */
+  @IsOptional()
+  @IsNumber()
+  public POPULARITY_UPDATE_INTERVAL_HOURS =
+    this.toOptionalNumber(environment.POPULARITY_UPDATE_INTERVAL_HOURS) ?? 12;
 
   /**
    * Returns true if the current installation is the cloud hosted version at

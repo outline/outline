@@ -61,8 +61,6 @@ function Notifications(
     );
   }, [notifications.active, filter]);
 
-  const isEmpty = filteredNotifications.length === 0;
-
   // Update the notification count in the dock icon, if possible.
   React.useEffect(() => {
     // Account for old versions of the desktop app that don't have the
@@ -88,8 +86,8 @@ function Notifications(
       <Flex
         style={{
           width: "100%",
-          minHeight: "200px",
-          height: "calc(var(--radix-popover-content-available-height) - 44px)",
+          height:
+            "min(300px, calc(var(--radix-popover-content-available-height) - 44px))",
         }}
         column
       >
@@ -120,15 +118,17 @@ function Notifications(
             <NotificationMenu />
           </HStack>
         </Header>
-        {isEmpty && (
-          <EmptyNotifications>{t("You're all caught up")}.</EmptyNotifications>
-        )}
-        <React.Suspense fallback={null}>
-          <Scrollable ref={ref} flex topShadow hiddenScrollbars>
+        <Scrollable ref={ref} flex topShadow hiddenScrollbars>
+          <React.Suspense fallback={null}>
             <PaginatedList<Notification>
               fetch={notifications.fetchPage}
               options={{ archived: false }}
               items={filteredNotifications}
+              empty={
+                <EmptyNotifications>
+                  {t("You're all caught up")}.
+                </EmptyNotifications>
+              }
               renderItem={(item) => (
                 <NotificationListItem
                   key={item.id}
@@ -137,8 +137,8 @@ function Notifications(
                 />
               )}
             />
-          </Scrollable>
-        </React.Suspense>
+          </React.Suspense>
+        </Scrollable>
       </Flex>
     </ErrorBoundary>
   );

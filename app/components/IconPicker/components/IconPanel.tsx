@@ -6,7 +6,7 @@ import { IconLibrary } from "@shared/utils/IconLibrary";
 import Flex from "~/components/Flex";
 import InputSearch from "~/components/InputSearch";
 import { DisplayCategory } from "../utils";
-import ColorPicker from "./ColorPicker";
+import IconColorPicker from "./IconColorPicker";
 import type { DataNode } from "./GridTemplate";
 import GridTemplate from "./GridTemplate";
 import { useIconState } from "../useIconState";
@@ -122,7 +122,7 @@ const IconPanel = ({
           onChange={handleFilter}
         />
       </InputSearchContainer>
-      <ColorPicker
+      <IconColorPicker
         width={panelWidth}
         activeColor={color}
         onSelect={onColorChange}

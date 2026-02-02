@@ -1,6 +1,7 @@
 import md5 from "crypto-js/md5";
 import { darken, parseToRgb } from "polished";
 import theme from "../styles/theme";
+import type { RgbaColor } from "polished/lib/types/color";
 
 export const palette = [
   theme.brand.red,
@@ -48,4 +49,58 @@ export const getTextColor = (background: string) => {
   const b = parseInt(background.substring(5, 7), 16);
   const yiq = (r * 299 + g * 587 + b * 114) / 1000;
   return yiq >= 128 ? "black" : "white";
+};
+
+const round = (
+  number: number,
+  digits = 0,
+  base = Math.pow(10, digits)
+): number => Math.round(base * number) / base;
+
+const toHex = (number: number) => {
+  const hex = number.toString(16);
+  return hex.length < 2 ? "0" + hex : hex;
+};
+
+export const rgbaToHex = ({ red, green, blue, alpha }: RgbaColor): string => {
+  const alphaHex = alpha < 1 ? toHex(round(alpha * 255)) : "";
+  return "#" + toHex(red) + toHex(green) + toHex(blue) + alphaHex;
+};
+
+interface PresetColor {
+  hex: string;
+  name: string;
+}
+
+export const presetColors: PresetColor[] = [
+  { hex: "#FDEA9B", name: "Coral" },
+  { hex: "#FED46A", name: "Apricot" },
+  { hex: "#FA551E", name: "Sunset" },
+  { hex: "#B4DC19", name: "Smoothie" },
+  { hex: "#C8AFF0", name: "Bubblegum" },
+  { hex: "#3CBEFC", name: "Neon" },
+];
+
+export const hexToRgba = (hex: string): RgbaColor => {
+  if (hex[0] === "#") {
+    hex = hex.substring(1);
+  }
+
+  if (hex.length < 6) {
+    return {
+      red: parseInt(hex[0] + hex[0], 16),
+      green: parseInt(hex[1] + hex[1], 16),
+      blue: parseInt(hex[2] + hex[2], 16),
+      alpha:
+        hex.length === 4 ? round(parseInt(hex[3] + hex[3], 16) / 255, 2) : 1,
+    };
+  }
+
+  return {
+    red: parseInt(hex.substring(0, 2), 16),
+    green: parseInt(hex.substring(2, 4), 16),
+    blue: parseInt(hex.substring(4, 6), 16),
+    alpha:
+      hex.length === 8 ? round(parseInt(hex.substring(6, 8), 16) / 255, 2) : 1,
+  };
 };

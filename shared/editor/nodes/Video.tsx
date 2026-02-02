@@ -129,7 +129,7 @@ export default class Video extends Node {
         return;
       }
 
-      // Pressing Backspace in an an empty caption field focuses the video.
+      // Pressing Backspace in an empty caption field focuses the video.
       if (event.key === "Backspace" && event.currentTarget.innerText === "") {
         event.preventDefault();
         event.stopPropagation();

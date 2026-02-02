@@ -27,3 +27,14 @@ export class Day {
   /** Minutes in a day */
   public static minutes = 24 * Hour.minutes;
 }
+
+export class Week {
+  /** Milliseconds in a week */
+  public static ms = 7 * Day.ms;
+  /** Seconds in a week */
+  public static seconds = 7 * Day.seconds;
+  /** Minutes in a week */
+  public static minutes = 7 * Day.minutes;
+  /** Days in a week */
+  public static days = 7;
+}

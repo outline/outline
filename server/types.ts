@@ -52,9 +52,14 @@ export type AuthenticationResult = AccountProvisionerResult & {
 };
 
 export type Authentication = {
+  /** The user associated with this session. */
   user: User;
+  /** The token used for authenticating API requests, WebSocket connections, etc. */
   token: string;
+  /** The type of authentication used to create this session (e.g., "api", "app", "oauth"). */
   type?: AuthenticationType;
+  /** The authentication service used to create this session (e.g., "email", "passkeys", "google"). */
+  service?: string;
 };
 
 export type Pagination = {
@@ -562,12 +567,19 @@ export type UnfurlIssueOrPR =
   | UnfurlResponse[UnfurlResourceType.Issue]
   | UnfurlResponse[UnfurlResourceType.PR];
 
+export type UnfurlURL = UnfurlResponse[UnfurlResourceType.URL] & {
+  transformedUnfurl: true;
+};
+
 export type Unfurl =
   | UnfurlIssueOrPR
+  | UnfurlURL
   | {
       type: Exclude<
         UnfurlResourceType,
-        UnfurlResourceType.Issue | UnfurlResourceType.PR
+        | UnfurlResourceType.Issue
+        | UnfurlResourceType.PR
+        | UnfurlResourceType.URL
       >;
       [x: string]: JSONValue;
     };

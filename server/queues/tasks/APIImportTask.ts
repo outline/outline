@@ -5,7 +5,7 @@ import uniqBy from "lodash/uniqBy";
 import { Fragment, Node } from "prosemirror-model";
 import type { WhereOptions } from "sequelize";
 import { Transaction } from "sequelize";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import type { ImportTaskInput, ImportTaskOutput } from "@shared/schema";
 import type {
   ImportableIntegrationService,

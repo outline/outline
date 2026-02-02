@@ -25,6 +25,7 @@ export const StyledInfoIcon = styled(InfoIcon).attrs({
 })`
   vertical-align: bottom;
   margin-right: 2px;
+  flex-shrink: 0;
 `;
 
 export const ShareLinkInput = styled(Input)`

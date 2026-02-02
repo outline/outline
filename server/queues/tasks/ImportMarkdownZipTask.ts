@@ -1,8 +1,8 @@
-import path from "path";
+port path from "node:path";
 import fs from "fs-extra";
 import escapeRegExp from "lodash/escapeRegExp";
 import mime from "mime-types";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import documentImporter from "@server/commands/documentImporter";
 import { createContext } from "@server/context";
 import Logger from "@server/logging/Logger";
@@ -26,6 +26,63 @@ export default class ImportMarkdownZipTask extends ImportTask {
     }
 
     return this.parseFileTree(fileOperation, tree.children);
+  }
+
+  /**
+   * Check if a folder contains only attachment files (no markdown documents).
+   *
+   * @param node The file tree node to check
+   * @returns true if the folder contains only non-markdown files
+   */
+  private isAttachmentFolder(node: FileTreeNode): boolean {
+    if (node.children.length === 0) {
+      return false;
+    }
+
+    return node.children.every((child) => {
+      // If child has children, it's a folder - recurse to check its contents
+      if (child.children.length > 0) {
+        return this.isAttachmentFolder(child);
+      }
+
+      // Child has no children - could be a file or empty folder
+      const ext = path.extname(child.name).toLowerCase();
+
+      // If no extension, it's likely an empty folder, not a file.
+      // Be conservative and don't treat it as an attachment.
+      if (!ext) {
+        return false;
+      }
+
+      // It's a file with an extension - check if it's NOT markdown
+      return ext !== ".md" && ext !== ".markdown";
+    });
+  }
+
+  /**
+   * Recursively process all files in a folder as attachments.
+   *
+   * @param node The file tree node to process
+   * @param output The structured import data to add attachments to
+   */
+  private parseAttachmentFolder(
+    node: FileTreeNode,
+    output: StructuredImportData
+  ): void {
+    for (const child of node.children) {
+      if (child.children.length > 0) {
+        this.parseAttachmentFolder(child, output);
+      } else {
+        const id = randomUUID();
+        output.attachments.push({
+          id,
+          name: child.name,
+          path: child.path,
+          mimeType: mime.lookup(child.path) || "application/octet-stream",
+          buffer: () => fs.readFile(child.path),
+        });
+      }
+    }
   }
 
   /**
@@ -108,8 +165,8 @@ export default class ImportMarkdownZipTask extends ImportTask {
         node.name === Buckets.uploads ||
         node.name === Buckets.public ||
         (node.children.length > 0 &&
-          (node.path.includes(`/${Buckets.public}/`) ||
-            node.path.includes(`/${Buckets.uploads}/`)))
+          (node.path.includes(`/${Buckets.uploads}/`) ||
+            node.path.includes(`/${Buckets.public}/`)))
       );
     };
 
@@ -190,13 +247,19 @@ export default class ImportMarkdownZipTask extends ImportTask {
      * @param collectionId Collection to add documents to (undefined = attachments only)
      * @param parentDocumentId Parent document for nested structure
      */
-    async function parseNodeChildren(
+    const parseNodeChildren = async (
       children: FileTreeNode[],
       collectionId?: string,
       parentDocumentId?: string
-    ): Promise<void> {
+    ): Promise<void> => {
       await Promise.all(
         children.map(async (child) => {
+          // Special case for folders of attachments - detect by content
+          if (child.children.length > 0 && this.isAttachmentFolder(child)) {
+            this.parseAttachmentFolder(child, output);
+            return;
+          }
+
           // Skip technical bucket folders - just process their children
           if (isBucketFolder(child)) {
             return parseNodeChildren(
@@ -245,7 +308,7 @@ export default class ImportMarkdownZipTask extends ImportTask {
           await processDocumentNode(child, collectionId, parentDocumentId);
         })
       );
-    }
+    };
 
     // ===== Main Processing Logic =====
 
@@ -269,6 +332,12 @@ export default class ImportMarkdownZipTask extends ImportTask {
 
     // Step 2: Process root folders into collections
     for (const folder of rootFolders) {
+      // Check if this is an attachments-only folder at root level
+      if (this.isAttachmentFolder(folder)) {
+        this.parseAttachmentFolder(folder, output);
+        continue;
+      }
+
       // Skip technical bucket folders at root level
       if (folder.name === Buckets.uploads || folder.name === Buckets.public) {
         await parseNodeChildren(folder.children, undefined);
@@ -310,19 +379,33 @@ export default class ImportMarkdownZipTask extends ImportTask {
       // Replace attachment references
       for (const attachment of output.attachments) {
         const encodedPath = encodeURI(attachment.path);
+        const attachmentFileName = path.basename(attachment.path);
+        const reference = `<<${attachment.id}>>`;
 
-        // Normalize bucket paths (remove collection prefix for bucket items)
-        const normalizedPath = encodedPath
-          .replace(new RegExp(`(.*)/${Buckets.uploads}/`), `${Buckets.uploads}/`)
+        // Pull the collection and subdirectory out of the path name, upload
+        // folders in an export are relative to the document itself.
+        // Support both legacy bucket names (uploads/public) and generic attachment folders.
+        let normalizedAttachmentPath = encodedPath
+          .replace(
+            new RegExp(`(.*)/${Buckets.uploads}/`),
+            `${Buckets.uploads}/`
+          )
           .replace(new RegExp(`(.*)/${Buckets.public}/`), `${Buckets.public}/`);
 
-        const reference = `<<${attachment.id}>>`;
+        // Also try normalizing to just the folder containing the attachment
+        // This handles arbitrary folder names like "attachments/"
+        const attachmentDir = path.basename(path.dirname(attachment.path));
+        const genericNormalizedPath = `${attachmentDir}/${encodeURI(attachmentFileName)}`;
 
         // Replace both full and normalized paths
         document.text = document.text
           .replace(new RegExp(escapeRegExp(encodedPath), "g"), reference)
           .replace(
-            new RegExp(`\\\.?/?${escapeRegExp(normalizedPath)}`, "g"),
+            new RegExp(`\\\.?/?${escapeRegExp(normalizedAttachmentPath)}`, "g"),
+            reference
+          )
+          .replace(
+            new RegExp(`\\\.?/?${escapeRegExp(genericNormalizedPath)}`, "g"),
             reference
           );
       }

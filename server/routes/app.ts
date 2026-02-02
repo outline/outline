@@ -1,6 +1,6 @@
-import fs from "fs";
-import path from "path";
-import util from "util";
+import fs from "node:fs";
+import path from "node:path";
+import util from "node:util";
 import type { Context, Next } from "koa";
 import escape from "lodash/escape";
 import { Sequelize } from "sequelize";
@@ -215,6 +215,24 @@ export const renderShare = async (ctx: Context, next: Next) => {
   } catch (_err) {
     // If the share or document does not exist, return a 404.
     ctx.status = 404;
+  }
+
+  // If the client explicitly requests markdown and prefers it over HTML,
+  // return the document as markdown. This is useful for LLMs and API clients.
+  const acceptHeader = ctx.request.headers.accept || "";
+  const prefersMarkdown =
+    acceptHeader.includes("text/markdown") &&
+    ctx.accepts("text/markdown", "text/html") === "text/markdown";
+
+  if (prefersMarkdown && (document || collection)) {
+    const markdown = await DocumentHelper.toMarkdown(document || collection!, {
+      includeTitle: true,
+      signedUrls: 86400, // 24 hours
+      teamId: team?.id,
+    });
+    ctx.type = "text/markdown";
+    ctx.body = markdown;
+    return;
   }
 
   // Allow shares to be embedded in iframes on other websites unless prevented by team preference

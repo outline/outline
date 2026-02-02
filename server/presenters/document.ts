@@ -16,6 +16,8 @@ type Options = {
   includeData?: boolean;
   /** Include the updatedAt timestamp for public documents. */
   includeUpdatedAt?: boolean;
+  /** Array of backlink document IDs to include in the response. */
+  backlinkIds?: string[];
 };
 
 async function presentDocument(
@@ -44,10 +46,10 @@ async function presentDocument(
 
   const text =
     !asData || options?.includeText
-      ? DocumentHelper.toMarkdown(data, { includeTitle: false })
+      ? await DocumentHelper.toMarkdown(data, { includeTitle: false })
       : undefined;
 
-  const res: Record<string, any> = {
+  const res: Record<string, unknown> = {
     id: document.id,
     url: document.path,
     urlId: document.urlId,
@@ -75,6 +77,7 @@ async function presentDocument(
     parentDocumentId: undefined,
     lastViewedAt: undefined,
     isCollectionDeleted: undefined,
+    backlinkIds: options?.backlinkIds,
   };
 
   if (!!document.views && document.views.length > 0) {

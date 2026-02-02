@@ -121,6 +121,9 @@ function DocumentListItem(
           $menuOpen={menuOpen}
           to={{
             pathname: documentPath(document),
+            search: highlight
+              ? `?q=${encodeURIComponent(highlight)}`
+              : undefined,
             state: {
               title: document.titleWithDefault,
               sidebarContext,

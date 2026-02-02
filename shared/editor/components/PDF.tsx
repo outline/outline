@@ -53,7 +53,7 @@ export default function PdfViewer(props: Props) {
   useEffect(() => {
     // firefox handles resizing on its own
     // and forced reload causes the parent to collapse while resizing
-    if (isFirefox() || !ref.current) {
+    if (isFirefox || !ref.current) {
       return;
     }
 

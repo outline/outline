@@ -718,6 +718,59 @@ describe("#comments.create", () => {
 
     expect(res.status).toEqual(200);
   });
+
+  it("should allow mention nodes", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const mentionedUser = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/comments.create", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: document.id,
+        data: {
+          type: "doc",
+          content: [
+            {
+              type: "paragraph",
+              content: [
+                { type: "text", text: "Hello " },
+                {
+                  type: "mention",
+                  attrs: {
+                    type: "user",
+                    label: mentionedUser.name,
+                    modelId: mentionedUser.id,
+                    id: mentionedUser.id,
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      },
+    });
+
+    expect(res.status).toEqual(200);
+    expect(res.json()).resolves.toMatchObject({
+      data: {
+        data: {
+          content: [
+            {
+              type: "paragraph",
+              content: expect.arrayContaining([
+                expect.objectContaining({ type: "mention" }),
+              ]),
+            },
+          ],
+        },
+      },
+    });
+  });
 });
 
 describe("#comments.update", () => {

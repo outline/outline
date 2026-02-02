@@ -21,6 +21,17 @@ export enum StatusFilter {
   Draft = "draft",
 }
 
+export enum SortFilter {
+  CreatedAt = "createdAt",
+  UpdatedAt = "updatedAt",
+  Title = "title",
+}
+
+export enum DirectionFilter {
+  ASC = "ASC",
+  DESC = "DESC",
+}
+
 export enum CollectionStatusFilter {
   Archived = "archived",
 }
@@ -129,6 +140,7 @@ export enum IntegrationService {
   Umami = "umami",
   GitHub = "github",
   Linear = "linear",
+  Figma = "figma",
   Notion = "notion",
 }
 
@@ -211,28 +223,38 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
           ? {
               externalWorkspace: { id: string; name: string; iconUrl?: string };
             }
-          :
-              | { url: string }
-              | {
-                  github?: {
-                    installation: {
-                      id: number;
-                      account: {
-                        id?: number;
-                        name: string;
-                        avatarUrl?: string;
+          : T extends IntegrationType.LinkedAccount
+            ? {
+                slack?: { serviceTeamId: string; serviceUserId: string };
+                figma?: {
+                  account: {
+                    id: string;
+                    name: string;
+                    email: string;
+                    avatarUrl: string;
+                  };
+                };
+              }
+            :
+                | { url: string }
+                | {
+                    github?: {
+                      installation: {
+                        id: number;
+                        account: {
+                          id?: number;
+                          name: string;
+                          avatarUrl?: string;
+                        };
                       };
                     };
-                  };
-                  diagrams?: {
-                    url: string;
-                  };
-                }
-              | { url: string; channel: string; channelId: string }
-              | { serviceTeamId: string }
-              | { measurementId: string }
-              | { slack: { serviceTeamId: string; serviceUserId: string } }
-              | undefined;
+                    diagrams?: {
+                      url: string;
+                    };
+                  }
+                | { serviceTeamId: string }
+                | { measurementId: string }
+                | undefined;
 
 export enum UserPreference {
   /** Whether reopening the app should redirect to the last viewed document. */
@@ -575,6 +597,16 @@ export enum IconType {
   SVG = "svg",
   Emoji = "emoji",
   Custom = "custom",
+}
+
+/** Edit modes for document text updates. */
+export enum TextEditMode {
+  /** Replace existing content with new content (default). */
+  Replace = "replace",
+  /** Append new content to the end of the document. */
+  Append = "append",
+  /** Prepend new content to the beginning of the document. */
+  Prepend = "prepend",
 }
 
 export enum EmojiCategory {

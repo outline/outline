@@ -70,6 +70,7 @@ import { DocumentHelper } from "./helpers/DocumentHelper";
 import IsHexColor from "./validators/IsHexColor";
 import Length from "./validators/Length";
 import type { APIContext } from "@server/types";
+import { APIUpdateExtension } from "@server/collaboration/APIUpdateExtension";
 import { SkipChangeset } from "./decorators/Changeset";
 import type { HookContext } from "./base/Model";
 
@@ -586,6 +587,17 @@ class Document extends ArchivableModel<
     }
   }
 
+  @AfterUpdate
+  static notifyCollaborationServer(model: Document, ctx: HookContext) {
+    if (model.changed("state") && ctx.transaction && ctx.auth?.user?.id) {
+      const actorId = ctx.auth.user.id;
+      const transaction = ctx.transaction.parent || ctx.transaction;
+      transaction.afterCommit(async () => {
+        await APIUpdateExtension.notifyUpdate(model.id, actorId);
+      });
+    }
+  }
+
   // associations
 
   @BelongsTo(() => FileOperation, "importId")
@@ -897,13 +909,13 @@ class Document extends ArchivableModel<
    *
    * @param revision The revision to revert to.
    */
-  restoreFromRevision = (revision: Revision) => {
+  restoreFromRevision = async (revision: Revision) => {
     if (revision.documentId !== this.id) {
       throw new Error("Revision does not belong to this document");
     }
 
     this.content = revision.content;
-    this.text = DocumentHelper.toMarkdown(revision, {
+    this.text = await DocumentHelper.toMarkdown(revision, {
       includeTitle: false,
     });
     this.title = revision.title;

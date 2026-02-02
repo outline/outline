@@ -132,7 +132,7 @@ export default async function documentCreator(
     state,
   });
 
-  document.text = DocumentHelper.toMarkdown(document, {
+  document.text = await DocumentHelper.toMarkdown(document, {
     includeTitle: false,
   });
 

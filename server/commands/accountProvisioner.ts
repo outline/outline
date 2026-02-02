@@ -1,4 +1,4 @@
-import path from "path";
+import path from "node:path";
 import { readFile } from "fs-extra";
 import invariant from "invariant";
 import { CollectionPermission, UserRole } from "@shared/types";

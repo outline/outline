@@ -53,3 +53,14 @@ export const UrlsCheckCnameSchema = BaseSchema.extend({
 });
 
 export type UrlsCheckCnameReq = z.infer<typeof UrlsCheckCnameSchema>;
+
+export const UrlsCheckEmbedSchema = BaseSchema.extend({
+  body: z.object({
+    url: z
+      .string()
+      .url()
+      .refine((val) => isUrl(val), { message: ValidateURL.message }),
+  }),
+});
+
+export type UrlsCheckEmbedReq = z.infer<typeof UrlsCheckEmbedSchema>;

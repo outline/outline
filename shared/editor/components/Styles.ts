@@ -79,6 +79,12 @@ const mathStyle = (props: Props) => css`
     display: none;
     color: ${props.theme.codeStatement};
     tab-size: 4;
+
+    .ProseMirror-focused {
+      border-radius: 2px;
+      outline: 2px solid
+        ${props.readOnly ? "transparent" : props.theme.selected};
+    }
   }
 
   .math-node.ProseMirror-selectednode .math-src {
@@ -241,11 +247,13 @@ const codeBlockStyle = (props: Props) => css`
   }
 
   .token.deleted {
-    text-decoration: line-through;
+    color: ${props.theme.textDiffDeleted};
+    background-color: ${props.theme.textDiffDeletedBackground};
   }
 
   .token.inserted {
-    border-bottom: 1px dotted ${props.theme.codeInserted};
+    color: ${props.theme.textDiffInserted};
+    background-color: ${props.theme.textDiffInsertedBackground};
     text-decoration: none;
   }
 
@@ -509,6 +517,14 @@ const textStyle = () => css`
 `;
 
 const style = (props: Props) => css`
+--font-size-p: var(--font-size-body);
+--font-size-h1: 28px;
+--font-size-h2: 22px;
+--font-size-h3: 18px;
+--font-size-h4: 16px;
+--font-size-h5: 15px;
+--font-size-h6: 15px;
+
 flex-grow: ${props.grow ? 1 : 0};
 justify-content: start;
 color: ${props.theme.text};
@@ -638,12 +654,12 @@ width: 100%;
 
   // all of heading sizes are stepped down one from global styles, except h1
   // which is between h1 and h2
-  h1 { font-size: 28px; }
-  h2 { font-size: 22px; }
-  h3 { font-size: 18px; }
-  h4 { font-size: 16px; }
-  h5 { font-size: 15px; }
-  h6 { font-size: 15px; }
+  h1 { font-size: var(--font-size-h1); }
+  h2 { font-size: var(--font-size-h2); }
+  h3 { font-size: var(--font-size-h3); }
+  h4 { font-size: var(--font-size-h4); }
+  h5 { font-size: var(--font-size-h5); }
+  h6 { font-size: var(--font-size-h6); }
 
   .ProseMirror-yjs-selection {
     transition: background-color 500ms ease-in-out;
@@ -1456,6 +1472,7 @@ ol li {
   position: relative;
   white-space: initial;
   text-align: start;
+  margin-top: .25em;
 
   p {
     white-space: pre-wrap;
@@ -1676,6 +1693,7 @@ mark {
   }
 }
 
+.code-block[data-language=mermaid],
 .code-block[data-language=mermaidjs] {
   ${
     !props.staticHTML &&
@@ -1702,6 +1720,7 @@ mark {
   }
 }
 
+.ProseMirror[contenteditable="false"] .code-block[data-language=mermaid],
 .ProseMirror[contenteditable="false"] .code-block[data-language=mermaidjs] {
     height: 0;
     overflow: hidden;
@@ -1712,6 +1731,7 @@ mark {
 }
 
 .ProseMirror.exported {
+    .code-block[data-language=mermaid],
     .code-block[data-language=mermaidjs] {
         height: auto;
         overflow: visible;
@@ -1862,43 +1882,49 @@ table {
   }
   tr:first-child th[data-first-column],
   tr:first-child td[data-first-column] {
-    border-radius: ${EditorStyleHelper.blockRadius} 0 0 0;
+    border-top-left-radius: ${EditorStyleHelper.blockRadius};
   }
   th[data-first-column][data-last-row],
   td[data-first-column][data-last-row] {
-    border-radius: 0 0 0 ${EditorStyleHelper.blockRadius};
+    border-bottom-left-radius: ${EditorStyleHelper.blockRadius};
   }
   tr:first-child th[data-last-column],
   tr:first-child td[data-last-column] {
-    border-radius: 0 ${EditorStyleHelper.blockRadius} 0 0;
+    border-top-right-radius: ${EditorStyleHelper.blockRadius};
   }
   th[data-last-column][data-last-row],
   td[data-last-column][data-last-row] {
-    border-radius: 0 0 ${EditorStyleHelper.blockRadius} 0;
+    border-bottom-right-radius: ${EditorStyleHelper.blockRadius};
   }
 
   td .component-embed {
     padding: 4px 0;
   }
 
-  .selectedCell {
-    background: ${
-      props.readOnly ? "inherit" : props.theme.tableSelectedBackground
-    };
+  td[data-bgcolor] {
+    color: var(--cell-text-color);
 
-    /* fixes Firefox background color painting over border:
-     * https://bugzilla.mozilla.org/show_bug.cgi?id=688556 */
-    background-clip: padding-box;
+    p, a, p a {
+      color: var(--cell-text-color, inherit);
+    }
+
+    a, p a {
+      text-decoration: underline;
+      text-decoration-color: var(--cell-text-color, inherit);
+    }
   }
 
-  .${EditorStyleHelper.tableAddRow},
-  .${EditorStyleHelper.tableAddColumn},
-  .${EditorStyleHelper.tableGrip},
-  .${EditorStyleHelper.tableGripColumn},
-  .${EditorStyleHelper.tableGripRow} {
-    @media print {
-      display: none;
+  .selectedCell {
+    ${
+      props.readOnly
+        ? "background: inherit;"
+        : `/* Using box-shadow inset instead of background to allow overlay on cell background colors */
+    box-shadow: inset 0 0 0 9999px ${props.theme.tableSelectedBackground};`
     }
+
+    /* fixes Firefox background color painting over border:
+      * https://bugzilla.mozilla.org/show_bug.cgi?id=688556 */
+    background-clip: padding-box;
   }
 
   .${EditorStyleHelper.tableAddRow},
@@ -2028,7 +2054,7 @@ table {
      * https://github.com/ProseMirror/prosemirror/issues/947 */
     &::after {
       content: "";
-      cursor: var(--pointer);
+      cursor: grab;
       position: absolute;
       top: -16px;
       left: 0;
@@ -2040,6 +2066,10 @@ table {
 
     &:hover::after {
       background: ${props.theme.text};
+    }
+
+    body.${EditorStyleHelper.tableDragging} &:hover::after {
+      background: ${props.theme.divider};
     }
     &.first::after {
       border-top-left-radius: 3px;
@@ -2058,7 +2088,7 @@ table {
   .${EditorStyleHelper.tableGripRow} {
     &::after {
       content: "";
-      cursor: var(--pointer);
+      cursor: grab;
       position: absolute;
       left: -16px;
       top: 0;
@@ -2071,6 +2101,10 @@ table {
 
     &:hover::after {
       background: ${props.theme.text};
+    }
+
+    body.${EditorStyleHelper.tableDragging} &:hover::after {
+      background: ${props.theme.divider};
     }
     &.first::after {
       border-top-left-radius: 3px;
@@ -2108,7 +2142,91 @@ table {
     &.selected::after {
       background: ${props.theme.tableSelected};
     }
+    &.dragging::after {
+      background: ${props.theme.accent};
+      opacity: 0.5;
+    }
   }
+
+  .${EditorStyleHelper.tableAddRow},
+  .${EditorStyleHelper.tableAddColumn},
+  .${EditorStyleHelper.tableGrip},
+  .${EditorStyleHelper.tableGripColumn},
+  .${EditorStyleHelper.tableGripRow} {
+    @media print {
+      display: none;
+    }
+  }
+}
+
+.${EditorStyleHelper.tableDragDropIndicator} {
+  position: absolute;
+  background: ${props.theme.accent};
+  pointer-events: none;
+  z-index: 100;
+  opacity: 0;
+  transition: opacity 100ms ease-in-out;
+
+  &.active {
+    opacity: 1;
+  }
+
+  &[data-type="row"] {
+    height: 2px;
+    border-radius: 1px;
+  }
+
+  &[data-type="column"] {
+    width: 2px;
+    border-radius: 1px;
+  }
+}
+
+.${EditorStyleHelper.tableGripRow},
+.${EditorStyleHelper.tableGripColumn} {
+  &.dragging::after {
+    cursor: grabbing;
+    background: ${props.theme.accent};
+    opacity: 0.5;
+  }
+}
+
+.${EditorStyleHelper.tableDragIndicatorLeft},
+.${EditorStyleHelper.tableDragIndicatorRight} {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: calc(var(--table-height) - ${EditorStyleHelper.padding}px - 10px);
+  background: ${props.theme.accent};
+  z-index: 100;
+  pointer-events: none;
+}
+
+.${EditorStyleHelper.tableDragIndicatorLeft} {
+  left: -1px;
+}
+
+.${EditorStyleHelper.tableDragIndicatorRight} {
+  right: -1px;
+}
+
+.${EditorStyleHelper.tableDragIndicatorTop},
+.${EditorStyleHelper.tableDragIndicatorBottom} {
+  position: absolute;
+  left: 0;
+  height: 2px;
+  width: calc(var(--table-width) - ${EditorStyleHelper.padding * 2}px - 2px);
+  background: ${props.theme.accent};
+  z-index: 100;
+  pointer-events: none;
+}
+
+.${EditorStyleHelper.tableDragIndicatorTop} {
+  top: -1px;
+}
+
+.${EditorStyleHelper.tableDragIndicatorBottom} {
+  bottom: -1px;
 }
 
 .${EditorStyleHelper.table} {
@@ -2127,11 +2245,6 @@ table {
   padding-left: ${EditorStyleHelper.padding}px;
   padding-right: ${EditorStyleHelper.padding}px;
   transition: border 250ms ease-in-out 0s;
-
-  table {
-    table-layout: fixed;
-    word-break: break-word;
-  }
 
   &:hover {
     scrollbar-color: ${props.theme.scrollbarThumb} ${
@@ -2298,6 +2411,105 @@ del {
   em,
   blockquote {
     font-family: "SF Pro Text", ${props.theme.fontFamily};
+  }
+}
+
+.toggle-block {
+  display: flex;
+
+  &:focus-within {
+    transition-delay: 0.1s;
+  }
+
+  &.folded {
+    &:dir(rtl) {
+      --rotate-by: 90deg;
+    }
+    &:dir(ltr) {
+      --rotate-by: -90deg;
+    }
+    > .toggle-block-content > :is(:not(.toggle-block-head)) {
+      display: none;
+    }
+    > .toggle-block-content > :is(a.heading-name) {
+      display: unset;
+    }
+    > .toggle-block-button {
+      svg {
+        transform: rotate(var(--rotate-by));
+        pointer-events: none;
+      }
+      opacity: 1;
+    }
+  }
+
+  > .toggle-block-button {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    --line-height: var(--line-height-p);
+    --font-size: var(--font-size-p);
+
+    &:has(+ .toggle-block-content > .toggle-block-head > h1) {
+      --line-height: calc(var(--line-height-h) + 0.2);
+      --font-size: var(--font-size-h1);
+    }
+
+    &:has(+ .toggle-block-content > .toggle-block-head > h2) {
+      --line-height: calc(var(--line-height-h) + 0.2);
+      --font-size: var(--font-size-h2);
+    }
+
+    &:has(+ .toggle-block-content > .toggle-block-head > h3) {
+      --line-height: calc(var(--line-height-h) + 0.2);
+      --font-size: var(--font-size-h3);
+    }
+
+    &:has(+ .toggle-block-content > .toggle-block-head > h4) {
+      --line-height: calc(var(--line-height-h) + 0.2);
+      --font-size: var(--font-size-h4);
+    }
+
+    color: ${props.theme.text};
+    opacity: 0.75;
+    cursor: var(--pointer);
+    background: none;
+    outline: none;
+    border: 0;
+    margin: 0;
+    padding: 0;
+    height: calc(var(--line-height) * var(--font-size));
+    width: 20px;
+    overflow: unset;
+
+    &:focus,
+    &:hover {
+      opacity: 1;
+    }
+
+    > svg {
+      transition: transform 200ms ease-out;
+      flex-shrink: 0;
+    }
+  }
+
+  > .toggle-block-content {
+    > :is(:not(.toggle-block-head)) {
+      margin-top: 0.5em;
+    }
+    > :is(:first-child) {
+      margin-top: 0;
+    }
+    > .toggle-block-head {
+      > * {
+        margin-top: 0;
+      }
+    }
+    flex-grow: 1;
+    overflow: unset;
   }
 }
 `;

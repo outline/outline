@@ -236,7 +236,15 @@ export async function loadShareWithParent({
   return { share, parentShare };
 }
 
-function getAllIdsInSharedTree(sharedTree: NavigationNode | null): string[] {
+/**
+ * Recursively extracts all document IDs from a shared tree navigation node.
+ *
+ * @param sharedTree The navigation node representing the shared tree.
+ * @returns Array of all document IDs in the tree.
+ */
+export function getAllIdsInSharedTree(
+  sharedTree: NavigationNode | null
+): string[] {
   if (!sharedTree) {
     return [];
   }

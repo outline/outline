@@ -1,6 +1,6 @@
-import { existsSync, copyFileSync } from "fs";
-import { readFile } from "fs/promises";
-import path from "path";
+import { existsSync, copyFileSync } from "node:fs";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import FormData from "form-data";
 import { ensureDirSync } from "fs-extra";
 import { FileOperationState, FileOperationType } from "@shared/types";
@@ -15,7 +15,7 @@ import {
   buildUser,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 
 const server = getTestServer();
 
@@ -338,6 +338,75 @@ describe("#files.get", () => {
     expect(res.status).toEqual(200);
     expect(res.headers.get("Content-Type")).toEqual("image/jpg");
     expect(res.headers.get("Content-Disposition")).toEqual("attachment");
+  });
+
+  it("should succeed with status 200 ok when public-read avatar in uploads bucket is requested by non-owner", async () => {
+    const owner = await buildUser();
+    const otherUser = await buildUser({ teamId: owner.teamId });
+    const key = AttachmentHelper.getKey({
+      id: randomUUID(),
+      name: "avatar.jpg",
+      userId: owner.id,
+    });
+    await buildAttachment({
+      key,
+      teamId: owner.teamId,
+      userId: owner.id,
+      contentType: "image/jpg",
+      acl: "public-read",
+    });
+
+    ensureDirSync(
+      path.dirname(path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, key))
+    );
+
+    copyFileSync(
+      path.resolve(__dirname, "..", "test", "fixtures", "avatar.jpg"),
+      path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, key)
+    );
+
+    // Non-owner user should be able to access public-read attachment
+    const res = await server.get(`/api/files.get?key=${key}`, {
+      headers: {
+        Authorization: `Bearer ${otherUser.getJwtToken()}`,
+      },
+    });
+    expect(res.status).toEqual(200);
+    expect(res.headers.get("Content-Type")).toEqual("image/jpg");
+  });
+
+  it("should fail with status 403 when private attachment in uploads bucket is requested by non-owner", async () => {
+    const owner = await buildUser();
+    const otherUser = await buildUser({ teamId: owner.teamId });
+    const key = AttachmentHelper.getKey({
+      id: randomUUID(),
+      name: "document.pdf",
+      userId: owner.id,
+    });
+    await buildAttachment({
+      key,
+      teamId: owner.teamId,
+      userId: owner.id,
+      contentType: "application/pdf",
+      acl: "private",
+    });
+
+    ensureDirSync(
+      path.dirname(path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, key))
+    );
+
+    copyFileSync(
+      path.resolve(__dirname, "..", "test", "fixtures", "avatar.jpg"),
+      path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, key)
+    );
+
+    // Non-owner user should NOT be able to access private attachment
+    const res = await server.get(`/api/files.get?key=${key}`, {
+      headers: {
+        Authorization: `Bearer ${otherUser.getJwtToken()}`,
+      },
+    });
+    expect(res.status).toEqual(403);
   });
 
   it("should succeed with status 200 ok when exported file is requested using signature", async () => {

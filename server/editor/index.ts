@@ -5,6 +5,7 @@ import {
   richExtensions,
   withComments,
 } from "@shared/editor/nodes";
+import Mention from "@shared/editor/nodes/Mention";
 
 const extensions = withComments(richExtensions);
 export const extensionManager = new ExtensionManager(extensions);
@@ -55,4 +56,28 @@ for (const extension of basicExtensionManager.extensions) {
 export const basicParser = basicExtensionManager.parser({
   schema: basicSchema,
   plugins: basicExtensionManager.rulePlugins,
+});
+
+const commentExtensions = [...basicExtensions, Mention];
+export const commentExtensionManager = new ExtensionManager(commentExtensions);
+
+export const commentSchema = new Schema({
+  nodes: commentExtensionManager.nodes,
+  marks: commentExtensionManager.marks,
+});
+
+for (const extension of commentExtensionManager.extensions) {
+  extension.bindEditor({
+    schema: commentSchema,
+    props: {
+      theme: {
+        isDark: false,
+      },
+    },
+  } as any);
+}
+
+export const commentParser = commentExtensionManager.parser({
+  schema: commentSchema,
+  plugins: commentExtensionManager.rulePlugins,
 });

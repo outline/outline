@@ -1,10 +1,9 @@
-import path from "path";
+import path from "node:path";
 import Router from "koa-router";
 import contentDisposition from "content-disposition";
 import JSZip from "jszip";
 import escapeRegExp from "lodash/escapeRegExp";
 import mime from "mime-types";
-import { Op } from "sequelize";
 import { UserRole } from "@shared/types";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import slugify from "@shared/utils/slugify";
@@ -125,65 +124,6 @@ router.post(
 );
 
 router.post(
-  "revisions.diff",
-  auth(),
-  validate(T.RevisionsDiffSchema),
-  async (ctx: APIContext<T.RevisionsDiffReq>) => {
-    const { id, compareToId } = ctx.input.body;
-    const { user } = ctx.state.auth;
-
-    const revision = await Revision.findByPk(id, {
-      rejectOnEmpty: true,
-    });
-    const document = await Document.findByPk(revision.documentId, {
-      userId: user.id,
-    });
-    authorize(user, "listRevisions", document);
-
-    let before;
-    if (compareToId) {
-      before = await Revision.findOne({
-        where: {
-          id: compareToId,
-          documentId: revision.documentId,
-          createdAt: {
-            [Op.lt]: revision.createdAt,
-          },
-        },
-      });
-      if (!before) {
-        throw ValidationError(
-          "Revision could not be found, compareToId must be a revision of the same document before the provided revision"
-        );
-      }
-    } else {
-      before = await revision.before();
-    }
-
-    const accept = ctx.request.headers["accept"];
-    const content = await DocumentHelper.diff(before, revision);
-
-    if (accept?.includes("text/html")) {
-      const name = `${slugify(document.titleWithDefault)}-${revision.id}.html`;
-      ctx.set("Content-Type", "text/html");
-      ctx.set(
-        "Content-Disposition",
-        contentDisposition(name, {
-          type: "attachment",
-        })
-      );
-      ctx.body = content;
-      return;
-    }
-
-    ctx.body = {
-      data: content,
-      policies: presentPolicies(user, [revision]),
-    };
-  }
-);
-
-router.post(
   "revisions.export",
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth(),
@@ -218,10 +158,10 @@ router.post(
       );
     } else if (accept?.includes("text/markdown")) {
       contentType = "text/markdown";
-      content = DocumentHelper.toMarkdown(revision);
+      content = await DocumentHelper.toMarkdown(revision);
     } else {
       ctx.body = {
-        data: DocumentHelper.toMarkdown(revision),
+        data: await DocumentHelper.toMarkdown(revision),
       };
       return;
     }

@@ -1,7 +1,13 @@
 import type formidable from "formidable";
 import isEmpty from "lodash/isEmpty";
 import { z } from "zod";
-import { DocumentPermission, StatusFilter } from "@shared/types";
+import {
+  DirectionFilter,
+  DocumentPermission,
+  StatusFilter,
+  TextEditMode,
+  SortFilter,
+} from "@shared/types";
 import { BaseSchema } from "@server/routes/api/schema";
 import { zodIconType, zodIdType, zodShareIdType } from "@server/utils/zod";
 import { ValidateColor } from "@server/validation";
@@ -152,7 +158,10 @@ export const DocumentsInfoSchema = BaseSchema.extend({
 export type DocumentsInfoReq = z.infer<typeof DocumentsInfoSchema>;
 
 export const DocumentsExportSchema = BaseSchema.extend({
-  body: BaseIdSchema,
+  body: BaseIdSchema.extend({
+    signedUrls: z.number().optional(),
+    includeChildDocuments: z.boolean().default(false),
+  }),
 });
 
 export type DocumentsExportReq = z.infer<typeof DocumentsExportSchema>;
@@ -173,6 +182,14 @@ export const DocumentsSearchSchema = BaseSchema.extend({
   body: BaseSearchSchema.extend({
     /** Query for search */
     query: z.string().optional(),
+
+    /** Specifies the attributes by which search results will be sorted */
+    sort: z.enum(Object.values(SortFilter) as [string, ...string[]]).optional(),
+
+    /** Specifies the sort order with respect to sort field */
+    direction: z
+      .enum(Object.values(DirectionFilter) as [string, ...string[]])
+      .optional(),
   }),
 });
 
@@ -182,6 +199,14 @@ export const DocumentsSearchTitlesSchema = BaseSchema.extend({
   body: BaseSearchSchema.extend({
     /** Query for search */
     query: z.string().refine((val) => val.trim() !== ""),
+
+    /** Specifies the attributes by which search results will be sorted */
+    sort: z.enum(Object.values(SortFilter) as [string, ...string[]]).optional(),
+
+    /** Specifies the sort order with respect to sort field */
+    direction: z
+      .enum(Object.values(DirectionFilter) as [string, ...string[]])
+      .optional(),
   }),
 });
 
@@ -249,8 +274,11 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
     /** Doc collection Id */
     collectionId: z.string().uuid().nullish(),
 
-    /** Boolean to denote if text should be appended */
+    /** @deprecated Use editMode instead */
     append: z.boolean().optional(),
+
+    /** The edit mode for text updates: "replace", "append", or "prepend" */
+    editMode: z.nativeEnum(TextEditMode).optional(),
 
     /** @deprecated Version of the API to be used, remove in a few releases */
     apiVersion: z.number().optional(),
@@ -258,9 +286,27 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
     /** Whether the editing session is complete */
     done: z.boolean().optional(),
   }),
-}).refine((req) => !(req.body.append && !req.body.text), {
-  message: "text is required while appending",
-});
+})
+  .refine(
+    (req) =>
+      !(
+        (req.body.append ||
+          req.body.editMode === TextEditMode.Append ||
+          req.body.editMode === TextEditMode.Prepend) &&
+        !req.body.text
+      ),
+    {
+      message: "text is required when using append, prepend, or editMode",
+    }
+  )
+  .transform((req) => {
+    // Transform deprecated append to editMode for backwards compatibility
+    if (req.body.append && !req.body.editMode) {
+      req.body.editMode = TextEditMode.Append;
+    }
+    delete req.body.append;
+    return req;
+  });
 
 export type DocumentsUpdateReq = z.infer<typeof DocumentsUpdateSchema>;
 

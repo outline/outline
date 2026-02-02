@@ -11,10 +11,6 @@ import Text from "~/components/Text";
 import env from "~/env";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
-import history from "~/utils/history";
-import { settingsPath } from "~/utils/routeHelpers";
-import usePolicy from "~/hooks/usePolicy";
-import useCurrentTeam from "~/hooks/useCurrentTeam";
 
 type Props = {
   collection?: Collection;
@@ -29,9 +25,7 @@ function ExportDialog({ collection, onSubmit }: Props) {
     React.useState<boolean>(true);
   const [includePrivate, setIncludePrivate] = React.useState<boolean>(true);
   const user = useCurrentUser();
-  const team = useCurrentTeam();
-  const can = usePolicy(team);
-  const { collections } = useStores();
+  const { collections, ui } = useStores();
   const { t } = useTranslation();
   const appName = env.APP_NAME;
 
@@ -57,29 +51,40 @@ function ExportDialog({ collection, onSubmit }: Props) {
   );
 
   const handleSubmit = async () => {
-    const options = can.createExport
-      ? {
-          description: t(`Your file will be available in {{ location }} soon`, {
-            location: `"${t("Settings")} > ${t("Export")}"`,
-          }),
-          action: {
-            label: t("View"),
-            onClick: () => {
-              history.push(settingsPath("export"));
-            },
-          },
-        }
-      : {
-          description: t(`A link to your file will be sent through email soon`),
-        };
+    let response;
 
     if (collection) {
-      await collection.export(format, includeAttachments);
-      toast.success(t("Export started"), options);
+      response = await collection.export(format, includeAttachments);
     } else {
-      await collections.export({ format, includeAttachments, includePrivate });
-      toast.success(t("Export started"), options);
+      response = await collections.export({
+        format,
+        includeAttachments,
+        includePrivate,
+      });
     }
+
+    if (response?.data?.fileOperation) {
+      const fileOperationId = response.data.fileOperation.id;
+      const toastId = `export-${fileOperationId}`;
+
+      const timeoutId = setTimeout(() => {
+        toast.success(t("Export started"), {
+          id: toastId,
+          description: t("A link to your file will be sent through email soon"),
+          duration: 3000,
+        });
+        ui.exportToasts.delete(fileOperationId);
+      }, 6000);
+
+      ui.registerExportToast(fileOperationId, toastId, timeoutId);
+
+      toast.loading(t("Export started"), {
+        id: toastId,
+        description: `${t("Preparing your download")}…`,
+        duration: Infinity,
+      });
+    }
+
     onSubmit();
   };
 

@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import crypto from "node:crypto";
 import type {
   RefreshTokenModel,
   AuthorizationCodeModel,
@@ -343,6 +343,7 @@ export const OAuthInterface: RefreshTokenModel &
 
   /**
    * Ensure the redirect URI is not plain HTTP. Custom protocols are allowed.
+   * Loopback addresses (RFC 8252 §7.3) are allowed with http:// for native apps.
    *
    * @param uri The redirect URI to validate.
    * @returns True if the URI is valid, false otherwise.
@@ -354,6 +355,24 @@ export const OAuthInterface: RefreshTokenModel &
     if (!client.redirectUris?.includes(uri)) {
       return false;
     }
+
+    // Allow loopback redirects for native/CLI apps (RFC 8252 §7.3)
+    // Loopback addresses must use http:// (not https://) since TLS certificates
+    // cannot be obtained for loopback addresses.
+    try {
+      const url = new URL(uri);
+      const isLoopback =
+        url.hostname === "127.0.0.1" ||
+        url.hostname === "[::1]" ||
+        url.hostname === "localhost";
+
+      if (isLoopback && url.protocol === "http:") {
+        return true;
+      }
+    } catch {
+      // Invalid URL, will be caught by isUrl check below
+    }
+
     if (!isUrl(uri, { requireHttps: true })) {
       return false;
     }

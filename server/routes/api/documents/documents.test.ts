@@ -525,7 +525,7 @@ describe("#documents.export", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data).toEqual(DocumentHelper.toMarkdown(document));
+    expect(body.data).toEqual(await DocumentHelper.toMarkdown(document));
   });
 
   it("should return document text with accept=text/markdown", async () => {
@@ -544,7 +544,7 @@ describe("#documents.export", () => {
       },
     });
     const body = await res.text();
-    expect(body).toEqual(DocumentHelper.toMarkdown(document));
+    expect(body).toEqual(await DocumentHelper.toMarkdown(document));
   });
 
   it("should return archived document", async () => {
@@ -562,7 +562,7 @@ describe("#documents.export", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data).toEqual(DocumentHelper.toMarkdown(document));
+    expect(body.data).toEqual(await DocumentHelper.toMarkdown(document));
   });
 
   it("should not return published document in collection not a member of", async () => {
@@ -597,7 +597,7 @@ describe("#documents.export", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data).toEqual(DocumentHelper.toMarkdown(document));
+    expect(body.data).toEqual(await DocumentHelper.toMarkdown(document));
   });
 
   it("should require authorization without token", async () => {
@@ -1543,9 +1543,9 @@ describe("#documents.search", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(3);
-    expect(body.data[0].document.id).toEqual(firstResult.id);
+    expect(body.data[2].document.id).toEqual(firstResult.id);
     expect(body.data[1].document.id).toEqual(secondResult.id);
-    expect(body.data[2].document.id).toEqual(thirdResult.id);
+    expect(body.data[0].document.id).toEqual(thirdResult.id);
   });
 
   it("should return partial results in ranked order", async () => {
@@ -1579,9 +1579,9 @@ describe("#documents.search", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(3);
-    expect(body.data[0].document.id).toEqual(firstResult.id);
+    expect(body.data[2].document.id).toEqual(firstResult.id);
     expect(body.data[1].document.id).toEqual(secondResult.id);
-    expect(body.data[2].document.id).toEqual(thirdResult.id);
+    expect(body.data[0].document.id).toEqual(thirdResult.id);
   });
 
   describe("search operators", () => {
@@ -2996,6 +2996,31 @@ describe("#documents.restore", () => {
     expect(res.status).toEqual(200);
     expect(body.data.deletedAt).toEqual(null);
     expect(body.data.collectionId).toEqual(collection.id);
+  });
+
+  it("should not allow restore of another user's trashed draft", async () => {
+    const user = await buildUser();
+    const anotherUser = await buildUser({ teamId: user.teamId });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDraftDocument({
+      userId: anotherUser.id,
+      teamId: user.teamId,
+      collectionId: null,
+    });
+    await document.destroy();
+
+    const res = await server.post("/api/documents.restore", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        collectionId: collection.id,
+      },
+    });
+
+    expect(res.status).toEqual(403);
   });
 
   it("should allow restore of trashed documents", async () => {
@@ -4494,6 +4519,24 @@ describe("#documents.delete", () => {
     expect(deletedDoc).toBeDefined();
     expect(deletedDoc).not.toBeNull();
     expect(deletedDoc?.deletedAt).toBeTruthy();
+  });
+
+  it("should not allow deleting another user's draft without collection", async () => {
+    const user = await buildUser();
+    const anotherUser = await buildUser({ teamId: user.teamId });
+    const document = await buildDraftDocument({
+      teamId: user.teamId,
+      userId: anotherUser.id,
+      collectionId: null,
+    });
+    const res = await server.post("/api/documents.delete", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+      },
+    });
+
+    expect(res.status).toEqual(403);
   });
 
   it("should delete a draft under deleted collection", async () => {

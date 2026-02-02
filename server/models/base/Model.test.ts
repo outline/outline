@@ -1,5 +1,5 @@
 import { faker } from "@faker-js/faker";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import { TeamPreference } from "@shared/types";
 import { buildDocument, buildTeam } from "@server/test/factories";
 import User from "../User";

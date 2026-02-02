@@ -49,7 +49,6 @@ import Contents from "./Contents";
 import Editor from "./Editor";
 import Header from "./Header";
 import Notices from "./Notices";
-import PublicReferences from "./PublicReferences";
 import References from "./References";
 import RevisionViewer from "./RevisionViewer";
 
@@ -200,7 +199,18 @@ class DocumentScene extends React.Component<Props> {
     const revisionId = location.state?.revisionId;
     const editorRef = this.editor.current;
 
-    if (!editorRef || !restore) {
+    if (!editorRef) {
+      return;
+    }
+
+    // Highlight search term when navigating from search results
+    const params = new URLSearchParams(location.search);
+    const searchTerm = params.get("q");
+    if (searchTerm) {
+      editorRef.commands.find({ text: searchTerm });
+    }
+
+    if (!restore) {
       return;
     }
 
@@ -606,15 +616,11 @@ class DocumentScene extends React.Component<Props> {
                         canComment={abilities.comment}
                         autoFocus={document.createdAt === document.updatedAt}
                       >
-                        {shareId ? (
-                          <ReferencesWrapper>
-                            <PublicReferences documentId={document.id} />
-                          </ReferencesWrapper>
-                        ) : !revision ? (
+                        {!revision && (
                           <ReferencesWrapper>
                             <References document={document} />
                           </ReferencesWrapper>
-                        ) : null}
+                        )}
                       </Editor>
                     </>
                   )}
@@ -663,6 +669,13 @@ const Main = styled.div<MainProps>`
           : `minmax(0, 1fr) ${EditorStyleHelper.tocWidth}px`
         : `1fr minmax(0, ${`calc(${EditorStyleHelper.documentWidth} + ${EditorStyleHelper.documentGutter})`}) 1fr`};
   `};
+
+  @media print {
+    display: block;
+    max-width: calc(
+      ${EditorStyleHelper.documentWidth} + ${EditorStyleHelper.documentGutter}
+    );
+  }
 `;
 
 type ContentsContainerProps = {

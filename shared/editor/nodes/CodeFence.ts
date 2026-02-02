@@ -36,7 +36,7 @@ import {
   getRecentlyUsedCodeLanguage,
   setRecentlyUsedCodeLanguage,
 } from "../lib/code";
-import { isCode } from "../lib/isCode";
+import { isCode, isMermaid } from "../lib/isCode";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { findNextNewline, findPreviousNewline } from "../queries/findNewlines";
 import { findParentNode } from "../queries/findParentNode";
@@ -125,7 +125,7 @@ export default class CodeFence extends Node {
       },
       edit_mermaid: (): Command => (state, dispatch) => {
         const codeBlock = findParentNode(isCode)(state.selection);
-        if (!codeBlock || codeBlock.node.attrs.language !== "mermaidjs") {
+        if (!codeBlock || !isMermaid(codeBlock.node)) {
           return false;
         }
 
@@ -206,7 +206,7 @@ export default class CodeFence extends Node {
       "Mod-[": outdentInCode,
     };
 
-    if (isMac()) {
+    if (isMac) {
       return {
         ...output,
         "Ctrl-a": moveToPreviousNewline,
@@ -224,7 +224,7 @@ export default class CodeFence extends Node {
         return DecorationSet.empty;
       }
 
-      if (codeBlock.node.attrs.language === "mermaidjs") {
+      if (isMermaid(codeBlock.node)) {
         const mermaidState = mermaidPluginKey.getState(state) as MermaidState;
         const decorations = mermaidState?.decorationSet.find(
           codeBlock.pos,

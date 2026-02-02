@@ -166,8 +166,9 @@ export const Suggestions = observer(
     }
 
     const isEmpty = suggestions.length === 0;
+    const pendingIdSet = new Set(pendingIds);
     const suggestionsWithPending = suggestions.filter(
-      (u) => !pendingIds.includes(u.id)
+      (u) => !pendingIdSet.has(u.id)
     );
 
     if (users.isFetching && isEmpty && neverRenderedList.current) {

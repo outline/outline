@@ -315,15 +315,6 @@ class Collection extends ParanoidModel<
 
   // getters
 
-  /**
-   * The frontend path to this collection.
-   *
-   * @deprecated Use `path` instead.
-   */
-  get url(): string {
-    return this.path;
-  }
-
   /** The frontend path to this collection. */
   get path(): string {
     if (!this.name) {
@@ -445,18 +436,30 @@ class Collection extends ParanoidModel<
     model: Collection,
     options: { transaction: Transaction }
   ) {
-    return UserMembership.findOrCreate({
+    const existing = await UserMembership.findOne({
       where: {
         collectionId: model.id,
         userId: model.createdById,
       },
-      defaults: {
-        permission: CollectionPermission.Admin,
-        createdById: model.createdById,
-      },
       transaction: options.transaction,
-      hooks: false,
     });
+
+    if (!existing) {
+      return UserMembership.create(
+        {
+          collectionId: model.id,
+          userId: model.createdById,
+          permission: CollectionPermission.Admin,
+          createdById: model.createdById,
+        },
+        {
+          transaction: options.transaction,
+          hooks: false,
+        }
+      );
+    }
+
+    return existing;
   }
 
   @BeforeUpdate

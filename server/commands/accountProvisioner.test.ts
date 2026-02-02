@@ -1,5 +1,5 @@
 import { faker } from "@faker-js/faker";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import WelcomeEmail from "@server/emails/templates/WelcomeEmail";
 import { TeamDomain } from "@server/models";
 import Collection from "@server/models/Collection";

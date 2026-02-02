@@ -15,7 +15,10 @@ import packageJson from "../../../package.json";
 import ExportTask from "./ExportTask";
 
 export default class ExportJSONTask extends ExportTask {
-  public async export(collections: Collection[], fileOperation: FileOperation) {
+  public async exportCollections(
+    collections: Collection[],
+    fileOperation: FileOperation
+  ) {
     const zip = new JSZip();
 
     // serial to avoid overloading, slow and steady wins the race
@@ -169,5 +172,9 @@ export default class ExportJSONTask extends ExportTask {
         ? JSON.stringify(output, null, 2)
         : JSON.stringify(output)
     );
+  }
+
+  public async exportDocument(): Promise<string> {
+    throw new Error("JSON export unsupported for individual document.");
   }
 }

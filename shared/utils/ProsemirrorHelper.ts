@@ -414,7 +414,7 @@ export class ProsemirrorHelper {
     const headings: Heading[] = [];
     const previouslySeen: Record<string, number> = {};
 
-    doc.forEach((node) => {
+    doc.descendants((node) => {
       if (node.type.name === "heading") {
         // calculate the optimal id
         const id = headingToSlug(node);
