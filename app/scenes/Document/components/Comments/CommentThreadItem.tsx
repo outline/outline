@@ -53,9 +53,9 @@ function useShowTime(
 
   const msSincePreviousComment = previousCreatedAt
     ? differenceInMilliseconds(
-        Date.parse(createdAt),
-        Date.parse(previousCreatedAt)
-      )
+      Date.parse(createdAt),
+      Date.parse(previousCreatedAt)
+    )
     : 0;
 
   return (
@@ -214,7 +214,17 @@ function CommentThreadItem({
       >
         {(showAuthor || showTime) && (
           <Meta size="xsmall" type="secondary" dir={dir}>
-            {showAuthor && <em>{comment.createdBy.name}</em>}
+            {showAuthor && (
+              <em>
+                {comment.createdBy.redirectUrl ? (
+                  <a href={comment.createdBy.redirectUrl} target="_blank" rel="noopener noreferrer">
+                    {comment.createdBy.name}
+                  </a>
+                ) : (
+                  comment.createdBy.name
+                )}
+              </em>
+            )}
             {showAuthor && showTime && <> &middot; </>}
             {showTime && (
               <Time dateTime={comment.createdAt} addSuffix shorten />
@@ -382,7 +392,7 @@ const Action = styled.span<{ $rounded?: boolean }>`
   }
 `;
 
-const Actions = styled(Flex)<{ dir?: "rtl" | "ltr" }>`
+const Actions = styled(Flex) <{ dir?: "rtl" | "ltr" }>`
   position: absolute;
   left: ${(props) => (props.dir !== "rtl" ? "auto" : "4px")};
   right: ${(props) => (props.dir === "rtl" ? "auto" : "4px")};
@@ -413,7 +423,7 @@ const Meta = styled(Text)`
   }
 `;
 
-export const Bubble = styled(Flex)<{
+export const Bubble = styled(Flex) <{
   $firstOfThread?: boolean;
   $firstOfAuthor?: boolean;
   $lastOfThread?: boolean;

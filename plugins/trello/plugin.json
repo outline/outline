@@ -1,0 +1,6 @@
+{
+  "id": "trello",
+  "name": "Trello",
+  "priority": 10,
+  "description": "Adds a Trello integration for link unfurling."
+}

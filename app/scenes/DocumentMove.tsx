@@ -68,6 +68,11 @@ function DocumentMove({ document }: Props) {
 
     try {
       setMoving(true);
+      const toastId = toast.loading(
+        t("Moving {{ documentTitle }}…", {
+          documentTitle: document.titleWithDefault,
+        })
+      );
       const { type, id: parentDocumentId } = selectedPath;
 
       const collectionId = selectedPath.collectionId as string;
@@ -78,11 +83,16 @@ function DocumentMove({ document }: Props) {
         await document.move({ collectionId });
       }
 
-      toast.success(t("Document moved"));
+      toast.success(
+        t("{{ documentTitle }} moved", {
+          documentTitle: document.titleWithDefault,
+        }),
+        { id: toastId }
+      );
 
       dialogs.closeAllModals();
     } catch (_err) {
-      toast.error(t("Couldn’t move the document, try again?"));
+      toast.error(t("Couldn't move the document, try again?"));
     } finally {
       setMoving(false);
     }

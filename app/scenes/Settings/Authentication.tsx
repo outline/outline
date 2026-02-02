@@ -3,6 +3,7 @@ import { EmailIcon, PadlockIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
+import { TeamPreference } from "@shared/types";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
@@ -46,6 +47,23 @@ function Authentication() {
     async (checked: boolean) => {
       try {
         await team.save({ guestSignin: checked });
+        toast.success(t("Settings saved"));
+      } catch (err) {
+        toast.error(err.message);
+      }
+    },
+    [team, t]
+  );
+
+  const handlePasswordSigninChange = React.useCallback(
+    async (checked: boolean) => {
+      try {
+        await team.save({
+          preferences: {
+            ...(team.preferences ?? {}),
+            [TeamPreference.PasswordSigninEnabled]: checked,
+          },
+        });
         toast.success(t("Settings saved"));
       } catch (err) {
         toast.error(err.message);
@@ -102,6 +120,31 @@ function Authentication() {
     [t]
   );
 
+  const oidcProvider = React.useMemo(
+    () =>
+      authenticationProviders.orderedData.find(
+        (provider) => provider.name === "oidc"
+      ),
+    [authenticationProviders.orderedData]
+  );
+
+  const handleOIDCProfileSyncChange = React.useCallback(
+    async (key: "name" | "email" | "title" | "department", checked: boolean) => {
+      const current =
+        team.getPreference(TeamPreference.OIDCProfileSync) ?? {};
+      const preferences = {
+        ...(team.preferences ?? {}),
+        [TeamPreference.OIDCProfileSync]: {
+          ...(typeof current === "object" && current ? current : {}),
+          [key]: checked,
+        },
+      };
+      await team.save({ preferences });
+      toast.success(t("Settings saved"));
+    },
+    [team, t]
+  );
+
   return (
     <Scene title={t("Authentication")} icon={<PadlockIcon />}>
       <Heading>{t("Authentication")}</Heading>
@@ -113,6 +156,20 @@ function Authentication() {
       </Text>
 
       <Heading as="h2">{t("Sign In")}</Heading>
+
+      <SettingRow
+        label={t("Password")}
+        name={TeamPreference.PasswordSigninEnabled}
+        description={t(
+          "Allow invited members to sign in with a password instead of SSO."
+        )}
+      >
+        <Switch
+          id={TeamPreference.PasswordSigninEnabled}
+          checked={!!team.getPreference(TeamPreference.PasswordSigninEnabled)}
+          onChange={handlePasswordSigninChange}
+        />
+      </SettingRow>
 
       {authenticationProviders.orderedData.map((provider) => (
         <SettingRow
@@ -190,6 +247,77 @@ function Authentication() {
         />
       </SettingRow>
 
+      {oidcProvider?.isConnected && (
+        <>
+          <Heading as="h2">{t("OIDC profile sync")}</Heading>
+          <Text as="p" type="secondary">
+            {t("Control which fields are overwritten from OIDC on sign-in.")}
+          </Text>
+          <SettingRow
+            label={t("Sync name")}
+            name="oidcProfileSyncName"
+            description={t("Update the member's name from OIDC on sign-in.")}
+          >
+            <Switch
+              id="oidcProfileSyncName"
+              checked={
+                !!team.getPreference(TeamPreference.OIDCProfileSync)?.name
+              }
+              onChange={(checked) =>
+                handleOIDCProfileSyncChange("name", checked)
+              }
+            />
+          </SettingRow>
+          <SettingRow
+            label={t("Sync email")}
+            name="oidcProfileSyncEmail"
+            description={t("Update the member's email from OIDC on sign-in.")}
+          >
+            <Switch
+              id="oidcProfileSyncEmail"
+              checked={
+                !!team.getPreference(TeamPreference.OIDCProfileSync)?.email
+              }
+              onChange={(checked) =>
+                handleOIDCProfileSyncChange("email", checked)
+              }
+            />
+          </SettingRow>
+          <SettingRow
+            label={t("Sync title")}
+            name="oidcProfileSyncTitle"
+            description={t("Update the member's title from OIDC on sign-in.")}
+          >
+            <Switch
+              id="oidcProfileSyncTitle"
+              checked={
+                !!team.getPreference(TeamPreference.OIDCProfileSync)?.title
+              }
+              onChange={(checked) =>
+                handleOIDCProfileSyncChange("title", checked)
+              }
+            />
+          </SettingRow>
+          <SettingRow
+            label={t("Sync department")}
+            name="oidcProfileSyncDepartment"
+            description={t(
+              "Update the member's department from OIDC on sign-in."
+            )}
+          >
+            <Switch
+              id="oidcProfileSyncDepartment"
+              checked={
+                !!team.getPreference(TeamPreference.OIDCProfileSync)?.department
+              }
+              onChange={(checked) =>
+                handleOIDCProfileSyncChange("department", checked)
+              }
+            />
+          </SettingRow>
+        </>
+      )}
+
       <SettingRow
         label={
           <Flex gap={8} align="center">
@@ -205,6 +333,36 @@ function Authentication() {
           onChange={async (checked) => {
             try {
               await team.save({ passkeysEnabled: checked });
+              toast.success(t("Settings saved"));
+            } catch (err) {
+              toast.error(err.message);
+            }
+          }}
+        />
+      </SettingRow>
+
+      <SettingRow
+        label={
+          <Flex gap={8} align="center">
+            <PadlockIcon /> {t("Password sign-in")}
+          </Flex>
+        }
+        name="passwordSigninEnabled"
+        description={t("Allow members to sign in with a password")}
+      >
+        <Switch
+          id="passwordSigninEnabled"
+          checked={
+            !!team.getPreference(TeamPreference.PasswordSigninEnabled)
+          }
+          onChange={async (checked) => {
+            try {
+              await team.save({
+                preferences: {
+                  ...team.preferences,
+                  [TeamPreference.PasswordSigninEnabled]: checked,
+                },
+              });
               toast.success(t("Settings saved"));
             } catch (err) {
               toast.error(err.message);

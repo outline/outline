@@ -26,6 +26,8 @@ export const GroupsListSchema = z.object({
     userId: z.string().uuid().optional(),
     /** Find group matching externalId */
     externalId: z.string().optional(),
+    /** Find groups with externalId starting with prefix */
+    externalIdPrefix: z.string().optional(),
     /** @deprecated Find group with matching name */
     name: z.string().optional(),
     /** Find group matching query */

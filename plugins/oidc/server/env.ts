@@ -79,6 +79,14 @@ class OIDCPluginEnvironment extends Environment {
     environment.OIDC_USERNAME_CLAIM ?? "preferred_username";
 
   /**
+   * The OIDC profile field to use as the department. The default value is
+   * "department". If this field is present in the profile, a group will be
+   * automatically created for the department and the user will be added to it.
+   */
+  public OIDC_DEPARTMENT_CLAIM =
+    environment.OIDC_DEPARTMENT_CLAIM ?? "department";
+
+  /**
    * A space separated list of OIDC scopes to request. Defaults to "openid
    * profile email".
    */

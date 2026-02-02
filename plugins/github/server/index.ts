@@ -3,17 +3,11 @@ import { PluginManager, Hook } from "@server/utils/PluginManager";
 import config from "../plugin.json";
 import { GitHubIssueProvider } from "./GitHubIssueProvider";
 import router from "./api/github";
-import env from "./env";
 import { GitHub } from "./github";
 import GitHubWebhookTask from "./tasks/GitHubWebhookTask";
 import { uninstall } from "./uninstall";
 
-const enabled =
-  !!env.GITHUB_CLIENT_ID &&
-  !!env.GITHUB_CLIENT_SECRET &&
-  !!env.GITHUB_APP_NAME &&
-  !!env.GITHUB_APP_ID &&
-  !!env.GITHUB_APP_PRIVATE_KEY;
+const enabled = false;
 
 if (enabled) {
   PluginManager.add([

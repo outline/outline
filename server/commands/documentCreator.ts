@@ -4,6 +4,8 @@ import { TextHelper } from "@shared/utils/TextHelper";
 import { Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
+import normalizeHashtags from "@shared/editor/lib/normalizeHashtags";
+import { schema } from "@server/editor";
 import type { APIContext } from "@server/types";
 
 type Props = Optional<
@@ -107,6 +109,12 @@ export default async function documentCreator(
             )
         : ProsemirrorHelper.toProsemirror("").toJSON();
 
+  const normalizedNode = normalizeHashtags(
+    ProsemirrorHelper.toProsemirror(contentWithReplacements),
+    schema
+  );
+  const normalizedContent = normalizedNode.toJSON();
+
   const document = Document.build({
     id,
     urlId,
@@ -128,7 +136,7 @@ export default async function documentCreator(
     icon: icon ?? templateDocument?.icon,
     color: color ?? templateDocument?.color,
     title: titleWithReplacements,
-    content: contentWithReplacements,
+    content: normalizedContent,
     state,
   });
 

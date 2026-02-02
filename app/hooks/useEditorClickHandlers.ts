@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { useHistory } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import { isModKey } from "@shared/utils/keyboard";
 import { isDocumentUrl, isInternalUrl } from "@shared/utils/urls";
 import { sharedModelPath } from "~/utils/routeHelpers";
@@ -14,6 +14,7 @@ type Params = {
 
 export default function useEditorClickHandlers({ shareId }: Params) {
   const history = useHistory();
+  const location = useLocation();
   const { documents } = useStores();
   const handleClickLink = useCallback(
     (href: string, event?: MouseEvent) => {
@@ -75,6 +76,14 @@ export default function useEditorClickHandlers({ shareId }: Params) {
         if (!shareId && navigateTo.startsWith("/s/")) {
           window.open(href, "_blank");
           return;
+        }
+
+        // Preserve theme query parameter from current URL when navigating
+        const themeParam = new URLSearchParams(location.search).get("theme");
+        if (themeParam) {
+          const url = new URL(navigateTo, window.location.origin);
+          url.searchParams.set("theme", themeParam);
+          navigateTo = url.pathname + url.search + url.hash;
         }
 
         if (

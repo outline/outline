@@ -6,6 +6,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { CollectionPermission } from "@shared/types";
+import { s } from "@shared/styles";
 import type Collection from "~/models/Collection";
 import Group from "~/models/Group";
 import User from "~/models/User";
@@ -27,6 +28,7 @@ import { PermissionAction } from "../components/PermissionAction";
 import { SearchInput } from "../components/SearchInput";
 import { Suggestions } from "../components/Suggestions";
 import { AccessControlList } from "./AccessControlList";
+import CollectionMergeRequests from "~/components/CollectionMergeRequests";
 
 type Props = {
   /** The collection to share. */
@@ -369,6 +371,11 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
           invitedInSession={invitedInSession}
           visible={visible}
         />
+        {can.update && (
+          <div style={{ padding: "16px", borderTop: `1px solid ${s("divider")}` }}>
+            <CollectionMergeRequests collectionId={collection.id} />
+          </div>
+        )}
       </div>
     </Wrapper>
   );

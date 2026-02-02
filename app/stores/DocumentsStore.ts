@@ -63,6 +63,12 @@ export default class DocumentsStore extends Store<Document> {
     "text/html",
     "application/msword",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ".xlsx",
+    ".xls",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/vnd.ms-excel",
+    ".pdf",
+    "application/pdf",
   ];
 
   constructor(rootStore: RootStore) {
@@ -135,12 +141,12 @@ export default class DocumentsStore extends Store<Document> {
     const filterCond = (document: Document) =>
       options
         ? document.collectionId === collectionId &&
-          document.isArchived &&
-          document.archivedAt === options.archivedAt &&
-          !document.isDeleted
+        document.isArchived &&
+        document.archivedAt === options.archivedAt &&
+        !document.isDeleted
         : document.collectionId === collectionId &&
-          document.isArchived &&
-          !document.isDeleted;
+        document.isArchived &&
+        !document.isDeleted;
 
     return filter(this.orderedData, filterCond);
   }
@@ -220,7 +226,7 @@ export default class DocumentsStore extends Store<Document> {
   get(id: string): Document | undefined {
     return id
       ? (this.data.get(id) ??
-          this.orderedData.find((doc) => id.endsWith(doc.urlId)))
+        this.orderedData.find((doc) => id.endsWith(doc.urlId)))
       : undefined;
   }
 

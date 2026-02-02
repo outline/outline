@@ -35,8 +35,8 @@ export type MenuItem = {
   children?: MenuItem[];
   defaultHidden?: boolean;
   attrs?:
-    | Record<string, Primitive | null>
-    | ((state: EditorState) => Record<string, Primitive | null>);
+  | Record<string, Primitive | null>
+  | ((state: EditorState) => Record<string, Primitive | null>);
   visible?: boolean;
   active?: (state: EditorState) => boolean;
   appendSpace?: boolean;
@@ -53,6 +53,7 @@ export type ComponentProps = {
   isEditable: boolean;
   getPos: () => number;
   decorations: Decoration[];
+  onTranscribeAudio?: (attachmentId: string) => Promise<string | undefined>;
 };
 
 export interface NodeMarkAttr {

@@ -233,38 +233,40 @@ export class UploadPlugin extends Plugin {
                   }
                 }
 
-                const url = await options.uploadFile?.(upload.originalSrc, {
-                  id: upload.id,
-                });
+                  const url = await options.uploadFile?.(upload.originalSrc, {
+                    id: upload.id,
+                  });
 
-                if (view.isDestroyed) {
-                  return;
-                }
-
-                if (url) {
-                  const file = await FileHelper.getFileForUrl(url);
-                  const dimensions = await FileHelper.getImageDimensions(file);
-                  const result = findPlaceholder(view.state, upload.id);
-
-                  if (result) {
-                    const [from, to] = result;
-                    view.dispatch(
-                      view.state.tr
-                        .replaceWith(
-                          from,
-                          to || from,
-                          view.state.schema.nodes.image.create({
-                            ...attrs,
-                            ...dimensions,
-                            src: url,
-                          })
-                        )
-                        .setMeta(uploadPlaceholder, {
-                          remove: { id: upload.id },
-                        })
-                    );
+                  if (view.isDestroyed) {
+                    return;
                   }
-                }
+
+                  if (url) {
+                    const file = await FileHelper.getFileForUrl(url);
+                    const dimensions = await FileHelper.getImageDimensions(file);
+                    const source = await FileHelper.getImageSourceAttr(file);
+                    const result = findPlaceholder(view.state, upload.id);
+
+                    if (result) {
+                      const [from, to] = result;
+                      view.dispatch(
+                        view.state.tr
+                          .replaceWith(
+                            from,
+                            to || from,
+                            view.state.schema.nodes.image.create({
+                              ...attrs,
+                              ...dimensions,
+                              src: url,
+                              source: source ?? attrs.source,
+                            })
+                          )
+                          .setMeta(uploadPlaceholder, {
+                            remove: { id: upload.id },
+                          })
+                      );
+                    }
+                  }
               })
             );
           }, 0);

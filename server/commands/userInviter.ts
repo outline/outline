@@ -9,6 +9,7 @@ import { UserFlag } from "@server/models/User";
 import type { APIContext } from "@server/types";
 import { DomainNotAllowedError } from "@server/errors";
 import { can } from "@server/policies";
+import domainGroupProvisioner from "@server/commands/domainGroupProvisioner";
 
 export type Invite = {
   name: string;
@@ -94,6 +95,18 @@ export default async function userInviter(
     );
     users.push(newUser);
 
+    // Автоматически создаём доменную группу для приглашённого пользователя
+    // и добавляем его в неё (idempotent, безопасно при повторных вызовах).
+    try {
+      await domainGroupProvisioner(ctx, newUser, invite.email);
+    } catch (err) {
+      Logger.warn("Failed to provision domain group for invited user", {
+        error: err,
+        userId: newUser.id,
+        email: invite.email,
+      });
+    }
+
     await new InviteEmail({
       to: invite.email,
       name: invite.name,
@@ -104,11 +117,12 @@ export default async function userInviter(
     }).schedule();
 
     if (env.isDevelopment) {
+      const baseUrl = ctx.request.origin || env.URL;
       Logger.info(
         "email",
-        `Sign in immediately: ${
-          env.URL
-        }/auth/email.callback?token=${newUser.getEmailSigninToken(ctx)}`
+        `Sign in immediately: ${baseUrl}/auth/email.callback?token=${newUser.getEmailSigninToken(
+          ctx
+        )}`
       );
     }
   }

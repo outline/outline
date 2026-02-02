@@ -92,21 +92,31 @@ export default class LocalStorage extends BaseStorage {
 
   public async deleteFile(key: string) {
     const filePath = this.getFilePath(key);
+
     try {
       await unlink(filePath);
     } catch (err) {
-      Logger.warn(`Couldn't delete ${filePath}`, err);
-      return;
+      const error = err as NodeJS.ErrnoException;
+      if (error.code === "ENOENT") {
+        Logger.debug("task", `File already missing at ${filePath}`);
+      } else {
+        Logger.warn(`Couldn't delete ${filePath}`, error);
+        return;
+      }
     }
 
     const directory = path.dirname(filePath);
     try {
       await rmdir(directory);
     } catch (err) {
-      if (err.code === "ENOTEMPTY") {
+      const error = err as NodeJS.ErrnoException;
+      if (error.code === "ENOTEMPTY" || error.code === "ENOENT") {
+        if (error.code === "ENOENT") {
+          Logger.debug("task", `Directory already missing at ${directory}`);
+        }
         return;
       }
-      Logger.warn(`Couldn't delete directory ${directory}`, err);
+      Logger.warn(`Couldn't delete directory ${directory}`, error);
     }
   }
 

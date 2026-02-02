@@ -1,10 +1,14 @@
 import isEqual from "fast-deep-equal";
 import uniq from "lodash/uniq";
-import { yDocToProsemirrorJSON } from "y-prosemirror";
+import { prosemirrorToYDoc, yDocToProsemirrorJSON } from "y-prosemirror";
 import * as Y from "yjs";
 import type { ProsemirrorData } from "@shared/types";
+import { DocumentValidation } from "@shared/validations";
+import normalizeHashtags from "@shared/editor/lib/normalizeHashtags";
 import Logger from "@server/logging/Logger";
 import { Document, Event } from "@server/models";
+import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
+import { schema } from "@server/editor";
 import { sequelize } from "@server/storage/database";
 import { AuthenticationType } from "@server/types";
 import semver from "semver";
@@ -49,8 +53,68 @@ export default async function documentCollaborativeUpdater({
         paranoid: false,
       });
 
-    const state = Y.encodeStateAsUpdate(ydoc);
-    const content = yDocToProsemirrorJSON(ydoc, "default") as ProsemirrorData;
+    let state = Y.encodeStateAsUpdate(ydoc);
+    let content = yDocToProsemirrorJSON(ydoc, "default") as ProsemirrorData;
+
+    // Auto-compaction: if state size exceeds threshold, flatten to remove history
+    const AUTO_COMPACT_THRESHOLD = DocumentValidation.maxStateLength * 0.8; // 1.2MB
+    if (state.length > AUTO_COMPACT_THRESHOLD) {
+      Logger.warn(
+        `Document state exceeds threshold, performing auto-compaction`,
+        {
+          documentId,
+          beforeSize: state.length,
+          threshold: AUTO_COMPACT_THRESHOLD,
+          maxSize: DocumentValidation.maxStateLength,
+        }
+      );
+
+      try {
+        // Create fresh Y.Doc from current content without history
+        const prosemirrorNode = ProsemirrorHelper.toProsemirror(content);
+        const compactedYdoc = prosemirrorToYDoc(prosemirrorNode, "default");
+        const compactedState = Y.encodeStateAsUpdate(compactedYdoc);
+
+        Logger.info(
+          "multiplayer",
+          `Auto-compaction completed successfully`,
+          {
+            documentId,
+            beforeSize: state.length,
+            afterSize: compactedState.length,
+            reduction: state.length - compactedState.length,
+            reductionPercent: (
+              ((state.length - compactedState.length) / state.length) *
+              100
+            ).toFixed(2),
+          }
+        );
+
+        // Use compacted state
+        state = compactedState;
+      } catch (err) {
+        Logger.error(
+          "Failed to perform auto-compaction, using original state",
+          err,
+          {
+            documentId,
+            stateSize: state.length,
+          }
+        );
+        // Continue with original state if compaction fails
+      }
+    }
+
+    if (isLastConnection) {
+      const prosemirrorNode = ProsemirrorHelper.toProsemirror(content);
+      const normalizedNode = normalizeHashtags(prosemirrorNode, schema);
+      if (!normalizedNode.eq(prosemirrorNode)) {
+        content = normalizedNode.toJSON() as ProsemirrorData;
+        const normalizedYdoc = prosemirrorToYDoc(normalizedNode, "default");
+        state = Y.encodeStateAsUpdate(normalizedYdoc);
+      }
+    }
+
     const isUnchanged = isEqual(document.content, content);
     const isDeleted = !!document.deletedAt;
     const lastModifiedById = isDeleted

@@ -54,7 +54,7 @@ export const CommentValidation = {
 
 export const DocumentValidation = {
   /** The maximum length of the document title */
-  maxTitleLength: 100,
+  maxTitleLength: 500,
 
   /** The maximum length of the document summary */
   maxSummaryLength: 1000,

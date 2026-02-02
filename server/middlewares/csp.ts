@@ -73,6 +73,12 @@ export default function createCSPMiddleware() {
     objectSrc.push(bucketOrigin);
   }
 
+  // Build fontSrc array
+  const fontSrc: string[] = ["'self'", "data:", "blob:"];
+  if (env.CDN_URL) {
+    fontSrc.push(env.CDN_URL);
+  }
+
   return function cspMiddleware(ctx: Context, next: Next) {
     ctx.state.cspNonce = crypto.randomBytes(16).toString("hex");
 
@@ -81,6 +87,7 @@ export default function createCSPMiddleware() {
         baseUri: ["'none'"],
         defaultSrc,
         styleSrc,
+        fontSrc,
         scriptSrc: [
           ...uniq(scriptSrc),
           env.DEVELOPMENT_UNSAFE_INLINE_CSP

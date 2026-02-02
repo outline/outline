@@ -53,6 +53,11 @@ function DocumentCopy({ document, onSubmit }: Props) {
 
     try {
       setCopying(true);
+      const toastId = toast.loading(
+        t("Copying {{ documentTitle }}…", {
+          documentTitle: document.titleWithDefault,
+        })
+      );
       const result = await document.duplicate({
         publish,
         recursive,
@@ -63,10 +68,15 @@ function DocumentCopy({ document, onSubmit }: Props) {
           : {}),
       });
 
-      toast.success(t("Document copied"));
+      toast.success(
+        t("{{ documentTitle }} copied", {
+          documentTitle: document.titleWithDefault,
+        }),
+        { id: toastId }
+      );
       onSubmit(result);
     } catch (_err) {
-      toast.error(t("Couldn’t copy the document, try again?"));
+      toast.error(t("Couldn't copy the document, try again?"));
     } finally {
       setCopying(false);
     }

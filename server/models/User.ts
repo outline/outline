@@ -37,6 +37,7 @@ import type {
   UserPreference,
   UserPreferences,
   NotificationEventType,
+  UserProfile,
 } from "@shared/types";
 import {
   CollectionPermission,
@@ -52,8 +53,9 @@ import env from "@server/env";
 import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
 import type { APIContext } from "@server/types";
 import { VerificationCode } from "@server/utils/VerificationCode";
+import { hashPassword, verifyPassword } from "@server/utils/password";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
-import { ValidationError } from "../errors";
+import { ValidationError } from "./errors";
 import Attachment from "./Attachment";
 import AuthenticationProvider from "./AuthenticationProvider";
 import Collection from "./Collection";
@@ -142,6 +144,11 @@ class User extends ParanoidModel<
   @Column
   email: string | null;
 
+  @AllowNull
+  @Column(DataType.STRING)
+  @SkipChangeset
+  passwordHash: string | null;
+
   @NotContainsUrl
   @Length({
     min: 1,
@@ -194,6 +201,10 @@ class User extends ParanoidModel<
   @AllowNull
   @Column(DataType.JSONB)
   preferences: UserPreferences | null;
+
+  @AllowNull
+  @Column(DataType.JSONB)
+  profile: UserProfile | null;
 
   @Column(DataType.JSONB)
   notificationSettings: NotificationSettings;
@@ -474,12 +485,12 @@ class User extends ParanoidModel<
           ...(this.isGuest
             ? []
             : [
-                {
-                  permission: {
-                    [Op.in]: Object.values(CollectionPermission),
-                  },
+              {
+                permission: {
+                  [Op.in]: Object.values(CollectionPermission),
                 },
-              ]),
+              },
+            ]),
           {
             "$memberships.id$": { [Op.ne]: null },
           },
@@ -636,16 +647,61 @@ class User extends ParanoidModel<
    * @param ctx The request context, used to get the IP address of the request
    * @returns The email signin token
    */
-  getEmailSigninToken = (ctx: Context) =>
-    JWT.sign(
+  getEmailSigninToken = (ctx: Context) => {
+    // Normalize IPv6 localhost to IPv4 localhost for consistency
+    let ip = ctx.request.ip || "";
+    if (ip === "::1" || ip === "::ffff:127.0.0.1") {
+      ip = "127.0.0.1";
+    }
+
+    return JWT.sign(
       {
         id: this.id,
-        ip: ctx.request.ip,
+        ip,
         createdAt: new Date().toISOString(),
         type: "email-signin",
       },
       this.jwtSecret
     );
+  };
+
+  /**
+   * Returns a temporary token that allows the user to reset their password.
+   *
+   * @returns The password reset token.
+   */
+  getPasswordResetToken = () =>
+    JWT.sign(
+      {
+        id: this.id,
+        createdAt: new Date().toISOString(),
+        type: "password-reset",
+      },
+      this.jwtSecret
+    );
+
+  /**
+   * Set a new password for the user.
+   *
+   * @param password The plaintext password.
+   * @returns Promise that resolves when the password is set.
+   */
+  public async setPassword(password: string): Promise<void> {
+    this.passwordHash = await hashPassword(password);
+  }
+
+  /**
+   * Verify a password for the user.
+   *
+   * @param password The plaintext password.
+   * @returns Whether the password is valid.
+   */
+  public async verifyPassword(password: string): Promise<boolean> {
+    if (!this.passwordHash) {
+      return false;
+    }
+    return verifyPassword(password, this.passwordHash);
+  }
 
   /**
    * Generate a 6-digit verification code for email authentication

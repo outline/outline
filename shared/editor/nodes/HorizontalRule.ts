@@ -1,5 +1,5 @@
 import type { Token } from "markdown-it";
-import { InputRule } from "prosemirror-inputrules";
+import { textblockTypeInputRule } from "prosemirror-inputrules";
 import type {
   NodeSpec,
   NodeType,
@@ -54,16 +54,11 @@ export default class HorizontalRule extends Node {
 
   inputRules({ type }: { type: NodeType }) {
     return [
-      new InputRule(/^(?:---|___|\*\*\*)$/, (state, match, start, end) => {
-        const { tr } = state;
-
-        if (match[0]) {
-          const markup = match[0].trim();
-          tr.replaceWith(start - 1, end, type.create({ markup }));
-        }
-
-        return tr;
-      }),
+      textblockTypeInputRule(
+        /^(?:---|___|\*\*\*)$/,
+        type,
+        (match) => ({ markup: match[0].trim() })
+      ),
     ];
   }
 

@@ -263,10 +263,16 @@ class Team extends ParanoidModel<
       this.preferences = {};
     }
 
-    this.preferences = {
-      ...this.preferences,
-      [preference]: value,
-    };
+    // If value is undefined, remove the preference
+    if (value === undefined) {
+      const { [preference]: _, ...rest } = this.preferences;
+      this.preferences = rest;
+    } else {
+      this.preferences = {
+        ...this.preferences,
+        [preference]: value,
+      };
+    }
 
     return this.preferences;
   };

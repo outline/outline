@@ -160,6 +160,7 @@ const EmptyNotifications = styled(Empty)`
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 200px;
   height: 100%;
 `;
 

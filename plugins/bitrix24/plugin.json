@@ -1,0 +1,6 @@
+{
+  "id": "bitrix24",
+  "name": "Bitrix24",
+  "priority": 10,
+  "description": "Adds a Bitrix24 integration for link unfurling."
+}

@@ -474,3 +474,58 @@ export const DocumentsSitemapSchema = BaseSchema.extend({
 });
 
 export type DocumentsSitemapReq = z.infer<typeof DocumentsSitemapSchema>;
+
+export const DocumentsReminderCreateSchema = BaseSchema.extend({
+  body: BaseIdSchema.extend({
+    /** Id of the editor (user) who should receive the reminder */
+    editorId: z.string().uuid(),
+    /** Reminder message/note */
+    message: z.string().max(1000).optional(),
+    /** Interval in days for recurring reminders (null for one-time) */
+    intervalDays: z.number().int().positive().nullable().optional(),
+    /** Date when the reminder should be sent next */
+    nextSendAt: z.coerce.date().optional(),
+  }),
+});
+
+export type DocumentsReminderCreateReq = z.infer<
+  typeof DocumentsReminderCreateSchema
+>;
+
+export const DocumentsReminderUpdateSchema = BaseSchema.extend({
+  body: z.object({
+    /** Id of the reminder to update */
+    id: z.string().uuid(),
+    /** Reminder message/note */
+    message: z.string().max(1000).optional(),
+    /** Whether the reminder is active */
+    isActive: z.boolean().optional(),
+    /** Interval in days for recurring reminders (null for one-time) */
+    intervalDays: z.number().int().positive().nullable().optional(),
+    /** Date when the reminder should be sent next */
+    nextSendAt: z.coerce.date().optional(),
+  }),
+});
+
+export type DocumentsReminderUpdateReq = z.infer<
+  typeof DocumentsReminderUpdateSchema
+>;
+
+export const DocumentsReminderDeleteSchema = BaseSchema.extend({
+  body: z.object({
+    /** Id of the reminder to delete */
+    id: z.string().uuid(),
+  }),
+});
+
+export type DocumentsReminderDeleteReq = z.infer<
+  typeof DocumentsReminderDeleteSchema
+>;
+
+export const DocumentsRemindersListSchema = BaseSchema.extend({
+  body: BaseIdSchema,
+});
+
+export type DocumentsRemindersListReq = z.infer<
+  typeof DocumentsRemindersListSchema
+>;

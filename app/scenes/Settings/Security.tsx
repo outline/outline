@@ -168,11 +168,33 @@ function Security() {
     [saveData, team.preferences]
   );
 
+  const handleMembersCanChangeNameChange = React.useCallback(
+    async (checked: boolean) => {
+      const preferences = {
+        ...team.preferences,
+        [TeamPreference.MembersCanChangeName]: checked,
+      };
+      await saveData({ preferences });
+    },
+    [saveData, team.preferences]
+  );
+
   const handleEmailDisplayChange = React.useCallback(
     async (emailDisplay: string) => {
       const preferences = {
         ...team.preferences,
         [TeamPreference.EmailDisplay]: emailDisplay,
+      };
+      await saveData({ preferences });
+    },
+    [saveData, team.preferences]
+  );
+
+  const handleDomainGroupsVisibilityChange = React.useCallback(
+    async (checked: boolean) => {
+      const preferences = {
+        ...team.preferences,
+        [TeamPreference.DomainGroupsVisible]: checked,
       };
       await saveData({ preferences });
     },
@@ -382,6 +404,29 @@ function Security() {
           />
         </SettingRow>
       )}
+      <Heading as="h2">{t("Members")}</Heading>
+      <SettingRow
+        label={t("Allow members to change their name")}
+        name={TeamPreference.MembersCanChangeName}
+        description={t("When disabled, only admins can update member names.")}
+      >
+        <Switch
+          id={TeamPreference.MembersCanChangeName}
+          checked={!!team.getPreference(TeamPreference.MembersCanChangeName)}
+          onChange={handleMembersCanChangeNameChange}
+        />
+      </SettingRow>
+      <SettingRow
+        label={t("Show domain groups to non-admins")}
+        name={TeamPreference.DomainGroupsVisible}
+        description={t("When disabled, only admins can access domain groups.")}
+      >
+        <Switch
+          id={TeamPreference.DomainGroupsVisible}
+          checked={!!team.getPreference(TeamPreference.DomainGroupsVisible)}
+          onChange={handleDomainGroupsVisibilityChange}
+        />
+      </SettingRow>
     </Scene>
   );
 }

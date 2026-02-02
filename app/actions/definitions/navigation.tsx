@@ -117,7 +117,7 @@ export const navigateToProfileSettings = createInternalLinkAction({
   section: NavigationSection,
   iconInContextMenu: false,
   icon: <ProfileIcon />,
-  to: settingsPath(),
+  to: "/profile",
 });
 
 export const navigateToTemplateSettings = createInternalLinkAction({

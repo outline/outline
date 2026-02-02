@@ -22,6 +22,7 @@ import {
   MathIcon,
   DoneIcon,
   EmbedIcon,
+  HashtagIcon,
 } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
@@ -149,6 +150,12 @@ export default function blockMenuItems(
       icon: <BlockQuoteIcon />,
       keywords: "blockquote pullquote",
       shortcut: `${metaDisplay} ]`,
+    },
+    {
+      name: "toggle_block",
+      title: "Toggle Block",
+      icon: <StarredIcon />,
+      keywords: "toggle collapse expand details summary",
     },
     {
       name: "code_block",

@@ -32,6 +32,7 @@ import type { CommandFactory, WidgetProps } from "@shared/editor/lib/Extension";
 import type Extension from "@shared/editor/lib/Extension";
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
 import type { MarkdownSerializer } from "@shared/editor/lib/markdown/serializer";
+import normalizeHashtags from "@shared/editor/lib/normalizeHashtags";
 import textBetween from "@shared/editor/lib/textBetween";
 import type Mark from "@shared/editor/marks/Mark";
 import { basicExtensions as extensions } from "@shared/editor/nodes";
@@ -140,6 +141,8 @@ export type Props = {
   userPreferences?: UserPreferences | null;
   /** Whether embeds should be rendered without an iframe */
   embedsDisabled?: boolean;
+  /** Callback when audio should be transcribed */
+  onTranscribeAudio?: (attachmentId: string) => Promise<string | undefined>;
   className?: string;
   /** Optional style overrides for the container*/
   style?: React.CSSProperties;
@@ -430,10 +433,12 @@ export class Editor extends React.PureComponent<
 
     // Looks like Markdown
     if (typeof content === "string") {
-      return this.parser.parse(content) || undefined;
+      const parsed = this.parser.parse(content) || undefined;
+      return parsed ? normalizeHashtags(parsed, this.schema) : parsed;
     }
 
-    return ProsemirrorNode.fromJSON(this.schema, content);
+    const parsed = ProsemirrorNode.fromJSON(this.schema, content);
+    return normalizeHashtags(parsed, this.schema);
   }
 
   private createView() {
@@ -446,7 +451,7 @@ export class Editor extends React.PureComponent<
         (step) =>
           (step instanceof ReplaceAroundStep || step instanceof ReplaceStep) &&
           step.slice.content?.firstChild?.type.name ===
-            this.schema.nodes.checkbox_item.name
+          this.schema.nodes.checkbox_item.name
       );
 
     const isEditingComment = (tr: Transaction) =>
@@ -885,7 +890,7 @@ export class Editor extends React.PureComponent<
   }
 }
 
-const EditorContainer = styled(Styles)<{
+const EditorContainer = styled(Styles) <{
   userId?: string;
   focusedCommentId?: string;
 }>`
@@ -912,8 +917,8 @@ const EditorContainer = styled(Styles)<{
 
         &.ProseMirror-selectednode {
           outline-color: ${props.readOnly
-            ? "transparent"
-            : darken(0.2, props.theme.textHighlight)};
+        ? "transparent"
+        : darken(0.2, props.theme.textHighlight)};
         }
       }
     `}

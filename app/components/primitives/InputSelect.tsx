@@ -22,7 +22,7 @@ export type TriggerButtonProps = {
   className?: string;
 } & Pick<ButtonProps<unknown>, "borderOnHover">;
 
-type InputSelectTriggerProps = { placeholder: string } & TriggerButtonProps &
+type InputSelectTriggerProps = { placeholder?: string } & TriggerButtonProps &
   React.ComponentPropsWithoutRef<typeof InputSelectPrimitive.Trigger>;
 
 const InputSelectTrigger = React.forwardRef<
@@ -34,7 +34,7 @@ const InputSelectTrigger = React.forwardRef<
   return (
     <InputSelectPrimitive.Trigger ref={ref} asChild>
       <SelectButton neutral disclosure $nude={nude} {...buttonProps}>
-        <InputSelectPrimitive.Value placeholder={placeholder} />
+        {children || <InputSelectPrimitive.Value placeholder={placeholder} />}
       </SelectButton>
     </InputSelectPrimitive.Trigger>
   );

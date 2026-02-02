@@ -128,6 +128,11 @@ export enum IntegrationService {
   Matomo = "matomo",
   Umami = "umami",
   GitHub = "github",
+  GitLab = "gitlab",
+  Bitrix24 = "bitrix24",
+  Jira = "jira",
+  Confluence = "confluence",
+  Trello = "trello",
   Linear = "linear",
   Notion = "notion",
 }
@@ -143,11 +148,20 @@ export const ImportableIntegrationService = {
 
 export type IssueTrackerIntegrationService = Extract<
   IntegrationService,
-  IntegrationService.GitHub | IntegrationService.Linear
+  | IntegrationService.GitHub
+  | IntegrationService.GitLab
+  | IntegrationService.Bitrix24
+  | IntegrationService.Jira
+  | IntegrationService.Trello
+  | IntegrationService.Linear
 >;
 
 export const IssueTrackerIntegrationService = {
   GitHub: IntegrationService.GitHub,
+  GitLab: IntegrationService.GitLab,
+  Bitrix24: IntegrationService.Bitrix24,
+  Jira: IntegrationService.Jira,
+  Trello: IntegrationService.Trello,
   Linear: IntegrationService.Linear,
 } as const;
 
@@ -187,52 +201,138 @@ export enum GroupPermission {
 
 export type IntegrationSettings<T> = T extends IntegrationType.Embed
   ? {
-      url?: string;
-      github?: {
-        installation: {
-          id: number;
-          account: { id: number; name: string; avatarUrl: string };
+    url?: string;
+    github?: {
+      installation: {
+        id: number;
+        account: { id: number; name: string; avatarUrl: string };
+      };
+    };
+    gitlab?: {
+      instance: {
+        url: string;
+        account: { id: number; name: string; avatarUrl?: string };
+      };
+    };
+    bitrix24?: {
+      domain: string;
+      account: {
+        id: string;
+        name: string;
+        avatarUrl?: string;
+      };
+    };
+    jira?: {
+      instance: {
+        url: string;
+        account: {
+          id: string;
+          name: string;
+          avatarUrl?: string;
         };
       };
-      linear?: {
-        workspace: { id: string; name: string; key: string; logoUrl?: string };
-      };
-      diagrams?: {
+    };
+    confluence?: {
+      instance: {
         url: string;
+        account: {
+          id: string;
+          name: string;
+          avatarUrl?: string;
+        };
       };
-    }
+    };
+    trello?: {
+      account: {
+        id: string;
+        name: string;
+        avatarUrl?: string;
+      };
+    };
+    linear?: {
+      workspace: { id: string; name: string; key: string; logoUrl?: string };
+    };
+    diagrams?: {
+      url: string;
+    };
+  }
   : T extends IntegrationType.Analytics
-    ? { measurementId: string; instanceUrl?: string; scriptName?: string }
-    : T extends IntegrationType.Post
-      ? { url: string; channel: string; channelId: string }
-      : T extends IntegrationType.Command
-        ? { serviceTeamId: string }
-        : T extends IntegrationType.Import
-          ? {
-              externalWorkspace: { id: string; name: string; iconUrl?: string };
-            }
-          :
-              | { url: string }
-              | {
-                  github?: {
-                    installation: {
-                      id: number;
-                      account: {
-                        id?: number;
-                        name: string;
-                        avatarUrl?: string;
-                      };
-                    };
-                  };
-                  diagrams?: {
-                    url: string;
-                  };
-                }
-              | { url: string; channel: string; channelId: string }
-              | { serviceTeamId: string }
-              | { measurementId: string }
-              | { slack: { serviceTeamId: string; serviceUserId: string } }
-              | undefined;
+  ? { measurementId: string; instanceUrl?: string; scriptName?: string }
+  : T extends IntegrationType.Post
+  ? { url: string; channel: string; channelId: string }
+  : T extends IntegrationType.Command
+  ? { serviceTeamId: string }
+  : T extends IntegrationType.Import
+  ? {
+    externalWorkspace: { id: string; name: string; iconUrl?: string };
+  }
+  :
+  | { url: string }
+  | {
+    github?: {
+      installation: {
+        id: number;
+        account: {
+          id?: number;
+          name: string;
+          avatarUrl?: string;
+        };
+      };
+    };
+    gitlab?: {
+      instance: {
+        url: string;
+        account: {
+          id?: number;
+          name: string;
+          avatarUrl?: string;
+        };
+      };
+    };
+    bitrix24?: {
+      domain: string;
+      account: {
+        id: string;
+        name: string;
+        avatarUrl?: string;
+      };
+    };
+    jira?: {
+      instance: {
+        url: string;
+        account: {
+          id: string;
+          name: string;
+          avatarUrl?: string;
+        };
+      };
+    };
+    confluence?: {
+      instance: {
+        url: string;
+        account: {
+          id: string;
+          name: string;
+          avatarUrl?: string;
+        };
+      };
+    };
+    trello?: {
+      account: {
+        id: string;
+        name: string;
+        avatarUrl?: string;
+      };
+    };
+    diagrams?: {
+      url: string;
+    };
+  }
+  | { url: string; channel: string; channelId: string }
+  | { serviceTeamId: string }
+  | { measurementId: string }
+  | { slack: { serviceTeamId: string; serviceUserId: string } }
+  | undefined;
 
 export enum UserPreference {
   /** Whether reopening the app should redirect to the last viewed document. */
@@ -274,6 +374,23 @@ export type CustomTheme = {
   accent: string;
   accentText: string;
 };
+
+export interface UserProfile {
+  title?: string;
+  department?: string;
+  phone?: string;
+  internalPhone?: string;
+  mobilePhone?: string;
+  location?: string;
+  bio?: string;
+}
+
+export interface OIDCProfileSync {
+  name?: boolean;
+  email?: boolean;
+  title?: boolean;
+  department?: boolean;
+}
 
 export type PublicTeam = {
   avatarUrl: string;
@@ -318,6 +435,22 @@ export enum TeamPreference {
   PreventDocumentEmbedding = "preventDocumentEmbedding",
   /** Who can see user email addresses. */
   EmailDisplay = "emailDisplay",
+  /** List of allowed languages for users to choose from. */
+  AllowedLanguages = "allowedLanguages",
+  /** Custom redirect URL for members. */
+  MemberRedirectURL = "memberRedirectURL",
+  /** Custom redirect URL per member email domain. */
+  MemberRedirectURLByDomain = "memberRedirectURLByDomain",
+  /** CRM URL per member email domain. */
+  DomainCRMURLByDomain = "domainCrmUrlByDomain",
+  /** Whether domain groups are visible to non-admins. */
+  DomainGroupsVisible = "domainGroupsVisible",
+  /** Whether members can change their own name. */
+  MembersCanChangeName = "membersCanChangeName",
+  /** Controls which user fields are synced from OIDC on sign-in. */
+  OIDCProfileSync = "oidcProfileSync",
+  /** Whether password sign-in is enabled. */
+  PasswordSigninEnabled = "passwordSigninEnabled",
 }
 
 export type TeamPreferences = {
@@ -333,6 +466,14 @@ export type TeamPreferences = {
   [TeamPreference.TocPosition]?: TOCPosition;
   [TeamPreference.PreventDocumentEmbedding]?: boolean;
   [TeamPreference.EmailDisplay]?: EmailDisplay;
+  [TeamPreference.AllowedLanguages]?: string[];
+  [TeamPreference.MemberRedirectURL]?: string;
+  [TeamPreference.MemberRedirectURLByDomain]?: Record<string, string>;
+  [TeamPreference.DomainCRMURLByDomain]?: Record<string, string>;
+  [TeamPreference.DomainGroupsVisible]?: boolean;
+  [TeamPreference.MembersCanChangeName]?: boolean;
+  [TeamPreference.OIDCProfileSync]?: OIDCProfileSync;
+  [TeamPreference.PasswordSigninEnabled]?: boolean;
 };
 
 export enum NavigationNodeType {
@@ -384,6 +525,10 @@ export enum NotificationEventType {
   Onboarding = "emails.onboarding",
   Features = "emails.features",
   ExportCompleted = "emails.export_completed",
+  DocumentChangedByOtherUser = "documents.changed_by_other",
+  CollectionMergePending = "collections.merge_pending",
+  CollectionMergeCompleted = "collections.merge_completed",
+  CollectionMergeRejected = "collections.merge_rejected",
 }
 
 export enum NotificationChannelType {
@@ -394,36 +539,42 @@ export enum NotificationChannelType {
 
 export type NotificationData = {
   emoji?: string;
+  mergeRequestId?: string;
+  newCollectionName?: string;
 };
 
 export type NotificationSettings = {
   [event in NotificationEventType]?:
-    | {
-        [type in NotificationChannelType]?: boolean;
-      }
-    | boolean;
+  | {
+    [type in NotificationChannelType]?: boolean;
+  }
+  | boolean;
 };
 
 export const NotificationEventDefaults: Record<NotificationEventType, boolean> =
-  {
-    [NotificationEventType.PublishDocument]: false,
-    [NotificationEventType.UpdateDocument]: true,
-    [NotificationEventType.CreateCollection]: false,
-    [NotificationEventType.CreateComment]: true,
-    [NotificationEventType.ResolveComment]: true,
-    [NotificationEventType.ReactionsCreate]: true,
-    [NotificationEventType.CreateRevision]: false,
-    [NotificationEventType.MentionedInDocument]: true,
-    [NotificationEventType.MentionedInComment]: true,
-    [NotificationEventType.GroupMentionedInDocument]: true,
-    [NotificationEventType.GroupMentionedInComment]: true,
-    [NotificationEventType.InviteAccepted]: true,
-    [NotificationEventType.Onboarding]: true,
-    [NotificationEventType.Features]: true,
-    [NotificationEventType.ExportCompleted]: true,
-    [NotificationEventType.AddUserToDocument]: true,
-    [NotificationEventType.AddUserToCollection]: true,
-  };
+{
+  [NotificationEventType.PublishDocument]: false,
+  [NotificationEventType.UpdateDocument]: true,
+  [NotificationEventType.CreateCollection]: false,
+  [NotificationEventType.CreateComment]: true,
+  [NotificationEventType.ResolveComment]: true,
+  [NotificationEventType.ReactionsCreate]: true,
+  [NotificationEventType.CreateRevision]: false,
+  [NotificationEventType.MentionedInDocument]: true,
+  [NotificationEventType.MentionedInComment]: true,
+  [NotificationEventType.GroupMentionedInDocument]: true,
+  [NotificationEventType.GroupMentionedInComment]: true,
+  [NotificationEventType.InviteAccepted]: true,
+  [NotificationEventType.Onboarding]: true,
+  [NotificationEventType.Features]: true,
+  [NotificationEventType.ExportCompleted]: true,
+  [NotificationEventType.AddUserToDocument]: true,
+  [NotificationEventType.AddUserToCollection]: true,
+  [NotificationEventType.DocumentChangedByOtherUser]: true,
+  [NotificationEventType.CollectionMergePending]: true,
+  [NotificationEventType.CollectionMergeCompleted]: true,
+  [NotificationEventType.CollectionMergeRejected]: true,
+};
 
 export enum UnfurlResourceType {
   URL = "url",

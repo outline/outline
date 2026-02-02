@@ -1,0 +1,6 @@
+{
+  "id": "confluence",
+  "name": "Confluence",
+  "priority": 10,
+  "description": "Adds a Confluence integration for link unfurling."
+}

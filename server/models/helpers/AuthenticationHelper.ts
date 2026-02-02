@@ -2,6 +2,7 @@
 import find from "lodash/find";
 import env from "@server/env";
 import type Team from "@server/models/Team";
+import { TeamPreference } from "@shared/types";
 import { Hook, PluginManager } from "@server/utils/PluginManager";
 
 export default class AuthenticationHelper {
@@ -40,6 +41,10 @@ export default class AuthenticationHelper {
         // provider using passport, instead it exists as a boolean option.
         if (hook.value.id === "passkeys") {
           return team?.passkeysEnabled;
+        }
+
+        if (hook.value.id === "password") {
+          return !!team?.getPreference(TeamPreference.PasswordSigninEnabled);
         }
 
         // If no team return all possible authentication providers except email and passkeys.

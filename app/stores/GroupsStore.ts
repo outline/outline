@@ -8,7 +8,10 @@ import { client } from "~/utils/ApiClient";
 import type RootStore from "./RootStore";
 import Store from "./base/Store";
 
-type FetchPageParams = PaginationParams & { query?: string };
+type FetchPageParams = PaginationParams & {
+  query?: string;
+  externalIdPrefix?: string;
+};
 
 export default class GroupsStore extends Store<Group> {
   constructor(rootStore: RootStore) {

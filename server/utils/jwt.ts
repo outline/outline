@@ -96,6 +96,17 @@ export async function getUserForJWT(
   };
 }
 
+/**
+ * Normalize IP address to handle IPv6 localhost (::1) and IPv4 localhost (127.0.0.1) as equivalent
+ */
+function normalizeIp(ip: string): string {
+  // Normalize IPv6 localhost to IPv4 localhost for consistency
+  if (ip === "::1" || ip === "::ffff:127.0.0.1") {
+    return "127.0.0.1";
+  }
+  return ip;
+}
+
 export async function getUserForEmailSigninToken(
   ctx: Context,
   token: string
@@ -113,8 +124,40 @@ export async function getUserForEmailSigninToken(
     }
   }
 
-  if (payload.ip !== ctx.request.ip) {
+  // Normalize IP addresses before comparison to handle IPv6/IPv4 localhost mismatch
+  const tokenIp = normalizeIp(payload.ip || "");
+  const requestIp = normalizeIp(ctx.request.ip || "");
+
+  if (tokenIp !== requestIp) {
     throw AuthenticationError("Token mismatch");
+  }
+
+  const user = await User.scope("withTeam").findByPk(payload.id, {
+    rejectOnEmpty: true,
+  });
+
+  try {
+    JWT.verify(token, user.jwtSecret);
+  } catch (_err) {
+    throw AuthenticationError("Invalid token");
+  }
+
+  return user;
+}
+
+export async function getUserForPasswordResetToken(
+  token: string
+): Promise<User> {
+  const payload = getJWTPayload(token);
+
+  if (payload.type !== "password-reset") {
+    throw AuthenticationError("Invalid token");
+  }
+
+  if (payload.createdAt) {
+    if (new Date(payload.createdAt) < subMinutes(new Date(), 30)) {
+      throw AuthenticationError("Expired token");
+    }
   }
 
   const user = await User.scope("withTeam").findByPk(payload.id, {

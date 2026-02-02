@@ -48,6 +48,7 @@ import {
   Relationship,
   Collection,
   Document,
+  DocumentReminder,
   Event,
   Revision,
   SearchQuery,
@@ -81,7 +82,10 @@ import FileStorage from "@server/storage/files";
 import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import ZipHelper from "@server/utils/ZipHelper";
-import { convertBareUrlsToEmbedMarkdown } from "@server/utils/embedHelper";
+import {
+  convertBareUrlsToEmbedMarkdown,
+  convertEmbedPlaceholdersToMarkdown,
+} from "@server/utils/embedHelper";
 import { getTeamFromContext } from "@server/utils/passport";
 import { assertPresent } from "@server/validation";
 import pagination from "../middlewares/pagination";
@@ -172,8 +176,8 @@ router.post(
         collectionId:
           template && can(user, "readTemplate", user.team)
             ? {
-                [Op.or]: [{ [Op.in]: collectionIds }, { [Op.is]: null }],
-              }
+              [Op.or]: [{ [Op.in]: collectionIds }, { [Op.is]: null }],
+            }
             : collectionIds,
       });
     }
@@ -293,13 +297,13 @@ router.post(
       sort === "index"
         ? documentIds.length > 0
           ? [
-              [
-                Sequelize.literal(
-                  `array_position(ARRAY[${documentIds.map((id) => `'${id}'`).join(",")}]::uuid[], "document"."id")`
-                ),
-                direction,
-              ],
-            ]
+            [
+              Sequelize.literal(
+                `array_position(ARRAY[${documentIds.map((id) => `'${id}'`).join(",")}]::uuid[], "document"."id")`
+              ),
+              direction,
+            ],
+          ]
           : undefined
         : [[sort, direction]];
 
@@ -628,8 +632,8 @@ router.post(
       data:
         apiVersion >= 2
           ? {
-              document: serializedDocument,
-            }
+            document: serializedDocument,
+          }
           : serializedDocument,
       policies: isPublic ? undefined : presentPolicies(user, [document]),
     };
@@ -675,10 +679,10 @@ router.post(
         },
         collection?.permission
           ? {
-              role: {
-                [Op.ne]: UserRole.Guest,
-              },
-            }
+            role: {
+              [Op.ne]: UserRole.Guest,
+            },
+          }
           : {},
       ],
     };
@@ -850,11 +854,11 @@ router.post(
     );
     const attachments = attachmentIds.length
       ? await Attachment.findAll({
-          where: {
-            teamId: document.teamId,
-            id: attachmentIds,
-          },
-        })
+        where: {
+          teamId: document.teamId,
+          id: attachmentIds,
+        },
+      })
       : [];
 
     if (attachments.length === 0) {
@@ -938,19 +942,19 @@ router.post(
 
     const srcCollection = sourceCollectionId
       ? await Collection.findByPk(sourceCollectionId, {
-          userId: user.id,
-          includeDocumentStructure: true,
-          paranoid: false,
-          transaction,
-        })
+        userId: user.id,
+        includeDocumentStructure: true,
+        paranoid: false,
+        transaction,
+      })
       : undefined;
 
     const destCollection = destCollectionId
       ? await Collection.findByPk(destCollectionId, {
-          userId: user.id,
-          includeDocumentStructure: true,
-          transaction,
-        })
+        userId: user.id,
+        includeDocumentStructure: true,
+        transaction,
+      })
       : undefined;
 
     // In case of workspace templates, both source and destination collections are undefined.
@@ -1350,9 +1354,9 @@ router.post(
 
     const collection = collectionId
       ? await Collection.findByPk(collectionId, {
-          userId: user.id,
-          transaction,
-        })
+        userId: user.id,
+        transaction,
+      })
       : document?.collection;
 
     if (collection) {
@@ -1695,18 +1699,20 @@ router.post(
       authorize(user, "read", templateDocument);
     }
 
-    // Pre-process text to convert bare embed URLs to markdown link format
-    const processedText = text ? convertBareUrlsToEmbedMarkdown(text) : text;
+    // Pre-process text: convert embed placeholders and bare URLs to markdown links
+    const processedText = text
+      ? convertBareUrlsToEmbedMarkdown(convertEmbedPlaceholdersToMarkdown(text))
+      : text;
 
     const document = await documentCreator(ctx, {
       id,
       title,
       text: processedText
         ? await TextHelper.replaceImagesWithAttachments(
-            ctx,
-            processedText,
-            user
-          )
+          ctx,
+          processedText,
+          user
+        )
         : processedText,
       icon,
       color,
@@ -2141,15 +2147,250 @@ router.post(
   }
 );
 
+router.post(
+  "documents.reminders.create",
+  auth(),
+  validate(T.DocumentsReminderCreateSchema),
+  transaction(),
+  async (ctx: APIContext<T.DocumentsReminderCreateReq>) => {
+    const { transaction } = ctx.state;
+    const { id, editorId, message, intervalDays, nextSendAt } = ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    const document = await Document.findByPk(id, {
+      userId: user.id,
+      transaction,
+    });
+    authorize(user, "read", document);
+
+    // Only the document owner can create reminders
+    if (document.createdById !== user.id) {
+      throw AuthenticationError("Only the document owner can create reminders");
+    }
+
+    // Check if editor exists and has access to the document
+    const editor = await User.findByPk(editorId, { transaction });
+    if (!editor) {
+      throw NotFoundError("Editor not found");
+    }
+
+    // Check if editor is not the owner
+    if (editorId === user.id) {
+      throw InvalidRequestError("Cannot set reminder for yourself");
+    }
+
+    // Check if reminder already exists for this document and editor
+    const existingReminder = await DocumentReminder.findOne({
+      where: {
+        documentId: id,
+        editorId,
+        isActive: true,
+      },
+      transaction,
+    });
+
+    if (existingReminder) {
+      throw InvalidRequestError(
+        "Reminder already exists for this editor on this document"
+      );
+    }
+
+    // Calculate nextSendAt if not provided
+    const sendAt = nextSendAt || new Date();
+
+    const reminder = await DocumentReminder.create(
+      {
+        documentId: id,
+        ownerId: user.id,
+        editorId,
+        message: message || null,
+        isActive: true,
+        intervalDays: intervalDays || null,
+        nextSendAt: sendAt,
+        lastSentAt: null,
+      },
+      { transaction }
+    );
+
+    await reminder.reload({
+      include: [
+        { model: Document, as: "document" },
+        { model: User, as: "owner" },
+        { model: User, as: "editor" },
+      ],
+      transaction,
+    });
+
+    ctx.body = {
+      data: {
+        id: reminder.id,
+        documentId: reminder.documentId,
+        editorId: reminder.editorId,
+        editor: await presentUser(reminder.editor),
+        message: reminder.message,
+        isActive: reminder.isActive,
+        intervalDays: reminder.intervalDays,
+        nextSendAt: reminder.nextSendAt,
+        lastSentAt: reminder.lastSentAt,
+        createdAt: reminder.createdAt,
+      },
+    };
+  }
+);
+
+router.post(
+  "documents.reminders.list",
+  auth(),
+  validate(T.DocumentsRemindersListSchema),
+  async (ctx: APIContext<T.DocumentsRemindersListReq>) => {
+    const { id } = ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    const document = await Document.findByPk(id, { userId: user.id });
+    authorize(user, "read", document);
+
+    // Only the document owner can view reminders
+    if (document.createdById !== user.id) {
+      throw AuthenticationError("Only the document owner can view reminders");
+    }
+
+    const reminders = await DocumentReminder.findAll({
+      where: {
+        documentId: id,
+      },
+      include: [
+        { model: User, as: "editor", required: false },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
+
+    ctx.body = {
+      data: {
+        reminders: await Promise.all(
+          reminders.map(async (reminder) => ({
+            id: reminder.id,
+            documentId: reminder.documentId,
+            editorId: reminder.editorId,
+            editor: await presentUser(reminder.editor),
+            message: reminder.message,
+            isActive: reminder.isActive,
+            intervalDays: reminder.intervalDays,
+            nextSendAt: reminder.nextSendAt,
+            lastSentAt: reminder.lastSentAt,
+            createdAt: reminder.createdAt,
+            updatedAt: reminder.updatedAt,
+          }))
+        ),
+      },
+    };
+  }
+);
+
+router.post(
+  "documents.reminders.update",
+  auth(),
+  validate(T.DocumentsReminderUpdateSchema),
+  transaction(),
+  async (ctx: APIContext<T.DocumentsReminderUpdateReq>) => {
+    const { transaction } = ctx.state;
+    const { id, message, isActive, intervalDays, nextSendAt } = ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    const reminder = await DocumentReminder.findByPk(id, {
+      include: [{ model: Document, as: "document" }],
+      transaction,
+    });
+
+    if (!reminder) {
+      throw NotFoundError("Reminder not found");
+    }
+
+    // Only the document owner can update reminders
+    if (reminder.ownerId !== user.id) {
+      throw AuthenticationError("Only the document owner can update reminders");
+    }
+
+    if (message !== undefined) {
+      reminder.message = message;
+    }
+    if (isActive !== undefined) {
+      reminder.isActive = isActive;
+    }
+    if (intervalDays !== undefined) {
+      reminder.intervalDays = intervalDays;
+    }
+    if (nextSendAt !== undefined) {
+      reminder.nextSendAt = nextSendAt;
+    }
+
+    await reminder.save({ transaction });
+
+    await reminder.reload({
+      include: [
+        { model: User, as: "editor" },
+      ],
+      transaction,
+    });
+
+    ctx.body = {
+      data: {
+        id: reminder.id,
+        documentId: reminder.documentId,
+        editorId: reminder.editorId,
+        editor: await presentUser(reminder.editor),
+        message: reminder.message,
+        isActive: reminder.isActive,
+        intervalDays: reminder.intervalDays,
+        nextSendAt: reminder.nextSendAt,
+        lastSentAt: reminder.lastSentAt,
+        createdAt: reminder.createdAt,
+        updatedAt: reminder.updatedAt,
+      },
+    };
+  }
+);
+
+router.post(
+  "documents.reminders.delete",
+  auth(),
+  validate(T.DocumentsReminderDeleteSchema),
+  transaction(),
+  async (ctx: APIContext<T.DocumentsReminderDeleteReq>) => {
+    const { transaction } = ctx.state;
+    const { id } = ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    const reminder = await DocumentReminder.findByPk(id, {
+      include: [{ model: Document, as: "document" }],
+      transaction,
+    });
+
+    if (!reminder) {
+      throw NotFoundError("Reminder not found");
+    }
+
+    // Only the document owner can delete reminders
+    if (reminder.ownerId !== user.id) {
+      throw AuthenticationError("Only the document owner can delete reminders");
+    }
+
+    await reminder.destroy({ transaction });
+
+    ctx.body = {
+      success: true,
+    };
+  }
+);
+
 // Remove this helper once apiVersion is removed (#6175)
 function getAPIVersion(ctx: APIContext) {
   return Number(
     ctx.headers["x-api-version"] ??
-      (typeof ctx.input.body === "object" &&
-        ctx.input.body &&
-        "apiVersion" in ctx.input.body &&
-        ctx.input.body.apiVersion) ??
-      0
+    (typeof ctx.input.body === "object" &&
+      ctx.input.body &&
+      "apiVersion" in ctx.input.body &&
+      ctx.input.body.apiVersion) ??
+    0
   );
 }
 

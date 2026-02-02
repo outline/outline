@@ -22,21 +22,38 @@ type Props = React.ComponentProps<typeof ButtonLarge> & {
   isCreate: boolean;
   onEmailSuccess: (email: string) => void;
   preferOTP: boolean;
+  onPasswordExpand?: () => void;
+  onForgotPassword?: () => void;
 };
 
-type AuthState = "initial" | "email" | "code";
+type AuthState = "initial" | "email" | "code" | "password";
 
 function AuthenticationProvider(props: Props) {
   const { t } = useTranslation();
   const [authState, setAuthState] = React.useState<AuthState>("initial");
   const [isSubmitting, setSubmitting] = React.useState(false);
   const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
   const formRef = React.useRef<HTMLFormElement>(null);
-  const { isCreate, id, name, authUrl, onEmailSuccess, ...rest } = props;
+  const {
+    isCreate,
+    id,
+    name,
+    authUrl,
+    onEmailSuccess,
+    preferOTP,
+    onPasswordExpand,
+    onForgotPassword,
+    ...rest
+  } = props;
   const clientType = Desktop.isElectron() ? Client.Desktop : Client.Web;
 
   const handleChangeEmail = (event: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(event.target.value);
+  };
+
+  const handleChangePassword = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(event.target.value);
   };
 
   const handleSubmitEmail = async (
@@ -51,7 +68,7 @@ function AuthenticationProvider(props: Props) {
         const response = await client.post(event.currentTarget.action, {
           email,
           client: clientType,
-          preferOTP: props.preferOTP,
+          preferOTP,
         });
 
         if (response.redirect) {
@@ -157,36 +174,72 @@ function AuthenticationProvider(props: Props) {
   }
 
   if (id === "email") {
-    if (isCreate) {
-      return null;
+    return null;
+  }
+
+  if (id === "password") {
+    const csrfToken = getCookie(CSRF.cookieName) ?? "";
+
+    if (authState !== "password") {
+      return (
+        <Wrapper>
+          <ButtonLarge
+            type="button"
+            icon={<EmailIcon />}
+            fullwidth
+            onClick={() => {
+              setAuthState("password");
+              onPasswordExpand?.();
+            }}
+            {...rest}
+          >
+            {t("Continue with password")}
+          </ButtonLarge>
+        </Wrapper>
+      );
     }
 
     return (
       <Wrapper>
-        <Form method="POST" action="/auth/email" onSubmit={handleSubmitEmail}>
-          {authState === "email" ? (
-            <>
-              <InputLarge
-                type="email"
-                name="email"
-                placeholder="me@domain.com"
-                value={email}
-                onChange={handleChangeEmail}
-                disabled={isSubmitting}
-                autoFocus
-                required
-                short
-              />
-              <ButtonLarge type="submit" disabled={isSubmitting} {...rest}>
-                {t("Sign In")} →
-              </ButtonLarge>
-            </>
-          ) : (
-            <ButtonLarge type="submit" icon={<EmailIcon />} fullwidth {...rest}>
-              {t("Continue with Email")}
-            </ButtonLarge>
-          )}
-        </Form>
+        <StackedForm method="POST" action="/auth/password">
+          <input type="hidden" name={CSRF.fieldName} value={csrfToken} />
+          <InputLarge
+            type="email"
+            name="email"
+            placeholder="me@domain.com"
+            value={email}
+            onChange={handleChangeEmail}
+            disabled={isSubmitting}
+            required
+          />
+          <InputLarge
+            type="password"
+            name="password"
+            placeholder={t("Password")}
+            value={password}
+            onChange={handleChangePassword}
+            disabled={isSubmitting}
+            required
+          />
+          <ButtonLarge
+            type="submit"
+            disabled={isSubmitting}
+            onClick={() => setSubmitting(true)}
+            fullwidth
+            {...rest}
+          >
+            {t("Sign In")} →
+          </ButtonLarge>
+          {onForgotPassword ? (
+            <ForgotPasswordButton
+              type="button"
+              onClick={onForgotPassword}
+              disabled={isSubmitting}
+            >
+              {t("Forgot password?")}
+            </ForgotPasswordButton>
+          ) : null}
+        </StackedForm>
       </Wrapper>
     );
   }
@@ -213,6 +266,23 @@ const Form = styled.form`
   width: 100%;
   display: flex;
   justify-content: space-between;
+`;
+
+const StackedForm = styled(Form)`
+  flex-direction: column;
+  gap: 8px;
+  align-items: stretch;
+`;
+
+const ForgotPasswordButton = styled.button`
+  background: none;
+  border: 0;
+  color: ${(props) => props.theme.textSecondary};
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px 0 0;
+  text-decoration: underline;
+  text-align: left;
 `;
 
 export default AuthenticationProvider;

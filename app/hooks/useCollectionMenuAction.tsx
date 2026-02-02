@@ -17,6 +17,7 @@ import {
   exportCollection,
   importDocument,
   sortCollection,
+  mergeCollections,
 } from "~/actions/definitions/collections";
 import { ActiveCollectionSection } from "~/actions/sections";
 import { InputIcon } from "outline-icons";
@@ -60,6 +61,7 @@ export function useCollectionMenuAction({ collectionId, onRename }: Props) {
       createTemplate,
       sortCollection,
       exportCollection,
+      mergeCollections,
       archiveCollection,
       searchInCollection,
       ActionSeparator,

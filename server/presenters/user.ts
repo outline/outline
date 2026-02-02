@@ -1,14 +1,20 @@
-import type {
+import {
   NotificationSettings,
+  TeamPreference,
+} from "@shared/types";
+import type {
   UserPreferences,
   UserRole,
+  UserProfile,
 } from "@shared/types";
+import { parseEmail } from "@shared/utils/email";
 import env from "@server/env";
-import type { User } from "@server/models";
+import type { User, Team } from "@server/models";
 
 type Options = {
   includeDetails?: boolean;
   includeEmail?: boolean;
+  team?: Team;
 };
 
 type UserPresentation = {
@@ -27,6 +33,9 @@ type UserPresentation = {
   preferences?: UserPreferences | null;
   notificationSettings?: NotificationSettings;
   timezone?: string | null;
+  redirectUrl?: string;
+  domainCrmUrl?: string;
+  profile?: UserProfile | null;
 };
 
 export default function presentUser(
@@ -52,10 +61,46 @@ export default function presentUser(
     userData.language = user.language || env.DEFAULT_LANGUAGE;
     userData.preferences = user.preferences;
     userData.notificationSettings = user.notificationSettings;
+    userData.profile = user.profile;
   }
 
   if (options.includeEmail) {
     userData.email = user.email;
+  }
+
+  const team = user.team || options.team;
+  if (team) {
+    const email = user.email;
+    if (email) {
+      let domain: string | undefined;
+      try {
+        domain = parseEmail(email).domain;
+      } catch (_err) {
+        domain = undefined;
+      }
+      const redirectByDomain = team.getPreference(
+        TeamPreference.MemberRedirectURLByDomain
+      ) as Record<string, string> | undefined;
+      const crmByDomain = team.getPreference(
+        TeamPreference.DomainCRMURLByDomain
+      ) as Record<string, string> | undefined;
+      const redirectTemplate = domain ? redirectByDomain?.[domain] : undefined;
+      const crmTemplate = domain ? crmByDomain?.[domain] : undefined;
+
+      if (redirectTemplate) {
+        userData.redirectUrl = redirectTemplate.replace(
+          "{email}",
+          encodeURIComponent(email)
+        );
+      }
+
+      if (crmTemplate) {
+        userData.domainCrmUrl = crmTemplate.replace(
+          "{email}",
+          encodeURIComponent(email)
+        );
+      }
+    }
   }
 
   return userData;

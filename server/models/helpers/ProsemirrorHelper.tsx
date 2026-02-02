@@ -96,7 +96,19 @@ export class ProsemirrorHelper {
     if (typeof data === "string") {
       return parser.parse(data);
     }
-    return Node.fromJSON(schema, data);
+
+    try {
+      return Node.fromJSON(schema, data);
+    } catch (error) {
+      Logger.error("Failed to parse ProsemirrorData to Node", error, {
+        dataPreview: JSON.stringify(data).substring(0, 200),
+      });
+      // Return an empty document as fallback
+      return Node.fromJSON(schema, {
+        type: "doc",
+        content: [],
+      });
+    }
   }
 
   /**
@@ -511,8 +523,7 @@ export class ProsemirrorHelper {
       // Render the Prosemirror document using virtual DOM and serialize the
       // result to a string
       const dom = new JSDOM(
-        `<!DOCTYPE html><meta charset="utf-8">${
-          options?.includeStyles === false ? "" : styleTags
+        `<!DOCTYPE html><meta charset="utf-8">${options?.includeStyles === false ? "" : styleTags
         }${html}`
       );
       const doc = dom.window.document;
@@ -649,11 +660,11 @@ export class ProsemirrorHelper {
     const uniqueUserIds = [...new Set(userIds)];
     const users = uniqueUserIds.length
       ? await User.findAll({
-          where: {
-            id: uniqueUserIds,
-          },
-          attributes: ["id", "name"],
-        })
+        where: {
+          id: uniqueUserIds,
+        },
+        attributes: ["id", "name"],
+      })
       : [];
 
     // Create a map for quick lookup

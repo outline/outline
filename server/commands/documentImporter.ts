@@ -9,6 +9,10 @@ import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
 import type { APIContext } from "@server/types";
 import { DocumentConverter } from "@server/utils/DocumentConverter";
+import {
+  convertBareUrlsToEmbedMarkdown,
+  convertEmbedPlaceholdersToMarkdown,
+} from "@server/utils/embedHelper";
 import { InvalidRequestError } from "../errors";
 
 type Props = {
@@ -35,6 +39,10 @@ async function documentImporter({
     content,
     fileName,
     mimeType
+  );
+
+  text = convertBareUrlsToEmbedMarkdown(
+    convertEmbedPlaceholdersToMarkdown(text)
   );
 
   // find valid extensions and remove them from the title

@@ -97,6 +97,13 @@ router.get("/locales/:lng.json", async (ctx) => {
     return;
   }
 
+  // In development we serve locales directly from the TypeScript source tree to
+  // avoid requiring a full build and copy step. In production we continue to
+  // read from the compiled build output.
+  const localesRoot = env.isDevelopment
+    ? path.join(__dirname, "../../../shared/i18n/locales")
+    : path.join(__dirname, "../../shared/i18n/locales");
+
   await send(ctx, path.join(lng, "translation.json"), {
     setHeaders: (res, _, stats) => {
       res.setHeader("Last-Modified", formatRFC7231(stats.mtime));
@@ -106,7 +113,7 @@ router.get("/locales/:lng.json", async (ctx) => {
         crypto.createHash("md5").update(stats.mtime.toISOString()).digest("hex")
       );
     },
-    root: path.join(__dirname, "../../shared/i18n/locales"),
+    root: localesRoot,
   });
 });
 
@@ -177,11 +184,11 @@ router.get("*", async (ctx, next) => {
 
   const analytics = team
     ? await Integration.findAll({
-        where: {
-          teamId: team.id,
-          type: IntegrationType.Analytics,
-        },
-      })
+      where: {
+        teamId: team.id,
+        type: IntegrationType.Analytics,
+      },
+    })
     : [];
 
   const publicBranding =

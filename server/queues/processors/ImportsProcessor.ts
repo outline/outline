@@ -521,7 +521,16 @@ export default abstract class ImportsProcessor<
         : MentionType.Document;
 
       json.attrs = attrs;
-      return Node.fromJSON(schema, json);
+      try {
+        return Node.fromJSON(schema, json);
+      } catch (err) {
+        Logger.error("Failed to transform mention node during import", err, {
+          externalId,
+          mentionType: attrs.type,
+        });
+        // Return original node if transformation fails
+        return node;
+      }
     };
 
     const transformAttachmentNode = (node: Node): Node => {
@@ -531,7 +540,15 @@ export default abstract class ImportsProcessor<
       attrs.size = attachmentsMap[attrs.id as string]?.size;
 
       json.attrs = attrs;
-      return Node.fromJSON(schema, json);
+      try {
+        return Node.fromJSON(schema, json);
+      } catch (err) {
+        Logger.error("Failed to transform attachment node during import", err, {
+          attachmentId: attrs.id,
+        });
+        // Return original node if transformation fails
+        return node;
+      }
     };
 
     const transformFragment = async (fragment: Fragment): Promise<Fragment> => {

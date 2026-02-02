@@ -12,6 +12,7 @@ export interface CellAttrs {
   rowspan: number;
   colwidth: number[] | null;
   alignment: "center" | "left" | "right" | null;
+  backgroundColor: string | null;
 }
 
 /**
@@ -42,6 +43,7 @@ export function getCellAttrs(dom: HTMLElement | string): Attrs {
         : dom.style.textAlign === "right"
           ? "right"
           : null,
+    backgroundColor: dom.style.backgroundColor || null,
   } satisfies CellAttrs;
 }
 
@@ -61,6 +63,9 @@ export function setCellAttrs(node: Node): Attrs {
   }
   if (node.attrs.alignment) {
     attrs.style = `text-align: ${node.attrs.alignment};`;
+  }
+  if (node.attrs.backgroundColor) {
+    attrs.style = (attrs.style ?? "") + `background-color: ${node.attrs.backgroundColor};`;
   }
   if (node.attrs.colwidth) {
     if (isBrowser) {

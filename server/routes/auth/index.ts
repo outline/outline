@@ -1,6 +1,6 @@
 import passport from "@outlinewiki/koa-passport";
 import { addMonths } from "date-fns";
-import Koa from "koa";
+import Koa, { Context } from "koa";
 import bodyParser from "koa-body";
 import Router from "koa-router";
 import { AuthenticationError } from "@server/errors";
@@ -9,6 +9,7 @@ import coalesceBody from "@server/middlewares/coaleseBody";
 import { Collection, Team, View } from "@server/models";
 import AuthenticationHelper from "@server/models/helpers/AuthenticationHelper";
 import type { AppState, AppContext, APIContext } from "@server/types";
+import { getCookieOptions } from "@server/utils/authentication";
 import { verifyCSRFToken } from "@server/middlewares/csrf";
 
 const app = new Koa<AppState, AppContext>();
@@ -40,11 +41,13 @@ router.get("/redirect", authMiddleware(), async (ctx: APIContext) => {
 
   // ensure that the lastActiveAt on user is updated to prevent replay requests
   await user.updateActiveAt(ctx, true);
+  const expires = addMonths(new Date(), 3);
 
-  ctx.cookies.set("accessToken", jwtToken, {
-    sameSite: "lax",
-    expires: addMonths(new Date(), 3),
-  });
+  ctx.cookies.set(
+    "accessToken",
+    jwtToken,
+    getCookieOptions(ctx as Context, expires)
+  );
   const [team, collection, view] = await Promise.all([
     Team.findByPk(user.teamId),
     Collection.findFirstCollectionForUser(user),

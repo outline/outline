@@ -1,6 +1,7 @@
 import type { InferCreationAttributes } from "sequelize";
 import { Op } from "sequelize";
-import type { UserRole } from "@shared/types";
+import type { UserProfile, UserRole } from "@shared/types";
+import { TeamPreference } from "@shared/types";
 import InviteAcceptedEmail from "@server/emails/templates/InviteAcceptedEmail";
 import {
   DomainNotAllowedError,
@@ -9,17 +10,69 @@ import {
   InviteRequiredError,
 } from "@server/errors";
 import Logger from "@server/logging/Logger";
-import { Team, User, UserAuthentication } from "@server/models";
+import { Team, User, UserAuthentication, AuthenticationProvider } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import type { APIContext } from "@server/types";
 import { UserFlag } from "@server/models/User";
 import UploadUserAvatarTask from "@server/queues/tasks/UploadUserAvatarTask";
+import domainGroupProvisioner from "./domainGroupProvisioner";
+import departmentGroupProvisioner from "./departmentGroupProvisioner";
+import { createContext } from "@server/context";
+import { GroupUser, Collection, UserMembership, Group } from "@server/models";
+import { GroupPermission, CollectionPermission } from "@shared/types";
 
 type UserProvisionerResult = {
   user: User;
   isNewUser: boolean;
   authentication: UserAuthentication | null;
 };
+
+function getOidcProfileSync(team: Team | null) {
+  const preference = team?.getPreference(TeamPreference.OIDCProfileSync);
+  return preference && typeof preference === "object" ? preference : {};
+}
+
+function getProfileValue(
+  profile: Record<string, unknown> | undefined,
+  keys: string[]
+) {
+  if (!profile) {
+    return undefined;
+  }
+  for (const key of keys) {
+    const value = profile[key];
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
+  }
+  return undefined;
+}
+
+function buildProfileUpdate(
+  profile: Record<string, unknown> | undefined,
+  sync: ReturnType<typeof getOidcProfileSync>,
+  currentProfile: UserProfile | null
+): UserProfile | null {
+  if (!profile) {
+    return currentProfile ?? null;
+  }
+
+  const updates: UserProfile = { ...(currentProfile ?? {}) };
+  if (sync.title) {
+    const title = getProfileValue(profile, ["title", "jobTitle"]);
+    if (title !== undefined) {
+      updates.title = title;
+    }
+  }
+  if (sync.department) {
+    const department = getProfileValue(profile, ["department"]);
+    if (department !== undefined) {
+      updates.department = department;
+    }
+  }
+
+  return updates;
+}
 
 type Props = {
   /** The displayed name of the user */
@@ -37,6 +90,8 @@ type Props = {
    * subdomain that the request came from, if any.
    */
   teamId: string;
+  /** Department name from OIDC provider (e.g., Keycloak) for automatic group creation */
+  department?: string;
   /** Bundle of props related to the current external provider authentication */
   authentication?: {
     authenticationProviderId: string;
@@ -50,27 +105,34 @@ type Props = {
     refreshToken?: string;
     /** The timestamp when the access token expires */
     expiresAt?: Date;
+    /** Raw profile returned by the authentication provider */
+    profile?: Record<string, unknown>;
   };
 };
 
 export default async function userProvisioner(
   ctx: APIContext,
-  { name, email, role, language, avatarUrl, teamId, authentication }: Props
+  { name, email, role, language, avatarUrl, teamId, department, authentication }: Props
 ): Promise<UserProvisionerResult> {
   const auth = authentication
     ? await UserAuthentication.findOne({
-        where: {
-          providerId: String(authentication.providerId),
+      where: {
+        providerId: String(authentication.providerId),
+      },
+      include: [
+        {
+          model: User,
+          as: "user",
+          where: { teamId },
+          required: true,
         },
-        include: [
-          {
-            model: User,
-            as: "user",
-            where: { teamId },
-            required: true,
-          },
-        ],
-      })
+        {
+          model: AuthenticationProvider,
+          as: "authenticationProvider",
+          required: true,
+        },
+      ],
+    })
     : undefined;
 
   // Someone has signed in with this authentication before, we just
@@ -78,6 +140,8 @@ export default async function userProvisioner(
   if (auth && authentication) {
     const { providerId, authenticationProviderId, ...rest } = authentication;
     const { user } = auth;
+    const team = await Team.findByPk(user.teamId);
+    const oidcProfileSync = getOidcProfileSync(team);
 
     // We found an authentication record that matches the user id, but it's
     // associated with a different authentication provider, (eg a different
@@ -96,7 +160,20 @@ export default async function userProvisioner(
           avatarUrl,
         });
       }
-      await user.update({ email });
+      if (auth.authenticationProvider.name === "oidc") {
+        const profile = buildProfileUpdate(
+          authentication.profile,
+          oidcProfileSync,
+          user.profile
+        );
+        await user.update({
+          ...(oidcProfileSync.email ? { email } : {}),
+          ...(oidcProfileSync.name ? { name } : {}),
+          ...(profile ? { profile } : {}),
+        });
+      } else {
+        await user.update({ email });
+      }
       await auth.update(rest);
 
       return {
@@ -112,7 +189,15 @@ export default async function userProvisioner(
     await auth.destroy();
   }
 
+  // For OIDC/Keycloak: Check if authentication provider is OIDC for email-based mapping
+  const isOIDCAuth = authentication
+    ? await AuthenticationProvider.findByPk(authentication.authenticationProviderId, {
+      attributes: ["name"],
+    }).then((provider) => provider?.name === "oidc")
+    : false;
+
   // A `user` record may exist even if there is no existing authentication record.
+  // For OIDC/Keycloak: prioritize email matching for user mapping
   // This is either an invite or a user that's external to the team
   const existingUser = await User.scope([
     "withAuthentications",
@@ -127,9 +212,22 @@ export default async function userProvisioner(
     },
   });
 
+  if (isOIDCAuth && existingUser) {
+    Logger.debug(
+      "authentication",
+      "Found existing user by email for OIDC mapping",
+      {
+        userId: existingUser.id,
+        email,
+        teamId,
+      }
+    );
+  }
+
   const team = await Team.scope("withDomains").findByPk(teamId, {
     attributes: ["defaultUserRole", "inviteRequired", "id"],
   });
+  const oidcProfileSync = getOidcProfileSync(team);
 
   // We have an existing user, so we need to update it with our
   // new details and count this as a new user creation.
@@ -143,9 +241,16 @@ export default async function userProvisioner(
       // Regardless, create a new authentication record
       // against the existing user (user can auth with multiple SSO providers)
       // Update user's name and avatar based on the most recently added provider
+      const profile = buildProfileUpdate(
+        authentication?.profile,
+        oidcProfileSync,
+        existingUser.profile
+      );
       await existingUser.update(
         {
-          name,
+          ...(isOIDCAuth && !oidcProfileSync.name ? {} : { name }),
+          ...(isOIDCAuth && !oidcProfileSync.email ? {} : { email }),
+          ...(profile ? { profile } : {}),
           avatarUrl,
           lastActiveAt: new Date(),
           lastActiveIp: ctx.ip,
@@ -178,6 +283,139 @@ export default async function userProvisioner(
           invitedName: existingUser.name,
           teamUrl: existingUser.team.url,
         }).schedule();
+      }
+    }
+
+    // For OIDC/Keycloak: Restore user to previous groups if they were deactivated
+    const userPreferencesData = existingUser.getDataValue("preferences") as any;
+    if (isOIDCAuth && userPreferencesData?.previousGroupIds) {
+      try {
+        const previousGroupIds = userPreferencesData.previousGroupIds as string[];
+        const deactivatedCollectionName = "Деактивированные пользователи";
+
+        // Find and remove user from deactivated collection
+        const deactivatedCollection = await Collection.findOne({
+          where: {
+            teamId,
+            name: deactivatedCollectionName,
+          },
+          ...(ctx.state.transaction ? { transaction: ctx.state.transaction } : {}),
+        });
+
+        if (deactivatedCollection) {
+          const membership = await UserMembership.findOne({
+            where: {
+              collectionId: deactivatedCollection.id,
+              userId: existingUser.id,
+            },
+            ...(ctx.state.transaction ? { transaction: ctx.state.transaction } : {}),
+          });
+
+          if (membership) {
+            await membership.destroy({
+              ...(ctx.state.transaction ? { transaction: ctx.state.transaction } : {}),
+            });
+            Logger.info(
+              "authentication",
+              "Removed user from deactivated collection",
+              {
+                userId: existingUser.id,
+                collectionId: deactivatedCollection.id,
+              }
+            );
+          }
+        }
+
+        // Restore user to previous groups
+        for (const groupId of previousGroupIds) {
+          const group = await Group.findByPk(groupId, {
+            ...(ctx.state.transaction ? { transaction: ctx.state.transaction } : {}),
+          });
+
+          if (group && group.teamId === teamId) {
+            const [groupUser] = await GroupUser.findOrCreate({
+              where: {
+                groupId: group.id,
+                userId: existingUser.id,
+              },
+              defaults: {
+                groupId: group.id,
+                userId: existingUser.id,
+                permission: GroupPermission.Member,
+                createdById: existingUser.id,
+              },
+              ...(ctx.state.transaction ? { transaction: ctx.state.transaction } : {}),
+            });
+
+            Logger.info(
+              "authentication",
+              "Restored user to previous group",
+              {
+                userId: existingUser.id,
+                groupId: group.id,
+                groupName: group.name,
+              }
+            );
+          }
+        }
+
+        // Clear previousGroupIds from preferences
+        const updatedPreferences = { ...userPreferencesData };
+        delete updatedPreferences.previousGroupIds;
+        delete updatedPreferences.deactivatedAt;
+        existingUser.setDataValue("preferences", updatedPreferences);
+        await existingUser.save({
+          ...(ctx.state.transaction ? { transaction: ctx.state.transaction } : {}),
+        });
+
+        Logger.info(
+          "authentication",
+          "Restored deactivated user to previous groups",
+          {
+            userId: existingUser.id,
+            restoredGroupsCount: previousGroupIds.length,
+          }
+        );
+      } catch (err) {
+        Logger.warn(
+          "Failed to restore deactivated user to previous groups",
+          {
+            error: err,
+            userId: existingUser.id,
+          }
+        );
+      }
+    }
+
+    // For OIDC/Keycloak: Automatically add user to domain-based group
+    if (isOIDCAuth && email) {
+      try {
+        await domainGroupProvisioner(ctx, existingUser, email);
+      } catch (err) {
+        Logger.warn(
+          "Failed to provision domain group for existing user",
+          {
+            error: err,
+            userId: existingUser.id,
+            email,
+          }
+        );
+      }
+    }
+
+    // For OIDC/Keycloak: Automatically add user to department-based group
+    if (isOIDCAuth && department) {
+      try {
+        await departmentGroupProvisioner(ctx, existingUser, department);
+      } catch (err) {
+        Logger.warn(
+          "Failed to provision department group for existing user",
+          {
+            error: err,
+            userId: existingUser.id,
+            department,
+          }
+        );
       }
     }
 
@@ -217,6 +455,11 @@ export default async function userProvisioner(
       throw DomainNotAllowedError();
     }
 
+    const profile = buildProfileUpdate(
+      authentication?.profile,
+      oidcProfileSync,
+      null
+    );
     const user = await User.createWithCtx(
       ctx,
       {
@@ -226,6 +469,7 @@ export default async function userProvisioner(
         role: role ?? team?.defaultUserRole,
         teamId,
         avatarUrl,
+        ...(profile ? { profile } : {}),
         authentications: authentication ? [authentication] : [],
         lastActiveAt: new Date(),
         lastActiveIp: ctx.ip,
@@ -236,6 +480,53 @@ export default async function userProvisioner(
       }
     );
     await transaction.commit();
+
+    // For OIDC/Keycloak: Automatically add user to domain-based group
+    if (isOIDCAuth && email) {
+      try {
+        // Create a new context with the transaction committed
+        const newCtx = createContext({
+          user,
+          ip: ctx.ip,
+          authType: ctx.state.auth?.type,
+          transaction: undefined,
+        });
+        await domainGroupProvisioner(newCtx, user, email);
+      } catch (err) {
+        Logger.warn(
+          "Failed to provision domain group for new user",
+          {
+            error: err,
+            userId: user.id,
+            email,
+          }
+        );
+      }
+    }
+
+    // For OIDC/Keycloak: Automatically add user to department-based group
+    if (isOIDCAuth && department) {
+      try {
+        // Create a new context with the transaction committed
+        const newCtx = createContext({
+          user,
+          ip: ctx.ip,
+          authType: ctx.state.auth?.type,
+          transaction: undefined,
+        });
+        await departmentGroupProvisioner(newCtx, user, department);
+      } catch (err) {
+        Logger.warn(
+          "Failed to provision department group for new user",
+          {
+            error: err,
+            userId: user.id,
+            department,
+          }
+        );
+      }
+    }
+
     return {
       user,
       authentication: user.authentications[0],

@@ -142,11 +142,9 @@ function PasskeysSettings() {
     >
       <Heading>{t("Passkeys")}</Heading>
       <Text as="p" type="secondary">
-        <Trans>
-          Passkeys allow you to sign in safely without a password using your
-          device's biometric authentication (Face ID, Touch ID, Windows Hello)
-          or security key.
-        </Trans>
+        {t(
+          "Passkeys allow you to sign in safely without a password using your device's biometric authentication (Face ID, Touch ID, Windows Hello) or security key."
+        )}
       </Text>
 
       {team.passkeysEnabled === false && (

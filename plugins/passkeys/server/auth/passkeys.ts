@@ -27,6 +27,20 @@ const router = new Router();
 const rpName = env.APP_NAME;
 const CHALLENGE_EXPIRY_MS = Minute.ms * 5;
 
+// Helper to get expected origin including port for WebAuthn
+const getExpectedOrigin = (ctx: APIContext) => {
+  const protocol = ctx.protocol;
+  const host = ctx.request.host || ctx.request.hostname;
+  // In Koa, port is available on ctx.request.port or can be extracted from host
+  const port = ctx.request.port || (host.includes(':') ? host.split(':')[1] : null);
+
+  // Include port only if it's not the default port for the protocol
+  const defaultPort = protocol === 'https' ? 443 : 80;
+  const portStr = port && parseInt(port) !== defaultPort ? `:${port}` : '';
+
+  return `${protocol}://${host}${portStr}`;
+};
+
 // Helper to get RP ID (domain) - for simplicity, we can use the hostname but strip port.
 const getRpID = (ctx: APIContext) => ctx.request.hostname;
 
@@ -105,7 +119,7 @@ router.post(
       verification = await verifyRegistrationResponse({
         response: body,
         expectedChallenge,
-        expectedOrigin: `${ctx.protocol}://${ctx.request.host}`, // Origin includes port
+        expectedOrigin: getExpectedOrigin(ctx),
         expectedRPID: getRpID(ctx),
       });
     } catch (error) {
@@ -226,7 +240,7 @@ router.post(
       verification = await verifyAuthenticationResponse({
         response: body,
         expectedChallenge,
-        expectedOrigin: `${ctx.protocol}://${ctx.request.host}`,
+        expectedOrigin: getExpectedOrigin(ctx),
         expectedRPID: getRpID(ctx),
         credential: {
           id: passkey.credentialId,

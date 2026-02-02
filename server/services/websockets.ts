@@ -26,12 +26,49 @@ type SocketWithAuth = IO.Socket & {
   };
 };
 
+const getComparablePort = (url: URL) => {
+  if (url.port) {
+    return url.port;
+  }
+
+  switch (url.protocol) {
+    case "https:":
+    case "wss:":
+      return "443";
+    case "http:":
+    case "ws:":
+      return "80";
+    default:
+      return "";
+  }
+};
+
+const isAllowedOrigin = (expected: URL, originHeader?: string) => {
+  if (!originHeader) {
+    return false;
+  }
+
+  try {
+    const origin = new URL(originHeader);
+    const sameHost = origin.hostname === expected.hostname;
+    const samePort = getComparablePort(origin) === getComparablePort(expected);
+    return sameHost && samePort;
+  } catch (err) {
+    Logger.debug("websockets", "Invalid origin header", {
+      origin: originHeader,
+      error: err instanceof Error ? err.message : "unknown",
+    });
+    return false;
+  }
+};
+
 export default function init(
   app: Koa,
   server: http.Server,
   serviceNames: string[]
 ) {
   const path = "/realtime";
+  const expectedOrigin = new URL(env.URL);
 
   // Websockets for events and non-collaborative documents
   const io = new IO.Server(server, {
@@ -64,12 +101,9 @@ export default function init(
     "upgrade",
     function (req: IncomingMessage, socket: Duplex, head: Buffer) {
       if (req.url?.startsWith(path) && ioHandleUpgrade) {
-        // For on-premise deployments, ensure the websocket origin matches the deployed URL.
-        // In cloud-hosted we support any origin for custom domains.
-        if (
-          !env.isCloudHosted &&
-          (!req.headers.origin || !env.URL.startsWith(req.headers.origin))
-        ) {
+        // For on-premise deployments, ensure the websocket origin matches the deployed URL
+        // (hostname + port). In cloud-hosted we support any origin for custom domains.
+        if (!env.isCloudHosted && !isAllowedOrigin(expectedOrigin, req.headers.origin)) {
           socket.end(`HTTP/1.1 400 Bad Request\r\n`);
           return;
         }

@@ -17,28 +17,41 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
+import { changeLanguage } from "~/utils/language";
 import UserDelete from "../UserDelete";
 import SettingRow from "./components/SettingRow";
 
 function Preferences() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { ui, dialogs } = useStores();
   const user = useCurrentUser();
   const team = useCurrentTeam();
   const can = usePolicy(user.id);
 
-  const languageOptions: Option[] = React.useMemo(
-    () =>
-      availableLanguages.map(
-        (lang) =>
-          ({
-            type: "item",
-            label: lang.label,
-            value: lang.value,
-          }) satisfies Option
-      ),
-    []
-  );
+  const languageOptions: Option[] = React.useMemo(() => {
+    const allowedLanguages = team.preferences?.allowedLanguages;
+    let languagesToShow: typeof availableLanguages;
+
+    if (allowedLanguages && allowedLanguages.length > 0) {
+      // Показываем только разрешенные языки, но также включаем текущий язык пользователя,
+      // если он не в списке разрешенных (чтобы пользователь мог его использовать)
+      languagesToShow = availableLanguages.filter(
+        (lang) => allowedLanguages.includes(lang.value) || lang.value === user.language
+      );
+    } else {
+      // Если список пустой или не задан, показываем все языки
+      languagesToShow = availableLanguages;
+    }
+
+    return languagesToShow.map(
+      (lang) =>
+        ({
+          type: "item",
+          label: lang.label,
+          value: lang.value,
+        }) satisfies Option
+    );
+  }, [team.preferences?.allowedLanguages, user.language]);
 
   const themeOptions: Option[] = React.useMemo(
     () =>
@@ -97,10 +110,28 @@ function Preferences() {
 
   const handleLanguageChange = React.useCallback(
     async (language: string) => {
-      await user.save({ language });
-      toast.success(t("Preferences saved"));
+      try {
+        // Change i18next language first and wait for translations to load
+        // This ensures UI updates immediately with new language
+        await changeLanguage(language, i18n);
+
+        // Save to server - this will update user.language automatically via MobX
+        // We don't update user.language locally to avoid triggering Authenticated.tsx useEffect
+        // before the save is complete
+        await user.save({ language });
+
+        // Show success message - this will use the new language
+        toast.success(i18n.t("Preferences saved"));
+      } catch (error) {
+        console.error("Error changing language:", error);
+        toast.error(t("Failed to change language"));
+        // Revert language change on error
+        if (user.language) {
+          await changeLanguage(user.language, i18n);
+        }
+      }
     },
-    [t, user]
+    [user, i18n, t]
   );
 
   const handleThemeChange = React.useCallback(
@@ -132,16 +163,7 @@ function Preferences() {
         description={
           <>
             <Trans>
-              Choose the interface language. Community translations are accepted
-              though our{" "}
-              <a
-                href="https://translate.getoutline.com"
-                target="_blank"
-                rel="noreferrer"
-              >
-                translation portal
-              </a>
-              .
+              Choose the interface language.
             </Trans>
           </>
         }
@@ -152,6 +174,7 @@ function Preferences() {
           onChange={handleLanguageChange}
           label={t("Language")}
           hideLabel
+          searchable
         />
       </SettingRow>
       <SettingRow

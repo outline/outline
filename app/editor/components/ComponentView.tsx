@@ -157,6 +157,7 @@ export default class ComponentView {
       isEditable: this.view.editable,
       getPos: this.getPos,
       decorations: this.decorations,
+      onTranscribeAudio: this.editor.props.onTranscribeAudio,
     } as ComponentProps;
   }
 }

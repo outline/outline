@@ -13,6 +13,7 @@ import type { NavigationNode, ProsemirrorData } from "@shared/types";
 import { IconType } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
 import { parser, serializer, schema } from "@server/editor";
+import normalizeHashtags from "@shared/editor/lib/normalizeHashtags";
 import { addTags } from "@server/logging/tracer";
 import { trace } from "@server/logging/tracing";
 import { Collection, Document, Revision } from "@server/models";
@@ -515,6 +516,8 @@ export class DocumentHelper {
     } else {
       doc = parser.parse(text);
     }
+
+    doc = normalizeHashtags(doc, schema);
 
     document.content = doc.toJSON();
     document.text = serializer.serialize(doc);

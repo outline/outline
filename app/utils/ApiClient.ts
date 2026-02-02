@@ -172,8 +172,11 @@ class ApiClient {
     }
 
     // Handle 401, log out user
+    // Don't logout for authentication-related endpoints (e.g., passkeys verification)
+    // as they may return 401 during normal authentication flow
     if (response.status === 401) {
-      if (!this.shareId) {
+      const isAuthEndpoint = path.startsWith("/auth/") || urlToFetch.includes("/auth/");
+      if (!this.shareId && !isAuthEndpoint) {
         await stores.auth.logout({
           savePath: true,
           revokeToken: false,

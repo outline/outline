@@ -19,7 +19,6 @@ async function presentRevision(revision: Revision, html?: string) {
     collaborators: (await revision.collaborators).map((user) =>
       presentUser(user)
     ),
-    html,
     createdAt: revision.createdAt,
     createdBy: presentUser(revision.user),
     createdById: revision.userId,

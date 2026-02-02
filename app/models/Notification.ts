@@ -8,6 +8,7 @@ import {
   documentPath,
   settingsPath,
 } from "~/utils/routeHelpers";
+import { client } from "~/utils/ApiClient";
 import Collection from "./Collection";
 import Comment from "./Comment";
 import Document from "./Document";
@@ -52,6 +53,9 @@ class Notification extends Model {
       collections: [
         NotificationEventType.CreateCollection,
         NotificationEventType.AddUserToCollection,
+        NotificationEventType.CollectionMergePending,
+        NotificationEventType.CollectionMergeCompleted,
+        NotificationEventType.CollectionMergeRejected,
       ],
       system: [
         NotificationEventType.InviteAccepted,
@@ -195,6 +199,12 @@ class Notification extends Model {
         return t("shared");
       case NotificationEventType.AddUserToCollection:
         return t("invited you to");
+      case NotificationEventType.CollectionMergePending:
+        return t("requested to merge collections into");
+      case NotificationEventType.CollectionMergeCompleted:
+        return t("merged collections into");
+      case NotificationEventType.CollectionMergeRejected:
+        return t("rejected the collection merge for");
       default:
         return this.event;
     }
@@ -212,6 +222,9 @@ class Notification extends Model {
     }
     if (this.collectionId) {
       return this.collection?.name ?? "a collection";
+    }
+    if (this.data.newCollectionName) {
+      return this.data.newCollectionName;
     }
     return "Unknown";
   }
@@ -239,7 +252,8 @@ class Notification extends Model {
       }
       case NotificationEventType.AddUserToDocument:
       case NotificationEventType.GroupMentionedInDocument:
-      case NotificationEventType.MentionedInDocument: {
+      case NotificationEventType.MentionedInDocument:
+      case NotificationEventType.DocumentChangedByOtherUser: {
         return this.document?.path;
       }
       case NotificationEventType.GroupMentionedInComment:
@@ -261,11 +275,49 @@ class Notification extends Model {
       case NotificationEventType.ExportCompleted: {
         return settingsPath("export");
       }
+      case NotificationEventType.CollectionMergePending:
+      case NotificationEventType.CollectionMergeRejected: {
+        return "";
+      }
+      case NotificationEventType.CollectionMergeCompleted: {
+        const collection = this.collectionId
+          ? this.store.rootStore.collections.get(this.collectionId)
+          : undefined;
+        return collection ? collectionPath(collection) : "";
+      }
       default:
         this.event satisfies never;
         return;
     }
   }
+
+  @action
+  approveMerge = async () => {
+    if (
+      this.event !== NotificationEventType.CollectionMergePending ||
+      !this.data.mergeRequestId
+    ) {
+      return;
+    }
+    await client.post("/collections.mergeRequest.approve", {
+      id: this.data.mergeRequestId,
+    });
+    this.archive();
+  };
+
+  @action
+  rejectMerge = async () => {
+    if (
+      this.event !== NotificationEventType.CollectionMergePending ||
+      !this.data.mergeRequestId
+    ) {
+      return;
+    }
+    await client.post("/collections.mergeRequest.reject", {
+      id: this.data.mergeRequestId,
+    });
+    this.archive();
+  };
 }
 
 export default Notification;

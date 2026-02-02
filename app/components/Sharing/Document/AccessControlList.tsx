@@ -28,6 +28,7 @@ import { Separator } from "../components";
 import { ListItem } from "../components/ListItem";
 import { Placeholder } from "../components/Placeholder";
 import DocumentMemberList from "./DocumentMemberList";
+import DocumentReminders from "./DocumentReminders";
 import PublicAccess from "./PublicAccess";
 
 type Props = {
@@ -156,10 +157,34 @@ export const AccessControlList = observer(
               {showLoading ? (
                 <Placeholder />
               ) : (
-                <DocumentMemberList
-                  document={document}
-                  invitedInSession={invitedInSession}
-                />
+                <>
+                  {/* Показываем владельца документа, если он не в списке участников */}
+                  {document.createdBy && 
+                   !document.members.some(m => m.id === document.createdBy?.id) &&
+                   !groupMemberships.inDocument(documentId)?.some(gm => 
+                     gm.group?.groupUsers?.some(gu => gu.userId === document.createdBy?.id)
+                   ) && (
+                    <ListItem
+                      image={
+                        <Avatar
+                          model={document.createdBy}
+                          size={AvatarSize.Medium}
+                        />
+                      }
+                      title={document.createdBy.name}
+                      subtitle={t("Document owner")}
+                      actions={
+                        <AccessTooltip content={t("Created the document")}>
+                          {t("Can edit")}
+                        </AccessTooltip>
+                      }
+                    />
+                  )}
+                  <DocumentMemberList
+                    document={document}
+                    invitedInSession={invitedInSession}
+                  />
+                </>
               )}
             </>
           ) : document.isDraft ? (
@@ -167,6 +192,7 @@ export const AccessControlList = observer(
               <ListItem
                 image={<Avatar model={document.createdBy} />}
                 title={document.createdBy?.name}
+                subtitle={t("Document owner")}
                 actions={
                   <AccessTooltip content={t("Created the document")}>
                     {t("Can edit")}
@@ -187,10 +213,34 @@ export const AccessControlList = observer(
               {showLoading ? (
                 <Placeholder />
               ) : (
-                <DocumentMemberList
-                  document={document}
-                  invitedInSession={invitedInSession}
-                />
+                <>
+                  {/* Показываем владельца документа, если он не в списке участников */}
+                  {document.createdBy && 
+                   !document.members.some(m => m.id === document.createdBy?.id) &&
+                   !groupMemberships.inDocument(documentId)?.some(gm => 
+                     gm.group?.groupUsers?.some(gu => gu.userId === document.createdBy?.id)
+                   ) && (
+                    <ListItem
+                      image={
+                        <Avatar
+                          model={document.createdBy}
+                          size={AvatarSize.Medium}
+                        />
+                      }
+                      title={document.createdBy.name}
+                      subtitle={t("Document owner")}
+                      actions={
+                        <AccessTooltip content={t("Created the document")}>
+                          {t("Can edit")}
+                        </AccessTooltip>
+                      }
+                    />
+                  )}
+                  <DocumentMemberList
+                    document={document}
+                    invitedInSession={invitedInSession}
+                  />
+                </>
               )}
               <ListItem
                 image={
@@ -210,6 +260,7 @@ export const AccessControlList = observer(
               />
             </>
           )}
+          <DocumentReminders document={document} />
         </ScrollableContainer>
         {team.sharing && can.share && !collectionSharingDisabled && visible && (
           <Sticky>

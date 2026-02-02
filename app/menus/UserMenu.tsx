@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { UserRole } from "@shared/types";
+import { TeamPreference, UserRole } from "@shared/types";
 import type User from "~/models/User";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
@@ -23,6 +23,8 @@ import {
 import { UserSection } from "~/actions/sections";
 import { useMenuAction } from "~/hooks/useMenuAction";
 import usePolicy from "~/hooks/usePolicy";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 
 type Props = {
@@ -33,6 +35,12 @@ function UserMenu({ user }: Props) {
   const { users, dialogs } = useStores();
   const { t } = useTranslation();
   const can = usePolicy(user);
+  const actor = useCurrentUser();
+  const team = useCurrentTeam();
+  const canChangeName =
+    actor.isAdmin ||
+    (actor.id === user.id &&
+      !!team.getPreference(TeamPreference.MembersCanChangeName));
 
   const handleChangeName = React.useCallback(() => {
     dialogs.openModal({
@@ -99,7 +107,7 @@ function UserMenu({ user }: Props) {
       createAction({
         name: `${t("Change name")}…`,
         section: UserSection,
-        visible: can.update,
+        visible: can.update && canChangeName,
         perform: handleChangeName,
       }),
       createAction({

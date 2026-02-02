@@ -18,12 +18,14 @@ import {
   InternetIcon,
   SmileyIcon,
   BuildingBlocksIcon,
+  GraphIcon,
 } from "outline-icons";
 import type { ComponentProps } from "react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { TeamPreference } from "@shared/types";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
-import { createLazyComponent as lazy } from "~/components/LazyLoad";
+import { createLazyComponent } from "~/components/LazyLoad";
 import { Hook, PluginManager } from "~/utils/PluginManager";
 import { settingsPath } from "~/utils/routeHelpers";
 import { useComputed } from "./useComputed";
@@ -32,24 +34,27 @@ import useCurrentUser from "./useCurrentUser";
 import usePolicy from "./usePolicy";
 import useStores from "./useStores";
 
-const ApiKeys = lazy(() => import("~/scenes/Settings/ApiKeys"));
-const Applications = lazy(() => import("~/scenes/Settings/Applications"));
-const APIAndApps = lazy(() => import("~/scenes/Settings/APIAndApps"));
-const Authentication = lazy(() => import("~/scenes/Settings/Authentication"));
-const Details = lazy(() => import("~/scenes/Settings/Details"));
-const Export = lazy(() => import("~/scenes/Settings/Export"));
-const Features = lazy(() => import("~/scenes/Settings/Features"));
-const Groups = lazy(() => import("~/scenes/Settings/Groups"));
-const Import = lazy(() => import("~/scenes/Settings/Import"));
-const Integrations = lazy(() => import("~/scenes/Settings/Integrations"));
-const Members = lazy(() => import("~/scenes/Settings/Members"));
-const Notifications = lazy(() => import("~/scenes/Settings/Notifications"));
-const Preferences = lazy(() => import("~/scenes/Settings/Preferences"));
-const Profile = lazy(() => import("~/scenes/Settings/Profile"));
-const Security = lazy(() => import("~/scenes/Settings/Security"));
-const Shares = lazy(() => import("~/scenes/Settings/Shares"));
-const Templates = lazy(() => import("~/scenes/Settings/Templates"));
-const CustomEmojis = lazy(() => import("~/scenes/Settings/CustomEmojis"));
+const ApiKeys = createLazyComponent(() => import("~/scenes/Settings/ApiKeys"));
+const Applications = createLazyComponent(() => import("~/scenes/Settings/Applications"));
+const APIAndApps = createLazyComponent(() => import("~/scenes/Settings/APIAndApps"));
+const Authentication = createLazyComponent(() => import("~/scenes/Settings/Authentication"));
+const Details = createLazyComponent(() => import("~/scenes/Settings/Details"));
+const Export = createLazyComponent(() => import("~/scenes/Settings/Export"));
+const Features = createLazyComponent(() => import("~/scenes/Settings/Features"));
+const Groups = createLazyComponent(() => import("~/scenes/Settings/Groups"));
+const DomainGroups = createLazyComponent(() => import("~/scenes/Settings/DomainGroups"));
+const Import = createLazyComponent(() => import("~/scenes/Settings/Import"));
+const Integrations = createLazyComponent(() => import("~/scenes/Settings/Integrations"));
+const Members = createLazyComponent(() => import("~/scenes/Settings/Members"));
+const Notifications = createLazyComponent(() => import("~/scenes/Settings/Notifications"));
+const Preferences = createLazyComponent(() => import("~/scenes/Settings/Preferences"));
+const Profile = createLazyComponent(() => import("~/scenes/Settings/Profile"));
+const Security = createLazyComponent(() => import("~/scenes/Settings/Security"));
+const Shares = createLazyComponent(() => import("~/scenes/Settings/Shares"));
+const Templates = createLazyComponent(() => import("~/scenes/Settings/Templates"));
+const CustomEmojis = createLazyComponent(() => import("~/scenes/Settings/CustomEmojis"));
+const NetworkGraph = createLazyComponent(() => import("~/scenes/Settings/NetworkGraph"));
+const MindMapScene = createLazyComponent(() => import("~/scenes/MindMap"));
 
 export type ConfigItem = {
   name: string;
@@ -79,7 +84,7 @@ const useSettingsConfig = () => {
       // Account
       {
         name: t("Profile"),
-        path: settingsPath(),
+        path: settingsPath("profile"),
         component: Profile.Component,
         preload: Profile.preload,
         enabled: true,
@@ -167,6 +172,36 @@ const useSettingsConfig = () => {
         enabled: can.listGroups,
         group: t("Workspace"),
         icon: GroupIcon,
+      },
+      {
+        name: t("Domain groups"),
+        path: settingsPath("domain-groups"),
+        component: DomainGroups.Component,
+        preload: DomainGroups.preload,
+        enabled:
+          can.listGroups &&
+          (user.isAdmin ||
+            !!team.getPreference(TeamPreference.DomainGroupsVisible)),
+        group: t("Workspace"),
+        icon: GroupIcon,
+      },
+      {
+        name: t("Network Graph"),
+        path: settingsPath("network-graph"),
+        component: NetworkGraph.Component,
+        preload: NetworkGraph.preload,
+        enabled: false, // Hidden from settings
+        group: t("Workspace"),
+        icon: GraphIcon,
+      },
+      {
+        name: t("Mind Map"),
+        path: settingsPath("mind-map"),
+        component: MindMapScene.Component,
+        preload: MindMapScene.preload,
+        enabled: true,
+        group: t("Workspace"),
+        icon: GraphIcon,
       },
       {
         name: t("Templates"),

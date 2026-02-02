@@ -182,11 +182,11 @@ type AdditionalFindOptions = {
         {
           model: userId
             ? Collection.scope([
-                "defaultScope",
-                {
-                  method: ["withMembership", userId],
-                },
-              ])
+              "defaultScope",
+              {
+                method: ["withMembership", userId],
+              },
+            ])
             : Collection,
           as: "collection",
           paranoid,
@@ -374,12 +374,15 @@ class Document extends ArchivableModel<
   @Column(DataType.INTEGER)
   revisionCount: number;
 
-  /** A score representing the popularity of this document based on views and engagement. */
   @IsFloat
   @Default(0)
   @Column(DataType.FLOAT)
   @SkipChangeset
   popularityScore: number;
+
+  @Column(DataType.ARRAY(DataType.STRING))
+  @SkipChangeset
+  tags: string[] = [];
 
   /** Whether the document is published, and if so when. */
   @IsDate
@@ -541,6 +544,13 @@ class Document extends ArchivableModel<
     model.collaboratorIds = uniq(
       model.collaboratorIds.concat(model.lastModifiedById)
     );
+
+    // sync tags
+    if (model.content) {
+      model.tags = ProsemirrorHelper.getHashtags(
+        DocumentHelper.toProsemirror(model)
+      );
+    }
 
     // increment revision
     model.revisionCount += 1;
@@ -749,10 +759,10 @@ class Document extends ArchivableModel<
       includeState ? "withState" : "withoutState",
       ...((includeViews
         ? [
-            {
-              method: ["withViews", userId],
-            },
-          ]
+          {
+            method: ["withViews", userId],
+          },
+        ]
         : []) as ScopeOptions[]),
       {
         method: ["withMembership", userId, rest.paranoid],
@@ -816,10 +826,10 @@ class Document extends ArchivableModel<
       includeState ? "withState" : "withoutState",
       ...((includeViews
         ? [
-            {
-              method: ["withViews", userId],
-            },
-          ]
+          {
+            method: ["withViews", userId],
+          },
+        ]
         : []) as ScopeOptions[]),
       {
         method: ["withMembership", userId],
@@ -1094,10 +1104,10 @@ class Document extends ArchivableModel<
 
     const collection = this.collectionId
       ? await Collection.findByPk(this.collectionId, {
-          includeDocumentStructure: true,
-          transaction,
-          lock: transaction.LOCK.UPDATE,
-        })
+        includeDocumentStructure: true,
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      })
       : undefined;
 
     if (collection) {
@@ -1128,10 +1138,10 @@ class Document extends ArchivableModel<
     const { transaction } = ctx.state;
     const collection = this.collectionId
       ? await Collection.findByPk(this.collectionId, {
-          includeDocumentStructure: true,
-          transaction,
-          lock: transaction?.LOCK.UPDATE,
-        })
+        includeDocumentStructure: true,
+        transaction,
+        lock: transaction?.LOCK.UPDATE,
+      })
       : undefined;
 
     if (collection) {
@@ -1153,10 +1163,10 @@ class Document extends ArchivableModel<
     const { transaction } = ctx.state;
     const collection = collectionId
       ? await Collection.findByPk(collectionId, {
-          includeDocumentStructure: true,
-          transaction,
-          lock: transaction?.LOCK.UPDATE,
-        })
+        includeDocumentStructure: true,
+        transaction,
+        lock: transaction?.LOCK.UPDATE,
+      })
       : undefined;
 
     // check to see if the documents parent hasn't been archived also
@@ -1262,26 +1272,26 @@ class Document extends ArchivableModel<
     const childDocuments = this.isNewRecord
       ? []
       : await (this.constructor as typeof Document).unscoped().findAll({
-          where: options?.includeArchived
-            ? {
-                teamId: this.teamId,
-                parentDocumentId: this.id,
-                publishedAt: {
-                  [Op.ne]: null,
-                },
-              }
-            : {
-                teamId: this.teamId,
-                parentDocumentId: this.id,
-                publishedAt: {
-                  [Op.ne]: null,
-                },
-                archivedAt: {
-                  [Op.is]: null,
-                },
-              },
-          transaction: options?.transaction,
-        });
+        where: options?.includeArchived
+          ? {
+            teamId: this.teamId,
+            parentDocumentId: this.id,
+            publishedAt: {
+              [Op.ne]: null,
+            },
+          }
+          : {
+            teamId: this.teamId,
+            parentDocumentId: this.id,
+            publishedAt: {
+              [Op.ne]: null,
+            },
+            archivedAt: {
+              [Op.is]: null,
+            },
+          },
+        transaction: options?.transaction,
+      });
 
     const children = await Promise.all(
       childDocuments.map((child) => child.toNavigationNode(options))

@@ -111,6 +111,7 @@ export default function PdfViewer(props: Props) {
         title={name}
         src={href}
         ref={embedRef}
+        type="application/pdf"
         width={
           // subtract padding and borders from width
           width - 24

@@ -6,6 +6,7 @@ import ClipboardTextSerializer from "~/editor/extensions/ClipboardTextSerializer
 import DiagramsExtension from "@shared/editor/extensions/Diagrams";
 import EmojiMenuExtension from "~/editor/extensions/EmojiMenu";
 import FindAndReplaceExtension from "~/editor/extensions/FindAndReplace";
+import HashtagMenuExtension from "~/editor/extensions/HashtagMenu";
 import HoverPreviewsExtension from "~/editor/extensions/HoverPreviews";
 import Keys from "~/editor/extensions/Keys";
 import MentionMenuExtension from "~/editor/extensions/MentionMenu";
@@ -24,6 +25,7 @@ export const withUIExtensions = (nodes: Nodes) => [
   BlockMenuExtension,
   EmojiMenuExtension,
   MentionMenuExtension,
+  HashtagMenuExtension,
   FindAndReplaceExtension,
   HoverPreviewsExtension,
   SelectionToolbarExtension,

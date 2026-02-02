@@ -755,6 +755,55 @@ describe("#users.update", () => {
     expect(body.data.timezone).toEqual("Asia/Calcutta");
   });
 
+  it("should allow members to update contact profile fields", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/users.update", {
+      body: {
+        token: user.getJwtToken(),
+        profile: {
+          title: "Account Manager",
+          department: "Sales",
+          phone: "+1 555 000 1111",
+          internalPhone: "1234",
+          mobilePhone: "+1 555 999 8888",
+        },
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.profile).toMatchObject({
+      title: "Account Manager",
+      department: "Sales",
+      phone: "+1 555 000 1111",
+      internalPhone: "1234",
+      mobilePhone: "+1 555 999 8888",
+    });
+  });
+
+  it("should block editing OIDC managed profile fields", async () => {
+    const user = await buildUser();
+    const team = await user.$get("team");
+    await team.update({
+      preferences: {
+        ...(team.preferences ?? {}),
+        [TeamPreference.OIDCProfileSync]: {
+          title: true,
+        },
+      },
+    });
+
+    const res = await server.post("/api/users.update", {
+      body: {
+        token: user.getJwtToken(),
+        profile: {
+          title: "Director",
+        },
+      },
+    });
+
+    expect(res.status).toEqual(403);
+  });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/users.update");
     const body = await res.json();

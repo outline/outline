@@ -343,7 +343,7 @@ export default class PasteHandler extends Extension {
             if (hasDecorations && (isRemoteTransaction(tr) || meta)) {
               try {
                 mapping = recreateTransform(tr.before, tr.doc, {
-                  complexSteps: true,
+                  complexSteps: false,
                   wordDiffs: false,
                   simplifyDiff: true,
                 }).mapping;

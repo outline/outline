@@ -7,7 +7,9 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
 import { ThemeProvider, useTheme } from "styled-components";
+import styled from "styled-components";
 import { buildDarkTheme, buildLightTheme } from "@shared/styles/theme";
+import { languageOptions as availableLanguages } from "@shared/i18n";
 import type { CustomTheme } from "@shared/types";
 import { TOCPosition, TeamPreference } from "@shared/types";
 import { getBaseDomain } from "@shared/utils/domains";
@@ -15,11 +17,13 @@ import { TeamValidation } from "@shared/validations";
 import Button from "~/components/Button";
 import ButtonLink from "~/components/ButtonLink";
 import DefaultCollectionInputSelect from "~/components/DefaultCollectionInputSelect";
+import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import Input from "~/components/Input";
 import InputColor from "~/components/InputColor";
 import type { Option } from "~/components/InputSelect";
 import { InputSelect } from "~/components/InputSelect";
+import MultiInputSelect from "~/components/MultiInputSelect";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
@@ -68,6 +72,21 @@ function Details() {
     team.getPreference(TeamPreference.TocPosition) as TOCPosition
   );
 
+  const allowedLanguages = team.preferences?.allowedLanguages;
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>(
+    allowedLanguages || []
+  );
+
+  // Обновляем selectedLanguages при изменении team.preferences
+  React.useEffect(() => {
+    const currentAllowedLanguages = team.preferences?.allowedLanguages;
+    if (currentAllowedLanguages) {
+      setSelectedLanguages(currentAllowedLanguages);
+    } else {
+      setSelectedLanguages([]);
+    }
+  }, [team.preferences?.allowedLanguages]);
+
   const tocPositionOptions: Option[] = React.useMemo(
     () =>
       [
@@ -106,6 +125,7 @@ function Details() {
             publicBranding,
             customTheme,
             tocPosition,
+            allowedLanguages: selectedLanguages.length > 0 ? selectedLanguages : undefined,
           },
         });
         toast.success(t("Settings saved"));
@@ -122,6 +142,7 @@ function Details() {
       defaultCollectionId,
       publicBranding,
       customTheme,
+      selectedLanguages,
       t,
     ]
   );
@@ -299,6 +320,33 @@ function Details() {
             />
           </SettingRow>
 
+          {can.update && (
+            <>
+              <Heading as="h2">{t("Localization")}</Heading>
+              <SettingRow
+                border={false}
+                label={t("Available languages")}
+                name="allowedLanguages"
+                description={t(
+                  "Select which languages users can choose from. If none are selected, all languages will be available."
+                )}
+              >
+                <MultiInputSelect
+                  options={availableLanguages.map(l => ({
+                    type: "item",
+                    label: l.label,
+                    value: l.value
+                  }))}
+                  value={selectedLanguages}
+                  onChange={setSelectedLanguages}
+                  label={t("Available languages")}
+                  hideLabel
+                  searchable
+                />
+              </SettingRow>
+            </>
+          )}
+
           <Heading as="h2">{t("Behavior")}</Heading>
 
           <SettingRow
@@ -379,5 +427,7 @@ function Details() {
     </ThemeProvider>
   );
 }
+
+
 
 export default observer(Details);

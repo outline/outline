@@ -26,7 +26,7 @@ import usePolicy from "~/hooks/usePolicy";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelect";
-import { GroupPermission } from "@shared/types";
+import { GroupPermission, TeamPreference } from "@shared/types";
 import { GroupValidation } from "@shared/validations";
 import type { Permission } from "~/types";
 import { EmptySelectValue } from "~/types";
@@ -116,11 +116,30 @@ export function CreateGroupDialog() {
 
 export function EditGroupDialog({ group, onSubmit }: Props) {
   const { t } = useTranslation();
+  const team = useCurrentTeam();
   const [name, setName] = React.useState(group.name);
   const [description, setDescription] = React.useState(group.description || "");
   const [disableMentions, setDisableMentions] = React.useState(
     group.disableMentions || false
   );
+  const domain = React.useMemo(() => {
+    if (!group.externalId?.startsWith("domain:")) {
+      return undefined;
+    }
+
+    return group.externalId.replace("domain:", "");
+  }, [group.externalId]);
+  const [redirectUrl, setRedirectUrl] = React.useState(() => {
+    if (!domain) {
+      return "";
+    }
+
+    const existing = team.getPreference(
+      TeamPreference.MemberRedirectURLByDomain
+    ) as Record<string, string> | undefined;
+
+    return existing?.[domain] ?? "";
+  });
   const [isSaving, setIsSaving] = React.useState(false);
   const handleSubmit = React.useCallback(
     async (ev: React.SyntheticEvent) => {
@@ -133,6 +152,30 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
           description,
           disableMentions,
         });
+
+        if (domain) {
+          const nextRedirectUrl = redirectUrl.trim();
+          const existing = team.getPreference(
+            TeamPreference.MemberRedirectURLByDomain
+          ) as Record<string, string> | undefined;
+          const nextRedirects: Record<string, string> = {
+            ...(existing ?? {}),
+          };
+
+          if (nextRedirectUrl) {
+            nextRedirects[domain] = nextRedirectUrl;
+          } else {
+            delete nextRedirects[domain];
+          }
+
+          await team.save({
+            preferences: {
+              ...(team.preferences ?? {}),
+              [TeamPreference.MemberRedirectURLByDomain]:
+                Object.keys(nextRedirects).length > 0 ? nextRedirects : undefined,
+            },
+          });
+        }
         onSubmit();
       } catch (err) {
         toast.error(err.message);
@@ -140,7 +183,7 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
         setIsSaving(false);
       }
     },
-    [group, onSubmit, name, description, disableMentions]
+    [group, onSubmit, name, description, disableMentions, domain, redirectUrl, team]
   );
 
   const handleNameChange = React.useCallback(
@@ -160,6 +203,8 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
       </Text>
       <Flex column>
         <Input
+          id="groupName"
+          name="name"
           type="text"
           label={t("Name")}
           onChange={handleNameChange}
@@ -169,6 +214,8 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
           flex
         />
         <Input
+          id="groupDescription"
+          name="description"
           type="textarea"
           label={t("Description")}
           placeholder={t("Optional")}
@@ -186,6 +233,18 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
           checked={disableMentions}
           onChange={setDisableMentions}
         />
+        {domain && (
+          <Input
+            id="groupRedirectUrl"
+            name="redirectUrl"
+            type="text"
+            label={t("Custom redirect URL for {{domain}}", { domain })}
+            placeholder="https://example.com/user/{email}/"
+            onChange={(ev) => setRedirectUrl(ev.target.value)}
+            value={redirectUrl}
+            flex
+          />
+        )}
       </Flex>
 
       <Button type="submit" disabled={isSaving || !name}>

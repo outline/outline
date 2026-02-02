@@ -63,6 +63,27 @@ export const TeamsUpdateSchema = BaseSchema.extend({
         emailDisplay: z.nativeEnum(EmailDisplay).optional(),
         /** Whether to prevent shared documents from being embedded in iframes on external websites. */
         preventDocumentEmbedding: z.boolean().optional(),
+        /** List of allowed languages for users to choose from. If empty or undefined, all languages are available. */
+        allowedLanguages: z.array(z.string()).optional(),
+        /** Custom redirect URL for members by email domain. */
+        memberRedirectURLByDomain: z.record(z.string()).optional(),
+        /** CRM link for members by email domain. */
+        domainCrmUrlByDomain: z.record(z.string()).optional(),
+        /** Whether domain groups are visible to non-admins. */
+        domainGroupsVisible: z.boolean().optional(),
+        /** Whether members can change their own name. */
+        membersCanChangeName: z.boolean().optional(),
+        /** Whether password sign-in is enabled. */
+        passwordSigninEnabled: z.boolean().optional(),
+        /** Which user fields to sync from OIDC on sign-in. */
+        oidcProfileSync: z
+          .object({
+            name: z.boolean().optional(),
+            email: z.boolean().optional(),
+            title: z.boolean().optional(),
+            department: z.boolean().optional(),
+          })
+          .optional(),
       })
       .optional(),
   }),

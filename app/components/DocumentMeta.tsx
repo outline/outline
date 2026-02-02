@@ -46,6 +46,7 @@ const DocumentMeta: React.FC<Props> = ({
     updatedAt,
     updatedBy,
     createdAt,
+    createdBy,
     publishedAt,
     archivedAt,
     deletedAt,
@@ -66,6 +67,20 @@ const DocumentMeta: React.FC<Props> = ({
     : undefined;
   const lastUpdatedByCurrentUser = user.id === updatedBy.id;
   const userName = updatedBy.name;
+  const createdByCurrentUser = createdBy && user.id === createdBy.id;
+  const creatorName = createdBy?.name;
+
+  const renderUserName = (u: any, name: string) => {
+    if (u?.redirectUrl) {
+      return (
+        <a href={u.redirectUrl} target="_blank" rel="noopener noreferrer">
+          {name}
+        </a>
+      );
+    }
+    return name;
+  };
+
   let content;
 
   if (revision) {
@@ -73,7 +88,9 @@ const DocumentMeta: React.FC<Props> = ({
       <span>
         {revision.createdBy?.id === user.id
           ? t("You updated")
-          : t("{{ userName }} updated", { userName })}{" "}
+          : t("{{ userName }} updated", {
+            userName: renderUserName(revision.createdBy, userName),
+          })}{" "}
         <Time dateTime={revision.createdAt} addSuffix />
       </span>
     );
@@ -82,7 +99,9 @@ const DocumentMeta: React.FC<Props> = ({
       <span>
         {lastUpdatedByCurrentUser
           ? t("You deleted")
-          : t("{{ userName }} deleted", { userName })}{" "}
+          : t("{{ userName }} deleted", {
+            userName: renderUserName(updatedBy, userName),
+          })}{" "}
         <Time dateTime={deletedAt} addSuffix />
       </span>
     );
@@ -91,7 +110,9 @@ const DocumentMeta: React.FC<Props> = ({
       <span>
         {lastUpdatedByCurrentUser
           ? t("You archived")
-          : t("{{ userName }} archived", { userName })}{" "}
+          : t("{{ userName }} archived", {
+            userName: renderUserName(updatedBy, userName),
+          })}{" "}
         <Time dateTime={archivedAt} addSuffix />
       </span>
     );
@@ -104,8 +125,8 @@ const DocumentMeta: React.FC<Props> = ({
       <span>
         {document.sourceMetadata.createdByName
           ? t("{{ userName }} updated", {
-              userName: document.sourceMetadata.createdByName,
-            })
+            userName: document.sourceMetadata.createdByName,
+          })
           : t("Imported")}{" "}
         <Time dateTime={createdAt} addSuffix />
       </span>
@@ -115,7 +136,9 @@ const DocumentMeta: React.FC<Props> = ({
       <span>
         {lastUpdatedByCurrentUser
           ? t("You created")
-          : t("{{ userName }} created", { userName })}{" "}
+          : t("{{ userName }} created", {
+            userName: renderUserName(updatedBy, userName),
+          })}{" "}
         <Time dateTime={updatedAt} addSuffix />
       </span>
     );
@@ -124,7 +147,9 @@ const DocumentMeta: React.FC<Props> = ({
       <span>
         {lastUpdatedByCurrentUser
           ? t("You published")
-          : t("{{ userName }} published", { userName })}{" "}
+          : t("{{ userName }} published", {
+            userName: renderUserName(updatedBy, userName),
+          })}{" "}
         <Time dateTime={publishedAt} addSuffix />
       </span>
     );
@@ -133,7 +158,9 @@ const DocumentMeta: React.FC<Props> = ({
       <Modified highlight={modifiedSinceViewed && !lastUpdatedByCurrentUser}>
         {lastUpdatedByCurrentUser
           ? t("You updated")
-          : t("{{ userName }} updated", { userName })}{" "}
+          : t("{{ userName }} updated", {
+            userName: renderUserName(updatedBy, userName),
+          })}{" "}
         <Time dateTime={updatedAt} addSuffix />
       </Modified>
     );
@@ -170,7 +197,7 @@ const DocumentMeta: React.FC<Props> = ({
   };
 
   return (
-    <Container align="center" rtl={document.dir === "rtl"} {...rest} dir="ltr">
+    <Container align="center" $rtl={document.dir === "rtl"} {...rest} dir="ltr">
       {to ? (
         <Link to={to} replace={replace}>
           {content}
@@ -196,6 +223,24 @@ const DocumentMeta: React.FC<Props> = ({
         </span>
       )}
       {timeSinceNow()}
+      {createdBy &&
+        createdAt !== updatedAt &&
+        createdBy.id !== updatedBy.id &&
+        !revision &&
+        !deletedAt &&
+        !archivedAt && (
+          <>
+            <Separator />
+            <span>
+              {createdByCurrentUser
+                ? t("Created by you")
+                : t("Created by {{ creatorName }}", {
+                  creatorName: renderUserName(createdBy, creatorName!),
+                })}{" "}
+              <Time dateTime={createdAt} addSuffix />
+            </span>
+          </>
+        )}
       {canShowProgressBar && (
         <>
           <Separator />
@@ -219,13 +264,17 @@ const Strong = styled.strong`
   font-weight: 550;
 `;
 
-const Container = styled(Flex)<{ rtl?: boolean }>`
-  justify-content: ${(props) => (props.rtl ? "flex-end" : "flex-start")};
+const Container = styled(Flex) <{ $rtl?: boolean }>`
+  justify-content: ${(props) => (props.$rtl ? "flex-end" : "flex-start")};
   color: ${s("textTertiary")};
   font-size: 13px;
   white-space: nowrap;
   overflow: hidden;
   min-width: 0;
+
+  > * {
+    flex-shrink: 0;
+  }
 `;
 
 const Viewed = styled.span`

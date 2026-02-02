@@ -190,6 +190,13 @@ export function createOIDCRouter(
             avatarUrl = null;
           }
 
+          // Extract department from profile using configured claim name
+          // Try both profile and token (id_token) for department
+          const department =
+            get(profile, env.OIDC_DEPARTMENT_CLAIM) ??
+            get(token, env.OIDC_DEPARTMENT_CLAIM) ??
+            null;
+
           const ctx = createContext({
             ip: context.ip,
             user,
@@ -206,6 +213,7 @@ export function createOIDCRouter(
               name,
               email,
               avatarUrl,
+              department: department ? String(department) : undefined,
             },
             authenticationProvider: {
               name: config.id,
@@ -217,6 +225,7 @@ export function createOIDCRouter(
               refreshToken,
               expiresIn: params.expires_in,
               scopes,
+              profile: profile as Record<string, unknown>,
             },
           });
           return done(null, result.user, { ...result, client });

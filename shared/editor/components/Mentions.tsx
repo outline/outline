@@ -57,15 +57,31 @@ export const MentionUser = observer(function MentionUser_(
   const user = users.get(node.attrs.modelId);
   const { className, unfurl, ...attrs } = getAttributesFromNode(node);
 
-  return (
-    <span
-      {...attrs}
-      className={cn(className, {
-        "ProseMirror-selectednode": isSelected,
-      })}
-    >
+  const content = (
+    <>
       <EmailIcon size={18} />
       {user?.name || node.attrs.label}
+    </>
+  );
+
+  const sharedProps = {
+    ...attrs,
+    className: cn(className, {
+      "ProseMirror-selectednode": isSelected,
+    }),
+  };
+
+  if (user?.redirectUrl) {
+    return (
+      <a {...sharedProps} href={user.redirectUrl} target="_blank" rel="noopener noreferrer">
+        {content}
+      </a>
+    );
+  }
+
+  return (
+    <span {...sharedProps}>
+      {content}
     </span>
   );
 });

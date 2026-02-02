@@ -8,6 +8,8 @@ export { default as Relationship } from "./Relationship";
 
 export { default as Collection } from "./Collection";
 
+export { default as CollectionMergeRequest, MergeRequestStatus } from "./CollectionMergeRequest";
+
 export { default as GroupMembership } from "./GroupMembership";
 
 export { default as UserMembership } from "./UserMembership";
@@ -15,6 +17,10 @@ export { default as UserMembership } from "./UserMembership";
 export { default as Comment } from "./Comment";
 
 export { default as Document } from "./Document";
+
+export { default as DocumentChangeLog } from "./DocumentChangeLog";
+
+export { default as DocumentReminder } from "./DocumentReminder";
 
 export { default as Event } from "./Event";
 
@@ -41,6 +47,8 @@ export { default as OAuthAuthorizationCode } from "./oauth/OAuthAuthorizationCod
 export { default as OAuthClient } from "./oauth/OAuthClient";
 
 export { default as Pin } from "./Pin";
+
+export { default as PluginConfiguration } from "./PluginConfiguration";
 
 export { default as Reaction } from "./Reaction";
 

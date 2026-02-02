@@ -3,6 +3,7 @@ import presentAttachment from "./attachment";
 import presentAuthenticationProvider from "./authenticationProvider";
 import presentAvailableTeam from "./availableTeam";
 import presentCollection from "./collection";
+import presentCollectionMergeRequest from "./collectionMergeRequest";
 import presentComment from "./comment";
 import presentDocument from "./document";
 import presentEvent from "./event";
@@ -16,6 +17,7 @@ import presentMembership from "./membership";
 import presentOAuthClient, { presentPublishedOAuthClient } from "./oauthClient";
 import presentPin from "./pin";
 import presentPolicies from "./policy";
+import presentPluginConfiguration from "./pluginConfiguration";
 import presentProviderConfig from "./providerConfig";
 import presentPublicTeam from "./publicTeam";
 import presentReaction from "./reaction";
@@ -27,6 +29,7 @@ import presentStar from "./star";
 import presentSubscription from "./subscription";
 import presentTeam from "./team";
 import presentUser from "./user";
+import presentUserAuthentication from "./userAuthentication";
 import presentView from "./view";
 import presentEmoji from "./emoji";
 
@@ -36,6 +39,7 @@ export {
   presentAuthenticationProvider,
   presentAvailableTeam,
   presentCollection,
+  presentCollectionMergeRequest,
   presentComment,
   presentDocument,
   presentEvent,
@@ -51,6 +55,7 @@ export {
   presentPublicTeam,
   presentPin,
   presentPolicies,
+  presentPluginConfiguration,
   presentProviderConfig,
   presentReaction,
   presentRelationship,
@@ -61,6 +66,7 @@ export {
   presentSubscription,
   presentTeam,
   presentUser,
+  presentUserAuthentication,
   presentView,
   presentEmoji,
 };

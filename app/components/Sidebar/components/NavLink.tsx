@@ -125,7 +125,9 @@ const NavLink = ({
       !event.ctrlKey &&
       !isActive &&
       // Don't navigate if a context menu trigger inside this link is open
-      !event.currentTarget.querySelector('[data-state="open"]'),
+      !event.currentTarget.querySelector('[data-state="open"]') &&
+      // Don't navigate if an input or textarea is focused inside this link (editing)
+      !event.currentTarget.querySelector('input:focus, textarea:focus'),
     [rest.target, isActive]
   );
 
@@ -162,10 +164,11 @@ const NavLink = ({
 
   const handleClick = React.useCallback(
     (event: React.MouseEvent<HTMLAnchorElement>) => {
-      // Prevent navigation if link is active, event is synthetic, or context menu is open
+      // Prevent navigation if link is active, event is synthetic, context menu is open, or right click
       if (
         isActive ||
         !event.isTrusted ||
+        event.button === 2 ||
         event.currentTarget.querySelector('[data-state="open"]')
       ) {
         event.preventDefault();
@@ -188,6 +191,10 @@ const NavLink = ({
     [navigateTo]
   );
 
+  // Exclude onActiveClick from rest props to prevent it from being passed to DOM
+  // Also exclude it explicitly in case it was passed directly
+  const { onActiveClick: _, ...linkProps } = rest;
+
   return (
     <Link
       key={isActive ? "active" : "inactive"}
@@ -201,7 +208,7 @@ const NavLink = ({
       style={style}
       to={toLocation}
       replace={replace}
-      {...rest}
+      {...linkProps}
     />
   );
 };

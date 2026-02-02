@@ -7,6 +7,8 @@ import { useHistory, useLocation, useRouteMatch } from "react-router-dom";
 import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { CloseIcon } from "outline-icons";
+import { s } from "@shared/styles";
 import { Pagination } from "@shared/constants";
 import type { DateFilter as TDateFilter } from "@shared/types";
 import { StatusFilter as TStatusFilter } from "@shared/types";
@@ -19,6 +21,7 @@ import RegisterKeyDown from "~/components/RegisterKeyDown";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
+import NudeButton from "~/components/NudeButton";
 import env from "~/env";
 import usePaginatedRequest from "~/hooks/usePaginatedRequest";
 import useQuery from "~/hooks/useQuery";
@@ -34,6 +37,7 @@ import RecentSearches from "./components/RecentSearches";
 import SearchInput from "./components/SearchInput";
 import UserFilter from "./components/UserFilter";
 import { HStack } from "~/components/primitives/HStack";
+import HashtagFilter from "./components/HashtagFilter";
 
 function Search() {
   const { t } = useTranslation();
@@ -58,13 +62,21 @@ function Search() {
   const collectionId = params.get("collectionId") ?? "";
   const userId = params.get("userId") ?? "";
   const documentId = params.get("documentId") ?? undefined;
+  const hashtag = params.get("hashtag") ?? "";
   const dateFilter = (params.get("dateFilter") as TDateFilter) ?? "";
   const statusFilter = params.getAll("statusFilter")?.length
     ? (params.getAll("statusFilter") as TStatusFilter[])
     : [TStatusFilter.Published, TStatusFilter.Draft];
   const titleFilter = params.get("titleFilter") === "true";
 
-  const isSearchable = !!(query || collectionId || userId);
+  const queryWithHashtag = React.useMemo(() => {
+    if (!hashtag) {
+      return query;
+    }
+    return query ? `${query} #${hashtag}` : `#${hashtag}`;
+  }, [query, hashtag]);
+
+  const isSearchable = !!(queryWithHashtag || collectionId || userId);
 
   const document = documentId ? documents.get(documentId) : undefined;
 
@@ -72,6 +84,7 @@ function Search() {
     document: !!document,
     collection: !document,
     user: !document || !!(document && query),
+    hashtag: !document,
     documentType: isSearchable,
     date: isSearchable,
     title: !!query && !document,
@@ -79,22 +92,24 @@ function Search() {
 
   const filters = React.useMemo(
     () => ({
-      query,
+      query: queryWithHashtag,
       statusFilter,
       collectionId,
       userId,
       dateFilter,
       titleFilter,
       documentId,
+      hashtag,
     }),
     [
-      query,
+      queryWithHashtag,
       JSON.stringify(statusFilter),
       collectionId,
       userId,
       dateFilter,
       titleFilter,
       documentId,
+      hashtag,
     ]
   );
 
@@ -144,6 +159,7 @@ function Search() {
     collectionId?: string | undefined;
     documentId?: string | undefined;
     userId?: string | undefined;
+    hashtag?: string | undefined;
     dateFilter?: TDateFilter;
     statusFilter?: TStatusFilter[];
     titleFilter?: boolean | undefined;
@@ -231,6 +247,18 @@ function Search() {
           />
 
           <Filters>
+            {hashtag && (
+              <QuickChip>
+                <ChipLabel>{`#${hashtag}`}</ChipLabel>
+                <NudeButton
+                  onClick={() => handleFilterChange({ hashtag: undefined })}
+                  aria-label={t("Remove hashtag filter")}
+                  size={16}
+                >
+                  <CloseIcon size={12} />
+                </NudeButton>
+              </QuickChip>
+            )}
             {filterVisibility.document && (
               <DocumentFilter
                 document={document!}
@@ -251,6 +279,14 @@ function Search() {
               <UserFilter
                 userId={userId}
                 onSelect={(userId) => handleFilterChange({ userId })}
+              />
+            )}
+            {filterVisibility.hashtag && (
+              <HashtagFilter
+                hashtag={hashtag}
+                onSelect={(nextHashtag) =>
+                  handleFilterChange({ hashtag: nextHashtag })
+                }
               />
             )}
             {filterVisibility.documentType && (
@@ -365,6 +401,7 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
 
 const Filters = styled(HStack)`
   flex-wrap: wrap;
+  gap: 8px;
   margin-bottom: 12px;
   transition: opacity 100ms ease-in-out;
   padding: 8px 0;
@@ -372,6 +409,23 @@ const Filters = styled(HStack)`
   ${breakpoint("tablet")`
     padding: 0;
   `};
+`;
+
+const QuickChip = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 14px;
+  border: 1px solid ${s("divider")};
+  background: ${s("backgroundSecondary")};
+`;
+
+const ChipLabel = styled.span`
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `;
 
 const SearchTitlesFilter = styled(Switch)`

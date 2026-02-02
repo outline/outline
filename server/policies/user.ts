@@ -21,19 +21,22 @@ allow(User, "listUsers", Team, (actor, team) =>
 );
 
 allow(User, "inviteUser", Team, (actor, team) =>
-  and(
-    isTeamModel(actor, team),
-    isTeamMutable(actor),
-    !actor.isGuest,
-    !actor.isViewer,
-    actor.isAdmin || !!team?.getPreference(TeamPreference.MembersCanInvite)
-  )
+  and(isTeamModel(actor, team), isTeamMutable(actor), actor.isAdmin)
 );
 
-allow(User, ["update", "readDetails", "listApiKeys"], User, (actor, user) =>
+allow(User, ["update", "listApiKeys"], User, (actor, user) =>
   or(
     //
     isTeamAdmin(actor, user),
+    actor.id === user?.id
+  )
+);
+
+allow(User, "readDetails", User, (actor, user) =>
+  or(
+    //
+    isTeamAdmin(actor, user),
+    isTeamMember(actor, user),
     actor.id === user?.id
   )
 );
@@ -63,15 +66,9 @@ allow(User, "readEmail", User, (actor, user) => {
   );
 });
 
-allow(User, "delete", User, (actor, user) =>
-  or(
-    isTeamAdmin(actor, user),
-    and(
-      actor.id === user?.id,
-      !!actor.team.getPreference(TeamPreference.MembersCanDeleteAccount)
-    )
-  )
-);
+// Only team administrators can delete user accounts.
+// Members can no longer delete their own accounts, regardless of team preferences.
+allow(User, "delete", User, (actor, user) => isTeamAdmin(actor, user));
 
 allow(User, ["activate", "suspend"], User, (actor, user) =>
   and(isTeamAdmin(actor, user), user?.id !== actor.id)

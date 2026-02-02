@@ -8,6 +8,7 @@ import CollectionsStore from "./CollectionsStore";
 import CommentsStore from "./CommentsStore";
 import DialogsStore from "./DialogsStore";
 import DocumentPresenceStore from "./DocumentPresenceStore";
+import DocumentRemindersStore from "./DocumentRemindersStore";
 import DocumentsStore from "./DocumentsStore";
 import EventsStore from "./EventsStore";
 import EmojisStore from "./EmojiStore";
@@ -44,6 +45,7 @@ export default class RootStore {
   groupMemberships: GroupMembershipsStore;
   comments: CommentsStore;
   dialogs: DialogsStore;
+  documentReminders: DocumentRemindersStore;
   documents: DocumentsStore;
   emojis: EmojisStore;
   events: EventsStore;
@@ -78,6 +80,7 @@ export default class RootStore {
     this.registerStore(CollectionsStore);
     this.registerStore(GroupMembershipsStore);
     this.registerStore(CommentsStore);
+    this.registerStore(DocumentRemindersStore, "documentReminders");
     this.registerStore(DocumentsStore);
     this.registerStore(EmojisStore);
     this.registerStore(EventsStore);

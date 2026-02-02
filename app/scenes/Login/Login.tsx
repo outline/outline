@@ -8,6 +8,7 @@ import styled from "styled-components";
 import { getCookie, setCookie } from "tiny-cookie";
 import { s } from "@shared/styles";
 import { Client, UserPreference } from "@shared/types";
+import { CSRF } from "@shared/constants";
 import { isPWA } from "@shared/utils/browser";
 import { parseDomain } from "@shared/utils/domains";
 import type { Config } from "~/stores/AuthStore";
@@ -23,6 +24,7 @@ import { OneTimePasswordInput } from "~/components/OneTimePasswordInput";
 import PageTitle from "~/components/PageTitle";
 import TeamLogo from "~/components/TeamLogo";
 import Text from "~/components/Text";
+import InputLarge from "~/components/InputLarge";
 import env from "~/env";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import {
@@ -42,6 +44,7 @@ import { Centered } from "./components/Centered";
 import { Notices } from "./components/Notices";
 import { getRedirectUrl, navigateToSubdomain } from "./urls";
 import lazyWithRetry from "~/utils/lazyWithRetry";
+import ForgotPasswordModal from "./components/ForgotPasswordModal";
 
 const WorkspaceSetup = lazyWithRetry(
   () => import("./components/WorkspaceSetup")
@@ -57,26 +60,57 @@ function Login({ children, onBack }: Props) {
   const query = useQuery();
   const notice = query.get("notice");
   const forceOTP = query.get("forceOTP");
+  const resetToken = query.get("resetToken");
 
   const { t } = useTranslation();
   const user = useCurrentUser({ rejectOnEmpty: false });
   const { auth } = useStores();
   const { config } = auth;
+  const backButtonConfig = config ?? undefined;
   const [error, setError] = React.useState(null);
   const [emailLinkSentTo, setEmailLinkSentTo] = React.useState("");
   const isCreate = location.pathname === "/create";
+  const clientType = Desktop.isElectron() ? Client.Desktop : Client.Web;
   const rememberLastPath = !!user?.getPreference(
     UserPreference.RememberLastPath
   );
   const [lastVisitedPath] = useLastVisitedPath();
   const [spendPostLoginPath] = usePostLoginPath();
+  const [resetEmailSentTo, setResetEmailSentTo] = React.useState("");
+  const [isForgotPasswordOpen, setForgotPasswordOpen] = React.useState(false);
+  const [newPassword, setNewPassword] = React.useState("");
+  const [confirmPassword, setConfirmPassword] = React.useState("");
+  const [passwordError, setPasswordError] = React.useState<string | null>(null);
+  const [isPasswordAuthExpanded, setPasswordAuthExpanded] = React.useState(false);
+  const csrfToken = getCookie(CSRF.cookieName) ?? "";
 
   const handleReset = React.useCallback(() => {
     setEmailLinkSentTo("");
   }, []);
+
   const handleEmailSuccess = React.useCallback((email) => {
     setEmailLinkSentTo(email);
   }, []);
+
+  const handleResetNoticeDismiss = React.useCallback(() => {
+    setResetEmailSentTo("");
+  }, []);
+
+  const handleForgotSuccess = React.useCallback((email: string) => {
+    setResetEmailSentTo(email);
+  }, []);
+
+  const handleResetPasswordSubmit = React.useCallback(
+    (event: React.FormEvent<HTMLFormElement>) => {
+      if (newPassword !== confirmPassword) {
+        event.preventDefault();
+        setPasswordError(t("Passwords do not match"));
+      } else {
+        setPasswordError(null);
+      }
+    },
+    [confirmPassword, newPassword, t]
+  );
 
   const handleGoSubdomain = React.useCallback(async (event) => {
     event.preventDefault();
@@ -114,6 +148,82 @@ function Login({ children, onBack }: Props) {
     }
 
     return <Redirect to={homePath()} />;
+  }
+
+  if (resetEmailSentTo) {
+    return (
+      <Background>
+        <BackButton onBack={onBack} config={backButtonConfig} />
+        <Centered>
+          <PageTitle title={t("Check your email")} />
+          <EmailIcon />
+          <Heading centered>{t("Check your email")}</Heading>
+          <Note>
+            <Trans
+              defaults="We sent a password reset link to <em>{{ resetEmailSentTo }}</em>."
+              values={{ resetEmailSentTo }}
+              components={{ em: <em /> }}
+            />
+          </Note>
+          <ButtonLarge onClick={handleResetNoticeDismiss} fullwidth neutral>
+            {t("Back to login")}
+          </ButtonLarge>
+        </Centered>
+      </Background>
+    );
+  }
+
+  if (resetToken) {
+    return (
+      <Background>
+        <BackButton onBack={onBack} config={backButtonConfig} />
+        <Centered>
+          <PageTitle title={t("Reset password")} />
+          <Heading centered>{t("Choose a new password")}</Heading>
+          <Form
+            method="POST"
+            action="/auth/password.reset.confirm"
+            onSubmit={handleResetPasswordSubmit}
+          >
+            <input type="hidden" name={CSRF.fieldName} value={csrfToken} />
+            <input type="hidden" name="token" value={resetToken} />
+            <input type="hidden" name="client" value={clientType} />
+            <InputLarge
+              type="password"
+              name="password"
+              placeholder={t("New password")}
+              value={newPassword}
+              onChange={(event) => setNewPassword(event.target.value)}
+              required
+              short
+            />
+            <InputLarge
+              type="password"
+              placeholder={t("Confirm password")}
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+              required
+              short
+            />
+            {passwordError ? <ErrorText>{passwordError}</ErrorText> : null}
+            <ButtonLarge type="submit" fullwidth>
+              {t("Reset password")}
+            </ButtonLarge>
+            <ButtonLarge
+              neutral
+              fullwidth
+              type="button"
+              onClick={() => {
+                handleResetNoticeDismiss();
+                window.location.href = "/";
+              }}
+            >
+              {t("Back to login")}
+            </ButtonLarge>
+          </Form>
+        </Centered>
+      </Background>
+    );
   }
 
   if (error) {
@@ -206,7 +316,6 @@ function Login({ children, onBack }: Props) {
     config.providers,
     (provider) => provider.id === auth.lastSignedIn && !isCreate
   );
-  const clientType = Desktop.isElectron() ? Client.Desktop : Client.Web;
   const preferOTP = isPWA || !!forceOTP;
 
   if (firstRun) {
@@ -223,7 +332,7 @@ function Login({ children, onBack }: Props) {
         <BackButton onBack={onBack} config={config} />
         <Centered>
           <PageTitle title={t("Check your email")} />
-          <CheckEmailIcon size={38} />
+          <EmailIcon />
           <Heading centered>{t("Check your email")}</Heading>
           {preferOTP ? (
             <>
@@ -326,18 +435,19 @@ function Login({ children, onBack }: Props) {
               isCreate={isCreate}
               onEmailSuccess={handleEmailSuccess}
               preferOTP={preferOTP}
+              onForgotPassword={
+                defaultProvider.id === "password"
+                  ? () => setForgotPasswordOpen(true)
+                  : undefined
+              }
+              onPasswordExpand={
+                defaultProvider.id === "password"
+                  ? () => setPasswordAuthExpanded(true)
+                  : undefined
+              }
               {...defaultProvider}
             />
-            {hasMultipleProviders && (
-              <>
-                <Note>
-                  {t("You signed in with {{ authProviderName }} last time.", {
-                    authProviderName: defaultProvider.name,
-                  })}
-                </Note>
-                <Or data-text={t("Or")} />
-              </>
-            )}
+            {hasMultipleProviders && null}
           </React.Fragment>
         )}
         {config.providers.map((provider) => {
@@ -351,6 +461,16 @@ function Login({ children, onBack }: Props) {
               isCreate={isCreate}
               onEmailSuccess={handleEmailSuccess}
               preferOTP={preferOTP}
+              onForgotPassword={
+                provider.id === "password"
+                  ? () => setForgotPasswordOpen(true)
+                  : undefined
+              }
+              onPasswordExpand={
+                provider.id === "password"
+                  ? () => setPasswordAuthExpanded(true)
+                  : undefined
+              }
               neutral={defaultProvider && hasMultipleProviders}
               {...provider}
             />
@@ -364,6 +484,11 @@ function Login({ children, onBack }: Props) {
           </Note>
         )}
       </Centered>
+      <ForgotPasswordModal
+        isOpen={isForgotPasswordOpen}
+        onRequestClose={() => setForgotPasswordOpen(false)}
+        onSuccess={handleForgotSuccess}
+      />
     </Background>
   );
 }
@@ -381,8 +506,9 @@ const Domain = styled.div`
   padding: 0 8px 0 0;
 `;
 
-const CheckEmailIcon = styled(EmailIcon)`
-  margin-bottom: -1.5em;
+const ErrorText = styled(Text)`
+  color: ${(props) => props.theme.danger};
+  text-align: center;
 `;
 
 const Logo = styled.div`
@@ -404,29 +530,6 @@ const Note = styled(Text)`
   em {
     font-style: normal;
     font-weight: 500;
-  }
-`;
-
-const Or = styled.hr`
-  margin: 1em 0;
-  position: relative;
-  width: 100%;
-  border: 0;
-  border-top: 1px solid ${s("divider")};
-
-  &:after {
-    content: attr(data-text);
-    display: block;
-    position: absolute;
-    left: 50%;
-    transform: translate3d(-50%, -50%, 0);
-    text-transform: uppercase;
-    font-size: 11px;
-    font-weight: 500;
-    color: ${s("textTertiary")};
-    background: ${s("background")};
-    border-radius: 2px;
-    padding: 0 4px;
   }
 `;
 

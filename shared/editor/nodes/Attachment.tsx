@@ -89,32 +89,32 @@ export default class Attachment extends Node {
 
   handleSelect =
     ({ getPos }: ComponentProps) =>
-    () => {
-      const { view } = this.editor;
-      const $pos = view.state.doc.resolve(getPos());
-      const transaction = view.state.tr.setSelection(new NodeSelection($pos));
-      view.dispatch(transaction);
-    };
+      () => {
+        const { view } = this.editor;
+        const $pos = view.state.doc.resolve(getPos());
+        const transaction = view.state.tr.setSelection(new NodeSelection($pos));
+        view.dispatch(transaction);
+      };
 
   handleChangeSize =
     ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
-    ({ width, height }: { width: number; height?: number }) => {
-      if (!node.attrs.preview) {
-        return;
-      }
+      ({ width, height }: { width: number; height?: number }) => {
+        if (!node.attrs.preview) {
+          return;
+        }
 
-      const { view, commands } = this.editor;
-      const { doc, tr } = view.state;
+        const { view, commands } = this.editor;
+        const { doc, tr } = view.state;
 
-      const pos = getPos();
-      const $pos = doc.resolve(pos);
+        const pos = getPos();
+        const $pos = doc.resolve(pos);
 
-      view.dispatch(tr.setSelection(new NodeSelection($pos)));
-      commands["resizeAttachment"]({
-        width,
-        height: height || node.attrs.height,
-      });
-    };
+        view.dispatch(tr.setSelection(new NodeSelection($pos)));
+        commands["resizeAttachment"]({
+          width,
+          height: height || node.attrs.height,
+        });
+      };
 
   component = (props: ComponentProps) => {
     const { embedsDisabled } = this.editor.props;
@@ -156,6 +156,39 @@ export default class Attachment extends Node {
         isSelected={isSelected}
       >
         {node.attrs.href && !isEditable && <DownloadIcon size={20} />}
+        {node.attrs.href &&
+          isEditable &&
+          props.onTranscribeAudio &&
+          node.attrs.contentType?.startsWith("audio/") && (
+            <a
+              href="#"
+              onClick={async (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                try {
+                  const text = await props.onTranscribeAudio!(node.attrs.id);
+                  if (text) {
+                    const { view } = this.editor;
+                    view.dispatch(
+                      view.state.tr.insertText(
+                        `\n\n${text}`,
+                        props.getPos() + node.nodeSize
+                      )
+                    );
+                  }
+                } catch (err) {
+                  // toast is handled in the callback
+                }
+              }}
+              style={{
+                marginLeft: "auto",
+                fontSize: "12px",
+                color: "var(--accent)",
+              }}
+            >
+              Transcribe
+            </a>
+          )}
       </Widget>
     );
   };
@@ -233,29 +266,29 @@ export default class Attachment extends Node {
       },
       resizeAttachment:
         ({ width, height }: { width: number; height?: number }): Command =>
-        (state, dispatch) => {
-          if (
-            !(state.selection instanceof NodeSelection) ||
-            !state.selection.node.attrs.preview
-          ) {
-            return false;
-          }
+          (state, dispatch) => {
+            if (
+              !(state.selection instanceof NodeSelection) ||
+              !state.selection.node.attrs.preview
+            ) {
+              return false;
+            }
 
-          const { view } = this.editor;
-          const { tr } = view.state;
-          const { attrs } = state.selection.node;
+            const { view } = this.editor;
+            const { tr } = view.state;
+            const { attrs } = state.selection.node;
 
-          const transaction = tr
-            .setNodeMarkup(state.selection.from, undefined, {
-              ...attrs,
-              width,
-              height,
-            })
-            .setMeta("addToHistory", true);
-          const $pos = transaction.doc.resolve(state.selection.from);
-          dispatch?.(transaction.setSelection(new NodeSelection($pos)));
-          return true;
-        },
+            const transaction = tr
+              .setNodeMarkup(state.selection.from, undefined, {
+                ...attrs,
+                width,
+                height,
+              })
+              .setMeta("addToHistory", true);
+            const $pos = transaction.doc.resolve(state.selection.from);
+            dispatch?.(transaction.setSelection(new NodeSelection($pos)));
+            return true;
+          },
     };
   }
 

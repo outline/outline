@@ -38,6 +38,7 @@ export type Props = Optional<
   embedsDisabled?: boolean;
   onSynced?: () => Promise<void>;
   onPublish?: (event: React.MouseEvent) => void;
+  onTranscribeAudio?: (attachmentId: string) => Promise<string | undefined>;
   editorStyle?: React.CSSProperties;
 };
 

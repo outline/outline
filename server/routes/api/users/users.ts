@@ -2,25 +2,35 @@ import Router from "koa-router";
 import type { WhereOptions } from "sequelize";
 import { Op, Sequelize } from "sequelize";
 import type { UserPreference } from "@shared/types";
-import { UserRole } from "@shared/types";
+import {
+  TeamPreference,
+  UserRole,
+  type OIDCProfileSync,
+  type UserProfile,
+} from "@shared/types";
 import { UserRoleHelper } from "@shared/utils/UserRoleHelper";
 import { settingsPath } from "@shared/utils/routeHelpers";
 import { UserValidation } from "@shared/validations";
 import userInviter from "@server/commands/userInviter";
+import deactivateInactiveKeycloakUsers from "@server/commands/deactivateInactiveKeycloakUsers";
 import ConfirmUpdateEmail from "@server/emails/templates/ConfirmUpdateEmail";
 import ConfirmUserDeleteEmail from "@server/emails/templates/ConfirmUserDeleteEmail";
 import InviteEmail from "@server/emails/templates/InviteEmail";
 import env from "@server/env";
-import { ValidationError } from "@server/errors";
+import { AuthorizationError, ValidationError } from "@server/errors";
 import logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { User, Team } from "@server/models";
+import { Event, User, Team } from "@server/models";
 import { UserFlag } from "@server/models/User";
 import { can, authorize } from "@server/policies";
-import { presentUser, presentPolicies } from "@server/presenters";
+import {
+  presentUser,
+  presentPolicies,
+  presentUserAuthentication,
+} from "@server/presenters";
 import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { safeEqual } from "@server/utils/crypto";
@@ -175,6 +185,7 @@ router.post(
         presentUser(user, {
           includeEmail: !!can(actor, "readEmail", user),
           includeDetails: !!can(actor, "readDetails", user),
+          team: actor.team,
         })
       ),
       policies: presentPolicies(actor, users),
@@ -189,14 +200,26 @@ router.post(
   async (ctx: APIContext<T.UsersInfoReq>) => {
     const { id } = ctx.input.body;
     const actor = ctx.state.auth.user;
-    const user = id ? await User.findByPk(id) : actor;
+    let user = id ? await User.findByPk(id) : actor;
     authorize(actor, "read", user);
     const includeDetails = !!can(actor, "readDetails", user);
+    const includeEmail = !!can(actor, "readEmail", user);
+
+    if (includeDetails) {
+      user = await User.scope("withAuthentications").findByPk(user.id, {
+        rejectOnEmpty: true,
+      });
+    }
 
     ctx.body = {
       data: presentUser(user, {
         includeDetails,
+        includeEmail,
+        team: actor.team,
       }),
+      authentications: includeDetails
+        ? user.authentications?.map(presentUserAuthentication)
+        : undefined,
       policies: presentPolicies(actor, [user]),
     };
   }
@@ -290,7 +313,19 @@ router.get(
       throw ValidationError("User with email already exists");
     }
 
+    const previousEmail = user.email;
     await user.updateWithCtx(ctx, { email });
+    if (previousEmail !== email) {
+      await Event.createFromContext(ctx, {
+        name: "users.update",
+        userId: user.id,
+        data: {
+          changes: {
+            email: { from: previousEmail, to: email },
+          },
+        },
+      });
+    }
 
     ctx.redirect(settingsPath());
   }
@@ -304,8 +339,16 @@ router.post(
   async (ctx: APIContext<T.UsersUpdateReq>) => {
     const { auth, transaction } = ctx.state;
     const actor = auth.user;
-    const { id, name, avatarUrl, language, preferences, timezone } =
-      ctx.input.body;
+    const {
+      id,
+      name,
+      avatarUrl,
+      language,
+      preferences,
+      timezone,
+      password,
+    } = ctx.input.body;
+    let profile = ctx.input.body.profile;
 
     let user: User | null = actor;
     if (id) {
@@ -318,10 +361,32 @@ router.post(
     authorize(actor, "update", user);
     const includeDetails = !!can(actor, "readDetails", user);
 
+    const previousName = user.name;
+    const previousAvatarUrl = user.avatarUrl;
+    const previousProfile = user.profile ?? null;
+    const changes: Record<
+      string,
+      { from: string | null | undefined; to: string | null | undefined }
+    > = {};
+
     if (name) {
+      const canChangeName = actor.isAdmin
+        ? true
+        : actor.id !== user.id
+          ? true
+          : !!actor.team.getPreference(TeamPreference.MembersCanChangeName);
+      if (!canChangeName) {
+        throw AuthorizationError("Changing your name is disabled.");
+      }
+      if (previousName !== name) {
+        changes.name = { from: previousName, to: name };
+      }
       user.name = name;
     }
     if (avatarUrl !== undefined) {
+      if (previousAvatarUrl !== avatarUrl) {
+        changes.avatarUrl = { from: previousAvatarUrl, to: avatarUrl };
+      }
       user.avatarUrl = avatarUrl;
 
       // Mark that the user has manually changed their avatar
@@ -339,12 +404,73 @@ router.post(
     if (timezone) {
       user.timezone = timezone;
     }
+    if (password) {
+      if (!actor.isAdmin) {
+        throw AuthorizationError("Updating password requires admin.");
+      }
+      const authentications = await user.$get("authentications", {
+        transaction,
+      });
+      if (authentications.length > 0) {
+        throw AuthorizationError("Password login is disabled for SSO users.");
+      }
+      if (!user.invitedById) {
+        throw AuthorizationError("Password login is disabled for this user.");
+      }
+      await user.setPassword(password);
+      changes.password = { from: null, to: "updated" };
+    }
+    if (profile) {
+      if (!actor.isAdmin) {
+        if (actor.id !== user.id) {
+          throw AuthorizationError("Updating profile fields requires admin.");
+        }
+
+        const oidcProfileSync = actor.team.getPreference(
+          TeamPreference.OIDCProfileSync
+        ) as OIDCProfileSync | undefined;
+        const sanitizedProfile = sanitizeSelfProfileUpdate(
+          profile,
+          oidcProfileSync
+        );
+
+        if (!sanitizedProfile) {
+          throw AuthorizationError(
+            "Updating profile fields requires admin."
+          );
+        }
+
+        profile = sanitizedProfile;
+      }
+
+      const nextProfile: UserProfile = {
+        ...(user.profile ?? {}),
+        ...profile,
+      };
+      const previousProfileString = JSON.stringify(previousProfile ?? {});
+      const nextProfileString = JSON.stringify(nextProfile);
+      if (previousProfileString !== nextProfileString) {
+        changes.profile = { from: previousProfileString, to: nextProfileString };
+      }
+      user.profile = nextProfile;
+    }
 
     await user.saveWithCtx(ctx);
+
+    if (Object.keys(changes).length > 0) {
+      await Event.createFromContext(ctx, {
+        name: "users.update",
+        userId: user.id,
+        data: {
+          changes,
+        },
+      });
+    }
 
     ctx.body = {
       data: presentUser(user, {
         includeDetails,
+        team: actor.team,
       }),
     };
   }
@@ -446,9 +572,48 @@ async function updateRole(ctx: APIContext<T.UsersChangeRoleReq>) {
   ctx.body = {
     data: presentUser(user, {
       includeDetails,
+      team: actor.team,
     }),
     policies: presentPolicies(actor, [user]),
   };
+}
+
+const SELF_EDITABLE_PROFILE_KEYS: Array<keyof UserProfile> = [
+  "title",
+  "department",
+  "phone",
+  "internalPhone",
+  "mobilePhone",
+];
+
+function sanitizeSelfProfileUpdate(
+  profile: UserProfile,
+  oidcProfileSync?: OIDCProfileSync
+): UserProfile | undefined {
+  const lockedKeys = new Set<keyof UserProfile>();
+  if (oidcProfileSync) {
+    if (oidcProfileSync.title) {
+      lockedKeys.add("title");
+    }
+    if (oidcProfileSync.department) {
+      lockedKeys.add("department");
+    }
+  }
+
+  const sanitized: UserProfile = {};
+  let hasUpdates = false;
+
+  for (const key of SELF_EDITABLE_PROFILE_KEYS) {
+    if (lockedKeys.has(key)) {
+      continue;
+    }
+    if (profile[key] !== undefined) {
+      sanitized[key] = profile[key];
+      hasUpdates = true;
+    }
+  }
+
+  return hasUpdates ? sanitized : undefined;
 }
 
 router.post(
@@ -482,6 +647,7 @@ router.post(
     ctx.body = {
       data: presentUser(user, {
         includeDetails,
+        team: actor.team,
       }),
       policies: presentPolicies(actor, [user]),
     };
@@ -519,6 +685,7 @@ router.post(
     ctx.body = {
       data: presentUser(user, {
         includeDetails,
+        team: actor.team,
       }),
       policies: presentPolicies(actor, [user]),
     };
@@ -548,8 +715,11 @@ router.post(
       data: {
         sent: response.sent,
         unsent: response.unsent,
-        users: response.users.map((user) =>
-          presentUser(user, { includeEmail: !!can(user, "readEmail", user) })
+        users: response.users.map((u) =>
+          presentUser(u, {
+            includeEmail: !!can(user, "readEmail", u),
+            team: user.team,
+          })
         ),
       },
     };
@@ -589,11 +759,12 @@ router.post(
     await user.save({ transaction });
 
     if (env.isDevelopment) {
+      const baseUrl = ctx.request.origin || env.URL;
       logger.info(
         "email",
-        `Sign in immediately: ${
-          env.URL
-        }/auth/email.callback?token=${user.getEmailSigninToken(ctx)}`
+        `Sign in immediately: ${baseUrl}/auth/email.callback?token=${user.getEmailSigninToken(
+          ctx
+        )}`
       );
     }
 
@@ -682,7 +853,7 @@ router.post(
     await user.saveWithCtx(ctx);
 
     ctx.body = {
-      data: presentUser(user, { includeDetails: true }),
+      data: presentUser(user, { includeDetails: true, team: user.team }),
     };
   }
 );
@@ -700,7 +871,27 @@ router.post(
     await user.saveWithCtx(ctx);
 
     ctx.body = {
-      data: presentUser(user, { includeDetails: true }),
+      data: presentUser(user, { includeDetails: true, team: user.team }),
+    };
+  }
+);
+
+router.post(
+  "users.deactivateInactiveKeycloak",
+  auth({ role: UserRole.Admin }),
+  validate(T.UsersDeactivateInactiveKeycloakSchema),
+  transaction(),
+  async (ctx: APIContext<T.UsersDeactivateInactiveKeycloakReq>) => {
+    const { inactiveDays } = ctx.input.body;
+    const actor = ctx.state.auth.user;
+
+    authorize(actor, "update", actor.team);
+
+    const result = await deactivateInactiveKeycloakUsers(ctx, inactiveDays);
+
+    ctx.body = {
+      success: true,
+      data: result,
     };
   }
 );

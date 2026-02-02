@@ -8,6 +8,8 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useTheme } from "styled-components";
+import { faMicrophone, faStop } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { ProsemirrorData } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
 import { AttachmentValidation, CommentValidation } from "@shared/validations";
@@ -27,6 +29,7 @@ import { HighlightedText } from "./HighlightText";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 import { mergeRefs } from "react-merge-refs";
 import { HStack } from "~/components/primitives/HStack";
+import useSpeechToText from "~/hooks/useSpeechToText";
 
 const CommentEditor = lazyWithRetry(() => import("./CommentEditor"));
 
@@ -89,6 +92,21 @@ function CommentForm({
   const { t } = useTranslation();
   const { comments } = useStores();
   const user = useCurrentUser();
+  const { isListening, transcript, start, stop, error } = useSpeechToText();
+
+  React.useEffect(() => {
+    if (transcript && editorRef.current) {
+      editorRef.current.view.dispatch(
+        editorRef.current.view.state.tr.insertText(transcript)
+      );
+    }
+  }, [transcript]);
+
+  React.useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
 
   const reset = React.useCallback(async () => {
     const isEmpty = editorRef.current?.isEmpty() ?? true;
@@ -263,24 +281,24 @@ function CommentForm({
 
   const presence = animatePresence
     ? {
-        initial: {
-          opacity: 0,
-          marginBottom: -100,
+      initial: {
+        opacity: 0,
+        marginBottom: -100,
+      },
+      animate: {
+        opacity: 1,
+        marginBottom: 0,
+        transition: {
+          type: "spring",
+          bounce: 0.1,
         },
-        animate: {
-          opacity: 1,
-          marginBottom: 0,
-          transition: {
-            type: "spring",
-            bounce: 0.1,
-          },
-        },
-        exit: {
-          opacity: 0,
-          marginBottom: -100,
-          scale: 0.98,
-        },
-      }
+      },
+      exit: {
+        opacity: 0,
+        marginBottom: -100,
+        scale: 0.98,
+      },
+    }
     : {};
 
   return (
@@ -341,16 +359,29 @@ function CommentForm({
                   {t("Cancel")}
                 </ButtonSmall>
               </HStack>
-              <Tooltip content={t("Upload image")} placement="top">
-                <NudeButton onClick={handleImageUpload}>
-                  <ImageIcon color={theme.textTertiary} />
-                </NudeButton>
-              </Tooltip>
+              <HStack gap={4}>
+                <Tooltip
+                  content={isListening ? t("Stop dictation") : t("Dictate")}
+                  placement="top"
+                >
+                  <NudeButton onClick={isListening ? stop : start}>
+                    <FontAwesomeIcon
+                      icon={isListening ? faStop : faMicrophone}
+                      color={isListening ? theme.danger : theme.textTertiary}
+                    />
+                  </NudeButton>
+                </Tooltip>
+                <Tooltip content={t("Upload image")} placement="top">
+                  <NudeButton onClick={handleImageUpload}>
+                    <ImageIcon color={theme.textTertiary} />
+                  </NudeButton>
+                </Tooltip>
+              </HStack>
             </Flex>
           )}
         </Bubble>
-      </Flex>
-    </m.form>
+      </Flex >
+    </m.form >
   );
 }
 

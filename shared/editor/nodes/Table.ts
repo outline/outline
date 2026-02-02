@@ -25,6 +25,7 @@ import {
   distributeColumns,
   sortTable,
   setTableAttr,
+  setCellBackgroundColor,
   deleteColSelection,
   deleteRowSelection,
   deleteCellSelection,
@@ -36,6 +37,7 @@ import {
 } from "../commands/table";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { FixTablesPlugin } from "../plugins/FixTablesPlugin";
+import { TableDragDropPlugin } from "../plugins/TableDragDropPlugin";
 import { TableLayoutPlugin } from "../plugins/TableLayoutPlugin";
 import tablesRule from "../rules/tables";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
@@ -82,6 +84,7 @@ export default class Table extends Node {
   commands() {
     return {
       createTable,
+      setCellBackgroundColor,
       setColumnAttr,
       setTableAttr,
       sortTable,
@@ -153,6 +156,7 @@ export default class Table extends Node {
         View: TableView,
       }),
       tableEditing(),
+      new TableDragDropPlugin(),
       new FixTablesPlugin(),
       new TableLayoutPlugin(),
     ];

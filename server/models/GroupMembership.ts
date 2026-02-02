@@ -365,7 +365,28 @@ class GroupMembership extends ParanoidModel<
       }
     );
 
+    // Find documents that have their own permissions (not inherited)
+    // These should not be affected when recreating sourced memberships
+    const documentsWithOwnPermissions = await this.findAll({
+      where: {
+        documentId: childDocumentIds,
+        groupId: model.groupId,
+        sourceId: null,
+      },
+      attributes: ["documentId"],
+      transaction,
+    });
+
+    const documentsWithOwnPermissionsSet = new Set(
+      documentsWithOwnPermissions.map((m) => m.documentId)
+    );
+
     for (const childDocumentId of childDocumentIds) {
+      // Skip documents that have their own permissions to avoid overwriting them
+      if (documentsWithOwnPermissionsSet.has(childDocumentId)) {
+        continue;
+      }
+
       await this.create(
         {
           documentId: childDocumentId,

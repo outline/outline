@@ -81,10 +81,10 @@ export function createTableInner(
     const attrs =
       colWidth && index < colsCount - 1
         ? {
-            colwidth: [colWidth],
-            colspan: 1,
-            rowspan: 1,
-          }
+          colwidth: [colWidth],
+          colspan: 1,
+          rowspan: 1,
+        }
         : null;
     const cell = createCell(types.cell, attrs);
 
@@ -284,6 +284,7 @@ export function sortTable({
       const rect = selectedRect(state);
       const table: Node[][] = [];
 
+      // Build table data, accounting for merged cells
       for (let r = 0; r < rect.map.height; r++) {
         const cells = [];
         for (let c = 0; c < rect.map.width; c++) {
@@ -291,7 +292,16 @@ export function sortTable({
             rect.tableStart + rect.map.map[r * rect.map.width + c]
           );
           if (cell) {
+            // For merged cells, we need to handle colspan/rowspan
+            const colspan = cell.attrs.colspan || 1;
+            const rowspan = cell.attrs.rowspan || 1;
+
             cells.push(cell);
+
+            // Skip cells that are covered by colspan/rowspan
+            if (colspan > 1) {
+              c += colspan - 1; // Skip the merged columns
+            }
           }
         }
         table.push(cells);
@@ -299,31 +309,63 @@ export function sortTable({
 
       // check if all the cells in the column are a number
       const compareAsText = table.some((row) => {
-        const cell = row[index]?.textContent;
-        return cell === "" ? false : isNaN(parseFloat(cell));
+        // Find the logical column index accounting for merged cells
+        let logicalCol = 0;
+        for (let c = 0; c < row.length; c++) {
+          const cell = row[c];
+          const colspan = cell.attrs.colspan || 1;
+          if (logicalCol === index) {
+            return cell?.textContent === "" ? false : isNaN(parseFloat(cell?.textContent || ""));
+          }
+          logicalCol += colspan;
+        }
+        return false; // Column not found in this row
       });
 
-      const hasHeaderRow = table[0].every(
+      const hasHeaderRow = table[0] && table[0].every(
         (cell) => cell.type === state.schema.nodes.th
       );
 
       // remove the header row
       const header = hasHeaderRow ? table.shift() : undefined;
 
-      // column data before sort
-      const columnData = table.map((row) => row[index]?.textContent ?? "");
+      // Get column data accounting for merged cells
+      const columnData = table.map((row) => {
+        let logicalCol = 0;
+        for (let c = 0; c < row.length; c++) {
+          const cell = row[c];
+          const colspan = cell.attrs.colspan || 1;
+          if (logicalCol === index) {
+            return cell?.textContent ?? "";
+          }
+          logicalCol += colspan;
+        }
+        return ""; // Column not found in this row
+      });
 
       // sort table data based on column at index
       table.sort((a, b) => {
+        // Get values for comparison, accounting for merged cells
+        const getValue = (row: Node[]) => {
+          let logicalCol = 0;
+          for (let c = 0; c < row.length; c++) {
+            const cell = row[c];
+            const colspan = cell.attrs.colspan || 1;
+            if (logicalCol === index) {
+              return cell?.textContent ?? "";
+            }
+            logicalCol += colspan;
+          }
+          return "";
+        };
+
+        const aValue = getValue(a);
+        const bValue = b ? getValue(b) : "";
+
         if (compareAsText) {
-          return (a[index]?.textContent ?? "").localeCompare(
-            b[index]?.textContent ?? ""
-          );
+          return aValue.localeCompare(bValue);
         } else {
-          return (
-            parseFloat(a[index]?.textContent ?? "") -
-            parseFloat(b[index]?.textContent ?? "")
-          );
+          return parseFloat(aValue) - parseFloat(bValue);
         }
       });
 
@@ -332,9 +374,20 @@ export function sortTable({
       }
 
       // check if column data changed, if not then do not replace table
-      if (
-        columnData.join() === table.map((row) => row[index]?.textContent).join()
-      ) {
+      const newColumnData = table.map((row) => {
+        let logicalCol = 0;
+        for (let c = 0; c < row.length; c++) {
+          const cell = row[c];
+          const colspan = cell.attrs.colspan || 1;
+          if (logicalCol === index) {
+            return cell?.textContent ?? "";
+          }
+          logicalCol += colspan;
+        }
+        return "";
+      });
+
+      if (columnData.join() === newColumnData.join()) {
         return true;
       }
 
@@ -343,7 +396,7 @@ export function sortTable({
         table.unshift(header);
       }
 
-      // create the new table
+      // create the new table - need to reconstruct with proper colspan/rowspan
       const rows = [];
       for (let i = 0; i < table.length; i += 1) {
         rows.push(state.schema.nodes.tr.createChecked(null, table[i]));
@@ -408,6 +461,7 @@ export function addRowBefore({ index }: { index?: number }): Command {
 
 /**
  * A command that deletes the current selected row, if any.
+ * Handles merged cells properly by only deleting the selected row index.
  *
  * @returns The command
  */
@@ -417,32 +471,91 @@ export function deleteRowSelection(): Command {
       state.selection instanceof CellSelection &&
       state.selection.isRowSelection()
     ) {
-      return deleteRow(state, dispatch);
+      return deleteRowWithMergedCells(state, dispatch);
     }
     return false;
   };
 }
 
 /**
- * A command that deletes the current selected column, if any.
- *
- * @returns The command
+ * Delete a row while properly handling merged cells.
+ * Only deletes the specified row index, preserving merged cells from other rows.
  */
-export function deleteColSelection(): Command {
-  return (state, dispatch) => {
-    if (
-      state.selection instanceof CellSelection &&
-      state.selection.isColSelection()
-    ) {
-      return deleteColumn(state, dispatch);
-    }
+function deleteRowWithMergedCells(
+  state: EditorState,
+  dispatch?: (tr: Transaction) => void
+): boolean {
+  if (!(state.selection instanceof CellSelection)) {
     return false;
-  };
+  }
+
+  const rect = selectedRect(state);
+  const { tableStart, map } = rect;
+
+  // Get the row index to delete - use the anchor cell's row
+  const anchorRect = map.findCell(state.selection.$anchorCell.pos - tableStart);
+  const rowIndex = anchorRect.top;
+
+  if (dispatch) {
+    const tr = state.tr;
+    const table = rect.table;
+
+    // Create a new table without the specified row
+    const newRows: Node[] = [];
+
+    for (let r = 0; r < table.childCount; r++) {
+      if (r === rowIndex) {
+        // Skip the row we're deleting
+        continue;
+      }
+
+      const row = table.child(r);
+      const newCells: Node[] = [];
+
+      for (let c = 0; c < row.childCount; c++) {
+        const cell = row.child(c);
+        const cellAttrs = cell.attrs;
+
+        // Check if this cell is part of a merged cell that spans the deleted row
+        const rowspan = cellAttrs.rowspan || 1;
+        const colspan = cellAttrs.colspan || 1;
+
+        // If the cell spans across the deleted row, adjust its rowspan
+        if (rowspan > 1 && r < rowIndex && r + rowspan > rowIndex) {
+          // This cell spans the deleted row, reduce its rowspan
+          newCells.push(
+            cell.type.create(
+              { ...cellAttrs, rowspan: rowspan - 1 },
+              cell.content
+            )
+          );
+        } else if (rowspan === 1 || r >= rowIndex) {
+          // Normal cell or cell after the deleted row - keep as is
+          newCells.push(cell);
+        }
+        // Skip cells that start in the deleted row (they're being deleted)
+      }
+
+      newRows.push(row.type.create(row.attrs, newCells));
+    }
+
+    // Replace the table with the new rows
+    const newTable = table.type.create(table.attrs, newRows);
+    tr.replaceRangeWith(
+      tableStart - 1,
+      tableStart - 1 + table.nodeSize,
+      newTable
+    );
+
+    dispatch(tr);
+  }
+
+  return true;
 }
 
 /**
- * A command that safely adds a column taking into account any existing heading column on the far
- * left of the table, and preventing it moving "into" the table.
+ * A command that safely adds a row taking into account any existing heading column at the top of
+ * the table, and preventing it moving "into" the table.
  *
  * @param index The index to add the column at, if undefined the current selection is used
  * @returns The command
@@ -572,7 +685,41 @@ export function setTableAttr(attrs: { layout: TableLayout | null }): Command {
       tr.setNodeMarkup(rect.tableStart - 1, undefined, {
         ...rect.table.attrs,
         ...attrs,
-      }).setSelection(TextSelection.near(tr.doc.resolve(rect.tableStart)));
+      });
+
+      // Find a safe position to place the cursor after the table
+      const tableEnd = rect.tableStart - 1 + rect.table.nodeSize;
+      let safePos = tableEnd;
+
+      // Try to find a valid text position after the table
+      for (let pos = tableEnd; pos < state.doc.content.size; pos++) {
+        const node = state.doc.nodeAt(pos);
+        if (node && node.isText) {
+          safePos = pos;
+          break;
+        }
+        // If we hit another block node, place cursor before it
+        if (node && node.isBlock && pos > tableEnd) {
+          safePos = pos;
+          break;
+        }
+      }
+
+      // If no safe position found after table, try before it
+      if (safePos === tableEnd) {
+        for (let pos = rect.tableStart - 1; pos >= 0; pos--) {
+          const node = state.doc.nodeAt(pos);
+          if (node && node.isText) {
+            safePos = pos;
+            break;
+          }
+        }
+      }
+
+      // Use a safe selection that won't cause blockquote errors
+      const safeSelection = TextSelection.near(state.doc.resolve(Math.max(0, safePos)), -1);
+      tr.setSelection(safeSelection);
+
       dispatch(tr);
       return true;
     }
@@ -725,6 +872,15 @@ export function splitCellAndCollapse(): Command {
 }
 
 /**
+ * A command that merges selected cells and collapses the selection.
+ *
+ * @returns The command
+ */
+export function mergeCellsAndCollapse(): Command {
+  return chainTransactions(mergeCells, collapseSelection());
+}
+
+/**
  * Helper function to add a row while copying alignment attributes from an existing row.
  *
  * @param tr The transaction
@@ -789,10 +945,64 @@ function addRowWithAlignment(
 }
 
 /**
- * A command that merges selected cells and collapses the selection.
+ * A command that deletes the current selected column, if any.
  *
  * @returns The command
  */
-export function mergeCellsAndCollapse(): Command {
-  return chainTransactions(mergeCells, collapseSelection());
+export function deleteColSelection(): Command {
+  return (state, dispatch) => {
+    if (
+      state.selection instanceof CellSelection &&
+      state.selection.isColSelection()
+    ) {
+      return deleteColumn(state, dispatch);
+    }
+    return false;
+  };
+}
+
+/**
+ * Set cell background color. Passed attributes will be merged with existing.
+ *
+ * @param color The background color to set
+ * @returns The command
+ */
+export function setCellBackgroundColor({
+  color,
+}: {
+  color: string | null;
+}): Command {
+  return (state, dispatch) => {
+    if (!isInTable(state)) {
+      return false;
+    }
+
+    if (dispatch) {
+      const rect = selectedRect(state);
+      let transaction = state.tr;
+
+      if (rect && state.selection instanceof CellSelection) {
+        // Set background color for selected cells
+        state.selection.forEachCell((cell, pos) => {
+          transaction = transaction.setNodeMarkup(pos, undefined, {
+            ...cell.attrs,
+            backgroundColor: color,
+          });
+        });
+      } else {
+        // Set background color for current cell
+        const $pos = state.selection.$head;
+        const cell = $pos.node();
+        if (cell && cell.type.spec.tableRole === "cell") {
+          transaction = transaction.setNodeMarkup($pos.before(), undefined, {
+            ...cell.attrs,
+            backgroundColor: color,
+          });
+        }
+      }
+
+      dispatch(transaction);
+    }
+    return true;
+  };
 }

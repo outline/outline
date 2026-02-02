@@ -21,20 +21,25 @@ import {
   matchDocumentSlug as documentSlug,
   matchCollectionSlug as collectionSlug,
   trashPath,
+  hashtagsPath,
   debugPath,
 } from "~/utils/routeHelpers";
 import env from "~/env";
 
 const SettingsRoutes = lazy(() => import("./settings"));
+const Profile = lazy(() => import("~/scenes/Settings/Profile"));
 const Archive = lazy(() => import("~/scenes/Archive"));
 const Collection = lazy(() => import("~/scenes/Collection"));
 const Document = lazy(() => import("~/scenes/Document"));
 const Drafts = lazy(() => import("~/scenes/Drafts"));
 const Home = lazy(() => import("~/scenes/Home"));
+const Hashtags = lazy(() => import("~/scenes/Hashtags"));
 const Search = lazy(() => import("~/scenes/Search"));
 const Trash = lazy(() => import("~/scenes/Trash"));
 const Debug = lazy(() => import("~/scenes/Developer/Debug"));
 const Changesets = lazy(() => import("~/scenes/Developer/Changesets"));
+const UserProfile = lazy(() => import("~/scenes/UserProfile"));
+const MindMap = lazy(() => import("~/scenes/MindMap"));
 
 const RedirectDocument = ({
   match,
@@ -80,6 +85,7 @@ function AuthenticatedRoutes() {
             <Redirect from="/dashboard" to={homePath()} />
             <Redirect exact from="/starred" to={homePath()} />
             <Redirect exact from="/templates" to={settingsPath("templates")} />
+            <Redirect exact from="/profile" to={settingsPath("profile")} />
             <Redirect exact from="/collections/*" to="/collection/*" />
             <Route
               exact
@@ -114,7 +120,10 @@ function AuthenticatedRoutes() {
               component={Document}
             />
             <Route path={`/doc/${documentSlug}`} component={Document} />
+            <Route exact path={hashtagsPath()} component={Hashtags} />
             <Route exact path={`${searchPath()}/:query?`} component={Search} />
+            <Route exact path="/mind-map" component={MindMap} />
+            <Route exact path="/users/:id" component={UserProfile} />
             {env.isDevelopment && (
               <Route exact path={debugPath()} component={Debug} />
             )}
@@ -126,6 +135,7 @@ function AuthenticatedRoutes() {
               />
             )}
             <Route exact path="/404" component={Error404} />
+
             <SettingsRoutes />
             <Route component={Error404} />
           </Switch>

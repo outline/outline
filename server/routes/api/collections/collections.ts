@@ -1,14 +1,16 @@
 import Router from "koa-router";
 import type { WhereOptions } from "sequelize";
-import { Sequelize, Op } from "sequelize";
+import { Sequelize, Op, QueryTypes } from "sequelize";
 import {
   CollectionPermission,
   CollectionStatusFilter,
   FileOperationState,
   FileOperationType,
+  NotificationEventType,
   UserRole,
 } from "@shared/types";
 import collectionExporter from "@server/commands/collectionExporter";
+import collectionMerger from "@server/commands/collectionMerger";
 import teamUpdater from "@server/commands/teamUpdater";
 import { parser } from "@server/editor";
 import auth from "@server/middlewares/authentication";
@@ -22,20 +24,29 @@ import {
   Team,
   User,
   Group,
+  GroupUser,
   Attachment,
   FileOperation,
   Document,
+  Relationship,
+  CollectionMergeRequest,
+  Notification,
+  Event,
+  MergeRequestStatus,
 } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import { DocumentConverter } from "@server/utils/DocumentConverter";
 import { authorize } from "@server/policies";
 import {
   presentCollection,
+  presentCollectionMergeRequest,
   presentUser,
   presentPolicies,
   presentMembership,
   presentGroup,
   presentGroupMembership,
   presentFileOperation,
+  presentDocument,
 } from "@server/presenters";
 import type { APIContext } from "@server/types";
 import { CacheHelper } from "@server/utils/CacheHelper";
@@ -44,6 +55,8 @@ import { collectionIndexing } from "@server/utils/indexing";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 import { InvalidRequestError } from "@server/errors";
+import { z } from "zod";
+import { can } from "@server/policies";
 
 const router = new Router();
 
@@ -144,12 +157,71 @@ router.post(
       CacheHelper.getCollectionDocumentsKey(collection.id),
       async () =>
         (
-          await Collection.findByPk(collection.id, {
-            attributes: ["documentStructure"],
-            includeDocumentStructure: true,
-            rejectOnEmpty: true,
-          })
-        ).documentStructure,
+          async () => {
+            const collectionWithStructure = await Collection.findByPk(
+              collection.id,
+              {
+                attributes: ["documentStructure"],
+                includeDocumentStructure: true,
+                rejectOnEmpty: true,
+              }
+            );
+            const structure = collectionWithStructure.documentStructure ?? [];
+
+            if (structure.length > 0) {
+              return structure;
+            }
+
+            const rootCount = await Document.unscoped().count({
+              where: {
+                collectionId: collection.id,
+                parentDocumentId: null,
+                publishedAt: {
+                  [Op.ne]: null,
+                },
+                archivedAt: {
+                  [Op.is]: null,
+                },
+              },
+            });
+
+            if (!rootCount) {
+              return structure;
+            }
+
+            const rootDocuments = await Document.unscoped().findAll({
+              where: {
+                collectionId: collection.id,
+                parentDocumentId: null,
+                publishedAt: {
+                  [Op.ne]: null,
+                },
+                archivedAt: {
+                  [Op.is]: null,
+                },
+              },
+              order: [
+                ["createdAt", "DESC"],
+                ["id", "ASC"],
+              ],
+            });
+
+            for (const document of rootDocuments) {
+              await collectionWithStructure.addDocumentToStructure(
+                document,
+                undefined,
+                {
+                  save: false,
+                  silent: true,
+                  insertOrder: "append",
+                }
+              );
+            }
+
+            await collectionWithStructure.save({ silent: true });
+            return collectionWithStructure.documentStructure ?? [];
+          }
+        )(),
       60
     );
 
@@ -729,7 +801,8 @@ router.post(
       where[Op.and].push({ archivedAt: { [Op.eq]: null } });
     }
 
-    if (!includeListOnly || !user.isAdmin) {
+    // Administrators can see all collections, regular users only see their own
+    if (!user.isAdmin && !includeListOnly) {
       where[Op.and].push({ id: collectionIds });
     }
 
@@ -760,14 +833,14 @@ router.post(
       Collection.scope(
         statusFilter?.includes(CollectionStatusFilter.Archived)
           ? [
-              {
-                method: ["withMembership", user.id],
-              },
-              "withArchivedBy",
-            ]
-          : {
+            {
               method: ["withMembership", user.id],
-            }
+            },
+            "withArchivedBy",
+          ]
+          : {
+            method: ["withMembership", user.id],
+          }
       ).findAll({
         where,
         replacements,
@@ -961,6 +1034,1051 @@ router.post(
       success: true,
       data: {
         index: collection.index,
+      },
+    };
+  }
+);
+
+router.post(
+  "collections.networkGraph",
+  auth(),
+  validate(T.CollectionsNetworkGraphSchema),
+  async (ctx: APIContext<T.CollectionsNetworkGraphReq>) => {
+    const { user: actor } = ctx.state.auth;
+    const { groupId, search } = ctx.input.body;
+    const teamId = actor.teamId;
+
+    // Get collections based on user permissions
+    let collections: Collection[];
+    if (actor.isAdmin) {
+      // Admin sees all collections
+      collections = await Collection.scope("withAllMemberships").findAll({
+        where: {
+          teamId,
+          ...(search
+            ? {
+              name: {
+                [Op.iLike]: `%${search}%`,
+              },
+            }
+            : {}),
+        },
+        include: [
+          {
+            model: User,
+            as: "user",
+            required: false,
+          },
+          {
+            model: Document,
+            as: "documents",
+            required: false,
+            attributes: ["id"],
+          },
+        ],
+      });
+    } else {
+      // Regular users see only collections they have access to
+      const collectionIds = await actor.collectionIds();
+      collections = await Collection.scope("withAllMemberships").findAll({
+        where: {
+          teamId,
+          id: collectionIds,
+          ...(search
+            ? {
+              name: {
+                [Op.iLike]: `%${search}%`,
+              },
+            }
+            : {}),
+        },
+        include: [
+          {
+            model: User,
+            as: "user",
+            required: false,
+          },
+          {
+            model: Document,
+            as: "documents",
+            required: false,
+            attributes: ["id"],
+          },
+        ],
+      });
+    }
+
+    // Filter by group if specified
+    if (groupId) {
+      collections = collections.filter((collection) =>
+        collection.groupMemberships?.some((gm) => gm.groupId === groupId)
+      );
+    }
+
+    // Get all unique groups and users from collections
+    const groupIds = new Set<string>();
+    const userIds = new Set<string>();
+
+    for (const collection of collections) {
+      // Group memberships
+      for (const groupMembership of collection.groupMemberships || []) {
+        groupIds.add(groupMembership.groupId);
+      }
+      // User memberships (direct access to collections)
+      for (const userMembership of collection.memberships || []) {
+        userIds.add(userMembership.userId);
+      }
+      // Collection owner
+      if (collection.createdById) {
+        userIds.add(collection.createdById);
+      }
+    }
+
+    // Fetch groups
+    const groups = await Group.findAll({
+      where: {
+        id: Array.from(groupIds),
+        teamId,
+        ...(search
+          ? {
+            name: {
+              [Op.iLike]: `%${search}%`,
+            },
+          }
+          : {}),
+      },
+      include: [
+        {
+          model: GroupUser,
+          as: "groupUsers",
+          required: false,
+        },
+      ],
+    });
+
+    // Get documents for collections with owners
+    const documentIds = new Set<string>();
+    const documentsByCollection = new Map<string, Document[]>();
+    const documentHashtags = new Map<string, string[]>(); // documentId -> hashtags
+    const hashtagDocuments = new Map<string, Set<string>>(); // hashtag -> documentIds
+
+    for (const collection of collections) {
+      const collectionDocuments = await Document.findAll({
+        where: {
+          collectionId: collection.id,
+          publishedAt: { [Op.ne]: null },
+          archivedAt: { [Op.is]: null },
+        },
+        attributes: ["id", "title", "collectionId", "createdById", "text", "content"],
+        include: [
+          {
+            model: User,
+            as: "createdBy",
+            attributes: ["id", "name", "email"],
+            required: false,
+            paranoid: false,
+          },
+          {
+            model: UserMembership,
+            as: "memberships",
+            attributes: ["userId", "permission"],
+            required: false,
+            include: [
+              {
+                model: User,
+                as: "user",
+                attributes: ["id", "name", "email"],
+                required: false,
+                paranoid: false,
+              },
+            ],
+          },
+        ],
+        limit: 100, // Ограничиваем количество документов для производительности
+      });
+
+      documentsByCollection.set(collection.id, collectionDocuments);
+
+      // Извлекаем хештеги из документов и собираем пользователей с доступом к документам
+      for (const doc of collectionDocuments) {
+        documentIds.add(doc.id);
+
+        // Добавляем пользователей, которые имеют прямой доступ к документу
+        if ((doc as any).memberships) {
+          for (const membership of (doc as any).memberships) {
+            if (membership.userId) {
+              userIds.add(membership.userId);
+            }
+          }
+        }
+
+        // Извлекаем хештеги из текста или content
+        let textToExtract = "";
+        if (doc.text) {
+          textToExtract = doc.text;
+        } else if (doc.content) {
+          // Конвертируем Prosemirror content в текст для извлечения хештегов
+          try {
+            textToExtract = DocumentHelper.toPlainText(doc.content);
+          } catch (err) {
+            // Если не удалось конвертировать, пробуем через toMarkdown
+            try {
+              textToExtract = await DocumentHelper.toMarkdown(doc.content, {
+                includeTitle: false,
+              });
+            } catch (err2) {
+              // Если не удалось конвертировать, пропускаем
+              textToExtract = "";
+            }
+          }
+        }
+
+        if (textToExtract) {
+          // Извлекаем хештеги используя тот же метод что и DocumentConverter
+          const hashtagRegex = /(?:^|\s)#([\p{L}][\p{L}\p{N}_]*)/gu;
+          const matches = textToExtract.matchAll(hashtagRegex);
+          const hashtags = new Set<string>();
+
+          for (const match of matches) {
+            const tag = match[1];
+            if (tag && tag.length >= 2 && tag.length <= 50 && /[\p{L}]/u.test(tag)) {
+              const normalizedTag = tag.toLowerCase();
+              hashtags.add(normalizedTag);
+
+              // Добавляем документ к хештегу
+              if (!hashtagDocuments.has(normalizedTag)) {
+                hashtagDocuments.set(normalizedTag, new Set());
+              }
+              hashtagDocuments.get(normalizedTag)!.add(doc.id);
+            }
+          }
+
+          if (hashtags.size > 0) {
+            documentHashtags.set(doc.id, Array.from(hashtags));
+          }
+        }
+      }
+    }
+
+    // Get relationships between documents
+    const relationships: Array<{
+      documentId: string;
+      reverseDocumentId: string;
+    }> = [];
+
+    if (documentIds.size > 0) {
+      const docRelationships = await Relationship.findAll({
+        where: {
+          documentId: { [Op.in]: Array.from(documentIds) },
+          reverseDocumentId: { [Op.in]: Array.from(documentIds) },
+        },
+        attributes: ["documentId", "reverseDocumentId"],
+      });
+
+      docRelationships.forEach((rel) => {
+        relationships.push({
+          documentId: rel.documentId,
+          reverseDocumentId: rel.reverseDocumentId,
+        });
+      });
+    }
+
+    // Build nodes
+    const nodes: Array<{
+      id: string;
+      type: "group" | "collection" | "document" | "hashtag" | "owner" | "user";
+      label: string;
+      size: number;
+      data: any;
+    }> = [];
+
+    // Fetch users who have access to collections
+    const users = userIds.size > 0 ? await User.findAll({
+      where: {
+        id: Array.from(userIds),
+        teamId,
+      },
+      attributes: ["id", "name", "email"],
+      paranoid: false,
+    }) : [];
+
+    // Add user nodes
+    for (const user of users) {
+      // Подсчитываем количество коллекций, к которым у пользователя есть доступ
+      const userCollectionCount = collections.filter((c) => {
+        // Прямой доступ через UserMembership
+        const hasDirectAccess = c.memberships?.some((m) => m.userId === user.id);
+        // Доступ через владение
+        const isOwner = c.createdById === user.id;
+        return hasDirectAccess || isOwner;
+      }).length;
+
+      if (userCollectionCount > 0) {
+        nodes.push({
+          id: `user-${user.id}`,
+          type: "user",
+          label: user.name || user.email || "Unknown",
+          size: Math.min(Math.max(userCollectionCount * 2 + 12, 12), 28),
+          data: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            collectionCount: userCollectionCount,
+          },
+        });
+      }
+    }
+
+    // Add group nodes
+    for (const group of groups) {
+      nodes.push({
+        id: `group-${group.id}`,
+        type: "group",
+        label: group.name,
+        size: Math.min(Math.max((group.groupUsers?.length || 0) * 2 + 15, 15), 40),
+        data: {
+          id: group.id,
+          name: group.name,
+          memberCount: group.groupUsers?.length || 0,
+        },
+      });
+    }
+
+    // Get document counts for all collections in one query
+    const collectionIds = collections.map((c) => c.id);
+    let documentCounts: Array<{ collectionId: string; count: string }> = [];
+
+    if (collectionIds.length > 0) {
+      const countSql = `
+        SELECT "collectionId", COUNT(*) as count
+        FROM "documents"
+        WHERE "deletedAt" IS NULL
+          AND "publishedAt" IS NOT NULL
+          AND ("sourceMetadata"#>>'{trial}') IS NULL
+          AND "collectionId" IN (:collectionIds)
+          AND "archivedAt" IS NULL
+        GROUP BY "collectionId"
+      `;
+      documentCounts = (await Document.sequelize!.query(countSql, {
+        type: QueryTypes.SELECT,
+        replacements: { collectionIds },
+      })) as Array<{ collectionId: string; count: string }>;
+    }
+
+    const countMap = new Map<string, number>();
+    for (const count of documentCounts as Array<{ collectionId: string; count: string }>) {
+      countMap.set(
+        count.collectionId,
+        parseInt(count.count, 10)
+      );
+    }
+
+    // Add collection nodes and collect owner IDs
+    const collectionOwnerIds = new Set<string>();
+    for (const collection of collections) {
+      const documentCount = countMap.get(collection.id) || 0;
+
+      // Calculate node size based on document count (min 20, max 60)
+      const size = Math.min(Math.max(documentCount * 2 + 20, 20), 60);
+
+      if (collection.createdById) {
+        collectionOwnerIds.add(collection.createdById);
+      }
+
+      nodes.push({
+        id: `collection-${collection.id}`,
+        type: "collection",
+        label: collection.name,
+        size,
+        data: {
+          id: collection.id,
+          name: collection.name,
+          documentCount,
+          createdById: collection.createdById,
+          color: collection.color,
+          icon: collection.icon,
+          path: collection.path,
+          description: collection.description,
+          createdAt: collection.createdAt?.toISOString(),
+        },
+      });
+    }
+
+    // Add document nodes with owner info
+    const ownerIds = new Set<string>();
+    for (const [collectionId, docs] of documentsByCollection.entries()) {
+      for (const doc of docs) {
+        if (doc.createdById) {
+          ownerIds.add(doc.createdById);
+        }
+        nodes.push({
+          id: `document-${doc.id}`,
+          type: "document",
+          label: doc.title || "Untitled",
+          size: 8,
+          data: {
+            id: doc.id,
+            title: doc.title,
+            collectionId: doc.collectionId,
+            createdById: doc.createdById,
+            ownerName: (doc.createdBy as any)?.name || (doc.createdBy as any)?.email || undefined,
+          },
+        });
+      }
+    }
+
+    // Add owner nodes (для владельцев документов и коллекций)
+    const allOwnerIds = new Set<string>([...ownerIds, ...collectionOwnerIds]);
+    if (allOwnerIds.size > 0) {
+      const owners = await User.findAll({
+        where: {
+          id: Array.from(allOwnerIds),
+          teamId,
+        },
+        attributes: ["id", "name", "email"],
+        paranoid: false,
+      });
+
+      for (const owner of owners) {
+        // Подсчитываем количество документов владельца
+        const ownerDocCount = Array.from(documentsByCollection.values())
+          .flat()
+          .filter((doc) => doc.createdById === owner.id).length;
+
+        // Подсчитываем количество коллекций владельца
+        const ownerCollectionCount = collections.filter(
+          (c) => c.createdById === owner.id
+        ).length;
+
+        // Добавляем узел владельца, если у него есть документы или коллекции
+        if (ownerDocCount > 0 || ownerCollectionCount > 0) {
+          const totalCount = ownerDocCount + ownerCollectionCount;
+          nodes.push({
+            id: `owner-${owner.id}`,
+            type: "owner",
+            label: owner.name || owner.email || "Unknown",
+            size: Math.min(Math.max(totalCount * 2 + 10, 10), 30),
+            data: {
+              id: owner.id,
+              name: owner.name,
+              email: owner.email,
+              documentCount: ownerDocCount,
+              collectionCount: ownerCollectionCount,
+            },
+          });
+        }
+      }
+    }
+
+    // Add hashtag nodes
+    for (const [hashtag, docIds] of hashtagDocuments.entries()) {
+      nodes.push({
+        id: `hashtag-${hashtag}`,
+        type: "hashtag",
+        label: `#${hashtag}`,
+        size: Math.min(Math.max(docIds.size * 2 + 8, 8), 25),
+        data: {
+          name: hashtag,
+          documentCount: docIds.size,
+        },
+      });
+    }
+
+    // Build links
+    const links: Array<{
+      source: string;
+      target: string;
+      type: string;
+    }> = [];
+
+    // User -> Collection links with permission type (direct access)
+    for (const collection of collections) {
+      for (const userMembership of collection.memberships || []) {
+        // Определяем тип доступа пользователя к коллекции на основе permission
+        const permissionType =
+          userMembership.permission === CollectionPermission.ReadWrite
+            ? "editor"
+            : userMembership.permission === CollectionPermission.Read
+              ? "viewer"
+              : userMembership.permission === CollectionPermission.Admin
+                ? "admin"
+                : "access";
+        links.push({
+          source: `user-${userMembership.userId}`,
+          target: `collection-${collection.id}`,
+          type: permissionType,
+        });
+      }
+    }
+
+    // Group -> Collection links with permission type
+    for (const collection of collections) {
+      for (const groupMembership of collection.groupMemberships || []) {
+        // Определяем тип доступа группы к коллекции на основе permission
+        const permissionType =
+          groupMembership.permission === CollectionPermission.ReadWrite
+            ? "editor"
+            : groupMembership.permission === CollectionPermission.Read
+              ? "viewer"
+              : groupMembership.permission === CollectionPermission.Admin
+                ? "admin"
+                : "access";
+        links.push({
+          source: `group-${groupMembership.groupId}`,
+          target: `collection-${collection.id}`,
+          type: permissionType,
+        });
+      }
+    }
+
+    // Collection -> Document links
+    for (const [collectionId, docs] of documentsByCollection.entries()) {
+      for (const doc of docs) {
+        links.push({
+          source: `collection-${collectionId}`,
+          target: `document-${doc.id}`,
+          type: "contains",
+        });
+      }
+    }
+
+    // Document -> Document links (relationships)
+    for (const rel of relationships) {
+      links.push({
+        source: `document-${rel.reverseDocumentId}`,
+        target: `document-${rel.documentId}`,
+        type: "reference",
+      });
+    }
+
+    // Document -> Hashtag links
+    for (const [docId, hashtags] of documentHashtags.entries()) {
+      for (const hashtag of hashtags) {
+        links.push({
+          source: `document-${docId}`,
+          target: `hashtag-${hashtag}`,
+          type: "tagged",
+        });
+      }
+    }
+
+    // Document -> Owner links
+    for (const [collectionId, docs] of documentsByCollection.entries()) {
+      for (const doc of docs) {
+        if (doc.createdById) {
+          links.push({
+            source: `document-${doc.id}`,
+            target: `owner-${doc.createdById}`,
+            type: "owned",
+          });
+        }
+      }
+    }
+
+    // Collection -> Owner links (для владельцев коллекций)
+    for (const collection of collections) {
+      if (collection.createdById) {
+        links.push({
+          source: `collection-${collection.id}`,
+          target: `owner-${collection.createdById}`,
+          type: "owned",
+        });
+      }
+    }
+
+    // User -> Document links (прямой доступ пользователей к документам)
+    for (const [collectionId, docs] of documentsByCollection.entries()) {
+      for (const doc of docs) {
+        if ((doc as any).memberships) {
+          for (const membership of (doc as any).memberships) {
+            if (membership.userId) {
+              const permissionType =
+                membership.permission === CollectionPermission.ReadWrite
+                  ? "editor"
+                  : membership.permission === CollectionPermission.Read
+                    ? "viewer"
+                    : membership.permission === CollectionPermission.Admin
+                      ? "admin"
+                      : "access";
+              links.push({
+                source: `user-${membership.userId}`,
+                target: `document-${doc.id}`,
+                type: permissionType,
+              });
+            }
+          }
+        }
+      }
+    }
+
+    ctx.body = {
+      data: {
+        nodes,
+        links,
+      },
+    };
+  }
+);
+
+// Collection Merge Requests
+
+router.post(
+  "collections.mergeRequest",
+  auth(),
+  validate(T.CollectionsMergeRequestCreateSchema),
+  transaction(),
+  async (ctx: APIContext<T.CollectionsMergeRequestCreateReq>) => {
+    const { transaction } = ctx.state;
+    const { sourceCollectionIds, newCollectionName, targetCollectionId } =
+      ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    // Validate that user has edit access to all source collections
+    const sourceCollections = await Collection.findAll({
+      where: {
+        id: sourceCollectionIds,
+        teamId: user.teamId,
+      },
+      include: [
+        {
+          model: UserMembership,
+          as: "memberships",
+          where: { userId: user.id },
+          required: false,
+        },
+        {
+          model: GroupMembership,
+          as: "groupMemberships",
+          required: false,
+          include: [
+            {
+              model: Group,
+              as: "group",
+              include: [
+                {
+                  model: GroupUser,
+                  as: "groupUsers",
+                  where: { userId: user.id },
+                  required: true,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      transaction,
+    });
+
+    if (sourceCollections.length !== sourceCollectionIds.length) {
+      throw InvalidRequestError("Some source collections not found");
+    }
+
+    // Check permissions - user must be editor or admin of all collections
+    for (const collection of sourceCollections) {
+      const canEdit = await can(user, "updateDocument", collection);
+      if (!canEdit) {
+        throw InvalidRequestError(
+          `You don't have permission to merge collection: ${collection.name}`
+        );
+      }
+    }
+
+    // Get owners of all source collections
+    const ownerIds = new Set<string>();
+    for (const collection of sourceCollections) {
+      if (collection.createdById) {
+        ownerIds.add(collection.createdById);
+      }
+    }
+
+    // Create merge request
+    const mergeRequest = await CollectionMergeRequest.createWithCtx(ctx, {
+      sourceCollectionIds,
+      newCollectionName,
+      targetCollectionId: targetCollectionId || null,
+      requestedById: user.id,
+      teamId: user.teamId,
+      status: MergeRequestStatus.Pending,
+      approvals: {},
+      rejections: {},
+    });
+
+    // Determine if the user owns all source collections
+    let userOwnsAllSources = true;
+    for (const collection of sourceCollections) {
+      if (collection.createdById !== user.id) {
+        userOwnsAllSources = false;
+        break;
+      }
+    }
+
+    // Determine main owner (target collection owner or first source collection owner)
+    let mainOwnerId = sourceCollections[0].createdById;
+    if (targetCollectionId) {
+      const targetCollection = await Collection.findByPk(targetCollectionId, { transaction });
+      if (targetCollection && targetCollection.createdById) {
+        mainOwnerId = targetCollection.createdById;
+      }
+    }
+
+    if (userOwnsAllSources) {
+      // Immediate merge
+      await collectionMerger(ctx, {
+        mergeRequest,
+        user,
+        transaction,
+      });
+
+      // Notify requester that the merge has been completed
+      await Notification.create(
+        {
+          event: NotificationEventType.CollectionMergeCompleted,
+          userId: user.id,
+          actorId: user.id,
+          teamId: user.teamId,
+          collectionId: targetCollectionId || sourceCollections[0].id,
+          data: {
+            mergeRequestId: mergeRequest.id,
+          },
+        },
+        { transaction }
+      );
+    } else {
+      // Create notifications for all unique owners (excluding the requester)
+      const uniqueOwnerIds = new Set<string>();
+      for (const collection of sourceCollections) {
+        if (collection.createdById && collection.createdById !== user.id) {
+          uniqueOwnerIds.add(collection.createdById);
+        }
+      }
+
+      if (targetCollectionId) {
+        const targetCollection = await Collection.findByPk(targetCollectionId, { transaction });
+        if (targetCollection && targetCollection.createdById && targetCollection.createdById !== user.id) {
+          uniqueOwnerIds.add(targetCollection.createdById);
+        }
+      }
+
+      await Promise.all(
+        Array.from(uniqueOwnerIds).map((ownerId) =>
+          Notification.create(
+            {
+              event: NotificationEventType.CollectionMergePending,
+              userId: ownerId,
+              actorId: user.id,
+              teamId: user.teamId,
+              collectionId: targetCollectionId || sourceCollections[0].id,
+              data: {
+                mergeRequestId: mergeRequest.id,
+              },
+            },
+            { transaction }
+          )
+        )
+      );
+
+      // Notify requester that the request has been created
+      await Notification.create(
+        {
+          event: NotificationEventType.CollectionMergePending,
+          userId: user.id,
+          actorId: user.id,
+          teamId: user.teamId,
+          collectionId: targetCollectionId || sourceCollections[0].id,
+          data: {
+            mergeRequestId: mergeRequest.id,
+          },
+        },
+        { transaction }
+      );
+    }
+
+    ctx.body = {
+      data: await presentCollectionMergeRequest(ctx, mergeRequest),
+    };
+  }
+);
+
+router.post(
+  "collections.mergeRequest.list",
+  auth(),
+  validate(T.CollectionsMergeRequestListSchema),
+  pagination(),
+  async (ctx: APIContext<T.CollectionsMergeRequestListReq>) => {
+    const { user } = ctx.state.auth;
+    const { status } = ctx.input.body;
+    const { offset, limit } = ctx.state.pagination;
+
+    const where: any = {
+      teamId: user.teamId,
+    };
+
+    if (status) {
+      where.status = status;
+    }
+
+    const mergeRequests = await CollectionMergeRequest.findAndCountAll({
+      where,
+      include: [
+        {
+          model: Collection,
+          as: "targetCollection",
+        },
+        {
+          model: User,
+          as: "requestedBy",
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+      offset,
+      limit,
+    });
+
+    ctx.body = {
+      pagination: ctx.state.pagination,
+      data: await Promise.all(
+        mergeRequests.rows.map((req) => presentCollectionMergeRequest(ctx, req))
+      ),
+    };
+  }
+);
+
+router.post(
+  "collections.mergeRequest.approve",
+  auth(),
+  validate(T.CollectionsMergeRequestApproveSchema),
+  transaction(),
+  async (ctx: APIContext<T.CollectionsMergeRequestApproveReq>) => {
+    const { transaction } = ctx.state;
+    const { requestId, collectionId } = ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    const mergeRequest = await CollectionMergeRequest.findByPk(requestId, {
+      include: [
+        {
+          model: Collection,
+          as: "targetCollection",
+        },
+      ],
+      transaction,
+      rejectOnEmpty: true,
+    });
+
+    if (mergeRequest.teamId !== user.teamId) {
+      throw InvalidRequestError("Merge request not found");
+    }
+
+    if (mergeRequest.status !== MergeRequestStatus.Pending) {
+      throw InvalidRequestError("Merge request is not pending");
+    }
+
+    // Verify user is owner of the collection
+    const collection = await Collection.findByPk(collectionId, {
+      transaction,
+      rejectOnEmpty: true,
+    });
+
+    if (collection.createdById !== user.id && !user.isAdmin) {
+      throw InvalidRequestError(
+        "Only collection owner can approve merge request"
+      );
+    }
+
+    if (!mergeRequest.sourceCollectionIds.includes(collectionId)) {
+      throw InvalidRequestError("Collection is not part of this merge request");
+    }
+
+    // Add approval
+    const approvals = { ...mergeRequest.approvals };
+    approvals[collectionId] = {
+      userId: user.id,
+      approvedAt: new Date().toISOString(),
+    };
+
+    mergeRequest.approvals = approvals;
+
+    // Check if all owners have approved
+    const sourceCollections = await Collection.findAll({
+      where: {
+        id: mergeRequest.sourceCollectionIds,
+      },
+      transaction,
+    });
+
+    const allOwnerIds = new Set<string>();
+    for (const col of sourceCollections) {
+      if (col.createdById) {
+        allOwnerIds.add(col.createdById);
+      }
+    }
+
+    const approvedOwnerIds = new Set(
+      Object.values(approvals).map((a) => a.userId)
+    );
+
+    // If all owners approved, change status to approved and execute merge
+    if (
+      allOwnerIds.size > 0 &&
+      Array.from(allOwnerIds).every((id) => approvedOwnerIds.has(id))
+    ) {
+      mergeRequest.status = MergeRequestStatus.Approved;
+
+      // Execute merge immediately
+      await collectionMerger(ctx, {
+        mergeRequest,
+        user,
+        transaction,
+      });
+
+      // Notify initiator
+      await Notification.create(
+        {
+          event: NotificationEventType.CollectionMergeCompleted,
+          userId: mergeRequest.requestedById,
+          actorId: user.id,
+          teamId: user.teamId,
+          collectionId: mergeRequest.targetCollectionId || mergeRequest.sourceCollectionIds[0],
+          data: {
+            mergeRequestId: mergeRequest.id,
+          },
+        },
+        { transaction }
+      );
+
+      // Notify all owners
+      await Promise.all(
+        Array.from(allOwnerIds).map((ownerId) => {
+          if (ownerId === user.id) return; // Don't notify the approver themselves if they are an owner
+          return Notification.create(
+            {
+              event: NotificationEventType.CollectionMergeCompleted,
+              userId: ownerId,
+              actorId: user.id,
+              teamId: user.teamId,
+              collectionId: mergeRequest.targetCollectionId || mergeRequest.sourceCollectionIds[0],
+              data: {
+                mergeRequestId: mergeRequest.id,
+              },
+            },
+            { transaction }
+          );
+        })
+      );
+    }
+
+    await mergeRequest.save({ transaction });
+
+    ctx.body = {
+      data: await presentCollectionMergeRequest(ctx, mergeRequest),
+    };
+  }
+);
+
+router.post(
+  "collections.mergeRequest.reject",
+  auth(),
+  validate(T.CollectionsMergeRequestRejectSchema),
+  transaction(),
+  async (ctx: APIContext<T.CollectionsMergeRequestRejectReq>) => {
+    const { transaction } = ctx.state;
+    const { requestId, collectionId, reason } = ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    const mergeRequest = await CollectionMergeRequest.findByPk(requestId, {
+      transaction,
+      rejectOnEmpty: true,
+    });
+
+    if (mergeRequest.teamId !== user.teamId) {
+      throw InvalidRequestError("Merge request not found");
+    }
+
+    if (mergeRequest.status !== MergeRequestStatus.Pending) {
+      throw InvalidRequestError("Merge request is not pending");
+    }
+
+    // Verify user is owner of the collection
+    const collection = await Collection.findByPk(collectionId, {
+      transaction,
+      rejectOnEmpty: true,
+    });
+
+    if (collection.createdById !== user.id && !user.isAdmin) {
+      throw InvalidRequestError(
+        "Only collection owner can reject merge request"
+      );
+    }
+
+    // Add rejection
+    const rejections = { ...mergeRequest.rejections };
+    rejections[collectionId] = {
+      userId: user.id,
+      rejectedAt: new Date().toISOString(),
+      reason: reason || undefined,
+    };
+
+    mergeRequest.rejections = rejections;
+    mergeRequest.status = MergeRequestStatus.Rejected;
+
+    await mergeRequest.save({ transaction });
+
+    // Notify initiator about rejection
+    await Notification.create(
+      {
+        event: NotificationEventType.CollectionMergeRejected,
+        userId: mergeRequest.requestedById,
+        actorId: user.id,
+        teamId: user.teamId,
+        collectionId: mergeRequest.targetCollectionId || mergeRequest.sourceCollectionIds[0],
+        data: {
+          mergeRequestId: mergeRequest.id,
+        },
+      },
+      { transaction }
+    );
+
+    ctx.body = {
+      data: await presentCollectionMergeRequest(ctx, mergeRequest),
+    };
+  }
+);
+
+router.post(
+  "collections.mergeRequest.execute",
+  auth(),
+  validate(T.CollectionsMergeRequestExecuteSchema),
+  transaction(),
+  async (ctx: APIContext<T.CollectionsMergeRequestExecuteReq>) => {
+    const { transaction } = ctx.state;
+    const { requestId } = ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    const mergeRequest = await CollectionMergeRequest.findByPk(requestId, {
+      transaction,
+      rejectOnEmpty: true,
+    });
+
+    if (mergeRequest.teamId !== user.teamId) {
+      throw InvalidRequestError("Merge request not found");
+    }
+
+    if (mergeRequest.status !== MergeRequestStatus.Approved) {
+      throw InvalidRequestError("Merge request must be approved by all owners");
+    }
+
+    // Execute merge
+    const result = await collectionMerger(ctx, {
+      mergeRequest,
+      user,
+      transaction,
+    });
+
+    ctx.body = {
+      data: {
+        collection: await presentCollection(ctx, result.mergedCollection),
+        documents: await Promise.all(
+          result.documents.map((doc) => presentDocument(ctx, doc))
+        ),
       },
     };
   }

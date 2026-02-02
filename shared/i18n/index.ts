@@ -41,16 +41,16 @@ export const languageOptions: LanguageOption[] = [
     value: "fr_FR",
   },
   {
-    label: "Italiano (Italian)",
-    value: "it_IT",
-  },
-  {
     label: "日本語 (Japanese)",
     value: "ja_JP",
   },
   {
     label: "한국어 (Korean)",
     value: "ko_KR",
+  },
+  {
+    label: "Italiano (Italian)",
+    value: "it_IT",
   },
   {
     label: "Magyar (Hungarian)",
@@ -93,8 +93,16 @@ export const languageOptions: LanguageOption[] = [
     value: "uk_UA",
   },
   {
+    label: "Қазақ тілі (Kazakh)",
+    value: "kk_KZ",
+  },
+  {
     label: "Tiếng Việt (Vietnamese)",
     value: "vi_VN",
+  },
+  {
+    label: "Русский (Russian)",
+    value: "ru_RU",
   },
 ];
 

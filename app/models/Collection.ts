@@ -99,6 +99,12 @@ export default class Collection extends ParanoidModel {
   @observable
   archivedBy?: User;
 
+  /**
+   * User who created the collection.
+   */
+  @observable
+  createdBy?: User;
+
   @computed
   get searchContent(): string {
     return this.name;

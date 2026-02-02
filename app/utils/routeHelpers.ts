@@ -27,6 +27,20 @@ export function trashPath(): string {
   return "/trash";
 }
 
+export function hashtagsPath(): string {
+  return "/hashtags";
+}
+
+/**
+ * Returns the path to a user's profile.
+ *
+ * @param userId The user ID.
+ * @returns The profile path for the user.
+ */
+export function userProfilePath(userId: string): string {
+  return `/users/${userId}`;
+}
+
 export function debugPath(): string {
   return "/debug";
 }
@@ -40,9 +54,8 @@ export function settingsPath(...args: string[]): string {
 }
 
 export function commentPath(document: Document, comment: Comment): string {
-  return `${documentPath(document)}?commentId=${comment.id}${
-    comment.isResolved ? "&resolved=1" : ""
-  }`;
+  return `${documentPath(document)}?commentId=${comment.id}${comment.isResolved ? "&resolved=1" : ""
+    }`;
 }
 
 export function collectionPath(

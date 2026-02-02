@@ -121,6 +121,17 @@ export type CollectionsRemoveUserReq = z.infer<
   typeof CollectionsRemoveUserSchema
 >;
 
+export const CollectionsNetworkGraphSchema = BaseSchema.extend({
+  body: z.object({
+    groupId: z.string().uuid().optional(),
+    search: z.string().optional(),
+  }),
+});
+
+export type CollectionsNetworkGraphReq = z.infer<
+  typeof CollectionsNetworkGraphSchema
+>;
+
 export const CollectionsMembershipsSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
     query: z.string().optional(),
@@ -228,3 +239,58 @@ export const CollectionsMoveSchema = BaseSchema.extend({
 });
 
 export type CollectionsMoveReq = z.infer<typeof CollectionsMoveSchema>;
+
+export const CollectionsMergeRequestCreateSchema = BaseSchema.extend({
+  body: z.object({
+    sourceCollectionIds: z.array(z.string().uuid()).min(2),
+    newCollectionName: z.string().min(1),
+    targetCollectionId: z.string().uuid().optional(),
+  }),
+});
+
+export type CollectionsMergeRequestCreateReq = z.infer<
+  typeof CollectionsMergeRequestCreateSchema
+>;
+
+export const CollectionsMergeRequestApproveSchema = BaseSchema.extend({
+  body: z.object({
+    requestId: z.string().uuid(),
+    collectionId: z.string().uuid(),
+  }),
+});
+
+export type CollectionsMergeRequestApproveReq = z.infer<
+  typeof CollectionsMergeRequestApproveSchema
+>;
+
+export const CollectionsMergeRequestRejectSchema = BaseSchema.extend({
+  body: z.object({
+    requestId: z.string().uuid(),
+    collectionId: z.string().uuid(),
+    reason: z.string().optional(),
+  }),
+});
+
+export type CollectionsMergeRequestRejectReq = z.infer<
+  typeof CollectionsMergeRequestRejectSchema
+>;
+
+export const CollectionsMergeRequestListSchema = BaseSchema.extend({
+  body: z.object({
+    status: z.enum(["pending", "approved", "rejected", "completed"]).optional(),
+  }),
+});
+
+export type CollectionsMergeRequestListReq = z.infer<
+  typeof CollectionsMergeRequestListSchema
+>;
+
+export const CollectionsMergeRequestExecuteSchema = BaseSchema.extend({
+  body: z.object({
+    requestId: z.string().uuid(),
+  }),
+});
+
+export type CollectionsMergeRequestExecuteReq = z.infer<
+  typeof CollectionsMergeRequestExecuteSchema
+>;

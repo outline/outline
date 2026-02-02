@@ -2,7 +2,8 @@ import { isEmail } from "class-validator";
 import { observer } from "mobx-react";
 import { v4 as uuidv4 } from "uuid";
 import { DocumentIcon, PlusIcon, CollectionIcon } from "outline-icons";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
+import styled from "styled-components";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { toast } from "sonner";
@@ -37,6 +38,13 @@ interface MentionItem extends MenuItem {
   };
 }
 
+type DocumentUsersResponse = {
+  data: Array<{ id: string }>;
+  pagination?: {
+    total?: number;
+  };
+};
+
 type Props = Omit<
   SuggestionsMenuProps<MentionItem>,
   "renderMenuItem" | "items" | "embeds"
@@ -45,12 +53,88 @@ type Props = Omit<
 function MentionMenu({ search, isActive, ...rest }: Props) {
   const [loaded, setLoaded] = useState(false);
   const [items, setItems] = useState<MentionItem[]>([]);
+  const [accessReady, setAccessReady] = useState(false);
+  const [accessibleUserIds, setAccessibleUserIds] = useState<Set<string>>(
+    () => new Set()
+  );
   const { t } = useTranslation();
   const { auth, documents, users, collections, groups } = useStores();
   const actorId = auth.currentUserId;
   const location = useLocation();
   const documentId = parseDocumentSlug(location.pathname);
   const maxResultsInSection = search ? 25 : 5;
+  const accessDocIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (documentId) {
+      return;
+    }
+
+    accessDocIdRef.current = null;
+    setAccessibleUserIds(new Set());
+    setAccessReady(false);
+  }, [documentId]);
+
+  useEffect(() => {
+    if (!documentId || !isActive) {
+      return;
+    }
+
+    if (accessDocIdRef.current === documentId && accessReady) {
+      return;
+    }
+
+    let cancelled = false;
+    const limit = 200;
+
+    const fetchAccessibleUsers = async () => {
+      setAccessReady(false);
+      const members = new Set<string>();
+      let offset = 0;
+
+      try {
+        while (true) {
+          const res = await client.post<DocumentUsersResponse>(
+            "/documents.users",
+            {
+              id: documentId,
+              limit,
+              offset,
+            }
+          );
+          const batch = res.data ?? [];
+          batch.forEach((user) => members.add(user.id));
+          const total = res.pagination?.total;
+          const hasMore =
+            batch.length === limit &&
+            (typeof total !== "number" || offset + limit < total);
+          if (!hasMore) {
+            break;
+          }
+          offset += limit;
+        }
+
+        if (!cancelled) {
+          accessDocIdRef.current = documentId;
+          setAccessibleUserIds(members);
+          setAccessReady(true);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error("Failed to load document user access", err);
+          accessDocIdRef.current = null;
+          setAccessibleUserIds(new Set());
+          setAccessReady(false);
+        }
+      }
+    };
+
+    void fetchAccessibleUsers();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [documentId, isActive, accessReady]);
 
   const { loading, request } = useRequest(
     useCallback(async () => {
@@ -83,19 +167,29 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
             ({
               name: "mention",
               icon: (
-                <Flex
+                <MentionAvatar
                   align="center"
                   justify="center"
-                  style={{ width: 24, height: 24 }}
+                  $dimmed={
+                    accessDocIdRef.current === documentId &&
+                    accessReady &&
+                    !accessibleUserIds.has(user.id)
+                  }
                 >
                   <Avatar
                     model={user}
                     alt={t("Profile picture")}
                     size={AvatarSize.Small}
                   />
-                </Flex>
+                </MentionAvatar>
               ),
               title: user.name,
+              subtitle:
+                accessDocIdRef.current === documentId &&
+                  accessReady &&
+                  !accessibleUserIds.has(user.id)
+                  ? t("No document access")
+                  : undefined,
               section: UserSection,
               appendSpace: true,
               attrs: {
@@ -318,3 +412,15 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
 }
 
 export default observer(MentionMenu);
+
+const MentionAvatar = styled(Flex) <{ $dimmed: boolean }>`
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  border: ${({ $dimmed, theme }) =>
+    $dimmed ? "1px solid transparent" : `2px solid ${theme.accent}`};
+  padding: 1px;
+  filter: ${({ $dimmed }) => ($dimmed ? "grayscale(1)" : "none")};
+  opacity: ${({ $dimmed }) => ($dimmed ? 0.55 : 1)};
+  transition: filter 120ms ease, opacity 120ms ease, border-color 120ms ease;
+`;

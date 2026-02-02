@@ -91,9 +91,9 @@ export default class ImportJSONTask extends ImportTask {
           mimeType: "application/json",
           parentDocumentId: node.parentDocumentId
             ? find(
-                output.documents,
-                (d) => d.externalId === node.parentDocumentId
-              )?.id
+              output.documents,
+              (d) => d.externalId === node.parentDocumentId
+            )?.id
             : null,
           id,
         });
@@ -219,17 +219,39 @@ export default class ImportJSONTask extends ImportTask {
     };
 
     for (const collection of output.collections) {
-      const node = Node.fromJSON(schema, collection.data);
-      const transformedNode = node.copy(transformFragment(node.content));
-      collection.description = serializer.serialize(transformedNode);
-      collection.data = transformedNode.toJSON();
+      try {
+        const node = Node.fromJSON(schema, collection.data);
+        const transformedNode = node.copy(transformFragment(node.content));
+        collection.description = serializer.serialize(transformedNode);
+        collection.data = transformedNode.toJSON();
+      } catch (err) {
+        Logger.error("Failed to parse collection data during import", err, {
+          collectionId: collection.externalId,
+          collectionName: collection.name,
+        });
+        // Skip this collection if data is invalid
+        throw new Error(
+          `Invalid collection data for "${collection.name}": ${err.message}`
+        );
+      }
     }
 
     for (const document of output.documents) {
-      const node = Node.fromJSON(schema, document.data);
-      const transformedNode = node.copy(transformFragment(node.content));
-      document.data = transformedNode.toJSON();
-      document.text = serializer.serialize(transformedNode);
+      try {
+        const node = Node.fromJSON(schema, document.data);
+        const transformedNode = node.copy(transformFragment(node.content));
+        document.data = transformedNode.toJSON();
+        document.text = serializer.serialize(transformedNode);
+      } catch (err) {
+        Logger.error("Failed to parse document data during import", err, {
+          documentId: document.externalId,
+          documentTitle: document.title,
+        });
+        // Skip this document if data is invalid
+        throw new Error(
+          `Invalid document data for "${document.title}": ${err.message}`
+        );
+      }
     }
   }
 }

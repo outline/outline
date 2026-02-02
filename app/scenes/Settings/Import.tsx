@@ -4,7 +4,7 @@ import { NewDocumentIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { Pagination } from "@shared/constants";
-import { FileOperationType } from "@shared/types";
+import { FileOperationFormat, FileOperationType } from "@shared/types";
 import { cdnPath } from "@shared/utils/urls";
 import type FileOperation from "~/models/FileOperation";
 import ImportModel from "~/models/Import";
@@ -20,6 +20,7 @@ import env from "~/env";
 import useStores from "~/hooks/useStores";
 import { Hook, PluginManager } from "~/utils/PluginManager";
 import FileOperationListItem from "./components/FileOperationListItem";
+import ImportGenericZipDialog from "./components/ImportGenericZipDialog";
 import ImportJSONDialog from "./components/ImportJSONDialog";
 import { ImportListItem } from "./components/ImportListItem";
 import ImportMarkdownDialog from "./components/ImportMarkdownDialog";
@@ -98,11 +99,28 @@ function useImportsConfig() {
       subtitle: t("Import pages from a Confluence instance"),
       icon: <img src={cdnPath("/images/confluence.png")} width={28} />,
       action: (
-        <Button type="submit" disabled neutral>
-          {t("Enterprise")}
+        <Button
+          type="submit"
+          neutral
+          onClick={() => {
+            dialogs.openModal({
+              title: t("Import Confluence Data"),
+              content: (
+                <ImportGenericZipDialog
+                  title="Confluence"
+                  description={t("Upload a zip file containing the HTML export from Confluence.")}
+                  format={FileOperationFormat.HTMLZip}
+                />
+              ),
+            });
+          }}
+        >
+          {t("Import")}…
         </Button>
       ),
     });
+
+
 
     return items;
   }, [t, dialogs, appName]);

@@ -224,7 +224,7 @@ const MenuGroup = React.forwardRef<
 MenuGroup.displayName = "MenuGroup";
 
 type BaseItemProps = {
-  label: string;
+  label: React.ReactNode;
   icon?: React.ReactElement;
   disabled?: boolean;
 };
@@ -235,9 +235,9 @@ type MenuButtonProps = BaseItemProps & {
   selected?: boolean;
   dangerous?: boolean;
 } & Omit<
-    React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item>,
-    "children" | "asChild" | "onClick"
-  > &
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item>,
+  "children" | "asChild" | "onClick"
+> &
   Omit<
     React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Item>,
     "children" | "asChild" | "onClick"
@@ -296,9 +296,9 @@ MenuButton.displayName = "MenuButton";
 type MenuInternalLinkProps = BaseItemProps & {
   to: LocationDescriptor;
 } & Omit<
-    React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item>,
-    "children" | "asChild" | "onClick"
-  > &
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item>,
+  "children" | "asChild" | "onClick"
+> &
   Omit<
     React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Item>,
     "children" | "asChild" | "onClick"
@@ -332,9 +332,9 @@ type MenuExternalLinkProps = BaseItemProps & {
   href: string;
   target?: string;
 } & Omit<
-    React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item>,
-    "children" | "asChild" | "onClick"
-  > &
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item>,
+  "children" | "asChild" | "onClick"
+> &
   Omit<
     React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Item>,
     "children" | "asChild" | "onClick"

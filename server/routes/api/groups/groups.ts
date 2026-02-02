@@ -28,7 +28,15 @@ router.post(
   pagination(),
   validate(T.GroupsListSchema),
   async (ctx: APIContext<T.GroupsListReq>) => {
-    const { sort, direction, query, userId, externalId, name } = ctx.input.body;
+    const {
+      sort,
+      direction,
+      query,
+      userId,
+      externalId,
+      externalIdPrefix,
+      name,
+    } = ctx.input.body;
     const { user } = ctx.state.auth;
     authorize(user, "listGroups", user.team);
 
@@ -56,6 +64,13 @@ router.post(
       where = {
         ...where,
         externalId,
+      };
+    } else if (externalIdPrefix) {
+      where = {
+        ...where,
+        externalId: {
+          [Op.iLike]: `${externalIdPrefix}%`,
+        },
       };
     }
 

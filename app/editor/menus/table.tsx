@@ -1,6 +1,7 @@
 import {
   AlignFullWidthIcon,
   DownloadIcon,
+  PaletteIcon,
   TableColumnsDistributeIcon,
   TrashIcon,
 } from "outline-icons";
@@ -9,6 +10,7 @@ import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import type { MenuItem } from "@shared/editor/types";
 import { TableLayout } from "@shared/editor/types";
 import type { Dictionary } from "~/hooks/useDictionary";
+import TableCellColorPicker from "~/components/TableCellColorPicker";
 
 export default function tableMenuItems(
   state: EditorState,
@@ -33,6 +35,15 @@ export default function tableMenuItems(
       icon: <AlignFullWidthIcon />,
       attrs: isFullWidth ? { layout: null } : { layout: TableLayout.fullWidth },
       active: () => isFullWidth,
+    },
+    {
+      name: "setCellBackgroundColor",
+      tooltip: dictionary.distributeColumns, // Using existing key for now
+      icon: <PaletteIcon />,
+      onClick: () => {
+        // TODO: Implement color picker dialog
+        console.log('Open color picker');
+      },
     },
     {
       name: "distributeColumns",

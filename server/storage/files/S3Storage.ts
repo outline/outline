@@ -26,11 +26,21 @@ export default class S3Storage extends BaseStorage {
   constructor() {
     super();
 
+    const endpoint = this.getEndpoint();
+    const region = env.AWS_REGION || "us-east-1";
+
+    // Validate that we have the minimum required configuration
+    if (!env.AWS_S3_UPLOAD_BUCKET_NAME && !env.AWS_S3_ACCELERATE_URL) {
+      throw new Error(
+        "AWS S3 configuration is missing. Please set AWS_S3_UPLOAD_BUCKET_NAME or AWS_S3_ACCELERATE_URL, or use FILE_STORAGE=local for local development."
+      );
+    }
+
     this.client = new S3Client({
       bucketEndpoint: env.AWS_S3_ACCELERATE_URL ? true : false,
       forcePathStyle: env.AWS_S3_FORCE_PATH_STYLE,
-      region: env.AWS_REGION,
-      endpoint: this.getEndpoint(),
+      region,
+      endpoint: endpoint || undefined,
     });
   }
 
@@ -86,9 +96,8 @@ export default class S3Storage extends BaseStorage {
       return host;
     }
 
-    return `${host}/${isServerUpload && isDocker ? "s3/" : ""}${
-      env.AWS_S3_UPLOAD_BUCKET_NAME
-    }`;
+    return `${host}/${isServerUpload && isDocker ? "s3/" : ""}${env.AWS_S3_UPLOAD_BUCKET_NAME
+      }`;
   }
 
   public getUploadUrl(isServerUpload?: boolean) {
@@ -257,17 +266,26 @@ export default class S3Storage extends BaseStorage {
 
     // support old path-style S3 uploads and new virtual host uploads by
     // checking for the bucket name in the endpoint url.
-    if (env.AWS_S3_UPLOAD_BUCKET_NAME) {
-      const url = new URL(env.AWS_S3_UPLOAD_BUCKET_URL);
-      if (url.hostname.startsWith(env.AWS_S3_UPLOAD_BUCKET_NAME + ".")) {
+    if (env.AWS_S3_UPLOAD_BUCKET_NAME && env.AWS_S3_UPLOAD_BUCKET_URL) {
+      try {
+        const url = new URL(env.AWS_S3_UPLOAD_BUCKET_URL);
+        if (url.hostname.startsWith(env.AWS_S3_UPLOAD_BUCKET_NAME + ".")) {
+          Logger.warn(
+            "AWS_S3_UPLOAD_BUCKET_URL contains the bucket name, this configuration combination will always point to AWS.\nRename your bucket or hostname if not using AWS S3.\nSee: https://github.com/outline/outline/issues/8025"
+          );
+          return undefined;
+        }
+        return env.AWS_S3_UPLOAD_BUCKET_URL;
+      } catch (error) {
         Logger.warn(
-          "AWS_S3_UPLOAD_BUCKET_URL contains the bucket name, this configuration combination will always point to AWS.\nRename your bucket or hostname if not using AWS S3.\nSee: https://github.com/outline/outline/issues/8025"
+          "Invalid AWS_S3_UPLOAD_BUCKET_URL, ignoring endpoint configuration",
+          { error }
         );
         return undefined;
       }
     }
 
-    return env.AWS_S3_UPLOAD_BUCKET_URL;
+    return env.AWS_S3_UPLOAD_BUCKET_URL || undefined;
   }
 
   private getBucket() {

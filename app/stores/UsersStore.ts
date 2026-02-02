@@ -117,6 +117,15 @@ export default class UsersStore extends Store<User> {
       id: user.id,
     });
 
+  @action
+  deactivateInactiveKeycloak = async (inactiveDays = 180) => {
+    const res = await client.post(`/users.deactivateInactiveKeycloak`, {
+      inactiveDays,
+    });
+    invariant(res?.data, "Data should be available");
+    return res.data;
+  };
+
   /**
    * Returns users that are not in the given document, optionally filtered by a query.
    *

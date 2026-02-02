@@ -44,12 +44,7 @@ const schema = env.DATABASE_SCHEMA;
 
 export function createDatabaseInstance(
   databaseConfig: string | object,
-  input: {
-    [key: string]: typeof Model<
-      InferAttributes<Model>,
-      InferCreationAttributes<Model>
-    >;
-  },
+  input: Record<string, any>,
   options?: { readOnly?: boolean }
 ): Sequelize {
   try {
@@ -67,12 +62,15 @@ export function createDatabaseInstance(
         ssl:
           env.isProduction && !isSSLDisabled
             ? {
-                // Ref.: https://github.com/brianc/node-postgres/issues/2009
-                rejectUnauthorized: false,
-              }
+              // Ref.: https://github.com/brianc/node-postgres/issues/2009
+              rejectUnauthorized: false,
+            }
             : false,
       },
-      models: Object.values(input),
+      models: Object.values(input).filter(
+        (model) =>
+          model && "init" in model && typeof (model as any).init === "function"
+      ),
       pool: {
         // Read-only connections can have larger pools since there's no write contention
         max: isReadOnly ? poolMax * 2 : poolMax,
@@ -84,11 +82,11 @@ export function createDatabaseInstance(
       retry: isReadOnly
         ? undefined
         : {
-            match: [/deadlock/i],
-            max: 3,
-            backoffBase: 200,
-            backoffExponent: 1.5,
-          },
+          match: [/deadlock/i],
+          max: 3,
+          backoffBase: 200,
+          backoffExponent: 1.5,
+        },
       schema,
     };
 
@@ -129,15 +127,18 @@ export function createDatabaseInstance(
 
     return instance;
   } catch (_err) {
+    // eslint-disable-next-line no-console
+    console.error("Database connection error details:", _err);
+
     Logger.fatal(
       "Could not connect to database",
       typeof databaseConfig === "string"
         ? new Error(
-            `Failed to parse: "${databaseConfig}". Ensure special characters in database URL are encoded`
-          )
+          `Failed to parse: "${databaseConfig}". Ensure special characters in database URL are encoded. Original Error: ${_err.message}`
+        )
         : new Error(
-            `Failed to connect using database credentials. Please check DATABASE_HOST, DATABASE_NAME, DATABASE_USER configuration`
-          )
+          `Failed to connect using database credentials. Please check DATABASE_HOST, DATABASE_NAME, DATABASE_USER configuration. Original Error: ${_err.message}`
+        )
     );
     // To satisfy TypeScript that a Sequelize instance is always returned
     throw _err;
@@ -168,12 +169,12 @@ export function createMigrationRunner(
   glob:
     | string
     | [
-        string,
-        {
-          cwd?: string | undefined;
-          ignore?: string | string[] | undefined;
-        },
-      ]
+      string,
+      {
+        cwd?: string | undefined;
+        ignore?: string | string[] | undefined;
+      },
+    ]
 ) {
   return new Umzug({
     migrations: {
@@ -257,12 +258,12 @@ export const sequelize = createDatabaseInstance(databaseConfig, models);
  */
 export const sequelizeReadOnly = env.DATABASE_URL_READ_ONLY
   ? createDatabaseInstance(
-      env.DATABASE_URL_READ_ONLY,
-      {},
-      {
-        readOnly: true,
-      }
-    )
+    env.DATABASE_URL_READ_ONLY,
+    {},
+    {
+      readOnly: true,
+    }
+  )
   : sequelize;
 
 export const migrations = createMigrationRunner(sequelize, [

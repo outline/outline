@@ -6,26 +6,30 @@ import useStores from "~/hooks/useStores";
 function Toasts() {
   const { ui } = useStores();
   const theme = useTheme();
+  const toastTheme: "light" | "dark" =
+    ui.resolvedTheme === "dark" ? "dark" : "light";
 
   return (
-    <StyledToaster
-      theme={ui.resolvedTheme as any}
-      closeButton
-      toastOptions={{
-        duration: 5000,
-        style: {
-          color: theme.toastText,
-          background: theme.toastBackground,
-          border: `1px solid ${theme.divider}`,
-          fontFamily: theme.fontFamily,
-          fontSize: "14px",
-        },
-      }}
-    />
+    <ToasterWrapper>
+      <Toaster
+        theme={toastTheme}
+        closeButton
+        toastOptions={{
+          duration: 5000,
+          style: {
+            color: theme.toastText,
+            background: theme.toastBackground,
+            border: `1px solid ${theme.divider}`,
+            fontFamily: theme.fontFamily,
+            fontSize: "14px",
+          },
+        }}
+      />
+    </ToasterWrapper>
   );
 }
 
-const StyledToaster = styled(Toaster)`
+const ToasterWrapper = styled.div`
   [data-close-button] {
     cursor: var(--pointer);
     opacity: 0;

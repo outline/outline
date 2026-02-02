@@ -59,6 +59,8 @@ export default async function presentCollection(
   if (!options.isPublic) {
     res.archivedBy =
       collection.archivedBy && presentUser(collection.archivedBy);
+    res.createdBy =
+      (collection.user || collection.createdBy) && presentUser(collection.user || collection.createdBy);
     res.sourceMetadata = collection.sourceMetadata
       ? {
           externalId: collection.sourceMetadata.externalId,

@@ -34,7 +34,14 @@ export function initI18n(defaultLanguage = "en_US") {
         useSuspense: false,
       },
       lng,
-      fallbackLng: lng,
+      fallbackLng: (code) => {
+        // First try the selected language, then fallback to English
+        const fallbacks = [code];
+        if (code !== "en-US") {
+          fallbacks.push("en-US");
+        }
+        return fallbacks;
+      },
       supportedLngs: languages.map(unicodeCLDRtoBCP47),
       keySeparator: false,
       returnNull: false,

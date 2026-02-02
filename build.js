@@ -3,6 +3,7 @@
 /* oxlint-disable no-undef */
 const { exec } = require("child_process");
 const { readdirSync, existsSync } = require("fs");
+const { rm } = require("fs/promises");
 
 const getDirectories = (source) =>
   readdirSync(source, { withFileTypes: true })
@@ -26,14 +27,20 @@ function execAsync(cmd) {
   });
 }
 
+async function cleanDir(dir) {
+  try {
+    await rm(dir, { recursive: true, force: true, maxRetries: 5 });
+  } catch (err) {
+    console.warn(`Failed to remove ${dir}`, err);
+    throw err;
+  }
+}
+
 async function build() {
   // Clean previous build
   console.log("Clean previous build…");
 
-  await Promise.all([
-    execAsync("rm -rf ./build/server"),
-    execAsync("rm -rf ./build/plugins"),
-  ]);
+  await Promise.all([cleanDir("./build/server"), cleanDir("./build/plugins")]);
 
   const d = getDirectories("./plugins");
 

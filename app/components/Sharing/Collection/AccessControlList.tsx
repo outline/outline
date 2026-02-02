@@ -156,6 +156,28 @@ export const AccessControlList = observer(
               <Placeholder />
             ) : (
               <>
+                {/* Показываем владельца коллекции, если он не в списке участников */}
+                {collection.createdBy && 
+                 !membershipsInCollection.some(m => m.userId === collection.createdBy?.id) &&
+                 !groupMembershipsInCollection.some(gm => 
+                   gm.group?.groupUsers?.some(gu => gu.userId === collection.createdBy?.id)
+                 ) && (
+                  <ListItem
+                    image={
+                      <Avatar
+                        model={collection.createdBy}
+                        size={AvatarSize.Medium}
+                      />
+                    }
+                    title={collection.createdBy.name}
+                    subtitle={t("Collection owner")}
+                    actions={
+                      <AccessTooltip>
+                        {t("Can manage")}
+                      </AccessTooltip>
+                    }
+                  />
+                )}
                 {groupMembershipsInCollection
                   .filter((membership) => membership.group)
                   .sort((a, b) =>

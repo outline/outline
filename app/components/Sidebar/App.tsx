@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { SearchIcon, HomeIcon, SidebarIcon } from "outline-icons";
+import { SearchIcon, HomeIcon, SidebarIcon, HashtagIcon } from "outline-icons";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
@@ -13,7 +13,7 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import TeamMenu from "~/menus/TeamMenu";
-import { homePath, searchPath } from "~/utils/routeHelpers";
+import { homePath, searchPath, hashtagsPath } from "~/utils/routeHelpers";
 import TeamLogo from "../TeamLogo";
 import Tooltip from "../Tooltip";
 import Sidebar from "./Sidebar";
@@ -107,6 +107,11 @@ function AppSidebar() {
                 icon={<SearchIcon />}
                 label={t("Search")}
                 exact={false}
+              />
+              <SidebarLink
+                to={hashtagsPath()}
+                icon={<HashtagIcon />}
+                label={t("Hashtags")}
               />
               {can.createDocument && <DraftsLink />}
             </Section>

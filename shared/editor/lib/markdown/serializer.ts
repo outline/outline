@@ -91,13 +91,14 @@ export class MarkdownSerializerState {
 
   flushClose(size) {
     if (this.closed) {
-      if (!this.atBlank()) {
+      // Don't add newlines inside table cells as it breaks markdown table syntax
+      if (!this.inTable && !this.atBlank()) {
         this.out += "\n";
       }
       if (size === null || size === undefined) {
         size = 2;
       }
-      if (size > 1) {
+      if (size > 1 && !this.inTable) {
         let delimMin = this.delim;
         const trim = /\s+$/.exec(delimMin);
         if (trim) {
@@ -309,8 +310,8 @@ export class MarkdownSerializerState {
 
           this.text(
             this.markString(inner, true, parent, index) +
-              text +
-              this.markString(inner, false, parent, index + 1),
+            text +
+            this.markString(inner, false, parent, index + 1),
             false
           );
         } else {
@@ -416,6 +417,18 @@ export class MarkdownSerializerState {
   // content. If `startOfLine` is true, also escape characters that
   // has special meaning only at the start of the line.
   esc(str = "", startOfLine) {
+    // Preserve checkbox patterns [x], [X], [ ], [_, [- to avoid escaping them
+    // We use a placeholder that is unlikely to appear in normal text
+    const CHECKBOX_PLACEHOLDER = "\uE000CHECKBOX\uE001";
+    const checkboxMatches: string[] = [];
+    let placeholderIndex = 0;
+
+    // Replace checkbox patterns with placeholders
+    str = str.replace(/\[([xX\s_\-])\]/g, (match) => {
+      checkboxMatches[placeholderIndex] = match;
+      return `${CHECKBOX_PLACEHOLDER}${placeholderIndex++}${CHECKBOX_PLACEHOLDER}`;
+    });
+
     str = str.replace(/[`*\\~[\]]/g, "\\$&");
     if (startOfLine) {
       str = str.replace(/^[:#\-*+]/, "\\$&").replace(/^(\d+)\./, "$1\\.");
@@ -423,6 +436,14 @@ export class MarkdownSerializerState {
 
     if (this.inTable) {
       str = str.replace(/\|/gi, "\\$&");
+    }
+
+    // Restore checkbox patterns (they should not be escaped)
+    for (let i = 0; i < checkboxMatches.length; i++) {
+      str = str.replace(
+        `${CHECKBOX_PLACEHOLDER}${i}${CHECKBOX_PLACEHOLDER}`,
+        checkboxMatches[i]
+      );
     }
 
     return str;

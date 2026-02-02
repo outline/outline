@@ -1,6 +1,6 @@
 import type { i18n } from "i18next";
 import type { locales } from "@shared/utils/date";
-import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
+import { unicodeCLDRtoBCP47, unicodeBCP47toCLDR } from "@shared/utils/date";
 import Desktop from "./Desktop";
 
 /**
@@ -45,10 +45,62 @@ export async function changeLanguage(
   // frontend translation framework (i18next) expects en-US
   const localeBCP = locale ? unicodeCLDRtoBCP47(locale) : undefined;
 
-  if (localeBCP && instance.languages?.[0] !== localeBCP) {
-    await instance.changeLanguage(localeBCP);
-    await Desktop.bridge?.setSpellCheckerLanguages(["en-US", localeBCP]);
+  if (!localeBCP) {
+    return;
   }
+
+  // Remove existing resources to force reload
+  if (instance.hasResourceBundle(localeBCP, "translation")) {
+    instance.removeResourceBundle(localeBCP, "translation");
+  }
+
+  // Change language and wait for translations to load
+  // This will trigger React components to re-render via useTranslation hook
+  try {
+    // Remove existing resources to force reload
+    if (instance.hasResourceBundle(localeBCP, "translation")) {
+      instance.removeResourceBundle(localeBCP, "translation");
+    }
+
+    // Change language first - this triggers backend to load translations
+    await instance.changeLanguage(localeBCP);
+
+    // Force reload translations from backend immediately
+    // This ensures fresh translations are loaded, especially after language change
+    await instance.reloadResources([localeBCP], "translation");
+
+    // Ensure translations are loaded - wait for backend to fetch them
+    await instance.loadNamespaces("translation");
+
+    // Verify that translations were actually loaded
+    if (!instance.hasResourceBundle(localeBCP, "translation")) {
+      console.warn(
+        `Failed to load translations for ${localeBCP}. Trying to load manually...`
+      );
+      // Try to load translations manually via backend
+      const localeCLDR = unicodeBCP47toCLDR(localeBCP);
+      try {
+        const response = await fetch(`/locales/${localeCLDR}.json`, {
+          cache: "no-store", // Prevent caching
+        });
+        if (response.ok) {
+          const translations = await response.json();
+          instance.addResourceBundle(localeBCP, "translation", translations, true, true);
+          // Force React to re-render with new translations
+          instance.emit("languageChanged", localeBCP);
+        }
+      } catch (fetchError) {
+        console.error(`Failed to fetch translations for ${localeBCP}:`, fetchError);
+      }
+    } else {
+      // Force React to re-render with new translations
+      instance.emit("languageChanged", localeBCP);
+    }
+  } catch (error) {
+    console.error(`Error changing language to ${localeBCP}:`, error);
+  }
+
+  await Desktop.bridge?.setSpellCheckerLanguages(["en-US", localeBCP]);
 }
 
 /**

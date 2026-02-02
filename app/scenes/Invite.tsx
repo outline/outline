@@ -50,11 +50,36 @@ function Invite({ onSubmit }: Props) {
   const handleSubmit = React.useCallback(
     async (ev: React.SyntheticEvent) => {
       ev.preventDefault();
+      
+      if (!can.inviteUser) {
+        toast.error(t("You don't have permission to invite users"));
+        return;
+      }
+
       setIsSaving(true);
 
       try {
+        const validInvites = invites.filter((i) => i.email && i.email.trim());
+        
+        if (validInvites.length === 0) {
+          toast.error(t("Please enter at least one email address"));
+          setIsSaving(false);
+          return;
+        }
+
+        // Validate email format
+        const invalidEmails = validInvites.filter(
+          (invite) => !invite.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)
+        );
+        
+        if (invalidEmails.length > 0) {
+          toast.error(t("Please enter valid email addresses"));
+          setIsSaving(false);
+          return;
+        }
+
         const response = await users.invite(
-          invites.filter((i) => i.email).map((memo) => ({ ...memo, role }))
+          validInvites.map((memo) => ({ ...memo, role }))
         );
         onSubmit();
 
@@ -65,13 +90,19 @@ function Invite({ onSubmit }: Props) {
         } else {
           toast.message(t("Those email addresses are already invited"));
         }
-      } catch (err) {
-        toast.error(err.message);
+      } catch (err: any) {
+        const errorMessage =
+          err?.message ||
+          err?.data?.message ||
+          t("Failed to send invites. Please try again.");
+        toast.error(errorMessage);
+        // eslint-disable-next-line no-console
+        console.error("Failed to send invites:", err);
       } finally {
         setIsSaving(false);
       }
     },
-    [onSubmit, invites, role, t, users]
+    [onSubmit, invites, role, t, users, can]
   );
 
   const handleChange = React.useCallback((ev, index: number) => {
@@ -205,8 +236,9 @@ function Invite({ onSubmit }: Props) {
             {invites.map((invite, index) => (
               <Flex key={index} gap={8}>
                 <StyledInput
-                  type="email"
+                  id={`invite-email-${index}`}
                   name="email"
+                  type="email"
                   label={t("Email")}
                   labelHidden={index !== 0}
                   onKeyDown={handleKeyDown}
@@ -215,13 +247,14 @@ function Invite({ onSubmit }: Props) {
                   value={invite.email}
                   required={index === 0}
                   autoComplete="off"
-                  autoFocus
+                  autoFocus={index === 0}
                   data-1p-ignore
                   flex
                 />
                 <StyledInput
-                  type="text"
+                  id={`invite-name-${index}`}
                   name="name"
+                  type="text"
                   label={t("Name")}
                   labelHidden={index !== 0}
                   onKeyDown={handleKeyDown}

@@ -35,6 +35,8 @@ type Props = {
     avatarUrl?: string | null;
     /** The language of the user, if known */
     language?: string;
+    /** Department name from OIDC provider (e.g., Keycloak) for automatic group creation */
+    department?: string;
   };
   /** Details of the team the user is logging into */
   team: {
@@ -71,6 +73,8 @@ type Props = {
     refreshToken?: string;
     /** A number of seconds that the given access token expires in */
     expiresIn?: number;
+    /** Raw profile returned by the authentication provider */
+    profile?: Record<string, unknown>;
   };
 };
 
@@ -179,6 +183,7 @@ async function accountProvisioner(
     role: isNewTeam ? UserRole.Admin : undefined,
     avatarUrl: userParams.avatarUrl,
     teamId: team.id,
+    department: userParams.department,
     authentication: emailMatchOnly
       ? undefined
       : {

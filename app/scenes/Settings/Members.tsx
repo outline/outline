@@ -1,6 +1,6 @@
 import type { ColumnSort } from "@tanstack/react-table";
 import { observer } from "mobx-react";
-import { PlusIcon, UserIcon } from "outline-icons";
+import { PlusIcon, UserIcon, TrashIcon } from "outline-icons";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
@@ -34,11 +34,12 @@ function Members() {
   const location = useLocation();
   const history = useHistory();
   const team = useCurrentTeam();
-  const { users } = useStores();
+  const { users, dialogs } = useStores();
   const { t } = useTranslation();
   const params = useQuery();
   const can = usePolicy(team);
   const [query, setQuery] = useState("");
+  const [isDeactivating, setIsDeactivating] = useState(false);
 
   const reqParams = useMemo(
     () => ({
@@ -115,6 +116,78 @@ function Members() {
     return () => clearTimeout(timeout);
   }, [query, updateParams]);
 
+  const handleDeactivateInactiveKeycloak = useCallback(async () => {
+    setIsDeactivating(true);
+    try {
+      const result = await users.deactivateInactiveKeycloak(180);
+      toast.success(
+        t("Deactivated {{count}} inactive Keycloak users", {
+          count: result.deactivatedCount,
+        })
+      );
+      dialogs.closeAllModals();
+      // Refresh users list
+      await users.fetchPage({});
+    } catch (err) {
+      toast.error(
+        t("Failed to deactivate inactive users: {{error}}", {
+          error: err instanceof Error ? err.message : String(err),
+        })
+      );
+    } finally {
+      setIsDeactivating(false);
+    }
+  }, [users, t, dialogs]);
+
+  const handleOpenDeactivateDialog = useCallback(() => {
+    dialogs.openModal({
+      title: t("Deactivate Inactive Keycloak Users"),
+      content: (
+        <>
+          <Text>
+            {t(
+              "This will deactivate all inactive Keycloak users who haven't logged in for 6 months or more. They will be:"
+            )}
+          </Text>
+          <ul>
+            <li>{t("Removed from all groups")}</li>
+            <li>{t("Added to 'Deactivated Users' collection")}</li>
+            <li>
+              {t(
+                "Automatically restored to their previous groups when they sign in again"
+              )}
+            </li>
+          </ul>
+          <Text type="secondary">
+            {t(
+              "This action cannot be undone, but users can sign in again to be restored."
+            )}
+          </Text>
+          <HStack spacing={8} justify="flex-end" style={{ marginTop: 16 }}>
+            <Button
+              type="button"
+              onClick={dialogs.closeAllModals}
+              disabled={isDeactivating}
+              neutral
+            >
+              {t("Cancel")}
+            </Button>
+            <Button
+              type="button"
+              onClick={handleDeactivateInactiveKeycloak}
+              disabled={isDeactivating}
+              danger
+            >
+              {isDeactivating
+                ? t("Deactivating…")
+                : t("Deactivate Inactive Users")}
+            </Button>
+          </HStack>
+        </>
+      ),
+    });
+  }, [dialogs, t, isDeactivating, handleDeactivateInactiveKeycloak]);
+
   return (
     <Scene
       title={t("Members")}
@@ -178,6 +251,24 @@ function Members() {
           }}
         />
       </ConditionalFade>
+      {can.update && (
+        <DeactivateSection>
+          <Heading as="h3">{t("Keycloak User Management")}</Heading>
+          <Text as="p" type="secondary">
+            {t(
+              "Deactivate all inactive Keycloak users who haven't logged in for 6 months. They will be removed from groups and added to a 'Deactivated Users' collection. If they sign in again, they will be automatically restored to their previous groups."
+            )}
+          </Text>
+          <Button
+            type="button"
+            onClick={handleOpenDeactivateDialog}
+            icon={<TrashIcon />}
+            danger
+          >
+            {t("Deactivate Inactive Keycloak Users")}
+          </Button>
+        </DeactivateSection>
+      )}
     </Scene>
   );
 }
@@ -226,6 +317,20 @@ const LargeUserStatusFilter = styled(UserStatusFilter)`
 
 const LargeUserRoleFilter = styled(UserRoleFilter)`
   height: 32px;
+`;
+
+const DeactivateSection = styled.div`
+  margin-top: 32px;
+  padding-top: 32px;
+  border-top: 1px solid ${(props) => props.theme.divider};
+
+  h3 {
+    margin-bottom: 8px;
+  }
+
+  p {
+    margin-bottom: 16px;
+  }
 `;
 
 export default observer(Members);

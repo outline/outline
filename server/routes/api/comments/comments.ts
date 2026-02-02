@@ -2,6 +2,7 @@ import Router from "koa-router";
 import difference from "lodash/difference";
 import type { FindOptions, WhereOptions } from "sequelize";
 import { Op } from "sequelize";
+import { ProsemirrorNode } from "prosemirror-model";
 import {
   CommentStatusFilter,
   TeamPreference,
@@ -9,7 +10,8 @@ import {
   IconType,
 } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
-import { commentParser } from "@server/editor";
+import { commentParser, commentSchema } from "@server/editor";
+import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { feature } from "@server/middlewares/feature";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -55,6 +57,18 @@ router.post(
     const data = text
       ? commentParser.parse(text).toJSON()
       : ctx.input.body.data;
+
+    // Validate that data can be parsed with commentSchema and doesn't contain
+    // nodes that cannot be displayed in comments
+    if (data) {
+      try {
+        ProsemirrorNode.fromJSON(commentSchema, data);
+      } catch (error) {
+        throw ValidationError(
+          "Comment data contains nodes that cannot be displayed in comments"
+        );
+      }
+    }
 
     const comment = await Comment.createWithCtx(ctx, {
       id,
@@ -246,6 +260,16 @@ router.post(
     let newMentionIds: string[] = [];
 
     if (data !== undefined) {
+      // Validate that data can be parsed with commentSchema and doesn't contain
+      // nodes that cannot be displayed in comments
+      try {
+        ProsemirrorNode.fromJSON(commentSchema, data);
+      } catch (error) {
+        throw ValidationError(
+          "Comment data contains nodes that cannot be displayed in comments"
+        );
+      }
+
       const existingMentionIds = ProsemirrorHelper.parseMentions(
         ProsemirrorHelper.toProsemirror(comment.data),
         { type: MentionType.User }

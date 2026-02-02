@@ -1,11 +1,12 @@
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { UserRole } from "@shared/types";
+import { TeamPreference, UserRole } from "@shared/types";
 import type User from "~/models/User";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Input from "~/components/Input";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import { client } from "~/utils/ApiClient";
 import Text from "./Text";
@@ -106,9 +107,18 @@ export function UserSuspendDialog({ user, onSubmit }: Props) {
 
 export function UserChangeNameDialog({ user, onSubmit }: Props) {
   const { t } = useTranslation();
+  const actor = useCurrentUser();
+  const team = useCurrentTeam();
   const [name, setName] = React.useState<string>(user.name);
+  const canChangeName =
+    actor.isAdmin ||
+    (actor.id === user.id &&
+      !!team.getPreference(TeamPreference.MembersCanChangeName));
 
   const handleSubmit = async () => {
+    if (!canChangeName) {
+      return;
+    }
     await user.save({ name });
     onSubmit();
   };
@@ -122,8 +132,13 @@ export function UserChangeNameDialog({ user, onSubmit }: Props) {
       onSubmit={handleSubmit}
       submitText={t("Save")}
       savingText={`${t("Saving")}…`}
-      disabled={!name}
+      disabled={!name || !canChangeName}
     >
+      {!canChangeName && (
+        <Text as="p" type="secondary">
+          {t("Only an administrator can change a user's name.")}
+        </Text>
+      )}
       <Input
         type="text"
         name="name"
@@ -134,6 +149,7 @@ export function UserChangeNameDialog({ user, onSubmit }: Props) {
         autoSelect
         required
         flex
+        disabled={!canChangeName}
       />
     </ConfirmationDialog>
   );

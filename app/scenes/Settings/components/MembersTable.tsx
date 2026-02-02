@@ -44,7 +44,18 @@ export function MembersTable({ canManage, ...rest }: Props) {
               <Avatar model={user} size={AvatarSize.Large} />
               <VStack align="flex-start" spacing={0}>
                 <Text selectable>
-                  {user.name} {currentUser.id === user.id && `(${t("You")})`}
+                  {user.redirectUrl ? (
+                    <a
+                      href={user.redirectUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {user.name}
+                    </a>
+                  ) : (
+                    user.name
+                  )}{" "}
+                  {currentUser.id === user.id && `(${t("You")})`}
                 </Text>
                 {isMobile && canManage && (
                   <Text type="tertiary" selectable>
@@ -58,27 +69,27 @@ export function MembersTable({ canManage, ...rest }: Props) {
         },
         canManage && !isMobile
           ? {
-              type: "data",
-              id: "email",
-              header: t("Email"),
-              accessor: (user) => user.email,
-              component: (user) => <>{user.email}</>,
-              width: "4fr",
-            }
+            type: "data",
+            id: "email",
+            header: t("Email"),
+            accessor: (user) => user.email,
+            component: (user) => <>{user.email}</>,
+            width: "4fr",
+          }
           : undefined,
         isMobile
           ? undefined
           : {
-              type: "data",
-              id: "lastActiveAt",
-              header: t("Last active"),
-              accessor: (user) => user.lastActiveAt,
-              component: (user) =>
-                user.lastActiveAt ? (
-                  <Time dateTime={user.lastActiveAt} addSuffix />
-                ) : null,
-              width: "2fr",
-            },
+            type: "data",
+            id: "lastActiveAt",
+            header: t("Last active"),
+            accessor: (user) => user.lastActiveAt,
+            component: (user) =>
+              user.lastActiveAt ? (
+                <Time dateTime={user.lastActiveAt} addSuffix />
+              ) : null,
+            width: "2fr",
+          },
         {
           type: "data",
           id: "role",
@@ -103,12 +114,12 @@ export function MembersTable({ canManage, ...rest }: Props) {
         },
         canManage
           ? {
-              type: "action",
-              id: "action",
-              component: (user) =>
-                currentUser.id !== user.id ? <UserMenu user={user} /> : null,
-              width: "50px",
-            }
+            type: "action",
+            id: "action",
+            component: (user) =>
+              currentUser.id !== user.id ? <UserMenu user={user} /> : null,
+            width: "50px",
+          }
           : undefined,
       ]),
     [t, currentUser, canManage, isMobile]

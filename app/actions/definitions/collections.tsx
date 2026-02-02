@@ -18,12 +18,14 @@ import {
   TrashIcon,
   UnstarredIcon,
   UnsubscribeIcon,
+  TableMergeCellsIcon,
 } from "outline-icons";
 import { toast } from "sonner";
 import type Collection from "~/models/Collection";
 import { CollectionEdit } from "~/components/Collection/CollectionEdit";
 import { CollectionNew } from "~/components/Collection/CollectionNew";
 import CollectionDeleteDialog from "~/components/CollectionDeleteDialog";
+import CollectionMergeDialog from "~/components/CollectionMergeDialog";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import DynamicCollectionIcon from "~/components/Icons/CollectionIcon";
 import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
@@ -590,6 +592,39 @@ export const createTemplate = createInternalLinkAction({
       search,
       state: { sidebarContext },
     };
+  },
+});
+
+export const mergeCollections = createAction({
+  name: ({ t }) => t("Merge collections"),
+  analyticsName: "Merge collections",
+  section: ActiveCollectionSection,
+  icon: <TableMergeCellsIcon />,
+  visible: ({ activeCollectionId, stores }) => {
+    if (!activeCollectionId) {
+      return false;
+    }
+    const collection = stores.collections.get(activeCollectionId);
+    return !!collection && stores.policies.abilities(activeCollectionId).updateDocument;
+  },
+  perform: ({ activeCollectionId, stores, t }) => {
+    if (!activeCollectionId) {
+      return;
+    }
+    const collection = stores.collections.get(activeCollectionId);
+    if (!collection) {
+      return;
+    }
+
+    stores.dialogs.openModal({
+      title: t("Merge collections"),
+      content: (
+        <CollectionMergeDialog
+          initialCollection={collection}
+          onSubmit={stores.dialogs.closeAllModals}
+        />
+      ),
+    });
   },
 });
 

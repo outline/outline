@@ -162,7 +162,12 @@ function DocumentHeader({
   );
 
   useKeyDown(
-    (event) => event.ctrlKey && event.altKey && event.code === "KeyH",
+    (event) =>
+      event.ctrlKey &&
+      event.altKey &&
+      event.code === "KeyH" &&
+      !event.shiftKey &&
+      !event.metaKey,
     handleToggle,
     {
       allowInInput: true,

@@ -240,6 +240,9 @@ class Collection extends ParanoidModel<
   @Column(DataType.JSONB)
   content: ProsemirrorData | null;
 
+  @Column(DataType.BLOB)
+  state: Buffer | null;
+
   /** An icon (or) emoji to use as the collection icon. */
   @Column
   icon: string | null;
@@ -375,17 +378,17 @@ class Collection extends ParanoidModel<
     }
   }
 
-  @BeforeDestroy
-  static async checkLastCollection(model: Collection) {
-    const total = await this.count({
-      where: {
-        teamId: model.teamId,
-      },
-    });
-    if (total === 1) {
-      throw ValidationError("Cannot delete last collection");
-    }
-  }
+  // @BeforeDestroy
+  // static async checkLastCollection(model: Collection) {
+  //   const total = await this.count({
+  //     where: {
+  //       teamId: model.teamId,
+  //     },
+  //   });
+  //   if (total === 1) {
+  //     throw ValidationError("Cannot delete last collection");
+  //   }
+  // }
 
   @BeforeDestroy
   static async deleteDocuments(model: Collection, ctx: APIContext["context"]) {

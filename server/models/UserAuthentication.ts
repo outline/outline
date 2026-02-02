@@ -48,6 +48,9 @@ class UserAuthentication extends IdModel<
   @Column(DataType.DATE)
   lastValidatedAt: Date;
 
+  @Column(DataType.JSONB)
+  profile: Record<string, unknown> | null;
+
   // associations
 
   @BelongsTo(() => User, "userId")

@@ -4,6 +4,7 @@ import capitalize from "lodash/capitalize";
 import orderBy from "lodash/orderBy";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
+import { TextSelection } from "prosemirror-state";
 import { toast } from "sonner";
 import styled from "styled-components";
 import insertFiles from "@shared/editor/commands/insertFiles";
@@ -59,6 +60,8 @@ export type Props<T extends MenuItem = MenuItem> = {
   isActive: boolean;
   search: string;
   trigger: string;
+  enterBehavior?: "select" | "close";
+  hint?: string;
   uploadFile?: (file: File) => Promise<string>;
   onFileUploadStart?: () => void;
   onFileUploadStop?: () => void;
@@ -145,11 +148,11 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       const offsetParent = ref?.offsetParent
         ? ref.offsetParent.getBoundingClientRect()
         : ({
-            width: 0,
-            height: 0,
-            top: 0,
-            left: 0,
-          } as DOMRect);
+          width: 0,
+          height: 0,
+          top: 0,
+          left: 0,
+        } as DOMRect);
 
       let leftPos = Math.min(
         left - offsetParent.left,
@@ -199,8 +202,8 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         Math.max(
           0,
           state.selection.from -
-            (props.search ?? "").length -
-            (trimTrigger ? props.trigger.length : 0)
+          (props.search ?? "").length -
+          (trimTrigger ? props.trigger.length : 0)
         ),
         state.selection.to
       )
@@ -266,6 +269,33 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
             title: item.attrs.label,
             id: item.attrs.modelId,
           });
+          return;
+        case "hashtag":
+          // Handle hashtag insertion properly
+          handleClearSearch();
+          const { state, dispatch } = view;
+          const { selection } = state;
+          const hashtagText = item.attrs.tag;
+
+          // Calculate the range to replace: from trigger to current selection
+          const triggerLength = props.trigger.length;
+          const searchLength = props.search?.length || 0;
+          const from = Math.max(0, selection.from - triggerLength - searchLength);
+
+          // Replace the text and apply hashtag mark
+          const tr = state.tr;
+          tr.delete(from, selection.to);
+          tr.insertText(hashtagText, from);
+
+          // Create and apply the hashtag mark
+          const mark = state.schema.marks.hashtag.create({ tag: hashtagText });
+          tr.addMark(from, from + hashtagText.length, mark);
+
+          // Set cursor after the hashtag
+          tr.setSelection(TextSelection.near(tr.doc.resolve(from + hashtagText.length)));
+
+          dispatch?.(tr);
+          props.onClose();
           return;
         case "image":
           return triggerFilePick(
@@ -521,6 +551,12 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       }
 
       if (event.key === "Enter") {
+        if (props.enterBehavior === "close" && !(event.metaKey || event.ctrlKey)) {
+          props.onClose();
+          view.focus();
+          return;
+        }
+
         event.preventDefault();
 
         const item = filtered[selectedIndex];
@@ -701,6 +737,9 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
                 )}
               </List>
             )}
+            {props.hint && !insertItem && (
+              <MenuHint>{props.hint}</MenuHint>
+            )}
             {uploadFile && (
               <VisuallyHidden.Root>
                 <label>
@@ -739,6 +778,13 @@ const List = styled.ol`
   margin: 0;
 `;
 
+const MenuHint = styled.div`
+  padding: 6px 10px 10px;
+  font-size: 12px;
+  color: ${s("textSecondary")};
+  border-top: 1px solid ${s("divider")};
+`;
+
 const ListItem = styled.li`
   padding: 0;
   margin: 0;
@@ -754,7 +800,7 @@ const Empty = styled.div`
   padding: 0 16px;
 `;
 
-export const Wrapper = styled(Scrollable)<{
+export const Wrapper = styled(Scrollable) <{
   active: boolean;
   top?: number;
   bottom?: number;

@@ -5,8 +5,10 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { s, hover, truncateMultiline } from "@shared/styles";
+import { NotificationEventType } from "@shared/types";
 import type Notification from "~/models/Notification";
 import useStores from "~/hooks/useStores";
+import Button from "~/components/Button";
 import { Avatar, AvatarSize, AvatarVariant } from "../Avatar";
 import Flex from "../Flex";
 import Text from "../Text";
@@ -81,6 +83,31 @@ function NotificationListItem({ notification, onNavigate }: Props) {
               <Time dateTime={notification.createdAt} addSuffix />{" "}
               {collection && <>&middot; {collection.name}</>}
             </Text>
+            {notification.event === NotificationEventType.CollectionMergePending && (
+              <Flex gap={8} style={{ marginTop: 8 }}>
+                <Button
+                  small
+                  onClick={(e: React.MouseEvent) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    void notification.approveMerge();
+                  }}
+                >
+                  {t("Approve")}
+                </Button>
+                <Button
+                  small
+                  neutral
+                  onClick={(e: React.MouseEvent) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    void notification.rejectMerge();
+                  }}
+                >
+                  {t("Reject")}
+                </Button>
+              </Flex>
+            )}
             {notification.comment && (
               <StyledCommentEditor
                 defaultValue={toJS(notification.comment.data)}
@@ -114,7 +141,7 @@ const StyledAvatar = styled(Avatar).attrs({
   margin-top: 4px;
 `;
 
-const Container = styled(Flex)<{ $unread: boolean }>`
+const Container = styled(Flex) <{ $unread: boolean }>`
   position: relative;
   padding: 8px 12px;
   padding-right: 40px;

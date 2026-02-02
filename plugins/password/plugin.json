@@ -1,0 +1,6 @@
+{
+  "id": "password",
+  "name": "Password",
+  "priority": 200,
+  "description": "Adds password authentication for manually created users."
+}

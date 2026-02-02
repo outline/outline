@@ -1,22 +1,17 @@
 import type { EmbedDescriptor } from "@shared/editor/embeds";
 import embeds from "@shared/editor/embeds";
 
-/**
- * Checks if a URL matches any of the embed patterns.
- *
- * @param url - The URL to check.
- * @param embedDescriptors - The list of embed descriptors to check against.
- * @returns True if the URL matches an embed pattern with `matchOnInput` enabled.
- */
 function isEmbedUrl(url: string, embedDescriptors: EmbedDescriptor[]): boolean {
   for (const embed of embedDescriptors) {
     if (!embed.matchOnInput) {
       continue;
     }
+
     if (embed.matcher(url)) {
       return true;
     }
   }
+
   return false;
 }
 
@@ -25,6 +20,7 @@ function isEmbedUrl(url: string, embedDescriptors: EmbedDescriptor[]): boolean {
  * Matches http:// and https:// URLs.
  */
 const bareUrlPattern = /^(https?:\/\/[^\s]+)$/;
+const embedPlaceholderPattern = /::embed\[(.+?)\]::/g;
 
 /**
  * Converts bare URLs in markdown text to the embed-friendly link format `[url](url)`.
@@ -72,4 +68,22 @@ export function convertBareUrlsToEmbedMarkdown(
       return line;
     })
     .join("\n");
+}
+
+/**
+ * Converts Outline embed placeholders (generated during HTML export) into the
+ * markdown link format understood by the embed parser.
+ *
+ * @param text markdown text that might contain ::embed[...]:: tokens.
+ * @returns text with embed placeholders converted to [url](url).
+ */
+export function convertEmbedPlaceholdersToMarkdown(text: string): string {
+  return text.replace(embedPlaceholderPattern, (_match, url) => {
+    const trimmed = (url || "").trim();
+    if (!trimmed) {
+      return "";
+    }
+
+    return `[${trimmed}](${trimmed})`;
+  });
 }

@@ -7,6 +7,7 @@ import { Sequelize } from "sequelize";
 import isUUID from "validator/lib/isUUID";
 import { IntegrationType, TeamPreference } from "@shared/types";
 import { unicodeCLDRtoISO639 } from "@shared/utils/date";
+import { Hour } from "@shared/utils/time";
 import env from "@server/env";
 import { Integration } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -90,16 +91,15 @@ export const renderApp = async (
   const environment = `
     <script nonce="${ctx.state.cspNonce}">
       window.env = ${JSON.stringify(presentEnv(env, options)).replace(
-        /</g,
-        "\\u003c"
-      )};
+    /</g,
+    "\\u003c"
+  )};
     </script>
   `;
 
   const scriptTags = env.isProduction
-    ? `<script type="module" nonce="${ctx.state.cspNonce}" src="${
-        env.CDN_URL || ""
-      }/static/${readManifestFile()[entry]["file"]}"></script>`
+    ? `<script type="module" nonce="${ctx.state.cspNonce}" src="${env.CDN_URL || ""
+    }/static/${readManifestFile()[entry]["file"]}"></script>`
     : `<script type="module" nonce="${ctx.state.cspNonce}">
         import RefreshRuntime from "${viteHost}/static/@react-refresh"
         RefreshRuntime.injectIntoGlobalHook(window)
@@ -235,25 +235,37 @@ export const renderShare = async (ctx: Context, next: Next) => {
         ? team.name
         : undefined;
 
+  // Handle accept header for LLM usage - return markdown if requested
+  const accept = ctx.request.headers["accept"];
+  if (accept?.includes("text/markdown") && document) {
+    const markdown = await DocumentHelper.toMarkdown(document, {
+      includeTitle: true,
+      signedUrls: Hour.seconds,
+      teamId: document.teamId,
+    });
+    ctx.set("Content-Type", "text/markdown; charset=utf-8");
+    ctx.body = markdown;
+    return;
+  }
+
   const content =
     document || collection
       ? await DocumentHelper.toHTML(document || collection!, {
-          includeStyles: false,
-          includeHead: false,
-          includeTitle: true,
-          signedUrls: true,
-        })
+        includeStyles: false,
+        includeHead: false,
+        includeTitle: true,
+        signedUrls: true,
+      })
       : undefined;
 
   const canonicalUrl =
     share && share.canonicalUrl !== ctx.request.origin + ctx.request.url
-      ? `${share.canonicalUrl}${
-          documentSlug && document
-            ? document.path
-            : collectionSlug && collection
-              ? collection.path
-              : ""
-        }`
+      ? `${share.canonicalUrl}${documentSlug && document
+        ? document.path
+        : collectionSlug && collection
+          ? collection.path
+          : ""
+      }`
       : undefined;
 
   // Inject share information in SSR HTML

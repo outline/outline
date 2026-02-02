@@ -1,5 +1,9 @@
 import path from "path";
 import fs from "fs-extra";
+import { Node } from "prosemirror-model";
+import { yDocToProsemirrorJSON } from "y-prosemirror";
+import * as Y from "yjs";
+import { schema } from "@server/editor";
 import { createContext } from "@server/context";
 import Attachment from "@server/models/Attachment";
 import { sequelize } from "@server/storage/database";
@@ -334,5 +338,49 @@ describe("documentImporter", () => {
       })
     );
     expect(response.text).toEqual("```\necho $foo\n```");
+  });
+
+  it("should restore exported Outline embeds when importing HTML", async () => {
+    const user = await buildUser();
+    const fileName = "embed.html";
+    const embedUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+    const content = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Embed test</title>
+        </head>
+        <body>
+          <p>Video:</p>
+          <iframe class="embed" data-embed="${embedUrl}" src="${embedUrl}"></iframe>
+        </body>
+      </html>
+    `;
+
+    const response = await sequelize.transaction((transaction) =>
+      documentImporter({
+        user,
+        mimeType: "text/html",
+        fileName,
+        content,
+        ctx: createContext({ user, transaction }),
+      })
+    );
+
+    expect(response.text).toContain(`[${embedUrl}](${embedUrl})`);
+
+    const ydoc = new Y.Doc();
+    Y.applyUpdate(ydoc, response.state);
+    const node = Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));
+    let containsEmbed = false;
+    node.descendants((child) => {
+      if (child.type.name === "embed") {
+        containsEmbed = true;
+        return false;
+      }
+      return true;
+    });
+
+    expect(containsEmbed).toBe(true);
   });
 });

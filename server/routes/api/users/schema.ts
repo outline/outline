@@ -4,6 +4,7 @@ import { locales } from "@shared/utils/date";
 import User from "@server/models/User";
 import { zodEnumFromObjectKeys, zodTimezone } from "@server/utils/zod";
 import { BaseSchema } from "../schema";
+import { isPasswordStrong } from "@server/utils/password";
 
 const BaseIdSchema = z.object({
   id: z.string().uuid(),
@@ -92,6 +93,25 @@ export const UsersUpdateSchema = BaseSchema.extend({
     language: zodEnumFromObjectKeys(locales).optional(),
     preferences: z.record(z.nativeEnum(UserPreference), z.boolean()).optional(),
     timezone: zodTimezone().optional(),
+    password: z
+      .string()
+      .min(8)
+      .max(128)
+      .refine(isPasswordStrong, {
+        message: "Password must include letters and numbers",
+      })
+      .optional(),
+    profile: z
+      .object({
+        title: z.string().optional(),
+        department: z.string().optional(),
+        phone: z.string().optional(),
+        internalPhone: z.string().optional(),
+        mobilePhone: z.string().optional(),
+        location: z.string().optional(),
+        bio: z.string().optional(),
+      })
+      .optional(),
   }),
 });
 
@@ -187,3 +207,13 @@ export const UsersInviteSchema = z.object({
 });
 
 export type UsersInviteReq = z.infer<typeof UsersInviteSchema>;
+
+export const UsersDeactivateInactiveKeycloakSchema = BaseSchema.extend({
+  body: z.object({
+    inactiveDays: z.number().int().min(1).max(365).optional().default(180),
+  }),
+});
+
+export type UsersDeactivateInactiveKeycloakReq = z.infer<
+  typeof UsersDeactivateInactiveKeycloakSchema
+>;

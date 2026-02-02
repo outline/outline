@@ -98,6 +98,15 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
+                <Key symbol>{metaDisplay}</Key> + <Key symbol>⇧</Key> +{" "}
+                <Key>l</Key>
+              </>
+            ),
+            label: t("Toggle theme"),
+          },
+          {
+            shortcut: (
+              <>
                 <Key symbol>{metaDisplay}</Key> + <Key>{t("Enter")}</Key>
               </>
             ),

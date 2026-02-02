@@ -1,4 +1,5 @@
 import { subHours, subMinutes } from "date-fns";
+import type { Context } from "koa";
 import Router from "koa-router";
 import uniqBy from "lodash/uniqBy";
 import { TeamPreference } from "@shared/types";
@@ -19,7 +20,10 @@ import {
 } from "@server/presenters";
 import ValidateSSOAccessTask from "@server/queues/tasks/ValidateSSOAccessTask";
 import type { APIContext } from "@server/types";
-import { getSessionsInCookie } from "@server/utils/authentication";
+import {
+  getSessionsInCookie,
+  getCookieOptions,
+} from "@server/utils/authentication";
 import type * as T from "./schema";
 
 const router = new Router();
@@ -115,7 +119,7 @@ router.post("auth.config", async (ctx: APIContext<T.AuthConfigReq>) => {
 });
 
 /** Authentication services that don't require SSO validation. */
-const NON_SSO_SERVICES = ["email", "passkeys"];
+const NON_SSO_SERVICES = ["email", "passkeys", "password"];
 
 router.post("auth.info", auth(), async (ctx: APIContext<T.AuthInfoReq>) => {
   const { user, service } = ctx.state.auth;
@@ -162,7 +166,7 @@ router.post("auth.info", auth(), async (ctx: APIContext<T.AuthInfoReq>) => {
           presentAvailableTeam(
             availableTeam,
             signedInTeamIds.includes(team.id) ||
-              availableTeam.id === user.teamId
+            availableTeam.id === user.teamId
           )
       ),
     },
@@ -187,10 +191,11 @@ router.post(
       },
     });
 
-    ctx.cookies.set("accessToken", "", {
-      sameSite: "lax",
-      expires: subMinutes(new Date(), 1),
-    });
+    ctx.cookies.set(
+      "accessToken",
+      "",
+      getCookieOptions(ctx as Context, subMinutes(new Date(), 1))
+    );
 
     ctx.body = {
       success: true,

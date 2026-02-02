@@ -28,6 +28,26 @@ type Provider = {
   authUrl: string;
 };
 
+type SuspendedErrorResponse = {
+  error?: string;
+  data?: {
+    adminEmail?: string | null;
+  };
+};
+
+const isUserSuspendedError = (
+  error: unknown
+): error is SuspendedErrorResponse & { error: "user_suspended" } => {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+
+  return (
+    "error" in error &&
+    (error as SuspendedErrorResponse).error === "user_suspended"
+  );
+};
+
 export type Config = {
   name?: string;
   logo?: string;
@@ -247,13 +267,15 @@ export default class AuthStore extends Store<Team> {
           void user?.save({ timezone });
         }
       });
-    } catch (err) {
-      if (err.error === "user_suspended") {
+    } catch (error: unknown) {
+      if (isUserSuspendedError(error)) {
         this.isSuspended = true;
-        this.suspendedContactEmail = err.data.adminEmail;
+        this.suspendedContactEmail = error.data?.adminEmail ?? null;
         return;
       }
-      throw err;
+      // Don't throw error for authentication failures - let Authenticated component handle it
+      // This prevents immediate logout on temporary network issues
+      Logger.debug("store", "Failed to fetch auth info", { error });
     } finally {
       this.isFetching = false;
     }

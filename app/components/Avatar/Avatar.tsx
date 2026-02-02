@@ -25,6 +25,7 @@ export interface IAvatar {
   initial?: string;
   name?: string;
   id?: string;
+  redirectUrl?: string;
 }
 
 type Props = {
@@ -81,10 +82,19 @@ function Avatar(props: Props) {
     </Relative>
   );
 
-  return showTooltip ? (
-    <Tooltip content={props.alt || model?.name || ""}>{content}</Tooltip>
+  const redirectUrl = model?.redirectUrl;
+  const wrappedContent = redirectUrl ? (
+    <a href={redirectUrl} target="_blank" rel="noopener noreferrer">
+      {content}
+    </a>
   ) : (
     content
+  );
+
+  return showTooltip ? (
+    <Tooltip content={props.alt || model?.name || ""}>{wrappedContent}</Tooltip>
+  ) : (
+    wrappedContent
   );
 }
 

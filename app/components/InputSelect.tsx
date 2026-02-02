@@ -1,11 +1,14 @@
+import deburr from "lodash/deburr";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { QuestionMarkIcon } from "outline-icons";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import Text from "~/components/Text";
 import useMobile from "~/hooks/useMobile";
 import Flex from "./Flex";
+import Input from "./Input";
 import { LabelText } from "./Input";
 import NudeButton from "./NudeButton";
 import Scrollable from "./Scrollable";
@@ -67,6 +70,8 @@ type Props = Omit<React.HTMLAttributes<HTMLButtonElement>, "onChange"> & {
   short?: boolean;
   /** Display a tooltip with the descriptive help text about the select menu. */
   help?: string;
+  /* When true, enables search functionality in the dropdown. */
+  searchable?: boolean;
 } & TriggerButtonProps;
 
 export const InputSelect = React.forwardRef<HTMLButtonElement, Props>(
@@ -79,11 +84,15 @@ export const InputSelect = React.forwardRef<HTMLButtonElement, Props>(
       hideLabel,
       short,
       help,
+      searchable,
       ...triggerProps
     } = props;
 
+    const { t } = useTranslation();
     const [localValue, setLocalValue] = React.useState(value);
     const [open, setOpen] = React.useState(false);
+    const [query, setQuery] = React.useState("");
+    const searchInputRef = React.useRef<HTMLInputElement>(null);
 
     const contentRef =
       React.useRef<React.ElementRef<typeof InputSelectContent>>(null);
@@ -94,6 +103,20 @@ export const InputSelect = React.forwardRef<HTMLButtonElement, Props>(
     const optionsHaveIcon = options.some(
       (opt) => opt.type === "item" && !!opt.icon
     );
+
+    const filteredOptions = React.useMemo(() => {
+      if (!searchable || !query) {
+        return options;
+      }
+
+      const normalizedQuery = deburr(query.toLowerCase());
+      return options.filter((option) => {
+        if (option.type === "separator") {
+          return true;
+        }
+        return deburr(option.label.toLowerCase()).includes(normalizedQuery);
+      });
+    }, [options, query, searchable]);
 
     const renderOption = React.useCallback(
       (option: Option, idx: number) => {
@@ -109,6 +132,20 @@ export const InputSelect = React.forwardRef<HTMLButtonElement, Props>(
       },
       [optionsHaveIcon]
     );
+
+    React.useEffect(() => {
+      if (open && searchable) {
+        // Focus search input when dropdown opens
+        const timeoutId = setTimeout(() => {
+          searchInputRef.current?.focus();
+        }, 100);
+        return () => clearTimeout(timeoutId);
+      }
+      // Clear query when dropdown closes
+      if (!open) {
+        setQuery("");
+      }
+    }, [open, searchable]);
 
     const onValueChange = React.useCallback(
       async (val: string) => {
@@ -167,7 +204,31 @@ export const InputSelect = React.forwardRef<HTMLButtonElement, Props>(
             onAnimationStart={disablePointerEvents}
             onAnimationEnd={enablePointerEvents}
           >
-            {options.map(renderOption)}
+            {searchable && (
+              <SearchInputWrapper>
+                <Input
+                  ref={searchInputRef}
+                  type="search"
+                  value={query}
+                  onChange={(ev) => setQuery(ev.target.value)}
+                  placeholder={`${t("Search")}…`}
+                  labelHidden
+                  margin={0}
+                  onKeyDown={(ev) => {
+                    // Prevent closing dropdown on Escape when searching
+                    if (ev.key === "Escape") {
+                      ev.stopPropagation();
+                      if (query) {
+                        setQuery("");
+                      } else {
+                        setOpen(false);
+                      }
+                    }
+                  }}
+                />
+              </SearchInputWrapper>
+            )}
+            {filteredOptions.map(renderOption)}
           </InputSelectContent>
         </InputSelectRoot>
       </Wrapper>
@@ -388,4 +449,10 @@ const TooltipButton = styled(NudeButton)`
   &[aria-expanded="true"] {
     background: none !important;
   }
+`;
+
+const SearchInputWrapper = styled.div`
+  padding: 4px;
+  border-bottom: 1px solid ${s("divider")};
+  margin-bottom: 4px;
 `;

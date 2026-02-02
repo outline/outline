@@ -1,8 +1,6 @@
-import debounce from "lodash/debounce";
 import { observer } from "mobx-react";
-import { useMemo, useRef, useCallback, useEffect, Suspense } from "react";
+import { useMemo, useRef, useCallback, Suspense } from "react";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
 import styled from "styled-components";
 import { richExtensions } from "@shared/editor/nodes";
 import { s } from "@shared/styles";
@@ -10,7 +8,7 @@ import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { CollectionValidation } from "@shared/validations";
 import type Collection from "~/models/Collection";
 import type Document from "~/models/Document";
-import Editor from "~/components/Editor";
+import CollectionMultiplayerEditor from "./CollectionMultiplayerEditor";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import Text from "~/components/Text";
 import { MeasuredContainer } from "~/components/MeasuredContainer";
@@ -33,27 +31,7 @@ function Overview({ collection, readOnly }: Props) {
   const user = useCurrentUser({ rejectOnEmpty: false });
   const can = usePolicy(collection);
 
-  const handleSave = useMemo(
-    () =>
-      debounce(async (getValue) => {
-        try {
-          await collection.save({
-            data: getValue(false),
-          });
-        } catch (err) {
-          toast.error(t("Sorry, an error occurred saving the collection"));
-          throw err;
-        }
-      }, 1000),
-    [collection, t]
-  );
 
-  useEffect(
-    () => () => {
-      handleSave.flush();
-    },
-    [handleSave]
-  );
 
   const childRef = useRef<HTMLDivElement>(null);
   const childOffsetHeight = childRef.current?.offsetHeight || 0;
@@ -90,17 +68,22 @@ function Overview({ collection, readOnly }: Props) {
       {(collection.hasDescription || can.update) && (
         <Suspense fallback={<Placeholder>Loading…</Placeholder>}>
           <MeasuredContainer name="document">
-            <Editor
-              defaultValue={collection.data}
-              onChange={handleSave}
+            {/* 
+              We use the collaborative editor for collections descriptions. 
+              Manual saving is handled by the provider.
+            */}
+            <CollectionMultiplayerEditor
+              id={collection.id}
               placeholder={`${t("Add a description")}…`}
               extensions={extensions}
               maxLength={CollectionValidation.maxDescriptionLength}
               onCreateLink={onCreateLink}
-              canUpdate={can.update}
               readOnly={!can.update || readOnly}
               userId={user?.id}
               editorStyle={editorStyle}
+              // Pass initial content for the very first load if needed?
+              // The component handles caching via IndexedDB.
+              defaultValue={collection.data}
             />
             <div ref={childRef} />
           </MeasuredContainer>

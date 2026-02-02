@@ -34,6 +34,18 @@ export const TeamPreferenceDefaults: TeamPreferences = {
   [TeamPreference.TocPosition]: TOCPosition.Left,
   [TeamPreference.PreventDocumentEmbedding]: false,
   [TeamPreference.EmailDisplay]: EmailDisplay.Members,
+  [TeamPreference.AllowedLanguages]: undefined, // undefined means all languages are allowed
+  [TeamPreference.MemberRedirectURLByDomain]: undefined,
+  [TeamPreference.DomainCRMURLByDomain]: undefined,
+  [TeamPreference.DomainGroupsVisible]: true,
+  [TeamPreference.MembersCanChangeName]: true,
+  [TeamPreference.OIDCProfileSync]: {
+    name: true,
+    email: true,
+    title: false,
+    department: false,
+  },
+  [TeamPreference.PasswordSigninEnabled]: true,
 };
 
 export const UserPreferenceDefaults: UserPreferences = {

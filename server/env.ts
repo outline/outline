@@ -308,7 +308,7 @@ export class Environment {
    */
   @Public
   @IsIn(languages)
-  public DEFAULT_LANGUAGE = environment.DEFAULT_LANGUAGE ?? "en_US";
+  public DEFAULT_LANGUAGE = environment.DEFAULT_LANGUAGE ?? "kk_KZ";
 
   /**
    * A comma list of which services should be enabled on this instance – defaults to all.
@@ -476,6 +476,12 @@ export class Environment {
   public DD_API_KEY = environment.DD_API_KEY;
 
   /**
+   * OpenAI API key for audio transcription.
+   */
+  @IsOptional()
+  public OPENAI_API_KEY = this.toOptionalString(environment.OPENAI_API_KEY);
+
+  /**
    * The name of the service to use in DataDog.
    */
   public DD_SERVICE = environment.DD_SERVICE ?? "outline";
@@ -639,7 +645,7 @@ export class Environment {
   public FILE_STORAGE_UPLOAD_MAX_SIZE =
     this.toOptionalNumber(environment.FILE_STORAGE_UPLOAD_MAX_SIZE) ??
     this.toOptionalNumber(environment.AWS_S3_UPLOAD_MAX_SIZE) ??
-    1000000;
+    52428800; // 50 MB
 
   /**
    * Set max allowed upload size for document imports.
@@ -650,7 +656,7 @@ export class Environment {
     this.toOptionalNumber(environment.FILE_STORAGE_IMPORT_MAX_SIZE) ??
     this.toOptionalNumber(environment.MAXIMUM_IMPORT_SIZE) ??
     this.toOptionalNumber(environment.FILE_STORAGE_UPLOAD_MAX_SIZE) ??
-    1000000;
+    52428800; // 50 MB
 
   /**
    * Timeout in milliseconds for downloading files from remote locations to file storage.
@@ -667,7 +673,7 @@ export class Environment {
     this.toOptionalNumber(environment.FILE_STORAGE_WORKSPACE_IMPORT_MAX_SIZE) ??
     this.toOptionalNumber(environment.MAXIMUM_IMPORT_SIZE) ??
     this.toOptionalNumber(environment.FILE_STORAGE_UPLOAD_MAX_SIZE) ??
-    1000000;
+    52428800; // 50 MB
 
   /**
    * Because imports can be much larger than regular file attachments and are
@@ -758,7 +764,7 @@ export class Environment {
    * The product name
    */
   @Public
-  public APP_NAME = "Outline";
+  public APP_NAME = "BWiki";
 
   /**
    * Gravity constant for time decay in popularity scoring. Higher values cause

@@ -144,6 +144,10 @@ function SidebarLink(
 
   const DisclosureComponent = icon ? HiddenDisclosure : Disclosure;
 
+  // Exclude onActiveClick from rest to prevent it from being passed to DOM
+  // onActiveClick is handled by NavLink internally, so we don't need to pass it to styled component
+  const { onActiveClick: _, ...linkRest } = rest;
+
   return (
     <Link
       $isActiveDrop={isActiveDrop}
@@ -152,18 +156,18 @@ function SidebarLink(
       style={style}
       activeStyle={isActiveDrop ? activeDropStyle : activeStyle}
       onClick={handleClick}
+      // @ts-expect-error onActiveClick is handled by NavLink, not passed to DOM
       onActiveClick={handleDisclosureClick}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onDragEnter={handleMouseEnter}
-      // @ts-expect-error exact does not exist on div
       exact={exact !== false}
       to={to}
       as={to ? undefined : href ? "a" : "div"}
       href={href}
       className={className}
       ref={ref}
-      {...rest}
+      {...linkRest}
     >
       <ContextMenu action={contextAction} ariaLabel={t("Link options")}>
         <Content>
@@ -180,7 +184,7 @@ function SidebarLink(
           {unreadBadge && <UnreadBadge style={unreadStyle} />}
         </Content>
       </ContextMenu>
-      {menu && <Actions showActions={showActions}>{menu}</Actions>}
+      {menu && <Actions $showActions={showActions}>{menu}</Actions>}
     </Link>
   );
 }
@@ -201,9 +205,9 @@ const Content = styled.span`
   width: 100%;
 `;
 
-const Actions = styled(EventBoundary)<{ showActions?: boolean }>`
+const Actions = styled(EventBoundary) <{ $showActions?: boolean }>`
   display: inline-flex;
-  visibility: ${(props) => (props.showActions ? "visible" : "hidden")};
+  visibility: ${(props) => (props.$showActions ? "visible" : "hidden")};
   position: absolute;
   top: 3px;
   right: 4px;
@@ -236,7 +240,12 @@ const HiddenDisclosure = styled(Disclosure)`
   margin-right: 6px;
 `;
 
-const Link = styled(NavLink)<{
+const Link = styled(NavLink).withConfig({
+  shouldForwardProp: (prop) =>
+    prop !== "onActiveClick" &&
+    prop !== "activeStyle" &&
+    prop !== "exact",
+}) <{
   $isActiveDrop?: boolean;
   $isDraft?: boolean;
   $disabled?: boolean;
@@ -326,7 +335,7 @@ const Link = styled(NavLink)<{
 
     &:hover {
       color: ${(props) =>
-        props.$isActiveDrop ? props.theme.white : props.theme.text};
+    props.$isActiveDrop ? props.theme.white : props.theme.text};
     }
   }
 

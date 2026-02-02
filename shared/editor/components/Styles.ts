@@ -545,6 +545,21 @@ width: 100%;
     cursor: default;
     background: ${props.theme.mentionHoverBackground};
   }
+}
+
+.hashtag {
+  color: ${props.theme.accent};
+  font-weight: 500;
+  text-decoration: none !important;
+
+  &::before {
+    content: "#";
+  }
+  
+  &:${hover} {
+    color: ${props.theme.accent};
+    text-decoration: underline !important;
+  }
 
   &[data-type="user"],
   &[data-type="group"] {
@@ -1462,7 +1477,7 @@ ol li {
   position: relative;
   white-space: initial;
   text-align: start;
-  margin-top: .25em;
+  margin-top: .5em;
 
   p {
     white-space: pre-wrap;
@@ -1636,6 +1651,7 @@ hr.page-break::before {
 code {
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
+  -moz-box-decoration-break: clone;
 
   border-radius: 4px;
   border: 1px solid ${props.theme.codeBorder};
@@ -1858,6 +1874,9 @@ table {
     font-weight: normal;
     border-left: 1px solid ${props.theme.divider};
     border-top: 1px solid ${props.theme.divider};
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
   }
 
   th {
@@ -2223,6 +2242,7 @@ table {
   table {
     table-layout: fixed;
     word-break: break-word;
+    min-width: 100%;
   }
 
   &:hover {

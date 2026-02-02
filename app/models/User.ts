@@ -9,6 +9,7 @@ import {
   UserPreference,
   type UserPreferences,
   UserRole,
+  type UserProfile,
 } from "@shared/types";
 import type { NotificationSettings } from "@shared/types";
 import type { locales } from "@shared/utils/date";
@@ -45,6 +46,10 @@ class User extends ParanoidModel implements Searchable {
 
   @Field
   @observable
+  profile: UserProfile | null;
+
+  @Field
+  @observable
   notificationSettings: NotificationSettings;
 
   @Field
@@ -62,6 +67,12 @@ class User extends ParanoidModel implements Searchable {
 
   @observable
   isSuspended: boolean;
+
+  @observable
+  redirectUrl?: string;
+
+  @observable
+  domainCrmUrl?: string;
 
   @computed
   get searchContent(): string[] {

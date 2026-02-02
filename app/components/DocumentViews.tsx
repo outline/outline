@@ -8,6 +8,8 @@ import type Document from "~/models/Document";
 import type User from "~/models/User";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import ListItem from "~/components/List/Item";
+import { Link } from "react-router-dom";
+import { userProfilePath } from "~/utils/routeHelpers";
 import PaginatedList from "~/components/PaginatedList";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
@@ -75,7 +77,19 @@ function DocumentViews({ document }: Props) {
       return (
         <ListItem
           key={model.id}
-          title={model.name}
+          title={
+            model.redirectUrl ? (
+              <a
+                href={model.redirectUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {model.name}
+              </a>
+            ) : (
+              <Link to={userProfilePath(model.id)}>{model.name}</Link>
+            )
+          }
           subtitle={subtitle}
           image={
             <Avatar key={model.id} model={model} size={AvatarSize.Large} />

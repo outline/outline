@@ -28,6 +28,41 @@ export function getSessionsInCookie(ctx: Context) {
   }
 }
 
+/**
+ * Returns the default cookie options for the authentication token.
+ *
+ * @param ctx The Koa context
+ * @param expires The expiry date for the cookie
+ * @returns The cookie options
+ */
+export function getCookieOptions(ctx: Context, expires: Date) {
+  const domain = getCookieDomain(ctx.request.hostname, env.isCloudHosted);
+  const options: {
+    sameSite: "lax";
+    expires: Date;
+    path: string;
+    domain?: string;
+    httpOnly?: boolean;
+    secure?: boolean;
+  } = {
+    sameSite: "lax",
+    expires,
+    path: "/",
+    httpOnly: true,
+    secure: env.isProduction && ctx.request.secure,
+  };
+
+  if (
+    domain &&
+    !domain.includes("localhost") &&
+    !domain.includes("127.0.0.1")
+  ) {
+    options.domain = domain;
+  }
+
+  return options;
+}
+
 export async function signIn(
   ctx: Context | APIContext,
   service: string,
@@ -134,10 +169,12 @@ export async function signIn(
       );
     }
   } else {
-    ctx.cookies.set("accessToken", user.getJwtToken(expires, service), {
-      sameSite: "lax",
-      expires,
-    });
+    const cookieOptions = getCookieOptions(ctx as Context, expires);
+    ctx.cookies.set(
+      "accessToken",
+      user.getJwtToken(expires, service),
+      cookieOptions
+    );
 
     const defaultCollectionId = team.defaultCollectionId;
 

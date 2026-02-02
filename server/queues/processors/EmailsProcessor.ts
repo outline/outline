@@ -52,6 +52,24 @@ export default class EmailsProcessor extends BaseProcessor {
         return;
       }
 
+      case NotificationEventType.DocumentChangedByOtherUser: {
+        // Send email notification to document owner when document is changed by another user
+        await new DocumentPublishedOrUpdatedEmail(
+          {
+            to: notification.user.email,
+            userId: notification.userId,
+            eventType: NotificationEventType.UpdateDocument,
+            documentId: notification.documentId,
+            teamUrl: notification.team.url,
+            actorName: notification.actor.name,
+          },
+          { notificationId }
+        ).schedule({
+          delay: Minute.ms,
+        });
+        return;
+      }
+
       case NotificationEventType.AddUserToDocument: {
         await new DocumentSharedEmail(
           {
