@@ -5,19 +5,18 @@ import { useEditor } from "./EditorContext";
 type Props = {
   /** The currently active color */
   activeColor: string;
-  command: string;
 };
 
-function HighlightColorPicker({ activeColor, command }: Props) {
+function HighlightColorPicker({ activeColor }: Props) {
   const { commands } = useEditor();
 
   const handleSelect = useCallback(
     (color: string) => {
-      if (commands[command]) {
-        commands[command]({ color });
+      if (commands.highlight) {
+        commands.highlight({ color });
       }
     },
-    [commands, command]
+    [commands]
   );
 
   return (
