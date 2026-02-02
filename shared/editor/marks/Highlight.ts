@@ -1,3 +1,4 @@
+import { isHexColor } from "class-validator";
 import { rgba } from "polished";
 import { toggleMark } from "prosemirror-commands";
 import type { MarkSpec, MarkType } from "prosemirror-model";
@@ -41,10 +42,8 @@ export default class Highlight extends Mark {
           getAttrs: (dom) => {
             const color = dom.getAttribute("data-color") || "";
 
-            // Validate hex color format: #RGB, #RGBA, #RRGGBB, or #RRGGBBAA
-            const isValidHex = /^#([0-9A-F]{3}|[0-9A-F]{4}|[0-9A-F]{6}|[0-9A-F]{8})$/i.test(color);
             return {
-              color: isValidHex ? color : null,
+              color: isHexColor(color) ? color : null,
             };
           },
         },
