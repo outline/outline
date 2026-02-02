@@ -25,6 +25,7 @@ import { ListItem } from "../components/ListItem";
 import { Placeholder } from "../components/Placeholder";
 import { PublicAccess } from "./PublicAccess";
 import Flex from "@shared/components/Flex";
+import ButtonLink from "~/components/ButtonLink";
 
 type Props = {
   /** Collection to which team members are supposed to be invited */
@@ -165,56 +166,58 @@ export const AccessControlList = observer(
                     ).localeCompare(b.group.name)
                   )
                   .map((membership) => (
-                    <GroupMembersPopover
+                    <ListItem
                       key={membership.id}
-                      group={membership.group}
-                    >
-                      <ListItem
-                        image={
-                          <GroupAvatar
-                            group={membership.group}
-                            backgroundColor={theme.modalBackground}
-                          />
-                        }
-                        title={membership.group.name}
-                        subtitle={t("{{ count }} member", {
-                          count: membership.group.memberCount,
-                        })}
-                        actions={
-                          <div style={{ marginRight: -8 }}>
-                            <InputMemberPermissionSelect
-                              permissions={permissions}
-                              onChange={async (
-                                permission:
-                                  | CollectionPermission
-                                  | typeof EmptySelectValue
-                              ) => {
-                                try {
-                                  if (permission === EmptySelectValue) {
-                                    await groupMemberships.delete({
-                                      collectionId: collection.id,
-                                      groupId: membership.groupId,
-                                    });
-                                  } else {
-                                    await groupMemberships.create({
-                                      collectionId: collection.id,
-                                      groupId: membership.groupId,
-                                      permission,
-                                    });
-                                  }
-                                } catch (err) {
-                                  toast.error(err.message);
-                                  return false;
+                      image={
+                        <GroupAvatar
+                          group={membership.group}
+                          backgroundColor={theme.modalBackground}
+                        />
+                      }
+                      title={membership.group.name}
+                      subtitle={
+                        <GroupMembersPopover group={membership.group}>
+                          <StyledButtonLink>
+                            {t("{{ count }} member", {
+                              count: membership.group.memberCount,
+                            })}
+                          </StyledButtonLink>
+                        </GroupMembersPopover>
+                      }
+                      actions={
+                        <div style={{ marginRight: -8 }}>
+                          <InputMemberPermissionSelect
+                            permissions={permissions}
+                            onChange={async (
+                              permission:
+                                | CollectionPermission
+                                | typeof EmptySelectValue
+                            ) => {
+                              try {
+                                if (permission === EmptySelectValue) {
+                                  await groupMemberships.delete({
+                                    collectionId: collection.id,
+                                    groupId: membership.groupId,
+                                  });
+                                } else {
+                                  await groupMemberships.create({
+                                    collectionId: collection.id,
+                                    groupId: membership.groupId,
+                                    permission,
+                                  });
                                 }
-                                return true;
-                              }}
-                              disabled={!can.update}
-                              value={membership.permission}
-                            />
-                          </div>
-                        }
-                      />
-                    </GroupMembersPopover>
+                              } catch (err) {
+                                toast.error(err.message);
+                                return false;
+                              }
+                              return true;
+                            }}
+                            disabled={!can.update}
+                            value={membership.permission}
+                          />
+                        </div>
+                      }
+                    />
                   ))}
                 {membershipsInCollection
                   .filter((membership) => membership.user)
@@ -288,6 +291,13 @@ export const AccessControlList = observer(
     );
   }
 );
+
+const StyledButtonLink = styled(ButtonLink)`
+  color: ${s("textTertiary")};
+  &:hover {
+    text-decoration: underline;
+  }
+`;
 
 const Wrapper = styled(Flex)`
   flex-direction: column;
