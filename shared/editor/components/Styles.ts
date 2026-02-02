@@ -1928,16 +1928,6 @@ table {
   }
 
   .${EditorStyleHelper.tableAddRow},
-  .${EditorStyleHelper.tableAddColumn},
-  .${EditorStyleHelper.tableGrip},
-  .${EditorStyleHelper.tableGripColumn},
-  .${EditorStyleHelper.tableGripRow} {
-    @media print {
-      display: none;
-    }
-  }
-
-  .${EditorStyleHelper.tableAddRow},
   .${EditorStyleHelper.tableAddColumn} {
     display: block;
     position: absolute;
@@ -2155,6 +2145,16 @@ table {
     &.dragging::after {
       background: ${props.theme.accent};
       opacity: 0.5;
+    }
+  }
+
+  .${EditorStyleHelper.tableAddRow},
+  .${EditorStyleHelper.tableAddColumn},
+  .${EditorStyleHelper.tableGrip},
+  .${EditorStyleHelper.tableGripColumn},
+  .${EditorStyleHelper.tableGripRow} {
+    @media print {
+      display: none;
     }
   }
 }

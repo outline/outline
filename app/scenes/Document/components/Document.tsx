@@ -669,6 +669,13 @@ const Main = styled.div<MainProps>`
           : `minmax(0, 1fr) ${EditorStyleHelper.tocWidth}px`
         : `1fr minmax(0, ${`calc(${EditorStyleHelper.documentWidth} + ${EditorStyleHelper.documentGutter})`}) 1fr`};
   `};
+
+  @media print {
+    display: block;
+    max-width: calc(
+      ${EditorStyleHelper.documentWidth} + ${EditorStyleHelper.documentGutter}
+    );
+  }
 `;
 
 type ContentsContainerProps = {
