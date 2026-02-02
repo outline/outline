@@ -653,6 +653,14 @@ export default class DocumentsStore extends Store<Document> {
     }
   ) {
     await super.delete(document, options);
+    
+    // For permanent deletion, we need to actually remove the document from the
+    // local store data Map, as the base Store's remove() method only soft-deletes
+    // ParanoidModel instances by setting deletedAt.
+    if (options?.permanent) {
+      this.data.delete(document.id);
+    }
+    
     // check to see if we have any shares related to this document already
     // loaded in local state. If so we can go ahead and remove those too.
     const share = this.rootStore.shares.getByDocumentId(document.id);
