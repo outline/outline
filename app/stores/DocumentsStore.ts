@@ -748,7 +748,11 @@ export default class DocumentsStore extends Store<Document> {
     await client.post("/documents.empty_trash");
 
     const documentIdsSet = new Set(this.deleted.map((doc) => doc.id));
+    // Call removeAll to handle inverse relations, policies, and lifecycle hooks
     this.removeAll((doc: Document) => documentIdsSet.has(doc.id));
+    // For permanent deletion (empty trash), we need to hard delete from the store
+    // after the cleanup is done, as removeAll only soft-deletes ParanoidModel instances
+    documentIdsSet.forEach((id) => this.data.delete(id));
   };
 
   star = (document: Document, index?: string) =>
