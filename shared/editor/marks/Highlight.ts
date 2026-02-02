@@ -41,9 +41,10 @@ export default class Highlight extends Mark {
           getAttrs: (dom) => {
             const color = dom.getAttribute("data-color") || "";
 
-            // Only accept colors that start with # (hex colors)
+            // Validate hex color format: #RGB, #RGBA, #RRGGBB, or #RRGGBBAA
+            const isValidHex = /^#([0-9A-F]{3}|[0-9A-F]{4}|[0-9A-F]{6}|[0-9A-F]{8})$/i.test(color);
             return {
-              color: color && color.startsWith("#") ? color : null,
+              color: isValidHex ? color : null,
             };
           },
         },

@@ -251,7 +251,6 @@ export default function formattingMenuItems(
             {
               content: (
                 <HighlightColorPicker
-                  command="highlight"
                   activeColor={
                     highlight?.mark.attrs.color || Highlight.presetColors[0].hex
                   }
