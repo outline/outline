@@ -1,3 +1,4 @@
+import { isHexColor } from "class-validator";
 import { parseToRgb, rgba } from "polished";
 import { toggleMark } from "prosemirror-commands";
 import type { MarkSpec, MarkType } from "prosemirror-model";
@@ -71,7 +72,7 @@ export default class Highlight extends Mark {
             const color = dom.getAttribute("data-color") || "";
 
             return {
-              color: Highlight.isPresetColor(color) ? color : null,
+              color: isHexColor(color) ? color : null,
             };
           },
         },
