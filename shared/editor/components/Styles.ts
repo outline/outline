@@ -1874,6 +1874,9 @@ table {
     background: ${transparentize(0.75, props.theme.divider)};
     color: ${props.theme.textSecondary};
     font-weight: 500;
+    position: sticky;
+    top: 0;
+    z-index: 2;
   }
 
   tr:first-child th,
