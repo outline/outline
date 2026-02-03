@@ -149,6 +149,12 @@ router.get("/sitemap.xml", async (ctx) => {
 // catch all for application
 router.get("*", async (ctx, next) => {
   if (ctx.state?.rootShare) {
+    // Only allow root path for root share domains, return 404 for other paths.
+    // Valid paths like /doc/:documentSlug and /sitemap.xml are handled above.
+    if (ctx.path !== "/") {
+      ctx.status = 404;
+      return;
+    }
     return renderShare(ctx, next);
   }
 
