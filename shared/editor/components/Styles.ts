@@ -1871,7 +1871,11 @@ table {
   }
 
   th {
-    background: ${transparentize(0.75, props.theme.divider)};
+    background: ${props.theme.background};
+    background-image: linear-gradient(
+      ${transparentize(0.75, props.theme.divider)},
+      ${transparentize(0.75, props.theme.divider)}
+    );
     color: ${props.theme.textSecondary};
     font-weight: 500;
     position: sticky;
