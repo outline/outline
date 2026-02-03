@@ -37,7 +37,7 @@ const getRpID = (ctx: APIContext) => ctx.request.hostname;
  * @param ctx - the API context.
  * @returns the expected origin (protocol://host:port).
  */
-const getExpectedOrigin = (ctx: APIContext): string => {
+export const getExpectedOrigin = (ctx: APIContext): string => {
   const protocol = ctx.protocol;
   const hostname = ctx.request.hostname;
 
