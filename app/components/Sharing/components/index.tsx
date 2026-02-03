@@ -7,6 +7,8 @@ import Input, { NativeInput } from "~/components/Input";
 import { InfoIcon } from "outline-icons";
 import { Link } from "react-router-dom";
 
+export { GroupMembersPopover } from "./GroupMembersPopover";
+
 // TODO: Temp until Button/NudeButton styles are normalized
 export const Wrapper = styled.div`
   ${NudeButton}:${hover},
