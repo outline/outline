@@ -27,6 +27,7 @@ import CellBackgroundColorPicker from "../components/CellBackgroundColorPicker";
 import HighlightColorPicker from "../components/HighlightColorPicker";
 import type { EditorState } from "prosemirror-state";
 
+import { getDocumentHighlightColors } from "@shared/editor/queries/getDocumentHighlightColors";
 import { getMarksBetween } from "@shared/editor/queries/getMarksBetween";
 import { isInCode } from "@shared/editor/queries/isInCode";
 import { isInList } from "@shared/editor/queries/isInList";
@@ -71,6 +72,17 @@ export default function formattingMenuItems(
     state.selection.to,
     state
   ).find(({ mark }) => mark.type === state.schema.marks.highlight);
+
+  // Get all unique highlight colors used in the document
+  const documentHighlightColors = getDocumentHighlightColors(state);
+  
+  // Filter out preset colors and the currently selected color
+  const currentHighlightColor = highlight?.mark.attrs.color;
+  const nonPresetDocumentColors = documentHighlightColors.filter(
+    (color) => 
+      !Highlight.isPresetColor(color) && 
+      color !== currentHighlightColor
+  );
 
   const cellSelectionHasBackground = isTableCell
     ? hasNodeAttrMarkCellSelection(
@@ -244,6 +256,14 @@ export default function formattingMenuItems(
               },
             ]
           : []),
+        // Add all other document highlight colors
+        ...nonPresetDocumentColors.map((color) => ({
+          name: "highlight",
+          label: color,
+          icon: <CircleIcon retainColor color={color} />,
+          active: isMarkActive(schema.marks.highlight, { color }),
+          attrs: { color },
+        })),
         {
           icon: <CircleIcon retainColor color="rainbow" />,
           label: "Custom",
