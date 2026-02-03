@@ -261,7 +261,7 @@ export default function formattingMenuItems(
           name: "highlight",
           label: color,
           icon: <CircleIcon retainColor color={color} />,
-          active: isMarkActive(schema.marks.highlight, { color }),
+          active: () => currentHighlightColor === color,
           attrs: { color },
         })),
         {
