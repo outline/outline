@@ -338,6 +338,39 @@ export function isMergedCellSelection(state: EditorState): boolean {
   return false;
 }
 
+/**
+ * Check if the table contains any cells with rowspan > 1.
+ * Cells with rowspan span multiple rows and would break table sorting.
+ *
+ * @param state The editor state.
+ * @returns true if the table has any cells with rowspan > 1, false otherwise.
+ */
+export function tableHasRowspan(state: EditorState): boolean {
+  if (!isInTable(state)) {
+    return false;
+  }
+
+  const rect = selectedRect(state);
+  const seen = new Set<number>();
+
+  for (let i = 0; i < rect.map.map.length; i++) {
+    const pos = rect.map.map[i];
+
+    // Skip already checked cells
+    if (seen.has(pos)) {
+      continue;
+    }
+    seen.add(pos);
+
+    const cell = rect.table.nodeAt(pos);
+    if (cell && cell.attrs.rowspan > 1) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 export function getAllSelectedColumns(state: EditorState): number[] {
   const rect = selectedRect(state);
 
