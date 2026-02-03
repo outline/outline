@@ -653,6 +653,14 @@ export default class DocumentsStore extends Store<Document> {
     }
   ) {
     await super.delete(document, options);
+    
+    // For permanent deletion, we need to actually remove the document from the
+    // local store data Map, as the base Store's remove() method only soft-deletes
+    // ParanoidModel instances by setting deletedAt.
+    if (options?.permanent) {
+      this.data.delete(document.id);
+    }
+    
     // check to see if we have any shares related to this document already
     // loaded in local state. If so we can go ahead and remove those too.
     const share = this.rootStore.shares.getByDocumentId(document.id);
@@ -740,7 +748,11 @@ export default class DocumentsStore extends Store<Document> {
     await client.post("/documents.empty_trash");
 
     const documentIdsSet = new Set(this.deleted.map((doc) => doc.id));
+    // Call removeAll to handle inverse relations, policies, and lifecycle hooks
     this.removeAll((doc: Document) => documentIdsSet.has(doc.id));
+    // For permanent deletion (empty trash), we need to hard delete from the store
+    // after the cleanup is done, as removeAll only soft-deletes ParanoidModel instances
+    documentIdsSet.forEach((id) => this.data.delete(id));
   };
 
   star = (document: Document, index?: string) =>
