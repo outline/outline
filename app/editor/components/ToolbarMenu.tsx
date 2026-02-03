@@ -109,7 +109,10 @@ function ToolbarDropdown(props: ToolbarDropdownProps) {
       <MenuProvider variant="dropdown">
         <Menu open={isOpen} onOpenChange={handleOpenChange}>
           <MenuTrigger>
-            <ToolbarButton aria-label={item.label ? undefined : item.tooltip}>
+            <ToolbarButton
+              aria-label={item.label ? undefined : item.tooltip}
+              disabled={item.disabled}
+            >
               {item.label && <Label>{item.label}</Label>}
               {item.icon}
             </ToolbarButton>
@@ -190,6 +193,7 @@ function ToolbarMenu(props: Props) {
                       onClick={handleClick(item)}
                       active={isActive && !item.label}
                       aria-label={item.label ? undefined : item.tooltip}
+                      disabled={item.disabled}
                     >
                       {item.label && <Label>{item.label}</Label>}
                       {item.icon}

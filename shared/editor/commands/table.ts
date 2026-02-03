@@ -33,6 +33,7 @@ import {
   getWidthFromNodes,
   getRowIndex,
   getColumnIndex,
+  tableHasRowspan,
 } from "../queries/table";
 import { type NodeAttrMark, TableLayout } from "../types";
 import { collapseSelection } from "./collapseSelection";
@@ -310,41 +311,69 @@ export function sortTable({
       return false;
     }
 
+    // Cannot sort tables with rowspan as it would break the table structure
+    if (tableHasRowspan(state)) {
+      return false;
+    }
+
     if (dispatch) {
       const rect = selectedRect(state);
-      const table: Node[][] = [];
 
-      for (let r = 0; r < rect.map.height; r++) {
-        const cells = [];
-        for (let c = 0; c < rect.map.width; c++) {
-          const cell = state.doc.nodeAt(
-            rect.tableStart + rect.map.map[r * rect.map.width + c]
-          );
-          if (cell) {
-            cells.push(cell);
-          }
-        }
-        table.push(cells);
+      // Build rows with both:
+      // - columnMap: maps column index to cell (for sorting lookup, handles colspan)
+      // - cells: unique cells in order (for row reconstruction)
+      interface TableRow {
+        columnMap: Map<number, Node>;
+        cells: Node[];
       }
 
-      const hasHeaderRow = table[0].every(
+      const rows: TableRow[] = [];
+
+      for (let r = 0; r < rect.map.height; r++) {
+        const columnMap = new Map<number, Node>();
+        const cells: Node[] = [];
+        const seenPositions = new Set<number>();
+
+        for (let c = 0; c < rect.map.width; c++) {
+          const pos = rect.map.map[r * rect.map.width + c];
+          const cell = state.doc.nodeAt(rect.tableStart + pos);
+
+          if (cell) {
+            // Map this column index to its cell (for sorting lookup)
+            columnMap.set(c, cell);
+
+            // Only add each unique cell once to the cells array (for row reconstruction)
+            if (!seenPositions.has(pos)) {
+              seenPositions.add(pos);
+              cells.push(cell);
+            }
+          }
+        }
+        rows.push({ columnMap, cells });
+      }
+
+      const hasHeaderRow = rows[0].cells.every(
         (cell) => cell.type === state.schema.nodes.th
       );
 
       // remove the header row
-      const header = hasHeaderRow ? table.shift() : undefined;
+      const header = hasHeaderRow ? rows.shift() : undefined;
+
+      // Helper to get cell content at column index
+      const getCellContent = (row: TableRow): string =>
+        row.columnMap.get(index)?.textContent ?? "";
 
       // column data before sort
-      const columnData = table.map((row) => row[index]?.textContent ?? "");
+      const columnData = rows.map(getCellContent);
 
       // determine sorting type: date, currency, number, or text
       let compareAsDate = false;
       let compareAsCurrency = false;
       let compareAsNumber = false;
 
-      const nonEmptyCells = table
-        .map((row) => row[index]?.textContent?.trim())
-        .filter((cell): cell is string => !!cell && cell.length > 0);
+      const nonEmptyCells = columnData
+        .map((content) => content.trim())
+        .filter((content): content is string => content.length > 0);
       if (nonEmptyCells.length > 0) {
         // check if all non-empty cells are valid dates
         compareAsDate = nonEmptyCells.every((cell) => parseDate(cell) !== null);
@@ -369,10 +398,10 @@ export function sortTable({
         }
       }
 
-      // sort table data based on column at index
-      table.sort((a, b) => {
-        const aContent = a[index]?.textContent ?? "";
-        const bContent = b[index]?.textContent ?? "";
+      // sort rows based on column at index
+      rows.sort((a, b) => {
+        const aContent = getCellContent(a);
+        const bContent = getCellContent(b);
 
         // empty cells always go to the end
         if (!aContent) {
@@ -421,31 +450,31 @@ export function sortTable({
       });
 
       if (direction === "desc") {
-        table.reverse();
+        rows.reverse();
       }
 
       // check if column data changed, if not then do not replace table
-      if (
-        columnData.join() === table.map((row) => row[index]?.textContent).join()
-      ) {
+      if (columnData.join() === rows.map(getCellContent).join()) {
         return true;
       }
 
       // add the header row back
       if (header) {
-        table.unshift(header);
+        rows.unshift(header);
       }
 
       // create the new table
-      const rows = [];
-      for (let i = 0; i < table.length; i += 1) {
-        rows.push(state.schema.nodes.tr.createChecked(null, table[i]));
+      const tableRows = [];
+      for (let i = 0; i < rows.length; i += 1) {
+        tableRows.push(
+          state.schema.nodes.tr.createChecked(null, rows[i].cells)
+        );
       }
 
       // replace the original table with this sorted one
       const nodes = state.schema.nodes.table.createChecked(
         rect.table.attrs,
-        rows
+        tableRows
       );
       const { tr } = state;
 
