@@ -139,7 +139,7 @@ function SidebarLink(
       ev.stopPropagation();
       onDisclosureClick?.(ev);
     },
-    [onDisclosureClick]
+    [onDisclosureClick, hasDisclosure]
   );
 
   const DisclosureComponent = icon ? HiddenDisclosure : Disclosure;
