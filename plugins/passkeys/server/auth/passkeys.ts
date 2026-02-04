@@ -31,6 +31,43 @@ const CHALLENGE_EXPIRY_MS = Minute.ms * 5;
 const getRpID = (ctx: APIContext) => ctx.request.hostname;
 
 /**
+ * Helper to get the expected origin for WebAuthn.
+ * Properly handles non-standard ports by checking X-Forwarded-Port header.
+ *
+ * @param ctx - the API context.
+ * @returns the expected origin (protocol://host:port).
+ */
+export const getExpectedOrigin = (ctx: APIContext): string => {
+  const protocol = ctx.protocol;
+  const hostname = ctx.request.hostname;
+
+  // When behind a proxy with app.proxy = true, Koa uses X-Forwarded-Host
+  // which typically doesn't include the port. We need to check X-Forwarded-Port.
+  const forwardedPort = ctx.request.get("X-Forwarded-Port");
+
+  // ctx.request.host includes port if present (e.g., "example.com:3000")
+  // ctx.request.hostname excludes port (e.g., "example.com")
+  const hostWithPort = ctx.request.host;
+
+  // Determine if we need to add a port to the origin
+  let origin = `${protocol}://${hostname}`;
+
+  // Check if X-Forwarded-Port exists (when behind a proxy)
+  if (forwardedPort) {
+    const port = parseInt(forwardedPort, 10);
+    // Only add port if it's not the default for the protocol
+    if ((protocol === "https" && port !== 443) || (protocol === "http" && port !== 80)) {
+      origin = `${protocol}://${hostname}:${port}`;
+    }
+  } else if (hostWithPort !== hostname) {
+    // hostWithPort includes port, use it directly
+    origin = `${protocol}://${hostWithPort}`;
+  }
+
+  return origin;
+};
+
+/**
  * Generate Redis key for registration challenge.
  *
  * @param userId - the user ID.
@@ -104,7 +141,7 @@ router.post(
       verification = await verifyRegistrationResponse({
         response: body,
         expectedChallenge,
-        expectedOrigin: `${ctx.protocol}://${ctx.request.host}`, // Origin includes port
+        expectedOrigin: getExpectedOrigin(ctx),
         expectedRPID: getRpID(ctx),
       });
     } catch (error) {
@@ -230,7 +267,7 @@ router.post(
       verification = await verifyAuthenticationResponse({
         response: body,
         expectedChallenge,
-        expectedOrigin: `${ctx.protocol}://${ctx.request.host}`,
+        expectedOrigin: getExpectedOrigin(ctx),
         expectedRPID: getRpID(ctx),
         credential: {
           id: passkey.credentialId,
