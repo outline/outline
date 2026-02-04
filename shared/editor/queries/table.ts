@@ -493,6 +493,29 @@ export function getColorSetForSelectedCells(selection: Selection): Set<string> {
 }
 
 /**
+ * Get all unique background colors used in table cells across the entire document.
+ *
+ * @param state The editor state.
+ * @returns An array of unique hex color strings used for table cell backgrounds in the document.
+ */
+export function getDocumentTableBackgroundColors(state: EditorState): string[] {
+  const colors = new Set<string>();
+
+  state.doc.descendants((node) => {
+    if (node.type.name === "td" || node.type.name === "th") {
+      const backgroundMark = (node.attrs.marks ?? []).find(
+        (mark: NodeAttrMark) => mark.type === "background"
+      );
+      if (backgroundMark && backgroundMark.attrs.color) {
+        colors.add(backgroundMark.attrs.color);
+      }
+    }
+  });
+
+  return Array.from(colors);
+}
+
+/**
  * Returns true if any cell in the selection has a mark of the given type
  * with matching attributes.
  *
