@@ -73,17 +73,6 @@ export default function formattingMenuItems(
     state
   ).find(({ mark }) => mark.type === state.schema.marks.highlight);
 
-  // Get all unique highlight colors used in the document
-  const documentHighlightColors = getDocumentHighlightColors(state);
-  
-  // Filter out preset colors and the currently selected color
-  const currentHighlightColor = highlight?.mark.attrs.color;
-  const nonPresetDocumentColors = documentHighlightColors.filter(
-    (color) => 
-      !Highlight.isPresetColor(color) && 
-      color !== currentHighlightColor
-  );
-
   const cellSelectionHasBackground = isTableCell
     ? hasNodeAttrMarkCellSelection(
         state.selection as CellSelection,
@@ -217,73 +206,86 @@ export default function formattingMenuItems(
       ),
       active: () => !!highlight,
       visible: !isCode && (!isMobile || !isEmpty) && !isTableCell,
-      children: [
-        ...(highlight
-          ? [
+      children: (): MenuItem[] => {
+        // Get all unique highlight colors used in the document (lazily computed when menu opens)
+        const documentHighlightColors = getDocumentHighlightColors(state);
+
+        // Filter out preset colors and the currently selected color
+        const currentHighlightColor = highlight?.mark.attrs.color;
+        const nonPresetDocumentColors = documentHighlightColors.filter(
+          (color: string) =>
+            !Highlight.isPresetColor(color) && color !== currentHighlightColor
+        );
+
+        return [
+          ...(highlight
+            ? [
+                {
+                  name: "highlight",
+                  label: dictionary.none,
+                  icon: <DottedCircleIcon retainColor color="transparent" />,
+                  active: () => false,
+                  attrs: { color: highlight.mark.attrs.color },
+                },
+              ]
+            : []),
+          ...Highlight.presetColors.map((preset) => ({
+            name: "highlight",
+            label: preset.name,
+            icon: <CircleIcon retainColor color={preset.hex} />,
+            active: isMarkActive(schema.marks.highlight, { color: preset.hex }),
+            attrs: { color: preset.hex },
+          })),
+          ...(highlight &&
+          highlight.mark.attrs.color &&
+          !Highlight.isPresetColor(highlight.mark.attrs.color)
+            ? [
+                {
+                  name: "highlight",
+                  label: highlight.mark.attrs.color,
+                  icon: (
+                    <CircleIcon
+                      retainColor
+                      color={highlight.mark.attrs.color}
+                    />
+                  ),
+                  active: isMarkActive(schema.marks.highlight, {
+                    color: highlight.mark.attrs.color,
+                  }),
+                  attrs: { color: highlight.mark.attrs.color },
+                },
+              ]
+            : []),
+          // Add all other document highlight colors
+          ...nonPresetDocumentColors.map((color: string) => ({
+            name: "highlight",
+            label: color,
+            icon: <CircleIcon retainColor color={color} />,
+            active: () => currentHighlightColor === color,
+            attrs: { color },
+          })),
+          {
+            icon: <CircleIcon retainColor color="rainbow" />,
+            label: "Custom",
+            children: [
               {
-                name: "highlight",
-                label: dictionary.none,
-                icon: <DottedCircleIcon retainColor color="transparent" />,
-                active: () => false,
-                attrs: { color: highlight.mark.attrs.color },
-              },
-            ]
-          : []),
-        ...Highlight.presetColors.map((preset) => ({
-          name: "highlight",
-          label: preset.name,
-          icon: <CircleIcon retainColor color={preset.hex} />,
-          active: isMarkActive(schema.marks.highlight, { color: preset.hex }),
-          attrs: { color: preset.hex },
-        })),
-        ...(highlight &&
-        highlight.mark.attrs.color &&
-        !Highlight.isPresetColor(highlight.mark.attrs.color)
-          ? [
-              {
-                name: "highlight",
-                label: highlight.mark.attrs.color,
-                icon: (
-                  <CircleIcon
-                    retainColor
-                    color={highlight.mark.attrs.color}
+                content: (
+                  <HighlightColorPicker
+                    activeColor={
+                      highlight?.mark.attrs.color ||
+                      Highlight.presetColors[0].hex
+                    }
                   />
                 ),
-                active: isMarkActive(schema.marks.highlight, {
-                  color: highlight.mark.attrs.color,
-                }),
-                attrs: { color: highlight.mark.attrs.color },
+                preventCloseCondition: () =>
+                  !!document.activeElement?.matches(
+                    ".ProseMirror.ProseMirror-focused"
+                  ),
               },
-            ]
-          : []),
-        // Add all other document highlight colors
-        ...nonPresetDocumentColors.map((color) => ({
-          name: "highlight",
-          label: color,
-          icon: <CircleIcon retainColor color={color} />,
-          active: () => currentHighlightColor === color,
-          attrs: { color },
-        })),
-        {
-          icon: <CircleIcon retainColor color="rainbow" />,
-          label: "Custom",
-          children: [
-            {
-              content: (
-                <HighlightColorPicker
-                  activeColor={
-                    highlight?.mark.attrs.color || Highlight.presetColors[0].hex
-                  }
-                />
-              ),
-              preventCloseCondition: () =>
-                !!document.activeElement?.matches(
-                  ".ProseMirror.ProseMirror-focused"
-                ),
-            },
-          ],
-        },
-      ],
+            ],
+          },
+        ];
+      },
     },
     {
       name: "code_inline",

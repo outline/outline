@@ -276,7 +276,7 @@ export function SelectionToolbar(props: Props) {
 
   items = filterExcessSeparators(items);
   items = items.map((item) => {
-    if (item.children) {
+    if (item.children && Array.isArray(item.children)) {
       item.children = item.children.map((child) => {
         if (child.name === "editImageUrl") {
           child.onClick = () => {
