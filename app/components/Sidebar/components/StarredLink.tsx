@@ -63,7 +63,7 @@ type StarredCollectionLinkProps = {
   reorderStarProps: any;
 };
 
-function StarredDocumentLink({
+const StarredDocumentLink = observer(function StarredDocumentLink({
   star,
   documentId,
   expanded,
@@ -156,9 +156,9 @@ function StarredDocumentLink({
       </SidebarContext.Provider>
     </ActionContextProvider>
   );
-}
+});
 
-function StarredCollectionLink({
+const StarredCollectionLink = observer(function StarredCollectionLink({
   star,
   collection,
   sidebarContext,
@@ -185,7 +185,7 @@ function StarredCollectionLink({
       <Relative>{cursor}</Relative>
     </SidebarContext.Provider>
   );
-}
+});
 
 function StarredLink({ star }: Props) {
   const theme = useTheme();
@@ -240,10 +240,16 @@ function StarredLink({ star }: Props) {
     []
   );
 
-  const handlePrefetch = React.useCallback(
-    () => documentId && documents.prefetchDocument(documentId),
-    [documents, documentId]
-  );
+  const handlePrefetch = React.useCallback(() => {
+    if (documentId) {
+      void documents.prefetchDocument(documentId);
+      const document = documents.get(documentId);
+      const documentCollection = document?.collectionId
+        ? collections.get(document.collectionId)
+        : undefined;
+      void documentCollection?.fetchDocuments();
+    }
+  }, [documents, documentId, collections]);
 
   const getIndex = () => {
     const next = star?.next();
