@@ -43,6 +43,7 @@ import {
 } from "@shared/utils/browser";
 import {
   getColorSetForSelectedCells,
+  getDocumentTableBackgroundColors,
   hasNodeAttrMarkCellSelection,
   hasNodeAttrMarkWithAttrsCellSelection,
   isMergedCellSelection,
@@ -133,66 +134,85 @@ export default function formattingMenuItems(
           <PaletteIcon />
         ),
       visible: !isCode && (!isMobile || !isEmpty) && isTableCell,
-      children: [
-        {
-          name: "toggleCellSelectionBackgroundAndCollapseSelection",
-          label: dictionary.none,
-          icon: <DottedCircleIcon retainColor color="transparent" />,
-          active: () => (cellSelectionHasBackground ? false : true),
-          attrs: { color: null },
-        },
-        ...TableCell.presetColors.map((preset) => ({
-          name: "toggleCellSelectionBackgroundAndCollapseSelection",
-          label: preset.name,
-          icon: <CircleIcon retainColor color={preset.hex} />,
-          active: () =>
-            hasNodeAttrMarkWithAttrsCellSelection(
-              state.selection as CellSelection,
-              "background",
-              { color: preset.hex }
-            ),
-          attrs: { color: preset.hex },
-        })),
-        ...(selectedCellsColorSet.size === 1 &&
-        !TableCell.isPresetColor(selectedCellsColorSet.values().next().value)
-          ? [
+      children: (): MenuItem[] => {
+        // Get all unique background colors used in table cells (lazily computed when menu opens)
+        const documentTableColors = getDocumentTableBackgroundColors(state);
+
+        // Filter out preset colors and currently selected colors
+        const nonPresetDocumentColors = documentTableColors.filter(
+          (color: string) =>
+            !TableCell.isPresetColor(color) && !selectedCellsColorSet.has(color)
+        );
+
+        return [
+          {
+            name: "toggleCellSelectionBackgroundAndCollapseSelection",
+            label: dictionary.none,
+            icon: <DottedCircleIcon retainColor color="transparent" />,
+            active: () => (cellSelectionHasBackground ? false : true),
+            attrs: { color: null },
+          },
+          ...TableCell.presetColors.map((preset) => ({
+            name: "toggleCellSelectionBackgroundAndCollapseSelection",
+            label: preset.name,
+            icon: <CircleIcon retainColor color={preset.hex} />,
+            active: () =>
+              hasNodeAttrMarkWithAttrsCellSelection(
+                state.selection as CellSelection,
+                "background",
+                { color: preset.hex }
+              ),
+            attrs: { color: preset.hex },
+          })),
+          ...(selectedCellsColorSet.size === 1 &&
+          !TableCell.isPresetColor(selectedCellsColorSet.values().next().value)
+            ? [
+                {
+                  name: "toggleCellSelectionBackgroundAndCollapseSelection",
+                  label: selectedCellsColorSet.values().next().value,
+                  icon: (
+                    <CircleIcon
+                      retainColor
+                      color={selectedCellsColorSet.values().next().value}
+                    />
+                  ),
+                  active: () => true,
+                  attrs: { color: selectedCellsColorSet.values().next().value },
+                },
+              ]
+            : []),
+          // Add all other document table background colors
+          ...nonPresetDocumentColors.map((color: string) => ({
+            name: "toggleCellSelectionBackgroundAndCollapseSelection",
+            label: color,
+            icon: <CircleIcon retainColor color={color} />,
+            active: () => selectedCellsColorSet.has(color),
+            attrs: { color },
+          })),
+          {
+            icon: <CircleIcon retainColor color="rainbow" />,
+            label: "Custom",
+            children: [
               {
-                name: "toggleCellSelectionBackgroundAndCollapseSelection",
-                label: selectedCellsColorSet.values().next().value,
-                icon: (
-                  <CircleIcon
-                    retainColor
-                    color={selectedCellsColorSet.values().next().value}
+                content: (
+                  <CellBackgroundColorPicker
+                    command="toggleCellSelectionBackground"
+                    activeColor={
+                      selectedCellsColorSet.size === 1
+                        ? selectedCellsColorSet.values().next().value
+                        : ""
+                    }
                   />
                 ),
-                active: () => true,
-                attrs: { color: selectedCellsColorSet.values().next().value },
+                preventCloseCondition: () =>
+                  !!document.activeElement?.matches(
+                    ".ProseMirror.ProseMirror-focused"
+                  ),
               },
-            ]
-          : []),
-        {
-          icon: <CircleIcon retainColor color="rainbow" />,
-          label: "Custom",
-          children: [
-            {
-              content: (
-                <CellBackgroundColorPicker
-                  command="toggleCellSelectionBackground"
-                  activeColor={
-                    selectedCellsColorSet.size === 1
-                      ? selectedCellsColorSet.values().next().value
-                      : ""
-                  }
-                />
-              ),
-              preventCloseCondition: () =>
-                !!document.activeElement?.matches(
-                  ".ProseMirror.ProseMirror-focused"
-                ),
-            },
-          ],
-        },
-      ],
+            ],
+          },
+        ];
+      },
     },
     {
       tooltip: dictionary.mark,
