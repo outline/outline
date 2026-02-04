@@ -91,6 +91,9 @@ export class EditorStyleHelper {
   /** Shadow on the left side of the table */
   static readonly tableShadowLeft = "table-shadow-left";
 
+  /** Sticky header state */
+  static readonly tableStickyHeader = "table-sticky-header";
+
   /** Drop indicator for table drag and drop */
   static readonly tableDragDropIndicator = "table-drag-drop-indicator";
 

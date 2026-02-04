@@ -1878,8 +1878,10 @@ table {
     );
     color: ${props.theme.textSecondary};
     font-weight: 500;
-    position: sticky;
-    top: 0;
+  }
+
+  tr:first-child {
+    position: relative;
     z-index: 2;
   }
 
@@ -2238,6 +2240,28 @@ table {
 
 .${EditorStyleHelper.table} {
   position: relative;
+}
+
+.${EditorStyleHelper.tableStickyHeader} {
+  th {
+    transform: translateY(calc(var(--header-offset, 64px) + var(--sticky-scroll-offset, 0px)));
+    border-bottom: 1px solid ${props.theme.divider};
+
+    // Mask content scrolling past the top of the header
+    box-shadow: 0 -1px 0 ${props.theme.divider};
+    border-radius: 0 !important;
+
+    .${EditorStyleHelper.tableGripColumn},
+    .${EditorStyleHelper.tableAddColumn},
+    .${EditorStyleHelper.tableAddRow},
+    .${EditorStyleHelper.tableGrip} {
+      display: none;
+    }
+  }
+
+  .${EditorStyleHelper.tableGrip} {
+    display: none;
+  }
 }
 
 .${EditorStyleHelper.tableScrollable} {
