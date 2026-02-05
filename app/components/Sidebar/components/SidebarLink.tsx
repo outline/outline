@@ -176,7 +176,7 @@ function SidebarLink(
             />
           )}
           {icon && <IconWrapper>{icon}</IconWrapper>}
-          <Label>{label}</Label>
+          <Label $ellipsis={!!menu}>{label}</Label>
           {unreadBadge && <UnreadBadge style={unreadStyle} />}
         </Content>
       </ContextMenu>
@@ -343,13 +343,13 @@ const Link = styled(NavLink)<{
   }
 `;
 
-const Label = styled.div`
+const Label = styled.div<{ $ellipsis: boolean }>`
   position: relative;
   width: 100%;
   line-height: 24px;
   margin-left: 2px;
   min-width: 0;
-  ${ellipsis()}
+  ${(props) => props.$ellipsis && ellipsis()}
 
   * {
     unicode-bidi: plaintext;
