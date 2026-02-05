@@ -53,6 +53,8 @@ type Props = Omit<NavLinkProps, "to"> & {
   isDraft?: boolean;
   /** Nesting depth level for indentation (0-based) */
   depth?: number;
+  /** Whether to truncate the label text (default: true, causes overflow: hidden) */
+  ellipsis?: boolean;
   /** Whether to automatically scroll this link into view if needed */
   scrollIntoViewIfNeeded?: boolean;
   /** Optional context menu action to display */
@@ -89,6 +91,7 @@ function SidebarLink(
     disabled,
     unreadBadge,
     contextAction,
+    ellipsis = true,
     ...rest
   }: Props,
   ref: React.RefObject<HTMLAnchorElement>
@@ -176,7 +179,7 @@ function SidebarLink(
             />
           )}
           {icon && <IconWrapper>{icon}</IconWrapper>}
-          <Label>{label}</Label>
+          <Label $ellipsis={ellipsis}>{label}</Label>
           {unreadBadge && <UnreadBadge style={unreadStyle} />}
         </Content>
       </ContextMenu>
@@ -343,13 +346,13 @@ const Link = styled(NavLink)<{
   }
 `;
 
-const Label = styled.div`
+const Label = styled.div<{ $ellipsis: boolean }>`
   position: relative;
   width: 100%;
   line-height: 24px;
   margin-left: 2px;
   min-width: 0;
-  ${ellipsis()}
+  ${(props) => props.$ellipsis && ellipsis()}
 
   * {
     unicode-bidi: plaintext;

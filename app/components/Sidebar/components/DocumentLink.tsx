@@ -427,6 +427,7 @@ function InnerDocumentLink(
                 to={toPath}
                 icon={iconElement}
                 label={labelElement}
+                ellipsis={!isEditing}
                 isActive={isActiveCheck}
                 isActiveDrop={isOverReparent && canDropToReparent}
                 depth={depth}
@@ -448,6 +449,7 @@ function InnerDocumentLink(
         <SidebarLink
           isActive={() => true}
           depth={depth + 1}
+          ellipsis={false}
           label={
             <EditableTitle
               title=""

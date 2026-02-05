@@ -157,6 +157,7 @@ const CollectionLink: React.FC<Props> = ({
                 ref={editableTitleRef}
               />
             }
+            ellipsis={!isEditing}
             exact={false}
             depth={depth ? depth : 0}
             menu={
@@ -197,6 +198,7 @@ const CollectionLink: React.FC<Props> = ({
           <SidebarLink
             depth={2}
             isActive={() => true}
+            ellipsis={false}
             label={
               <EditableTitle
                 title=""
