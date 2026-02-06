@@ -1,6 +1,7 @@
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import type { Comment } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import { resolveAnchorToProsemirror } from "@server/utils/anchorResolver";
 import presentUser from "./user";
 
 type Options = {
@@ -13,6 +14,7 @@ export default function present(
   { includeAnchorText }: Options = {}
 ) {
   let anchorText: string | undefined;
+  let resolvedPos;
 
   if (includeAnchorText && comment.document) {
     const commentMarks = ProsemirrorHelper.getComments(
@@ -21,6 +23,13 @@ export default function present(
     anchorText = ProsemirrorHelper.getAnchorTextForComment(
       commentMarks,
       comment.id
+    );
+  }
+
+  if (comment.anchor && comment.document && "state" in comment.document) {
+    resolvedPos = resolveAnchorToProsemirror(
+      comment.anchor,
+      comment.document.state
     );
   }
 
@@ -38,5 +47,6 @@ export default function present(
     updatedAt: comment.updatedAt,
     reactions: comment.reactions ?? [],
     anchorText,
+    resolvedPosition: resolvedPos,
   };
 }

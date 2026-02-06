@@ -648,3 +648,32 @@ export type ReactionSummary = {
   emoji: string;
   userIds: string[];
 };
+
+/** Base64-encoded Yjs RelativePosition for comment anchoring. */
+export type RelPosB64 = string;
+
+/** Tie-break behavior at position boundaries (-1: before, 1: after). */
+export type Assoc = -1 | 1;
+
+/** Range defined by Yjs RelativePositions for comment anchoring. */
+export interface AnchorRange {
+  from: RelPosB64;
+  fromAssoc: Assoc;
+  to: RelPosB64;
+  toAssoc: Assoc;
+}
+
+/** Contextual text snippets around a comment anchor for fallback resolution. */
+export interface AnchorContext {
+  exact?: string;
+  prefix?: string;
+  suffix?: string;
+}
+
+/** Result of resolving a comment anchor to ProseMirror positions. */
+export interface ResolvedPosition {
+  method: "relative" | "orphaned";
+  confidence: number;
+  pmFrom?: number;
+  pmTo?: number;
+}

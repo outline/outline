@@ -35,7 +35,7 @@ router.post(
   validate(T.CommentsCreateSchema),
   transaction(),
   async (ctx: APIContext<T.CommentsCreateReq>) => {
-    const { id, documentId, parentCommentId } = ctx.input.body;
+    const { id, documentId, parentCommentId, anchor, context } = ctx.input.body;
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
 
@@ -62,6 +62,8 @@ router.post(
       createdById: user.id,
       documentId,
       parentCommentId,
+      anchor,
+      context,
     });
 
     comment.createdBy = user;

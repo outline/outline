@@ -41,6 +41,25 @@ export const CommentsCreateSchema = BaseSchema.extend({
 
       /** Create comment with this text */
       text: z.string().optional(),
+
+      /** Yjs RelativePosition anchor range for inline comments */
+      anchor: z
+        .object({
+          from: z.string(),
+          fromAssoc: z.union([z.literal(-1), z.literal(1)]),
+          to: z.string(),
+          toAssoc: z.union([z.literal(-1), z.literal(1)]),
+        })
+        .optional(),
+
+      /** Contextual text snippets for anchor fallback resolution */
+      context: z
+        .object({
+          exact: z.string().max(200).optional(),
+          prefix: z.string().max(80).optional(),
+          suffix: z.string().max(80).optional(),
+        })
+        .optional(),
     })
     .refine((obj) => !(isEmpty(obj.data) && isEmpty(obj.text)), {
       message: "One of data or text is required",
