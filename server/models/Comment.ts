@@ -10,12 +10,7 @@ import {
   DefaultScope,
   AfterDestroy,
 } from "sequelize-typescript";
-import type {
-  ProsemirrorData,
-  ReactionSummary,
-  AnchorRange,
-  AnchorContext,
-} from "@shared/types";
+import type { ProsemirrorData, ReactionSummary } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { CommentValidation } from "@shared/validations";
 import { basicSchema } from "@server/editor";
@@ -62,12 +57,6 @@ class Comment extends ParanoidModel<
 
   @Column(DataType.JSONB)
   reactions: ReactionSummary[] | null;
-
-  @Column(DataType.JSONB)
-  anchor: AnchorRange | null;
-
-  @Column(DataType.JSONB)
-  context: AnchorContext | null;
 
   // associations
 
