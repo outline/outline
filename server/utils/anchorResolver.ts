@@ -19,29 +19,35 @@ export function resolveAnchorToProseMirror(
   try {
     const ydoc = new Y.Doc();
     Y.applyUpdate(ydoc, yjsDocState);
-    
+
     const yFragment = ydoc.get("default", Y.XmlFragment);
-    
+
     const fromB64 = Buffer.from(anchorRange.from, "base64");
     const toB64 = Buffer.from(anchorRange.to, "base64");
-    
+
     const fromRelPos = Y.decodeRelativePosition(fromB64);
     const toRelPos = Y.decodeRelativePosition(toB64);
-    
+
     if (!fromRelPos || !toRelPos) {
       return { method: "orphaned", confidence: 0 };
     }
-    
-    const fromAbsPos = Y.createAbsolutePositionFromRelativePosition(fromRelPos, ydoc);
-    const toAbsPos = Y.createAbsolutePositionFromRelativePosition(toRelPos, ydoc);
-    
+
+    const fromAbsPos = Y.createAbsolutePositionFromRelativePosition(
+      fromRelPos,
+      ydoc
+    );
+    const toAbsPos = Y.createAbsolutePositionFromRelativePosition(
+      toRelPos,
+      ydoc
+    );
+
     if (!fromAbsPos || !toAbsPos) {
       return { method: "orphaned", confidence: 0 };
     }
-    
+
     const pmFromPos = fromAbsPos.index;
     const pmToPos = toAbsPos.index;
-    
+
     return {
       method: "relative",
       confidence: 1.0,

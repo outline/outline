@@ -56,7 +56,10 @@ export const getExpectedOrigin = (ctx: APIContext): string => {
   if (forwardedPort) {
     const port = parseInt(forwardedPort, 10);
     // Only add port if it's not the default for the protocol
-    if ((protocol === "https" && port !== 443) || (protocol === "http" && port !== 80)) {
+    if (
+      (protocol === "https" && port !== 443) ||
+      (protocol === "http" && port !== 80)
+    ) {
       origin = `${protocol}://${hostname}:${port}`;
     }
   } else if (hostWithPort !== hostname) {

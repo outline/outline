@@ -4,13 +4,20 @@ const COLS_TO_ADD = ["anchor", "context"];
 
 const performDbUpdate = (queryInterface, types, reverting) => {
   const colOrder = reverting ? [...COLS_TO_ADD].reverse() : COLS_TO_ADD;
-  
+
   return queryInterface.sequelize.transaction(async (txn) => {
     await colOrder.reduce((promise, colName) => {
       return promise.then(() => {
         return reverting
-          ? queryInterface.removeColumn("comments", colName, { transaction: txn })
-          : queryInterface.addColumn("comments", colName, { type: types.JSONB, allowNull: true }, { transaction: txn });
+          ? queryInterface.removeColumn("comments", colName, {
+              transaction: txn,
+            })
+          : queryInterface.addColumn(
+              "comments",
+              colName,
+              { type: types.JSONB, allowNull: true },
+              { transaction: txn }
+            );
       });
     }, Promise.resolve());
   });
