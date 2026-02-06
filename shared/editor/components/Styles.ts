@@ -1483,6 +1483,41 @@ ol li {
   }
 }
 
+.checklist-wrapper {
+  position: relative;
+  margin: 1em 0;
+}
+
+.checklist-completed-toggle {
+  position: absolute;
+  top: -8px;
+  right: 0;
+  padding: 4px 8px;
+  font-size: 12px;
+  background: ${props.theme.background};
+  border: 1px solid ${props.theme.divider};
+  border-radius: 4px;
+  color: ${props.theme.textSecondary};
+  cursor: var(--pointer);
+  user-select: none;
+  z-index: 1;
+  transition: all 100ms ease-in-out;
+
+  &:hover {
+    background: ${props.theme.sidebarBackground};
+    color: ${props.theme.text};
+    border-color: ${props.theme.textTertiary};
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.checklist-wrapper.completed-hidden ul.checkbox_list > li.checked {
+  display: none;
+}
+
 ul.checkbox_list {
   padding: 0;
   margin-left: -24px;
