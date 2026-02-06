@@ -55,9 +55,6 @@ function PublicAccess(
   const documentAbilities = usePolicy(document);
   
   const hasActiveScopeLimit = limitedByScope === "collection";
-  const scopeLimitNotice = hasActiveScopeLimit 
-    ? t("Public sharing is disabled in collection") 
-    : "";
   const canPublish = can.update && documentAbilities.share && !hasActiveScopeLimit;
 
   React.useEffect(() => {
@@ -174,7 +171,7 @@ function PublicAccess(
           <>
             {hasActiveScopeLimit ? (
               <Text type="secondary" size="small">
-                {scopeLimitNotice}
+                {t("Public sharing is disabled in collection")}
               </Text>
             ) : sharedParent && !document.isDraft ? (
               sharedParent.collectionId ? (
