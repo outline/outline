@@ -24,7 +24,7 @@ export default class CheckboxList extends Node {
       group: "block list",
       content: "checkbox_item+",
       attrs: {
-        id: { default: undefined },
+        id: { default: null },
       },
       toDOM: () => ["ul", { class: this.name }, 0],
       parseDOM: [
@@ -155,7 +155,7 @@ class CheckboxListNodeView implements ProsemirrorNodeView {
     }
 
     const storageKey = `checklist-${listId}-${this.userIdentifier}-hidden`;
-    const currentlyCollapsed = Storage.get(storageKey) === true;
+    const currentlyCollapsed = !!Storage.get(storageKey);
     Storage.set(storageKey, !currentlyCollapsed);
     this.updateToggleState();
   };
@@ -168,7 +168,7 @@ class CheckboxListNodeView implements ProsemirrorNodeView {
     }
 
     const storageKey = `checklist-${listId}-${this.userIdentifier}-hidden`;
-    const shouldCollapse = Storage.get(storageKey) === true;
+    const shouldCollapse = !!Storage.get(storageKey);
 
     // Count completed items
     let completedItemsCount = 0;
