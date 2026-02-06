@@ -301,5 +301,30 @@ describe("permissions", () => {
 
       expect(permission).toBeUndefined();
     });
+
+    it("should treat Owner permission as highest priority for collection", async () => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        permission: null,
+      });
+      const document = await buildDocument({
+        collectionId: collection.id,
+        teamId: user.teamId,
+      });
+      await UserMembership.create({
+        createdById: user.id,
+        collectionId: collection.id,
+        userId: user.id,
+        permission: CollectionPermission.Owner,
+      });
+
+      const permission = await getDocumentPermission({
+        userId: user.id,
+        documentId: document.id,
+      });
+
+      expect(permission).toEqual(DocumentPermission.ReadWrite);
+    });
   });
 });

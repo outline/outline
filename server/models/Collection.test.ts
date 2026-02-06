@@ -549,3 +549,19 @@ describe("#setIndex", () => {
     expect(anotherCollection.index).not.toEqual(collection.index);
   });
 });
+
+describe("Owner permission", () => {
+  it("should assign Owner permission to creator on collection creation", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      createdById: user.id,
+      teamId: user.teamId,
+    });
+
+    const membership = await collection.$get("memberships");
+    const ownerMembership = membership.find((m) => m.userId === user.id);
+
+    expect(ownerMembership).toBeDefined();
+    expect(ownerMembership?.permission).toBe("owner");
+  });
+});
