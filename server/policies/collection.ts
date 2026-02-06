@@ -89,6 +89,7 @@ allow(User, "share", Collection, (user, collection) => {
     return includesMembership(collection, [
       CollectionPermission.ReadWrite,
       CollectionPermission.Admin,
+      CollectionPermission.Owner,
     ]);
   }
 
@@ -108,6 +109,7 @@ allow(User, "updateDocument", Collection, (user, collection) => {
     return includesMembership(collection, [
       CollectionPermission.ReadWrite,
       CollectionPermission.Admin,
+      CollectionPermission.Owner,
     ]);
   }
 
@@ -136,6 +138,7 @@ allow(
       return includesMembership(collection, [
         CollectionPermission.ReadWrite,
         CollectionPermission.Admin,
+        CollectionPermission.Owner,
       ]);
     }
 
@@ -149,7 +152,7 @@ allow(User, ["update", "export", "archive"], Collection, (user, collection) =>
     !!collection?.isActive,
     or(
       isTeamAdmin(user, collection),
-      includesMembership(collection, [CollectionPermission.Admin])
+      includesMembership(collection, [CollectionPermission.Admin, CollectionPermission.Owner])
     )
   )
 );
@@ -160,7 +163,7 @@ allow(User, "delete", Collection, (user, collection) =>
     !collection?.deletedAt,
     or(
       isTeamAdmin(user, collection),
-      includesMembership(collection, [CollectionPermission.Admin])
+      includesMembership(collection, [CollectionPermission.Admin, CollectionPermission.Owner])
     )
   )
 );
@@ -171,7 +174,7 @@ allow(User, "restore", Collection, (user, collection) =>
     !collection?.isActive,
     or(
       isTeamAdmin(user, collection),
-      includesMembership(collection, [CollectionPermission.Admin])
+      includesMembership(collection, [CollectionPermission.Admin, CollectionPermission.Owner])
     )
   )
 );

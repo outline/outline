@@ -108,6 +108,10 @@ export const AccessControlList = observer(
             value: CollectionPermission.Admin,
           },
           {
+            label: t("Owner"),
+            value: CollectionPermission.Owner,
+          },
+          {
             divider: true,
             label: t("Remove"),
             value: EmptySelectValue,
