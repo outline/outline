@@ -1,5 +1,6 @@
 import compact from "lodash/compact";
 import { GroupIcon } from "outline-icons";
+import * as React from "react";
 import { useCallback, useMemo } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
@@ -14,6 +15,7 @@ import {
   SortableTable,
 } from "~/components/SortableTable";
 import { type Column as TableColumn } from "~/components/Table";
+import { TableRowContextMenu } from "~/components/TableRowContextMenu";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
 import useStores from "~/hooks/useStores";
@@ -41,6 +43,20 @@ export function GroupsTable(props: Props) {
       });
     },
     [t, dialogs]
+  );
+
+  const applyContextMenu = useCallback(
+    (group: Group, rowElement: React.ReactNode) => {
+      return (
+        <TableRowContextMenu
+          config={{ type: "group", data: group }}
+          menuLabel={t("Group options")}
+        >
+          {rowElement}
+        </TableRowContextMenu>
+      );
+    },
+    [t]
   );
 
   const columns = useMemo<TableColumn<Group>[]>(
@@ -136,6 +152,7 @@ export function GroupsTable(props: Props) {
       columns={columns}
       rowHeight={ROW_HEIGHT}
       stickyOffset={STICKY_OFFSET}
+      decorateRow={applyContextMenu}
       {...props}
     />
   );

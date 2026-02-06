@@ -2,10 +2,19 @@ import * as React from "react";
 import { ContextMenu } from "~/components/Menu/ContextMenu";
 import type { ActionWithChildren } from "~/types";
 import type User from "~/models/User";
+import type Group from "~/models/Group";
+import type Share from "~/models/Share";
+import type Emoji from "~/models/Emoji";
 import { useUserMenuActions } from "~/hooks/useUserMenuActions";
+import { useGroupMenuActions } from "~/hooks/useGroupMenuActions";
+import { useShareMenuActions } from "~/hooks/useShareMenuActions";
+import { useEmojiMenuActions } from "~/hooks/useEmojiMenuActions";
 
 type RowMenuConfig<T> =
   | { type: "user"; data: T extends User ? T : never }
+  | { type: "group"; data: T extends Group ? T : never }
+  | { type: "share"; data: T extends Share ? T : never }
+  | { type: "emoji"; data: T extends Emoji ? T : never }
   | { type: "custom"; buildAction: (item: T) => ActionWithChildren | undefined; data: T };
 
 type TableRowContextMenuProps<T> = {
@@ -30,10 +39,24 @@ export function TableRowContextMenu<T>({
   const userMenuAction =
     useUserMenuActions(config.type === "user" ? (config.data as User) : null);
   
+  const groupMenuAction =
+    useGroupMenuActions(config.type === "group" ? (config.data as Group) : null);
+  
+  const shareMenuAction =
+    useShareMenuActions(config.type === "share" ? (config.data as Share) : null);
+  
+  const emojiMenuAction =
+    useEmojiMenuActions(config.type === "emoji" ? (config.data as Emoji) : null);
+  
   const customMenuAction =
     config.type === "custom" ? config.buildAction(config.data) : undefined;
 
-  const menuAction = config.type === "user" ? userMenuAction : customMenuAction;
+  const menuAction = 
+    config.type === "user" ? userMenuAction :
+    config.type === "group" ? groupMenuAction :
+    config.type === "share" ? shareMenuAction :
+    config.type === "emoji" ? emojiMenuAction :
+    customMenuAction;
 
   if (!menuAction) {
     return <>{children}</>;

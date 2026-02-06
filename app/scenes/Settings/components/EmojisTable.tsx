@@ -1,6 +1,7 @@
 import compact from "lodash/compact";
 import { observer } from "mobx-react";
 import * as React from "react";
+import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import type Emoji from "~/models/Emoji";
 import { Avatar, AvatarSize } from "~/components/Avatar";
@@ -10,6 +11,7 @@ import {
   SortableTable,
 } from "~/components/SortableTable";
 import { type Column as TableColumn } from "~/components/Table";
+import { TableRowContextMenu } from "~/components/TableRowContextMenu";
 import Time from "~/components/Time";
 import { FILTER_HEIGHT } from "./StickyFilters";
 import { CustomEmoji } from "@shared/components/CustomEmoji";
@@ -30,6 +32,20 @@ const EmojisTable = observer(function EmojisTable({
   ...rest
 }: Props) {
   const { t } = useTranslation();
+
+  const applyContextMenu = useCallback(
+    (emoji: Emoji, rowElement: React.ReactNode) => {
+      return (
+        <TableRowContextMenu
+          config={{ type: "emoji", data: emoji }}
+          menuLabel={t("Emoji options")}
+        >
+          {rowElement}
+        </TableRowContextMenu>
+      );
+    },
+    [t]
+  );
 
   const columns = React.useMemo(
     (): TableColumn<Emoji>[] =>
@@ -88,6 +104,7 @@ const EmojisTable = observer(function EmojisTable({
       columns={columns}
       rowHeight={ROW_HEIGHT}
       stickyOffset={STICKY_OFFSET}
+      decorateRow={applyContextMenu}
       {...rest}
     />
   );

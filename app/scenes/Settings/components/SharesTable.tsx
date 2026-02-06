@@ -1,5 +1,6 @@
 import compact from "lodash/compact";
-import { useMemo } from "react";
+import * as React from "react";
+import { useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import type Share from "~/models/Share";
 import { Avatar, AvatarSize } from "~/components/Avatar";
@@ -11,6 +12,7 @@ import {
   SortableTable,
 } from "~/components/SortableTable";
 import { type Column as TableColumn } from "~/components/Table";
+import { TableRowContextMenu } from "~/components/TableRowContextMenu";
 import Time from "~/components/Time";
 import ShareMenu from "~/menus/ShareMenu";
 import { useFormatNumber } from "~/hooks/useFormatNumber";
@@ -26,6 +28,20 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
   const { t } = useTranslation();
   const formatNumber = useFormatNumber();
   const hasDomain = data.some((share) => share.domain);
+
+  const applyContextMenu = useCallback(
+    (share: Share, rowElement: React.ReactNode) => {
+      return (
+        <TableRowContextMenu
+          config={{ type: "share", data: share }}
+          menuLabel={t("Share options")}
+        >
+          {rowElement}
+        </TableRowContextMenu>
+      );
+    },
+    [t]
+  );
 
   const columns = useMemo<TableColumn<Share>[]>(
     () =>
@@ -125,6 +141,7 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
       columns={columns}
       rowHeight={ROW_HEIGHT}
       stickyOffset={HEADER_HEIGHT}
+      decorateRow={canManage ? applyContextMenu : undefined}
       {...rest}
     />
   );
