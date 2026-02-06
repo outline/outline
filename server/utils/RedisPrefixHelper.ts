@@ -12,6 +12,12 @@ export class RedisPrefixHelper {
     return `unfurl:${teamId}:${url}`;
   }
 
+  /**
+   * Gets key for caching collection documents structure.
+   *
+   * @param collectionId The collection ID to generate a key for.
+   * @returns the cache key string.
+   */
   public static getCollectionDocumentsKey(collectionId: string) {
     return `cd:${collectionId}`;
   }
