@@ -23,11 +23,11 @@ function DocumentNew({ template }: Props) {
   const location = useLocation();
   const query = useQuery();
   const user = useCurrentUser();
-  const match = useRouteMatch<{ id?: string }>();
+  const match = useRouteMatch<{ collectionSlug?: string }>();
   const { t } = useTranslation();
   const { documents, collections, userMemberships, groupMemberships } =
     useStores();
-  const id = match.params.id || query.get("collectionId");
+  const id = match.params.collectionSlug || query.get("collectionId");
 
   useEffect(() => {
     async function createDocument() {
