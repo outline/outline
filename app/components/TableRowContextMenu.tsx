@@ -45,4 +45,3 @@ export function TableRowContextMenu<T>({
     </ContextMenu>
   );
 }
-
