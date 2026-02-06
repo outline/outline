@@ -2,7 +2,8 @@ import debounce from "lodash/debounce";
 import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
-import { Trans, useTranslation } from "react-i18next";
+import { useTranslation } from "react-i18next";
+import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
 import styled from "styled-components";
 import type { NavigationNode } from "@shared/types";
@@ -336,6 +337,7 @@ export const ViewGroupAccessDialog = observer(function ({
 }: Pick<Props, "group">) {
   const { collections, documents, groupMemberships } = useStores();
   const { t } = useTranslation();
+  const history = useHistory();
   const [selectedNode, setSelectedNode] = React.useState<NavigationNode | null>(
     null
   );
@@ -346,11 +348,8 @@ export const ViewGroupAccessDialog = observer(function ({
     const fetchMemberships = async () => {
       try {
         setIsLoading(true);
-        // Fetch with a high limit to get all memberships
-        // TODO: Implement proper pagination if groups commonly have >1000 access items
-        await groupMemberships.fetchPage({
+        await groupMemberships.fetchAll({
           groupId: group.id,
-          limit: 1000,
         });
       } catch (_err) {
         toast.error(t("Failed to load group access"));
@@ -436,9 +435,9 @@ export const ViewGroupAccessDialog = observer(function ({
 
   const handleOpen = React.useCallback(() => {
     if (selectedNode) {
-      window.open(selectedNode.url, "_blank");
+      history.push(selectedNode.url);
     }
-  }, [selectedNode]);
+  }, [selectedNode, history]);
 
   if (isLoading) {
     return (
@@ -465,15 +464,7 @@ export const ViewGroupAccessDialog = observer(function ({
       />
       <Footer justify="space-between" align="center" gap={8}>
         <StyledText type="secondary">
-          {selectedNode ? (
-            <Trans
-              defaults="Selected <em>{{ name }}</em>"
-              values={{ name: selectedNode.title }}
-              components={{ em: <strong /> }}
-            />
-          ) : (
-            t("Select a collection or document to open")
-          )}
+          {selectedNode ? selectedNode.title : null}
         </StyledText>
         <Button disabled={!selectedNode} onClick={handleOpen}>
           {t("Open")}
