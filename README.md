@@ -1,5 +1,9 @@
 <p align="center">
-  <img src="https://user-images.githubusercontent.com/31465/34380645-bd67f474-eb0b-11e7-8d03-0151c1730654.png" height="29" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./public/logos/outline-logo-dark.png" height="29">
+    <source media="(prefers-color-scheme: light)" srcset="./public/logos/outline-logo-light.png" height="29">
+    <img src="./public/logos/outline-logo-light.png" height="29" alt="Outline" />
+  </picture>
 </p>
 <p align="center">
   <i>A fast, collaborative, knowledge base for your team built using React and Node.js.<br/>Try out Outline using our hosted version at <a href="https://www.getoutline.com">www.getoutline.com</a>.</i>
