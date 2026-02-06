@@ -117,6 +117,7 @@ router.post(
     const collection = await Collection.findByPk(id, {
       userId: user.id,
       includeArchivedBy: true,
+      includeOwner: true,
       rejectOnEmpty: true,
     });
 

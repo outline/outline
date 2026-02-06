@@ -14,6 +14,7 @@ import { authorize } from "@server/policies";
 
 // Higher value takes precedence
 export const CollectionPermissionPriority = {
+  [CollectionPermission.Owner]: 3,
   [CollectionPermission.Admin]: 2,
   [CollectionPermission.ReadWrite]: 1,
   [CollectionPermission.Read]: 0,

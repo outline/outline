@@ -50,6 +50,7 @@ export default async function presentCollection(
     deletedAt: collection.deletedAt,
     archivedAt: collection.archivedAt,
     archivedBy: undefined,
+    createdBy: undefined,
   };
 
   if (options.isPublic && !options.includeUpdatedAt) {
@@ -59,6 +60,7 @@ export default async function presentCollection(
   if (!options.isPublic) {
     res.archivedBy =
       collection.archivedBy && presentUser(collection.archivedBy);
+    res.createdBy = collection.user && presentUser(collection.user);
     res.sourceMetadata = collection.sourceMetadata
       ? {
           externalId: collection.sourceMetadata.externalId,

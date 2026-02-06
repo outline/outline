@@ -449,7 +449,7 @@ class Collection extends ParanoidModel<
         {
           collectionId: model.id,
           userId: model.createdById,
-          permission: CollectionPermission.Admin,
+          permission: CollectionPermission.Owner,
           createdById: model.createdById,
         },
         {

@@ -184,6 +184,7 @@ export enum CollectionPermission {
   Read = "read",
   ReadWrite = "read_write",
   Admin = "admin",
+  Owner = "owner",
 }
 
 export enum DocumentPermission {
