@@ -1098,4 +1098,139 @@ describe("ProsemirrorHelper", () => {
       expect(result.toJSON()).toEqual(doc.toJSON());
     });
   });
+
+  describe("#applyCommentMark", () => {
+    it("should add comment mark to document at specified positions", () => {
+      const { Node } = require("prosemirror-model");
+      const { prosemirrorToYDoc } = require("y-prosemirror");
+      const Y = require("yjs");
+      const { schema } = require("@server/editor");
+
+      // Create a simple document
+      const doc = Node.fromJSON(schema, {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              { type: "text", text: "Hello world" },
+            ],
+          },
+        ],
+      });
+
+      // Convert to Yjs and encode
+      const ydoc = prosemirrorToYDoc(doc, "default");
+      const docState = Buffer.from(Y.encodeStateAsUpdate(ydoc));
+
+      // Create relative positions for "world" (positions 6-11)
+      const yFragment = ydoc.get("default");
+      const fromRelPos = Y.createRelativePositionFromTypeIndex(yFragment, 6);
+      const toRelPos = Y.createRelativePositionFromTypeIndex(yFragment, 11);
+
+      const anchor = {
+        from: Buffer.from(Y.encodeRelativePosition(fromRelPos)).toString("base64"),
+        to: Buffer.from(Y.encodeRelativePosition(toRelPos)).toString("base64"),
+      };
+
+      // Apply comment mark
+      const result = ProsemirrorHelper.applyCommentMark(
+        docState,
+        anchor,
+        "comment-id-123",
+        "user-id-456"
+      );
+
+      expect(result).not.toBeNull();
+      expect(Buffer.isBuffer(result)).toBe(true);
+
+      // Verify the mark was applied
+      const resultYDoc = new Y.Doc();
+      Y.applyUpdate(resultYDoc, result);
+      const { yDocToProsemirrorJSON } = require("y-prosemirror");
+      const resultJson = yDocToProsemirrorJSON(resultYDoc, "default");
+      const resultDoc = Node.fromJSON(schema, resultJson);
+
+      // Check that the document has the comment mark
+      const textNode = resultDoc.content.child(0).content.child(0);
+      const commentMark = textNode.marks.find((m: any) => m.type.name === "comment");
+      expect(commentMark).toBeDefined();
+      expect(commentMark.attrs.id).toBe("comment-id-123");
+      expect(commentMark.attrs.userId).toBe("user-id-456");
+    });
+
+    it("should return null for invalid relative positions", () => {
+      const { Node } = require("prosemirror-model");
+      const { prosemirrorToYDoc } = require("y-prosemirror");
+      const Y = require("yjs");
+      const { schema } = require("@server/editor");
+
+      const doc = Node.fromJSON(schema, {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [{ type: "text", text: "Test" }],
+          },
+        ],
+      });
+
+      const ydoc = prosemirrorToYDoc(doc, "default");
+      const docState = Buffer.from(Y.encodeStateAsUpdate(ydoc));
+
+      // Invalid base64 anchors
+      const anchor = {
+        from: "invalid-base64!!!",
+        to: "also-invalid!!!",
+      };
+
+      const result = ProsemirrorHelper.applyCommentMark(
+        docState,
+        anchor,
+        "comment-id",
+        "user-id"
+      );
+
+      expect(result).toBeNull();
+    });
+
+    it("should return null for out-of-bounds positions", () => {
+      const { Node } = require("prosemirror-model");
+      const { prosemirrorToYDoc } = require("y-prosemirror");
+      const Y = require("yjs");
+      const { schema } = require("@server/editor");
+
+      const doc = Node.fromJSON(schema, {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [{ type: "text", text: "Short" }],
+          },
+        ],
+      });
+
+      const ydoc = prosemirrorToYDoc(doc, "default");
+      const docState = Buffer.from(Y.encodeStateAsUpdate(ydoc));
+
+      // Try to create positions beyond document size
+      const yFragment = ydoc.get("default");
+      const fromRelPos = Y.createRelativePositionFromTypeIndex(yFragment, 100);
+      const toRelPos = Y.createRelativePositionFromTypeIndex(yFragment, 200);
+
+      const anchor = {
+        from: Buffer.from(Y.encodeRelativePosition(fromRelPos)).toString("base64"),
+        to: Buffer.from(Y.encodeRelativePosition(toRelPos)).toString("base64"),
+      };
+
+      const result = ProsemirrorHelper.applyCommentMark(
+        docState,
+        anchor,
+        "comment-id",
+        "user-id"
+      );
+
+      expect(result).toBeNull();
+    });
+  });
 });

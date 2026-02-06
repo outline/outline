@@ -956,4 +956,103 @@ export class ProsemirrorHelper {
 
     return doc.copy(transformFragment(doc.content));
   }
+
+  /**
+   * Applies a comment mark to a document's Yjs state at positions specified by an anchor.
+   * Decodes Yjs RelativePositions, resolves to absolute positions, and adds the mark.
+   *
+   * @param docState The current Yjs document state buffer.
+   * @param anchorRange Anchor with base64-encoded Yjs RelativePositions.
+   * @param commentId The comment identifier.
+   * @param userId The user identifier.
+   * @returns Updated Yjs state buffer, or null if operation fails.
+   */
+  static applyCommentMark(
+    docState: Buffer,
+    anchorRange: { from: string; to: string },
+    commentId: string,
+    userId: string
+  ): Buffer | null {
+    try {
+      // Reconstruct Yjs document from stored binary state
+      const yjsDoc = new Y.Doc();
+      Y.applyUpdate(yjsDoc, docState);
+
+      // Decode base64-encoded relative positions
+      const startPosBuffer = Buffer.from(anchorRange.from, "base64");
+      const endPosBuffer = Buffer.from(anchorRange.to, "base64");
+      const relativeStart = Y.decodeRelativePosition(startPosBuffer);
+      const relativeEnd = Y.decodeRelativePosition(endPosBuffer);
+
+      if (!relativeStart || !relativeEnd) {
+        Logger.warn("ProsemirrorHelper", "Failed to decode relative positions");
+        return null;
+      }
+
+      // Convert relative to absolute positions in current document
+      const absoluteStart = Y.createAbsolutePositionFromRelativePosition(
+        relativeStart,
+        yjsDoc
+      );
+      const absoluteEnd = Y.createAbsolutePositionFromRelativePosition(
+        relativeEnd,
+        yjsDoc
+      );
+
+      if (!absoluteStart || !absoluteEnd) {
+        Logger.warn("ProsemirrorHelper", "Failed to resolve positions");
+        return null;
+      }
+
+      const rangeStart = absoluteStart.index;
+      const rangeEnd = absoluteEnd.index;
+
+      // Get ProseMirror document from Yjs
+      const { yDocToProsemirrorJSON } = require("y-prosemirror");
+      const prosemirrorJson = yDocToProsemirrorJSON(yjsDoc, "default");
+      const prosemirrorDocument = Node.fromJSON(schema, prosemirrorJson);
+
+      // Validate position boundaries
+      const docSize = prosemirrorDocument.content.size;
+      if (
+        rangeStart < 0 ||
+        rangeEnd > docSize ||
+        rangeStart > rangeEnd
+      ) {
+        Logger.warn(
+          "ProsemirrorHelper",
+          `Invalid position range: ${rangeStart}-${rangeEnd}, docSize: ${docSize}`
+        );
+        return null;
+      }
+
+      // Build editor state and apply comment mark
+      const initialState = EditorState.create({
+        doc: prosemirrorDocument,
+        schema,
+      });
+
+      const commentMarkAttrs = {
+        id: commentId,
+        userId,
+        draft: false,
+      };
+      const markToAdd = schema.marks.comment.create(commentMarkAttrs);
+      const stateTransform = initialState.tr.addMark(
+        rangeStart,
+        rangeEnd,
+        markToAdd
+      );
+      const transformedState = initialState.apply(stateTransform);
+
+      // Convert back to Yjs and return updated state
+      const modifiedYjsDoc = prosemirrorToYDoc(transformedState.doc, "default");
+      const updatedStateBinary = Y.encodeStateAsUpdate(modifiedYjsDoc);
+
+      return Buffer.from(updatedStateBinary);
+    } catch (error) {
+      Logger.error("ProsemirrorHelper", "Error applying comment mark", error);
+      return null;
+    }
+  }
 }
