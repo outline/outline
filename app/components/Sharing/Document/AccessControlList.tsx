@@ -211,7 +211,7 @@ export const AccessControlList = observer(
             </>
           )}
         </ScrollableContainer>
-        {team.sharing && can.share && !collectionSharingDisabled && visible && (
+        {team.sharing && can.share && visible && (
           <Sticky>
             {document.members.length ? <Separator /> : null}
             <PublicAccess
@@ -220,6 +220,7 @@ export const AccessControlList = observer(
               share={share}
               sharedParent={sharedParent}
               onRequestClose={onRequestClose}
+              limitedByScope={collectionSharingDisabled ? "collection" : undefined}
             />
           </Sticky>
         )}

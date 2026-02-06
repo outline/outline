@@ -38,10 +38,12 @@ type Props = {
   /** Ref to the Copy Link button */
   copyButtonRef?: React.RefObject<HTMLButtonElement>;
   onRequestClose?: () => void;
+  /** Hierarchy level at which web sharing capability has been disabled */
+  limitedByScope?: "collection";
 };
 
 function PublicAccess(
-  { document, share, sharedParent }: Props,
+  { document, share, sharedParent, limitedByScope }: Props,
   ref: React.RefObject<HTMLDivElement>
 ) {
   const { t } = useTranslation();
@@ -51,7 +53,12 @@ function PublicAccess(
   const inputRef = React.useRef<HTMLInputElement>(null);
   const can = usePolicy(share);
   const documentAbilities = usePolicy(document);
-  const canPublish = can.update && documentAbilities.share;
+  
+  const hasActiveScopeLimit = limitedByScope === "collection";
+  const scopeLimitNotice = hasActiveScopeLimit 
+    ? t("Public sharing is disabled in collection") 
+    : "";
+  const canPublish = can.update && documentAbilities.share && !hasActiveScopeLimit;
 
   React.useEffect(() => {
     setUrlId(share?.urlId);
@@ -165,7 +172,11 @@ function PublicAccess(
         title={t("Web")}
         subtitle={
           <>
-            {sharedParent && !document.isDraft ? (
+            {hasActiveScopeLimit ? (
+              <Text type="secondary" size="small">
+                {scopeLimitNotice}
+              </Text>
+            ) : sharedParent && !document.isDraft ? (
               sharedParent.collectionId ? (
                 <Trans>
                   Anyone with the link can access because the containing
