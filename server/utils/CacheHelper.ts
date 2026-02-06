@@ -2,6 +2,7 @@ import { Day } from "@shared/utils/time";
 import Logger from "@server/logging/Logger";
 import Redis from "@server/storage/redis";
 import { MutexLock } from "./MutexLock";
+import { RedisPrefixHelper } from "./RedisPrefixHelper";
 
 /**
  * Result type for cache callbacks that need to specify a dynamic expiry.
@@ -151,11 +152,11 @@ export class CacheHelper {
    * @param url The url to generate a key for
    */
   public static getUnfurlKey(teamId: string, url = "") {
-    return `unfurl:${teamId}:${url}`;
+    return RedisPrefixHelper.getUnfurlKey(teamId, url);
   }
 
   public static getCollectionDocumentsKey(collectionId: string) {
-    return `cd:${collectionId}`;
+    return RedisPrefixHelper.getCollectionDocumentsKey(collectionId);
   }
 
   /**
@@ -166,6 +167,6 @@ export class CacheHelper {
    * @returns the cache key string.
    */
   public static getEmbedCheckKey(url: string) {
-    return `embed:${url}`;
+    return RedisPrefixHelper.getEmbedCheckKey(url);
   }
 }

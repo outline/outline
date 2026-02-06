@@ -39,6 +39,7 @@ import {
 } from "@server/presenters";
 import type { APIContext } from "@server/types";
 import { CacheHelper } from "@server/utils/CacheHelper";
+import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { collectionIndexing } from "@server/utils/indexing";
 import pagination from "../middlewares/pagination";
@@ -143,7 +144,7 @@ router.post(
     authorize(user, "readDocument", collection);
 
     const documentStructure = await CacheHelper.getDataOrSet(
-      CacheHelper.getCollectionDocumentsKey(collection.id),
+      RedisPrefixHelper.getCollectionDocumentsKey(collection.id),
       async () =>
         (
           await Collection.findByPk(collection.id, {

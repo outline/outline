@@ -1,5 +1,6 @@
 import { Day } from "@shared/utils/time";
 import type { CacheResult } from "../CacheHelper";
+import { RedisPrefixHelper } from "../RedisPrefixHelper";
 
 /**
  * A Mock Helper class for server-side cache management
@@ -50,14 +51,14 @@ export class CacheHelper {
    * interact with Redis directly
    */
   public static getUnfurlKey(teamId: string, url = "") {
-    return `unfurl:${teamId}:${url}`;
+    return RedisPrefixHelper.getUnfurlKey(teamId, url);
   }
 
   public static getCollectionDocumentsKey(collectionId: string) {
-    return `cd:${collectionId}`;
+    return RedisPrefixHelper.getCollectionDocumentsKey(collectionId);
   }
 
   public static getEmbedCheckKey(url: string) {
-    return `embed:${url}`;
+    return RedisPrefixHelper.getEmbedCheckKey(url);
   }
 }
