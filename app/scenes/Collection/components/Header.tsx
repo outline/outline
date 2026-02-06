@@ -8,7 +8,9 @@ import { CollectionPermission } from "@shared/types";
 import { s } from "@shared/styles";
 import Heading from "~/components/Heading";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
-import Text from "~/components/Text";
+import Facepile from "~/components/Facepile";
+import Flex from "~/components/Flex";
+import { AvatarSize } from "~/components/Avatar";
 import type Collection from "~/models/Collection";
 import { colorPalette } from "@shared/utils/collections";
 import usePolicy from "~/hooks/usePolicy";
@@ -48,8 +50,6 @@ export const Header = observer(function Header_({ collection }: Props) {
       .filter(Boolean);
   }, [memberships.orderedData, collection.id]);
 
-  const ownerNames = owners.map((owner) => owner.name).join(", ");
-
   return (
     <HeaderWrapper>
       <StyledHeading>
@@ -74,10 +74,11 @@ export const Header = observer(function Header_({ collection }: Props) {
         </IconTitleWrapper>
         {collection.name}
       </StyledHeading>
-      {ownerNames && (
-        <OwnerLabel type="secondary" size="small">
-          {t("Owner")}: {ownerNames}
-        </OwnerLabel>
+      {owners.length > 0 && (
+        <OwnerSection gap={8}>
+          <OwnerLabel>{t("Owner")}:</OwnerLabel>
+          <Facepile users={owners} size={AvatarSize.Medium} limit={5} />
+        </OwnerSection>
       )}
     </HeaderWrapper>
   );
@@ -99,12 +100,17 @@ const StyledHeading = styled(Heading)`
   `}
 `;
 
-const OwnerLabel = styled(Text)`
-  color: ${s("textTertiary")};
+const OwnerSection = styled(Flex)`
+  align-items: center;
   margin-left: 40px;
-  margin-top: 4px;
+  margin-top: 8px;
 
   ${breakpoint("tablet")`
     margin-left: 0;
   `}
+`;
+
+const OwnerLabel = styled.span`
+  color: ${s("textTertiary")};
+  font-size: 14px;
 `;
