@@ -27,10 +27,13 @@ export default function present(
   }
 
   if (comment.anchor && comment.document && "state" in comment.document) {
-    resolvedPos = resolveAnchorToProseMirror(
-      comment.anchor,
-      comment.document.state
-    );
+    const docState = comment.document.state;
+    if (docState) {
+      resolvedPos = resolveAnchorToProseMirror(
+        comment.anchor,
+        Buffer.from(docState)
+      );
+    }
   }
 
   return {
