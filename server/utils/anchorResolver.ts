@@ -6,9 +6,9 @@ import type { AnchorRange, ResolvedPosition } from "@shared/types";
  *
  * @param anchorRange The anchor range with base64-encoded relative positions.
  * @param yjsDocState The Yjs document state buffer.
- * @returns Resolved position information.
+ * @returns resolved position information.
  */
-export function resolveAnchorToProsemirror(
+export function resolveAnchorToProseMirror(
   anchorRange: AnchorRange,
   yjsDocState: Buffer | null
 ): ResolvedPosition {

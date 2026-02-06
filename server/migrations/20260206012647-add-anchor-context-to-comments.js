@@ -1,23 +1,16 @@
 "use strict";
 
-const ANCHOR_SYM = Symbol("anchor");
-const CONTEXT_SYM = Symbol("context");
+const COLS_TO_ADD = ["anchor", "context"];
 
-const fieldMapping = {
-  [ANCHOR_SYM]: "anchor",
-  [CONTEXT_SYM]: "context",
-};
-
-const performDbUpdate = (qi, types, reverting) => {
-  const symOrder = reverting ? [CONTEXT_SYM, ANCHOR_SYM] : [ANCHOR_SYM, CONTEXT_SYM];
+const performDbUpdate = (queryInterface, types, reverting) => {
+  const colOrder = reverting ? [...COLS_TO_ADD].reverse() : COLS_TO_ADD;
   
-  return qi.sequelize.transaction(async (txn) => {
-    await symOrder.reduce((promise, sym) => {
+  return queryInterface.sequelize.transaction(async (txn) => {
+    await colOrder.reduce((promise, colName) => {
       return promise.then(() => {
-        const colName = fieldMapping[sym];
         return reverting
-          ? qi.removeColumn("comments", colName, { transaction: txn })
-          : qi.addColumn("comments", colName, { type: types.JSONB, allowNull: true }, { transaction: txn });
+          ? queryInterface.removeColumn("comments", colName, { transaction: txn })
+          : queryInterface.addColumn("comments", colName, { type: types.JSONB, allowNull: true }, { transaction: txn });
       });
     }, Promise.resolve());
   });
@@ -25,6 +18,6 @@ const performDbUpdate = (qi, types, reverting) => {
 
 /** @type {import("sequelize-cli").Migration} */
 module.exports = {
-  up: (qi, types) => performDbUpdate(qi, types, false),
-  down: (qi, types) => performDbUpdate(qi, types, true),
+  up: (queryInterface, types) => performDbUpdate(queryInterface, types, false),
+  down: (queryInterface, types) => performDbUpdate(queryInterface, types, true),
 };

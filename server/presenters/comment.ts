@@ -1,7 +1,7 @@
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import type { Comment } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
-import { resolveAnchorToProsemirror } from "@server/utils/anchorResolver";
+import { resolveAnchorToProseMirror } from "@server/utils/anchorResolver";
 import presentUser from "./user";
 
 type Options = {
@@ -27,7 +27,7 @@ export default function present(
   }
 
   if (comment.anchor && comment.document && "state" in comment.document) {
-    resolvedPos = resolveAnchorToProsemirror(
+    resolvedPos = resolveAnchorToProseMirror(
       comment.anchor,
       comment.document.state
     );
