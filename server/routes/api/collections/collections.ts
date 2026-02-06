@@ -43,7 +43,7 @@ import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { collectionIndexing } from "@server/utils/indexing";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
-import { InvalidRequestError, ValidationError } from "@server/errors";
+import { InvalidRequestError } from "@server/errors";
 
 const router = new Router();
 
@@ -117,7 +117,6 @@ router.post(
     const collection = await Collection.findByPk(id, {
       userId: user.id,
       includeArchivedBy: true,
-      includeOwner: true,
       rejectOnEmpty: true,
     });
 
@@ -214,14 +213,6 @@ router.post(
     ]);
     authorize(user, "update", collection);
     authorize(user, "read", group);
-
-    // Prevent assigning Owner permission via this endpoint
-    // Owner permission is only assigned automatically on collection creation
-    if (permission === CollectionPermission.Owner) {
-      throw ValidationError(
-        "Owner permission can only be assigned automatically on collection creation"
-      );
-    }
 
     let membership = await GroupMembership.findOne({
       where: {
@@ -382,15 +373,6 @@ router.post(
     ]);
     authorize(actor, "update", collection);
     authorize(actor, "read", user);
-
-    // Prevent assigning Owner permission via this endpoint
-    // Owner permission is only assigned automatically on collection creation
-    const requestedPermission = permission || user.defaultCollectionPermission;
-    if (requestedPermission === CollectionPermission.Owner) {
-      throw ValidationError(
-        "Owner permission can only be assigned automatically on collection creation"
-      );
-    }
 
     let membership = await UserMembership.findOne({
       where: {

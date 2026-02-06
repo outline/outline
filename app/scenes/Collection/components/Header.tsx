@@ -1,9 +1,10 @@
 import { IconTitleWrapper } from "@shared/components/Icon";
 import breakpoint from "styled-components-breakpoint";
 import first from "lodash/first";
-import { Suspense, useCallback } from "react";
+import { Suspense, useCallback, useMemo } from "react";
 import styled from "styled-components";
 import { useTranslation } from "react-i18next";
+import { CollectionPermission } from "@shared/types";
 import { s } from "@shared/styles";
 import Heading from "~/components/Heading";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
@@ -11,6 +12,7 @@ import Text from "~/components/Text";
 import type Collection from "~/models/Collection";
 import { colorPalette } from "@shared/utils/collections";
 import usePolicy from "~/hooks/usePolicy";
+import useStores from "~/hooks/useStores";
 import { observer } from "mobx-react";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 
@@ -23,6 +25,7 @@ type Props = {
 
 export const Header = observer(function Header_({ collection }: Props) {
   const { t } = useTranslation();
+  const { memberships } = useStores();
   const can = usePolicy(collection);
   const handleIconChange = useCallback(
     (icon: string | null, color: string | null) =>
@@ -34,7 +37,18 @@ export const Header = observer(function Header_({ collection }: Props) {
     <CollectionIcon collection={collection} size={40} expanded />
   ) : null;
 
-  const ownerName = collection.createdBy?.name;
+  const owners = useMemo(() => {
+    return memberships.orderedData
+      .filter(
+        (m) =>
+          m.collectionId === collection.id &&
+          m.permission === CollectionPermission.Owner
+      )
+      .map((m) => m.user)
+      .filter(Boolean);
+  }, [memberships.orderedData, collection.id]);
+
+  const ownerNames = owners.map((owner) => owner.name).join(", ");
 
   return (
     <HeaderWrapper>
@@ -60,9 +74,9 @@ export const Header = observer(function Header_({ collection }: Props) {
         </IconTitleWrapper>
         {collection.name}
       </StyledHeading>
-      {ownerName && (
+      {ownerNames && (
         <OwnerLabel type="secondary" size="small">
-          {t("Owner")}: {ownerName}
+          {t("Owner")}: {ownerNames}
         </OwnerLabel>
       )}
     </HeaderWrapper>
