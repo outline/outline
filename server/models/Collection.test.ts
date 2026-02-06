@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { randomString } from "@shared/random";
+import { CollectionPermission } from "@shared/types";
 import slugify from "@shared/utils/slugify";
 import {
   buildUser,
@@ -562,6 +563,6 @@ describe("Owner permission", () => {
     const ownerMembership = membership.find((m) => m.userId === user.id);
 
     expect(ownerMembership).toBeDefined();
-    expect(ownerMembership?.permission).toBe("owner");
+    expect(ownerMembership?.permission).toBe(CollectionPermission.Owner);
   });
 });
