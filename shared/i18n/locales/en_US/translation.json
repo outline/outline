@@ -656,6 +656,7 @@
   "Are you sure you want to delete the <em>{{emojiName}}</em> emoji? You will no longer be able to use it in your documents or collections.": "Are you sure you want to delete the <em>{{emojiName}}</em> emoji? You will no longer be able to use it in your documents or collections.",
   "File": "File",
   "Group members": "Group members",
+  "View access": "View access",
   "Edit group": "Edit group",
   "Delete group": "Delete group",
   "Group options": "Group options",
@@ -1110,6 +1111,11 @@
   "Add people": "Add people",
   "Listing members of the <em>{{groupName}}</em> group.": "Listing members of the <em>{{groupName}}</em> group.",
   "This group has no members.": "This group has no members.",
+  "Failed to load group access": "Failed to load group access",
+  "This group has no collection or document access": "This group has no collection or document access",
+  "Selected <em>{{ name }}</em>": "Selected <em>{{ name }}</em>",
+  "Select a collection or document to open": "Select a collection or document to open",
+  "Open": "Open",
   "{{userName}} was added to the group": "{{userName}} was added to the group",
   "Could not add user": "Could not add user",
   "Add members below to give them access to the group. Need to add someone who’s not yet a member?": "Add members below to give them access to the group. Need to add someone who’s not yet a member?",
@@ -1495,7 +1501,6 @@
   "Caption": "Caption",
   "Empty diagram": "Empty diagram",
   "Double click to edit": "Double click to edit",
-  "Open": "Open",
   "Loading": "Loading",
   "Error loading data": "Error loading data"
 }

@@ -346,9 +346,11 @@ export const ViewGroupAccessDialog = observer(function ({
     const fetchMemberships = async () => {
       try {
         setIsLoading(true);
+        // Fetch with a high limit to get all memberships
+        // TODO: Implement proper pagination if groups commonly have >1000 access items
         await groupMemberships.fetchPage({
           groupId: group.id,
-          limit: 100,
+          limit: 1000,
         });
       } catch (_err) {
         toast.error(t("Failed to load group access"));
@@ -388,14 +390,12 @@ export const ViewGroupAccessDialog = observer(function ({
 
       if (membership.documentId) {
         const document = documents.get(membership.documentId);
-        if (document) {
+        if (document && document.collectionId) {
           const collectionId = document.collectionId;
-          const collection = collectionId
-            ? collections.get(collectionId)
-            : null;
+          const collection = collections.get(collectionId);
 
           // Ensure collection node exists
-          if (collection && collectionId && !collectionMap.has(collectionId)) {
+          if (collection && !collectionMap.has(collectionId)) {
             collectionMap.set(collectionId, {
               type: NavigationNodeType.Collection,
               id: collectionId,
@@ -409,10 +409,8 @@ export const ViewGroupAccessDialog = observer(function ({
           }
 
           // Add document to collection
-          const collectionNode = collectionId
-            ? collectionMap.get(collectionId)
-            : null;
-          if (collectionNode && collectionId) {
+          const collectionNode = collectionMap.get(collectionId);
+          if (collectionNode) {
             collectionNode.children.push({
               type: NavigationNodeType.Document,
               id: document.id,
