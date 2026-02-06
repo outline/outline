@@ -45,7 +45,7 @@ export class NotionConverter {
    * Nodes which cannot contain block children in Outline, their children
    * will be flattened into the parent.
    */
-  private static nodesWithoutBlockChildren = ["paragraph", "toggle"];
+  private static nodesWithoutBlockChildren = ["paragraph"];
 
   public static page(item: NotionPage): ProsemirrorDoc {
     return {
@@ -560,10 +560,16 @@ export class NotionConverter {
     };
   }
 
-  private static toggle(item: ToggleBlockObjectResponse) {
+  private static toggle(item: Block<ToggleBlockObjectResponse>) {
     return {
-      type: "paragraph",
-      content: item.toggle.rich_text.map(this.rich_text).filter(Boolean),
+      type: "container_toggle",
+      content: [
+        {
+          type: "paragraph",
+          content: item.toggle.rich_text.map(this.rich_text).filter(Boolean),
+        },
+        ...this.mapChildren(item),
+      ],
     };
   }
 

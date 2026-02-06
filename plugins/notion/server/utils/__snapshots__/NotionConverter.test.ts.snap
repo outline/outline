@@ -1878,50 +1878,60 @@ exports[`NotionConverter converts a page 1`] = `
     {
       "content": [
         {
-          "marks": [],
-          "text": "Toggle list item 1",
-          "type": "text",
+          "content": [
+            {
+              "marks": [],
+              "text": "Toggle list item 1",
+              "type": "text",
+            },
+          ],
+          "type": "paragraph",
+        },
+        {
+          "attrs": {
+            "style": "info",
+          },
+          "content": [
+            {
+              "content": [
+                {
+                  "marks": [],
+                  "text": "Callout inside toggle list item 1",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "container_notice",
         },
       ],
-      "type": "paragraph",
+      "type": "container_toggle",
     },
     {
-      "attrs": {
-        "style": "info",
-      },
       "content": [
         {
           "content": [
             {
               "marks": [],
-              "text": "Callout inside toggle list item 1",
+              "text": "Toggle list item 2",
+              "type": "text",
+            },
+          ],
+          "type": "paragraph",
+        },
+        {
+          "content": [
+            {
+              "marks": [],
+              "text": "Some content inside toggle list item 2",
               "type": "text",
             },
           ],
           "type": "paragraph",
         },
       ],
-      "type": "container_notice",
-    },
-    {
-      "content": [
-        {
-          "marks": [],
-          "text": "Toggle list item 2",
-          "type": "text",
-        },
-      ],
-      "type": "paragraph",
-    },
-    {
-      "content": [
-        {
-          "marks": [],
-          "text": "Some content inside toggle list item 2",
-          "type": "text",
-        },
-      ],
-      "type": "paragraph",
+      "type": "container_toggle",
     },
     {
       "attrs": {
