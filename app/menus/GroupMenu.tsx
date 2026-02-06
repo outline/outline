@@ -1,11 +1,12 @@
 import { observer } from "mobx-react";
-import { EditIcon, GroupIcon, TrashIcon } from "outline-icons";
+import { EditIcon, EyeIcon, GroupIcon, TrashIcon } from "outline-icons";
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import type Group from "~/models/Group";
 import {
   DeleteGroupDialog,
   EditGroupDialog,
+  ViewGroupAccessDialog,
   ViewGroupMembersDialog,
 } from "~/scenes/Settings/components/GroupDialogs";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
@@ -36,6 +37,13 @@ function GroupMenu({ group }: Props) {
     });
   }, [t, group, dialogs]);
 
+  const handleViewAccess = useCallback(() => {
+    dialogs.openModal({
+      title: t("View access"),
+      content: <ViewGroupAccessDialog group={group} />,
+    });
+  }, [t, group, dialogs]);
+
   const handleEditGroup = useCallback(() => {
     dialogs.openModal({
       title: t("Edit group"),
@@ -62,6 +70,13 @@ function GroupMenu({ group }: Props) {
         section: GroupSection,
         visible: !!(group && can.read),
         perform: handleViewMembers,
+      }),
+      createAction({
+        name: `${t("View access")}…`,
+        icon: <EyeIcon />,
+        section: GroupSection,
+        visible: !!(group && can.read),
+        perform: handleViewAccess,
       }),
       ActionSeparator,
       createAction({
@@ -95,6 +110,7 @@ function GroupMenu({ group }: Props) {
       can.update,
       can.delete,
       handleViewMembers,
+      handleViewAccess,
       handleEditGroup,
       handleDeleteGroup,
     ]

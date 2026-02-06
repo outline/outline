@@ -4,6 +4,9 @@ import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import styled from "styled-components";
+import type { NavigationNode } from "@shared/types";
+import { NavigationNodeType } from "@shared/types";
 import Group from "~/models/Group";
 import type User from "~/models/User";
 import Invite from "~/scenes/Invite";
@@ -13,6 +16,7 @@ import Button from "~/components/Button";
 import ButtonLink from "~/components/ButtonLink";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import DelayedMount from "~/components/DelayedMount";
+import DocumentExplorer from "~/components/DocumentExplorer";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
@@ -326,6 +330,176 @@ export const ViewGroupMembersDialog = observer(function ({
     </Flex>
   );
 });
+
+export const ViewGroupAccessDialog = observer(function ({
+  group,
+}: Pick<Props, "group">) {
+  const { collections, documents, groupMemberships } = useStores();
+  const { t } = useTranslation();
+  const [selectedNode, setSelectedNode] = React.useState<NavigationNode | null>(
+    null
+  );
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  // Fetch group memberships on mount
+  React.useEffect(() => {
+    const fetchMemberships = async () => {
+      try {
+        setIsLoading(true);
+        await groupMemberships.fetchPage({
+          groupId: group.id,
+          limit: 100,
+        });
+      } catch (_err) {
+        toast.error(t("Failed to load group access"));
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void fetchMemberships();
+  }, [group.id, groupMemberships, t]);
+
+  // Build navigation tree from group memberships
+  const items = React.useMemo(() => {
+    const memberships = groupMemberships.orderedData.filter(
+      (gm) => gm.groupId === group.id
+    );
+
+    // Group memberships by collection
+    const collectionMap = new Map<string, NavigationNode>();
+
+    memberships.forEach((membership) => {
+      if (membership.collectionId) {
+        const collection = collections.get(membership.collectionId);
+        if (collection && !collectionMap.has(collection.id)) {
+          collectionMap.set(collection.id, {
+            type: NavigationNodeType.Collection,
+            id: collection.id,
+            title: collection.name,
+            url: collection.path,
+            color: collection.color ?? undefined,
+            icon: collection.icon ?? undefined,
+            children: [],
+            collectionId: collection.id,
+          });
+        }
+      }
+
+      if (membership.documentId) {
+        const document = documents.get(membership.documentId);
+        if (document) {
+          const collectionId = document.collectionId;
+          const collection = collectionId
+            ? collections.get(collectionId)
+            : null;
+
+          // Ensure collection node exists
+          if (collection && collectionId && !collectionMap.has(collectionId)) {
+            collectionMap.set(collectionId, {
+              type: NavigationNodeType.Collection,
+              id: collectionId,
+              title: collection.name,
+              url: collection.path,
+              color: collection.color ?? undefined,
+              icon: collection.icon ?? undefined,
+              children: [],
+              collectionId,
+            });
+          }
+
+          // Add document to collection
+          const collectionNode = collectionId
+            ? collectionMap.get(collectionId)
+            : null;
+          if (collectionNode && collectionId) {
+            collectionNode.children.push({
+              type: NavigationNodeType.Document,
+              id: document.id,
+              title: document.title,
+              url: document.path,
+              icon: document.icon ?? undefined,
+              color: document.color ?? undefined,
+              isDraft: !document.publishedAt,
+              children: [],
+              collectionId,
+            });
+          }
+        }
+      }
+    });
+
+    return Array.from(collectionMap.values());
+  }, [groupMemberships.orderedData, group.id, collections, documents]);
+
+  const handleSelect = React.useCallback((node: NavigationNode | null) => {
+    setSelectedNode(node);
+  }, []);
+
+  const handleOpen = React.useCallback(() => {
+    if (selectedNode) {
+      window.open(selectedNode.url, "_blank");
+    }
+  }, [selectedNode]);
+
+  if (isLoading) {
+    return (
+      <Flex column>
+        <PlaceholderList count={5} />
+      </Flex>
+    );
+  }
+
+  if (items.length === 0) {
+    return (
+      <Flex column>
+        <Empty>{t("This group has no collection or document access")}</Empty>
+      </Flex>
+    );
+  }
+
+  return (
+    <FlexContainer column>
+      <DocumentExplorer
+        items={items}
+        onSubmit={handleOpen}
+        onSelect={handleSelect}
+      />
+      <Footer justify="space-between" align="center" gap={8}>
+        <StyledText type="secondary">
+          {selectedNode ? (
+            <Trans
+              defaults="Selected <em>{{ name }}</em>"
+              values={{ name: selectedNode.title }}
+              components={{ em: <strong /> }}
+            />
+          ) : (
+            t("Select a collection or document to open")
+          )}
+        </StyledText>
+        <Button disabled={!selectedNode} onClick={handleOpen}>
+          {t("Open")}
+        </Button>
+      </Footer>
+    </FlexContainer>
+  );
+});
+
+const FlexContainer = styled(Flex)`
+  max-height: 75vh;
+`;
+
+const Footer = styled(Flex)`
+  border-top: 1px solid ${(props) => props.theme.horizontalRule};
+  padding: 16px 24px;
+  margin-bottom: -1px;
+  background: ${(props) => props.theme.modalBackground};
+  z-index: 1;
+`;
+
+const StyledText = styled(Text)`
+  flex: 1;
+`;
 
 const AddPeopleToGroupDialog = observer(function ({
   group,
