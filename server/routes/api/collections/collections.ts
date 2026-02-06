@@ -733,7 +733,7 @@ router.post(
       where[Op.and].push({ archivedAt: { [Op.eq]: null } });
     }
 
-    if (!includeListOnly || !user.isAdmin) {
+    if (includeListOnly || !user.isAdmin) {
       where[Op.and].push({ id: collectionIds });
     }
 

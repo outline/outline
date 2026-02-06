@@ -216,6 +216,152 @@ describe("#collections.list", () => {
     expect(afterArchiveRes.status).toEqual(200);
     expect(afterArchiveBody.data).toHaveLength(0);
   });
+
+  describe("includeListOnly parameter", () => {
+    it("should restrict regular users to their collections with includeListOnly=true", async () => {
+      const team = await buildTeam();
+      const regularUser = await buildUser({ teamId: team.id });
+      const admin = await buildAdmin({ teamId: team.id });
+      
+      // Create a public collection that regularUser can access
+      const publicCollection = await buildCollection({
+        userId: regularUser.id,
+        teamId: team.id,
+        permission: CollectionPermission.ReadWrite,
+      });
+      
+      // Create a private collection that regularUser cannot access
+      const privateCollection = await buildCollection({
+        userId: admin.id,
+        teamId: team.id,
+        permission: null, // private collection
+      });
+      
+      // Regular user tries to list with includeListOnly=true
+      const res = await server.post("/api/collections.list", {
+        body: {
+          token: regularUser.getJwtToken(),
+          includeListOnly: true,
+        },
+      });
+      
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      // Should only see the public collection they have access to
+      expect(body.data.length).toEqual(1);
+      expect(body.data[0].id).toEqual(publicCollection.id);
+      // Should NOT see the private collection
+      expect(body.data.find((c: any) => c.id === privateCollection.id)).toBeUndefined();
+    });
+
+    it("should allow admins to see all collections with includeListOnly=false", async () => {
+      const team = await buildTeam();
+      const admin = await buildAdmin({ teamId: team.id });
+      const regularUser = await buildUser({ teamId: team.id });
+      
+      // Create a public collection
+      const publicCollection = await buildCollection({
+        userId: admin.id,
+        teamId: team.id,
+        permission: CollectionPermission.ReadWrite,
+      });
+      
+      // Create a private collection that admin doesn't have explicit membership to
+      const privateCollection = await buildCollection({
+        userId: regularUser.id,
+        teamId: team.id,
+        permission: null, // private collection
+      });
+      
+      // Admin lists with includeListOnly=false
+      const res = await server.post("/api/collections.list", {
+        body: {
+          token: admin.getJwtToken(),
+          includeListOnly: false,
+        },
+      });
+      
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      // Admin should see ALL collections in the team
+      expect(body.data.length).toEqual(2);
+      const collectionIds = body.data.map((c: any) => c.id);
+      expect(collectionIds).toContain(publicCollection.id);
+      expect(collectionIds).toContain(privateCollection.id);
+    });
+
+    it("should restrict admins to their collections with includeListOnly=true", async () => {
+      const team = await buildTeam();
+      const admin = await buildAdmin({ teamId: team.id });
+      const regularUser = await buildUser({ teamId: team.id });
+      
+      // Create a public collection that admin can access
+      const publicCollection = await buildCollection({
+        userId: admin.id,
+        teamId: team.id,
+        permission: CollectionPermission.ReadWrite,
+      });
+      
+      // Create a private collection that admin doesn't have membership to
+      const privateCollection = await buildCollection({
+        userId: regularUser.id,
+        teamId: team.id,
+        permission: null, // private collection
+      });
+      
+      // Admin lists with includeListOnly=true
+      const res = await server.post("/api/collections.list", {
+        body: {
+          token: admin.getJwtToken(),
+          includeListOnly: true,
+        },
+      });
+      
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      // Admin should only see collections they have access to when includeListOnly=true
+      expect(body.data.length).toEqual(1);
+      expect(body.data[0].id).toEqual(publicCollection.id);
+      // Should NOT see the private collection without membership
+      expect(body.data.find((c: any) => c.id === privateCollection.id)).toBeUndefined();
+    });
+
+    it("should restrict regular users to their collections with includeListOnly=false (default)", async () => {
+      const team = await buildTeam();
+      const regularUser = await buildUser({ teamId: team.id });
+      const admin = await buildAdmin({ teamId: team.id });
+      
+      // Create a public collection that regularUser can access
+      const publicCollection = await buildCollection({
+        userId: regularUser.id,
+        teamId: team.id,
+        permission: CollectionPermission.ReadWrite,
+      });
+      
+      // Create a private collection that regularUser cannot access
+      const privateCollection = await buildCollection({
+        userId: admin.id,
+        teamId: team.id,
+        permission: null, // private collection
+      });
+      
+      // Regular user tries to list with includeListOnly=false (default)
+      const res = await server.post("/api/collections.list", {
+        body: {
+          token: regularUser.getJwtToken(),
+          includeListOnly: false,
+        },
+      });
+      
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      // Should only see the public collection they have access to (still restricted because not admin)
+      expect(body.data.length).toEqual(1);
+      expect(body.data[0].id).toEqual(publicCollection.id);
+      // Should NOT see the private collection
+      expect(body.data.find((c: any) => c.id === privateCollection.id)).toBeUndefined();
+    });
+  });
 });
 
 describe("#collections.import", () => {
