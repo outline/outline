@@ -2,6 +2,10 @@ import Router from "koa-router";
 import difference from "lodash/difference";
 import type { FindOptions, WhereOptions } from "sequelize";
 import { Op } from "sequelize";
+import { Node } from "prosemirror-model";
+import { EditorState } from "prosemirror-state";
+import { prosemirrorToYDoc, yDocToProsemirrorJSON } from "y-prosemirror";
+import * as Y from "yjs";
 import {
   CommentStatusFilter,
   TeamPreference,
@@ -9,7 +13,7 @@ import {
   IconType,
 } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
-import { commentParser } from "@server/editor";
+import { commentParser, schema } from "@server/editor";
 import auth from "@server/middlewares/authentication";
 import { feature } from "@server/middlewares/feature";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -22,6 +26,7 @@ import { authorize } from "@server/policies";
 import { presentComment, presentPolicies } from "@server/presenters";
 import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
+import Logger from "@server/logging/Logger";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -56,14 +61,78 @@ router.post(
       ? commentParser.parse(text).toJSON()
       : ctx.input.body.data;
 
+    // Generate comment ID if not provided
+    const commentId = id || require("uuid").v4();
+
+    // Handle inline comment anchoring via Yjs RelativePosition
+    if (anchor && document.state) {
+      try {
+        // Reconstruct Yjs document from stored binary state
+        const yjsDoc = new Y.Doc();
+        Y.applyUpdate(yjsDoc, document.state);
+
+        // Decode base64-encoded relative positions
+        const startPosBuffer = Buffer.from(anchor.from, "base64");
+        const endPosBuffer = Buffer.from(anchor.to, "base64");
+        const relativeStart = Y.decodeRelativePosition(startPosBuffer);
+        const relativeEnd = Y.decodeRelativePosition(endPosBuffer);
+
+        if (relativeStart && relativeEnd) {
+          // Convert relative to absolute positions in current document
+          const absoluteStart = Y.createAbsolutePositionFromRelativePosition(relativeStart, yjsDoc);
+          const absoluteEnd = Y.createAbsolutePositionFromRelativePosition(relativeEnd, yjsDoc);
+
+          if (absoluteStart && absoluteEnd) {
+            const rangeStart = absoluteStart.index;
+            const rangeEnd = absoluteEnd.index;
+
+            // Get ProseMirror document from Yjs
+            const prosemirrorJson = yDocToProsemirrorJSON(yjsDoc, "default");
+            const prosemirrorDocument = Node.fromJSON(schema, prosemirrorJson);
+
+            // Validate position boundaries
+            const docSize = prosemirrorDocument.content.size;
+            if (rangeStart >= 0 && rangeEnd <= docSize && rangeStart <= rangeEnd) {
+              // Build editor state and apply comment mark
+              const initialState = EditorState.create({
+                doc: prosemirrorDocument,
+                schema,
+              });
+
+              const commentMarkAttrs = {
+                id: commentId,
+                userId: user.id,
+                draft: false,
+              };
+              const markToAdd = schema.marks.comment.create(commentMarkAttrs);
+              const stateTransform = initialState.tr.addMark(rangeStart, rangeEnd, markToAdd);
+              const transformedState = initialState.apply(stateTransform);
+
+              // Convert back to Yjs and persist
+              const modifiedYjsDoc = prosemirrorToYDoc(transformedState.doc, "default");
+              const updatedStateBinary = Y.encodeStateAsUpdate(modifiedYjsDoc);
+
+              await document.update(
+                { state: Buffer.from(updatedStateBinary) },
+                { transaction, hooks: false, silent: true }
+              );
+            } else {
+              Logger.warn("comments", "Anchor position out of bounds");
+            }
+          }
+        }
+      } catch (error) {
+        // Log but don't fail comment creation if anchor processing fails
+        Logger.error("comments", "Failed to process comment anchor", error);
+      }
+    }
+
     const comment = await Comment.createWithCtx(ctx, {
-      id,
+      id: commentId,
       data,
       createdById: user.id,
       documentId,
       parentCommentId,
-      anchor,
-      context,
     });
 
     comment.createdBy = user;
