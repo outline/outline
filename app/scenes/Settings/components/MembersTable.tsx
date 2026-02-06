@@ -1,5 +1,5 @@
 import compact from "lodash/compact";
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import Text from "@shared/components/Text";
 import type User from "~/models/User";
@@ -11,6 +11,7 @@ import {
   SortableTable,
 } from "~/components/SortableTable";
 import { type Column as TableColumn } from "~/components/Table";
+import { TableRowContextMenu } from "~/components/TableRowContextMenu";
 import Time from "~/components/Time";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useMobile from "~/hooks/useMobile";
@@ -30,6 +31,24 @@ export function MembersTable({ canManage, ...rest }: Props) {
   const { t } = useTranslation();
   const currentUser = useCurrentUser();
   const isMobile = useMobile();
+
+  const applyContextMenu = useCallback(
+    (user: User, rowElement: React.ReactNode) => {
+      if (currentUser.id === user.id) {
+        return rowElement;
+      }
+
+      return (
+        <TableRowContextMenu
+          config={{ type: "user", data: user }}
+          menuLabel={t("User options")}
+        >
+          {rowElement}
+        </TableRowContextMenu>
+      );
+    },
+    [currentUser.id, t]
+  );
 
   const columns = useMemo<TableColumn<User>[]>(
     () =>
@@ -119,6 +138,7 @@ export function MembersTable({ canManage, ...rest }: Props) {
       columns={columns}
       rowHeight={ROW_HEIGHT}
       stickyOffset={STICKY_OFFSET}
+      decorateRow={canManage ? applyContextMenu : undefined}
       {...rest}
     />
   );

@@ -59,6 +59,7 @@ export type Props<TData> = {
   };
   rowHeight: number;
   stickyOffset?: number;
+  decorateRow?: (item: TData, rowElement: React.ReactNode) => React.ReactNode;
 };
 
 function Table<TData>({
@@ -70,6 +71,7 @@ function Table<TData>({
   page,
   rowHeight,
   stickyOffset = 0,
+  decorateRow,
 }: Props<TData>) {
   const { t } = useTranslation();
   const virtualContainerRef = React.useRef<HTMLDivElement>(null);
@@ -206,7 +208,7 @@ function Table<TData>({
         >
           {rowVirtualizer.getVirtualItems().map((virtualRow) => {
             const row = rows[virtualRow.index] as TRow<TData>;
-            return (
+            const baseRow = (
               <TR
                 role="row"
                 key={row.id}
@@ -231,6 +233,8 @@ function Table<TData>({
                 ))}
               </TR>
             );
+
+            return decorateRow ? decorateRow(row.original, baseRow) : baseRow;
           })}
         </TBody>
         {showPlaceholder && (
