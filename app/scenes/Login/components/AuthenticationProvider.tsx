@@ -173,7 +173,7 @@ function AuthenticationProvider(props: Props) {
         setSubmitting(true);
 
         try {
-          const response = await client.post("/auth/local", {
+          const response = await client.post(event.currentTarget.action, {
             email,
             password,
           });
@@ -182,7 +182,7 @@ function AuthenticationProvider(props: Props) {
             window.location.href = response.redirect;
           } else {
             // Successful login, redirect to home
-            window.location.href = "/";
+            window.location.href = "/home";
           }
         } catch (err: any) {
           setSubmitting(false);
