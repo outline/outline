@@ -24,19 +24,25 @@ type Props = React.ComponentProps<typeof ButtonLarge> & {
   preferOTP: boolean;
 };
 
-type AuthState = "initial" | "email" | "code";
+type AuthState = "initial" | "email" | "code" | "local";
 
 function AuthenticationProvider(props: Props) {
   const { t } = useTranslation();
   const [authState, setAuthState] = React.useState<AuthState>("initial");
   const [isSubmitting, setSubmitting] = React.useState(false);
   const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [localError, setLocalError] = React.useState("");
   const formRef = React.useRef<HTMLFormElement>(null);
   const { isCreate, id, name, authUrl, onEmailSuccess, ...rest } = props;
   const clientType = Desktop.isElectron() ? Client.Desktop : Client.Web;
 
   const handleChangeEmail = (event: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(event.target.value);
+  };
+
+  const handleChangePassword = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(event.target.value);
   };
 
   const handleSubmitEmail = async (
@@ -156,6 +162,81 @@ function AuthenticationProvider(props: Props) {
     );
   }
 
+  if (id === "local") {
+    const handleSubmitLocal = async (
+      event: React.SyntheticEvent<HTMLFormElement>
+    ) => {
+      event.preventDefault();
+      setLocalError("");
+
+      if (authState === "local" && email && password) {
+        setSubmitting(true);
+
+        try {
+          const response = await client.post("/auth/local", {
+            email,
+            password,
+          });
+
+          if (response.redirect) {
+            window.location.href = response.redirect;
+          } else {
+            // Successful login, redirect to home
+            window.location.href = "/";
+          }
+        } catch (err: any) {
+          setSubmitting(false);
+          setLocalError(err.message || "Invalid email or password");
+        }
+      } else {
+        setAuthState("local");
+      }
+    };
+
+    return (
+      <Wrapper>
+        <Form method="POST" action="/auth/local" onSubmit={handleSubmitLocal}>
+          {authState === "local" ? (
+            <LocalFormFields>
+              <InputLarge
+                type="email"
+                name="email"
+                placeholder={t("Email")}
+                value={email}
+                onChange={handleChangeEmail}
+                disabled={isSubmitting}
+                autoFocus
+                required
+              />
+              <InputLarge
+                type="password"
+                name="password"
+                placeholder={t("Password")}
+                value={password}
+                onChange={handleChangePassword}
+                disabled={isSubmitting}
+                required
+              />
+              {localError && <ErrorMessage>{localError}</ErrorMessage>}
+              <ButtonLarge type="submit" disabled={isSubmitting} fullwidth>
+                {isCreate ? t("Create Account") : t("Sign In")}
+              </ButtonLarge>
+            </LocalFormFields>
+          ) : (
+            <ButtonLarge
+              type="submit"
+              icon={<PluginIcon id={id} />}
+              fullwidth
+              {...rest}
+            >
+              {t("Continue with Password")}
+            </ButtonLarge>
+          )}
+        </Form>
+      </Wrapper>
+    );
+  }
+
   if (id === "email") {
     if (isCreate) {
       return null;
@@ -213,6 +294,19 @@ const Form = styled.form`
   width: 100%;
   display: flex;
   justify-content: space-between;
+`;
+
+const LocalFormFields = styled.div`
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+`;
+
+const ErrorMessage = styled.div`
+  color: #dc2626;
+  font-size: 14px;
+  text-align: center;
 `;
 
 export default AuthenticationProvider;

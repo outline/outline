@@ -188,6 +188,10 @@ class User extends ParanoidModel<
   @Column
   suspendedAt: Date | null;
 
+  @AllowNull
+  @Column(DataType.TEXT)
+  passwordHash: string | null;
+
   @Column(DataType.JSONB)
   flags: { [key in UserFlag]?: number } | null;
 

@@ -1,0 +1,6 @@
+{
+  "id": "local",
+  "name": "Password",
+  "priority": 100,
+  "description": "Adds simple email/password authentication."
+}
