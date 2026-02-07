@@ -216,6 +216,15 @@ class Team extends ParanoidModel<
     return this.guestSignin && env.EMAIL_ENABLED;
   }
 
+  /**
+   * Returns whether the team has local username/password authentication enabled.
+   *
+   * @return Whether to show local auth login options.
+   */
+  get localAuthEnabled(): boolean {
+    return env.LOCAL_AUTH_ENABLED;
+  }
+
   get url() {
     const url = new URL(env.URL);
 

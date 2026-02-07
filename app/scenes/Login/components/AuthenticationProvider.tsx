@@ -1,9 +1,10 @@
 import { startAuthentication } from "@simplewebauthn/browser";
-import { EmailIcon } from "outline-icons";
+import { EmailIcon, PadlockIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import { Client } from "@shared/types";
 import ButtonLarge from "~/components/ButtonLarge";
 import InputLarge from "~/components/InputLarge";
@@ -25,12 +26,17 @@ type Props = React.ComponentProps<typeof ButtonLarge> & {
 };
 
 type AuthState = "initial" | "email" | "code";
+type LocalAuthMode = "signin" | "signup";
 
 function AuthenticationProvider(props: Props) {
   const { t } = useTranslation();
   const [authState, setAuthState] = React.useState<AuthState>("initial");
   const [isSubmitting, setSubmitting] = React.useState(false);
   const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [username, setUsername] = React.useState("");
+  const [localAuthMode, setLocalAuthMode] =
+    React.useState<LocalAuthMode>("signin");
   const formRef = React.useRef<HTMLFormElement>(null);
   const { isCreate, id, name, authUrl, onEmailSuccess, ...rest } = props;
   const clientType = Desktop.isElectron() ? Client.Desktop : Client.Web;
@@ -69,6 +75,88 @@ function AuthenticationProvider(props: Props) {
   };
 
   const href = getRedirectUrl(authUrl);
+
+  if (id === "local-auth") {
+    const handleToggleMode = (event: React.MouseEvent) => {
+      event.preventDefault();
+      setLocalAuthMode(localAuthMode === "signin" ? "signup" : "signin");
+    };
+
+    if (authState !== "email") {
+      return (
+        <Wrapper>
+          <ButtonLarge
+            onClick={() => setAuthState("email")}
+            icon={<PadlockIcon />}
+            fullwidth
+            {...rest}
+          >
+            {t("Continue with Password")}
+          </ButtonLarge>
+        </Wrapper>
+      );
+    }
+
+    const formAction =
+      localAuthMode === "signup"
+        ? "/auth/local-auth.signup"
+        : "/auth/local-auth";
+
+    return (
+      <Wrapper>
+        <LocalAuthForm ref={formRef} method="POST" action={formAction}>
+          <input
+            type="hidden"
+            name={CSRF.fieldName}
+            value={getCookie(CSRF.cookieName) ?? ""}
+          />
+          <input type="hidden" name="client" value={clientType} />
+          {localAuthMode === "signup" && (
+            <FullWidthInputLarge
+              type="text"
+              name="username"
+              placeholder={t("Display name")}
+              value={username}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setUsername(e.target.value)
+              }
+              disabled={isSubmitting}
+              required
+            />
+          )}
+          <FullWidthInputLarge
+            type="email"
+            name="email"
+            placeholder="me@domain.com"
+            value={email}
+            onChange={handleChangeEmail}
+            disabled={isSubmitting}
+            autoFocus
+            required
+          />
+          <FullWidthInputLarge
+            type="password"
+            name="password"
+            placeholder={t("Password")}
+            value={password}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setPassword(e.target.value)
+            }
+            disabled={isSubmitting}
+            required
+          />
+          <ButtonLarge type="submit" disabled={isSubmitting} fullwidth>
+            {localAuthMode === "signup" ? t("Create Account") : t("Sign In")}
+          </ButtonLarge>
+          <ToggleLink onClick={handleToggleMode}>
+            {localAuthMode === "signin"
+              ? t("Don\u2019t have an account? Sign up")
+              : t("Already have an account? Sign in")}
+          </ToggleLink>
+        </LocalAuthForm>
+      </Wrapper>
+    );
+  }
 
   if (id === "passkeys") {
     const handleSubmitPasskey = async (
@@ -213,6 +301,30 @@ const Form = styled.form`
   width: 100%;
   display: flex;
   justify-content: space-between;
+`;
+
+const LocalAuthForm = styled.form`
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+
+const FullWidthInputLarge = styled(InputLarge)`
+  margin-right: 0;
+  width: 100%;
+`;
+
+const ToggleLink = styled.a`
+  color: ${s("textTertiary")};
+  font-size: 13px;
+  text-align: center;
+  cursor: pointer;
+  margin-top: 4px;
+
+  &:hover {
+    color: ${s("textSecondary")};
+  }
 `;
 
 export default AuthenticationProvider;

@@ -115,7 +115,7 @@ router.post("auth.config", async (ctx: APIContext<T.AuthConfigReq>) => {
 });
 
 /** Authentication services that don't require SSO validation. */
-const NON_SSO_SERVICES = ["email", "passkeys"];
+const NON_SSO_SERVICES = ["email", "passkeys", "local-auth"];
 
 router.post("auth.info", auth(), async (ctx: APIContext<T.AuthInfoReq>) => {
   const { user, service } = ctx.state.auth;

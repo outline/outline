@@ -377,6 +377,16 @@ export class Environment {
     !!(this.SMTP_HOST || this.SMTP_SERVICE) || this.isDevelopment;
 
   /**
+   * Whether local username/password authentication is enabled.
+   */
+  @Public
+  @IsBoolean()
+  @IsOptional()
+  public LOCAL_AUTH_ENABLED = this.toBoolean(
+    environment.LOCAL_AUTH_ENABLED ?? "false"
+  );
+
+  /**
    * Optional hostname of the client, used for identifying to the server
    * defaults to hostname of the machine.
    */

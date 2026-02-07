@@ -1,0 +1,6 @@
+{
+  "id": "local-auth",
+  "name": "Local Auth",
+  "priority": 200,
+  "description": "Adds local username and password authentication."
+}

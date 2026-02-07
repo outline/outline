@@ -1,4 +1,4 @@
-import crypto from "node:crypto";
+import crypto, { scryptSync, randomBytes, timingSafeEqual } from "node:crypto";
 import { addHours, addMinutes, subMinutes } from "date-fns";
 import JWT from "jsonwebtoken";
 import type { Context } from "koa";
@@ -158,6 +158,10 @@ class User extends ParanoidModel<
   @Column(DataType.BLOB)
   @Encrypted
   jwtSecret: string;
+
+  @AllowNull
+  @Column(DataType.STRING(255))
+  passwordHash: string | null;
 
   @IsDate
   @Column
@@ -324,6 +328,50 @@ class User extends ParanoidModel<
       .replace(/[l1IoO0]/gi, "")
       .slice(0, 8)
       .toUpperCase();
+  }
+
+  /**
+   * Whether the user has a password set for local authentication.
+   */
+  get hasPassword(): boolean {
+    return !!this.passwordHash;
+  }
+
+  /**
+   * Hash a password using scrypt with a random salt.
+   *
+   * @param password - the plaintext password to hash.
+   * @returns the hashed password string in the format salt:hash.
+   */
+  static hashPassword(password: string): string {
+    const salt = randomBytes(16).toString("hex");
+    const hash = scryptSync(password, salt, 64).toString("hex");
+    return `${salt}:${hash}`;
+  }
+
+  /**
+   * Set the user's password by hashing it and storing the result.
+   *
+   * @param password - the plaintext password to set.
+   */
+  async setPassword(password: string) {
+    this.passwordHash = User.hashPassword(password);
+    await this.save();
+  }
+
+  /**
+   * Verify a plaintext password against the stored hash.
+   *
+   * @param password - the plaintext password to verify.
+   * @returns true if the password matches, false otherwise.
+   */
+  verifyPassword(password: string): boolean {
+    if (!this.passwordHash) {
+      return false;
+    }
+    const [salt, storedHash] = this.passwordHash.split(":");
+    const hash = scryptSync(password, salt, 64).toString("hex");
+    return timingSafeEqual(Buffer.from(storedHash, "hex"), Buffer.from(hash, "hex"));
   }
 
   // instance methods

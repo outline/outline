@@ -27,7 +27,11 @@ export default class AuthenticationHelper {
 
     return AuthenticationHelper.providers
       .sort((hook) =>
-        hook.value.id === "email" || hook.value.id === "passkeys" ? 1 : -1
+        hook.value.id === "email" ||
+        hook.value.id === "passkeys" ||
+        hook.value.id === "local-auth"
+          ? 1
+          : -1
       )
       .filter((hook) => {
         // Email sign-in is an exception as it does not have an authentication
@@ -42,7 +46,14 @@ export default class AuthenticationHelper {
           return team?.passkeysEnabled;
         }
 
-        // If no team return all possible authentication providers except email and passkeys.
+        // Local auth is an exception as it does not have an authentication
+        // provider using passport, instead it exists as a boolean option.
+        if (hook.value.id === "local-auth") {
+          return team?.localAuthEnabled;
+        }
+
+        // If no team return all possible authentication providers except email,
+        // passkeys, and local-auth.
         if (!team) {
           return true;
         }
