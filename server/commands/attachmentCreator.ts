@@ -45,7 +45,6 @@ export default async function attachmentCreator({
   fetchOptions,
   ...rest
 }: Props): Promise<Attachment | undefined> {
-  const acl = AttachmentHelper.presetToAcl(preset);
   const key = AttachmentHelper.getKey({
     id: randomUUID(),
     name,
@@ -64,7 +63,7 @@ export default async function attachmentCreator({
     attachment = await Attachment.createWithCtx(ctx, {
       id,
       key,
-      acl,
+      acl: "private",
       size: res.contentLength,
       contentType: res.contentType,
       teamId: user.teamId,

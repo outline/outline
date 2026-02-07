@@ -621,12 +621,6 @@ export class Environment {
   );
 
   /**
-   * Set default AWS S3 ACL for file attachments.
-   */
-  @IsOptional()
-  public AWS_S3_ACL = environment.AWS_S3_ACL ?? "private";
-
-  /**
    * Which file storage system to use
    */
   @IsIn(["local", "s3"])

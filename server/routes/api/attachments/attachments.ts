@@ -119,7 +119,6 @@ router.post(
     }
 
     const modelId = id ?? randomUUID();
-    const acl = AttachmentHelper.presetToAcl(preset);
     const key = AttachmentHelper.getKey({
       id: modelId,
       name,
@@ -129,7 +128,7 @@ router.post(
     const attachment = await Attachment.createWithCtx(ctx, {
       id: modelId,
       key,
-      acl,
+      acl: "private",
       size,
       expiresAt: AttachmentHelper.presetToExpiry(preset),
       contentType,
@@ -185,7 +184,6 @@ router.post(
 
     const name = getFileNameFromUrl(url) ?? "file";
     const modelId = id ?? randomUUID();
-    const acl = AttachmentHelper.presetToAcl(preset);
     const key = AttachmentHelper.getKey({
       id: modelId,
       name,
@@ -205,7 +203,7 @@ router.post(
         {
           id: modelId,
           key,
-          acl,
+          acl: "private",
           size: 0,
           expiresAt: AttachmentHelper.presetToExpiry(preset),
           contentType: "application/octet-stream",

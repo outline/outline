@@ -291,9 +291,6 @@ export default abstract class APIImportTask<
     await sequelize.transaction(async (transaction) => {
       const dbPromises = attachmentsData.map(async (item) => {
         const modelId = randomUUID();
-        const acl = AttachmentHelper.presetToAcl(
-          AttachmentPreset.DocumentAttachment
-        );
         const key = AttachmentHelper.getKey({
           id: modelId,
           name: item.name,
@@ -304,7 +301,7 @@ export default abstract class APIImportTask<
           {
             id: modelId,
             key,
-            acl,
+            acl: "private",
             size: 0,
             expiresAt: AttachmentHelper.presetToExpiry(
               AttachmentPreset.DocumentAttachment
