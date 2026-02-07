@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import type {
   BookmarkBlockObjectResponse,
   BreadcrumbBlockObjectResponse,
@@ -66,6 +67,20 @@ export class NotionConverter {
       if (this[child.type]) {
         // @ts-expect-error Not all blocks have an interface
         const response = this[child.type](child);
+
+        // @ts-expect-error Not all blocks have an interface
+        const canToggle = child[child.type].is_toggleable === true;
+
+        if (canToggle) {
+          return {
+            type: "container_toggle",
+            attrs: {
+              id: randomUUID(),
+            },
+            content: [response, ...this.mapChildren(child)],
+          };
+        }
+
         if (
           response &&
           this.nodesWithoutBlockChildren.includes(response.type) &&
@@ -563,6 +578,9 @@ export class NotionConverter {
   private static toggle(item: Block<ToggleBlockObjectResponse>) {
     return {
       type: "container_toggle",
+      attrs: {
+        id: randomUUID(),
+      },
       content: [
         {
           type: "paragraph",
