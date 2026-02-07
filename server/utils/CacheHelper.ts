@@ -2,7 +2,6 @@ import { Day } from "@shared/utils/time";
 import Logger from "@server/logging/Logger";
 import Redis from "@server/storage/redis";
 import { MutexLock } from "./MutexLock";
-import { RedisPrefixHelper } from "./RedisPrefixHelper";
 
 /**
  * Result type for cache callbacks that need to specify a dynamic expiry.
@@ -141,32 +140,5 @@ export class CacheHelper {
         await Redis.defaultClient.del(key);
       })
     );
-  }
-
-  // keys
-
-  /**
-   * Gets key against which unfurl response for the given url is stored
-   *
-   * @param teamId The team ID to generate a key for
-   * @param url The url to generate a key for
-   */
-  public static getUnfurlKey(teamId: string, url = "") {
-    return RedisPrefixHelper.getUnfurlKey(teamId, url);
-  }
-
-  public static getCollectionDocumentsKey(collectionId: string) {
-    return RedisPrefixHelper.getCollectionDocumentsKey(collectionId);
-  }
-
-  /**
-   * Gets key for caching embed check results. This is a global cache key
-   * (not team-specific) since embed headers are the same for all users.
-   *
-   * @param url The URL to generate a cache key for.
-   * @returns the cache key string.
-   */
-  public static getEmbedCheckKey(url: string) {
-    return RedisPrefixHelper.getEmbedCheckKey(url);
   }
 }
