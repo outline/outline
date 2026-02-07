@@ -311,13 +311,16 @@ export default abstract class ImportTask extends BaseTask<Props> {
       await this.preprocessDocUrlIds(data);
 
       // Collections
-      for (const item of data.collections) {
+      for (const collectionItem of data.collections) {
+        // Short transaction for collection creation only to avoid holding
+        // connections during document processing
+        let collection!: Collection;
         await sequelize.transaction(async (transaction) => {
           Logger.debug(
             "task",
-            `ImportTask persisting collection ${item.name} (${item.id})`
+            `ImportTask persisting collection ${collectionItem.name} (${collectionItem.id})`
           );
-          let description = item.description;
+          let description = collectionItem.description;
 
           if (description) {
             // Check all of the attachments we've created against urls in the text
@@ -340,18 +343,18 @@ export default abstract class ImportTask extends BaseTask<Props> {
           }
 
           const options: { urlId?: string } = {};
-          if (item.urlId) {
+          if (collectionItem.urlId) {
             const existing = await Collection.unscoped().findOne({
               attributes: ["id"],
               paranoid: false,
               transaction,
               where: {
-                urlId: item.urlId,
+                urlId: collectionItem.urlId,
               },
             });
 
             if (!existing) {
-              options.urlId = item.urlId;
+              options.urlId = collectionItem.urlId;
             }
           }
 
@@ -363,15 +366,15 @@ export default abstract class ImportTask extends BaseTask<Props> {
 
           const sharedDefaults: Partial<InferCreationAttributes<Collection>> = {
             ...options,
-            id: item.id,
+            id: collectionItem.id,
             description: truncatedDescription,
-            content: item.data,
-            color: item.color,
-            icon: item.icon,
-            sort: item.sort,
+            content: collectionItem.data,
+            color: collectionItem.color,
+            icon: collectionItem.icon,
+            sort: collectionItem.sort,
             createdById: fileOperation.userId,
             permission:
-              (item.permission ??
+              (collectionItem.permission ??
               fileOperation.options?.permission !== undefined)
                 ? fileOperation.options?.permission
                 : CollectionPermission.ReadWrite,
@@ -384,19 +387,19 @@ export default abstract class ImportTask extends BaseTask<Props> {
           const response = await Collection.findOrCreateWithCtx(ctx, {
             where: {
               teamId: fileOperation.teamId,
-              name: item.name,
+              name: collectionItem.name,
             },
             defaults: sharedDefaults,
           });
 
-          let collection = response[0];
+          collection = response[0];
           const isCreated = response[1];
 
           // create new collection if name already exists, yes it's possible that
           // there is also a "Name (Imported)" but this is a case not worth dealing
           // with right now
           if (!isCreated) {
-            const name = `${item.name} (Imported)`;
+            const name = `${collectionItem.name} (Imported)`;
             collection = await Collection.createWithCtx(ctx, {
               ...sharedDefaults,
               name,
@@ -404,102 +407,124 @@ export default abstract class ImportTask extends BaseTask<Props> {
             });
           }
 
-          collections.set(item.id, collection);
-
-          // Documents
-          for (const item of data.documents.filter(
-            (d) => d.collectionId === collection.id
-          )) {
-            Logger.debug(
-              "task",
-              `ImportTask persisting document ${item.title} (${item.id})`
-            );
-            let text = item.text;
-
-            // Check all of the attachments we've created against urls in the text
-            // and replace them out with attachment redirect urls before saving.
-            for (const aitem of data.attachments) {
-              text = text.replace(
-                new RegExp(`<<${aitem.id}>>`, "g"),
-                Attachment.getRedirectUrl(aitem.id)
-              );
-            }
-
-            // Check all of the document we've created against urls in the text
-            // and replace them out with a valid internal link.
-            for (const ditem of data.documents) {
-              text = text.replace(
-                new RegExp(`<<${ditem.id}>>`, "g"),
-                Document.getPath({ title: ditem.title, urlId: ditem.urlId! })
-              );
-            }
-
-            const document = await documentCreator(ctx, {
-              sourceMetadata: {
-                fileName: path.basename(item.path),
-                mimeType: item.mimeType,
-                externalId: item.externalId,
-                createdByName: item.createdByName,
-              },
-              id: item.id,
-              title: item.title,
-              urlId: item.urlId,
-              text,
-              content: item.data,
-              icon: item.icon,
-              color: item.color,
-              collectionId: item.collectionId,
-              createdAt: item.createdAt,
-              updatedAt: item.updatedAt ?? item.createdAt,
-              publishedAt: item.updatedAt ?? item.createdAt ?? new Date(),
-              parentDocumentId: item.parentDocumentId,
-              importId: fileOperation.id,
-            });
-            documents.set(item.id, document);
-
-            await collection.addDocumentToStructure(document, undefined, {
-              transaction,
-              save: false,
-              insertOrder: "append",
-            });
-          }
-
-          await collection.save({ transaction });
+          collections.set(collectionItem.id, collection);
         });
-      }
 
-      // Attachments
-      await sequelize.transaction(async (transaction) => {
-        const chunks = chunk(data.attachments, 10);
+        // Get documents for this collection
+        const collectionDocs = data.documents.filter(
+          (d) => d.collectionId === collection.id
+        );
 
-        for (const attChunk of chunks) {
-          // Parallelize 10 uploads at a time
-          await Promise.all(
-            attChunk.map(async (item) => {
+        // Process documents in batches to avoid long-running transactions
+        const documentBatches = chunk(collectionDocs, 50);
+
+        for (
+          let batchIndex = 0;
+          batchIndex < documentBatches.length;
+          batchIndex++
+        ) {
+          const docBatch = documentBatches[batchIndex];
+
+          await sequelize.transaction(async (transaction) => {
+            const ctx = createContext({ user, transaction });
+
+            for (const docItem of docBatch) {
               Logger.debug(
                 "task",
-                `ImportTask persisting attachment ${item.name} (${item.id})`
+                `ImportTask persisting document ${docItem.title} (${docItem.id})`
               );
-              const attachment = await attachmentCreator({
-                source: "import",
-                preset: AttachmentPreset.DocumentAttachment,
-                id: item.id,
-                name: item.name,
-                type: item.mimeType,
-                buffer: await item.buffer(),
-                user,
-                ctx: createContext({ user, transaction }),
-                fetchOptions: {
-                  timeout: env.FILE_STORAGE_IMPORT_TIMEOUT,
-                },
-              });
-              if (attachment) {
-                attachments.set(item.id, attachment);
+              let text = docItem.text;
+
+              // Check all of the attachments we've created against urls in the text
+              // and replace them out with attachment redirect urls before saving.
+              for (const aitem of data.attachments) {
+                text = text.replace(
+                  new RegExp(`<<${aitem.id}>>`, "g"),
+                  Attachment.getRedirectUrl(aitem.id)
+                );
               }
-            })
-          );
+
+              // Check all of the document we've created against urls in the text
+              // and replace them out with a valid internal link.
+              for (const ditem of data.documents) {
+                text = text.replace(
+                  new RegExp(`<<${ditem.id}>>`, "g"),
+                  Document.getPath({ title: ditem.title, urlId: ditem.urlId! })
+                );
+              }
+
+              const document = await documentCreator(ctx, {
+                sourceMetadata: {
+                  fileName: path.basename(docItem.path),
+                  mimeType: docItem.mimeType,
+                  externalId: docItem.externalId,
+                  createdByName: docItem.createdByName,
+                },
+                id: docItem.id,
+                title: docItem.title,
+                urlId: docItem.urlId,
+                text,
+                content: docItem.data,
+                icon: docItem.icon,
+                color: docItem.color,
+                collectionId: docItem.collectionId,
+                createdAt: docItem.createdAt,
+                updatedAt: docItem.updatedAt ?? docItem.createdAt,
+                publishedAt:
+                  docItem.updatedAt ?? docItem.createdAt ?? new Date(),
+                parentDocumentId: docItem.parentDocumentId,
+                importId: fileOperation.id,
+              });
+              documents.set(docItem.id, document);
+
+              await collection.addDocumentToStructure(document, undefined, {
+                transaction,
+                save: false,
+                insertOrder: "append",
+              });
+            }
+
+            await collection.save({ transaction });
+          });
+
+          // Reload collection to get updated structure for next batch
+          if (batchIndex < documentBatches.length - 1) {
+            await collection.reload();
+          }
         }
-      });
+      }
+
+      // Attachments - process without wrapping transaction to avoid holding
+      // database connections during S3 uploads
+      const attachmentChunks = chunk(data.attachments, 10);
+
+      for (const attChunk of attachmentChunks) {
+        // Parallelize 10 uploads at a time
+        await Promise.all(
+          attChunk.map(async (item) => {
+            Logger.debug(
+              "task",
+              `ImportTask persisting attachment ${item.name} (${item.id})`
+            );
+            const attachment = await attachmentCreator({
+              source: "import",
+              preset: AttachmentPreset.DocumentAttachment,
+              id: item.id,
+              name: item.name,
+              type: item.mimeType,
+              buffer: await item.buffer(),
+              user,
+              ctx: createContext({ user }),
+              fetchOptions: {
+                timeout: env.FILE_STORAGE_IMPORT_TIMEOUT,
+              },
+            });
+            if (attachment) {
+              attachments.set(item.id, attachment);
+            }
+          })
+        );
+      }
     } catch (err) {
       Logger.info(
         "task",

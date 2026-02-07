@@ -475,7 +475,10 @@ class Document extends ArchivableModel<
   }
 
   @AfterCreate
-  static async addDocumentToCollectionStructure(model: Document) {
+  static async addDocumentToCollectionStructure(
+    model: Document,
+    options: SaveOptions<InferAttributes<Document>>
+  ) {
     if (
       model.archivedAt ||
       model.template ||
@@ -485,7 +488,8 @@ class Document extends ArchivableModel<
       return;
     }
 
-    return this.sequelize!.transaction(async (transaction: Transaction) => {
+    const transaction = options.transaction;
+    const task = async (transaction: Transaction) => {
       const collection = await Collection.findByPk(model.collectionId!, {
         includeDocumentStructure: true,
         transaction,
@@ -497,7 +501,13 @@ class Document extends ArchivableModel<
 
       await collection.addDocumentToStructure(model, 0, { transaction });
       model.collection = collection;
-    });
+    };
+
+    if (transaction) {
+      return task(transaction);
+    }
+
+    return this.sequelize!.transaction(task);
   }
 
   @BeforeValidate
