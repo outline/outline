@@ -608,38 +608,105 @@ exports[`NotionConverter converts a page 1`] = `
     },
     {
       "attrs": {
-        "level": 2,
+        "id": "dbbc3e60-556f-4605-90bd-104549175d0a",
       },
       "content": [
         {
-          "marks": [],
-          "text": "Toggleable heading",
-          "type": "text",
+          "attrs": {
+            "level": 2,
+          },
+          "content": [
+            {
+              "marks": [],
+              "text": "Toggleable heading",
+              "type": "text",
+            },
+          ],
+          "type": "heading",
+        },
+        {
+          "content": [
+            {
+              "marks": [],
+              "text": "Some paragraph content within toggleable heading.",
+              "type": "text",
+            },
+          ],
+          "type": "paragraph",
+        },
+        {
+          "attrs": {
+            "id": "28cfd075-c823-4fd8-87aa-7a7dbe0c6b43",
+          },
+          "content": [
+            {
+              "attrs": {
+                "level": 3,
+              },
+              "content": [
+                {
+                  "marks": [],
+                  "text": "Toggleable heading inside toggleable heading",
+                  "type": "text",
+                },
+              ],
+              "type": "heading",
+            },
+            {
+              "content": [
+                {
+                  "marks": [],
+                  "text": "Some paragraph content within toggleable heading, which is within another toggleable heading.",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "container_toggle",
         },
       ],
-      "type": "heading",
+      "type": "container_toggle",
     },
     {
       "attrs": {
-        "level": 2,
+        "id": "00fd4f20-7731-41c6-b813-b6f75d6dc756",
       },
       "content": [
         {
-          "marks": [],
-          "text": "Toggleable heading with a ",
-          "type": "text",
+          "attrs": {
+            "level": 2,
+          },
+          "content": [
+            {
+              "marks": [],
+              "text": "Toggleable heading with a ",
+              "type": "text",
+            },
+            {
+              "text": "2025-03-11",
+              "type": "text",
+            },
+            {
+              "marks": [],
+              "text": " mention.",
+              "type": "text",
+            },
+          ],
+          "type": "heading",
         },
         {
-          "text": "2025-03-11",
-          "type": "text",
-        },
-        {
-          "marks": [],
-          "text": " mention.",
-          "type": "text",
+          "content": [
+            {
+              "marks": [],
+              "text": "Some paragraph content within toggleable heading with mention.",
+              "type": "text",
+            },
+          ],
+          "type": "paragraph",
         },
       ],
-      "type": "heading",
+      "type": "container_toggle",
     },
     {
       "attrs": {
@@ -1876,6 +1943,9 @@ exports[`NotionConverter converts a page 1`] = `
       "type": "paragraph",
     },
     {
+      "attrs": {
+        "id": "34e5d753-324f-4e7a-86d3-ed205eea89e1",
+      },
       "content": [
         {
           "content": [
@@ -1909,6 +1979,9 @@ exports[`NotionConverter converts a page 1`] = `
       "type": "container_toggle",
     },
     {
+      "attrs": {
+        "id": "9479afdb-1169-415f-bf5e-0f00d2145702",
+      },
       "content": [
         {
           "content": [
