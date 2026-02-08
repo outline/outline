@@ -63,7 +63,7 @@ export const DocumentValidation = {
   maxStateLength: 1500 * 1024,
 
   /** The maximum recommended size of the document content */
-  maxRecommendedLength: 250000,
+  maxRecommendedLength: 1000 * 1024,
 };
 
 export const GroupValidation = {
