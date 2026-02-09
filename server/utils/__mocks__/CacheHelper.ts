@@ -1,6 +1,5 @@
 import { Day } from "@shared/utils/time";
 import type { CacheResult } from "../CacheHelper";
-import { RedisPrefixHelper } from "../RedisPrefixHelper";
 
 /**
  * A Mock Helper class for server-side cache management
@@ -44,21 +43,5 @@ export class CacheHelper {
    */
   public static async clearData(_prefix: string) {
     return;
-  }
-
-  /**
-   * These are real methods that don't require mocking as they don't
-   * interact with Redis directly
-   */
-  public static getUnfurlKey(teamId: string, url = "") {
-    return RedisPrefixHelper.getUnfurlKey(teamId, url);
-  }
-
-  public static getCollectionDocumentsKey(collectionId: string) {
-    return RedisPrefixHelper.getCollectionDocumentsKey(collectionId);
-  }
-
-  public static getEmbedCheckKey(url: string) {
-    return RedisPrefixHelper.getEmbedCheckKey(url);
   }
 }
