@@ -102,12 +102,14 @@ const EmojisTable = observer(function EmojisTable({
           component: (emoji) => <Time dateTime={emoji.createdAt} addSuffix />,
           width: "1fr",
         },
-        {
-          type: "action",
-          id: "action",
-          component: (emoji) => <EmojisMenu emoji={emoji} />,
-          width: "50px",
-        },
+        canManage
+          ? {
+              type: "action",
+              id: "action",
+              component: (emoji) => <EmojisMenu emoji={emoji} />,
+              width: "50px",
+            }
+          : undefined,
       ]),
     [t, canManage]
   );
@@ -117,7 +119,7 @@ const EmojisTable = observer(function EmojisTable({
       columns={columns}
       rowHeight={ROW_HEIGHT}
       stickyOffset={STICKY_OFFSET}
-      decorateRow={applyContextMenu}
+      decorateRow={canManage ? applyContextMenu : undefined}
       {...rest}
     />
   );
