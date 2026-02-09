@@ -1483,6 +1483,50 @@ ol li {
   }
 }
 
+.${EditorStyleHelper.checklistWrapper} {
+  position: relative;
+  margin: 1em 0;
+}
+
+.${EditorStyleHelper.checklistCompletedToggle} {
+  position: absolute;
+  top: -8px;
+  right: 0;
+  padding: 4px 8px;
+  font-size: 12px;
+  background: ${props.theme.background};
+  border: 1px solid ${props.theme.buttonNeutralBorder};
+  border-radius: 6px;
+  color: ${props.theme.textSecondary};
+  cursor: var(--pointer);
+  user-select: none;
+  z-index: 1;
+  opacity: 0;
+  transition: all 100ms ease-in-out;
+
+  &:${hover} {
+    background: ${props.theme.buttonNeutralBackground};
+    color: ${props.theme.text};
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.${EditorStyleHelper.checklistWrapper}:${hover} .${EditorStyleHelper.checklistCompletedToggle},
+.${EditorStyleHelper.checklistWrapper}:focus-within .${EditorStyleHelper.checklistCompletedToggle} {
+  opacity: 1;
+}
+
+.${EditorStyleHelper.checklistWrapper}.${EditorStyleHelper.checklistCompletedHidden} .${EditorStyleHelper.checklistCompletedToggle} {
+  opacity: 1;
+}
+
+.${EditorStyleHelper.checklistWrapper}.${EditorStyleHelper.checklistCompletedHidden} ul.checkbox_list > li.checked {
+  display: none;
+}
+
 ul.checkbox_list {
   padding: 0;
   margin-left: -24px;

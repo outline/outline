@@ -59,6 +59,17 @@ export class EditorStyleHelper {
   /** Toggle block folded state */
   static readonly toggleBlockFolded = "folded";
 
+  // Checkbox Lists
+
+  /** Checkbox list wrapper */
+  static readonly checklistWrapper = "checklist-wrapper";
+
+  /** Toggle button for showing/hiding completed items */
+  static readonly checklistCompletedToggle = "checklist-completed-toggle";
+
+  /** State when completed items are hidden */
+  static readonly checklistCompletedHidden = "completed-hidden";
+
   // Tables
 
   /** Table wrapper */
