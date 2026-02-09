@@ -1483,30 +1483,30 @@ ol li {
   }
 }
 
-.checklist-wrapper {
+.${EditorStyleHelper.checklistWrapper} {
   position: relative;
   margin: 1em 0;
 }
 
-.checklist-completed-toggle {
+.${EditorStyleHelper.checklistCompletedToggle} {
   position: absolute;
   top: -8px;
   right: 0;
   padding: 4px 8px;
   font-size: 12px;
   background: ${props.theme.background};
-  border: 1px solid ${props.theme.divider};
-  border-radius: 4px;
+  border: 1px solid ${props.theme.buttonNeutralBorder};
+  border-radius: 6px;
   color: ${props.theme.textSecondary};
   cursor: var(--pointer);
   user-select: none;
   z-index: 1;
+  opacity: 0;
   transition: all 100ms ease-in-out;
 
-  &:hover {
-    background: ${props.theme.sidebarBackground};
+  &:${hover} {
+    background: ${props.theme.buttonNeutralBackground};
     color: ${props.theme.text};
-    border-color: ${props.theme.textTertiary};
   }
 
   &:active {
@@ -1514,7 +1514,16 @@ ol li {
   }
 }
 
-.checklist-wrapper.completed-hidden ul.checkbox_list > li.checked {
+.${EditorStyleHelper.checklistWrapper}:${hover} .${EditorStyleHelper.checklistCompletedToggle},
+.${EditorStyleHelper.checklistWrapper}:focus-within .${EditorStyleHelper.checklistCompletedToggle} {
+  opacity: 1;
+}
+
+.${EditorStyleHelper.checklistWrapper}.${EditorStyleHelper.checklistCompletedHidden} .${EditorStyleHelper.checklistCompletedToggle} {
+  opacity: 1;
+}
+
+.${EditorStyleHelper.checklistWrapper}.${EditorStyleHelper.checklistCompletedHidden} ul.checkbox_list > li.checked {
   display: none;
 }
 

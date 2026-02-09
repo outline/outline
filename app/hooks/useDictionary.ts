@@ -26,6 +26,9 @@ export default function useDictionary() {
       alignFullWidth: t("Full width"),
       bulletList: t("Bulleted list"),
       checkboxList: t("Todo list"),
+      showCompleted: (count: number) =>
+        t("Show {{ count }} completed", { count }),
+      hideCompleted: t("Hide completed"),
       codeBlock: t("Code block"),
       codeCopied: t("Copied to clipboard"),
       codeInline: t("Code"),
