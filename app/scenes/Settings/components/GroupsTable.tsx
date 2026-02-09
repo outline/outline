@@ -15,7 +15,8 @@ import {
   SortableTable,
 } from "~/components/SortableTable";
 import { type Column as TableColumn } from "~/components/Table";
-import { TableRowContextMenu } from "~/components/TableRowContextMenu";
+import { ContextMenu } from "~/components/Menu/ContextMenu";
+import { useGroupMenuActions } from "~/hooks/useGroupMenuActions";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
 import useStores from "~/hooks/useStores";
@@ -30,6 +31,23 @@ const ROW_HEIGHT = 60;
 const STICKY_OFFSET = HEADER_HEIGHT + FILTER_HEIGHT;
 
 type Props = Omit<TableProps<Group>, "columns" | "rowHeight">;
+
+function GroupRowContextMenu({
+  group,
+  menuLabel,
+  children,
+}: {
+  group: Group;
+  menuLabel: string;
+  children: React.ReactNode;
+}) {
+  const action = useGroupMenuActions(group);
+  return (
+    <ContextMenu action={action} ariaLabel={menuLabel}>
+      {children}
+    </ContextMenu>
+  );
+}
 
 export function GroupsTable(props: Props) {
   const { t } = useTranslation();
@@ -46,16 +64,11 @@ export function GroupsTable(props: Props) {
   );
 
   const applyContextMenu = useCallback(
-    (group: Group, rowElement: React.ReactNode) => {
-      return (
-        <TableRowContextMenu
-          config={{ type: "group", data: group }}
-          menuLabel={t("Group options")}
-        >
-          {rowElement}
-        </TableRowContextMenu>
-      );
-    },
+    (group: Group, rowElement: React.ReactNode) => (
+      <GroupRowContextMenu group={group} menuLabel={t("Group options")}>
+        {rowElement}
+      </GroupRowContextMenu>
+    ),
     [t]
   );
 

@@ -11,7 +11,8 @@ import {
   SortableTable,
 } from "~/components/SortableTable";
 import { type Column as TableColumn } from "~/components/Table";
-import { TableRowContextMenu } from "~/components/TableRowContextMenu";
+import { ContextMenu } from "~/components/Menu/ContextMenu";
+import { useUserMenuActions } from "~/hooks/useUserMenuActions";
 import Time from "~/components/Time";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useMobile from "~/hooks/useMobile";
@@ -27,6 +28,23 @@ type Props = Omit<TableProps<User>, "columns" | "rowHeight"> & {
   canManage: boolean;
 };
 
+function UserRowContextMenu({
+  user,
+  menuLabel,
+  children,
+}: {
+  user: User;
+  menuLabel: string;
+  children: React.ReactNode;
+}) {
+  const action = useUserMenuActions(user);
+  return (
+    <ContextMenu action={action} ariaLabel={menuLabel}>
+      {children}
+    </ContextMenu>
+  );
+}
+
 export function MembersTable({ canManage, ...rest }: Props) {
   const { t } = useTranslation();
   const currentUser = useCurrentUser();
@@ -39,12 +57,9 @@ export function MembersTable({ canManage, ...rest }: Props) {
       }
 
       return (
-        <TableRowContextMenu
-          config={{ type: "user", data: user }}
-          menuLabel={t("User options")}
-        >
+        <UserRowContextMenu user={user} menuLabel={t("User options")}>
           {rowElement}
-        </TableRowContextMenu>
+        </UserRowContextMenu>
       );
     },
     [currentUser.id, t]

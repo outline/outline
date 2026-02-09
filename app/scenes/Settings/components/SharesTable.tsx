@@ -12,7 +12,8 @@ import {
   SortableTable,
 } from "~/components/SortableTable";
 import { type Column as TableColumn } from "~/components/Table";
-import { TableRowContextMenu } from "~/components/TableRowContextMenu";
+import { ContextMenu } from "~/components/Menu/ContextMenu";
+import { useShareMenuActions } from "~/hooks/useShareMenuActions";
 import Time from "~/components/Time";
 import ShareMenu from "~/menus/ShareMenu";
 import { useFormatNumber } from "~/hooks/useFormatNumber";
@@ -24,22 +25,34 @@ type Props = Omit<TableProps<Share>, "columns" | "rowHeight"> & {
   canManage: boolean;
 };
 
+function ShareRowContextMenu({
+  share,
+  menuLabel,
+  children,
+}: {
+  share: Share;
+  menuLabel: string;
+  children: React.ReactNode;
+}) {
+  const action = useShareMenuActions(share);
+  return (
+    <ContextMenu action={action} ariaLabel={menuLabel}>
+      {children}
+    </ContextMenu>
+  );
+}
+
 export function SharesTable({ data, canManage, ...rest }: Props) {
   const { t } = useTranslation();
   const formatNumber = useFormatNumber();
   const hasDomain = data.some((share) => share.domain);
 
   const applyContextMenu = useCallback(
-    (share: Share, rowElement: React.ReactNode) => {
-      return (
-        <TableRowContextMenu
-          config={{ type: "share", data: share }}
-          menuLabel={t("Share options")}
-        >
-          {rowElement}
-        </TableRowContextMenu>
-      );
-    },
+    (share: Share, rowElement: React.ReactNode) => (
+      <ShareRowContextMenu share={share} menuLabel={t("Share options")}>
+        {rowElement}
+      </ShareRowContextMenu>
+    ),
     [t]
   );
 
@@ -54,7 +67,7 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
           sortable: false,
           component: (share) => (
             <>
-              {share.sourceTitle || t("Untitled")}
+              {share.sourceTitle || t("Untitled")}{" "}
               {share.collectionId ? <Badge>{t("Collection")}</Badge> : null}
             </>
           ),

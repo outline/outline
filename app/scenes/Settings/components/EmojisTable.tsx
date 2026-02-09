@@ -11,7 +11,8 @@ import {
   SortableTable,
 } from "~/components/SortableTable";
 import { type Column as TableColumn } from "~/components/Table";
-import { TableRowContextMenu } from "~/components/TableRowContextMenu";
+import { ContextMenu } from "~/components/Menu/ContextMenu";
+import { useEmojiMenuActions } from "~/hooks/useEmojiMenuActions";
 import Time from "~/components/Time";
 import { FILTER_HEIGHT } from "./StickyFilters";
 import { CustomEmoji } from "@shared/components/CustomEmoji";
@@ -27,6 +28,23 @@ type Props = Omit<TableProps<Emoji>, "columns" | "rowHeight"> & {
   canManage: boolean;
 };
 
+function EmojiRowContextMenu({
+  emoji,
+  menuLabel,
+  children,
+}: {
+  emoji: Emoji;
+  menuLabel: string;
+  children: React.ReactNode;
+}) {
+  const action = useEmojiMenuActions(emoji);
+  return (
+    <ContextMenu action={action} ariaLabel={menuLabel}>
+      {children}
+    </ContextMenu>
+  );
+}
+
 const EmojisTable = observer(function EmojisTable({
   canManage,
   ...rest
@@ -34,16 +52,11 @@ const EmojisTable = observer(function EmojisTable({
   const { t } = useTranslation();
 
   const applyContextMenu = useCallback(
-    (emoji: Emoji, rowElement: React.ReactNode) => {
-      return (
-        <TableRowContextMenu
-          config={{ type: "emoji", data: emoji }}
-          menuLabel={t("Emoji options")}
-        >
-          {rowElement}
-        </TableRowContextMenu>
-      );
-    },
+    (emoji: Emoji, rowElement: React.ReactNode) => (
+      <EmojiRowContextMenu emoji={emoji} menuLabel={t("Emoji options")}>
+        {rowElement}
+      </EmojiRowContextMenu>
+    ),
     [t]
   );
 
