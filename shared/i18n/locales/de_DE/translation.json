@@ -1369,7 +1369,7 @@
   "List": "Liste",
   "Could not load events": "Konnte Ereignisse nicht laden",
   "Audit Log": "Audit-Log",
-  "The audit log details the history of security related and other events across your knowledge base.": "The audit log details the history of security related and other events across your knowledge base.",
+  "The audit log details the history of security related and other events across your knowledge base.": "Das Audit-Log protokolliert die Historie von sicherheitsrelevanten und anderen Ereignissen in Ihrer Wissensdatenbank.",
   "IP address": "IP-Adresse",
   "Actor": "Akteur",
   "Event": "Event",
