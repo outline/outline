@@ -3,6 +3,7 @@ import "vite/modulepreload-polyfill";
 import { LazyMotion } from "framer-motion";
 import { KBarProvider } from "kbar";
 import { Provider } from "mobx-react";
+import { configure as configureMobx } from "mobx";
 import { StrictMode } from "react";
 import { render } from "react-dom";
 import { HelmetProvider } from "react-helmet-async";
@@ -36,6 +37,13 @@ const element = window.document.getElementById("root");
 if (env.SENTRY_DSN) {
   initSentry(history);
 }
+
+configureMobx({
+  // TODO: Enable these options and fix any resulting warnings
+  // enforceActions: env.isDevelopment ? "always" : "never",
+  // computedRequiresReaction: true,
+  isolateGlobalState: true,
+});
 
 // Make sure to return the specific export containing the feature bundle.
 const loadFeatures = () => import("./utils/motion").then((res) => res.default);
