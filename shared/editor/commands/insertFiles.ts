@@ -35,6 +35,10 @@ export type Options = {
     width?: number;
     /** Height to use when inserting image */
     height?: number;
+    /** Alt text / caption to use when inserting image */
+    alt?: string | null;
+    /** Layout class for alignment when inserting image */
+    layoutClass?: string | null;
   };
 };
 

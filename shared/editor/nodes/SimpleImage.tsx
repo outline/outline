@@ -188,6 +188,9 @@ export default class SimpleImage extends Node {
             replaceExisting: true,
             attrs: {
               width: node.attrs.width,
+              height: node.attrs.height,
+              alt: node.attrs.alt,
+              layoutClass: node.attrs.layoutClass,
             },
           });
         };
