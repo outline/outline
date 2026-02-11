@@ -33,6 +33,7 @@ type Props = {
   mark?: Mark;
   dictionary: Dictionary;
   view: EditorView;
+  autoFocus?: boolean;
   onLinkAdd: () => void;
   onLinkUpdate: () => void;
   onLinkRemove: () => void;
@@ -45,6 +46,7 @@ const LinkEditor: React.FC<Props> = ({
   mark,
   dictionary,
   view,
+  autoFocus,
   onLinkAdd,
   onLinkUpdate,
   onLinkRemove,
@@ -209,7 +211,7 @@ const LinkEditor: React.FC<Props> = ({
           onKeyDown={handleKeyDown}
           onChange={handleSearch}
           onFocus={handleSearch}
-          autoFocus={getHref() === ""}
+          autoFocus={autoFocus}
           readOnly={!view.editable}
         />
         {actions.map((action, index) => {
