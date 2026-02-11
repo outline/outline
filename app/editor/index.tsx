@@ -887,7 +887,7 @@ export class Editor extends React.PureComponent<
               images={this.getLightboxImages()}
               activeImage={this.state.activeLightboxImage}
               onUpdate={this.updateActiveLightboxImage}
-              onClose={this.view.focus}
+              onClose={this.view.focus.bind(this.view)}
             />
           )}
         </EditorContext.Provider>
