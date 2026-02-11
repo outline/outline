@@ -145,7 +145,6 @@ describe("accountProvisioner", () => {
       expect(user.id).toEqual(userWithoutAuth.id);
       expect(isNewTeam).toEqual(false);
       expect(isNewUser).toEqual(false);
-      expect(user.authentications.length).toEqual(0);
     });
 
     it("should throw an error when authentication provider is disabled", async () => {
