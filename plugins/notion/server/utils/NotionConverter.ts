@@ -16,6 +16,7 @@ import type {
   ImageBlockObjectResponse,
   EmbedBlockObjectResponse,
   TableBlockObjectResponse,
+  TableOfContentsBlockObjectResponse,
   ToDoBlockObjectResponse,
   EquationBlockObjectResponse,
   CodeBlockObjectResponse,
@@ -573,6 +574,10 @@ export class NotionConverter {
         })),
       })),
     };
+  }
+
+  private static table_of_contents(_: TableOfContentsBlockObjectResponse) {
+    return undefined;
   }
 
   private static toggle(item: Block<ToggleBlockObjectResponse>) {
