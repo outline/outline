@@ -9,6 +9,7 @@ import env from "@server/env";
 import type Model from "@server/models/base/Model";
 import Logger from "../logging/Logger";
 import * as models from "../models";
+import { getConnectionName } from "./utils";
 
 /**
  * Returns database configuration for Sequelize constructor.
@@ -64,6 +65,7 @@ export function createDatabaseInstance(
       typeValidation: true,
       logQueryParameters: env.isDevelopment,
       dialectOptions: {
+        application_name: getConnectionName(),
         ssl:
           env.isProduction && !isSSLDisabled
             ? {
