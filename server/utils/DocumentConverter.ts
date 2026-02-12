@@ -420,7 +420,7 @@ export class DocumentConverter {
    */
   private static processFrontmatter(content: string): string {
     // Frontmatter must start at the beginning of the document
-    const frontmatterRegex = /^---\n([\s\S]*?)\n---\n/;
+    const frontmatterRegex = /^---\n([\s\S]*?)\n---(?:\n|$)/;
     const match = content.match(frontmatterRegex);
 
     if (!match) {
@@ -433,7 +433,7 @@ export class DocumentConverter {
     // Validate that the frontmatter is valid YAML
     try {
       yaml.load(frontmatterContent);
-    } catch (error) {
+    } catch {
       // If it's not valid YAML, return content unchanged
       return content;
     }

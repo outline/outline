@@ -296,6 +296,7 @@
     "@types/invariant": "^2.2.37",
     "@types/ioredis-mock": "^8.2.6",
     "@types/jest": "^29.5.14",
+    "@types/js-yaml": "^4.0.9",
     "@types/jsonwebtoken": "^8.5.9",
     "@types/katex": "^0.16.7",
     "@types/koa": "^2.15.0",
