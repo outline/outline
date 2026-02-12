@@ -148,6 +148,47 @@ Jane,24,`;
         expect(result.title).toEqual("");
         expect(result.text).toContain("Subtitle");
       });
+
+      it("should convert frontmatter to yaml codeblock", async () => {
+        const md = `---
+title: Test Document
+date: 2024-01-15
+tags: [test, markdown]
+---
+
+# My Title
+
+Content after frontmatter`;
+        const result = await DocumentConverter.convert(
+          md,
+          "test.md",
+          "text/markdown"
+        );
+
+        // Frontmatter should be converted to a YAML codeblock
+        expect(result.text).toContain("```yaml");
+        expect(result.text).toContain("title: Test Document");
+        expect(result.text).toContain("date: 2024-01-15");
+        expect(result.text).toContain("tags: [test, markdown]");
+        expect(result.text).toContain("```");
+        // Content should still be present
+        expect(result.text).toContain("Content after frontmatter");
+        // H1 should be extracted as title
+        expect(result.title).toEqual("My Title");
+      });
+
+      it("should handle markdown without frontmatter", async () => {
+        const md = "# Title\n\nRegular content";
+        const result = await DocumentConverter.convert(
+          md,
+          "test.md",
+          "text/markdown"
+        );
+
+        expect(result.title).toEqual("Title");
+        expect(result.text).toContain("Regular content");
+        expect(result.text).not.toContain("```yaml");
+      });
     });
   });
 
