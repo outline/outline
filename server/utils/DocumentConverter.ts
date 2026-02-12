@@ -5,6 +5,7 @@ import { simpleParser } from "mailparser";
 import mammoth from "mammoth";
 import type { Node } from "prosemirror-model";
 import { DOMParser as ProsemirrorDOMParser } from "prosemirror-model";
+import yaml from "js-yaml";
 import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { schema, serializer } from "@server/editor";
 import { FileImportError } from "@server/errors";
@@ -201,24 +202,30 @@ export class DocumentConverter {
     fileName: string,
     mimeType: string
   ): Promise<string> {
+    let markdown: string;
+
     switch (mimeType) {
       case "text/plain":
       case "text/markdown":
-        return this.bufferToString(content);
+        markdown = this.bufferToString(content);
+        break;
       case "text/csv":
         return this.csvToMarkdown(content);
-      default:
-        break;
+      default: {
+        const extension = fileName.split(".").pop();
+        switch (extension) {
+          case "md":
+          case "markdown":
+            markdown = this.bufferToString(content);
+            break;
+          default:
+            throw FileImportError(`File type ${mimeType} not supported`);
+        }
+      }
     }
 
-    const extension = fileName.split(".").pop();
-    switch (extension) {
-      case "md":
-      case "markdown":
-        return this.bufferToString(content);
-      default:
-        throw FileImportError(`File type ${mimeType} not supported`);
-    }
+    // Process frontmatter and convert it to a YAML codeblock
+    return this.processFrontmatter(markdown);
   }
 
   /**
@@ -403,5 +410,38 @@ export class DocumentConverter {
    */
   private static bufferToString(content: Buffer | string): string {
     return typeof content === "string" ? content : content.toString("utf8");
+  }
+
+  /**
+   * Parse and convert frontmatter to a YAML codeblock.
+   *
+   * @param content The markdown content that may contain frontmatter.
+   * @returns The markdown content with frontmatter converted to a YAML codeblock.
+   */
+  private static processFrontmatter(content: string): string {
+    // Frontmatter must start at the beginning of the document
+    const frontmatterRegex = /^---\n([\s\S]*?)\n---(?:\n|$)/;
+    const match = content.match(frontmatterRegex);
+
+    if (!match) {
+      return content;
+    }
+
+    const frontmatterContent = match[1];
+    const remainingContent = content.slice(match[0].length);
+
+    // Validate that the frontmatter is valid YAML
+    try {
+      yaml.load(frontmatterContent);
+    } catch {
+      // If it's not valid YAML, return content unchanged
+      return content;
+    }
+
+    // Convert frontmatter to a YAML codeblock
+    const codeBlockDelimiter = "```";
+    const yamlCodeblock = `${codeBlockDelimiter}yaml\n${frontmatterContent}\n${codeBlockDelimiter}\n\n`;
+
+    return yamlCodeblock + remainingContent;
   }
 }

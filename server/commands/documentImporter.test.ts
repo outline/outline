@@ -213,6 +213,32 @@ describe("documentImporter", () => {
     expect(response.title).toEqual("Title");
   });
 
+  it("should convert frontmatter to yaml codeblock", async () => {
+    const user = await buildUser();
+    const fileName = "markdown-frontmatter.md";
+    const content = await fs.readFile(
+      path.resolve(__dirname, "..", "test", "fixtures", fileName),
+      "utf8"
+    );
+    const response = await sequelize.transaction((transaction) =>
+      documentImporter({
+        user,
+        mimeType: "text/plain",
+        fileName,
+        content,
+        ctx: createContext({ user, transaction }),
+      })
+    );
+
+    expect(response.text).toContain("```yaml");
+    expect(response.text).toContain("title: Test Document");
+    expect(response.text).toContain("date: 2024-01-15");
+    expect(response.text).toContain("tags: [test, markdown]");
+    expect(response.text).toContain("```");
+    expect(response.text).toContain("This is content after frontmatter");
+    expect(response.title).toEqual("Heading 1");
+  });
+
   it("should fallback to extension if mimetype unknown", async () => {
     const user = await buildUser();
     const fileName = "markdown.md";

@@ -148,6 +148,114 @@ Jane,24,`;
         expect(result.title).toEqual("");
         expect(result.text).toContain("Subtitle");
       });
+
+      it("should convert frontmatter to yaml codeblock", async () => {
+        const md = `---
+title: Test Document
+date: 2024-01-15
+tags: [test, markdown]
+---
+
+# My Title
+
+Content after frontmatter`;
+        const result = await DocumentConverter.convert(
+          md,
+          "test.md",
+          "text/markdown"
+        );
+
+        // Frontmatter should be converted to a YAML codeblock
+        expect(result.text).toContain("```yaml");
+        expect(result.text).toContain("title: Test Document");
+        expect(result.text).toContain("date: 2024-01-15");
+        expect(result.text).toContain("tags: [test, markdown]");
+        expect(result.text).toContain("```");
+        // Content should still be present
+        expect(result.text).toContain("Content after frontmatter");
+        // H1 should be extracted as title
+        expect(result.title).toEqual("My Title");
+      });
+
+      it("should handle markdown without frontmatter", async () => {
+        const md = "# Title\n\nRegular content";
+        const result = await DocumentConverter.convert(
+          md,
+          "test.md",
+          "text/markdown"
+        );
+
+        expect(result.title).toEqual("Title");
+        expect(result.text).toContain("Regular content");
+        expect(result.text).not.toContain("```yaml");
+      });
+
+      it("should handle frontmatter with no content after", async () => {
+        const md = `---
+title: Only Frontmatter
+---`;
+        const result = await DocumentConverter.convert(
+          md,
+          "test.md",
+          "text/markdown"
+        );
+
+        expect(result.text).toContain("```yaml");
+        expect(result.text).toContain("title: Only Frontmatter");
+        expect(result.text).toContain("```");
+        expect(result.title).toEqual("");
+      });
+
+      it("should not convert incomplete frontmatter", async () => {
+        const md = `---
+title: Test
+Content without closing delimiter`;
+        const result = await DocumentConverter.convert(
+          md,
+          "test.md",
+          "text/markdown"
+        );
+
+        // Should not convert as it's not proper frontmatter
+        expect(result.text).not.toContain("```yaml");
+        expect(result.text).toContain("title: Test");
+      });
+
+      it("should not convert frontmatter if not at start", async () => {
+        const md = `# Title
+
+Some content
+
+---
+title: Test
+---
+
+More content`;
+        const result = await DocumentConverter.convert(
+          md,
+          "test.md",
+          "text/markdown"
+        );
+
+        // Should not convert as frontmatter must be at the start
+        expect(result.text).not.toContain("```yaml");
+      });
+
+      it("should handle invalid YAML in frontmatter", async () => {
+        const md = `---
+invalid: yaml: content: here
+---
+
+Content`;
+        const result = await DocumentConverter.convert(
+          md,
+          "test.md",
+          "text/markdown"
+        );
+
+        // Should not convert invalid YAML
+        expect(result.text).not.toContain("```yaml");
+      });
     });
   });
 
