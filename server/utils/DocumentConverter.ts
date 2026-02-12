@@ -439,7 +439,8 @@ export class DocumentConverter {
     }
 
     // Convert frontmatter to a YAML codeblock
-    const yamlCodeblock = `\`\`\`yaml\n${frontmatterContent}\n\`\`\`\n\n`;
+    const codeBlockDelimiter = "```";
+    const yamlCodeblock = `${codeBlockDelimiter}yaml\n${frontmatterContent}\n${codeBlockDelimiter}\n\n`;
 
     return yamlCodeblock + remainingContent;
   }
