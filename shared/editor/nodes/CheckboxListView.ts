@@ -1,6 +1,7 @@
 import type { Node as ProsemirrorNode } from "prosemirror-model";
 import type { EditorView, NodeView } from "prosemirror-view";
 import type { Dictionary } from "../../../app/hooks/useDictionary";
+import { isBrowser } from "../../utils/browser";
 import Storage from "../../utils/Storage";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 
@@ -11,23 +12,24 @@ import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 export class CheckboxListView implements NodeView {
   dom: HTMLElement;
   contentDOM: HTMLElement;
+
   private toggleControl: HTMLButtonElement;
   private node: ProsemirrorNode;
-  private view: EditorView;
-  private getPos: () => number | undefined;
   private userIdentifier: string;
   private dictionary: Dictionary;
 
   constructor(
     node: ProsemirrorNode,
-    view: EditorView,
-    getPos: () => number | undefined,
+    _view: EditorView,
+    _getPos: () => number | undefined,
     userIdentifier: string,
     dictionary: Dictionary
   ) {
+    if (!isBrowser) {
+      return;
+    }
+
     this.node = node;
-    this.view = view;
-    this.getPos = getPos;
     this.userIdentifier = userIdentifier;
     this.dictionary = dictionary;
 
@@ -104,15 +106,22 @@ export class CheckboxListView implements NodeView {
   }
 
   update(node: ProsemirrorNode) {
+    if (!isBrowser) {
+      return false;
+    }
     if (node.type.name !== "checkbox_list") {
       return false;
     }
+
     this.node = node;
     this.updateToggleState();
     return true;
   }
 
   destroy() {
+    if (!isBrowser) {
+      return;
+    }
     this.toggleControl.removeEventListener("click", this.handleToggleClick);
   }
 }
