@@ -1,6 +1,7 @@
 import type { Node as ProsemirrorNode } from "prosemirror-model";
 import type { EditorView, NodeView } from "prosemirror-view";
 import type { Dictionary } from "../../../app/hooks/useDictionary";
+import { isBrowser } from "../../utils/browser";
 import Storage from "../../utils/Storage";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 
@@ -11,23 +12,20 @@ import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 export class CheckboxListView implements NodeView {
   dom: HTMLElement;
   contentDOM: HTMLElement;
+
   private toggleControl: HTMLButtonElement;
   private node: ProsemirrorNode;
-  private view: EditorView;
-  private getPos: () => number | undefined;
   private userIdentifier: string;
   private dictionary: Dictionary;
 
   constructor(
     node: ProsemirrorNode,
-    view: EditorView,
-    getPos: () => number | undefined,
+    _view: EditorView,
+    _getPos: () => number | undefined,
     userIdentifier: string,
     dictionary: Dictionary
   ) {
     this.node = node;
-    this.view = view;
-    this.getPos = getPos;
     this.userIdentifier = userIdentifier;
     this.dictionary = dictionary;
 
@@ -40,7 +38,10 @@ export class CheckboxListView implements NodeView {
       EditorStyleHelper.checklistCompletedToggle
     );
     this.toggleControl.contentEditable = "false";
-    this.toggleControl.addEventListener("click", this.handleToggleClick);
+
+    if (isBrowser) {
+      this.toggleControl.addEventListener("click", this.handleToggleClick);
+    }
 
     this.contentDOM = document.createElement("ul");
     this.contentDOM.classList.add("checkbox_list");
@@ -49,10 +50,16 @@ export class CheckboxListView implements NodeView {
     wrapperElement.appendChild(this.contentDOM);
     this.dom = wrapperElement;
 
-    this.updateToggleState();
+    if (isBrowser) {
+      this.updateToggleState();
+    }
   }
 
   private handleToggleClick = (clickEvent: Event) => {
+    if (!isBrowser) {
+      return;
+    }
+
     clickEvent.preventDefault();
     clickEvent.stopPropagation();
 
@@ -68,6 +75,10 @@ export class CheckboxListView implements NodeView {
   };
 
   private updateToggleState() {
+    if (!isBrowser) {
+      return;
+    }
+
     const listId = this.node.attrs.id;
     if (!listId) {
       this.toggleControl.style.display = "none";
@@ -104,15 +115,22 @@ export class CheckboxListView implements NodeView {
   }
 
   update(node: ProsemirrorNode) {
+    if (!isBrowser) {
+      return false;
+    }
     if (node.type.name !== "checkbox_list") {
       return false;
     }
+
     this.node = node;
     this.updateToggleState();
     return true;
   }
 
   destroy() {
+    if (!isBrowser) {
+      return;
+    }
     this.toggleControl.removeEventListener("click", this.handleToggleClick);
   }
 }

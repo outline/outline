@@ -2,6 +2,7 @@ import type { Node } from "prosemirror-model";
 import { TableView as ProsemirrorTableView } from "prosemirror-tables";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { TableLayout } from "../types";
+import { isBrowser } from "../../utils/browser";
 
 export class TableView extends ProsemirrorTableView {
   public constructor(
@@ -18,24 +19,28 @@ export class TableView extends ProsemirrorTableView {
     this.scrollable.appendChild(this.table);
     this.scrollable.classList.add(EditorStyleHelper.tableScrollable);
 
-    this.scrollable.addEventListener(
-      "scroll",
-      () => {
-        this.updateClassList(this.node);
-      },
-      {
-        passive: true,
-      }
-    );
+    if (isBrowser) {
+      this.scrollable.addEventListener(
+        "scroll",
+        () => {
+          this.updateClassList(this.node);
+        },
+        {
+          passive: true,
+        }
+      );
+    }
 
     this.updateClassList(node);
 
     // We need to wait for the next tick to ensure dom is rendered and scroll shadows are correct.
-    setTimeout(() => {
-      if (this.dom) {
-        this.updateClassList(node);
-      }
-    }, 0);
+    if (isBrowser) {
+      setTimeout(() => {
+        if (this.dom) {
+          this.updateClassList(node);
+        }
+      }, 0);
+    }
 
     // Set up sticky header handling
     this.setupStickyHeader();
@@ -66,6 +71,10 @@ export class TableView extends ProsemirrorTableView {
   }
 
   private updateClassList(node: Node) {
+    if (!isBrowser) {
+      return;
+    }
+
     this.dom.classList.toggle(
       EditorStyleHelper.tableFullWidth,
       node.attrs.layout === TableLayout.fullWidth
@@ -108,6 +117,10 @@ export class TableView extends ProsemirrorTableView {
    * Sets up the scroll listener for sticky header behavior.
    */
   private setupStickyHeader() {
+    if (!isBrowser) {
+      return;
+    }
+
     // Defer setup to ensure DOM is fully rendered
     setTimeout(() => {
       this.scrollHandler = () => {
@@ -129,6 +142,10 @@ export class TableView extends ProsemirrorTableView {
    * Cleans up the scroll listener and resets header styles.
    */
   private cleanupStickyHeader() {
+    if (!isBrowser) {
+      return;
+    }
+
     if (this.scrollHandler) {
       document.removeEventListener("scroll", this.scrollHandler, {
         capture: true,
@@ -145,6 +162,10 @@ export class TableView extends ProsemirrorTableView {
    * Updates the header row transform to create a sticky effect.
    */
   private updateStickyHeader() {
+    if (!isBrowser) {
+      return;
+    }
+
     const headerRow = this.table.querySelector("tr") as HTMLElement | null;
     if (!headerRow) {
       return;
@@ -179,6 +200,10 @@ export class TableView extends ProsemirrorTableView {
    * @returns the offset in pixels from the top of the viewport.
    */
   private getHeaderOffset(): number {
+    if (!isBrowser) {
+      return TableView.HEADER_HEIGHT;
+    }
+
     const value = getComputedStyle(document.documentElement).getPropertyValue(
       "--header-offset"
     );
