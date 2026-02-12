@@ -25,10 +25,6 @@ export class CheckboxListView implements NodeView {
     userIdentifier: string,
     dictionary: Dictionary
   ) {
-    if (!isBrowser) {
-      return;
-    }
-
     this.node = node;
     this.userIdentifier = userIdentifier;
     this.dictionary = dictionary;
@@ -42,7 +38,10 @@ export class CheckboxListView implements NodeView {
       EditorStyleHelper.checklistCompletedToggle
     );
     this.toggleControl.contentEditable = "false";
-    this.toggleControl.addEventListener("click", this.handleToggleClick);
+
+    if (isBrowser) {
+      this.toggleControl.addEventListener("click", this.handleToggleClick);
+    }
 
     this.contentDOM = document.createElement("ul");
     this.contentDOM.classList.add("checkbox_list");
@@ -51,10 +50,16 @@ export class CheckboxListView implements NodeView {
     wrapperElement.appendChild(this.contentDOM);
     this.dom = wrapperElement;
 
-    this.updateToggleState();
+    if (isBrowser) {
+      this.updateToggleState();
+    }
   }
 
   private handleToggleClick = (clickEvent: Event) => {
+    if (!isBrowser) {
+      return;
+    }
+
     clickEvent.preventDefault();
     clickEvent.stopPropagation();
 
@@ -70,6 +75,10 @@ export class CheckboxListView implements NodeView {
   };
 
   private updateToggleState() {
+    if (!isBrowser) {
+      return;
+    }
+
     const listId = this.node.attrs.id;
     if (!listId) {
       this.toggleControl.style.display = "none";
