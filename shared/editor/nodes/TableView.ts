@@ -11,10 +11,6 @@ export class TableView extends ProsemirrorTableView {
   ) {
     super(node, cellMinWidth);
 
-    if (!isBrowser) {
-      return;
-    }
-
     this.dom.removeChild(this.table);
     this.dom.classList.add(EditorStyleHelper.table);
 
@@ -23,24 +19,28 @@ export class TableView extends ProsemirrorTableView {
     this.scrollable.appendChild(this.table);
     this.scrollable.classList.add(EditorStyleHelper.tableScrollable);
 
-    this.scrollable.addEventListener(
-      "scroll",
-      () => {
-        this.updateClassList(this.node);
-      },
-      {
-        passive: true,
-      }
-    );
+    if (isBrowser) {
+      this.scrollable.addEventListener(
+        "scroll",
+        () => {
+          this.updateClassList(this.node);
+        },
+        {
+          passive: true,
+        }
+      );
+    }
 
     this.updateClassList(node);
 
     // We need to wait for the next tick to ensure dom is rendered and scroll shadows are correct.
-    setTimeout(() => {
-      if (this.dom) {
-        this.updateClassList(node);
-      }
-    }, 0);
+    if (isBrowser) {
+      setTimeout(() => {
+        if (this.dom) {
+          this.updateClassList(node);
+        }
+      }, 0);
+    }
 
     // Set up sticky header handling
     this.setupStickyHeader();
