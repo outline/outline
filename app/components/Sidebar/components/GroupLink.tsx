@@ -28,6 +28,7 @@ const GroupLink: React.FC<Props> = ({ group }) => {
     event: disclosureEvent,
     expandAll,
     collapseAll,
+    resetAll,
   } = useSidebarDisclosureState();
 
   const handleDisclosureClick = React.useCallback(
@@ -41,11 +42,13 @@ const GroupLink: React.FC<Props> = ({ group }) => {
           } else {
             collapseAll();
           }
+        } else {
+          resetAll();
         }
         return willExpand;
       });
     },
-    [expandAll, collapseAll]
+    [expandAll, collapseAll, resetAll]
   );
 
   React.useEffect(() => {

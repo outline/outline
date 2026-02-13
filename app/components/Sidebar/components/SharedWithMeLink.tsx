@@ -56,6 +56,7 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
     event: disclosureEvent,
     expandAll,
     collapseAll,
+    resetAll,
   } = useSidebarDisclosureState();
 
   // Subscribe to recursive expand/collapse events from an ancestor (e.g. GroupLink)
@@ -93,15 +94,19 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
         setCollapsed();
         if (ev.altKey) {
           collapseAll();
+        } else {
+          resetAll();
         }
       } else {
         setExpanded();
         if (ev.altKey) {
           expandAll();
+        } else {
+          resetAll();
         }
       }
     },
-    [expanded, setExpanded, setCollapsed, expandAll, collapseAll]
+    [expanded, setExpanded, setCollapsed, expandAll, collapseAll, resetAll]
   );
 
   const parentRef = React.useRef<HTMLDivElement>(null);

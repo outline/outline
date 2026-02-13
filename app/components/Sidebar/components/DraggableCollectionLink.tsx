@@ -44,6 +44,7 @@ function DraggableCollectionLink({
     event: disclosureEvent,
     expandAll,
     collapseAll,
+    resetAll,
   } = useSidebarDisclosureState();
 
   // Drop to reorder collection
@@ -115,32 +116,32 @@ function DraggableCollectionLink({
           } else {
             collapseAll();
           }
+        } else {
+          resetAll();
         }
 
         return willExpand;
       });
     },
-    [expandAll, collapseAll]
+    [expandAll, collapseAll, resetAll]
   );
 
   const displayChildDocuments = expanded && !isDragging;
 
   return (
-    <>
+    <SidebarDisclosureContext.Provider value={disclosureEvent}>
       <Draggable
         key={collection.id}
         ref={dragToReorderCollection}
         $isDragging={isDragging}
       >
-        <SidebarDisclosureContext.Provider value={disclosureEvent}>
-          <CollectionLink
-            collection={collection}
-            expanded={displayChildDocuments}
-            activeDocument={activeDocument}
-            onDisclosureClick={handleDisclosureClick}
-            isDraggingAnyCollection={isDraggingAnyCollection}
-          />
-        </SidebarDisclosureContext.Provider>
+        <CollectionLink
+          collection={collection}
+          expanded={displayChildDocuments}
+          activeDocument={activeDocument}
+          onDisclosureClick={handleDisclosureClick}
+          isDraggingAnyCollection={isDraggingAnyCollection}
+        />
       </Draggable>
       <Relative>
         {isDraggingAnyCollection && (
@@ -150,7 +151,7 @@ function DraggableCollectionLink({
           />
         )}
       </Relative>
-    </>
+    </SidebarDisclosureContext.Provider>
   );
 }
 

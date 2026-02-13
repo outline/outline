@@ -74,8 +74,9 @@ export function useSidebarDisclosure(
  * incoming disclosure events so that the cascade propagates through the
  * entire tree — even when intermediate nodes each create their own provider.
  *
- * @returns object with `event` to spread onto the Provider's value, and
- *   `expandAll` / `collapseAll` callbacks to trigger from alt-click handlers.
+ * @returns object with `event` to spread onto the Provider's value,
+ *   `expandAll` / `collapseAll` callbacks to trigger from alt-click handlers,
+ *   and `resetAll` to clear stale events on non-alt clicks.
  */
 export function useSidebarDisclosureState() {
   const parentEvent = useContext(SidebarDisclosureContext);
@@ -113,7 +114,11 @@ export function useSidebarDisclosureState() {
     }));
   }, []);
 
-  return { event, expandAll, collapseAll };
+  const resetAll = useCallback(() => {
+    setEvent(null);
+  }, []);
+
+  return { event, expandAll, collapseAll, resetAll };
 }
 
 export default SidebarDisclosureContext;

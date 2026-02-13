@@ -128,6 +128,7 @@ function InnerDocumentLink(
     event: disclosureEvent,
     expandAll,
     collapseAll,
+    resetAll,
   } = useSidebarDisclosureState();
 
   // Subscribe to recursive expand/collapse events from an ancestor
@@ -152,15 +153,19 @@ function InnerDocumentLink(
         setCollapsed();
         if (ev.altKey) {
           collapseAll();
+        } else {
+          resetAll();
         }
       } else {
         setExpanded();
         if (ev.altKey) {
           expandAll();
+        } else {
+          resetAll();
         }
       }
     },
-    [setCollapsed, setExpanded, expanded, collapseAll, expandAll]
+    [setCollapsed, setExpanded, expanded, collapseAll, expandAll, resetAll]
   );
 
   const handlePrefetch = React.useCallback(() => {

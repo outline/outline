@@ -70,6 +70,7 @@ function DocumentLink(
     event: disclosureEvent,
     expandAll,
     collapseAll,
+    resetAll,
   } = useSidebarDisclosureState();
 
   const handleExpand = React.useCallback(() => setExpanded(true), []);
@@ -95,9 +96,11 @@ function DocumentLink(
         } else {
           collapseAll();
         }
+      } else {
+        resetAll();
       }
     },
-    [expanded, expandAll, collapseAll]
+    [expanded, expandAll, collapseAll, resetAll]
   );
 
   // since we don't have access to the collection sort here, we just put any
