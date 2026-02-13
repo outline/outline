@@ -151,7 +151,9 @@ function InnerDocumentLink(
     return () => {
       onHandleReady?.(null);
     };
-  }, [setExpanded, setCollapsed, onHandleReady]);
+    // onHandleReady is intentionally not in deps to avoid re-registration on parent re-renders
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setExpanded, setCollapsed]);
 
   React.useEffect(() => {
     if (showChildren) {
@@ -347,6 +349,17 @@ function InnerDocumentLink(
   const [isAddingNewChild, setIsAddingNewChild, closeAddingNewChild] =
     useBoolean();
 
+  const handleChildHandleReady = React.useCallback(
+    (childNodeId: string) => (handle: DocumentLinkHandle | null) => {
+      if (handle) {
+        childRefs.current.set(childNodeId, handle);
+      } else {
+        childRefs.current.delete(childNodeId);
+      }
+    },
+    []
+  );
+
   const handleNewDoc = React.useCallback(
     async (input) => {
       try {
@@ -531,13 +544,7 @@ function InnerDocumentLink(
             depth={depth + 1}
             index={childIndex}
             parentId={node.id}
-            onHandleReady={(handle) => {
-              if (handle) {
-                childRefs.current.set(childNode.id, handle);
-              } else {
-                childRefs.current.delete(childNode.id);
-              }
-            }}
+            onHandleReady={handleChildHandleReady(childNode.id)}
           />
         ))}
       </Folder>
