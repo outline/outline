@@ -74,7 +74,7 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
         .filter((policy): policy is Policy => policy !== undefined),
 
     isModelActive: (model: Model): boolean => stores.ui.isModelActive(model),
-    activeModels: stores.ui.activeModels,
+    activeModels: new Set(stores.ui.activeModels.values()),
 
     currentUserId: stores.auth.user?.id,
     currentTeamId: stores.auth.team?.id,
@@ -84,9 +84,50 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
   };
 
   // Merge the parent context with the provided overrides
+  const activeCollectionId =
+    value.activeCollectionId ?? baseContext.activeCollectionId;
+  const activeDocumentId =
+    value.activeDocumentId ?? baseContext.activeDocumentId;
+
+  const getActiveModels = <T extends Model>(
+    modelClass: new (...args: any[]) => T
+  ): T[] => {
+    // @ts-expect-error modelName
+    if (activeCollectionId && modelClass.modelName === "Collection") {
+      const model = stores.collections.get(activeCollectionId);
+      if (model) {
+        return [model as unknown as T];
+      }
+    }
+
+    // @ts-expect-error modelName
+    if (activeDocumentId && modelClass.modelName === "Document") {
+      const model = stores.documents.get(activeDocumentId);
+      if (model) {
+        return [model as unknown as T];
+      }
+    }
+
+    return baseContext.getActiveModels(modelClass);
+  };
+
+  const getActiveModel = <T extends Model>(
+    modelClass: new (...args: any[]) => T
+  ): T | undefined => getActiveModels(modelClass)[0];
+
+  const getActivePolicies = <T extends Model>(
+    modelClass: new (...args: any[]) => T
+  ): Policy[] =>
+    getActiveModels(modelClass)
+      .map((node) => stores.policies.get(node.id))
+      .filter((policy): policy is Policy => policy !== undefined);
+
   const contextValue: ActionContextType = {
     ...baseContext,
     ...value,
+    getActiveModels,
+    getActiveModel,
+    getActivePolicies,
   };
 
   return (
