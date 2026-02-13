@@ -363,25 +363,27 @@ export const ViewGroupMembersDialog = observer(function ({
           />
         </Text>
       )}
-      <Flex gap={8}>
-        <Input
-          type="search"
-          placeholder={`${t("Search by name")}…`}
-          value={query}
-          onChange={handleFilter}
-          label={t("Search members")}
-          labelHidden
-          flex
-        />
-        <InputSelect
-          options={permissionOptions}
-          value={permissionFilter}
-          onChange={handlePermissionFilterChange}
-          label={t("Filter by permissions")}
-          hideLabel
-          short
-        />
-      </Flex>
+      {(filteredUsers.length || hasActiveFilters) && (
+        <Flex gap={8}>
+          <Input
+            type="search"
+            placeholder={`${t("Search by name")}…`}
+            value={query}
+            onChange={handleFilter}
+            label={t("Search members")}
+            labelHidden
+            flex
+          />
+          <InputSelect
+            options={permissionOptions}
+            value={permissionFilter}
+            onChange={handlePermissionFilterChange}
+            label={t("Filter by permissions")}
+            hideLabel
+            short
+          />
+        </Flex>
+      )}
       <PaginatedList<User>
         items={filteredUsers}
         fetch={groupUsers.fetchPage}
