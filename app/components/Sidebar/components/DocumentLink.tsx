@@ -336,7 +336,10 @@ function InnerDocumentLink(
     ]
   );
 
-  const contextMenuAction = useDocumentMenuAction({ documentId: node.id });
+  const contextMenuAction = useDocumentMenuAction({
+    documentId: node.id,
+    onRename: handleRename,
+  });
 
   const labelElement = React.useMemo(
     () => (

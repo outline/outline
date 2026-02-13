@@ -122,6 +122,7 @@ const CollectionLink: React.FC<Props> = ({
 
   const contextMenuAction = useCollectionMenuAction({
     collectionId: collection.id,
+    onRename: handleRename,
   });
 
   return (
