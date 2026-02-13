@@ -40,6 +40,10 @@ import type UserMembership from "~/models/UserMembership";
 import type GroupMembership from "~/models/GroupMembership";
 import { ActionContextProvider } from "~/hooks/useActionContext";
 import { useDocumentMenuAction } from "~/hooks/useDocumentMenuAction";
+import SidebarDisclosureContext, {
+  useSidebarDisclosure,
+  useSidebarDisclosureState,
+} from "./SidebarDisclosureContext";
 
 type Props = {
   node: NavigationNode;
@@ -119,6 +123,13 @@ function InnerDocumentLink(
 
   const [expanded, setExpanded, setCollapsed] = useBoolean(showChildren);
 
+  // Context-based recursive expand/collapse for descendant DocumentLinks
+  const { event: disclosureEvent, onDisclosureClick } =
+    useSidebarDisclosureState();
+
+  // Subscribe to recursive expand/collapse events from an ancestor
+  useSidebarDisclosure(setExpanded, setCollapsed);
+
   React.useEffect(() => {
     if (showChildren) {
       setExpanded();
@@ -132,13 +143,18 @@ function InnerDocumentLink(
     }
   }, [setCollapsed, expanded, hasChildDocuments]);
 
-  const handleDisclosureClick = React.useCallback(() => {
-    if (expanded) {
-      setCollapsed();
-    } else {
-      setExpanded();
-    }
-  }, [setCollapsed, setExpanded, expanded]);
+  const handleDisclosureClick = React.useCallback(
+    (ev: React.MouseEvent<HTMLElement>) => {
+      const willExpand = !expanded;
+      if (willExpand) {
+        setExpanded();
+      } else {
+        setCollapsed();
+      }
+      onDisclosureClick(willExpand, ev.altKey);
+    },
+    [setCollapsed, setExpanded, expanded, onDisclosureClick]
+  );
 
   const handlePrefetch = React.useCallback(() => {
     void prefetchDocument?.(node.id);
@@ -467,22 +483,24 @@ function InnerDocumentLink(
           }
         />
       )}
-      <Folder expanded={expanded && !isDragging}>
-        {nodeChildren.map((childNode, childIndex) => (
-          <DocumentLink
-            key={childNode.id}
-            collection={collection}
-            membership={membership}
-            node={childNode}
-            activeDocument={activeDocument}
-            prefetchDocument={prefetchDocument}
-            isDraft={childNode.isDraft}
-            depth={depth + 1}
-            index={childIndex}
-            parentId={node.id}
-          />
-        ))}
-      </Folder>
+      <SidebarDisclosureContext.Provider value={disclosureEvent}>
+        <Folder expanded={expanded && !isDragging}>
+          {nodeChildren.map((childNode, childIndex) => (
+            <DocumentLink
+              key={childNode.id}
+              collection={collection}
+              membership={membership}
+              node={childNode}
+              activeDocument={activeDocument}
+              prefetchDocument={prefetchDocument}
+              isDraft={childNode.isDraft}
+              depth={depth + 1}
+              index={childIndex}
+              parentId={node.id}
+            />
+          ))}
+        </Folder>
+      </SidebarDisclosureContext.Provider>
     </ActionContextProvider>
   );
 }
