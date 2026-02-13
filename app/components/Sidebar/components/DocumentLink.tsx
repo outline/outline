@@ -40,6 +40,10 @@ import type UserMembership from "~/models/UserMembership";
 import type GroupMembership from "~/models/GroupMembership";
 import { ActionContextProvider } from "~/hooks/useActionContext";
 import { useDocumentMenuAction } from "~/hooks/useDocumentMenuAction";
+import SidebarDisclosureContext, {
+  useSidebarDisclosure,
+  useSidebarDisclosureState,
+} from "./SidebarDisclosureContext";
 
 type Props = {
   node: NavigationNode;
@@ -51,12 +55,6 @@ type Props = {
   depth: number;
   index: number;
   parentId?: string;
-  onHandleReady?: (handle: DocumentLinkHandle | null) => void;
-};
-
-export type DocumentLinkHandle = {
-  expandAll: () => void;
-  collapseAll: () => void;
 };
 
 function InnerDocumentLink(
@@ -70,7 +68,6 @@ function InnerDocumentLink(
     depth,
     index,
     parentId,
-    onHandleReady,
   }: Props,
   ref: React.RefObject<HTMLAnchorElement>
 ) {
@@ -126,34 +123,15 @@ function InnerDocumentLink(
 
   const [expanded, setExpanded, setCollapsed] = useBoolean(showChildren);
 
-  // Store refs to child DocumentLinks for recursive expand/collapse
-  const childRefs = React.useRef<Map<string, DocumentLinkHandle>>(new Map());
+  // Context-based recursive expand/collapse for descendant DocumentLinks
+  const {
+    event: disclosureEvent,
+    expandAll,
+    collapseAll,
+  } = useSidebarDisclosureState();
 
-  // Expose handle for parent to trigger recursive expand/collapse
-  React.useEffect(() => {
-    const handle: DocumentLinkHandle = {
-      expandAll: () => {
-        setExpanded();
-        childRefs.current.forEach((childHandle) => {
-          childHandle.expandAll();
-        });
-      },
-      collapseAll: () => {
-        setCollapsed();
-        childRefs.current.forEach((childHandle) => {
-          childHandle.collapseAll();
-        });
-      },
-    };
-
-    onHandleReady?.(handle);
-
-    return () => {
-      onHandleReady?.(null);
-    };
-    // onHandleReady is intentionally not in deps to avoid re-registration on parent re-renders
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [setExpanded, setCollapsed]);
+  // Subscribe to recursive expand/collapse events from an ancestor
+  useSidebarDisclosure(setExpanded, setCollapsed);
 
   React.useEffect(() => {
     if (showChildren) {
@@ -170,27 +148,19 @@ function InnerDocumentLink(
 
   const handleDisclosureClick = React.useCallback(
     (ev: React.MouseEvent<HTMLElement>) => {
-      const altKeyPressed = ev.altKey;
-
       if (expanded) {
         setCollapsed();
-        // If Alt is held, collapse all descendants recursively
-        if (altKeyPressed) {
-          childRefs.current.forEach((childHandle) => {
-            childHandle.collapseAll();
-          });
+        if (ev.altKey) {
+          collapseAll();
         }
       } else {
         setExpanded();
-        // If Alt is held, expand all descendants recursively
-        if (altKeyPressed) {
-          childRefs.current.forEach((childHandle) => {
-            childHandle.expandAll();
-          });
+        if (ev.altKey) {
+          expandAll();
         }
       }
     },
-    [setCollapsed, setExpanded, expanded]
+    [setCollapsed, setExpanded, expanded, collapseAll, expandAll]
   );
 
   const handlePrefetch = React.useCallback(() => {
@@ -348,17 +318,6 @@ function InnerDocumentLink(
   const newChildTitleRef = React.useRef<RefHandle>(null);
   const [isAddingNewChild, setIsAddingNewChild, closeAddingNewChild] =
     useBoolean();
-
-  const handleChildHandleReady = React.useCallback(
-    (childNodeId: string) => (handle: DocumentLinkHandle | null) => {
-      if (handle) {
-        childRefs.current.set(childNodeId, handle);
-      } else {
-        childRefs.current.delete(childNodeId);
-      }
-    },
-    []
-  );
 
   const handleNewDoc = React.useCallback(
     async (input) => {
@@ -531,23 +490,24 @@ function InnerDocumentLink(
           }
         />
       )}
-      <Folder expanded={expanded && !isDragging}>
-        {nodeChildren.map((childNode, childIndex) => (
-          <DocumentLink
-            key={childNode.id}
-            collection={collection}
-            membership={membership}
-            node={childNode}
-            activeDocument={activeDocument}
-            prefetchDocument={prefetchDocument}
-            isDraft={childNode.isDraft}
-            depth={depth + 1}
-            index={childIndex}
-            parentId={node.id}
-            onHandleReady={handleChildHandleReady(childNode.id)}
-          />
-        ))}
-      </Folder>
+      <SidebarDisclosureContext.Provider value={disclosureEvent}>
+        <Folder expanded={expanded && !isDragging}>
+          {nodeChildren.map((childNode, childIndex) => (
+            <DocumentLink
+              key={childNode.id}
+              collection={collection}
+              membership={membership}
+              node={childNode}
+              activeDocument={activeDocument}
+              prefetchDocument={prefetchDocument}
+              isDraft={childNode.isDraft}
+              depth={depth + 1}
+              index={childIndex}
+              parentId={node.id}
+            />
+          ))}
+        </Folder>
+      </SidebarDisclosureContext.Provider>
     </ActionContextProvider>
   );
 }

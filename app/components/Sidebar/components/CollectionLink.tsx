@@ -30,7 +30,6 @@ import SidebarLink from "./SidebarLink";
 import { useCollectionMenuAction } from "~/hooks/useCollectionMenuAction";
 import { ActionContextProvider } from "~/hooks/useActionContext";
 import CollectionLinkChildren from "./CollectionLinkChildren";
-import type { DocumentLinkHandle } from "./DocumentLink";
 
 type Props = {
   collection: Collection;
@@ -40,9 +39,6 @@ type Props = {
   isDraggingAnyCollection?: boolean;
   depth?: number;
   onClick?: () => void;
-  onChildDocumentHandleReady?: (
-    childNodeId: string
-  ) => (handle: DocumentLinkHandle | null) => void;
 };
 
 const CollectionLink: React.FC<Props> = ({
@@ -52,7 +48,6 @@ const CollectionLink: React.FC<Props> = ({
   isDraggingAnyCollection,
   depth,
   onClick,
-  onChildDocumentHandleReady,
 }: Props) => {
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const [isEditing, setIsEditing] = React.useState(false);
@@ -199,7 +194,6 @@ const CollectionLink: React.FC<Props> = ({
         collection={collection}
         expanded={!!expanded}
         prefetchDocument={documents.prefetchDocument}
-        onChildDocumentHandleReady={onChildDocumentHandleReady}
       >
         {isAddingNewChild ? (
           <SidebarLink

@@ -1,6 +1,6 @@
 import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { DropTargetMonitor } from "react-dnd";
 import { useDrop, useDrag } from "react-dnd";
 import { getEmptyImage } from "react-dnd-html5-backend";
@@ -12,8 +12,10 @@ import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useStores from "~/hooks/useStores";
 import type { DragObject } from "../hooks/useDragAndDrop";
 import CollectionLink from "./CollectionLink";
-import type { DocumentLinkHandle } from "./DocumentLink";
 import DropCursor from "./DropCursor";
+import SidebarDisclosureContext, {
+  useSidebarDisclosureState,
+} from "./SidebarDisclosureContext";
 import Relative from "./Relative";
 import { useSidebarContext } from "./SidebarContext";
 
@@ -37,8 +39,12 @@ function DraggableCollectionLink({
   );
   const belowCollectionIndex = belowCollection ? belowCollection.index : null;
 
-  // Store refs to child DocumentLinks for recursive expand/collapse
-  const childDocumentRefs = useRef<Map<string, DocumentLinkHandle>>(new Map());
+  // Context-based recursive expand/collapse for descendant DocumentLinks
+  const {
+    event: disclosureEvent,
+    expandAll,
+    collapseAll,
+  } = useSidebarDisclosureState();
 
   // Drop to reorder collection
   const [
@@ -95,40 +101,29 @@ function DraggableCollectionLink({
     locationSidebarContext,
   ]);
 
-  const handleDisclosureClick = useCallback((ev) => {
-    ev?.preventDefault();
-    const altKeyPressed = ev?.altKey;
+  const handleDisclosureClick = useCallback(
+    (ev) => {
+      ev?.preventDefault();
+      const altKeyPressed = ev?.altKey;
 
-    setExpanded((e) => {
-      const willExpand = !e;
+      setExpanded((e) => {
+        const willExpand = !e;
 
-      // If Alt is held, recursively expand/collapse all child documents
-      if (altKeyPressed) {
-        childDocumentRefs.current.forEach((childHandle) => {
+        if (altKeyPressed) {
           if (willExpand) {
-            childHandle.expandAll();
+            expandAll();
           } else {
-            childHandle.collapseAll();
+            collapseAll();
           }
-        });
-      }
+        }
 
-      return willExpand;
-    });
-  }, []);
+        return willExpand;
+      });
+    },
+    [expandAll, collapseAll]
+  );
 
   const displayChildDocuments = expanded && !isDragging;
-
-  const handleChildDocumentHandleReady = useCallback(
-    (childNodeId: string) => (handle: DocumentLinkHandle | null) => {
-      if (handle) {
-        childDocumentRefs.current.set(childNodeId, handle);
-      } else {
-        childDocumentRefs.current.delete(childNodeId);
-      }
-    },
-    []
-  );
 
   return (
     <>
@@ -137,14 +132,15 @@ function DraggableCollectionLink({
         ref={dragToReorderCollection}
         $isDragging={isDragging}
       >
-        <CollectionLink
-          collection={collection}
-          expanded={displayChildDocuments}
-          activeDocument={activeDocument}
-          onDisclosureClick={handleDisclosureClick}
-          isDraggingAnyCollection={isDraggingAnyCollection}
-          onChildDocumentHandleReady={handleChildDocumentHandleReady}
-        />
+        <SidebarDisclosureContext.Provider value={disclosureEvent}>
+          <CollectionLink
+            collection={collection}
+            expanded={displayChildDocuments}
+            activeDocument={activeDocument}
+            onDisclosureClick={handleDisclosureClick}
+            isDraggingAnyCollection={isDraggingAnyCollection}
+          />
+        </SidebarDisclosureContext.Provider>
       </Draggable>
       <Relative>
         {isDraggingAnyCollection && (

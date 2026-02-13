@@ -13,7 +13,7 @@ import useStores from "~/hooks/useStores";
 import history from "~/utils/history";
 import useCollectionDocuments from "../hooks/useCollectionDocuments";
 import { useDropToChangeCollection } from "../hooks/useDragAndDrop";
-import DocumentLink, { type DocumentLinkHandle } from "./DocumentLink";
+import DocumentLink from "./DocumentLink";
 import DropCursor from "./DropCursor";
 import Folder from "./Folder";
 import PlaceholderCollections from "./PlaceholderCollections";
@@ -31,10 +31,6 @@ type Props = {
   prefetchDocument?: (documentId: string) => Promise<Document | void>;
   /** Element to display above the child documents */
   children?: React.ReactNode;
-  /** Callback to receive child document handles for recursive expand/collapse */
-  onChildDocumentHandleReady?: (
-    childNodeId: string
-  ) => (handle: DocumentLinkHandle | null) => void;
 };
 
 function CollectionLinkChildren({
@@ -42,7 +38,6 @@ function CollectionLinkChildren({
   expanded,
   prefetchDocument,
   children,
-  onChildDocumentHandleReady,
 }: Props) {
   const pageSize = DEFAULT_PAGE_SIZE;
   const { documents } = useStores();
@@ -82,11 +77,6 @@ function CollectionLinkChildren({
             isDraft={node.isDraft}
             depth={2}
             index={index}
-            onHandleReady={
-              onChildDocumentHandleReady
-                ? onChildDocumentHandleReady(node.id)
-                : undefined
-            }
           />
         ))}
         {childDocuments?.length === 0 && !children && (
