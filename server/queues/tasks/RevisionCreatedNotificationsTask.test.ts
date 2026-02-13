@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from "uuid";
+import { MentionType, NotificationEventType } from "@shared/types";
 import { createContext } from "@server/context";
 import { parser } from "@server/editor";
 import type { Document } from "@server/models";
@@ -8,7 +10,12 @@ import {
   Notification,
   Revision,
 } from "@server/models";
-import { buildDocument, buildUser } from "@server/test/factories";
+import {
+  buildDocument,
+  buildGroup,
+  buildGroupUser,
+  buildUser,
+} from "@server/test/factories";
 import RevisionCreatedNotificationsTask from "./RevisionCreatedNotificationsTask";
 
 const ip = "127.0.0.1";
@@ -512,6 +519,73 @@ describe("revisions.create", () => {
       modelId: revision.id,
       ip,
     });
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  test("should not send a notification for group mentions when disableMentions is true", async () => {
+    const spy = jest.spyOn(Notification, "create");
+    const actor = await buildUser();
+    const group = await buildGroup({
+      teamId: actor.teamId,
+      disableMentions: true,
+    });
+    const member = await buildUser({ teamId: actor.teamId });
+    await buildGroupUser({ groupId: group.id, userId: member.id });
+
+    member.setNotificationEventType(
+      NotificationEventType.GroupMentionedInDocument
+    );
+    await member.save();
+
+    let document = await buildDocument({
+      teamId: actor.teamId,
+      userId: actor.id,
+    });
+    await Revision.createFromDocument(createContext({ user: actor }), document);
+
+    // Update document to include a group mention
+    document.content = {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: "Updated content with a group mention ",
+            },
+            {
+              type: "mention",
+              attrs: {
+                id: uuidv4(),
+                type: MentionType.Group,
+                label: group.name,
+                modelId: group.id,
+                actorId: actor.id,
+              },
+            },
+          ],
+        },
+      ],
+    };
+    document.updatedAt = new Date();
+    await document.save();
+
+    const revision = await Revision.createFromDocument(
+      createContext({ user: actor }),
+      document
+    );
+
+    const task = new RevisionCreatedNotificationsTask();
+    await task.perform({
+      name: "revisions.create",
+      documentId: document.id,
+      teamId: document.teamId,
+      actorId: actor.id,
+      modelId: revision.id,
+      ip,
+    });
+
     expect(spy).not.toHaveBeenCalled();
   });
 });
