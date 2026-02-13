@@ -44,9 +44,10 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
 
     const client = new NotionClient(integration.authentication.token);
 
-    const parsedPages = await Promise.all(
-      importTask.input.map(async (item) => this.processPage({ item, client }))
-    );
+    const parsedPages: (ParsePageOutput | null)[] = [];
+    for (const item of importTask.input) {
+      parsedPages.push(await this.processPage({ item, client }));
+    }
 
     // Filter out any null results (from pages/databases that couldn't be accessed)
     const validParsedPages = parsedPages.filter(Boolean) as ParsePageOutput[];
