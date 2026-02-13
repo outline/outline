@@ -1,6 +1,6 @@
 import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import type { DropTargetMonitor } from "react-dnd";
 import { useDrop, useDrag } from "react-dnd";
 import { getEmptyImage } from "react-dnd-html5-backend";
@@ -12,6 +12,7 @@ import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useStores from "~/hooks/useStores";
 import type { DragObject } from "../hooks/useDragAndDrop";
 import CollectionLink from "./CollectionLink";
+import type { DocumentLinkHandle } from "./DocumentLink";
 import DropCursor from "./DropCursor";
 import Relative from "./Relative";
 import { useSidebarContext } from "./SidebarContext";
@@ -35,6 +36,9 @@ function DraggableCollectionLink({
       sidebarContext === locationSidebarContext
   );
   const belowCollectionIndex = belowCollection ? belowCollection.index : null;
+
+  // Store refs to child DocumentLinks for recursive expand/collapse
+  const childDocumentRefs = useRef<Map<string, DocumentLinkHandle>>(new Map());
 
   // Drop to reorder collection
   const [
@@ -93,10 +97,38 @@ function DraggableCollectionLink({
 
   const handleDisclosureClick = useCallback((ev) => {
     ev?.preventDefault();
-    setExpanded((e) => !e);
+    const altKeyPressed = ev?.altKey;
+
+    setExpanded((e) => {
+      const willExpand = !e;
+
+      // If Alt is held, recursively expand/collapse all child documents
+      if (altKeyPressed) {
+        childDocumentRefs.current.forEach((childHandle) => {
+          if (willExpand) {
+            childHandle.expandAll();
+          } else {
+            childHandle.collapseAll();
+          }
+        });
+      }
+
+      return willExpand;
+    });
   }, []);
 
   const displayChildDocuments = expanded && !isDragging;
+
+  const handleChildDocumentHandleReady = useCallback(
+    (childNodeId: string) => (handle: DocumentLinkHandle | null) => {
+      if (handle) {
+        childDocumentRefs.current.set(childNodeId, handle);
+      } else {
+        childDocumentRefs.current.delete(childNodeId);
+      }
+    },
+    []
+  );
 
   return (
     <>
@@ -111,6 +143,7 @@ function DraggableCollectionLink({
           activeDocument={activeDocument}
           onDisclosureClick={handleDisclosureClick}
           isDraggingAnyCollection={isDraggingAnyCollection}
+          onChildDocumentHandleReady={handleChildDocumentHandleReady}
         />
       </Draggable>
       <Relative>
