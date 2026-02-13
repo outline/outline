@@ -78,6 +78,11 @@ export type Props = {
   focusedCommentId?: string;
   /** If the editor should not allow editing */
   readOnly?: boolean;
+  /**
+   * Whether we are rendering a cached version of the document while multiplayer loads.
+   * This is used to disable some editor functionality
+   */
+  cacheOnly?: boolean;
   /** If the editor should still allow editing checkboxes when it is readOnly */
   canUpdate?: boolean;
   /** If the editor should still allow commenting when it is readOnly */
@@ -867,6 +872,7 @@ export class Editor extends React.PureComponent<
             />
 
             {this.widgets &&
+              !this.props.cacheOnly &&
               Object.values(this.widgets).map((Widget, index) => (
                 <Widget
                   key={String(index)}
