@@ -54,7 +54,7 @@ class UiStore {
   systemTheme: SystemTheme;
 
   @observable
-  activeModels = new Set<Model>();
+  activeModels = observable.map<string, Model>();
 
   @observable
   observingUserId: string | undefined;
@@ -156,7 +156,7 @@ class UiStore {
    */
   @action
   addActiveModel = (model: Model): void => {
-    this.activeModels.add(model);
+    this.activeModels.set(model.id, model);
   };
 
   /**
@@ -166,7 +166,7 @@ class UiStore {
    */
   @action
   removeActiveModel = (model: Model): void => {
-    this.activeModels.delete(model);
+    this.activeModels.delete(model.id);
   };
 
   /**
@@ -176,7 +176,7 @@ class UiStore {
    * @returns array of active models of the specified type.
    */
   getActiveModels<T extends Model>(modelClass: new (...args: any[]) => T): T[] {
-    return Array.from(this.activeModels).filter(
+    return Array.from(this.activeModels.values()).filter(
       (model) => model.constructor === modelClass
     ) as T[];
   }
@@ -188,7 +188,7 @@ class UiStore {
    * @returns true if the model is active.
    */
   isModelActive(model: Model): boolean {
-    return this.activeModels.has(model);
+    return this.activeModels.has(model.id);
   }
 
   /**
@@ -200,7 +200,7 @@ class UiStore {
   clearActiveModels(modelClass?: new (...args: any[]) => Model): void {
     if (modelClass) {
       const modelsToRemove = this.getActiveModels(modelClass);
-      modelsToRemove.forEach((model) => this.activeModels.delete(model));
+      modelsToRemove.forEach((model) => this.activeModels.delete(model.id));
     } else {
       this.activeModels.clear();
     }
