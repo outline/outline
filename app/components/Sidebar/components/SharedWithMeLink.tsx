@@ -22,6 +22,10 @@ import DocumentLink from "./DocumentLink";
 import DropCursor from "./DropCursor";
 import Folder from "./Folder";
 import Relative from "./Relative";
+import SidebarDisclosureContext, {
+  useSidebarDisclosure,
+  useSidebarDisclosureState,
+} from "./SidebarDisclosureContext";
 import { useSidebarContext, type SidebarContextType } from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
 
@@ -47,6 +51,15 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
   const [expanded, setExpanded, setCollapsed] = useBoolean(
     isActiveDocumentInPath && locationSidebarContext === sidebarContext
   );
+
+  const {
+    event: disclosureEvent,
+    expandAll,
+    collapseAll,
+  } = useSidebarDisclosureState();
+
+  // Subscribe to recursive expand/collapse events from an ancestor (e.g. GroupLink)
+  useSidebarDisclosure(setExpanded, setCollapsed);
 
   React.useEffect(() => {
     if (isActiveDocumentInPath && locationSidebarContext === sidebarContext) {
@@ -78,11 +91,17 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
       ev.stopPropagation();
       if (expanded) {
         setCollapsed();
+        if (ev.altKey) {
+          collapseAll();
+        }
       } else {
         setExpanded();
+        if (ev.altKey) {
+          expandAll();
+        }
       }
     },
-    [expanded, setExpanded, setCollapsed]
+    [expanded, setExpanded, setCollapsed, expandAll, collapseAll]
   );
 
   const parentRef = React.useRef<HTMLDivElement>(null);
@@ -174,20 +193,22 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
             </div>
           </Draggable>
         </Relative>
-        <Folder expanded={displayChildDocuments}>
-          {childDocuments.map((childNode, index) => (
-            <DocumentLink
-              key={childNode.id}
-              node={childNode}
-              collection={collection}
-              membership={membership}
-              activeDocument={documents.active}
-              isDraft={childNode.isDraft}
-              depth={2}
-              index={index}
-            />
-          ))}
-        </Folder>
+        <SidebarDisclosureContext.Provider value={disclosureEvent}>
+          <Folder expanded={displayChildDocuments}>
+            {childDocuments.map((childNode, index) => (
+              <DocumentLink
+                key={childNode.id}
+                node={childNode}
+                collection={collection}
+                membership={membership}
+                activeDocument={documents.active}
+                isDraft={childNode.isDraft}
+                depth={2}
+                index={index}
+              />
+            ))}
+          </Folder>
+        </SidebarDisclosureContext.Provider>
         {reorderProps.isDragging && (
           <DropCursor
             isActiveDrop={reorderProps.isOverCursor}

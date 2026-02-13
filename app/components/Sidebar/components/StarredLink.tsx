@@ -19,6 +19,10 @@ import {
 import { useSidebarLabelAndIcon } from "../hooks/useSidebarLabelAndIcon";
 import CollectionLink from "./CollectionLink";
 import DocumentLink from "./DocumentLink";
+import SidebarDisclosureContext, {
+  type SidebarDisclosureEvent,
+  useSidebarDisclosureState,
+} from "./SidebarDisclosureContext";
 import DropCursor from "./DropCursor";
 import Folder from "./Folder";
 import Relative from "./Relative";
@@ -48,6 +52,7 @@ type StarredDocumentLinkProps = {
   handleMenuClose: () => void;
   draggableRef: ConnectDragSource;
   cursor: React.ReactNode;
+  disclosureEvent: SidebarDisclosureEvent | null;
 };
 
 type StarredCollectionLinkProps = {
@@ -61,6 +66,7 @@ type StarredCollectionLinkProps = {
   cursor: React.ReactNode;
   displayChildDocuments: boolean;
   reorderStarProps: any;
+  disclosureEvent: SidebarDisclosureEvent | null;
 };
 
 const StarredDocumentLink = observer(function StarredDocumentLink({
@@ -78,6 +84,7 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
   handleMenuClose,
   draggableRef,
   cursor,
+  disclosureEvent,
 }: StarredDocumentLinkProps) {
   const { collections, documents } = useStores();
 
@@ -136,23 +143,25 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
         />
       </Draggable>
       <SidebarContext.Provider value={sidebarContext}>
-        <Relative>
-          <Folder expanded={displayChildDocuments}>
-            {childDocuments.map((node, index) => (
-              <DocumentLink
-                key={node.id}
-                node={node}
-                collection={documentCollection}
-                activeDocument={documents.active}
-                prefetchDocument={documents.prefetchDocument}
-                isDraft={node.isDraft}
-                depth={2}
-                index={index}
-              />
-            ))}
-          </Folder>
-          {cursor}
-        </Relative>
+        <SidebarDisclosureContext.Provider value={disclosureEvent}>
+          <Relative>
+            <Folder expanded={displayChildDocuments}>
+              {childDocuments.map((node, index) => (
+                <DocumentLink
+                  key={node.id}
+                  node={node}
+                  collection={documentCollection}
+                  activeDocument={documents.active}
+                  prefetchDocument={documents.prefetchDocument}
+                  isDraft={node.isDraft}
+                  depth={2}
+                  index={index}
+                />
+              ))}
+            </Folder>
+            {cursor}
+          </Relative>
+        </SidebarDisclosureContext.Provider>
       </SidebarContext.Provider>
     </ActionContextProvider>
   );
@@ -168,21 +177,24 @@ const StarredCollectionLink = observer(function StarredCollectionLink({
   cursor,
   displayChildDocuments,
   reorderStarProps,
+  disclosureEvent,
 }: StarredCollectionLinkProps) {
   const { documents } = useStores();
 
   return (
     <SidebarContext.Provider value={sidebarContext}>
-      <Draggable key={star?.id} ref={draggableRef} $isDragging={isDragging}>
-        <CollectionLink
-          collection={collection}
-          expanded={isDragging ? undefined : displayChildDocuments}
-          activeDocument={documents.active}
-          onDisclosureClick={handleDisclosureClick}
-          isDraggingAnyCollection={reorderStarProps.isDragging}
-        />
-      </Draggable>
-      <Relative>{cursor}</Relative>
+      <SidebarDisclosureContext.Provider value={disclosureEvent}>
+        <Draggable key={star?.id} ref={draggableRef} $isDragging={isDragging}>
+          <CollectionLink
+            collection={collection}
+            expanded={isDragging ? undefined : displayChildDocuments}
+            activeDocument={documents.active}
+            onDisclosureClick={handleDisclosureClick}
+            isDraggingAnyCollection={reorderStarProps.isDragging}
+          />
+        </Draggable>
+        <Relative>{cursor}</Relative>
+      </SidebarDisclosureContext.Provider>
     </SidebarContext.Provider>
   );
 });
@@ -203,6 +215,12 @@ function StarredLink({ star }: Props) {
       : star.collectionId === ui.activeCollectionId) &&
       sidebarContext === locationSidebarContext
   );
+
+  const {
+    event: disclosureEvent,
+    expandAll,
+    collapseAll,
+  } = useSidebarDisclosureState();
 
   React.useEffect(() => {
     if (
@@ -235,9 +253,19 @@ function StarredLink({ star }: Props) {
     (ev?: React.MouseEvent<HTMLElement>) => {
       ev?.preventDefault();
       ev?.stopPropagation();
-      setExpanded((prevExpanded) => !prevExpanded);
+      setExpanded((prevExpanded) => {
+        const willExpand = !prevExpanded;
+        if (ev?.altKey) {
+          if (willExpand) {
+            expandAll();
+          } else {
+            collapseAll();
+          }
+        }
+        return willExpand;
+      });
     },
-    []
+    [expandAll, collapseAll]
   );
 
   const handlePrefetch = React.useCallback(() => {
@@ -299,6 +327,7 @@ function StarredLink({ star }: Props) {
         handleMenuClose={handleMenuClose}
         draggableRef={draggableRef}
         cursor={cursor}
+        disclosureEvent={disclosureEvent}
       />
     );
   }
@@ -316,6 +345,7 @@ function StarredLink({ star }: Props) {
         cursor={cursor}
         displayChildDocuments={displayChildDocuments}
         reorderStarProps={reorderStarProps}
+        disclosureEvent={disclosureEvent}
       />
     );
   }
