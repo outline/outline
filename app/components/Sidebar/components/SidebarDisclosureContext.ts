@@ -70,11 +70,34 @@ export function useSidebarDisclosure(
  * event value (to pass to a Provider) and stable callbacks to trigger
  * expand/collapse broadcasts.
  *
+ * This hook also reads the parent context and automatically forwards any
+ * incoming disclosure events so that the cascade propagates through the
+ * entire tree — even when intermediate nodes each create their own provider.
+ *
  * @returns object with `event` to spread onto the Provider's value, and
  *   `expandAll` / `collapseAll` callbacks to trigger from alt-click handlers.
  */
 export function useSidebarDisclosureState() {
+  const parentEvent = useContext(SidebarDisclosureContext);
   const [event, setEvent] = useState<SidebarDisclosureEvent | null>(null);
+  const lastForwardedParentGeneration = useRef(-1);
+
+  // Forward parent disclosure events into our own provider value so that
+  // grandchildren (and beyond) see the event even though each level creates
+  // its own independent provider.
+  useEffect(() => {
+    if (
+      !parentEvent ||
+      parentEvent.generation === lastForwardedParentGeneration.current
+    ) {
+      return;
+    }
+    lastForwardedParentGeneration.current = parentEvent.generation;
+    setEvent((prev) => ({
+      action: parentEvent.action,
+      generation: (prev?.generation ?? 0) + 1,
+    }));
+  }, [parentEvent]);
 
   const expandAll = useCallback(() => {
     setEvent((prev) => ({
