@@ -1,3 +1,5 @@
+import type { DeepPartial } from "utility-types";
+import type { ProsemirrorData } from "@shared/types";
 import { v4 as uuidv4 } from "uuid";
 import { MentionType, NotificationEventType } from "@shared/types";
 import { createContext } from "@server/context";
@@ -520,6 +522,71 @@ describe("revisions.create", () => {
       ip,
     });
     expect(spy).not.toHaveBeenCalled();
+  });
+
+  test("should send a mention notification even when change is below threshold", async () => {
+    const spy = jest.spyOn(Notification, "create");
+    const actor = await buildUser();
+    const mentioned = await buildUser({ teamId: actor.teamId, name: "Kim" });
+
+    // Build a document with some initial content
+    let document = await buildDocument({
+      teamId: actor.teamId,
+      userId: actor.id,
+    });
+    await Revision.createFromDocument(createContext({ user: actor }), document);
+
+    // Now add a mention – the only change is the mention node itself, which
+    // renders as "@<label>" in plain text and may be below the 5-char
+    // threshold that gates generic update notifications.
+    const mentionContent: DeepPartial<ProsemirrorData> = {
+      type: "doc",
+      content: [
+        ...(document.content?.content ?? []),
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "mention",
+              attrs: {
+                type: MentionType.User,
+                label: mentioned.name,
+                modelId: mentioned.id,
+                actorId: actor.id,
+                id: "test-mention-id",
+              },
+            },
+          ],
+        },
+      ],
+    };
+    document.content = mentionContent as ProsemirrorData;
+    document.updatedAt = new Date();
+    await document.save();
+
+    const revision = await Revision.createFromDocument(
+      createContext({ user: actor }),
+      document
+    );
+
+    const task = new RevisionCreatedNotificationsTask();
+    await task.perform({
+      name: "revisions.create",
+      documentId: document.id,
+      teamId: document.teamId,
+      actorId: actor.id,
+      modelId: revision.id,
+      ip,
+    });
+
+    expect(spy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: NotificationEventType.MentionedInDocument,
+        userId: mentioned.id,
+        actorId: actor.id,
+        documentId: document.id,
+      })
+    );
   });
 
   test("should not send a notification for group mentions when disableMentions is true", async () => {
