@@ -1,7 +1,7 @@
 import Router from "koa-router";
 import type { WhereOptions } from "sequelize";
 import { Op, Sequelize } from "sequelize";
-import type { UserPreference } from "@shared/types";
+import type { UserPreferences } from "@shared/types";
 import { UserRole } from "@shared/types";
 import { UserRoleHelper } from "@shared/utils/UserRoleHelper";
 import { settingsPath } from "@shared/utils/routeHelpers";
@@ -332,9 +332,10 @@ router.post(
       user.language = language;
     }
     if (preferences) {
-      for (const key of Object.keys(preferences) as Array<UserPreference>) {
-        user.setPreference(key, preferences[key] as boolean);
-      }
+      user.preferences = {
+        ...user.preferences,
+        ...(preferences as UserPreferences),
+      };
     }
     if (timezone) {
       user.timezone = timezone;

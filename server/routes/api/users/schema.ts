@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { NotificationEventType, UserPreference, UserRole } from "@shared/types";
+import {
+  NotificationBadgeType,
+  NotificationEventType,
+  UserPreference,
+  UserRole,
+} from "@shared/types";
 import { locales } from "@shared/utils/date";
 import User from "@server/models/User";
 import { zodEnumFromObjectKeys, zodTimezone } from "@server/utils/zod";
@@ -90,7 +95,12 @@ export const UsersUpdateSchema = BaseSchema.extend({
     name: z.string().optional(),
     avatarUrl: z.string().nullish(),
     language: zodEnumFromObjectKeys(locales).optional(),
-    preferences: z.record(z.nativeEnum(UserPreference), z.boolean()).optional(),
+    preferences: z
+      .record(
+        z.nativeEnum(UserPreference),
+        z.union([z.boolean(), z.nativeEnum(NotificationBadgeType)])
+      )
+      .optional(),
     timezone: zodTimezone().optional(),
   }),
 });

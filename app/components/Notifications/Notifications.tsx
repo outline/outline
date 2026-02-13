@@ -4,8 +4,10 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s, hover } from "@shared/styles";
+import { NotificationBadgeType, UserPreference } from "@shared/types";
 import Notification, { type NotificationFilter } from "~/models/Notification";
 import { markNotificationsAsRead } from "~/actions/definitions/notifications";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import NotificationMenu from "~/menus/NotificationMenu";
 import Desktop from "~/utils/Desktop";
@@ -34,6 +36,7 @@ function Notifications(
   ref: React.RefObject<HTMLDivElement>
 ) {
   const { notifications } = useStores();
+  const user = useCurrentUser();
   const { t } = useTranslation();
   const [filter, setFilter] = React.useState<NotificationFilter>("all");
 
@@ -61,25 +64,34 @@ function Notifications(
     );
   }, [notifications.active, filter]);
 
+  const badgeType = user.getPreference(UserPreference.NotificationBadge);
+  const unreadCount = notifications.approximateUnreadCount;
+
   // Update the notification count in the dock icon, if possible.
   React.useEffect(() => {
     // Account for old versions of the desktop app that don't have the
     // setNotificationCount method on the bridge.
     if (Desktop.bridge && "setNotificationCount" in Desktop.bridge) {
-      void Desktop.bridge.setNotificationCount(
-        notifications.approximateUnreadCount
-      );
+      if (badgeType === NotificationBadgeType.Disabled || unreadCount === 0) {
+        void Desktop.bridge.setNotificationCount(0);
+      } else if (badgeType === NotificationBadgeType.Count) {
+        void Desktop.bridge.setNotificationCount(unreadCount);
+      } else {
+        void Desktop.bridge.setNotificationCount("・");
+      }
     }
 
     // PWA badging
     if ("setAppBadge" in navigator) {
-      if (notifications.approximateUnreadCount) {
-        void navigator.setAppBadge(notifications.approximateUnreadCount);
+      if (unreadCount > 0 && badgeType !== NotificationBadgeType.Disabled) {
+        void navigator.setAppBadge(
+          badgeType === NotificationBadgeType.Count ? unreadCount : undefined
+        );
       } else {
         void navigator.clearAppBadge();
       }
     }
-  }, [notifications.approximateUnreadCount]);
+  }, [unreadCount, badgeType]);
 
   return (
     <ErrorBoundary>
@@ -105,7 +117,7 @@ function Notifications(
               short
               nude
             />
-            {notifications.approximateUnreadCount > 0 && (
+            {unreadCount > 0 && (
               <Tooltip content={t("Mark all as read")}>
                 <Button
                   action={markNotificationsAsRead}
