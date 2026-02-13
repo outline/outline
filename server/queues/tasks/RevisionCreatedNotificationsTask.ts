@@ -7,6 +7,7 @@ import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import {
   Document,
+  Group,
   Revision,
   Notification,
   User,
@@ -101,6 +102,13 @@ export default class RevisionCreatedNotificationsTask extends BaseTask<RevisionE
       if (mentionedGroup.includes(group.modelId)) {
         continue;
       }
+
+      // Check if the group has mentions disabled
+      const groupModel = await Group.findByPk(group.modelId);
+      if (groupModel?.disableMentions) {
+        continue;
+      }
+
       const usersFromMentionedGroup = await GroupUser.findAll({
         where: {
           groupId: group.modelId,
