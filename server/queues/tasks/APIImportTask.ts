@@ -327,11 +327,7 @@ export default abstract class APIImportTask<
       const uploadItems = Object.entries(urlToAttachment).map(
         ([url, attachment]) => ({ attachmentId: attachment.id, url })
       );
-      // publish task after attachments are persisted in DB.
-      const job = await new UploadAttachmentsForImportTask().schedule(
-        uploadItems
-      );
-      await job.finished();
+      await new UploadAttachmentsForImportTask().schedule(uploadItems);
     } catch (err) {
       // upload attachments failure is not critical enough to fail the whole import.
       Logger.error(
