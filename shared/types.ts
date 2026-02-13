@@ -271,9 +271,29 @@ export enum UserPreference {
   SortCommentsByOrderInDocument = "sortCommentsByOrderInDocument",
   /** Whether smart text replacements should be enabled. */
   EnableSmartText = "enableSmartText",
+  /** The style of notification badge to display. */
+  NotificationBadge = "notificationBadge",
 }
 
-export type UserPreferences = { [key in UserPreference]?: boolean };
+export enum NotificationBadgeType {
+  /** Do not show a notification badge. */
+  Disabled = "disabled",
+  /** Show the unread notification count. */
+  Count = "count",
+  /** Show an unread indicator dot. */
+  Indicator = "indicator",
+}
+
+export type UserPreferences = {
+  [UserPreference.RememberLastPath]?: boolean;
+  [UserPreference.UseCursorPointer]?: boolean;
+  [UserPreference.CodeBlockLineNumers]?: boolean;
+  [UserPreference.SeamlessEdit]?: boolean;
+  [UserPreference.FullWidthDocuments]?: boolean;
+  [UserPreference.SortCommentsByOrderInDocument]?: boolean;
+  [UserPreference.EnableSmartText]?: boolean;
+  [UserPreference.NotificationBadge]?: NotificationBadgeType;
+};
 
 export type SourceMetadata = {
   /** The original source file name. */
