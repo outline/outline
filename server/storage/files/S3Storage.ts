@@ -37,7 +37,7 @@ export default class S3Storage extends BaseStorage {
   public async getPresignedPost(
     _ctx: AppContext,
     key: string,
-    acl: string,
+    _acl: string,
     maxUploadSize: number,
     contentType = "image"
   ) {
@@ -52,7 +52,7 @@ export default class S3Storage extends BaseStorage {
       Fields: {
         "Content-Disposition": this.getContentDisposition(contentType),
         key,
-        ...(acl && { acl }),
+        ...(env.AWS_S3_ACL && { ACL: env.AWS_S3_ACL as ObjectCannedACL }),
       },
       Expires: 3600,
     };
@@ -103,7 +103,6 @@ export default class S3Storage extends BaseStorage {
     body,
     contentType,
     key,
-    acl,
   }: {
     body: Buffer | Uint8Array | string | Readable;
     contentLength?: number;
@@ -114,7 +113,7 @@ export default class S3Storage extends BaseStorage {
     const upload = new Upload({
       client: this.client,
       params: {
-        ...(acl && { ACL: acl as ObjectCannedACL }),
+        ...(env.AWS_S3_ACL && { ACL: env.AWS_S3_ACL as ObjectCannedACL }),
         Bucket: this.getBucket(),
         Key: key,
         ContentType: contentType,
