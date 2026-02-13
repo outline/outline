@@ -51,6 +51,12 @@ type Props = {
   depth: number;
   index: number;
   parentId?: string;
+  onHandleReady?: (handle: DocumentLinkHandle | null) => void;
+};
+
+export type DocumentLinkHandle = {
+  expandAll: () => void;
+  collapseAll: () => void;
 };
 
 function InnerDocumentLink(
@@ -64,6 +70,7 @@ function InnerDocumentLink(
     depth,
     index,
     parentId,
+    onHandleReady,
   }: Props,
   ref: React.RefObject<HTMLAnchorElement>
 ) {
@@ -119,6 +126,33 @@ function InnerDocumentLink(
 
   const [expanded, setExpanded, setCollapsed] = useBoolean(showChildren);
 
+  // Store refs to child DocumentLinks for recursive expand/collapse
+  const childRefs = React.useRef<Map<string, DocumentLinkHandle>>(new Map());
+
+  // Expose handle for parent to trigger recursive expand/collapse
+  React.useEffect(() => {
+    const handle: DocumentLinkHandle = {
+      expandAll: () => {
+        setExpanded();
+        childRefs.current.forEach((childHandle) => {
+          childHandle.expandAll();
+        });
+      },
+      collapseAll: () => {
+        setCollapsed();
+        childRefs.current.forEach((childHandle) => {
+          childHandle.collapseAll();
+        });
+      },
+    };
+
+    onHandleReady?.(handle);
+
+    return () => {
+      onHandleReady?.(null);
+    };
+  }, [setExpanded, setCollapsed, onHandleReady]);
+
   React.useEffect(() => {
     if (showChildren) {
       setExpanded();
@@ -132,13 +166,30 @@ function InnerDocumentLink(
     }
   }, [setCollapsed, expanded, hasChildDocuments]);
 
-  const handleDisclosureClick = React.useCallback(() => {
-    if (expanded) {
-      setCollapsed();
-    } else {
-      setExpanded();
-    }
-  }, [setCollapsed, setExpanded, expanded]);
+  const handleDisclosureClick = React.useCallback(
+    (ev: React.MouseEvent<HTMLElement>) => {
+      const altKeyPressed = ev.altKey;
+
+      if (expanded) {
+        setCollapsed();
+        // If Alt is held, collapse all descendants recursively
+        if (altKeyPressed) {
+          childRefs.current.forEach((childHandle) => {
+            childHandle.collapseAll();
+          });
+        }
+      } else {
+        setExpanded();
+        // If Alt is held, expand all descendants recursively
+        if (altKeyPressed) {
+          childRefs.current.forEach((childHandle) => {
+            childHandle.expandAll();
+          });
+        }
+      }
+    },
+    [setCollapsed, setExpanded, expanded]
+  );
 
   const handlePrefetch = React.useCallback(() => {
     void prefetchDocument?.(node.id);
@@ -480,6 +531,13 @@ function InnerDocumentLink(
             depth={depth + 1}
             index={childIndex}
             parentId={node.id}
+            onHandleReady={(handle) => {
+              if (handle) {
+                childRefs.current.set(childNode.id, handle);
+              } else {
+                childRefs.current.delete(childNode.id);
+              }
+            }}
           />
         ))}
       </Folder>
