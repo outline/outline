@@ -67,16 +67,15 @@ export function useSidebarDisclosure(
 
 /**
  * Hook for the producing side of the disclosure context. Returns the current
- * event value (to pass to a Provider) and stable callbacks to trigger
- * expand/collapse broadcasts.
+ * event value (to pass to a Provider) and a single callback to handle
+ * alt-click expand/collapse broadcasts.
  *
  * This hook also reads the parent context and automatically forwards any
  * incoming disclosure events so that the cascade propagates through the
  * entire tree — even when intermediate nodes each create their own provider.
  *
- * @returns object with `event` to spread onto the Provider's value,
- *   `expandAll` / `collapseAll` callbacks to trigger from alt-click handlers,
- *   and `resetAll` to clear stale events on non-alt clicks.
+ * @returns object with `event` to spread onto the Provider's value and
+ *   `onDisclosureClick` to call from disclosure click handlers.
  */
 export function useSidebarDisclosureState() {
   const parentEvent = useContext(SidebarDisclosureContext);
@@ -100,25 +99,29 @@ export function useSidebarDisclosureState() {
     }));
   }, [parentEvent]);
 
-  const expandAll = useCallback(() => {
-    setEvent((prev) => ({
-      action: "expand",
-      generation: (prev?.generation ?? 0) + 1,
-    }));
-  }, []);
+  /**
+   * Call from a disclosure click handler after toggling expand/collapse state.
+   * When alt is held, broadcasts a recursive expand or collapse event to all
+   * descendants. Otherwise, clears any stale event.
+   *
+   * @param willExpand - whether the node is expanding or collapsing.
+   * @param altKey - whether the alt/option key was held during the click.
+   */
+  const onDisclosureClick = useCallback(
+    (willExpand: boolean, altKey: boolean) => {
+      if (altKey) {
+        setEvent((prev) => ({
+          action: willExpand ? "expand" : "collapse",
+          generation: (prev?.generation ?? 0) + 1,
+        }));
+      } else {
+        setEvent(null);
+      }
+    },
+    []
+  );
 
-  const collapseAll = useCallback(() => {
-    setEvent((prev) => ({
-      action: "collapse",
-      generation: (prev?.generation ?? 0) + 1,
-    }));
-  }, []);
-
-  const resetAll = useCallback(() => {
-    setEvent(null);
-  }, []);
-
-  return { event, expandAll, collapseAll, resetAll };
+  return { event, onDisclosureClick };
 }
 
 export default SidebarDisclosureContext;

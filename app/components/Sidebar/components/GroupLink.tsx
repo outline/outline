@@ -24,31 +24,19 @@ const GroupLink: React.FC<Props> = ({ group }) => {
     locationSidebarContext === sidebarContext
   );
 
-  const {
-    event: disclosureEvent,
-    expandAll,
-    collapseAll,
-    resetAll,
-  } = useSidebarDisclosureState();
+  const { event: disclosureEvent, onDisclosureClick } =
+    useSidebarDisclosureState();
 
   const handleDisclosureClick = React.useCallback(
     (ev) => {
       ev?.preventDefault();
       setExpanded((e) => {
         const willExpand = !e;
-        if (ev?.altKey) {
-          if (willExpand) {
-            expandAll();
-          } else {
-            collapseAll();
-          }
-        } else {
-          resetAll();
-        }
+        onDisclosureClick(willExpand, !!ev?.altKey);
         return willExpand;
       });
     },
-    [expandAll, collapseAll, resetAll]
+    [onDisclosureClick]
   );
 
   React.useEffect(() => {

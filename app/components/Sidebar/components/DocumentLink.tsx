@@ -124,12 +124,8 @@ function InnerDocumentLink(
   const [expanded, setExpanded, setCollapsed] = useBoolean(showChildren);
 
   // Context-based recursive expand/collapse for descendant DocumentLinks
-  const {
-    event: disclosureEvent,
-    expandAll,
-    collapseAll,
-    resetAll,
-  } = useSidebarDisclosureState();
+  const { event: disclosureEvent, onDisclosureClick } =
+    useSidebarDisclosureState();
 
   // Subscribe to recursive expand/collapse events from an ancestor
   useSidebarDisclosure(setExpanded, setCollapsed);
@@ -149,23 +145,15 @@ function InnerDocumentLink(
 
   const handleDisclosureClick = React.useCallback(
     (ev: React.MouseEvent<HTMLElement>) => {
-      if (expanded) {
-        setCollapsed();
-        if (ev.altKey) {
-          collapseAll();
-        } else {
-          resetAll();
-        }
-      } else {
+      const willExpand = !expanded;
+      if (willExpand) {
         setExpanded();
-        if (ev.altKey) {
-          expandAll();
-        } else {
-          resetAll();
-        }
+      } else {
+        setCollapsed();
       }
+      onDisclosureClick(willExpand, ev.altKey);
     },
-    [setCollapsed, setExpanded, expanded, collapseAll, expandAll, resetAll]
+    [setCollapsed, setExpanded, expanded, onDisclosureClick]
   );
 
   const handlePrefetch = React.useCallback(() => {

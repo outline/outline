@@ -66,12 +66,8 @@ function DocumentLink(
 
   const [expanded, setExpanded] = React.useState(showChildren);
 
-  const {
-    event: disclosureEvent,
-    expandAll,
-    collapseAll,
-    resetAll,
-  } = useSidebarDisclosureState();
+  const { event: disclosureEvent, onDisclosureClick } =
+    useSidebarDisclosureState();
 
   const handleExpand = React.useCallback(() => setExpanded(true), []);
   const handleCollapse = React.useCallback(() => setExpanded(false), []);
@@ -90,17 +86,10 @@ function DocumentLink(
       ev.stopPropagation();
       const willExpand = !expanded;
       setExpanded(willExpand);
-      if ("altKey" in ev && (ev as React.MouseEvent).altKey) {
-        if (willExpand) {
-          expandAll();
-        } else {
-          collapseAll();
-        }
-      } else {
-        resetAll();
-      }
+      const altKey = "altKey" in ev && (ev as React.MouseEvent).altKey;
+      onDisclosureClick(willExpand, !!altKey);
     },
-    [expanded, expandAll, collapseAll, resetAll]
+    [expanded, onDisclosureClick]
   );
 
   // since we don't have access to the collection sort here, we just put any

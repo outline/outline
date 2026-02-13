@@ -207,12 +207,8 @@ function StarredLink({ star }: Props) {
       sidebarContext === locationSidebarContext
   );
 
-  const {
-    event: disclosureEvent,
-    expandAll,
-    collapseAll,
-    resetAll,
-  } = useSidebarDisclosureState();
+  const { event: disclosureEvent, onDisclosureClick } =
+    useSidebarDisclosureState();
 
   React.useEffect(() => {
     if (
@@ -247,19 +243,11 @@ function StarredLink({ star }: Props) {
       ev?.stopPropagation();
       setExpanded((prevExpanded) => {
         const willExpand = !prevExpanded;
-        if (ev?.altKey) {
-          if (willExpand) {
-            expandAll();
-          } else {
-            collapseAll();
-          }
-        } else {
-          resetAll();
-        }
+        onDisclosureClick(willExpand, !!ev?.altKey);
         return willExpand;
       });
     },
-    [expandAll, collapseAll, resetAll]
+    [onDisclosureClick]
   );
 
   const handlePrefetch = React.useCallback(() => {

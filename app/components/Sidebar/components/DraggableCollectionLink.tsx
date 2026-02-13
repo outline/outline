@@ -40,12 +40,8 @@ function DraggableCollectionLink({
   const belowCollectionIndex = belowCollection ? belowCollection.index : null;
 
   // Context-based recursive expand/collapse for descendant DocumentLinks
-  const {
-    event: disclosureEvent,
-    expandAll,
-    collapseAll,
-    resetAll,
-  } = useSidebarDisclosureState();
+  const { event: disclosureEvent, onDisclosureClick } =
+    useSidebarDisclosureState();
 
   // Drop to reorder collection
   const [
@@ -105,25 +101,13 @@ function DraggableCollectionLink({
   const handleDisclosureClick = useCallback(
     (ev) => {
       ev?.preventDefault();
-      const altKeyPressed = ev?.altKey;
-
       setExpanded((e) => {
         const willExpand = !e;
-
-        if (altKeyPressed) {
-          if (willExpand) {
-            expandAll();
-          } else {
-            collapseAll();
-          }
-        } else {
-          resetAll();
-        }
-
+        onDisclosureClick(willExpand, !!ev?.altKey);
         return willExpand;
       });
     },
-    [expandAll, collapseAll, resetAll]
+    [onDisclosureClick]
   );
 
   const displayChildDocuments = expanded && !isDragging;

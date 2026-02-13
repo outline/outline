@@ -52,12 +52,8 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
     isActiveDocumentInPath && locationSidebarContext === sidebarContext
   );
 
-  const {
-    event: disclosureEvent,
-    expandAll,
-    collapseAll,
-    resetAll,
-  } = useSidebarDisclosureState();
+  const { event: disclosureEvent, onDisclosureClick } =
+    useSidebarDisclosureState();
 
   // Subscribe to recursive expand/collapse events from an ancestor (e.g. GroupLink)
   useSidebarDisclosure(setExpanded, setCollapsed);
@@ -90,23 +86,15 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
     (ev: React.MouseEvent<HTMLButtonElement>) => {
       ev.preventDefault();
       ev.stopPropagation();
-      if (expanded) {
-        setCollapsed();
-        if (ev.altKey) {
-          collapseAll();
-        } else {
-          resetAll();
-        }
-      } else {
+      const willExpand = !expanded;
+      if (willExpand) {
         setExpanded();
-        if (ev.altKey) {
-          expandAll();
-        } else {
-          resetAll();
-        }
+      } else {
+        setCollapsed();
       }
+      onDisclosureClick(willExpand, ev.altKey);
     },
-    [expanded, setExpanded, setCollapsed, expandAll, collapseAll, resetAll]
+    [expanded, setExpanded, setCollapsed, onDisclosureClick]
   );
 
   const parentRef = React.useRef<HTMLDivElement>(null);
