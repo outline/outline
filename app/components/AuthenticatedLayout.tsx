@@ -28,6 +28,7 @@ import {
 } from "~/utils/routeHelpers";
 import { DocumentContextProvider } from "./DocumentContext";
 import Fade from "./Fade";
+import NotificationBadge from "./NotificationBadge";
 import { PortalContext } from "./Portal";
 import CommandBar from "./CommandBar";
 
@@ -132,6 +133,7 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
           <RegisterKeyDown trigger="/" handler={goToSearch} />
           {children}
           <CommandBar />
+          <NotificationBadge />
         </Layout>
       </PortalContext.Provider>
     </DocumentContextProvider>
