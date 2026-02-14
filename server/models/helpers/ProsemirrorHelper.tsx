@@ -481,7 +481,7 @@ export class ProsemirrorHelper {
         <>
           {options?.title && <h1 dir={rtl ? "rtl" : "ltr"}>{options.title}</h1>}
           {options?.includeStyles !== false ? (
-            <EditorContainer dir={rtl ? "rtl" : "ltr"} rtl={rtl} staticHTML>
+            <EditorContainer dir={rtl ? "rtl" : "ltr"} $rtl={rtl} staticHTML>
               {content}
             </EditorContainer>
           ) : (

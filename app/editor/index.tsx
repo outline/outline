@@ -859,7 +859,7 @@ export class Editor extends React.PureComponent<
             column
           >
             <EditorContainer
-              rtl={isRTL}
+              $rtl={isRTL}
               grow={grow}
               readOnly={readOnly}
               readOnlyWriteCheckboxes={canUpdate}

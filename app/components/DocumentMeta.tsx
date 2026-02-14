@@ -170,7 +170,7 @@ const DocumentMeta: React.FC<Props> = ({
   };
 
   return (
-    <Container align="center" rtl={document.dir === "rtl"} {...rest} dir="ltr">
+    <Container align="center" $rtl={document.dir === "rtl"} {...rest} dir="ltr">
       {to ? (
         <Link to={to} replace={replace}>
           {content}
@@ -219,8 +219,8 @@ const Strong = styled.strong`
   font-weight: 550;
 `;
 
-const Container = styled(Flex)<{ rtl?: boolean }>`
-  justify-content: ${(props) => (props.rtl ? "flex-end" : "flex-start")};
+const Container = styled(Flex)<{ $rtl?: boolean }>`
+  justify-content: ${(props) => (props.$rtl ? "flex-end" : "flex-start")};
   color: ${s("textTertiary")};
   font-size: 13px;
   white-space: nowrap;

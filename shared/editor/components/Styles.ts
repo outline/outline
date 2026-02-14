@@ -7,7 +7,7 @@ import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { videoStyle } from "./Video";
 
 export type Props = {
-  rtl: boolean;
+  $rtl: boolean;
   readOnly?: boolean;
   readOnlyWriteCheckboxes?: boolean;
   commenting?: boolean;
@@ -1101,7 +1101,7 @@ h6:not(.placeholder)::before {
 }
 
 .with-emoji {
-  margin-${props.rtl ? "right" : "left"}: -1em;
+  margin-${props.$rtl ? "right" : "left"}: -1em;
 }
 
 .emoji img {
@@ -2395,7 +2395,7 @@ table {
   border: 0;
   padding: 0;
   margin-top: 1px;
-  margin-${props.rtl ? "right" : "left"}: -28px;
+  margin-${props.$rtl ? "right" : "left"}: -28px;
   border-radius: 4px;
 
   &:hover,
