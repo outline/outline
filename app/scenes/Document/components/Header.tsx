@@ -67,8 +67,6 @@ function DocumentHeader({
   revision,
   isEditing,
   isDraft,
-  isPublishing,
-  isSaving,
   savingIsDisabled,
   publishingIsDisabled,
   onSelectTemplate,
@@ -256,10 +254,6 @@ function DocumentHeader({
         actions={({ isCompact }) => (
           <>
             <ObservingBanner />
-
-            {!isPublishing && isSaving && user?.separateEditMode && (
-              <Status>{t("Saving")}…</Status>
-            )}
             {!isDeleted && !isRevision && can.listViews && (
               <Collaborators
                 document={document}
@@ -286,7 +280,7 @@ function DocumentHeader({
             {(isEditing || isTemplateEditable) && (
               <Action>
                 <Tooltip
-                  content={t("Save")}
+                  content={isDraft ? t("Save draft") : t("Done editing")}
                   shortcut={`${metaDisplay}+enter`}
                   placement="bottom"
                 >
@@ -374,12 +368,6 @@ function DocumentHeader({
 const StyledHeader = styled(Header)<{ $hidden: boolean }>`
   transition: opacity 500ms ease-in-out;
   ${(props) => props.$hidden && "opacity: 0;"}
-`;
-
-const Status = styled(Action)`
-  padding-left: 0;
-  padding-right: 4px;
-  color: ${(props) => props.theme.slate};
 `;
 
 export default observer(DocumentHeader);
