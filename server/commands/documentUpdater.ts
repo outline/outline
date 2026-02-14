@@ -3,6 +3,7 @@ import { Event, Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
 import type { APIContext } from "@server/types";
+import { sequelize } from "@server/storage/database";
 
 type Props = {
   /** The existing document */
@@ -31,6 +32,10 @@ type Props = {
   publish?: boolean;
   /** The ID of the collection to publish the document to */
   collectionId?: string | null;
+  /** Historical update date for an imported document revision */
+  updatedAt?: Date;
+  /** Flag for bulk revisions imports */
+  isImport?: boolean;
 };
 
 /**
@@ -56,6 +61,8 @@ export default async function documentUpdater(
     publish,
     collectionId,
     done,
+    updatedAt,
+    isImport,
   }: Props
 ): Promise<Document> {
   const { user } = ctx.state.auth;
@@ -92,9 +99,14 @@ export default async function documentUpdater(
       editMode
     );
   }
+  if (updatedAt !== undefined) {
+    document.updatedAt = updatedAt;
+    // This appears to be the only way to override the updatedAt field in sequelize
+    await sequelize.query("UPDATE documents SET \"updatedAt\" = :date WHERE id = :id", { replacements: { date: updatedAt.toISOString(), id: document.id }});
+  }
 
-  const changed = document.changed();
-  const eventData = done !== undefined ? { done } : undefined;
+  const changed = document.changed()
+  const eventData = (updatedAt !== undefined) ? { source: "import", ...(done !== undefined ? { done } : {}) } : done !== undefined ? { done } : undefined;
 
   const event = {
     name: "documents.update",
@@ -111,7 +123,13 @@ export default async function documentUpdater(
   } else if (changed) {
     document.lastModifiedById = user.id;
     document.updatedBy = user;
-    await document.saveWithCtx(ctx, undefined, { data: eventData });
+
+    if (isImport) {
+      await document.save({ silent: !!updatedAt });
+    } else {
+      await document.saveWithCtx(ctx, { silent: !!updatedAt }, { data: eventData });
+    }
+
   } else if (done) {
     await Event.schedule({
       ...event,

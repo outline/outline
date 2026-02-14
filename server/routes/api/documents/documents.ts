@@ -91,6 +91,9 @@ import {
   loadPublicShare,
   getAllIdsInSharedTree,
 } from "@server/commands/shareLoader";
+import revisionCreator from "@server/commands/revisionCreator";
+import type { DocumentEvent, RevisionEvent } from "@server/types";
+import { AuthenticationType } from "@server/types";
 
 const router = new Router();
 
@@ -1338,6 +1341,61 @@ router.post(
       collectionId,
       insightsEnabled,
       editorVersion,
+    });
+
+    ctx.body = {
+      data: await presentDocument(ctx, document),
+      policies: presentPolicies(user, [document]),
+    };
+  }
+);
+
+router.post(
+  "revisions.create",
+  auth(),
+  validate(T.DocumentsUpdateSchema),
+  transaction(),
+  async (ctx: APIContext<T.DocumentsUpdateReq>) => {
+    const { transaction } = ctx.state;
+    const { id, insightsEnabled, publish, collectionId,  updatedAt, ...input } =
+      ctx.input.body;
+    const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
+
+    const { user } = ctx.state.auth;
+    let collection: Collection | null | undefined;
+
+    let document = await Document.findByPk(id, {
+      userId: user.id,
+      includeState: true,
+      transaction,
+    });
+    collection = document?.collection;
+    authorize(user, "update", document);
+
+    if (collection && insightsEnabled !== undefined) {
+      authorize(user, "updateInsights", document);
+    }
+
+    document = await documentUpdater(ctx, {
+      document,
+      ...input,
+      publish,
+      collectionId,
+      insightsEnabled,
+      editorVersion,
+      updatedAt,
+      isImport: true, // skip creating additional 'documents.update' events
+    });
+
+    // force instant creation of revision instead of delaying/debouncing/processing
+    const revision = await revisionCreator({
+      // Note this event is not created
+      event: {
+        name: "documents.update",
+        authType: AuthenticationType.API,
+      } as DocumentEvent,
+      document,
+      user,
     });
 
     ctx.body = {

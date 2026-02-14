@@ -285,6 +285,14 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
 
     /** Whether the editing session is complete */
     done: z.boolean().optional(),
+
+    /** Optionally set the updated date in the past */
+    updatedAt: z.coerce
+      .date()
+      .optional()
+      .refine((data) => !data || data < new Date(), {
+        message: "updatedAt must be in the past",
+      }),
   }),
 })
   .refine(
