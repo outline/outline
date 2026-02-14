@@ -31,6 +31,7 @@ type Props = Optional<
 > & {
   state?: Buffer;
   publish?: boolean;
+  index?: number;
   templateDocument?: Document | null;
 };
 
@@ -45,6 +46,7 @@ export default async function documentCreator(
     id,
     urlId,
     publish,
+    index,
     collectionId,
     parentDocumentId,
     content,
@@ -152,6 +154,7 @@ export default async function documentCreator(
     await document.publish(ctx, {
       collectionId,
       silent: true,
+      index,
       event: !!document.title,
       data: eventData,
     });

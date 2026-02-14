@@ -1001,11 +1001,13 @@ class Document extends ArchivableModel<
   publish = async (
     ctx: APIContext,
     {
+      index = 0,
       collectionId,
       silent = false,
       event = true,
       data,
     }: {
+      index?: number;
       collectionId: string | null | undefined;
       silent?: boolean;
       event?: boolean;
@@ -1037,7 +1039,7 @@ class Document extends ArchivableModel<
       });
 
       if (collection) {
-        await collection.addDocumentToStructure(this, 0, { transaction });
+        await collection.addDocumentToStructure(this, index, { transaction });
         if (this.collection) {
           this.collection.documentStructure = collection.documentStructure;
         }
