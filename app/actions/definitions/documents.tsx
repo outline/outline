@@ -70,6 +70,7 @@ import {
   homePath,
   newDocumentPath,
   newNestedDocumentPath,
+  newSiblingDocumentPath,
   searchPath,
   documentPath,
   urlify,
@@ -78,7 +79,12 @@ import {
 } from "~/utils/routeHelpers";
 import capitalize from "lodash/capitalize";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
-import type { Action, ActionGroup, ActionSeparator } from "~/types";
+import type {
+  Action,
+  ActionContext,
+  ActionGroup,
+  ActionSeparator,
+} from "~/types";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 import env from "~/env";
 
@@ -247,12 +253,41 @@ export const createDocumentFromTemplate = createInternalLinkAction({
   },
 });
 
+/**
+ * Finds the index of a document among its siblings in the collection tree.
+ *
+ * @param stores - the root stores.
+ * @param document - the document to find the index of.
+ * @returns the index of the document among its siblings, or -1 if not found.
+ */
+function findDocumentSiblingIndex(
+  stores: ActionContext["stores"],
+  document: {
+    id: string;
+    collectionId?: string | null;
+    parentDocumentId?: string;
+  }
+): number {
+  if (!document.collectionId) {
+    return -1;
+  }
+  const collection = stores.collections.get(document.collectionId);
+  if (!collection) {
+    return -1;
+  }
+
+  const siblings = document.parentDocumentId
+    ? collection.getChildrenForDocument(document.parentDocumentId)
+    : collection.sortedDocuments;
+
+  return siblings?.findIndex((node) => node.id === document.id) ?? -1;
+}
+
 export const createNestedDocument = createInternalLinkAction({
-  name: ({ t }) => t("New nested document"),
+  name: ({ t }) => t("Nested document"),
   analyticsName: "New document",
   section: ActiveDocumentSection,
-  icon: <NewDocumentIcon />,
-  keywords: "create",
+  keywords: "create nested",
   visible: ({ currentTeamId, activeDocumentId, stores }) =>
     !!currentTeamId &&
     !!activeDocumentId &&
@@ -268,6 +303,93 @@ export const createNestedDocument = createInternalLinkAction({
       state: { sidebarContext },
     };
   },
+});
+
+const createDocumentBefore = createInternalLinkAction({
+  name: ({ t }) => t("Before"),
+  analyticsName: "New document before",
+  section: ActiveDocumentSection,
+  keywords: "create before",
+  visible: ({ currentTeamId, activeDocumentId, stores }) => {
+    if (!currentTeamId || !activeDocumentId) {
+      return false;
+    }
+    const document = stores.documents.get(activeDocumentId);
+    return (
+      !!document?.collectionId &&
+      stores.policies.abilities(currentTeamId).createDocument
+    );
+  },
+  to: ({ activeDocumentId, stores, sidebarContext }) => {
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+    if (!document) {
+      return "";
+    }
+
+    const index = findDocumentSiblingIndex(stores, document);
+    const [pathname, search] = newSiblingDocumentPath({
+      collectionId: document.collectionId,
+      parentDocumentId: document.parentDocumentId,
+      index: Math.max(0, index),
+    }).split("?");
+
+    return {
+      pathname,
+      search,
+      state: { sidebarContext },
+    };
+  },
+});
+
+const createDocumentAfter = createInternalLinkAction({
+  name: ({ t }) => t("After"),
+  analyticsName: "New document after",
+  section: ActiveDocumentSection,
+  keywords: "create after",
+  visible: ({ currentTeamId, activeDocumentId, stores }) => {
+    if (!currentTeamId || !activeDocumentId) {
+      return false;
+    }
+    const document = stores.documents.get(activeDocumentId);
+    return (
+      !!document?.collectionId &&
+      stores.policies.abilities(currentTeamId).createDocument
+    );
+  },
+  to: ({ activeDocumentId, stores, sidebarContext }) => {
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+    if (!document) {
+      return "";
+    }
+
+    const index = findDocumentSiblingIndex(stores, document);
+    const [pathname, search] = newSiblingDocumentPath({
+      collectionId: document.collectionId,
+      parentDocumentId: document.parentDocumentId,
+      index: index + 1,
+    }).split("?");
+
+    return {
+      pathname,
+      search,
+      state: { sidebarContext },
+    };
+  },
+});
+
+export const createNewDocument = createActionWithChildren({
+  name: ({ t }) => t("New document"),
+  analyticsName: "New document",
+  section: ActiveDocumentSection,
+  icon: <NewDocumentIcon />,
+  keywords: "create",
+  visible: ({ currentTeamId, stores }) =>
+    !!currentTeamId && stores.policies.abilities(currentTeamId).createDocument,
+  children: [createDocumentBefore, createDocumentAfter, createNestedDocument],
 });
 
 export const starDocument = createAction({
@@ -1456,6 +1578,7 @@ export const rootDocumentActions = [
   archiveDocument,
   createDocument,
   createDraftDocument,
+  createNewDocument,
   createNestedDocument,
   createTemplateFromDocument,
   deleteDocument,

@@ -403,6 +403,9 @@ export const DocumentsCreateSchema = BaseSchema.extend({
     /** Collection to create document within  */
     collectionId: z.string().uuid().nullish(),
 
+    /** Index to create the document at within the collection */
+    index: z.number().optional(),
+
     /** Parent document to create within */
     parentDocumentId: z.string().uuid().nullish(),
 
