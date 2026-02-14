@@ -20,13 +20,22 @@ export default class ExportJSONTask extends ExportTask {
     fileOperation: FileOperation
   ) {
     const zip = new JSZip();
+    const usedFilenames = new Set<string>();
 
     // serial to avoid overloading, slow and steady wins the race
     for (const collection of collections) {
+      let filename = serializeFilename(collection.name);
+      let i = 0;
+      while (usedFilenames.has(filename)) {
+        filename = `${serializeFilename(collection.name)} (${++i})`;
+      }
+      usedFilenames.add(filename);
+
       await this.addCollectionToArchive(
         zip,
         collection,
-        fileOperation.options?.includeAttachments ?? true
+        fileOperation.options?.includeAttachments ?? true,
+        filename
       );
     }
 
@@ -57,7 +66,8 @@ export default class ExportJSONTask extends ExportTask {
   private async addCollectionToArchive(
     zip: JSZip,
     collection: Collection,
-    includeAttachments: boolean
+    includeAttachments: boolean,
+    filename: string
   ) {
     const output: CollectionJSONExport = {
       collection: {
@@ -167,7 +177,7 @@ export default class ExportJSONTask extends ExportTask {
     }
 
     zip.file(
-      `${serializeFilename(collection.name)}.json`,
+      `${filename}.json`,
       env.isDevelopment
         ? JSON.stringify(output, null, 2)
         : JSON.stringify(output)
