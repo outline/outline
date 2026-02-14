@@ -1,4 +1,4 @@
-import PostgresSearchProvider from "@server/../plugins/postgres-search/server/PostgresSearchProvider";
+import PostgresSearchProvider from "@server/../plugins/search-postgres/server/PostgresSearchProvider";
 import SearchProviderManager from "./SearchProviderManager";
 
 beforeEach(() => {

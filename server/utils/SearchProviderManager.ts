@@ -1,5 +1,5 @@
-// Ensure the default postgres-search provider is always registered
-import "@server/../plugins/postgres-search/server";
+// Ensure the default search-postgres provider is always registered
+import "@server/../plugins/search-postgres/server";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import type BaseSearchProvider from "./BaseSearchProvider";
