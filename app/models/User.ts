@@ -247,6 +247,7 @@ class User extends ParanoidModel implements Searchable {
    * @param key The UserPreference key to retrieve
    * @param value The value to set
    */
+  @action
   setPreference<K extends UserPreference>(
     key: K,
     value: NonNullable<UserPreferences[K]>
