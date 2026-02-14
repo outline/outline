@@ -81,8 +81,12 @@ export default function markdownItAlphaLists(md: MarkdownIt): void {
           if (itemToken.type === "list_item_open" && itemToken.map) {
             const itemLine = itemToken.map[0];
 
-            // Find the marker for this line or any nearby line (to handle blank lines)
-            for (let offset = 0; offset <= 2; offset++) {
+            // Find the marker for this line or nearby lines.
+            // We check up to 2 lines back to handle cases where markdown-it's
+            // line mapping differs slightly from our preprocessing due to blank
+            // lines or formatting differences in list item content.
+            const MAX_LINE_OFFSET = 2;
+            for (let offset = 0; offset <= MAX_LINE_OFFSET; offset++) {
               const checkLine = itemLine - offset;
               const marker = lineToMarkerMap.get(checkLine);
 
