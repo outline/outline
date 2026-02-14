@@ -120,14 +120,6 @@ function KeyboardShortcuts({ defaultQuery = "" }: Props) {
           {
             shortcut: (
               <>
-                <Key symbol>{metaDisplay}</Key> + <Key>s</Key>
-              </>
-            ),
-            label: t("Save document"),
-          },
-          {
-            shortcut: (
-              <>
                 <Key symbol>{isMac ? metaDisplay : "⇧"}</Key> + <Key>Esc</Key>
               </>
             ),

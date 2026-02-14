@@ -15,6 +15,7 @@ import EditableTitle from "~/components/EditableTitle";
 import Fade from "~/components/Fade";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import NudeButton from "~/components/NudeButton";
+import Tooltip from "~/components/Tooltip";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
@@ -166,17 +167,18 @@ const CollectionLink: React.FC<Props> = ({
               !isDraggingAnyCollection && (
                 <Fade>
                   {can.createDocument && (
-                    <NudeButton
-                      tooltip={{ content: t("New doc"), delay: 500 }}
-                      aria-label={t("New nested document")}
-                      onClick={(ev) => {
-                        ev.preventDefault();
-                        setIsAddingNewChild();
-                        handleExpand();
-                      }}
-                    >
-                      <PlusIcon />
-                    </NudeButton>
+                    <Tooltip content={t("New doc")} delay={500}>
+                      <NudeButton
+                        aria-label={t("New nested document")}
+                        onClick={(ev) => {
+                          ev.preventDefault();
+                          setIsAddingNewChild();
+                          handleExpand();
+                        }}
+                      >
+                        <PlusIcon />
+                      </NudeButton>
+                    </Tooltip>
                   )}
                   <CollectionMenu
                     collection={collection}
