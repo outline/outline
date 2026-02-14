@@ -197,6 +197,7 @@
   "Collections are used to group documents and choose permissions": "Collections are used to group documents and choose permissions",
   "Name": "Name",
   "The default access for workspace members, you can share with more users or groups later.": "The default access for workspace members, you can share with more users or groups later.",
+  "Advanced options": "Advanced options",
   "Public document sharing": "Public document sharing",
   "Allow documents within this collection to be shared publicly on the internet.": "Allow documents within this collection to be shared publicly on the internet.",
   "Commenting": "Commenting",
