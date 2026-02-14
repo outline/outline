@@ -117,18 +117,6 @@ export class PluginManager {
   }
 
   /**
-   * Returns all already-registered plugins of a given type without triggering
-   * plugin loading from disk. Useful when the caller has already ensured the
-   * needed plugin is imported.
-   *
-   * @param type - the type of plugin to filter by.
-   * @returns a list of plugins.
-   */
-  public static getRegisteredHooks<T extends Hook>(type: T) {
-    return sortBy(this.plugins.get(type) || [], "priority") as Plugin<T>[];
-  }
-
-  /**
    * Load plugin server components (anything in the `/server/` directory of a plugin will be loaded)
    */
   public static loadPlugins() {
@@ -140,7 +128,14 @@ export class PluginManager {
     glob
       .sync(path.join(rootDir, "plugins/*/server/!(*.test|schema).[jt]s"))
       .forEach((filePath: string) => {
-        require(path.join(process.cwd(), filePath));
+        try {
+          require(path.join(process.cwd(), filePath));
+        } catch (err) {
+          Logger.debug(
+            "plugins",
+            `Failed to load plugin from ${filePath}: ${err}`
+          );
+        }
       });
     this.loaded = true;
   }

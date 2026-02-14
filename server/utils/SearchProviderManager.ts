@@ -1,5 +1,3 @@
-// Ensure the default search-postgres provider is always registered
-import "@server/../plugins/search-postgres/server";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import type BaseSearchProvider from "./BaseSearchProvider";
@@ -25,10 +23,7 @@ export default class SearchProviderManager {
     }
 
     const providerId = env.SEARCH_PROVIDER;
-
-    // Use getRegisteredHooks to avoid triggering loadPlugins which may load
-    // plugins with missing optional dependencies in test environments.
-    const plugins = PluginManager.getRegisteredHooks(Hook.SearchProvider);
+    const plugins = PluginManager.getHooks(Hook.SearchProvider);
 
     for (const plugin of plugins) {
       if (plugin.value.id === providerId) {
