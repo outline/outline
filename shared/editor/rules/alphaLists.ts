@@ -8,22 +8,20 @@ import type MarkdownIt from "markdown-it";
  * while preserving marker information in the token attributes.
  */
 export default function markdownItAlphaLists(md: MarkdownIt): void {
-  // Store marker information during preprocessing
-  const markerInfo = new WeakMap<any, { markup: string; listStyle: string }>();
-
   // Preprocess the source to convert alpha markers to numbers
   md.core.ruler.before("normalize", "alpha_lists_preprocess", (state) => {
     const lines = state.src.split("\n");
     const processedLines: string[] = [];
     const lineMarkers: Array<{
-      line: number;
+      lineIndex: number;
       marker: string;
       listStyle: string;
     }> = [];
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
-      const match = line.match(/^(\s*)([a-zA-Z])\.\s(.*)$/);
+      // Match alphabetic list markers with at least one space after the period
+      const match = line.match(/^(\s*)([a-zA-Z])\.\s+(.*)$/);
 
       if (match) {
         const indent = match[1];
@@ -35,14 +33,18 @@ export default function markdownItAlphaLists(md: MarkdownIt): void {
           : letter.charCodeAt(0) - 64; // A=1, B=2
         const listStyle = isLowercase ? "lower-alpha" : "upper-alpha";
 
-        lineMarkers.push({ line: processedLines.length, marker: letter, listStyle });
+        lineMarkers.push({
+          lineIndex: processedLines.length,
+          marker: letter,
+          listStyle,
+        });
         processedLines.push(`${indent}${num}. ${content}`);
       } else {
         processedLines.push(line);
       }
     }
 
-    // Store marker info for later
+    // Store marker info for later, including line mapping
     if (lineMarkers.length > 0) {
       state.env.alphaListMarkers = lineMarkers;
     }
@@ -57,22 +59,56 @@ export default function markdownItAlphaLists(md: MarkdownIt): void {
     }
 
     const markers = state.env.alphaListMarkers;
-    let markerIndex = 0;
+
+    // Build a map of line numbers to markers for more reliable matching
+    const lineToMarkerMap = new Map<number, typeof markers[0]>();
+    for (const marker of markers) {
+      lineToMarkerMap.set(marker.lineIndex, marker);
+    }
+
+    // Track which markers we've used to handle multiple lists correctly
+    const usedMarkers = new Set<number>();
 
     for (let i = 0; i < state.tokens.length; i++) {
       const token = state.tokens[i];
 
-      // Find ordered_list_open tokens
-      if (token.type === "ordered_list_open" && markerIndex < markers.length) {
-        const marker = markers[markerIndex];
+      // Find ordered_list_open tokens and match them with the first list item
+      if (token.type === "ordered_list_open") {
+        // Look ahead to find the first list_item_open token
+        for (let j = i + 1; j < state.tokens.length; j++) {
+          const itemToken = state.tokens[j];
 
-        // Set the markup to the original letter marker
-        token.markup = marker.marker;
+          if (itemToken.type === "list_item_open" && itemToken.map) {
+            const itemLine = itemToken.map[0];
 
-        // Add an attribute to indicate this was an alphabetic list
-        token.attrSet("data-list-style", marker.listStyle);
+            // Find the marker for this line or any nearby line (to handle blank lines)
+            for (let offset = 0; offset <= 2; offset++) {
+              const checkLine = itemLine - offset;
+              const marker = lineToMarkerMap.get(checkLine);
 
-        markerIndex++;
+              if (marker && !usedMarkers.has(marker.lineIndex)) {
+                // Set the markup to the original letter marker
+                token.markup = marker.marker;
+
+                // Add an attribute to indicate this was an alphabetic list
+                token.attrSet("data-list-style", marker.listStyle);
+
+                // Mark this marker as used
+                usedMarkers.add(marker.lineIndex);
+                break;
+              }
+            }
+            break;
+          }
+
+          // Stop if we hit another list or go too far
+          if (
+            itemToken.type === "ordered_list_open" ||
+            itemToken.type === "bullet_list_open"
+          ) {
+            break;
+          }
+        }
       }
     }
 

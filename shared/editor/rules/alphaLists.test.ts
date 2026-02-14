@@ -51,4 +51,25 @@ b. Do that.`;
     const listItems = result.filter((t) => t.type === "list_item_open");
     expect(listItems.length).toBe(2);
   });
+
+  it("should handle multiple separate alpha lists", () => {
+    const md = markdownit().use(alphaListsRule);
+    const text = `a. First list item
+
+b. Second list item
+
+Some text in between
+
+A. Upper list item
+
+B. Upper list item 2`;
+
+    const result = md.parse(text, {});
+
+    // Check that we have two ordered lists
+    const listTokens = result.filter((t) => t.type === "ordered_list_open");
+    expect(listTokens.length).toBe(2);
+    expect(listTokens[0]?.attrGet("data-list-style")).toBe("lower-alpha");
+    expect(listTokens[1]?.attrGet("data-list-style")).toBe("upper-alpha");
+  });
 });
