@@ -266,7 +266,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
       <>
         {paragraphs ? (
           <EditorContainer
-            rtl={props.dir === "rtl"}
+            $rtl={props.dir === "rtl"}
             grow={props.grow}
             style={props.style}
             editorStyle={props.editorStyle}
