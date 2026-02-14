@@ -230,13 +230,21 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
     format: FileOperationFormat
   ) {
     const map = new Map<string, string>();
+    const usedRoots = new Set<string>();
 
     for (const collection of collections) {
       if (collection.documentStructure) {
+        let root = serializeFilename(collection.name);
+        let i = 0;
+        while (usedRoots.has(root)) {
+          root = `${serializeFilename(collection.name)} (${++i})`;
+        }
+        usedRoots.add(root);
+
         this.addDocumentTreeToPathMap(
           map,
           collection.documentStructure,
-          serializeFilename(collection.name),
+          root,
           format
         );
       }
