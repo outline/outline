@@ -10,6 +10,7 @@ import type BaseProcessor from "@server/queues/processors/BaseProcessor";
 import type { BaseTask } from "@server/queues/tasks/base/BaseTask";
 import type { UnfurlSignature, UninstallSignature } from "@server/types";
 import type { BaseIssueProvider } from "./BaseIssueProvider";
+import type BaseSearchProvider from "./BaseSearchProvider";
 
 export enum PluginPriority {
   VeryHigh = 0,
@@ -28,6 +29,7 @@ export enum Hook {
   EmailTemplate = "emailTemplate",
   IssueProvider = "issueProvider",
   Processor = "processor",
+  SearchProvider = "searchProvider",
   Task = "task",
   UnfurlProvider = "unfurl",
   Uninstall = "uninstall",
@@ -43,6 +45,7 @@ type PluginValueMap = {
   [Hook.EmailTemplate]: typeof BaseEmail<any>;
   [Hook.IssueProvider]: BaseIssueProvider;
   [Hook.Processor]: typeof BaseProcessor;
+  [Hook.SearchProvider]: BaseSearchProvider;
   [Hook.Task]: typeof BaseTask<any>;
   [Hook.Uninstall]: UninstallSignature;
   [Hook.UnfurlProvider]: { unfurl: UnfurlSignature; cacheExpiry: number };
@@ -103,12 +106,25 @@ export class PluginManager {
 
   /**
    * Returns all the plugins of a given type in order of priority.
+   * Triggers loading of all plugins from disk if not already loaded.
    *
-   * @param type The type of plugin to filter by
-   * @returns A list of plugins
+   * @param type - the type of plugin to filter by.
+   * @returns a list of plugins.
    */
   public static getHooks<T extends Hook>(type: T) {
     this.loadPlugins();
+    return sortBy(this.plugins.get(type) || [], "priority") as Plugin<T>[];
+  }
+
+  /**
+   * Returns all already-registered plugins of a given type without triggering
+   * plugin loading from disk. Useful when the caller has already ensured the
+   * needed plugin is imported.
+   *
+   * @param type - the type of plugin to filter by.
+   * @returns a list of plugins.
+   */
+  public static getRegisteredHooks<T extends Hook>(type: T) {
     return sortBy(this.plugins.get(type) || [], "priority") as Plugin<T>[];
   }
 

@@ -762,6 +762,14 @@ export class Environment {
   );
 
   /**
+   * The search provider to use. Defaults to "postgres" which uses PostgreSQL
+   * full-text search. Alternative providers can be registered via plugins.
+   */
+  @IsOptional()
+  public SEARCH_PROVIDER =
+    this.toOptionalString(environment.SEARCH_PROVIDER) ?? "postgres";
+
+  /**
    * The product name
    */
   @Public

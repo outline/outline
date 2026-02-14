@@ -5,7 +5,7 @@ import { StatusFilter } from "@shared/types";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
 import { Group, User } from "@server/models";
-import SearchHelper from "@server/models/helpers/SearchHelper";
+import SearchProviderManager from "@server/utils/SearchProviderManager";
 import { can } from "@server/policies";
 import { presentDocument, presentGroup, presentUser } from "@server/presenters";
 import type { APIContext } from "@server/types";
@@ -25,7 +25,7 @@ router.post(
     const actor = ctx.state.auth.user;
 
     const [documents, users, groups, collections] = await Promise.all([
-      SearchHelper.searchTitlesForUser(actor, {
+      SearchProviderManager.getProvider().searchTitlesForUser(actor, {
         query,
         offset,
         limit,
@@ -70,7 +70,7 @@ router.post(
         offset,
         limit,
       }),
-      SearchHelper.searchCollectionsForUser(actor, { query, offset, limit }),
+      SearchProviderManager.getProvider().searchCollectionsForUser(actor, { query, offset, limit }),
     ]);
 
     ctx.body = {
