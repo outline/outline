@@ -1013,7 +1013,7 @@ export const importDocument = createAction({
 
     return false;
   },
-  perform: ({ activeDocumentId, activeCollectionId, stores }) => {
+  perform: ({ t, activeDocumentId, activeCollectionId, stores }) => {
     const { documents } = stores;
     const input = document.createElement("input");
     input.type = "file";
@@ -1022,6 +1022,7 @@ export const importDocument = createAction({
     input.onchange = async (ev) => {
       const files = getEventFiles(ev);
       const file = files[0];
+      const toastId = toast.loading(`${t("Uploading")}…`);
 
       try {
         const document = await documents.import(
@@ -1035,6 +1036,8 @@ export const importDocument = createAction({
         history.push(document.url);
       } catch (err) {
         toast.error(err.message);
+      } finally {
+        toast.dismiss(toastId);
       }
     };
 
