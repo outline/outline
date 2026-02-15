@@ -20,6 +20,7 @@ import oauthErrorHandler from "./middlewares/oauthErrorHandler";
 import registrationAuth from "./middlewares/registrationAuth";
 import * as T from "./schema";
 import { verifyCSRFToken } from "@server/middlewares/csrf";
+import Logger from "@server/logging/Logger";
 
 const app = new Koa();
 const router = new Router();
@@ -172,6 +173,7 @@ router.post(
       token_endpoint_auth_method,
       client_uri,
       logo_uri,
+      contacts,
     } = ctx.input.body;
 
     const team = await getTeamFromContext(ctx, {
@@ -197,20 +199,22 @@ router.post(
       createdById: null,
     });
 
+    Logger.info("authentication", "OAuth client registered", {
+      clientId: client.clientId,
+      redirectUris: client.redirectUris,
+      teamId: team.id,
+      contacts,
+    });
+
     ctx.status = 201;
     ctx.body = presentDCRClient(client);
   }
 );
 
-router.get(
-  "/register/:clientId",
-  rateLimiter(RateLimiterStrategy.TenPerHour),
-  registrationAuth(),
-  async (ctx) => {
-    const client: OAuthClient = ctx.state.oauthClient;
-    ctx.body = presentDCRClient(client);
-  }
-);
+router.get("/register/:clientId", registrationAuth(), async (ctx) => {
+  const client: OAuthClient = ctx.state.oauthClient;
+  ctx.body = presentDCRClient(client);
+});
 
 router.put(
   "/register/:clientId",
@@ -219,22 +223,10 @@ router.put(
   validate(T.RegisterUpdateSchema),
   async (ctx: APIContext<T.RegisterUpdateReq>) => {
     const client: OAuthClient = ctx.state.oauthClient;
-    const {
-      client_name,
-      redirect_uris,
-      token_endpoint_auth_method,
-      client_uri,
-      logo_uri,
-    } = ctx.input.body;
-
-    const clientType =
-      token_endpoint_auth_method === "client_secret_post"
-        ? "confidential"
-        : "public";
+    const { client_name, redirect_uris, client_uri, logo_uri } = ctx.input.body;
 
     client.name = client_name;
     client.redirectUris = redirect_uris;
-    client.clientType = clientType;
     client.developerUrl = client_uri ?? null;
     client.avatarUrl = logo_uri ?? null;
 

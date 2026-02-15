@@ -57,14 +57,6 @@ export const RegisterUpdateSchema = BaseSchema.extend({
   body: z.object({
     client_name: z.string().min(1).max(OAuthClientValidation.maxNameLength),
     redirect_uris: z.array(z.string().url()).min(1).max(10),
-    grant_types: z
-      .array(z.enum(["authorization_code"]))
-      .default(["authorization_code"]),
-    response_types: z.array(z.enum(["code"])).default(["code"]),
-    token_endpoint_auth_method: z
-      .enum(["none", "client_secret_post"])
-      .default("none"),
-    scope: z.string().optional(),
     client_uri: z
       .string()
       .url()
@@ -75,7 +67,6 @@ export const RegisterUpdateSchema = BaseSchema.extend({
       .url()
       .max(OAuthClientValidation.maxAvatarUrlLength)
       .optional(),
-    contacts: z.array(z.string()).optional(),
   }),
 });
 

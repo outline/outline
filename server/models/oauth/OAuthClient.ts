@@ -158,6 +158,16 @@ class OAuthClient extends ParanoidModel<
     this.registrationAccessTokenHash = hash(token);
   }
 
+  /**
+   * Determine if this client was created through dynamic client registration (DCR).
+   * DCR clients are identified by having a null `createdById`, meaning they were not created by any user.
+   *
+   * @returns true if this client is a DCR client, false otherwise.
+   */
+  public get isDCR() {
+    return !this.createdById;
+  }
+
   // hooks
 
   @BeforeCreate
@@ -165,9 +175,11 @@ class OAuthClient extends ParanoidModel<
     model.clientId = OAuthClient.generateNewClientId();
     model.clientSecret = OAuthClient.generateNewClientSecret();
 
-    const token = OAuthClient.generateNewRegistrationAccessToken();
-    model.registrationAccessToken = token;
-    model.registrationAccessTokenHash = hash(token);
+    if (model.isDCR) {
+      const token = OAuthClient.generateNewRegistrationAccessToken();
+      model.registrationAccessToken = token;
+      model.registrationAccessTokenHash = hash(token);
+    }
   }
 
   // static methods
