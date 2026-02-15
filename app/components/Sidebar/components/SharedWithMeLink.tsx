@@ -170,7 +170,7 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
                       NotificationEventType.AddUserToDocument
                   ).length > 0
                 }
-                showActions={menuOpen}
+                $showActions={menuOpen}
                 menu={
                   document && !isDragging ? (
                     <Fade>

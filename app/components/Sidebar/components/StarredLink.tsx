@@ -124,7 +124,7 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
           ) => !!match && location.state?.sidebarContext === sidebarContext}
           label={label}
           exact={false}
-          showActions={menuOpen}
+          $showActions={menuOpen}
           menu={
             document && !isDragging ? (
               <Fade>

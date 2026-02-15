@@ -40,7 +40,7 @@ type Props = Omit<NavLinkProps, "to"> & {
   /** Whether to show an unread badge indicator */
   unreadBadge?: boolean;
   /** Whether to show action buttons on hover */
-  showActions?: boolean;
+  $showActions?: boolean;
   /** Whether the link is disabled and non-interactive */
   disabled?: boolean;
   /** Whether the link is currently active */
@@ -81,7 +81,7 @@ function SidebarLink(
     isActiveDrop,
     isDraft,
     menu,
-    showActions,
+    $showActions,
     exact,
     href,
     depth,
@@ -183,7 +183,7 @@ function SidebarLink(
           {unreadBadge && <UnreadBadge style={unreadStyle} />}
         </Content>
       </ContextMenu>
-      {menu && <Actions showActions={showActions}>{menu}</Actions>}
+      {menu && <Actions $showActions={$showActions}>{menu}</Actions>}
     </Link>
   );
 }
@@ -205,9 +205,9 @@ const Content = styled.span`
   min-width: 0;
 `;
 
-const Actions = styled(EventBoundary)<{ showActions?: boolean }>`
+const Actions = styled(EventBoundary)<{ $showActions?: boolean }>`
   display: inline-flex;
-  visibility: ${(props) => (props.showActions ? "visible" : "hidden")};
+  visibility: ${(props) => (props.$showActions ? "visible" : "hidden")};
   position: absolute;
   top: 3px;
   right: 4px;
