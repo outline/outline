@@ -1,4 +1,5 @@
 import compact from "lodash/compact";
+import { observer } from "mobx-react";
 import { useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import Text from "@shared/components/Text";
@@ -28,7 +29,7 @@ type Props = Omit<TableProps<User>, "columns" | "rowHeight"> & {
   canManage: boolean;
 };
 
-function UserRowContextMenu({
+const UserRowContextMenu = observer(function UserRowContextMenu({
   user,
   menuLabel,
   children,
@@ -43,7 +44,7 @@ function UserRowContextMenu({
       {children}
     </ContextMenu>
   );
-}
+});
 
 export function MembersTable({ canManage, ...rest }: Props) {
   const { t } = useTranslation();

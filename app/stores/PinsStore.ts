@@ -75,9 +75,7 @@ export default class PinsStore extends Store<Pin> {
   };
 
   inCollection = (collectionId: string) =>
-    computed(() => this.orderedData)
-      .get()
-      .filter((pin) => pin.collectionId === collectionId);
+    this.orderedData.filter((pin) => pin.collectionId === collectionId);
 
   @computed
   get home() {

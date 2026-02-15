@@ -234,7 +234,13 @@ function Table<TData>({
               </TR>
             );
 
-            return decorateRow ? decorateRow(row.original, baseRow) : baseRow;
+            return decorateRow ? (
+              <React.Fragment key={row.id}>
+                {decorateRow(row.original, baseRow)}
+              </React.Fragment>
+            ) : (
+              baseRow
+            );
           })}
         </TBody>
         {showPlaceholder && (

@@ -1,4 +1,5 @@
 import { GoToIcon } from "outline-icons";
+import { observer } from "mobx-react";
 import * as React from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
@@ -121,4 +122,4 @@ const Item = styled(Link)<{ $highlight: boolean; $withIcon: boolean }>`
   }
 `;
 
-export default React.forwardRef<HTMLDivElement, Props>(Breadcrumb);
+export default observer(React.forwardRef<HTMLDivElement, Props>(Breadcrumb));

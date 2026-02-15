@@ -1,3 +1,4 @@
+import { observer } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
 import useBoolean from "~/hooks/useBoolean";
@@ -109,4 +110,4 @@ const Image = styled.img<{ size: number }>`
   height: ${(props) => props.size}px;
 `;
 
-export default Avatar;
+export default observer(Avatar);
