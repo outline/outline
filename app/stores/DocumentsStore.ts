@@ -6,6 +6,7 @@ import orderBy from "lodash/orderBy";
 import { observable, action, computed, runInAction } from "mobx";
 import type { DirectionFilter, SortFilter } from "@shared/types";
 import {
+  AttachmentPreset,
   SubscriptionType,
   type DateFilter,
   type StatusFilter,
@@ -24,7 +25,7 @@ import type {
   SearchResult,
 } from "~/types";
 import { client } from "~/utils/ApiClient";
-import { extname } from "~/utils/files";
+import { extname, uploadFile } from "~/utils/files";
 
 type FetchPageParams = PaginationParams & {
   template?: boolean;
@@ -601,45 +602,23 @@ export default class DocumentsStore extends Store<Document> {
       );
     }
 
-    const title = file.name.replace(/\.[^/.]+$/, "");
-    const formData = new FormData();
-    [
-      {
-        key: "parentDocumentId",
-        value: parentDocumentId,
-      },
-      {
-        key: "collectionId",
-        value: collectionId,
-      },
-      {
-        key: "title",
-        value: title,
-      },
-      {
-        key: "publish",
-        value: options.publish,
-      },
-      {
-        key: "file",
-        value: file,
-      },
-    ].forEach((info) => {
-      if (typeof info.value === "string" && info.value) {
-        formData.append(info.key, info.value);
-      }
-
-      if (typeof info.value === "boolean") {
-        formData.append(info.key, info.value.toString());
-      }
-
-      if (info.value instanceof File) {
-        formData.append(info.key, info.value);
-      }
+    const attachment = await uploadFile(file, {
+      name: file.name,
+      preset: AttachmentPreset.Import,
     });
-    const res = await client.post("/documents.import", formData, {
-      retry: false,
-    });
+
+    const res = await client.post(
+      "/documents.import",
+      {
+        attachmentId: attachment.id,
+        parentDocumentId,
+        collectionId,
+        publish: options.publish,
+      },
+      {
+        retry: false,
+      }
+    );
     invariant(res?.data, "Data should be available");
     this.addPolicies(res.policies);
     return this.add(res.data);
@@ -653,14 +632,14 @@ export default class DocumentsStore extends Store<Document> {
     }
   ) {
     await super.delete(document, options);
-    
+
     // For permanent deletion, we need to actually remove the document from the
     // local store data Map, as the base Store's remove() method only soft-deletes
     // ParanoidModel instances by setting deletedAt.
     if (options?.permanent) {
       this.data.delete(document.id);
     }
-    
+
     // check to see if we have any shares related to this document already
     // loaded in local state. If so we can go ahead and remove those too.
     const share = this.rootStore.shares.getByDocumentId(document.id);
