@@ -28,7 +28,7 @@ type Props = Omit<TableProps<Emoji>, "columns" | "rowHeight"> & {
   canManage: boolean;
 };
 
-function EmojiRowContextMenu({
+const EmojiRowContextMenu = observer(function EmojiRowContextMenu({
   emoji,
   menuLabel,
   children,
@@ -43,7 +43,7 @@ function EmojiRowContextMenu({
       {children}
     </ContextMenu>
   );
-}
+});
 
 const EmojisTable = observer(function EmojisTable({
   canManage,
