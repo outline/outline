@@ -146,6 +146,11 @@ class OAuthAuthentication extends ParanoidModel<
       return true;
     }
 
+    // Special case for the MCP endpoint, which is always allowed
+    if (path.startsWith("/mcp")) {
+      return true;
+    }
+
     return AuthenticationHelper.canAccess(path, this.scope);
   };
 

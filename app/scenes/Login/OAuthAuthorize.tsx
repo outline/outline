@@ -105,7 +105,6 @@ function Authorize() {
     !clientId && "client_id",
     !redirectUri && "redirect_uri",
     !responseType && "response_type",
-    !scope && "scope",
     !state && "state",
   ].filter(Boolean);
 
