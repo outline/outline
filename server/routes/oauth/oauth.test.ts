@@ -159,6 +159,22 @@ describe("#oauth.register", () => {
 
     expect(res.status).toEqual(400);
   });
+
+  it("should return 404 when team is not found for subdomain", async () => {
+    const res = await server.post("/oauth/register", {
+      body: {
+        client_name: "Test Client",
+        redirect_uris: ["https://example.com/callback"],
+        grant_types: ["authorization_code"],
+      },
+      headers: {
+        // Use an invalid subdomain so that no team is found in the context
+        host: `invalid-${subdomain}.outline.dev`,
+      },
+    });
+
+    expect(res.status).toEqual(404);
+  });
 });
 
 /**

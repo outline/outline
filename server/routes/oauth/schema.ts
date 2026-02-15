@@ -47,7 +47,7 @@ export const RegisterSchema = BaseSchema.extend({
       .url()
       .max(OAuthClientValidation.maxAvatarUrlLength)
       .optional(),
-    contacts: z.array(z.string()).optional(),
+    contacts: z.array(z.string().email()).optional(),
   }),
 });
 
