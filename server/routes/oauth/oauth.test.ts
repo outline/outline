@@ -30,7 +30,7 @@ describe("#oauth.register", () => {
     expect(body.client_id).toBeTruthy();
     expect(body.client_secret).toBeUndefined();
     expect(body.client_id_issued_at).toBeGreaterThan(0);
-    expect(body.client_secret_expires_at).toEqual(0);
+    expect(body.client_secret_expires_at).toBeUndefined();
     expect(body.client_name).toEqual("Test MCP Client");
     expect(body.redirect_uris).toEqual(["https://example.com/callback"]);
     expect(body.grant_types).toEqual(["authorization_code"]);
@@ -223,6 +223,43 @@ describe("#oauth.register management (RFC 7592)", () => {
       expect(body.redirect_uris).toEqual(["https://example.com/callback"]);
       // Per RFC 7592 Section 3.1, registration_access_token MUST NOT be included in GET
       expect(body.registration_access_token).toBeUndefined();
+    });
+
+    it("should not include client_secret in read response for confidential clients", async () => {
+      const registered = await registerClient(server, subdomain, {
+        client_name: "Confidential Read Test",
+        token_endpoint_auth_method: "client_secret_post",
+      });
+
+      // Initial registration response should include client_secret
+      expect(registered.client_secret).toBeTruthy();
+
+      const res = await server.get(`/oauth/register/${registered.client_id}`, {
+        headers: {
+          Authorization: `Bearer ${registered.registration_access_token}`,
+        },
+      });
+
+      expect(res.status).toEqual(200);
+      const body = await res.json();
+      // Per RFC 7592 Section 3.1, client_secret SHOULD NOT be included in GET
+      expect(body.client_secret).toBeUndefined();
+      expect(body.client_secret_expires_at).toBeUndefined();
+    });
+
+    it("should not include client_secret in read response for public clients", async () => {
+      const registered = await registerClient(server, subdomain);
+
+      const res = await server.get(`/oauth/register/${registered.client_id}`, {
+        headers: {
+          Authorization: `Bearer ${registered.registration_access_token}`,
+        },
+      });
+
+      expect(res.status).toEqual(200);
+      const body = await res.json();
+      expect(body.client_secret).toBeUndefined();
+      expect(body.client_secret_expires_at).toBeUndefined();
     });
 
     it("should return 401 without authorization header", async () => {

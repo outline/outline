@@ -1,22 +1,37 @@
-import env from "@server/env";
 import type { OAuthClient } from "@server/models";
 
 /**
  * Presents an OAuthClient in RFC 7591 Dynamic Client Registration response format.
  *
+ * @param baseUrl The base URL of the application, used to construct the registration_client_uri.
  * @param oauthClient The OAuth client to present.
- * @param options Options controlling which optional fields to include.
+ * @param options.includeRegistrationAccessToken whether to include the registration access token
+ *   and registration client URI. Should be true for initial registration (POST) and update (PUT)
+ *   responses, but false for read (GET) per RFC 7592 §3.1.
+ * @param options.includeCredentials whether to include `client_secret` and
+ *   `client_secret_expires_at` for confidential clients. Should be true only for initial
+ *   registration (POST) and update (PUT) responses, not for read (GET) per RFC 7592 §3.1.
  * @returns the client registration response.
  */
-export function presentDCRClient(oauthClient: OAuthClient) {
+export function presentDCRClient(
+  baseUrl: string,
+  oauthClient: OAuthClient,
+  {
+    includeRegistrationAccessToken = false,
+    includeCredentials = false,
+  }: {
+    includeRegistrationAccessToken: boolean;
+    includeCredentials?: boolean;
+  }
+) {
   return {
     client_id: oauthClient.clientId,
-    client_secret:
-      oauthClient.clientType === "confidential"
-        ? oauthClient.clientSecret
-        : undefined,
+    ...(includeCredentials &&
+      oauthClient.clientType === "confidential" && {
+        client_secret: oauthClient.clientSecret,
+        client_secret_expires_at: 0,
+      }),
     client_id_issued_at: Math.floor(oauthClient.createdAt.getTime() / 1000),
-    client_secret_expires_at: 0,
     redirect_uris: oauthClient.redirectUris,
     client_name: oauthClient.name,
     grant_types: ["authorization_code"],
@@ -25,9 +40,9 @@ export function presentDCRClient(oauthClient: OAuthClient) {
       oauthClient.clientType === "confidential" ? "client_secret_post" : "none",
     ...(oauthClient.developerUrl && { client_uri: oauthClient.developerUrl }),
     ...(oauthClient.avatarUrl && { logo_uri: oauthClient.avatarUrl }),
-    ...(oauthClient.registrationAccessToken && {
+    ...(includeRegistrationAccessToken && {
       registration_access_token: oauthClient.registrationAccessToken,
-      registration_client_uri: `${env.URL}/oauth/register/${oauthClient.clientId}`,
+      registration_client_uri: `${baseUrl}/oauth/register/${oauthClient.clientId}`,
     }),
   };
 }

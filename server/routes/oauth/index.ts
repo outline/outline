@@ -8,7 +8,7 @@ import { rateLimiter } from "@server/middlewares/rateLimiter";
 import requestTracer from "@server/middlewares/requestTracer";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { OAuthAuthorizationCode, OAuthClient } from "@server/models";
+import { OAuthAuthorizationCode, OAuthClient, Team } from "@server/models";
 import OAuthAuthentication from "@server/models/oauth/OAuthAuthentication";
 import { authorize } from "@server/policies";
 import { presentDCRClient } from "@server/presenters/oauthClient";
@@ -207,13 +207,22 @@ router.post(
     });
 
     ctx.status = 201;
-    ctx.body = presentDCRClient(client);
+    ctx.body = presentDCRClient(team.url, client, {
+      includeRegistrationAccessToken: true,
+      includeCredentials: true,
+    });
   }
 );
 
 router.get("/register/:clientId", registrationAuth(), async (ctx) => {
   const client: OAuthClient = ctx.state.oauthClient;
-  ctx.body = presentDCRClient(client);
+  const team = await Team.findByPk(client.teamId, {
+    rejectOnEmpty: true,
+  });
+
+  ctx.body = presentDCRClient(team.url, client, {
+    includeRegistrationAccessToken: false,
+  });
 });
 
 router.put(
@@ -222,8 +231,12 @@ router.put(
   registrationAuth(),
   validate(T.RegisterUpdateSchema),
   async (ctx: APIContext<T.RegisterUpdateReq>) => {
-    const client: OAuthClient = ctx.state.oauthClient;
+    const client = ctx.state.oauthClient as OAuthClient;
     const { client_name, redirect_uris, client_uri, logo_uri } = ctx.input.body;
+
+    const team = await Team.findByPk(client.teamId, {
+      rejectOnEmpty: true,
+    });
 
     client.name = client_name;
     client.redirectUris = redirect_uris;
@@ -234,7 +247,10 @@ router.put(
     client.rotateRegistrationAccessToken();
     await client.save();
 
-    ctx.body = presentDCRClient(client);
+    ctx.body = presentDCRClient(team.url, client, {
+      includeRegistrationAccessToken: true,
+      includeCredentials: true,
+    });
   }
 );
 
