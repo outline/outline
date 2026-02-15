@@ -186,7 +186,7 @@ async function validateAuthentication(
     if (authentication.accessTokenExpiresAt < new Date()) {
       throw AuthenticationError("Access token is expired");
     }
-    if (!authentication.canAccess(ctx.request.url)) {
+    if (!authentication.canAccess(ctx.originalUrl)) {
       throw AuthenticationError(
         "Access token does not have access to this resource"
       );
@@ -228,7 +228,7 @@ async function validateAuthentication(
       throw AuthenticationError("API key is expired");
     }
 
-    if (!apiKey.canAccess(ctx.request.url)) {
+    if (!apiKey.canAccess(ctx.originalUrl)) {
       throw AuthenticationError(
         "API key does not have access to this resource"
       );

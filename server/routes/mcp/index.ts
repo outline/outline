@@ -45,7 +45,7 @@ function createMcpServer(): McpServer {
 }
 
 router.post(
-  "/mcp",
+  "/",
   rateLimiter(RateLimiterStrategy.OneThousandPerHour),
   auth({ type: AuthenticationType.OAUTH }),
   async (ctx) => {
@@ -65,13 +65,13 @@ router.post(
   }
 );
 
-router.get("/mcp", async (ctx) => {
+router.get("/", async (ctx) => {
   ctx.status = 405;
   ctx.set("Allow", "POST");
   ctx.body = { error: "Method not allowed. Use POST for MCP requests." };
 });
 
-router.delete("/mcp", async (ctx) => {
+router.delete("/", async (ctx) => {
   ctx.status = 405;
   ctx.set("Allow", "POST");
   ctx.body = { error: "Method not allowed. Use POST for MCP requests." };

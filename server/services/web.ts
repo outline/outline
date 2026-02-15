@@ -71,7 +71,7 @@ export default function init(app: Koa = new Koa(), server?: Server) {
   });
 
   app.use(mount("/api", api));
-  app.use(mount(mcp));
+  app.use(mount("/mcp", mcp));
 
   // Generate and attach a CSRF token to the session on non-API requests
   app.use(attachCSRFToken());

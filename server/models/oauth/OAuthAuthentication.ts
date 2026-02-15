@@ -142,7 +142,7 @@ class OAuthAuthentication extends ParanoidModel<
   /** Checks if the authentication has access to the given path */
   canAccess = (path: string) => {
     // Special case for the revoke endpoint, which is always allowed
-    if (path === "/revoke") {
+    if (path === "/oauth/revoke") {
       return true;
     }
 
