@@ -1,6 +1,32 @@
 import type { OAuthClient } from "@server/models";
 
 /**
+ * Presents an OAuthClient in RFC 7591 Dynamic Client Registration response format.
+ *
+ * @param oauthClient The OAuth client to present.
+ * @returns the client registration response.
+ */
+export function presentDCRClient(oauthClient: OAuthClient) {
+  return {
+    client_id: oauthClient.clientId,
+    client_secret:
+      oauthClient.clientType === "confidential"
+        ? oauthClient.clientSecret
+        : undefined,
+    client_id_issued_at: Math.floor(oauthClient.createdAt.getTime() / 1000),
+    client_secret_expires_at: 0,
+    redirect_uris: oauthClient.redirectUris,
+    client_name: oauthClient.name,
+    grant_types: ["authorization_code"],
+    response_types: ["code"],
+    token_endpoint_auth_method:
+      oauthClient.clientType === "confidential" ? "client_secret_post" : "none",
+    ...(oauthClient.developerUrl && { client_uri: oauthClient.developerUrl }),
+    ...(oauthClient.avatarUrl && { logo_uri: oauthClient.avatarUrl }),
+  };
+}
+
+/**
  * Presents the OAuth client to the user, including the client secret.
  * This should ONLY be used for admin users who need to manage the OAuth client.
  *

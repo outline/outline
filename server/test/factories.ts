@@ -745,7 +745,7 @@ export async function buildOAuthClient(overrides: Partial<OAuthClient> = {}) {
     overrides.teamId = team.id;
   }
 
-  if (!overrides.createdById) {
+  if (!overrides.createdById && overrides.createdById !== null) {
     const user = await buildUser({
       teamId: overrides.teamId,
     });

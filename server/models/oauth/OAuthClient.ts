@@ -109,11 +109,12 @@ class OAuthClient extends ParanoidModel<
   teamId: string;
 
   @BelongsTo(() => User, "createdById")
-  createdBy: User;
+  createdBy: User | null;
 
+  @AllowNull
   @ForeignKey(() => User)
   @Column(DataType.UUID)
-  createdById: string;
+  createdById: string | null;
 
   // instance methods
 

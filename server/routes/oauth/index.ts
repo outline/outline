@@ -2,7 +2,7 @@ import OAuth2Server from "@node-oauth/oauth2-server";
 import Koa from "koa";
 import bodyParser from "koa-body";
 import Router from "koa-router";
-import { ValidationError } from "@server/errors";
+import { ValidationError, NotFoundError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import requestTracer from "@server/middlewares/requestTracer";
@@ -11,9 +11,11 @@ import validate from "@server/middlewares/validate";
 import { OAuthAuthorizationCode, OAuthClient } from "@server/models";
 import OAuthAuthentication from "@server/models/oauth/OAuthAuthentication";
 import { authorize } from "@server/policies";
+import { presentDCRClient } from "@server/presenters/oauthClient";
 import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { OAuthInterface } from "@server/utils/oauth/OAuthInterface";
+import { getTeamFromContext } from "@server/utils/passport";
 import oauthErrorHandler from "./middlewares/oauthErrorHandler";
 import * as T from "./schema";
 import { verifyCSRFToken } from "@server/middlewares/csrf";
@@ -155,6 +157,47 @@ router.post(
     ctx.body = {
       success: true,
     };
+  }
+);
+
+router.post(
+  "/register",
+  validate(T.RegisterSchema),
+  rateLimiter(RateLimiterStrategy.FivePerHour),
+  async (ctx: APIContext<T.RegisterReq>) => {
+    const {
+      client_name,
+      redirect_uris,
+      token_endpoint_auth_method,
+      client_uri,
+      logo_uri,
+    } = ctx.input.body;
+
+    const team = await getTeamFromContext(ctx, {
+      includeStateCookie: false,
+    });
+    if (!team) {
+      throw NotFoundError();
+    }
+
+    const clientType =
+      token_endpoint_auth_method === "client_secret_post"
+        ? "confidential"
+        : "public";
+
+    const client = await OAuthClient.create({
+      name: client_name,
+      redirectUris: redirect_uris,
+      clientType,
+      developerUrl: client_uri ?? null,
+      avatarUrl: logo_uri ?? null,
+      published: true,
+      teamId: team.id,
+      createdById: null,
+    });
+
+    ctx.status = 201;
+    ctx.body = presentDCRClient(client);
   }
 );
 
