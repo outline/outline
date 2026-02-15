@@ -114,14 +114,27 @@ class OAuthAuthentication extends ParanoidModel<
 
   updateActiveAt = async () => {
     const fiveMinutesAgo = subMinutes(new Date(), 5);
+    const now = new Date();
 
     // ensure this is updated only every few minutes otherwise
     // we'll be constantly writing to the DB as API requests happen
     if (!this.lastActiveAt || this.lastActiveAt < fiveMinutesAgo) {
-      this.lastActiveAt = new Date();
+      this.lastActiveAt = now;
     }
 
-    return this.save({ silent: true });
+    const promises: Promise<unknown>[] = [this.save({ silent: true })];
+
+    // Propagate activity timestamp to the parent OAuth client
+    if (
+      this.oauthClient &&
+      (!this.oauthClient.lastActiveAt ||
+        this.oauthClient.lastActiveAt < fiveMinutesAgo)
+    ) {
+      this.oauthClient.lastActiveAt = now;
+      promises.push(this.oauthClient.save({ silent: true }));
+    }
+
+    await Promise.all(promises);
   };
 
   // instance methods

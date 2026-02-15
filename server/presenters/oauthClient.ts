@@ -1,9 +1,11 @@
+import env from "@server/env";
 import type { OAuthClient } from "@server/models";
 
 /**
  * Presents an OAuthClient in RFC 7591 Dynamic Client Registration response format.
  *
  * @param oauthClient The OAuth client to present.
+ * @param options Options controlling which optional fields to include.
  * @returns the client registration response.
  */
 export function presentDCRClient(oauthClient: OAuthClient) {
@@ -23,6 +25,10 @@ export function presentDCRClient(oauthClient: OAuthClient) {
       oauthClient.clientType === "confidential" ? "client_secret_post" : "none",
     ...(oauthClient.developerUrl && { client_uri: oauthClient.developerUrl }),
     ...(oauthClient.avatarUrl && { logo_uri: oauthClient.avatarUrl }),
+    ...(oauthClient.registrationAccessToken && {
+      registration_access_token: oauthClient.registrationAccessToken,
+      registration_client_uri: `${env.URL}/oauth/register/${oauthClient.clientId}`,
+    }),
   };
 }
 
@@ -45,6 +51,7 @@ export default function presentOAuthClient(oauthClient: OAuthClient) {
     clientType: oauthClient.clientType,
     redirectUris: oauthClient.redirectUris,
     published: oauthClient.published,
+    lastActiveAt: oauthClient.lastActiveAt,
     createdAt: oauthClient.createdAt,
     updatedAt: oauthClient.updatedAt,
   };

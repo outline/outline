@@ -17,6 +17,7 @@ import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { OAuthInterface } from "@server/utils/oauth/OAuthInterface";
 import { getTeamFromContext } from "@server/utils/passport";
 import oauthErrorHandler from "./middlewares/oauthErrorHandler";
+import registrationAuth from "./middlewares/registrationAuth";
 import * as T from "./schema";
 import { verifyCSRFToken } from "@server/middlewares/csrf";
 
@@ -198,6 +199,62 @@ router.post(
 
     ctx.status = 201;
     ctx.body = presentDCRClient(client);
+  }
+);
+
+router.get(
+  "/register/:clientId",
+  rateLimiter(RateLimiterStrategy.TenPerHour),
+  registrationAuth(),
+  async (ctx) => {
+    const client: OAuthClient = ctx.state.oauthClient;
+    ctx.body = presentDCRClient(client);
+  }
+);
+
+router.put(
+  "/register/:clientId",
+  rateLimiter(RateLimiterStrategy.TenPerHour),
+  registrationAuth(),
+  validate(T.RegisterUpdateSchema),
+  async (ctx: APIContext<T.RegisterUpdateReq>) => {
+    const client: OAuthClient = ctx.state.oauthClient;
+    const {
+      client_name,
+      redirect_uris,
+      token_endpoint_auth_method,
+      client_uri,
+      logo_uri,
+    } = ctx.input.body;
+
+    const clientType =
+      token_endpoint_auth_method === "client_secret_post"
+        ? "confidential"
+        : "public";
+
+    client.name = client_name;
+    client.redirectUris = redirect_uris;
+    client.clientType = clientType;
+    client.developerUrl = client_uri ?? null;
+    client.avatarUrl = logo_uri ?? null;
+
+    // Rotate registration access token per RFC 7592 recommendation
+    client.rotateRegistrationAccessToken();
+    await client.save();
+
+    ctx.body = presentDCRClient(client);
+  }
+);
+
+router.delete(
+  "/register/:clientId",
+  rateLimiter(RateLimiterStrategy.TenPerHour),
+  registrationAuth(),
+  async (ctx) => {
+    const client: OAuthClient = ctx.state.oauthClient;
+    await client.destroy();
+    ctx.status = 204;
+    ctx.body = "";
   }
 );
 
