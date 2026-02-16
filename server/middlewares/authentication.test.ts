@@ -131,9 +131,10 @@ describe("Authentication middleware", () => {
 
       await authMiddleware(
         {
+          originalUrl: "/api/users.info",
           // @ts-expect-error mock request
           request: {
-            url: "/api/users.info",
+            url: "/users.info",
             get: jest.fn(() => `Bearer ${authentication.accessToken}`),
           },
           state,
@@ -156,9 +157,10 @@ describe("Authentication middleware", () => {
       try {
         await authMiddleware(
           {
+            originalUrl: "/api/documents.create",
             // @ts-expect-error mock request
             request: {
-              url: "/api/documents.create",
+              url: "/documents.create",
               get: jest.fn(() => `Bearer ${authentication.accessToken}`),
             },
             state,
@@ -182,8 +184,9 @@ describe("Authentication middleware", () => {
       try {
         await authMiddleware(
           {
+            originalUrl: "/api/users.info",
             request: {
-              url: "/api/users.info",
+              url: "/users.info",
               // @ts-expect-error mock request
               get: jest.fn(() => null),
               body: {
