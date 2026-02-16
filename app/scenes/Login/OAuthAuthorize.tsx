@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { isLoopbackUri } from "~/utils/urls";
 import Flex from "@shared/components/Flex";
 import { s } from "@shared/styles";
 import { parseDomain } from "@shared/utils/domains";
@@ -62,6 +63,7 @@ function Authorize() {
   const params = useQuery();
   const { t } = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isReady, setIsReady] = useState(false);
   const timeoutRef = useRef<number>();
   const {
     client_id: clientId,
@@ -97,14 +99,15 @@ function Authorize() {
     timeoutRef.current = window.setTimeout(() => setIsSubmitting(false), 5000);
   };
 
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    const readyTimeout = window.setTimeout(() => setIsReady(true), 1000);
+    return () => {
+      window.clearTimeout(readyTimeout);
       if (timeoutRef.current) {
         window.clearTimeout(timeoutRef.current);
       }
-    },
-    []
-  );
+    };
+  }, []);
 
   const missingParams = [
     !clientId && "client_id",
@@ -217,6 +220,23 @@ function Authorize() {
             )
           )}
         </ul>
+        <Text type="tertiary" as="p">
+          {isLoopbackUri(redirectUri) ? (
+            <Trans>
+              You will be redirected to a local application after authorizing.
+            </Trans>
+          ) : (
+            <Trans
+              defaults="You will be redirected to <em>{{ redirectUri }}</em> after authorizing. Make sure you trust this URL."
+              values={{
+                redirectUri,
+              }}
+              components={{
+                em: <strong />,
+              }}
+            />
+          )}
+        </Text>
         <Form
           method="POST"
           action="/oauth/authorize"
@@ -246,7 +266,7 @@ function Authorize() {
             <Button type="button" onClick={handleCancel} neutral>
               {t("Cancel")}
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={!isReady || isSubmitting}>
               {t("Authorize")}
             </Button>
           </Flex>
