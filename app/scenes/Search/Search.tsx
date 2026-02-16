@@ -123,7 +123,6 @@ function Search() {
 
     if (isSearchable) {
       return async (params?: PaginationParams) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { titleFilter: _, ...searchParams } = filters;
         return titleFilter
           ? await documents.searchTitles({ ...searchParams, ...params })
