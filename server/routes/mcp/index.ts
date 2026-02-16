@@ -11,6 +11,7 @@ import requestTracer from "@server/middlewares/requestTracer";
 import { AuthenticationType } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { documentTools } from "@server/tools/documents";
+import { version } from "../../../package.json";
 
 const app = new Koa();
 const router = new Router();
@@ -24,23 +25,13 @@ function createMcpServer(): McpServer {
   const server = new McpServer(
     {
       name: "outline",
-      version: "1.0.0",
+      version,
     },
     {
       capabilities: {
         tools: {},
       },
     }
-  );
-
-  server.registerTool(
-    "hello-world",
-    {
-      description: "A test tool that returns a greeting",
-    },
-    () => ({
-      content: [{ type: "text", text: "Hello from Outline!" }],
-    })
   );
 
   documentTools(server);

@@ -589,12 +589,18 @@ class Document extends ArchivableModel<
 
   @AfterUpdate
   static notifyCollaborationServer(model: Document, ctx: HookContext) {
-    if (model.changed("state") && ctx.transaction && ctx.auth?.user?.id) {
+    if (model.changed("state") && ctx.auth?.user?.id) {
       const actorId = ctx.auth.user.id;
-      const transaction = ctx.transaction.parent || ctx.transaction;
-      transaction.afterCommit(async () => {
+      const notify = async () => {
         await APIUpdateExtension.notifyUpdate(model.id, actorId);
-      });
+      };
+
+      if (ctx.transaction) {
+        const transaction = ctx.transaction.parent || ctx.transaction;
+        transaction.afterCommit(notify);
+      } else {
+        void notify();
+      }
     }
   }
 

@@ -1,5 +1,6 @@
 import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
 import type { User } from "@server/models";
+import { type APIContext, AuthenticationType } from "@server/types";
 
 interface McpContext {
   authInfo?: AuthInfo;
@@ -8,11 +9,34 @@ interface McpContext {
 /**
  * Extracts the authenticated user from the MCP request handler extra object.
  *
- * @param extra - the extra object passed to MCP tool handlers.
+ * @param context - the extra object passed to MCP tool handlers.
  * @returns the authenticated user.
  */
-export async function getAuthFromContext(context: McpContext) {
+export function getAuthFromContext(context: McpContext) {
   return context.authInfo?.extra?.user as User;
+}
+
+/**
+ * Constructs a minimal APIContext from the MCP request context for use with
+ * server commands that require a Koa-style context.
+ *
+ * @param context - the MCP request context.
+ * @returns a partial APIContext suitable for command functions.
+ */
+export function buildAPIContext(context: McpContext) {
+  const user = context.authInfo?.extra?.user as User;
+  const token = context.authInfo?.token ?? "";
+
+  const auth = {
+    user,
+    token,
+    type: AuthenticationType.OAUTH,
+  };
+
+  return {
+    state: { auth },
+    context: { auth },
+  } as unknown as APIContext;
 }
 
 /**
