@@ -164,6 +164,24 @@ function Details() {
     setDefaultCollectionId(selectedValue);
   }, []);
 
+  const handleSeamlessEditChange = React.useCallback(
+    async (checked: boolean) => {
+      team.setPreference(TeamPreference.SeamlessEdit, !checked);
+      await team.save();
+      toast.success(t("Settings saved"));
+    },
+    [team, t]
+  );
+
+  const handleCommentingChange = React.useCallback(
+    async (checked: boolean) => {
+      team.setPreference(TeamPreference.Commenting, checked);
+      await team.save();
+      toast.success(t("Settings saved"));
+    },
+    [team, t]
+  );
+
   const isValid = form.current?.checkValidity();
 
   const newTheme = React.useMemo(
@@ -334,7 +352,6 @@ function Details() {
             />
           </SettingRow>
           <SettingRow
-            border={false}
             label={t("Start view")}
             name="defaultCollectionId"
             description={t(
@@ -344,6 +361,35 @@ function Details() {
             <DefaultCollectionInputSelect
               onSelectCollection={onSelectCollection}
               defaultCollectionId={defaultCollectionId}
+            />
+          </SettingRow>
+          <SettingRow
+            name={TeamPreference.SeamlessEdit}
+            label={t("Separate editing")}
+            description={t(
+              "When enabled documents have a separate editing mode by default instead of being always editable. This setting can be overridden by user preferences."
+            )}
+          >
+            <Switch
+              id={TeamPreference.SeamlessEdit}
+              name={TeamPreference.SeamlessEdit}
+              checked={!team.getPreference(TeamPreference.SeamlessEdit)}
+              onChange={handleSeamlessEditChange}
+            />
+          </SettingRow>
+          <SettingRow
+            border={false}
+            name={TeamPreference.Commenting}
+            label={t("Commenting")}
+            description={t(
+              "When enabled team members can add comments to documents."
+            )}
+          >
+            <Switch
+              id={TeamPreference.Commenting}
+              name={TeamPreference.Commenting}
+              checked={team.getPreference(TeamPreference.Commenting)}
+              onChange={handleCommentingChange}
             />
           </SettingRow>
 
