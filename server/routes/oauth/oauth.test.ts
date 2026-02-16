@@ -47,7 +47,7 @@ describe("#oauth.register", () => {
     expect(client!.teamId).toEqual(team.id);
     expect(client!.createdById).toBeNull();
     expect(client!.clientType).toEqual("public");
-    expect(client!.published).toEqual(true);
+    expect(client!.published).toEqual(false);
   });
 
   it("should register a confidential client", async () => {

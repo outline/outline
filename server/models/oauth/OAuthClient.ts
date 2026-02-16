@@ -30,6 +30,7 @@ import Fix from "@server/models/decorators/Fix";
 import { hash } from "@server/utils/crypto";
 import IsUrlOrRelativePath from "@server/models/validators/IsUrlOrRelativePath";
 import NotContainsUrl from "@server/models/validators/NotContainsUrl";
+import type { FindOptions } from "sequelize";
 
 @Table({
   tableName: "oauth_clients",
@@ -202,13 +203,18 @@ class OAuthClient extends ParanoidModel<
    * Find an OAuthClient by its registration access token.
    *
    * @param token The plain registration access token.
+   * @param options Optional Sequelize find options to include transaction or other query modifiers.
    * @returns the OAuthClient or null if not found.
    */
-  public static async findByRegistrationAccessToken(token: string) {
+  public static async findByRegistrationAccessToken(
+    token: string,
+    options?: FindOptions
+  ) {
     return this.findOne({
       where: {
         registrationAccessTokenHash: hash(token),
       },
+      ...options,
     });
   }
 
