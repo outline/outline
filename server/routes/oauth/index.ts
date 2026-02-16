@@ -2,7 +2,9 @@ import OAuth2Server from "@node-oauth/oauth2-server";
 import Koa from "koa";
 import bodyParser from "koa-body";
 import Router from "koa-router";
+import env from "@server/env";
 import { ValidationError, NotFoundError } from "@server/errors";
+import { apiContext } from "@server/middlewares/apiContext";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import requestTracer from "@server/middlewares/requestTracer";
@@ -167,6 +169,10 @@ router.post(
   validate(T.RegisterSchema),
   rateLimiter(RateLimiterStrategy.FivePerHour),
   async (ctx: APIContext<T.RegisterReq>) => {
+    if (env.OAUTH_DISABLE_DCR) {
+      throw NotFoundError();
+    }
+
     const {
       client_name,
       redirect_uris,
@@ -188,13 +194,13 @@ router.post(
         ? "confidential"
         : "public";
 
-    const client = await OAuthClient.create({
+    const client = await OAuthClient.createWithCtx(ctx, {
       name: client_name,
       redirectUris: redirect_uris,
       clientType,
       developerUrl: client_uri ?? null,
       avatarUrl: logo_uri ?? null,
-      published: true,
+      published: false,
       teamId: team.id,
       createdById: null,
     });
@@ -228,14 +234,16 @@ router.get("/register/:clientId", registrationAuth(), async (ctx) => {
 router.put(
   "/register/:clientId",
   rateLimiter(RateLimiterStrategy.TenPerHour),
-  registrationAuth(),
   validate(T.RegisterUpdateSchema),
+  transaction(),
+  registrationAuth(),
   async (ctx: APIContext<T.RegisterUpdateReq>) => {
     const client = ctx.state.oauthClient as OAuthClient;
     const { client_name, redirect_uris, client_uri, logo_uri } = ctx.input.body;
 
     const team = await Team.findByPk(client.teamId, {
       rejectOnEmpty: true,
+      transaction: ctx.state.transaction,
     });
 
     client.name = client_name;
@@ -245,11 +253,11 @@ router.put(
 
     // Rotate registration access token per RFC 7592 recommendation
     client.rotateRegistrationAccessToken();
-    await client.save();
+    await client.saveWithCtx(ctx);
 
     ctx.body = presentDCRClient(team.url, client, {
       includeRegistrationAccessToken: true,
-      includeCredentials: true,
+      includeCredentials: false,
     });
   }
 );
@@ -257,10 +265,11 @@ router.put(
 router.delete(
   "/register/:clientId",
   rateLimiter(RateLimiterStrategy.TenPerHour),
+  transaction(),
   registrationAuth(),
-  async (ctx) => {
-    const client: OAuthClient = ctx.state.oauthClient;
-    await client.destroy();
+  async (ctx: APIContext) => {
+    const client = ctx.state.oauthClient as OAuthClient;
+    await client.destroyWithCtx(ctx);
     ctx.status = 204;
     ctx.body = "";
   }
@@ -269,6 +278,7 @@ router.delete(
 app.use(requestTracer());
 app.use(oauthErrorHandler());
 app.use(bodyParser());
+app.use(apiContext());
 app.use(verifyCSRFToken());
 app.use(router.routes());
 

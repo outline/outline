@@ -6,6 +6,7 @@ import type { UserAgentContext } from "koa-useragent";
 import userAgent from "koa-useragent";
 import env from "@server/env";
 import { NotFoundError } from "@server/errors";
+import { apiContext } from "@server/middlewares/apiContext";
 import coalesceBody from "@server/middlewares/coaleseBody";
 import requestTracer from "@server/middlewares/requestTracer";
 import { verifyCSRFToken } from "@server/middlewares/csrf";
@@ -72,6 +73,7 @@ api.use(requestTracer());
 api.use(apiResponse());
 api.use(apiErrorHandler());
 api.use(editor());
+api.use(apiContext());
 api.use(verifyCSRFToken());
 
 // Register plugin API routes before others to allow for overrides
