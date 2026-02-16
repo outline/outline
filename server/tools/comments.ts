@@ -102,21 +102,19 @@ export function commentTools(server: McpServer) {
           statusQuery.push({ resolvedById: null });
         }
 
-        const where: WhereOptions<Comment> = {
-          [Op.and]: [],
-        };
+        const and: WhereOptions<Comment>[] = [];
         if (documentId) {
-          // @ts-expect-error sequelize typing
-          where[Op.and].push({ documentId });
+          and.push({ documentId });
         }
         if (parentCommentId) {
-          // @ts-expect-error sequelize typing
-          where[Op.and].push({ parentCommentId });
+          and.push({ parentCommentId });
         }
         if (statusQuery.length) {
-          // @ts-expect-error sequelize typing
-          where[Op.and].push({ [Op.or]: statusQuery });
+          and.push({ [Op.or]: statusQuery });
         }
+        const where: WhereOptions<Comment> = {
+          [Op.and]: and,
+        };
 
         const params: FindOptions<Comment> = {
           where,
