@@ -112,7 +112,6 @@ router.get("/locales/:lng.json", async (ctx) => {
 
 router.get("/.well-known/oauth-authorization-server", async (ctx) => {
   const origin = ctx.request.URL.origin;
-
   const team = await getTeamFromContext(ctx, { includeStateCookie: false });
   const mcpEnabled = team?.getPreference(TeamPreference.MCP) ?? true;
 

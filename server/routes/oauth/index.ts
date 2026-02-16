@@ -189,7 +189,6 @@ router.post(
     if (!team) {
       throw NotFoundError();
     }
-
     if (!team.getPreference(TeamPreference.MCP)) {
       throw NotFoundError();
     }
