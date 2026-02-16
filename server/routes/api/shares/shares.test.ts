@@ -260,7 +260,7 @@ describe("#shares.create", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("documentId: Invalid");
+    expect(body.message).toEqual("documentId: Must be a valid UUID or slug");
   });
 
   it("should allow creating a share record for collection", async () => {
@@ -576,7 +576,7 @@ describe("#shares.info", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("documentId: Invalid");
+    expect(body.message).toEqual("documentId: Must be a valid UUID or slug");
   });
 
   it("should not find share by documentId in private collection", async () => {
@@ -848,7 +848,9 @@ describe("#shares.update", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("id: Required");
+    expect(body.message).toEqual(
+      "id: Invalid input: expected string, received undefined"
+    );
   });
 
   it("should update urlId", async () => {
@@ -1026,7 +1028,9 @@ describe("#shares.revoke", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("id: Required");
+    expect(body.message).toEqual(
+      "id: Invalid input: expected string, received undefined"
+    );
   });
 
   it("should allow author to revoke a share", async () => {

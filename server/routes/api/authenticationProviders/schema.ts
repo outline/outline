@@ -4,7 +4,7 @@ import { BaseSchema } from "@server/routes/api/schema";
 export const AuthenticationProvidersInfoSchema = BaseSchema.extend({
   body: z.object({
     /** Authentication Provider Id */
-    id: z.string().uuid(),
+    id: z.uuid(),
   }),
 });
 
@@ -15,7 +15,7 @@ export type AuthenticationProvidersInfoReq = z.infer<
 export const AuthenticationProvidersUpdateSchema = BaseSchema.extend({
   body: z.object({
     /** Authentication Provider Id */
-    id: z.string().uuid(),
+    id: z.uuid(),
 
     /** Whether the Authentication Provider is enabled or not */
     isEnabled: z.boolean(),
@@ -29,7 +29,7 @@ export type AuthenticationProvidersUpdateReq = z.infer<
 export const AuthenticationProvidersDeleteSchema = BaseSchema.extend({
   body: z.object({
     /** Authentication Provider Id */
-    id: z.string().uuid(),
+    id: z.uuid(),
   }),
 });
 

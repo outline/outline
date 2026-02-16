@@ -366,6 +366,7 @@ router.post(
   (ctx: APIContext<T.UsersPromoteReq>) => {
     const forward = ctx as unknown as APIContext<T.UsersChangeRoleReq>;
     forward.input = {
+      ...ctx.input,
       body: {
         id: ctx.input.body.id,
         role: UserRole.Admin,
@@ -389,6 +390,7 @@ router.post(
   (ctx: APIContext<T.UsersDemoteReq>) => {
     const forward = ctx as unknown as APIContext<T.UsersChangeRoleReq>;
     forward.input = {
+      ...ctx.input,
       body: {
         id: ctx.input.body.id,
         role: ctx.input.body.to,
