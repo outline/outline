@@ -40,6 +40,7 @@ export type SearchParams = {
   statusFilter?: StatusFilter[];
   collectionId?: string;
   userId?: string;
+  documentId?: string;
   shareId?: string;
   sort?: SortFilter;
   direction?: DirectionFilter;

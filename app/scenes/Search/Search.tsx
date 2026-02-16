@@ -122,10 +122,13 @@ function Search() {
     }
 
     if (isSearchable) {
-      return async (params?: PaginationParams) =>
-        titleFilter
-          ? await documents.searchTitles({ ...filters, ...params })
-          : await documents.search({ ...filters, ...params });
+      return async (params?: PaginationParams) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { titleFilter: _, ...searchParams } = filters;
+        return titleFilter
+          ? await documents.searchTitles({ ...searchParams, ...params })
+          : await documents.search({ ...searchParams, ...params });
+      };
     }
 
     return () => Promise.resolve([] as SearchResult[]);
