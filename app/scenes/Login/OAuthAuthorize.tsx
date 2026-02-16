@@ -17,7 +17,11 @@ import { useLoggedInSessions } from "~/hooks/useLoggedInSessions";
 import useQuery from "~/hooks/useQuery";
 import useRequest from "~/hooks/useRequest";
 import { client } from "~/utils/ApiClient";
-import { BadRequestError, NotFoundError } from "~/utils/errors";
+import {
+  AuthorizationError,
+  BadRequestError,
+  NotFoundError,
+} from "~/utils/errors";
 import isCloudHosted from "~/utils/isCloudHosted";
 import { detectLanguage } from "~/utils/language";
 import Login from "./Login";
@@ -127,6 +131,13 @@ function Authorize() {
               )}
               <Pre>{redirectUri}</Pre>
             </Text>
+          ) : clientError instanceof AuthorizationError ? (
+            <Text as="p" type="secondary">
+              {t(
+                "The OAuth client could not be loaded, please check your workspace subdomain is correct"
+              )}
+              <Pre>{clientError.message}</Pre>
+            </Text>
           ) : (
             <Text as="p" type="secondary">
               {t("Required OAuth parameters are missing")}
@@ -197,7 +208,10 @@ function Authorize() {
           :
         </Text>
         <ul style={{ width: "100%", paddingLeft: "1em", marginTop: 0 }}>
-          {OAuthScopeHelper.normalizeScopes(scopes, t).map((item) => (
+          {OAuthScopeHelper.normalizeScopes(
+            scopes.length ? scopes : ["read", "write"],
+            t
+          ).map((item) => (
             <li key={item}>
               <Text type="secondary">{item}</Text>
             </li>
