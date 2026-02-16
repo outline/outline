@@ -60,6 +60,8 @@ export type Authentication = {
   type?: AuthenticationType;
   /** The authentication service used to create this session (e.g., "email", "passkeys", "google"). */
   service?: string;
+  /** The OAuth scopes granted for this session, if applicable. */
+  scope?: string[];
 };
 
 export type Pagination = {

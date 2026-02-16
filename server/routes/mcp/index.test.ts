@@ -503,4 +503,154 @@ describe("POST /mcp/", () => {
       expect(res?.result?.isError).toBe(true);
     });
   });
+
+  describe("scope enforcement", () => {
+    async function buildScopedOAuthUser(scope: Scope[]) {
+      const user = await buildUser();
+      const auth = await buildOAuthAuthentication({ user, scope });
+      return { user, accessToken: auth.accessToken! };
+    }
+
+    it("read-only token can call list_collections", async () => {
+      const { user, accessToken } = await buildScopedOAuthUser([Scope.Read]);
+      await buildCollection({ teamId: user.teamId, userId: user.id });
+
+      const res = await callMcpTool(server, accessToken, "list_collections");
+      expect(res?.error).toBeUndefined();
+      const data = JSON.parse(res?.result?.content?.[0]?.text ?? "[]");
+      expect(data.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it("read-only token does not have create_document tool", async () => {
+      const { user, accessToken } = await buildScopedOAuthUser([Scope.Read]);
+      await buildCollection({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+
+      const res = await callMcpTool(server, accessToken, "create_document", {
+        title: "Should Fail",
+      });
+      expect(res?.result?.isError).toBe(true);
+    });
+
+    it("read-only token does not have update_document tool", async () => {
+      const { user, accessToken } = await buildScopedOAuthUser([Scope.Read]);
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const document = await buildDocument({
+        teamId: user.teamId,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+
+      const res = await callMcpTool(server, accessToken, "update_document", {
+        id: document.id,
+        title: "Should Fail",
+      });
+      expect(res?.result?.isError).toBe(true);
+    });
+
+    it("read-only token does not have delete_comment tool", async () => {
+      const { user, accessToken } = await buildScopedOAuthUser([Scope.Read]);
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const document = await buildDocument({
+        teamId: user.teamId,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+      const comment = await buildComment({
+        userId: user.id,
+        documentId: document.id,
+      });
+
+      const res = await callMcpTool(server, accessToken, "delete_comment", {
+        id: comment.id,
+      });
+      expect(res?.result?.isError).toBe(true);
+    });
+
+    it("create-scoped token can call create_document", async () => {
+      const { user, accessToken } = await buildScopedOAuthUser([Scope.Create]);
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+
+      const res = await callMcpTool(server, accessToken, "create_document", {
+        title: "Created Document",
+        text: "Content",
+        collectionId: collection.id,
+      });
+      expect(res?.result?.isError).toBeUndefined();
+      const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+      expect(data.title).toEqual("Created Document");
+    });
+
+    it("create-scoped token does not have update_document tool", async () => {
+      const { user, accessToken } = await buildScopedOAuthUser([Scope.Create]);
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const document = await buildDocument({
+        teamId: user.teamId,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+
+      const res = await callMcpTool(server, accessToken, "update_document", {
+        id: document.id,
+        title: "Should Fail",
+      });
+      expect(res?.result?.isError).toBe(true);
+    });
+
+    it("write-scoped token can call all operations", async () => {
+      const { user, accessToken } = await buildScopedOAuthUser([Scope.Write]);
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+
+      // Can list (write grants read)
+      const listRes = await callMcpTool(
+        server,
+        accessToken,
+        "list_collections"
+      );
+      expect(listRes?.result?.isError).toBeUndefined();
+
+      // Can create (write grants create)
+      const createRes = await callMcpTool(
+        server,
+        accessToken,
+        "create_document",
+        {
+          title: "Write Token Doc",
+          text: "Content",
+          collectionId: collection.id,
+        }
+      );
+      expect(createRes?.result?.isError).toBeUndefined();
+      const created = JSON.parse(createRes?.result?.content?.[0]?.text ?? "{}");
+
+      // Can update
+      const updateRes = await callMcpTool(
+        server,
+        accessToken,
+        "update_document",
+        {
+          id: created.id,
+          title: "Updated by Write Token",
+        }
+      );
+      expect(updateRes?.result?.isError).toBeUndefined();
+    });
+  });
 });

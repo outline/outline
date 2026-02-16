@@ -22,11 +22,13 @@ const app = new Koa();
 const router = new Router();
 
 /**
- * Creates a fresh MCP server instance with registered tools and resources.
+ * Creates a fresh MCP server instance with tools and resources filtered by
+ * the OAuth scopes granted to the current token.
  *
+ * @param scopes - the OAuth scopes granted to the access token.
  * @returns a configured McpServer ready to be connected to a transport.
  */
-function createMcpServer(): McpServer {
+function createMcpServer(scopes: string[]): McpServer {
   const server = new McpServer(
     {
       name: "outline",
@@ -40,10 +42,10 @@ function createMcpServer(): McpServer {
     }
   );
 
-  collectionTools(server);
-  commentTools(server);
-  documentTools(server);
-  userTools(server);
+  collectionTools(server, scopes);
+  commentTools(server, scopes);
+  documentTools(server, scopes);
+  userTools(server, scopes);
 
   return server;
 }
@@ -53,13 +55,13 @@ router.post(
   rateLimiter(RateLimiterStrategy.OneThousandPerHour),
   auth({ type: AuthenticationType.OAUTH }),
   async (ctx) => {
-    const { user, token } = ctx.state.auth;
+    const { user, token, scope } = ctx.state.auth;
 
     if (!user.team.getPreference(TeamPreference.MCP)) {
       throw NotFoundError();
     }
 
-    const server = createMcpServer();
+    const server = createMcpServer(scope ?? []);
     const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: undefined,
     });
@@ -75,8 +77,8 @@ router.post(
     (ctx.req as typeof ctx.req & { auth: AuthInfo }).auth = {
       token,
       clientId: "",
-      scopes: [],
-      extra: { user },
+      scopes: scope ?? [],
+      extra: { user, scope: scope ?? [] },
     };
 
     ctx.respond = false;

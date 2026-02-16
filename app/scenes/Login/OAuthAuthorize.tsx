@@ -70,7 +70,8 @@ function Authorize() {
     code_challenge: codeChallenge,
     code_challenge_method: codeChallengeMethod,
     state,
-    scope,
+    // Some clients don't send the scope parameter if it's empty, so we default to "read write".
+    scope = "read write",
   } = Object.fromEntries(params);
   const [scopes] = useState(() => scope?.split(" ") ?? []);
   const { error: clientError, data: response } = useRequest<{
@@ -208,14 +209,13 @@ function Authorize() {
           :
         </Text>
         <ul style={{ width: "100%", paddingLeft: "1em", marginTop: 0 }}>
-          {OAuthScopeHelper.normalizeScopes(
-            scopes.length ? scopes : ["read", "write"],
-            t
-          ).map((item) => (
-            <li key={item}>
-              <Text type="secondary">{item}</Text>
-            </li>
-          ))}
+          {OAuthScopeHelper.normalizeScopes(scopes.length ? scopes : [], t).map(
+            (item) => (
+              <li key={item}>
+                <Text type="secondary">{item}</Text>
+              </li>
+            )
+          )}
         </ul>
         <Form
           method="POST"

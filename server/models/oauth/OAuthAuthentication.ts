@@ -146,9 +146,10 @@ class OAuthAuthentication extends ParanoidModel<
       return true;
     }
 
-    // Special case for the MCP endpoint, which is always allowed
+    // MCP endpoint access is allowed if the token has any valid scope.
+    // Fine-grained scope enforcement happens at the tool level.
     if (path.startsWith("/mcp")) {
-      return true;
+      return this.scope.length > 0;
     }
 
     return AuthenticationHelper.canAccess(path, this.scope);
