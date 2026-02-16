@@ -2063,6 +2063,71 @@ describe("#documents.search", () => {
     const expectedIds = docsInCollection1.map((d) => d.id).sort();
     expect(returnedIds).toEqual(expectedIds);
   });
+
+  it("should paginate search results correctly", async () => {
+    const user = await buildUser();
+    // Create 30 documents with a common search term
+    const documents = await Promise.all(
+      Array.from({ length: 30 }, (_, i) =>
+        buildDocument({
+          userId: user.id,
+          teamId: user.teamId,
+          title: `Test document ${i + 1}`,
+          text: "common search term",
+        })
+      )
+    );
+
+    // First page (offset=0, limit=10)
+    const res1 = await server.post("/api/documents.search", {
+      body: {
+        token: user.getJwtToken(),
+        query: "common search term",
+        offset: 0,
+        limit: 10,
+      },
+    });
+    const body1 = await res1.json();
+    expect(res1.status).toEqual(200);
+    expect(body1.data).toHaveLength(10);
+    expect(body1.pagination.total).toEqual(30);
+
+    // Second page (offset=10, limit=10)
+    const res2 = await server.post("/api/documents.search", {
+      body: {
+        token: user.getJwtToken(),
+        query: "common search term",
+        offset: 10,
+        limit: 10,
+      },
+    });
+    const body2 = await res2.json();
+    expect(res2.status).toEqual(200);
+    expect(body2.data).toHaveLength(10);
+    expect(body2.pagination.total).toEqual(30);
+
+    // Third page (offset=20, limit=10)
+    const res3 = await server.post("/api/documents.search", {
+      body: {
+        token: user.getJwtToken(),
+        query: "common search term",
+        offset: 20,
+        limit: 10,
+      },
+    });
+    const body3 = await res3.json();
+    expect(res3.status).toEqual(200);
+    expect(body3.data).toHaveLength(10);
+    expect(body3.pagination.total).toEqual(30);
+
+    // Verify no duplicate results across pages
+    const page1Ids = body1.data.map((d: any) => d.document.id);
+    const page2Ids = body2.data.map((d: any) => d.document.id);
+    const page3Ids = body3.data.map((d: any) => d.document.id);
+    const allIds = [...page1Ids, ...page2Ids, ...page3Ids];
+    const uniqueIds = new Set(allIds);
+    expect(uniqueIds.size).toEqual(30);
+  });
 });
 
 describe("#documents.templatize", () => {
