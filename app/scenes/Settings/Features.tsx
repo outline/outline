@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { SparklesIcon } from "outline-icons";
+import { CopyIcon, SparklesIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
@@ -10,10 +10,16 @@ import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import SettingRow from "./components/SettingRow";
+import Input from "~/components/Input";
+import Tooltip from "~/components/Tooltip";
+import CopyToClipboard from "~/components/CopyToClipboard";
+import NudeButton from "~/components/NudeButton";
+import { useTheme } from "styled-components";
 
 function Features() {
   const { t } = useTranslation();
   const team = useCurrentTeam();
+  const theme = useTheme();
 
   const handleMCPChange = React.useCallback(
     async (checked: boolean) => {
@@ -23,6 +29,12 @@ function Features() {
     },
     [team, t]
   );
+
+  const handleCopied = React.useCallback(() => {
+    toast.success(t("Copied to clipboard"));
+  }, [t]);
+
+  const mcpEndpoint = window.location.origin + "/mcp";
 
   return (
     <Scene title={t("AI")} icon={<SparklesIcon />}>
@@ -34,9 +46,38 @@ function Features() {
       <SettingRow
         name={TeamPreference.MCP}
         label={t("MCP server")}
-        description={t(
-          "Allow members to connect to this workspace with MCP to read and write data."
-        )}
+        description={
+          <>
+            <Text type="secondary" as="p">
+              {t(
+                "Allow members to connect to this workspace with MCP to read and write data."
+              )}
+            </Text>
+            {team.getPreference(TeamPreference.MCP) && (
+              <>
+                <Text
+                  type="secondary"
+                  as="p"
+                  style={{ marginTop: 8, marginBottom: 4 }}
+                >
+                  {t(
+                    "Use the following endpoint to connect to the MCP server from your app"
+                  )}
+                  :
+                </Text>
+                <Input readOnly value={mcpEndpoint}>
+                  <Tooltip content={t("Copy URL")} placement="top">
+                    <CopyToClipboard text={mcpEndpoint} onCopy={handleCopied}>
+                      <NudeButton type="button" style={{ marginRight: 3 }}>
+                        <CopyIcon color={theme.placeholder} size={18} />
+                      </NudeButton>
+                    </CopyToClipboard>
+                  </Tooltip>
+                </Input>
+              </>
+            )}
+          </>
+        }
       >
         <Switch
           id={TeamPreference.MCP}

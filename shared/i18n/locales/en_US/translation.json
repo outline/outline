@@ -1203,6 +1203,8 @@
   "Manage AI and integration features for your workspace.": "Manage AI and integration features for your workspace.",
   "MCP server": "MCP server",
   "Allow members to connect to this workspace with MCP to read and write data.": "Allow members to connect to this workspace with MCP to read and write data.",
+  "Use the following endpoint to connect to the MCP server from your app": "Use the following endpoint to connect to the MCP server from your app",
+  "Copy URL": "Copy URL",
   "AI answers": "AI answers",
   "Use AI to get direct answers to questions in search. This feature requires a paid license.": "Use AI to get direct answers to questions in search. This feature requires a paid license.",
   "Create a group": "Create a group",
