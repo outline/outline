@@ -6,6 +6,7 @@ import { Collection, Document } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentDocument } from "@server/presenters";
 import { success, error, buildAPIContext } from "./util";
+import { TextEditMode } from "@shared/types";
 
 /**
  * Registers document-related MCP tools on the given server.
@@ -162,7 +163,7 @@ export function documentTools(server: McpServer) {
           .optional()
           .describe("The new markdown content for the document."),
         editMode: z
-          .enum(["replace", "append", "prepend"])
+          .enum(TextEditMode)
           .optional()
           .describe("How to apply the text update. Defaults to replace."),
         collectionId: z
