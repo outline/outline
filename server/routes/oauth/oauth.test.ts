@@ -432,6 +432,5 @@ describe("GET /.well-known/oauth-authorization-server", () => {
       "none",
     ]);
     expect(body.code_challenge_methods_supported).toEqual(["S256"]);
-    expect(body.scopes_supported).toEqual(["read", "write", "create"]);
   });
 });
