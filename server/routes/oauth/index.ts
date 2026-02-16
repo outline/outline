@@ -199,7 +199,7 @@ router.post(
       clientType,
       developerUrl: client_uri ?? null,
       avatarUrl: logo_uri ?? null,
-      published: true,
+      published: false,
       teamId: team.id,
       createdById: null,
     });
@@ -254,7 +254,7 @@ router.put(
 
     ctx.body = presentDCRClient(team.url, client, {
       includeRegistrationAccessToken: true,
-      includeCredentials: true,
+      includeCredentials: false,
     });
   }
 );
