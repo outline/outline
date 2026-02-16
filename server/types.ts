@@ -82,7 +82,7 @@ export type BaseReq = z.infer<typeof BaseSchema>;
 export type BaseRes = unknown;
 
 export interface APIContext<
-  ReqT = BaseReq,
+  ReqT = Partial<BaseReq>,
   ResT = BaseRes,
 > extends ParameterizedContext<
   AppState,

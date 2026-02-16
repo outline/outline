@@ -14,7 +14,7 @@ describe("email", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("email: Invalid email");
+    expect(body.message).toEqual("email: Invalid email address");
   });
 
   it("should require email param", async () => {

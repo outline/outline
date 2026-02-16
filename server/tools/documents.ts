@@ -11,7 +11,6 @@ import { success, error, getAuthFromContext } from "./util";
  * @param server - the MCP server instance to register tools on.
  */
 export function documentTools(server: McpServer) {
-  // @ts-expect-error Need to update Zod.
   server.registerTool(
     "get_document",
     {

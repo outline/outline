@@ -25,17 +25,17 @@ export const CollectionsCreateSchema = BaseSchema.extend({
     description: z.string().nullish(),
     data: ProsemirrorSchema({ allowEmpty: true }).nullish(),
     permission: z
-      .nativeEnum(CollectionPermission)
+      .enum(CollectionPermission)
       .nullish()
       .transform((val) => (isUndefined(val) ? null : val)),
-    sharing: z.boolean().default(true),
+    sharing: z.boolean().prefault(true),
     icon: zodIconType().optional(),
     sort: z
       .object({
         field: z.union([z.literal("title"), z.literal("index")]),
         direction: z.union([z.literal("asc"), z.literal("desc")]),
       })
-      .default(Collection.DEFAULT_SORT),
+      .prefault(Collection.DEFAULT_SORT),
     index: z
       .string()
       .regex(ValidateIndex.regex, { message: ValidateIndex.message })
@@ -69,13 +69,13 @@ export type CollectionsDocumentsReq = z.infer<
 export const CollectionsImportSchema = BaseSchema.extend({
   body: z.object({
     permission: z
-      .nativeEnum(CollectionPermission)
+      .enum(CollectionPermission)
       .nullish()
       .transform((val) => (isUndefined(val) ? null : val)),
-    attachmentId: z.string().uuid(),
+    attachmentId: z.uuid(),
     format: z
-      .nativeEnum(FileOperationFormat)
-      .default(FileOperationFormat.MarkdownZip),
+      .enum(FileOperationFormat)
+      .prefault(FileOperationFormat.MarkdownZip),
   }),
 });
 
@@ -83,10 +83,10 @@ export type CollectionsImportReq = z.infer<typeof CollectionsImportSchema>;
 
 export const CollectionsAddGroupSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
-    groupId: z.string().uuid(),
+    groupId: z.uuid(),
     permission: z
-      .nativeEnum(CollectionPermission)
-      .default(CollectionPermission.ReadWrite),
+      .enum(CollectionPermission)
+      .prefault(CollectionPermission.ReadWrite),
   }),
 });
 
@@ -94,7 +94,7 @@ export type CollectionsAddGroupsReq = z.infer<typeof CollectionsAddGroupSchema>;
 
 export const CollectionsRemoveGroupSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
-    groupId: z.string().uuid(),
+    groupId: z.uuid(),
   }),
 });
 
@@ -104,8 +104,8 @@ export type CollectionsRemoveGroupReq = z.infer<
 
 export const CollectionsAddUserSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
-    userId: z.string().uuid(),
-    permission: z.nativeEnum(CollectionPermission).optional(),
+    userId: z.uuid(),
+    permission: z.enum(CollectionPermission).optional(),
   }),
 });
 
@@ -113,7 +113,7 @@ export type CollectionsAddUserReq = z.infer<typeof CollectionsAddUserSchema>;
 
 export const CollectionsRemoveUserSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
-    userId: z.string().uuid(),
+    userId: z.uuid(),
   }),
 });
 
@@ -124,7 +124,7 @@ export type CollectionsRemoveUserReq = z.infer<
 export const CollectionsMembershipsSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
     query: z.string().optional(),
-    permission: z.nativeEnum(CollectionPermission).optional(),
+    permission: z.enum(CollectionPermission).optional(),
   }),
 });
 
@@ -135,9 +135,9 @@ export type CollectionsMembershipsReq = z.infer<
 export const CollectionsExportSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
     format: z
-      .nativeEnum(FileOperationFormat)
-      .default(FileOperationFormat.MarkdownZip),
-    includeAttachments: z.boolean().default(true),
+      .enum(FileOperationFormat)
+      .prefault(FileOperationFormat.MarkdownZip),
+    includeAttachments: z.boolean().prefault(true),
   }),
 });
 
@@ -146,10 +146,10 @@ export type CollectionsExportReq = z.infer<typeof CollectionsExportSchema>;
 export const CollectionsExportAllSchema = BaseSchema.extend({
   body: z.object({
     format: z
-      .nativeEnum(FileOperationFormat)
-      .default(FileOperationFormat.MarkdownZip),
-    includeAttachments: z.boolean().default(true),
-    includePrivate: z.boolean().default(true),
+      .enum(FileOperationFormat)
+      .prefault(FileOperationFormat.MarkdownZip),
+    includeAttachments: z.boolean().prefault(true),
+    includePrivate: z.boolean().prefault(true),
   }),
 });
 
@@ -163,7 +163,7 @@ export const CollectionsUpdateSchema = BaseSchema.extend({
     description: z.string().nullish(),
     data: ProsemirrorSchema({ allowEmpty: true }).nullish(),
     icon: zodIconType().nullish(),
-    permission: z.nativeEnum(CollectionPermission).nullish(),
+    permission: z.enum(CollectionPermission).nullish(),
     color: z
       .string()
       .regex(ValidateColor.regex, { message: ValidateColor.message })
@@ -183,12 +183,12 @@ export type CollectionsUpdateReq = z.infer<typeof CollectionsUpdateSchema>;
 
 export const CollectionsListSchema = BaseSchema.extend({
   body: z.object({
-    includeListOnly: z.boolean().default(false),
+    includeListOnly: z.boolean().prefault(false),
 
     query: z.string().optional(),
 
     /** Collection statuses to include in results */
-    statusFilter: z.nativeEnum(CollectionStatusFilter).array().optional(),
+    statusFilter: z.enum(CollectionStatusFilter).array().optional(),
   }),
 });
 
