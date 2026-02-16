@@ -26,7 +26,7 @@ const DocumentsSortParamsSchema = z.object({
         "popularityScore",
       ].includes(val)
     )
-    .default("updatedAt"),
+    .prefault("updatedAt"),
 
   /** Specifies the sort order with respect to sort field */
   direction: z
@@ -49,25 +49,25 @@ const DateFilterSchema = z.object({
 
 const BaseSearchSchema = DateFilterSchema.extend({
   /** Filter results for team based on the collection */
-  collectionId: z.string().uuid().optional(),
+  collectionId: z.uuid().optional(),
 
   /** Filter results based on user */
-  userId: z.string().uuid().optional(),
+  userId: z.uuid().optional(),
 
   /** Filter results based on content within a document and it's children */
-  documentId: z.string().uuid().optional(),
+  documentId: z.uuid().optional(),
 
   /** Document statuses to include in results */
-  statusFilter: z.nativeEnum(StatusFilter).array().optional(),
+  statusFilter: z.enum(StatusFilter).array().optional(),
 
   /** Filter results for the team derived from shareId */
   shareId: zodShareIdType().optional(),
 
   /** Min words to be shown in the results snippets */
-  snippetMinWords: z.number().default(20),
+  snippetMinWords: z.number().prefault(20),
 
   /** Max words to be accomodated in the results snippets */
-  snippetMaxWords: z.number().default(30),
+  snippetMaxWords: z.number().prefault(30),
 });
 
 const BaseIdSchema = z.object({
@@ -78,28 +78,28 @@ const BaseIdSchema = z.object({
 export const DocumentsListSchema = BaseSchema.extend({
   body: DocumentsSortParamsSchema.extend({
     /** Id of the user who created the doc */
-    userId: z.string().uuid().optional(),
+    userId: z.uuid().optional(),
 
     /** Alias for userId - kept for backwards compatibility */
-    user: z.string().uuid().optional(),
+    user: z.uuid().optional(),
 
     /** Id of the collection to which the document belongs */
-    collectionId: z.string().uuid().optional(),
+    collectionId: z.uuid().optional(),
 
     /** Alias for collectionId - kept for backwards compatibility */
-    collection: z.string().uuid().optional(),
+    collection: z.uuid().optional(),
 
     /** Id of the backlinked document */
-    backlinkDocumentId: z.string().uuid().optional(),
+    backlinkDocumentId: z.uuid().optional(),
 
     /** Id of the parent document to which the document belongs */
-    parentDocumentId: z.string().uuid().nullish(),
+    parentDocumentId: z.uuid().nullish(),
 
     /** Boolean which denotes whether the document is a template */
     template: z.boolean().optional(),
 
     /** Document statuses to include in results */
-    statusFilter: z.nativeEnum(StatusFilter).array().optional(),
+    statusFilter: z.enum(StatusFilter).array().optional(),
   }),
   // Maintains backwards compatibility
 }).transform((req) => {
@@ -116,7 +116,7 @@ export type DocumentsListReq = z.infer<typeof DocumentsListSchema>;
 export const DocumentsArchivedSchema = BaseSchema.extend({
   body: DocumentsSortParamsSchema.extend({
     /** Id of the collection to which archived documents should belong */
-    collectionId: z.string().uuid().optional(),
+    collectionId: z.uuid().optional(),
   }),
 });
 
@@ -135,9 +135,9 @@ export const DocumentsViewedSchema = BaseSchema.extend({
 export type DocumentsViewedReq = z.infer<typeof DocumentsViewedSchema>;
 
 export const DocumentsDraftsSchema = BaseSchema.extend({
-  body: DocumentsSortParamsSchema.merge(DateFilterSchema).extend({
+  body: DocumentsSortParamsSchema.extend(DateFilterSchema.shape).extend({
     /** Id of the collection to which the document belongs */
-    collectionId: z.string().uuid().optional(),
+    collectionId: z.uuid().optional(),
   }),
 });
 
@@ -160,7 +160,7 @@ export type DocumentsInfoReq = z.infer<typeof DocumentsInfoSchema>;
 export const DocumentsExportSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
     signedUrls: z.number().optional(),
-    includeChildDocuments: z.boolean().default(false),
+    includeChildDocuments: z.boolean().prefault(false),
   }),
 });
 
@@ -169,10 +169,10 @@ export type DocumentsExportReq = z.infer<typeof DocumentsExportSchema>;
 export const DocumentsRestoreSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
     /** Id of the collection to which the document belongs */
-    collectionId: z.string().uuid().optional(),
+    collectionId: z.uuid().optional(),
 
     /** Id of document revision */
-    revisionId: z.string().uuid().optional(),
+    revisionId: z.uuid().optional(),
   }),
 });
 
@@ -223,9 +223,9 @@ export const DocumentsDuplicateSchema = BaseSchema.extend({
     /** Whether the new document should be published */
     publish: z.boolean().optional(),
     /** Id of the collection to which the document should be copied */
-    collectionId: z.string().uuid().optional(),
+    collectionId: z.uuid().optional(),
     /** Id of the parent document to which the document should be copied */
-    parentDocumentId: z.string().uuid().optional(),
+    parentDocumentId: z.uuid().optional(),
   }),
 });
 
@@ -269,16 +269,16 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
     publish: z.boolean().optional(),
 
     /** Doc template Id */
-    templateId: z.string().uuid().nullish(),
+    templateId: z.uuid().nullish(),
 
     /** Doc collection Id */
-    collectionId: z.string().uuid().nullish(),
+    collectionId: z.uuid().nullish(),
 
     /** @deprecated Use editMode instead */
     append: z.boolean().optional(),
 
     /** The edit mode for text updates: "replace", "append", or "prepend" */
-    editMode: z.nativeEnum(TextEditMode).optional(),
+    editMode: z.enum(TextEditMode).optional(),
 
     /** @deprecated Version of the API to be used, remove in a few releases */
     apiVersion: z.number().optional(),
@@ -313,10 +313,10 @@ export type DocumentsUpdateReq = z.infer<typeof DocumentsUpdateSchema>;
 export const DocumentsMoveSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
     /** Id of collection to which the doc is supposed to be moved */
-    collectionId: z.string().uuid().optional().nullish(),
+    collectionId: z.uuid().optional().nullish(),
 
     /** Parent Id, in case if the doc is moved to a new parent */
-    parentDocumentId: z.string().uuid().nullish(),
+    parentDocumentId: z.uuid().nullish(),
 
     /** Helps evaluate the new index in collection structure upon move */
     index: z.number().gte(0).optional(),
@@ -345,7 +345,7 @@ export type DocumentsDeleteReq = z.infer<typeof DocumentsDeleteSchema>;
 export const DocumentsUnpublishSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
     /** Whether to detach the document from the collection */
-    detach: z.boolean().default(false),
+    detach: z.boolean().prefault(false),
 
     /** @deprecated Version of the API to be used, remove in a few releases */
     apiVersion: z.number().optional(),
@@ -366,18 +366,18 @@ export const DocumentsImportSchema = BaseSchema.extend({
         .optional(),
 
       /** Import docs to this collection */
-      collectionId: z.string().uuid().nullish(),
+      collectionId: z.uuid().nullish(),
 
       /** Import under this parent doc */
-      parentDocumentId: z.string().uuid().nullish(),
+      parentDocumentId: z.uuid().nullish(),
 
       /** ID of a pre-uploaded attachment to import from */
-      attachmentId: z.string().uuid().optional(),
+      attachmentId: z.uuid().optional(),
     })
     .refine(
       (req) => !(isEmpty(req.collectionId) && isEmpty(req.parentDocumentId)),
       {
-        message: "one of collectionId or parentDocumentId is required",
+        error: "one of collectionId or parentDocumentId is required",
       }
     ),
   file: z.custom<formidable.File>().optional(),
@@ -411,23 +411,23 @@ export const DocumentsCreateSchema = BaseSchema.extend({
     publish: z.boolean().optional(),
 
     /** Collection to create document within  */
-    collectionId: z.string().uuid().nullish(),
+    collectionId: z.uuid().nullish(),
 
     /** Index to create the document at within the collection */
     index: z.number().optional(),
 
     /** Parent document to create within */
-    parentDocumentId: z.string().uuid().nullish(),
+    parentDocumentId: z.uuid().nullish(),
 
     /** A template to create the document from */
-    templateId: z.string().uuid().optional(),
+    templateId: z.uuid().optional(),
 
     /** Optionally set the created date in the past */
     createdAt: z.coerce
       .date()
       .optional()
       .refine((data) => !data || data < new Date(), {
-        message: "createdAt must be in the past",
+        error: "createdAt must be in the past",
       }),
 
     /** Boolean to denote if the document should occupy full width */
@@ -451,7 +451,7 @@ export const DocumentsUsersSchema = BaseSchema.extend({
     /** Query term to search users by name */
     query: z.string().optional(),
     /** Id of the user to search within document access */
-    userId: z.string().uuid().optional(),
+    userId: z.uuid().optional(),
   }),
 });
 
@@ -466,9 +466,9 @@ export type DocumentsChildrenReq = z.infer<typeof DocumentsChildrenSchema>;
 export const DocumentsAddUserSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
     /** Id of the user who is to be added */
-    userId: z.string().uuid(),
+    userId: z.uuid(),
     /** Permission to be granted to the added user */
-    permission: z.nativeEnum(DocumentPermission).optional(),
+    permission: z.enum(DocumentPermission).optional(),
   }),
 });
 
@@ -477,7 +477,7 @@ export type DocumentsAddUserReq = z.infer<typeof DocumentsAddUserSchema>;
 export const DocumentsRemoveUserSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
     /** Id of the user who is to be removed */
-    userId: z.string().uuid(),
+    userId: z.uuid(),
   }),
 });
 
@@ -485,10 +485,10 @@ export type DocumentsRemoveUserReq = z.infer<typeof DocumentsRemoveUserSchema>;
 
 export const DocumentsAddGroupSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
-    groupId: z.string().uuid(),
+    groupId: z.uuid(),
     permission: z
-      .nativeEnum(DocumentPermission)
-      .default(DocumentPermission.ReadWrite),
+      .enum(DocumentPermission)
+      .prefault(DocumentPermission.ReadWrite),
   }),
 });
 
@@ -496,7 +496,7 @@ export type DocumentsAddGroupsReq = z.infer<typeof DocumentsAddGroupSchema>;
 
 export const DocumentsRemoveGroupSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
-    groupId: z.string().uuid(),
+    groupId: z.uuid(),
   }),
 });
 
@@ -515,7 +515,7 @@ export type DocumentsSharedWithUserReq = z.infer<
 export const DocumentsMembershipsSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
     query: z.string().optional(),
-    permission: z.nativeEnum(DocumentPermission).optional(),
+    permission: z.enum(DocumentPermission).optional(),
   }),
 });
 

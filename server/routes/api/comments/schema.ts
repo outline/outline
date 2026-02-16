@@ -7,7 +7,7 @@ import { zodEmojiType } from "@server/utils/zod";
 
 const BaseIdSchema = z.object({
   /** Comment Id */
-  id: z.string().uuid(),
+  id: z.uuid(),
 });
 
 const CommentsSortParamsSchema = z.object({
@@ -15,7 +15,7 @@ const CommentsSortParamsSchema = z.object({
   sort: z
     .string()
     .refine((val) => ["createdAt", "updatedAt"].includes(val))
-    .default("createdAt"),
+    .prefault("createdAt"),
 
   /** Specifies the sort order with respect to sort field */
   direction: z
@@ -28,13 +28,13 @@ export const CommentsCreateSchema = BaseSchema.extend({
   body: z
     .object({
       /** Allow creation with a specific ID */
-      id: z.string().uuid().optional(),
+      id: z.uuid().optional(),
 
       /** Create comment for this document */
-      documentId: z.string().uuid(),
+      documentId: z.uuid(),
 
       /** Create comment under this parent */
-      parentCommentId: z.string().uuid().optional(),
+      parentCommentId: z.uuid().optional(),
 
       /** Create comment with this data */
       data: ProsemirrorSchema({ schema: commentSchema }).optional(),
@@ -43,7 +43,7 @@ export const CommentsCreateSchema = BaseSchema.extend({
       text: z.string().optional(),
     })
     .refine((obj) => !(isEmpty(obj.data) && isEmpty(obj.text)), {
-      message: "One of data or text is required",
+      error: "One of data or text is required",
     }),
 });
 
@@ -71,9 +71,9 @@ export const CommentsListSchema = BaseSchema.extend({
     /** Id of a collection to list comments for */
     collectionId: z.string().optional(),
     /** Id of a parent comment to list comments for */
-    parentCommentId: z.string().uuid().optional(),
+    parentCommentId: z.uuid().optional(),
     /** Comment statuses to include in results */
-    statusFilter: z.nativeEnum(CommentStatusFilter).array().optional(),
+    statusFilter: z.enum(CommentStatusFilter).array().optional(),
     /** Whether to include anchor text, if it exists */
     includeAnchorText: z.boolean().optional(),
   }),
