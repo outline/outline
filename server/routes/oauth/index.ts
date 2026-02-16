@@ -2,6 +2,7 @@ import OAuth2Server from "@node-oauth/oauth2-server";
 import Koa from "koa";
 import bodyParser from "koa-body";
 import Router from "koa-router";
+import env from "@server/env";
 import { ValidationError, NotFoundError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -167,6 +168,10 @@ router.post(
   validate(T.RegisterSchema),
   rateLimiter(RateLimiterStrategy.FivePerHour),
   async (ctx: APIContext<T.RegisterReq>) => {
+    if (env.OAUTH_DISABLE_DCR) {
+      throw NotFoundError();
+    }
+
     const {
       client_name,
       redirect_uris,
