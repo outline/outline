@@ -11,6 +11,7 @@ import requestTracer from "@server/middlewares/requestTracer";
 import { AuthenticationType } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { collectionTools } from "@server/tools/collections";
+import { commentTools } from "@server/tools/comments";
 import { documentTools } from "@server/tools/documents";
 import { version } from "../../../package.json";
 
@@ -18,7 +19,7 @@ const app = new Koa();
 const router = new Router();
 
 /**
- * Creates a fresh MCP server instance with registered tools.
+ * Creates a fresh MCP server instance with registered tools and resources.
  *
  * @returns a configured McpServer ready to be connected to a transport.
  */
@@ -30,12 +31,14 @@ function createMcpServer(): McpServer {
     },
     {
       capabilities: {
+        resources: {},
         tools: {},
       },
     }
   );
 
   collectionTools(server);
+  commentTools(server);
   documentTools(server);
 
   return server;

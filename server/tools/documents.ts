@@ -1,40 +1,42 @@
 import { z } from "zod";
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
+import {
+  type McpServer,
+  ResourceTemplate,
+} from "@modelcontextprotocol/sdk/server/mcp.js";
+import {
+  type CallToolResult,
+  McpError,
+  ErrorCode,
+} from "@modelcontextprotocol/sdk/types.js";
 import documentCreator from "@server/commands/documentCreator";
 import documentUpdater from "@server/commands/documentUpdater";
+import { Op } from "sequelize";
 import { Collection, Document } from "@server/models";
+import SearchHelper from "@server/models/helpers/SearchHelper";
 import { authorize } from "@server/policies";
 import { presentDocument } from "@server/presenters";
-import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
-import { error, buildAPIContext } from "./util";
+import { error, success, buildAPIContext, getAuthFromContext } from "./util";
 import { TextEditMode } from "@shared/types";
 
 /**
- * Registers document-related MCP tools on the given server.
+ * Registers document-related MCP tools and resources on the given server.
  *
- * @param server - the MCP server instance to register tools on.
+ * @param server - the MCP server instance to register on.
  */
 export function documentTools(server: McpServer) {
-  server.registerTool(
+  server.registerResource(
     "get_document",
+    new ResourceTemplate("outline://documents/{id}", { list: undefined }),
     {
       title: "Get document",
       description: "Fetches the content of a document by its ID.",
-      annotations: {
-        idempotentHint: true,
-        readOnlyHint: true,
-      },
-      inputSchema: {
-        id: z
-          .string()
-          .describe("The unique identifier of the document to retrieve."),
-      },
+      mimeType: "text/markdown",
     },
-    async (input, extra) => {
+    async (uri, variables, extra) => {
       try {
-        const ctx = buildAPIContext(extra);
-        const { user } = ctx.state.auth;
-        const document = await Document.findByPk(input.id, {
+        const { id } = variables;
+        const user = getAuthFromContext(extra);
+        const document = await Document.findByPk(String(id), {
           userId: user.id,
           rejectOnEmpty: true,
         });
@@ -51,17 +53,124 @@ export function documentTools(server: McpServer) {
           }
         );
         return {
-          content: [
+          contents: [
             {
-              type: "text" as const,
+              uri: uri.href,
+              mimeType: "application/json",
               text: JSON.stringify(attributes),
             },
             {
-              type: "text" as const,
+              uri: uri.href,
+              mimeType: "text/markdown",
               text: String(text ?? ""),
             },
           ],
-        } satisfies CallToolResult;
+        };
+      } catch (err) {
+        throw new McpError(
+          ErrorCode.InvalidParams,
+          err instanceof Error ? err.message : String(err)
+        );
+      }
+    }
+  );
+
+  server.registerTool(
+    "list_documents",
+    {
+      title: "Search documents",
+      description:
+        "Searches documents the user has access to. Performs full-text search across document content when a query is provided, or lists recent documents when no query is given. Optionally filter by collection.",
+      annotations: {
+        idempotentHint: true,
+        readOnlyHint: true,
+      },
+      inputSchema: {
+        query: z
+          .string()
+          .optional()
+          .describe(
+            "A search query to find documents by content or title. When omitted, returns recent documents."
+          ),
+        collectionId: z
+          .string()
+          .optional()
+          .describe("An optional collection ID to filter documents by."),
+        offset: z
+          .number()
+          .int()
+          .min(0)
+          .optional()
+          .describe("The pagination offset. Defaults to 0."),
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(100)
+          .optional()
+          .describe(
+            "The maximum number of results to return. Defaults to 25, max 100."
+          ),
+      },
+    },
+    async ({ query, collectionId, offset, limit }, extra) => {
+      try {
+        const user = getAuthFromContext(extra);
+        const effectiveOffset = offset ?? 0;
+        const effectiveLimit = limit ?? 25;
+
+        if (collectionId) {
+          const collection = await Collection.findByPk(collectionId, {
+            userId: user.id,
+          });
+          authorize(user, "readDocument", collection);
+        }
+
+        if (query) {
+          const { results } = await SearchHelper.searchForUser(user, {
+            query,
+            collectionId,
+            offset: effectiveOffset,
+            limit: effectiveLimit,
+          });
+
+          const presented = await Promise.all(
+            results.map(async (result) => {
+              const doc = await presentDocument(undefined, result.document, {
+                includeData: false,
+                includeText: false,
+              });
+              return { ...doc, context: result.context };
+            })
+          );
+          return success(presented);
+        }
+
+        const collectionIds = collectionId
+          ? [collectionId]
+          : await user.collectionIds();
+
+        const documents = await Document.findAll({
+          where: {
+            teamId: user.teamId,
+            collectionId: collectionIds,
+            archivedAt: { [Op.eq]: null },
+            deletedAt: { [Op.eq]: null },
+          },
+          order: [["updatedAt", "DESC"]],
+          offset: effectiveOffset,
+          limit: effectiveLimit,
+        });
+
+        const presented = await Promise.all(
+          documents.map((document) =>
+            presentDocument(undefined, document, {
+              includeData: false,
+              includeText: false,
+            })
+          )
+        );
+        return success(presented);
       } catch (message) {
         return error(message);
       }

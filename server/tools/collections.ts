@@ -1,15 +1,20 @@
 import { z } from "zod";
 import { Sequelize, Op, type WhereOptions } from "sequelize";
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
-import { Collection } from "@server/models";
+import {
+  type McpServer,
+  ResourceTemplate,
+} from "@modelcontextprotocol/sdk/server/mcp.js";
+import { McpError, ErrorCode } from "@modelcontextprotocol/sdk/types.js";
+import { CollectionPermission } from "@shared/types";
+import { Collection, Team } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentCollection } from "@server/presenters";
-import { success, error, getAuthFromContext } from "./util";
+import { success, error, getAuthFromContext, buildAPIContext } from "./util";
 
 /**
- * Registers collection-related MCP tools on the given server.
+ * Registers collection-related MCP tools and resources on the given server.
  *
- * @param server - the MCP server instance to register tools on.
+ * @param server - the MCP server instance to register on.
  */
 export function collectionTools(server: McpServer) {
   server.registerTool(
@@ -27,9 +32,24 @@ export function collectionTools(server: McpServer) {
           .string()
           .optional()
           .describe("An optional search query to filter collections by name."),
+        offset: z
+          .number()
+          .int()
+          .min(0)
+          .optional()
+          .describe("The pagination offset. Defaults to 0."),
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(100)
+          .optional()
+          .describe(
+            "The maximum number of results to return. Defaults to 25, max 100."
+          ),
       },
     },
-    async ({ query }, extra) => {
+    async ({ query, offset, limit }, extra) => {
       try {
         const user = getAuthFromContext(extra);
         const collectionIds = await user.collectionIds();
@@ -62,6 +82,8 @@ export function collectionTools(server: McpServer) {
             Sequelize.literal('"collection"."index" collate "C"'),
             ["updatedAt", "DESC"],
           ],
+          offset: offset ?? 0,
+          limit: limit ?? 25,
         });
 
         const presented = await Promise.all(
@@ -76,32 +98,174 @@ export function collectionTools(server: McpServer) {
     }
   );
 
-  server.registerTool(
+  server.registerResource(
     "get_collection",
+    new ResourceTemplate("outline://collections/{id}", { list: undefined }),
     {
       title: "Get collection",
       description:
         "Fetches the details of a collection by its ID, including its document structure.",
-      annotations: {
-        idempotentHint: true,
-        readOnlyHint: true,
-      },
-      inputSchema: {
-        id: z
-          .string()
-          .describe("The unique identifier of the collection to retrieve."),
-      },
+      mimeType: "application/json",
     },
-    async ({ id }, extra) => {
+    async (uri, variables, extra) => {
       try {
+        const { id } = variables;
         const user = getAuthFromContext(extra);
         const collection = await Collection.scope(
           "withDocumentStructure"
-        ).findByPk(id, {
+        ).findByPk(String(id), {
           rejectOnEmpty: true,
         });
 
         authorize(user, "read", collection);
+
+        const presented = await presentCollection(undefined, collection);
+        return {
+          contents: [
+            {
+              uri: uri.href,
+              mimeType: "application/json",
+              text: JSON.stringify(presented),
+            },
+            {
+              uri: uri.href,
+              mimeType: "application/json",
+              text: JSON.stringify(collection.documentStructure ?? []),
+            },
+          ],
+        };
+      } catch (err) {
+        throw new McpError(
+          ErrorCode.InvalidParams,
+          err instanceof Error ? err.message : String(err)
+        );
+      }
+    }
+  );
+
+  server.registerTool(
+    "create_collection",
+    {
+      title: "Create collection",
+      description:
+        "Creates a new collection. Collections are used to organize documents.",
+      annotations: {
+        idempotentHint: false,
+        readOnlyHint: false,
+      },
+      inputSchema: {
+        name: z.string().describe("The name of the collection."),
+        description: z
+          .string()
+          .optional()
+          .describe("A markdown description for the collection."),
+        icon: z
+          .string()
+          .optional()
+          .describe("An icon for the collection, e.g. an emoji."),
+        color: z
+          .string()
+          .optional()
+          .describe("The hex color for the collection icon, e.g. #FF0000."),
+      },
+    },
+    async (input, context) => {
+      try {
+        const ctx = buildAPIContext(context);
+        const { user } = ctx.state.auth;
+        const team = await Team.findByPk(user.teamId, {
+          rejectOnEmpty: true,
+        });
+        authorize(user, "createCollection", team);
+
+        const collection = Collection.build({
+          name: input.name,
+          description: input.description,
+          icon: input.icon,
+          color: input.color,
+          teamId: user.teamId,
+          createdById: user.id,
+          permission: CollectionPermission.ReadWrite,
+        });
+
+        await collection.saveWithCtx(ctx);
+
+        const reloaded = await Collection.findByPk(collection.id, {
+          userId: user.id,
+          rejectOnEmpty: true,
+        });
+
+        const presented = await presentCollection(undefined, reloaded);
+        return success(presented);
+      } catch (message) {
+        return error(message);
+      }
+    }
+  );
+
+  server.registerTool(
+    "update_collection",
+    {
+      title: "Update collection",
+      description:
+        "Updates an existing collection by its ID. Only the fields provided will be updated.",
+      annotations: {
+        idempotentHint: true,
+        readOnlyHint: false,
+      },
+      inputSchema: {
+        id: z
+          .string()
+          .describe("The unique identifier of the collection to update."),
+        name: z
+          .string()
+          .optional()
+          .describe("The new name for the collection."),
+        description: z
+          .string()
+          .optional()
+          .describe("The new markdown description for the collection."),
+        icon: z
+          .string()
+          .nullable()
+          .optional()
+          .describe(
+            "An icon for the collection, e.g. an emoji. Set to null to remove."
+          ),
+        color: z
+          .string()
+          .nullable()
+          .optional()
+          .describe(
+            "The hex color for the collection icon. Set to null to remove."
+          ),
+      },
+    },
+    async (input, context) => {
+      try {
+        const ctx = buildAPIContext(context);
+        const { user } = ctx.state.auth;
+
+        const collection = await Collection.findByPk(input.id, {
+          userId: user.id,
+          rejectOnEmpty: true,
+        });
+        authorize(user, "update", collection);
+
+        if (input.name !== undefined) {
+          collection.name = input.name.trim();
+        }
+        if (input.description !== undefined) {
+          collection.description = input.description;
+        }
+        if (input.icon !== undefined) {
+          collection.icon = input.icon;
+        }
+        if (input.color !== undefined) {
+          collection.color = input.color;
+        }
+
+        await collection.saveWithCtx(ctx);
 
         const presented = await presentCollection(undefined, collection);
         return success(presented);
