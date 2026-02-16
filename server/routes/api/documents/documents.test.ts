@@ -506,7 +506,7 @@ describe("#documents.info", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("shareId: Invalid uuid");
+    expect(body.message).toEqual("shareId: Invalid input");
   });
 });
 
@@ -634,7 +634,7 @@ describe("#documents.list", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("userId: Invalid uuid");
+    expect(body.message).toEqual("userId: Invalid UUID");
   });
 
   it("should fail for invalid collectionId", async () => {
@@ -647,7 +647,7 @@ describe("#documents.list", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("collectionId: Invalid uuid");
+    expect(body.message).toEqual("collectionId: Invalid UUID");
   });
 
   it("should fail for invalid parentDocumentId", async () => {
@@ -660,7 +660,7 @@ describe("#documents.list", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("parentDocumentId: Invalid uuid");
+    expect(body.message).toEqual("parentDocumentId: Invalid UUID");
   });
 
   it("should fail for invalid backlinkDocumentId", async () => {
@@ -673,7 +673,7 @@ describe("#documents.list", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("backlinkDocumentId: Invalid uuid");
+    expect(body.message).toEqual("backlinkDocumentId: Invalid UUID");
   });
 
   it("should return documents", async () => {
@@ -1096,7 +1096,7 @@ describe("#documents.drafts", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("collectionId: Invalid uuid");
+    expect(body.message).toEqual("collectionId: Invalid UUID");
   });
 
   it("should fail for invalid dateFilter", async () => {
@@ -1270,7 +1270,9 @@ describe("#documents.search_titles", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("query: Required");
+    expect(body.message).toEqual(
+      "query: Invalid input: expected string, received undefined"
+    );
   });
 
   it("should return case insensitive results for partial query", async () => {
@@ -2089,7 +2091,9 @@ describe("#documents.templatize", () => {
     });
     const body = await res.json();
     expect(res.status).toBe(400);
-    expect(body.message).toBe("publish: Required");
+    expect(body.message).toBe(
+      "publish: Invalid input: expected boolean, received undefined"
+    );
   });
   it("should create a published non-workspace template", async () => {
     const user = await buildUser();
@@ -2693,9 +2697,7 @@ describe("#documents.move", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual(
-      "index: Number must be greater than or equal to 0"
-    );
+    expect(body.message).toEqual("index: Too small: expected number to be >=0");
   });
 
   it("should move doc to the top of collection as its first child", async () => {
@@ -2942,7 +2944,7 @@ describe("#documents.restore", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("collectionId: Invalid uuid");
+    expect(body.message).toEqual("collectionId: Invalid UUID");
   });
 
   it("should allow restore of trashed drafts of a collection", async () => {
@@ -3572,7 +3574,7 @@ describe("#documents.create", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("collectionId: Invalid uuid");
+    expect(body.message).toEqual("collectionId: Invalid UUID");
   });
 
   it("should succeed if collectionId is null", async () => {
@@ -3633,7 +3635,7 @@ describe("#documents.create", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("parentDocumentId: Invalid uuid");
+    expect(body.message).toEqual("parentDocumentId: Invalid UUID");
   });
 
   it("should create as a new document with icon", async () => {
@@ -3996,7 +3998,7 @@ describe("#documents.update", () => {
     const body = await res.json();
     expect(res.status).toEqual(400);
 
-    expect(body.message).toBe("icon: Invalid");
+    expect(body.message).toBe("icon: Invalid input");
   });
 
   it("should successfully update the icon", async () => {
@@ -4400,7 +4402,7 @@ describe("#documents.update", () => {
     });
     const body = await res.json();
     expect(res.status).toBe(400);
-    expect(body.message).toBe("collectionId: Invalid uuid");
+    expect(body.message).toBe("collectionId: Invalid UUID");
   });
 
   it("should require id", async () => {

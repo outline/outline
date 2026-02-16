@@ -4,9 +4,9 @@ import { BaseSchema } from "@server/routes/api/schema";
 
 export const EmailSchema = BaseSchema.extend({
   body: z.object({
-    email: z.string().email(),
-    client: z.nativeEnum(Client).default(Client.Web),
-    preferOTP: z.boolean().default(false),
+    email: z.email(),
+    client: z.enum(Client).prefault(Client.Web),
+    preferOTP: z.boolean().prefault(false),
   }),
 });
 
@@ -16,15 +16,15 @@ const callbackDataSchema = z
   .object({
     token: z.string().optional(),
     code: z.string().optional(),
-    email: z.string().email().optional(),
-    client: z.nativeEnum(Client).optional(),
-    follow: z.string().default(""),
+    email: z.email().optional(),
+    client: z.enum(Client).optional(),
+    follow: z.string().prefault(""),
   })
   .refine(
     (data: { code?: string; email?: string; token?: string }) =>
       !(data.code && !data.email) && !(data.email && !data.code && !data.token),
     {
-      message: "Both code and email must be provided together",
+      error: "Both code and email must be provided together",
     }
   );
 

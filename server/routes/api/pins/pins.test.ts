@@ -444,7 +444,9 @@ describe("#pins.update", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("id: Required");
+    expect(body.message).toEqual(
+      "id: Invalid input: expected string, received undefined"
+    );
   });
 
   it("should fail with status 400 bad request when index is missing", async () => {
@@ -456,7 +458,9 @@ describe("#pins.update", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("index: Required");
+    expect(body.message).toEqual(
+      "index: Invalid input: expected string, received undefined"
+    );
   });
 
   it("should fail with status 400 bad request when an invalid index is sent", async () => {
@@ -530,7 +534,9 @@ describe("#pins.delete", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("id: Required");
+    expect(body.message).toEqual(
+      "id: Invalid input: expected string, received undefined"
+    );
   });
 
   it("should fail with status 403 forbidden when user is disallowed to delete the pin", async () => {

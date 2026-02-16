@@ -3,7 +3,7 @@ import { BaseSchema } from "@server/routes/api/schema";
 
 export const GroupMembershipsListSchema = BaseSchema.extend({
   body: z.object({
-    groupId: z.string().uuid().optional(),
+    groupId: z.uuid().optional(),
   }),
 });
 

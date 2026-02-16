@@ -7,12 +7,12 @@ export const EmojisInfoSchema = BaseSchema.extend({
   body: z
     .object({
       /** ID of the emoji to fetch */
-      id: z.string().uuid().optional(),
+      id: z.uuid().optional(),
       /** Name of the emoji to fetch */
       name: z.string().min(1).max(EmojiValidation.maxNameLength).optional(),
     })
     .refine((data) => data.id || data.name, {
-      message: "Either id or name is required",
+      error: "Either id or name is required",
     }),
 });
 
@@ -27,21 +27,21 @@ export const EmojisCreateSchema = BaseSchema.extend({
     /** Name/shortcode for the emoji (e.g., "awesome") */
     name: z.string().min(1).max(EmojiValidation.maxNameLength),
     /** URL to the emoji image */
-    attachmentId: z.string().uuid(),
+    attachmentId: z.uuid(),
   }),
 });
 
 export const EmojisDeleteSchema = BaseSchema.extend({
   body: z.object({
     /** ID of the emoji to delete */
-    id: z.string().uuid(),
+    id: z.uuid(),
   }),
 });
 
 export const EmojisRedirectSchema = BaseSchema.extend({
   query: z.object({
     /** Id of the emoji */
-    id: z.string().uuid(),
+    id: z.uuid(),
     /** Share Id, if available */
     shareId: zodShareIdType().optional(),
   }),

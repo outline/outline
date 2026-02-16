@@ -8,13 +8,13 @@ import {
 import { PageType } from "plugins/notion/shared/types";
 
 const BaseImportInputItemSchema = z.object({
-  permission: z.nativeEnum(CollectionPermission).optional(),
+  permission: z.enum(CollectionPermission).optional(),
 });
 
 export type BaseImportInput = z.infer<typeof BaseImportInputItemSchema>[];
 
 export const NotionImportInputItemSchema = BaseImportInputItemSchema.extend({
-  type: z.nativeEnum(PageType).optional(),
+  type: z.enum(PageType).optional(),
   externalId: z.string().optional(),
 });
 
@@ -35,7 +35,7 @@ export type BaseImportTaskInput = z.infer<
 
 export const NotionImportTaskInputItemSchema =
   BaseImportTaskInputItemSchema.extend({
-    type: z.nativeEnum(PageType),
+    type: z.enum(PageType),
   });
 
 export type NotionImportTaskInput = z.infer<
@@ -65,7 +65,7 @@ export const IssueSource = z.object({
     id: z.string().nonempty(),
     name: z.string().nonempty(),
   }),
-  service: z.nativeEnum(IssueTrackerIntegrationService),
+  service: z.enum(IssueTrackerIntegrationService),
 });
 
 export type IssueSource = z.infer<typeof IssueSource>;

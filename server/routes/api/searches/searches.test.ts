@@ -144,7 +144,7 @@ describe("#searches.delete", () => {
 
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("id: Invalid uuid");
+    expect(body.message).toEqual("id: Invalid UUID");
   });
 
   it("should succeed with status 200 ok and successfully delete the query", async () => {

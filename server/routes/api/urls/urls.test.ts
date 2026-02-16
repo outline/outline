@@ -40,7 +40,7 @@ describe("#urls.unfurl", () => {
 
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("url: Invalid url");
+    expect(body.message).toEqual("url: Invalid URL");
   });
 
   it("should fail with status 400 bad request when mention url is invalid", async () => {

@@ -110,7 +110,7 @@ describe("#integrations.create", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("url: Invalid url");
+    expect(body.message).toEqual("url: Invalid URL");
   });
 
   it("should succeed with status 200 ok for an integration without url", async () => {
@@ -189,7 +189,9 @@ describe("#integrations.delete", () => {
 
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("id: Required");
+    expect(body.message).toEqual(
+      "id: Invalid input: expected string, received undefined"
+    );
   });
 
   it("should succeed as user deleting own linked account integration", async () => {

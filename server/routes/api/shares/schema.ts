@@ -20,7 +20,7 @@ export const SharesInfoSchema = BaseSchema.extend({
           isEmpty(body.documentId)
         ),
       {
-        message: "one of id, collectionId, or documentId is required",
+        error: "one of id, collectionId, or documentId is required",
       }
     ),
 });
@@ -37,7 +37,7 @@ export const SharesListSchema = BaseSchema.extend({
           ", "
         )}`,
       })
-      .default("updatedAt"),
+      .prefault("updatedAt"),
     direction: z
       .string()
       .optional()
@@ -49,7 +49,7 @@ export type SharesListReq = z.infer<typeof SharesListSchema>;
 
 export const SharesUpdateSchema = BaseSchema.extend({
   body: z.object({
-    id: z.string().uuid(),
+    id: z.uuid(),
     includeChildDocuments: z.boolean().optional(),
     published: z.boolean().optional(),
     allowIndexing: z.boolean().optional(),
@@ -58,7 +58,7 @@ export const SharesUpdateSchema = BaseSchema.extend({
     urlId: z
       .string()
       .regex(UrlHelper.SHARE_URL_SLUG_REGEX, {
-        message: "must contain only alphanumeric and dashes",
+        error: "must contain only alphanumeric and dashes",
       })
       .nullish(),
   }),
@@ -71,20 +71,20 @@ export const SharesCreateSchema = BaseSchema.extend({
     .object({
       collectionId: zodIdType().optional(),
       documentId: zodIdType().optional(),
-      published: z.boolean().default(false),
+      published: z.boolean().prefault(false),
       allowIndexing: z.boolean().optional(),
       showLastUpdated: z.boolean().optional(),
       showTOC: z.boolean().optional(),
       urlId: z
         .string()
         .regex(UrlHelper.SHARE_URL_SLUG_REGEX, {
-          message: "must contain only alphanumeric and dashes",
+          error: "must contain only alphanumeric and dashes",
         })
         .optional(),
-      includeChildDocuments: z.boolean().default(false),
+      includeChildDocuments: z.boolean().prefault(false),
     })
     .refine((obj) => !(isEmpty(obj.collectionId) && isEmpty(obj.documentId)), {
-      message: "one of collectionId or documentId is required",
+      error: "one of collectionId or documentId is required",
     }),
 });
 
@@ -92,7 +92,7 @@ export type SharesCreateReq = z.infer<typeof SharesCreateSchema>;
 
 export const SharesRevokeSchema = BaseSchema.extend({
   body: z.object({
-    id: z.string().uuid(),
+    id: z.uuid(),
   }),
 });
 

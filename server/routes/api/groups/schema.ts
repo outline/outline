@@ -5,7 +5,7 @@ import { Group } from "@server/models";
 
 const BaseIdSchema = z.object({
   /** Group Id */
-  id: z.string().uuid(),
+  id: z.uuid(),
 });
 
 export const GroupsListSchema = z.object({
@@ -19,11 +19,11 @@ export const GroupsListSchema = z.object({
     sort: z
       .string()
       .refine((val) => Object.keys(Group.getAttributes()).includes(val), {
-        message: "Invalid sort parameter",
+        error: "Invalid sort parameter",
       })
-      .default("updatedAt"),
+      .prefault("updatedAt"),
     /** Only list groups where this user is a member */
-    userId: z.string().uuid().optional(),
+    userId: z.uuid().optional(),
     /** Find group matching externalId */
     externalId: z.string().optional(),
     /** @deprecated Find group with matching name */
@@ -38,7 +38,7 @@ export type GroupsListReq = z.infer<typeof GroupsListSchema>;
 export const GroupsInfoSchema = z.object({
   body: z.object({
     /** Group Id */
-    id: z.string().uuid().optional(),
+    id: z.uuid().optional(),
     /** External source. */
     externalId: z.string().optional(),
   }),
@@ -58,7 +58,7 @@ export const GroupsCreateSchema = z.object({
     /** Optionally link this group to an external source. */
     externalId: z.string().optional(),
     /** Whether mentions are disabled for this group */
-    disableMentions: z.boolean().optional().default(false),
+    disableMentions: z.boolean().optional().prefault(false),
   }),
 });
 
@@ -100,12 +100,12 @@ export type GroupsMembershipsReq = z.infer<typeof GroupsMembershipsSchema>;
 export const GroupsAddUserSchema = z.object({
   body: BaseIdSchema.extend({
     /** User Id */
-    userId: z.string().uuid(),
+    userId: z.uuid(),
     /** The permission of the user in the group */
     permission: z
-      .nativeEnum(GroupPermission)
+      .enum(GroupPermission)
       .optional()
-      .default(GroupPermission.Member),
+      .prefault(GroupPermission.Member),
   }),
 });
 
@@ -114,7 +114,7 @@ export type GroupsAddUserReq = z.infer<typeof GroupsAddUserSchema>;
 export const GroupsRemoveUserSchema = z.object({
   body: BaseIdSchema.extend({
     /** User Id */
-    userId: z.string().uuid(),
+    userId: z.uuid(),
   }),
 });
 
@@ -123,9 +123,9 @@ export type GroupsRemoveUserReq = z.infer<typeof GroupsRemoveUserSchema>;
 export const GroupsUpdateUserSchema = z.object({
   body: BaseIdSchema.extend({
     /** User Id */
-    userId: z.string().uuid(),
+    userId: z.uuid(),
     /** The permission of the user in the group */
-    permission: z.nativeEnum(GroupPermission),
+    permission: z.enum(GroupPermission),
   }),
 });
 

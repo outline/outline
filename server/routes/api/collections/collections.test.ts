@@ -703,7 +703,7 @@ describe("#collections.add_group", () => {
     const body = await res.json();
     expect(res.status).toEqual(400);
     expect(body.message).toEqual(
-      "permission: Expected 'read' | 'read_write' | 'admin', received null"
+      'permission: Invalid option: expected one of "read"|"read_write"|"admin"'
     );
   });
 

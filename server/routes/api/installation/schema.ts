@@ -9,7 +9,7 @@ export const InstallationCreateSchema = BaseSchema.extend({
     /** User name */
     userName: z.string().min(1).max(UserValidation.maxNameLength),
     /** User email */
-    userEmail: z.string().email().max(UserValidation.maxEmailLength),
+    userEmail: z.email().max(UserValidation.maxEmailLength),
   }),
 });
 
