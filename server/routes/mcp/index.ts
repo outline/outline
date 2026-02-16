@@ -3,12 +3,14 @@ import bodyParser from "koa-body";
 import Router from "koa-router";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
 import Logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import requestTracer from "@server/middlewares/requestTracer";
 import { AuthenticationType } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
+import { documentTools } from "@server/tools/documents";
 
 const app = new Koa();
 const router = new Router();
@@ -41,6 +43,8 @@ function createMcpServer(): McpServer {
     })
   );
 
+  documentTools(server);
+
   return server;
 }
 
@@ -49,6 +53,7 @@ router.post(
   rateLimiter(RateLimiterStrategy.OneThousandPerHour),
   auth({ type: AuthenticationType.OAUTH }),
   async (ctx) => {
+    const { user, token } = ctx.state.auth;
     const server = createMcpServer();
     const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: undefined,
@@ -59,6 +64,15 @@ router.post(
     };
 
     await server.connect(transport);
+
+    // Attach auth info to the raw request so the MCP transport
+    // passes it through as `extra.authInfo` to tool handlers.
+    (ctx.req as typeof ctx.req & { auth: AuthInfo }).auth = {
+      token,
+      clientId: "",
+      scopes: [],
+      extra: { user },
+    };
 
     ctx.respond = false;
     await transport.handleRequest(ctx.req, ctx.res, ctx.request.body);
