@@ -165,7 +165,11 @@ class OAuthClient extends ParanoidModel<
    * @returns true if this client is a DCR client, false otherwise.
    */
   public get isDCR() {
-    return !this.createdById;
+    return (
+      !this.createdById ||
+      !!this.registrationAccessToken ||
+      !!this.registrationAccessTokenHash
+    );
   }
 
   // hooks
