@@ -724,6 +724,15 @@ export class Environment {
     ) ?? 300;
 
   /**
+   * Whether to disable OAuth Dynamic Client Registration (DCR). When set to
+   * true, the POST /oauth/register endpoint will be unavailable.
+   */
+  @IsBoolean()
+  public OAUTH_DISABLE_DCR = this.toBoolean(
+    environment.OAUTH_DISABLE_DCR ?? "false"
+  );
+
+  /**
    * Enable unsafe-inline in script-src CSP directive
    */
   @IsBoolean()

@@ -745,20 +745,28 @@ export async function buildOAuthClient(overrides: Partial<OAuthClient> = {}) {
     overrides.teamId = team.id;
   }
 
-  if (!overrides.createdById) {
+  if (!overrides.createdById && overrides.createdById !== null) {
     const user = await buildUser({
       teamId: overrides.teamId,
     });
     overrides.createdById = user.id;
   }
 
-  return OAuthClient.create({
-    name: faker.company.name(),
-    description: faker.lorem.paragraph(),
-    redirectUris: ["https://example.com/oauth/callback"],
-    published: true,
-    ...overrides,
-  });
+  return OAuthClient.create(
+    {
+      name: faker.company.name(),
+      description: faker.lorem.paragraph(),
+      redirectUris: ["https://example.com/oauth/callback"],
+      published: true,
+      ...(overrides.createdAt && !overrides.updatedAt
+        ? { updatedAt: overrides.createdAt }
+        : {}),
+      ...overrides,
+    },
+    {
+      silent: overrides.createdAt || overrides.updatedAt ? true : false,
+    }
+  );
 }
 
 export async function buildOAuthAuthorizationCode(

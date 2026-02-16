@@ -72,17 +72,6 @@ export default function auth(options: AuthenticationOptions = {}) {
       }
     }
 
-    Object.defineProperty(ctx, "context", {
-      configurable: true,
-      get() {
-        return {
-          auth: ctx.state.auth,
-          transaction: ctx.state.transaction,
-          ip: ctx.request.ip,
-        };
-      },
-    });
-
     return next();
   };
 }

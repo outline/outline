@@ -27,14 +27,17 @@ const OAuthAuthenticationListItem = ({ oauthAuthentication }: Props) => {
           </>
         ) : (
           t("Never used")
-        )}{" "}
-        &middot;{" "}
-      </Text>
-      <Text type="tertiary" ellipsis>
-        {OAuthScopeHelper.normalizeScopes(oauthAuthentication.scope, t).join(
-          ", "
         )}
       </Text>
+      {!!oauthAuthentication.scope.length && (
+        <Text type="tertiary" ellipsis>
+          {" "}
+          &middot;{" "}
+          {OAuthScopeHelper.normalizeScopes(oauthAuthentication.scope, t).join(
+            ", "
+          )}
+        </Text>
+      )}
     </>
   );
 

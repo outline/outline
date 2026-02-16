@@ -11,9 +11,16 @@ allow(User, "listOAuthClients", Team, (actor, team) =>
 );
 
 allow(User, "read", OAuthClient, (actor, oauthClient) =>
-  or(isTeamModel(actor, oauthClient), !!oauthClient?.published)
+  and(
+    or(isTeamModel(actor, oauthClient), !!oauthClient?.published),
+    !oauthClient?.isDCR
+  )
 );
 
 allow(User, ["update", "delete"], OAuthClient, (actor, oauthClient) =>
-  and(isTeamAdmin(actor, oauthClient), isTeamMutable(actor))
+  and(
+    isTeamAdmin(actor, oauthClient),
+    isTeamMutable(actor),
+    !oauthClient?.isDCR
+  )
 );

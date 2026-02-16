@@ -72,6 +72,7 @@ export type AppState = {
   auth: Authentication | Record<string, never>;
   transaction: Transaction;
   pagination: Pagination;
+  oauthClient?: OAuthClient;
 };
 
 export type AppContext = ParameterizedContext<AppState, DefaultContext>;

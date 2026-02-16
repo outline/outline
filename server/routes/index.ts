@@ -110,6 +110,24 @@ router.get("/locales/:lng.json", async (ctx) => {
   });
 });
 
+router.get("/.well-known/oauth-authorization-server", async (ctx) => {
+  const origin = ctx.request.URL.origin;
+
+  ctx.body = {
+    issuer: origin,
+    authorization_endpoint: `${origin}/oauth/authorize`,
+    token_endpoint: `${origin}/oauth/token`,
+    revocation_endpoint: `${origin}/oauth/revoke`,
+    ...(!env.OAUTH_DISABLE_DCR && {
+      registration_endpoint: `${origin}/oauth/register`,
+    }),
+    response_types_supported: ["code"],
+    grant_types_supported: ["authorization_code", "refresh_token"],
+    token_endpoint_auth_methods_supported: ["client_secret_post", "none"],
+    code_challenge_methods_supported: ["S256"],
+  };
+});
+
 router.get("/robots.txt", (ctx) => {
   ctx.body = robotsResponse();
 });
