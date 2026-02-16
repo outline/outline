@@ -35,6 +35,7 @@ export const TeamPreferenceDefaults: TeamPreferences = {
   [TeamPreference.TocPosition]: TOCPosition.Left,
   [TeamPreference.PreventDocumentEmbedding]: false,
   [TeamPreference.EmailDisplay]: EmailDisplay.Members,
+  [TeamPreference.MCP]: true,
 };
 
 export const UserPreferenceDefaults: UserPreferences = {

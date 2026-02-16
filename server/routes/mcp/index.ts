@@ -4,6 +4,8 @@ import Router from "koa-router";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
+import { TeamPreference } from "@shared/types";
+import { NotFoundError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -50,6 +52,11 @@ router.post(
   auth({ type: AuthenticationType.OAUTH }),
   async (ctx) => {
     const { user, token } = ctx.state.auth;
+
+    if (!user.team.getPreference(TeamPreference.MCP)) {
+      throw NotFoundError();
+    }
+
     const server = createMcpServer();
     const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: undefined,

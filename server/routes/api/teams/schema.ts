@@ -63,6 +63,8 @@ export const TeamsUpdateSchema = BaseSchema.extend({
         emailDisplay: z.enum(EmailDisplay).optional(),
         /** Whether to prevent shared documents from being embedded in iframes on external websites. */
         preventDocumentEmbedding: z.boolean().optional(),
+        /** Whether external MCP clients can connect to the workspace. */
+        mcp: z.boolean().optional(),
       })
       .optional(),
   }),
