@@ -5,7 +5,8 @@ import documentUpdater from "@server/commands/documentUpdater";
 import { Collection, Document } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentDocument } from "@server/presenters";
-import { success, error, buildAPIContext } from "./util";
+import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import { error, buildAPIContext } from "./util";
 import { TextEditMode } from "@shared/types";
 
 /**
@@ -29,23 +30,38 @@ export function documentTools(server: McpServer) {
           .describe("The unique identifier of the document to retrieve."),
       },
     },
-    async ({ id }, extra) => {
+    async (input, extra) => {
       try {
         const ctx = buildAPIContext(extra);
         const { user } = ctx.state.auth;
-        const document = await Document.findByPk(id, {
+        const document = await Document.findByPk(input.id, {
           userId: user.id,
           rejectOnEmpty: true,
         });
 
         authorize(user, "read", document);
 
-        const presented = await presentDocument(undefined, document, {
-          includeData: false,
-          includeText: true,
-          includeUpdatedAt: true,
-        });
-        return success(presented);
+        const { text, ...attributes } = await presentDocument(
+          undefined,
+          document,
+          {
+            includeData: false,
+            includeText: true,
+            includeUpdatedAt: true,
+          }
+        );
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: JSON.stringify(attributes),
+            },
+            {
+              type: "text" as const,
+              text: String(text ?? ""),
+            },
+          ],
+        } satisfies CallToolResult;
       } catch (message) {
         return error(message);
       }
@@ -86,11 +102,9 @@ export function documentTools(server: McpServer) {
           .describe("The hex color for the document icon, e.g. #FF0000."),
       },
     },
-    async (
-      { title, text, collectionId, parentDocumentId, icon, color },
-      context
-    ) => {
+    async (input, context) => {
       try {
+        const { collectionId, parentDocumentId } = input;
         const ctx = buildAPIContext(context);
         const { user } = ctx.state.auth;
         let collection;
@@ -119,21 +133,36 @@ export function documentTools(server: McpServer) {
         }
 
         const document = await documentCreator(ctx, {
-          title,
-          text,
-          icon,
-          color,
+          title: input.title,
+          text: input.text,
+          icon: input.icon,
+          color: input.color,
+          parentDocumentId: parentDocumentId,
           publish: true,
           collectionId: collection?.id,
-          parentDocumentId,
         });
 
-        const presented = await presentDocument(undefined, document, {
-          includeData: false,
-          includeText: true,
-          includeUpdatedAt: true,
-        });
-        return success(presented);
+        const { text, ...attributes } = await presentDocument(
+          undefined,
+          document,
+          {
+            includeData: false,
+            includeText: true,
+            includeUpdatedAt: true,
+          }
+        );
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: JSON.stringify(attributes),
+            },
+            {
+              type: "text" as const,
+              text: String(text ?? ""),
+            },
+          ],
+        } satisfies CallToolResult;
       } catch (message) {
         return error(message);
       }
@@ -188,15 +217,12 @@ export function documentTools(server: McpServer) {
           ),
       },
     },
-    async (
-      { id, title, text, editMode, collectionId, icon, color },
-      context
-    ) => {
+    async (input, context) => {
       try {
         const ctx = buildAPIContext(context);
         const { user } = ctx.state.auth;
 
-        const document = await Document.findByPk(id, {
+        const document = await Document.findByPk(input.id, {
           userId: user.id,
           includeState: true,
           rejectOnEmpty: true,
@@ -206,20 +232,30 @@ export function documentTools(server: McpServer) {
 
         const updated = await documentUpdater(ctx, {
           document,
-          title,
-          text,
-          editMode,
-          collectionId,
-          icon,
-          color,
+          ...input,
         });
 
-        const presented = await presentDocument(undefined, updated, {
-          includeData: false,
-          includeText: true,
-          includeUpdatedAt: true,
-        });
-        return success(presented);
+        const { text, ...attributes } = await presentDocument(
+          undefined,
+          updated,
+          {
+            includeData: false,
+            includeText: true,
+            includeUpdatedAt: true,
+          }
+        );
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: JSON.stringify(attributes),
+            },
+            {
+              type: "text" as const,
+              text: String(text ?? ""),
+            },
+          ],
+        } satisfies CallToolResult;
       } catch (message) {
         return error(message);
       }

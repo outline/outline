@@ -1,4 +1,5 @@
 import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
+import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import type { User } from "@server/models";
 import { type APIContext, AuthenticationType } from "@server/types";
 
@@ -45,7 +46,7 @@ export function buildAPIContext(context: McpContext) {
  * @param data - the data to include in the response.
  * @returns a formatted response object for MCP tools.
  */
-export async function success<T>(data: T) {
+export function success<T>(data: T): CallToolResult {
   return {
     content: [{ type: "text" as const, text: JSON.stringify(data) }],
   };
@@ -54,11 +55,14 @@ export async function success<T>(data: T) {
 /**
  * Helper function to format error MCP tool responses.
  *
- * @param message - the error message to include in the response.
+ * @param message - the error message or error to include in the response.
  * @returns a formatted error response object for MCP tools.
  */
-export async function error(message: string) {
+export function error(err: unknown): CallToolResult {
+  const message = err instanceof Error ? err.message : String(err);
+
   return {
     content: [{ type: "text" as const, text: message }],
+    isError: true,
   };
 }
