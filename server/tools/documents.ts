@@ -15,7 +15,7 @@ import { Collection, Document } from "@server/models";
 import SearchHelper from "@server/models/helpers/SearchHelper";
 import { authorize } from "@server/policies";
 import { presentDocument } from "@server/presenters";
-import { error, success, buildAPIContext, getAuthFromContext } from "./util";
+import { error, success, buildAPIContext, getActorFromContext } from "./util";
 import { TextEditMode } from "@shared/types";
 
 /**
@@ -35,7 +35,7 @@ export function documentTools(server: McpServer) {
     async (uri, variables, extra) => {
       try {
         const { id } = variables;
-        const user = getAuthFromContext(extra);
+        const user = getActorFromContext(extra);
         const document = await Document.findByPk(String(id), {
           userId: user.id,
           rejectOnEmpty: true,
@@ -115,7 +115,7 @@ export function documentTools(server: McpServer) {
     },
     async ({ query, collectionId, offset, limit }, extra) => {
       try {
-        const user = getAuthFromContext(extra);
+        const user = getActorFromContext(extra);
         const effectiveOffset = offset ?? 0;
         const effectiveLimit = limit ?? 25;
 

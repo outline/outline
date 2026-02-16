@@ -9,7 +9,7 @@ import { CollectionPermission } from "@shared/types";
 import { Collection, Team } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentCollection } from "@server/presenters";
-import { success, error, getAuthFromContext, buildAPIContext } from "./util";
+import { success, error, getActorFromContext, buildAPIContext } from "./util";
 
 /**
  * Registers collection-related MCP tools and resources on the given server.
@@ -51,7 +51,7 @@ export function collectionTools(server: McpServer) {
     },
     async ({ query, offset, limit }, extra) => {
       try {
-        const user = getAuthFromContext(extra);
+        const user = getActorFromContext(extra);
         const collectionIds = await user.collectionIds();
 
         const and: WhereOptions<Collection>[] = [
@@ -110,10 +110,9 @@ export function collectionTools(server: McpServer) {
     async (uri, variables, extra) => {
       try {
         const { id } = variables;
-        const user = getAuthFromContext(extra);
-        const collection = await Collection.scope(
-          "withDocumentStructure"
-        ).findByPk(String(id), {
+        const user = getActorFromContext(extra);
+        const collection = await Collection.findByPk(String(id), {
+          includeDocumentStructure: true,
           rejectOnEmpty: true,
         });
 

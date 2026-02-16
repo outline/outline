@@ -8,7 +8,7 @@ import { commentParser } from "@server/editor";
 import { Comment, Collection, Document } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentComment } from "@server/presenters";
-import { error, success, buildAPIContext, getAuthFromContext } from "./util";
+import { error, success, buildAPIContext, getActorFromContext } from "./util";
 
 /**
  * Presents a comment with a plain-text rendering of its content so that
@@ -90,7 +90,7 @@ export function commentTools(server: McpServer) {
       extra
     ) => {
       try {
-        const user = getAuthFromContext(extra);
+        const user = getActorFromContext(extra);
         const effectiveOffset = offset ?? 0;
         const effectiveLimit = limit ?? 25;
 

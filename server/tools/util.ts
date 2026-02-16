@@ -13,7 +13,7 @@ interface McpContext {
  * @param context - the extra object passed to MCP tool handlers.
  * @returns the authenticated user.
  */
-export function getAuthFromContext(context: McpContext) {
+export function getActorFromContext(context: McpContext) {
   return context.authInfo?.extra?.user as User;
 }
 

@@ -15,6 +15,7 @@ import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { collectionTools } from "@server/tools/collections";
 import { commentTools } from "@server/tools/comments";
 import { documentTools } from "@server/tools/documents";
+import { userTools } from "@server/tools/users";
 import { version } from "../../../package.json";
 
 const app = new Koa();
@@ -42,6 +43,7 @@ function createMcpServer(): McpServer {
   collectionTools(server);
   commentTools(server);
   documentTools(server);
+  userTools(server);
 
   return server;
 }
