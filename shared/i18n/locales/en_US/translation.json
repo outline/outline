@@ -987,6 +987,8 @@
   "{{ appName }} wants to access {{ teamName }}": "{{ appName }} wants to access {{ teamName }}",
   "By <em>{{ developerName }}</em>": "By <em>{{ developerName }}</em>",
   "{{ appName }} will be able to access your account and perform the following actions": "{{ appName }} will be able to access your account and perform the following actions",
+  "You will be redirected to a local application after authorizing.": "You will be redirected to a local application after authorizing.",
+  "You will be redirected to <em>{{ redirectUri }}</em> after authorizing. Make sure you trust this URL.": "You will be redirected to <em>{{ redirectUri }}</em> after authorizing. Make sure you trust this URL.",
   "read": "read",
   "write": "write",
   "read and write": "read and write",
