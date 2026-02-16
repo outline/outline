@@ -1,12 +1,12 @@
 import { action, observable } from "mobx";
 import { client } from "~/utils/ApiClient";
 import User from "../User";
-import ParanoidModel from "../base/ParanoidModel";
 import Field from "../decorators/Field";
 import Relation from "../decorators/Relation";
 import type OAuthClient from "./OAuthClient";
+import Model from "../base/Model";
 
-class OAuthAuthentication extends ParanoidModel {
+class OAuthAuthentication extends Model {
   static modelName = "OAuthAuthentication";
 
   /** A list of scopes that this authentication has access to */
