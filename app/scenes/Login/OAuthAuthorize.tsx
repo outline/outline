@@ -53,6 +53,23 @@ export default function OAuthAuthorize() {
   return <Login />;
 }
 
+function inputScopes(scope?: string): string[] {
+  const defaultScopes = ["read", "write"];
+
+  // Some clients don't send the scope parameter if it's empty, so we default to "read write".
+  if (!scope) {
+    return defaultScopes;
+  }
+
+  // Handle invalid "claudeai" scope sent by Claude:
+  // https://github.com/modelcontextprotocol/modelcontextprotocol/issues/653
+  if (scope === "claudeai") {
+    return defaultScopes;
+  }
+
+  return scope.split(" ").filter(Boolean);
+}
+
 /**
  * Authorize component is responsible for handling the OAuth authorization process.
  * It retrieves the OAuth client information, displays the authorization request,
@@ -72,10 +89,9 @@ function Authorize() {
     code_challenge: codeChallenge,
     code_challenge_method: codeChallengeMethod,
     state,
-    // Some clients don't send the scope parameter if it's empty, so we default to "read write".
-    scope = "read write",
+    scope,
   } = Object.fromEntries(params);
-  const [scopes] = useState(() => scope?.split(" ") ?? []);
+  const [scopes] = useState(() => inputScopes(scope));
   const { error: clientError, data: response } = useRequest<{
     data: OAuthClient;
   }>(() => client.post("/oauthClients.info", { clientId, redirectUri }), true);
