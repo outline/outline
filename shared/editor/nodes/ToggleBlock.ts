@@ -60,49 +60,6 @@ export const toggleFoldPluginKey = new PluginKey<ToggleFoldState>("toggleFold");
 /** Plugin key for toggle block fold/unfold events. */
 export const toggleEventPluginKey = new PluginKey("toggleBlockEvent");
 
-/**
- * Build decorations for all toggle blocks based on fold state.
- *
- * @param doc - the document to build decorations for.
- * @param foldedIds - set of folded toggle block IDs.
- * @returns decoration set for all toggle blocks.
- */
-function buildDecorations(
-  doc: ProsemirrorNode,
-  foldedIds: Set<string>
-): DecorationSet {
-  const decorations: Decoration[] = [];
-
-  findBlockNodes(doc, true)
-    .filter((b) => b.node.type.name === "container_toggle" && b.node.attrs.id)
-    .forEach((block) => {
-      const id = block.node.attrs.id as string;
-      const isFolded = foldedIds.has(id);
-
-      // Decoration on the toggle block itself (for fold state)
-      decorations.push(
-        Decoration.node(
-          block.pos,
-          block.pos + block.node.nodeSize,
-          {},
-          { nodeId: id, fold: isFolded, target: "container_toggle" }
-        )
-      );
-
-      // Decoration on the head (first child) for styling
-      decorations.push(
-        Decoration.node(
-          block.pos + 1,
-          block.pos + 1 + block.node.firstChild!.nodeSize,
-          { nodeName: "div", class: EditorStyleHelper.toggleBlockHead },
-          { nodeId: id, target: "container_toggle>:firstChild" }
-        )
-      );
-    });
-
-  return DecorationSet.create(doc, decorations);
-}
-
 export default class ToggleBlock extends Node {
   get name() {
     return "container_toggle";
@@ -260,7 +217,7 @@ export default class ToggleBlock extends Node {
             // (mapping can produce incorrect positions when first child changes)
             return {
               foldedIds: newFoldedIds,
-              decorations: buildDecorations(tr.doc, newFoldedIds),
+              decorations: this.createDecorations(tr.doc, newFoldedIds),
             };
           }
 
@@ -310,7 +267,7 @@ export default class ToggleBlock extends Node {
 
           return {
             foldedIds: newFoldedIds,
-            decorations: buildDecorations(newState.doc, newFoldedIds),
+            decorations: this.createDecorations(newState.doc, newFoldedIds),
           };
         },
       },
@@ -587,6 +544,52 @@ export default class ToggleBlock extends Node {
     return {
       block: "container_toggle",
     };
+  }
+
+  private createDecorations(doc: ProsemirrorNode, foldedIds: Set<string>) {
+    const decorations: Decoration[] = [];
+
+    findBlockNodes(doc, true)
+      .filter((b) => b.node.type.name === "container_toggle" && b.node.attrs.id)
+      .forEach((block) => {
+        const id = block.node.attrs.id as string;
+        const isFolded = foldedIds.has(id);
+
+        // Decoration on the toggle block itself (for fold state)
+        decorations.push(
+          Decoration.node(
+            block.pos,
+            block.pos + block.node.nodeSize,
+            {},
+            { nodeId: id, fold: isFolded, target: "container_toggle" }
+          )
+        );
+
+        // Decoration on the head (first child) for styling
+        decorations.push(
+          Decoration.node(
+            block.pos + 1,
+            block.pos + 1 + block.node.firstChild!.nodeSize,
+            { nodeName: "div", class: EditorStyleHelper.toggleBlockHead },
+            { nodeId: id, target: "container_toggle>:firstChild" }
+          )
+        );
+
+        // If doc is read-only, add a decoration to show pointer cursor on the head
+        // to indicate it's clickable for toggling
+        if (this.editor.props.readOnly) {
+          decorations.push(
+            Decoration.inline(
+              block.pos + 1,
+              block.pos + 1 + block.node.firstChild!.nodeSize,
+              { style: "cursor: pointer" },
+              { nodeId: id, target: "container_toggle>:firstChild" }
+            )
+          );
+        }
+      });
+
+    return DecorationSet.create(doc, decorations);
   }
 
   static isEmpty(toggleBlock: ProsemirrorNode) {
