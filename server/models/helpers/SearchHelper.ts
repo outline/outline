@@ -510,10 +510,10 @@ export default class SearchHelper {
 
     if (query) {
       // Combine text relevance with logarithmic popularity boost
-      // Popular documents get a boost, but text relevance remains primary
+      // Popular documents get a small boost, but text relevance remains primary
       attributes.push([
         Sequelize.literal(
-          `ts_rank("searchVector", to_tsquery('english', :query)) * (1 + LN(1 + COALESCE("popularityScore", 0)))`
+          `ts_rank("searchVector", to_tsquery('english', :query)) * (1 + 0.25 * LN(1 + COALESCE("popularityScore", 0)))`
         ),
         "searchRanking",
       ]);
