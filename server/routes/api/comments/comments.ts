@@ -18,6 +18,7 @@ import validate from "@server/middlewares/validate";
 import { Document, Comment, Collection, Reaction, Emoji } from "@server/models";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
+import { ProsemirrorHelper as ServerProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
 import { authorize } from "@server/policies";
 import { presentComment, presentPolicies } from "@server/presenters";
@@ -73,7 +74,9 @@ router.post(
         user.id
       );
       if (content) {
-        await document.update({ content }, { transaction });
+        const ydoc = ServerProsemirrorHelper.toYDoc(content, "default");
+        const state = ServerProsemirrorHelper.toState(ydoc);
+        await document.update({ content, state }, { transaction });
       }
     }
 
