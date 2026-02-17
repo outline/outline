@@ -7,7 +7,6 @@ import {
   toggleEventPluginKey,
   toggleFoldPluginKey,
 } from "./ToggleBlock";
-import { isSelectionInToggleBlockHead } from "../queries/toggleBlock";
 
 /**
  * Custom NodeView for toggle blocks that handles fold/unfold UI interactions.
@@ -83,11 +82,7 @@ export class ToggleBlockView implements NodeView {
       return;
     }
 
-    const isHeadSelected = isSelectionInToggleBlockHead(this.view.state);
-    const isEditable = this.view.editable;
-
-    if (!isEditable && isHeadSelected) {
-      event.preventDefault();
+    if (!this.view.editable) {
       // pos points "before" the toggle block node
       // pos + 1 points "before" the toggle block head node(para | heading)
       // pos + 2 points at "start" of the toggle block head node
@@ -98,6 +93,7 @@ export class ToggleBlockView implements NodeView {
         event.clientX >= headStartCoords.left &&
         event.clientX <= headEndCoords.left
       ) {
+        event.preventDefault();
         this.handleToggle();
       }
     }
