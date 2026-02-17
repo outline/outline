@@ -16,7 +16,13 @@ import SearchHelper from "@server/models/helpers/SearchHelper";
 import { authorize } from "@server/policies";
 import { presentDocument } from "@server/presenters";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
-import { error, success, buildAPIContext, getActorFromContext } from "./util";
+import {
+  error,
+  success,
+  buildAPIContext,
+  getActorFromContext,
+  pathToUrl,
+} from "./util";
 import { TextEditMode } from "@shared/types";
 
 /**
@@ -61,7 +67,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
               {
                 uri: uri.href,
                 mimeType: "application/json",
-                text: JSON.stringify(attributes),
+                text: JSON.stringify(pathToUrl(user.team, attributes)),
               },
               {
                 uri: uri.href,
@@ -142,10 +148,13 @@ export function documentTools(server: McpServer, scopes: string[]) {
 
             const presented = await Promise.all(
               results.map(async (result) => {
-                const doc = await presentDocument(undefined, result.document, {
-                  includeData: false,
-                  includeText: false,
-                });
+                const doc = pathToUrl(
+                  user.team,
+                  await presentDocument(undefined, result.document, {
+                    includeData: false,
+                    includeText: false,
+                  })
+                );
                 return { ...doc, context: result.context };
               })
             );
@@ -169,11 +178,14 @@ export function documentTools(server: McpServer, scopes: string[]) {
           });
 
           const presented = await Promise.all(
-            documents.map((document) =>
-              presentDocument(undefined, document, {
-                includeData: false,
-                includeText: false,
-              })
+            documents.map(async (document) =>
+              pathToUrl(
+                user.team,
+                await presentDocument(undefined, document, {
+                  includeData: false,
+                  includeText: false,
+                })
+              )
             )
           );
           return success(presented);
@@ -272,7 +284,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             content: [
               {
                 type: "text" as const,
-                text: JSON.stringify(attributes),
+                text: JSON.stringify(pathToUrl(user.team, attributes)),
               },
               {
                 type: "text" as const,
@@ -367,7 +379,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             content: [
               {
                 type: "text" as const,
-                text: JSON.stringify(attributes),
+                text: JSON.stringify(pathToUrl(user.team, attributes)),
               },
               {
                 type: "text" as const,
