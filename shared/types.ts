@@ -360,6 +360,8 @@ export enum TeamPreference {
   PreventDocumentEmbedding = "preventDocumentEmbedding",
   /** Who can see user email addresses. */
   EmailDisplay = "emailDisplay",
+  /** Whether external MCP clients can connect to the workspace. */
+  MCP = "mcp",
 }
 
 export type TeamPreferences = {
@@ -375,6 +377,7 @@ export type TeamPreferences = {
   [TeamPreference.TocPosition]?: TOCPosition;
   [TeamPreference.PreventDocumentEmbedding]?: boolean;
   [TeamPreference.EmailDisplay]?: EmailDisplay;
+  [TeamPreference.MCP]?: boolean;
 };
 
 export enum NavigationNodeType {

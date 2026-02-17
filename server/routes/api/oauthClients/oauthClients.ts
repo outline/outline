@@ -1,4 +1,5 @@
 import Router from "koa-router";
+import { Op } from "sequelize";
 import { UserRole } from "@shared/types";
 import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
@@ -26,7 +27,12 @@ router.post(
   validate(T.OAuthClientsListSchema),
   async (ctx: APIContext<T.OAuthClientsListReq>) => {
     const { user } = ctx.state.auth;
-    const where = { teamId: user.teamId };
+    const where = {
+      teamId: user.teamId,
+      createdById: {
+        [Op.ne]: null,
+      },
+    };
     authorize(user, "listOAuthClients", user.team);
 
     const [oauthClients, total] = await Promise.all([

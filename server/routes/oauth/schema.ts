@@ -33,7 +33,7 @@ export const RegisterSchema = BaseSchema.extend({
       .min(1)
       .max(10),
     grant_types: z
-      .array(z.enum(["authorization_code"]))
+      .array(z.enum(["authorization_code", "refresh_token"]))
       .default(["authorization_code"]),
     response_types: z.array(z.enum(["code"])).default(["code"]),
     token_endpoint_auth_method: z

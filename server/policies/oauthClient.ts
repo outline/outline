@@ -11,10 +11,7 @@ allow(User, "listOAuthClients", Team, (actor, team) =>
 );
 
 allow(User, "read", OAuthClient, (actor, oauthClient) =>
-  and(
-    or(isTeamModel(actor, oauthClient), !!oauthClient?.published),
-    !oauthClient?.isDCR
-  )
+  or(isTeamModel(actor, oauthClient), !!oauthClient?.published)
 );
 
 allow(User, ["update", "delete"], OAuthClient, (actor, oauthClient) =>

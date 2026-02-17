@@ -16,6 +16,7 @@ import { authorize } from "@server/policies";
 import { presentDCRClient } from "@server/presenters/oauthClient";
 import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
+import { TeamPreference } from "@shared/types";
 import { OAuthInterface } from "@server/utils/oauth/OAuthInterface";
 import { getTeamFromContext } from "@server/utils/passport";
 import oauthErrorHandler from "./middlewares/oauthErrorHandler";
@@ -186,6 +187,9 @@ router.post(
       includeStateCookie: false,
     });
     if (!team) {
+      throw NotFoundError();
+    }
+    if (!team.getPreference(TeamPreference.MCP)) {
       throw NotFoundError();
     }
 
