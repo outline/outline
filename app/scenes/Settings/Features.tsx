@@ -60,10 +60,20 @@ function Features() {
                   as="p"
                   style={{ marginTop: 8, marginBottom: 4 }}
                 >
-                  {t(
-                    "Use the following endpoint to connect to the MCP server from your app"
-                  )}
-                  :
+                  <Trans
+                    defaults="Use the following endpoint to connect to the MCP server from your app. Find out more about setup in <a>the docs</a>."
+                    components={{
+                      a: (
+                        <Text
+                          as="a"
+                          weight="bold"
+                          href="https://docs.getoutline.com/s/guide/doc/mcp-6j9jtENNKL"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        />
+                      ),
+                    }}
+                  />
                 </Text>
                 <Input readOnly value={mcpEndpoint}>
                   <Tooltip content={t("Copy URL")} placement="top">
