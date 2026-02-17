@@ -1,4 +1,3 @@
-import path from "node:path";
 import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import type { Team, User } from "@server/models";
@@ -89,7 +88,7 @@ export function pathToUrl(team: Team, input: Record<string, unknown>) {
       if (/^https?:\/\//.test(value)) {
         input[key] = value;
       } else {
-        input[key] = path.join(baseUrl, value);
+        input[key] = new URL(value, baseUrl).href;
       }
     }
   }

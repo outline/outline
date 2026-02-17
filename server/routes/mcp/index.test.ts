@@ -116,11 +116,18 @@ describe("POST /mcp/", () => {
       });
 
       const res = await callMcpTool(server, accessToken, "list_collections");
-      const data = JSON.parse(res?.result?.content?.[0]?.text ?? "[]");
+      const data = (res?.result?.content ?? []).map((c: { text: string }) =>
+        JSON.parse(c.text)
+      );
 
       expect(data.length).toBeGreaterThanOrEqual(1);
       const ids = data.map((c: { id: string }) => c.id);
       expect(ids).toContain(collection.id);
+
+      const match = data.find(
+        (c: { id: string }) => c.id === collection.id
+      ) as { url: string };
+      expect(match.url).toMatch(/^https?:\/\//);
     });
 
     it("list_collections does not return collections from another team", async () => {
@@ -132,7 +139,9 @@ describe("POST /mcp/", () => {
       });
 
       const res = await callMcpTool(server, accessToken, "list_collections");
-      const data = JSON.parse(res?.result?.content?.[0]?.text ?? "[]");
+      const data = (res?.result?.content ?? []).map((c: { text: string }) =>
+        JSON.parse(c.text)
+      );
 
       const ids = data.map((c: { id: string }) => c.id);
       expect(ids).not.toContain(otherCollection.id);
@@ -153,6 +162,7 @@ describe("POST /mcp/", () => {
       expect(data.icon).toEqual("rocket");
       expect(data.color).toEqual("#FF0000");
       expect(data.id).toBeDefined();
+      expect(data.url).toMatch(/^https?:\/\//);
     });
 
     it("update_collection updates fields on existing collection", async () => {
@@ -170,6 +180,7 @@ describe("POST /mcp/", () => {
       const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
 
       expect(data.name).toEqual("Updated Name");
+      expect(data.url).toMatch(/^https?:\/\//);
     });
 
     it("get_collection resource returns collection details", async () => {
@@ -190,6 +201,7 @@ describe("POST /mcp/", () => {
 
       const data = JSON.parse(res!.result!.contents![0].text ?? "{}");
       expect(data.id).toEqual(collection.id);
+      expect(data.url).toMatch(/^https?:\/\//);
     });
   });
 
@@ -207,10 +219,17 @@ describe("POST /mcp/", () => {
       });
 
       const res = await callMcpTool(server, accessToken, "list_documents");
-      const data = JSON.parse(res?.result?.content?.[0]?.text ?? "[]");
+      const data = (res?.result?.content ?? []).map((c: { text: string }) =>
+        JSON.parse(c.text)
+      );
 
       const ids = data.map((d: { id: string }) => d.id);
       expect(ids).toContain(document.id);
+
+      const match = data.find((d: { id: string }) => d.id === document.id) as {
+        url: string;
+      };
+      expect(match.url).toMatch(/^https?:\/\//);
     });
 
     it("list_documents filters by collection", async () => {
@@ -237,7 +256,9 @@ describe("POST /mcp/", () => {
       const res = await callMcpTool(server, accessToken, "list_documents", {
         collectionId: collection1.id,
       });
-      const data = JSON.parse(res?.result?.content?.[0]?.text ?? "[]");
+      const data = (res?.result?.content ?? []).map((c: { text: string }) =>
+        JSON.parse(c.text)
+      );
 
       const ids = data.map((d: { id: string }) => d.id);
       expect(ids).toContain(doc1.id);
@@ -265,6 +286,7 @@ describe("POST /mcp/", () => {
       expect(data.title).toEqual("New Document");
       expect(data.collectionId).toEqual(collection.id);
       expect(data.id).toBeDefined();
+      expect(data.url).toMatch(/^https?:\/\//);
     });
 
     it("create_document creates nested under parent document", async () => {
@@ -310,6 +332,7 @@ describe("POST /mcp/", () => {
       const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
 
       expect(data.title).toEqual("Updated Title");
+      expect(data.url).toMatch(/^https?:\/\//);
     });
 
     it("get_document resource returns metadata and markdown", async () => {
@@ -338,6 +361,7 @@ describe("POST /mcp/", () => {
       const metadata = JSON.parse(res!.result!.contents![0].text ?? "{}");
       expect(metadata.id).toEqual(document.id);
       expect(metadata.title).toEqual(document.title);
+      expect(metadata.url).toMatch(/^https?:\/\//);
 
       // Second content is markdown text
       expect(res!.result!.contents![1].mimeType).toEqual("text/markdown");
@@ -365,7 +389,9 @@ describe("POST /mcp/", () => {
       const res = await callMcpTool(server, accessToken, "list_comments", {
         documentId: document.id,
       });
-      const data = JSON.parse(res?.result?.content?.[0]?.text ?? "[]");
+      const data = (res?.result?.content ?? []).map((c: { text: string }) =>
+        JSON.parse(c.text)
+      );
 
       const ids = data.map((c: { id: string }) => c.id);
       expect(ids).toContain(comment.id);
@@ -517,7 +543,9 @@ describe("POST /mcp/", () => {
 
       const res = await callMcpTool(server, accessToken, "list_collections");
       expect(res?.error).toBeUndefined();
-      const data = JSON.parse(res?.result?.content?.[0]?.text ?? "[]");
+      const data = (res?.result?.content ?? []).map((c: { text: string }) =>
+        JSON.parse(c.text)
+      );
       expect(data.length).toBeGreaterThanOrEqual(1);
     });
 
