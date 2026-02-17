@@ -771,6 +771,107 @@ describe("#comments.create", () => {
       },
     });
   });
+
+  it("should anchor comment to text when anchorText is provided", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const content = {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: "Hello world, this is a test document",
+            },
+          ],
+        },
+      ],
+    } as ProsemirrorData;
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      content,
+    });
+
+    const res = await server.post("/api/comments.create", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: document.id,
+        text: "This is my comment",
+        anchorText: "world",
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+
+    // Verify the document content was updated with the comment mark
+    await document.reload();
+    const updatedContent = document.content!;
+    const paragraph = updatedContent.content![0];
+    expect(paragraph.content).toHaveLength(3);
+    expect(paragraph.content![0]).toMatchObject({ type: "text", text: "Hello " });
+    expect(paragraph.content![1]).toMatchObject({
+      type: "text",
+      text: "world",
+      marks: [
+        {
+          type: "comment",
+          attrs: {
+            id: body.data.id,
+            userId: user.id,
+            resolved: false,
+            draft: false,
+          },
+        },
+      ],
+    });
+    expect(paragraph.content![2]).toMatchObject({
+      type: "text",
+      text: ", this is a test document",
+    });
+  });
+
+  it("should create comment without anchoring when anchorText is not found", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const content = {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: "Hello world",
+            },
+          ],
+        },
+      ],
+    } as ProsemirrorData;
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      content,
+    });
+
+    const res = await server.post("/api/comments.create", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: document.id,
+        text: "This is my comment",
+        anchorText: "missing text",
+      },
+    });
+
+    expect(res.status).toEqual(200);
+
+    // Document content should remain unchanged
+    await document.reload();
+    expect(document.content).toMatchObject(content);
+  });
 });
 
 describe("#comments.update", () => {

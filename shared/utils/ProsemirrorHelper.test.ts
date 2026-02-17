@@ -234,4 +234,145 @@ describe("ProsemirrorHelper", () => {
       ]);
     });
   });
+
+  describe("addCommentMark", () => {
+    it("should add a comment mark to matching text", () => {
+      const data = {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              {
+                type: "text",
+                text: "Hello world, this is a test",
+              },
+            ],
+          },
+        ],
+      } as ProsemirrorData;
+
+      const result = ProsemirrorHelper.addCommentMark(
+        data,
+        "world",
+        "comment-1",
+        "user-1"
+      );
+
+      expect(result).toBeDefined();
+      expect(result!.content![0].content).toHaveLength(3);
+      expect(result!.content![0].content![0]).toEqual({
+        type: "text",
+        text: "Hello ",
+      });
+      expect(result!.content![0].content![1]).toEqual({
+        type: "text",
+        text: "world",
+        marks: [
+          {
+            type: "comment",
+            attrs: {
+              id: "comment-1",
+              userId: "user-1",
+              resolved: false,
+              draft: false,
+            },
+          },
+        ],
+      });
+      expect(result!.content![0].content![2]).toEqual({
+        type: "text",
+        text: ", this is a test",
+      });
+    });
+
+    it("should return undefined when text is not found", () => {
+      const data = {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              {
+                type: "text",
+                text: "Hello world",
+              },
+            ],
+          },
+        ],
+      } as ProsemirrorData;
+
+      const result = ProsemirrorHelper.addCommentMark(
+        data,
+        "missing",
+        "comment-1",
+        "user-1"
+      );
+
+      expect(result).toBeUndefined();
+    });
+
+    it("should preserve existing marks on the text node", () => {
+      const existingMark = { type: "bold" };
+      const data = {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              {
+                type: "text",
+                text: "bold text here",
+                marks: [existingMark],
+              },
+            ],
+          },
+        ],
+      } as ProsemirrorData;
+
+      const result = ProsemirrorHelper.addCommentMark(
+        data,
+        "bold text here",
+        "comment-1",
+        "user-1"
+      );
+
+      expect(result).toBeDefined();
+      expect(result!.content![0].content).toHaveLength(1);
+      expect(result!.content![0].content![0].marks).toHaveLength(2);
+      expect(result!.content![0].content![0].marks![0]).toEqual(existingMark);
+      expect(result!.content![0].content![0].marks![1].type).toEqual("comment");
+    });
+
+    it("should only mark the first occurrence", () => {
+      const data = {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              {
+                type: "text",
+                text: "hello hello hello",
+              },
+            ],
+          },
+        ],
+      } as ProsemirrorData;
+
+      const result = ProsemirrorHelper.addCommentMark(
+        data,
+        "hello",
+        "comment-1",
+        "user-1"
+      );
+
+      expect(result).toBeDefined();
+      // First "hello" gets the mark, rest stays as-is
+      expect(result!.content![0].content).toHaveLength(2);
+      expect(result!.content![0].content![0].text).toEqual("hello");
+      expect(result!.content![0].content![0].marks).toHaveLength(1);
+      expect(result!.content![0].content![1].text).toEqual(" hello hello");
+    });
+  });
 });

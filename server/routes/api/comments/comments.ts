@@ -17,6 +17,7 @@ import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { Document, Comment, Collection, Reaction, Emoji } from "@server/models";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
+import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
 import { authorize } from "@server/policies";
 import { presentComment, presentPolicies } from "@server/presenters";
@@ -35,7 +36,7 @@ router.post(
   validate(T.CommentsCreateSchema),
   transaction(),
   async (ctx: APIContext<T.CommentsCreateReq>) => {
-    const { id, documentId, parentCommentId } = ctx.input.body;
+    const { id, documentId, parentCommentId, anchorText } = ctx.input.body;
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
 
@@ -63,6 +64,18 @@ router.post(
       documentId,
       parentCommentId,
     });
+
+    if (anchorText && document.content) {
+      const content = SharedProsemirrorHelper.addCommentMark(
+        document.content,
+        anchorText,
+        comment.id,
+        user.id
+      );
+      if (content) {
+        await document.update({ content }, { transaction });
+      }
+    }
 
     comment.createdBy = user;
 

@@ -41,6 +41,9 @@ export const CommentsCreateSchema = BaseSchema.extend({
 
       /** Create comment with this text */
       text: z.string().optional(),
+
+      /** Optional text to anchor the comment to in the document */
+      anchorText: z.string().optional(),
     })
     .refine((obj) => !(isEmpty(obj.data) && isEmpty(obj.text)), {
       error: "One of data or text is required",

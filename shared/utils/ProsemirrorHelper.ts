@@ -284,6 +284,100 @@ export class ProsemirrorHelper {
   }
 
   /**
+   * Adds a comment mark to the first occurrence of the given text in a
+   * ProseMirror document's JSON representation.
+   *
+   * @param data The document content as ProsemirrorData
+   * @param anchorText The text to find and mark
+   * @param commentId The comment ID to use in the mark
+   * @param userId The user ID to use in the mark
+   * @returns The modified content, or undefined if the text was not found
+   */
+  static addCommentMark(
+    data: ProsemirrorData,
+    anchorText: string,
+    commentId: string,
+    userId: string
+  ): ProsemirrorData | undefined {
+    const commentMark = {
+      type: "comment",
+      attrs: {
+        id: commentId,
+        userId,
+        resolved: false,
+        draft: false,
+      },
+    };
+
+    let found = false;
+
+    function processNodes(nodes: any[]): any[] {
+      if (found) {
+        return nodes;
+      }
+
+      const result: any[] = [];
+
+      for (const node of nodes) {
+        if (found) {
+          result.push(node);
+          continue;
+        }
+
+        // Recurse into block nodes with content
+        if (node.content) {
+          const processed = { ...node, content: processNodes(node.content) };
+          result.push(processed);
+          continue;
+        }
+
+        // Only process text nodes
+        if (node.type !== "text" || !node.text) {
+          result.push(node);
+          continue;
+        }
+
+        const text: string = node.text;
+        const index = text.indexOf(anchorText);
+
+        if (index === -1) {
+          result.push(node);
+          continue;
+        }
+
+        found = true;
+        const existingMarks = node.marks || [];
+        const markedMarks = [...existingMarks, commentMark];
+
+        // Split the text node into up to 3 parts: before, match, after
+        if (index > 0) {
+          result.push({ ...node, text: text.slice(0, index) });
+        }
+        result.push({
+          ...node,
+          text: anchorText,
+          marks: markedMarks,
+        });
+        if (index + anchorText.length < text.length) {
+          result.push({
+            ...node,
+            text: text.slice(index + anchorText.length),
+          });
+        }
+      }
+
+      return result;
+    }
+
+    if (!data.content) {
+      return undefined;
+    }
+
+    const newData = { ...data, content: processNodes(data.content) };
+    return found ? newData : undefined;
+  }
+
+  /**
    * Iterates through the document to find all of the images.
    *
    * @param doc Prosemirror document node
