@@ -10,7 +10,13 @@ import { Collection, Team } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentCollection } from "@server/presenters";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
-import { success, error, getActorFromContext, buildAPIContext } from "./util";
+import {
+  success,
+  error,
+  getActorFromContext,
+  buildAPIContext,
+  pathToUrl,
+} from "./util";
 
 /**
  * Registers collection-related MCP tools and resources on the given server,
@@ -93,8 +99,11 @@ export function collectionTools(server: McpServer, scopes: string[]) {
           });
 
           const presented = await Promise.all(
-            collections.map((collection) =>
-              presentCollection(undefined, collection)
+            collections.map(async (collection) =>
+              pathToUrl(
+                user.team,
+                await presentCollection(undefined, collection)
+              )
             )
           );
           return success(presented);
@@ -132,7 +141,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
               {
                 uri: uri.href,
                 mimeType: "application/json",
-                text: JSON.stringify(presented),
+                text: JSON.stringify(pathToUrl(user.team, presented)),
               },
               {
                 uri: uri.href,
@@ -204,7 +213,10 @@ export function collectionTools(server: McpServer, scopes: string[]) {
             rejectOnEmpty: true,
           });
 
-          const presented = await presentCollection(undefined, reloaded);
+          const presented = pathToUrl(
+            user.team,
+            await presentCollection(undefined, reloaded)
+          );
           return success(presented);
         } catch (message) {
           return error(message);
@@ -278,7 +290,10 @@ export function collectionTools(server: McpServer, scopes: string[]) {
 
           await collection.saveWithCtx(ctx);
 
-          const presented = await presentCollection(undefined, collection);
+          const presented = pathToUrl(
+            user.team,
+            await presentCollection(undefined, collection)
+          );
           return success(presented);
         } catch (message) {
           return error(message);
