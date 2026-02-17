@@ -5,6 +5,7 @@ import { Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import type { APIContext } from "@server/types";
+import importMentions from "@server/utils/importMentions";
 
 type Props = Optional<
   Pick<
@@ -107,6 +108,10 @@ export default async function documentCreator(
             )
         : ProsemirrorHelper.toProsemirror("").toJSON();
 
+  const contentWithReplacementsAndMentions = await importMentions({
+    content: contentWithReplacements,
+  });
+
   const document = Document.build({
     id,
     urlId,
@@ -128,7 +133,7 @@ export default async function documentCreator(
     icon: icon ?? templateDocument?.icon,
     color: color ?? templateDocument?.color,
     title: titleWithReplacements,
-    content: contentWithReplacements,
+    content: contentWithReplacementsAndMentions,
     state,
   });
 

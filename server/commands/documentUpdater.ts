@@ -84,7 +84,7 @@ export default async function documentUpdater(
     document.insightsEnabled = insightsEnabled;
   }
   if (text !== undefined) {
-    document = DocumentHelper.applyMarkdownToDocument(
+    document = await DocumentHelper.applyMarkdownToDocument(
       document,
       await TextHelper.replaceImagesWithAttachments(ctx, text, user, {
         base64Only: true,

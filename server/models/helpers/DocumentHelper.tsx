@@ -19,6 +19,7 @@ import { Collection, Document, Revision } from "@server/models";
 import type { MentionAttrs } from "./ProsemirrorHelper";
 import { ProsemirrorHelper } from "./ProsemirrorHelper";
 import { TextHelper } from "./TextHelper";
+import { transformMentionsFragment } from "@server/utils/importMentions";
 
 type HTMLOptions = {
   /** Whether to include the document title in the generated HTML (defaults to true) */
@@ -475,7 +476,7 @@ export class DocumentHelper {
    * @param editMode The edit mode to use: "replace" (default), "append", or "prepend"
    * @returns The document
    */
-  static applyMarkdownToDocument(
+  static async applyMarkdownToDocument(
     document: Document,
     text: string,
     editMode: TextEditMode = TextEditMode.Replace
@@ -533,7 +534,9 @@ export class DocumentHelper {
         doc = existingDoc.copy(newDoc.content.append(existingDoc.content));
       }
     } else {
-      doc = parser.parse(text);
+      const content = parser.parse(text);
+      const node = await transformMentionsFragment(content);
+      doc = content.copy(node);
     }
 
     document.content = doc.toJSON();
