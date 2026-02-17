@@ -363,8 +363,7 @@ class GroupMembership extends ParanoidModel<
     if (childDocumentIds.length) {
       await this.destroy({
         where: {
-          groupId: model.groupId,
-          sourceId: model.id,
+          sourceId: { [Op.ne]: null },
           documentId: {
             [Op.in]: childDocumentIds,
           },

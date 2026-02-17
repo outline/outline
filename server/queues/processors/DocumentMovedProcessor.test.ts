@@ -380,4 +380,96 @@ describe("DocumentMovedProcessor", () => {
       sourceGroupMembership.id
     );
   });
+
+  it("should not carry over sourced permissions from previous parent", async () => {
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+    const user2 = await buildUser({ teamId: team.id });
+    const group = await buildGroup({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+
+    const parentDocument = await buildDocument({
+      collectionId: collection.id,
+      teamId: team.id,
+    });
+    const childDocument = await buildDocument({
+      teamId: team.id,
+      parentDocumentId: parentDocument.id,
+    });
+
+    const newParentDocument = await buildDocument({
+      collectionId: collection.id,
+      teamId: team.id,
+    });
+
+    // Add user and group to parent document
+    await UserMembership.create({
+      userId: user2.id,
+      documentId: parentDocument.id,
+      createdById: user.id,
+    });
+    await GroupMembership.create({
+      groupId: group.id,
+      documentId: parentDocument.id,
+      createdById: user.id,
+    });
+
+    // Add different permissions to the new parent document
+    const user3 = await buildUser({ teamId: team.id });
+    const group2 = await buildGroup({ teamId: team.id });
+    await UserMembership.create({
+      userId: user3.id,
+      documentId: newParentDocument.id,
+      createdById: user.id,
+    });
+    await GroupMembership.create({
+      groupId: group2.id,
+      documentId: newParentDocument.id,
+      createdById: user.id,
+    });
+
+    // Verify inherited permissions exist on child from the original parent
+    let childUserMemberships = await UserMembership.findAll({
+      where: { documentId: childDocument.id, userId: user2.id },
+    });
+    let childGroupMemberships = await GroupMembership.findAll({
+      where: { documentId: childDocument.id, groupId: group.id },
+    });
+    expect(childUserMemberships.length).toBe(1);
+    expect(childGroupMemberships.length).toBe(1);
+    expect(childUserMemberships[0].sourceId).toBeTruthy();
+    expect(childGroupMemberships[0].sourceId).toBeTruthy();
+
+    // Move child to a new parent document
+    childDocument.parentDocumentId = newParentDocument.id;
+    await childDocument.save();
+
+    // Trigger move event
+    const processor = new DocumentMovedProcessor();
+    await processor.perform({
+      name: "documents.move",
+      documentId: childDocument.id,
+      collectionId: collection.id,
+      teamId: team.id,
+      actorId: user.id,
+      ip,
+      data: {
+        collectionIds: [],
+        documentIds: [],
+      },
+    });
+
+    // Verify inherited permissions from the original parent are removed
+    childUserMemberships = await UserMembership.findAll({
+      where: { documentId: childDocument.id, userId: user2.id },
+    });
+    childGroupMemberships = await GroupMembership.findAll({
+      where: { documentId: childDocument.id, groupId: group.id },
+    });
+    expect(childUserMemberships.length).toBe(0);
+    expect(childGroupMemberships.length).toBe(0);
+  });
 });
