@@ -7,7 +7,6 @@ import Flex from "../Flex";
 import Text from "../Text";
 import { Overlay } from "./components/Overlay";
 import { m } from "framer-motion";
-import useMeasure from "react-use-measure";
 
 /** Root Drawer component - all the other components are rendered inside it. */
 const Drawer = (props: React.ComponentProps<typeof DrawerPrimitive.Root>) => (
@@ -26,7 +25,6 @@ const DrawerContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content>
 >((props, ref) => {
   const { children, ...rest } = props;
-  const [measureRef, bounds] = useMeasure();
 
   return (
     <DrawerPrimitive.Portal>
@@ -34,13 +32,8 @@ const DrawerContent = React.forwardRef<
         <Overlay />
       </DrawerPrimitive.Overlay>
       <DrawerPrimitive.Content ref={ref} asChild>
-        <StyledContent
-          animate={{
-            height: bounds.height,
-            transition: { bounce: 0, duration: 0.2 },
-          }}
-        >
-          <StyledInnerContent ref={measureRef} {...rest}>
+        <StyledContent layout transition={{ bounce: 0, duration: 0.2 }}>
+          <StyledInnerContent {...rest}>
             {children}
           </StyledInnerContent>
         </StyledContent>
