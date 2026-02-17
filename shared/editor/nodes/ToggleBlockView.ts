@@ -87,6 +87,7 @@ export class ToggleBlockView implements NodeView {
     const isEditable = this.view.editable;
 
     if (!isEditable && isHeadSelected) {
+      event.preventDefault();
       // pos points "before" the toggle block node
       // pos + 1 points "before" the toggle block head node(para | heading)
       // pos + 2 points at "start" of the toggle block head node
@@ -97,7 +98,6 @@ export class ToggleBlockView implements NodeView {
         event.clientX >= headStartCoords.left &&
         event.clientX <= headEndCoords.left
       ) {
-        event.preventDefault();
         this.handleToggle();
       }
     }
