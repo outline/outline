@@ -128,6 +128,7 @@ router.get("/.well-known/oauth-authorization-server", async (ctx) => {
     grant_types_supported: ["authorization_code", "refresh_token"],
     token_endpoint_auth_methods_supported: ["client_secret_post", "none"],
     code_challenge_methods_supported: ["S256"],
+    scopes_supported: ["read", "write"],
   };
 });
 
