@@ -261,14 +261,17 @@ export const renderShare = async (ctx: Context, next: Next) => {
     });
 
     // Append child documents list if the share includes them
-    if (
-      share?.includeChildDocuments &&
-      document &&
-      sharedTree?.children?.length
-    ) {
-      const baseUrl =
-        share.canonicalUrl || `${ctx.request.origin}/s/${share.id}`;
-      markdown += formatChildDocumentsAsMarkdown(sharedTree.children, baseUrl);
+    if (share?.includeChildDocuments && sharedTree) {
+      const node = document
+        ? collection?.getDocumentTree(document.id)
+        : sharedTree;
+
+      if (node?.children?.length) {
+        markdown += formatChildDocumentsAsMarkdown(
+          node.children,
+          share.canonicalUrl
+        );
+      }
     }
 
     ctx.type = "text/markdown";
