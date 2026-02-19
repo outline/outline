@@ -218,7 +218,7 @@ function Authorize() {
             />
           </Text>
         )}
-        <Text type="tertiary" as="p">
+        <Text type="secondary" as="p">
           {t(
             "{{ appName }} will be able to access your account and perform the following actions",
             {
@@ -236,7 +236,7 @@ function Authorize() {
             )
           )}
         </ul>
-        <Text type="tertiary" as="p">
+        <Text type="tertiary" as="p" style={{ wordBreak: "break-all" }}>
           {isLoopbackUri(redirectUri) ? (
             <Trans>
               You will be redirected to a local application after authorizing.
