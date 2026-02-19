@@ -263,7 +263,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
     // Append child documents list if the share includes them
     if (share?.includeChildDocuments && sharedTree) {
       const node = document
-        ? collection?.getDocumentTree(document.id)
+        ? (collection?.getDocumentTree(document.id) ?? sharedTree)
         : sharedTree;
 
       if (node?.children?.length) {
