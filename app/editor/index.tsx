@@ -58,6 +58,8 @@ import type { LightboxImage } from "@shared/editor/lib/Lightbox";
 import { LightboxImageFactory } from "@shared/editor/lib/Lightbox";
 import Lightbox from "~/components/Lightbox";
 import { anchorPlugin } from "@shared/editor/plugins/AnchorPlugin";
+import { pluginManager } from "@shared/editor/PluginManager";
+import { initFoldPluginState } from "@shared/editor/nodes/ToggleBlock";
 
 export type Props = {
   /** An optional identifier for the editor context. It is used to persist local settings */
@@ -410,6 +412,15 @@ export class Editor extends React.PureComponent<
 
   private createState(value?: string | ProsemirrorData | ProsemirrorNode) {
     const doc = this.createDocument(value || this.props.defaultValue);
+    const { foldedIds, decorations } = initFoldPluginState(
+      doc,
+      this.props.userId,
+      this.props.readOnly
+    );
+    pluginManager.setInitialPluginState<"toggleFold">("toggleFold", {
+      foldedIds,
+      decorations,
+    });
 
     return EditorState.create({
       schema: this.schema,
