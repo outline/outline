@@ -267,7 +267,7 @@ function Authorize() {
             value={responseType ?? ""}
           />
           <input type="hidden" name="state" value={state ?? ""} />
-          <input type="hidden" name="scope" value={scope ?? ""} />
+          <input type="hidden" name="scope" value={scopes.join(" ")} />
           {codeChallenge && (
             <input type="hidden" name="code_challenge" value={codeChallenge} />
           )}
