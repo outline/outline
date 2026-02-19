@@ -10,7 +10,6 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import documentCreator from "@server/commands/documentCreator";
 import documentUpdater from "@server/commands/documentUpdater";
-import { InvalidRequestError } from "@server/errors";
 import { Op } from "sequelize";
 import { Collection, Document } from "@server/models";
 import SearchHelper from "@server/models/helpers/SearchHelper";
@@ -376,16 +375,6 @@ export function documentTools(server: McpServer, scopes: string[]) {
 
           if (input.publish === false) {
             authorize(user, "unpublish", document);
-
-            const childDocumentIds = await document.findAllChildDocumentIds(
-              { archivedAt: { [Op.eq]: null } },
-              { transaction: ctx.state.transaction }
-            );
-            if (childDocumentIds.length > 0) {
-              throw InvalidRequestError(
-                "Cannot unpublish document with child documents"
-              );
-            }
 
             updated = await document.unpublishWithCtx(ctx, {
               detach: false,
