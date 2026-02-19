@@ -54,6 +54,7 @@ function DocumentExplorerNode(
       style={style}
       onPointerMove={onPointerMove}
       role="option"
+      aria-selected={selected}
     >
       <Spacer width={width}>
         {hasChildren && (

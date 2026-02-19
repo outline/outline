@@ -12,7 +12,7 @@ PluginManager.add([
     value: {
       title: "Notion",
       subtitle: t("Import pages from Notion"),
-      icon: <img src={cdnPath("/images/notion.png")} width={28} />,
+      icon: <img src={cdnPath("/images/notion.png")} alt="" width={28} />,
       action: <Notion />,
     },
   },

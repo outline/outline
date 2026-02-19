@@ -135,6 +135,17 @@ export default createGlobalStyle<Props>`
     --sal: env(safe-area-inset-left);
   }
 
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
   /* Mermaid.js injects these into the root of the page. It's very annoying, but we have to deal with it or they affect layout */
   [id^="doffscreen-mermaid"] {
       position: absolute !important;

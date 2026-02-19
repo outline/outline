@@ -217,7 +217,7 @@ export default abstract class BaseEmail<
   }
 
   private pixel(notification: Notification) {
-    return <img src={notification.pixelUrl} width="1" height="1" />;
+    return <img src={notification.pixelUrl} alt="" width="1" height="1" />;
   }
 
   /**

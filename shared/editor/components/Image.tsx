@@ -211,6 +211,7 @@ const Image = (props: Props) => {
         )}
         {!loaded && width && height && (
           <img
+            alt=""
             style={{
               ...widthStyle,
               display: "block",

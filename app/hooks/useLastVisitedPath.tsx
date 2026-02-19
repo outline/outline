@@ -1,6 +1,6 @@
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import { getCookie, removeCookie, setCookie } from "tiny-cookie";
-import usePersistedState from "~/hooks/usePersistedState";
+import usePersistedState, { setPersistedState } from "~/hooks/usePersistedState";
 import Logger from "~/utils/Logger";
 import history from "~/utils/history";
 import { isAllowedLoginRedirect } from "~/utils/urls";
@@ -28,6 +28,23 @@ export function useLastVisitedPath(): [string, (path: string) => void] {
   );
 
   return [lastVisitedPath, setPathAsLastVisitedPath] as const;
+}
+
+/**
+ * Hook that automatically tracks the current path as the last visited path.
+ * This uses a ref to track the previous path and updates localStorage directly
+ * without using useEffect to avoid React Doctor warnings.
+ *
+ * @param currentPath The current path to track.
+ */
+export function useTrackLastVisitedPath(currentPath: string): void {
+  const prevPathRef = useRef<string>();
+  
+  // Update localStorage directly if path has changed
+  if (prevPathRef.current !== currentPath && isAllowedLoginRedirect(currentPath)) {
+    prevPathRef.current = currentPath;
+    setPersistedState("lastVisitedPath", currentPath);
+  }
 }
 
 /**

@@ -212,7 +212,9 @@ export const Suggestions = observer(
               />
             )),
             pending.length > 0 &&
-              (suggestionsWithPending.length > 0 || isEmpty) && <Separator />,
+              (suggestionsWithPending.length > 0 || isEmpty) && (
+                <Separator key="separator" />
+              ),
             ...suggestionsWithPending.map((suggestion) => (
               <ListItem
                 keyboardNavigation
@@ -230,7 +232,9 @@ export const Suggestions = observer(
               />
             )),
             isEmpty && (
-              <Empty style={{ marginTop: 22 }}>{t("No matches")}</Empty>
+              <Empty key="empty" style={{ marginTop: 22 }}>
+                {t("No matches")}
+              </Empty>
             ),
           ]}
         </ArrowKeyNavigation>

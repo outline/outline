@@ -26,7 +26,7 @@ import PlaceholderText from "~/components/PlaceholderText";
 import Scene from "~/components/Scene";
 import { editCollection } from "~/actions/definitions/collections";
 import useCommandBarActions from "~/hooks/useCommandBarActions";
-import { useLastVisitedPath } from "~/hooks/useLastVisitedPath";
+import { useTrackLastVisitedPath } from "~/hooks/useLastVisitedPath";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import { usePinnedDocuments } from "~/hooks/usePinnedDocuments";
 import usePolicy from "~/hooks/usePolicy";
@@ -60,7 +60,7 @@ const CollectionScene = observer(function CollectionScene_() {
   const { documents, collections, shares, ui } = useStores();
   const [error, setError] = useState<Error | undefined>();
   const currentPath = location.pathname;
-  const [, setLastVisitedPath] = useLastVisitedPath();
+  useTrackLastVisitedPath(currentPath);
   const sidebarContext = useLocationSidebarContext();
   const isEditRoute = match.path === matchCollectionEdit;
 
@@ -79,10 +79,6 @@ const CollectionScene = observer(function CollectionScene_() {
       listen: false,
     }
   );
-
-  useEffect(() => {
-    setLastVisitedPath(currentPath);
-  }, [currentPath, setLastVisitedPath]);
 
   useEffect(() => {
     if (collection?.name) {
