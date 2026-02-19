@@ -5,7 +5,11 @@ import type { Context, Next } from "koa";
 import escape from "lodash/escape";
 import { Sequelize } from "sequelize";
 import isUUID from "validator/lib/isUUID";
-import { IntegrationType, TeamPreference, type NavigationNode } from "@shared/types";
+import {
+  IntegrationType,
+  TeamPreference,
+  type NavigationNode,
+} from "@shared/types";
 import { unicodeCLDRtoISO639 } from "@shared/utils/date";
 import env from "@server/env";
 import { Integration } from "@server/models";
@@ -262,7 +266,8 @@ export const renderShare = async (ctx: Context, next: Next) => {
       document &&
       sharedTree?.children?.length
     ) {
-      const baseUrl = share.canonicalUrl || `${ctx.request.origin}/s/${share.id}`;
+      const baseUrl =
+        share.canonicalUrl || `${ctx.request.origin}/s/${share.id}`;
       markdown += formatChildDocumentsAsMarkdown(sharedTree.children, baseUrl);
     }
 
