@@ -5,7 +5,7 @@ import type { Context, Next } from "koa";
 import escape from "lodash/escape";
 import { Sequelize } from "sequelize";
 import isUUID from "validator/lib/isUUID";
-import { IntegrationType, TeamPreference } from "@shared/types";
+import { IntegrationType, TeamPreference, type NavigationNode } from "@shared/types";
 import { unicodeCLDRtoISO639 } from "@shared/utils/date";
 import env from "@server/env";
 import { Integration } from "@server/models";
@@ -21,6 +21,29 @@ const entry = "app/index.tsx";
 const viteHost = env.URL.replace(`:${env.PORT}`, ":3001");
 
 let indexHtmlCache: Buffer | undefined;
+
+/**
+ * Formats navigation tree children as markdown list items.
+ *
+ * @param children Array of navigation nodes
+ * @param baseUrl Base URL for generating links
+ * @returns Formatted markdown string
+ */
+function formatChildDocumentsAsMarkdown(
+  children: NavigationNode[],
+  baseUrl: string
+): string {
+  if (!children || children.length === 0) {
+    return "";
+  }
+
+  const lines = children.map((child) => {
+    const url = baseUrl + child.url;
+    return `- [${child.title}](${url})`;
+  });
+
+  return `\n\n---\n\n**Documents**\n\n${lines.join("\n")}`;
+}
 
 const readIndexFile = async (): Promise<Buffer> => {
   if (env.isProduction || env.isTest) {
@@ -174,6 +197,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
   let share, collection, document, team;
   let analytics: Integration<IntegrationType.Analytics>[] = [];
 
+  let sharedTree;
   try {
     team = await getTeamFromContext(ctx, { includeStateCookie: false });
     const result = await loadPublicShare({
@@ -185,6 +209,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
     share = result.share;
     collection = result.collection;
     document = result.document;
+    sharedTree = result.sharedTree;
 
     if (isUUID(shareId) && share?.urlId) {
       // Redirect temporarily because the url slug
@@ -225,11 +250,22 @@ export const renderShare = async (ctx: Context, next: Next) => {
     ctx.accepts("text/markdown", "text/html") === "text/markdown";
 
   if (prefersMarkdown && (document || collection)) {
-    const markdown = await DocumentHelper.toMarkdown(document || collection!, {
+    let markdown = await DocumentHelper.toMarkdown(document || collection!, {
       includeTitle: true,
       signedUrls: 86400, // 24 hours
       teamId: team?.id,
     });
+
+    // Append child documents list if the share includes them
+    if (
+      share?.includeChildDocuments &&
+      document &&
+      sharedTree?.children?.length
+    ) {
+      const baseUrl = share.canonicalUrl || `${ctx.request.origin}/s/${share.id}`;
+      markdown += formatChildDocumentsAsMarkdown(sharedTree.children, baseUrl);
+    }
+
     ctx.type = "text/markdown";
     ctx.body = markdown;
     return;
