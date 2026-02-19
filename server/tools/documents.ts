@@ -202,7 +202,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
       {
         title: "Create document",
         description:
-          "Creates a new document. Requires a collectionId to place the document in a collection, or parentDocumentId to nest it under an existing document. Set publish to true to make the document visible in the collection.",
+          "Creates a new document. Requires a collectionId to place the document in a collection, or parentDocumentId to nest it under an existing document.",
         annotations: {
           idempotentHint: false,
           readOnlyHint: false,
@@ -229,6 +229,12 @@ export function documentTools(server: McpServer, scopes: string[]) {
             .string()
             .optional()
             .describe("The hex color for the document icon, e.g. #FF0000."),
+          publish: z
+            .boolean()
+            .optional()
+            .describe(
+              "Whether to publish the document. Defaults to true. Set to false to create as a draft."
+            ),
         },
       },
       async (input, context) => {
@@ -267,7 +273,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             icon: input.icon,
             color: input.color,
             parentDocumentId: parentDocumentId,
-            publish: true,
+            publish: input.publish !== false,
             collectionId: collection?.id,
           });
 
@@ -346,6 +352,12 @@ export function documentTools(server: McpServer, scopes: string[]) {
             .describe(
               "The hex color for the document icon. Set to null to remove."
             ),
+          publish: z
+            .boolean()
+            .optional()
+            .describe(
+              "Set to true to publish a draft document, or false to convert a published document back to a draft."
+            ),
         },
       },
       async (input, context) => {
@@ -359,12 +371,22 @@ export function documentTools(server: McpServer, scopes: string[]) {
             rejectOnEmpty: true,
           });
 
-          authorize(user, "update", document);
+          let updated;
 
-          const updated = await documentUpdater(ctx, {
-            document,
-            ...input,
-          });
+          if (input.publish === false) {
+            authorize(user, "unpublish", document);
+
+            updated = await document.unpublishWithCtx(ctx, {
+              detach: false,
+            });
+          } else {
+            authorize(user, "update", document);
+
+            updated = await documentUpdater(ctx, {
+              document,
+              ...input,
+            });
+          }
 
           const { text, ...attributes } = await presentDocument(
             undefined,

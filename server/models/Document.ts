@@ -48,7 +48,7 @@ import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import slugify from "@shared/utils/slugify";
 import { DocumentValidation } from "@shared/validations";
-import { ValidationError } from "@server/errors";
+import { InvalidRequestError, ValidationError } from "@server/errors";
 import { generateUrlId } from "@server/utils/url";
 import { createContext } from "@server/context";
 import Collection from "./Collection";
@@ -1098,10 +1098,12 @@ class Document extends ArchivableModel<
   };
 
   /**
+   * Unpublishes a published document, converting it back to a draft.
    *
-   * @param user User who is performing the action
-   * @param options.detach Whether to detach the document from the containing collection
-   * @returns Updated document
+   * @param ctx the API context.
+   * @param options.detach whether to detach the document from the containing collection.
+   * @returns updated document.
+   * @throws if the document has child documents.
    */
   unpublishWithCtx = async (ctx: APIContext, options: { detach: boolean }) => {
     // If the document is already a draft then calling unpublish should act like save
@@ -1112,11 +1114,21 @@ class Document extends ArchivableModel<
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
 
+    const childDocumentIds = await this.findAllChildDocumentIds(
+      { archivedAt: { [Op.eq]: null } },
+      { transaction }
+    );
+    if (childDocumentIds.length > 0) {
+      throw InvalidRequestError(
+        "Cannot unpublish document with child documents"
+      );
+    }
+
     const collection = this.collectionId
       ? await Collection.findByPk(this.collectionId, {
           includeDocumentStructure: true,
           transaction,
-          lock: transaction.LOCK.UPDATE,
+          lock: transaction?.LOCK.UPDATE,
         })
       : undefined;
 

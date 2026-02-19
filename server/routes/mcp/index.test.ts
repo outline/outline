@@ -335,6 +335,54 @@ describe("POST /mcp/", () => {
       expect(data.url).toMatch(/^https?:\/\//);
     });
 
+    it("update_document unpublishes a document", async () => {
+      const { user, accessToken } = await buildOAuthUser();
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const document = await buildDocument({
+        teamId: user.teamId,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+
+      const res = await callMcpTool(server, accessToken, "update_document", {
+        id: document.id,
+        publish: false,
+      });
+      const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+
+      expect(data.id).toEqual(document.id);
+      expect(res?.result?.isError).toBeUndefined();
+    });
+
+    it("update_document fails to unpublish a document with children", async () => {
+      const { user, accessToken } = await buildOAuthUser();
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const document = await buildDocument({
+        teamId: user.teamId,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+      await buildDocument({
+        teamId: user.teamId,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: document.id,
+      });
+
+      const res = await callMcpTool(server, accessToken, "update_document", {
+        id: document.id,
+        publish: false,
+      });
+
+      expect(res?.result?.isError).toBe(true);
+    });
+
     it("get_document resource returns metadata and markdown", async () => {
       const { user, accessToken } = await buildOAuthUser();
       const collection = await buildCollection({
