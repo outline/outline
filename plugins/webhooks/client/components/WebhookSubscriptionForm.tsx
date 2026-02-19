@@ -18,6 +18,11 @@ import useMobile from "~/hooks/useMobile";
 import Flex from "@shared/components/Flex";
 
 const WEBHOOK_EVENTS = {
+  attachments: [
+    "attachments.create",
+    "attachments.update",
+    "attachments.delete",
+  ],
   users: [
     "users.create",
     "users.signin",
@@ -114,11 +119,7 @@ function EventCheckbox({
 }: EventCheckboxProps) {
   const checkbox = (
     <>
-      <input
-        type="checkbox"
-        defaultValue={value}
-        {...register("events", {})}
-      />
+      <input type="checkbox" defaultValue={value} {...register("events", {})} />
       <Text>{label}</Text>
     </>
   );
