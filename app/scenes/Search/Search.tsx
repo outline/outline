@@ -27,7 +27,7 @@ import env from "~/env";
 import usePaginatedRequest from "~/hooks/usePaginatedRequest";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
-import type { SearchResult } from "~/types";
+import type { PaginationParams, SearchResult } from "~/types";
 import { searchPath } from "~/utils/routeHelpers";
 import { decodeURIComponentSafe } from "~/utils/urls";
 import CollectionFilter from "./components/CollectionFilter";
@@ -122,10 +122,15 @@ function Search() {
     }
 
     if (isSearchable) {
-      return async () =>
-        titleFilter
-          ? await documents.searchTitles(filters)
-          : await documents.search(filters);
+      return async (params?: PaginationParams) => {
+        const paginationParams = {
+          offset: params?.offset,
+          limit: params?.limit,
+        };
+        return titleFilter
+          ? await documents.searchTitles({ ...filters, ...paginationParams })
+          : await documents.search({ ...filters, ...paginationParams });
+      };
     }
 
     return () => Promise.resolve([] as SearchResult[]);
