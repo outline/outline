@@ -103,7 +103,7 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
   return (
     <ActionContextProvider
       value={{
-        activeDocumentId: document.id,
+        activeModels: [document],
       }}
     >
       <Draggable key={star.id} ref={draggableRef} $isDragging={isDragging}>

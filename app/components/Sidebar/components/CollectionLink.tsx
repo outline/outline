@@ -127,7 +127,7 @@ const CollectionLink: React.FC<Props> = ({
   });
 
   return (
-    <ActionContextProvider value={{ activeCollectionId: collection.id }}>
+    <ActionContextProvider value={{ activeModels: [collection] }}>
       <Relative ref={mergeRefs([parentRef, dropRef])}>
         <DropToImport collectionId={collection.id}>
           <SidebarLink
