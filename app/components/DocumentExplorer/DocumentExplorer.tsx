@@ -149,7 +149,8 @@ function DocumentExplorer({
     (min, node) => (node.depth ? Math.min(min, node.depth) : min),
     Infinity
   );
-  const normalizedBaseDepth = baseDepth === Infinity ? 0 : baseDepth;
+  const normalizedBaseDepth =
+    (baseDepth === Infinity ? 0 : baseDepth) + (showDocuments ? 0 : 1);
 
   const scrollNodeIntoView = React.useCallback(
     (node: number) => {
@@ -224,9 +225,7 @@ function DocumentExplorer({
   };
 
   const hasChildren = (node: number) =>
-    nodes[node].children.length > 0 ||
-    nodes[node].type === "collection" ||
-    showDocuments !== false;
+    nodes[node].children.length > 0 || showDocuments !== false;
 
   const toggleCollapse = (node: number) => {
     if (!hasChildren(node)) {

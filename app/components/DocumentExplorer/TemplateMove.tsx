@@ -1,4 +1,3 @@
-import flatten from "lodash/flatten";
 import { observer } from "mobx-react";
 import { useState, useMemo } from "react";
 import { useTranslation, Trans } from "react-i18next";
@@ -7,6 +6,7 @@ import type { NavigationNode } from "@shared/types";
 import type Template from "~/models/Template";
 import Button from "~/components/Button";
 import Text from "~/components/Text";
+import useCollectionTrees from "~/hooks/useCollectionTrees";
 import useStores from "~/hooks/useStores";
 import { FlexContainer, Footer } from "./Components";
 import DocumentExplorer from "./DocumentExplorer";
@@ -16,25 +16,21 @@ type Props = {
 };
 
 function TemplateMove({ template }: Props) {
-  const { dialogs, collections, policies } = useStores();
+  const { dialogs, policies } = useStores();
   const { t } = useTranslation();
+  const collectionTrees = useCollectionTrees();
   const [selectedPath, selectPath] = useState<NavigationNode | null>(null);
 
   const items = useMemo(
     () =>
-      flatten(
-        collections.orderedData.map((collection) => ({
-          ...collection.asNavigationNode,
-          children: [],
-        }))
-      )
-        // Filter out collections that we don't have permission to create documents in.
+      collectionTrees
+        .map((node) => ({ ...node, children: [] }))
         .filter((node) =>
           node.collectionId
             ? policies.get(node.collectionId)?.abilities.createDocument
             : true
         ),
-    [policies, collections.orderedData]
+    [policies, collectionTrees]
   );
 
   const move = async () => {
