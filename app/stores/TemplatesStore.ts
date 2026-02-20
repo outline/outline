@@ -1,5 +1,6 @@
 import find from "lodash/find";
 import orderBy from "lodash/orderBy";
+import filter from "lodash/filter";
 import { action, computed } from "mobx";
 import { invariant } from "mobx-utils";
 import naturalSort from "@shared/utils/naturalSort";
@@ -16,6 +17,11 @@ export default class TemplatesStore extends Store<Template> {
   @computed
   get alphabetical(): Template[] {
     return naturalSort(Array.from(this.data.values()), "title");
+  }
+
+  @computed
+  get all(): Template[] {
+    return filter(this.orderedData, (d) => !d.deletedAt);
   }
 
   @action

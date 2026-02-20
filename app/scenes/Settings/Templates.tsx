@@ -64,13 +64,13 @@ function Templates() {
   );
 
   const { data, error, loading, next } = useTableRequest({
-    data: getFilteredTemplates(templates.orderedData, reqParams.query),
+    data: getFilteredTemplates(templates.all, reqParams.query),
     sort,
     reqFn: templates.fetchPage,
     reqParams,
   });
 
-  const isEmpty = !loading && !templates.orderedData.length;
+  const isEmpty = !loading && !templates.all.length;
 
   const updateQuery = useCallback(
     (value: string) => {

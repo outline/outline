@@ -9,7 +9,12 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { useMenuAction } from "~/hooks/useMenuAction";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
-import { deleteTemplate, moveTemplate } from "~/actions/definitions/templates";
+import {
+  copyTemplate,
+  deleteTemplate,
+  moveTemplate,
+  printTemplate,
+} from "~/actions/definitions/templates";
 import { ActionContextProvider } from "~/hooks/useActionContext";
 
 type Props = {
@@ -40,6 +45,9 @@ function TemplateMenu({ template, onEdit }: Props) {
         perform: () => templates.duplicate(template),
       }),
       moveTemplate,
+      ActionSeparator,
+      copyTemplate,
+      printTemplate,
       ActionSeparator,
       deleteTemplate,
     ],

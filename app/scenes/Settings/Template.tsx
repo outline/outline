@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { DoneIcon, ShapesIcon } from "outline-icons";
+import { ShapesIcon } from "outline-icons";
 import { useEffect, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
@@ -97,9 +97,7 @@ const TemplateSetting = observer(function Template_({ template }: Props) {
       actions={
         <>
           <Action>
-            <Button onClick={handleSubmit} icon={<DoneIcon />}>
-              {t("Save")}
-            </Button>
+            <Button onClick={handleSubmit}>{t("Save")}</Button>
           </Action>
           <Action>
             <TemplateMenu template={template} />

@@ -1,10 +1,23 @@
-import { MoveIcon, NewDocumentIcon, PlusIcon, TrashIcon } from "outline-icons";
+import copy from "copy-to-clipboard";
+import {
+  CaseSensitiveIcon,
+  CopyIcon,
+  MoveIcon,
+  NewDocumentIcon,
+  PlusIcon,
+  PrintIcon,
+  TrashIcon,
+} from "outline-icons";
 import { Trans } from "react-i18next";
 import { toast } from "sonner";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import TemplateMove from "~/components/DocumentExplorer/TemplateMove";
-import { createAction, createInternalLinkAction } from "~/actions";
-import { newDocumentPath, newTemplatePath } from "~/utils/routeHelpers";
+import {
+  createAction,
+  createActionWithChildren,
+  createInternalLinkAction,
+} from "~/actions";
+import { newDocumentPath, newTemplatePath, urlify } from "~/utils/routeHelpers";
 import { ActiveTemplateSection, TemplateSection } from "../sections";
 import Template from "~/models/Template";
 
@@ -114,6 +127,58 @@ export const createDocumentFromTemplate = createInternalLinkAction({
       search,
       state: { sidebarContext },
     };
+  },
+});
+
+export const copyTemplateLink = createAction({
+  name: ({ t }) => t("Copy link"),
+  analyticsName: "Copy template link",
+  section: ActiveTemplateSection,
+  icon: <CopyIcon />,
+  iconInContextMenu: false,
+  perform: ({ getActiveModel, t }) => {
+    const template = getActiveModel(Template);
+    if (template) {
+      copy(urlify(template.path));
+      toast.success(t("Link copied to clipboard"));
+    }
+  },
+});
+
+export const copyTemplateAsPlainText = createAction({
+  name: ({ t }) => t("Copy as text"),
+  analyticsName: "Copy template as text",
+  section: ActiveTemplateSection,
+  icon: <CaseSensitiveIcon />,
+  iconInContextMenu: false,
+  perform: async ({ getActiveModel, t }) => {
+    const template = getActiveModel(Template);
+    if (template) {
+      const { ProsemirrorHelper } =
+        await import("~/models/helpers/ProsemirrorHelper");
+      copy(ProsemirrorHelper.toPlainText(template));
+      toast.success(t("Text copied to clipboard"));
+    }
+  },
+});
+
+export const copyTemplate = createActionWithChildren({
+  name: ({ t }) => t("Copy"),
+  analyticsName: "Copy template",
+  section: ActiveTemplateSection,
+  icon: <CopyIcon />,
+  keywords: "clipboard",
+  children: [copyTemplateLink, copyTemplateAsPlainText],
+});
+
+export const printTemplate = createAction({
+  name: ({ t, isMenu }) => (isMenu ? t("Print") : t("Print template")),
+  analyticsName: "Print template",
+  section: ActiveTemplateSection,
+  icon: <PrintIcon />,
+  visible: ({ getActiveModel }) => !!getActiveModel(Template) && !!window.print,
+  perform: () => {
+    queueMicrotask(window.print);
   },
 });
 

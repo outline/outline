@@ -170,6 +170,7 @@
   "Deleting": "Deleting",
   "Are you sure about that? Deleting the <em>{{ templateName }}</em> template is permanent.": "Are you sure about that? Deleting the <em>{{ templateName }}</em> template is permanent.",
   "Move template": "Move template",
+  "Print template": "Print template",
   "Invite people": "Invite people",
   "Invite to workspace": "Invite to workspace",
   "Promote to {{ role }}": "Promote to {{ role }}",

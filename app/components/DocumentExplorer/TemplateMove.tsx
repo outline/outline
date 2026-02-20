@@ -44,7 +44,8 @@ function TemplateMove({ template }: Props) {
     }
 
     try {
-      const collectionId = selectedPath.collectionId as string;
+      const collectionId = (selectedPath.collectionId ??
+        selectedPath.id) as string;
       await template.save({ collectionId });
 
       toast.success(t("Template moved"));

@@ -86,6 +86,7 @@ import type {
 } from "~/types";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 import env from "~/env";
+import DocumentMove from "~/components/DocumentExplorer/DocumentMove";
 
 const Insights = lazyWithRetry(
   () => import("~/scenes/Document/components/Insights")

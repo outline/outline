@@ -8,7 +8,13 @@ const TemplatesSortParamsSchema = z.object({
   sort: z
     .string()
     .refine((val) =>
-      ["createdAt", "updatedAt", "publishedAt", "title"].includes(val)
+      [
+        "createdAt",
+        "updatedAt",
+        "publishedAt",
+        "title",
+        "collectionId",
+      ].includes(val)
     )
     .default("updatedAt"),
 

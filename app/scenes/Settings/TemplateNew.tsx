@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { DoneIcon, ShapesIcon } from "outline-icons";
+import { ShapesIcon } from "outline-icons";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -65,9 +65,7 @@ function TemplateNewScene() {
       left={<Breadcrumb actions={breadcrumbActions} />}
       actions={
         <Action>
-          <Button onClick={handleSubmit} icon={<DoneIcon />}>
-            {t("Save")}
-          </Button>
+          <Button onClick={handleSubmit}>{t("Save")}</Button>
         </Action>
       }
     >
