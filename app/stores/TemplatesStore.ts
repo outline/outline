@@ -1,4 +1,3 @@
-import find from "lodash/find";
 import orderBy from "lodash/orderBy";
 import filter from "lodash/filter";
 import { action, computed } from "mobx";
@@ -64,11 +63,12 @@ export default class TemplatesStore extends Store<Template> {
     return this.data.get(res.data.id);
   };
 
-  getByUrl = (url = ""): Template | undefined =>
-    find(
-      this.orderedData,
-      (template) => url.endsWith(template.urlId) || url.endsWith(template.id)
-    );
+  get(id: string): Template | undefined {
+    return id
+      ? (this.data.get(id) ??
+          this.orderedData.find((doc) => id.endsWith(doc.urlId)))
+      : undefined;
+  }
 
   @computed
   get active(): Template | undefined {

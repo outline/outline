@@ -3,6 +3,7 @@ import { ShapesIcon } from "outline-icons";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import Template from "~/models/Template";
 import { Action } from "~/components/Actions";
 import Breadcrumb from "~/components/Breadcrumb";
@@ -51,13 +52,18 @@ function TemplateNewScene() {
   );
 
   const handleSubmit = useCallback(async () => {
+    if (!template.data || ProsemirrorHelper.isEmptyData(template.data)) {
+      toast.message(t("A template must have content"));
+      return;
+    }
+
     try {
       await template.save();
       history.push(settingsPath("templates"));
     } catch (error) {
       toast.error(error.message);
     }
-  }, [template]);
+  }, [template, t]);
 
   return (
     <Scene

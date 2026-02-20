@@ -22,7 +22,6 @@ import Time from "~/components/Time";
 import TemplateMenu from "~/menus/TemplateMenu";
 import { FILTER_HEIGHT } from "./StickyFilters";
 import history from "~/utils/history";
-import { settingsPath } from "~/utils/routeHelpers";
 
 const ROW_HEIGHT = 60;
 const STICKY_OFFSET = HEADER_HEIGHT + FILTER_HEIGHT;
@@ -34,7 +33,7 @@ export function TemplatesTable(props: Props) {
   const theme = useTheme();
 
   const handleOpen = (template: Template) => () => {
-    history.push(settingsPath("templates", template.id));
+    history.push(template.path);
   };
 
   const columns = React.useMemo<TableColumn<Template>[]>(
