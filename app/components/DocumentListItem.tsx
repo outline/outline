@@ -101,11 +101,10 @@ function DocumentListItem(
   return (
     <ActionContextProvider
       value={{
-        activeDocumentId: document.id,
-        activeCollectionId:
-          !isShared && document.collectionId
-            ? document.collectionId
-            : undefined,
+        activeModels: [
+          document,
+          ...(!isShared && document.collection ? [document.collection] : []),
+        ],
       }}
     >
       <ContextMenu

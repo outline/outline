@@ -33,7 +33,7 @@ function RevisionMenu({ document, revisionId }: Props) {
   const rootAction = useMenuAction(actions);
 
   return (
-    <ActionContextProvider value={{ activeDocumentId: document.id }}>
+    <ActionContextProvider value={{ activeModels: [document] }}>
       <DropdownMenu
         action={rootAction}
         align="end"

@@ -416,7 +416,7 @@ function InnerDocumentLink(
   return (
     <ActionContextProvider
       value={{
-        activeDocumentId: node.id,
+        activeModels: document ? [document] : [],
       }}
     >
       <Relative ref={parentRef}>
