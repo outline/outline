@@ -1,4 +1,5 @@
 import {
+  buildAdmin,
   buildUser,
   buildTemplate,
   buildCollection,
@@ -158,6 +159,98 @@ describe("#templates.update", () => {
     expect(body.data.data).toEqual(data);
   });
 
+  it("should allow admin to move template to another accessible collection", async () => {
+    const admin = await buildAdmin();
+    const template = await buildTemplate({
+      userId: admin.id,
+      teamId: admin.teamId,
+    });
+
+    const targetCollection = await buildCollection({
+      userId: admin.id,
+      teamId: admin.teamId,
+    });
+
+    const res = await server.post("/api/templates.update", {
+      body: {
+        token: admin.getJwtToken(),
+        id: template.id,
+        collectionId: targetCollection.id,
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.collectionId).toEqual(targetCollection.id);
+  });
+
+  it("should not allow moving template to a collection user has no access to", async () => {
+    const user = await buildUser();
+    const template = await buildTemplate({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    // Collection created by another user with no default permission
+    const inaccessibleCollection = await buildCollection({
+      teamId: user.teamId,
+      permission: null,
+    });
+
+    const res = await server.post("/api/templates.update", {
+      body: {
+        token: user.getJwtToken(),
+        id: template.id,
+        collectionId: inaccessibleCollection.id,
+      },
+    });
+
+    expect(res.status).toEqual(403);
+  });
+
+  it("should not allow non-admin to move template to workspace scope", async () => {
+    const admin = await buildAdmin();
+    // Create template as admin so the non-admin user's team has it
+    const template = await buildTemplate({
+      userId: admin.id,
+      teamId: admin.teamId,
+    });
+
+    // Create a non-admin member on the same team who has collection access
+    // but is not a team admin
+    const user = await buildUser({ teamId: admin.teamId });
+
+    const res = await server.post("/api/templates.update", {
+      body: {
+        token: user.getJwtToken(),
+        id: template.id,
+        collectionId: null,
+      },
+    });
+
+    expect(res.status).toEqual(403);
+  });
+
+  it("should allow admin to move template to workspace scope", async () => {
+    const admin = await buildAdmin();
+    const template = await buildTemplate({
+      userId: admin.id,
+      teamId: admin.teamId,
+    });
+
+    const res = await server.post("/api/templates.update", {
+      body: {
+        token: admin.getJwtToken(),
+        id: template.id,
+        collectionId: null,
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.collectionId).toBeNull();
+  });
+
   it("should fail with status 400 bad request when id is missing", async () => {
     const user = await buildUser();
     const res = await server.post("/api/templates.update", {
@@ -220,6 +313,115 @@ describe("#templates.duplicate", () => {
     expect(body.data.id).not.toEqual(template.id);
     expect(body.data.title).toEqual("New title");
     expect(body.data.data).toEqual(template.content);
+  });
+
+  it("should allow admin to duplicate to another accessible collection", async () => {
+    const admin = await buildAdmin();
+    const template = await buildTemplate({
+      userId: admin.id,
+      teamId: admin.teamId,
+    });
+
+    const targetCollection = await buildCollection({
+      userId: admin.id,
+      teamId: admin.teamId,
+    });
+
+    const res = await server.post("/api/templates.duplicate", {
+      body: {
+        token: admin.getJwtToken(),
+        id: template.id,
+        collectionId: targetCollection.id,
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.collectionId).toEqual(targetCollection.id);
+  });
+
+  it("should not allow duplicating to a collection user has no access to", async () => {
+    const user = await buildUser();
+    const template = await buildTemplate({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    // Collection created by another user with no default permission
+    const inaccessibleCollection = await buildCollection({
+      teamId: user.teamId,
+      permission: null,
+    });
+
+    const res = await server.post("/api/templates.duplicate", {
+      body: {
+        token: user.getJwtToken(),
+        id: template.id,
+        collectionId: inaccessibleCollection.id,
+      },
+    });
+
+    expect(res.status).toEqual(403);
+  });
+
+  it("should not allow non-admin to duplicate to workspace scope", async () => {
+    const admin = await buildAdmin();
+    const template = await buildTemplate({
+      userId: admin.id,
+      teamId: admin.teamId,
+    });
+
+    // Non-admin member on the same team
+    const user = await buildUser({ teamId: admin.teamId });
+
+    const res = await server.post("/api/templates.duplicate", {
+      body: {
+        token: user.getJwtToken(),
+        id: template.id,
+        collectionId: null,
+      },
+    });
+
+    expect(res.status).toEqual(403);
+  });
+
+  it("should allow admin to duplicate to workspace scope", async () => {
+    const admin = await buildAdmin();
+    const template = await buildTemplate({
+      userId: admin.id,
+      teamId: admin.teamId,
+    });
+
+    const res = await server.post("/api/templates.duplicate", {
+      body: {
+        token: admin.getJwtToken(),
+        id: template.id,
+        collectionId: null,
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.collectionId).toBeNull();
+  });
+
+  it("should set publishedAt on duplicated template", async () => {
+    const user = await buildUser();
+    const template = await buildTemplate({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/templates.duplicate", {
+      body: {
+        token: user.getJwtToken(),
+        id: template.id,
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.publishedAt).toBeTruthy();
   });
 
   it("should require authentication", async () => {

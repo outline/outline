@@ -200,7 +200,7 @@ router.post(
     });
     authorize(user, "restore", template);
 
-    await template.restore({ transaction });
+    await template.restoreWithCtx(ctx);
 
     ctx.body = {
       data: presentTemplate(template),
@@ -226,13 +226,25 @@ router.post(
     });
     authorize(user, "duplicate", original);
 
+    const targetCollectionId =
+      collectionId === undefined ? original.collectionId : collectionId;
+    if (targetCollectionId) {
+      const collection = await Collection.findByPk(targetCollectionId, {
+        userId: user.id,
+        transaction,
+      });
+      authorize(user, "createDocument", collection);
+    } else {
+      authorize(user, "createTemplate", user.team);
+    }
+
     let template = await Template.createWithCtx(ctx, {
       title: title ?? original.title,
       createdById: user.id,
       lastModifiedById: user.id,
       teamId: user.teamId,
-      collectionId:
-        collectionId === undefined ? original.collectionId : collectionId,
+      collectionId: targetCollectionId,
+      publishedAt: new Date(),
       content: original.content,
       icon: original.icon,
       color: original.color,
@@ -269,6 +281,21 @@ router.post(
       transaction,
     });
     authorize(user, "update", template);
+
+    if (updatedFields.collectionId !== undefined) {
+      if (updatedFields.collectionId) {
+        const collection = await Collection.findByPk(
+          updatedFields.collectionId,
+          {
+            userId: user.id,
+            transaction,
+          }
+        );
+        authorize(user, "update", collection);
+      } else {
+        authorize(user, "createTemplate", user.team);
+      }
+    }
 
     if (data) {
       template.content = data;
