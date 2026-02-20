@@ -22,7 +22,7 @@ import { FILTER_HEIGHT } from "./StickyFilters";
 import { HStack } from "~/components/primitives/HStack";
 import { VStack } from "~/components/primitives/VStack";
 
-const ROW_HEIGHT = 60;
+const ROW_HEIGHT = 50;
 const STICKY_OFFSET = HEADER_HEIGHT + FILTER_HEIGHT;
 
 type Props = Omit<TableProps<User>, "columns" | "rowHeight"> & {

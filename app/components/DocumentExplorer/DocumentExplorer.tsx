@@ -411,7 +411,11 @@ function DocumentExplorer({
       <ListSearch
         ref={inputSearchRef}
         onChange={handleSearch}
-        placeholder={`${t("Search collections & documents")}…`}
+        placeholder={
+          showDocuments
+            ? `${t("Search collections & documents")}…`
+            : `${t("Search collections")}…`
+        }
         autoFocus
       />
       <ListContainer>

@@ -254,6 +254,7 @@
   "Copy to <em>{{ location }}</em>": "Copy to <em>{{ location }}</em>",
   "Copying": "Copying",
   "Search collections & documents": "Search collections & documents",
+  "Search collections": "Search collections",
   "No results found": "No results found",
   "Select a location to move": "Select a location to move",
   "Document moved": "Document moved",

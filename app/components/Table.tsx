@@ -26,6 +26,7 @@ import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
 import PlaceholderText from "~/components/PlaceholderText";
 import usePrevious from "~/hooks/usePrevious";
+import { transparentize } from "polished";
 
 const HEADER_HEIGHT = 40;
 
@@ -336,7 +337,8 @@ const THead = styled.div<{ $topPos: number }>`
   color: ${s("textSecondary")};
   font-weight: 500;
 
-  border-bottom: 1px solid ${s("divider")};
+  border-bottom: 1px solid
+    ${(props) => transparentize(0.3, props.theme.divider)};
   background: ${s("background")};
 `;
 
@@ -350,11 +352,16 @@ const TR = styled.div<{ $columns: string }>`
   display: grid;
   grid-template-columns: ${({ $columns }) => `${$columns}`};
   align-items: center;
-  border-bottom: 1px solid ${s("divider")};
+  border-bottom: 1px solid
+    ${(props) => transparentize(0.3, props.theme.divider)};
   overflow: hidden;
 
   &:last-child {
     border-bottom: 0;
+  }
+
+  &:hover ${NudeButton}[aria-haspopup="menu"] {
+    opacity: 1;
   }
 `;
 
@@ -401,10 +408,16 @@ const TD = styled.span`
 
   ${NudeButton}[aria-haspopup="menu"] {
     vertical-align: middle;
+    opacity: 0;
+    transition: opacity 100ms ease-in-out;
 
     &:hover,
     &[aria-expanded="true"] {
       background: ${s("sidebarControlHoverBackground")};
+    }
+
+    &[aria-expanded="true"] {
+      opacity: 1;
     }
   }
 `;

@@ -1,7 +1,7 @@
 import compact from "lodash/compact";
 import { observer } from "mobx-react";
 import { DocumentIcon } from "outline-icons";
-import React from "react";
+import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import styled, { useTheme } from "styled-components";
 import Flex from "@shared/components/Flex";
@@ -12,6 +12,7 @@ import { Avatar, AvatarSize } from "~/components/Avatar";
 import ButtonLink from "~/components/ButtonLink";
 import { HEADER_HEIGHT } from "~/components/Header";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
+import { ContextMenu } from "~/components/Menu/ContextMenu";
 import {
   type Props as TableProps,
   SortableTable,
@@ -19,14 +20,37 @@ import {
 import { type Column as TableColumn } from "~/components/Table";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
+import { ActionContextProvider } from "~/hooks/useActionContext";
+import { useTemplateSettingsActions } from "~/hooks/useTemplateSettingsActions";
 import TemplateMenu from "~/menus/TemplateMenu";
 import { FILTER_HEIGHT } from "./StickyFilters";
 import history from "~/utils/history";
 
-const ROW_HEIGHT = 60;
+const ROW_HEIGHT = 50;
 const STICKY_OFFSET = HEADER_HEIGHT + FILTER_HEIGHT;
 
 type Props = Omit<TableProps<Template>, "columns" | "rowHeight">;
+
+const TemplateRowContextMenu = observer(function TemplateRowContextMenu({
+  template,
+  menuLabel,
+  children,
+}: {
+  template: Template;
+  menuLabel: string;
+  children: React.ReactNode;
+}) {
+  const action = useTemplateSettingsActions(template, () =>
+    history.push(template.path)
+  );
+  return (
+    <ActionContextProvider value={{ activeModels: [template] }}>
+      <ContextMenu action={action} ariaLabel={menuLabel}>
+        {children}
+      </ContextMenu>
+    </ActionContextProvider>
+  );
+});
 
 export function TemplatesTable(props: Props) {
   const { t } = useTranslation();
@@ -35,6 +59,18 @@ export function TemplatesTable(props: Props) {
   const handleOpen = (template: Template) => () => {
     history.push(template.path);
   };
+
+  const applyContextMenu = useCallback(
+    (template: Template, rowElement: React.ReactNode) => (
+      <TemplateRowContextMenu
+        template={template}
+        menuLabel={t("Template options")}
+      >
+        {rowElement}
+      </TemplateRowContextMenu>
+    ),
+    [t]
+  );
 
   const columns = React.useMemo<TableColumn<Template>[]>(
     () =>
@@ -113,6 +149,7 @@ export function TemplatesTable(props: Props) {
       columns={columns}
       rowHeight={ROW_HEIGHT}
       stickyOffset={STICKY_OFFSET}
+      decorateRow={applyContextMenu}
       {...props}
     />
   );

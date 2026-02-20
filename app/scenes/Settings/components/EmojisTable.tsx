@@ -21,7 +21,7 @@ import { s } from "@shared/styles";
 import styled from "styled-components";
 import { HStack } from "~/components/primitives/HStack";
 
-const ROW_HEIGHT = 60;
+const ROW_HEIGHT = 50;
 const STICKY_OFFSET = HEADER_HEIGHT + FILTER_HEIGHT;
 
 type Props = Omit<TableProps<Emoji>, "columns" | "rowHeight"> & {
