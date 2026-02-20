@@ -88,7 +88,7 @@ router.post(
 
     // if a specific collection is passed then we need to check auth to view it
     if (collectionId) {
-      where[Op.and].push({ collectionId: [collectionId] });
+      where[Op.and].push({ collectionId });
       const collection = await Collection.findByPk(collectionId, {
         userId: user.id,
       });

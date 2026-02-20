@@ -6,7 +6,7 @@ import type {
   NonNullFindOptions,
   FindOptions,
 } from "sequelize";
-import { Op, EmptyResultError } from "sequelize";
+import { EmptyResultError } from "sequelize";
 import {
   Column,
   DataType,
@@ -31,7 +31,7 @@ import Collection from "./Collection";
 import Revision from "./Revision";
 import Team from "./Team";
 import User from "./User";
-import IdModel from "./base/IdModel";
+import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
 import IsHexColor from "./validators/IsHexColor";
 import Length from "./validators/Length";
@@ -54,9 +54,6 @@ type AdditionalFindOptions = {
     },
   ],
   where: {
-    archivedAt: {
-      [Op.eq]: null,
-    },
     template: true,
   },
   attributes: {
@@ -91,7 +88,7 @@ type AdditionalFindOptions = {
 }))
 @Table({ tableName: "documents", modelName: "template" })
 @Fix
-class Template extends IdModel<
+class Template extends ParanoidModel<
   InferAttributes<Template>,
   Partial<InferCreationAttributes<Template>>
 > {
@@ -209,15 +206,6 @@ class Template extends IdModel<
    */
   get isWorkspaceTemplate() {
     return !this.collectionId;
-  }
-
-  /**
-   * Convenience method that returns whether this template is deleted.
-   *
-   * @returns boolean
-   */
-  get isDeleted(): boolean {
-    return !!this.deletedAt;
   }
 
   @BeforeValidate

@@ -49,3 +49,19 @@ allow(User, "delete", Template, (actor, template) =>
     !template?.isDeleted
   )
 );
+
+allow(User, "restore", Template, (actor, template) =>
+  and(
+    //
+    !!template?.isDeleted,
+    isTeamModel(actor, template),
+    isTeamMutable(actor),
+    or(
+      and(
+        !!template?.isWorkspaceTemplate,
+        can(actor, "updateTemplate", actor.team)
+      ),
+      can(actor, "update", template?.collection)
+    )
+  )
+);

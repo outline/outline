@@ -71,7 +71,6 @@ export const TemplatesDuplicateSchema = BaseSchema.extend({
     id: zodIdType(),
     title: z.string().optional(),
     collectionId: z.string().uuid().nullish(),
-    parentDocumentId: z.string().uuid().nullish(),
   }),
 });
 
