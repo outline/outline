@@ -340,7 +340,8 @@ class UserMembership extends IdModel<
     if (childDocumentIds.length) {
       await this.destroy({
         where: {
-          sourceId: { [Op.ne]: null },
+          userId: model.userId,
+          sourceId: model.id,
           documentId: {
             [Op.in]: childDocumentIds,
           },
