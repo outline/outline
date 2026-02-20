@@ -1,5 +1,8 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { faker } from "@faker-js/faker";
 import { addMinutes, subDays } from "date-fns";
+import FormData from "form-data";
 import {
   CollectionPermission,
   DocumentPermission,
@@ -22,6 +25,8 @@ import {
 } from "@server/models";
 import { RelationshipType } from "@server/models/Relationship";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import DocumentImportTask from "@server/queues/tasks/DocumentImportTask";
+import FileStorage from "@server/storage/files";
 import {
   buildShare,
   buildCollection,
@@ -3419,14 +3424,65 @@ describe("#documents.import", () => {
     );
   });
 
-  it("should error if no file is passed", async () => {
+  it("should error if no file or attachmentId is passed", async () => {
     const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
     const res = await server.post("/api/documents.import", {
       body: {
         token: user.getJwtToken(),
+        collectionId: collection.id,
       },
     });
+    const body = await res.json();
     expect(res.status).toEqual(400);
+    expect(body.message).toEqual("one of attachmentId or file is required");
+  });
+
+  it("should import a document from a direct file upload", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+
+    jest.spyOn(FileStorage, "store").mockResolvedValue(undefined as any);
+    jest.spyOn(DocumentImportTask.prototype, "schedule").mockResolvedValue({
+      finished: jest.fn().mockResolvedValue({ documentId: document.id }),
+    } as any);
+
+    const content = await readFile(
+      path.resolve(
+        __dirname,
+        "..",
+        "..",
+        "..",
+        "test",
+        "fixtures",
+        "markdown.md"
+      )
+    );
+    const form = new FormData();
+    form.append("file", content, "markdown.md");
+    form.append("token", user.getJwtToken());
+    form.append("collectionId", collection.id);
+
+    const res = await server.post("/api/documents.import", {
+      headers: form.getHeaders(),
+      body: form,
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(document.id);
+
+    jest.restoreAllMocks();
   });
 
   it("should require authentication", async () => {
