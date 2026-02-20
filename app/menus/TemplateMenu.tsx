@@ -13,7 +13,6 @@ import {
   copyTemplate,
   deleteTemplate,
   moveTemplate,
-  printTemplate,
 } from "~/actions/definitions/templates";
 import { ActionContextProvider } from "~/hooks/useActionContext";
 
@@ -47,7 +46,6 @@ function TemplateMenu({ template, onEdit }: Props) {
       moveTemplate,
       ActionSeparator,
       copyTemplate,
-      printTemplate,
       ActionSeparator,
       deleteTemplate,
     ],
