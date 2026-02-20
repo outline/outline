@@ -381,8 +381,6 @@ export const DocumentsImportSchema = BaseSchema.extend({
       }
     ),
   file: z.custom<formidable.File>().optional(),
-}).refine((req) => req.body.attachmentId || req.file, {
-  message: "one of attachmentId or file is required",
 });
 
 export type DocumentsImportReq = z.infer<typeof DocumentsImportSchema>;

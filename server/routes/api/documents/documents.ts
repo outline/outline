@@ -1571,6 +1571,10 @@ router.post(
       ctx.input.body;
     const { user } = ctx.state.auth;
 
+    if (!attachmentId && !ctx.input.file) {
+      throw ValidationError("one of attachmentId or file is required");
+    }
+
     if (collectionId) {
       const collection = await Collection.findByPk(collectionId, {
         userId: user.id,
