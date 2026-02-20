@@ -251,6 +251,10 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       case "oauthClients.delete":
         // Ignored
         return;
+      case "templates.create":
+      case "templates.update":
+      case "templates.delete":
+      case "templates.restore":
       case "passkeys.create":
       case "passkeys.update":
       case "passkeys.delete":

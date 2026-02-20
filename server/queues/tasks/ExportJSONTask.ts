@@ -149,7 +149,6 @@ export default class ExportJSONTask extends ExportTask {
             ? document.publishedAt.toISOString()
             : null,
           fullWidth: document.fullWidth,
-          template: document.template,
           parentDocumentId: document.parentDocumentId,
         };
 

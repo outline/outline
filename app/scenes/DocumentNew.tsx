@@ -13,12 +13,7 @@ import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import { documentEditPath, documentPath } from "~/utils/routeHelpers";
 
-type Props = {
-  // If true, the document will be created as a template.
-  template?: boolean;
-};
-
-function DocumentNew({ template }: Props) {
+function DocumentNew() {
   const history = useHistory();
   const location = useLocation();
   const query = useQuery();
@@ -51,7 +46,6 @@ function DocumentNew({ template }: Props) {
               parentDocument?.fullWidth ||
               user.getPreference(UserPreference.FullWidthDocuments),
             templateId: query.get("templateId") ?? undefined,
-            template,
             title: query.get("title") ?? "",
             data: ProsemirrorHelper.getEmptyDocument(),
           },
@@ -72,7 +66,7 @@ function DocumentNew({ template }: Props) {
         }
 
         history.replace(
-          template || !user.separateEditMode
+          !user.separateEditMode
             ? documentPath(document)
             : documentEditPath(document),
           location.state

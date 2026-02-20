@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import { ShapesIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import type Document from "~/models/Document";
+import type Template from "~/models/Template";
 import Button from "~/components/Button";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { useMenuAction } from "~/hooks/useMenuAction";
@@ -13,7 +14,7 @@ type Props = {
   /** Whether to render the button as a compact icon */
   isCompact?: boolean;
   /** Callback to handle when a template is selected */
-  onSelectTemplate: (template: Document) => void;
+  onSelectTemplate: (template: Template) => void;
 };
 
 function TemplatesMenu({ isCompact, onSelectTemplate, document }: Props) {
