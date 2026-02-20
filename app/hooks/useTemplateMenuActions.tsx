@@ -82,6 +82,13 @@ export function useTemplateMenuActions({
       .filter((tmpl) => tmpl.isWorkspaceTemplate)
       .map(templateToAction);
 
+    if (
+      !collectionTemplatesActions.length &&
+      !workspaceTemplatesActions.length
+    ) {
+      return [];
+    }
+
     return [
       ...collectionTemplatesActions,
       ActionSeparator,
