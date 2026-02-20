@@ -94,7 +94,7 @@ export function TemplatesTable(props: Props) {
             title.createdAt ? (
               <Time dateTime={title.createdAt} addSuffix />
             ) : null,
-          width: "1fr",
+          width: "2fr",
         },
         {
           type: "action",

@@ -28,6 +28,7 @@ function TemplateNewScene() {
   const [template] = useState(
     () => new Template({ title: "", collectionId }, templates)
   );
+  const [saving, setSaving] = useState(false);
 
   const breadcrumbActions = useMemo(
     () => [
@@ -57,11 +58,14 @@ function TemplateNewScene() {
       return;
     }
 
+    setSaving(true);
     try {
       await template.save();
       history.push(settingsPath("templates"));
     } catch (error) {
       toast.error(error.message);
+    } finally {
+      setSaving(false);
     }
   }, [template, t]);
 
@@ -71,7 +75,9 @@ function TemplateNewScene() {
       left={<Breadcrumb actions={breadcrumbActions} />}
       actions={
         <Action>
-          <Button onClick={handleSubmit}>{t("Save")}</Button>
+          <Button onClick={handleSubmit} disabled={saving}>
+            {t("Save")}
+          </Button>
         </Action>
       }
     >

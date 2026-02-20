@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
 import { ShapesIcon } from "outline-icons";
-import { useEffect, useCallback, useMemo } from "react";
+import { useEffect, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -56,6 +56,7 @@ const LoadingState = observer(function LoadingState() {
 const TemplateSetting = observer(function Template_({ template }: Props) {
   const { t } = useTranslation();
   const { collections } = useStores();
+  const [saving, setSaving] = useState(false);
   const collection = template.collectionId
     ? collections.get(template.collectionId)
     : undefined;
@@ -88,11 +89,14 @@ const TemplateSetting = observer(function Template_({ template }: Props) {
       return;
     }
 
+    setSaving(true);
     try {
       await template.save();
       history.push(settingsPath("templates"));
     } catch (error) {
       toast.error(error.message);
+    } finally {
+      setSaving(false);
     }
   }, [template, t]);
 
@@ -103,7 +107,9 @@ const TemplateSetting = observer(function Template_({ template }: Props) {
       actions={
         <>
           <Action>
-            <Button onClick={handleSubmit}>{t("Save")}</Button>
+            <Button onClick={handleSubmit} disabled={saving}>
+              {t("Save")}
+            </Button>
           </Action>
           <Action>
             <TemplateMenu template={template} />
