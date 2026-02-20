@@ -37,8 +37,9 @@ function Star({ size, document, collection, color, ...rest }: Props) {
   return (
     <ActionContextProvider
       value={{
-        activeDocumentId: document?.id,
-        activeCollectionId: collection?.id,
+        activeModels: [document, collection].filter(
+          (m): m is Document | Collection => !!m
+        ),
       }}
     >
       <NudeButton
