@@ -3,7 +3,6 @@ import { flushSync } from "react-dom";
 import { light as defaultTheme } from "@shared/styles/theme";
 import Storage from "@shared/utils/Storage";
 import Document from "~/models/Document";
-import type Template from "~/models/Template";
 import type Model from "~/models/base/Model";
 import Collection from "~/models/Collection";
 import type { ConnectionStatus } from "~/scenes/Document/components/MultiplayerEditor";
