@@ -39,7 +39,6 @@ import {
   newTemplatePath,
   searchPath,
 } from "~/utils/routeHelpers";
-import { TemplateNew } from "~/components/Template/TemplateNew";
 import ExportDialog from "~/components/ExportDialog";
 import { getEventFiles } from "@shared/utils/files";
 import history from "~/utils/history";
@@ -521,7 +520,7 @@ export const createDocument = createInternalLinkAction({
   },
 });
 
-export const createTemplate = createAction({
+export const createTemplate = createInternalLinkAction({
   name: ({ t }) => t("New template"),
   analyticsName: "New template",
   section: ActiveCollectionSection,
@@ -531,18 +530,9 @@ export const createTemplate = createAction({
     getActivePolicies(Collection).some(
       (policy) => policy.abilities.createDocument
     ),
-  perform: ({ getActiveModel, stores, sidebarContext }) => {
+  to: ({ getActiveModel }) => {
     const collection = getActiveModel(Collection);
-
-    stores.dialogs.openModal({
-      title: "",
-      content: (
-        <TemplateNew
-          collectionId={collection?.id}
-          onSubmit={stores.dialogs.closeAllModals}
-        />
-      ),
-    });
+    return newTemplatePath(collection?.id);
   },
 });
 

@@ -3,13 +3,12 @@ import { Trans } from "react-i18next";
 import { toast } from "sonner";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import TemplateMove from "~/components/DocumentExplorer/TemplateMove";
-import { TemplateNew } from "~/components/Template/TemplateNew";
 import { createAction, createInternalLinkAction } from "~/actions";
-import { newDocumentPath } from "~/utils/routeHelpers";
+import { newDocumentPath, newTemplatePath } from "~/utils/routeHelpers";
 import { ActiveTemplateSection, TemplateSection } from "../sections";
 import Template from "~/models/Template";
 
-export const createTemplate = createAction({
+export const createTemplate = createInternalLinkAction({
   name: ({ t }) => t("New template"),
   analyticsName: "New template",
   section: TemplateSection,
@@ -17,15 +16,7 @@ export const createTemplate = createAction({
   keywords: "new create template",
   visible: ({ currentTeamId, stores }) =>
     !!stores.policies.abilities(currentTeamId!).createTemplate,
-  perform: ({ stores, event }) => {
-    event?.preventDefault();
-    event?.stopPropagation();
-
-    stores.dialogs.openModal({
-      title: "",
-      content: <TemplateNew onSubmit={stores.dialogs.closeAllModals} />,
-    });
-  },
+  to: newTemplatePath(),
 });
 
 export const deleteTemplate = createAction({
@@ -107,7 +98,7 @@ export const createDocumentFromTemplate = createInternalLinkAction({
     }
     return !!stores.policies.abilities(currentTeamId).createDocument;
   },
-  to: ({ getActiveModel, activeCollectionId, sidebarContext, stores }) => {
+  to: ({ getActiveModel, activeCollectionId, sidebarContext }) => {
     const template = getActiveModel(Template);
     if (!template) {
       return "";

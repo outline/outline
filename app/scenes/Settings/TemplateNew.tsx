@@ -1,63 +1,32 @@
 import { observer } from "mobx-react";
 import { DoneIcon, ShapesIcon } from "outline-icons";
-import { useEffect, useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useParams } from "react-router-dom";
 import { toast } from "sonner";
+import Template from "~/models/Template";
 import { Action } from "~/components/Actions";
 import Breadcrumb from "~/components/Breadcrumb";
 import Button from "~/components/Button";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
-import LoadingIndicator from "~/components/LoadingIndicator";
 import Scene from "~/components/Scene";
 import { TemplateForm } from "~/components/Template/TemplateForm";
 import { createInternalLinkAction } from "~/actions";
 import { NavigationSection } from "~/actions/sections";
-import useRequest from "~/hooks/useRequest";
+import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
-import TemplateMenu from "~/menus/TemplateMenu";
 import { collectionPath, settingsPath } from "~/utils/routeHelpers";
-import type Template from "~/models/Template";
 import history from "~/utils/history";
 
-type Props = {
-  template: Template;
-};
-
-const LoadingState = observer(function LoadingState() {
-  const { id } = useParams<{ id: string }>();
-  const { templates, ui } = useStores();
-  const template = templates.get(id);
-  const { request } = useRequest(() => templates.fetch(id));
-
-  useEffect(() => {
-    if (!template) {
-      void request();
-    }
-  }, [template, request]);
-
-  useEffect(() => {
-    if (template) {
-      ui.addActiveModel(template);
-    }
-    return () => {
-      template && ui.removeActiveModel(template);
-    };
-  }, [template, ui]);
-
-  if (!template) {
-    return <LoadingIndicator />;
-  }
-
-  return <TemplateSetting template={template} />;
-});
-
-const TemplateSetting = observer(function Template_({ template }: Props) {
+function TemplateNewScene() {
   const { t } = useTranslation();
-  const { collections } = useStores();
-  const collection = template.collectionId
-    ? collections.get(template.collectionId)
-    : undefined;
+  const { templates, collections } = useStores();
+  const params = useQuery();
+  const collectionId = params.get("collectionId") || undefined;
+  const collection = collectionId ? collections.get(collectionId) : undefined;
+
+  const [template] = useState(
+    () => new Template({ title: "", collectionId }, templates)
+  );
 
   const breadcrumbActions = useMemo(
     () => [
@@ -92,24 +61,19 @@ const TemplateSetting = observer(function Template_({ template }: Props) {
 
   return (
     <Scene
-      title={template.title}
+      title={t("New template")}
       left={<Breadcrumb actions={breadcrumbActions} />}
       actions={
-        <>
-          <Action>
-            <Button onClick={handleSubmit} icon={<DoneIcon />}>
-              {t("Save")}
-            </Button>
-          </Action>
-          <Action>
-            <TemplateMenu template={template} />
-          </Action>
-        </>
+        <Action>
+          <Button onClick={handleSubmit} icon={<DoneIcon />}>
+            {t("Save")}
+          </Button>
+        </Action>
       }
     >
       <TemplateForm template={template} handleSubmit={handleSubmit} />
     </Scene>
   );
-});
+}
 
-export default LoadingState;
+export default observer(TemplateNewScene);

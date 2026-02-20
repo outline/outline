@@ -27,7 +27,7 @@ function TemplateMenu({ template, onEdit }: Props) {
     () => [
       createAction({
         name: `${t("Edit")}…`,
-        visible: !!can.update,
+        visible: !!can.update && !!onEdit,
         icon: <EditIcon />,
         section,
         perform: () => onEdit?.(),
@@ -43,12 +43,12 @@ function TemplateMenu({ template, onEdit }: Props) {
       ActionSeparator,
       deleteTemplate,
     ],
-    [can.update, can.duplicate, onEdit]
+    [can.update, can.duplicate, onEdit, t, template, templates]
   );
   const rootAction = useMenuAction(actions);
 
   return (
-    <ActionContextProvider value={{ activeTemplateId: template.id }}>
+    <ActionContextProvider value={{ activeModels: [template] }}>
       <DropdownMenu
         action={rootAction}
         align="end"

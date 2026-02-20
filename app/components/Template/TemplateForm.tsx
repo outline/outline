@@ -39,13 +39,13 @@ export const TemplateForm = observer(function TemplateForm_({
 
   const handleChange = (value: (asString: boolean) => ProsemirrorData) => {
     dataRef.current = value(false);
+    template.data = dataRef.current;
   };
 
   const handleSave = (options: { autosave?: boolean }) => {
     if (options.autosave) {
       return;
     }
-    template.data = dataRef.current;
     handleSubmit(template);
   };
 

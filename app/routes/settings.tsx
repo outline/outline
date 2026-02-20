@@ -8,6 +8,7 @@ import { observer } from "mobx-react";
 
 const Application = lazy(() => import("~/scenes/Settings/Application"));
 const Template = lazy(() => import("~/scenes/Settings/Template"));
+const TemplateNew = lazy(() => import("~/scenes/Settings/TemplateNew"));
 
 function SettingsRoutes() {
   const configs = useSettingsConfig();
@@ -27,6 +28,11 @@ function SettingsRoutes() {
         exact
         path={settingsPath("applications", ":id")}
         component={Application}
+      />
+      <Route
+        exact
+        path={settingsPath("templates", "new")}
+        component={TemplateNew}
       />
       <Route
         exact

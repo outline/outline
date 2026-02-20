@@ -1,22 +1,20 @@
 import type { ColumnSort } from "@tanstack/react-table";
 import deburr from "lodash/deburr";
 import { observer } from "mobx-react";
-import { PlusIcon, ShapesIcon } from "outline-icons";
+import { ShapesIcon } from "outline-icons";
 import { useEffect, useMemo, useCallback, useState } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import type Template from "~/models/Template";
 import { Action } from "~/components/Actions";
-import Button from "~/components/Button";
 import Empty from "~/components/Empty";
 import { ConditionalFade } from "~/components/Fade";
 import Heading from "~/components/Heading";
 import InputSearch from "~/components/InputSearch";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
-import { createTemplate } from "~/actions/definitions/templates";
-import useActionContext from "~/hooks/useActionContext";
+import NewTemplateMenu from "~/menus/NewTemplateMenu";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
@@ -44,7 +42,6 @@ function Templates() {
   const history = useHistory();
   const location = useLocation();
   const params = useQuery();
-  const context = useActionContext();
   const [query, setQuery] = useState("");
 
   const reqParams = useMemo(
@@ -115,14 +112,7 @@ function Templates() {
         <>
           {can.createTemplate && (
             <Action>
-              <Button
-                type="button"
-                action={createTemplate}
-                icon={<PlusIcon />}
-                context={context}
-              >
-                {`${t("New template")}…`}
-              </Button>
+              <NewTemplateMenu />
             </Action>
           )}
         </>
