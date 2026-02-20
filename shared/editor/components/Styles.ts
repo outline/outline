@@ -1954,8 +1954,10 @@ table {
     padding: 4px 0;
   }
 
-  td[data-bgcolor] {
+  td[data-bgcolor],
+  th[data-bgcolor] {
     color: var(--cell-text-color);
+    background: linear-gradient(var(--cell-bg-color), var(--cell-bg-color)), linear-gradient(${props.theme.background}, ${props.theme.background});
 
     p, a, p a {
       color: var(--cell-text-color, inherit);
@@ -2287,7 +2289,7 @@ table {
 }
 
 .${EditorStyleHelper.tableStickyHeader} {
-  th {
+  tr:first-child th {
     transform: translateY(calc(var(--header-offset, 64px) + var(--sticky-scroll-offset, 0px)));
     border-bottom: 1px solid ${props.theme.divider};
 
