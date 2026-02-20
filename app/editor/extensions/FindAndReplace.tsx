@@ -102,6 +102,10 @@ export default class FindAndReplaceExtension extends Extension {
       // have changed underneath us since the last search.
       this.search(state.doc);
 
+      if (this.currentResultIndex >= this.results.length) {
+        return false;
+      }
+
       const result = this.results[this.currentResultIndex];
 
       if (!result) {
@@ -220,6 +224,10 @@ export default class FindAndReplaceExtension extends Extension {
    * Expand any folded toggle blocks that contain the current match.
    */
   private expandFoldedTogglesForCurrentMatch() {
+    if (this.currentResultIndex >= this.results.length) {
+      return;
+    }
+
     const result = this.results[this.currentResultIndex];
     if (!result) {
       return;
@@ -272,7 +280,7 @@ export default class FindAndReplaceExtension extends Extension {
   private rebaseNextResult(replace: string, index: number, lastOffset = 0) {
     const nextIndex = index + 1;
 
-    if (!this.results[nextIndex]) {
+    if (nextIndex >= this.results.length) {
       return undefined;
     }
 
