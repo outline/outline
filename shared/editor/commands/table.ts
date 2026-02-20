@@ -16,9 +16,12 @@ import {
   deleteTable,
   mergeCells,
   splitCell,
+  TableMap,
 } from "prosemirror-tables";
 import { ProsemirrorHelper } from "../../utils/ProsemirrorHelper";
 import { CSVHelper } from "../../utils/csv";
+import { isCurrency, parseCurrency } from "../../utils/currency";
+import { parseDate } from "../../utils/date";
 import { chainTransactions } from "../lib/chainTransactions";
 import {
   getAllSelectedColumns,
@@ -28,11 +31,39 @@ import {
   isTableSelected,
   getWidthFromDom,
   getWidthFromNodes,
+  getRowIndex,
+  getColumnIndex,
+  tableHasRowspan,
 } from "../queries/table";
-import { TableLayout } from "../types";
+import { type NodeAttrMark, TableLayout } from "../types";
 import { collapseSelection } from "./collapseSelection";
 import { RowSelection } from "../selection/RowSelection";
 import { ColumnSelection } from "../selection/ColumnSelection";
+import type { Attrs } from "prosemirror-model";
+import isUndefined from "lodash/isUndefined";
+import find from "lodash/find";
+
+/**
+ * Restores column selection after a table operation that may have changed cell
+ * positions or content.
+ *
+ * @param tr The transaction to update.
+ * @param tableStart The position inside the table (after the table node).
+ * @param columnIndex The column index to select.
+ */
+function restoreColumnSelection(
+  tr: Transaction,
+  tableStart: number,
+  columnIndex: number
+): void {
+  const table = tr.doc.nodeAt(tableStart - 1);
+  if (table) {
+    const map = TableMap.get(table);
+    const pos = map.positionAt(0, columnIndex, table);
+    const $pos = tr.doc.resolve(tableStart + pos);
+    tr.setSelection(ColumnSelection.colSelection($pos));
+  }
+}
 
 export function createTable({
   rowsCount,
@@ -280,79 +311,170 @@ export function sortTable({
       return false;
     }
 
+    // Cannot sort tables with rowspan as it would break the table structure
+    if (tableHasRowspan(state)) {
+      return false;
+    }
+
     if (dispatch) {
       const rect = selectedRect(state);
-      const table: Node[][] = [];
 
-      for (let r = 0; r < rect.map.height; r++) {
-        const cells = [];
-        for (let c = 0; c < rect.map.width; c++) {
-          const cell = state.doc.nodeAt(
-            rect.tableStart + rect.map.map[r * rect.map.width + c]
-          );
-          if (cell) {
-            cells.push(cell);
-          }
-        }
-        table.push(cells);
+      // Build rows with both:
+      // - columnMap: maps column index to cell (for sorting lookup, handles colspan)
+      // - cells: unique cells in order (for row reconstruction)
+      interface TableRow {
+        columnMap: Map<number, Node>;
+        cells: Node[];
       }
 
-      // check if all the cells in the column are a number
-      const compareAsText = table.some((row) => {
-        const cell = row[index]?.textContent;
-        return cell === "" ? false : isNaN(parseFloat(cell));
-      });
+      const rows: TableRow[] = [];
 
-      const hasHeaderRow = table[0].every(
+      for (let r = 0; r < rect.map.height; r++) {
+        const columnMap = new Map<number, Node>();
+        const cells: Node[] = [];
+        const seenPositions = new Set<number>();
+
+        for (let c = 0; c < rect.map.width; c++) {
+          const pos = rect.map.map[r * rect.map.width + c];
+          const cell = state.doc.nodeAt(rect.tableStart + pos);
+
+          if (cell) {
+            // Map this column index to its cell (for sorting lookup)
+            columnMap.set(c, cell);
+
+            // Only add each unique cell once to the cells array (for row reconstruction)
+            if (!seenPositions.has(pos)) {
+              seenPositions.add(pos);
+              cells.push(cell);
+            }
+          }
+        }
+        rows.push({ columnMap, cells });
+      }
+
+      const hasHeaderRow = rows[0].cells.every(
         (cell) => cell.type === state.schema.nodes.th
       );
 
       // remove the header row
-      const header = hasHeaderRow ? table.shift() : undefined;
+      const header = hasHeaderRow ? rows.shift() : undefined;
+
+      // Helper to get cell content at column index
+      const getCellContent = (row: TableRow): string =>
+        row.columnMap.get(index)?.textContent ?? "";
 
       // column data before sort
-      const columnData = table.map((row) => row[index]?.textContent ?? "");
+      const columnData = rows.map(getCellContent);
 
-      // sort table data based on column at index
-      table.sort((a, b) => {
-        if (compareAsText) {
-          return (a[index]?.textContent ?? "").localeCompare(
-            b[index]?.textContent ?? ""
+      // determine sorting type: date, currency, number, or text
+      let compareAsDate = false;
+      let compareAsCurrency = false;
+      let compareAsNumber = false;
+
+      const nonEmptyCells = columnData
+        .map((content) => content.trim())
+        .filter((content): content is string => content.length > 0);
+      if (nonEmptyCells.length > 0) {
+        // check if all non-empty cells are valid dates
+        compareAsDate = nonEmptyCells.every((cell) => parseDate(cell) !== null);
+
+        // if not dates, check if cells are currency values
+        // treat as currency if at least 50% of non-empty cells look like currency values
+        if (!compareAsDate) {
+          const currencyCells = nonEmptyCells.filter((cell) =>
+            isCurrency(cell)
           );
+          const currencyRatio = currencyCells.length / nonEmptyCells.length;
+          compareAsCurrency = currencyCells.length >= 2 && currencyRatio >= 0.5;
+        }
+
+        // if not currency, check if cells are numbers (same logic)
+        if (!compareAsDate && !compareAsCurrency) {
+          const numberCells = nonEmptyCells.filter(
+            (cell) => !isNaN(parseFloat(cell))
+          );
+          const numberRatio = numberCells.length / nonEmptyCells.length;
+          compareAsNumber = numberCells.length >= 2 && numberRatio >= 0.5;
+        }
+      }
+
+      // sort rows based on column at index
+      rows.sort((a, b) => {
+        const aContent = getCellContent(a);
+        const bContent = getCellContent(b);
+
+        // empty cells always go to the end
+        if (!aContent) {
+          return bContent ? 1 : 0;
+        }
+        if (!bContent) {
+          return -1;
+        }
+
+        if (compareAsDate) {
+          const aDate = parseDate(aContent);
+          const bDate = parseDate(bContent);
+          // non-date cells go to the end (like empty cells)
+          if (!aDate) {
+            return bDate ? 1 : 0;
+          }
+          if (!bDate) {
+            return -1;
+          }
+          return aDate.getTime() - bDate.getTime();
+        } else if (compareAsCurrency) {
+          const aValue = parseCurrency(aContent);
+          const bValue = parseCurrency(bContent);
+          // non-currency cells go to the end (like empty cells)
+          if (aValue === null) {
+            return bValue !== null ? 1 : 0;
+          }
+          if (bValue === null) {
+            return -1;
+          }
+          return aValue - bValue;
+        } else if (compareAsNumber) {
+          const aNum = parseFloat(aContent);
+          const bNum = parseFloat(bContent);
+          // non-number cells go to the end (like empty cells)
+          if (isNaN(aNum)) {
+            return !isNaN(bNum) ? 1 : 0;
+          }
+          if (isNaN(bNum)) {
+            return -1;
+          }
+          return aNum - bNum;
         } else {
-          return (
-            parseFloat(a[index]?.textContent ?? "") -
-            parseFloat(b[index]?.textContent ?? "")
-          );
+          return aContent.localeCompare(bContent);
         }
       });
 
       if (direction === "desc") {
-        table.reverse();
+        rows.reverse();
       }
 
       // check if column data changed, if not then do not replace table
-      if (
-        columnData.join() === table.map((row) => row[index]?.textContent).join()
-      ) {
+      if (columnData.join() === rows.map(getCellContent).join()) {
         return true;
       }
 
       // add the header row back
       if (header) {
-        table.unshift(header);
+        rows.unshift(header);
       }
 
       // create the new table
-      const rows = [];
-      for (let i = 0; i < table.length; i += 1) {
-        rows.push(state.schema.nodes.tr.createChecked(null, table[i]));
+      const tableRows = [];
+      for (let i = 0; i < rows.length; i += 1) {
+        tableRows.push(
+          state.schema.nodes.tr.createChecked(null, rows[i].cells)
+        );
       }
 
       // replace the original table with this sorted one
       const nodes = state.schema.nodes.table.createChecked(
         rect.table.attrs,
-        rows
+        tableRows
       );
       const { tr } = state;
 
@@ -362,6 +484,7 @@ export function sortTable({
         nodes
       );
 
+      restoreColumnSelection(tr, rect.tableStart, index);
       dispatch(tr.scrollIntoView());
     }
     return true;
@@ -537,17 +660,24 @@ export function setColumnAttr({
   alignment: string;
 }): Command {
   return (state, dispatch) => {
+    if (!isInTable(state)) {
+      return false;
+    }
+
     if (dispatch) {
+      const rect = selectedRect(state);
       const cells = getCellsInColumn(index)(state) || [];
-      let transaction = state.tr;
+      let tr = state.tr;
       cells.forEach((pos) => {
         const node = state.doc.nodeAt(pos);
-        transaction = transaction.setNodeMarkup(pos, undefined, {
+        tr = tr.setNodeMarkup(pos, undefined, {
           ...node?.attrs,
           alignment,
         });
       });
-      dispatch(transaction);
+
+      restoreColumnSelection(tr, rect.tableStart, index);
+      dispatch(tr);
     }
     return true;
   };
@@ -716,12 +846,62 @@ export function deleteCellSelection(
 }
 
 /**
- * A command that splits a cell and collapses the selection.
+ * A command that splits the first merged cell found in the selection and
+ * collapses the selection. Works with both single cell and multi-cell selections.
  *
  * @returns The command
  */
 export function splitCellAndCollapse(): Command {
-  return chainTransactions(splitCell, collapseSelection());
+  return (state, dispatch) => {
+    if (!isInTable(state)) {
+      return false;
+    }
+
+    const { selection } = state;
+
+    // Handle CellSelection (including RowSelection and ColumnSelection which extend it)
+    if (
+      selection instanceof CellSelection ||
+      selection instanceof RowSelection ||
+      selection instanceof ColumnSelection
+    ) {
+      // Find the first merged cell in the selection
+      let mergedCellPos: number | null = null;
+      selection.forEachCell((cell, pos) => {
+        if (
+          mergedCellPos === null &&
+          (cell.attrs.colspan > 1 || cell.attrs.rowspan > 1)
+        ) {
+          mergedCellPos = pos;
+        }
+      });
+
+      // If no merged cell found, nothing to split
+      if (mergedCellPos === null) {
+        return false;
+      }
+
+      if (dispatch) {
+        // Create a CellSelection for the merged cell and apply splitCell
+        const $cell = state.doc.resolve(mergedCellPos);
+        const cellSelection = new CellSelection($cell);
+        const stateWithCellSelection = state.apply(
+          state.tr.setSelection(cellSelection)
+        );
+
+        // Apply splitCell and collapse
+        chainTransactions(splitCell, collapseSelection())(
+          stateWithCellSelection,
+          dispatch
+        );
+      }
+
+      return true;
+    }
+
+    // Fallback to standard splitCell for non-cell selections
+    return chainTransactions(splitCell, collapseSelection())(state, dispatch);
+  };
 }
 
 /**
@@ -795,4 +975,175 @@ function addRowWithAlignment(
  */
 export function mergeCellsAndCollapse(): Command {
   return chainTransactions(mergeCells, collapseSelection());
+}
+
+const updateCellBackground = (
+  cell: Node,
+  pos: number,
+  attrs: Attrs,
+  tr: Transaction
+): Transaction => {
+  const existingMarks = cell.attrs.marks ?? [];
+  const backgroundMark = find(existingMarks, (m) => m.type === "background");
+  const updatedMarks = !backgroundMark
+    ? [...existingMarks, { type: "background", attrs }]
+    : existingMarks.map((mark: NodeAttrMark) =>
+        mark.type === "background"
+          ? { ...mark, attrs: { ...mark.attrs, ...attrs } }
+          : mark
+      );
+  return tr.setNodeAttribute(pos, "marks", updatedMarks);
+};
+
+const removeCellBackground = (
+  cell: Node,
+  pos: number,
+  tr: Transaction
+): Transaction => {
+  const existingMarks = cell.attrs.marks ?? [];
+  const updatedMarks = existingMarks.filter(
+    (mark: NodeAttrMark) => mark.type !== "background"
+  );
+  return tr.setNodeAttribute(pos, "marks", updatedMarks);
+};
+
+export const toggleCellSelectionBackgroundAndCollapseSelection = ({
+  color,
+}: {
+  color: string | null;
+}) =>
+  chainTransactions(
+    toggleCellSelectionBackground({ color }),
+    collapseSelection()
+  );
+
+export const toggleRowBackgroundAndCollapseSelection = ({
+  color,
+}: {
+  color: string | null;
+}) => chainTransactions(toggleRowBackground({ color }), collapseSelection());
+
+export const toggleColumnBackgroundAndCollapseSelection = ({
+  color,
+}: {
+  color: string | null;
+}) => chainTransactions(toggleColumnBackground({ color }), collapseSelection());
+
+export const toggleCellSelectionBackground =
+  ({ color }: { color: string | null }): Command =>
+  (state, dispatch) => {
+    if (!(state.selection instanceof CellSelection)) {
+      return false;
+    }
+
+    let tr = state.tr;
+    state.selection.forEachCell((cell, pos) => {
+      if (color === null) {
+        tr = removeCellBackground(cell, pos, tr);
+      } else {
+        tr = updateCellBackground(cell, pos, { color }, tr);
+      }
+    });
+
+    dispatch?.(tr);
+    return true;
+  };
+
+/**
+ * Set background color on all cells in a row.
+ *
+ * @param color The background color to set, or null to remove
+ * @returns The command
+ */
+export function toggleRowBackground({
+  color,
+}: {
+  color: string | null;
+}): Command {
+  return (state, dispatch) => {
+    if (!isInTable(state)) {
+      return false;
+    }
+
+    const rowIndex = getRowIndex(state);
+    if (isUndefined(rowIndex)) {
+      return false;
+    }
+
+    if (dispatch) {
+      const cells = getCellsInRow(rowIndex)(state) || [];
+      let tr = state.tr;
+
+      cells.forEach((pos) => {
+        const node = state.doc.nodeAt(pos);
+        if (!node) {
+          return;
+        }
+
+        if (color === null) {
+          tr = removeCellBackground(node, pos, tr);
+        } else {
+          tr = updateCellBackground(node, pos, { color }, tr);
+        }
+      });
+
+      // It was noticed that the selection went to the last table cell of the
+      // row after command execution.
+      // Instead, we want to preserve the original row selection so that the color
+      // picker can be prevented from closing.
+      const rect = selectedRect(state);
+      const pos = rect.map.positionAt(rowIndex, 0, rect.table);
+      const $pos = tr.doc.resolve(rect.tableStart + pos);
+      tr.setSelection(RowSelection.rowSelection($pos, $pos, rowIndex));
+
+      dispatch(tr);
+    }
+    return true;
+  };
+}
+
+/**
+ * Set background color on all cells in a column.
+ *
+ * @param color The background color to set, or null to remove
+ * @returns The command
+ */
+export function toggleColumnBackground({
+  color,
+}: {
+  color: string | null;
+}): Command {
+  return (state, dispatch) => {
+    if (!isInTable(state)) {
+      return false;
+    }
+
+    const colIndex = getColumnIndex(state);
+    if (isUndefined(colIndex)) {
+      return false;
+    }
+
+    if (dispatch) {
+      const rect = selectedRect(state);
+      const cells = getCellsInColumn(colIndex)(state) || [];
+      let tr = state.tr;
+
+      cells.forEach((pos) => {
+        const node = state.doc.nodeAt(pos);
+        if (!node) {
+          return;
+        }
+
+        if (color === null) {
+          tr = removeCellBackground(node, pos, tr);
+        } else {
+          tr = updateCellBackground(node, pos, { color }, tr);
+        }
+      });
+
+      restoreColumnSelection(tr, rect.tableStart, colIndex);
+      dispatch(tr);
+    }
+    return true;
+  };
 }

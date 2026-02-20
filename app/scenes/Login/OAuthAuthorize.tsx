@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { isLoopbackUri } from "~/utils/urls";
 import Flex from "@shared/components/Flex";
 import { s } from "@shared/styles";
 import { parseDomain } from "@shared/utils/domains";
@@ -17,7 +18,11 @@ import { useLoggedInSessions } from "~/hooks/useLoggedInSessions";
 import useQuery from "~/hooks/useQuery";
 import useRequest from "~/hooks/useRequest";
 import { client } from "~/utils/ApiClient";
-import { BadRequestError, NotFoundError } from "~/utils/errors";
+import {
+  AuthorizationError,
+  BadRequestError,
+  NotFoundError,
+} from "~/utils/errors";
 import isCloudHosted from "~/utils/isCloudHosted";
 import { detectLanguage } from "~/utils/language";
 import Login from "./Login";
@@ -48,6 +53,23 @@ export default function OAuthAuthorize() {
   return <Login />;
 }
 
+function inputScopes(scope?: string): string[] {
+  const defaultScopes = ["read", "write"];
+
+  // Some clients don't send the scope parameter if it's empty, so we default to "read write".
+  if (!scope) {
+    return defaultScopes;
+  }
+
+  // Handle invalid "claudeai" scope sent by Claude:
+  // https://github.com/modelcontextprotocol/modelcontextprotocol/issues/653
+  if (scope === "claudeai") {
+    return defaultScopes;
+  }
+
+  return scope.split(" ").filter(Boolean);
+}
+
 /**
  * Authorize component is responsible for handling the OAuth authorization process.
  * It retrieves the OAuth client information, displays the authorization request,
@@ -58,6 +80,7 @@ function Authorize() {
   const params = useQuery();
   const { t } = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isReady, setIsReady] = useState(false);
   const timeoutRef = useRef<number>();
   const {
     client_id: clientId,
@@ -68,7 +91,7 @@ function Authorize() {
     state,
     scope,
   } = Object.fromEntries(params);
-  const [scopes] = useState(() => scope?.split(" ") ?? []);
+  const [scopes] = useState(() => inputScopes(scope));
   const { error: clientError, data: response } = useRequest<{
     data: OAuthClient;
   }>(() => client.post("/oauthClients.info", { clientId, redirectUri }), true);
@@ -92,20 +115,20 @@ function Authorize() {
     timeoutRef.current = window.setTimeout(() => setIsSubmitting(false), 5000);
   };
 
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    const readyTimeout = window.setTimeout(() => setIsReady(true), 1000);
+    return () => {
+      window.clearTimeout(readyTimeout);
       if (timeoutRef.current) {
         window.clearTimeout(timeoutRef.current);
       }
-    },
-    []
-  );
+    };
+  }, []);
 
   const missingParams = [
     !clientId && "client_id",
     !redirectUri && "redirect_uri",
     !responseType && "response_type",
-    !scope && "scope",
     !state && "state",
   ].filter(Boolean);
 
@@ -127,6 +150,13 @@ function Authorize() {
                 "The OAuth client could not be loaded, please check the redirect URI is valid"
               )}
               <Pre>{redirectUri}</Pre>
+            </Text>
+          ) : clientError instanceof AuthorizationError ? (
+            <Text as="p" type="secondary">
+              {t(
+                "The OAuth client could not be loaded, please check your workspace subdomain is correct"
+              )}
+              <Pre>{clientError.message}</Pre>
             </Text>
           ) : (
             <Text as="p" type="secondary">
@@ -188,7 +218,7 @@ function Authorize() {
             />
           </Text>
         )}
-        <Text type="tertiary" as="p">
+        <Text type="secondary" as="p">
           {t(
             "{{ appName }} will be able to access your account and perform the following actions",
             {
@@ -198,12 +228,31 @@ function Authorize() {
           :
         </Text>
         <ul style={{ width: "100%", paddingLeft: "1em", marginTop: 0 }}>
-          {OAuthScopeHelper.normalizeScopes(scopes, t).map((item) => (
-            <li key={item}>
-              <Text type="secondary">{item}</Text>
-            </li>
-          ))}
+          {OAuthScopeHelper.normalizeScopes(scopes.length ? scopes : [], t).map(
+            (item) => (
+              <li key={item}>
+                <Text type="secondary">{item}</Text>
+              </li>
+            )
+          )}
         </ul>
+        <Text type="tertiary" as="p" style={{ wordBreak: "break-all" }}>
+          {isLoopbackUri(redirectUri) ? (
+            <Trans>
+              You will be redirected to a local application after authorizing.
+            </Trans>
+          ) : (
+            <Trans
+              defaults="You will be redirected to <em>{{ redirectUri }}</em> after authorizing. Make sure you trust this URL."
+              values={{
+                redirectUri,
+              }}
+              components={{
+                em: <strong />,
+              }}
+            />
+          )}
+        </Text>
         <Form
           method="POST"
           action="/oauth/authorize"
@@ -218,7 +267,7 @@ function Authorize() {
             value={responseType ?? ""}
           />
           <input type="hidden" name="state" value={state ?? ""} />
-          <input type="hidden" name="scope" value={scope ?? ""} />
+          <input type="hidden" name="scope" value={scopes.join(" ")} />
           {codeChallenge && (
             <input type="hidden" name="code_challenge" value={codeChallenge} />
           )}
@@ -233,7 +282,7 @@ function Authorize() {
             <Button type="button" onClick={handleCancel} neutral>
               {t("Cancel")}
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={!isReady || isSubmitting}>
               {t("Authorize")}
             </Button>
           </Flex>

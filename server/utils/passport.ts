@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { addMinutes, subMinutes } from "date-fns";
 import type { Context } from "koa";
 import type {
@@ -193,7 +193,8 @@ export async function getUserFromOAuthState(ctx: Context) {
   }
 
   try {
-    return await getUserForJWT(token);
+    const { user } = await getUserForJWT(token);
+    return user;
   } catch (_err) {
     return undefined;
   }

@@ -1,4 +1,4 @@
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import { Scope } from "@shared/types";
 import { OAuthInterface } from "./OAuthInterface";
 import {
@@ -127,6 +127,97 @@ describe("OAuthInterface", () => {
         httpClient
       );
       expect(result).toBe(false);
+    });
+
+    it("should allow HTTP loopback redirect URI (127.0.0.1) per RFC 8252", async () => {
+      const loopbackClient = {
+        ...client,
+        redirectUris: ["http://127.0.0.1:8080/callback"],
+      };
+      const redirectUri = "http://127.0.0.1:8080/callback";
+      const result = await OAuthInterface.validateRedirectUri(
+        redirectUri,
+        loopbackClient
+      );
+      expect(result).toBe(true);
+    });
+
+    it("should allow HTTP loopback redirect URI (localhost) per RFC 8252", async () => {
+      const loopbackClient = {
+        ...client,
+        redirectUris: ["http://localhost:8080/callback"],
+      };
+      const redirectUri = "http://localhost:8080/callback";
+      const result = await OAuthInterface.validateRedirectUri(
+        redirectUri,
+        loopbackClient
+      );
+      expect(result).toBe(true);
+    });
+
+    it("should allow HTTP loopback redirect URI (IPv6 [::1]) per RFC 8252", async () => {
+      const loopbackClient = {
+        ...client,
+        redirectUris: ["http://[::1]:8080/callback"],
+      };
+      const redirectUri = "http://[::1]:8080/callback";
+      const result = await OAuthInterface.validateRedirectUri(
+        redirectUri,
+        loopbackClient
+      );
+      expect(result).toBe(true);
+    });
+
+    it("should allow loopback redirect URI with different ports", async () => {
+      const loopbackClient = {
+        ...client,
+        redirectUris: ["http://127.0.0.1:3000/callback"],
+      };
+      const redirectUri = "http://127.0.0.1:3000/callback";
+      const result = await OAuthInterface.validateRedirectUri(
+        redirectUri,
+        loopbackClient
+      );
+      expect(result).toBe(true);
+    });
+
+    it("should allow loopback redirect URI without port", async () => {
+      const loopbackClient = {
+        ...client,
+        redirectUris: ["http://localhost/callback"],
+      };
+      const redirectUri = "http://localhost/callback";
+      const result = await OAuthInterface.validateRedirectUri(
+        redirectUri,
+        loopbackClient
+      );
+      expect(result).toBe(true);
+    });
+
+    it("should reject HTTPS loopback redirect URIs (must be HTTP per RFC 8252)", async () => {
+      const httpsLoopbackClient = {
+        ...client,
+        redirectUris: ["https://localhost:8080/callback"],
+      };
+      const redirectUri = "https://localhost:8080/callback";
+      const result = await OAuthInterface.validateRedirectUri(
+        redirectUri,
+        httpsLoopbackClient
+      );
+      expect(result).toBe(true); // HTTPS is allowed, just not required for loopback
+    });
+
+    it("should reject loopback redirect URI with fragment", async () => {
+      const loopbackClient = {
+        ...client,
+        redirectUris: ["http://127.0.0.1:8080/callback#fragment"],
+      };
+      const redirectUri = "http://127.0.0.1:8080/callback#fragment";
+      const result = await OAuthInterface.validateRedirectUri(
+        redirectUri,
+        loopbackClient
+      );
+      expect(result).toBe(false); // Fragment check happens first
     });
   });
 

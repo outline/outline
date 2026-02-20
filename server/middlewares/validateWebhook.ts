@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import crypto from "node:crypto";
 import type { Next } from "koa";
 import type { APIContext } from "@server/types";
 import { safeEqual } from "@server/utils/crypto";

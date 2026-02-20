@@ -42,6 +42,34 @@ export class EditorStyleHelper {
 
   static readonly diffCurrentChange = "current-diff";
 
+  // Toggle blocks
+
+  /** Toggle block wrapper */
+  static readonly toggleBlock = "toggle-block";
+
+  /** Toggle block button */
+  static readonly toggleBlockButton = "toggle-block-button";
+
+  /** Toggle block content area */
+  static readonly toggleBlockContent = "toggle-block-content";
+
+  /** Toggle block head (first child) */
+  static readonly toggleBlockHead = "toggle-block-head";
+
+  /** Toggle block folded state */
+  static readonly toggleBlockFolded = "folded";
+
+  // Checkbox Lists
+
+  /** Checkbox list wrapper */
+  static readonly checklistWrapper = "checklist-wrapper";
+
+  /** Toggle button for showing/hiding completed items */
+  static readonly checklistCompletedToggle = "checklist-completed-toggle";
+
+  /** State when completed items are hidden */
+  static readonly checklistCompletedHidden = "completed-hidden";
+
   // Tables
 
   /** Table wrapper */
@@ -74,6 +102,27 @@ export class EditorStyleHelper {
   /** Shadow on the left side of the table */
   static readonly tableShadowLeft = "table-shadow-left";
 
+  /** Sticky header state */
+  static readonly tableStickyHeader = "table-sticky-header";
+
+  /** Drop indicator for table drag and drop */
+  static readonly tableDragDropIndicator = "table-drag-drop-indicator";
+
+  /** Class added to body when dragging table rows/columns */
+  static readonly tableDragging = "table-dragging";
+
+  /** Drag indicator on left side of cell */
+  static readonly tableDragIndicatorLeft = "table-drag-indicator-left";
+
+  /** Drag indicator on right side of cell */
+  static readonly tableDragIndicatorRight = "table-drag-indicator-right";
+
+  /** Drag indicator on top side of cell */
+  static readonly tableDragIndicatorTop = "table-drag-indicator-top";
+
+  /** Drag indicator on bottom side of cell */
+  static readonly tableDragIndicatorBottom = "table-drag-indicator-bottom";
+
   // Global
 
   /** Minimum padding around editor */
@@ -81,4 +130,10 @@ export class EditorStyleHelper {
 
   /** Table of contents width */
   static readonly tocWidth = 256;
+
+  /** Width of the document content area */
+  static readonly documentWidth = "52em";
+
+  /** Gutter width for the document (for decorations, etc) */
+  static readonly documentGutter = "88px";
 }

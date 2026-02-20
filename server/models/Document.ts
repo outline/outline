@@ -48,7 +48,7 @@ import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import slugify from "@shared/utils/slugify";
 import { DocumentValidation } from "@shared/validations";
-import { ValidationError } from "@server/errors";
+import { InvalidRequestError, ValidationError } from "@server/errors";
 import { generateUrlId } from "@server/utils/url";
 import { createContext } from "@server/context";
 import Collection from "./Collection";
@@ -70,6 +70,7 @@ import { DocumentHelper } from "./helpers/DocumentHelper";
 import IsHexColor from "./validators/IsHexColor";
 import Length from "./validators/Length";
 import type { APIContext } from "@server/types";
+import { APIUpdateExtension } from "@server/collaboration/APIUpdateExtension";
 import { SkipChangeset } from "./decorators/Changeset";
 import type { HookContext } from "./base/Model";
 import Template from "./Template";
@@ -582,6 +583,23 @@ class Document extends ArchivableModel<
     }
   }
 
+  @AfterUpdate
+  static notifyCollaborationServer(model: Document, ctx: HookContext) {
+    if (model.changed("state") && ctx.auth?.user?.id) {
+      const actorId = ctx.auth.user.id;
+      const notify = async () => {
+        await APIUpdateExtension.notifyUpdate(model.id, actorId);
+      };
+
+      if (ctx.transaction) {
+        const transaction = ctx.transaction.parent || ctx.transaction;
+        transaction.afterCommit(notify);
+      } else {
+        void notify();
+      }
+    }
+  }
+
   // associations
 
   @BelongsTo(() => FileOperation, "importId")
@@ -883,13 +901,13 @@ class Document extends ArchivableModel<
    *
    * @param revision The revision to revert to.
    */
-  restoreFromRevision = (revision: Revision) => {
+  restoreFromRevision = async (revision: Revision) => {
     if (revision.documentId !== this.id) {
       throw new Error("Revision does not belong to this document");
     }
 
     this.content = revision.content;
-    this.text = DocumentHelper.toMarkdown(revision, {
+    this.text = await DocumentHelper.toMarkdown(revision, {
       includeTitle: false,
     });
     this.title = revision.title;
@@ -975,11 +993,13 @@ class Document extends ArchivableModel<
   publish = async (
     ctx: APIContext,
     {
+      index = 0,
       collectionId,
       silent = false,
       event = true,
       data,
     }: {
+      index?: number;
       collectionId: string | null | undefined;
       silent?: boolean;
       event?: boolean;
@@ -1011,7 +1031,7 @@ class Document extends ArchivableModel<
       });
 
       if (collection) {
-        await collection.addDocumentToStructure(this, 0, { transaction });
+        await collection.addDocumentToStructure(this, index, { transaction });
         if (this.collection) {
           this.collection.documentStructure = collection.documentStructure;
         }
@@ -1064,10 +1084,12 @@ class Document extends ArchivableModel<
   };
 
   /**
+   * Unpublishes a published document, converting it back to a draft.
    *
-   * @param user User who is performing the action
-   * @param options.detach Whether to detach the document from the containing collection
-   * @returns Updated document
+   * @param ctx the API context.
+   * @param options.detach whether to detach the document from the containing collection.
+   * @returns updated document.
+   * @throws if the document has child documents.
    */
   unpublishWithCtx = async (ctx: APIContext, options: { detach: boolean }) => {
     // If the document is already a draft then calling unpublish should act like save
@@ -1078,11 +1100,21 @@ class Document extends ArchivableModel<
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
 
+    const childDocumentIds = await this.findAllChildDocumentIds(
+      { archivedAt: { [Op.eq]: null } },
+      { transaction }
+    );
+    if (childDocumentIds.length > 0) {
+      throw InvalidRequestError(
+        "Cannot unpublish document with child documents"
+      );
+    }
+
     const collection = this.collectionId
       ? await Collection.findByPk(this.collectionId, {
           includeDocumentStructure: true,
           transaction,
-          lock: transaction.LOCK.UPDATE,
+          lock: transaction?.LOCK.UPDATE,
         })
       : undefined;
 

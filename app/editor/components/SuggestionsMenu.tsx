@@ -2,6 +2,7 @@ import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import commandScore from "command-score";
 import capitalize from "lodash/capitalize";
 import orderBy from "lodash/orderBy";
+import { TextSelection } from "prosemirror-state";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -15,8 +16,14 @@ import { depths, s } from "@shared/styles";
 import { getEventFiles } from "@shared/utils/files";
 import { AttachmentValidation } from "@shared/validations";
 import { Portal } from "~/components/Portal";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerTitle,
+} from "~/components/primitives/Drawer";
 import Scrollable from "~/components/Scrollable";
 import useDictionary from "~/hooks/useDictionary";
+import useMobile from "~/hooks/useMobile";
 import Logger from "~/utils/Logger";
 import { useEditor } from "./EditorContext";
 import Input from "./Input";
@@ -62,6 +69,7 @@ export type Props<T extends MenuItem = MenuItem> = {
   uploadFile?: (file: File) => Promise<string>;
   onFileUploadStart?: () => void;
   onFileUploadStop?: () => void;
+  onFileUploadProgress?: (id: string, fractionComplete: number) => void;
   /** Callback when the menu is closed */
   onClose: (insertNewLine?: boolean) => void;
   /** Optional callback when a suggestion is selected */
@@ -72,7 +80,6 @@ export type Props<T extends MenuItem = MenuItem> = {
     index: number,
     options: {
       selected: boolean;
-      onPointerDown: (event: React.SyntheticEvent) => void;
       onClick: (event: React.SyntheticEvent) => void;
     }
   ) => React.ReactNode;
@@ -84,6 +91,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
   const { view, commands, props: editorProps } = useEditor();
   const dictionary = useDictionary();
   const { t } = useTranslation();
+  const isMobile = useMobile();
   const hasActivated = React.useRef(false);
   const pointerRef = React.useRef<{ clientX: number; clientY: number }>({
     clientX: 0,
@@ -91,6 +99,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
   });
   const menuRef = React.useRef<HTMLDivElement>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const selectionRef = React.useRef<{ from: number; to: number } | null>(null);
   const [position, setPosition] = React.useState<Position>(defaultPosition);
   const [insertItem, setInsertItem] = React.useState<
     MenuItem | EmbedDescriptor
@@ -100,7 +109,16 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
   React.useEffect(() => {
     if (props.isActive) {
       hasActivated.current = true;
+      // Save the selection position when the menu opens. On mobile, the editor
+      // may lose focus/selection when tapping on menu items, so we restore it.
+      requestAnimationFrame(() => {
+        const { from, to } = view.state.selection;
+        selectionRef.current = { from, to };
+      });
+    } else {
+      selectionRef.current = null;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.isActive]);
 
   const calculatePosition = React.useCallback(
@@ -181,9 +199,11 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
 
   const handleClearSearch = React.useCallback(() => {
     const { state, dispatch } = view;
+    const selection =
+      isMobile && selectionRef.current ? selectionRef.current : state.selection;
     const poss = state.doc.cut(
-      state.selection.from - (props.search ?? "").length - props.trigger.length,
-      state.selection.from
+      selection.from - (props.search ?? "").length - props.trigger.length,
+      selection.from
     );
     const trimTrigger = poss.textContent.startsWith(props.trigger);
 
@@ -197,11 +217,11 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         "",
         Math.max(
           0,
-          state.selection.from -
+          selection.from -
             (props.search ?? "").length -
             (trimTrigger ? props.trigger.length : 0)
         ),
-        state.selection.to
+        selection.to
       )
     );
   }, [props.search, props.trigger, view]);
@@ -226,8 +246,27 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     setSelectedIndex(0);
   }, [props.search]);
 
+  const restoreSelection = React.useCallback(() => {
+    if (!isMobile) {
+      return;
+    }
+
+    // Restore the saved selection position. On mobile, the editor selection may be
+    // lost when the drawer opens or when tapping on menu items.
+    if (selectionRef.current) {
+      const { from, to } = selectionRef.current;
+      const { tr, doc } = view.state;
+      const selection = TextSelection.create(doc, from, to);
+      view.dispatch(tr.setSelection(selection));
+
+      // Re-focus the editor post-click
+      requestAnimationFrame(() => view.focus());
+    }
+  }, [isMobile, view]);
+
   const insertNode = React.useCallback(
     (item: MenuItem | EmbedDescriptor) => {
+      restoreSelection();
       handleClearSearch();
 
       const command = item.name ? commands[item.name] : undefined;
@@ -248,11 +287,15 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
 
       props.onClose();
     },
-    [commands, handleClearSearch, props, view]
+    [commands, handleClearSearch, props, restoreSelection, view]
   );
 
   const handleClickItem = React.useCallback(
     (item) => {
+      if (item.disabled) {
+        return;
+      }
+
       props.onSelect?.(item);
 
       switch (item.name) {
@@ -373,10 +416,14 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
   const handleFilesPicked = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    // Re-focus the editor as it loses focus when file picker is opened on iOS
-    view.focus();
+    restoreSelection();
 
-    const { uploadFile, onFileUploadStart, onFileUploadStop } = props;
+    const {
+      uploadFile,
+      onFileUploadStart,
+      onFileUploadStop,
+      onFileUploadProgress,
+    } = props;
     const files = getEventFiles(event);
     const parent = findParentNode((node) => !!node)(view.state.selection);
     const attrs = event.currentTarget.dataset.attrs
@@ -394,6 +441,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         uploadFile,
         onFileUploadStart,
         onFileUploadStop,
+        onFileUploadProgress,
         dictionary,
         isAttachment: inputRef.current?.accept === "*",
         attrs,
@@ -534,12 +582,20 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         event.stopPropagation();
 
         if (filtered.length) {
-          const prevIndex = selectedIndex - 1;
-          const prev = filtered[prevIndex];
-
-          setSelectedIndex(
-            Math.max(0, prev?.name === "separator" ? prevIndex - 1 : prevIndex)
-          );
+          let prevIndex = selectedIndex - 1;
+          while (prevIndex >= 0) {
+            const item = filtered[prevIndex];
+            if (
+              item?.name !== "separator" &&
+              !("disabled" in item && item.disabled)
+            ) {
+              break;
+            }
+            prevIndex--;
+          }
+          if (prevIndex >= 0) {
+            setSelectedIndex(prevIndex);
+          }
         } else {
           close();
         }
@@ -555,15 +611,20 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
 
         if (filtered.length) {
           const total = filtered.length - 1;
-          const nextIndex = selectedIndex + 1;
-          const next = filtered[nextIndex];
-
-          setSelectedIndex(
-            Math.min(
-              next?.name === "separator" ? nextIndex + 1 : nextIndex,
-              total
-            )
-          );
+          let nextIndex = selectedIndex + 1;
+          while (nextIndex <= total) {
+            const item = filtered[nextIndex];
+            if (
+              item?.name !== "separator" &&
+              !("disabled" in item && item.disabled)
+            ) {
+              break;
+            }
+            nextIndex++;
+          }
+          if (nextIndex <= total) {
+            setSelectedIndex(nextIndex);
+          }
         } else {
           close();
         }
@@ -590,7 +651,145 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
 
   const { isActive, uploadFile } = props;
   const items = filtered;
-  let previousHeading: string | undefined;
+
+  const handleOpenChange = React.useCallback(
+    (open: boolean) => {
+      if (!open) {
+        close();
+      }
+    },
+    [close]
+  );
+
+  const fileInput = uploadFile && (
+    <VisuallyHidden.Root>
+      <label>
+        <Trans>Import document</Trans>
+        <input
+          type="file"
+          ref={inputRef}
+          onChange={handleFilesPicked}
+          multiple
+        />
+      </label>
+    </VisuallyHidden.Root>
+  );
+
+  const renderItems = () => {
+    let prevHeading: string | undefined;
+
+    return (
+      <>
+        {items.map((item, index) => {
+          if (item.name === "separator") {
+            return (
+              <ListItem key={index}>
+                <hr />
+              </ListItem>
+            );
+          }
+
+          if (!item.title) {
+            return null;
+          }
+
+          const handlePointerMove = (ev: React.PointerEvent) => {
+            if (
+              !("disabled" in item && item.disabled) &&
+              selectedIndex !== index &&
+              // Safari triggers pointermove with identical coordinates when the pointer has not moved.
+              // This causes the menu selection to flicker when the pointer is over the menu but not moving.
+              (pointerRef.current.clientX !== ev.clientX ||
+                pointerRef.current.clientY !== ev.clientY)
+            ) {
+              setSelectedIndex(index);
+            }
+            pointerRef.current = {
+              clientX: ev.clientX,
+              clientY: ev.clientY,
+            };
+          };
+
+          const handlePointerDown = () => {
+            if (
+              !("disabled" in item && item.disabled) &&
+              selectedIndex !== index
+            ) {
+              setSelectedIndex(index);
+            }
+          };
+
+          const handleOnClick = (ev: React.MouseEvent) => {
+            ev.preventDefault();
+            ev.stopPropagation();
+            handleClickItem(item);
+          };
+
+          const currentHeading =
+            "section" in item ? item.section?.({ t }) : undefined;
+
+          const response = (
+            <React.Fragment key={`${index}-${item.name}`}>
+              {currentHeading !== prevHeading && (
+                <MenuHeader key={currentHeading}>{currentHeading}</MenuHeader>
+              )}
+              <ListItem
+                onPointerMove={handlePointerMove}
+                onPointerDown={handlePointerDown}
+              >
+                {props.renderMenuItem(item as any, index, {
+                  selected: index === selectedIndex,
+                  onClick: handleOnClick,
+                })}
+              </ListItem>
+            </React.Fragment>
+          );
+
+          prevHeading = currentHeading;
+          return response;
+        })}
+        {items.length === 0 && (
+          <ListItem>
+            <Empty>{dictionary.noResults}</Empty>
+          </ListItem>
+        )}
+      </>
+    );
+  };
+
+  if (isMobile) {
+    return (
+      <>
+        <Drawer open={isActive} onOpenChange={handleOpenChange}>
+          <DrawerContent aria-describedby={undefined}>
+            <DrawerTitle hidden>{props.trigger}</DrawerTitle>
+            <MobileScrollable hiddenScrollbars>
+              {insertItem ? (
+                <LinkInputWrapper>
+                  <LinkInput
+                    type="text"
+                    placeholder={
+                      "placeholder" in insertItem && !!insertItem.placeholder
+                        ? insertItem.placeholder
+                        : insertItem.title
+                          ? dictionary.pasteLinkWithTitle(insertItem.title)
+                          : dictionary.pasteLink
+                    }
+                    onKeyDown={handleLinkInputKeydown}
+                    onPaste={handleLinkInputPaste}
+                    autoFocus
+                  />
+                </LinkInputWrapper>
+              ) : (
+                <List>{renderItems()}</List>
+              )}
+            </MobileScrollable>
+          </DrawerContent>
+        </Drawer>
+        {fileInput}
+      </>
+    );
+  }
 
   return (
     <Portal>
@@ -614,99 +813,9 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
                 />
               </LinkInputWrapper>
             ) : (
-              <List>
-                {items.map((item, index) => {
-                  if (item.name === "separator") {
-                    return (
-                      <ListItem key={index}>
-                        <hr />
-                      </ListItem>
-                    );
-                  }
-
-                  if (!item.title) {
-                    return null;
-                  }
-
-                  const handlePointerMove = (ev: React.PointerEvent) => {
-                    if (
-                      selectedIndex !== index &&
-                      // Safari triggers pointermove with identical coordinates when the pointer has not moved.
-                      // This causes the menu selection to flicker when the pointer is over the menu but not moving.
-                      (pointerRef.current.clientX !== ev.clientX ||
-                        pointerRef.current.clientY !== ev.clientY)
-                    ) {
-                      setSelectedIndex(index);
-                    }
-                    pointerRef.current = {
-                      clientX: ev.clientX,
-                      clientY: ev.clientY,
-                    };
-                  };
-
-                  const handlePointerDown = () => {
-                    if (selectedIndex !== index) {
-                      setSelectedIndex(index);
-                    }
-                  };
-
-                  const handleOnClick = (ev: React.MouseEvent) => {
-                    ev.preventDefault();
-                    ev.stopPropagation();
-                    handleClickItem(item);
-                  };
-
-                  const stopPropagation = (ev: React.MouseEvent) => {
-                    ev.preventDefault();
-                    ev.stopPropagation();
-                  };
-
-                  const currentHeading =
-                    "section" in item ? item.section?.({ t }) : undefined;
-
-                  const response = (
-                    <React.Fragment key={`${index}-${item.name}`}>
-                      {currentHeading !== previousHeading && (
-                        <MenuHeader key={currentHeading}>
-                          {currentHeading}
-                        </MenuHeader>
-                      )}
-                      <ListItem
-                        onPointerMove={handlePointerMove}
-                        onPointerDown={handlePointerDown}
-                      >
-                        {props.renderMenuItem(item as any, index, {
-                          selected: index === selectedIndex,
-                          onPointerDown: handleOnClick,
-                          onClick: stopPropagation,
-                        })}
-                      </ListItem>
-                    </React.Fragment>
-                  );
-
-                  previousHeading = currentHeading;
-                  return response;
-                })}
-                {items.length === 0 && (
-                  <ListItem>
-                    <Empty>{dictionary.noResults}</Empty>
-                  </ListItem>
-                )}
-              </List>
+              <List>{renderItems()}</List>
             )}
-            {uploadFile && (
-              <VisuallyHidden.Root>
-                <label>
-                  <Trans>Import document</Trans>
-                  <input
-                    type="file"
-                    ref={inputRef}
-                    onChange={handleFilesPicked}
-                    multiple
-                  />
-                </label>
-              </VisuallyHidden.Root>
-            )}
+            {fileInput}
           </>
         )}
       </Wrapper>
@@ -745,6 +854,10 @@ const Empty = styled.div`
   font-size: 14px;
   height: 32px;
   padding: 0 16px;
+`;
+
+const MobileScrollable = styled(Scrollable)`
+  max-height: 75vh;
 `;
 
 export const Wrapper = styled(Scrollable)<{

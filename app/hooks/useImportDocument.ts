@@ -45,6 +45,8 @@ export default function useImportDocument(
         }
 
         for (const file of files) {
+          const toastId = toast.loading(`${t("Uploading")}…`);
+
           try {
             const doc = await documents.import(file, documentId, cId, {
               publish: true,
@@ -55,6 +57,8 @@ export default function useImportDocument(
             }
           } catch (err) {
             toast.error(err.message);
+          } finally {
+            toast.dismiss(toastId);
           }
         }
       } catch (err) {

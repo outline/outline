@@ -31,6 +31,7 @@ type Props = Optional<
   state?: Buffer;
   publish?: boolean;
   template?: Template | null;
+  index?: number;
 };
 
 export default async function documentCreator(
@@ -44,6 +45,7 @@ export default async function documentCreator(
     id,
     urlId,
     publish,
+    index,
     collectionId,
     parentDocumentId,
     content,
@@ -122,7 +124,7 @@ export default async function documentCreator(
     state,
   });
 
-  document.text = DocumentHelper.toMarkdown(document, {
+  document.text = await DocumentHelper.toMarkdown(document, {
     includeTitle: false,
   });
 
@@ -142,6 +144,7 @@ export default async function documentCreator(
     await document.publish(ctx, {
       collectionId,
       silent: true,
+      index,
       event: !!document.title,
       data: eventData,
     });

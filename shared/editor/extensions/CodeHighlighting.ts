@@ -242,7 +242,7 @@ export function CodeHighlighting({
 
           void Promise.all([...languagesToImport].map(loadLanguage)).then(
             (language) => {
-              if (language && languagesToImport.size) {
+              if (language && languagesToImport.size && !view.isDestroyed) {
                 view.dispatch(
                   view.state.tr.setMeta("codeHighlighting", {
                     langLoaded: language,

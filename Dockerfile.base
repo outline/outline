@@ -3,7 +3,7 @@ FROM node:22.21.0 AS deps
 
 ARG APP_PATH
 WORKDIR $APP_PATH
-COPY ./package.json ./yarn.lock ./
+COPY ./package.json ./yarn.lock ./.yarnrc.yml ./
 COPY ./patches ./patches
 
 RUN apt-get update && apt-get install -y cmake
@@ -17,9 +17,7 @@ COPY . .
 ARG CDN_URL
 RUN yarn build
 
-RUN rm -rf node_modules
-
-RUN yarn install --immutable --network-timeout 1000000 && \
+RUN yarn workspaces focus --production && \
   yarn cache clean
 
 ENV PORT=3000

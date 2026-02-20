@@ -1,0 +1,6 @@
+{
+  "id": "passkeys",
+  "name": "Passkeys",
+  "priority": 100,
+  "description": "Adds Passkeys authentication."
+}

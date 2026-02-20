@@ -2,8 +2,10 @@ import { action, computed, observable } from "mobx";
 import { flushSync } from "react-dom";
 import { light as defaultTheme } from "@shared/styles/theme";
 import Storage from "@shared/utils/Storage";
-import type Document from "~/models/Document";
+import Document from "~/models/Document";
 import type Template from "~/models/Template";
+import type Model from "~/models/base/Model";
+import Collection from "~/models/Collection";
 import type { ConnectionStatus } from "~/scenes/Document/components/MultiplayerEditor";
 import { startViewTransition } from "~/utils/viewTransition";
 import type RootStore from "./RootStore";
@@ -44,18 +46,16 @@ class UiStore {
   @observable
   theme: Theme;
 
+  // themeOverride is set when a theme query parameter is detected, persists for the session
+  @observable
+  themeOverride: Theme | undefined;
+
   // systemTheme represents the system UI theme (Settings -> General in macOS)
   @observable
   systemTheme: SystemTheme;
 
   @observable
-  activeDocumentId: string | undefined;
-
-  @observable
-  activeTemplateId: string | undefined;
-
-  @observable
-  activeCollectionId?: string | null;
+  activeModels = observable.map<string, Model>();
 
   @observable
   observingUserId: string | undefined;
@@ -92,6 +92,12 @@ class UiStore {
 
   @observable
   debugSafeArea = false;
+
+  /** Tracks active export toasts for in-place updates when export completes */
+  exportToasts = observable.map<
+    string,
+    { toastId: string; timeoutId: ReturnType<typeof setTimeout> }
+  >();
 
   rootStore: RootStore;
 
@@ -144,6 +150,86 @@ class UiStore {
     });
   }
 
+  /**
+   * Add a model instance to the active set.
+   *
+   * @param model the model instance to add.
+   */
+  @action
+  addActiveModel = (model: Model): void => {
+    this.activeModels.set(model.id, model);
+  };
+
+  /**
+   * Remove a model instance from the active set.
+   *
+   * @param model the model instance to remove.
+   */
+  @action
+  removeActiveModel = (model: Model): void => {
+    this.activeModels.delete(model.id);
+  };
+
+  /**
+   * Get all active models of a specific type.
+   *
+   * @param modelClass the model class to filter by.
+   * @returns array of active models of the specified type.
+   */
+  getActiveModels<T extends Model>(modelClass: new (...args: any[]) => T): T[] {
+    return Array.from(this.activeModels.values()).filter(
+      (model) => model.constructor === modelClass
+    ) as T[];
+  }
+
+  /**
+   * Check if a model instance is in the active set.
+   *
+   * @param model the model instance to check.
+   * @returns true if the model is active.
+   */
+  isModelActive(model: Model): boolean {
+    return this.activeModels.has(model.id);
+  }
+
+  /**
+   * Clear all active models, or only models of a specific type.
+   *
+   * @param modelClass optional model class to filter by.
+   */
+  @action
+  clearActiveModels(modelClass?: new (...args: any[]) => Model): void {
+    if (modelClass) {
+      const modelsToRemove = this.getActiveModels(modelClass);
+      modelsToRemove.forEach((model) => this.activeModels.delete(model.id));
+    } else {
+      this.activeModels.clear();
+    }
+  }
+
+  /**
+   * Get the most recently added model of a specific type (primary).
+   *
+   * @param modelClass the model class to filter by.
+   * @returns the most recently added model of the specified type.
+   */
+  getPrimaryActiveModel<T extends Model>(
+    modelClass: new (...args: any[]) => T
+  ): T | undefined {
+    const models = this.getActiveModels<T>(modelClass);
+    return models[models.length - 1];
+  }
+
+  @computed
+  get activeDocumentId(): string | undefined {
+    return this.getPrimaryActiveModel<Document>(Document)?.id;
+  }
+
+  @computed
+  get activeCollectionId(): string | undefined {
+    return this.getPrimaryActiveModel<Collection>(Collection)?.id;
+  }
+
   @action
   setTheme = (theme: Theme) => {
     startViewTransition(() => {
@@ -154,31 +240,42 @@ class UiStore {
     });
   };
 
+  /**
+   * Set a theme override from a query parameter. This persists for the session
+   * but is not saved to localStorage.
+   *
+   * @param theme The theme to override with, or undefined to clear.
+   */
   @action
-  setActiveDocument = (document: Document | string): void => {
-    if (typeof document === "string") {
-      this.activeDocumentId = document;
-      this.observingUserId = undefined;
-      return;
-    }
-
-    this.activeDocumentId = document.id;
-    this.observingUserId = undefined;
-
-    if (document.isActive) {
-      this.activeCollectionId = document.collectionId;
-    }
+  setThemeOverride = (theme: Theme | undefined) => {
+    this.themeOverride = theme;
   };
 
   @action
-  setActiveTemplate = (template: Template | string): void => {
-    if (typeof template === "string") {
-      this.activeTemplateId = template;
+  setActiveDocument = (document: Document | string): void => {
+    let model: Document | undefined;
+
+    if (typeof document === "string") {
+      model = this.rootStore.documents.get(document);
+    } else {
+      model = document;
+    }
+
+    if (!model) {
       return;
     }
 
-    this.activeTemplateId = template.id;
-    this.activeCollectionId = template.collectionId;
+    this.clearActiveModels(Document);
+    this.addActiveModel(model);
+    this.observingUserId = undefined;
+
+    if (model.isActive && model.collectionId) {
+      const collection = this.rootStore.collections.get(model.collectionId);
+      if (collection) {
+        this.clearActiveModels(Collection);
+        this.addActiveModel(collection);
+      }
+    }
   };
 
   @action
@@ -197,7 +294,16 @@ class UiStore {
 
   @action
   setActiveCollection = (collectionId: string | undefined): void => {
-    this.activeCollectionId = collectionId;
+    if (collectionId === undefined || collectionId === null) {
+      this.clearActiveModels(Collection);
+      return;
+    }
+
+    const model = this.rootStore.collections.get(collectionId);
+    if (model) {
+      this.clearActiveModels(Collection);
+      this.addActiveModel(model);
+    }
   };
 
   @action
@@ -207,13 +313,12 @@ class UiStore {
 
   @action
   clearActiveDocument = (): void => {
-    this.activeDocumentId = undefined;
-    this.activeTemplateId = undefined;
+    this.clearActiveModels(Document);
     this.observingUserId = undefined;
 
     // Unset when navigating away from a document (e.g. to another document, home, settings, etc.)
     // Next document's onMount will set the right activeCollectionId.
-    this.activeCollectionId = undefined;
+    this.clearActiveModels(Collection);
   };
 
   @action
@@ -272,6 +377,24 @@ class UiStore {
     this.debugSafeArea = !this.debugSafeArea;
   };
 
+  @action
+  registerExportToast = (
+    fileOperationId: string,
+    toastId: string,
+    timeoutId: ReturnType<typeof setTimeout>
+  ) => {
+    this.exportToasts.set(fileOperationId, { toastId, timeoutId });
+  };
+
+  @action
+  removeExportToast = (fileOperationId: string) => {
+    const tracked = this.exportToasts.get(fileOperationId);
+    if (tracked) {
+      clearTimeout(tracked.timeoutId);
+      this.exportToasts.delete(fileOperationId);
+    }
+  };
+
   @computed
   get readyToShow() {
     return (
@@ -292,6 +415,10 @@ class UiStore {
 
   @computed
   get resolvedTheme(): Theme | SystemTheme {
+    if (this.themeOverride) {
+      return this.themeOverride;
+    }
+
     if (this.theme === "system") {
       return this.systemTheme;
     }

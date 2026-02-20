@@ -1,4 +1,4 @@
-import type { Token } from "markdown-it";
+import type { PluginSimple, Token } from "markdown-it";
 import type {
   NodeSpec,
   NodeType,
@@ -8,11 +8,16 @@ import type {
 import toggleList from "../commands/toggleList";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { listWrappingInputRule } from "../lib/listInputRule";
+import alphaListsRule from "../rules/alphaLists";
 import Node from "./Node";
 
 export default class OrderedList extends Node {
   get name() {
     return "ordered_list";
+  }
+
+  get rulePlugins(): PluginSimple[] {
+    return [alphaListsRule];
   }
 
   get schema(): NodeSpec {
@@ -163,11 +168,17 @@ export default class OrderedList extends Node {
       getAttrs: (tok: Token) => {
         const start = tok.attrGet("start") || "1";
 
-        let listStyle = "number";
-        if (tok.markup && /^[a-z]/.test(tok.markup)) {
-          listStyle = "lower-alpha";
-        } else if (tok.markup && /^[A-Z]/.test(tok.markup)) {
-          listStyle = "upper-alpha";
+        // Check for data-list-style attribute set by alphaLists plugin
+        const dataListStyle = tok.attrGet("data-list-style");
+        let listStyle = dataListStyle || "number";
+
+        // Fallback to checking markup if data-list-style is not present
+        if (!dataListStyle) {
+          if (tok.markup && /^[a-z]/.test(tok.markup)) {
+            listStyle = "lower-alpha";
+          } else if (tok.markup && /^[A-Z]/.test(tok.markup)) {
+            listStyle = "upper-alpha";
+          }
         }
 
         return {

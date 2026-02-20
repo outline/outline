@@ -1,13 +1,14 @@
-import type { IncomingMessage } from "http";
-import type http from "http";
-import type { Duplex } from "stream";
-import url from "url";
+import type { IncomingMessage } from "node:http";
+import type http from "node:http";
+import type { Duplex } from "node:stream";
+import url from "node:url";
 import { Redis } from "@hocuspocus/extension-redis";
 import { Throttle } from "@hocuspocus/extension-throttle";
 import { Server } from "@hocuspocus/server";
 import type Koa from "koa";
 import WebSocket from "ws";
 import { DocumentValidation } from "@shared/validations";
+import { APIUpdateExtension } from "@server/collaboration/APIUpdateExtension";
 import { ConnectionLimitExtension } from "@server/collaboration/ConnectionLimitExtension";
 import { ViewsExtension } from "@server/collaboration/ViewsExtension";
 import env from "@server/env";
@@ -58,6 +59,7 @@ export default function init(
       new EditorVersionExtension(),
       new AuthenticationExtension(),
       new PersistenceExtension(),
+      new APIUpdateExtension(),
       new ViewsExtension(),
       new LoggerExtension(),
       new MetricsExtension(),
@@ -77,7 +79,11 @@ export default function init(
 
         if (documentId) {
           // Handle socket errors that may occur during upgrade (e.g., maxPayload exceeded)
-          socket.on("error", (error) => {
+          socket.on("error", (error: NodeJS.ErrnoException) => {
+            // ECONNRESET is common when clients disconnect abruptly, no need to log
+            if (error.code === "ECONNRESET") {
+              return;
+            }
             Logger.error(
               "Socket error during WebSocket upgrade",
               error,

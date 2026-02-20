@@ -7,6 +7,7 @@ import { TemplateNew } from "~/components/Template/TemplateNew";
 import { createAction, createInternalLinkAction } from "~/actions";
 import { newDocumentPath } from "~/utils/routeHelpers";
 import { ActiveTemplateSection, TemplateSection } from "../sections";
+import Template from "~/models/Template";
 
 export const createTemplate = createAction({
   name: ({ t }) => t("New template"),
@@ -33,45 +34,39 @@ export const deleteTemplate = createAction({
   section: ActiveTemplateSection,
   icon: <TrashIcon />,
   dangerous: true,
-  visible: ({ activeTemplateId, stores }) => {
-    if (!activeTemplateId) {
-      return false;
+  visible: ({ getActivePolicies }) =>
+    getActivePolicies(Template).some((policy) => policy.abilities.delete),
+  perform: ({ getActiveModel, stores, t }) => {
+    const template = getActiveModel(Template);
+    if (!template) {
+      return;
     }
-    return !!stores.policies.abilities(activeTemplateId).delete;
-  },
-  perform: ({ activeTemplateId, stores, t }) => {
-    if (activeTemplateId) {
-      const template = stores.templates.get(activeTemplateId);
-      if (!template) {
-        return;
-      }
 
-      stores.dialogs.openModal({
-        title: t("Delete {{ documentName }}", {
-          documentName: t("template"),
-        }),
-        content: (
-          <ConfirmationDialog
-            onSubmit={async () => {
-              await template.delete();
-              toast.success(t("Template deleted"));
+    stores.dialogs.openModal({
+      title: t("Delete {{ documentName }}", {
+        documentName: t("template"),
+      }),
+      content: (
+        <ConfirmationDialog
+          onSubmit={async () => {
+            await template.delete();
+            toast.success(t("Template deleted"));
+          }}
+          savingText={`${t("Deleting")}…`}
+          danger
+        >
+          <Trans
+            defaults="Are you sure about that? Deleting the <em>{{ templateName }}</em> template is permanent."
+            values={{
+              templateName: template.titleWithDefault,
             }}
-            savingText={`${t("Deleting")}…`}
-            danger
-          >
-            <Trans
-              defaults="Are you sure about that? Deleting the <em>{{ templateName }}</em> template is permanent."
-              values={{
-                templateName: template.titleWithDefault,
-              }}
-              components={{
-                em: <strong />,
-              }}
-            />
-          </ConfirmationDialog>
-        ),
-      });
-    }
+            components={{
+              em: <strong />,
+            }}
+          />
+        </ConfirmationDialog>
+      ),
+    });
   },
 });
 
@@ -80,24 +75,18 @@ export const moveTemplate = createAction({
   analyticsName: "Move template",
   section: ActiveTemplateSection,
   icon: <MoveIcon />,
-  visible: ({ activeTemplateId, stores }) => {
-    if (!activeTemplateId) {
-      return false;
+  visible: ({ getActivePolicies }) =>
+    getActivePolicies(Template).some((policy) => policy.abilities.move),
+  perform: ({ getActiveModel, stores, t }) => {
+    const template = getActiveModel(Template);
+    if (!template) {
+      return;
     }
-    return !!stores.policies.abilities(activeTemplateId).move;
-  },
-  perform: ({ activeTemplateId, stores, t }) => {
-    if (activeTemplateId) {
-      const template = stores.templates.get(activeTemplateId);
-      if (!template) {
-        return;
-      }
 
-      stores.dialogs.openModal({
-        title: t("Move template"),
-        content: <TemplateMove template={template} />,
-      });
-    }
+    stores.dialogs.openModal({
+      title: t("Move template"),
+      content: <TemplateMove template={template} />,
+    });
   },
 });
 
@@ -107,12 +96,9 @@ export const createDocumentFromTemplate = createInternalLinkAction({
   section: ActiveTemplateSection,
   icon: <NewDocumentIcon />,
   keywords: "create",
-  visible: ({ currentTeamId, activeTemplateId, stores }) => {
-    if (!currentTeamId || !activeTemplateId) {
-      return false;
-    }
-    const template = stores.templates.get(activeTemplateId);
-    if (!template || !template.isActive) {
+  visible: ({ currentTeamId, getActiveModel, stores }) => {
+    const template = getActiveModel(Template);
+    if (!template || !currentTeamId) {
       return false;
     }
 
@@ -121,15 +107,15 @@ export const createDocumentFromTemplate = createInternalLinkAction({
     }
     return !!stores.policies.abilities(currentTeamId).createDocument;
   },
-  to: ({ activeTemplateId, activeCollectionId, sidebarContext, stores }) => {
-    if (!activeTemplateId) {
+  to: ({ getActiveModel, activeCollectionId, sidebarContext, stores }) => {
+    const template = getActiveModel(Template);
+    if (!template) {
       return "";
     }
-    const template = stores.templates.get(activeTemplateId);
     const collectionId = template?.collectionId ?? activeCollectionId;
 
     const [pathname, search] = newDocumentPath(collectionId, {
-      templateId: activeTemplateId,
+      templateId: template.id,
     }).split("?");
 
     return {

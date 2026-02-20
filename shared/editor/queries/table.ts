@@ -4,6 +4,9 @@ import { CellSelection, isInTable, selectedRect } from "prosemirror-tables";
 import { ColumnSelection } from "../selection/ColumnSelection";
 import { RowSelection } from "../selection/RowSelection";
 import type { EditorView } from "prosemirror-view";
+import type { NodeAttrMark, NodeAttrMarkName } from "../types";
+import type { Node } from "prosemirror-model";
+import type { Selection } from "prosemirror-state";
 
 /**
  * Checks if the current selection is a column selection.
@@ -313,7 +316,11 @@ export function isMultipleCellSelection(state: EditorState): boolean {
  */
 export function isMergedCellSelection(state: EditorState): boolean {
   const { selection } = state;
-  if (selection instanceof CellSelection) {
+  if (
+    selection instanceof CellSelection ||
+    selection instanceof RowSelection ||
+    selection instanceof ColumnSelection
+  ) {
     // Check if any cell in the selection has a colspan or rowspan > 1
     let hasMergedCells = false;
     selection.forEachCell((cell) => {
@@ -326,6 +333,39 @@ export function isMergedCellSelection(state: EditorState): boolean {
     });
 
     return hasMergedCells;
+  }
+
+  return false;
+}
+
+/**
+ * Check if the table contains any cells with rowspan > 1.
+ * Cells with rowspan span multiple rows and would break table sorting.
+ *
+ * @param state The editor state.
+ * @returns true if the table has any cells with rowspan > 1, false otherwise.
+ */
+export function tableHasRowspan(state: EditorState): boolean {
+  if (!isInTable(state)) {
+    return false;
+  }
+
+  const rect = selectedRect(state);
+  const seen = new Set<number>();
+
+  for (let i = 0; i < rect.map.map.length; i++) {
+    const pos = rect.map.map[i];
+
+    // Skip already checked cells
+    if (seen.has(pos)) {
+      continue;
+    }
+    seen.add(pos);
+
+    const cell = rect.table.nodeAt(pos);
+    if (cell && cell.attrs.rowspan > 1) {
+      return true;
+    }
   }
 
   return false;
@@ -406,3 +446,98 @@ export function getWidthFromNodes({
     return total + (colwidth?.[0] ?? 0);
   }, 0);
 }
+
+const getCellAttrMark = (cell: Node, type: NodeAttrMarkName) => {
+  const mark = (cell.attrs.marks ?? []).find(
+    (mark: NodeAttrMark) => mark.type === type
+  );
+
+  return mark;
+};
+
+export const hasNodeAttrMarkCellSelection = (
+  selection: CellSelection,
+  type: NodeAttrMarkName
+) => {
+  let hasMark = false;
+  selection.forEachCell((cell) => {
+    if (!hasMark) {
+      hasMark = !!getCellAttrMark(cell, type);
+    }
+  });
+
+  return hasMark;
+};
+
+/**
+ * Returns the set of background colors applied to selected cells.
+ *
+ * @param selection - The current selection.
+ * @returns A set of color strings from background marks on selected cells.
+ */
+export function getColorSetForSelectedCells(selection: Selection): Set<string> {
+  const colors = new Set<string>();
+  if (!(selection instanceof CellSelection)) {
+    // If not a CellSelection, return empty set
+    return colors;
+  }
+  selection.forEachCell((cell) => {
+    const backgroundMark = (cell.attrs.marks ?? []).find(
+      (mark: NodeAttrMark) => mark.type === "background"
+    );
+    if (backgroundMark && backgroundMark.attrs.color) {
+      colors.add(backgroundMark.attrs.color);
+    }
+  });
+  return colors;
+}
+
+/**
+ * Get all unique background colors used in table cells across the entire document.
+ *
+ * @param state The editor state.
+ * @returns An array of unique hex color strings used for table cell backgrounds in the document.
+ */
+export function getDocumentTableBackgroundColors(state: EditorState): string[] {
+  const colors = new Set<string>();
+
+  state.doc.descendants((node) => {
+    if (node.type.name === "td" || node.type.name === "th") {
+      const backgroundMark = (node.attrs.marks ?? []).find(
+        (mark: NodeAttrMark) => mark.type === "background"
+      );
+      if (backgroundMark && backgroundMark.attrs.color) {
+        colors.add(backgroundMark.attrs.color);
+      }
+    }
+  });
+
+  return Array.from(colors);
+}
+
+/**
+ * Returns true if any cell in the selection has a mark of the given type
+ * with matching attributes.
+ *
+ * @param selection The CellSelection to check.
+ * @param type The mark type to look for.
+ * @param attrs The attributes to match against.
+ * @returns True if any cell has the mark with matching attributes.
+ */
+export const hasNodeAttrMarkWithAttrsCellSelection = (
+  selection: CellSelection,
+  type: NodeAttrMarkName,
+  attrs: Record<string, unknown>
+) => {
+  let attrsMatch = true;
+  selection.forEachCell((cell) => {
+    const cellMark = getCellAttrMark(cell, type);
+    attrsMatch &&=
+      !!cellMark &&
+      Object.entries(attrs).every(
+        ([key, value]) => (cellMark.attrs ?? {})[key] === value
+      );
+  });
+
+  return attrsMatch;
+};

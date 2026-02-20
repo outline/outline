@@ -32,7 +32,7 @@ export type MenuItem = {
   dangerous?: boolean;
   /** Higher number is higher in results, default is 0. */
   priority?: number;
-  children?: MenuItem[];
+  children?: MenuItem[] | (() => MenuItem[]);
   defaultHidden?: boolean;
   attrs?:
     | Record<string, Primitive | null>
@@ -43,6 +43,10 @@ export type MenuItem = {
   skipIcon?: boolean;
   disabled?: boolean;
   onClick?: () => void;
+  /** Custom React content to render instead of a standard menu item */
+  content?: React.ReactNode;
+  /** Condition to check before preventing the submenu from closing */
+  preventCloseCondition?: () => boolean;
 };
 
 export type ComponentProps = {
@@ -55,7 +59,18 @@ export type ComponentProps = {
   decorations: Decoration[];
 };
 
-export interface NodeMarkAttr {
-  type: string;
-  [key: string]: any;
+export type NodeAttrMarkName =
+  | "strong"
+  | "em"
+  | "code_inline"
+  | "link"
+  | "background"
+  | "strikethrough"
+  | "underline"
+  | "placeholder"
+  | "comment";
+
+export interface NodeAttrMark {
+  type: NodeAttrMarkName;
+  attrs?: Record<string, unknown>;
 }

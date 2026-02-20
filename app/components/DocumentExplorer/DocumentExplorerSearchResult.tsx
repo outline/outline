@@ -54,6 +54,7 @@ function DocumentExplorerSearchResult({
       style={style}
       onPointerMove={onPointerMove}
       role="option"
+      aria-selected={selected}
     >
       {icon}
       <Flex>

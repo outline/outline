@@ -2,21 +2,28 @@ import OAuth2Server from "@node-oauth/oauth2-server";
 import Koa from "koa";
 import bodyParser from "koa-body";
 import Router from "koa-router";
-import { ValidationError } from "@server/errors";
+import env from "@server/env";
+import { ValidationError, NotFoundError } from "@server/errors";
+import { apiContext } from "@server/middlewares/apiContext";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import requestTracer from "@server/middlewares/requestTracer";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { OAuthAuthorizationCode, OAuthClient } from "@server/models";
+import { OAuthAuthorizationCode, OAuthClient, Team } from "@server/models";
 import OAuthAuthentication from "@server/models/oauth/OAuthAuthentication";
 import { authorize } from "@server/policies";
+import { presentDCRClient } from "@server/presenters/oauthClient";
 import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
+import { TeamPreference } from "@shared/types";
 import { OAuthInterface } from "@server/utils/oauth/OAuthInterface";
+import { getTeamFromContext } from "@server/utils/passport";
 import oauthErrorHandler from "./middlewares/oauthErrorHandler";
+import registrationAuth from "./middlewares/registrationAuth";
 import * as T from "./schema";
 import { verifyCSRFToken } from "@server/middlewares/csrf";
+import Logger from "@server/logging/Logger";
 
 const app = new Koa();
 const router = new Router();
@@ -158,9 +165,124 @@ router.post(
   }
 );
 
+router.post(
+  "/register",
+  validate(T.RegisterSchema),
+  rateLimiter(RateLimiterStrategy.FivePerHour),
+  async (ctx: APIContext<T.RegisterReq>) => {
+    if (env.OAUTH_DISABLE_DCR) {
+      throw NotFoundError();
+    }
+
+    const {
+      client_name,
+      redirect_uris,
+      token_endpoint_auth_method,
+      client_uri,
+      logo_uri,
+      contacts,
+    } = ctx.input.body;
+
+    const team = await getTeamFromContext(ctx, {
+      includeStateCookie: false,
+    });
+    if (!team) {
+      throw NotFoundError();
+    }
+    if (!team.getPreference(TeamPreference.MCP)) {
+      throw NotFoundError();
+    }
+
+    const clientType =
+      token_endpoint_auth_method === "client_secret_post"
+        ? "confidential"
+        : "public";
+
+    const client = await OAuthClient.createWithCtx(ctx, {
+      name: client_name,
+      redirectUris: redirect_uris,
+      clientType,
+      developerUrl: client_uri ?? null,
+      avatarUrl: logo_uri ?? null,
+      published: false,
+      teamId: team.id,
+      createdById: null,
+    });
+
+    Logger.info("authentication", "OAuth client registered", {
+      clientId: client.clientId,
+      redirectUris: client.redirectUris,
+      teamId: team.id,
+      contacts,
+    });
+
+    ctx.status = 201;
+    ctx.body = presentDCRClient(team.url, client, {
+      includeRegistrationAccessToken: true,
+      includeCredentials: true,
+    });
+  }
+);
+
+router.get("/register/:clientId", registrationAuth(), async (ctx) => {
+  const client: OAuthClient = ctx.state.oauthClient;
+  const team = await Team.findByPk(client.teamId, {
+    rejectOnEmpty: true,
+  });
+
+  ctx.body = presentDCRClient(team.url, client, {
+    includeRegistrationAccessToken: false,
+  });
+});
+
+router.put(
+  "/register/:clientId",
+  rateLimiter(RateLimiterStrategy.TenPerHour),
+  validate(T.RegisterUpdateSchema),
+  transaction(),
+  registrationAuth(),
+  async (ctx: APIContext<T.RegisterUpdateReq>) => {
+    const client = ctx.state.oauthClient as OAuthClient;
+    const { client_name, redirect_uris, client_uri, logo_uri } = ctx.input.body;
+
+    const team = await Team.findByPk(client.teamId, {
+      rejectOnEmpty: true,
+      transaction: ctx.state.transaction,
+    });
+
+    client.name = client_name;
+    client.redirectUris = redirect_uris;
+    client.developerUrl = client_uri ?? null;
+    client.avatarUrl = logo_uri ?? null;
+
+    // Rotate registration access token per RFC 7592 recommendation
+    client.rotateRegistrationAccessToken();
+    await client.saveWithCtx(ctx);
+
+    ctx.body = presentDCRClient(team.url, client, {
+      includeRegistrationAccessToken: true,
+      includeCredentials: false,
+    });
+  }
+);
+
+router.delete(
+  "/register/:clientId",
+  rateLimiter(RateLimiterStrategy.TenPerHour),
+  transaction(),
+  registrationAuth(),
+  async (ctx: APIContext) => {
+    const client = ctx.state.oauthClient as OAuthClient;
+    await client.destroyWithCtx(ctx);
+    ctx.status = 204;
+    ctx.body = "";
+  }
+);
+
 app.use(requestTracer());
 app.use(oauthErrorHandler());
 app.use(bodyParser());
+app.use(apiContext());
 app.use(verifyCSRFToken());
 app.use(router.routes());
 

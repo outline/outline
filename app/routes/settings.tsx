@@ -4,11 +4,12 @@ import Route from "~/components/ProfiledRoute";
 import useSettingsConfig from "~/hooks/useSettingsConfig";
 import lazy from "~/utils/lazyWithRetry";
 import { settingsPath } from "~/utils/routeHelpers";
+import { observer } from "mobx-react";
 
 const Application = lazy(() => import("~/scenes/Settings/Application"));
 const Template = lazy(() => import("~/scenes/Settings/Template"));
 
-export default function SettingsRoutes() {
+function SettingsRoutes() {
   const configs = useSettingsConfig();
 
   return (
@@ -36,3 +37,5 @@ export default function SettingsRoutes() {
     </Switch>
   );
 }
+
+export default observer(SettingsRoutes);

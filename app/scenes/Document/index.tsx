@@ -3,7 +3,7 @@ import type { StaticContext } from "react-router";
 import { useHistory } from "react-router";
 import type { RouteComponentProps } from "react-router-dom";
 import type { SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
-import { useLastVisitedPath } from "~/hooks/useLastVisitedPath";
+import { useTrackLastVisitedPath } from "~/hooks/useLastVisitedPath";
 import useStores from "~/hooks/useStores";
 import DataLoader from "./components/DataLoader";
 import Document from "./components/Document";
@@ -28,11 +28,7 @@ export default function DocumentScene(props: Props) {
   const history = useHistory();
   const { documentSlug, revisionId } = props.match.params;
   const currentPath = props.location.pathname;
-  const [, setLastVisitedPath] = useLastVisitedPath();
-
-  useEffect(() => {
-    setLastVisitedPath(currentPath);
-  }, [currentPath, setLastVisitedPath]);
+  useTrackLastVisitedPath(currentPath);
 
   useEffect(() => () => ui.clearActiveDocument(), [ui]);
 

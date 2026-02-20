@@ -66,9 +66,7 @@ export default class TemplatesStore extends Store<Template> {
 
   @computed
   get active(): Template | undefined {
-    return this.rootStore.ui.activeTemplateId
-      ? this.data.get(this.rootStore.ui.activeTemplateId)
-      : undefined;
+    return this.rootStore.ui.getActiveModels(Template)?.[0];
   }
 
   @computed

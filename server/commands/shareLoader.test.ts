@@ -40,7 +40,7 @@ describe("shareLoader", () => {
       expect(result.share.id).toEqual(share.id);
       expect(result.collection?.id).toEqual(collection.id);
       expect(result.sharedTree?.id).toEqual(collection.id);
-      expect(result.sharedTree?.url).toEqual(collection.url);
+      expect(result.sharedTree?.url).toEqual(collection.path);
       expect(result.sharedTree?.children[0].id).toEqual(document.id);
       expect(result.sharedTree?.children[0].children[0].id).toEqual(
         childDocument.id

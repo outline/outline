@@ -47,6 +47,28 @@ export function redirectTo(url: string) {
 }
 
 /**
+ * Check if a URI is a loopback address (localhost, 127.0.0.1, or [::1]).
+ *
+ * @param uri - the redirect URI to check.
+ * @returns true if the URI targets a loopback address.
+ */
+export function isLoopbackUri(uri: string | undefined): boolean {
+  if (!uri) {
+    return false;
+  }
+  try {
+    const url = new URL(uri);
+    return (
+      url.hostname === "localhost" ||
+      url.hostname === "127.0.0.1" ||
+      url.hostname === "[::1]"
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Check if the path is a valid path for redirect after login.
  *
  * @param input A path potentially including query string

@@ -249,6 +249,9 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         onDeleteCommentMark={
           commentingEnabled && can.comment ? handleRemoveComment : undefined
         }
+        onOpenCommentsSidebar={
+          commentingEnabled ? ui.toggleComments : undefined
+        }
         onInit={handleInit}
         onDestroy={handleDestroy}
         onChange={updateDocState}

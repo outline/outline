@@ -1,4 +1,4 @@
-import path from "path";
+import path from "node:path";
 import { glob } from "glob";
 import type Router from "koa-router";
 import isArray from "lodash/isArray";
@@ -40,7 +40,7 @@ export enum Hook {
 type PluginValueMap = {
   [Hook.API]: Router;
   [Hook.AuthProvider]: { router: Router | Promise<Router>; id: string };
-  [Hook.EmailTemplate]: typeof BaseEmail;
+  [Hook.EmailTemplate]: typeof BaseEmail<any>;
   [Hook.IssueProvider]: BaseIssueProvider;
   [Hook.Processor]: typeof BaseProcessor;
   [Hook.Task]: typeof BaseTask<any>;

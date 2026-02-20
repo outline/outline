@@ -1,4 +1,5 @@
-import type { Selection } from "prosemirror-state";
+import type { EditorState, Selection } from "prosemirror-state";
+import Suggestion from "~/editor/extensions/Suggestion";
 import { NodeSelection, TextSelection } from "prosemirror-state";
 import * as React from "react";
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
@@ -29,6 +30,10 @@ import getReadOnlyMenuItems from "../menus/readOnly";
 import getTableMenuItems from "../menus/table";
 import getTableColMenuItems from "../menus/tableCol";
 import getTableRowMenuItems from "../menus/tableRow";
+import {
+  columnDragPluginKey,
+  rowDragPluginKey,
+} from "@shared/editor/plugins/TableDragState";
 import { useEditor } from "./EditorContext";
 import { MediaLinkEditor } from "./MediaLinkEditor";
 import FloatingToolbar from "./FloatingToolbar";
@@ -53,12 +58,19 @@ type Props = {
   canUpdate?: boolean;
 };
 
-function useIsDragging() {
+function useIsDragging(state: EditorState) {
   const [isDragging, setDragging, setNotDragging] = useBoolean();
   useEventListener("dragstart", setDragging);
   useEventListener("dragend", setNotDragging);
   useEventListener("drop", setNotDragging);
-  return isDragging;
+
+  // Check if table row or column is being dragged
+  const columnDragState = columnDragPluginKey.getState(state);
+  const rowDragState = rowDragPluginKey.getState(state);
+  const isTableDragging =
+    columnDragState?.isDragging || rowDragState?.isDragging;
+
+  return isDragging || isTableDragging;
 }
 
 enum Toolbar {
@@ -69,36 +81,43 @@ enum Toolbar {
 
 export function SelectionToolbar(props: Props) {
   const { readOnly = false } = props;
-  const { view, commands } = useEditor();
+  const { view, extensions, commands } = useEditor();
   const dictionary = useDictionary();
   const menuRef = React.useRef<HTMLDivElement | null>(null);
   const isMobile = useMobile();
   const isActive = props.isActive || isMobile;
-  const isDragging = useIsDragging();
-
   const { state } = view;
+  const [autoFocusLinkInput, setAutoFocusLinkInput] = React.useState(false);
+  const isDragging = useIsDragging(state);
   const { selection } = state;
   const [activeToolbar, setActiveToolbar] = React.useState<Toolbar | null>(
     null
   );
 
-  React.useEffect(() => {
-    const { selection } = state;
-    const linkMark =
-      selection instanceof NodeSelection
-        ? getMarkRangeNodeSelection(selection, state.schema.marks.link)
-        : getMarkRange(selection.$from, state.schema.marks.link);
+  const linkMark =
+    selection instanceof NodeSelection
+      ? getMarkRangeNodeSelection(selection, state.schema.marks.link)
+      : getMarkRange(selection.$from, state.schema.marks.link);
 
-    const isEmbedSelection =
-      selection instanceof NodeSelection &&
-      selection.node.type.name === "embed";
+  const isEmbedSelection =
+    selection instanceof NodeSelection && selection.node.type.name === "embed";
 
-    const isCodeSelection = isInCode(state, { onlyBlock: true });
-    const isNoticeSelection = isInNotice(state);
+  const isCodeSelection = isInCode(state, { onlyBlock: true });
+  const isNoticeSelection = isInNotice(state);
+
+  React.useLayoutEffect(() => {
+    if (!isActive) {
+      setActiveToolbar(null);
+      return;
+    }
 
     if (isEmbedSelection && !readOnly) {
       setActiveToolbar(Toolbar.Media);
-    } else if (linkMark && !activeToolbar && !readOnly) {
+    } else if (
+      linkMark &&
+      (activeToolbar === null || activeToolbar === Toolbar.Link) &&
+      !readOnly
+    ) {
       setActiveToolbar(Toolbar.Link);
     } else if (isCodeSelection) {
       setActiveToolbar(Toolbar.Menu);
@@ -109,9 +128,37 @@ export function SelectionToolbar(props: Props) {
     } else if (selection.empty) {
       setActiveToolbar(null);
     }
-  }, [readOnly, selection]);
+  }, [
+    readOnly,
+    isActive,
+    selection,
+    linkMark,
+    isEmbedSelection,
+    isCodeSelection,
+    isNoticeSelection,
+  ]);
 
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
+    if (autoFocusLinkInput && activeToolbar !== Toolbar.Link) {
+      setAutoFocusLinkInput(false);
+    }
+  }, [activeToolbar]);
+
+  // Refocus the editor when the link toolbar closes to prevent focus loss
+  const prevActiveToolbar = React.useRef(activeToolbar);
+  React.useLayoutEffect(() => {
+    if (
+      prevActiveToolbar.current === Toolbar.Link &&
+      activeToolbar !== Toolbar.Link &&
+      !readOnly &&
+      isActive
+    ) {
+      view.focus();
+    }
+    prevActiveToolbar.current = activeToolbar;
+  }, [activeToolbar, readOnly, isActive, view]);
+
+  React.useLayoutEffect(() => {
     const handleClickOutside = (ev: MouseEvent): void => {
       if (
         ev.target instanceof HTMLElement &&
@@ -128,13 +175,23 @@ export function SelectionToolbar(props: Props) {
         return;
       }
 
+      // Don't collapse selection if any suggestion menu is open
+      const isSuggestionMenuOpen = extensions.extensions.some(
+        (ext) => ext instanceof Suggestion && ext.isOpen
+      );
+      if (isSuggestionMenuOpen) {
+        return;
+      }
+
       if (!window.getSelection()?.isCollapsed) {
         return;
       }
 
       const { dispatch } = view;
       dispatch(
-        view.state.tr.setSelection(new TextSelection(view.state.doc.resolve(0)))
+        view.state.tr.setSelection(
+          TextSelection.near(view.state.doc.resolve(0))
+        )
       );
     };
 
@@ -153,12 +210,12 @@ export function SelectionToolbar(props: Props) {
         ev.key.toLowerCase() === "k" &&
         !view.state.selection.empty
       ) {
+        ev.preventDefault();
         ev.stopPropagation();
-        if (activeToolbar === Toolbar.Link) {
-          setActiveToolbar(Toolbar.Menu);
-        } else if (activeToolbar === Toolbar.Menu) {
-          setActiveToolbar(Toolbar.Link);
-        }
+        setAutoFocusLinkInput(true);
+        setActiveToolbar(
+          activeToolbar === Toolbar.Link ? Toolbar.Menu : Toolbar.Link
+        );
       }
     },
     view.dom,
@@ -179,12 +236,6 @@ export function SelectionToolbar(props: Props) {
   const isAttachmentSelection =
     selection instanceof NodeSelection &&
     selection.node.type.name === "attachment";
-  const isCodeSelection = isInCode(state, { onlyBlock: true });
-  const isNoticeSelection = isInNotice(state);
-  const link =
-    selection instanceof NodeSelection
-      ? getMarkRangeNodeSelection(selection, state.schema.marks.link)
-      : getMarkRange(selection.$from, state.schema.marks.link);
 
   let items: MenuItem[] = [];
   let align: "center" | "start" | "end" = "center";
@@ -237,7 +288,7 @@ export function SelectionToolbar(props: Props) {
 
   items = filterExcessSeparators(items);
   items = items.map((item) => {
-    if (item.children) {
+    if (item.children && Array.isArray(item.children)) {
       item.children = item.children.map((child) => {
         if (child.name === "editImageUrl") {
           child.onClick = () => {
@@ -250,6 +301,7 @@ export function SelectionToolbar(props: Props) {
 
     if (item.name === "linkOnImage" || item.name === "addLink") {
       item.onClick = () => {
+        setAutoFocusLinkInput(true);
         setActiveToolbar(Toolbar.Link);
       };
     }
@@ -276,10 +328,11 @@ export function SelectionToolbar(props: Props) {
     >
       {activeToolbar === Toolbar.Link ? (
         <LinkEditor
-          key={`${selection.from}-${selection.to}`}
+          key={`link-${selection.anchor}`}
           dictionary={dictionary}
+          autoFocus={autoFocusLinkInput}
           view={view}
-          mark={link ? link.mark : undefined}
+          mark={linkMark ? linkMark.mark : undefined}
           onLinkAdd={() => setActiveToolbar(null)}
           onLinkUpdate={() => setActiveToolbar(null)}
           onLinkRemove={() => setActiveToolbar(null)}
@@ -289,7 +342,7 @@ export function SelectionToolbar(props: Props) {
         />
       ) : activeToolbar === Toolbar.Media ? (
         <MediaLinkEditor
-          key={`embed-${selection.from}`}
+          key={`embed-${selection.anchor}`}
           node={
             "node" in selection ? (selection as NodeSelection).node : undefined
           }

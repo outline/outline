@@ -1,19 +1,16 @@
 import debounce from "lodash/debounce";
 import isEmpty from "lodash/isEmpty";
 import { observer } from "mobx-react";
-import { CopyIcon, GlobeIcon, InfoIcon, QuestionMarkIcon } from "outline-icons";
+import { CopyIcon, GlobeIcon, QuestionMarkIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
 import { toast } from "sonner";
-import styled, { useTheme } from "styled-components";
+import { useTheme } from "styled-components";
 import Flex from "@shared/components/Flex";
 import Squircle from "@shared/components/Squircle";
-import { s } from "@shared/styles";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import type Document from "~/models/Document";
 import type Share from "~/models/Share";
-import Input, { NativeInput } from "~/components/Input";
 import Switch from "~/components/Switch";
 import env from "~/env";
 import usePolicy from "~/hooks/usePolicy";
@@ -24,6 +21,12 @@ import { ResizingHeightContainer } from "../../ResizingHeightContainer";
 import Text from "../../Text";
 import Tooltip from "../../Tooltip";
 import { ListItem } from "../components/ListItem";
+import {
+  DomainPrefix,
+  ShareLinkInput,
+  StyledInfoIcon,
+  UnderlinedLink,
+} from "../components";
 
 type Props = {
   /** The document to share. */
@@ -141,9 +144,10 @@ function PublicAccess(
     toast.success(t("Public link copied to clipboard"));
   }, [t]);
 
-  const shareUrl = sharedParent?.url
-    ? `${sharedParent.url}${document.url}`
-    : (share?.url ?? "");
+  const shareUrl =
+    sharedParent?.url && !document.isDraft
+      ? `${sharedParent.url}${document.url}`
+      : (share?.url ?? "");
 
   const copyButton = (
     <Tooltip content={t("Copy public link")} placement="top">
@@ -156,7 +160,7 @@ function PublicAccess(
   );
 
   return (
-    <Wrapper ref={ref}>
+    <div ref={ref}>
       <ListItem
         title={t("Web")}
         subtitle={
@@ -166,17 +170,19 @@ function PublicAccess(
                 <Trans>
                   Anyone with the link can access because the containing
                   collection,{" "}
-                  <StyledLink to={`/collection/${sharedParent.collectionId}`}>
+                  <UnderlinedLink
+                    to={`/collection/${sharedParent.collectionId}`}
+                  >
                     {sharedParent.sourceTitle}
-                  </StyledLink>
+                  </UnderlinedLink>
                   , is shared
                 </Trans>
               ) : (
                 <Trans>
                   Anyone with the link can access because the parent document,{" "}
-                  <StyledLink to={`/doc/${sharedParent.documentId}`}>
+                  <UnderlinedLink to={`/doc/${sharedParent.documentId}`}>
                     {sharedParent.sourceTitle}
-                  </StyledLink>
+                  </UnderlinedLink>
                   , is shared
                 </Trans>
               )
@@ -285,7 +291,7 @@ function PublicAccess(
           </>
         )}
 
-        {sharedParent?.published ? (
+        {sharedParent?.published && !document.isDraft ? (
           <ShareLinkInput type="text" disabled defaultValue={shareUrl}>
             {copyButton}
           </ShareLinkInput>
@@ -309,7 +315,7 @@ function PublicAccess(
 
         {share?.published && !share.includeChildDocuments ? (
           <Text as="p" type="tertiary" size="xsmall">
-            <StyledInfoIcon size={18} />
+            <StyledInfoIcon color={theme.textTertiary} />
             <span>
               {t(
                 "Nested documents are not shared on the web. Toggle sharing to enable access, this will be the default behavior in the future"
@@ -319,41 +325,8 @@ function PublicAccess(
           </Text>
         ) : null}
       </ResizingHeightContainer>
-    </Wrapper>
+    </div>
   );
 }
-
-const StyledInfoIcon = styled(InfoIcon)`
-  vertical-align: bottom;
-  margin-right: 2px;
-`;
-
-const Wrapper = styled.div`
-  padding-bottom: 8px;
-`;
-
-const DomainPrefix = styled.span`
-  padding: 0 2px 0 8px;
-  flex: 0 1 auto;
-  cursor: text;
-  color: ${s("placeholder")};
-  user-select: none;
-`;
-
-const ShareLinkInput = styled(Input)`
-  margin-top: 12px;
-  min-width: 100px;
-  flex: 1;
-
-  ${NativeInput}:not(:first-child) {
-    padding: 4px 8px 4px 0;
-    flex: 1;
-  }
-`;
-
-const StyledLink = styled(Link)`
-  color: ${s("textSecondary")};
-  text-decoration: underline;
-`;
 
 export default observer(React.forwardRef(PublicAccess));

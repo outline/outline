@@ -9,6 +9,7 @@ import Extension from "../lib/Extension";
 import type { ExtendedChange } from "../lib/ChangesetHelper";
 import { cn } from "../styles/utils";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
+import { toggleFoldPluginKey } from "../nodes/ToggleBlock";
 
 const pluginKey = new PluginKey("diffs");
 
@@ -120,7 +121,7 @@ export default class Diff extends Extension {
       new Plugin({
         key: pluginKey,
         state: {
-          init: () => DecorationSet.empty,
+          init: (_, state) => this.createDecorations(state.doc),
           apply: (tr) => this.createDecorations(tr.doc),
         },
         props: {
@@ -130,7 +131,9 @@ export default class Diff extends Extension {
         },
         // Allow meta transactions to bypass filtering
         filterTransaction: (tr) =>
-          tr.getMeta("codeHighlighting") || tr.getMeta(pluginKey)
+          tr.getMeta("codeHighlighting") ||
+          tr.getMeta(pluginKey) ||
+          tr.getMeta(toggleFoldPluginKey)
             ? true
             : false,
       }),
@@ -260,26 +263,34 @@ export default class Diff extends Extension {
           }
         }
 
-        const dom = document.createElement(tag);
-        dom.setAttribute(
-          "class",
-          cn({
-            [this.options.currentChangeClassName]: isCurrent,
-            [this.options.deletionClassName]: !useNodeDecoration,
-            [this.options.nodeDeletionClassName]: useNodeDecoration,
-          })
-        );
-
         const fragment = Fragment.from(unwrap($pos, contentToSerialize));
 
-        dom.appendChild(
-          DOMSerializer.fromSchema(doc.type.schema).serializeFragment(fragment)
-        );
-
         decorations.push(
-          Decoration.widget(change.fromB, () => dom, {
-            side: -1,
-          })
+          Decoration.widget(
+            change.fromB,
+            (view) => {
+              const dom = view.dom.ownerDocument.createElement(tag);
+              dom.setAttribute(
+                "class",
+                cn({
+                  [this.options.currentChangeClassName]: isCurrent,
+                  [this.options.deletionClassName]: !useNodeDecoration,
+                  [this.options.nodeDeletionClassName]: useNodeDecoration,
+                })
+              );
+
+              dom.appendChild(
+                DOMSerializer.fromSchema(doc.type.schema).serializeFragment(
+                  fragment,
+                  { document: view.dom.ownerDocument }
+                )
+              );
+              return dom;
+            },
+            {
+              side: -1,
+            }
+          )
         );
         individualChangeIndex++;
       });

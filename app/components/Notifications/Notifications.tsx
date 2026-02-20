@@ -8,7 +8,6 @@ import Notification, { type NotificationFilter } from "~/models/Notification";
 import { markNotificationsAsRead } from "~/actions/definitions/notifications";
 import useStores from "~/hooks/useStores";
 import NotificationMenu from "~/menus/NotificationMenu";
-import Desktop from "~/utils/Desktop";
 import Empty from "../Empty";
 import ErrorBoundary from "../ErrorBoundary";
 import Flex from "../Flex";
@@ -61,35 +60,15 @@ function Notifications(
     );
   }, [notifications.active, filter]);
 
-  const isEmpty = filteredNotifications.length === 0;
-
-  // Update the notification count in the dock icon, if possible.
-  React.useEffect(() => {
-    // Account for old versions of the desktop app that don't have the
-    // setNotificationCount method on the bridge.
-    if (Desktop.bridge && "setNotificationCount" in Desktop.bridge) {
-      void Desktop.bridge.setNotificationCount(
-        notifications.approximateUnreadCount
-      );
-    }
-
-    // PWA badging
-    if ("setAppBadge" in navigator) {
-      if (notifications.approximateUnreadCount) {
-        void navigator.setAppBadge(notifications.approximateUnreadCount);
-      } else {
-        void navigator.clearAppBadge();
-      }
-    }
-  }, [notifications.approximateUnreadCount]);
+  const unreadCount = notifications.approximateUnreadCount;
 
   return (
     <ErrorBoundary>
       <Flex
         style={{
           width: "100%",
-          minHeight: "200px",
-          height: "calc(var(--radix-popover-content-available-height) - 44px)",
+          height:
+            "min(300px, calc(var(--radix-popover-content-available-height) - 44px))",
         }}
         column
       >
@@ -107,7 +86,7 @@ function Notifications(
               short
               nude
             />
-            {notifications.approximateUnreadCount > 0 && (
+            {unreadCount > 0 && (
               <Tooltip content={t("Mark all as read")}>
                 <Button
                   action={markNotificationsAsRead}
@@ -120,15 +99,17 @@ function Notifications(
             <NotificationMenu />
           </HStack>
         </Header>
-        {isEmpty && (
-          <EmptyNotifications>{t("You're all caught up")}.</EmptyNotifications>
-        )}
-        <React.Suspense fallback={null}>
-          <Scrollable ref={ref} flex topShadow hiddenScrollbars>
+        <Scrollable ref={ref} flex topShadow hiddenScrollbars>
+          <React.Suspense fallback={null}>
             <PaginatedList<Notification>
               fetch={notifications.fetchPage}
               options={{ archived: false }}
               items={filteredNotifications}
+              empty={
+                <EmptyNotifications>
+                  {t("You're all caught up")}.
+                </EmptyNotifications>
+              }
               renderItem={(item) => (
                 <NotificationListItem
                   key={item.id}
@@ -137,8 +118,8 @@ function Notifications(
                 />
               )}
             />
-          </Scrollable>
-        </React.Suspense>
+          </React.Suspense>
+        </Scrollable>
       </Flex>
     </ErrorBoundary>
   );

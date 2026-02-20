@@ -83,7 +83,7 @@ function SharedCollection({ collection }: Props) {
             </SharedMeta>
           ) : null}
         </Flex>
-        <Overview collection={collection} readOnly />
+        <Overview collection={collection} key={collection.id} readOnly />
       </CenteredContent>
     </Scene>
   );

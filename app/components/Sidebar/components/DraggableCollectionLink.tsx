@@ -13,6 +13,9 @@ import useStores from "~/hooks/useStores";
 import type { DragObject } from "../hooks/useDragAndDrop";
 import CollectionLink from "./CollectionLink";
 import DropCursor from "./DropCursor";
+import SidebarDisclosureContext, {
+  useSidebarDisclosureState,
+} from "./SidebarDisclosureContext";
 import Relative from "./Relative";
 import { useSidebarContext } from "./SidebarContext";
 
@@ -35,6 +38,10 @@ function DraggableCollectionLink({
       sidebarContext === locationSidebarContext
   );
   const belowCollectionIndex = belowCollection ? belowCollection.index : null;
+
+  // Context-based recursive expand/collapse for descendant DocumentLinks
+  const { event: disclosureEvent, onDisclosureClick } =
+    useSidebarDisclosureState();
 
   // Drop to reorder collection
   const [
@@ -91,15 +98,22 @@ function DraggableCollectionLink({
     locationSidebarContext,
   ]);
 
-  const handleDisclosureClick = useCallback((ev) => {
-    ev?.preventDefault();
-    setExpanded((e) => !e);
-  }, []);
+  const handleDisclosureClick = useCallback(
+    (ev) => {
+      ev?.preventDefault();
+      setExpanded((e) => {
+        const willExpand = !e;
+        onDisclosureClick(willExpand, !!ev?.altKey);
+        return willExpand;
+      });
+    },
+    [onDisclosureClick]
+  );
 
   const displayChildDocuments = expanded && !isDragging;
 
   return (
-    <>
+    <SidebarDisclosureContext.Provider value={disclosureEvent}>
       <Draggable
         key={collection.id}
         ref={dragToReorderCollection}
@@ -121,7 +135,7 @@ function DraggableCollectionLink({
           />
         )}
       </Relative>
-    </>
+    </SidebarDisclosureContext.Provider>
   );
 }
 

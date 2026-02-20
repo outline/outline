@@ -87,7 +87,8 @@ export default class FileHelper {
 
   /**
    * Loads the dimensions of an image file – for PNG's we parse the pHYs chunk to get the
-   * "real" dimensions of a retina image, for other formats we use an Image element.
+   * "real" dimensions of a retina image, for SVG's we parse the width/height or viewBox
+   * attributes, for other formats we use an Image element.
    *
    * @param file The file to load the dimensions for
    * @returns The dimensions of the image, if known.
@@ -134,6 +135,18 @@ export default class FileHelper {
       }
     }
 
+    if (file.type === "image/svg+xml") {
+      try {
+        const text = await file.text();
+        const dimensions = this.parseSvgDimensions(text);
+        if (dimensions) {
+          return dimensions;
+        }
+      } catch (_e) {
+        // Fallback to loading from image
+      }
+    }
+
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.onload = function () {
@@ -144,6 +157,42 @@ export default class FileHelper {
       img.onerror = reject;
       img.src = URL.createObjectURL(file);
     });
+  }
+
+  /**
+   * Parses SVG dimensions from the width/height attributes or viewBox.
+   *
+   * @param svgText The SVG content as a string
+   * @returns The dimensions if found, undefined otherwise
+   */
+  private static parseSvgDimensions(
+    svgText: string
+  ): { width: number; height: number } | undefined {
+    // Try to parse width/height attributes first
+    const widthMatch = svgText.match(/\bwidth=["'](\d+(?:\.\d+)?)(px)?["']/);
+    const heightMatch = svgText.match(/\bheight=["'](\d+(?:\.\d+)?)(px)?["']/);
+
+    if (widthMatch && heightMatch) {
+      const width = parseFloat(widthMatch[1]);
+      const height = parseFloat(heightMatch[1]);
+      if (!isNaN(width) && !isNaN(height) && width > 0 && height > 0) {
+        return { width, height };
+      }
+    }
+
+    // Fall back to viewBox
+    const viewBoxMatch = svgText.match(
+      /\bviewBox=["'][\d.-]+\s+[\d.-]+\s+([\d.]+)\s+([\d.]+)["']/
+    );
+    if (viewBoxMatch) {
+      const width = parseFloat(viewBoxMatch[1]);
+      const height = parseFloat(viewBoxMatch[2]);
+      if (!isNaN(width) && !isNaN(height) && width > 0 && height > 0) {
+        return { width, height };
+      }
+    }
+
+    return undefined;
   }
 
   /**
@@ -162,12 +211,50 @@ export default class FileHelper {
   }
 
   /**
-   * Reads a PNG file (as ArrayBuffer) and detects if it contains embedded Draw.io/Diagrams.net data.
+   * Checks if a file contains embedded Draw.io/Diagrams.net data.
+   * Supports both PNG and SVG formats.
+   *
+   * @param file The image file to check
+   * @returns True if the file contains Draw.io/Diagrams.net data
+   */
+  private static async isDiagramsNetImage(file: File): Promise<boolean> {
+    if (file.type === "image/svg+xml") {
+      return this.isDiagramsNetSvg(file);
+    }
+    if (file.type === "image/png") {
+      return this.isDiagramsNetPng(file);
+    }
+    return false;
+  }
+
+  /**
+   * Checks if an SVG file contains embedded Draw.io/Diagrams.net data.
+   * Diagrams.net embeds the mxfile XML in a "content" attribute on the SVG root element.
+   *
+   * @param file The SVG file to check
+   * @returns True if the file contains Draw.io/Diagrams.net data
+   */
+  private static async isDiagramsNetSvg(file: File): Promise<boolean> {
+    try {
+      const text = await file.text();
+      // Check for mxfile content attribute (URL-encoded) or embedded mxfile element
+      return (
+        text.includes('content="%3Cmxfile') ||
+        text.includes("content='%3Cmxfile") ||
+        text.includes("<mxfile")
+      );
+    } catch (_err) {
+      return false;
+    }
+  }
+
+  /**
+   * Reads a PNG file and detects if it contains embedded Draw.io/Diagrams.net data.
    *
    * @param file The PNG file to check
    * @returns True if the file contains Draw.io/Diagrams.net data
    */
-  private static async isDiagramsNetImage(file: File): Promise<boolean> {
+  private static async isDiagramsNetPng(file: File): Promise<boolean> {
     const buffer = await file.arrayBuffer();
     const bytes = new Uint8Array(buffer);
 
@@ -267,14 +354,20 @@ export default class FileHelper {
   }
 
   /**
-   * Converts an image URL to base64 encoded data.
+   * Converts an image URL to a base64 data URI string.
    *
    * @param url - the URL of the image to convert.
-   * @returns promise resolving to base64 string (without data URI prefix).
+   * @returns promise resolving to a data URI string.
    * @throws Error if the image cannot be fetched or converted.
    */
   static async urlToBase64(url: string): Promise<string> {
-    const response = await fetch(url);
+    // Use "no-store" to skip the HTTP cache entirely. Without this, the
+    // browser may reuse a cached response that was originally fetched by an
+    // <img> tag (which omits the Origin header). S3/CloudFront can cache
+    // that response without Access-Control-Allow-Origin, causing a CORS
+    // error when fetch later tries to read the same URL with an Origin
+    // header.
+    const response = await fetch(url, { cache: "no-store" });
     if (!response.ok) {
       throw new Error(`Failed to fetch image: ${response.statusText}`);
     }
@@ -283,10 +376,7 @@ export default class FileHelper {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        const base64data = reader.result as string;
-        // Extract just the base64 portion (remove "data:image/png;base64," prefix)
-        const base64 = base64data.split(",")[1];
-        resolve(base64);
+        resolve(reader.result as string);
       };
       reader.onerror = () => {
         reject(new Error("Failed to read image as base64"));

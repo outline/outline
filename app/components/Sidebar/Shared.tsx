@@ -1,14 +1,11 @@
 import { observer } from "mobx-react";
-import { SidebarIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { hover } from "@shared/styles";
-import { metaDisplay } from "@shared/utils/keyboard";
 import type Share from "~/models/Share";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
 import SearchPopover from "~/components/SearchPopover";
-import Tooltip from "~/components/Tooltip";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import history from "~/utils/history";
@@ -21,7 +18,6 @@ import Section from "./components/Section";
 import { SharedCollectionLink } from "./components/SharedCollectionLink";
 import { SharedDocumentLink } from "./components/SharedDocumentLink";
 import SidebarButton from "./components/SidebarButton";
-import ToggleButton from "./components/ToggleButton";
 import { useEffect } from "react";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 
@@ -72,11 +68,6 @@ function SharedSidebar({ share }: Props) {
           <SearchWrapper>
             <StyledSearchPopover shareId={shareId} />
           </SearchWrapper>
-          {!teamAvailable && (
-            <ToggleWrapper>
-              <ToggleSidebar />
-            </ToggleWrapper>
-          )}
         </TopSection>
         <Section>
           {share.collectionId ? (
@@ -102,27 +93,6 @@ function SharedSidebar({ share }: Props) {
     </StyledSidebar>
   );
 }
-
-const ToggleSidebar = () => {
-  const { t } = useTranslation();
-  const { ui } = useStores();
-
-  return (
-    <Tooltip content={t("Toggle sidebar")} shortcut={`${metaDisplay}+.`}>
-      <ToggleButton
-        position="bottom"
-        image={<SidebarIcon />}
-        aria-label={
-          ui.sidebarCollapsed ? t("Expand sidebar") : t("Collapse sidebar")
-        }
-        onClick={() => {
-          ui.toggleCollapsedSidebar();
-          (document.activeElement as HTMLElement)?.blur();
-        }}
-      />
-    </Tooltip>
-  );
-};
 
 const ScrollContainer = styled(Scrollable)`
   padding-bottom: 16px;

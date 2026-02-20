@@ -8,12 +8,14 @@ import type {
 } from "@shared/types";
 import type RootStore from "~/stores/RootStore";
 import type { SidebarContextType } from "./components/Sidebar/components/SidebarContext";
+import type Model from "./models/base/Model";
 import type Document from "./models/Document";
 import type FileOperation from "./models/FileOperation";
 import type Pin from "./models/Pin";
 import type Star from "./models/Star";
 import type User from "./models/User";
 import type UserMembership from "./models/UserMembership";
+import type Policy from "./models/Policy";
 
 export type PartialExcept<T, K extends keyof T> = Partial<Omit<T, K>> &
   Required<Pick<T, K>>;
@@ -37,7 +39,8 @@ export type MenuItemWithChildren = {
   disabled?: boolean;
   style?: React.CSSProperties;
   hover?: boolean;
-
+  /** Condition to check before preventing the submenu from closing */
+  preventCloseCondition?: () => boolean;
   items: MenuItem[];
   icon?: React.ReactNode;
 };
@@ -82,6 +85,12 @@ export type MenuGroup = {
   items: MenuItem[];
 };
 
+export type MenuCustomContent = {
+  type: "custom";
+  visible?: boolean;
+  content: React.ReactNode;
+};
+
 export type MenuItem =
   | MenuInternalLink
   | MenuItemButton
@@ -89,16 +98,32 @@ export type MenuItem =
   | MenuItemWithChildren
   | MenuSeparator
   | MenuHeading
-  | MenuGroup;
+  | MenuGroup
+  | MenuCustomContent;
 
 export type ActionContext = {
   isMenu: boolean;
   isCommandBar: boolean;
   isButton: boolean;
   sidebarContext?: SidebarContextType;
+
+  // Legacy (backward compatibility) - returns primary active model's ID
   activeCollectionId?: string | undefined;
   activeDocumentId: string | undefined;
-  activeTemplateId?: string | undefined;
+
+  // New API - work directly with Model instances
+  getActiveModels: <T extends Model>(
+    modelClass: new (...args: any[]) => T
+  ) => T[];
+  getActiveModel: <T extends Model>(
+    modelClass: new (...args: any[]) => T
+  ) => T | undefined;
+  getActivePolicies: <T extends Model>(
+    modelClass: new (...args: any[]) => T
+  ) => Policy[];
+  isModelActive: (model: Model) => boolean;
+  activeModels: ReadonlySet<Model>;
+
   currentUserId: string | undefined;
   currentTeamId: string | undefined;
   location: Location;

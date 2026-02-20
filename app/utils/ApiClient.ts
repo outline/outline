@@ -34,6 +34,7 @@ interface FetchOptions {
   retry?: boolean;
   credentials?: "omit" | "same-origin" | "include";
   headers?: Record<string, string>;
+  baseUrl?: string;
 }
 
 const fetchWithRetry = retry(fetch);
@@ -97,7 +98,7 @@ class ApiClient {
     if (path.match(/^http/)) {
       urlToFetch = modifiedPath || path;
     } else {
-      urlToFetch = this.baseUrl + (modifiedPath || path);
+      urlToFetch = (options.baseUrl ?? this.baseUrl) + (modifiedPath || path);
     }
 
     const headerOptions: Record<string, string> = {
@@ -175,6 +176,7 @@ class ApiClient {
       if (!this.shareId) {
         await stores.auth.logout({
           savePath: true,
+          clearCache: false,
           revokeToken: false,
         });
       }

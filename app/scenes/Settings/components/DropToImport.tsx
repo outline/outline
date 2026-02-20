@@ -16,7 +16,6 @@ import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import { EmptySelectValue } from "~/types";
 import { uploadFile } from "~/utils/files";
-import { VStack } from "~/components/primitives/VStack";
 
 type Props = {
   children: JSX.Element;
@@ -77,7 +76,7 @@ function DropToImport({ disabled, onSubmit, children, format }: Props) {
   }
 
   return (
-    <VStack>
+    <Flex gap={8} column>
       {isImporting && <LoadingIndicator />}
       <Text as="p" type="secondary">
         <Dropzone
@@ -123,7 +122,7 @@ function DropToImport({ disabled, onSubmit, children, format }: Props) {
           {isImporting ? t("Uploading") + "…" : t("Start import")}
         </Button>
       </Flex>
-    </VStack>
+    </Flex>
   );
 }
 

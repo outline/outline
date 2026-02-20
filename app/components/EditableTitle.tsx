@@ -2,6 +2,7 @@ import * as React from "react";
 import { toast } from "sonner";
 import styled from "styled-components";
 import { s, ellipsis } from "@shared/styles";
+import EventBoundary from "@shared/components/EventBoundary";
 
 type Props = Omit<React.HTMLAttributes<HTMLInputElement>, "onSubmit"> & {
   /** A callback when the title is submitted. */
@@ -141,11 +142,12 @@ function EditableTitle(
   return (
     <>
       {isEditing ? (
-        <form onSubmit={handleSave}>
+        <EventBoundary as="form" onSubmit={handleSave}>
           <Input
             dir="auto"
             type="text"
             lang=""
+            name="title"
             value={value}
             onClick={stopPropagation}
             onKeyDown={handleKeyDown}
@@ -155,7 +157,7 @@ function EditableTitle(
             autoFocus
             {...rest}
           />
-        </form>
+        </EventBoundary>
       ) : (
         <Text
           onDoubleClick={canUpdate ? handleDoubleClick : undefined}

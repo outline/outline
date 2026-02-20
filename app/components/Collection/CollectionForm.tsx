@@ -13,6 +13,7 @@ import { colorPalette } from "@shared/utils/collections";
 import { CollectionValidation } from "@shared/validations";
 import type Collection from "~/models/Collection";
 import Button from "~/components/Button";
+import { Collapsible } from "~/components/Collapsible";
 import Input from "~/components/Input";
 import { InputSelectPermission } from "~/components/InputSelectPermission";
 import { createLazyComponent } from "~/components/LazyLoad";
@@ -144,7 +145,7 @@ export const CollectionForm = observer(function CollectionForm_({
       <HStack>
         <Input
           type="text"
-          placeholder={t("Name")}
+          label={t("Name")}
           {...register("name", {
             required: true,
             maxLength: CollectionValidation.maxNameLength,
@@ -189,38 +190,44 @@ export const CollectionForm = observer(function CollectionForm_({
         />
       )}
 
-      {team.sharing && (
-        <Controller
-          control={control}
-          name="sharing"
-          render={({ field }) => (
-            <Switch
-              id="sharing"
-              label={t("Public document sharing")}
-              note={t(
-                "Allow documents within this collection to be shared publicly on the internet."
+      {(team.sharing || team.getPreference(TeamPreference.Commenting)) && (
+        <Collapsible label={t("Advanced options")}>
+          {team.sharing && (
+            <Controller
+              control={control}
+              name="sharing"
+              render={({ field }) => (
+                <Switch
+                  id="sharing"
+                  label={t("Public document sharing")}
+                  note={t(
+                    "Allow documents within this collection to be shared publicly on the internet."
+                  )}
+                  checked={field.value}
+                  onChange={field.onChange}
+                />
               )}
-              checked={field.value}
-              onChange={field.onChange}
             />
           )}
-        />
-      )}
 
-      {team.getPreference(TeamPreference.Commenting) && (
-        <Controller
-          control={control}
-          name="commenting"
-          render={({ field }) => (
-            <Switch
-              id="commenting"
-              label={t("Commenting")}
-              note={t("Allow commenting on documents within this collection.")}
-              checked={!!field.value}
-              onChange={field.onChange}
+          {team.getPreference(TeamPreference.Commenting) && (
+            <Controller
+              control={control}
+              name="commenting"
+              render={({ field }) => (
+                <Switch
+                  id="commenting"
+                  label={t("Commenting")}
+                  note={t(
+                    "Allow commenting on documents within this collection."
+                  )}
+                  checked={!!field.value}
+                  onChange={field.onChange}
+                />
+              )}
             />
           )}
-        />
+        </Collapsible>
       )}
 
       <HStack justify="flex-end">

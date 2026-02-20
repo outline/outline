@@ -44,7 +44,6 @@ type Props = Omit<
 
 function MentionMenu({ search, isActive, ...rest }: Props) {
   const [loaded, setLoaded] = useState(false);
-  const [items, setItems] = useState<MentionItem[]>([]);
   const { t } = useTranslation();
   const { auth, documents, users, collections, groups } = useStores();
   const actorId = auth.currentUserId;
@@ -76,164 +75,161 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
 
   useEffect(() => {
     if (actorId && !loading) {
-      const items: MentionItem[] = users
-        .findByQuery(search, { maxResults: maxResultsInSection })
-        .map(
-          (user) =>
-            ({
-              name: "mention",
-              icon: (
-                <Flex
-                  align="center"
-                  justify="center"
-                  style={{ width: 24, height: 24 }}
-                >
-                  <Avatar
-                    model={user}
-                    alt={t("Profile picture")}
-                    size={AvatarSize.Small}
-                  />
-                </Flex>
-              ),
-              title: user.name,
-              section: UserSection,
-              appendSpace: true,
-              attrs: {
-                id: uuidv4(),
-                type: MentionType.User,
-                modelId: user.id,
-                actorId,
-                label: user.name,
-              },
-            }) as MentionItem
-        )
-        .concat(
-          groups
-            .findByQuery(search, { maxResults: maxResultsInSection })
-            .map((group) => ({
-              name: "mention",
-              icon: (
-                <Flex
-                  align="center"
-                  justify="center"
-                  style={{ width: 24, height: 24, marginRight: 4 }}
-                >
-                  <GroupAvatar group={group} size={AvatarSize.Small} />
-                </Flex>
-              ),
-              title: group.name,
-              subtitle: t("{{ count }} members", { count: group.memberCount }),
-              section: GroupSection,
-              appendSpace: true,
-              attrs: {
-                id: uuidv4(),
-                type: MentionType.Group,
-                modelId: group.id,
-                actorId,
-                label: group.name,
-              },
-            }))
-        )
-        .concat(
-          documents
-            .findByQuery(search, { maxResults: maxResultsInSection })
-            .map(
-              (doc) =>
-                ({
-                  name: "mention",
-                  icon: doc.icon ? (
-                    <Icon
-                      value={doc.icon}
-                      initial={doc.initial}
-                      color={doc.color ?? undefined}
-                    />
-                  ) : (
-                    <DocumentIcon />
-                  ),
-                  title: doc.title,
-                  subtitle: (
-                    <DocumentBreadcrumb
-                      document={doc}
-                      onlyText
-                      reverse
-                      maxDepth={2}
-                    />
-                  ),
-                  section: DocumentsSection,
-                  appendSpace: true,
-                  attrs: {
-                    id: uuidv4(),
-                    type: MentionType.Document,
-                    modelId: doc.id,
-                    actorId,
-                    label: doc.title,
-                  },
-                }) as MentionItem
-            )
-        )
-        .concat(
-          collections
-            .findByQuery(search, { maxResults: maxResultsInSection })
-            .map(
-              (collection) =>
-                ({
-                  name: "mention",
-                  icon: collection.icon ? (
-                    <Icon
-                      value={collection.icon}
-                      initial={collection.initial}
-                      color={collection.color ?? undefined}
-                    />
-                  ) : (
-                    <CollectionIcon />
-                  ),
-                  title: collection.name,
-                  section: CollectionsSection,
-                  appendSpace: true,
-                  attrs: {
-                    id: uuidv4(),
-                    type: MentionType.Collection,
-                    modelId: collection.id,
-                    actorId,
-                    label: collection.name,
-                  },
-                }) as MentionItem
-            )
-        )
-        .concat([
-          {
-            name: "link",
-            icon: <PlusIcon />,
-            title: search?.trim(),
-            section: DocumentsSection,
-            subtitle: t("Create a new doc"),
-            visible: !!search && !isEmail(search),
-            priority: -1,
-            appendSpace: true,
-            attrs: {
-              id: uuidv4(),
-              type: MentionType.Document,
-              modelId: uuidv4(),
-              actorId,
-              label: search,
-            },
-          } as MentionItem,
-        ]);
-
-      setItems(items);
       setLoaded(true);
     }
-  }, [
-    t,
-    actorId,
-    loading,
-    search,
-    users,
-    documents,
-    maxResultsInSection,
-    groups,
-    collections,
-  ]);
+  }, [actorId, loading]);
+
+  // Computed in the render body so MobX observer can track store access
+  // (e.g. searchSuppressed). Previously this lived inside a useEffect which
+  // runs outside the reactive context and triggered MobX warnings.
+  const items: MentionItem[] =
+    actorId && !loading
+      ? users
+          .findByQuery(search, { maxResults: maxResultsInSection })
+          .map(
+            (user) =>
+              ({
+                name: "mention",
+                icon: (
+                  <Flex
+                    align="center"
+                    justify="center"
+                    style={{ width: 24, height: 24 }}
+                  >
+                    <Avatar
+                      model={user}
+                      alt={t("Profile picture")}
+                      size={AvatarSize.Small}
+                    />
+                  </Flex>
+                ),
+                title: user.name,
+                section: UserSection,
+                appendSpace: true,
+                attrs: {
+                  id: uuidv4(),
+                  type: MentionType.User,
+                  modelId: user.id,
+                  actorId,
+                  label: user.name,
+                },
+              }) as MentionItem
+          )
+          .concat(
+            groups
+              .findByQuery(search, { maxResults: maxResultsInSection })
+              .map((group) => ({
+                name: "mention",
+                icon: (
+                  <Flex
+                    align="center"
+                    justify="center"
+                    style={{ width: 24, height: 24, marginRight: 4 }}
+                  >
+                    <GroupAvatar group={group} size={AvatarSize.Small} />
+                  </Flex>
+                ),
+                title: group.name,
+                subtitle: t("{{ count }} members", {
+                  count: group.memberCount,
+                }),
+                section: GroupSection,
+                appendSpace: true,
+                attrs: {
+                  id: uuidv4(),
+                  type: MentionType.Group,
+                  modelId: group.id,
+                  actorId,
+                  label: group.name,
+                },
+              }))
+          )
+          .concat(
+            documents
+              .findByQuery(search, { maxResults: maxResultsInSection })
+              .map(
+                (doc) =>
+                  ({
+                    name: "mention",
+                    icon: doc.icon ? (
+                      <Icon
+                        value={doc.icon}
+                        initial={doc.initial}
+                        color={doc.color ?? undefined}
+                      />
+                    ) : (
+                      <DocumentIcon />
+                    ),
+                    title: doc.title,
+                    subtitle: doc.collectionId ? (
+                      <DocumentBreadcrumb
+                        document={doc}
+                        onlyText
+                        reverse
+                        maxDepth={2}
+                      />
+                    ) : undefined,
+                    section: DocumentsSection,
+                    appendSpace: true,
+                    attrs: {
+                      id: uuidv4(),
+                      type: MentionType.Document,
+                      modelId: doc.id,
+                      actorId,
+                      label: doc.title,
+                    },
+                  }) as MentionItem
+              )
+          )
+          .concat(
+            collections
+              .findByQuery(search, { maxResults: maxResultsInSection })
+              .map(
+                (collection) =>
+                  ({
+                    name: "mention",
+                    icon: collection.icon ? (
+                      <Icon
+                        value={collection.icon}
+                        initial={collection.initial}
+                        color={collection.color ?? undefined}
+                      />
+                    ) : (
+                      <CollectionIcon />
+                    ),
+                    title: collection.name,
+                    section: CollectionsSection,
+                    appendSpace: true,
+                    attrs: {
+                      id: uuidv4(),
+                      type: MentionType.Collection,
+                      modelId: collection.id,
+                      actorId,
+                      label: collection.name,
+                    },
+                  }) as MentionItem
+              )
+          )
+          .concat([
+            {
+              name: "link",
+              icon: <PlusIcon />,
+              title: search?.trim(),
+              section: DocumentsSection,
+              subtitle: t("Create a new doc"),
+              visible: !!search && !isEmail(search),
+              priority: -1,
+              appendSpace: true,
+              attrs: {
+                id: uuidv4(),
+                type: MentionType.Document,
+                modelId: uuidv4(),
+                actorId,
+                label: search,
+              },
+            } as MentionItem,
+          ])
+      : [];
 
   const handleSelect = useCallback(
     async (item: MentionItem) => {

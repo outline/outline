@@ -1,4 +1,4 @@
-import path from "path";
+import path from "node:path";
 import fractionalIndex from "fractional-index";
 import fs from "fs-extra";
 import invariant from "invariant";
@@ -7,15 +7,21 @@ import JSZip from "jszip";
 import Router from "koa-router";
 import escapeRegExp from "lodash/escapeRegExp";
 import has from "lodash/has";
-import isNil from "lodash/isNil";
 import remove from "lodash/remove";
 import uniq from "lodash/uniq";
 import mime from "mime-types";
 import type { Order, ScopeOptions, WhereOptions } from "sequelize";
 import { Op, Sequelize } from "sequelize";
-import { randomUUID } from "crypto";
-import type { NavigationNode } from "@shared/types";
-import { StatusFilter, UserRole } from "@shared/types";
+import { randomUUID } from "node:crypto";
+import type { DirectionFilter, SortFilter } from "@shared/types";
+import { type NavigationNode } from "@shared/types";
+import {
+  FileOperationFormat,
+  FileOperationState,
+  FileOperationType,
+  StatusFilter,
+  UserRole,
+} from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import slugify from "@shared/utils/slugify";
 import documentCreator from "@server/commands/documentCreator";
@@ -53,6 +59,7 @@ import {
   Group,
   GroupUser,
   GroupMembership,
+  FileOperation,
 } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -68,6 +75,7 @@ import {
   presentUser,
   presentGroupMembership,
   presentGroup,
+  presentFileOperation,
 } from "@server/presenters";
 import type { DocumentImportTaskResponse } from "@server/queues/tasks/DocumentImportTask";
 import DocumentImportTask from "@server/queues/tasks/DocumentImportTask";
@@ -76,11 +84,15 @@ import FileStorage from "@server/storage/files";
 import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import ZipHelper from "@server/utils/ZipHelper";
+import { convertBareUrlsToEmbedMarkdown } from "@server/utils/embeds";
 import { getTeamFromContext } from "@server/utils/passport";
 import { assertPresent } from "@server/validation";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
-import { loadPublicShare } from "@server/commands/shareLoader";
+import {
+  loadPublicShare,
+  getAllIdsInSharedTree,
+} from "@server/commands/shareLoader";
 
 const router = new Router();
 
@@ -547,7 +559,7 @@ router.post(
     });
 
     let document: Document | null;
-    let serializedDocument: Record<string, any> | undefined;
+    let serializedDocument: Record<string, unknown> | undefined;
     let isPublic = false;
 
     if (shareId) {
@@ -573,10 +585,21 @@ router.post(
 
       isPublic = cannot(user, "read", document);
 
+      // Get backlinks that are within the shared tree
+      let backlinkIds: string[] | undefined;
+      if (result.sharedTree) {
+        const allowedDocumentIds = getAllIdsInSharedTree(result.sharedTree);
+        backlinkIds = await Relationship.findSourceDocumentIdsInSharedTree(
+          document.id,
+          allowedDocumentIds
+        );
+      }
+
       serializedDocument = await presentDocument(ctx, document, {
         isPublic,
         shareId,
         includeUpdatedAt: result.share.showLastUpdated,
+        backlinkIds,
       });
     } else {
       if (!user) {
@@ -720,7 +743,7 @@ router.post(
   auth(),
   validate(T.DocumentsExportSchema),
   async (ctx: APIContext<T.DocumentsExportReq>) => {
-    const { id } = ctx.input.body;
+    const { id, signedUrls, includeChildDocuments } = ctx.input.body;
     const { user } = ctx.state.auth;
     const accept = ctx.request.headers["accept"];
 
@@ -731,25 +754,78 @@ router.post(
       includeState: !accept?.includes("text/markdown"),
     });
 
+    authorize(user, "download", document);
+
+    const format = accept?.includes("text/html")
+      ? FileOperationFormat.HTMLZip
+      : accept?.includes("text/markdown")
+        ? FileOperationFormat.MarkdownZip
+        : accept?.includes("application/pdf")
+          ? FileOperationFormat.PDF
+          : null;
+
+    if (format === FileOperationFormat.PDF) {
+      throw IncorrectEditionError(
+        "PDF export is not available in the community edition"
+      );
+    }
+
+    if (includeChildDocuments) {
+      if (!format) {
+        throw InvalidRequestError(
+          "format needed for exporting nested documents"
+        );
+      }
+
+      const fileOperation = await FileOperation.createWithCtx(ctx, {
+        type: FileOperationType.Export,
+        state: FileOperationState.Creating,
+        format,
+        key: FileOperation.getExportKey({
+          name: document.titleWithDefault,
+          teamId: document.teamId,
+          format,
+        }),
+        url: null,
+        size: 0,
+        documentId: document.id,
+        userId: user.id,
+        teamId: document.teamId,
+      });
+
+      fileOperation.user = user;
+      fileOperation.document = document;
+
+      ctx.body = {
+        success: true,
+        data: {
+          fileOperation: presentFileOperation(fileOperation),
+        },
+      };
+      return;
+    }
+
     let contentType: string;
     let content: string;
 
-    if (accept?.includes("text/html")) {
+    const toMarkdown = async () =>
+      DocumentHelper.toMarkdown(document, {
+        signedUrls,
+        teamId: user.teamId,
+      });
+
+    if (format === FileOperationFormat.HTMLZip) {
       contentType = "text/html";
       content = await DocumentHelper.toHTML(document, {
         centered: true,
         includeMermaid: true,
       });
-    } else if (accept?.includes("application/pdf")) {
-      throw IncorrectEditionError(
-        "PDF export is not available in the community edition"
-      );
-    } else if (accept?.includes("text/markdown")) {
+    } else if (format === FileOperationFormat.MarkdownZip) {
       contentType = "text/markdown";
-      content = DocumentHelper.toMarkdown(document);
+      content = await toMarkdown();
     } else {
       ctx.body = {
-        data: DocumentHelper.toMarkdown(document),
+        data: await toMarkdown(),
       };
       return;
     }
@@ -900,7 +976,7 @@ router.post(
       const revision = await Revision.findByPk(revisionId, { transaction });
       authorize(document, "restore", revision);
 
-      document.restoreFromRevision(revision);
+      await document.restoreFromRevision(revision);
       await document.saveWithCtx(ctx, undefined, { name: "restore" });
     } else {
       assertPresent(revisionId, "revisionId is required");
@@ -920,8 +996,15 @@ router.post(
   rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsSearchTitlesSchema),
   async (ctx: APIContext<T.DocumentsSearchTitlesReq>) => {
-    const { query, statusFilter, dateFilter, collectionId, userId } =
-      ctx.input.body;
+    const {
+      query,
+      statusFilter,
+      dateFilter,
+      collectionId,
+      userId,
+      sort,
+      direction,
+    } = ctx.input.body;
     const { offset, limit } = ctx.state.pagination;
     const { user } = ctx.state.auth;
     let collaboratorIds = undefined;
@@ -945,6 +1028,8 @@ router.post(
       collaboratorIds,
       offset,
       limit,
+      sort: sort as SortFilter,
+      direction: direction as DirectionFilter,
     });
     const policies = presentPolicies(user, documents);
     const data = await Promise.all(
@@ -976,6 +1061,8 @@ router.post(
       shareId,
       snippetMinWords,
       snippetMaxWords,
+      sort,
+      direction,
     } = ctx.input.body;
     const { offset, limit } = ctx.state.pagination;
     const { user } = ctx.state.auth;
@@ -1029,6 +1116,8 @@ router.post(
         limit,
         snippetMinWords,
         snippetMaxWords,
+        sort: sort as SortFilter,
+        direction: direction as DirectionFilter,
       });
     } else {
       if (!user) {
@@ -1073,6 +1162,8 @@ router.post(
         limit,
         snippetMinWords,
         snippetMaxWords,
+        sort: sort as SortFilter,
+        direction: direction as DirectionFilter,
       });
     }
 
@@ -1428,26 +1519,11 @@ router.post(
   async (ctx: APIContext<T.DocumentsUnpublishReq>) => {
     const { id, detach } = ctx.input.body;
     const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
 
     const document = await Document.findByPk(id, {
       userId: user.id,
     });
     authorize(user, "unpublish", document);
-
-    const childDocumentIds = await document.findAllChildDocumentIds(
-      {
-        archivedAt: {
-          [Op.eq]: null,
-        },
-      },
-      { transaction }
-    );
-    if (childDocumentIds.length > 0) {
-      throw InvalidRequestError(
-        "Cannot unpublish document with child documents"
-      );
-    }
 
     await document.unpublishWithCtx(ctx, { detach });
 
@@ -1462,11 +1538,14 @@ router.post(
   "documents.import",
   auth(),
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
+  multipart({
+    maximumFileSize: env.FILE_STORAGE_IMPORT_MAX_SIZE,
+    optional: true,
+  }),
   validate(T.DocumentsImportSchema),
-  multipart({ maximumFileSize: env.FILE_STORAGE_IMPORT_MAX_SIZE }),
   async (ctx: APIContext<T.DocumentsImportReq>) => {
-    const { collectionId, parentDocumentId, publish } = ctx.input.body;
-    const file = ctx.input.file;
+    const { collectionId, parentDocumentId, publish, attachmentId } =
+      ctx.input.body;
     const { user } = ctx.state.auth;
 
     if (collectionId) {
@@ -1485,24 +1564,37 @@ router.post(
       authorize(user, "createChildDocument", parentDocument);
     }
 
-    const buffer = await fs.readFile(file.filepath);
-    const fileName = file.originalFilename ?? file.newFilename;
-    const mimeType = file.mimetype ?? "";
-    const acl = "private";
+    let key: string;
+    let fileName: string;
+    let mimeType: string;
 
-    const key = AttachmentHelper.getKey({
-      id: randomUUID(),
-      name: fileName,
-      userId: user.id,
-    });
+    if (attachmentId) {
+      const attachment = await Attachment.findByPk(attachmentId);
+      authorize(user, "read", attachment);
 
-    await FileStorage.store({
-      body: buffer,
-      contentType: mimeType,
-      contentLength: buffer.length,
-      key,
-      acl,
-    });
+      key = attachment.key;
+      fileName = attachment.name;
+      mimeType = attachment.contentType;
+    } else {
+      const file = ctx.input.file!;
+      const buffer = await fs.readFile(file.filepath);
+      fileName = file.originalFilename ?? file.newFilename;
+      mimeType = file.mimetype ?? "";
+
+      key = AttachmentHelper.getKey({
+        id: randomUUID(),
+        name: fileName,
+        userId: user.id,
+      });
+
+      await FileStorage.store({
+        body: buffer,
+        contentType: mimeType,
+        contentLength: buffer.length,
+        key,
+        acl: "private",
+      });
+    }
 
     const job = await new DocumentImportTask().schedule({
       key,
@@ -1511,7 +1603,7 @@ router.post(
         mimeType,
       },
       userId: user.id,
-      collectionId: collectionId ?? parentDocument?.collectionId, // collectionId will be null when parent document is shared to the user.
+      collectionId: collectionId ?? parentDocument?.collectionId,
       parentDocumentId,
       publish,
       ip: ctx.request.ip,
@@ -1547,6 +1639,7 @@ router.post(
       icon,
       color,
       publish,
+      index,
       collectionId,
       parentDocumentId,
       fullWidth,
@@ -1594,16 +1687,24 @@ router.post(
       authorize(user, "read", template);
     }
 
+    // Pre-process text to convert bare embed URLs to markdown link format
+    const processedText = text ? convertBareUrlsToEmbedMarkdown(text) : text;
+
     const document = await documentCreator(ctx, {
       id,
       title,
-      text: !isNil(text)
-        ? await TextHelper.replaceImagesWithAttachments(ctx, text, user)
-        : text,
+      text: processedText
+        ? await TextHelper.replaceImagesWithAttachments(
+            ctx,
+            processedText,
+            user
+          )
+        : processedText,
       icon,
       color,
       createdAt,
       publish,
+      index,
       collectionId: collection?.id,
       parentDocumentId,
       template,

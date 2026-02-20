@@ -1,4 +1,4 @@
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import { randomString } from "@shared/random";
 import slugify from "@shared/utils/slugify";
 import {
@@ -20,7 +20,7 @@ describe("#url", () => {
     const collection = new Collection({
       id: "1234",
     });
-    expect(collection.url).toBe(`/collection/untitled-${collection.urlId}`);
+    expect(collection.path).toBe(`/collection/untitled-${collection.urlId}`);
   });
 });
 

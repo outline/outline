@@ -18,7 +18,9 @@ import type { Permission } from "~/types";
 import { EmptySelectValue } from "~/types";
 import { homePath } from "~/utils/routeHelpers";
 import { ListItem } from "../components/ListItem";
+import { GroupMembersPopover } from "../components";
 import DocumentMemberListItem from "./DocumentMemberListItem";
+import ButtonLink from "~/components/ButtonLink";
 
 type Props = {
   /** Document to which team members are supposed to be invited */
@@ -29,7 +31,7 @@ type Props = {
   invitedInSession: string[];
 };
 
-function DocumentMembersList({ document, invitedInSession }: Props) {
+function DocumentMemberList({ document, invitedInSession }: Props) {
   const { userMemberships, groupMemberships } = useStores();
 
   const user = useCurrentUser();
@@ -153,9 +155,13 @@ function DocumentMembersList({ document, invitedInSession }: Props) {
                     </MaybeLink>
                   </Trans>
                 ) : (
-                  t("{{ count }} member", {
-                    count: membership.group.memberCount,
-                  })
+                  <GroupMembersPopover group={membership.group}>
+                    <StyledButtonLink>
+                      {t("{{ count }} member", {
+                        count: membership.group.memberCount,
+                      })}
+                    </StyledButtonLink>
+                  </GroupMembersPopover>
                 )
               }
               actions={
@@ -206,9 +212,16 @@ function DocumentMembersList({ document, invitedInSession }: Props) {
   );
 }
 
+const StyledButtonLink = styled(ButtonLink)`
+  color: ${s("textTertiary")};
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
 const StyledLink = styled(Link)`
   color: ${s("textTertiary")};
   text-decoration: underline;
 `;
 
-export default observer(DocumentMembersList);
+export default observer(DocumentMemberList);

@@ -1,5 +1,5 @@
 import queryString from "query-string";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import { randomElement } from "@shared/random";
 import { NotificationEventType } from "@shared/types";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";

@@ -22,6 +22,7 @@ import DomainManagement from "./components/DomainManagement";
 import Button from "~/components/Button";
 import { ConnectedIcon } from "~/components/Icons/ConnectedIcon";
 import { useTheme } from "styled-components";
+import { VStack } from "~/components/primitives/VStack";
 
 function Authentication() {
   const { authenticationProviders, dialogs } = useStores();
@@ -134,23 +135,28 @@ function Authentication() {
         >
           <Flex align="center" gap={12}>
             {provider.isConnected ? (
-              <Button
-                icon={
-                  provider.isEnabled ? (
-                    <ConnectedIcon />
-                  ) : (
-                    <ConnectedIcon color={theme.textSecondary} />
-                  )
-                }
-                onClick={() =>
-                  !provider.isEnabled
-                    ? handleToggleProvider(provider, true)
-                    : handleRemoveProvider(provider)
-                }
-                neutral
-              >
-                {provider.isEnabled ? t("Connected") : t("Disabled")}
-              </Button>
+              <VStack align="start">
+                <Button
+                  icon={
+                    provider.isEnabled ? (
+                      <ConnectedIcon />
+                    ) : (
+                      <ConnectedIcon color={theme.textSecondary} />
+                    )
+                  }
+                  onClick={() =>
+                    !provider.isEnabled
+                      ? handleToggleProvider(provider, true)
+                      : handleRemoveProvider(provider)
+                  }
+                  neutral
+                >
+                  {provider.isEnabled ? t("Connected") : t("Disabled")}
+                </Button>
+                <Text type="tertiary" size="small">
+                  {provider.providerId}
+                </Text>
+              </VStack>
             ) : (
               <Button
                 onClick={() => handleConnectProvider(provider.name)}
@@ -181,6 +187,29 @@ function Authentication() {
           checked={team.guestSignin}
           onChange={handleGuestSigninChange}
           disabled={!env.EMAIL_ENABLED}
+        />
+      </SettingRow>
+
+      <SettingRow
+        label={
+          <Flex gap={8} align="center">
+            <PadlockIcon /> {t("Passkeys")}
+          </Flex>
+        }
+        name="passkeysEnabled"
+        description={t("Allow members to sign-in with a WebAuthn passkey")}
+      >
+        <Switch
+          id="passkeysEnabled"
+          checked={team.passkeysEnabled}
+          onChange={async (checked) => {
+            try {
+              await team.save({ passkeysEnabled: checked });
+              toast.success(t("Settings saved"));
+            } catch (err) {
+              toast.error(err.message);
+            }
+          }}
         />
       </SettingRow>
 

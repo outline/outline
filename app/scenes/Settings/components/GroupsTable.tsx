@@ -1,5 +1,7 @@
 import compact from "lodash/compact";
+import { observer } from "mobx-react";
 import { GroupIcon } from "outline-icons";
+import * as React from "react";
 import { useCallback, useMemo } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
@@ -14,6 +16,8 @@ import {
   SortableTable,
 } from "~/components/SortableTable";
 import { type Column as TableColumn } from "~/components/Table";
+import { ContextMenu } from "~/components/Menu/ContextMenu";
+import { useGroupMenuActions } from "~/hooks/useGroupMenuActions";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
 import useStores from "~/hooks/useStores";
@@ -29,6 +33,23 @@ const STICKY_OFFSET = HEADER_HEIGHT + FILTER_HEIGHT;
 
 type Props = Omit<TableProps<Group>, "columns" | "rowHeight">;
 
+const GroupRowContextMenu = observer(function GroupRowContextMenu({
+  group,
+  menuLabel,
+  children,
+}: {
+  group: Group;
+  menuLabel: string;
+  children: React.ReactNode;
+}) {
+  const action = useGroupMenuActions(group);
+  return (
+    <ContextMenu action={action} ariaLabel={menuLabel}>
+      {children}
+    </ContextMenu>
+  );
+});
+
 export function GroupsTable(props: Props) {
   const { t } = useTranslation();
   const { dialogs } = useStores();
@@ -41,6 +62,15 @@ export function GroupsTable(props: Props) {
       });
     },
     [t, dialogs]
+  );
+
+  const applyContextMenu = useCallback(
+    (group: Group, rowElement: React.ReactNode) => (
+      <GroupRowContextMenu group={group} menuLabel={t("Group options")}>
+        {rowElement}
+      </GroupRowContextMenu>
+    ),
+    [t]
   );
 
   const columns = useMemo<TableColumn<Group>[]>(
@@ -136,6 +166,7 @@ export function GroupsTable(props: Props) {
       columns={columns}
       rowHeight={ROW_HEIGHT}
       stickyOffset={STICKY_OFFSET}
+      decorateRow={applyContextMenu}
       {...props}
     />
   );

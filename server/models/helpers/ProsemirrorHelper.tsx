@@ -1,28 +1,41 @@
+import emojiRegex from "emoji-regex";
 import { JSDOM } from "jsdom";
+import chunk from "lodash/chunk";
 import compact from "lodash/compact";
+import { EditorState } from "prosemirror-state";
+import { EditorView } from "prosemirror-view";
 import flatten from "lodash/flatten";
 import isMatch from "lodash/isMatch";
 import uniq from "lodash/uniq";
-import { Node, DOMSerializer, Fragment } from "prosemirror-model";
+import { Node, Fragment } from "prosemirror-model";
 import { renderToString } from "react-dom/server";
 import styled, { ServerStyleSheet, ThemeProvider } from "styled-components";
 import { prosemirrorToYDoc } from "y-prosemirror";
 import * as Y from "yjs";
+import Diff from "@shared/editor/extensions/Diff";
+import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
+import type { ExtendedChange } from "@shared/editor/lib/ChangesetHelper";
 import EditorContainer from "@shared/editor/components/Styles";
 import GlobalStyles from "@shared/styles/globals";
 import light from "@shared/styles/theme";
 import type { ProsemirrorData, UnfurlResponse } from "@shared/types";
-import { MentionType } from "@shared/types";
-import { attachmentRedirectRegex } from "@shared/utils/ProsemirrorHelper";
+import { AttachmentPreset, MentionType } from "@shared/types";
+import {
+  attachmentRedirectRegex,
+  ProsemirrorHelper as SharedProsemirrorHelper,
+} from "@shared/utils/ProsemirrorHelper";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { isRTL } from "@shared/utils/rtl";
 import { isInternalUrl } from "@shared/utils/urls";
-import { schema, parser } from "@server/editor";
+import attachmentCreator from "@server/commands/attachmentCreator";
+import { plugins, schema, parser } from "@server/editor";
+import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
 import Attachment from "@server/models/Attachment";
 import User from "@server/models/User";
 import FileStorage from "@server/storage/files";
+import type { APIContext } from "@server/types";
 
 export type HTMLOptions = {
   /** A title, if it should be included */
@@ -37,6 +50,8 @@ export type HTMLOptions = {
   centered?: boolean;
   /** The base URL to use for relative links */
   baseUrl?: string;
+  /** Changes to highlight in the document */
+  changes?: readonly ExtendedChange[];
 };
 
 export type MentionAttrs = {
@@ -80,7 +95,7 @@ export class ProsemirrorHelper {
   }
 
   /**
-   * Converts a plain object into a Prosemirror Node.
+   * Converts a plain object or Markdown string into a Prosemirror Node.
    *
    * @param data The ProsemirrorData object or string to parse.
    * @returns The content as a Prosemirror Node
@@ -440,113 +455,131 @@ export class ProsemirrorHelper {
    * @param options Options for the HTML output
    * @returns The content as a HTML string
    */
-  static toHTML(node: Node, options?: HTMLOptions) {
-    const sheet = new ServerStyleSheet();
-    let html = "";
-    let styleTags = "";
+  public static toHTML(node: Node, options?: HTMLOptions) {
+    let view;
+    let cleanupEnv;
 
-    const Centered = options?.centered
-      ? styled.article`
-          max-width: 46em;
-          margin: 0 auto;
-          padding: 0 1em;
-        `
-      : "article";
-
-    const rtl = isRTL(node.textContent);
-    const content = <div id="content" className="ProseMirror" />;
-    const children = (
-      <>
-        {options?.title && <h1 dir={rtl ? "rtl" : "ltr"}>{options.title}</h1>}
-        {options?.includeStyles !== false ? (
-          <EditorContainer dir={rtl ? "rtl" : "ltr"} rtl={rtl} staticHTML>
-            {content}
-          </EditorContainer>
-        ) : (
-          content
-        )}
-      </>
-    );
-
-    // First render the containing document which has all the editor styles,
-    // global styles, layout and title.
     try {
-      html = renderToString(
-        sheet.collectStyles(
-          <ThemeProvider theme={light}>
-            <>
-              {options?.includeStyles === false ? (
-                <article>{children}</article>
-              ) : (
-                <>
-                  <GlobalStyles staticHTML />
-                  <Centered>{children}</Centered>
-                </>
-              )}
-            </>
-          </ThemeProvider>
-        )
+      const sheet = new ServerStyleSheet();
+      let html = "";
+      let styleTags = "";
+
+      const Centered = options?.centered
+        ? styled.article`
+            max-width: calc(
+              ${EditorStyleHelper.documentWidth} +
+                ${EditorStyleHelper.documentGutter}
+            );
+            margin: 0 auto;
+            padding: 0 1em;
+          `
+        : "article";
+
+      const rtl = isRTL(node.textContent);
+      const content = <div id="content" className="ProseMirror exported" />;
+      const children = (
+        <>
+          {options?.title && <h1 dir={rtl ? "rtl" : "ltr"}>{options.title}</h1>}
+          {options?.includeStyles !== false ? (
+            <EditorContainer dir={rtl ? "rtl" : "ltr"} $rtl={rtl} staticHTML>
+              {content}
+            </EditorContainer>
+          ) : (
+            content
+          )}
+        </>
       );
-      styleTags = sheet.getStyleTags();
-    } catch (error) {
-      Logger.error("Failed to render styles on node HTML conversion", error);
-    } finally {
-      sheet.seal();
-    }
 
-    // Render the Prosemirror document using virtual DOM and serialize the
-    // result to a string
-    const dom = new JSDOM(
-      `<!DOCTYPE html><meta charset="utf-8">${
-        options?.includeStyles === false ? "" : styleTags
-      }${html}`
-    );
-    const doc = dom.window.document;
-    const target = doc.getElementById("content");
-
-    DOMSerializer.fromSchema(schema).serializeFragment(
-      node.content,
-      {
-        document: doc,
-      },
-      // @ts-expect-error incorrect library type, third argument is target node
-      target
-    );
-
-    // Convert relative urls to absolute
-    if (options?.baseUrl) {
-      const elements = doc.querySelectorAll("a[href]");
-      for (const el of elements) {
-        if ("href" in el && (el.href as string).startsWith("/")) {
-          el.href = new URL(el.href as string, options.baseUrl).toString();
-        }
+      // First render the containing document which has all the editor styles,
+      // global styles, layout and title.
+      try {
+        html = renderToString(
+          sheet.collectStyles(
+            <ThemeProvider theme={light}>
+              <>
+                {options?.includeStyles === false ? (
+                  <article>{children}</article>
+                ) : (
+                  <>
+                    <GlobalStyles staticHTML />
+                    <Centered>{children}</Centered>
+                  </>
+                )}
+              </>
+            </ThemeProvider>
+          )
+        );
+        styleTags = sheet.getStyleTags();
+      } catch (error) {
+        Logger.error("Failed to render styles on node HTML conversion", error);
+      } finally {
+        sheet.seal();
       }
-    }
 
-    // Inject mermaidjs scripts if the document contains mermaid diagrams
-    if (options?.includeMermaid) {
-      const mermaidElements = dom.window.document.querySelectorAll(
-        `[data-language="mermaidjs"] pre code`
+      // Render the Prosemirror document using virtual DOM and serialize the
+      // result to a string
+      const dom = new JSDOM(
+        `<!DOCTYPE html><meta charset="utf-8">${
+          options?.includeStyles === false ? "" : styleTags
+        }${html}`
+      );
+      const doc = dom.window.document;
+      const target = doc.getElementById("content");
+
+      cleanupEnv = this.patchGlobalEnv(dom.window);
+
+      const diffPlugins = options?.changes
+        ? new Diff({ changes: options.changes }).plugins
+        : [];
+
+      const state = EditorState.create({
+        doc: node,
+        plugins: [...plugins, ...diffPlugins],
+        schema,
+      });
+
+      view = new EditorView(
+        { mount: target as HTMLElement },
+        {
+          state,
+          editable: () => false,
+        }
       );
 
-      // Unwrap <pre> tags to enable Mermaid script to correctly render inner content
-      for (const el of mermaidElements) {
-        const parent = el.parentNode as HTMLElement;
-        if (parent) {
-          while (el.firstChild) {
-            parent.insertBefore(el.firstChild, el);
+      // Convert relative urls to absolute
+      if (options?.baseUrl) {
+        const elements = doc.querySelectorAll("a[href]");
+        for (const el of elements) {
+          if ("href" in el && (el.href as string).startsWith("/")) {
+            el.href = new URL(el.href as string, options.baseUrl).toString();
           }
-          parent.removeChild(el);
-          parent.setAttribute("class", "mermaid");
         }
       }
 
-      const element = dom.window.document.createElement("script");
-      element.setAttribute("type", "module");
+      // Inject mermaidjs scripts if the document contains mermaid diagrams (supports both "mermaid" and "mermaidjs")
+      if (options?.includeMermaid) {
+        const mermaidElements = dom.window.document.querySelectorAll(
+          `[data-language="mermaid"] pre code, [data-language="mermaidjs"] pre code`
+        );
 
-      // Inject Mermaid script
-      if (mermaidElements.length) {
-        element.innerHTML = `
+        // Unwrap <pre> tags to enable Mermaid script to correctly render inner content
+        for (const el of mermaidElements) {
+          const parent = el.parentNode as HTMLElement;
+          if (parent) {
+            while (el.firstChild) {
+              parent.insertBefore(el.firstChild, el);
+            }
+            parent.removeChild(el);
+            parent.setAttribute("class", "mermaid");
+          }
+        }
+
+        const element = dom.window.document.createElement("script");
+        element.setAttribute("type", "module");
+
+        // Inject Mermaid script
+        if (mermaidElements.length) {
+          element.innerHTML = `
           import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
           mermaid.initialize({
             startOnLoad: true,
@@ -554,30 +587,38 @@ export class ProsemirrorHelper {
           });
           window.status = "ready";
         `;
-      } else {
-        element.innerHTML = `
+        } else {
+          element.innerHTML = `
           window.status = "ready";
         `;
+        }
+
+        dom.window.document.body.appendChild(element);
       }
 
-      dom.window.document.body.appendChild(element);
-    }
+      const output = dom.serialize();
 
-    const output = dom.serialize();
-
-    if (options?.includeHead === false) {
-      // replace everything upto and including "<body>"
-      const body = "<body>";
-      const bodyIndex = output.indexOf(body) + body.length;
-      if (bodyIndex !== -1) {
-        return output
-          .substring(bodyIndex)
-          .replace("</body>", "")
-          .replace("</html>", "");
+      if (options?.includeHead === false) {
+        // replace everything upto and including "<body>"
+        const body = "<body>";
+        const bodyIndex = output.indexOf(body) + body.length;
+        if (bodyIndex !== -1) {
+          return output
+            .substring(bodyIndex)
+            .replace("</body>", "")
+            .replace("</html>", "");
+        }
       }
-    }
 
-    return output;
+      return output;
+    } finally {
+      try {
+        view?.destroy();
+      } catch (err) {
+        Logger.error("Error destroying ProseMirror view", err);
+      }
+      cleanupEnv?.();
+    }
   }
 
   /**
@@ -653,5 +694,266 @@ export class ProsemirrorHelper {
     }
 
     return transformMentions(json);
+  }
+
+  /**
+   * Removes the first heading from the document if it is an H1.
+   *
+   * @param doc The Prosemirror document node.
+   * @returns A new document with the first H1 removed, or the original if no H1 found.
+   */
+  static removeFirstHeading(doc: Node): Node {
+    const firstChild = doc.firstChild;
+
+    if (
+      firstChild &&
+      firstChild.type.name === "heading" &&
+      firstChild.attrs.level === 1
+    ) {
+      const content: Node[] = [];
+      doc.forEach((node, _offset, index) => {
+        if (index > 0) {
+          content.push(node);
+        }
+      });
+
+      // If removing the heading leaves an empty document, return a doc with empty paragraph
+      if (content.length === 0) {
+        return doc.type.create(null, schema.nodes.paragraph.create());
+      }
+
+      return doc.copy(Fragment.fromArray(content));
+    }
+
+    return doc;
+  }
+
+  /**
+   * Extracts an emoji from the beginning of the document's first text content.
+   * If found, returns the emoji and a new document with the emoji removed.
+   *
+   * @param doc The Prosemirror document node.
+   * @returns An object with the extracted emoji (or undefined) and the modified document.
+   */
+  static extractEmojiFromStart(doc: Node): { emoji?: string; doc: Node } {
+    // Get the text content from the beginning of the document
+    let textContent = "";
+    let foundTextNode: Node | null = null;
+
+    doc.descendants((node) => {
+      if (foundTextNode) {
+        return false;
+      }
+      if (node.isText && node.text) {
+        textContent = node.text;
+        foundTextNode = node;
+        return false;
+      }
+      return true;
+    });
+
+    if (!textContent) {
+      return { doc };
+    }
+
+    const regex = emojiRegex();
+    const match = regex.exec(textContent.slice(0, 10));
+
+    if (!match || match.index !== 0) {
+      return { doc };
+    }
+
+    const emoji = match[0];
+
+    // Create a new document with the emoji removed from the text
+    const json = doc.toJSON();
+
+    function removeEmojiFromNode(node: any): any {
+      if (node.type === "text" && node.text && node.text.startsWith(emoji)) {
+        return {
+          ...node,
+          text: node.text.slice(emoji.length),
+        };
+      }
+      if (node.content) {
+        let found = false;
+        return {
+          ...node,
+          content: node.content.map((child: any) => {
+            if (found) {
+              return child;
+            }
+            const result = removeEmojiFromNode(child);
+            if (result !== child) {
+              found = true;
+            }
+            return result;
+          }),
+        };
+      }
+      return node;
+    }
+
+    const modifiedJson = removeEmojiFromNode(json);
+    return {
+      emoji,
+      doc: Node.fromJSON(schema, modifiedJson),
+    };
+  }
+
+  /**
+   * Patches the global environment with properties from the JSDOM window,
+   * necessary for ProseMirror to run in a Node environment.
+   *
+   * @param domWindow The JSDOM window object.
+   * @returns A cleanup function to restore the global environment.
+   */
+  public static patchGlobalEnv(domWindow: JSDOM["window"]) {
+    const g = global as any;
+
+    const globalParams = {
+      window: g.window,
+      document: g.document,
+      navigator: g.navigator,
+      getSelection: g.getSelection,
+      requestAnimationFrame: g.requestAnimationFrame,
+      cancelAnimationFrame: g.cancelAnimationFrame,
+      HTMLElement: g.HTMLElement,
+      Node: g.Node,
+      MutationObserver: g.MutationObserver,
+    };
+
+    const patch = (key: string, value: unknown) => {
+      try {
+        g[key] = value;
+      } catch (_err) {
+        // Ignore errors if property is read-only
+      }
+    };
+
+    patch("window", domWindow);
+    patch("document", domWindow.document);
+    patch("navigator", domWindow.navigator);
+    patch("getSelection", () => null);
+    patch("requestAnimationFrame", (fn: Function) => setTimeout(fn, 0));
+    patch("cancelAnimationFrame", (id: number) => clearTimeout(id));
+    patch("HTMLElement", domWindow.HTMLElement);
+    patch("Node", domWindow.Node);
+    patch("MutationObserver", domWindow.MutationObserver);
+
+    return () => {
+      Object.entries(globalParams).forEach(([key, value]) => {
+        try {
+          g[key] = value;
+        } catch (_err) {
+          // Ignore errors if property is read-only
+        }
+      });
+    };
+  }
+
+  /**
+   * Replaces remote and base64 encoded images in the given Prosemirror node
+   * with attachment urls and uploads the images to the storage provider.
+   *
+   * @param ctx The API context.
+   * @param doc The Prosemirror node to process.
+   * @param user The user context.
+   * @returns A new Prosemirror node with images replaced.
+   */
+  static async replaceImagesWithAttachments(
+    ctx: APIContext,
+    doc: Node,
+    user: User
+  ): Promise<Node> {
+    const images = SharedProsemirrorHelper.getImages(doc);
+    const videos = SharedProsemirrorHelper.getVideos(doc);
+    const nodes = [...images, ...videos];
+
+    if (!nodes.length) {
+      return doc;
+    }
+
+    const timeoutPerImage = Math.floor(
+      Math.min(env.REQUEST_TIMEOUT / nodes.length, 10000)
+    );
+
+    const urlToAttachment: Map<string, Attachment> = new Map();
+    const chunks = chunk(nodes, 10);
+
+    for (const nodeChunk of chunks) {
+      await Promise.all(
+        nodeChunk.map(async (node) => {
+          const src = String(node.attrs.src ?? "");
+
+          // Skip invalid URLs
+          try {
+            new URL(src);
+          } catch {
+            return;
+          }
+
+          // Skip internal URLs
+          if (isInternalUrl(src)) {
+            return;
+          }
+
+          // Skip already processed
+          if (urlToAttachment.has(src)) {
+            return;
+          }
+
+          try {
+            const attachment = await attachmentCreator({
+              name: String(node.attrs.alt ?? node.type.name),
+              url: src,
+              preset: AttachmentPreset.DocumentAttachment,
+              user,
+              fetchOptions: {
+                timeout: timeoutPerImage,
+              },
+              ctx,
+            });
+
+            if (attachment) {
+              urlToAttachment.set(src, attachment);
+            }
+          } catch (err) {
+            Logger.warn("Failed to download image for attachment", {
+              error: err.message,
+              src,
+            });
+          }
+        })
+      );
+    }
+
+    // Transform the document to replace image/video src attributes
+    const transformFragment = (fragment: Fragment): Fragment => {
+      const transformedNodes: Node[] = [];
+
+      fragment.forEach((node) => {
+        if (node.type.name === "image" || node.type.name === "video") {
+          const src = String(node.attrs.src ?? "");
+          const attachment = urlToAttachment.get(src);
+
+          if (attachment) {
+            const json = node.toJSON();
+            json.attrs = { ...json.attrs, src: attachment.redirectUrl };
+            transformedNodes.push(Node.fromJSON(schema, json));
+          } else {
+            transformedNodes.push(node);
+          }
+        } else if (node.content.size > 0) {
+          transformedNodes.push(node.copy(transformFragment(node.content)));
+        } else {
+          transformedNodes.push(node);
+        }
+      });
+
+      return Fragment.fromArray(transformedNodes);
+    };
+
+    return doc.copy(transformFragment(doc.content));
   }
 }

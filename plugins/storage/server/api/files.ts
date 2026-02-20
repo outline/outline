@@ -77,9 +77,14 @@ router.get(
     const forceDownload = !!ctx.input.query.download;
     const isSignedRequest = !!ctx.input.query.sig;
     const { isPublicBucket, fileName } = AttachmentHelper.parseKey(key);
-    const skipAuthorize = isPublicBucket || isSignedRequest;
     const cacheHeader = "max-age=604800, immutable";
     const attachment = await Attachment.findByKey(key);
+
+    // Skip authorization for public bucket, signed requests, or public-read ACL attachments
+    const skipAuthorize =
+      isPublicBucket ||
+      isSignedRequest ||
+      (attachment && !attachment.isPrivate);
 
     if (!skipAuthorize) {
       if (!attachment && !!ctx.input.query.key) {
@@ -102,7 +107,15 @@ router.get(
     ctx.set("Access-Control-Allow-Origin", "*");
     ctx.set("Cache-Control", cacheHeader);
     ctx.set("Content-Type", contentType);
-    ctx.set("Content-Security-Policy", "sandbox");
+    ctx.set(
+      "Content-Security-Policy",
+      // Safari will not render PDFs in an embed if the sandbox directive is used, so we use a
+      // tight CSP in that case. For all other file types we use the strict sandbox directive
+      // which blocks all content from being loaded and rendered.
+      contentType === "application/pdf"
+        ? "default-src 'self'; object-src 'self'; base-uri 'none';"
+        : "sandbox"
+    );
     ctx.set(
       "Content-Disposition",
       contentDisposition(fileName, {

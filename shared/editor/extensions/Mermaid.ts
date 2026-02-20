@@ -6,16 +6,22 @@ import type { Node } from "prosemirror-model";
 import type { Transaction } from "prosemirror-state";
 import { Plugin, PluginKey, TextSelection } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import { isCode } from "../lib/isCode";
-import { isRemoteTransaction } from "../lib/multiplayer";
+import { toast } from "sonner";
+import { isCode, isMermaid } from "../lib/isCode";
+import { isRemoteTransaction, mapDecorations } from "../lib/multiplayer";
 import { findBlockNodes } from "../queries/findChildren";
+import { findParentNode } from "../queries/findParentNode";
 import type { NodeWithPos } from "../types";
 import type { Editor } from "../../../app/editor";
 import { LightboxImageFactory } from "../lib/Lightbox";
+import { sanitizeUrl } from "../../utils/urls";
 
-type MermaidState = {
+export const pluginKey = new PluginKey("mermaid");
+
+export type MermaidState = {
   decorationSet: DecorationSet;
   isDark: boolean;
+  editingId?: string;
 };
 
 class Cache {
@@ -152,22 +158,17 @@ function findBestOverlapDecoration(
 
 function getNewState({
   doc,
-  name,
   pluginState,
   editor,
 }: {
   doc: Node;
-  name: string;
   pluginState: MermaidState;
   editor: Editor;
 }): MermaidState {
   const decorations: Decoration[] = [];
 
-  // Find all blocks that represent Mermaid diagrams
-  const blocks = findBlockNodes(doc).filter(
-    (item) =>
-      item.node.type.name === name && item.node.attrs.language === "mermaidjs"
-  );
+  // Find all blocks that represent Mermaid diagrams (supports both "mermaid" and "mermaidjs")
+  const blocks = findBlockNodes(doc).filter((item) => isMermaid(item.node));
 
   blocks.forEach((block) => {
     const existingDecorations = pluginState.decorationSet.find(
@@ -212,22 +213,22 @@ function getNewState({
   });
 
   return {
+    ...pluginState,
     decorationSet: DecorationSet.create(doc, decorations),
-    isDark: pluginState.isDark,
   };
 }
 
 export default function Mermaid({
-  name,
   isDark,
   editor,
 }: {
-  name: string;
   isDark: boolean;
   editor: Editor;
 }) {
+  const { onClickLink, dictionary } = editor.props;
+
   return new Plugin({
-    key: new PluginKey("mermaid"),
+    key: pluginKey,
     state: {
       init: (_, { doc }) => {
         const pluginState: MermaidState = {
@@ -236,7 +237,6 @@ export default function Mermaid({
         };
         return getNewState({
           doc,
-          name,
           pluginState,
           editor,
         });
@@ -247,19 +247,57 @@ export default function Mermaid({
         oldState,
         state
       ) => {
-        const nodeName = state.selection.$head.parent.type.name;
-        const previousNodeName = oldState.selection.$head.parent.type.name;
-        const codeBlockChanged =
-          transaction.docChanged && [nodeName, previousNodeName].includes(name);
         const themeMeta = transaction.getMeta("theme");
-        const mermaidMeta = transaction.getMeta("mermaid");
+        const mermaidMeta = transaction.getMeta(pluginKey);
         const themeToggled = themeMeta?.isDark !== undefined;
 
-        if (themeToggled) {
-          pluginState.isDark = themeMeta.isDark;
-        }
+        const nextPluginState = {
+          ...pluginState,
+          isDark: themeToggled ? themeMeta.isDark : pluginState.isDark,
+          editingId:
+            mermaidMeta && "editingId" in mermaidMeta
+              ? mermaidMeta.editingId
+              : pluginState.editingId,
+          decorationSet: mapDecorations(pluginState.decorationSet, transaction),
+        };
 
         if (
+          transaction.selectionSet &&
+          nextPluginState.editingId &&
+          !mermaidMeta
+        ) {
+          const codeBlock = findParentNode(isCode)(state.selection);
+          let isEditing = codeBlock && isMermaid(codeBlock.node);
+
+          if (isEditing && codeBlock && !transaction.docChanged) {
+            const decorations = nextPluginState.decorationSet.find(
+              codeBlock.pos,
+              codeBlock.pos + codeBlock.node.nodeSize
+            );
+            const nodeDecoration = decorations.find(
+              (d) => d.spec.diagramId && d.from === codeBlock.pos
+            );
+            if (nodeDecoration?.spec.diagramId !== nextPluginState.editingId) {
+              isEditing = false;
+            }
+          }
+
+          if (!isEditing) {
+            nextPluginState.editingId = undefined;
+          }
+        }
+
+        const node = state.selection.$head.parent;
+        const previousNode = oldState.selection.$head.parent;
+        const codeBlockChanged =
+          transaction.docChanged &&
+          (isMermaid(node) || isMermaid(previousNode));
+
+        // @ts-expect-error accessing private field.
+        const isPaste = transaction.meta?.paste;
+
+        if (
+          isPaste ||
           mermaidMeta ||
           themeToggled ||
           codeBlockChanged ||
@@ -267,23 +305,16 @@ export default function Mermaid({
         ) {
           return getNewState({
             doc: transaction.doc,
-            name,
-            pluginState,
+            pluginState: nextPluginState,
             editor,
           });
         }
 
-        return {
-          decorationSet: pluginState.decorationSet.map(
-            transaction.mapping,
-            transaction.doc
-          ),
-          isDark: pluginState.isDark,
-        };
+        return nextPluginState;
       },
     },
     view: (view) => {
-      view.dispatch(view.state.tr.setMeta("mermaid", { loaded: true }));
+      view.dispatch(view.state.tr.setMeta(pluginKey, { loaded: true }));
       return {};
     },
     props: {
@@ -291,12 +322,41 @@ export default function Mermaid({
         return this.getState(state)?.decorationSet;
       },
       handleDOMEvents: {
+        click(_view, event: MouseEvent) {
+          const target = event.target as HTMLElement;
+          const anchor = target?.closest("a");
+
+          if (anchor instanceof SVGAElement) {
+            event.stopPropagation();
+            event.preventDefault();
+            return false;
+          }
+
+          return true;
+        },
         mouseup(view, event) {
           const target = event.target as HTMLElement;
           const diagram = target?.closest(".mermaid-diagram-wrapper");
           const codeBlock = diagram?.previousElementSibling;
 
           if (!codeBlock) {
+            return false;
+          }
+
+          const anchor = target?.closest("a");
+          if (anchor instanceof SVGAElement) {
+            const href = anchor.getAttribute("xlink:href");
+
+            try {
+              if (onClickLink && href) {
+                event.stopPropagation();
+                event.preventDefault();
+                onClickLink(sanitizeUrl(href) ?? "");
+              }
+            } catch (_err) {
+              toast.error(dictionary.openLinkError);
+            }
+
             return false;
           }
 
@@ -338,11 +398,7 @@ export default function Mermaid({
               );
               const nextBlock = $pos.nodeAfter;
 
-              if (
-                nextBlock &&
-                isCode(nextBlock) &&
-                nextBlock.attrs.language === "mermaidjs"
-              ) {
+              if (nextBlock && isMermaid(nextBlock)) {
                 view.dispatch(
                   view.state.tr
                     .setSelection(
@@ -364,11 +420,7 @@ export default function Mermaid({
               );
               const prevBlock = $pos.nodeBefore;
 
-              if (
-                prevBlock &&
-                isCode(prevBlock) &&
-                prevBlock.attrs.language === "mermaidjs"
-              ) {
+              if (prevBlock && isMermaid(prevBlock)) {
                 view.dispatch(
                   view.state.tr
                     .setSelection(

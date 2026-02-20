@@ -28,6 +28,8 @@ type ContentProps = {
   width?: number;
   /** The minimum width of the popover, use instead of width if contents adjusts size. */
   minWidth?: number;
+  /** The minimum height of the popover. */
+  minHeight?: number;
   /** Whether the popover should be scrollable, defaults to true. */
   scrollable?: boolean;
   /** Shrink the padding of the popover */
@@ -44,6 +46,7 @@ const PopoverContent = React.forwardRef<
   const {
     width = 380,
     minWidth,
+    minHeight,
     scrollable = true,
     shrink = false,
     sideOffset = 4,
@@ -77,6 +80,7 @@ const PopoverContent = React.forwardRef<
         sideOffset={sideOffset}
         $width={width}
         $minWidth={minWidth}
+        $minHeight={minHeight}
         $scrollable={scrollable}
         $shrink={shrink}
         onAnimationStart={disablePointerEvents}
@@ -93,6 +97,7 @@ PopoverContent.displayName = PopoverPrimitive.Content.displayName;
 type StyledContentProps = {
   $width?: number;
   $minWidth?: number;
+  $minHeight?: number;
   $scrollable: boolean;
   $shrink: boolean;
 };
@@ -111,6 +116,7 @@ const StyledContent = styled(PopoverPrimitive.Content)<StyledContentProps>`
 
   ${({ $width }) => $width && `width: ${$width}px`};
   ${({ $minWidth }) => $minWidth && `min-width: ${$minWidth}px`};
+  ${({ $minHeight }) => $minHeight && `min-height: ${$minHeight}px`};
 
   ${({ $scrollable }) =>
     $scrollable

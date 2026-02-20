@@ -120,6 +120,7 @@ export default class BlockMenuExtension extends Suggestion {
         uploadFile={props.uploadFile}
         onFileUploadStart={props.onFileUploadStart}
         onFileUploadStop={props.onFileUploadStop}
+        onFileUploadProgress={props.onFileUploadProgress}
         embeds={props.embeds}
       />
     );

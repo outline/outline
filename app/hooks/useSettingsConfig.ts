@@ -9,7 +9,7 @@ import {
   GlobeIcon,
   ShieldIcon,
   TeamIcon,
-  BeakerIcon,
+  SparklesIcon,
   SettingsIcon,
   ExportIcon,
   ImportIcon,
@@ -17,6 +17,7 @@ import {
   PlusIcon,
   InternetIcon,
   SmileyIcon,
+  BuildingBlocksIcon,
 } from "outline-icons";
 import type { ComponentProps } from "react";
 import { useEffect } from "react";
@@ -110,7 +111,7 @@ const useSettingsConfig = () => {
         preload: APIAndApps.preload,
         enabled: true,
         group: t("Account"),
-        icon: PadlockIcon,
+        icon: BuildingBlocksIcon,
       },
       // Workspace
       {
@@ -141,13 +142,13 @@ const useSettingsConfig = () => {
         icon: ShieldIcon,
       },
       {
-        name: t("Features"),
+        name: t("AI"),
         path: settingsPath("features"),
         component: Features.Component,
         preload: Features.preload,
         enabled: can.update,
         group: t("Workspace"),
-        icon: BeakerIcon,
+        icon: SparklesIcon,
       },
       {
         name: t("Members"),

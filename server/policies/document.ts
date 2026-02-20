@@ -179,7 +179,7 @@ allow(User, "delete", Document, (actor, document) =>
     or(
       can(actor, "unarchive", document),
       can(actor, "update", document),
-      !document?.collection
+      and(!document?.collection, actor.id === document?.createdById)
     )
   )
 );
@@ -195,8 +195,7 @@ allow(User, "restore", Document, (actor, document) =>
         DocumentPermission.Admin,
       ]),
       can(actor, "updateDocument", document?.collection),
-      and(!!document?.isDraft && actor.id === document?.createdById),
-      !document?.collection
+      and(!!document?.isDraft && actor.id === document?.createdById)
     )
   )
 );

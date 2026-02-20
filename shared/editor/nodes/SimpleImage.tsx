@@ -82,6 +82,8 @@ export default class SimpleImage extends Node {
           },
         ],
       ],
+      leafText: (node) =>
+        node.attrs.alt ? `(image: ${node.attrs.alt})` : "(image)",
     };
   }
 
@@ -156,8 +158,12 @@ export default class SimpleImage extends Node {
         }
         const { view } = this.editor;
         const { node } = state.selection;
-        const { uploadFile, onFileUploadStart, onFileUploadStop } =
-          this.editor.props;
+        const {
+          uploadFile,
+          onFileUploadStart,
+          onFileUploadStop,
+          onFileUploadProgress,
+        } = this.editor.props;
 
         if (!uploadFile) {
           throw new Error("uploadFile prop is required to replace images");
@@ -177,10 +183,14 @@ export default class SimpleImage extends Node {
             uploadFile,
             onFileUploadStart,
             onFileUploadStop,
+            onFileUploadProgress,
             dictionary: this.options.dictionary,
             replaceExisting: true,
             attrs: {
               width: node.attrs.width,
+              height: node.attrs.height,
+              alt: node.attrs.alt,
+              layoutClass: node.attrs.layoutClass,
             },
           });
         };

@@ -3,17 +3,20 @@ import { Node, Fragment } from "prosemirror-model";
 import ukkonen from "ukkonen";
 import { updateYFragment, yDocToProsemirrorJSON } from "y-prosemirror";
 import * as Y from "yjs";
+import {
+  ChangesetHelper,
+  type ExtendedChange,
+} from "@shared/editor/lib/ChangesetHelper";
 import textBetween from "@shared/editor/lib/textBetween";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import type { NavigationNode, ProsemirrorData } from "@shared/types";
-import { IconType } from "@shared/types";
+import { IconType, TextEditMode } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
 import { parser, serializer, schema } from "@server/editor";
 import { addTags } from "@server/logging/tracer";
 import { trace } from "@server/logging/tracing";
 import type { Template } from "@server/models";
 import { Collection, Document, Revision } from "@server/models";
-import diff from "@server/utils/diff";
 import type { MentionAttrs } from "./ProsemirrorHelper";
 import { ProsemirrorHelper } from "./ProsemirrorHelper";
 import { TextHelper } from "./TextHelper";
@@ -36,6 +39,8 @@ type HTMLOptions = {
   signedUrls?: boolean | number;
   /** The base URL to use for relative links */
   baseUrl?: string;
+  /** Changes to highlight in the document */
+  changes?: readonly ExtendedChange[];
 };
 
 @trace()
@@ -153,15 +158,30 @@ export class DocumentHelper {
    * @param options Options for the conversion
    * @returns The document title and content as a Markdown string
    */
-  static toMarkdown(
+  static async toMarkdown(
     document: Document | Revision | Collection | ProsemirrorData,
     options?: {
       /** Whether to include the document title (default: true) */
       includeTitle?: boolean;
+      /** Whether to sign attachment urls, and if so for how many seconds is the signature valid */
+      signedUrls?: number;
+      /** The team context */
+      teamId?: string;
     }
   ) {
+    let node = DocumentHelper.toProsemirror(document);
+
+    if (options?.signedUrls && options?.teamId) {
+      const data = await ProsemirrorHelper.signAttachmentUrls(
+        node,
+        options.teamId,
+        options.signedUrls
+      );
+      node = Node.fromJSON(schema, data);
+    }
+
     const text = serializer
-      .serialize(DocumentHelper.toProsemirror(document))
+      .serialize(node)
       .replace(/(^|\n)\\(\n|$)/g, "\n\n")
       .replace(/“/g, '"')
       .replace(/”/g, '"')
@@ -169,20 +189,16 @@ export class DocumentHelper {
       .replace(/’/g, "'")
       .trim();
 
-    if (document instanceof Collection) {
-      return text;
-    }
-
     if (
-      (document instanceof Document || document instanceof Revision) &&
+      (document instanceof Collection ||
+        document instanceof Document ||
+        document instanceof Revision) &&
       options?.includeTitle !== false
     ) {
       const iconType = determineIconType(document.icon);
-
-      const title = `${iconType === IconType.Emoji ? document.icon + " " : ""}${
-        document.title
-      }`;
-
+      const name =
+        document instanceof Collection ? document.name : document.title;
+      const title = `${iconType === IconType.Emoji ? document.icon + " " : ""}${name}`;
       return `# ${title}\n\n${text}`;
     }
 
@@ -213,6 +229,7 @@ export class DocumentHelper {
       includeHead: options?.includeHead,
       centered: options?.centered,
       baseUrl: options?.baseUrl,
+      changes: options?.changes,
     });
 
     addTags({
@@ -278,7 +295,7 @@ export class DocumentHelper {
   static async diff(
     before: Document | Revision | null,
     after: Revision,
-    { signedUrls, ...options }: HTMLOptions = {}
+    options: HTMLOptions = {}
   ) {
     addTags({
       beforeId: before?.id,
@@ -287,44 +304,17 @@ export class DocumentHelper {
     });
 
     if (!before) {
-      return await DocumentHelper.toHTML(after, { ...options, signedUrls });
+      return await DocumentHelper.toHTML(after, options);
     }
 
-    const beforeHTML = await DocumentHelper.toHTML(before, options);
-    const afterHTML = await DocumentHelper.toHTML(after, options);
-    const beforeDOM = new JSDOM(beforeHTML);
-    const afterDOM = new JSDOM(afterHTML);
+    const beforeJSON = await DocumentHelper.toJSON(before);
+    const afterJSON = await DocumentHelper.toJSON(after);
+    const changeset = ChangesetHelper.getChangeset(afterJSON, beforeJSON);
 
-    // Extract the content from the article tag and diff the HTML, we don't
-    // care about the surrounding layout and stylesheets.
-    let diffedContentAsHTML = diff(
-      beforeDOM.window.document.getElementsByTagName("article")[0].innerHTML,
-      afterDOM.window.document.getElementsByTagName("article")[0].innerHTML
-    );
-
-    // Sign only the URLS in the diffed content
-    if (signedUrls) {
-      const teamId =
-        before instanceof Document
-          ? before.teamId
-          : (await before.$get("document"))?.teamId;
-
-      if (teamId) {
-        diffedContentAsHTML = await TextHelper.attachmentsToSignedUrls(
-          diffedContentAsHTML,
-          teamId,
-          typeof signedUrls === "number" ? signedUrls : undefined
-        );
-      }
-    }
-
-    // Inject the diffed content into the original document with styling and
-    // serialize back to a string.
-    const article = beforeDOM.window.document.querySelector("article");
-    if (article) {
-      article.innerHTML = diffedContentAsHTML;
-    }
-    return beforeDOM.serialize();
+    return DocumentHelper.toHTML(after, {
+      ...options,
+      changes: changeset ? changeset.changes : undefined,
+    });
   }
 
   /**
@@ -351,8 +341,26 @@ export class DocumentHelper {
     const dom = new JSDOM(html);
     const doc = dom.window.document;
 
-    const containsDiffElement = (node: Element | null) =>
-      node && node.innerHTML.includes("data-operation-index");
+    const containsDiffElement = (node: Element | null) => {
+      if (!node) {
+        return false;
+      }
+
+      const diffClasses = [
+        EditorStyleHelper.diffInsertion,
+        EditorStyleHelper.diffDeletion,
+        EditorStyleHelper.diffModification,
+        EditorStyleHelper.diffNodeInsertion,
+        EditorStyleHelper.diffNodeDeletion,
+        EditorStyleHelper.diffNodeModification,
+      ];
+
+      return diffClasses.some(
+        (className) =>
+          node.classList.contains(className) ||
+          node.querySelector(`.${className}`)
+      );
+    };
 
     // The diffing lib isn't able to catch all changes currently, e.g. changing
     // the type of a mark will result in an empty diff.
@@ -465,18 +473,17 @@ export class DocumentHelper {
    *
    * @param document The document to apply the changes to
    * @param text The markdown to apply
-   * @param append If true appends the markdown instead of replacing existing
-   * content
+   * @param editMode The edit mode to use: "replace" (default), "append", or "prepend"
    * @returns The document
    */
   static applyMarkdownToDocument(
     document: Document,
     text: string,
-    append = false
+    editMode: TextEditMode = TextEditMode.Replace
   ) {
     let doc: Node;
 
-    if (append) {
+    if (editMode === TextEditMode.Append) {
       const existingDoc = DocumentHelper.toProsemirror(document);
       const newDoc = parser.parse(text);
       const lastChild = existingDoc.lastChild;
@@ -500,6 +507,31 @@ export class DocumentHelper {
         );
       } else {
         doc = existingDoc.copy(existingDoc.content.append(newDoc.content));
+      }
+    } else if (editMode === TextEditMode.Prepend) {
+      const existingDoc = DocumentHelper.toProsemirror(document);
+      const newDoc = parser.parse(text);
+      const lastChild = newDoc.lastChild;
+      const firstChild = existingDoc.firstChild;
+
+      if (
+        !text.match(/\n\s*$/) &&
+        lastChild &&
+        firstChild &&
+        lastChild.type.name === "paragraph" &&
+        firstChild.type.name === "paragraph"
+      ) {
+        const mergedPara = lastChild.copy(
+          lastChild.content.append(firstChild.content)
+        );
+        doc = existingDoc.copy(
+          newDoc.content
+            .cut(0, newDoc.content.size - lastChild.nodeSize)
+            .append(Fragment.from(mergedPara))
+            .append(existingDoc.content.cut(firstChild.nodeSize))
+        );
+      } else {
+        doc = existingDoc.copy(newDoc.content.append(existingDoc.content));
       }
     } else {
       doc = parser.parse(text);

@@ -3,17 +3,17 @@ import { isMac } from "./browser";
 /**
  * Returns the display string for the alt key
  */
-export const altDisplay = isMac() ? "⌥" : "Alt";
+export const altDisplay = isMac ? "⌥" : "Alt";
 
 /**
  * Returns the display string for the meta key
  */
-export const metaDisplay = isMac() ? "⌘" : "Ctrl";
+export const metaDisplay = isMac ? "⌘" : "Ctrl";
 
 /**
  * Returns the name of the modifier key
  */
-export const meta = isMac() ? "cmd" : "ctrl";
+export const meta = isMac ? "cmd" : "ctrl";
 
 /**
  * Returns true if the given event is a modifier key (Cmd or Ctrl on Mac, Alt on
@@ -23,7 +23,7 @@ export const meta = isMac() ? "cmd" : "ctrl";
 export function isModKey(
   event: KeyboardEvent | MouseEvent | React.KeyboardEvent
 ) {
-  return isMac() ? event.metaKey : event.ctrlKey;
+  return isMac ? event.metaKey : event.ctrlKey;
 }
 
 /**

@@ -25,6 +25,21 @@ export const changeToLightTheme = createAction({
   perform: ({ stores }) => stores.ui.setTheme(Theme.Light),
 });
 
+export const toggleTheme = createAction({
+  name: ({ t }) => t("Toggle theme"),
+  analyticsName: "Change theme",
+  iconInContextMenu: false,
+  icon: ({ stores }) =>
+    stores.ui.resolvedTheme === "light" ? <MoonIcon /> : <SunIcon />,
+  keywords: "theme light day",
+  section: SettingsSection,
+  shortcut: ["Meta+Shift+l"],
+  perform: ({ stores }) =>
+    stores.ui.setTheme(
+      stores.ui.resolvedTheme === "light" ? Theme.Dark : Theme.Light
+    ),
+});
+
 export const changeToSystemTheme = createAction({
   name: ({ t }) => t("System"),
   analyticsName: "Change to system theme",
@@ -47,4 +62,4 @@ export const changeTheme = createActionWithChildren({
   children: [changeToLightTheme, changeToDarkTheme, changeToSystemTheme],
 });
 
-export const rootSettingsActions = [changeTheme];
+export const rootSettingsActions = [changeTheme, toggleTheme];

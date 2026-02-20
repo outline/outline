@@ -35,10 +35,10 @@ const LoadingState = observer(function LoadingState() {
 
   useEffect(() => {
     if (template) {
-      ui.setActiveTemplate(template);
+      ui.addActiveModel(template);
     }
     return () => {
-      ui.clearActiveDocument();
+      template && ui.removeActiveModel(template);
     };
   }, [template, ui]);
 

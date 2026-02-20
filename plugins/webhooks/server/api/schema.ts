@@ -3,7 +3,7 @@ import { z } from "zod";
 export const WebhookSubscriptionsCreateSchema = z.object({
   body: z.object({
     name: z.string(),
-    url: z.string().url(),
+    url: z.url(),
     secret: z.string().optional(),
     events: z.array(z.string()),
   }),
@@ -15,9 +15,9 @@ export type WebhookSubscriptionsCreateReq = z.infer<
 
 export const WebhookSubscriptionsUpdateSchema = z.object({
   body: z.object({
-    id: z.string().uuid(),
+    id: z.uuid(),
     name: z.string(),
-    url: z.string().url(),
+    url: z.url(),
     secret: z.string().optional(),
     events: z.array(z.string()),
   }),
@@ -29,7 +29,7 @@ export type WebhookSubscriptionsUpdateReq = z.infer<
 
 export const WebhookSubscriptionsDeleteSchema = z.object({
   body: z.object({
-    id: z.string().uuid(),
+    id: z.uuid(),
   }),
 });
 

@@ -9,7 +9,7 @@ import {
   IconType,
 } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
-import { parser } from "@server/editor";
+import { commentParser } from "@server/editor";
 import auth from "@server/middlewares/authentication";
 import { feature } from "@server/middlewares/feature";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -52,7 +52,9 @@ router.post(
           user
         )
       : undefined;
-    const data = text ? parser.parse(text).toJSON() : ctx.input.body.data;
+    const data = text
+      ? commentParser.parse(text).toJSON()
+      : ctx.input.body.data;
 
     const comment = await Comment.createWithCtx(ctx, {
       id,
@@ -417,14 +419,19 @@ router.post(
       authorize(user, "read", customEmoji);
     }
 
-    await Reaction.findOrCreate({
-      where: {
-        emoji,
-        userId: user.id,
-        commentId: id,
+    await Reaction.findOrCreateWithCtx(
+      ctx,
+      {
+        where: {
+          emoji,
+          userId: user.id,
+          commentId: id,
+        },
       },
-      ...ctx.context,
-    });
+      {
+        persist: false,
+      }
+    );
 
     ctx.body = {
       success: true,

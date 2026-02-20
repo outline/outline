@@ -40,7 +40,7 @@ type Props = Omit<NavLinkProps, "to"> & {
   /** Whether to show an unread badge indicator */
   unreadBadge?: boolean;
   /** Whether to show action buttons on hover */
-  showActions?: boolean;
+  $showActions?: boolean;
   /** Whether the link is disabled and non-interactive */
   disabled?: boolean;
   /** Whether the link is currently active */
@@ -53,6 +53,8 @@ type Props = Omit<NavLinkProps, "to"> & {
   isDraft?: boolean;
   /** Nesting depth level for indentation (0-based) */
   depth?: number;
+  /** Whether to truncate the label text (default: true, causes overflow: hidden) */
+  ellipsis?: boolean;
   /** Whether to automatically scroll this link into view if needed */
   scrollIntoViewIfNeeded?: boolean;
   /** Optional context menu action to display */
@@ -79,7 +81,7 @@ function SidebarLink(
     isActiveDrop,
     isDraft,
     menu,
-    showActions,
+    $showActions,
     exact,
     href,
     depth,
@@ -89,6 +91,7 @@ function SidebarLink(
     disabled,
     unreadBadge,
     contextAction,
+    ellipsis = true,
     ...rest
   }: Props,
   ref: React.RefObject<HTMLAnchorElement>
@@ -107,7 +110,7 @@ function SidebarLink(
 
   const unreadStyle = React.useMemo(
     () => ({
-      right: -12,
+      right: -20,
     }),
     []
   );
@@ -139,7 +142,7 @@ function SidebarLink(
       ev.stopPropagation();
       onDisclosureClick?.(ev);
     },
-    [onDisclosureClick]
+    [onDisclosureClick, hasDisclosure]
   );
 
   const DisclosureComponent = icon ? HiddenDisclosure : Disclosure;
@@ -165,7 +168,6 @@ function SidebarLink(
       ref={ref}
       {...rest}
     >
-      {" "}
       <ContextMenu action={contextAction} ariaLabel={t("Link options")}>
         <Content>
           {hasDisclosure && (
@@ -177,11 +179,11 @@ function SidebarLink(
             />
           )}
           {icon && <IconWrapper>{icon}</IconWrapper>}
-          <Label $ellipsis={typeof label === "string"}>{label}</Label>
+          <Label $ellipsis={ellipsis}>{label}</Label>
           {unreadBadge && <UnreadBadge style={unreadStyle} />}
         </Content>
       </ContextMenu>
-      {menu && <Actions showActions={showActions}>{menu}</Actions>}
+      {menu && <Actions $showActions={$showActions}>{menu}</Actions>}
     </Link>
   );
 }
@@ -200,11 +202,12 @@ const Content = styled.span`
   align-items: start;
   position: relative;
   width: 100%;
+  min-width: 0;
 `;
 
-const Actions = styled(EventBoundary)<{ showActions?: boolean }>`
+const Actions = styled(EventBoundary)<{ $showActions?: boolean }>`
   display: inline-flex;
-  visibility: ${(props) => (props.showActions ? "visible" : "hidden")};
+  visibility: ${(props) => (props.$showActions ? "visible" : "hidden")};
   position: absolute;
   top: 3px;
   right: 4px;
@@ -243,7 +246,8 @@ const Link = styled(NavLink)<{
   $disabled?: boolean;
 }>`
   &:hover,
-  &:active {
+  &:active,
+  &:has([data-state="open"]) {
     --background: ${s("sidebarHoverBackground")};
   }
 
@@ -347,6 +351,7 @@ const Label = styled.div<{ $ellipsis: boolean }>`
   width: 100%;
   line-height: 24px;
   margin-left: 2px;
+  min-width: 0;
   ${(props) => props.$ellipsis && ellipsis()}
 
   * {

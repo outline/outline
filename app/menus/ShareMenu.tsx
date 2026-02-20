@@ -4,14 +4,7 @@ import { useTranslation } from "react-i18next";
 import type Share from "~/models/Share";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
-import usePolicy from "~/hooks/usePolicy";
-import { ActionSeparator } from "~/actions";
-import {
-  copyShareUrlFactory,
-  goToShareSourceFactory,
-  revokeShareFactory,
-} from "~/actions/definitions/shares";
-import { useMenuAction } from "~/hooks/useMenuAction";
+import { useShareMenuActions } from "~/hooks/useShareMenuActions";
 
 type Props = {
   share: Share;
@@ -19,19 +12,7 @@ type Props = {
 
 function ShareMenu({ share }: Props) {
   const { t } = useTranslation();
-  const can = usePolicy(share);
-
-  const actions = React.useMemo(
-    () => [
-      copyShareUrlFactory({ share }),
-      goToShareSourceFactory({ share }),
-      ActionSeparator,
-      revokeShareFactory({ share, can }),
-    ],
-    [share, can]
-  );
-
-  const rootAction = useMenuAction(actions);
+  const rootAction = useShareMenuActions(share);
 
   return (
     <DropdownMenu

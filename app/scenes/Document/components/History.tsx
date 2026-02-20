@@ -20,6 +20,7 @@ import Switch from "~/components/Switch";
 import Text from "@shared/components/Text";
 import usePersistedState from "~/hooks/usePersistedState";
 import Scrollable from "~/components/Scrollable";
+import Flex from "@shared/components/Flex";
 
 const DocumentEvents = [
   "documents.publish",
@@ -213,9 +214,14 @@ function History() {
             items={items}
             document={document}
             empty={
-              <Content>
+              <Flex
+                align="center"
+                justify="center"
+                style={{ height: "100%" }}
+                auto
+              >
                 <Empty>{t("No history yet")}</Empty>
-              </Content>
+              </Flex>
             }
           />
         ) : null}

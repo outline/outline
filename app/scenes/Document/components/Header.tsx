@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
 import { TableOfContentsIcon, EditIcon } from "outline-icons";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
@@ -67,8 +67,6 @@ function DocumentHeader({
   revision,
   isEditing,
   isDraft,
-  isPublishing,
-  isSaving,
   savingIsDisabled,
   publishingIsDisabled,
   onSelectTemplate,
@@ -82,6 +80,15 @@ function DocumentHeader({
   const isMobileMedia = useMobile();
   const isRevision = !!revision;
   const isEditingFocus = useEditingFocus();
+
+  // Set CSS variable for header offset (used by sticky table headers)
+  useEffect(() => {
+    window.document.documentElement.style.setProperty(
+      "--header-offset",
+      isEditingFocus ? "0px" : "64px"
+    );
+  }, [isEditingFocus]);
+
   const { hasHeadings, editor } = useDocumentContext();
   const sidebarContext = useLocationSidebarContext();
   const [measureRef, size] = useMeasure();
@@ -245,10 +252,6 @@ function DocumentHeader({
         actions={({ isCompact }) => (
           <>
             <ObservingBanner />
-
-            {!isPublishing && isSaving && user?.separateEditMode && (
-              <Status>{t("Saving")}…</Status>
-            )}
             {!isDeleted && !isRevision && can.listViews && (
               <Collaborators
                 document={document}
@@ -272,7 +275,7 @@ function DocumentHeader({
             {isEditing && (
               <Action>
                 <Tooltip
-                  content={t("Save")}
+                  content={isDraft ? t("Save draft") : t("Done editing")}
                   shortcut={`${metaDisplay}+enter`}
                   placement="bottom"
                 >
@@ -357,12 +360,6 @@ function DocumentHeader({
 const StyledHeader = styled(Header)<{ $hidden: boolean }>`
   transition: opacity 500ms ease-in-out;
   ${(props) => props.$hidden && "opacity: 0;"}
-`;
-
-const Status = styled(Action)`
-  padding-left: 0;
-  padding-right: 4px;
-  color: ${(props) => props.theme.slate};
 `;
 
 export default observer(DocumentHeader);

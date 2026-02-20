@@ -58,11 +58,16 @@ export default class ExportSuccessEmail extends BaseEmail<
     return `Here's your request data export from ${env.APP_NAME}`;
   }
 
-  protected renderAsText() {
+  protected renderAsText({ teamUrl, id }: Props) {
+    const downloadLink = `${teamUrl}/api/fileOperations.redirect?id=${id}`;
+
     return `
 Your Data Export
 
-Your requested data export is complete, the exported files are also available in the admin section.
+Your requested data export is complete - you can download from the link below
+in a browser that is logged into your account:
+
+${downloadLink}
 `;
   }
 
@@ -79,16 +84,8 @@ Your requested data export is complete, the exported files are also available in
         <Body>
           <Heading>Your Data Export</Heading>
           <p>
-            Your requested data export is complete, the exported files are also
-            available in the{" "}
-            <a
-              href={`${teamUrl}/settings/export`}
-              rel="noreferrer"
-              target="_blank"
-            >
-              admin section
-            </a>
-            .
+            Your requested data export is complete - you can download from the
+            link below in a browser that is logged into your account.
           </p>
           <EmptySpace height={10} />
           <p>

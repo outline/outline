@@ -1,5 +1,5 @@
 import { expect } from "@jest/globals";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import env from "@server/env";
 import parseAttachmentIds from "./parseAttachmentIds";
 
