@@ -1,6 +1,7 @@
 import copy from "copy-to-clipboard";
 import {
   CaseSensitiveIcon,
+  CollectionIcon,
   CopyIcon,
   MoveIcon,
   NewDocumentIcon,
@@ -20,6 +21,8 @@ import {
 import { newDocumentPath, newTemplatePath, urlify } from "~/utils/routeHelpers";
 import { ActiveTemplateSection, TemplateSection } from "../sections";
 import Template from "~/models/Template";
+import { AvatarSize } from "~/components/Avatar";
+import TeamLogo from "~/components/TeamLogo";
 
 export const createTemplate = createInternalLinkAction({
   name: ({ t }) => t("New template"),
@@ -74,13 +77,39 @@ export const deleteTemplate = createAction({
   },
 });
 
-export const moveTemplate = createAction({
-  name: ({ t }) => t("Move"),
-  analyticsName: "Move template",
+export const moveTemplateToWorkspace = createAction({
+  name: ({ t }) => t("Move to workspace"),
+  analyticsName: "Move template to workspace",
   section: ActiveTemplateSection,
-  icon: <MoveIcon />,
-  visible: ({ getActivePolicies }) =>
-    getActivePolicies(Template).some((policy) => policy.abilities.move),
+  icon: ({ stores }) => {
+    const { team } = stores.auth;
+    return <TeamLogo model={team} size={AvatarSize.Small} />;
+  },
+  visible: ({ getActiveModel }) => {
+    const template = getActiveModel(Template);
+    return !!template?.collectionId;
+  },
+  perform: async ({ getActiveModel, stores, t }) => {
+    const template = getActiveModel(Template);
+    if (!template) {
+      return;
+    }
+
+    try {
+      await template.save({ collectionId: null });
+      toast.success(t("Template moved"));
+      stores.dialogs.closeAllModals();
+    } catch (_err) {
+      toast.error(t("Couldn't move the template, try again?"));
+    }
+  },
+});
+
+export const moveTemplateToCollection = createAction({
+  name: ({ t }) => t("Move to collection"),
+  analyticsName: "Move template to collection",
+  section: ActiveTemplateSection,
+  icon: <CollectionIcon />,
   perform: ({ getActiveModel, stores, t }) => {
     const template = getActiveModel(Template);
     if (!template) {
@@ -92,6 +121,16 @@ export const moveTemplate = createAction({
       content: <TemplateMove template={template} />,
     });
   },
+});
+
+export const moveTemplate = createActionWithChildren({
+  name: ({ t }) => t("Move"),
+  analyticsName: "Move template",
+  section: ActiveTemplateSection,
+  icon: <MoveIcon />,
+  visible: ({ getActivePolicies }) =>
+    getActivePolicies(Template).some((policy) => policy.abilities.move),
+  children: [moveTemplateToWorkspace, moveTemplateToCollection],
 });
 
 export const createDocumentFromTemplate = createInternalLinkAction({
