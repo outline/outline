@@ -375,6 +375,7 @@ export default function FindAndReplace({
         minWidth={420}
         scrollable={false}
         onPointerDownOutside={() => setLocalOpen(false)}
+        onFocusOutside={(event) => event.preventDefault()}
         style={{ marginRight: 16, marginTop: 60 }}
       >
         <Content column>
