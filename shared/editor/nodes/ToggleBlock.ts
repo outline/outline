@@ -7,7 +7,7 @@ import type {
   Node as ProsemirrorNode,
   Schema,
 } from "prosemirror-model";
-import type { Command, Transaction } from "prosemirror-state";
+import type { Command, EditorState, Transaction } from "prosemirror-state";
 import { Plugin, PluginKey, TextSelection } from "prosemirror-state";
 import { findWrapping } from "prosemirror-transform";
 import { Decoration, DecorationSet } from "prosemirror-view";
@@ -42,6 +42,7 @@ import { ancestors, height, liftChildrenOfNodeAt } from "../utils";
 import { isToggleBlock, getToggleBlockDepth } from "../queries/toggleBlock";
 import Node from "./Node";
 import { ToggleBlockView } from "./ToggleBlockView";
+import { isRemoteTransaction } from "../lib/multiplayer";
 
 export enum Action {
   INIT,
@@ -180,12 +181,23 @@ export default class ToggleBlock extends Node {
       key: toggleFoldPluginKey,
 
       state: {
-        init: () => ({
-          foldedIds: new Set<string>(),
-          decorations: DecorationSet.empty,
-        }),
+        init: (_config, state) => {
+          const foldedIds = this.initFoldedIds(state);
+          return {
+            foldedIds,
+            decorations: this.createDecorations(state.doc, foldedIds),
+          };
+        },
 
         apply: (tr, pluginState, _oldState, newState) => {
+          if (isRemoteTransaction(tr)) {
+            const foldedIds = this.initFoldedIds(newState);
+            return {
+              foldedIds,
+              decorations: this.createDecorations(newState.doc, foldedIds),
+            };
+          }
+
           const action = tr.getMeta(toggleFoldPluginKey);
 
           // No action - just map decorations through the transaction
@@ -225,27 +237,6 @@ export default class ToggleBlock extends Node {
           const newFoldedIds = new Set(pluginState.foldedIds);
 
           switch (action.type) {
-            case Action.INIT: {
-              // Initialize fold states from Storage for all toggle blocks
-              findBlockNodes(newState.doc, true)
-                .filter(
-                  (b) => b.node.type.name === this.name && b.node.attrs.id
-                )
-                .forEach((block) => {
-                  const id = block.node.attrs.id as string;
-                  const stored = Storage.get(`${id}:${userId}`);
-                  // Default to folded if no stored state
-                  if (stored?.fold !== false) {
-                    newFoldedIds.add(id);
-                  }
-                  // Ensure storage has a value
-                  if (stored === null || stored === undefined) {
-                    Storage.set(`${id}:${userId}`, { fold: true });
-                  }
-                });
-              break;
-            }
-
             case Action.FOLD: {
               const node = newState.doc.nodeAt(action.at);
               if (node?.attrs.id) {
@@ -286,42 +277,6 @@ export default class ToggleBlock extends Node {
               this.editor.props
             ),
         },
-      },
-    });
-
-    // Initialize fold state on document load
-    const initPlugin = new Plugin({
-      view: () => {
-        let initialized = false;
-        return {
-          update: (view, prevState) => {
-            if (initialized) {
-              return;
-            }
-
-            const hasContent = view.state.doc.content.size > 2;
-            if (!hasContent) {
-              return;
-            }
-
-            const isMultiplayer = this.editor.props.extensions?.some(
-              (e: { name: string }) => e.name === "multiplayer"
-            );
-
-            // For multiplayer, wait for first real content load
-            if (isMultiplayer && prevState.doc.content.size > 2) {
-              return;
-            }
-
-            // Set flag before dispatch to prevent re-entry
-            initialized = true;
-            view.dispatch(
-              view.state.tr.setMeta(toggleFoldPluginKey, {
-                type: Action.INIT,
-              })
-            );
-          },
-        };
       },
     });
 
@@ -405,7 +360,6 @@ export default class ToggleBlock extends Node {
     return [
       fixToggleBlocksPlugin,
       foldPlugin,
-      initPlugin,
       eventPlugin,
       new PlaceholderPlugin([
         {
@@ -544,6 +498,28 @@ export default class ToggleBlock extends Node {
     return {
       block: "container_toggle",
     };
+  }
+
+  private initFoldedIds(state: EditorState) {
+    const pluginState = toggleFoldPluginKey.getState(state);
+    const foldedIds = new Set<string>(pluginState?.foldedIds);
+    const userId = this.editor.props.userId;
+    findBlockNodes(state.doc, true)
+      .filter((b) => b.node.type.name === this.name && b.node.attrs.id)
+      .forEach((block) => {
+        const id = block.node.attrs.id as string;
+        const stored = Storage.get(`${id}:${userId}`);
+        // Default to folded if no stored state
+        if (stored?.fold !== false) {
+          foldedIds.add(id);
+        }
+        // Ensure storage has a value
+        if (stored === null || stored === undefined) {
+          Storage.set(`${id}:${userId}`, { fold: true });
+        }
+      });
+
+    return foldedIds;
   }
 
   private createDecorations(doc: ProsemirrorNode, foldedIds: Set<string>) {
