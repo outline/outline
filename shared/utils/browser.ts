@@ -20,14 +20,15 @@ export const isPWA =
   window.matchMedia?.("(display-mode: standalone)").matches;
 
 /**
- * Returns true if the client is a touch device. Note that laptops with touch screens are
- * considered touch devices, this does not neccessarily map to a small screen.
+ * Returns true if the client only supports touch input.
+ * Note that this will return false for hybrid devices which support both touch and mouse input.
  */
 export function isTouchDevice(): boolean {
   if (!isBrowser) {
     return false;
   }
-  return window.matchMedia?.("(hover: none) and (pointer: coarse)")?.matches;
+  return window.matchMedia?.("(any-hover: none) and (pointer: coarse)")
+    ?.matches;
 }
 
 /**
