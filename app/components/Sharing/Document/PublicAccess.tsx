@@ -144,9 +144,10 @@ function PublicAccess(
     toast.success(t("Public link copied to clipboard"));
   }, [t]);
 
-  const shareUrl = sharedParent?.url
-    ? `${sharedParent.url}${document.url}`
-    : (share?.url ?? "");
+  const shareUrl =
+    sharedParent?.url && !document.isDraft
+      ? `${sharedParent.url}${document.url}`
+      : (share?.url ?? "");
 
   const copyButton = (
     <Tooltip content={t("Copy public link")} placement="top">
@@ -290,7 +291,7 @@ function PublicAccess(
           </>
         )}
 
-        {sharedParent?.published ? (
+        {sharedParent?.published && !document.isDraft ? (
           <ShareLinkInput type="text" disabled defaultValue={shareUrl}>
             {copyButton}
           </ShareLinkInput>

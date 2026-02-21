@@ -44,6 +44,10 @@ function ToolbarDropdown(props: ToolbarDropdownProps) {
   }, []);
 
   const items: TMenuItem[] = useMemo(() => {
+    if (!isOpen) {
+      return [];
+    }
+
     const handleClick = (menuItem: MenuItem) => () => {
       if (!menuItem.name) {
         return;
@@ -60,6 +64,11 @@ function ToolbarDropdown(props: ToolbarDropdownProps) {
       }
     };
 
+    const resolveChildren = (
+      children: MenuItem[] | (() => MenuItem[]) | undefined
+    ): MenuItem[] | undefined =>
+      typeof children === "function" ? children() : children;
+
     const mapChildren = (children: MenuItem[]): TMenuItem[] =>
       children.map((child) => {
         if (child.name === "separator") {
@@ -72,8 +81,9 @@ function ToolbarDropdown(props: ToolbarDropdownProps) {
             content: child.content,
           };
         }
-        if (child.children) {
-          const childWithPreventClose = child.children.find(
+        const resolvedChildren = resolveChildren(child.children);
+        if (resolvedChildren) {
+          const childWithPreventClose = resolvedChildren.find(
             (c) => "preventCloseCondition" in c
           );
           return {
@@ -82,7 +92,7 @@ function ToolbarDropdown(props: ToolbarDropdownProps) {
             icon: child.icon,
             visible: child.visible,
             preventCloseCondition: childWithPreventClose?.preventCloseCondition,
-            items: mapChildren(child.children),
+            items: mapChildren(resolvedChildren),
           };
         }
         return {
@@ -97,7 +107,8 @@ function ToolbarDropdown(props: ToolbarDropdownProps) {
         };
       });
 
-    return item.children ? mapChildren(item.children) : [];
+    const resolvedItemChildren = resolveChildren(item.children);
+    return resolvedItemChildren ? mapChildren(resolvedItemChildren) : [];
   }, [isOpen, commands]);
 
   const handleCloseAutoFocus = useCallback((ev: Event) => {
@@ -109,7 +120,10 @@ function ToolbarDropdown(props: ToolbarDropdownProps) {
       <MenuProvider variant="dropdown">
         <Menu open={isOpen} onOpenChange={handleOpenChange}>
           <MenuTrigger>
-            <ToolbarButton aria-label={item.label ? undefined : item.tooltip}>
+            <ToolbarButton
+              aria-label={item.label ? undefined : item.tooltip}
+              disabled={item.disabled}
+            >
               {item.label && <Label>{item.label}</Label>}
               {item.icon}
             </ToolbarButton>
@@ -190,6 +204,7 @@ function ToolbarMenu(props: Props) {
                       onClick={handleClick(item)}
                       active={isActive && !item.label}
                       aria-label={item.label ? undefined : item.tooltip}
+                      disabled={item.disabled}
                     >
                       {item.label && <Label>{item.label}</Label>}
                       {item.icon}

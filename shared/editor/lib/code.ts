@@ -56,6 +56,11 @@ export const codeLanguages: Record<string, CodeLanguage> = {
     label: "Dart",
     loader: () => import("refractor/lang/dart").then((m) => m.default),
   },
+  diff: {
+    lang: "diff",
+    label: "Diff",
+    loader: () => import("refractor/lang/diff").then((m) => m.default),
+  },
   docker: {
     lang: "docker",
     label: "Docker",
@@ -75,6 +80,11 @@ export const codeLanguages: Record<string, CodeLanguage> = {
     lang: "erlang",
     label: "Erlang",
     loader: () => import("refractor/lang/erlang").then((m) => m.default),
+  },
+  fortran: {
+    lang: "fortran",
+    label: "Fortran",
+    loader: () => import("refractor/lang/fortran").then((m) => m.default),
   },
   go: {
     lang: "go",

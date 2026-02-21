@@ -1,5 +1,5 @@
 /* oxlint-disable @typescript-eslint/no-var-requires */
-import type { Server } from "https";
+import type { Server } from "node:https";
 import type { BaseContext } from "koa";
 import Koa from "koa";
 import compress from "koa-compress";
@@ -20,6 +20,7 @@ import { initI18n } from "@server/utils/i18n";
 import routes from "../routes";
 import api from "../routes/api";
 import auth from "../routes/auth";
+import mcp from "../routes/mcp";
 import oauth from "../routes/oauth";
 import type { UserAgentContext } from "koa-useragent";
 import userAgent from "koa-useragent";
@@ -70,6 +71,7 @@ export default function init(app: Koa = new Koa(), server?: Server) {
   });
 
   app.use(mount("/api", api));
+  app.use(mount("/mcp", mcp));
 
   // Generate and attach a CSRF token to the session on non-API requests
   app.use(attachCSRFToken());

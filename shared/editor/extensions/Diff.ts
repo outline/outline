@@ -9,6 +9,7 @@ import Extension from "../lib/Extension";
 import type { ExtendedChange } from "../lib/ChangesetHelper";
 import { cn } from "../styles/utils";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
+import { toggleFoldPluginKey } from "../nodes/ToggleBlock";
 
 const pluginKey = new PluginKey("diffs");
 
@@ -130,7 +131,9 @@ export default class Diff extends Extension {
         },
         // Allow meta transactions to bypass filtering
         filterTransaction: (tr) =>
-          tr.getMeta("codeHighlighting") || tr.getMeta(pluginKey)
+          tr.getMeta("codeHighlighting") ||
+          tr.getMeta(pluginKey) ||
+          tr.getMeta(toggleFoldPluginKey)
             ? true
             : false,
       }),

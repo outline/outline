@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { Scope } from "@shared/types";
 import { OAuthAuthentication, OAuthAuthorizationCode } from "@server/models";
 import {

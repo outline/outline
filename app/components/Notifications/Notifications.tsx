@@ -8,7 +8,6 @@ import Notification, { type NotificationFilter } from "~/models/Notification";
 import { markNotificationsAsRead } from "~/actions/definitions/notifications";
 import useStores from "~/hooks/useStores";
 import NotificationMenu from "~/menus/NotificationMenu";
-import Desktop from "~/utils/Desktop";
 import Empty from "../Empty";
 import ErrorBoundary from "../ErrorBoundary";
 import Flex from "../Flex";
@@ -61,25 +60,7 @@ function Notifications(
     );
   }, [notifications.active, filter]);
 
-  // Update the notification count in the dock icon, if possible.
-  React.useEffect(() => {
-    // Account for old versions of the desktop app that don't have the
-    // setNotificationCount method on the bridge.
-    if (Desktop.bridge && "setNotificationCount" in Desktop.bridge) {
-      void Desktop.bridge.setNotificationCount(
-        notifications.approximateUnreadCount
-      );
-    }
-
-    // PWA badging
-    if ("setAppBadge" in navigator) {
-      if (notifications.approximateUnreadCount) {
-        void navigator.setAppBadge(notifications.approximateUnreadCount);
-      } else {
-        void navigator.clearAppBadge();
-      }
-    }
-  }, [notifications.approximateUnreadCount]);
+  const unreadCount = notifications.approximateUnreadCount;
 
   return (
     <ErrorBoundary>
@@ -105,7 +86,7 @@ function Notifications(
               short
               nude
             />
-            {notifications.approximateUnreadCount > 0 && (
+            {unreadCount > 0 && (
               <Tooltip content={t("Mark all as read")}>
                 <Button
                   action={markNotificationsAsRead}

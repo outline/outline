@@ -5,6 +5,10 @@ import allNodes from "@server/test/fixtures/notion-page.json";
 import type { NotionPage } from "./NotionConverter";
 import { NotionConverter } from "./NotionConverter";
 
+jest.mock("node:crypto", () => ({
+  randomUUID: jest.fn(() => "550e8400-e29b-41d4-a716-446655440000"),
+}));
+
 describe("NotionConverter", () => {
   it("converts a page", () => {
     const response = NotionConverter.page({

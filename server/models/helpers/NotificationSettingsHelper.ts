@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import crypto from "node:crypto";
 import type { NotificationEventType } from "@shared/types";
 import { NotificationEventDefaults } from "@shared/types";
 import env from "@server/env";

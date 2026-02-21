@@ -27,7 +27,7 @@ export const FilesGetSchema = z.object({
       download: z.string().optional(),
     })
     .refine((obj) => !(isEmpty(obj.key) && isEmpty(obj.sig)), {
-      message: "One of key or sig is required",
+      error: "One of key or sig is required",
     }),
 });
 

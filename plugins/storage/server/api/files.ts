@@ -77,9 +77,14 @@ router.get(
     const forceDownload = !!ctx.input.query.download;
     const isSignedRequest = !!ctx.input.query.sig;
     const { isPublicBucket, fileName } = AttachmentHelper.parseKey(key);
-    const skipAuthorize = isPublicBucket || isSignedRequest;
     const cacheHeader = "max-age=604800, immutable";
     const attachment = await Attachment.findByKey(key);
+
+    // Skip authorization for public bucket, signed requests, or public-read ACL attachments
+    const skipAuthorize =
+      isPublicBucket ||
+      isSignedRequest ||
+      (attachment && !attachment.isPrivate);
 
     if (!skipAuthorize) {
       if (!attachment && !!ctx.input.query.key) {

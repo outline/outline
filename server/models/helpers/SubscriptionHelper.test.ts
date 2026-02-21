@@ -1,4 +1,4 @@
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import env from "@server/env";
 import SubscriptionHelper from "./SubscriptionHelper";
 

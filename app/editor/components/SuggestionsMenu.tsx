@@ -292,6 +292,10 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
 
   const handleClickItem = React.useCallback(
     (item) => {
+      if (item.disabled) {
+        return;
+      }
+
       props.onSelect?.(item);
 
       switch (item.name) {
@@ -578,12 +582,20 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         event.stopPropagation();
 
         if (filtered.length) {
-          const prevIndex = selectedIndex - 1;
-          const prev = filtered[prevIndex];
-
-          setSelectedIndex(
-            Math.max(0, prev?.name === "separator" ? prevIndex - 1 : prevIndex)
-          );
+          let prevIndex = selectedIndex - 1;
+          while (prevIndex >= 0) {
+            const item = filtered[prevIndex];
+            if (
+              item?.name !== "separator" &&
+              !("disabled" in item && item.disabled)
+            ) {
+              break;
+            }
+            prevIndex--;
+          }
+          if (prevIndex >= 0) {
+            setSelectedIndex(prevIndex);
+          }
         } else {
           close();
         }
@@ -599,15 +611,20 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
 
         if (filtered.length) {
           const total = filtered.length - 1;
-          const nextIndex = selectedIndex + 1;
-          const next = filtered[nextIndex];
-
-          setSelectedIndex(
-            Math.min(
-              next?.name === "separator" ? nextIndex + 1 : nextIndex,
-              total
-            )
-          );
+          let nextIndex = selectedIndex + 1;
+          while (nextIndex <= total) {
+            const item = filtered[nextIndex];
+            if (
+              item?.name !== "separator" &&
+              !("disabled" in item && item.disabled)
+            ) {
+              break;
+            }
+            nextIndex++;
+          }
+          if (nextIndex <= total) {
+            setSelectedIndex(nextIndex);
+          }
         } else {
           close();
         }
@@ -678,6 +695,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
 
           const handlePointerMove = (ev: React.PointerEvent) => {
             if (
+              !("disabled" in item && item.disabled) &&
               selectedIndex !== index &&
               // Safari triggers pointermove with identical coordinates when the pointer has not moved.
               // This causes the menu selection to flicker when the pointer is over the menu but not moving.
@@ -693,7 +711,10 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
           };
 
           const handlePointerDown = () => {
-            if (selectedIndex !== index) {
+            if (
+              !("disabled" in item && item.disabled) &&
+              selectedIndex !== index
+            ) {
               setSelectedIndex(index);
             }
           };

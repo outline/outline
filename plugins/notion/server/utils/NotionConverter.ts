@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import type {
   BookmarkBlockObjectResponse,
   BreadcrumbBlockObjectResponse,
@@ -15,6 +16,7 @@ import type {
   ImageBlockObjectResponse,
   EmbedBlockObjectResponse,
   TableBlockObjectResponse,
+  TableOfContentsBlockObjectResponse,
   ToDoBlockObjectResponse,
   EquationBlockObjectResponse,
   CodeBlockObjectResponse,
@@ -45,7 +47,7 @@ export class NotionConverter {
    * Nodes which cannot contain block children in Outline, their children
    * will be flattened into the parent.
    */
-  private static nodesWithoutBlockChildren = ["paragraph", "toggle"];
+  private static nodesWithoutBlockChildren = ["paragraph"];
 
   public static page(item: NotionPage): ProsemirrorDoc {
     return {
@@ -66,6 +68,20 @@ export class NotionConverter {
       if (this[child.type]) {
         // @ts-expect-error Not all blocks have an interface
         const response = this[child.type](child);
+
+        // @ts-expect-error Not all blocks have an interface
+        const canToggle = child[child.type].is_toggleable === true;
+
+        if (canToggle) {
+          return {
+            type: "container_toggle",
+            attrs: {
+              id: randomUUID(),
+            },
+            content: [response, ...this.mapChildren(child)],
+          };
+        }
+
         if (
           response &&
           this.nodesWithoutBlockChildren.includes(response.type) &&
@@ -560,10 +576,23 @@ export class NotionConverter {
     };
   }
 
-  private static toggle(item: ToggleBlockObjectResponse) {
+  private static table_of_contents(_: TableOfContentsBlockObjectResponse) {
+    return undefined;
+  }
+
+  private static toggle(item: Block<ToggleBlockObjectResponse>) {
     return {
-      type: "paragraph",
-      content: item.toggle.rich_text.map(this.rich_text).filter(Boolean),
+      type: "container_toggle",
+      attrs: {
+        id: randomUUID(),
+      },
+      content: [
+        {
+          type: "paragraph",
+          content: item.toggle.rich_text.map(this.rich_text).filter(Boolean),
+        },
+        ...this.mapChildren(item),
+      ],
     };
   }
 

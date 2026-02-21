@@ -2,13 +2,17 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
-import lazyWithRetry from "~/utils/lazyWithRetry";
 import useMobile from "~/hooks/useMobile";
-import DelayedMount from "./DelayedMount";
-import { Drawer, DrawerContent, DrawerTrigger } from "./primitives/Drawer";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHandle,
+  DrawerTrigger,
+} from "./primitives/Drawer";
 import { Popover, PopoverTrigger, PopoverContent } from "./primitives/Popover";
-import Text from "./Text";
 import { ColorButton } from "./ColorButton";
+import ColorPicker from "@shared/components/ColorPicker";
+import EventBoundary from "@shared/components/EventBoundary";
 
 /**
  * Props for the SwatchButton component.
@@ -50,19 +54,11 @@ export const SwatchButton: React.FC<SwatchButtonProps> = ({
   );
 
   const pickerContent = (
-    <React.Suspense
-      fallback={
-        <DelayedMount>
-          <Text>{t("Loading")}…</Text>
-        </DelayedMount>
-      }
-    >
-      <StyledColorPicker
-        disableAlpha
-        color={color}
-        onChange={(c) => onChange(c.hex)}
-      />
-    </React.Suspense>
+    <StyledColorPicker
+      alpha={false}
+      activeColor={color}
+      onSelect={(c) => onChange(c)}
+    />
   );
 
   if (isMobile) {
@@ -70,7 +66,8 @@ export const SwatchButton: React.FC<SwatchButtonProps> = ({
       <Drawer>
         <DrawerTrigger asChild>{pickerTrigger}</DrawerTrigger>
         <DrawerContent aria-label={t("Select a color")}>
-          {pickerContent}
+          <DrawerHandle />
+          <EventBoundary>{pickerContent}</EventBoundary>
         </DrawerContent>
       </Drawer>
     );
@@ -95,10 +92,6 @@ const StyledContent = styled(PopoverContent)`
   width: auto;
   padding: 8px;
 `;
-
-const ColorPicker = lazyWithRetry(() =>
-  import("react-color").then((mod) => ({ default: mod.ChromePicker }))
-);
 
 const StyledColorPicker = styled(ColorPicker)`
   background: inherit !important;

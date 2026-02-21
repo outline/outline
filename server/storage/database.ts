@@ -1,4 +1,4 @@
-import path from "path";
+import path from "node:path";
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import sequelizeStrictAttributes from "sequelize-strict-attributes";
 import type { SequelizeOptions } from "sequelize-typescript";
@@ -9,6 +9,7 @@ import env from "@server/env";
 import type Model from "@server/models/base/Model";
 import Logger from "../logging/Logger";
 import * as models from "../models";
+import { getConnectionName } from "./utils";
 
 /**
  * Returns database configuration for Sequelize constructor.
@@ -64,6 +65,7 @@ export function createDatabaseInstance(
       typeValidation: true,
       logQueryParameters: env.isDevelopment,
       dialectOptions: {
+        application_name: getConnectionName(),
         ssl:
           env.isProduction && !isSSLDisabled
             ? {
@@ -253,11 +255,11 @@ export const sequelize = createDatabaseInstance(databaseConfig, models);
 
 /**
  * Read-only database connection for read replicas.
- * Falls back to the main connection if DATABASE_URL_READ_ONLY is not set.
+ * Falls back to the main connection if DATABASE_READ_ONLY_URL is not set.
  */
-export const sequelizeReadOnly = env.DATABASE_URL_READ_ONLY
+export const sequelizeReadOnly = env.DATABASE_READ_ONLY_URL
   ? createDatabaseInstance(
-      env.DATABASE_URL_READ_ONLY,
+      env.DATABASE_READ_ONLY_URL,
       {},
       {
         readOnly: true,

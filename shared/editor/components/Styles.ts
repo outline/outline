@@ -7,7 +7,7 @@ import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { videoStyle } from "./Video";
 
 export type Props = {
-  rtl: boolean;
+  $rtl: boolean;
   readOnly?: boolean;
   readOnlyWriteCheckboxes?: boolean;
   commenting?: boolean;
@@ -247,11 +247,13 @@ const codeBlockStyle = (props: Props) => css`
   }
 
   .token.deleted {
-    text-decoration: line-through;
+    color: ${props.theme.textDiffDeleted};
+    background-color: ${props.theme.textDiffDeletedBackground};
   }
 
   .token.inserted {
-    border-bottom: 1px dotted ${props.theme.codeInserted};
+    color: ${props.theme.textDiffInserted};
+    background-color: ${props.theme.textDiffInsertedBackground};
     text-decoration: none;
   }
 
@@ -515,6 +517,14 @@ const textStyle = () => css`
 `;
 
 const style = (props: Props) => css`
+--font-size-p: var(--font-size-body);
+--font-size-h1: 28px;
+--font-size-h2: 22px;
+--font-size-h3: 18px;
+--font-size-h4: 16px;
+--font-size-h5: 15px;
+--font-size-h6: 15px;
+
 flex-grow: ${props.grow ? 1 : 0};
 justify-content: start;
 color: ${props.theme.text};
@@ -644,12 +654,12 @@ width: 100%;
 
   // all of heading sizes are stepped down one from global styles, except h1
   // which is between h1 and h2
-  h1 { font-size: 28px; }
-  h2 { font-size: 22px; }
-  h3 { font-size: 18px; }
-  h4 { font-size: 16px; }
-  h5 { font-size: 15px; }
-  h6 { font-size: 15px; }
+  h1 { font-size: var(--font-size-h1); }
+  h2 { font-size: var(--font-size-h2); }
+  h3 { font-size: var(--font-size-h3); }
+  h4 { font-size: var(--font-size-h4); }
+  h5 { font-size: var(--font-size-h5); }
+  h6 { font-size: var(--font-size-h6); }
 
   .ProseMirror-yjs-selection {
     transition: background-color 500ms ease-in-out;
@@ -1091,7 +1101,7 @@ h6:not(.placeholder)::before {
 }
 
 .with-emoji {
-  margin-${props.rtl ? "right" : "left"}: -1em;
+  margin-${props.$rtl ? "right" : "left"}: -1em;
 }
 
 .emoji img {
@@ -1471,6 +1481,50 @@ ol li {
   > div {
     width: 100%;
   }
+}
+
+.${EditorStyleHelper.checklistWrapper} {
+  position: relative;
+  margin: 1em 0;
+}
+
+.${EditorStyleHelper.checklistCompletedToggle} {
+  position: absolute;
+  top: -8px;
+  right: 0;
+  padding: 4px 8px;
+  font-size: 12px;
+  background: ${props.theme.background};
+  border: 1px solid ${props.theme.buttonNeutralBorder};
+  border-radius: 6px;
+  color: ${props.theme.textSecondary};
+  cursor: var(--pointer);
+  user-select: none;
+  z-index: 1;
+  opacity: 0;
+  transition: all 100ms ease-in-out;
+
+  &:${hover} {
+    background: ${props.theme.buttonNeutralBackground};
+    color: ${props.theme.text};
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.${EditorStyleHelper.checklistWrapper}:${hover} .${EditorStyleHelper.checklistCompletedToggle},
+.${EditorStyleHelper.checklistWrapper}:focus-within .${EditorStyleHelper.checklistCompletedToggle} {
+  opacity: 1;
+}
+
+.${EditorStyleHelper.checklistWrapper}.${EditorStyleHelper.checklistCompletedHidden} .${EditorStyleHelper.checklistCompletedToggle} {
+  opacity: 1;
+}
+
+.${EditorStyleHelper.checklistWrapper}.${EditorStyleHelper.checklistCompletedHidden} ul.checkbox_list > li.checked {
+  display: none;
 }
 
 ul.checkbox_list {
@@ -1861,9 +1915,18 @@ table {
   }
 
   th {
-    background: ${transparentize(0.75, props.theme.divider)};
+    background: ${props.theme.background};
+    background-image: linear-gradient(
+      ${transparentize(0.75, props.theme.divider)},
+      ${transparentize(0.75, props.theme.divider)}
+    );
     color: ${props.theme.textSecondary};
     font-weight: 500;
+  }
+
+  tr:first-child {
+    position: relative;
+    z-index: 2;
   }
 
   tr:first-child th,
@@ -1891,8 +1954,10 @@ table {
     padding: 4px 0;
   }
 
-  td[data-bgcolor] {
+  td[data-bgcolor],
+  th[data-bgcolor] {
     color: var(--cell-text-color);
+    background: linear-gradient(var(--cell-bg-color), var(--cell-bg-color)), linear-gradient(${props.theme.background}, ${props.theme.background});
 
     p, a, p a {
       color: var(--cell-text-color, inherit);
@@ -1915,16 +1980,6 @@ table {
     /* fixes Firefox background color painting over border:
       * https://bugzilla.mozilla.org/show_bug.cgi?id=688556 */
     background-clip: padding-box;
-  }
-
-  .${EditorStyleHelper.tableAddRow},
-  .${EditorStyleHelper.tableAddColumn},
-  .${EditorStyleHelper.tableGrip},
-  .${EditorStyleHelper.tableGripColumn},
-  .${EditorStyleHelper.tableGripRow} {
-    @media print {
-      display: none;
-    }
   }
 
   .${EditorStyleHelper.tableAddRow},
@@ -2147,6 +2202,16 @@ table {
       opacity: 0.5;
     }
   }
+
+  .${EditorStyleHelper.tableAddRow},
+  .${EditorStyleHelper.tableAddColumn},
+  .${EditorStyleHelper.tableGrip},
+  .${EditorStyleHelper.tableGripColumn},
+  .${EditorStyleHelper.tableGripRow} {
+    @media print {
+      display: none;
+    }
+  }
 }
 
 .${EditorStyleHelper.tableDragDropIndicator} {
@@ -2221,6 +2286,28 @@ table {
 
 .${EditorStyleHelper.table} {
   position: relative;
+}
+
+.${EditorStyleHelper.tableStickyHeader} {
+  tr:first-child th {
+    transform: translateY(calc(var(--header-offset, 64px) + var(--sticky-scroll-offset, 0px)));
+    border-bottom: 1px solid ${props.theme.divider};
+
+    // Mask content scrolling past the top of the header
+    box-shadow: 0 -1px 0 ${props.theme.divider};
+    border-radius: 0 !important;
+
+    .${EditorStyleHelper.tableGripColumn},
+    .${EditorStyleHelper.tableAddColumn},
+    .${EditorStyleHelper.tableAddRow},
+    .${EditorStyleHelper.tableGrip} {
+      display: none;
+    }
+  }
+
+  .${EditorStyleHelper.tableGrip} {
+    display: none;
+  }
 }
 
 .${EditorStyleHelper.tableScrollable} {
@@ -2310,7 +2397,7 @@ table {
   border: 0;
   padding: 0;
   margin-top: 1px;
-  margin-${props.rtl ? "right" : "left"}: -28px;
+  margin-${props.$rtl ? "right" : "left"}: -28px;
   border-radius: 4px;
 
   &:hover,
@@ -2401,6 +2488,105 @@ del {
   em,
   blockquote {
     font-family: "SF Pro Text", ${props.theme.fontFamily};
+  }
+}
+
+.toggle-block {
+  display: flex;
+
+  &:focus-within {
+    transition-delay: 0.1s;
+  }
+
+  &.folded {
+    &:dir(rtl) {
+      --rotate-by: 90deg;
+    }
+    &:dir(ltr) {
+      --rotate-by: -90deg;
+    }
+    > .toggle-block-content > :is(:not(.toggle-block-head)) {
+      display: none;
+    }
+    > .toggle-block-content > :is(a.heading-name) {
+      display: unset;
+    }
+    > .toggle-block-button {
+      svg {
+        transform: rotate(var(--rotate-by));
+        pointer-events: none;
+      }
+      opacity: 1;
+    }
+  }
+
+  > .toggle-block-button {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    --line-height: var(--line-height-p);
+    --font-size: var(--font-size-p);
+
+    &:has(+ .toggle-block-content > .toggle-block-head > h1) {
+      --line-height: calc(var(--line-height-h) + 0.2);
+      --font-size: var(--font-size-h1);
+    }
+
+    &:has(+ .toggle-block-content > .toggle-block-head > h2) {
+      --line-height: calc(var(--line-height-h) + 0.2);
+      --font-size: var(--font-size-h2);
+    }
+
+    &:has(+ .toggle-block-content > .toggle-block-head > h3) {
+      --line-height: calc(var(--line-height-h) + 0.2);
+      --font-size: var(--font-size-h3);
+    }
+
+    &:has(+ .toggle-block-content > .toggle-block-head > h4) {
+      --line-height: calc(var(--line-height-h) + 0.2);
+      --font-size: var(--font-size-h4);
+    }
+
+    color: ${props.theme.text};
+    opacity: 0.75;
+    cursor: var(--pointer);
+    background: none;
+    outline: none;
+    border: 0;
+    margin: 0;
+    padding: 0;
+    height: calc(var(--line-height) * var(--font-size));
+    width: 20px;
+    overflow: unset;
+
+    &:focus,
+    &:hover {
+      opacity: 1;
+    }
+
+    > svg {
+      transition: transform 200ms ease-out;
+      flex-shrink: 0;
+    }
+  }
+
+  > .toggle-block-content {
+    > :is(:not(.toggle-block-head)) {
+      margin-top: 0.5em;
+    }
+    > :is(:first-child) {
+      margin-top: 0;
+    }
+    > .toggle-block-head {
+      > * {
+        margin-top: 0;
+      }
+    }
+    flex-grow: 1;
+    overflow: unset;
   }
 }
 `;

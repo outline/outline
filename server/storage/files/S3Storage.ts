@@ -1,5 +1,5 @@
-import path from "path";
-import type { Readable } from "stream";
+import path from "node:path";
+import type { Readable } from "node:stream";
 import type { ObjectCannedACL } from "@aws-sdk/client-s3";
 import {
   S3Client,
@@ -37,7 +37,7 @@ export default class S3Storage extends BaseStorage {
   public async getPresignedPost(
     _ctx: AppContext,
     key: string,
-    acl: string,
+    _acl: string,
     maxUploadSize: number,
     contentType = "image"
   ) {
@@ -52,7 +52,7 @@ export default class S3Storage extends BaseStorage {
       Fields: {
         "Content-Disposition": this.getContentDisposition(contentType),
         key,
-        ...(acl && { acl }),
+        ...(env.AWS_S3_ACL && { ACL: env.AWS_S3_ACL as ObjectCannedACL }),
       },
       Expires: 3600,
     };
@@ -103,7 +103,6 @@ export default class S3Storage extends BaseStorage {
     body,
     contentType,
     key,
-    acl,
   }: {
     body: Buffer | Uint8Array | string | Readable;
     contentLength?: number;
@@ -114,7 +113,7 @@ export default class S3Storage extends BaseStorage {
     const upload = new Upload({
       client: this.client,
       params: {
-        ...(acl && { ACL: acl as ObjectCannedACL }),
+        ...(env.AWS_S3_ACL && { ACL: env.AWS_S3_ACL as ObjectCannedACL }),
         Bucket: this.getBucket(),
         Key: key,
         ContentType: contentType,
@@ -153,10 +152,15 @@ export default class S3Storage extends BaseStorage {
       return `${this.getPublicEndpoint()}/${key}`;
     } else {
       // Ensure expiration does not exceed AWS S3 Signature V4 limit of 7 days
-      const clampedExpiresIn = Math.min(expiresIn, S3Storage.maxSignedUrlExpires);
+      const clampedExpiresIn = Math.min(
+        expiresIn,
+        S3Storage.maxSignedUrlExpires
+      );
 
       const command = new GetObjectCommand(params);
-      const url = await getSignedUrl(this.client, command, { expiresIn: clampedExpiresIn });
+      const url = await getSignedUrl(this.client, command, {
+        expiresIn: clampedExpiresIn,
+      });
 
       if (env.AWS_S3_ACCELERATE_URL) {
         return url.replace(

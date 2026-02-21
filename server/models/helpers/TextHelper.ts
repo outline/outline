@@ -1,6 +1,7 @@
 import chunk from "lodash/chunk";
 import escapeRegExp from "lodash/escapeRegExp";
 import { AttachmentPreset } from "@shared/types";
+import { isInternalUrl } from "@shared/utils/urls";
 import attachmentCreator from "@server/commands/attachmentCreator";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
@@ -11,7 +12,6 @@ import FileStorage from "@server/storage/files";
 import type { APIContext } from "@server/types";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import parseImages from "@server/utils/parseImages";
-import { isInternalUrl } from "@shared/utils/urls";
 
 @trace()
 export class TextHelper {

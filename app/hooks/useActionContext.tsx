@@ -4,15 +4,28 @@ import React, { createContext, useContext } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router";
 import useStores from "~/hooks/useStores";
+import type Model from "~/models/base/Model";
+import type Policy from "~/models/Policy";
 import type { ActionContext as ActionContextType } from "~/types";
+import type { SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
 
 export const ActionContext = createContext<ActionContextType | undefined>(
   undefined
 );
 
+interface ActionContextProviderValue {
+  /** Models to add to the active models context for this subtree. */
+  activeModels?: Model[];
+  isMenu?: boolean;
+  isCommandBar?: boolean;
+  isButton?: boolean;
+  sidebarContext?: SidebarContextType;
+  event?: Event;
+}
+
 type ActionContextProviderProps = {
   children: ReactNode;
-  value?: Partial<ActionContextType>;
+  value?: ActionContextProviderValue;
 };
 
 /**
@@ -21,15 +34,15 @@ type ActionContextProviderProps = {
  *
  * @example
  * ```tsx
- * // Override context for a command bar
- * <ActionContextProvider value={{ isCommandBar: true }}>
- *   <CommandBar />
+ * // Override active models for a collection menu
+ * <ActionContextProvider value={{ activeModels: [collection] }}>
+ *   <CollectionMenu />
  * </ActionContextProvider>
  *
  * // Nested overrides
- * <ActionContextProvider value={{ activeCollectionId: "collection-1" }}>
+ * <ActionContextProvider value={{ activeModels: [collection] }}>
  *   <CollectionView />
- *   <ActionContextProvider value={{ activeDocumentId: "doc-1" }}>
+ *   <ActionContextProvider value={{ activeModels: [document] }}>
  *     <DocumentView />
  *   </ActionContextProvider>
  * </ActionContextProvider>
@@ -43,14 +56,37 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
   const stores = useStores();
   const { t } = useTranslation();
   const location = useLocation();
+  const { activeModels: valueModels, ...overrides } = value;
 
   // Create the base context if we don't have a parent context
   const baseContext: ActionContextType = parentContext ?? {
     isMenu: false,
     isCommandBar: false,
     isButton: false,
+
+    // Legacy (backward compatibility)
     activeCollectionId: stores.ui.activeCollectionId ?? undefined,
     activeDocumentId: stores.ui.activeDocumentId ?? undefined,
+
+    getActiveModels: <T extends Model>(
+      modelClass: new (...args: any[]) => T
+    ): T[] => stores.ui.getActiveModels<T>(modelClass),
+
+    getActiveModel: <T extends Model>(
+      modelClass: new (...args: any[]) => T
+    ): T | undefined => stores.ui.getActiveModels<T>(modelClass)[0],
+
+    getActivePolicies: <T extends Model>(
+      modelClass: new (...args: any[]) => T
+    ): Policy[] =>
+      stores.ui
+        .getActiveModels<T>(modelClass)
+        .map((node) => stores.policies.get(node.id))
+        .filter((policy): policy is Policy => policy !== undefined),
+
+    isModelActive: (model: Model): boolean => stores.ui.isModelActive(model),
+    activeModels: new Set(stores.ui.activeModels.values()),
+
     currentUserId: stores.auth.user?.id,
     currentTeamId: stores.auth.team?.id,
     location,
@@ -58,10 +94,58 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
     t,
   };
 
-  // Merge the parent context with the provided overrides
+  // Override model accessors when models are provided in value
+  const getActiveModels =
+    valueModels && valueModels.length > 0
+      ? <T extends Model>(modelClass: new (...args: any[]) => T): T[] => {
+          const matching = valueModels.filter(
+            (model): model is T => model instanceof modelClass
+          );
+          return matching.length > 0
+            ? matching
+            : baseContext.getActiveModels(modelClass);
+        }
+      : baseContext.getActiveModels;
+
+  const getActiveModel = <T extends Model>(
+    modelClass: new (...args: any[]) => T
+  ): T | undefined => getActiveModels(modelClass)[0];
+
+  const getActivePolicies = <T extends Model>(
+    modelClass: new (...args: any[]) => T
+  ): Policy[] =>
+    getActiveModels(modelClass)
+      .map((node) => stores.policies.get(node.id))
+      .filter((policy): policy is Policy => policy !== undefined);
+
+  const allActiveModels =
+    valueModels && valueModels.length > 0
+      ? new Set([...baseContext.activeModels, ...valueModels])
+      : baseContext.activeModels;
+
+  const isModelActive = (model: Model): boolean => allActiveModels.has(model);
+
+  // Derive legacy IDs from value models, falling back to base context
+  const activeCollectionId =
+    valueModels?.find(
+      (m) => (m.constructor as typeof Model).modelName === "Collection"
+    )?.id ?? baseContext.activeCollectionId;
+
+  const activeDocumentId =
+    valueModels?.find(
+      (m) => (m.constructor as typeof Model).modelName === "Document"
+    )?.id ?? baseContext.activeDocumentId;
+
   const contextValue: ActionContextType = {
     ...baseContext,
-    ...value,
+    ...overrides,
+    activeCollectionId,
+    activeDocumentId,
+    getActiveModels,
+    getActiveModel,
+    getActivePolicies,
+    isModelActive,
+    activeModels: allActiveModels,
   };
 
   return (

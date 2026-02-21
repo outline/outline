@@ -25,9 +25,7 @@ import { PopoverButton } from "~/components/IconPicker/components/PopoverButton"
 import useBoolean from "~/hooks/useBoolean";
 import usePolicy from "~/hooks/usePolicy";
 import { useTranslation } from "react-i18next";
-import lazyWithRetry from "~/utils/lazyWithRetry";
-
-const IconPicker = lazyWithRetry(() => import("~/components/IconPicker"));
+import IconPicker from "~/components/IconPicker";
 
 type Props = {
   /** ID of the associated document */

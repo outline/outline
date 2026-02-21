@@ -39,7 +39,6 @@ type Props = {
   showCollection?: boolean;
   showPublished?: boolean;
   showDraft?: boolean;
-  showTemplate?: boolean;
 };
 
 const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
@@ -75,7 +74,6 @@ function DocumentListItem(
     showCollection,
     showPublished,
     showDraft = true,
-    showTemplate,
     highlight,
     context,
     ...rest
@@ -83,7 +81,7 @@ function DocumentListItem(
   const queryIsInTitle =
     !!highlight &&
     !!document.title.toLowerCase().includes(highlight.toLowerCase());
-  const canStar = !document.isArchived && !document.isTemplate;
+  const canStar = !document.isArchived;
 
   const isShared = !!(
     userMemberships.getByDocumentId(document.id) ||
@@ -101,11 +99,10 @@ function DocumentListItem(
   return (
     <ActionContextProvider
       value={{
-        activeDocumentId: document.id,
-        activeCollectionId:
-          !isShared && document.collectionId
-            ? document.collectionId
-            : undefined,
+        activeModels: [
+          document,
+          ...(!isShared && document.collection ? [document.collection] : []),
+        ],
       }}
     >
       <ContextMenu
@@ -163,9 +160,6 @@ function DocumentListItem(
                   </Tooltip>
                 )}
                 {canStar && <StarButton document={document} />}
-                {document.isTemplate && showTemplate && (
-                  <Badge primary>{t("Template")}</Badge>
-                )}
               </Heading>
 
               {!queryIsInTitle && (

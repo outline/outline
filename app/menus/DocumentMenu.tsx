@@ -7,6 +7,7 @@ import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
 import { SubscriptionType, UserPreference } from "@shared/types";
 import type Document from "~/models/Document";
+import type Template from "~/models/Template";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
 import Switch from "~/components/Switch";
@@ -33,7 +34,7 @@ type Props = {
   /** Invoked when the "Find and replace" menu item is clicked */
   onFindAndReplace?: () => void;
   /** Callback when a template is selected to apply its content to the document */
-  onSelectTemplate?: (template: Document) => void;
+  onSelectTemplate?: (template: Template) => void;
   /** Invoked when the "Rename" menu item is clicked */
   onRename?: () => void;
   /** Invoked when menu is opened */
@@ -198,11 +199,10 @@ function DocumentMenu({
   return (
     <ActionContextProvider
       value={{
-        activeDocumentId: document.id,
-        activeCollectionId:
-          !isShared && document.collectionId
-            ? document.collectionId
-            : undefined,
+        activeModels: [
+          document,
+          ...(!isShared && document.collection ? [document.collection] : []),
+        ],
       }}
     >
       <DropdownMenu

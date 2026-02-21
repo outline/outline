@@ -9,11 +9,11 @@ import { gapCursor } from "prosemirror-gapcursor";
 import type { InputRule } from "prosemirror-inputrules";
 import { inputRules } from "prosemirror-inputrules";
 import { keymap } from "prosemirror-keymap";
-import type { MarkdownParser } from "prosemirror-markdown";
 import type { NodeSpec, MarkSpec } from "prosemirror-model";
 import { Schema, Node as ProsemirrorNode } from "prosemirror-model";
 import type { Plugin, Transaction } from "prosemirror-state";
-import { EditorState, Selection } from "prosemirror-state";
+import { EditorState, Selection, TextSelection } from "prosemirror-state";
+import type { MarkdownParser } from "prosemirror-markdown";
 import {
   AddMarkStep,
   RemoveMarkStep,
@@ -78,6 +78,11 @@ export type Props = {
   focusedCommentId?: string;
   /** If the editor should not allow editing */
   readOnly?: boolean;
+  /**
+   * Whether we are rendering a cached version of the document while multiplayer loads.
+   * This is used to disable some editor functionality
+   */
+  cacheOnly?: boolean;
   /** If the editor should still allow editing checkboxes when it is readOnly */
   canUpdate?: boolean;
   /** If the editor should still allow commenting when it is readOnly */
@@ -531,6 +536,13 @@ export class Editor extends React.PureComponent<
       this.mutationObserver = observe(
         hash,
         (element) => {
+          const pos = this.view.posAtDOM(element, 0, 1);
+          this.view.dispatch(
+            this.view.state.tr.setSelection(
+              TextSelection.near(this.view.state.doc.resolve(pos), 1)
+            )
+          );
+
           if (isVisible(element)) {
             element.scrollIntoView();
           }
@@ -847,7 +859,7 @@ export class Editor extends React.PureComponent<
             column
           >
             <EditorContainer
-              rtl={isRTL}
+              $rtl={isRTL}
               grow={grow}
               readOnly={readOnly}
               readOnlyWriteCheckboxes={canUpdate}
@@ -860,6 +872,7 @@ export class Editor extends React.PureComponent<
             />
 
             {this.widgets &&
+              !this.props.cacheOnly &&
               Object.values(this.widgets).map((Widget, index) => (
                 <Widget
                   key={String(index)}
@@ -880,7 +893,7 @@ export class Editor extends React.PureComponent<
               images={this.getLightboxImages()}
               activeImage={this.state.activeLightboxImage}
               onUpdate={this.updateActiveLightboxImage}
-              onClose={this.view.focus}
+              onClose={this.view.focus.bind(this.view)}
             />
           )}
         </EditorContext.Provider>

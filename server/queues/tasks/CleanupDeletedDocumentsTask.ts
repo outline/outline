@@ -14,10 +14,8 @@ export default class CleanupDeletedDocumentsTask extends CronTask {
       "task",
       `Permanently destroying upto ${limit} documents older than 30 days…`
     );
-    const documents = await Document.scope([
-      "withDrafts",
-      "withoutState",
-    ]).findAll({
+    const documents = await Document.unscoped().findAll({
+      attributes: ["id", "teamId", "deletedAt", "content", "state"],
       where: {
         deletedAt: {
           [Op.lt]: subDays(new Date(), 30),

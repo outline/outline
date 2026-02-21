@@ -10,7 +10,7 @@ export type PasskeysListReq = z.infer<typeof PasskeysListSchema>;
 
 export const PasskeysDeleteSchema = BaseSchema.extend({
   body: z.object({
-    id: z.string().uuid(),
+    id: z.uuid(),
   }),
 });
 
@@ -18,7 +18,7 @@ export type PasskeysDeleteReq = z.infer<typeof PasskeysDeleteSchema>;
 
 export const PasskeysUpdateSchema = BaseSchema.extend({
   body: z.object({
-    id: z.string().uuid(),
+    id: z.uuid(),
     name: z
       .string()
       .trim()

@@ -141,20 +141,4 @@ export class CacheHelper {
       })
     );
   }
-
-  // keys
-
-  /**
-   * Gets key against which unfurl response for the given url is stored
-   *
-   * @param teamId The team ID to generate a key for
-   * @param url The url to generate a key for
-   */
-  public static getUnfurlKey(teamId: string, url = "") {
-    return `unfurl:${teamId}:${url}`;
-  }
-
-  public static getCollectionDocumentsKey(collectionId: string) {
-    return `cd:${collectionId}`;
-  }
 }

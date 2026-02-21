@@ -10,7 +10,11 @@ if (!window.env) {
   );
 }
 
-const env: Record<string, any> = {
+const env: Record<string, any> & {
+  isDevelopment: boolean;
+  isTest: boolean;
+  isProduction: boolean;
+} = {
   ...window.env,
   isDevelopment: window.env.ENVIRONMENT === "development",
   isTest: window.env.ENVIRONMENT === "test",

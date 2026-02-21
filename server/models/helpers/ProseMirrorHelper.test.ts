@@ -2,9 +2,13 @@ import { faker } from "@faker-js/faker";
 import type { DeepPartial } from "utility-types";
 import type { ProsemirrorData } from "@shared/types";
 import { MentionType } from "@shared/types";
+import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
+import { createContext } from "@server/context";
 import { buildProseMirrorDoc, buildUser } from "@server/test/factories";
 import type { MentionAttrs } from "./ProsemirrorHelper";
 import { ProsemirrorHelper } from "./ProsemirrorHelper";
+
+jest.mock("@server/storage/files");
 
 describe("ProsemirrorHelper", () => {
   describe("processMentions", () => {
@@ -767,6 +771,331 @@ describe("ProsemirrorHelper", () => {
       expect(thirdItem.type.name).toBe("checkbox_item");
       expect(thirdItem.attrs.checked).toBe(true);
       expect(thirdItem.textContent).toBe("Third");
+    });
+  });
+
+  describe("removeFirstHeading", () => {
+    it("should remove an H1 that is the first child", () => {
+      const doc = buildProseMirrorDoc([
+        {
+          type: "heading",
+          attrs: { level: 1 },
+          content: [{ type: "text", text: "Title" }],
+        },
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "Content" }],
+        },
+      ]);
+
+      const result = ProsemirrorHelper.removeFirstHeading(doc);
+
+      expect(result.content.childCount).toBe(1);
+      expect(result.content.child(0).type.name).toBe("paragraph");
+      expect(result.content.child(0).textContent).toBe("Content");
+    });
+
+    it("should not remove an H2 heading", () => {
+      const doc = buildProseMirrorDoc([
+        {
+          type: "heading",
+          attrs: { level: 2 },
+          content: [{ type: "text", text: "Subtitle" }],
+        },
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "Content" }],
+        },
+      ]);
+
+      const result = ProsemirrorHelper.removeFirstHeading(doc);
+
+      expect(result.content.childCount).toBe(2);
+      expect(result.content.child(0).type.name).toBe("heading");
+      expect(result.content.child(0).attrs.level).toBe(2);
+    });
+
+    it("should not remove a paragraph that is the first child", () => {
+      const doc = buildProseMirrorDoc([
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "First paragraph" }],
+        },
+        {
+          type: "heading",
+          attrs: { level: 1 },
+          content: [{ type: "text", text: "Title" }],
+        },
+      ]);
+
+      const result = ProsemirrorHelper.removeFirstHeading(doc);
+
+      expect(result.content.childCount).toBe(2);
+      expect(result.content.child(0).type.name).toBe("paragraph");
+    });
+
+    it("should return document with empty paragraph when H1 is only content", () => {
+      const doc = buildProseMirrorDoc([
+        {
+          type: "heading",
+          attrs: { level: 1 },
+          content: [{ type: "text", text: "Only Title" }],
+        },
+      ]);
+
+      const result = ProsemirrorHelper.removeFirstHeading(doc);
+
+      expect(result.content.childCount).toBe(1);
+      expect(result.content.child(0).type.name).toBe("paragraph");
+      expect(result.content.child(0).textContent).toBe("");
+    });
+  });
+
+  describe("extractEmojiFromStart", () => {
+    it("should extract an emoji from the start of the document", () => {
+      const doc = buildProseMirrorDoc([
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "🚀 Launch day" }],
+        },
+      ]);
+
+      const result = ProsemirrorHelper.extractEmojiFromStart(doc);
+
+      expect(result.emoji).toBe("🚀");
+      expect(result.doc.content.child(0).textContent).toBe(" Launch day");
+    });
+
+    it("should return undefined emoji when no emoji at start", () => {
+      const doc = buildProseMirrorDoc([
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "No emoji here" }],
+        },
+      ]);
+
+      const result = ProsemirrorHelper.extractEmojiFromStart(doc);
+
+      expect(result.emoji).toBeUndefined();
+      expect(result.doc.content.child(0).textContent).toBe("No emoji here");
+    });
+
+    it("should not extract emoji that is not at position 0", () => {
+      const doc = buildProseMirrorDoc([
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "Hello 🚀 world" }],
+        },
+      ]);
+
+      const result = ProsemirrorHelper.extractEmojiFromStart(doc);
+
+      expect(result.emoji).toBeUndefined();
+    });
+
+    it("should handle empty document", () => {
+      const doc = buildProseMirrorDoc([
+        {
+          type: "paragraph",
+          content: [],
+        },
+      ]);
+
+      const result = ProsemirrorHelper.extractEmojiFromStart(doc);
+
+      expect(result.emoji).toBeUndefined();
+    });
+
+    it("should extract emoji from nested content", () => {
+      const doc = buildProseMirrorDoc([
+        {
+          type: "heading",
+          attrs: { level: 1 },
+          content: [{ type: "text", text: "📚 Documentation" }],
+        },
+      ]);
+
+      const result = ProsemirrorHelper.extractEmojiFromStart(doc);
+
+      expect(result.emoji).toBe("📚");
+      expect(result.doc.content.child(0).textContent).toBe(" Documentation");
+    });
+
+    it("should handle flag emoji", () => {
+      const doc = buildProseMirrorDoc([
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "🇺🇸 United States" }],
+        },
+      ]);
+
+      const result = ProsemirrorHelper.extractEmojiFromStart(doc);
+
+      expect(result.emoji).toBe("🇺🇸");
+      expect(result.doc.content.child(0).textContent).toBe(" United States");
+    });
+  });
+
+  describe("replaceImagesWithAttachments", () => {
+    it("should return the same document when there are no images", async () => {
+      const user = await buildUser();
+      const ctx = createContext({ user });
+
+      const doc = buildProseMirrorDoc([
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "No images here" }],
+        },
+      ]);
+
+      const result = await ProsemirrorHelper.replaceImagesWithAttachments(
+        ctx,
+        doc,
+        user
+      );
+
+      expect(result.toJSON()).toEqual(doc.toJSON());
+    });
+
+    it("should correctly identify images in a document", () => {
+      const doc = buildProseMirrorDoc([
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "image",
+              attrs: {
+                src: "https://example.com/image.png",
+                alt: "Test image",
+              },
+            },
+          ],
+        },
+      ]);
+
+      const images = SharedProsemirrorHelper.getImages(doc);
+      expect(images.length).toBe(1);
+      expect(images[0].attrs.src).toBe("https://example.com/image.png");
+      expect(images[0].attrs.alt).toBe("Test image");
+    });
+
+    it("should skip images with invalid URLs", async () => {
+      const user = await buildUser();
+      const ctx = createContext({ user });
+
+      const doc = buildProseMirrorDoc([
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "image",
+              attrs: {
+                src: "not-a-valid-url",
+                alt: "Invalid",
+              },
+            },
+          ],
+        },
+      ]);
+
+      const result = await ProsemirrorHelper.replaceImagesWithAttachments(
+        ctx,
+        doc,
+        user
+      );
+
+      // Document should remain unchanged since URL is invalid
+      expect(result.toJSON()).toEqual(doc.toJSON());
+    });
+
+    it("should skip images with internal URLs", async () => {
+      const user = await buildUser();
+      const ctx = createContext({ user });
+
+      const doc = buildProseMirrorDoc([
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "image",
+              attrs: {
+                src: "/api/attachments.redirect?id=existing-id",
+                alt: "Internal",
+              },
+            },
+          ],
+        },
+      ]);
+
+      const result = await ProsemirrorHelper.replaceImagesWithAttachments(
+        ctx,
+        doc,
+        user
+      );
+
+      // Document should remain unchanged since URL is internal
+      expect(result.toJSON()).toEqual(doc.toJSON());
+    });
+
+    it("should handle document with multiple node types", async () => {
+      const user = await buildUser();
+      const ctx = createContext({ user });
+
+      const doc = buildProseMirrorDoc([
+        {
+          type: "heading",
+          attrs: { level: 1 },
+          content: [{ type: "text", text: "Title" }],
+        },
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "Some text" }],
+        },
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "image",
+              attrs: {
+                src: "invalid-url",
+                alt: "Image",
+              },
+            },
+          ],
+        },
+      ]);
+
+      const result = await ProsemirrorHelper.replaceImagesWithAttachments(
+        ctx,
+        doc,
+        user
+      );
+
+      // Document structure should be preserved
+      expect(result.content.childCount).toBe(3);
+      expect(result.content.child(0).type.name).toBe("heading");
+      expect(result.content.child(1).type.name).toBe("paragraph");
+      expect(result.content.child(2).type.name).toBe("paragraph");
+    });
+
+    it("should handle empty document", async () => {
+      const user = await buildUser();
+      const ctx = createContext({ user });
+
+      const doc = buildProseMirrorDoc([
+        {
+          type: "paragraph",
+          content: [],
+        },
+      ]);
+
+      const result = await ProsemirrorHelper.replaceImagesWithAttachments(
+        ctx,
+        doc,
+        user
+      );
+
+      expect(result.toJSON()).toEqual(doc.toJSON());
     });
   });
 });

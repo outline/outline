@@ -44,16 +44,4 @@ export class CacheHelper {
   public static async clearData(_prefix: string) {
     return;
   }
-
-  /**
-   * These are real methods that don't require mocking as they don't
-   * interact with Redis directly
-   */
-  public static getUnfurlKey(teamId: string, url = "") {
-    return `unfurl:${teamId}:${url}`;
-  }
-
-  public static getCollectionDocumentsKey(collectionId: string) {
-    return `cd:${collectionId}`;
-  }
 }

@@ -52,7 +52,6 @@ const DocumentMeta: React.FC<Props> = ({
     isDraft,
     lastViewedAt,
     isTasks,
-    isTemplate,
   } = document;
 
   // Prevent meta information from displaying if updatedBy is not available.
@@ -142,7 +141,7 @@ const DocumentMeta: React.FC<Props> = ({
   const nestedDocumentsCount = collection
     ? collection.getChildrenForDocument(document.id).length
     : 0;
-  const canShowProgressBar = isTasks && !isTemplate;
+  const canShowProgressBar = isTasks;
 
   const timeSinceNow = () => {
     if (isDraft || !showLastViewed) {
@@ -170,7 +169,7 @@ const DocumentMeta: React.FC<Props> = ({
   };
 
   return (
-    <Container align="center" rtl={document.dir === "rtl"} {...rest} dir="ltr">
+    <Container align="center" $rtl={document.dir === "rtl"} {...rest} dir="ltr">
       {to ? (
         <Link to={to} replace={replace}>
           {content}
@@ -219,8 +218,8 @@ const Strong = styled.strong`
   font-weight: 550;
 `;
 
-const Container = styled(Flex)<{ rtl?: boolean }>`
-  justify-content: ${(props) => (props.rtl ? "flex-end" : "flex-start")};
+const Container = styled(Flex)<{ $rtl?: boolean }>`
+  justify-content: ${(props) => (props.$rtl ? "flex-end" : "flex-start")};
   color: ${s("textTertiary")};
   font-size: 13px;
   white-space: nowrap;

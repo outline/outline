@@ -1,12 +1,17 @@
 import { z } from "zod";
-import { NotificationEventType, UserPreference, UserRole } from "@shared/types";
+import {
+  NotificationBadgeType,
+  NotificationEventType,
+  UserPreference,
+  UserRole,
+} from "@shared/types";
 import { locales } from "@shared/utils/date";
 import User from "@server/models/User";
 import { zodEnumFromObjectKeys, zodTimezone } from "@server/utils/zod";
 import { BaseSchema } from "../schema";
 
 const BaseIdSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
 });
 
 export const UsersListSchema = z.object({
@@ -21,25 +26,20 @@ export const UsersListSchema = z.object({
     sort: z
       .string()
       .refine((val) => Object.keys(User.getAttributes()).includes(val), {
-        message: "Invalid sort parameter",
+        error: "Invalid sort parameter",
       })
-      .default("createdAt"),
+      .prefault("createdAt"),
 
-    ids: z.array(z.string().uuid()).optional(),
+    ids: z.array(z.uuid()).optional(),
 
     emails: z
-      .array(
-        z
-          .string()
-          .email()
-          .transform((email) => email.toLowerCase())
-      )
+      .array(z.email().transform((email) => email.toLowerCase()))
       .optional(),
 
     query: z.string().optional(),
 
     /** The user's role */
-    role: z.nativeEnum(UserRole).optional(),
+    role: z.enum(UserRole).optional(),
 
     /**
      * Filter the users by their status – passing a user role is deprecated here, instead use the
@@ -66,7 +66,7 @@ export type UsersListReq = z.infer<typeof UsersListSchema>;
 
 export const UsersNotificationsSubscribeSchema = z.object({
   body: z.object({
-    eventType: z.nativeEnum(NotificationEventType),
+    eventType: z.enum(NotificationEventType),
   }),
 });
 
@@ -76,7 +76,7 @@ export type UsersNotificationsSubscribeReq = z.infer<
 
 export const UsersNotificationsUnsubscribeSchema = z.object({
   body: z.object({
-    eventType: z.nativeEnum(NotificationEventType),
+    eventType: z.enum(NotificationEventType),
   }),
 });
 
@@ -86,11 +86,16 @@ export type UsersNotificationsUnsubscribeReq = z.infer<
 
 export const UsersUpdateSchema = BaseSchema.extend({
   body: z.object({
-    id: z.string().uuid().optional(),
+    id: z.uuid().optional(),
     name: z.string().optional(),
     avatarUrl: z.string().nullish(),
     language: zodEnumFromObjectKeys(locales).optional(),
-    preferences: z.record(z.nativeEnum(UserPreference), z.boolean()).optional(),
+    preferences: z
+      .partialRecord(
+        z.enum(UserPreference),
+        z.union([z.boolean(), z.enum(NotificationBadgeType)])
+      )
+      .optional(),
     timezone: zodTimezone().optional(),
   }),
 });
@@ -100,7 +105,7 @@ export type UsersUpdateReq = z.infer<typeof UsersUpdateSchema>;
 export const UsersDeleteSchema = BaseSchema.extend({
   body: z.object({
     code: z.string().optional(),
-    id: z.string().uuid().optional(),
+    id: z.uuid().optional(),
   }),
 });
 
@@ -108,8 +113,8 @@ export type UsersDeleteSchemaReq = z.infer<typeof UsersDeleteSchema>;
 
 export const UsersUpdateEmailSchema = BaseSchema.extend({
   body: z.object({
-    id: z.string().uuid().optional(),
-    email: z.string().email(),
+    id: z.uuid().optional(),
+    email: z.email(),
   }),
 });
 
@@ -118,7 +123,7 @@ export type UsersUpdateEmailReq = z.infer<typeof UsersUpdateEmailSchema>;
 export const UsersUpdateEmailConfirmSchema = BaseSchema.extend({
   query: z.object({
     code: z.string(),
-    follow: z.string().default(""),
+    follow: z.string().prefault(""),
   }),
 });
 
@@ -128,7 +133,7 @@ export type UsersUpdateEmailConfirmReq = z.infer<
 
 export const UsersInfoSchema = BaseSchema.extend({
   body: z.object({
-    id: z.string().uuid().optional(),
+    id: z.uuid().optional(),
   }),
 });
 
@@ -142,7 +147,7 @@ export type UsersActivateReq = z.infer<typeof UsersActivateSchema>;
 
 export const UsersChangeRoleSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
-    role: z.nativeEnum(UserRole),
+    role: z.enum(UserRole),
   }),
 });
 
@@ -156,7 +161,7 @@ export type UsersPromoteReq = z.infer<typeof UsersPromoteSchema>;
 
 export const UsersDemoteSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
-    to: z.nativeEnum(UserRole).default(UserRole.Member),
+    to: z.enum(UserRole).prefault(UserRole.Member),
   }),
 });
 
@@ -178,9 +183,9 @@ export const UsersInviteSchema = z.object({
   body: z.object({
     invites: z.array(
       z.object({
-        email: z.string().email(),
+        email: z.email(),
         name: z.string(),
-        role: z.nativeEnum(UserRole),
+        role: z.enum(UserRole),
       })
     ),
   }),

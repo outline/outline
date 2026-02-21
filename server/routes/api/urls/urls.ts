@@ -1,4 +1,4 @@
-import dns from "dns";
+import dns from "node:dns";
 import Router from "koa-router";
 import { traceFunction } from "@server/logging/tracing";
 import { MentionType, UnfurlResourceType } from "@shared/types";
@@ -15,10 +15,16 @@ import { authorize, can } from "@server/policies";
 import presentUnfurl from "@server/presenters/unfurl";
 import type { APIContext, Unfurl } from "@server/types";
 import { CacheHelper, type CacheResult } from "@server/utils/CacheHelper";
+import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import { Hook, PluginManager } from "@server/utils/PluginManager";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
+import {
+  checkEmbeddability,
+  type EmbedCheckResult,
+} from "@server/utils/embeds";
 import * as T from "./schema";
 import { MAX_AVATAR_DISPLAY } from "@shared/constants";
+import { Day } from "@shared/utils/time";
 
 const router = new Router();
 const plugins = PluginManager.getHooks(Hook.UnfurlProvider);
@@ -129,7 +135,7 @@ router.post(
     // External resources
     // Use getDataOrSet which handles distributed locking to prevent thundering herd
     // when multiple clients request the same URL simultaneously
-    const cacheKey = CacheHelper.getUnfurlKey(actor.teamId, url);
+    const cacheKey = RedisPrefixHelper.getUnfurlKey(actor.teamId, url);
     const defaultCacheExpiry = 3600;
 
     const unfurlResult = await CacheHelper.getDataOrSet<
@@ -169,6 +175,26 @@ router.post(
 
     ctx.body = await presentUnfurl(unfurlResult);
     return;
+  }
+);
+
+router.post(
+  "urls.checkEmbed",
+  rateLimiter(RateLimiterStrategy.OneHundredPerHour),
+  auth(),
+  validate(T.UrlsCheckEmbedSchema),
+  async (ctx: APIContext<T.UrlsCheckEmbedReq>) => {
+    const { url } = ctx.input.body;
+
+    const result = await CacheHelper.getDataOrSet<EmbedCheckResult>(
+      RedisPrefixHelper.getEmbedCheckKey(url),
+      () => checkEmbeddability(url),
+      Day.seconds
+    );
+
+    ctx.body = result
+      ? { embeddable: result.embeddable, reason: result.reason }
+      : { embeddable: false, reason: "error" };
   }
 );
 

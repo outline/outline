@@ -40,7 +40,7 @@ describe("#urls.unfurl", () => {
 
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("url: Invalid url");
+    expect(body.message).toEqual("url: Invalid URL");
   });
 
   it("should fail with status 400 bad request when mention url is invalid", async () => {
@@ -230,6 +230,49 @@ describe("#urls.unfurl", () => {
     });
 
     expect(res.status).toEqual(204);
+  });
+});
+
+describe("#urls.checkEmbed", () => {
+  let user: User;
+  beforeEach(async () => {
+    user = await buildUser();
+  });
+
+  it("should fail with status 400 bad request when url is missing", async () => {
+    const res = await server.post("/api/urls.checkEmbed", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+
+    expect(res.status).toEqual(400);
+  });
+
+  it("should fail with status 400 bad request when url is not a valid URL", async () => {
+    const res = await server.post("/api/urls.checkEmbed", {
+      body: {
+        token: user.getJwtToken(),
+        url: "not-a-url",
+      },
+    });
+
+    expect(res.status).toEqual(400);
+  });
+
+  it("should return a result for valid URLs", async () => {
+    // Use a YouTube URL which matches a known embed pattern
+    const res = await server.post("/api/urls.checkEmbed", {
+      body: {
+        token: user.getJwtToken(),
+        url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    // Result depends on actual HTTP response from YouTube (or network error)
+    expect(body).toHaveProperty("embeddable");
   });
 });
 

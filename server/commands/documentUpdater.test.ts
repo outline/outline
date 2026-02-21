@@ -1,4 +1,4 @@
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import * as Y from "yjs";
 import { TextEditMode } from "@shared/types";
 import { APIUpdateExtension } from "@server/collaboration/APIUpdateExtension";

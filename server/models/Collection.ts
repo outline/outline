@@ -61,6 +61,7 @@ import { CollectionValidation } from "@shared/validations";
 import { ValidationError } from "@server/errors";
 import type { APIContext } from "@server/types";
 import { CacheHelper } from "@server/utils/CacheHelper";
+import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import removeIndexCollision from "@server/utils/removeIndexCollision";
 import { generateUrlId } from "@server/utils/url";
 import { ValidateIndex } from "@server/validation";
@@ -347,7 +348,7 @@ class Collection extends ParanoidModel<
     }
     if (model.changed("documentStructure")) {
       await CacheHelper.clearData(
-        CacheHelper.getCollectionDocumentsKey(model.id)
+        RedisPrefixHelper.getCollectionDocumentsKey(model.id)
       );
     }
   }
@@ -360,7 +361,7 @@ class Collection extends ParanoidModel<
     if (model.changed("documentStructure")) {
       const setData = () =>
         CacheHelper.setData(
-          CacheHelper.getCollectionDocumentsKey(model.id),
+          RedisPrefixHelper.getCollectionDocumentsKey(model.id),
           model.documentStructure,
           60
         );
@@ -436,18 +437,30 @@ class Collection extends ParanoidModel<
     model: Collection,
     options: { transaction: Transaction }
   ) {
-    return UserMembership.findOrCreate({
+    const existing = await UserMembership.findOne({
       where: {
         collectionId: model.id,
         userId: model.createdById,
       },
-      defaults: {
-        permission: CollectionPermission.Admin,
-        createdById: model.createdById,
-      },
       transaction: options.transaction,
-      hooks: false,
     });
+
+    if (!existing) {
+      return UserMembership.create(
+        {
+          collectionId: model.id,
+          userId: model.createdById,
+          permission: CollectionPermission.Admin,
+          createdById: model.createdById,
+        },
+        {
+          transaction: options.transaction,
+          hooks: false,
+        }
+      );
+    }
+
+    return existing;
   }
 
   @BeforeUpdate

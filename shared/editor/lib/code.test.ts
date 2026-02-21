@@ -6,6 +6,8 @@ describe("getRefractorLangForLanguage", () => {
     expect(getRefractorLangForLanguage("mermaid")).toBe("mermaid");
     expect(getRefractorLangForLanguage("mermaidjs")).toBe("mermaid");
     expect(getRefractorLangForLanguage("xml")).toBe("markup");
+    expect(getRefractorLangForLanguage("diff")).toBe("diff");
+    expect(getRefractorLangForLanguage("fortran")).toBe("fortran");
     expect(getRefractorLangForLanguage("unknown")).toBeUndefined();
     expect(getRefractorLangForLanguage("")).toBeUndefined();
   });
@@ -17,6 +19,8 @@ describe("getLabelForLanguage", () => {
     expect(getLabelForLanguage("mermaid")).toBe("Mermaid");
     expect(getLabelForLanguage("mermaidjs")).toBe("Mermaid");
     expect(getLabelForLanguage("xml")).toBe("XML");
+    expect(getLabelForLanguage("diff")).toBe("Diff");
+    expect(getLabelForLanguage("fortran")).toBe("Fortran");
     expect(getLabelForLanguage("unknown")).toBe("Plain text");
     expect(getLabelForLanguage("none")).toBe("Plain text");
     expect(getLabelForLanguage("")).toBe("Plain text");

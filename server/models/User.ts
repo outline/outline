@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { addHours, addMinutes, subMinutes } from "date-fns";
 import JWT from "jsonwebtoken";
 import type { Context } from "koa";
@@ -411,7 +411,10 @@ class User extends ParanoidModel<
    * @param value Sets the preference value
    * @returns The current user preferences
    */
-  public setPreference = (preference: UserPreference, value: boolean) => {
+  public setPreference = <K extends UserPreference>(
+    preference: K,
+    value: NonNullable<UserPreferences[K]>
+  ) => {
     if (!this.preferences) {
       this.preferences = {};
     }
@@ -428,10 +431,12 @@ class User extends ParanoidModel<
    * @param preference The user preference to retrieve
    * @returns The preference value if set, else the default value.
    */
-  public getPreference = (preference: UserPreference) =>
-    this.preferences?.[preference] ??
-    UserPreferenceDefaults[preference] ??
-    false;
+  public getPreference = <K extends UserPreference>(
+    preference: K
+  ): NonNullable<UserPreferences[K]> =>
+    (this.preferences?.[preference] ??
+      UserPreferenceDefaults[preference] ??
+      false) as NonNullable<UserPreferences[K]>;
 
   /**
    * Returns the user's active groups.

@@ -15,6 +15,7 @@ import EditableTitle from "~/components/EditableTitle";
 import Fade from "~/components/Fade";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import NudeButton from "~/components/NudeButton";
+import Tooltip from "~/components/Tooltip";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
@@ -122,10 +123,11 @@ const CollectionLink: React.FC<Props> = ({
 
   const contextMenuAction = useCollectionMenuAction({
     collectionId: collection.id,
+    onRename: handleRename,
   });
 
   return (
-    <ActionContextProvider value={{ activeCollectionId: collection.id }}>
+    <ActionContextProvider value={{ activeModels: [collection] }}>
       <Relative ref={mergeRefs([parentRef, dropRef])}>
         <DropToImport collectionId={collection.id}>
           <SidebarLink
@@ -141,7 +143,7 @@ const CollectionLink: React.FC<Props> = ({
             icon={
               <CollectionIcon collection={collection} expanded={expanded} />
             }
-            showActions={menuOpen}
+            $showActions={menuOpen}
             isActiveDrop={isOver && canDrop}
             isActive={(
               match,
@@ -157,6 +159,7 @@ const CollectionLink: React.FC<Props> = ({
                 ref={editableTitleRef}
               />
             }
+            ellipsis={!isEditing}
             exact={false}
             depth={depth ? depth : 0}
             menu={
@@ -164,17 +167,18 @@ const CollectionLink: React.FC<Props> = ({
               !isDraggingAnyCollection && (
                 <Fade>
                   {can.createDocument && (
-                    <NudeButton
-                      tooltip={{ content: t("New doc"), delay: 500 }}
-                      aria-label={t("New nested document")}
-                      onClick={(ev) => {
-                        ev.preventDefault();
-                        setIsAddingNewChild();
-                        handleExpand();
-                      }}
-                    >
-                      <PlusIcon />
-                    </NudeButton>
+                    <Tooltip content={t("New doc")} delay={500}>
+                      <NudeButton
+                        aria-label={t("New nested document")}
+                        onClick={(ev) => {
+                          ev.preventDefault();
+                          setIsAddingNewChild();
+                          handleExpand();
+                        }}
+                      >
+                        <PlusIcon />
+                      </NudeButton>
+                    </Tooltip>
                   )}
                   <CollectionMenu
                     collection={collection}
@@ -197,6 +201,7 @@ const CollectionLink: React.FC<Props> = ({
           <SidebarLink
             depth={2}
             isActive={() => true}
+            ellipsis={false}
             label={
               <EditableTitle
                 title=""

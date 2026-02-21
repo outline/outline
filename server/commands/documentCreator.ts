@@ -1,7 +1,7 @@
 import type { Optional } from "utility-types";
 import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { TextHelper } from "@shared/utils/TextHelper";
-import { Document } from "@server/models";
+import { Document, type Template } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import type { APIContext } from "@server/types";
@@ -20,7 +20,6 @@ type Props = Optional<
     | "parentDocumentId"
     | "importId"
     | "apiImportId"
-    | "template"
     | "fullWidth"
     | "sourceMetadata"
     | "editorVersion"
@@ -31,7 +30,8 @@ type Props = Optional<
 > & {
   state?: Buffer;
   publish?: boolean;
-  templateDocument?: Document | null;
+  template?: Template | null;
+  index?: number;
 };
 
 export default async function documentCreator(
@@ -45,11 +45,11 @@ export default async function documentCreator(
     id,
     urlId,
     publish,
+    index,
     collectionId,
     parentDocumentId,
     content,
     template,
-    templateDocument,
     fullWidth,
     importId,
     apiImportId,
@@ -63,11 +63,10 @@ export default async function documentCreator(
 ): Promise<Document> {
   const { user } = ctx.state.auth;
   const { transaction } = ctx.state;
-  const templateId = templateDocument ? templateDocument.id : undefined;
-
+  const templateId = template ? template.id : undefined;
   const eventData = importId || apiImportId ? { source: "import" } : undefined;
 
-  if (state && templateDocument) {
+  if (state && template) {
     throw new Error(
       "State cannot be set when creating a document from a template"
     );
@@ -88,23 +87,17 @@ export default async function documentCreator(
 
   const titleWithReplacements =
     title ??
-    (templateDocument
-      ? template
-        ? templateDocument.title
-        : TextHelper.replaceTemplateVariables(templateDocument.title, user)
-      : "");
+    (template ? TextHelper.replaceTemplateVariables(template.title, user) : "");
 
   const contentWithReplacements = content
     ? content
     : text
       ? ProsemirrorHelper.toProsemirror(text).toJSON()
-      : templateDocument
-        ? template
-          ? templateDocument.content
-          : SharedProsemirrorHelper.replaceTemplateVariables(
-              await DocumentHelper.toJSON(templateDocument),
-              user
-            )
+      : template
+        ? SharedProsemirrorHelper.replaceTemplateVariables(
+            await DocumentHelper.toJSON(template),
+            user
+          )
         : ProsemirrorHelper.toProsemirror("").toJSON();
 
   const document = Document.build({
@@ -118,15 +111,14 @@ export default async function documentCreator(
     updatedAt: updatedAt ?? createdAt,
     lastModifiedById: user.id,
     createdById: user.id,
-    template,
     templateId,
     publishedAt,
     importId,
     apiImportId,
     sourceMetadata,
-    fullWidth: fullWidth ?? templateDocument?.fullWidth,
-    icon: icon ?? templateDocument?.icon,
-    color: color ?? templateDocument?.color,
+    fullWidth: fullWidth ?? template?.fullWidth,
+    icon: icon ?? template?.icon,
+    color: color ?? template?.color,
     title: titleWithReplacements,
     content: contentWithReplacements,
     state,
@@ -145,13 +137,14 @@ export default async function documentCreator(
   );
 
   if (publish) {
-    if (!collectionId && !template) {
+    if (!collectionId) {
       throw new Error("Collection ID is required to publish");
     }
 
     await document.publish(ctx, {
       collectionId,
       silent: true,
+      index,
       event: !!document.title,
       data: eventData,
     });

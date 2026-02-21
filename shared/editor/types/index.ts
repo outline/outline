@@ -32,7 +32,7 @@ export type MenuItem = {
   dangerous?: boolean;
   /** Higher number is higher in results, default is 0. */
   priority?: number;
-  children?: MenuItem[];
+  children?: MenuItem[] | (() => MenuItem[]);
   defaultHidden?: boolean;
   attrs?:
     | Record<string, Primitive | null>

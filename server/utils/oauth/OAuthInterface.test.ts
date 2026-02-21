@@ -1,4 +1,4 @@
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import { Scope } from "@shared/types";
 import { OAuthInterface } from "./OAuthInterface";
 import {

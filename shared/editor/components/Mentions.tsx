@@ -230,7 +230,9 @@ export const MentionURL = (props: IssueUrlProps) => {
           data,
         });
       } finally {
-        setLoaded(true);
+        if (isMounted()) {
+          setLoaded(true);
+        }
       }
     };
 

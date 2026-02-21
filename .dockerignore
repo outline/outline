@@ -1,4 +1,3 @@
-__mocks__
 .git
 .vscode
 .github
@@ -8,11 +7,19 @@ __mocks__
 .eslint*
 .oxlintrc*
 .log
+*.md
 Makefile
 Procfile
 app.json
 crowdin.yml
+lint-staged.config.mjs
 build
 docker-compose.yml
 node_modules
 .yarn
+**/*.test.ts
+**/*.test.tsx
+**/*.test.js
+**/*.test.jsx
+**/__tests__
+**/__mocks__

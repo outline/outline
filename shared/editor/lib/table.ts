@@ -90,7 +90,7 @@ export function setCellAttrs(node: Node): Attrs {
       attrs["data-bgcolor"] = backgroundMark.attrs.color;
       attrs.style =
         (attrs.style ?? "") +
-        `background-color: ${backgroundMark.attrs.color}; --cell-text-color: ${readableColor(backgroundMark.attrs.color)};`;
+        `--cell-bg-color: ${backgroundMark.attrs.color}; --cell-text-color: ${readableColor(backgroundMark.attrs.color)};`;
     }
   }
 

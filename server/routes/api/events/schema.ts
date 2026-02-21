@@ -15,16 +15,16 @@ export const EventsListSchema = BaseSchema.extend({
       .optional(),
 
     /** Id of the user who performed the action */
-    actorId: z.string().uuid().optional(),
+    actorId: z.uuid().optional(),
 
     /** Id of the document to filter the events for */
-    documentId: z.string().uuid().optional(),
+    documentId: z.uuid().optional(),
 
     /** Id of the collection to filter the events for */
-    collectionId: z.string().uuid().optional(),
+    collectionId: z.uuid().optional(),
 
     /** Whether to include audit events */
-    auditLog: z.boolean().default(false),
+    auditLog: z.boolean().prefault(false),
 
     /** @deprecated, use 'events' parameter instead
      * Name of the event to retrieve
@@ -35,7 +35,7 @@ export const EventsListSchema = BaseSchema.extend({
     sort: z
       .string()
       .refine((val) => ["name", "createdAt"].includes(val))
-      .default("createdAt"),
+      .prefault("createdAt"),
 
     /** The direction to sort the events */
     direction: z

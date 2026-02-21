@@ -1,4 +1,5 @@
 import capitalize from "lodash/capitalize";
+import { observer } from "mobx-react";
 import { useCallback, useMemo, useEffect } from "react";
 import { emojiMartToGemoji, snakeCase } from "@shared/editor/lib/emoji";
 import { search as emojiSearch } from "@shared/utils/emoji";
@@ -76,4 +77,4 @@ const EmojiMenu = (props: Props) => {
   );
 };
 
-export default EmojiMenu;
+export default observer(EmojiMenu);

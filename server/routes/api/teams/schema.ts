@@ -25,9 +25,9 @@ export const TeamsUpdateSchema = BaseSchema.extend({
     /** Whether team members are able to create new workspaces */
     memberTeamCreate: z.boolean().optional(),
     /** The default landing collection for the team */
-    defaultCollectionId: z.string().uuid().nullish(),
+    defaultCollectionId: z.uuid().nullish(),
     /** The default user role */
-    defaultUserRole: z.nativeEnum(UserRole).optional(),
+    defaultUserRole: z.enum(UserRole).optional(),
     /** Whether new users must be invited to join the team */
     inviteRequired: z.boolean().optional(),
     /** Domains allowed to sign-in with SSO */
@@ -59,10 +59,12 @@ export const TeamsUpdateSchema = BaseSchema.extend({
           })
           .optional(),
         /** Side to display the document's table of contents in relation to the main content. */
-        tocPosition: z.nativeEnum(TOCPosition).optional(),
-        emailDisplay: z.nativeEnum(EmailDisplay).optional(),
+        tocPosition: z.enum(TOCPosition).optional(),
+        emailDisplay: z.enum(EmailDisplay).optional(),
         /** Whether to prevent shared documents from being embedded in iframes on external websites. */
         preventDocumentEmbedding: z.boolean().optional(),
+        /** Whether external MCP clients can connect to the workspace. */
+        mcp: z.boolean().optional(),
       })
       .optional(),
   }),

@@ -4,7 +4,7 @@ import isNull from "lodash/isNull";
 import { Node } from "prosemirror-model";
 import type { InferCreationAttributes } from "sequelize";
 import type { DeepPartial } from "utility-types";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import { randomString } from "@shared/random";
 import type { ProsemirrorData, ReactionSummary } from "@shared/types";
 import {
@@ -48,6 +48,7 @@ import {
   OAuthClient,
   OAuthAuthentication,
   Relationship,
+  Template,
 } from "@server/models";
 import { RelationshipType } from "@server/models/Relationship";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
@@ -430,6 +431,52 @@ export async function buildDocument(
   return document;
 }
 
+export async function buildTemplate(
+  overrides: Omit<Partial<Template>, "collectionId"> & {
+    userId?: string;
+    text?: string;
+    collectionId?: string | null;
+  } = {}
+) {
+  if (!overrides.teamId) {
+    const team = await buildTeam();
+    overrides.teamId = team.id;
+  }
+
+  if (!overrides.userId) {
+    const user = await buildUser({
+      teamId: overrides.teamId,
+    });
+    overrides.userId = user.id;
+  }
+
+  let collection;
+  if (overrides.collectionId === undefined) {
+    collection = await buildCollection({
+      teamId: overrides.teamId,
+      userId: overrides.userId,
+    });
+    overrides.collectionId = collection.id;
+  }
+
+  const text = overrides.text ?? "This is the text in an example template";
+  const template = await Template.create(
+    {
+      title: faker.lorem.words(4),
+      content: overrides.content ?? parser.parse(text)?.toJSON(),
+      lastModifiedById: overrides.userId,
+      createdById: overrides.userId,
+      editorVersion: "12.0.0",
+      ...overrides,
+    },
+    {
+      silent: overrides.createdAt || overrides.updatedAt ? true : false,
+    }
+  );
+
+  return template;
+}
+
 export async function buildComment(overrides: {
   userId: string;
   documentId: string;
@@ -745,20 +792,28 @@ export async function buildOAuthClient(overrides: Partial<OAuthClient> = {}) {
     overrides.teamId = team.id;
   }
 
-  if (!overrides.createdById) {
+  if (!overrides.createdById && overrides.createdById !== null) {
     const user = await buildUser({
       teamId: overrides.teamId,
     });
     overrides.createdById = user.id;
   }
 
-  return OAuthClient.create({
-    name: faker.company.name(),
-    description: faker.lorem.paragraph(),
-    redirectUris: ["https://example.com/oauth/callback"],
-    published: true,
-    ...overrides,
-  });
+  return OAuthClient.create(
+    {
+      name: faker.company.name(),
+      description: faker.lorem.paragraph(),
+      redirectUris: ["https://example.com/oauth/callback"],
+      published: true,
+      ...(overrides.createdAt && !overrides.updatedAt
+        ? { updatedAt: overrides.createdAt }
+        : {}),
+      ...overrides,
+    },
+    {
+      silent: overrides.createdAt || overrides.updatedAt ? true : false,
+    }
+  );
 }
 
 export async function buildOAuthAuthorizationCode(

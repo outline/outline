@@ -24,6 +24,15 @@ export const ActiveDocumentSection = ({ t, stores }: ActionContext) => {
 
 ActiveDocumentSection.priority = 0.9;
 
+export const TemplateSection = ({ t }: ActionContext) => t("Template");
+
+export const ActiveTemplateSection = ({ t, stores }: ActionContext) => {
+  const activeTemplate = stores.templates.active;
+  return `${t("Template")} · ${activeTemplate?.titleWithDefault}`;
+};
+
+ActiveTemplateSection.priority = 0.9;
+
 export const RecentSection = ({ t }: ActionContext) => t("Recently viewed");
 
 RecentSection.priority = 1;

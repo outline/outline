@@ -22,6 +22,7 @@ import {
   getCellsInColumn,
   isMergedCellSelection,
   isMultipleCellSelection,
+  tableHasRowspan,
 } from "@shared/editor/queries/table";
 import type { MenuItem, NodeAttrMark } from "@shared/editor/types";
 import type { Dictionary } from "~/hooks/useDictionary";
@@ -81,7 +82,7 @@ export default function tableColMenuItems(
   const activeColor =
     colColors.size === 1 ? colColors.values().next().value : null;
   const customColor =
-    colColors.size === 1 && !TableCell.presetColors.includes(activeColor)
+    colColors.size === 1 && !TableCell.isPresetColor(activeColor)
       ? activeColor
       : undefined;
 
@@ -127,12 +128,14 @@ export default function tableColMenuItems(
       tooltip: dictionary.sortAsc,
       attrs: { index, direction: "asc" },
       icon: <SortAscendingIcon />,
+      disabled: tableHasRowspan(state),
     },
     {
       name: "sortTable",
       tooltip: dictionary.sortDesc,
       attrs: { index, direction: "desc" },
       icon: <SortDescendingIcon />,
+      disabled: tableHasRowspan(state),
     },
     {
       name: "separator",
@@ -157,12 +160,12 @@ export default function tableColMenuItems(
             attrs: { color: null },
           },
         ],
-        ...TableCell.presetColors.map((color, colorIndex) => ({
+        ...TableCell.presetColors.map((preset) => ({
           name: "toggleColumnBackgroundAndCollapseSelection",
-          label: TableCell.presetColorNames[colorIndex],
-          icon: <CircleIcon retainColor color={color} />,
-          active: () => colColors.size === 1 && colColors.has(color),
-          attrs: { color },
+          label: preset.name,
+          icon: <CircleIcon retainColor color={preset.hex} />,
+          active: () => colColors.size === 1 && colColors.has(preset.hex),
+          attrs: { color: preset.hex },
         })),
         ...(customColor
           ? [

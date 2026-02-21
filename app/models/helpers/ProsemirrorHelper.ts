@@ -1,9 +1,13 @@
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
 import { richExtensions, withComments } from "@shared/editor/nodes";
+import type { ProsemirrorData } from "@shared/types";
 import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
-import type Document from "../Document";
 import { Schema } from "prosemirror-model";
 import { Node } from "prosemirror-model";
+
+interface HasData {
+  data: ProsemirrorData;
+}
 
 export class ProsemirrorHelper {
   /**
@@ -11,7 +15,7 @@ export class ProsemirrorHelper {
    *
    * @returns The markdown representation of the document as a string.
    */
-  static toMarkdown = (document: Document) => {
+  static toMarkdown = (document: HasData) => {
     const extensionManager = new ExtensionManager(withComments(richExtensions));
     const serializer = extensionManager.serializer();
     const schema = new Schema({
@@ -35,7 +39,7 @@ export class ProsemirrorHelper {
    *
    * @returns The plain text representation of the document as a string.
    */
-  static toPlainText = (document: Document) => {
+  static toPlainText = (document: HasData) => {
     const extensionManager = new ExtensionManager(withComments(richExtensions));
     const schema = new Schema({
       nodes: extensionManager.nodes,

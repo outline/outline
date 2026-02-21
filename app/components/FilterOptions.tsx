@@ -26,8 +26,10 @@ type Props = {
   className?: string;
   onSelect: (key: string | null | undefined) => void;
   showFilter?: boolean;
+  showIcons?: boolean;
   fetchQuery?: (options: FetchPageParams) => Promise<PaginatedItem[]>;
   fetchQueryOptions?: Record<string, string>;
+  disclosure?: boolean;
 };
 
 const FilterOptions = ({
@@ -36,8 +38,10 @@ const FilterOptions = ({
   className,
   onSelect,
   showFilter,
+  showIcons = true,
   fetchQuery,
   fetchQueryOptions,
+  disclosure = true,
   ...rest
 }: Props) => {
   const { t } = useTranslation();
@@ -58,7 +62,7 @@ const FilterOptions = ({
       <MenuButton
         key={option.key}
         icon={
-          option.icon ? (
+          option.icon && showIcons ? (
             <MenuIconWrapper aria-hidden>{option.icon}</MenuIconWrapper>
           ) : undefined
         }
@@ -70,7 +74,7 @@ const FilterOptions = ({
         selected={selectedKeys.includes(option.key)}
       />
     ),
-    [onSelect, selectedKeys]
+    [onSelect, showIcons, selectedKeys]
   );
 
   const handleFilter = React.useCallback(
@@ -181,8 +185,8 @@ const FilterOptions = ({
           <StyledButton
             className={className}
             icon={selectedItems[0]?.key && selectedItems[0]?.icon}
+            disclosure={disclosure}
             neutral
-            disclosure
           >
             {selectedItems.length ? selectedLabel : defaultLabel}
           </StyledButton>

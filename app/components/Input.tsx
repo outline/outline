@@ -95,7 +95,7 @@ const IconWrapper = styled.span`
 export const Outline = styled(Flex)<{
   margin?: string | number;
   hasError?: boolean;
-  focused?: boolean;
+  $focused?: boolean;
 }>`
   flex: 1;
   margin: ${(props) =>
@@ -106,7 +106,7 @@ export const Outline = styled(Flex)<{
   border-color: ${(props) =>
     props.hasError
       ? props.theme.danger
-      : props.focused
+      : props.$focused
         ? props.theme.inputBorderFocused
         : props.theme.inputBorder};
   border-radius: 4px;
@@ -224,7 +224,7 @@ function Input(
           ) : (
             wrappedLabel
           ))}
-        <Outline focused={focused} margin={margin}>
+        <Outline $focused={focused} margin={margin}>
           {prefix}
           {icon && <IconWrapper>{icon}</IconWrapper>}
           {type === "textarea" ? (

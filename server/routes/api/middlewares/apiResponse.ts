@@ -1,4 +1,4 @@
-import stream from "stream";
+import stream from "node:stream";
 import type { Context, Next } from "koa";
 import { Readable } from "readable-stream";
 

@@ -1,4 +1,4 @@
-import path from "path";
+import path from "node:path";
 import { FileOperation } from "@server/models";
 import { buildFileOperation } from "@server/test/factories";
 import ImportJSONTask from "./ImportJSONTask";

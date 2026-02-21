@@ -22,6 +22,13 @@ import { findCollapsedNodes } from "../queries/findCollapsedNodes";
 import Node from "./Node";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 
+export enum HeadingLevel {
+  One = 1,
+  Two,
+  Three,
+  Four,
+}
+
 export default class Heading extends Node {
   get name() {
     return "heading";

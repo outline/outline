@@ -5,6 +5,7 @@ import WebhookDisabledEmail from "@server/emails/templates/WebhookDisabledEmail"
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import {
+  Attachment,
   Collection,
   FileOperation,
   Group,
@@ -25,6 +26,7 @@ import {
   Comment,
 } from "@server/models";
 import {
+  presentAttachment,
   presentCollection,
   presentDocument,
   presentRevision,
@@ -44,6 +46,7 @@ import {
 } from "@server/presenters";
 import { BaseTask } from "@server/queues/tasks/base/BaseTask";
 import type {
+  AttachmentEvent,
   CollectionEvent,
   CollectionGroupEvent,
   CollectionUserEvent,
@@ -103,11 +106,13 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     });
 
     switch (event.name) {
-      case "api_keys.create":
-      case "api_keys.delete":
       case "attachments.create":
       case "attachments.update":
       case "attachments.delete":
+        await this.handleAttachmentEvent(subscription, event);
+        return;
+      case "api_keys.create":
+      case "api_keys.delete":
       case "subscriptions.create":
       case "subscriptions.delete":
       case "authenticationProviders.update":
@@ -246,6 +251,10 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       case "oauthClients.delete":
         // Ignored
         return;
+      case "templates.create":
+      case "templates.update":
+      case "templates.delete":
+      case "templates.restore":
       case "passkeys.create":
       case "passkeys.update":
       case "passkeys.delete":
@@ -254,6 +263,24 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       default:
         assertUnreachable(event);
     }
+  }
+
+  private async handleAttachmentEvent(
+    subscription: WebhookSubscription,
+    event: AttachmentEvent
+  ): Promise<void> {
+    const model = await Attachment.findByPk(event.modelId, {
+      paranoid: false,
+    });
+
+    await this.sendWebhook({
+      event,
+      subscription,
+      payload: {
+        id: event.modelId,
+        model: model && presentAttachment(model),
+      },
+    });
   }
 
   private async handleWebhookSubscriptionEvent(

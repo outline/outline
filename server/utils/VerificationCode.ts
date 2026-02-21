@@ -1,4 +1,4 @@
-import { randomInt } from "crypto";
+import { randomInt } from "node:crypto";
 import { Minute } from "@shared/utils/time";
 import Redis from "@server/storage/redis";
 import { safeEqual } from "./crypto";
