@@ -14158,7 +14158,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ipaddr.js@npm:^2.1.0":
+"ipaddr.js@npm:^2.1.0, ipaddr.js@npm:^2.3.0":
   version: 2.3.0
   resolution: "ipaddr.js@npm:2.3.0"
   checksum: 10c0/084bab99e2f6875d7a62adc3325e1c64b038a12c9521e35fb967b5e263a8b3afb1b8884dd77c276092331f5d63298b767491e10997ef147c62da01b143780bbd
@@ -17699,6 +17699,7 @@ __metadata:
     invariant: "npm:^2.2.4"
     ioredis: "npm:^5.8.2"
     ioredis-mock: "npm:^8.13.1"
+    ipaddr.js: "npm:^2.3.0"
     is-printable-key-event: "npm:^1.0.0"
     iso-639-3: "npm:^3.0.1"
     jest-cli: "npm:^30.2.0"
