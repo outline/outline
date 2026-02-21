@@ -383,6 +383,110 @@ describe("POST /mcp/", () => {
       expect(res?.result?.isError).toBe(true);
     });
 
+    it("move_document moves to a different collection", async () => {
+      const { user, accessToken } = await buildOAuthUser();
+      const collection1 = await buildCollection({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const collection2 = await buildCollection({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const document = await buildDocument({
+        teamId: user.teamId,
+        userId: user.id,
+        collectionId: collection1.id,
+      });
+
+      const res = await callMcpTool(server, accessToken, "move_document", {
+        id: document.id,
+        collectionId: collection2.id,
+      });
+      const data = (res?.result?.content ?? []).map((c: { text: string }) =>
+        JSON.parse(c.text)
+      );
+
+      expect(res?.result?.isError).toBeUndefined();
+      const moved = data.find((d: { id: string }) => d.id === document.id) as {
+        collectionId: string;
+      };
+      expect(moved).toBeDefined();
+      expect(moved.collectionId).toEqual(collection2.id);
+    });
+
+    it("move_document moves under a parent document", async () => {
+      const { user, accessToken } = await buildOAuthUser();
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const parent = await buildDocument({
+        teamId: user.teamId,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+      const child = await buildDocument({
+        teamId: user.teamId,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+
+      const res = await callMcpTool(server, accessToken, "move_document", {
+        id: child.id,
+        parentDocumentId: parent.id,
+      });
+      const data = (res?.result?.content ?? []).map((c: { text: string }) =>
+        JSON.parse(c.text)
+      );
+
+      expect(res?.result?.isError).toBeUndefined();
+      const moved = data.find((d: { id: string }) => d.id === child.id) as {
+        parentDocumentId: string;
+      };
+      expect(moved).toBeDefined();
+      expect(moved.parentDocumentId).toEqual(parent.id);
+    });
+
+    it("move_document fails without collectionId or parentDocumentId", async () => {
+      const { user, accessToken } = await buildOAuthUser();
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const document = await buildDocument({
+        teamId: user.teamId,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+
+      const res = await callMcpTool(server, accessToken, "move_document", {
+        id: document.id,
+      });
+
+      expect(res?.result?.isError).toBe(true);
+    });
+
+    it("move_document fails when nesting a document inside itself", async () => {
+      const { user, accessToken } = await buildOAuthUser();
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const document = await buildDocument({
+        teamId: user.teamId,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+
+      const res = await callMcpTool(server, accessToken, "move_document", {
+        id: document.id,
+        parentDocumentId: document.id,
+      });
+
+      expect(res?.result?.isError).toBe(true);
+    });
+
     it("get_document resource returns metadata and markdown", async () => {
       const { user, accessToken } = await buildOAuthUser();
       const collection = await buildCollection({

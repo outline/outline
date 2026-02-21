@@ -9,9 +9,11 @@ import {
   ErrorCode,
 } from "@modelcontextprotocol/sdk/types.js";
 import documentCreator from "@server/commands/documentCreator";
+import documentMover from "@server/commands/documentMover";
 import documentUpdater from "@server/commands/documentUpdater";
 import { Op } from "sequelize";
 import { Collection, Document } from "@server/models";
+import { sequelize } from "@server/storage/database";
 import SearchHelper from "@server/models/helpers/SearchHelper";
 import { authorize } from "@server/policies";
 import { presentDocument } from "@server/presenters";
@@ -302,6 +304,110 @@ export function documentTools(server: McpServer, scopes: string[]) {
               },
             ],
           } satisfies CallToolResult;
+        } catch (message) {
+          return error(message);
+        }
+      })
+    );
+  }
+
+  if (AuthenticationHelper.canAccess("documents.move", scopes)) {
+    server.registerTool(
+      "move_document",
+      {
+        title: "Move document",
+        description:
+          "Moves a document to a different collection or parent document. Provide either a collectionId to move to the root of a collection, or a parentDocumentId to nest under another document.",
+        annotations: {
+          idempotentHint: false,
+          readOnlyHint: false,
+        },
+        inputSchema: {
+          id: z
+            .string()
+            .describe("The unique identifier of the document to move."),
+          collectionId: z
+            .string()
+            .optional()
+            .describe(
+              "The destination collection ID. Required if parentDocumentId is not provided."
+            ),
+          parentDocumentId: z
+            .string()
+            .optional()
+            .describe(
+              "The ID of the document to nest this document under. The document will be moved to the parent's collection."
+            ),
+        },
+      },
+      withTracing("move_document", async (input, context) => {
+        try {
+          const ctx = buildAPIContext(context);
+          const { user } = ctx.state.auth;
+
+          return await sequelize.transaction(async (transaction) => {
+            ctx.state.transaction = transaction;
+            ctx.context.transaction = transaction;
+
+            const document = await Document.findByPk(input.id, {
+              userId: user.id,
+              rejectOnEmpty: true,
+              transaction,
+            });
+
+            authorize(user, "move", document);
+
+            let collectionId = input.collectionId;
+
+            if (input.parentDocumentId) {
+              if (input.parentDocumentId === input.id) {
+                return error("Cannot nest a document inside itself");
+              }
+
+              const parent = await Document.findByPk(input.parentDocumentId, {
+                userId: user.id,
+                rejectOnEmpty: true,
+                transaction,
+              });
+
+              authorize(user, "update", parent);
+              collectionId = parent.collectionId!;
+
+              if (!parent.publishedAt) {
+                return error("Cannot move document inside a draft");
+              }
+            } else if (!collectionId) {
+              return error(
+                "Either collectionId or parentDocumentId is required"
+              );
+            } else {
+              const collection = await Collection.findByPk(collectionId, {
+                userId: user.id,
+                rejectOnEmpty: true,
+                transaction,
+              });
+              authorize(user, "updateDocument", collection);
+            }
+
+            const { documents } = await documentMover(ctx, {
+              document,
+              collectionId: collectionId ?? null,
+              parentDocumentId: input.parentDocumentId ?? null,
+            });
+
+            const presented = await Promise.all(
+              documents.map(async (doc) =>
+                pathToUrl(
+                  user.team,
+                  await presentDocument(undefined, doc, {
+                    includeData: false,
+                    includeText: false,
+                  })
+                )
+              )
+            );
+            return success(presented);
+          });
         } catch (message) {
           return error(message);
         }
