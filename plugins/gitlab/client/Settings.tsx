@@ -44,13 +44,8 @@ function GitLab() {
         <Notice>
           {error === "access_denied" ? (
             <Trans>
-              Whoops, you need to accept the permissions in GitLab to connect{" "}
+              You need to accept the permissions in GitLab to connect{" "}
               {{ appName }} to your workspace. Try again?
-            </Trans>
-          ) : error === "unauthenticated" ? (
-            <Trans>
-              Something went wrong while authenticating your request. Please try
-              logging in again.
             </Trans>
           ) : (
             <Trans>
@@ -64,8 +59,7 @@ function GitLab() {
         <Notice>
           <Trans>
             The owner of GitLab account has been requested to install the
-            application. Once approved, previews will be shown for respective
-            links.
+            application. Once approved, the connection will be completed.
           </Trans>
         </Notice>
       )}
@@ -129,7 +123,7 @@ function GitLab() {
                       <ConnectedButton
                         onClick={integration.delete}
                         confirmationMessage={t(
-                          "Disconnecting will prevent previewing GitLab links from this organization in documents. Are you sure?"
+                          "Disconnecting will prevent previewing links from GitLab in documents. Are you sure?"
                         )}
                       />
                     }

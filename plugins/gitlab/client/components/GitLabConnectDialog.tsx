@@ -67,9 +67,7 @@ function GitLabConnectDialog() {
       <form onSubmit={handleConnectCustom}>
         <Flex column gap={12}>
           <Text as="p" type="secondary">
-            <Trans>
-              Enter the details for your self-managed GitLab instance.
-            </Trans>
+            <Trans>Enter the details for your GitLab instance.</Trans>
           </Text>
           <Input
             label={t("GitLab URL")}
@@ -77,7 +75,7 @@ function GitLabConnectDialog() {
             value={customUrl}
             onChange={(ev) => setCustomUrl(ev.currentTarget.value)}
             pattern="https://.*"
-            title={t("URL must start with https://")}
+            title={t("URL must start with https")}
             required
             autoFocus
           />
@@ -167,7 +165,6 @@ const Option = styled.button`
 
   &:disabled {
     opacity: 0.5;
-    cursor: not-allowed;
   }
 `;
 
