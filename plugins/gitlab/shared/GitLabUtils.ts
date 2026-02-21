@@ -4,10 +4,6 @@ import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 import { UnfurlResourceType } from "@shared/types";
 
 export class GitLabUtils {
-  static defaultGitlabUrl = "https://gitlab.com";
-
-  public static clientSecret = env.GITLAB_CLIENT_SECRET;
-  private static clientId = env.GITLAB_CLIENT_ID;
   private static supportedResources = [
     UnfurlResourceType.Issue,
     UnfurlResourceType.PR,
@@ -20,7 +16,7 @@ export class GitLabUtils {
    * @returns The GitLab URL to use.
    */
   private static getGitlabUrl(customUrl?: string): string {
-    return customUrl || this.defaultGitlabUrl;
+    return customUrl || "https://gitlab.com";
   }
 
   /**
@@ -80,7 +76,7 @@ export class GitLabUtils {
     customClientId?: string
   ): string {
     const params = new URLSearchParams({
-      client_id: customClientId || this.clientId,
+      client_id: customClientId || env.GITLAB_CLIENT_ID,
       redirect_uri: this.callbackUrl(),
       response_type: "code",
       state,

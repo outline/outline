@@ -19,7 +19,9 @@ import { redirectTo } from "~/utils/urls";
 function GitLabConnectDialog() {
   const { t } = useTranslation();
   const { dialogs } = useStores();
-  const [showCustomForm, setShowCustomForm] = React.useState(false);
+  const [showCustomForm, setShowCustomForm] = React.useState(
+    !env.GITLAB_CLIENT_ID
+  );
   const [customUrl, setCustomUrl] = React.useState("");
   const [clientId, setClientId] = React.useState("");
   const [clientSecret, setClientSecret] = React.useState("");
@@ -95,13 +97,15 @@ function GitLabConnectDialog() {
             required
           />
           <Flex justify="flex-end" gap={8}>
-            <Button
-              neutral
-              onClick={() => setShowCustomForm(false)}
-              disabled={saving}
-            >
-              {t("Back")}
-            </Button>
+            {env.GITLAB_CLIENT_ID && (
+              <Button
+                neutral
+                onClick={() => setShowCustomForm(false)}
+                disabled={saving}
+              >
+                {t("Back")}
+              </Button>
+            )}
             <Button
               type="submit"
               disabled={

@@ -170,7 +170,7 @@ const buildTunnel = (proxy: UrlWithTunnel, options: RequestInit) => {
  * @param options The fetch options
  * @returns An http or https agent configured for the URL
  */
-export function buildAgent(
+function buildAgent(
   url: string,
   options: RequestInit & {
     allowPrivateIPAddress?: boolean;
