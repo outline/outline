@@ -14,6 +14,7 @@ import type { User } from "@server/models";
 import { Integration, IntegrationAuthentication } from "@server/models";
 import type { UnfurlIssueOrPR, UnfurlSignature } from "@server/types";
 import fetch from "@server/utils/fetch";
+import { validateUrlNotPrivate } from "@server/utils/url";
 import { GitLabUtils } from "../shared/GitLabUtils";
 import env from "./env";
 
@@ -55,8 +56,13 @@ export class GitLab {
    * @param customUrl - Optional custom GitLab URL from integration settings.
    * @returns A configured Gitbeaker client.
    */
-  public static createClient(accessToken: string, customUrl?: string) {
+  public static async createClient(accessToken: string, customUrl?: string) {
     const host = customUrl || GitLabUtils.defaultGitlabUrl;
+
+    // Validate the URL to prevent SSRF as GitLab instance does not use our
+    // fetch wrapper which has built-in SSRF protection.
+    await validateUrlNotPrivate(host);
+
     return new Gitlab({
       host,
       oauthToken: accessToken,
@@ -78,7 +84,7 @@ export class GitLab {
     issueIid: number,
     customUrl?: string
   ) {
-    const client = this.createClient(accessToken, customUrl);
+    const client = await this.createClient(accessToken, customUrl);
 
     const issues = await client.Issues.all({
       projectId: projectPath,
@@ -108,7 +114,7 @@ export class GitLab {
     mrIid: number,
     customUrl?: string
   ) {
-    const client = this.createClient(accessToken, customUrl);
+    const client = await this.createClient(accessToken, customUrl);
     const mr = await client.MergeRequests.show(projectPath, mrIid);
     return mr;
   }
@@ -128,7 +134,7 @@ export class GitLab {
     customUrl?: string;
   }) {
     const url = customUrl || GitLabUtils.defaultGitlabUrl;
-    const client = this.createClient(accessToken, url);
+    const client = await this.createClient(accessToken, url);
 
     const userData = await client.Users.showCurrentUser({
       showExpanded: false,
@@ -150,7 +156,7 @@ export class GitLab {
     teamId: string;
   }) {
     const customUrl = await this.getGitLabUrl(teamId);
-    const client = this.createClient(accessToken, customUrl);
+    const client = await this.createClient(accessToken, customUrl);
 
     const projects = await client.Projects.all({
       simple: true,

@@ -10,7 +10,7 @@ import validateWebhook from "@server/middlewares/validateWebhook";
 import { IntegrationAuthentication, Integration } from "@server/models";
 import { authorize } from "@server/policies";
 import type { APIContext } from "@server/types";
-import { validateUrlNotPrivate } from "@server/utils/fetch";
+import { validateUrlNotPrivate } from "@server/utils/url";
 import { addSeconds } from "date-fns";
 import Logger from "@server/logging/Logger";
 import { GitLabUtils } from "../../shared/GitLabUtils";
