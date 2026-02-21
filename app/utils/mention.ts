@@ -1,7 +1,6 @@
 import type { IntegrationSettings, IntegrationType } from "@shared/types";
 import { IntegrationService, MentionType } from "@shared/types";
 import type Integration from "~/models/Integration";
-import env from "@shared/env";
 
 export const isURLMentionable = ({
   url,
@@ -29,10 +28,13 @@ export const isURLMentionable = ({
     }
 
     case IntegrationService.GitLab: {
-      const gitlabHostname = new URL(env.GITLAB_URL || "https://gitlab.com")
-        .hostname;
+      const settings =
+        integration.settings as IntegrationSettings<IntegrationType.Embed>;
+      const gitlabHostname = settings.gitlab?.url
+        ? new URL(settings.gitlab?.url).hostname
+        : undefined;
 
-      return hostname === gitlabHostname;
+      return hostname === "gitlab.com" || hostname === gitlabHostname;
     }
 
     default:
@@ -66,10 +68,9 @@ export const determineMentionType = ({
     }
 
     case IntegrationService.GitLab: {
-      const type = pathParts[pathParts.length - 2];
-      return type === "merge_requests"
+      return pathname.includes("merge_requests")
         ? MentionType.PullRequest
-        : type === "issues"
+        : pathname.includes("issues")
           ? MentionType.Issue
           : undefined;
     }

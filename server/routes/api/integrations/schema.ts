@@ -66,7 +66,7 @@ export const IntegrationsCreateSchema = BaseSchema.extend({
       .or(
         z.object({
           gitlab: z.object({
-            url: z.string().url().optional(),
+            url: z.url().optional(),
             installation: z
               .object({
                 id: z.number(),
@@ -117,7 +117,7 @@ export const IntegrationsUpdateSchema = BaseSchema.extend({
       .or(
         z.object({
           gitlab: z.object({
-            url: z.string().url().optional(),
+            url: z.url().optional(),
             installation: z
               .object({
                 id: z.number(),

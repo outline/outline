@@ -1,14 +1,16 @@
 /* oxlint-disable no-restricted-imports, react/rules-of-hooks */
+import dns from "node:dns";
 import type http from "node:http";
 import type https from "node:https";
+import net from "node:net";
 import nodeFetch, { type RequestInit, type Response } from "node-fetch";
 import { getProxyForUrl } from "proxy-from-env";
 import tunnelAgent, { type TunnelAgent } from "tunnel-agent";
 import { useAgent as useFilteringAgent } from "request-filtering-agent";
 import env from "@server/env";
+import { InternalError, ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import { capitalize, defaults } from "lodash";
-import { InternalError } from "@server/errors";
 
 interface UrlWithTunnel extends URL {
   tunnelMethod?: string;
@@ -170,7 +172,7 @@ const buildTunnel = (proxy: UrlWithTunnel, options: RequestInit) => {
  * @param options The fetch options
  * @returns An http or https agent configured for the URL
  */
-function buildAgent(
+export function buildAgent(
   url: string,
   options: RequestInit & {
     allowPrivateIPAddress?: boolean;
@@ -228,4 +230,67 @@ function buildAgent(
   }
 
   return agent;
+}
+
+/**
+ * Checks if an IP address is private, loopback, or link-local.
+ *
+ * @param ip - The IP address to check.
+ * @returns true if the IP is private.
+ */
+export function isPrivateIP(ip: string): boolean {
+  const parts = ip.split(".").map(Number);
+  if (parts.length === 4) {
+    if (parts[0] === 10) {
+      return true;
+    }
+    if (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) {
+      return true;
+    }
+    if (parts[0] === 192 && parts[1] === 168) {
+      return true;
+    }
+    if (parts[0] === 127) {
+      return true;
+    }
+    if (parts[0] === 169 && parts[1] === 254) {
+      return true;
+    }
+    if (parts.every((p) => p === 0)) {
+      return true;
+    }
+  }
+
+  if (
+    ip === "::1" ||
+    ip.startsWith("fe80:") ||
+    ip.startsWith("fc00:") ||
+    ip.startsWith("fd")
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Validates that a URL does not resolve to a private or internal IP address.
+ *
+ * @param url - the URL to validate.
+ * @throws ValidationError if the URL resolves to a private IP.
+ */
+export async function validateUrlNotPrivate(url: string) {
+  const { hostname } = new URL(url);
+
+  if (net.isIP(hostname)) {
+    if (isPrivateIP(hostname)) {
+      throw ValidationError("URL must not resolve to a private IP address");
+    }
+    return;
+  }
+
+  const { address } = await dns.promises.lookup(hostname);
+  if (isPrivateIP(address)) {
+    throw ValidationError("URL must not resolve to a private IP address");
+  }
 }

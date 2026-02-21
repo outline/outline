@@ -1,4 +1,8 @@
-import fetch from "node-fetch";
+import { Gitlab } from "@gitbeaker/rest";
+import type {
+  IssueSchemaWithExpandedLabels,
+  MergeRequestSchema,
+} from "@gitbeaker/rest";
 import z from "zod";
 import {
   type IntegrationType,
@@ -9,12 +13,9 @@ import Logger from "@server/logging/Logger";
 import type { User } from "@server/models";
 import { Integration, IntegrationAuthentication } from "@server/models";
 import type { UnfurlIssueOrPR, UnfurlSignature } from "@server/types";
+import fetch from "@server/utils/fetch";
 import { GitLabUtils } from "../shared/GitLabUtils";
 import env from "./env";
-import type {
-  IssueSchemaWithExpandedLabels,
-  MergeRequestSchema,
-} from "@gitbeaker/rest";
 
 const AccessTokenResponseSchema = z.object({
   access_token: z.string(),
@@ -29,37 +30,110 @@ export class GitLab {
   private static clientSecret = env.GITLAB_CLIENT_SECRET;
   private static clientId = env.GITLAB_CLIENT_ID;
 
+  /**
+   * Fetches the custom GitLab URL for a team from the first matching
+   * integration, falling back to the default.
+   *
+   * @param teamId - The team ID to fetch settings for.
+   * @returns The GitLab URL to use.
+   */
   public static async getGitLabUrl(teamId: string) {
-    const integrations = await Integration.findOne({
+    const integration = await Integration.findOne({
       where: { service: IntegrationService.GitLab, teamId },
     });
 
-    const customUrl = (integrations?.settings as { gitlab: { url: string } })
-      ?.gitlab?.url;
+    const url = (integration?.settings as { gitlab?: { url?: string } })?.gitlab
+      ?.url;
 
-    return customUrl || GitLabUtils.defaultGitlabUrl;
+    return url || GitLabUtils.defaultGitlabUrl;
+  }
+
+  /**
+   * Creates a Gitbeaker client instance.
+   *
+   * @param accessToken - The access token for authentication.
+   * @param customUrl - Optional custom GitLab URL from integration settings.
+   * @returns A configured Gitbeaker client.
+   */
+  public static createClient(accessToken: string, customUrl?: string) {
+    const host = customUrl || GitLabUtils.defaultGitlabUrl;
+    return new Gitlab({
+      host,
+      oauthToken: accessToken,
+    });
+  }
+
+  /**
+   * Fetches an issue from a GitLab project.
+   *
+   * @param accessToken - The access token for authentication.
+   * @param projectPath - The project path (owner/repo).
+   * @param issueIid - The issue IID (internal ID within the project).
+   * @param customUrl - Optional custom GitLab URL from integration settings.
+   * @returns The issue data.
+   */
+  public static async getIssue(
+    accessToken: string,
+    projectPath: string,
+    issueIid: number,
+    customUrl?: string
+  ) {
+    const client = this.createClient(accessToken, customUrl);
+
+    const issues = await client.Issues.all({
+      projectId: projectPath,
+      iids: [issueIid],
+      withLabelsDetails: true,
+    });
+
+    if (!issues || issues.length === 0) {
+      throw new Error(`Issue ${issueIid} not found in project ${projectPath}`);
+    }
+
+    return issues[0];
+  }
+
+  /**
+   * Fetches a merge request from a GitLab project.
+   *
+   * @param accessToken - The access token for authentication.
+   * @param projectPath - The project path (owner/repo).
+   * @param mrIid - The merge request IID (internal ID within the project).
+   * @param customUrl - Optional custom GitLab URL from integration settings.
+   * @returns The merge request data.
+   */
+  public static async getMergeRequest(
+    accessToken: string,
+    projectPath: string,
+    mrIid: number,
+    customUrl?: string
+  ) {
+    const client = this.createClient(accessToken, customUrl);
+    const mr = await client.MergeRequests.show(projectPath, mrIid);
+    return mr;
   }
 
   /**
    * Fetches current user information.
    *
-   * @param accessToken - Access token received from OAuth flow.
-   * @returns User information.
+   * @param params.accessToken - Access token received from OAuth flow.
+   * @param params.customUrl - Optional custom GitLab URL. Falls back to default.
+   * @returns User information including the resolved URL.
    */
   public static async getCurrentUser({
     accessToken,
-    teamId,
+    customUrl,
   }: {
     accessToken: string;
-    teamId: string;
+    customUrl?: string;
   }) {
-    const customUrl = await this.getGitLabUrl(teamId);
-    const client = GitLabUtils.createClient(accessToken, customUrl);
+    const url = customUrl || GitLabUtils.defaultGitlabUrl;
+    const client = this.createClient(accessToken, url);
 
     const userData = await client.Users.showCurrentUser({
       showExpanded: false,
     });
-    return { ...userData, url: customUrl };
+    return { ...userData, url };
   }
 
   /**
@@ -76,7 +150,7 @@ export class GitLab {
     teamId: string;
   }) {
     const customUrl = await this.getGitLabUrl(teamId);
-    const client = GitLabUtils.createClient(accessToken, customUrl);
+    const client = this.createClient(accessToken, customUrl);
 
     const projects = await client.Projects.all({
       simple: true,
@@ -110,7 +184,6 @@ export class GitLab {
       return;
     }
 
-    // All integrations share the same URL configuration
     const customUrl = integrations[0].settings?.gitlab?.url;
     const resource = GitLabUtils.parseUrl(url, customUrl);
 
@@ -136,14 +209,19 @@ export class GitLab {
 
     try {
       const projectPath = `${resource.owner}/${resource.repo}`;
-      const token =
-        await matchedIntegration.authentication.refreshTokenIfNeeded(
-          async (refreshToken: string) =>
-            GitLab.refreshToken({ refreshToken, customUrl })
-        );
+      const { authentication } = matchedIntegration;
+      const token = await authentication.refreshTokenIfNeeded(
+        async (refreshToken: string) =>
+          GitLab.refreshToken({
+            refreshToken,
+            customUrl,
+            clientId: authentication.clientId ?? undefined,
+            clientSecret: authentication.clientSecret ?? undefined,
+          })
+      );
 
       if (resource.type === UnfurlResourceType.Issue) {
-        const issue = await GitLabUtils.getIssue(
+        const issue = await this.getIssue(
           token,
           projectPath,
           resource.id,
@@ -152,7 +230,7 @@ export class GitLab {
 
         return this.transformIssue(issue);
       } else if (resource.type === UnfurlResourceType.PR) {
-        const mr = await GitLabUtils.getMergeRequest(
+        const mr = await this.getMergeRequest(
           token,
           projectPath,
           resource.id,
@@ -168,23 +246,36 @@ export class GitLab {
     }
   };
 
+  /**
+   * Exchanges an authorization code for an access token.
+   *
+   * @param params.code - The authorization code from the OAuth callback.
+   * @param params.customUrl - Optional custom GitLab URL. Falls back to default.
+   * @param params.clientId - Optional custom client ID (falls back to env var).
+   * @param params.clientSecret - Optional custom client secret (falls back to env var).
+   * @returns The parsed access token response.
+   */
   public static oauthAccess = async ({
     code,
-    teamId,
+    customUrl,
+    clientId,
+    clientSecret,
   }: {
     code?: string | null;
-    teamId: string;
+    customUrl?: string;
+    clientId?: string;
+    clientSecret?: string;
   }) => {
-    const customUrl = await this.getGitLabUrl(teamId);
-    const res = await fetch(GitLabUtils.getOauthUrl(customUrl) + "/token", {
+    const url = customUrl || GitLabUtils.defaultGitlabUrl;
+    const res = await fetch(GitLabUtils.getOauthUrl(url) + "/token", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         code,
-        client_id: this.clientId,
-        client_secret: this.clientSecret,
+        client_id: clientId || this.clientId,
+        client_secret: clientSecret || this.clientSecret,
         grant_type: "authorization_code",
         redirect_uri: GitLabUtils.callbackUrl(),
       }),
@@ -202,13 +293,17 @@ export class GitLab {
   private static async refreshToken({
     refreshToken,
     customUrl,
+    clientId,
+    clientSecret,
   }: {
     refreshToken: string;
     customUrl?: string;
+    clientId?: string;
+    clientSecret?: string;
   }) {
     const queryParams = new URLSearchParams({
-      client_id: this.clientId!,
-      client_secret: this.clientSecret!,
+      client_id: clientId || this.clientId!,
+      client_secret: clientSecret || this.clientSecret!,
       grant_type: "refresh_token",
       refresh_token: refreshToken,
       redirect_uri: GitLabUtils.callbackUrl(),

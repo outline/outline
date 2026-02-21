@@ -50,6 +50,13 @@ class IntegrationAuthentication extends IdModel<
   @Encrypted
   refreshToken: string;
 
+  @Column(DataType.STRING)
+  clientId: string | null;
+
+  @Column(DataType.BLOB)
+  @Encrypted
+  clientSecret: string | null;
+
   @Column(DataType.DATE)
   expiresAt: Date | null;
 

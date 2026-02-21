@@ -15,3 +15,27 @@ export const GitLabCallbackSchema = BaseSchema.extend({
 });
 
 export type GitLabCallbackReq = z.infer<typeof GitLabCallbackSchema>;
+
+export const GitLabConnectSchema = BaseSchema.extend({
+  body: z
+    .object({
+      url: z.url().startsWith("https://").optional(),
+      clientId: z.string().optional(),
+      clientSecret: z.string().optional(),
+    })
+    .refine(
+      (data) => {
+        const { url, clientId, clientSecret } = data;
+        const allOrNone =
+          (url && clientId && clientSecret) ||
+          (!url && !clientId && !clientSecret);
+        return allOrNone;
+      },
+      {
+        message:
+          "Either all of url, clientId, and clientSecret must be provided, or none of them.",
+      }
+    ),
+});
+
+export type GitLabConnectReq = z.infer<typeof GitLabConnectSchema>;

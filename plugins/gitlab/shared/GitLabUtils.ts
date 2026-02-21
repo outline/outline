@@ -71,11 +71,16 @@ export class GitLabUtils {
    *
    * @param state - A unique state string to prevent CSRF attacks.
    * @param customUrl - Optional custom GitLab URL from integration settings.
+   * @param customClientId - Optional custom OAuth client ID from integration settings.
    * @returns The full URL to redirect the user to GitLab's OAuth authorization page.
    */
-  public static authUrl(state: string, customUrl?: string): string {
+  public static authUrl(
+    state: string,
+    customUrl?: string,
+    customClientId?: string
+  ): string {
     const params = new URLSearchParams({
-      client_id: this.clientId,
+      client_id: customClientId || this.clientId,
       redirect_uri: this.callbackUrl(),
       response_type: "code",
       state,
