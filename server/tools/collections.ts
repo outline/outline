@@ -16,6 +16,7 @@ import {
   getActorFromContext,
   buildAPIContext,
   pathToUrl,
+  withTracing,
 } from "./util";
 
 /**
@@ -61,56 +62,59 @@ export function collectionTools(server: McpServer, scopes: string[]) {
             ),
         },
       },
-      async ({ query, offset, limit }, extra) => {
-        try {
-          const user = getActorFromContext(extra);
-          const collectionIds = await user.collectionIds();
+      withTracing(
+        "list_collections",
+        async ({ query, offset, limit }, extra) => {
+          try {
+            const user = getActorFromContext(extra);
+            const collectionIds = await user.collectionIds();
 
-          const and: WhereOptions<Collection>[] = [
-            { deletedAt: { [Op.eq]: null } },
-            { archivedAt: { [Op.eq]: null } },
-            { id: collectionIds },
-          ];
+            const and: WhereOptions<Collection>[] = [
+              { deletedAt: { [Op.eq]: null } },
+              { archivedAt: { [Op.eq]: null } },
+              { id: collectionIds },
+            ];
 
-          if (query) {
-            and.push(
-              Sequelize.literal(
-                `unaccent(LOWER(name)) like unaccent(LOWER(:query))`
-              ) as unknown as WhereOptions<Collection>
-            );
-          }
+            if (query) {
+              and.push(
+                Sequelize.literal(
+                  `unaccent(LOWER(name)) like unaccent(LOWER(:query))`
+                ) as unknown as WhereOptions<Collection>
+              );
+            }
 
-          const where: WhereOptions<Collection> = {
-            teamId: user.teamId,
-            [Op.and]: and,
-          };
+            const where: WhereOptions<Collection> = {
+              teamId: user.teamId,
+              [Op.and]: and,
+            };
 
-          const collections = await Collection.scope({
-            method: ["withMembership", user.id],
-          }).findAll({
-            where,
-            replacements: { query: `%${query}%` },
-            order: [
-              Sequelize.literal('"collection"."index" collate "C"'),
-              ["updatedAt", "DESC"],
-            ],
-            offset: offset ?? 0,
-            limit: limit ?? 25,
-          });
+            const collections = await Collection.scope({
+              method: ["withMembership", user.id],
+            }).findAll({
+              where,
+              replacements: { query: `%${query}%` },
+              order: [
+                Sequelize.literal('"collection"."index" collate "C"'),
+                ["updatedAt", "DESC"],
+              ],
+              offset: offset ?? 0,
+              limit: limit ?? 25,
+            });
 
-          const presented = await Promise.all(
-            collections.map(async (collection) =>
-              pathToUrl(
-                user.team,
-                await presentCollection(undefined, collection)
+            const presented = await Promise.all(
+              collections.map(async (collection) =>
+                pathToUrl(
+                  user.team,
+                  await presentCollection(undefined, collection)
+                )
               )
-            )
-          );
-          return success(presented);
-        } catch (message) {
-          return error(message);
+            );
+            return success(presented);
+          } catch (message) {
+            return error(message);
+          }
         }
-      }
+      )
     );
   }
 
@@ -124,7 +128,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
           "Fetches the details of a collection by its ID, including its document structure.",
         mimeType: "application/json",
       },
-      async (uri, variables, extra) => {
+      withTracing("get_collection", async (uri, variables, extra) => {
         try {
           const { id } = variables;
           const user = getActorFromContext(extra);
@@ -156,7 +160,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
             err instanceof Error ? err.message : String(err)
           );
         }
-      }
+      })
     );
   }
 
@@ -187,7 +191,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
             .describe("The hex color for the collection icon, e.g. #FF0000."),
         },
       },
-      async (input, context) => {
+      withTracing("create_collection", async (input, context) => {
         try {
           const ctx = buildAPIContext(context);
           const { user } = ctx.state.auth;
@@ -221,7 +225,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
         } catch (message) {
           return error(message);
         }
-      }
+      })
     );
   }
 
@@ -264,7 +268,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
             ),
         },
       },
-      async (input, context) => {
+      withTracing("update_collection", async (input, context) => {
         try {
           const ctx = buildAPIContext(context);
           const { user } = ctx.state.auth;
@@ -298,7 +302,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
         } catch (message) {
           return error(message);
         }
-      }
+      })
     );
   }
 }

@@ -1,6 +1,8 @@
 import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import type { Team, User } from "@server/models";
+import { addTags } from "@server/logging/tracer";
+import { traceFunction } from "@server/logging/tracing";
 import { type APIContext, AuthenticationType } from "@server/types";
 
 interface McpContext {
@@ -70,6 +72,37 @@ export function error(err: unknown): CallToolResult {
     content: [{ type: "text" as const, text: message }],
     isError: true,
   };
+}
+
+/**
+ * Wraps an MCP tool or resource handler with Datadog tracing. Each invocation
+ * creates a span under the `outline-mcp` service with the tool name as the
+ * resource, and tags it with the acting user and team IDs.
+ *
+ * @param toolName - the name of the MCP tool or resource being traced.
+ * @param handler - the handler function to wrap.
+ * @returns the wrapped handler with tracing enabled.
+ */
+export function withTracing<F extends (...args: any[]) => any>(
+  toolName: string,
+  handler: F
+): F {
+  return traceFunction({
+    serviceName: "mcp",
+    spanName: "tool",
+    resourceName: toolName,
+  })(function tracedHandler(this: any, ...args: any[]) {
+    const context = args[args.length - 1];
+    const user = getActorFromContext(context);
+    if (user) {
+      addTags({
+        "mcp.tool": toolName,
+        "request.userId": user.id,
+        "request.teamId": user.teamId,
+      });
+    }
+    return handler.apply(this, args);
+  } as F);
 }
 
 /**
