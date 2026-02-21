@@ -259,7 +259,36 @@ router.post(
   "gitlab.webhooks",
   validateWebhook({
     hmacSign: false,
-    secretKey: env.GITLAB_CLIENT_SECRET!,
+    secretKey: async (ctx) => {
+      const instanceHeader = ctx.request.headers["x-gitlab-instance"];
+      const instanceUrl = (
+        Array.isArray(instanceHeader) ? instanceHeader[0] : instanceHeader
+      )?.replace(/\/+$/, "");
+
+      // Self-hosted instances store their client secret in the database,
+      // use the X-Gitlab-Instance header to find the matching integration.
+      if (instanceUrl && instanceUrl !== "https://gitlab.com") {
+        const integration = await Integration.findOne({
+          where: {
+            service: IntegrationService.GitLab,
+            settings: { gitlab: { url: instanceUrl } },
+          },
+          include: [
+            {
+              model: IntegrationAuthentication,
+              as: "authentication",
+              required: true,
+            },
+          ],
+        });
+        if (integration) {
+          return integration.authentication.clientSecret ?? undefined;
+        }
+      }
+
+      // Default GitLab.com instance uses the env secret
+      return env.GITLAB_CLIENT_SECRET;
+    },
     getSignatureFromHeader: (ctx) => {
       const { headers } = ctx.request;
       const signatureHeader = headers["x-gitlab-token"];

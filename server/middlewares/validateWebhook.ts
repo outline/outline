@@ -8,7 +8,7 @@ export default function validateWebhook({
   getSignatureFromHeader,
   hmacSign = true,
 }: {
-  secretKey: string;
+  secretKey: string | ((ctx: APIContext) => Promise<string | undefined>);
   getSignatureFromHeader: (ctx: APIContext) => string | undefined;
   hmacSign?: boolean;
 }) {
@@ -22,12 +22,21 @@ export default function validateWebhook({
       return;
     }
 
+    const key =
+      typeof secretKey === "function" ? await secretKey(ctx) : secretKey;
+
+    if (!key) {
+      ctx.status = 401;
+      ctx.body = "Invalid signature";
+      return;
+    }
+
     const computedSignature = hmacSign
       ? crypto
-          .createHmac("sha256", secretKey)
+          .createHmac("sha256", key)
           .update(JSON.stringify(body))
           .digest("hex")
-      : secretKey; // GitLab sends the security token as is, without encryption
+      : key;
 
     if (!safeEqual(computedSignature, signatureFromHeader)) {
       ctx.status = 401;
