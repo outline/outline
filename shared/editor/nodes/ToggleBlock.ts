@@ -42,13 +42,9 @@ import { ancestors, height, liftChildrenOfNodeAt } from "../utils";
 import { isToggleBlock, getToggleBlockDepth } from "../queries/toggleBlock";
 import Node from "./Node";
 import { ToggleBlockView } from "./ToggleBlockView";
-import {
-  pluginManager,
-  type EditorPluginKey,
-  type InitialPluginState,
-} from "../PluginManager";
 
 export enum Action {
+  INIT,
   FOLD,
   UNFOLD,
 }
@@ -63,88 +59,6 @@ export const toggleFoldPluginKey = new PluginKey<ToggleFoldState>("toggleFold");
 
 /** Plugin key for toggle block fold/unfold events. */
 export const toggleEventPluginKey = new PluginKey("toggleBlockEvent");
-
-function initFoldedIds(doc: ProsemirrorNode, userId?: string) {
-  // Initialize fold states from Storage for all toggle blocks
-  const newFoldedIds = new Set<string>();
-  findBlockNodes(doc, true)
-    .filter((b) => b.node.type.name === "container_toggle" && b.node.attrs.id)
-    .forEach((block) => {
-      const id = block.node.attrs.id as string;
-      const stored = Storage.get(`${id}:${userId}`);
-      // Default to folded if no stored state
-      if (stored?.fold !== false) {
-        newFoldedIds.add(id);
-      }
-      // Ensure storage has a value
-      if (stored === null || stored === undefined) {
-        Storage.set(`${id}:${userId}`, { fold: true });
-      }
-    });
-
-  return newFoldedIds;
-}
-
-function initDecorations(
-  doc: ProsemirrorNode,
-  foldedIds: Set<string>,
-  readOnly?: boolean
-) {
-  const decorations: Decoration[] = [];
-
-  findBlockNodes(doc, true)
-    .filter((b) => b.node.type.name === "container_toggle" && b.node.attrs.id)
-    .forEach((block) => {
-      const id = block.node.attrs.id as string;
-      const isFolded = foldedIds.has(id);
-
-      // Decoration on the toggle block itself (for fold state)
-      decorations.push(
-        Decoration.node(
-          block.pos,
-          block.pos + block.node.nodeSize,
-          {},
-          { nodeId: id, fold: isFolded, target: "container_toggle" }
-        )
-      );
-
-      // Decoration on the head (first child) for styling
-      decorations.push(
-        Decoration.node(
-          block.pos + 1,
-          block.pos + 1 + block.node.firstChild!.nodeSize,
-          { nodeName: "div", class: EditorStyleHelper.toggleBlockHead },
-          { nodeId: id, target: "container_toggle>:firstChild" }
-        )
-      );
-
-      // If doc is read-only, add a decoration to show pointer cursor on the head
-      // to indicate it's clickable for toggling
-      if (readOnly) {
-        decorations.push(
-          Decoration.inline(
-            block.pos + 1,
-            block.pos + 1 + block.node.firstChild!.nodeSize,
-            { style: "cursor: pointer" },
-            { nodeId: id, target: "container_toggle>:firstChild" }
-          )
-        );
-      }
-    });
-
-  return DecorationSet.create(doc, decorations);
-}
-
-export function initFoldPluginState<K extends EditorPluginKey>(
-  doc: ProsemirrorNode,
-  userId?: string,
-  readOnly?: boolean
-): InitialPluginState<K> {
-  const foldedIds = initFoldedIds(doc, userId);
-  const decorations = initDecorations(doc, foldedIds, readOnly);
-
-  return { foldedIds, decorations };
-}
 
 export default class ToggleBlock extends Node {
   get name() {
@@ -266,19 +180,10 @@ export default class ToggleBlock extends Node {
       key: toggleFoldPluginKey,
 
       state: {
-        init: () => {
-          const foldedIds =
-            pluginManager.getInitialPluginState<"toggleFold">("toggleFold")
-              ?.foldedIds ?? new Set<string>();
-          const decorations =
-            pluginManager.getInitialPluginState<"toggleFold">("toggleFold")
-              ?.decorations ?? DecorationSet.empty;
-
-          return {
-            foldedIds,
-            decorations,
-          };
-        },
+        init: () => ({
+          foldedIds: new Set<string>(),
+          decorations: DecorationSet.empty,
+        }),
 
         apply: (tr, pluginState, _oldState, newState) => {
           const action = tr.getMeta(toggleFoldPluginKey);
@@ -320,6 +225,27 @@ export default class ToggleBlock extends Node {
           const newFoldedIds = new Set(pluginState.foldedIds);
 
           switch (action.type) {
+            case Action.INIT: {
+              // Initialize fold states from Storage for all toggle blocks
+              findBlockNodes(newState.doc, true)
+                .filter(
+                  (b) => b.node.type.name === this.name && b.node.attrs.id
+                )
+                .forEach((block) => {
+                  const id = block.node.attrs.id as string;
+                  const stored = Storage.get(`${id}:${userId}`);
+                  // Default to folded if no stored state
+                  if (stored?.fold !== false) {
+                    newFoldedIds.add(id);
+                  }
+                  // Ensure storage has a value
+                  if (stored === null || stored === undefined) {
+                    Storage.set(`${id}:${userId}`, { fold: true });
+                  }
+                });
+              break;
+            }
+
             case Action.FOLD: {
               const node = newState.doc.nodeAt(action.at);
               if (node?.attrs.id) {
@@ -360,6 +286,42 @@ export default class ToggleBlock extends Node {
               this.editor.props
             ),
         },
+      },
+    });
+
+    // Initialize fold state on document load
+    const initPlugin = new Plugin({
+      view: () => {
+        let initialized = false;
+        return {
+          update: (view, prevState) => {
+            if (initialized) {
+              return;
+            }
+
+            const hasContent = view.state.doc.content.size > 2;
+            if (!hasContent) {
+              return;
+            }
+
+            const isMultiplayer = this.editor.props.extensions?.some(
+              (e: { name: string }) => e.name === "multiplayer"
+            );
+
+            // For multiplayer, wait for first real content load
+            if (isMultiplayer && prevState.doc.content.size > 2) {
+              return;
+            }
+
+            // Set flag before dispatch to prevent re-entry
+            initialized = true;
+            view.dispatch(
+              view.state.tr.setMeta(toggleFoldPluginKey, {
+                type: Action.INIT,
+              })
+            );
+          },
+        };
       },
     });
 
@@ -443,6 +405,7 @@ export default class ToggleBlock extends Node {
     return [
       fixToggleBlocksPlugin,
       foldPlugin,
+      initPlugin,
       eventPlugin,
       new PlaceholderPlugin([
         {
