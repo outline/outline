@@ -4,6 +4,8 @@ import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 import { UnfurlResourceType } from "@shared/types";
 
 export class GitLabUtils {
+  public static defaultGitlabUrl = "https://gitlab.com";
+
   private static supportedResources = [
     UnfurlResourceType.Issue,
     UnfurlResourceType.PR,
@@ -16,7 +18,7 @@ export class GitLabUtils {
    * @returns The GitLab URL to use.
    */
   private static getGitlabUrl(customUrl?: string): string {
-    return customUrl || "https://gitlab.com";
+    return customUrl || this.defaultGitlabUrl;
   }
 
   /**
