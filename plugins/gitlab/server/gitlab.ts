@@ -354,7 +354,7 @@ export class GitLab {
       },
       labels: issue.labels.map((label) => ({
         name: label.name,
-        color: `#${label.color}`,
+        color: label.color,
       })),
       state: {
         name: issue.state,
