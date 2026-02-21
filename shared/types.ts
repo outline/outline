@@ -276,11 +276,10 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
                       url: string;
                     };
                   }
-                | { url: string; channel: string; channelId: string }
                 | { serviceTeamId: string }
                 | { measurementId: string }
-                | { slack: { serviceTeamId: string; serviceUserId: string } }
                 | undefined;
+
 export enum UserPreference {
   /** Whether reopening the app should redirect to the last viewed document. */
   RememberLastPath = "rememberLastPath",
