@@ -11,7 +11,7 @@ import { User, Team } from "@server/models";
 import { authorize, can } from "@server/policies";
 import { presentUser } from "@server/presenters";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
-import { error, success, getActorFromContext } from "./util";
+import { error, success, getActorFromContext, withTracing } from "./util";
 
 /**
  * Resolves a user identifier to a User model instance. Accepts special
@@ -50,7 +50,7 @@ export function userTools(server: McpServer, scopes: string[]) {
           'Fetches a user by their ID. Use "current_user" as the ID to get the currently authenticated user.',
         mimeType: "application/json",
       },
-      async (uri, variables, extra) => {
+      withTracing("get_user", async (uri, variables, extra) => {
         try {
           const { id } = variables;
           const actor = getActorFromContext(extra);
@@ -78,7 +78,7 @@ export function userTools(server: McpServer, scopes: string[]) {
             err instanceof Error ? err.message : String(err)
           );
         }
-      }
+      })
     );
   }
 
@@ -131,105 +131,108 @@ export function userTools(server: McpServer, scopes: string[]) {
             ),
         },
       },
-      async ({ query, role, filter, offset, limit }, extra) => {
-        try {
-          const actor = getActorFromContext(extra);
-          const team = await Team.findByPk(actor.teamId, {
-            rejectOnEmpty: true,
-          });
-          authorize(actor, "listUsers", team);
+      withTracing(
+        "list_users",
+        async ({ query, role, filter, offset, limit }, extra) => {
+          try {
+            const actor = getActorFromContext(extra);
+            const team = await Team.findByPk(actor.teamId, {
+              rejectOnEmpty: true,
+            });
+            authorize(actor, "listUsers", team);
 
-          const effectiveOffset = offset ?? 0;
-          const effectiveLimit = limit ?? 25;
+            const effectiveOffset = offset ?? 0;
+            const effectiveLimit = limit ?? 25;
 
-          let where: WhereOptions<User> = {
-            teamId: actor.teamId,
-          };
-
-          // Non-admins cannot see suspended users
-          if (!actor.isAdmin) {
-            where = {
-              ...where,
-              suspendedAt: { [Op.eq]: null },
+            let where: WhereOptions<User> = {
+              teamId: actor.teamId,
             };
-          }
 
-          switch (filter) {
-            case "invited": {
-              where = { ...where, lastActiveAt: null };
-              break;
+            // Non-admins cannot see suspended users
+            if (!actor.isAdmin) {
+              where = {
+                ...where,
+                suspendedAt: { [Op.eq]: null },
+              };
             }
-            case "suspended": {
-              if (actor.isAdmin) {
+
+            switch (filter) {
+              case "invited": {
+                where = { ...where, lastActiveAt: null };
+                break;
+              }
+              case "suspended": {
+                if (actor.isAdmin) {
+                  where = {
+                    ...where,
+                    suspendedAt: { [Op.ne]: null },
+                  };
+                }
+                break;
+              }
+              case "active": {
                 where = {
                   ...where,
-                  suspendedAt: { [Op.ne]: null },
+                  lastActiveAt: { [Op.ne]: null },
+                  suspendedAt: { [Op.is]: null },
                 };
+                break;
               }
-              break;
+              case "all": {
+                break;
+              }
+              default: {
+                where = {
+                  ...where,
+                  suspendedAt: { [Op.is]: null },
+                };
+                break;
+              }
             }
-            case "active": {
+
+            if (role) {
+              where = { ...where, role };
+            }
+
+            if (query) {
               where = {
                 ...where,
-                lastActiveAt: { [Op.ne]: null },
-                suspendedAt: { [Op.is]: null },
+                [Op.and]: {
+                  [Op.or]: [
+                    Sequelize.literal(
+                      `unaccent(LOWER(email)) like unaccent(LOWER(:query))`
+                    ),
+                    Sequelize.literal(
+                      `unaccent(LOWER(name)) like unaccent(LOWER(:query))`
+                    ),
+                  ],
+                },
               };
-              break;
             }
-            case "all": {
-              break;
-            }
-            default: {
-              where = {
-                ...where,
-                suspendedAt: { [Op.is]: null },
-              };
-              break;
-            }
+
+            const replacements = { query: `%${query}%` };
+
+            const users = await User.findAll({
+              where,
+              replacements,
+              order: [["name", "ASC"]],
+              offset: effectiveOffset,
+              limit: effectiveLimit,
+            });
+
+            const presented = users.map((user) =>
+              presentUser(user, {
+                includeEmail: !!can(actor, "readEmail", user),
+                includeDetails: !!can(actor, "readDetails", user),
+              })
+            );
+
+            return success(presented);
+          } catch (err) {
+            return error(err);
           }
-
-          if (role) {
-            where = { ...where, role };
-          }
-
-          if (query) {
-            where = {
-              ...where,
-              [Op.and]: {
-                [Op.or]: [
-                  Sequelize.literal(
-                    `unaccent(LOWER(email)) like unaccent(LOWER(:query))`
-                  ),
-                  Sequelize.literal(
-                    `unaccent(LOWER(name)) like unaccent(LOWER(:query))`
-                  ),
-                ],
-              },
-            };
-          }
-
-          const replacements = { query: `%${query}%` };
-
-          const users = await User.findAll({
-            where,
-            replacements,
-            order: [["name", "ASC"]],
-            offset: effectiveOffset,
-            limit: effectiveLimit,
-          });
-
-          const presented = users.map((user) =>
-            presentUser(user, {
-              includeEmail: !!can(actor, "readEmail", user),
-              includeDetails: !!can(actor, "readDetails", user),
-            })
-          );
-
-          return success(presented);
-        } catch (err) {
-          return error(err);
         }
-      }
+      )
     );
   }
 }

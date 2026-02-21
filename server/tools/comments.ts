@@ -9,7 +9,13 @@ import { Comment, Collection, Document } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentComment } from "@server/presenters";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
-import { error, success, buildAPIContext, getActorFromContext } from "./util";
+import {
+  error,
+  success,
+  buildAPIContext,
+  getActorFromContext,
+  withTracing,
+} from "./util";
 
 /**
  * Presents a comment with a plain-text rendering of its content so that
@@ -82,104 +88,107 @@ export function commentTools(server: McpServer, scopes: string[]) {
             ),
         },
       },
-      async (
-        {
-          documentId,
-          collectionId,
-          parentCommentId,
-          statusFilter,
-          offset,
-          limit,
-        },
-        extra
-      ) => {
-        try {
-          const user = getActorFromContext(extra);
-          const effectiveOffset = offset ?? 0;
-          const effectiveLimit = limit ?? 25;
+      withTracing(
+        "list_comments",
+        async (
+          {
+            documentId,
+            collectionId,
+            parentCommentId,
+            statusFilter,
+            offset,
+            limit,
+          },
+          extra
+        ) => {
+          try {
+            const user = getActorFromContext(extra);
+            const effectiveOffset = offset ?? 0;
+            const effectiveLimit = limit ?? 25;
 
-          const statusQuery: WhereOptions<Comment>[] = [];
-          if (statusFilter?.includes(CommentStatusFilter.Resolved)) {
-            statusQuery.push({ resolvedById: { [Op.not]: null } });
-          }
-          if (statusFilter?.includes(CommentStatusFilter.Unresolved)) {
-            statusQuery.push({ resolvedById: null });
-          }
+            const statusQuery: WhereOptions<Comment>[] = [];
+            if (statusFilter?.includes(CommentStatusFilter.Resolved)) {
+              statusQuery.push({ resolvedById: { [Op.not]: null } });
+            }
+            if (statusFilter?.includes(CommentStatusFilter.Unresolved)) {
+              statusQuery.push({ resolvedById: null });
+            }
 
-          const and: WhereOptions<Comment>[] = [];
-          if (documentId) {
-            and.push({ documentId });
-          }
-          if (parentCommentId) {
-            and.push({ parentCommentId });
-          }
-          if (statusQuery.length) {
-            and.push({ [Op.or]: statusQuery });
-          }
-          const where: WhereOptions<Comment> = {
-            [Op.and]: and,
-          };
+            const and: WhereOptions<Comment>[] = [];
+            if (documentId) {
+              and.push({ documentId });
+            }
+            if (parentCommentId) {
+              and.push({ parentCommentId });
+            }
+            if (statusQuery.length) {
+              and.push({ [Op.or]: statusQuery });
+            }
+            const where: WhereOptions<Comment> = {
+              [Op.and]: and,
+            };
 
-          const params: FindOptions<Comment> = {
-            where,
-            order: [["createdAt", "DESC"]],
-            offset: effectiveOffset,
-            limit: effectiveLimit,
-          };
+            const params: FindOptions<Comment> = {
+              where,
+              order: [["createdAt", "DESC"]],
+              offset: effectiveOffset,
+              limit: effectiveLimit,
+            };
 
-          let comments: Comment[];
+            let comments: Comment[];
 
-          if (documentId) {
-            const document = await Document.findByPk(documentId, {
-              userId: user.id,
-            });
-            authorize(user, "read", document);
+            if (documentId) {
+              const document = await Document.findByPk(documentId, {
+                userId: user.id,
+              });
+              authorize(user, "read", document);
 
-            comments = await Comment.findAll(params);
-            comments.forEach((comment) => (comment.document = document!));
-          } else if (collectionId) {
-            const collection = await Collection.findByPk(collectionId, {
-              userId: user.id,
-            });
-            authorize(user, "read", collection);
+              comments = await Comment.findAll(params);
+              comments.forEach((comment) => (comment.document = document!));
+            } else if (collectionId) {
+              const collection = await Collection.findByPk(collectionId, {
+                userId: user.id,
+              });
+              authorize(user, "read", collection);
 
-            comments = await Comment.findAll({
-              include: [
-                {
-                  model: Document,
-                  required: true,
-                  where: {
-                    teamId: user.teamId,
-                    collectionId,
+              comments = await Comment.findAll({
+                include: [
+                  {
+                    model: Document,
+                    required: true,
+                    where: {
+                      teamId: user.teamId,
+                      collectionId,
+                    },
                   },
-                },
-              ],
-              ...params,
-            });
-          } else {
-            const accessibleCollectionIds = await user.collectionIds();
+                ],
+                ...params,
+              });
+            } else {
+              const accessibleCollectionIds = await user.collectionIds();
 
-            comments = await Comment.findAll({
-              include: [
-                {
-                  model: Document,
-                  required: true,
-                  where: {
-                    teamId: user.teamId,
-                    collectionId: { [Op.in]: accessibleCollectionIds },
+              comments = await Comment.findAll({
+                include: [
+                  {
+                    model: Document,
+                    required: true,
+                    where: {
+                      teamId: user.teamId,
+                      collectionId: { [Op.in]: accessibleCollectionIds },
+                    },
                   },
-                },
-              ],
-              ...params,
-            });
-          }
+                ],
+                ...params,
+              });
+            }
 
-          const presented = comments.map(presentCommentWithText);
-          return success(presented);
-        } catch (err) {
-          return error(err);
+            const presented = comments.map(presentCommentWithText);
+            return success(presented);
+          } catch (err) {
+            return error(err);
+          }
         }
-      }
+      )
     );
   }
 
@@ -207,37 +216,40 @@ export function commentTools(server: McpServer, scopes: string[]) {
             ),
         },
       },
-      async ({ documentId, text, parentCommentId }, context) => {
-        try {
-          const ctx = buildAPIContext(context);
-          const { user } = ctx.state.auth;
+      withTracing(
+        "create_comment",
+        async ({ documentId, text, parentCommentId }, context) => {
+          try {
+            const ctx = buildAPIContext(context);
+            const { user } = ctx.state.auth;
 
-          const document = await Document.findByPk(documentId, {
-            userId: user.id,
-          });
-          authorize(user, "comment", document);
+            const document = await Document.findByPk(documentId, {
+              userId: user.id,
+            });
+            authorize(user, "comment", document);
 
-          const data = commentParser.parse(text).toJSON();
+            const data = commentParser.parse(text).toJSON();
 
-          const comment = await Comment.createWithCtx(ctx, {
-            data,
-            createdById: user.id,
-            documentId,
-            parentCommentId,
-          });
+            const comment = await Comment.createWithCtx(ctx, {
+              data,
+              createdById: user.id,
+              documentId,
+              parentCommentId,
+            });
 
-          comment.createdBy = user;
+            comment.createdBy = user;
 
-          const presented = presentCommentWithText(comment);
-          return {
-            content: [
-              { type: "text" as const, text: JSON.stringify(presented) },
-            ],
-          } satisfies CallToolResult;
-        } catch (err) {
-          return error(err);
+            const presented = presentCommentWithText(comment);
+            return {
+              content: [
+                { type: "text" as const, text: JSON.stringify(presented) },
+              ],
+            } satisfies CallToolResult;
+          } catch (err) {
+            return error(err);
+          }
         }
-      }
+      )
     );
   }
 
@@ -268,7 +280,7 @@ export function commentTools(server: McpServer, scopes: string[]) {
             ),
         },
       },
-      async ({ id, text, status }, context) => {
+      withTracing("update_comment", async ({ id, text, status }, context) => {
         try {
           const ctx = buildAPIContext(context);
           const { user } = ctx.state.auth;
@@ -309,7 +321,7 @@ export function commentTools(server: McpServer, scopes: string[]) {
         } catch (err) {
           return error(err);
         }
-      }
+      })
     );
   }
 
@@ -330,7 +342,7 @@ export function commentTools(server: McpServer, scopes: string[]) {
             .describe("The unique identifier of the comment to delete."),
         },
       },
-      async ({ id }, context) => {
+      withTracing("delete_comment", async ({ id }, context) => {
         try {
           const ctx = buildAPIContext(context);
           const { user } = ctx.state.auth;
@@ -351,7 +363,7 @@ export function commentTools(server: McpServer, scopes: string[]) {
         } catch (err) {
           return error(err);
         }
-      }
+      })
     );
   }
 }

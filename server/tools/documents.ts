@@ -22,6 +22,7 @@ import {
   buildAPIContext,
   getActorFromContext,
   pathToUrl,
+  withTracing,
 } from "./util";
 import { TextEditMode } from "@shared/types";
 
@@ -42,7 +43,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
         description: "Fetches the content of a document by its ID.",
         mimeType: "text/markdown",
       },
-      async (uri, variables, extra) => {
+      withTracing("get_document", async (uri, variables, extra) => {
         try {
           const { id } = variables;
           const user = getActorFromContext(extra);
@@ -82,7 +83,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             err instanceof Error ? err.message : String(err)
           );
         }
-      }
+      })
     );
   }
 
@@ -125,74 +126,77 @@ export function documentTools(server: McpServer, scopes: string[]) {
             ),
         },
       },
-      async ({ query, collectionId, offset, limit }, extra) => {
-        try {
-          const user = getActorFromContext(extra);
-          const effectiveOffset = offset ?? 0;
-          const effectiveLimit = limit ?? 25;
+      withTracing(
+        "list_documents",
+        async ({ query, collectionId, offset, limit }, extra) => {
+          try {
+            const user = getActorFromContext(extra);
+            const effectiveOffset = offset ?? 0;
+            const effectiveLimit = limit ?? 25;
 
-          if (collectionId) {
-            const collection = await Collection.findByPk(collectionId, {
-              userId: user.id,
-            });
-            authorize(user, "readDocument", collection);
-          }
+            if (collectionId) {
+              const collection = await Collection.findByPk(collectionId, {
+                userId: user.id,
+              });
+              authorize(user, "readDocument", collection);
+            }
 
-          if (query) {
-            const { results } = await SearchHelper.searchForUser(user, {
-              query,
-              collectionId,
+            if (query) {
+              const { results } = await SearchHelper.searchForUser(user, {
+                query,
+                collectionId,
+                offset: effectiveOffset,
+                limit: effectiveLimit,
+              });
+
+              const presented = await Promise.all(
+                results.map(async (result) => {
+                  const doc = pathToUrl(
+                    user.team,
+                    await presentDocument(undefined, result.document, {
+                      includeData: false,
+                      includeText: false,
+                    })
+                  );
+                  return { ...doc, context: result.context };
+                })
+              );
+              return success(presented);
+            }
+
+            const collectionIds = collectionId
+              ? [collectionId]
+              : await user.collectionIds();
+
+            const documents = await Document.findAll({
+              where: {
+                teamId: user.teamId,
+                collectionId: collectionIds,
+                archivedAt: { [Op.eq]: null },
+                deletedAt: { [Op.eq]: null },
+              },
+              order: [["updatedAt", "DESC"]],
               offset: effectiveOffset,
               limit: effectiveLimit,
             });
 
             const presented = await Promise.all(
-              results.map(async (result) => {
-                const doc = pathToUrl(
+              documents.map(async (document) =>
+                pathToUrl(
                   user.team,
-                  await presentDocument(undefined, result.document, {
+                  await presentDocument(undefined, document, {
                     includeData: false,
                     includeText: false,
                   })
-                );
-                return { ...doc, context: result.context };
-              })
+                )
+              )
             );
             return success(presented);
+          } catch (message) {
+            return error(message);
           }
-
-          const collectionIds = collectionId
-            ? [collectionId]
-            : await user.collectionIds();
-
-          const documents = await Document.findAll({
-            where: {
-              teamId: user.teamId,
-              collectionId: collectionIds,
-              archivedAt: { [Op.eq]: null },
-              deletedAt: { [Op.eq]: null },
-            },
-            order: [["updatedAt", "DESC"]],
-            offset: effectiveOffset,
-            limit: effectiveLimit,
-          });
-
-          const presented = await Promise.all(
-            documents.map(async (document) =>
-              pathToUrl(
-                user.team,
-                await presentDocument(undefined, document, {
-                  includeData: false,
-                  includeText: false,
-                })
-              )
-            )
-          );
-          return success(presented);
-        } catch (message) {
-          return error(message);
         }
-      }
+      )
     );
   }
 
@@ -237,7 +241,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             ),
         },
       },
-      async (input, context) => {
+      withTracing("create_document", async (input, context) => {
         try {
           const { collectionId, parentDocumentId } = input;
           const ctx = buildAPIContext(context);
@@ -301,7 +305,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
         } catch (message) {
           return error(message);
         }
-      }
+      })
     );
   }
 
@@ -360,7 +364,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             ),
         },
       },
-      async (input, context) => {
+      withTracing("update_document", async (input, context) => {
         try {
           const ctx = buildAPIContext(context);
           const { user } = ctx.state.auth;
@@ -412,7 +416,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
         } catch (message) {
           return error(message);
         }
-      }
+      })
     );
   }
 }
