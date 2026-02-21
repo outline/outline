@@ -6,23 +6,14 @@ import { CannotUseWithout } from "@server/utils/validators";
 
 class GitLabPluginEnvironment extends Environment {
   /**
-   * GitLab OAuth2 client credentials. To enable integration with GitLab.
+   * GitLab OAuth2 client credentials. To enable integration with GitLab cloud.
    */
   @Public
   @IsOptional()
   public GITLAB_CLIENT_ID = this.toOptionalString(environment.GITLAB_CLIENT_ID);
 
   /**
-   * GitLab URL. Defaults to the gitlab cloud URL.
-   */
-  @Public
-  @IsOptional()
-  @CannotUseWithout("GITLAB_CLIENT_ID")
-  public GITLAB_URL =
-    this.toOptionalString(environment.GITLAB_URL) ?? "https://gitlab.com";
-
-  /**
-   * GitLab OAuth2 client secret used for OAuth2 authentication with GitLab.
+   * GitLab OAuth2 client secret used for OAuth2 authentication with GitLab cloud.
    */
   @IsOptional()
   @CannotUseWithout("GITLAB_CLIENT_ID")

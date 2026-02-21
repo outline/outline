@@ -4,7 +4,7 @@ import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 import { UnfurlResourceType } from "@shared/types";
 
 export class GitLabUtils {
-  static defaultGitlabUrl = env.GITLAB_URL ?? "https://gitlab.com";
+  static defaultGitlabUrl = "https://gitlab.com";
 
   public static clientSecret = env.GITLAB_CLIENT_SECRET;
   private static clientId = env.GITLAB_CLIENT_ID;
