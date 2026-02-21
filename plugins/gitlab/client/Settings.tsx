@@ -69,97 +69,80 @@ function GitLab() {
           </Trans>
         </Notice>
       )}
-      {env.GITLAB_CLIENT_ID ? (
+      <Text as="p">
+        <Trans>
+          Enable previews of GitLab issues and merge requests in documents by
+          connecting a GitLab organization or specific repositories to {appName}
+          .
+        </Trans>
+      </Text>
+
+      {integrations.gitlab.some((int) => int.settings.gitlab?.installation) ? (
         <>
-          <Text as="p">
-            <Trans>
-              Enable previews of GitLab issues and merge requests in documents
-              by connecting a GitLab organization or specific repositories to{" "}
-              {appName}.
-            </Trans>
-          </Text>
+          <Heading as="h2">
+            <Flex justify="space-between" auto>
+              {t("Connected")}
+              <GitLabConnectButton icon={<PlusIcon />} />
+            </Flex>
+          </Heading>
+          <List>
+            {integrations.gitlab.map((integration) => {
+              const gitlabAccount =
+                integration.settings?.gitlab?.installation?.account;
+              const integrationCreatedBy = integration.user
+                ? integration.user.name
+                : undefined;
 
-          {integrations.gitlab.some(
-            (int) => int.settings.gitlab?.installation
-          ) ? (
-            <>
-              <Heading as="h2">
-                <Flex justify="space-between" auto>
-                  {t("Connected")}
-                  <GitLabConnectButton icon={<PlusIcon />} />
-                </Flex>
-              </Heading>
-              <List>
-                {integrations.gitlab.map((integration) => {
-                  const gitlabAccount =
-                    integration.settings?.gitlab?.installation?.account;
-                  const integrationCreatedBy = integration.user
-                    ? integration.user.name
-                    : undefined;
+              const customUrl = integration.settings?.gitlab?.url;
 
-                  const customUrl = integration.settings?.gitlab?.url;
-
-                  return (
-                    gitlabAccount && (
-                      <ListItem
-                        key={gitlabAccount?.id}
-                        small
-                        title={gitlabAccount?.name}
-                        subtitle={
-                          integrationCreatedBy ? (
-                            <>
-                              {customUrl && <>{customUrl} &middot; </>}
-                              <Trans>
-                                Enabled by {{ integrationCreatedBy }}
-                              </Trans>{" "}
-                              &middot;{" "}
-                              <Time
-                                dateTime={integration.createdAt}
-                                relative={false}
-                                format={{ en_US: "MMMM d, y" }}
-                              />
-                            </>
-                          ) : (
-                            <PlaceholderText />
-                          )
-                        }
-                        image={
-                          <TeamLogo
-                            src={gitlabAccount?.avatarUrl}
-                            size={AvatarSize.Large}
+              return (
+                gitlabAccount && (
+                  <ListItem
+                    key={gitlabAccount?.id}
+                    small
+                    title={gitlabAccount?.name}
+                    subtitle={
+                      integrationCreatedBy ? (
+                        <>
+                          {customUrl && <>{customUrl} &middot; </>}
+                          <Trans>
+                            Enabled by {{ integrationCreatedBy }}
+                          </Trans>{" "}
+                          &middot;{" "}
+                          <Time
+                            dateTime={integration.createdAt}
+                            relative={false}
+                            format={{ en_US: "MMMM d, y" }}
                           />
-                        }
-                        actions={
-                          <ConnectedButton
-                            onClick={integration.delete}
-                            confirmationMessage={t(
-                              "Disconnecting will prevent previewing GitLab links from this organization in documents. Are you sure?"
-                            )}
-                          />
-                        }
+                        </>
+                      ) : (
+                        <PlaceholderText />
+                      )
+                    }
+                    image={
+                      <TeamLogo
+                        src={gitlabAccount?.avatarUrl}
+                        size={AvatarSize.Large}
                       />
-                    )
-                  );
-                })}
-              </List>
-            </>
-          ) : (
-            <p>
-              <GitLabConnectButton icon={<GitLabIcon />} />
-            </p>
-          )}
+                    }
+                    actions={
+                      <ConnectedButton
+                        onClick={integration.delete}
+                        confirmationMessage={t(
+                          "Disconnecting will prevent previewing GitLab links from this organization in documents. Are you sure?"
+                        )}
+                      />
+                    }
+                  />
+                )
+              );
+            })}
+          </List>
         </>
       ) : (
-        <Notice>
-          <Trans>
-            The GitLab integration is currently disabled. Please set the
-            associated environment variables and restart the server to enable
-            the integration.{" "}
-            <a href="#" target="_blank" rel="noopener noreferrer">
-              Learn more
-            </a>
-          </Trans>
-        </Notice>
+        <p>
+          <GitLabConnectButton icon={<GitLabIcon />} />
+        </p>
       )}
     </IntegrationScene>
   );

@@ -181,33 +181,44 @@ export class GitLab {
     })) as Integration<IntegrationType.Embed>[];
 
     if (integrations.length === 0) {
+      Logger.debug(
+        "plugins",
+        `No GitLab integrations found for team ${actor.teamId}`
+      );
       return;
     }
 
-    const customUrl = integrations[0].settings?.gitlab?.url;
-    const resource = GitLabUtils.parseUrl(url, customUrl);
+    // Try to parse the URL against each integration's custom URL
+    let matchedIntegration: Integration<IntegrationType.Embed> | undefined;
+    let resource: ReturnType<typeof GitLabUtils.parseUrl>;
+
+    for (const integration of integrations) {
+      const customUrl = integration.settings?.gitlab?.url;
+      resource = GitLabUtils.parseUrl(url, customUrl);
+      if (resource) {
+        matchedIntegration = integration;
+        break;
+      }
+    }
 
     if (!resource) {
+      Logger.debug(
+        "plugins",
+        `Could not parse GitLab resource from URL: ${url}`
+      );
       return;
     }
 
-    // Find integration that has access to this owner
-    const matchedIntegration = integrations.find((integration) => {
-      const issueSources = integration.issueSources as
-        | Array<{
-            owner: { name: string };
-          }>
-        | undefined;
-      return issueSources?.some(
-        (source) => source.owner.name === resource.owner
+    if (!matchedIntegration?.authentication) {
+      Logger.debug(
+        "plugins",
+        `No authentication found for matched integration`
       );
-    });
-
-    if (!matchedIntegration || !matchedIntegration.authentication) {
       return;
     }
 
     try {
+      const customUrl = matchedIntegration.settings?.gitlab?.url;
       const projectPath = `${resource.owner}/${resource.repo}`;
       const { authentication } = matchedIntegration;
       const token = await authentication.refreshTokenIfNeeded(

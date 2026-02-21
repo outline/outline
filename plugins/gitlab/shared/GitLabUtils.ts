@@ -121,26 +121,58 @@ export class GitLabUtils {
    * @returns An object containing resource identifiers or undefined if the URL is invalid.
    */
   public static parseUrl(url: string, customUrl?: string) {
-    const { hostname, pathname } = new URL(url);
+    const parsed = new URL(url);
     const urlHostname = new URL(this.getGitlabUrl(customUrl)).hostname;
 
-    if (hostname !== urlHostname) {
+    if (parsed.hostname !== urlHostname) {
       return;
     }
 
-    const parts = pathname.split("/").filter(Boolean);
+    const parts = parsed.pathname.split("/").filter(Boolean);
+
+    // Try base64-encoded `show` query parameter first
+    // e.g. /owner/repo/-/issues?show=eyJ...
+    const showParam = parsed.searchParams.get("show");
+    if (showParam && parts.length >= 4) {
+      const resourceType = parts.pop();
+      parts.pop(); // separator ("-")
+      const repo = parts.pop();
+      const owner = parts.join("/");
+
+      const type =
+        resourceType === "issues"
+          ? UnfurlResourceType.Issue
+          : resourceType === "merge_requests"
+            ? UnfurlResourceType.PR
+            : undefined;
+
+      if (!type || !this.supportedResources.includes(type)) {
+        return;
+      }
+
+      try {
+        const decoded = JSON.parse(atob(decodeURIComponent(showParam)));
+        const iid = Number(decoded.iid);
+        if (!iid) {
+          return;
+        }
+        return { owner, repo, type, id: iid, url };
+      } catch {
+        return;
+      }
+    }
+
     if (parts.length < 5) {
-      // Not a valid GitLab MR or issue URL
       return;
     }
 
-    // GitLab URLs: /owner/repo/-/issues/123 or /owner/repo/-/merge_requests/123
-    const resourceId = parts.pop(); // Last part is the ID
-    const resourceType = parts.pop(); // Second to last is the type
-    parts.pop(); // Third to last is the separator ("-")
+    // Direct URL: /owner/repo/-/issues/123 or /owner/repo/-/merge_requests/123
+    const resourceId = parts.pop();
+    const resourceType = parts.pop();
+    parts.pop(); // separator ("-")
 
-    const repo = parts.pop(); // Fourth to last is the project/repo
-    const owner = parts.join("/"); // Everything before is the owner
+    const repo = parts.pop();
+    const owner = parts.join("/");
 
     const type =
       resourceType === "issues"
