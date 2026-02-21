@@ -3,9 +3,11 @@ import { Trans } from "react-i18next";
 import styled from "styled-components";
 import { Backticks } from "@shared/components/Backticks";
 import { IssueStatusIcon } from "@shared/components/IssueStatusIcon";
+import { richExtensions } from "@shared/editor/nodes";
 import type { UnfurlResourceType, UnfurlResponse } from "@shared/types";
 import { IntegrationService } from "@shared/types";
 import { Avatar } from "~/components/Avatar";
+import Editor from "~/components/Editor";
 import Flex from "~/components/Flex";
 import Text from "../Text";
 import Time from "../Time";
@@ -28,9 +30,11 @@ const HoverPreviewIssue = React.forwardRef(function HoverPreviewIssue_(
   const authorName = author.name;
   const urlObj = new URL(url);
   const service =
-    urlObj.hostname === "github.com"
-      ? IntegrationService.GitHub
-      : IntegrationService.Linear;
+    urlObj.hostname === "linear.app"
+      ? IntegrationService.Linear
+      : urlObj.hostname === "github.com"
+        ? IntegrationService.GitHub
+        : IntegrationService.GitLab;
 
   return (
     <Preview as="a" href={url} target="_blank" rel="noopener noreferrer">
@@ -58,7 +62,18 @@ const HoverPreviewIssue = React.forwardRef(function HoverPreviewIssue_(
                   </Trans>
                 </Info>
               </Flex>
-              <Description>{description}</Description>
+              {description && (
+                <Description as="div">
+                  <React.Suspense fallback={<div />}>
+                    <Editor
+                      extensions={richExtensions}
+                      defaultValue={description}
+                      embedsDisabled
+                      readOnly
+                    />
+                  </React.Suspense>
+                </Description>
+              )}
 
               <Flex wrap>
                 {labels.map((label, index) => (

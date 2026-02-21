@@ -3517,6 +3517,39 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@gitbeaker/core@npm:^43.8.0":
+  version: 43.8.0
+  resolution: "@gitbeaker/core@npm:43.8.0"
+  dependencies:
+    "@gitbeaker/requester-utils": "npm:^43.8.0"
+    qs: "npm:^6.14.0"
+    xcase: "npm:^2.0.1"
+  checksum: 10c0/5913aea8ae89b30f37693093fe68a94fbe4ab2737e661ba6795b3d22463ffa63806076b392b938d4c662d691c0114facc022bcdde29297e7b6617b146c449ff6
+  languageName: node
+  linkType: hard
+
+"@gitbeaker/requester-utils@npm:^43.8.0":
+  version: 43.8.0
+  resolution: "@gitbeaker/requester-utils@npm:43.8.0"
+  dependencies:
+    picomatch-browser: "npm:^2.2.6"
+    qs: "npm:^6.14.0"
+    rate-limiter-flexible: "npm:^8.0.1"
+    xcase: "npm:^2.0.1"
+  checksum: 10c0/07fd5af56fa3b577009bac6fc59a9b54b3e188a8b412c926b253b21528fb46f8ab02dbeba5c032a9a77d169a69208550147a099c71681d5b9193c87224db8d19
+  languageName: node
+  linkType: hard
+
+"@gitbeaker/rest@npm:^43.8.0":
+  version: 43.8.0
+  resolution: "@gitbeaker/rest@npm:43.8.0"
+  dependencies:
+    "@gitbeaker/core": "npm:^43.8.0"
+    "@gitbeaker/requester-utils": "npm:^43.8.0"
+  checksum: 10c0/f3b25c6a67c25f9d5aac4674bacd36321c06bedd55e4fe859cba569e6c0121ac00d41838094ca7e19dc3158f59e57f8bae7d565b2e7d308904a3bbe234152b8b
+  languageName: node
+  linkType: hard
+
 "@graphql-typed-document-node/core@npm:^3.1.0":
   version: 3.2.0
   resolution: "@graphql-typed-document-node/core@npm:3.2.0"
@@ -14125,7 +14158,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ipaddr.js@npm:^2.1.0":
+"ipaddr.js@npm:^2.1.0, ipaddr.js@npm:^2.3.0":
   version: 2.3.0
   resolution: "ipaddr.js@npm:2.3.0"
   checksum: 10c0/084bab99e2f6875d7a62adc3325e1c64b038a12c9521e35fb967b5e263a8b3afb1b8884dd77c276092331f5d63298b767491e10997ef147c62da01b143780bbd
@@ -17517,6 +17550,7 @@ __metadata:
     "@fortawesome/free-solid-svg-icons": "npm:^7.1.0"
     "@fortawesome/react-fontawesome": "npm:^0.2.6"
     "@getoutline/react-roving-tabindex": "npm:^3.2.4"
+    "@gitbeaker/rest": "npm:^43.8.0"
     "@hocuspocus/extension-redis": "npm:1.1.2"
     "@hocuspocus/extension-throttle": "npm:1.1.2"
     "@hocuspocus/provider": "npm:1.1.2"
@@ -17665,6 +17699,7 @@ __metadata:
     invariant: "npm:^2.2.4"
     ioredis: "npm:^5.8.2"
     ioredis-mock: "npm:^8.13.1"
+    ipaddr.js: "npm:^2.3.0"
     is-printable-key-event: "npm:^1.0.0"
     iso-639-3: "npm:^3.0.1"
     jest-cli: "npm:^30.2.0"
@@ -18420,6 +18455,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"picomatch-browser@npm:^2.2.6":
+  version: 2.2.6
+  resolution: "picomatch-browser@npm:2.2.6"
+  checksum: 10c0/bf97d3e6f77dee776fe4cc7728037931b681c56e1fd964023ed797de341a0e32dcc1e90a5552cc74923cb97566464870a37be188b09e3db7279f9e9a9b12d977
+  languageName: node
+  linkType: hard
+
 "picomatch@npm:^2.0.4, picomatch@npm:^2.2.1, picomatch@npm:^2.2.2, picomatch@npm:^2.2.3, picomatch@npm:^2.3.1":
   version: 2.3.1
   resolution: "picomatch@npm:2.3.1"
@@ -19066,6 +19108,13 @@ __metadata:
   version: 2.4.2
   resolution: "rate-limiter-flexible@npm:2.4.2"
   checksum: 10c0/ab3f9a1fdd58c9c49e4e7bea59b7faa5488cc4b50f742e5d3569aa54376f94f136e9a69e8424374be658fc92187717659288b76559b18cd50bf9061df62b256f
+  languageName: node
+  linkType: hard
+
+"rate-limiter-flexible@npm:^8.0.1":
+  version: 8.3.0
+  resolution: "rate-limiter-flexible@npm:8.3.0"
+  checksum: 10c0/30b0aad1128b5a5cff44b289c6083be6ee782389015c1a93f854b1f07a682e539fcd48a3b983c828271b8f8ade3c930055edc2cf376915a3300a0d572d911244
   languageName: node
   linkType: hard
 
@@ -23031,6 +23080,13 @@ __metadata:
     utf-8-validate:
       optional: true
   checksum: 10c0/f4a49064afae4500be772abdc2211c8518f39e1c959640457dcee15d4488628620625c783902a52af2dd02f68558da2868fd06e6fd0e67ebcd09e6881b1b5bfe
+  languageName: node
+  linkType: hard
+
+"xcase@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "xcase@npm:2.0.1"
+  checksum: 10c0/11b8ae8f6734b29d442a5acf1dff3a896cabbf49e7ffa01472ff6fa687a6e6f6a25889d06c10a41950e7a90fe89239fa78d95eab0c5eb654ca75f0ccd71ba8ed
   languageName: node
   linkType: hard
 

@@ -3,8 +3,10 @@ import { Trans } from "react-i18next";
 import styled from "styled-components";
 import { Backticks } from "@shared/components/Backticks";
 import { PullRequestIcon } from "@shared/components/PullRequestIcon";
+import { richExtensions } from "@shared/editor/nodes";
 import type { UnfurlResourceType, UnfurlResponse } from "@shared/types";
 import { Avatar } from "~/components/Avatar";
+import Editor from "~/components/Editor";
 import Flex from "~/components/Flex";
 import Text from "../Text";
 import Time from "../Time";
@@ -48,7 +50,18 @@ const HoverPreviewPullRequest = React.forwardRef(
                     </Trans>
                   </Info>
                 </Flex>
-                <Description>{description}</Description>
+                {description && (
+                  <Description as="div">
+                    <React.Suspense fallback={<div />}>
+                      <Editor
+                        extensions={richExtensions}
+                        defaultValue={description}
+                        embedsDisabled
+                        readOnly
+                      />
+                    </React.Suspense>
+                  </Description>
+                )}
               </Flex>
             </CardContent>
           </Card>

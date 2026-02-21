@@ -6,9 +6,9 @@ import { getProxyForUrl } from "proxy-from-env";
 import tunnelAgent, { type TunnelAgent } from "tunnel-agent";
 import { useAgent as useFilteringAgent } from "request-filtering-agent";
 import env from "@server/env";
+import { InternalError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import { capitalize, defaults } from "lodash";
-import { InternalError } from "@server/errors";
 
 interface UrlWithTunnel extends URL {
   tunnelMethod?: string;

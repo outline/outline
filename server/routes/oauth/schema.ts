@@ -29,7 +29,7 @@ export const RegisterSchema = BaseSchema.extend({
   body: z.object({
     client_name: z.string().min(1).max(OAuthClientValidation.maxNameLength),
     redirect_uris: z
-      .array(z.string().url().max(OAuthClientValidation.maxRedirectUriLength))
+      .array(z.url().max(OAuthClientValidation.maxRedirectUriLength))
       .min(1)
       .max(10),
     grant_types: z
@@ -60,7 +60,7 @@ export const RegisterUpdateSchema = BaseSchema.extend({
   body: z.object({
     client_name: z.string().min(1).max(OAuthClientValidation.maxNameLength),
     redirect_uris: z
-      .array(z.string().url().max(OAuthClientValidation.maxRedirectUriLength))
+      .array(z.url().max(OAuthClientValidation.maxRedirectUriLength))
       .min(1)
       .max(10),
     client_uri: z
