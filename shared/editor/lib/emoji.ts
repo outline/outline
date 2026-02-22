@@ -23,20 +23,37 @@ export let nameToEmoji: Record<string, string> = {};
 
 let emojiDataLoaded = false;
 
-/** Load the emoji data and populate nameToEmoji. */
-export async function loadEmojiData(): Promise<Record<string, string>> {
+/**
+ * Synchronously populate nameToEmoji from the given emoji data. This mutates
+ * the existing object so references captured at init time (e.g. by
+ * markdown-it-emoji) are also updated.
+ *
+ * @param data The emoji mart data to populate from.
+ */
+export function populateEmojiData(data: EmojiMartData): void {
   if (emojiDataLoaded) {
-    return nameToEmoji;
+    return;
   }
-  const { default: data } = await import("@emoji-mart/data");
-  // Mutate the existing object so references captured at init time (e.g. by
-  // markdown-it-emoji) are also updated.
-  for (const emoji of Object.values((data as EmojiMartData).emojis)) {
+  for (const emoji of Object.values(data.emojis)) {
     const convertedId = snakeCase(emoji.id);
     nameToEmoji[emojiMartToGemoji[convertedId] ?? convertedId] =
       emoji.skins[0].native;
   }
   emojiDataLoaded = true;
+}
+
+/**
+ * Lazily load the emoji data and populate nameToEmoji. Use this on the client
+ * to avoid including @emoji-mart/data in the initial bundle.
+ *
+ * @returns the populated nameToEmoji map.
+ */
+export async function loadEmojiData(): Promise<Record<string, string>> {
+  if (emojiDataLoaded) {
+    return nameToEmoji;
+  }
+  const { default: data } = await import("@emoji-mart/data");
+  populateEmojiData(data as EmojiMartData);
   return nameToEmoji;
 }
 

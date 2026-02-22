@@ -1,11 +1,16 @@
+import data from "@emoji-mart/data";
+import type { EmojiMartData } from "@emoji-mart/data";
 import { Schema } from "prosemirror-model";
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
+import { populateEmojiData } from "@shared/editor/lib/emoji";
 import {
   basicExtensions,
   richExtensions,
   withComments,
 } from "@shared/editor/nodes";
 import Mention from "@shared/editor/nodes/Mention";
+
+populateEmojiData(data as EmojiMartData);
 
 const extensions = withComments(richExtensions);
 export const extensionManager = new ExtensionManager(extensions);
