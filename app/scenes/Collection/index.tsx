@@ -49,6 +49,7 @@ import Overview from "./components/Overview";
 import { Header } from "./components/Header";
 import usePersistedState from "~/hooks/usePersistedState";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 
 const CollectionScene = observer(function CollectionScene_() {
   const params = useParams<{ collectionSlug?: string }>();
@@ -67,14 +68,17 @@ const CollectionScene = observer(function CollectionScene_() {
   const id = params.collectionSlug || "";
   const urlId = id.split("-").pop() ?? "";
 
-  const collection: Collection | null | undefined = collections.get(id);
+  const collection = collections.get(id);
   const can = usePolicy(collection);
+  const hasDescription = collection?.data
+    ? !ProsemirrorHelper.isEmptyData(collection.data)
+    : false;
 
   const { pins, count } = usePinnedDocuments(urlId, collection?.id);
 
   const [collectionTab, setCollectionTab] = usePersistedState<CollectionTab>(
     `collection-tab:${collection?.id}`,
-    collection?.hasDescription ? CollectionTab.Overview : CollectionTab.Recent,
+    hasDescription ? CollectionTab.Overview : CollectionTab.Recent,
     {
       listen: false,
     }
@@ -130,7 +134,7 @@ const CollectionScene = observer(function CollectionScene_() {
     return <Loading />;
   }
 
-  const showOverview = can.update || collection?.hasDescription;
+  const showOverview = can.update || hasDescription;
 
   return (
     <Scene

@@ -15,6 +15,7 @@ import usePersistedState from "~/hooks/usePersistedState";
 import Scrollable from "~/components/Scrollable";
 import Switch from "~/components/Switch";
 import { action } from "mobx";
+import { ChangesetHelper } from "@shared/editor/lib/ChangesetHelper";
 
 /**
  * Changesets scene for developer playground.
@@ -89,6 +90,10 @@ function Changesets() {
   const mockDiffRevision = stores.revisions.get("mock-diff-revision-" + id);
   const mockBeforeRevision = stores.revisions.get("mock-before-revision-" + id);
   const mockAfterRevision = stores.revisions.get("mock-after-revision-" + id);
+  const changeset = ChangesetHelper.getChangeset(
+    mockDiffRevision?.data,
+    mockDiffRevision?.before?.data
+  );
 
   return (
     <Scene title="Changeset Playground" centered>
@@ -155,9 +160,7 @@ function Changesets() {
             {showChangeset && (
               <>
                 <Heading>Changeset</Heading>
-                <Pre>
-                  {JSON.stringify(mockDiffRevision.changeset?.changes, null, 2)}
-                </Pre>
+                <Pre>{JSON.stringify(changeset?.changes, null, 2)}</Pre>
               </>
             )}
           </>
