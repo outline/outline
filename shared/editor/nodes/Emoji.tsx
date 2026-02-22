@@ -9,7 +9,7 @@ import type { Command } from "prosemirror-state";
 import { Plugin, TextSelection } from "prosemirror-state";
 import type { Primitive } from "utility-types";
 import Extension from "../lib/Extension";
-import { getEmojiFromName } from "../lib/emoji";
+import { getEmojiFromName, loadEmojiData } from "../lib/emoji";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import emojiRule from "../rules/emoji";
 import { isUUID } from "validator";
@@ -17,6 +17,13 @@ import type { ComponentProps } from "../types";
 import { CustomEmoji } from "../../components/CustomEmoji";
 
 export default class Emoji extends Extension {
+  constructor() {
+    super();
+    // Begin loading emoji data as soon as this extension is instantiated so
+    // it is available by the time the editor renders emoji nodes.
+    void loadEmojiData();
+  }
+
   get type() {
     return "node";
   }

@@ -1,6 +1,5 @@
 import type { Transaction } from "prosemirror-state";
 import type { DecorationSet } from "prosemirror-view";
-import { ySyncPluginKey } from "y-prosemirror";
 import { recreateTransform } from "./prosemirror-recreate-transform";
 
 /**
@@ -10,7 +9,10 @@ import { recreateTransform } from "./prosemirror-recreate-transform";
  * @returns true if the transaction is a remote transaction
  */
 export function isRemoteTransaction(tr: Transaction): boolean {
-  const meta = tr.getMeta(ySyncPluginKey);
+  // Use the string key directly to avoid importing y-prosemirror in the
+  // initial bundle. ySyncPluginKey is `new PluginKey("y-sync")` and getMeta
+  // accepts a string key.
+  const meta = tr.getMeta("y-sync");
 
   // This logic seems to be flipped? But it's correct.
   return !!meta?.isChangeOrigin;

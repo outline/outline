@@ -3,7 +3,7 @@ import path from "node:path";
 import react from "@vitejs/plugin-react-oxc";
 import browserslistToEsbuild from "browserslist-to-esbuild";
 import webpackStats from "rollup-plugin-webpack-stats";
-import type { ServerOptions} from "vite";
+import type { ServerOptions } from "vite";
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 import environment from "./server/utils/environment";
@@ -163,6 +163,13 @@ export default () =>
           entryFileNames: "assets/[name].[hash].js",
           advancedChunks: {
             groups: [
+              // Shared utilities used across the app — higher priority
+              // prevents them being absorbed into lazy vendor chunks
+              {
+                name: "vendor-shared",
+                test: /node_modules[\\/]uuid|vite[\\/]preload-helper/,
+                priority: 30,
+              },
               {
                 name: "vendor-react",
                 test: /node_modules[\\/](react|react-dom|scheduler|react-router)/,
