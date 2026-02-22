@@ -5,17 +5,20 @@ type Props = {
   size?: number;
   /** The color of the icon, defaults to the current text color */
   color?: string;
+  /** Whether to render the monochrome version, defaults to true */
+  monochrome?: boolean;
 };
 
 export default function ZapierIcon({
   size = 24,
   color = "currentColor",
+  monochrome = true,
 }: Props) {
   return (
     <svg
       width={size}
       height={size}
-      fill={color}
+      fill={monochrome ? color : "#FF4A00"}
       viewBox="0 0 24 24"
       version="1.1"
     >

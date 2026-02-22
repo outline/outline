@@ -1,4 +1,3 @@
-import type { Icon } from "outline-icons";
 import {
   EmailIcon,
   ProfileIcon,
@@ -19,7 +18,6 @@ import {
   SmileyIcon,
   BuildingBlocksIcon,
 } from "outline-icons";
-import type { ComponentProps } from "react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
@@ -54,7 +52,11 @@ const CustomEmojis = lazy(() => import("~/scenes/Settings/CustomEmojis"));
 export type ConfigItem = {
   name: string;
   path: string;
-  icon: React.FC<ComponentProps<typeof Icon>>;
+  icon: React.FC<{
+    size?: number;
+    fill?: string;
+    monochrome?: boolean;
+  }>;
   component: React.ComponentType;
   description?: string;
   preload?: () => void;
