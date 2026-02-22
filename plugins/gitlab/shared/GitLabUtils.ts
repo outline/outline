@@ -1,4 +1,3 @@
-import { Gitlab } from "@gitbeaker/rest";
 import env from "@shared/env";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 import { UnfurlResourceType } from "@shared/types";
@@ -98,20 +97,6 @@ export class GitLabUtils {
   }
 
   /**
-   * Creates a Gitbeaker client instance.
-   *
-   * @param accessToken - The access token for authentication.
-   * @param customUrl - Optional custom GitLab URL from integration settings.
-   * @returns A configured Gitbeaker client.
-   */
-  public static createClient(accessToken: string, customUrl?: string) {
-    return new Gitlab({
-      host: this.getGitlabUrl(customUrl),
-      oauthToken: accessToken,
-    });
-  }
-
-  /**
    * Parses a GitLab URL and extracts resource identifiers.
    *
    * @param url - The GitLab URL to parse.
@@ -190,57 +175,6 @@ export class GitLabUtils {
       id: Number(resourceId),
       url,
     };
-  }
-
-  /**
-   * Fetches an issue from a GitLab project.
-   *
-   * @param accessToken - The access token for authentication.
-   * @param projectPath - The project path (owner/repo).
-   * @param issueIid - The issue IID (internal ID within the project).
-   * @param customUrl - Optional custom GitLab URL from integration settings.
-   * @returns The issue data.
-   */
-  public static async getIssue(
-    accessToken: string,
-    projectPath: string,
-    issueIid: number,
-    customUrl?: string
-  ) {
-    const client = this.createClient(accessToken, customUrl);
-
-    const issues = await client.Issues.all({
-      projectId: projectPath,
-      iids: [issueIid],
-      withLabelsDetails: true,
-    });
-
-    if (!issues || issues.length === 0) {
-      throw new Error(`Issue ${issueIid} not found in project ${projectPath}`);
-    }
-
-    return issues[0];
-  }
-
-  /**
-   * Fetches a merge request from a GitLab project.
-   *
-   * @param accessToken - The access token for authentication.
-   * @param projectPath - The project path (owner/repo).
-   * @param mrIid - The merge request IID (internal ID within the project).
-   * @param customUrl - Optional custom GitLab URL from integration settings.
-   * @returns The merge request data.
-   */
-  public static async getMergeRequest(
-    accessToken: string,
-    projectPath: string,
-    mrIid: number,
-    customUrl?: string
-  ) {
-    const client = this.createClient(accessToken, customUrl);
-    // MergeRequests.show properly accepts projectId and mergerequestIId
-    const mr = await client.MergeRequests.show(projectPath, mrIid);
-    return mr;
   }
 
   /**
