@@ -479,6 +479,7 @@ export class ProsemirrorHelper {
         node.attrs.href = env.URL + node.attrs.href;
       }
       if (node.content) {
+        node.content = node.content.filter(Boolean);
         node.content.forEach(replace);
       }
 
@@ -502,6 +503,7 @@ export class ProsemirrorHelper {
       }
 
       if (node.content) {
+        node.content = node.content.filter(Boolean);
         node.content.forEach(replace);
       }
 
