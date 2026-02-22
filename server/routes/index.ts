@@ -105,6 +105,7 @@ router.get("/locales/:lng.json", async (ctx) => {
         "ETag",
         crypto.createHash("md5").update(stats.mtime.toISOString()).digest("hex")
       );
+      res.setHeader("Access-Control-Allow-Origin", "*");
     },
     root: path.join(__dirname, "../../shared/i18n/locales"),
   });
