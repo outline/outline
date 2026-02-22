@@ -71,7 +71,7 @@ export function createOIDCRouter(
         context: Context,
         accessToken: string,
         refreshToken: string,
-        params: { expires_in: number; id_token: string },
+        params: { expires_in: number; id_token: string; scope?: string },
         _profile: unknown,
         done: (
           err: Error | null,
@@ -216,7 +216,7 @@ export function createOIDCRouter(
               accessToken,
               refreshToken,
               expiresIn: params.expires_in,
-              scopes,
+              scopes: params.scope ? params.scope.split(" ") : scopes,
             },
           });
           return done(null, result.user, { ...result, client });

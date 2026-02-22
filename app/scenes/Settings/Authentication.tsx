@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
+import Input from "~/components/Input";
 import type AuthenticationProvider from "~/models/AuthenticationProvider";
 import PluginIcon from "~/components/PluginIcon";
 import Scene from "~/components/Scene";
@@ -96,6 +97,40 @@ function Authentication() {
     setPostLoginPath(settingsPath("authentication"));
     window.location.href = `/auth/${name}?host=${window.location.host}`;
   }, []);
+
+  const handleToggleGroupSync = React.useCallback(
+    async (provider: AuthenticationProvider, checked: boolean) => {
+      try {
+        await provider.save({
+          settings: {
+            ...provider.settings,
+            groupSyncEnabled: checked,
+          },
+        });
+        toast.success(t("Settings saved"));
+      } catch (err) {
+        toast.error(err.message);
+      }
+    },
+    [t]
+  );
+
+  const handleGroupClaimChange = React.useCallback(
+    async (provider: AuthenticationProvider, groupClaim: string) => {
+      try {
+        await provider.save({
+          settings: {
+            ...provider.settings,
+            groupClaim,
+          },
+        });
+        toast.success(t("Settings saved"));
+      } catch (err) {
+        toast.error(err.message);
+      }
+    },
+    [t]
+  );
 
   const showSuccessMessage = React.useMemo(
     () => () => toast.success(t("Settings saved")),
@@ -212,6 +247,72 @@ function Authentication() {
           }}
         />
       </SettingRow>
+
+      {authenticationProviders.orderedData.some(
+        (p) => p.isActive && p.name !== "email"
+      ) && (
+        <>
+          <Heading as="h2">{t("Group Sync")}</Heading>
+          <Text as="p" type="secondary">
+            <Trans>
+              Automatically sync group memberships from your authentication
+              provider when members sign in.
+            </Trans>
+          </Text>
+
+          {authenticationProviders.orderedData
+            .filter((p) => p.isActive && p.name !== "email")
+            .map((provider) => (
+              <React.Fragment key={`groupsync-${provider.name}`}>
+                <SettingRow
+                  label={
+                    <Flex gap={8} align="center">
+                      <PluginIcon id={provider.name} />{" "}
+                      {t("{{ authProvider }} group sync", {
+                        authProvider: provider.displayName,
+                      })}
+                    </Flex>
+                  }
+                  name={`groupSync-${provider.name}`}
+                  description={t(
+                    "Sync group memberships from {{ authProvider }} on each sign-in",
+                    { authProvider: provider.displayName }
+                  )}
+                >
+                  <Switch
+                    id={`groupSync-${provider.name}`}
+                    checked={provider.settings?.groupSyncEnabled ?? false}
+                    onChange={(checked) =>
+                      handleToggleGroupSync(provider, checked)
+                    }
+                  />
+                </SettingRow>
+                {provider.settings?.groupSyncEnabled && (
+                  <SettingRow
+                    label={t("Group claim")}
+                    name={`groupClaim-${provider.name}`}
+                    description={t(
+                      "The claim in the provider response that contains group names (e.g. groups, roles)"
+                    )}
+                    border={false}
+                  >
+                    <Input
+                      id={`groupClaim-${provider.name}`}
+                      defaultValue={provider.settings?.groupClaim ?? "groups"}
+                      placeholder="groups"
+                      onBlur={(ev: React.FocusEvent<HTMLInputElement>) => {
+                        const value = ev.target.value.trim();
+                        if (value !== (provider.settings?.groupClaim ?? "")) {
+                          void handleGroupClaimChange(provider, value);
+                        }
+                      }}
+                    />
+                  </SettingRow>
+                )}
+              </React.Fragment>
+            ))}
+        </>
+      )}
 
       <Heading as="h2">{t("Restrictions")}</Heading>
       <DomainManagement onSuccess={showSuccessMessage} />

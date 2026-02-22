@@ -5,6 +5,13 @@ import Field from "./decorators/Field";
 import { GroupPermission } from "@shared/types";
 import type { Searchable } from "./interfaces/Searchable";
 
+interface ExternalGroupInfo {
+  id: string;
+  externalId: string;
+  providerName: string;
+  lastSyncedAt: string | null;
+}
+
 class Group extends Model implements Searchable {
   static modelName = "Group";
 
@@ -25,6 +32,17 @@ class Group extends Model implements Searchable {
   @Field
   @observable
   disableMentions: boolean;
+
+  @observable
+  externalGroup: ExternalGroupInfo | undefined;
+
+  /**
+   * Whether this group's membership is managed by an external authentication provider.
+   */
+  @computed
+  get isExternallyManaged(): boolean {
+    return !!this.externalGroup;
+  }
 
   /**
    * Returns the users that are members of this group.

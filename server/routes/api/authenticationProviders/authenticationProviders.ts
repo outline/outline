@@ -40,7 +40,7 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.AuthenticationProvidersUpdateReq>) => {
     const { transaction } = ctx.state;
-    const { id, isEnabled } = ctx.input.body;
+    const { id, isEnabled, settings } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     const authenticationProvider = await AuthenticationProvider.findByPk(id, {
@@ -49,12 +49,24 @@ router.post(
     });
 
     authorize(user, "update", authenticationProvider);
-    const enabled = !!isEnabled;
 
-    if (enabled) {
-      await authenticationProvider.enable(ctx);
-    } else {
-      await authenticationProvider.disable(ctx);
+    if (isEnabled !== undefined) {
+      const enabled = !!isEnabled;
+
+      if (enabled) {
+        await authenticationProvider.enable(ctx);
+      } else {
+        await authenticationProvider.disable(ctx);
+      }
+    }
+
+    if (settings !== undefined) {
+      await authenticationProvider.updateWithCtx(ctx, {
+        settings: {
+          ...authenticationProvider.settings,
+          ...settings,
+        },
+      });
     }
 
     ctx.body = {

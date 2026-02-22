@@ -7,8 +7,15 @@ import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { User, Group, GroupUser } from "@server/models";
+import {
+  User,
+  Group,
+  GroupUser,
+  ExternalGroup,
+  AuthenticationProvider,
+} from "@server/models";
 import { authorize } from "@server/policies";
+import { ValidationError } from "@server/errors";
 import {
   presentGroup,
   presentGroupUser,
@@ -21,6 +28,20 @@ import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
 const router = new Router();
+
+/** Standard include for loading ExternalGroup with its AuthenticationProvider. */
+const externalGroupInclude = {
+  model: ExternalGroup,
+  as: "externalGroups",
+  required: false,
+  include: [
+    {
+      model: AuthenticationProvider,
+      as: "authenticationProvider",
+      attributes: ["id", "name", "providerId"],
+    },
+  ],
+};
 
 router.post(
   "groups.list",
@@ -86,6 +107,7 @@ router.post(
               userId: user.id,
             },
           },
+          externalGroupInclude,
         ],
         order: [[sort, direction]],
         offset: ctx.state.pagination.offset,
@@ -142,6 +164,7 @@ router.post(
           userId: user.id,
         },
       },
+      externalGroupInclude,
     ];
 
     const group = id
@@ -182,6 +205,7 @@ router.post(
     });
 
     group.groupUsers = [];
+    group.externalGroups = [];
 
     ctx.body = {
       data: await presentGroup(group),
@@ -211,6 +235,7 @@ router.post(
             userId: user.id,
           },
         },
+        externalGroupInclude,
       ],
       lock: {
         level: transaction.LOCK.UPDATE,
@@ -334,9 +359,16 @@ router.post(
             userId: actor.id,
           },
         },
+        externalGroupInclude,
       ],
     });
     authorize(actor, "update", group);
+
+    if (group.externalGroups?.length) {
+      throw ValidationError(
+        "This group is managed by an external provider and its membership cannot be modified"
+      );
+    }
 
     const userPermission = permission;
 
@@ -396,9 +428,16 @@ router.post(
             userId: actor.id,
           },
         },
+        externalGroupInclude,
       ],
     });
     authorize(actor, "update", group);
+
+    if (group.externalGroups?.length) {
+      throw ValidationError(
+        "This group is managed by an external provider and its membership cannot be modified"
+      );
+    }
 
     const user = await User.findByPk(userId, { transaction });
     authorize(actor, "read", user);
@@ -444,9 +483,16 @@ router.post(
             userId: actor.id,
           },
         },
+        externalGroupInclude,
       ],
     });
     authorize(actor, "update", group);
+
+    if (group.externalGroups?.length) {
+      throw ValidationError(
+        "This group is managed by an external provider and its membership cannot be modified"
+      );
+    }
 
     const user = await User.findByPk(userId, { transaction });
     authorize(actor, "read", user);

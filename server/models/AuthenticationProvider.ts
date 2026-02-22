@@ -18,6 +18,7 @@ import {
   PrimaryKey,
   Scopes,
 } from "sequelize-typescript";
+import type { AuthenticationProviderSettings } from "@shared/types";
 import Model from "@server/models/base/Model";
 import { ValidationError } from "../errors";
 import Team from "./Team";
@@ -79,6 +80,10 @@ class AuthenticationProvider extends Model<
   })
   @Column
   providerId: string;
+
+  /** Provider-specific settings such as group sync configuration. */
+  @Column(DataType.JSONB)
+  settings: AuthenticationProviderSettings | null;
 
   @CreatedAt
   createdAt: Date;

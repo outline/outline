@@ -207,6 +207,11 @@ type TeamFromContextOptions = {
    * this should only be used in the authentication process.
    */
   includeStateCookie?: boolean;
+  /**
+   * Whether to consider the host query parameter in the context when determining the team.
+   * If true, the host query parameter will be used to determine the host and infer the team
+   */
+  includeHostQueryParam?: boolean;
 };
 
 /**
@@ -225,7 +230,12 @@ export async function getTeamFromContext(
   const state = options.includeStateCookie
     ? ctx.cookies.get("state")
     : undefined;
-  const host = state ? parseState(state).host : ctx.hostname;
+  const host =
+    (state
+      ? parseState(state).host
+      : options.includeHostQueryParam
+        ? String(ctx.query.host)
+        : undefined) || ctx.hostname;
   const domain = parseDomain(host);
 
   let team;

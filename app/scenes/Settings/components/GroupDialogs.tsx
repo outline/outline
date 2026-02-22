@@ -321,9 +321,23 @@ export const ViewGroupMembersDialog = observer(function ({
 
   const hasActiveFilters = query || permissionFilter !== "all";
 
+  const canModifyMembers = can.update && !group.isExternallyManaged;
+
   return (
     <Flex column>
-      {can.update ? (
+      {group.isExternallyManaged ? (
+        <Text as="p" type="secondary">
+          <Trans
+            defaults="Members of the <em>{{groupName}}</em> group are managed by an external authentication provider and cannot be modified here."
+            values={{
+              groupName: group.name,
+            }}
+            components={{
+              em: <strong />,
+            }}
+          />
+        </Text>
+      ) : can.update ? (
         <>
           <Text as="p" type="secondary">
             <Trans
@@ -336,18 +350,16 @@ export const ViewGroupMembersDialog = observer(function ({
               }}
             />
           </Text>
-          {can.update && (
-            <span>
-              <Button
-                type="button"
-                onClick={handleAddPeople}
-                icon={<PlusIcon />}
-                neutral
-              >
-                {t("Add people")}…
-              </Button>
-            </span>
-          )}
+          <span>
+            <Button
+              type="button"
+              onClick={handleAddPeople}
+              icon={<PlusIcon />}
+              neutral
+            >
+              {t("Add people")}…
+            </Button>
+          </span>
           <br />
         </>
       ) : (
@@ -405,7 +417,7 @@ export const ViewGroupMembersDialog = observer(function ({
             groupUser={groupUsers.orderedData.find(
               (gu) => gu.userId === user.id && gu.groupId === group.id
             )}
-            onRemove={can.update ? () => handleRemoveUser(user) : undefined}
+            onRemove={canModifyMembers ? () => handleRemoveUser(user) : undefined}
           />
         )}
       />
@@ -619,7 +631,7 @@ const GroupMemberListItem = observer(function ({
                   }
                   return true;
                 }}
-                disabled={!can.update}
+                disabled={!can.update || group.isExternallyManaged}
                 value={groupUser?.permission}
               />
             </div>
