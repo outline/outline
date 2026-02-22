@@ -220,16 +220,6 @@ export default () =>
                 test: /node_modules[\\/]@sentry/,
                 priority: 20,
               },
-              {
-                name: "vendor-refractor",
-                test: /node_modules[\\/]refractor/,
-                priority: 20,
-              },
-              {
-                name: "vendor",
-                test: /node_modules/,
-                priority: 10,
-              },
             ],
           },
         },
