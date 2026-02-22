@@ -27,7 +27,9 @@ import { resolveCommentFactory } from "~/actions/definitions/comments";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import CommentMenu from "~/menus/CommentMenu";
-import CommentEditor from "./CommentEditor";
+import lazyWithRetry from "~/utils/lazyWithRetry";
+
+const CommentEditor = lazyWithRetry(() => import("./CommentEditor"));
 import { HighlightedText } from "./HighlightText";
 import { useDocumentContext } from "~/components/DocumentContext";
 
