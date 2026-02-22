@@ -47,6 +47,10 @@ function GitLab() {
               You need to accept the permissions in GitLab to connect{" "}
               {{ appName }} to your workspace. Try again?
             </Trans>
+          ) : error === "duplicate_account" ? (
+            <Trans>
+              The GitLab account is already connected to this workspace.
+            </Trans>
           ) : (
             <Trans>
               Something went wrong while authenticating your request. Please try

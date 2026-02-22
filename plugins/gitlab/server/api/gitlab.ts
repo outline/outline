@@ -184,6 +184,24 @@ router.get(
         customUrl,
       });
 
+      // Check if another integration already exists with the same installation
+      const duplicateIntegration = await Integration.findOne({
+        where: {
+          service: IntegrationService.GitLab,
+          teamId: user.teamId,
+          settings: { gitlab: { installation: { id: userInfo.id } } },
+          ...(existingIntegration
+            ? { id: { [Op.ne]: existingIntegration.id } }
+            : {}),
+        },
+        transaction,
+      });
+
+      if (duplicateIntegration) {
+        ctx.redirect(GitLabUtils.errorUrl("duplicate_account"));
+        return;
+      }
+
       let authentication: IntegrationAuthentication;
 
       if (pendingAuth) {

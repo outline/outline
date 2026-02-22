@@ -1449,6 +1449,7 @@
   "Self-managed": "Self-managed",
   "Connect to a custom GitLab installation": "Connect to a custom GitLab installation",
   "You need to accept the permissions in GitLab to connect {{appName}} to your workspace. Try again?": "You need to accept the permissions in GitLab to connect {{appName}} to your workspace. Try again?",
+  "The GitLab account is already connected to this workspace.": "The GitLab account is already connected to this workspace.",
   "Something went wrong while authenticating your request. Please try again.": "Something went wrong while authenticating your request. Please try again.",
   "The owner of GitLab account has been requested to install the application. Once approved, the connection will be completed.": "The owner of GitLab account has been requested to install the application. Once approved, the connection will be completed.",
   "Enable previews of GitLab issues and merge requests in documents by connecting a GitLab organization or specific repositories to {appName}.": "Enable previews of GitLab issues and merge requests in documents by connecting a GitLab organization or specific repositories to {appName}.",
