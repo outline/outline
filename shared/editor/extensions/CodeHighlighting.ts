@@ -231,20 +231,14 @@ export function CodeHighlighting({
     },
     view: (view) => {
       if (!highlighted) {
-        // We don't highlight code blocks on the first render as part of
-        // mounting as it's expensive (relative to the rest of the document).
-        // Instead let it render un-highlighted and then trigger a deferred
-        // render of highlighting by updating the plugin's metadata.
         void getRefractor().then(() => {
-          requestAnimationFrame(() => {
-            if (!view.isDestroyed) {
-              view.dispatch(
-                view.state.tr.setMeta("codeHighlighting", {
-                  langLoaded: true,
-                })
-              );
-            }
-          });
+          if (!view.isDestroyed) {
+            view.dispatch(
+              view.state.tr.setMeta("codeHighlighting", {
+                langLoaded: true,
+              })
+            );
+          }
         });
       }
       return {
