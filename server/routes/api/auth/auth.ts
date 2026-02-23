@@ -145,10 +145,7 @@ router.post("auth.info", auth(), async (ctx: APIContext<T.AuthInfoReq>) => {
     user.lastSignedInAt &&
     user.lastSignedInAt < subHours(new Date(), 1)
   ) {
-    await new ValidateSSOAccessTask().schedule(
-      { userId: user.id },
-      { jobId: `ValidateSSOAccess:${user.id}` }
-    );
+    await new ValidateSSOAccessTask().schedule({ userId: user.id });
   }
 
   ctx.body = {
