@@ -152,7 +152,7 @@ export class Linear {
   private static async unfurlIssue(
     client: LinearClient,
     id: string,
-    actor: User
+    actor: User | undefined
   ) {
     const issue = await client.issue(id);
 
@@ -207,7 +207,7 @@ export class Linear {
   private static async unfurlProject(
     client: LinearClient,
     id: string,
-    _actor: User
+    _actor: User | undefined
   ) {
     const project = await client.project(id);
 
