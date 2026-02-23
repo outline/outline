@@ -1,4 +1,4 @@
-import type { Issue, WorkflowState, Project } from "@linear/sdk";
+import type { Issue, WorkflowState } from "@linear/sdk";
 import { LinearClient } from "@linear/sdk";
 import sortBy from "lodash/sortBy";
 import { z } from "zod";
@@ -207,7 +207,7 @@ export class Linear {
   private static async unfurlProject(
     client: LinearClient,
     id: string,
-    actor: User
+    _actor: User
   ) {
     const project = await client.project(id);
 
