@@ -184,6 +184,10 @@ function Search() {
   };
 
   const handleKeyDown = (ev: React.KeyboardEvent<HTMLInputElement>) => {
+    if (ev.nativeEvent.isComposing) {
+      return;
+    }
+
     if (ev.key === "Enter") {
       updateLocation(ev.currentTarget.value);
       return;
