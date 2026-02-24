@@ -1,9 +1,10 @@
 import type { SourceMetadata } from "@shared/types";
 import documentCreator from "@server/commands/documentCreator";
 import documentImporter from "@server/commands/documentImporter";
-import { createContext, withTransactionContext } from "@server/context";
+import { createContext } from "@server/context";
 import { User } from "@server/models";
 import FileStorage from "@server/storage/files";
+import { sequelize } from "@server/storage/database";
 import { BaseTask, TaskPriority } from "./base/BaseTask";
 
 type Props = {
@@ -51,8 +52,8 @@ export default class DocumentImportTask extends BaseTask<Props> {
         ctx,
       });
 
-      const document = await withTransactionContext(ctx, async (ctx) =>
-        documentCreator(ctx, {
+      const document = await sequelize.transaction(async (transaction) =>
+        documentCreator(createContext({ ...ctx.context, transaction }), {
           sourceMetadata,
           title,
           icon,
