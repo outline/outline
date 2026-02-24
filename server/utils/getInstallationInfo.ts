@@ -69,7 +69,7 @@ export async function getVersionInfo(currentVersion: string): Promise<{
     // Return fallback values when external request fails
     return {
       latestVersion: currentVersion,
-      versionsBehind: 0,
+      versionsBehind: -1,
     };
   }
 }

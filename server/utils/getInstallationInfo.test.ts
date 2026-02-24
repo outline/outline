@@ -43,7 +43,7 @@ describe("getVersionInfo", () => {
 
     expect(result).toEqual({
       latestVersion: currentVersion,
-      versionsBehind: 0,
+      versionsBehind: -1,
     });
   });
 
@@ -54,7 +54,7 @@ describe("getVersionInfo", () => {
 
     expect(result).toEqual({
       latestVersion: currentVersion,
-      versionsBehind: 0,
+      versionsBehind: -1,
     });
   });
 
@@ -65,7 +65,7 @@ describe("getVersionInfo", () => {
 
     expect(result).toEqual({
       latestVersion: currentVersion,
-      versionsBehind: 0,
+      versionsBehind: -1,
     });
   });
 
@@ -76,7 +76,7 @@ describe("getVersionInfo", () => {
 
     expect(result).toEqual({
       latestVersion: currentVersion,
-      versionsBehind: 0,
+      versionsBehind: -1,
     });
   });
 });
