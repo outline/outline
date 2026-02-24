@@ -109,15 +109,12 @@ router.post(
             },
       };
     }
-    const [notifications, total, unseen] = await Promise.all([
-      Notification.findAll({
+    const [{ rows: notifications, count: total }, unseen] = await Promise.all([
+      Notification.findAndCountAll({
         where,
         order: [["createdAt", "DESC"]],
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
-      }),
-      Notification.count({
-        where,
       }),
       Notification.count({
         where: {

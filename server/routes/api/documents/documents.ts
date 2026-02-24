@@ -296,15 +296,13 @@ router.post(
 
     // When sorting by index, pagination is already handled by slicing documentIds,
     // so we skip the SQL-level offset to avoid double-pagination
-    const [documents, total] = await Promise.all([
-      Document.withMembershipScope(user.id).findAll({
+    const { rows: documents, count: total } =
+      await Document.withMembershipScope(user.id).findAndCountAll({
         where,
         order: orderClause as Order,
         offset: sort === "index" ? 0 : ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
-      }),
-      Document.count({ where }),
-    ]);
+      });
 
     const data = await Promise.all(
       documents.map((document) => presentDocument(ctx, document))
@@ -694,14 +692,12 @@ router.post(
 
     const replacements = { query: `%${query}%` };
 
-    const [users, total] = await Promise.all([
-      User.findAll({ where, replacements, offset, limit }),
-      User.count({
-        where,
-        // @ts-expect-error Types are incorrect for count
-        replacements,
-      }),
-    ]);
+    const { rows: users, count: total } = await User.findAndCountAll({
+      where,
+      replacements,
+      offset,
+      limit,
+    });
 
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
@@ -2004,15 +2000,13 @@ router.post(
       ],
     };
 
-    const [total, memberships] = await Promise.all([
-      UserMembership.count(options),
-      UserMembership.findAll({
+    const { rows: memberships, count: total } =
+      await UserMembership.findAndCountAll({
         ...options,
         order: [["createdAt", "DESC"]],
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
-      }),
-    ]);
+      });
 
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
@@ -2065,15 +2059,13 @@ router.post(
       ],
     };
 
-    const [total, memberships] = await Promise.all([
-      GroupMembership.count(options),
-      GroupMembership.findAll({
+    const { rows: memberships, count: total } =
+      await GroupMembership.findAndCountAll({
         ...options,
         order: [["createdAt", "DESC"]],
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
-      }),
-    ]);
+      });
 
     const groupMemberships = memberships.map(presentGroupMembership);
 

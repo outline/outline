@@ -41,19 +41,13 @@ router.post(
       },
     ];
 
-    const [reactions, total] = await Promise.all([
-      Reaction.findAll({
-        where,
-        include,
-        order: [["createdAt", "DESC"]],
-        offset: ctx.state.pagination.offset,
-        limit: ctx.state.pagination.limit,
-      }),
-      Reaction.count({
-        where,
-        include,
-      }),
-    ]);
+    const { rows: reactions, count: total } = await Reaction.findAndCountAll({
+      where,
+      include,
+      order: [["createdAt", "DESC"]],
+      offset: ctx.state.pagination.offset,
+      limit: ctx.state.pagination.limit,
+    });
 
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },

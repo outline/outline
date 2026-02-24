@@ -132,29 +132,24 @@ router.post(
       };
     }
 
-    const [emojis, total] = await Promise.all([
-      Emoji.findAll({
-        where,
-        include: [
-          {
-            model: User,
-            as: "createdBy",
-            paranoid: false,
-          },
-          {
-            model: Attachment,
-            as: "attachment",
-            paranoid: false,
-          },
-        ],
-        order: [["createdAt", "DESC"]],
-        offset: ctx.state.pagination.offset,
-        limit: ctx.state.pagination.limit,
-      }),
-      Emoji.count({
-        where,
-      }),
-    ]);
+    const { rows: emojis, count: total } = await Emoji.findAndCountAll({
+      where,
+      include: [
+        {
+          model: User,
+          as: "createdBy",
+          paranoid: false,
+        },
+        {
+          model: Attachment,
+          as: "attachment",
+          paranoid: false,
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+      offset: ctx.state.pagination.offset,
+      limit: ctx.state.pagination.limit,
+    });
 
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },

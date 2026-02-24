@@ -154,20 +154,13 @@ router.post(
 
     const replacements = { query: `%${query}%` };
 
-    const [users, total] = await Promise.all([
-      User.findAll({
-        where,
-        replacements,
-        order: [[sort, direction]],
-        offset: ctx.state.pagination.offset,
-        limit: ctx.state.pagination.limit,
-      }),
-      User.count({
-        where,
-        // @ts-expect-error Types are incorrect for count
-        replacements,
-      }),
-    ]);
+    const { rows: users, count: total } = await User.findAndCountAll({
+      where,
+      replacements,
+      order: [[sort, direction]],
+      offset: ctx.state.pagination.offset,
+      limit: ctx.state.pagination.limit,
+    });
 
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
