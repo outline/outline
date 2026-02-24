@@ -53,16 +53,23 @@ export default class DocumentImportTask extends BaseTask<Props> {
       });
 
       const document = await sequelize.transaction(async (transaction) =>
-        documentCreator(createContext({ ...ctx.context, transaction }), {
-          sourceMetadata,
-          title,
-          icon,
-          text,
-          state,
-          publish,
-          collectionId,
-          parentDocumentId,
-        })
+        documentCreator(
+          createContext({
+            user,
+            ip,
+            transaction,
+          }),
+          {
+            sourceMetadata,
+            title,
+            icon,
+            text,
+            state,
+            publish,
+            collectionId,
+            parentDocumentId,
+          }
+        )
       );
       return { documentId: document.id };
     } catch (err) {
