@@ -894,7 +894,11 @@ const EditorContainer = styled(Styles)<{
     css`
       span#comment-${props.focusedCommentId} {
         background: ${transparentize(0.5, props.theme.brand.marine)};
-        border-bottom: 2px solid ${props.theme.commentMarkBackground};
+        text-decoration: underline 2px ${props.theme.commentMarkBackground};
+
+        * {
+          background: transparent !important;
+        }
       }
       a#comment-${props.focusedCommentId}
         ~ span.component-image
