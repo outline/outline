@@ -29,6 +29,7 @@ export function getActorFromContext(context: McpContext) {
 export function buildAPIContext(context: McpContext) {
   const user = context.authInfo?.extra?.user as User;
   const token = context.authInfo?.token ?? "";
+  const ip = context.authInfo?.extra?.ip as string | undefined;
 
   const auth = {
     user,
@@ -38,7 +39,7 @@ export function buildAPIContext(context: McpContext) {
 
   return {
     state: { auth },
-    context: { auth },
+    context: { auth, ip },
   } as unknown as APIContext;
 }
 

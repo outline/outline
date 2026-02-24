@@ -78,7 +78,7 @@ router.post(
       token,
       clientId: "",
       scopes: scope ?? [],
-      extra: { user, scope: scope ?? [] },
+      extra: { user, scope: scope ?? [], ip: ctx.request.ip },
     };
 
     ctx.respond = false;
