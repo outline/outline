@@ -3,8 +3,8 @@ import documentCreator from "@server/commands/documentCreator";
 import documentImporter from "@server/commands/documentImporter";
 import { createContext } from "@server/context";
 import { User } from "@server/models";
-import { sequelize } from "@server/storage/database";
 import FileStorage from "@server/storage/files";
+import { sequelize } from "@server/storage/database";
 import { BaseTask, TaskPriority } from "./base/BaseTask";
 
 type Props = {
@@ -37,24 +37,23 @@ export default class DocumentImportTask extends BaseTask<Props> {
   }: Props): Promise<DocumentImportTaskResponse> {
     try {
       const content = await FileStorage.getFileBuffer(key);
+      const user = await User.findByPk(userId, {
+        rejectOnEmpty: true,
+      });
 
-      const document = await sequelize.transaction(async (transaction) => {
-        const user = await User.findByPk(userId, {
-          rejectOnEmpty: true,
-          transaction,
-        });
+      // Run document conversion and image downloading outside a transaction
+      const ctx = createContext({ user, ip });
 
-        const ctx = createContext({ user, transaction, ip });
+      const { text, state, title, icon } = await documentImporter({
+        user,
+        fileName: sourceMetadata.fileName,
+        mimeType: sourceMetadata.mimeType,
+        content,
+        ctx,
+      });
 
-        const { text, state, title, icon } = await documentImporter({
-          user,
-          fileName: sourceMetadata.fileName,
-          mimeType: sourceMetadata.mimeType,
-          content,
-          ctx,
-        });
-
-        return documentCreator(ctx, {
+      const document = await sequelize.transaction(async (transaction) =>
+        documentCreator(createContext({ ...ctx.context, transaction }), {
           sourceMetadata,
           title,
           icon,
@@ -63,8 +62,8 @@ export default class DocumentImportTask extends BaseTask<Props> {
           publish,
           collectionId,
           parentDocumentId,
-        });
-      });
+        })
+      );
       return { documentId: document.id };
     } catch (err) {
       return { error: err.message };
