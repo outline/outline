@@ -1,6 +1,5 @@
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
-  DefaultScope,
   BelongsTo,
   ForeignKey,
   Column,
@@ -14,13 +13,6 @@ import User from "./User";
 import Model from "./base/Model";
 import Fix from "./decorators/Fix";
 
-@DefaultScope(() => ({
-  include: [
-    {
-      association: "user",
-    },
-  ],
-}))
 @Scopes(() => ({
   withGroup: {
     include: [
