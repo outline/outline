@@ -111,6 +111,7 @@ router.post(
       userId: createdById,
       statusFilter,
     } = ctx.input.body;
+    const { offset, limit } = ctx.state.pagination;
 
     // always filter by the current team
     const { user } = ctx.state.auth;
@@ -155,11 +156,8 @@ router.post(
       if (sort === "index") {
         // Extract all document IDs from the collection structure.
         documentIds = (collection.documentStructure || [])
-          .map((node) => node.id)
-          .slice(
-            ctx.state.pagination.offset,
-            ctx.state.pagination.offset + ctx.state.pagination.limit
-          );
+          .slice(offset, offset + limit)
+          .map((node) => node.id);
         where[Op.and].push({ id: documentIds });
       } // if it's not a backlink request, filter by all collections the user has access to
     } else if (!backlinkDocumentId) {
@@ -286,7 +284,7 @@ router.post(
           ? [
               [
                 Sequelize.literal(
-                  `array_position(ARRAY[${documentIds.map((id) => `'${id}'`).join(",")}]::uuid[], "document"."id")`
+                  `array_position(ARRAY[:documentIds]::uuid[], "document"."id")`
                 ),
                 direction,
               ],
@@ -302,6 +300,9 @@ router.post(
         order: orderClause as Order,
         offset: sort === "index" ? 0 : ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
+        replacements: {
+          documentIds,
+        },
       }),
       Document.count({ where }),
     ]);
