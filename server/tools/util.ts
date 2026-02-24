@@ -33,7 +33,7 @@ export function buildAPIContext(context: McpContext) {
   const auth = {
     user,
     token,
-    type: AuthenticationType.OAUTH,
+    type: AuthenticationType.MCP,
   };
 
   return {
