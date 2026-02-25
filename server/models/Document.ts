@@ -200,6 +200,7 @@ type AdditionalFindOptions = {
             userId,
           },
           required: false,
+          separate: true,
         },
         {
           association: "groupMemberships",
