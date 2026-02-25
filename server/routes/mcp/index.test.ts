@@ -228,8 +228,10 @@ describe("POST /mcp/", () => {
 
       const match = data.find((d: { id: string }) => d.id === document.id) as {
         url: string;
+        text?: string;
       };
       expect(match.url).toMatch(/^https?:\/\//);
+      expect(match.text).toBeUndefined();
     });
 
     it("list_documents filters by collection", async () => {
@@ -267,6 +269,36 @@ describe("POST /mcp/", () => {
           (d: { collectionId: string }) => d.collectionId === collection1.id
         )
       ).toBe(true);
+      expect(data.every((d: { text?: string }) => d.text === undefined)).toBe(
+        true
+      );
+    });
+
+    it("list_documents with query does not include text", async () => {
+      const { user, accessToken } = await buildOAuthUser();
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      await buildDocument({
+        teamId: user.teamId,
+        userId: user.id,
+        collectionId: collection.id,
+        title: "Search Test Document",
+        text: "This is searchable content",
+      });
+
+      const res = await callMcpTool(server, accessToken, "list_documents", {
+        query: "searchable",
+      });
+      const data = (res?.result?.content ?? []).map((c: { text: string }) =>
+        JSON.parse(c.text)
+      );
+
+      expect(data.length).toBeGreaterThan(0);
+      expect(data.every((d: { text?: string }) => d.text === undefined)).toBe(
+        true
+      );
     });
 
     it("create_document creates in a collection", async () => {

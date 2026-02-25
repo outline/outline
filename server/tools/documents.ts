@@ -153,13 +153,15 @@ export function documentTools(server: McpServer, scopes: string[]) {
 
               const presented = await Promise.all(
                 results.map(async (result) => {
-                  const doc = pathToUrl(
-                    user.team,
-                    await presentDocument(undefined, result.document, {
+                  const { text, ...attributes } = await presentDocument(
+                    undefined,
+                    result.document,
+                    {
                       includeData: false,
                       includeText: false,
-                    })
+                    }
                   );
+                  const doc = pathToUrl(user.team, attributes);
                   return { ...doc, context: result.context };
                 })
               );
@@ -183,15 +185,17 @@ export function documentTools(server: McpServer, scopes: string[]) {
             });
 
             const presented = await Promise.all(
-              documents.map(async (document) =>
-                pathToUrl(
-                  user.team,
-                  await presentDocument(undefined, document, {
+              documents.map(async (document) => {
+                const { text, ...attributes } = await presentDocument(
+                  undefined,
+                  document,
+                  {
                     includeData: false,
                     includeText: false,
-                  })
-                )
-              )
+                  }
+                );
+                return pathToUrl(user.team, attributes);
+              })
             );
             return success(presented);
           } catch (message) {
