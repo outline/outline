@@ -59,7 +59,7 @@ const AccessTokenResponseSchema = z.object({
 export class NotionClient {
   private client: Client;
   private limiter: ReturnType<typeof RateLimit>;
-  private pageSize = 25;
+  private pageSize = 100;
   private maxRetries = 3;
   private retryDelay = 1000;
   private skipChildrenForBlock = [
@@ -178,23 +178,88 @@ export class NotionClient {
   }
 
   async fetchRootPages() {
-    const pages: Page[] = [];
+    // When root page IDs are provided via environment variable, fetch them
+    // directly instead of scanning the workspace via search. This bypasses
+    // the search API entirely, avoiding cursor expiration issues in large
+    // workspaces (10k+ pages).
+    const rootPageIds = env.NOTION_ROOT_PAGE_IDS;
+    if (rootPageIds) {
+      const ids = rootPageIds
+        .split(",")
+        .map((id) => id.trim())
+        .filter(Boolean);
 
-    let cursor: string | undefined;
-    let hasMore = true;
-
-    while (hasMore) {
-      const response = await this.fetchWithRetry(() =>
-        this.client.search({
-          start_cursor: cursor,
-          page_size: this.pageSize,
-        })
+      Logger.info(
+        "task",
+        `Fetching ${ids.length} root pages by ID (NOTION_ROOT_PAGE_IDS)`
       );
 
-      response.results.forEach((item) => {
-        if (!isFullPageOrDatabase(item)) {
-          return;
+      const pages: Page[] = [];
+      for (const id of ids) {
+        const page = await this.fetchRootPageById(id);
+        if (page) {
+          pages.push(page);
         }
+      }
+
+      Logger.info(
+        "task",
+        `Notion fetchRootPages complete: ${pages.length} pages fetched by ID`
+      );
+      return pages;
+    }
+
+    const pages: Page[] = [];
+    let cursor: string | undefined;
+    let hasMore = true;
+    let totalScanned = 0;
+
+    while (hasMore) {
+      let response;
+      try {
+        response = await this.fetchWithRetry(() =>
+          this.client.search({
+            start_cursor: cursor,
+            page_size: this.pageSize,
+          })
+        );
+      } catch (error) {
+        // Notion search cursors have an undocumented positional limit. For
+        // large workspaces (10k+ pages) the cursor expires before pagination
+        // completes, causing a validation_error on start_cursor. Rather than
+        // returning partial results (which would silently produce an
+        // incomplete import), fail with an actionable error message directing
+        // the admin to the env var bypass.
+        if (
+          error instanceof APIResponseError &&
+          error.message.includes("start_cursor")
+        ) {
+          // Log the full remediation instructions (not truncated)
+          Logger.info(
+            "task",
+            `Notion search cursor expired after scanning ${totalScanned} pages. ` +
+              `To fix: set NOTION_ROOT_PAGE_IDS env var to a comma-separated list ` +
+              `of workspace-level page IDs. To find a page ID, open the page in ` +
+              `Notion, click Share > Copy link. The ID is the 32-char hex string ` +
+              `before the ?v= parameter in the URL.`
+          );
+          // GUI error is truncated to 255 chars, so keep it concise
+          throw new Error(
+            `Notion search cursor expired after scanning ${totalScanned} pages. ` +
+              `Workspace too large for search API. Set NOTION_ROOT_PAGE_IDS env ` +
+              `var to comma-separated workspace-level page IDs (from Notion ` +
+              `Share links) to bypass search.`
+          );
+        }
+        throw error;
+      }
+
+      for (const item of response.results) {
+        if (!isFullPageOrDatabase(item)) {
+          continue;
+        }
+
+        totalScanned++;
 
         if (item.parent.type === "workspace") {
           pages.push({
@@ -206,13 +271,80 @@ export class NotionClient {
             emoji: this.parseEmoji(item),
           });
         }
-      });
+      }
 
       hasMore = response.has_more;
       cursor = response.next_cursor ?? undefined;
     }
 
+    Logger.info(
+      "task",
+      `Notion fetchRootPages complete: ${pages.length} workspace-level pages found ` +
+        `(${totalScanned} total pages scanned)`
+    );
+
     return pages;
+  }
+
+  /**
+   * Fetch a single root page or database by ID. Tries pages.retrieve first,
+   * falls back to databases.retrieve if the ID refers to a database.
+   */
+  private async fetchRootPageById(id: string): Promise<Page | undefined> {
+    // Try as a page first. If the ID is actually a database, the API returns
+    // a validation_error rather than ObjectNotFound, so catch both.
+    try {
+      const page = (await this.fetchWithRetry(() =>
+        this.client.pages.retrieve({ page_id: id })
+      )) as PageObjectResponse;
+
+      return {
+        type: PageType.Page,
+        id: page.id,
+        name: this.parseTitle(page, {
+          maxLength: CollectionValidation.maxNameLength,
+        }),
+        emoji: this.parseEmoji(page),
+      };
+    } catch (error) {
+      if (
+        error instanceof APIResponseError &&
+        (error.code === APIErrorCode.ObjectNotFound ||
+          error.code === APIErrorCode.ValidationError)
+      ) {
+        // Fall through to try as database
+      } else {
+        throw error;
+      }
+    }
+
+    // Not a page, try as a database
+    try {
+      const database = (await this.fetchWithRetry(() =>
+        this.client.databases.retrieve({ database_id: id })
+      )) as DatabaseObjectResponse;
+
+      return {
+        type: PageType.Database,
+        id: database.id,
+        name: this.parseTitle(database, {
+          maxLength: CollectionValidation.maxNameLength,
+        }),
+        emoji: this.parseEmoji(database),
+      };
+    } catch (error) {
+      if (
+        error instanceof APIResponseError &&
+        error.code === APIErrorCode.ObjectNotFound
+      ) {
+        Logger.warn(
+          `Notion root page ID ${id} not found as page or database, skipping. ` +
+            `Verify the ID is correct and that the page is shared with the integration.`
+        );
+        return undefined;
+      }
+      throw error;
+    }
   }
 
   async fetchPage(
