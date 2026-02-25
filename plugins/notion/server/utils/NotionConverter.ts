@@ -3,6 +3,8 @@ import type {
   BookmarkBlockObjectResponse,
   BreadcrumbBlockObjectResponse,
   BulletedListItemBlockObjectResponse,
+  ChildDatabaseBlockObjectResponse,
+  ChildPageBlockObjectResponse,
   DividerBlockObjectResponse,
   Heading1BlockObjectResponse,
   Heading2BlockObjectResponse,
@@ -60,8 +62,11 @@ export class NotionConverter {
     const mapChild = (
       child: Block
     ): ProsemirrorData | ProsemirrorData[] | undefined => {
-      if (child.type === "child_page" || child.type === "child_database") {
-        return; // this will be created as a nested page, no need to handle/convert.
+      if (child.type === "child_page") {
+        return this.child_page(child);
+      }
+      if (child.type === "child_database") {
+        return this.child_database(child);
       }
 
       // @ts-expect-error Not all blocks have an interface
@@ -504,6 +509,42 @@ export class NotionConverter {
           ],
         }
       : undefined;
+  }
+
+  private static child_page(
+    item: Block<ChildPageBlockObjectResponse>
+  ): ProsemirrorData {
+    return {
+      type: "paragraph",
+      content: [
+        {
+          type: "mention",
+          attrs: {
+            type: MentionType.Document,
+            modelId: item.id,
+            label: item.child_page.title,
+          },
+        },
+      ],
+    };
+  }
+
+  private static child_database(
+    item: Block<ChildDatabaseBlockObjectResponse>
+  ): ProsemirrorData {
+    return {
+      type: "paragraph",
+      content: [
+        {
+          type: "mention",
+          attrs: {
+            type: MentionType.Document,
+            modelId: item.id,
+            label: item.child_database.title,
+          },
+        },
+      ],
+    };
   }
 
   private static link_to_page(item: LinkToPageBlockObjectResponse) {
