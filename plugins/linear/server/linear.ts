@@ -7,7 +7,11 @@ import { IntegrationService, UnfurlResourceType } from "@shared/types";
 import Logger from "@server/logging/Logger";
 import { Integration } from "@server/models";
 import type User from "@server/models/User";
-import type { UnfurlIssueOrPR, UnfurlSignature } from "@server/types";
+import type {
+  UnfurlIssueOrPR,
+  UnfurlProject,
+  UnfurlSignature,
+} from "@server/types";
 import { LinearUtils } from "../shared/LinearUtils";
 import env from "./env";
 import { Minute } from "@shared/utils/time";
@@ -25,7 +29,10 @@ const AccessTokenResponseSchema = z.object({
 });
 
 export class Linear {
-  private static supportedUnfurls = [UnfurlResourceType.Issue, UnfurlResourceType.Project];
+  private static supportedUnfurls = [
+    UnfurlResourceType.Issue,
+    UnfurlResourceType.Project,
+  ];
 
   static async oauthAccess(code: string) {
     const headers = {
@@ -138,10 +145,13 @@ export class Linear {
 
       const client = new LinearClient({ accessToken });
 
-      if (resource.type === UnfurlResourceType.Issue) {
-        return Linear.unfurlIssue(client, resource.id, actor);
-      } else if (resource.type === UnfurlResourceType.Project) {
-        return Linear.unfurlProject(client, resource.id, actor);
+      switch (resource.type) {
+        case UnfurlResourceType.Issue:
+          return Linear.unfurlIssue(client, resource.id, actor);
+        case UnfurlResourceType.Project:
+          return Linear.unfurlProject(client, resource.id, actor);
+        default:
+          return;
       }
     } catch (err) {
       Logger.warn("Failed to fetch resource from Linear", err);
@@ -215,12 +225,9 @@ export class Linear {
       return { error: "Resource not found" };
     }
 
-    const [lead, state] = await Promise.all([
-      project.lead,
-      project.state,
-    ]);
+    const [lead, status] = await Promise.all([project.lead, project.status]);
 
-    if (!state) {
+    if (!status) {
       return { error: "Failed to fetch auxiliary data from Linear" };
     }
 
@@ -230,19 +237,21 @@ export class Linear {
       id: project.id,
       name: project.name,
       description: project.description ?? null,
-      lead: lead ? {
-        name: lead.name,
-        avatarUrl: lead.avatarUrl ?? "",
-      } : null,
+      lead: lead
+        ? {
+            name: lead.name,
+            avatarUrl: lead.avatarUrl ?? "",
+          }
+        : null,
       state: {
-        type: state.type,
-        name: state.name,
-        color: state.color,
+        type: status.type,
+        name: status.name,
+        color: status.color,
       },
       progress: project.progress,
       createdAt: project.createdAt.toISOString(),
       targetDate: project.targetDate ?? null,
-    };
+    } satisfies UnfurlProject;
   }
 
   private static async completionPercentage(
