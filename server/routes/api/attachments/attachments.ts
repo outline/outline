@@ -59,13 +59,17 @@ router.post(
       where.documentId = documentId;
     }
 
-    const { rows: attachments, count: total } =
-      await Attachment.findAndCountAll({
+    const [attachments, total] = await Promise.all([
+      Attachment.findAll({
         where,
         order: [["createdAt", "DESC"]],
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
-      });
+      }),
+      Attachment.count({
+        where,
+      }),
+    ]);
 
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },

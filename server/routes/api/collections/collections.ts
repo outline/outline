@@ -333,13 +333,15 @@ router.post(
       ],
     };
 
-    const { rows: memberships, count: total } =
-      await GroupMembership.findAndCountAll({
+    const [total, memberships] = await Promise.all([
+      GroupMembership.count(options),
+      GroupMembership.findAll({
         ...options,
         order: [["createdAt", "DESC"]],
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
-      });
+      }),
+    ]);
 
     const groupMemberships = memberships.map(presentGroupMembership);
 
@@ -482,13 +484,15 @@ router.post(
       ],
     };
 
-    const { rows: memberships, count: total } =
-      await UserMembership.findAndCountAll({
+    const [total, memberships] = await Promise.all([
+      UserMembership.count(options),
+      UserMembership.findAll({
         ...options,
         order: [["createdAt", "DESC"]],
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
-      });
+      }),
+    ]);
 
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },

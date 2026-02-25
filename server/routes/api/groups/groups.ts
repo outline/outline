@@ -74,22 +74,27 @@ router.post(
       };
     }
 
-    const { rows: groups, count: total } = await Group.findAndCountAll({
-      where,
-      include: [
-        {
-          model: GroupUser,
-          as: "groupUsers",
-          required: false,
-          where: {
-            userId: user.id,
+    const [groups, total] = await Promise.all([
+      Group.findAll({
+        where,
+        include: [
+          {
+            model: GroupUser,
+            as: "groupUsers",
+            required: false,
+            where: {
+              userId: user.id,
+            },
           },
-        },
-      ],
-      order: [[sort, direction]],
-      offset: ctx.state.pagination.offset,
-      limit: ctx.state.pagination.limit,
-    });
+        ],
+        order: [[sort, direction]],
+        offset: ctx.state.pagination.offset,
+        limit: ctx.state.pagination.limit,
+      }),
+      Group.count({
+        where,
+      }),
+    ]);
 
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
@@ -282,12 +287,15 @@ router.post(
       ],
     };
 
-    const { rows: groupUsers, count: total } = await GroupUser.findAndCountAll({
-      ...options,
-      order: [["createdAt", "DESC"]],
-      offset: ctx.state.pagination.offset,
-      limit: ctx.state.pagination.limit,
-    });
+    const [total, groupUsers] = await Promise.all([
+      GroupUser.count(options),
+      GroupUser.findAll({
+        ...options,
+        order: [["createdAt", "DESC"]],
+        offset: ctx.state.pagination.offset,
+        limit: ctx.state.pagination.limit,
+      }),
+    ]);
 
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },

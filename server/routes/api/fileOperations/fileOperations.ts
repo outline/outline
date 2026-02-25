@@ -51,13 +51,17 @@ router.post(
     const team = await Team.findByPk(user.teamId);
     authorize(user, "update", team);
 
-    const { rows: fileOperations, count: total } =
-      await FileOperation.findAndCountAll({
+    const [fileOperations, total] = await Promise.all([
+      FileOperation.findAll({
         where,
         order: [[sort, direction]],
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
-      });
+      }),
+      FileOperation.count({
+        where,
+      }),
+    ]);
 
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },

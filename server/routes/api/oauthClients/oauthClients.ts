@@ -35,13 +35,15 @@ router.post(
     };
     authorize(user, "listOAuthClients", user.team);
 
-    const { rows: oauthClients, count: total } =
-      await OAuthClient.findAndCountAll({
+    const [oauthClients, total] = await Promise.all([
+      OAuthClient.findAll({
         where,
         order: [["createdAt", "DESC"]],
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
-      });
+      }),
+      OAuthClient.count({ where }),
+    ]);
 
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
