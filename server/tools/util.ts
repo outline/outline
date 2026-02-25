@@ -76,11 +76,11 @@ export function error(err: unknown): CallToolResult {
 }
 
 /**
- * Wraps an MCP tool or resource handler with Datadog tracing. Each invocation
- * creates a span under the `outline-mcp` service with the tool name as the
- * resource, and tags it with the acting user and team IDs.
+ * Wraps an MCP tool handler with Datadog tracing. Each invocation creates a
+ * span under the `outline-mcp` service with the tool name as the resource,
+ * and tags it with the acting user and team IDs.
  *
- * @param toolName - the name of the MCP tool or resource being traced.
+ * @param toolName - the name of the MCP tool being traced.
  * @param handler - the handler function to wrap.
  * @returns the wrapped handler with tracing enabled.
  */
@@ -98,6 +98,37 @@ export function withTracing<F extends (...args: any[]) => any>(
     if (user) {
       addTags({
         "mcp.tool": toolName,
+        "request.userId": user.id,
+        "request.teamId": user.teamId,
+      });
+    }
+    return handler.apply(this, args);
+  } as F);
+}
+
+/**
+ * Wraps an MCP resource handler with Datadog tracing. Each invocation creates
+ * a span under the `outline-mcp` service with the resource name, and tags it
+ * with the acting user and team IDs.
+ *
+ * @param resourceName - the name of the MCP resource being traced.
+ * @param handler - the handler function to wrap.
+ * @returns the wrapped handler with tracing enabled.
+ */
+export function withResourceTracing<F extends (...args: any[]) => any>(
+  resourceName: string,
+  handler: F
+): F {
+  return traceFunction({
+    serviceName: "mcp",
+    spanName: "resource",
+    resourceName: resourceName,
+  })(function tracedHandler(this: any, ...args: any[]) {
+    const context = args[args.length - 1];
+    const user = getActorFromContext(context);
+    if (user) {
+      addTags({
+        "mcp.resource": resourceName,
         "request.userId": user.id,
         "request.teamId": user.teamId,
       });

@@ -11,7 +11,7 @@ import { User, Team } from "@server/models";
 import { authorize, can } from "@server/policies";
 import { presentUser } from "@server/presenters";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
-import { error, success, getActorFromContext, withTracing } from "./util";
+import { error, success, getActorFromContext, withTracing, withResourceTracing } from "./util";
 
 /**
  * Resolves a user identifier to a User model instance. Accepts special
@@ -50,7 +50,7 @@ export function userTools(server: McpServer, scopes: string[]) {
           'Fetches a user by their ID. Use "current_user" as the ID to get the currently authenticated user.',
         mimeType: "application/json",
       },
-      withTracing("get_user", async (uri, variables, extra) => {
+      withResourceTracing("get_user", async (uri, variables, extra) => {
         try {
           const { id } = variables;
           const actor = getActorFromContext(extra);
