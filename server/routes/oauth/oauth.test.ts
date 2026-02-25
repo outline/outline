@@ -1,4 +1,5 @@
 import { faker } from "@faker-js/faker";
+import { TeamPreference } from "@shared/types";
 import { OAuthClient } from "@server/models";
 import { buildTeam } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
@@ -432,5 +433,50 @@ describe("GET /.well-known/oauth-authorization-server", () => {
       "none",
     ]);
     expect(body.code_challenge_methods_supported).toEqual(["S256"]);
+  });
+
+  it("should return OAuth metadata at /mcp suffix path", async () => {
+    const res = await server.get("/.well-known/oauth-authorization-server/mcp");
+
+    expect(res.status).toEqual(200);
+    const body = await res.json();
+    expect(body.issuer).toBeTruthy();
+    expect(body.authorization_endpoint).toContain("/oauth/authorize");
+    expect(body.token_endpoint).toContain("/oauth/token");
+  });
+});
+
+describe("GET /.well-known/oauth-protected-resource", () => {
+  it("should return protected resource metadata", async () => {
+    const res = await server.get("/.well-known/oauth-protected-resource");
+
+    expect(res.status).toEqual(200);
+    const body = await res.json();
+    expect(body.resource).toContain("/mcp");
+    expect(body.authorization_servers).toHaveLength(1);
+    expect(body.scopes_supported).toEqual(["read", "write"]);
+    expect(body.bearer_methods_supported).toEqual(["header"]);
+  });
+
+  it("should return protected resource metadata at /mcp suffix path", async () => {
+    const res = await server.get("/.well-known/oauth-protected-resource/mcp");
+
+    expect(res.status).toEqual(200);
+    const body = await res.json();
+    expect(body.resource).toContain("/mcp");
+    expect(body.authorization_servers).toHaveLength(1);
+  });
+
+  it("should return 404 when MCP is disabled", async () => {
+    const team = await buildTeam({
+      subdomain: faker.internet.domainWord(),
+      preferences: { [TeamPreference.MCP]: false },
+    });
+
+    const res = await server.get("/.well-known/oauth-protected-resource", {
+      headers: { host: `${team.subdomain}.outline.dev` },
+    });
+
+    expect(res.status).toEqual(404);
   });
 });
