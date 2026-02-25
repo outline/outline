@@ -396,12 +396,27 @@ export class ProsemirrorHelper {
    * @returns Object with completed and total keys
    */
   static getTasksSummary(doc: Node): { completed: number; total: number } {
-    const tasks = ProsemirrorHelper.getTasks(doc);
+    let completed = 0;
+    let total = 0;
 
-    return {
-      completed: tasks.filter((t) => t.completed).length,
-      total: tasks.length,
-    };
+    doc.descendants((node) => {
+      if (!node.isBlock) {
+        return false;
+      }
+
+      if (node.type.name === "checkbox_list") {
+        node.content.forEach((listItem) => {
+          total++;
+          if (listItem.attrs.checked) {
+            completed++;
+          }
+        });
+      }
+
+      return true;
+    });
+
+    return { completed, total };
   }
 
   /**
@@ -450,34 +465,29 @@ export class ProsemirrorHelper {
    * @returns The ProsemirrorData with absolute URLs for attachments
    */
   static attachmentsToAbsoluteUrls(data: ProsemirrorData): ProsemirrorData {
+    const regex = new RegExp("^" + attachmentRedirectRegex.source);
+
     function replace(node: ProsemirrorData) {
       if (
         node.type === "image" &&
         node.attrs?.src &&
-        String(node.attrs.src).match(
-          new RegExp("^" + attachmentRedirectRegex.source)
-        )
+        regex.test(String(node.attrs.src))
       ) {
         node.attrs.src = env.URL + node.attrs.src;
-      }
-      if (
+      } else if (
         node.type === "video" &&
         node.attrs?.src &&
-        String(node.attrs.src).match(
-          new RegExp("^" + attachmentRedirectRegex.source)
-        )
+        regex.test(String(node.attrs.src))
       ) {
         node.attrs.src = env.URL + node.attrs.src;
-      }
-      if (
+      } else if (
         node.type === "attachment" &&
         node.attrs?.href &&
-        String(node.attrs.src).match(
-          new RegExp("^" + attachmentRedirectRegex.source)
-        )
+        regex.test(String(node.attrs.href))
       ) {
         node.attrs.href = env.URL + node.attrs.href;
       }
+
       if (node.content) {
         node.content = node.content.filter(Boolean);
         node.content.forEach(replace);
