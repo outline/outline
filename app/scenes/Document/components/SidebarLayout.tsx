@@ -91,7 +91,7 @@ const Header = styled(Flex)`
   ${draggableOnDesktop()}
   align-items: center;
   position: relative;
-  padding: 16px 2px 16px 16px;
+  padding: 16px 12px 16px 16px;
   color: ${s("text")};
   flex-shrink: 0;
 `;

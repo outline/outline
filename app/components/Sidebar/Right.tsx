@@ -70,7 +70,7 @@ function Right({ children, border, className }: Props) {
   const style = React.useMemo(
     () => ({
       width: windowScrollbarWidth
-        ? `${ui.sidebarRightWidth - windowScrollbarWidth}px`
+        ? `${ui.sidebarRightWidth - 6}px`
         : `${ui.sidebarRightWidth}px`,
     }),
     [ui.sidebarRightWidth, windowScrollbarWidth]
