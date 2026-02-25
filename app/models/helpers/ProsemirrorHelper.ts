@@ -9,13 +9,12 @@ interface HasData {
   data: ProsemirrorData;
 }
 
-// Cache these expensive-to-create objects at module level since they never change.
 const extensionManager = new ExtensionManager(withComments(richExtensions));
-const cachedSchema = new Schema({
+const schema = new Schema({
   nodes: extensionManager.nodes,
   marks: extensionManager.marks,
 });
-const cachedSerializer = extensionManager.serializer();
+const serializer = extensionManager.serializer();
 
 export class ProsemirrorHelper {
   /**
@@ -25,11 +24,11 @@ export class ProsemirrorHelper {
    */
   static toMarkdown = (document: HasData) => {
     const doc = Node.fromJSON(
-      cachedSchema,
+      schema,
       SharedProsemirrorHelper.attachmentsToAbsoluteUrls(document.data)
     );
 
-    const markdown = cachedSerializer.serialize(doc, {
+    const markdown = serializer.serialize(doc, {
       softBreak: true,
     });
     return markdown;
@@ -42,7 +41,7 @@ export class ProsemirrorHelper {
    */
   static toPlainText = (document: HasData) => {
     const text = SharedProsemirrorHelper.toPlainText(
-      Node.fromJSON(cachedSchema, document.data)
+      Node.fromJSON(schema, document.data)
     );
     return text;
   };
