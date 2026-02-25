@@ -111,7 +111,6 @@ router.post(
       userId: createdById,
       statusFilter,
     } = ctx.input.body;
-    const { offset, limit } = ctx.state.pagination;
 
     // always filter by the current team
     const { user } = ctx.state.auth;
@@ -156,8 +155,11 @@ router.post(
       if (sort === "index") {
         // Extract all document IDs from the collection structure.
         documentIds = (collection.documentStructure || [])
-          .slice(offset, offset + limit)
-          .map((node) => node.id);
+          .map((node) => node.id)
+          .slice(
+            ctx.state.pagination.offset,
+            ctx.state.pagination.offset + ctx.state.pagination.limit
+          );
         where[Op.and].push({ id: documentIds });
       } // if it's not a backlink request, filter by all collections the user has access to
     } else if (!backlinkDocumentId) {
@@ -284,7 +286,7 @@ router.post(
           ? [
               [
                 Sequelize.literal(
-                  `array_position(ARRAY[:documentIds]::uuid[], "document"."id")`
+                  `array_position(ARRAY[${documentIds.map((id) => `'${id}'`).join(",")}]::uuid[], "document"."id")`
                 ),
                 direction,
               ],
@@ -294,16 +296,15 @@ router.post(
 
     // When sorting by index, pagination is already handled by slicing documentIds,
     // so we skip the SQL-level offset to avoid double-pagination
-    const { rows: documents, count: total } =
-      await Document.withMembershipScope(user.id).findAndCountAll({
+    const [documents, total] = await Promise.all([
+      Document.withMembershipScope(user.id).findAll({
         where,
         order: orderClause as Order,
-        offset: sort === "index" ? 0 : offset,
-        limit,
-        replacements: {
-          documentIds,
-        },
-      });
+        offset: sort === "index" ? 0 : ctx.state.pagination.offset,
+        limit: ctx.state.pagination.limit,
+      }),
+      Document.count({ where }),
+    ]);
 
     const data = await Promise.all(
       documents.map((document) => presentDocument(ctx, document))
@@ -693,12 +694,14 @@ router.post(
 
     const replacements = { query: `%${query}%` };
 
-    const { rows: users, count: total } = await User.findAndCountAll({
-      where,
-      replacements,
-      offset,
-      limit,
-    });
+    const [users, total] = await Promise.all([
+      User.findAll({ where, replacements, offset, limit }),
+      User.count({
+        where,
+        // @ts-expect-error Types are incorrect for count
+        replacements,
+      }),
+    ]);
 
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
@@ -2001,13 +2004,15 @@ router.post(
       ],
     };
 
-    const { rows: memberships, count: total } =
-      await UserMembership.findAndCountAll({
+    const [total, memberships] = await Promise.all([
+      UserMembership.count(options),
+      UserMembership.findAll({
         ...options,
         order: [["createdAt", "DESC"]],
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
-      });
+      }),
+    ]);
 
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
@@ -2060,13 +2065,15 @@ router.post(
       ],
     };
 
-    const { rows: memberships, count: total } =
-      await GroupMembership.findAndCountAll({
+    const [total, memberships] = await Promise.all([
+      GroupMembership.count(options),
+      GroupMembership.findAll({
         ...options,
         order: [["createdAt", "DESC"]],
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
-      });
+      }),
+    ]);
 
     const groupMemberships = memberships.map(presentGroupMembership);
 

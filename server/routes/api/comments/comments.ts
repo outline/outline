@@ -153,8 +153,10 @@ router.post(
     if (documentId) {
       const document = await Document.findByPk(documentId, { userId: user.id });
       authorize(user, "read", document);
-      ({ rows: comments, count: total } =
-        await Comment.findAndCountAll(params));
+      [comments, total] = await Promise.all([
+        Comment.findAll(params),
+        Comment.count({ where }),
+      ]);
       comments.forEach((comment) => (comment.document = document));
     } else if (collectionId) {
       const collection = await Collection.findByPk(collectionId, {
@@ -171,10 +173,16 @@ router.post(
           },
         },
       ];
-      ({ rows: comments, count: total } = await Comment.findAndCountAll({
-        include,
-        ...params,
-      }));
+      [comments, total] = await Promise.all([
+        Comment.findAll({
+          include,
+          ...params,
+        }),
+        Comment.count({
+          include,
+          where,
+        }),
+      ]);
     } else {
       const accessibleCollectionIds = await user.collectionIds();
       const include = [
@@ -187,10 +195,16 @@ router.post(
           },
         },
       ];
-      ({ rows: comments, count: total } = await Comment.findAndCountAll({
-        include,
-        ...params,
-      }));
+      [comments, total] = await Promise.all([
+        Comment.findAll({
+          include,
+          ...params,
+        }),
+        Comment.count({
+          include,
+          where,
+        }),
+      ]);
     }
 
     ctx.body = {
