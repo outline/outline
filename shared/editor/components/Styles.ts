@@ -1973,12 +1973,8 @@ table {
   }
 
   .selectedCell {
-    ${
-      props.readOnly
-        ? "background: inherit;"
-        : `/* Using box-shadow inset instead of background to allow overlay on cell background colors */
-    box-shadow: inset 0 0 0 9999px ${props.theme.tableSelectedBackground};`
-    }
+    /* Using box-shadow inset instead of background to allow overlay on cell background colors */
+    box-shadow: inset 0 0 0 9999px ${props.theme.tableSelectedBackground};
 
     /* fixes Firefox background color painting over border:
       * https://bugzilla.mozilla.org/show_bug.cgi?id=688556 */
