@@ -982,7 +982,7 @@ export const printDocument = createAction({
   icon: <PrintIcon />,
   visible: ({ activeDocumentId }) => !!(activeDocumentId && window.print),
   perform: () => {
-    queueMicrotask(window.print);
+    setTimeout(window.print, 0);
   },
 });
 

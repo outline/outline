@@ -224,7 +224,7 @@ export const printTemplate = createAction({
   icon: <PrintIcon />,
   visible: ({ getActiveModel }) => !!getActiveModel(Template) && !!window.print,
   perform: () => {
-    queueMicrotask(window.print);
+    setTimeout(window.print, 0);
   },
 });
 
