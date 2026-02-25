@@ -64,7 +64,11 @@ export const determineMentionType = ({
 
     case IntegrationService.Linear: {
       const type = pathParts[2];
-      return type === "issue" ? MentionType.Issue : undefined;
+      return type === "issue"
+        ? MentionType.Issue
+        : type === "project"
+          ? MentionType.Project
+          : undefined;
     }
 
     case IntegrationService.GitLab: {

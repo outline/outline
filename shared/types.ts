@@ -97,6 +97,7 @@ export enum MentionType {
   Group = "group",
   Issue = "issue",
   PullRequest = "pull_request",
+  Project = "project",
   URL = "url",
 }
 

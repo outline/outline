@@ -343,6 +343,79 @@ export const MentionIssue = observer((props: IssuePrProps) => {
   );
 });
 
+type ProjectProps = ComponentProps & {
+  onChangeUnfurl: (unfurl: UnfurlResponse[UnfurlResourceType.Project]) => void;
+};
+
+export const MentionProject = observer((props: ProjectProps) => {
+  const { unfurls } = useStores();
+  const isMounted = useIsMounted();
+  const [loaded, setLoaded] = React.useState(false);
+  const onChangeUnfurl = React.useRef(props.onChangeUnfurl).current;
+
+  const { isSelected, node } = props;
+  const {
+    className,
+    unfurl: unfurlAttr,
+    ...attrs
+  } = getAttributesFromNode(node);
+
+  const unfurl = unfurls.get(attrs.href)?.data ?? unfurlAttr;
+
+  React.useEffect(() => {
+    const fetchProject = async () => {
+      const unfurlModel = await unfurls.fetchUnfurl({ url: attrs.href });
+
+      if (!isMounted()) {
+        return;
+      }
+
+      if (unfurlModel) {
+        onChangeUnfurl({
+          ...unfurlModel.data,
+          description: null,
+        } satisfies UnfurlResponse[UnfurlResourceType.Project]);
+      }
+
+      setLoaded(true);
+    };
+
+    void fetchProject();
+  }, [unfurls, attrs.href, isMounted, onChangeUnfurl]);
+
+  if (!unfurl) {
+    return !loaded ? (
+      <MentionLoading className={className} />
+    ) : (
+      <MentionError className={className} />
+    );
+  }
+
+  const project = unfurl as UnfurlResponse[UnfurlResourceType.Project];
+
+  return (
+    <a
+      {...attrs}
+      className={cn(className, {
+        "ProseMirror-selectednode": isSelected,
+      })}
+      href={attrs.href as string}
+      target="_blank"
+      rel="noopener noreferrer nofollow"
+    >
+      <Flex align="center" gap={6}>
+        <StateIndicator color={project.state.color} />
+        <Flex align="center" gap={4}>
+          <Text>
+            <Backticks content={project.name} />
+          </Text>
+          <Text type="tertiary">{Math.round(project.progress * 100)}%</Text>
+        </Flex>
+      </Flex>
+    </a>
+  );
+});
+
 export const MentionPullRequest = observer((props: IssuePrProps) => {
   const { unfurls } = useStores();
   const isMounted = useIsMounted();
@@ -445,4 +518,13 @@ const StyledWarningIcon = styled(WarningIcon)`
 const Logo = styled.img`
   width: 16px;
   height: 16px;
+`;
+
+const StateIndicator = styled.span<{ color: string }>`
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: ${(props) => props.color};
+  flex-shrink: 0;
 `;
