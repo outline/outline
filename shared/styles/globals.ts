@@ -57,7 +57,7 @@ export default createGlobalStyle<Props>`
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
 
-    width: 100vw;
+    ${(props) => (props.staticHTML ? "" : "width: 100vw;")}
     overflow-x: hidden;
     padding-right: calc(0 - var(--removed-body-scroll-bar-size)) !important;
   }
