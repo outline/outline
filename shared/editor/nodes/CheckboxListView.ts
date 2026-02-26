@@ -17,6 +17,7 @@ export class CheckboxListView implements NodeView {
   private node: ProsemirrorNode;
   private userIdentifier: string;
   private dictionary: Dictionary;
+  private isNested: boolean;
 
   constructor(
     node: ProsemirrorNode,
@@ -29,6 +30,12 @@ export class CheckboxListView implements NodeView {
     this.userIdentifier = userIdentifier;
     this.dictionary = dictionary;
 
+    // Detect if this is a nested checkbox list (inside a checkbox_item)
+    const pos = _getPos();
+    this.isNested =
+      pos !== undefined &&
+      _view.state.doc.resolve(pos).parent.type.name === "checkbox_item";
+
     // Build DOM structure
     const wrapperElement = document.createElement("div");
     wrapperElement.classList.add(EditorStyleHelper.checklistWrapper);
@@ -39,18 +46,23 @@ export class CheckboxListView implements NodeView {
     );
     this.toggleControl.contentEditable = "false";
 
-    if (isBrowser) {
-      this.toggleControl.addEventListener("click", this.handleToggleClick);
-    }
-
     this.contentDOM = document.createElement("ul");
     this.contentDOM.classList.add("checkbox_list");
 
-    wrapperElement.appendChild(this.toggleControl);
-    wrapperElement.appendChild(this.contentDOM);
+    if (this.isNested) {
+      this.toggleControl.style.display = "none";
+      wrapperElement.appendChild(this.contentDOM);
+    } else {
+      if (isBrowser) {
+        this.toggleControl.addEventListener("click", this.handleToggleClick);
+      }
+      wrapperElement.appendChild(this.toggleControl);
+      wrapperElement.appendChild(this.contentDOM);
+    }
+
     this.dom = wrapperElement;
 
-    if (isBrowser) {
+    if (isBrowser && !this.isNested) {
       this.updateToggleState();
     }
   }
@@ -75,7 +87,7 @@ export class CheckboxListView implements NodeView {
   };
 
   private updateToggleState() {
-    if (!isBrowser) {
+    if (!isBrowser || this.isNested) {
       return;
     }
 
@@ -88,10 +100,13 @@ export class CheckboxListView implements NodeView {
     const storageKey = `checklist-${listId}-${this.userIdentifier}-hidden`;
     const shouldCollapse = !!Storage.get(storageKey);
 
-    // Count completed items
+    // Count completed items, including nested checkbox lists
     let completedItemsCount = 0;
-    this.node.forEach((childNode) => {
-      if (childNode.attrs.checked === true) {
+    this.node.descendants((childNode) => {
+      if (
+        childNode.type.name === "checkbox_item" &&
+        childNode.attrs.checked === true
+      ) {
         completedItemsCount++;
       }
     });
@@ -128,7 +143,7 @@ export class CheckboxListView implements NodeView {
   }
 
   destroy() {
-    if (!isBrowser) {
+    if (!isBrowser || this.isNested) {
       return;
     }
     this.toggleControl.removeEventListener("click", this.handleToggleClick);

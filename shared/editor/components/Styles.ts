@@ -1489,6 +1489,11 @@ ol li {
 .${EditorStyleHelper.checklistWrapper} {
   position: relative;
   margin: 1em 0;
+
+  .${EditorStyleHelper.checklistWrapper} {
+    position: static;
+    margin: 0;
+  }
 }
 
 .${EditorStyleHelper.checklistCompletedToggle} {
