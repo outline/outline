@@ -12,9 +12,12 @@ export default class FileOperationCreatedProcessor extends BaseProcessor {
   static applicableEvents: TEvent["name"][] = ["fileOperations.create"];
 
   async perform(event: FileOperationEvent) {
-    const fileOperation = await FileOperation.findByPk(event.modelId, {
-      rejectOnEmpty: true,
-    });
+    const fileOperation = await FileOperation.unscoped().findByPk(
+      event.modelId,
+      {
+        rejectOnEmpty: true,
+      }
+    );
 
     // map file operation type and format to the appropriate task
     if (fileOperation.type === FileOperationType.Import) {

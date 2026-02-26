@@ -36,9 +36,12 @@ export default abstract class ExportTask extends BaseTask<Props> {
    */
   public async perform({ fileOperationId }: Props) {
     Logger.info("task", `ExportTask fetching data for ${fileOperationId}`);
-    const fileOperation = await FileOperation.findByPk(fileOperationId, {
-      rejectOnEmpty: true,
-    });
+    const fileOperation = await FileOperation.unscoped().findByPk(
+      fileOperationId,
+      {
+        rejectOnEmpty: true,
+      }
+    );
     const [team, user] = await Promise.all([
       Team.findByPk(fileOperation.teamId, { rejectOnEmpty: true }),
       User.findByPk(fileOperation.userId, { rejectOnEmpty: true }),
