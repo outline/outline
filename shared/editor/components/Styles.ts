@@ -2586,6 +2586,7 @@ del {
     }
     flex-grow: 1;
     overflow: unset;
+    min-width: 0;
   }
 }
 `;
