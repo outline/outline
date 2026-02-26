@@ -176,7 +176,10 @@ const CollectionScene = observer(function CollectionScene_() {
       >
         <CenteredContent withStickyHeader>
           <Notices collection={collection} />
-          <Header collection={collection} />
+          <Header
+            collection={collection}
+            isEditing={isEditRoute && !!user?.separateEditMode}
+          />
 
           <PinnedDocuments
             pins={pins}
@@ -209,7 +212,9 @@ const CollectionScene = observer(function CollectionScene_() {
                 {showOverview ? (
                   <Overview
                     collection={collection}
-                    readOnly={!isEditRoute && !!user?.separateEditMode}
+                    readOnly={
+                      !can.update || (!isEditRoute && !!user?.separateEditMode)
+                    }
                   />
                 ) : (
                   <Redirect
