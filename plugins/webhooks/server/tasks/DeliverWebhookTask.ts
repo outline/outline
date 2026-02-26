@@ -717,6 +717,9 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     });
   }
 
+  /** Maximum number of bytes to read from webhook response bodies. */
+  private static readonly MAX_RESPONSE_BODY_SIZE = 1024;
+
   private async sendWebhook({
     event,
     subscription,
@@ -731,8 +734,11 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       status: "pending",
     });
 
-    let response, requestBody, requestHeaders;
+    let response: Awaited<ReturnType<typeof fetch>> | undefined;
+    let requestBody, requestHeaders;
     let status: WebhookDeliveryStatus;
+    let responseBody = "";
+
     try {
       requestBody = presentWebhook({
         event,
@@ -771,12 +777,25 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       status = "failed";
     }
 
+    if (response) {
+      try {
+        // TODO: Use stream to avoid buffering large responses in memory.
+        const text = await response.text();
+        responseBody = text.slice(0, DeliverWebhookTask.MAX_RESPONSE_BODY_SIZE);
+      } catch (err) {
+        Logger.debug(
+          "task",
+          `Failed to read webhook response body: ${(err as Error).message}`
+        );
+      }
+    }
+
     await delivery.update({
       status,
       statusCode: response ? response.status : null,
       requestBody,
       requestHeaders,
-      responseBody: response ? await response.text() : "",
+      responseBody,
       responseHeaders: response
         ? Object.fromEntries(response.headers.entries())
         : {},
