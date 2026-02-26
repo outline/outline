@@ -45,8 +45,9 @@ export type FileOperationOptions = {
       paranoid: false,
     },
     {
-      model: Document.scope("withDrafts"),
+      model: Document.unscoped(),
       as: "document",
+      attributes: ["id", "title"],
       required: false,
       paranoid: false,
     },
