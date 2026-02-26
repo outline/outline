@@ -74,7 +74,9 @@ class UnfurlsStore extends Store<Unfurl<any>> {
         data,
       } as Unfurl<UnfurlType>);
     } catch (err) {
-      Logger.error(`Failed to unfurl url ${url}`, err);
+      Logger.warn(`Failed to unfurl url ${url}`, {
+        message: err.message,
+      });
       return;
     } finally {
       this.isFetching = false;
