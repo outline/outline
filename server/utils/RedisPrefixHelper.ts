@@ -32,4 +32,14 @@ export class RedisPrefixHelper {
   public static getEmbedCheckKey(url: string) {
     return `embed:${url}`;
   }
+
+  /**
+   * Gets key for caching a user's accessible collection IDs.
+   *
+   * @param userId The user ID to generate a key for.
+   * @returns the cache key string.
+   */
+  public static getUserCollectionIdsKey(userId: string) {
+    return `uc:${userId}`;
+  }
 }

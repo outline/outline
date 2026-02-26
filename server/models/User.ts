@@ -53,6 +53,8 @@ import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
 import type { APIContext } from "@server/types";
 import { VerificationCode } from "@server/utils/VerificationCode";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
+import { CacheHelper } from "@server/utils/CacheHelper";
+import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import { ValidationError } from "../errors";
 import Attachment from "./Attachment";
 import AuthenticationProvider from "./AuthenticationProvider";
@@ -471,65 +473,82 @@ class User extends ParanoidModel<
    * @returns An array of collection ids
    */
   public collectionIds = async (options: FindOptions<Collection> = {}) => {
-    const collectionStubs = await Collection.findAll({
-      attributes: ["id"],
-      where: {
-        teamId: this.teamId,
-        [Op.or]: [
-          ...(this.isGuest
-            ? []
-            : [
-                {
-                  permission: {
-                    [Op.in]: Object.values(CollectionPermission),
+    const hasOptions =
+      options.transaction || options.paranoid === false || options.lock;
+
+    const fetchCollectionIds = async () => {
+      const collectionStubs = await Collection.findAll({
+        attributes: ["id"],
+        where: {
+          teamId: this.teamId,
+          [Op.or]: [
+            ...(this.isGuest
+              ? []
+              : [
+                  {
+                    permission: {
+                      [Op.in]: Object.values(CollectionPermission),
+                    },
                   },
-                },
-              ]),
-          {
-            "$memberships.id$": { [Op.ne]: null },
-          },
-          {
-            "$groupMemberships.id$": { [Op.ne]: null },
-          },
-        ],
-      },
-      include: [
-        {
-          association: "memberships",
-          attributes: [],
-          required: false,
-          where: {
-            userId: this.id,
-          },
-        },
-        {
-          association: "groupMemberships",
-          attributes: [],
-          required: false,
-          include: [
+                ]),
             {
-              association: "group",
-              attributes: [],
-              required: true,
-              include: [
-                {
-                  association: "groupUsers",
-                  attributes: [],
-                  required: true,
-                  where: {
-                    userId: this.id,
-                  },
-                },
-              ],
+              "$memberships.id$": { [Op.ne]: null },
+            },
+            {
+              "$groupMemberships.id$": { [Op.ne]: null },
             },
           ],
         },
-      ],
-      paranoid: true,
-      ...options,
-    });
+        include: [
+          {
+            association: "memberships",
+            attributes: [],
+            required: false,
+            where: {
+              userId: this.id,
+            },
+          },
+          {
+            association: "groupMemberships",
+            attributes: [],
+            required: false,
+            include: [
+              {
+                association: "group",
+                attributes: [],
+                required: true,
+                include: [
+                  {
+                    association: "groupUsers",
+                    attributes: [],
+                    required: true,
+                    where: {
+                      userId: this.id,
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+        paranoid: true,
+        ...options,
+      });
 
-    return Array.from(new Set(collectionStubs.map((c) => c.id)));
+      return Array.from(new Set(collectionStubs.map((c) => c.id)));
+    };
+
+    if (hasOptions) {
+      return fetchCollectionIds();
+    }
+
+    return (
+      (await CacheHelper.getDataOrSet<string[]>(
+        RedisPrefixHelper.getUserCollectionIdsKey(this.id),
+        fetchCollectionIds,
+        10
+      )) ?? []
+    );
   };
 
   updateActiveAt = async (ctx: Context, force = false) => {

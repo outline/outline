@@ -21,6 +21,8 @@ import type { DocumentPermission } from "@shared/types";
 import { CollectionPermission } from "@shared/types";
 import { ValidationError } from "@server/errors";
 import type { APIContext } from "@server/types";
+import { CacheHelper } from "@server/utils/CacheHelper";
+import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import Collection from "./Collection";
 import Document from "./Document";
 import GroupMembership from "./GroupMembership";
@@ -222,6 +224,15 @@ class UserMembership extends IdModel<
     });
   }
 
+  @AfterCreate
+  static async invalidateCollectionIdsAfterCreate(model: UserMembership) {
+    if (model.collectionId) {
+      await CacheHelper.clearData(
+        RedisPrefixHelper.getUserCollectionIdsKey(model.userId)
+      );
+    }
+  }
+
   @AfterUpdate
   static async updateSourcedMemberships(
     model: UserMembership,
@@ -295,6 +306,15 @@ class UserMembership extends IdModel<
     context: APIContext["context"]
   ) {
     await model.insertEvent(context, "remove_user");
+  }
+
+  @AfterDestroy
+  static async invalidateCollectionIdsAfterDestroy(model: UserMembership) {
+    if (model.collectionId) {
+      await CacheHelper.clearData(
+        RedisPrefixHelper.getUserCollectionIdsKey(model.userId)
+      );
+    }
   }
 
   /**
