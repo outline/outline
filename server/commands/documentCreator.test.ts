@@ -344,6 +344,12 @@ describe("documentCreator", () => {
       expect(document.text).toContain(`:${customEmojiId}:`);
       expect(document.text).not.toContain(`\\:${customEmojiId}:`);
       expect(document.text).not.toContain(`\\:${customEmojiId}\\:`);
+
+      // The JSON content should include an emoji node with the UUID
+      expect(document.content).toBeDefined();
+      const contentStr = JSON.stringify(document.content);
+      expect(contentStr).toContain('"type":"emoji"');
+      expect(contentStr).toContain(`"data-name":"${customEmojiId}"`);
     });
   });
 });
