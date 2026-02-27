@@ -25,6 +25,7 @@ import {
   settingsPath,
   matchDocumentHistory,
   matchDocumentSlug as slug,
+  documentPath,
 } from "~/utils/routeHelpers";
 import { DocumentContextProvider } from "./DocumentContext";
 import Fade from "./Fade";
@@ -46,14 +47,56 @@ type Props = {
   children?: React.ReactNode;
 };
 
+type ActiveSidebar = "history" | "comments" | null;
+
 const AuthenticatedLayout: React.FC = ({ children }: Props) => {
-  const { ui, auth } = useStores();
+  const { ui, auth, documents } = useStores();
   const location = useLocation();
   const layoutRef = React.useRef<HTMLDivElement>(null);
   const can = usePolicy(ui.activeDocumentId);
   const canCollection = usePolicy(ui.activeCollectionId);
   const team = useCurrentTeam();
   const [spendPostLoginPath] = usePostLoginPath();
+  const [activeSidebar, setActiveSidebar] = React.useState<ActiveSidebar>(null);
+
+  // Determine which sidebar should be active based on route and state
+  React.useEffect(() => {
+    const isHistoryRoute = !!matchPath(location.pathname, {
+      path: matchDocumentHistory,
+    });
+    
+    const shouldShowHistory = isHistoryRoute && can.listRevisions;
+    const shouldShowComments =
+      ui.commentsExpanded &&
+      can.comment &&
+      ui.activeDocumentId &&
+      team.getPreference(TeamPreference.Commenting);
+
+    // If both want to be shown, comments takes precedence (most recent user action)
+    // This allows toggling comments on while history is open
+    if (shouldShowComments) {
+      setActiveSidebar("comments");
+      // If on history route, navigate away to show comments
+      if (isHistoryRoute && ui.activeDocumentId) {
+        const document = documents.get(ui.activeDocumentId);
+        if (document) {
+          history.push(documentPath(document));
+        }
+      }
+    } else if (shouldShowHistory) {
+      setActiveSidebar("history");
+    } else {
+      setActiveSidebar(null);
+    }
+  }, [
+    location.pathname,
+    ui.commentsExpanded,
+    can.comment,
+    can.listRevisions,
+    ui.activeDocumentId,
+    team,
+    documents,
+  ]);
 
   const goToSearch = (ev: KeyboardEvent) => {
     if (!ev.metaKey && !ev.ctrlKey) {
@@ -92,16 +135,8 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
     </Fade>
   );
 
-  const showHistory =
-    !!matchPath(location.pathname, {
-      path: matchDocumentHistory,
-    }) && can.listRevisions;
-  const showComments =
-    !showHistory &&
-    can.comment &&
-    ui.activeDocumentId &&
-    ui.commentsExpanded &&
-    !!team.getPreference(TeamPreference.Commenting);
+  const showHistory = activeSidebar === "history";
+  const showComments = activeSidebar === "comments";
 
   const sidebarRight = (
     <AnimatePresence
