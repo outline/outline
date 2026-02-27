@@ -9,8 +9,12 @@ type Options = MarkdownIt.Options & {
 };
 
 /**
- * Custom rule to parse UUID-based custom emojis in the format :uuid:
- * This runs to catch custom emoji UUID patterns that the standard emoji plugin doesn't recognize.
+ * Custom markdown-it inline rule to parse UUID-based custom emojis in the format :uuid:
+ * This catches custom emoji UUID patterns that the standard emoji plugin doesn't recognize.
+ *
+ * @param state - The markdown-it state object for inline parsing.
+ * @param silent - When true, only checks if the rule matches without creating tokens.
+ * @returns True if the rule matched and processed content, false otherwise.
  */
 function customEmojiRule(state: StateInline, silent: boolean) {
   const start = state.pos;
@@ -35,7 +39,7 @@ function customEmojiRule(state: StateInline, silent: boolean) {
   // Extract the content between colons
   const content = state.src.slice(start + 1, pos);
 
-  // Check if it's a UUID
+  // Check if it's a valid UUID (any version)
   if (!isUUID(content)) {
     return false;
   }
@@ -60,11 +64,10 @@ export default function emoji(md: MarkdownIt) {
     no_name_mapping: "💯",
   };
 
-  // Add custom rule for UUID-based custom emojis BEFORE applying the standard emoji plugin
-  // This ensures UUIDs are caught first
+  // Add the custom emoji rule first so it can catch UUID patterns
   md.inline.ruler.push("custom_emoji", customEmojiRule);
 
-  // Apply the standard emoji plugin
+  // Apply the standard emoji plugin to handle regular emoji names
   emojiPlugin(md, {
     defs: (md.options as Options).emoji === false ? noMapping : nameToEmoji,
     shortcuts: {},
