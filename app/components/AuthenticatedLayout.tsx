@@ -59,43 +59,67 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
   const [spendPostLoginPath] = usePostLoginPath();
   const [activeSidebar, setActiveSidebar] = React.useState<ActiveSidebar>(null);
 
-  // Determine which sidebar should be active based on route and state
+  // Track when comments are explicitly toggled
+  const prevCommentsExpanded = React.useRef(ui.commentsExpanded);
+  
+  // Sync activeSidebar with history route
   React.useEffect(() => {
     const isHistoryRoute = !!matchPath(location.pathname, {
       path: matchDocumentHistory,
     });
     
-    const shouldShowHistory = isHistoryRoute && can.listRevisions;
-    const shouldShowComments =
-      ui.commentsExpanded &&
+    if (isHistoryRoute && can.listRevisions) {
+      setActiveSidebar("history");
+      // Close comments when navigating to history
+      if (ui.commentsExpanded) {
+        ui.set({ commentsExpanded: false });
+      }
+    } else if (activeSidebar === "history") {
+      // Clear history sidebar when navigating away from history route
+      setActiveSidebar(null);
+    }
+  }, [location.pathname, can.listRevisions, ui, activeSidebar]);
+
+  // Handle comments toggle
+  React.useEffect(() => {
+    const commentsToggled = prevCommentsExpanded.current !== ui.commentsExpanded;
+    prevCommentsExpanded.current = ui.commentsExpanded;
+    
+    if (!commentsToggled) {
+      return;
+    }
+
+    const canShowComments =
       can.comment &&
       ui.activeDocumentId &&
       team.getPreference(TeamPreference.Commenting);
 
-    // If both want to be shown, comments takes precedence (most recent user action)
-    // This allows toggling comments on while history is open
-    if (shouldShowComments) {
-      setActiveSidebar("comments");
-      // If on history route, navigate away to show comments
+    if (ui.commentsExpanded && canShowComments) {
+      // If comments are being opened, close history by navigating away
+      const isHistoryRoute = !!matchPath(location.pathname, {
+        path: matchDocumentHistory,
+      });
+      
       if (isHistoryRoute && ui.activeDocumentId) {
         const document = documents.get(ui.activeDocumentId);
         if (document) {
           history.push(documentPath(document));
         }
       }
-    } else if (shouldShowHistory) {
-      setActiveSidebar("history");
-    } else {
+      
+      setActiveSidebar("comments");
+    } else if (activeSidebar === "comments") {
+      // Comments are being closed
       setActiveSidebar(null);
     }
   }, [
-    location.pathname,
     ui.commentsExpanded,
     can.comment,
-    can.listRevisions,
     ui.activeDocumentId,
     team,
+    location.pathname,
     documents,
+    activeSidebar,
   ]);
 
   const goToSearch = (ev: KeyboardEvent) => {
