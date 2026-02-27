@@ -342,11 +342,9 @@ export class Environment {
   public FORCE_HTTPS = this.toBoolean(environment.FORCE_HTTPS ?? "true");
 
   /**
-   * When the app is behind a proxy (app.proxy is true), sets the HTTP header
-   * name Koa uses for the client IP. Common values are "X-Forwarded-For"
-   * (Koa default) or "X-Real-IP". Azure App Service uses "X-Client-IP".
-   * Only has effect in production when proxy
-   * headers are trusted.
+   * When the app is behind a proxy, sets the HTTP header used for the client IP. 
+   * The default value is "X-Forwarded-For", common values are "X-Real-IP"
+   * and "X-Client-IP".
    */
   @IsOptional()
   public PROXY_IP_HEADER = this.toOptionalString(
