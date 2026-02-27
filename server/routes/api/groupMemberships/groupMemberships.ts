@@ -5,7 +5,7 @@ import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
 import { Document, GroupMembership } from "@server/models";
 import {
-  presentDocument,
+  presentDocuments,
   presentGroup,
   presentGroupMembership,
   presentPolicies,
@@ -83,9 +83,7 @@ router.post(
       data: {
         groups: await Promise.all(groups.map(presentGroup)),
         groupMemberships: memberships.map(presentGroupMembership),
-        documents: await Promise.all(
-          documents.map((document: Document) => presentDocument(ctx, document))
-        ),
+        documents: await presentDocuments(ctx, documents),
       },
       policies,
     };

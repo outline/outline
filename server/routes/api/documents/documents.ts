@@ -69,6 +69,7 @@ import { TextHelper } from "@server/models/helpers/TextHelper";
 import { authorize, cannot } from "@server/policies";
 import {
   presentDocument,
+  presentDocuments,
   presentPolicies,
   presentTemplate,
   presentMembership,
@@ -307,9 +308,7 @@ router.post(
       Document.count({ where }),
     ]);
 
-    const data = await Promise.all(
-      documents.map((document) => presentDocument(ctx, document))
-    );
+    const data = await presentDocuments(ctx, documents);
     const policies = presentPolicies(user, documents);
 
     ctx.body = {
@@ -366,9 +365,7 @@ router.post(
       limit: ctx.state.pagination.limit,
     });
 
-    const data = await Promise.all(
-      documents.map((document) => presentDocument(ctx, document))
-    );
+    const data = await presentDocuments(ctx, documents);
     const policies = presentPolicies(user, documents);
 
     ctx.body = {
@@ -425,9 +422,7 @@ router.post(
       offset: ctx.state.pagination.offset,
       limit: ctx.state.pagination.limit,
     });
-    const data = await Promise.all(
-      documents.map((document) => presentDocument(ctx, document))
-    );
+    const data = await presentDocuments(ctx, documents);
     const policies = presentPolicies(user, documents);
 
     ctx.body = {
@@ -475,9 +470,7 @@ router.post(
       document.views = [view];
       return document;
     });
-    const data = await Promise.all(
-      documents.map((document) => presentDocument(ctx, document))
-    );
+    const data = await presentDocuments(ctx, documents);
     const policies = presentPolicies(user, documents);
 
     ctx.body = {
@@ -534,9 +527,7 @@ router.post(
       offset: ctx.state.pagination.offset,
       limit: ctx.state.pagination.limit,
     });
-    const data = await Promise.all(
-      documents.map((document) => presentDocument(ctx, document))
-    );
+    const data = await presentDocuments(ctx, documents);
     const policies = presentPolicies(user, documents);
 
     ctx.body = {
@@ -1033,9 +1024,7 @@ router.post(
       direction: direction as DirectionFilter,
     });
     const policies = presentPolicies(user, documents);
-    const data = await Promise.all(
-      documents.map((document) => presentDocument(ctx, document))
-    );
+    const data = await presentDocuments(ctx, documents);
 
     ctx.body = {
       pagination: ctx.state.pagination,
@@ -1380,9 +1369,7 @@ router.post(
 
     ctx.body = {
       data: {
-        documents: await Promise.all(
-          response.map((document) => presentDocument(ctx, document))
-        ),
+        documents: await presentDocuments(ctx, response),
       },
       policies: presentPolicies(user, response),
     };
@@ -1435,9 +1422,7 @@ router.post(
 
     ctx.body = {
       data: {
-        documents: await Promise.all(
-          documents.map((doc) => presentDocument(ctx, doc))
-        ),
+        documents: await presentDocuments(ctx, documents),
         // Included for backwards compatibility
         collections: [],
       },

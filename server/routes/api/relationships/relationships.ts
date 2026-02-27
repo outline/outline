@@ -5,7 +5,7 @@ import { Document, Relationship } from "@server/models";
 import { authorize } from "@server/policies";
 import {
   presentRelationship,
-  presentDocument,
+  presentDocuments,
   presentPolicies,
 } from "@server/presenters";
 import type { APIContext } from "@server/types";
@@ -45,9 +45,7 @@ router.post(
     ctx.body = {
       data: {
         relationship: presentRelationship(relationship),
-        documents: await Promise.all(
-          documents.map((doc: Document) => presentDocument(ctx, doc))
-        ),
+        documents: await presentDocuments(ctx, documents),
       },
       policies: presentPolicies(user, documents),
     };
@@ -85,9 +83,7 @@ router.post(
       pagination: ctx.state.pagination,
       data: {
         relationships: relationships.map(presentRelationship),
-        documents: await Promise.all(
-          documents.map((document: Document) => presentDocument(ctx, document))
-        ),
+        documents: await presentDocuments(ctx, documents),
         policies: presentPolicies(user, documents),
       },
       policies,

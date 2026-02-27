@@ -1,6 +1,8 @@
+import { Op } from "sequelize";
 import { Hour } from "@shared/utils/time";
 import { traceFunction } from "@server/logging/tracing";
 import type { Document } from "@server/models";
+import FileOperation from "@server/models/FileOperation";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import type { APIContext } from "@server/types";
 import presentUser from "./user";
@@ -89,7 +91,7 @@ async function presentDocument(
   }
 
   if (!options.isPublic) {
-    const source = await document.$get("import");
+    const source = document.import ?? (await document.$get("import"));
 
     res.tasks = document.tasks;
     res.isCollectionDeleted = await document.isCollectionDeleted();
@@ -118,3 +120,43 @@ async function presentDocument(
 export default traceFunction({
   spanName: "presenters",
 })(presentDocument);
+
+/**
+ * Batch-present multiple documents, fetching all related FileOperation records
+ * in a single query instead of one per document.
+ *
+ * @param ctx the API context.
+ * @param documents the documents to present.
+ * @param options presentation options forwarded to presentDocument.
+ * @returns array of presented document objects.
+ */
+export async function presentDocuments(
+  ctx: APIContext | undefined,
+  documents: Document[],
+  options?: Options | null
+) {
+  const opts = { isPublic: false, ...options };
+
+  if (!opts.isPublic) {
+    const importIds = documents
+      .filter((doc) => doc.sourceMetadata && doc.importId)
+      .map((doc) => doc.importId!);
+
+    if (importIds.length > 0) {
+      const sources = await FileOperation.unscoped().findAll({
+        where: { id: { [Op.in]: importIds } },
+      });
+      const sourceMap = new Map(sources.map((s) => [s.id, s]));
+
+      for (const doc of documents) {
+        if (doc.importId) {
+          doc.import = sourceMap.get(doc.importId) ?? null;
+        }
+      }
+    }
+  }
+
+  return Promise.all(
+    documents.map((document) => presentDocument(ctx, document, opts))
+  );
+}

@@ -6,7 +6,7 @@ import validate from "@server/middlewares/validate";
 import { Document, Event, UserMembership } from "@server/models";
 import { authorize } from "@server/policies";
 import {
-  presentDocument,
+  presentDocuments,
   presentMembership,
   presentPolicies,
 } from "@server/presenters";
@@ -55,9 +55,7 @@ router.post(
       pagination: ctx.state.pagination,
       data: {
         memberships: memberships.map(presentMembership),
-        documents: await Promise.all(
-          documents.map((document: Document) => presentDocument(ctx, document))
-        ),
+        documents: await presentDocuments(ctx, documents),
       },
       policies,
     };
