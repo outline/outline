@@ -1,4 +1,5 @@
-import MarkdownIt from "markdown-it";
+import type { StateInline } from "markdown-it";
+import type MarkdownIt from "markdown-it";
 import { full as emojiPlugin } from "markdown-it-emoji";
 import { isUUID } from "validator";
 import { nameToEmoji } from "../lib/emoji";
@@ -9,9 +10,9 @@ type Options = MarkdownIt.Options & {
 
 /**
  * Custom rule to parse UUID-based custom emojis in the format :uuid:
- * This runs before the standard emoji plugin to catch custom emoji patterns.
+ * This runs to catch custom emoji UUID patterns that the standard emoji plugin doesn't recognize.
  */
-function customEmojiRule(state: MarkdownIt.StateInline, silent: boolean) {
+function customEmojiRule(state: StateInline, silent: boolean) {
   const start = state.pos;
   const max = state.posMax;
 
@@ -59,15 +60,15 @@ export default function emoji(md: MarkdownIt) {
     no_name_mapping: "💯",
   };
 
-  // Apply the standard emoji plugin first
+  // Add custom rule for UUID-based custom emojis BEFORE applying the standard emoji plugin
+  // This ensures UUIDs are caught first
+  md.inline.ruler.push("custom_emoji", customEmojiRule);
+
+  // Apply the standard emoji plugin
   emojiPlugin(md, {
     defs: (md.options as Options).emoji === false ? noMapping : nameToEmoji,
     shortcuts: {},
   });
-
-  // Add custom rule for UUID-based custom emojis
-  // This should run before the emoji plugin's rule to catch UUIDs first
-  md.inline.ruler.before("emoji", "custom_emoji", customEmojiRule);
 
   return md;
 }
