@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import type MermaidUnsafe from "mermaid";
 import type { Node } from "prosemirror-model";
 import type { Transaction } from "prosemirror-state";
-import { Plugin, PluginKey, TextSelection } from "prosemirror-state";
+import { NodeSelection, Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { toast } from "sonner";
 import { isCode, isMermaid } from "../lib/isCode";
@@ -332,6 +332,37 @@ export default function Mermaid({
         return nextPluginState;
       },
     },
+    appendTransaction(_transactions, _oldState, newState) {
+      const { selection } = newState;
+      if (selection instanceof NodeSelection) {
+        return null;
+      }
+
+      const codeBlock = findParentNode(isCode)(selection);
+      if (!codeBlock || !isMermaid(codeBlock.node)) {
+        return null;
+      }
+
+      const mermaidState = pluginKey.getState(newState) as MermaidState;
+      const decorations = mermaidState?.decorationSet.find(
+        codeBlock.pos,
+        codeBlock.pos + codeBlock.node.nodeSize
+      );
+      const nodeDecoration = decorations?.find(
+        (d) => d.spec.diagramId && d.from === codeBlock.pos
+      );
+
+      if (
+        nodeDecoration?.spec.diagramId &&
+        mermaidState?.editingId === nodeDecoration.spec.diagramId
+      ) {
+        return null;
+      }
+
+      return newState.tr.setSelection(
+        NodeSelection.create(newState.doc, codeBlock.pos)
+      );
+    },
     view: (view) => {
       view.dispatch(view.state.tr.setMeta(pluginKey, { loaded: true }));
       return {};
@@ -353,9 +384,46 @@ export default function Mermaid({
 
           return true;
         },
+        mousedown(view, event) {
+          const target = event.target as HTMLElement;
+          const diagram = target?.closest(
+            ".mermaid-diagram-wrapper"
+          ) as HTMLElement | null;
+          if (!diagram || editor.props.readOnly) {
+            return false;
+          }
+
+          const codeBlock = diagram.previousElementSibling;
+          if (!codeBlock) {
+            return false;
+          }
+
+          const pos = view.posAtDOM(codeBlock, 0);
+          const $pos = view.state.doc.resolve(pos);
+          const nodePos = $pos.before();
+
+          const wasSelected =
+            view.state.selection instanceof NodeSelection &&
+            view.state.selection.from === nodePos;
+
+          event.preventDefault();
+          if (!wasSelected) {
+            view.dispatch(
+              view.state.tr
+                .setSelection(NodeSelection.create(view.state.doc, nodePos))
+                .scrollIntoView()
+            );
+          }
+          // Store whether the node was already selected so mouseup
+          // knows if it should open the lightbox.
+          diagram.dataset.wasSelected = wasSelected ? "true" : "";
+          return true;
+        },
         mouseup(view, event) {
           const target = event.target as HTMLElement;
-          const diagram = target?.closest(".mermaid-diagram-wrapper");
+          const diagram = target?.closest(
+            ".mermaid-diagram-wrapper"
+          ) as HTMLElement | null;
           const codeBlock = diagram?.previousElementSibling;
 
           if (!codeBlock) {
@@ -385,77 +453,21 @@ export default function Mermaid({
           }
 
           if (diagram && event.detail === 1) {
-            const { selection: textSelection } = view.state;
             const $pos = view.state.doc.resolve(pos);
-            const selected =
-              textSelection.from >= $pos.start() &&
-              textSelection.to <= $pos.end();
-            if (selected || editor.props.readOnly) {
-              const node = view.state.doc.nodeAt($pos.before());
+            const nodePos = $pos.before();
+
+            const wasSelected = diagram.dataset.wasSelected === "true";
+            if (
+              (wasSelected && view.state.selection instanceof NodeSelection) ||
+              editor.props.readOnly
+            ) {
+              const node = view.state.doc.nodeAt(nodePos);
               if (node && node.textContent.trim().length > 0) {
                 editor.updateActiveLightboxImage(
-                  LightboxImageFactory.createLightboxImage(view, $pos.before())
+                  LightboxImageFactory.createLightboxImage(view, nodePos)
                 );
               }
               return true;
-            }
-
-            // select node
-            view.dispatch(
-              view.state.tr
-                .setSelection(TextSelection.near(view.state.doc.resolve(pos)))
-                .scrollIntoView()
-            );
-            return true;
-          }
-
-          return false;
-        },
-        keydown: (view, event) => {
-          switch (event.key) {
-            case "ArrowDown": {
-              const { selection } = view.state;
-              const $pos = view.state.doc.resolve(
-                Math.min(selection.from + 1, view.state.doc.nodeSize)
-              );
-              const nextBlock = $pos.nodeAfter;
-
-              if (nextBlock && isMermaid(nextBlock)) {
-                view.dispatch(
-                  view.state.tr
-                    .setSelection(
-                      TextSelection.near(
-                        view.state.doc.resolve(selection.to + 1)
-                      )
-                    )
-                    .scrollIntoView()
-                );
-                event.preventDefault();
-                return true;
-              }
-              return false;
-            }
-            case "ArrowUp": {
-              const { selection } = view.state;
-              const $pos = view.state.doc.resolve(
-                Math.max(0, selection.from - 1)
-              );
-              const prevBlock = $pos.nodeBefore;
-
-              if (prevBlock && isMermaid(prevBlock)) {
-                view.dispatch(
-                  view.state.tr
-                    .setSelection(
-                      TextSelection.near(
-                        view.state.doc.resolve(selection.from - 2)
-                      )
-                    )
-                    .scrollIntoView()
-                );
-                event.preventDefault();
-                return true;
-              }
-              return false;
             }
           }
 

@@ -1770,6 +1770,15 @@ mark {
     overflow: hidden;
     position: relative;
   }
+
+  &.ProseMirror-selectednode {
+    outline: none;
+
+    & + .mermaid-diagram-wrapper {
+      cursor: zoom-in;
+      outline: 2px solid ${props.theme.selected};
+    }
+  }
 }
 
 .ProseMirror[contenteditable="false"] .code-block[data-language=mermaid],
