@@ -23,12 +23,9 @@ const Container = styled.div<Props>`
 type ContentProps = { $maxWidth?: string };
 
 const Content = styled.div<ContentProps>`
-  max-width: ${(props) => props.$maxWidth ?? "46em"};
+  max-width: ${(props: ContentProps) =>
+    props.$maxWidth ?? EditorStyleHelper.documentWidth};
   margin: 0 auto;
-
-  ${breakpoint("desktopLarge")`
-    max-width: ${(props: ContentProps) => props.$maxWidth ?? EditorStyleHelper.documentWidth};
-  `};
 `;
 
 const CenteredContent: React.FC<Props> = ({

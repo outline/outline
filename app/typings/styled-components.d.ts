@@ -159,6 +159,7 @@ declare module "styled-components" {
     titleBarDivider: string;
     inputBorder: string;
     inputBorderFocused: string;
+    inputBackground: string;
     listItemHoverBackground: string;
     mentionBackground: string;
     mentionHoverBackground: string;
