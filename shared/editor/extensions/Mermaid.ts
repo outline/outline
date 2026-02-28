@@ -160,12 +160,15 @@ function getNewState({
   doc,
   pluginState,
   editor,
+  autoEditEmpty = false,
 }: {
   doc: Node;
   pluginState: MermaidState;
   editor: Editor;
+  autoEditEmpty?: boolean;
 }): MermaidState {
   const decorations: Decoration[] = [];
+  let newEditingId: string | undefined;
 
   // Find all blocks that represent Mermaid diagrams (supports both "mermaid" and "mermaidjs")
   const blocks = findBlockNodes(doc).filter((item) => isMermaid(item.node));
@@ -182,8 +185,18 @@ function getNewState({
       block
     );
 
+    const isNewBlock = !bestDecoration;
     const renderer: MermaidRenderer =
       bestDecoration?.spec?.renderer ?? new MermaidRenderer(editor);
+
+    // Auto-enter edit mode for newly created empty mermaid diagrams
+    if (
+      autoEditEmpty &&
+      isNewBlock &&
+      block.node.textContent.trim().length === 0
+    ) {
+      newEditingId = renderer.diagramId;
+    }
 
     const diagramDecoration = Decoration.widget(
       block.pos + block.node.nodeSize,
@@ -214,6 +227,7 @@ function getNewState({
 
   return {
     ...pluginState,
+    ...(newEditingId !== undefined ? { editingId: newEditingId } : {}),
     decorationSet: DecorationSet.create(doc, decorations),
   };
 }
@@ -307,6 +321,11 @@ export default function Mermaid({
             doc: transaction.doc,
             pluginState: nextPluginState,
             editor,
+            autoEditEmpty:
+              codeBlockChanged &&
+              transaction.docChanged &&
+              !isPaste &&
+              !isRemoteTransaction(transaction),
           });
         }
 
@@ -372,9 +391,12 @@ export default function Mermaid({
               textSelection.from >= $pos.start() &&
               textSelection.to <= $pos.end();
             if (selected || editor.props.readOnly) {
-              editor.updateActiveLightboxImage(
-                LightboxImageFactory.createLightboxImage(view, $pos.before())
-              );
+              const node = view.state.doc.nodeAt($pos.before());
+              if (node && node.textContent.trim().length > 0) {
+                editor.updateActiveLightboxImage(
+                  LightboxImageFactory.createLightboxImage(view, $pos.before())
+                );
+              }
               return true;
             }
 
