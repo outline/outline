@@ -8,6 +8,7 @@ import ErrorBoundary from "~/components/ErrorBoundary";
 import Flex from "~/components/Flex";
 import ResizeBorder from "~/components/Sidebar/components/ResizeBorder";
 import useStores from "~/hooks/useStores";
+import useWindowScrollbarWidth from "~/hooks/useWindowScrollbarWidth";
 import { sidebarAppearDuration } from "~/styles/animations";
 
 interface Props extends React.HTMLAttributes<HTMLDivElement> {
@@ -21,6 +22,7 @@ function Right({ children, border, className }: Props) {
   const [isResizing, setResizing] = React.useState(false);
   const maxWidth = theme.sidebarMaxWidth;
   const minWidth = theme.sidebarMinWidth + 16; // padding
+  const windowScrollbarWidth = useWindowScrollbarWidth();
 
   const handleDrag = React.useCallback(
     (event: MouseEvent) => {
@@ -67,9 +69,11 @@ function Right({ children, border, className }: Props) {
 
   const style = React.useMemo(
     () => ({
-      width: `${ui.sidebarRightWidth}px`,
+      width: windowScrollbarWidth
+        ? `${ui.sidebarRightWidth - windowScrollbarWidth}px`
+        : `${ui.sidebarRightWidth}px`,
     }),
-    [ui.sidebarRightWidth]
+    [ui.sidebarRightWidth, windowScrollbarWidth]
   );
 
   const animationProps = {
