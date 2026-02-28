@@ -31,70 +31,113 @@ function SearchPopover({ shareId, className }: Props) {
 
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
-
   const [searchResults, setSearchResults] = React.useState<
     SearchResult[] | undefined
   >();
-  const [cachedQuery, setCachedQuery] = React.useState(query);
-  const [cachedSearchResults, setCachedSearchResults] = React.useState<
-    SearchResult[] | undefined
-  >(searchResults);
 
+  // Cache search results by query string to avoid redundant API calls
+  const cacheRef = React.useRef(new Map<string, SearchResult[]>());
+  // Track the current query for race condition prevention in async callbacks
+  const queryRef = React.useRef(query);
+  queryRef.current = query;
+  // When the query changes, restore cached results (including empty) or keep
+  // previous results visible until new results arrive to avoid layout shift
   React.useEffect(() => {
-    if (searchResults) {
-      setCachedQuery(query);
-      setCachedSearchResults(searchResults);
-      setOpen(true);
+    if (query) {
+      const cached = cacheRef.current.get(query);
+      if (cached !== undefined) {
+        setSearchResults(cached);
+        if (cached.length) {
+          setOpen(true);
+        }
+      }
+    } else {
+      setSearchResults(undefined);
     }
-  }, [searchResults, query]);
-
-  // Clear search results when the query changes to prevent stale results
-  React.useEffect(() => {
-    setSearchResults(undefined);
   }, [query]);
 
   const performSearch = React.useCallback(
-    async ({ query: searchQuery, ...options }) => {
-      if (searchQuery?.length > 0) {
-        const response = await documents.search({
-          query: searchQuery,
-          shareId,
-          ...options,
-        });
-
-        if (response.length) {
-          setSearchResults((state) => [...(state ?? []), ...response]);
-        }
-
-        return response;
+    async ({
+      query: searchQuery,
+      offset = 0,
+      ...options
+    }: Record<string, any>) => {
+      if (!searchQuery?.length) {
+        return undefined;
       }
-      return undefined;
+
+      // Force offset to 0 for new queries — PaginatedList's reset() sets
+      // offset via setState but fetchResults still uses the stale value
+      // from its closure
+      const isNewQuery = !cacheRef.current.has(searchQuery);
+      if (isNewQuery) {
+        offset = 0;
+      }
+
+      // Return cached results for the first page to avoid redundant API calls
+      if (offset === 0 && cacheRef.current.has(searchQuery)) {
+        return cacheRef.current.get(searchQuery)!;
+      }
+
+      const response = await documents.search({
+        query: searchQuery,
+        shareId,
+        offset,
+        ...options,
+      });
+
+      // Build complete result set in cache. For a new query always replace;
+      // for pagination of an existing query, append.
+      if (isNewQuery) {
+        cacheRef.current.set(searchQuery, response);
+      } else {
+        const existing = cacheRef.current.get(searchQuery)!;
+        cacheRef.current.set(searchQuery, [...existing, ...response]);
+      }
+
+      // Only update state if this query is still current to prevent stale
+      // results from overwriting newer results after a race condition
+      if (queryRef.current === searchQuery) {
+        setSearchResults(cacheRef.current.get(searchQuery)!);
+        setOpen(true);
+      }
+
+      return response;
     },
     [documents, shareId]
   );
 
-  const handleSearchInputChange = React.useMemo(
+  const debouncedSetQuery = React.useMemo(
     () =>
-      debounce(async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const { value } = event.target;
-        const trimmedValue = value.trim();
-        setQuery(trimmedValue);
-        setOpen(!!trimmedValue);
-      }, 300),
-    [cachedQuery]
+      debounce((value: string) => {
+        setQuery(value);
+        setOpen(!!value);
+      }, 250),
+    []
   );
+
+  const handleSearchInputChange = React.useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const trimmedValue = event.target.value.trim();
+      debouncedSetQuery(trimmedValue);
+    },
+    [debouncedSetQuery]
+  );
+
+  // Cancel pending debounce on unmount
+  React.useEffect(() => () => debouncedSetQuery.cancel(), [debouncedSetQuery]);
 
   const searchInputRef = React.useRef<HTMLInputElement>(null);
   const firstSearchItem = React.useRef<HTMLAnchorElement>(null);
 
   const handleEscapeList = React.useCallback(
     () => searchInputRef?.current?.focus(),
-    [searchInputRef]
+    []
   );
 
   const handleSearchInputFocus = React.useCallback(() => {
     focusRef.current = searchInputRef.current;
-  }, [searchInputRef]);
+  }, []);
 
   const handleKeyDown = React.useCallback(
     (ev: React.KeyboardEvent<HTMLInputElement>) => {
@@ -153,11 +196,12 @@ function SearchPopover({ shareId, className }: Props) {
 
   const handleSearchItemClick = React.useCallback(() => {
     setOpen(false);
+    setQuery("");
     if (searchInputRef.current) {
       searchInputRef.current.value = "";
       focusRef.current = document.getElementById(bodyContentId);
     }
-  }, [searchInputRef]);
+  }, []);
 
   useKeyDown("/", (ev) => {
     if (
@@ -203,8 +247,13 @@ function SearchPopover({ shareId, className }: Props) {
       >
         <PaginatedList<SearchResult>
           role="listbox"
-          options={{ query, snippetMinWords: 10, snippetMaxWords: 11 }}
-          items={cachedSearchResults}
+          options={{
+            query,
+            snippetMinWords: 10,
+            snippetMaxWords: 11,
+            limit: 10,
+          }}
+          items={searchResults}
           fetch={performSearch}
           onEscape={handleEscapeList}
           empty={
@@ -218,7 +267,7 @@ function SearchPopover({ shareId, className }: Props) {
               ref={index === 0 ? firstSearchItem : undefined}
               document={item.document}
               context={item.context}
-              highlight={cachedQuery}
+              highlight={query}
               onClick={handleSearchItemClick}
             />
           )}
