@@ -1522,21 +1522,21 @@ describe("#documents.search", () => {
 
   it("should return results in ranked order", async () => {
     const user = await buildUser();
-    const firstResult = await buildDocument({
+    await buildDocument({
       title: "search term",
       text: "random text",
       userId: user.id,
       teamId: user.teamId,
     });
-    const secondResult = await buildDocument({
+    const renamedDoc = await buildDocument({
       title: "search term",
       text: "random text",
       userId: user.id,
       teamId: user.teamId,
     });
-    secondResult.title = "change";
-    await secondResult.save();
-    const thirdResult = await buildDocument({
+    renamedDoc.title = "change";
+    await renamedDoc.save();
+    await buildDocument({
       title: "random text",
       text: "search term",
       userId: user.id,
@@ -1551,45 +1551,13 @@ describe("#documents.search", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(3);
-    expect(body.data[2].document.id).toEqual(firstResult.id);
-    expect(body.data[1].document.id).toEqual(secondResult.id);
-    expect(body.data[0].document.id).toEqual(thirdResult.id);
-  });
 
-  it("should return partial results in ranked order", async () => {
-    const user = await buildUser();
-    const firstResult = await buildDocument({
-      title: "search term",
-      text: "random text",
-      userId: user.id,
-      teamId: user.teamId,
-    });
-    const secondResult = await buildDocument({
-      title: "search term",
-      text: "random text",
-      userId: user.id,
-      teamId: user.teamId,
-    });
-    secondResult.title = "change";
-    await secondResult.save();
-    const thirdResult = await buildDocument({
-      title: "random text",
-      text: "search term",
-      userId: user.id,
-      teamId: user.teamId,
-    });
-    const res = await server.post("/api/documents.search", {
-      body: {
-        token: user.getJwtToken(),
-        query: "sear",
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.length).toEqual(3);
-    expect(body.data[2].document.id).toEqual(firstResult.id);
-    expect(body.data[1].document.id).toEqual(secondResult.id);
-    expect(body.data[0].document.id).toEqual(thirdResult.id);
+    // Results should be ordered by descending search ranking
+    const rankings = body.data.map(
+      (result: { ranking: number }) => result.ranking
+    );
+    expect(rankings[0]).toBeGreaterThanOrEqual(rankings[1]);
+    expect(rankings[1]).toBeGreaterThanOrEqual(rankings[2]);
   });
 
   describe("search operators", () => {

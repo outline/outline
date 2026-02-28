@@ -522,22 +522,28 @@ export default class SearchHelper {
       replacements["query"] = this.webSearchQuery(query);
     }
 
-    // Apply custom sort or default to updatedAt DESC
-    const sortField = sort ?? SortFilter.UpdatedAt;
-    const sortDirection = direction ?? DirectionFilter.DESC;
-
-    if (sortField === SortFilter.Title) {
-      order.push([
-        Sequelize.fn("LOWER", Sequelize.col("title")),
-        sortDirection,
-      ]);
-    } else {
-      order.push([sortField, sortDirection]);
-    }
-
-    // Always prioritize search ranking as a secondary sort criterion
-    if (query) {
+    // When searching with a query and no explicit sort, prioritize search
+    // ranking as the primary sort criterion. Otherwise, use the specified sort
+    // with ranking as a tiebreaker.
+    if (query && !sort) {
       order.push(["searchRanking", "DESC"]);
+      order.push([SortFilter.UpdatedAt, DirectionFilter.DESC]);
+    } else {
+      const sortField = sort ?? SortFilter.UpdatedAt;
+      const sortDirection = direction ?? DirectionFilter.DESC;
+
+      if (sortField === SortFilter.Title) {
+        order.push([
+          Sequelize.fn("LOWER", Sequelize.col("title")),
+          sortDirection,
+        ]);
+      } else {
+        order.push([sortField, sortDirection]);
+      }
+
+      if (query) {
+        order.push(["searchRanking", "DESC"]);
+      }
     }
 
     return { attributes, replacements, order };
