@@ -386,10 +386,8 @@ export default function Mermaid({
         },
         mousedown(view, event) {
           const target = event.target as HTMLElement;
-          const diagram = target?.closest(
-            ".mermaid-diagram-wrapper"
-          ) as HTMLElement | null;
-          if (!diagram || editor.props.readOnly) {
+          const diagram = target?.closest(".mermaid-diagram-wrapper");
+          if (!diagram) {
             return false;
           }
 
@@ -401,32 +399,35 @@ export default function Mermaid({
           const pos = view.posAtDOM(codeBlock, 0);
           const $pos = view.state.doc.resolve(pos);
           const nodePos = $pos.before();
+          const node = view.state.doc.nodeAt(nodePos);
 
-          const wasSelected =
+          const isSelected =
             view.state.selection instanceof NodeSelection &&
             view.state.selection.from === nodePos;
 
           event.preventDefault();
-          if (!wasSelected) {
+
+          if (isSelected || editor.props.readOnly) {
+            // Already selected or read-only, open lightbox
+            if (node && node.textContent.trim().length > 0) {
+              editor.updateActiveLightboxImage(
+                LightboxImageFactory.createLightboxImage(view, nodePos)
+              );
+            }
+          } else {
+            // First click, select the node
             view.dispatch(
               view.state.tr
                 .setSelection(NodeSelection.create(view.state.doc, nodePos))
                 .scrollIntoView()
             );
           }
-          // Store whether the node was already selected so mouseup
-          // knows if it should open the lightbox.
-          diagram.dataset.wasSelected = wasSelected ? "true" : "";
           return true;
         },
         mouseup(view, event) {
           const target = event.target as HTMLElement;
-          const diagram = target?.closest(
-            ".mermaid-diagram-wrapper"
-          ) as HTMLElement | null;
-          const codeBlock = diagram?.previousElementSibling;
-
-          if (!codeBlock) {
+          const diagram = target?.closest(".mermaid-diagram-wrapper");
+          if (!diagram) {
             return false;
           }
 
@@ -442,32 +443,6 @@ export default function Mermaid({
               }
             } catch (_err) {
               toast.error(dictionary.openLinkError);
-            }
-
-            return false;
-          }
-
-          const pos = view.posAtDOM(codeBlock, 0);
-          if (!pos) {
-            return false;
-          }
-
-          if (diagram && event.detail === 1) {
-            const $pos = view.state.doc.resolve(pos);
-            const nodePos = $pos.before();
-
-            const wasSelected = diagram.dataset.wasSelected === "true";
-            if (
-              (wasSelected && view.state.selection instanceof NodeSelection) ||
-              editor.props.readOnly
-            ) {
-              const node = view.state.doc.nodeAt(nodePos);
-              if (node && node.textContent.trim().length > 0) {
-                editor.updateActiveLightboxImage(
-                  LightboxImageFactory.createLightboxImage(view, nodePos)
-                );
-              }
-              return true;
             }
           }
 
