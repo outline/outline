@@ -12,6 +12,7 @@ import {
 import auth from "@server/middlewares/authentication";
 import multipart from "@server/middlewares/multipart";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
+import timeout from "@server/middlewares/timeout";
 import validate from "@server/middlewares/validate";
 import { Attachment } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
@@ -30,6 +31,7 @@ router.post(
   rateLimiter(RateLimiterStrategy.TenPerMinute),
   auth(),
   validate(T.FilesCreateSchema),
+  timeout(30 * 60 * 1000), // 30 minutes for large file uploads
   multipart({
     maximumFileSize: Math.max(
       env.FILE_STORAGE_UPLOAD_MAX_SIZE,
