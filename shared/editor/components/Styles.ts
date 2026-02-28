@@ -1774,7 +1774,7 @@ mark {
   &.ProseMirror-selectednode {
     outline: none;
 
-    & + .mermaid-diagram-wrapper {
+    & + .mermaid-diagram-wrapper:not(.empty) {
       cursor: zoom-in;
       outline: 2px solid ${props.theme.selected};
     }
@@ -1786,7 +1786,7 @@ mark {
     height: 0;
     overflow: hidden;
 
-    & + .mermaid-diagram-wrapper {
+    & + .mermaid-diagram-wrapper:not(.empty) {
       cursor: zoom-in;
     }
 }
