@@ -24,7 +24,7 @@ type Props = Omit<React.HTMLAttributes<HTMLDivElement>, "title"> & {
   /* The content of the sidebar */
   children: React.ReactNode;
   /* Called when the sidebar is closed */
-  onClose: () => void;
+  onClose?: () => void;
   /* Whether the sidebar should be scrollable */
   scrollable?: boolean;
 };

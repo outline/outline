@@ -31,6 +31,8 @@ import Fade from "./Fade";
 import NotificationBadge from "./NotificationBadge";
 import { PortalContext } from "./Portal";
 import CommandBar from "./CommandBar";
+import PlaceholderText from "./PlaceholderText";
+import SidebarLayout from "~/scenes/Document/components/SidebarLayout";
 
 const DocumentComments = lazyWithRetry(
   () => import("~/scenes/Document/components/Comments/Comments")
@@ -110,7 +112,13 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
     >
       {(showHistory || showComments) && (
         <Route path={`/doc/${slug}`}>
-          <React.Suspense fallback={null}>
+          <React.Suspense
+            fallback={
+              <SidebarLayout title={<PlaceholderText width={100} />}>
+                {null}
+              </SidebarLayout>
+            }
+          >
             {showHistory && <DocumentHistory />}
             {showComments && <DocumentComments />}
           </React.Suspense>

@@ -4,6 +4,7 @@ import { observer } from "mobx-react";
 import { DoneIcon } from "outline-icons";
 import { darken } from "polished";
 import * as React from "react";
+import { Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled, { css } from "styled-components";
@@ -233,16 +234,18 @@ function CommentThreadItem({
           <HighlightedText>{highlightedText}</HighlightedText>
         )}
         <Body ref={formRef} onSubmit={handleSubmit}>
-          <StyledCommentEditor
-            key={String(isEditing)}
-            readOnly={!isEditing}
-            value={comment.data}
-            defaultValue={data}
-            onChange={handleChange}
-            onSave={handleSave}
-            onCancel={handleCancel}
-            autoFocus
-          />
+          <Suspense fallback={null}>
+            <StyledCommentEditor
+              key={String(isEditing)}
+              readOnly={!isEditing}
+              value={comment.data}
+              defaultValue={data}
+              onChange={handleChange}
+              onSave={handleSave}
+              onCancel={handleCancel}
+              autoFocus
+            />
+          </Suspense>
           {isEditing && (
             <Flex align="flex-end" gap={8}>
               <ButtonSmall type="submit" borderOnHover>

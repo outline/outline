@@ -5,6 +5,7 @@ import { action } from "mobx";
 import { observer } from "mobx-react";
 import { ImageIcon } from "outline-icons";
 import * as React from "react";
+import { Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useTheme } from "styled-components";
@@ -312,25 +313,27 @@ function CommentForm({
           {highlightedText && (
             <HighlightedText>{highlightedText}</HighlightedText>
           )}
-          <CommentEditor
-            key={`${forceRender}`}
-            ref={mergeRefs([editorRef, handleMounted])}
-            defaultValue={draft}
-            onChange={handleChange}
-            onSave={handleSave}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
-            onUpArrowAtStart={handleUpArrowAtStart}
-            maxLength={CommentValidation.maxLength}
-            placeholder={
-              placeholder ||
-              // isNew is only the case for comments that exist in draft state,
-              // they are marks in the document, but not yet saved to the db.
-              (thread?.isNew
-                ? `${t("Add a comment")}…`
-                : `${t("Add a reply")}…`)
-            }
-          />
+          <Suspense fallback={<div style={{ height: 24 }} />}>
+            <CommentEditor
+              key={`${forceRender}`}
+              ref={mergeRefs([editorRef, handleMounted])}
+              defaultValue={draft}
+              onChange={handleChange}
+              onSave={handleSave}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
+              onUpArrowAtStart={handleUpArrowAtStart}
+              maxLength={CommentValidation.maxLength}
+              placeholder={
+                placeholder ||
+                // isNew is only the case for comments that exist in draft state,
+                // they are marks in the document, but not yet saved to the db.
+                (thread?.isNew
+                  ? `${t("Add a comment")}…`
+                  : `${t("Add a reply")}…`)
+              }
+            />
+          </Suspense>
           {(inputFocused || draft) && (
             <Flex justify="space-between" reverse={dir === "rtl"} gap={8}>
               <HStack>
