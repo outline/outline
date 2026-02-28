@@ -28,6 +28,8 @@ function SearchPopover({ shareId, className }: Props) {
   const { t } = useTranslation();
   const { documents } = useStores();
   const focusRef = React.useRef<HTMLElement | null>(null);
+  const searchInputRef = React.useRef<HTMLInputElement>(null);
+  const firstSearchItem = React.useRef<HTMLAnchorElement>(null);
 
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
@@ -37,22 +39,23 @@ function SearchPopover({ shareId, className }: Props) {
 
   // Cache search results by query string to avoid redundant API calls
   const cacheRef = React.useRef(new Map<string, SearchResult[]>());
-  // Track the current query for race condition prevention in async callbacks
   const queryRef = React.useRef(query);
   queryRef.current = query;
+
   // When the query changes, restore cached results (including empty) or keep
   // previous results visible until new results arrive to avoid layout shift
   React.useEffect(() => {
-    if (query) {
-      const cached = cacheRef.current.get(query);
-      if (cached !== undefined) {
-        setSearchResults(cached);
-        if (cached.length) {
-          setOpen(true);
-        }
-      }
-    } else {
+    if (!query) {
       setSearchResults(undefined);
+      return;
+    }
+
+    const cached = cacheRef.current.get(query);
+    if (cached !== undefined) {
+      setSearchResults(cached);
+      if (cached.length) {
+        setOpen(true);
+      }
     }
   }, [query]);
 
@@ -66,17 +69,16 @@ function SearchPopover({ shareId, className }: Props) {
         return undefined;
       }
 
+      // Return cached results for first-page lookups
+      if (offset === 0 && cacheRef.current.has(searchQuery)) {
+        return cacheRef.current.get(searchQuery)!;
+      }
+
       // Force offset to 0 for new queries — PaginatedList's reset() sets
       // offset via setState but fetchResults still uses the stale value
       // from its closure
-      const isNewQuery = !cacheRef.current.has(searchQuery);
-      if (isNewQuery) {
+      if (!cacheRef.current.has(searchQuery)) {
         offset = 0;
-      }
-
-      // Return cached results for the first page to avoid redundant API calls
-      if (offset === 0 && cacheRef.current.has(searchQuery)) {
-        return cacheRef.current.get(searchQuery)!;
       }
 
       const response = await documents.search({
@@ -86,14 +88,13 @@ function SearchPopover({ shareId, className }: Props) {
         ...options,
       });
 
-      // Build complete result set in cache. For a new query always replace;
-      // for pagination of an existing query, append.
-      if (isNewQuery) {
-        cacheRef.current.set(searchQuery, response);
-      } else {
-        const existing = cacheRef.current.get(searchQuery)!;
-        cacheRef.current.set(searchQuery, [...existing, ...response]);
-      }
+      // Build complete result set in cache: replace for new queries, append
+      // for pagination of an existing query
+      const existing = cacheRef.current.get(searchQuery);
+      cacheRef.current.set(
+        searchQuery,
+        existing ? [...existing, ...response] : response
+      );
 
       // Only update state if this query is still current to prevent stale
       // results from overwriting newer results after a race condition
@@ -118,20 +119,15 @@ function SearchPopover({ shareId, className }: Props) {
 
   const handleSearchInputChange = React.useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      const trimmedValue = event.target.value.trim();
-      debouncedSetQuery(trimmedValue);
+      debouncedSetQuery(event.target.value.trim());
     },
     [debouncedSetQuery]
   );
 
-  // Cancel pending debounce on unmount
   React.useEffect(() => () => debouncedSetQuery.cancel(), [debouncedSetQuery]);
 
-  const searchInputRef = React.useRef<HTMLInputElement>(null);
-  const firstSearchItem = React.useRef<HTMLAnchorElement>(null);
-
   const handleEscapeList = React.useCallback(
-    () => searchInputRef?.current?.focus(),
+    () => searchInputRef.current?.focus(),
     []
   );
 
@@ -149,6 +145,7 @@ function SearchPopover({ shareId, className }: Props) {
         if (searchResults) {
           setOpen(true);
         }
+        return;
       }
 
       if (ev.key === "ArrowDown" && !ev.shiftKey) {
@@ -159,12 +156,12 @@ function SearchPopover({ shareId, className }: Props) {
           if (atEnd) {
             setOpen(true);
           }
-
           if (open || atEnd) {
             ev.preventDefault();
             firstSearchItem.current?.focus();
           }
         }
+        return;
       }
 
       if (ev.key === "ArrowUp") {
@@ -174,21 +171,17 @@ function SearchPopover({ shareId, className }: Props) {
             ev.preventDefault();
           }
         }
-
-        if (ev.currentTarget.value) {
-          if (ev.currentTarget.selectionEnd === 0) {
-            ev.currentTarget.selectionStart = 0;
-            ev.currentTarget.selectionEnd = ev.currentTarget.value.length;
-            ev.preventDefault();
-          }
-        }
-      }
-
-      if (ev.key === "Escape") {
-        if (open) {
-          setOpen(false);
+        if (ev.currentTarget.value && ev.currentTarget.selectionEnd === 0) {
+          ev.currentTarget.selectionStart = 0;
+          ev.currentTarget.selectionEnd = ev.currentTarget.value.length;
           ev.preventDefault();
         }
+        return;
+      }
+
+      if (ev.key === "Escape" && open) {
+        setOpen(false);
+        ev.preventDefault();
       }
     },
     [open, searchResults]
