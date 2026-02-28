@@ -1,7 +1,6 @@
 import { observer } from "mobx-react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import { hover } from "@shared/styles";
 import type Share from "~/models/Share";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
@@ -48,7 +47,7 @@ function SharedSidebar({ share }: Props) {
   }
 
   return (
-    <StyledSidebar $hoverTransition={!teamAvailable} canCollapse={false}>
+    <Sidebar canCollapse={false}>
       {teamAvailable && (
         <SidebarButton
           title={team.name}
@@ -90,7 +89,7 @@ function SharedSidebar({ share }: Props) {
           )}
         </Section>
       </ScrollContainer>
-    </StyledSidebar>
+    </Sidebar>
   );
 }
 
@@ -111,35 +110,6 @@ const StyledSearchPopover = styled(SearchPopover)`
   width: 100%;
   transition: width 100ms ease-out;
   margin: 8px 0;
-`;
-
-const ToggleWrapper = styled.div`
-  position: absolute;
-  right: 0;
-  opacity: 0;
-  transform: translateX(10px);
-  transition:
-    opacity 100ms ease-out,
-    transform 100ms ease-out;
-`;
-
-const StyledSidebar = styled(Sidebar)<{ $hoverTransition: boolean }>`
-  ${({ $hoverTransition }) =>
-    $hoverTransition &&
-    `
-      @media (hover: hover) {
-        &:${hover} {
-        ${StyledSearchPopover} {
-          width: 85%;
-        }
-
-        ${ToggleWrapper} {
-          opacity: 1;
-          transform: translateX(0);
-          }
-        }
-      }
-    `}
 `;
 
 export default observer(SharedSidebar);
