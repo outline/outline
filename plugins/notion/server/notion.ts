@@ -59,7 +59,7 @@ const AccessTokenResponseSchema = z.object({
 export class NotionClient {
   private client: Client;
   private limiter: ReturnType<typeof RateLimit>;
-  private pageSize = 25;
+  private pageSize = 100;
   private maxRetries = 3;
   private retryDelay = 1000;
   private skipChildrenForBlock = [
