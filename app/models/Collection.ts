@@ -124,7 +124,7 @@ export default class Collection extends ParanoidModel {
    * @returns boolean
    */
   get isPrivate(): boolean {
-    return !this.permission;
+    return this.permission === null;
   }
 
   @computed
