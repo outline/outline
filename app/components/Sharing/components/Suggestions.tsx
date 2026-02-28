@@ -193,8 +193,8 @@ export const Suggestions = observer(
             ...pending.map((suggestion) => (
               <PendingListItem
                 keyboardNavigation
-                {...getListItemProps(suggestion)}
                 key={suggestion.id}
+                {...getListItemProps(suggestion)}
                 onClick={() => removePendingId(suggestion.id)}
                 onKeyDown={(ev) => {
                   if (ev.key === "Enter") {
@@ -218,8 +218,8 @@ export const Suggestions = observer(
             ...suggestionsWithPending.map((suggestion) => (
               <ListItem
                 keyboardNavigation
-                {...getListItemProps(suggestion as User)}
                 key={suggestion.id}
+                {...getListItemProps(suggestion as User)}
                 onClick={() => addPendingId(suggestion.id)}
                 onKeyDown={(ev) => {
                   if (ev.key === "Enter") {
