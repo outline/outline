@@ -1,12 +1,9 @@
 import emojiRegex from "emoji-regex";
 import { JSDOM } from "jsdom";
 import chunk from "lodash/chunk";
-import compact from "lodash/compact";
 import { EditorState } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
-import flatten from "lodash/flatten";
 import isMatch from "lodash/isMatch";
-import uniq from "lodash/uniq";
 import { Node, Fragment } from "prosemirror-model";
 import { renderToString } from "react-dom/server";
 import styled, { ServerStyleSheet, ThemeProvider } from "styled-components";
@@ -116,25 +113,18 @@ export class ProsemirrorHelper {
    */
   static parseMentions(doc: Node, options?: Partial<MentionAttrs>) {
     const mentions: MentionAttrs[] = [];
-
-    const isApplicableNode = (node: Node) => {
-      if (node.type.name !== "mention") {
-        return false;
-      }
-
-      if (
-        (options?.type && options.type !== node.attrs.type) ||
-        (options?.modelId && options.modelId !== node.attrs.modelId)
-      ) {
-        return false;
-      }
-
-      return !mentions.some((m) => m.id === node.attrs.id);
-    };
+    const seenIds = new Set<string>();
 
     doc.descendants((node: Node) => {
-      if (isApplicableNode(node)) {
-        mentions.push(node.attrs as MentionAttrs);
+      if (node.type.name === "mention") {
+        if (
+          !(options?.type && options.type !== node.attrs.type) &&
+          !(options?.modelId && options.modelId !== node.attrs.modelId) &&
+          !seenIds.has(node.attrs.id)
+        ) {
+          seenIds.add(node.attrs.id);
+          mentions.push(node.attrs as MentionAttrs);
+        }
         return false;
       }
 
@@ -155,31 +145,31 @@ export class ProsemirrorHelper {
    * @returns An array of document IDs
    */
   static parseDocumentIds(doc: Node) {
+    const seen = new Set<string>();
     const identifiers: string[] = [];
 
     doc.descendants((node: Node) => {
       if (
         node.type.name === "mention" &&
         node.attrs.type === MentionType.Document &&
-        !identifiers.includes(node.attrs.modelId)
+        !seen.has(node.attrs.modelId)
       ) {
+        seen.add(node.attrs.modelId);
         identifiers.push(node.attrs.modelId);
         return true;
       }
 
       if (node.type.name === "text") {
-        // get marks for text nodes
-        node.marks.forEach((mark) => {
-          // any of the marks identifiers?
+        for (const mark of node.marks) {
           if (mark.type.name === "link") {
             const slug = parseDocumentSlug(mark.attrs.href);
 
-            // don't return the same link more than once
-            if (slug && !identifiers.includes(slug)) {
+            if (slug && !seen.has(slug)) {
+              seen.add(slug);
               identifiers.push(slug);
             }
           }
-        });
+        }
       }
 
       if (!node.content.size) {
@@ -346,7 +336,7 @@ export class ProsemirrorHelper {
       },
     });
 
-    const mapping: Record<string, string> = {};
+    const mapping = new Map<string, string>();
 
     await Promise.all(
       attachments.map(async (attachment) => {
@@ -354,28 +344,44 @@ export class ProsemirrorHelper {
           attachment.key,
           expiresIn
         );
-        mapping[attachment.redirectUrl] = signedUrl;
+        mapping.set(attachment.redirectUrl, signedUrl);
       })
     );
 
     const json = doc.toJSON() as ProsemirrorData;
 
-    function getMapping(href: string) {
-      let relativeHref;
-
+    function toRelativeHref(href: string): string | undefined {
       try {
         const url = new URL(href);
-        relativeHref = url.toString().substring(url.origin.length);
+        return url.toString().substring(url.origin.length);
       } catch {
-        // Noop: Invalid url.
+        return undefined;
+      }
+    }
+
+    function getMapping(href: string) {
+      const signedUrl = mapping.get(href);
+      if (signedUrl) {
+        return signedUrl;
       }
 
-      for (const originalUrl of Object.keys(mapping)) {
-        if (
-          href.startsWith(originalUrl) ||
-          relativeHref?.startsWith(originalUrl)
-        ) {
-          return mapping[originalUrl];
+      const relativeHref = toRelativeHref(href);
+      if (relativeHref) {
+        const signedUrl = mapping.get(relativeHref);
+        if (signedUrl) {
+          return signedUrl;
+        }
+      }
+
+      // Extract attachment ID from URLs that may have extra query params
+      // (e.g. /api/attachments.redirect?id=<uuid>&size=2)
+      const regex = new RegExp(attachmentRedirectRegex.source, "i");
+      const match = regex.exec(relativeHref ?? href);
+      if (match?.groups?.id) {
+        const canonicalUrl = `/api/attachments.redirect?id=${match.groups.id}`;
+        const signedUrl = mapping.get(canonicalUrl);
+        if (signedUrl) {
+          return signedUrl;
         }
       }
 
@@ -415,36 +421,32 @@ export class ProsemirrorHelper {
     const urls: string[] = [];
 
     doc.descendants((node) => {
-      node.marks.forEach((mark) => {
-        if (mark.type.name === "link") {
-          if (mark.attrs.href) {
-            urls.push(mark.attrs.href);
-          }
-        }
-      });
-      if (["image", "video"].includes(node.type.name)) {
-        if (node.attrs.src) {
-          urls.push(node.attrs.src);
+      for (const mark of node.marks) {
+        if (mark.type.name === "link" && mark.attrs.href) {
+          urls.push(mark.attrs.href);
         }
       }
-      if (node.type.name === "attachment") {
-        if (node.attrs.href) {
-          urls.push(node.attrs.href);
-        }
+
+      if (
+        (node.type.name === "image" || node.type.name === "video") &&
+        node.attrs.src
+      ) {
+        urls.push(node.attrs.src);
+      } else if (node.type.name === "attachment" && node.attrs.href) {
+        urls.push(node.attrs.href);
       }
     });
 
-    return uniq(
-      compact(
-        flatten(
-          urls.map((url) =>
-            [...url.matchAll(attachmentRedirectRegex)].map(
-              (match) => match.groups?.id
-            )
-          )
-        )
-      )
-    );
+    const ids = new Set<string>();
+    for (const url of urls) {
+      for (const match of url.matchAll(attachmentRedirectRegex)) {
+        if (match.groups?.id) {
+          ids.add(match.groups.id);
+        }
+      }
+    }
+
+    return [...ids];
   }
 
   /**
@@ -475,7 +477,7 @@ export class ProsemirrorHelper {
           `
         : "article";
 
-      const rtl = isRTL(node.textContent);
+      const rtl = isRTL(node.textBetween(0, Math.min(node.content.size, 100)));
       const content = <div id="content" className="ProseMirror exported" />;
       const children = (
         <>

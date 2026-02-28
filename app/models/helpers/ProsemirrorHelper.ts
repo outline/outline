@@ -9,6 +9,13 @@ interface HasData {
   data: ProsemirrorData;
 }
 
+const extensionManager = new ExtensionManager(withComments(richExtensions));
+const schema = new Schema({
+  nodes: extensionManager.nodes,
+  marks: extensionManager.marks,
+});
+const serializer = extensionManager.serializer();
+
 export class ProsemirrorHelper {
   /**
    * Returns the markdown representation of the document derived from the ProseMirror data.
@@ -16,13 +23,6 @@ export class ProsemirrorHelper {
    * @returns The markdown representation of the document as a string.
    */
   static toMarkdown = (document: HasData) => {
-    const extensionManager = new ExtensionManager(withComments(richExtensions));
-    const serializer = extensionManager.serializer();
-    const schema = new Schema({
-      nodes: extensionManager.nodes,
-      marks: extensionManager.marks,
-    });
-
     const doc = Node.fromJSON(
       schema,
       SharedProsemirrorHelper.attachmentsToAbsoluteUrls(document.data)
@@ -40,11 +40,6 @@ export class ProsemirrorHelper {
    * @returns The plain text representation of the document as a string.
    */
   static toPlainText = (document: HasData) => {
-    const extensionManager = new ExtensionManager(withComments(richExtensions));
-    const schema = new Schema({
-      nodes: extensionManager.nodes,
-      marks: extensionManager.marks,
-    });
     const text = SharedProsemirrorHelper.toPlainText(
       Node.fromJSON(schema, document.data)
     );
