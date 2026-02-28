@@ -240,7 +240,10 @@ export function SelectionToolbar(props: Props) {
   let items: MenuItem[] = [];
   let align: "center" | "start" | "end" = "center";
 
-  if (isCodeSelection && selection.empty) {
+  if (
+    isCodeSelection &&
+    (selection.empty || selection instanceof NodeSelection)
+  ) {
     items = getCodeMenuItems(state, readOnly, dictionary);
     align = "end";
   } else if (isTableSelected(state)) {

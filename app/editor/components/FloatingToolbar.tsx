@@ -90,12 +90,19 @@ function usePosition({
       } as DOMRect);
 
   // position at the top right of code blocks
-  const codeBlock = findParentNode(isCode)(view.state.selection);
+  const isCodeNodeSelection =
+    selection instanceof NodeSelection && isCode(selection.node);
+  const codeBlock = isCodeNodeSelection
+    ? { pos: selection.from, node: selection.node }
+    : findParentNode(isCode)(view.state.selection);
   const noticeBlock = findParentNode(
     (node) => node.type.name === "container_notice"
   )(view.state.selection);
 
-  if ((codeBlock || noticeBlock) && view.state.selection.empty) {
+  if (
+    (codeBlock || noticeBlock) &&
+    (view.state.selection.empty || isCodeNodeSelection)
+  ) {
     const position = codeBlock
       ? codeBlock.pos
       : noticeBlock

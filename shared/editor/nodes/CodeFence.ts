@@ -8,7 +8,12 @@ import type {
   Node as ProsemirrorNode,
 } from "prosemirror-model";
 import type { Command, EditorState } from "prosemirror-state";
-import { Plugin, PluginKey, TextSelection } from "prosemirror-state";
+import {
+  NodeSelection,
+  Plugin,
+  PluginKey,
+  TextSelection,
+} from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { toast } from "sonner";
 import type { Primitive } from "utility-types";
@@ -124,7 +129,11 @@ export default class CodeFence extends Node {
         });
       },
       edit_mermaid: (): Command => (state, dispatch) => {
-        const codeBlock = findParentNode(isCode)(state.selection);
+        const codeBlock =
+          state.selection instanceof NodeSelection &&
+          isCode(state.selection.node)
+            ? { pos: state.selection.from, node: state.selection.node }
+            : findParentNode(isCode)(state.selection);
         if (!codeBlock || !isMermaid(codeBlock.node)) {
           return false;
         }

@@ -45,9 +45,8 @@ export default class SelectionToolbarExtension extends Extension {
     }
 
     if (
-      (isNodeActive(schema.nodes.code_block)(state) ||
-        isNodeActive(schema.nodes.code_fence)(state)) &&
-      selection.from > 0
+      isNodeActive(schema.nodes.code_block)(state) ||
+      isNodeActive(schema.nodes.code_fence)(state)
     ) {
       return selection;
     }
