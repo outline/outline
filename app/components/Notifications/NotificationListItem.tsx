@@ -103,6 +103,7 @@ const StyledLink = styled(Link)`
 const StyledCommentEditor = styled(CommentEditor)`
   font-size: 0.9em;
   margin-top: 4px;
+  pointer-events: none;
 
   ${truncateMultiline(3)}
 `;

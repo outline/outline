@@ -20,6 +20,55 @@ import Tooltip from "../Tooltip";
 import NotificationListItem from "./NotificationListItem";
 import { HStack } from "../primitives/HStack";
 
+/**
+ * Hook that returns filtered notifications in a stable order. The order is
+ * snapshotted on first call (when the popover mounts) so that toggling
+ * read/unread does not cause items to jump positions. Notifications that
+ * arrive after the snapshot are prepended at the top.
+ *
+ * @param active - the current list of active notifications.
+ * @param filter - the selected notification filter category.
+ * @returns filtered notifications in snapshot order.
+ */
+function useStableOrderedNotifications(
+  active: Notification[],
+  filter: NotificationFilter
+) {
+  const orderSnapshotRef = React.useRef<string[] | null>(null);
+
+  return React.useMemo(() => {
+    if (orderSnapshotRef.current === null) {
+      orderSnapshotRef.current = active.map((n) => n.id);
+    }
+
+    const filtered =
+      filter === "all"
+        ? active
+        : active.filter((notification) =>
+            Notification.filterCategories[filter].includes(notification.event)
+          );
+
+    const snapshot = orderSnapshotRef.current;
+    const orderMap = new Map(snapshot.map((id, index) => [id, index]));
+    const inSnapshot: Notification[] = [];
+    const newItems: Notification[] = [];
+
+    for (const notification of filtered) {
+      if (orderMap.has(notification.id)) {
+        inSnapshot.push(notification);
+      } else {
+        newItems.push(notification);
+      }
+    }
+
+    inSnapshot.sort(
+      (a, b) => (orderMap.get(a.id) ?? 0) - (orderMap.get(b.id) ?? 0)
+    );
+
+    return [...newItems, ...inSnapshot];
+  }, [active, filter]);
+}
+
 type Props = {
   /** Callback when the notification panel wants to close. */
   onRequestClose: () => void;
@@ -49,16 +98,10 @@ function Notifications(
     [t]
   );
 
-  const filteredNotifications = React.useMemo(() => {
-    if (filter === "all") {
-      return notifications.active;
-    }
-
-    const eventTypes = Notification.filterCategories[filter];
-    return notifications.active.filter((notification) =>
-      eventTypes.includes(notification.event)
-    );
-  }, [notifications.active, filter]);
+  const filteredNotifications = useStableOrderedNotifications(
+    notifications.active,
+    filter
+  );
 
   const unreadCount = notifications.approximateUnreadCount;
 
