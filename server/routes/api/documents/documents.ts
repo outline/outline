@@ -1108,6 +1108,7 @@ router.post(
         snippetMaxWords,
         sort: sort as SortFilter,
         direction: direction as DirectionFilter,
+        usePopularityBoost: false,
       });
     } else {
       if (!user) {
