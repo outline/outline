@@ -47,6 +47,9 @@ export default function init(app: Koa = new Koa(), server?: Server) {
 
     // trust header fields set by our proxy. eg X-Forwarded-For
     app.proxy = true;
+    if (env.PROXY_IP_HEADER) {
+      app.proxyIpHeader = env.PROXY_IP_HEADER;
+    }
   }
 
   // Make `ctx.userAgent` available
