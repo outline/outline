@@ -373,6 +373,18 @@ export class ProsemirrorHelper {
         }
       }
 
+      // Extract attachment ID from URLs that may have extra query params
+      // (e.g. /api/attachments.redirect?id=<uuid>&size=2)
+      const regex = new RegExp(attachmentRedirectRegex.source, "i");
+      const match = regex.exec(relativeHref ?? href);
+      if (match?.groups?.id) {
+        const canonicalUrl = `/api/attachments.redirect?id=${match.groups.id}`;
+        const signedUrl = mapping.get(canonicalUrl);
+        if (signedUrl) {
+          return signedUrl;
+        }
+      }
+
       return href;
     }
 
