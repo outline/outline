@@ -1775,7 +1775,9 @@ mark {
     outline: none;
 
     & + .mermaid-diagram-wrapper {
-      cursor: zoom-in;
+      &:not(.empty) {
+        cursor: zoom-in;
+      }
       outline: 2px solid ${props.theme.selected};
     }
   }
