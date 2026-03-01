@@ -32,7 +32,7 @@ describe("DocumentArchivedProcessor", () => {
     await processor.perform({
       name: "documents.archive",
       documentId: document.id,
-      collectionId: document.collectionId,
+      collectionId: document.collectionId!,
       actorId: user.id,
       teamId: user.teamId,
       ip,
@@ -80,7 +80,7 @@ describe("DocumentArchivedProcessor", () => {
     await processor.perform({
       name: "documents.archive",
       documentId: document.id,
-      collectionId: document.collectionId,
+      collectionId: document.collectionId!,
       actorId: actor.id,
       teamId: actor.teamId,
       ip,
@@ -129,7 +129,7 @@ describe("DocumentArchivedProcessor", () => {
     await processor.perform({
       name: "documents.archive",
       documentId: document.id,
-      collectionId: document.collectionId,
+      collectionId: document.collectionId!,
       actorId: user.id,
       teamId: user.teamId,
       ip,
