@@ -70,15 +70,16 @@ function TagsLink() {
 			.map((s) => s.tagId as string)
 	);
 
+	const sortedTags = [
+		...tags.orderedData.filter((tag) => starredTagIds.has(tag.id)),
+		...tags.orderedData.filter((tag) => !starredTagIds.has(tag.id)),
+	];
+
 	const visibleTags = expanded
-		? tags.orderedData
-		: tags.orderedData.filter((tag) => starredTagIds.has(tag.id));
+		? sortedTags
+		: sortedTags.filter((tag) => starredTagIds.has(tag.id));
 
-	if (!visibleTags.length && !expanded) {
-		return null;
-	}
-
-	if (!tags.orderedData.length && !starredTagIds.size) {
+	if (!tags.orderedData.length) {
 		return null;
 	}
 
@@ -118,15 +119,14 @@ const ColorDot = styled.span<{ $color: string | null }>`
 `;
 
 const StarButton = styled(NudeButton)<{ $starred?: boolean }>`
-	opacity: ${({ $starred }) => ($starred ? 1 : 0)};
 	transition: opacity 100ms ease-in-out;
-	color: ${({ theme }) => theme.textTertiary};
+	color: ${({ $starred, theme }) => ($starred ? theme.yellow : theme.textTertiary)};
 	width: 24px;
 	height: 24px;
 	flex-shrink: 0;
 
 	&:hover {
-		color: ${({ theme }) => theme.text};
+		color: ${({ $starred, theme }) => ($starred ? theme.yellow : theme.text)};
 	}
 `;
 

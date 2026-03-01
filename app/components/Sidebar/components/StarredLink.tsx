@@ -10,7 +10,6 @@ import Fade from "~/components/Fade";
 import useBoolean from "~/hooks/useBoolean";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useStores from "~/hooks/useStores";
-import { tagPath } from "~/utils/routeHelpers";
 import DocumentMenu from "~/menus/DocumentMenu";
 import {
   useDragStar,
@@ -191,81 +190,6 @@ const StarredCollectionLink = observer(function StarredCollectionLink({
   );
 });
 
-const StarredTagLink = observer(function StarredTagLink({
-  star,
-}: {
-  star: Star;
-}) {
-  const { tags } = useStores();
-  const [{ isDragging }, draggableRef] = useDragStar(star);
-  const getIndex = () => {
-    const next = star?.next();
-    return fractionalIndex(star?.index || null, next?.index || null);
-  };
-  const [reorderStarProps, dropToReorderRef] = useDropToReorderStar(getIndex);
-  const [createStarProps, dropToStarRef] = useDropToCreateStar(getIndex);
-
-  const tag = star.tagId ? tags.get(star.tagId) : undefined;
-
-  if (!tag) {
-    return null;
-  }
-
-  const cursor = (
-    <>
-      {reorderStarProps.isDragging && (
-        <DropCursor
-          isActiveDrop={reorderStarProps.isOverCursor}
-          innerRef={dropToReorderRef}
-        />
-      )}
-      {createStarProps.isDragging && (
-        <DropCursor
-          isActiveDrop={createStarProps.isOverCursor}
-          innerRef={dropToStarRef}
-        />
-      )}
-    </>
-  );
-
-  const colorDot = (
-    <TagColorDot $color={tag.color ?? null} />
-  );
-
-  return (
-    <Relative>
-      <Draggable ref={draggableRef} $isDragging={isDragging}>
-        <SidebarLink
-          depth={0}
-          to={tagPath(tag.name)}
-          icon={colorDot}
-          label={tag.name}
-          exact
-        />
-      </Draggable>
-      <Relative>{cursor}</Relative>
-    </Relative>
-  );
-});
-
-const TagColorDot = styled.span<{ $color: string | null }>`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  flex-shrink: 0;
-
-  &::before {
-    content: "";
-    display: block;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: ${({ $color, theme }) => $color ?? theme.textTertiary};
-    opacity: ${({ $color }) => ($color ? 1 : 0.5)};
-  }
-`;
 
 function StarredLink({ star }: Props) {
   const theme = useTheme();
@@ -409,10 +333,6 @@ function StarredLink({ star }: Props) {
         />
       </SidebarDisclosureContext.Provider>
     );
-  }
-
-  if (star.tagId) {
-    return <StarredTagLink star={star} />;
   }
 
   return null;

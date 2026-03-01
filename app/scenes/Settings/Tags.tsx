@@ -82,10 +82,9 @@ function TagEditForm({ initialName, initialColor, submitLabel, onSubmit }: TagEd
 					<ColorPicker alpha={false} activeColor={color} onSelect={setColor} />
 					{color && (
 						<Tooltip content={t("Remove color")}>
-							<NudeButton type="button" onClick={() => setColor(null)}>
+							<RemoveColorButton type="button" onClick={() => setColor(null)} aria-label={t("Remove color")}>
 								<CloseIcon size={16} />
-								{t("Remove color")}
-							</NudeButton>
+							</RemoveColorButton>
 						</Tooltip>
 					)}
 				</ColorPickerWrapper>
@@ -315,6 +314,21 @@ const ColorPickerWrapper = styled.div`
 	flex-direction: column;
 	gap: 8px;
 	align-items: flex-start;
+`;
+
+const RemoveColorButton = styled(NudeButton)`
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	color: ${s("textTertiary")};
+	border-radius: 4px;
+
+	&:hover {
+		color: ${s("text")};
+		background: ${s("sidebarHoverBackground")};
+	}
 `;
 
 const FormGroup = styled.div`
