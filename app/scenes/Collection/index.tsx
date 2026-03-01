@@ -26,7 +26,7 @@ import PlaceholderText from "~/components/PlaceholderText";
 import Scene from "~/components/Scene";
 import { editCollection } from "~/actions/definitions/collections";
 import useCommandBarActions from "~/hooks/useCommandBarActions";
-import { useLastVisitedPath } from "~/hooks/useLastVisitedPath";
+import { useTrackLastVisitedPath } from "~/hooks/useLastVisitedPath";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import { usePinnedDocuments } from "~/hooks/usePinnedDocuments";
 import usePolicy from "~/hooks/usePolicy";
@@ -49,6 +49,7 @@ import Overview from "./components/Overview";
 import { Header } from "./components/Header";
 import usePersistedState from "~/hooks/usePersistedState";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 
 const CollectionScene = observer(function CollectionScene_() {
   const params = useParams<{ collectionSlug?: string }>();
@@ -60,29 +61,28 @@ const CollectionScene = observer(function CollectionScene_() {
   const { documents, collections, shares, ui } = useStores();
   const [error, setError] = useState<Error | undefined>();
   const currentPath = location.pathname;
-  const [, setLastVisitedPath] = useLastVisitedPath();
+  useTrackLastVisitedPath(currentPath);
   const sidebarContext = useLocationSidebarContext();
   const isEditRoute = match.path === matchCollectionEdit;
 
   const id = params.collectionSlug || "";
   const urlId = id.split("-").pop() ?? "";
 
-  const collection: Collection | null | undefined = collections.get(id);
+  const collection = collections.get(id);
   const can = usePolicy(collection);
+  const hasDescription = collection?.data
+    ? !ProsemirrorHelper.isEmptyData(collection.data)
+    : false;
 
   const { pins, count } = usePinnedDocuments(urlId, collection?.id);
 
   const [collectionTab, setCollectionTab] = usePersistedState<CollectionTab>(
     `collection-tab:${collection?.id}`,
-    collection?.hasDescription ? CollectionTab.Overview : CollectionTab.Recent,
+    hasDescription ? CollectionTab.Overview : CollectionTab.Recent,
     {
       listen: false,
     }
   );
-
-  useEffect(() => {
-    setLastVisitedPath(currentPath);
-  }, [currentPath, setLastVisitedPath]);
 
   useEffect(() => {
     if (collection?.name) {
@@ -134,7 +134,7 @@ const CollectionScene = observer(function CollectionScene_() {
     return <Loading />;
   }
 
-  const showOverview = can.update || collection?.hasDescription;
+  const showOverview = can.update || hasDescription;
 
   return (
     <Scene
@@ -176,7 +176,10 @@ const CollectionScene = observer(function CollectionScene_() {
       >
         <CenteredContent withStickyHeader>
           <Notices collection={collection} />
-          <Header collection={collection} />
+          <Header
+            collection={collection}
+            isEditing={isEditRoute && !!user?.separateEditMode}
+          />
 
           <PinnedDocuments
             pins={pins}
@@ -209,7 +212,9 @@ const CollectionScene = observer(function CollectionScene_() {
                 {showOverview ? (
                   <Overview
                     collection={collection}
-                    readOnly={!isEditRoute && !!user?.separateEditMode}
+                    readOnly={
+                      !can.update || (!isEditRoute && !!user?.separateEditMode)
+                    }
                   />
                 ) : (
                   <Redirect

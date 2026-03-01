@@ -4,7 +4,7 @@ import type { Node } from "prosemirror-model";
 import type { Transaction } from "prosemirror-state";
 import { Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import refractor from "refractor/core";
+import type refractorType from "refractor/core";
 import { getLoaderForLanguage, getRefractorLangForLanguage } from "../lib/code";
 import { isRemoteTransaction } from "../lib/multiplayer";
 import { findBlockNodes } from "../queries/findChildren";
@@ -21,8 +21,17 @@ const languagePromises: Record<
   Promise<string | undefined> | undefined
 > = {};
 
+let refractor: typeof refractorType | undefined;
+
+/** Lazily load refractor core. */
+async function getRefractor() {
+  refractor ??= (await import("refractor/core")).default;
+  return refractor;
+}
+
 async function loadLanguage(language: string) {
-  if (!language || refractor.registered(language)) {
+  const r = await getRefractor();
+  if (!language || r.registered(language)) {
     return;
   }
 
@@ -37,7 +46,7 @@ async function loadLanguage(language: string) {
 
   languagePromises[language] = loader()
     .then((syntax) => {
-      refractor.register(syntax);
+      r.register(syntax);
       return language;
     })
     .catch((err) => {
@@ -73,7 +82,7 @@ function getDecorations({
   ).filter((item) => item.node.type.name === name);
 
   function parseNodes(
-    nodes: refractor.RefractorNode[],
+    nodes: refractorType.RefractorNode[],
     classNames: string[] = []
   ): {
     text: string;
@@ -133,10 +142,10 @@ function getDecorations({
 
       if (!lang) {
         // do nothing
-      } else if (refractor.registered(lang)) {
+      } else if (refractor?.registered(lang)) {
         languagesToImport.delete(language);
 
-        const nodes = refractor.highlight(block.node.textContent, lang);
+        const nodes = refractor!.highlight(block.node.textContent, lang);
         const newDecorations = parseNodes(nodes)
           .map((node: ParsedNode) => {
             const from = startPos;
@@ -222,14 +231,12 @@ export function CodeHighlighting({
     },
     view: (view) => {
       if (!highlighted) {
-        // we don't highlight code blocks on the first render as part of mounting
-        // as it's expensive (relative to the rest of the document). Instead let
-        // it render un-highlighted and then trigger a defered render of highlighting
-        // by updating the plugins metadata
-        requestAnimationFrame(() => {
+        void getRefractor().then(() => {
           if (!view.isDestroyed) {
             view.dispatch(
-              view.state.tr.setMeta("codeHighlighting", { loaded: true })
+              view.state.tr.setMeta("codeHighlighting", {
+                langLoaded: true,
+              })
             );
           }
         });

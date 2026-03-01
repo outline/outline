@@ -30,7 +30,7 @@ export const HooksSlackCommandSchema = z.object({
     token: z.string(),
     team_id: z.string(),
     user_id: z.string(),
-    text: z.string().optional().default(""),
+    text: z.string().prefault(""),
   }),
 });
 

@@ -1,4 +1,5 @@
 import compact from "lodash/compact";
+import { observer } from "mobx-react";
 import { GroupIcon } from "outline-icons";
 import * as React from "react";
 import { useCallback, useMemo } from "react";
@@ -32,7 +33,7 @@ const STICKY_OFFSET = HEADER_HEIGHT + FILTER_HEIGHT;
 
 type Props = Omit<TableProps<Group>, "columns" | "rowHeight">;
 
-function GroupRowContextMenu({
+const GroupRowContextMenu = observer(function GroupRowContextMenu({
   group,
   menuLabel,
   children,
@@ -47,7 +48,7 @@ function GroupRowContextMenu({
       {children}
     </ContextMenu>
   );
-}
+});
 
 export function GroupsTable(props: Props) {
   const { t } = useTranslation();

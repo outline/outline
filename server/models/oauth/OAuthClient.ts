@@ -15,17 +15,22 @@ import {
   Length,
   BeforeCreate,
   AllowNull,
+  IsDate,
   IsIn,
+  Unique,
 } from "sequelize-typescript";
 import { randomString } from "@shared/random";
 import { OAuthClientValidation } from "@shared/validations";
 import Team from "@server/models/Team";
 import User from "@server/models/User";
 import ParanoidModel from "@server/models/base/ParanoidModel";
+import { SkipChangeset } from "@server/models/decorators/Changeset";
 import Encrypted from "@server/models/decorators/Encrypted";
 import Fix from "@server/models/decorators/Fix";
+import { hash } from "@server/utils/crypto";
 import IsUrlOrRelativePath from "@server/models/validators/IsUrlOrRelativePath";
 import NotContainsUrl from "@server/models/validators/NotContainsUrl";
+import type { FindOptions } from "sequelize";
 
 @Table({
   tableName: "oauth_clients",
@@ -39,6 +44,8 @@ class OAuthClient extends ParanoidModel<
   static eventNamespace = "oauthClients";
 
   public static clientSecretPrefix = "ol_sk_";
+
+  public static registrationAccessTokenPrefix = "ol_rat_";
 
   @NotContainsUrl
   @Length({ max: OAuthClientValidation.maxNameLength })
@@ -99,6 +106,23 @@ class OAuthClient extends ParanoidModel<
   @Column(DataType.ARRAY(DataType.STRING))
   redirectUris: string[];
 
+  /** The last time this client was used to make an API request. */
+  @AllowNull
+  @IsDate
+  @Column
+  @SkipChangeset
+  lastActiveAt: Date | null;
+
+  /** SHA-256 hash of the registration access token (RFC 7592). */
+  @AllowNull
+  @Unique
+  @Column
+  registrationAccessTokenHash: string | null;
+
+  /** The cached registration access token. Only available during creation. */
+  @Column(DataType.VIRTUAL)
+  registrationAccessToken: string | null;
+
   // associations
 
   @BelongsTo(() => Team, "teamId")
@@ -109,11 +133,12 @@ class OAuthClient extends ParanoidModel<
   teamId: string;
 
   @BelongsTo(() => User, "createdById")
-  createdBy: User;
+  createdBy: User | null;
 
+  @AllowNull
   @ForeignKey(() => User)
   @Column(DataType.UUID)
-  createdById: string;
+  createdById: string | null;
 
   // instance methods
 
@@ -124,12 +149,38 @@ class OAuthClient extends ParanoidModel<
     this.clientSecret = OAuthClient.generateNewClientSecret();
   }
 
+  /**
+   * Rotate the registration access token. Sets both the plain token
+   * (virtual) and its hash. Does not persist to database.
+   */
+  public rotateRegistrationAccessToken() {
+    const token = OAuthClient.generateNewRegistrationAccessToken();
+    this.registrationAccessToken = token;
+    this.registrationAccessTokenHash = hash(token);
+  }
+
+  /**
+   * Determine if this client was created through dynamic client registration (DCR).
+   * DCR clients are identified by having a null `createdById`, meaning they were not created by any user.
+   *
+   * @returns true if this client is a DCR client, false otherwise.
+   */
+  public get isDCR() {
+    return !this.createdById;
+  }
+
   // hooks
 
   @BeforeCreate
   public static async generateCredentials(model: OAuthClient) {
     model.clientId = OAuthClient.generateNewClientId();
     model.clientSecret = OAuthClient.generateNewClientSecret();
+
+    if (model.isDCR) {
+      const token = OAuthClient.generateNewRegistrationAccessToken();
+      model.registrationAccessToken = token;
+      model.registrationAccessTokenHash = hash(token);
+    }
   }
 
   // static methods
@@ -146,6 +197,29 @@ class OAuthClient extends ParanoidModel<
         clientId,
       },
     });
+  }
+
+  /**
+   * Find an OAuthClient by its registration access token.
+   *
+   * @param token The plain registration access token.
+   * @param options Optional Sequelize find options to include transaction or other query modifiers.
+   * @returns the OAuthClient or null if not found.
+   */
+  public static async findByRegistrationAccessToken(
+    token: string,
+    options?: FindOptions
+  ) {
+    return this.findOne({
+      where: {
+        registrationAccessTokenHash: hash(token),
+      },
+      ...options,
+    });
+  }
+
+  private static generateNewRegistrationAccessToken(): string {
+    return `${OAuthClient.registrationAccessTokenPrefix}${randomString(38)}`;
   }
 
   private static generateNewClientId(): string {

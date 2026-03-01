@@ -4,7 +4,7 @@ import presentAuthenticationProvider from "./authenticationProvider";
 import presentAvailableTeam from "./availableTeam";
 import presentCollection from "./collection";
 import presentComment from "./comment";
-import presentDocument from "./document";
+import presentDocument, { presentDocuments } from "./document";
 import presentEvent from "./event";
 import presentFileOperation from "./fileOperation";
 import presentGroup from "./group";
@@ -26,6 +26,7 @@ import presentShare from "./share";
 import presentStar from "./star";
 import presentSubscription from "./subscription";
 import presentTeam from "./team";
+import presentTemplate from "./template";
 import presentUser from "./user";
 import presentView from "./view";
 import presentEmoji from "./emoji";
@@ -38,6 +39,7 @@ export {
   presentCollection,
   presentComment,
   presentDocument,
+  presentDocuments,
   presentEvent,
   presentFileOperation,
   presentGroup,
@@ -60,6 +62,7 @@ export {
   presentStar,
   presentSubscription,
   presentTeam,
+  presentTemplate,
   presentUser,
   presentView,
   presentEmoji,

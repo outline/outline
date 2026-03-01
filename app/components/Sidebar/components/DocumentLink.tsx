@@ -416,7 +416,7 @@ function InnerDocumentLink(
   return (
     <ActionContextProvider
       value={{
-        activeDocumentId: node.id,
+        activeModels: document ? [document] : [],
       }}
     >
       <Relative ref={parentRef}>
@@ -451,7 +451,7 @@ function InnerDocumentLink(
                 isActiveDrop={isOverReparent && canDropToReparent}
                 depth={depth}
                 exact={false}
-                showActions={menuOpen}
+                $showActions={menuOpen}
                 scrollIntoViewIfNeeded={sidebarContext === "collections"}
                 isDraft={isDraft}
                 ref={ref}

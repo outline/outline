@@ -23,7 +23,10 @@ import Team from "@server/models/Team";
 import User from "@server/models/User";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { sequelize } from "@server/storage/database";
-import type { SearchOptions, SearchResponse } from "@server/utils/BaseSearchProvider";
+import type {
+  SearchOptions,
+  SearchResponse,
+} from "@server/utils/BaseSearchProvider";
 import BaseSearchProvider from "@server/utils/BaseSearchProvider";
 
 type RankedDocument = Document & {
@@ -224,6 +227,7 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
       query,
       sort: options.sort,
       direction: options.direction,
+      usePopularityBoost: options.usePopularityBoost,
     });
 
     try {
@@ -508,43 +512,48 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
     query,
     sort,
     direction,
+    usePopularityBoost = true,
   }: {
     query?: string;
     sort?: SortFilter;
     direction?: DirectionFilter;
+    usePopularityBoost?: boolean;
   }): FindOptions {
     const attributes: FindAttributeOptions = ["id"];
     const replacements: BindOrReplacements = {};
     const order: Order = [];
 
     if (query) {
-      // Combine text relevance with logarithmic popularity boost
-      // Popular documents get a boost, but text relevance remains primary
-      attributes.push([
-        Sequelize.literal(
-          `ts_rank("searchVector", to_tsquery('english', :query)) * (1 + LN(1 + COALESCE("popularityScore", 0)))`
-        ),
-        "searchRanking",
-      ]);
+      const rankExpression = usePopularityBoost
+        ? `ts_rank("searchVector", to_tsquery('english', :query)) * (1 + 0.25 * LN(1 + COALESCE("popularityScore", 0)))`
+        : `ts_rank("searchVector", to_tsquery('english', :query))`;
+
+      attributes.push([Sequelize.literal(rankExpression), "searchRanking"]);
       replacements["query"] = PostgresSearchProvider.webSearchQuery(query);
     }
 
-    // Apply custom sort or default to updatedAt DESC
-    const sortField = sort ?? SortFilter.UpdatedAt;
-    const sortDirection = direction ?? DirectionFilter.DESC;
-
-    if (sortField === SortFilter.Title) {
-      order.push([
-        Sequelize.fn("LOWER", Sequelize.col("title")),
-        sortDirection,
-      ]);
-    } else {
-      order.push([sortField, sortDirection]);
-    }
-
-    // Always prioritize search ranking as a secondary sort criterion
-    if (query) {
+    // When searching with a query and no explicit sort, prioritize search
+    // ranking as the primary sort criterion. Otherwise, use the specified sort
+    // with ranking as a tiebreaker.
+    if (query && !sort) {
       order.push(["searchRanking", "DESC"]);
+      order.push([SortFilter.UpdatedAt, DirectionFilter.DESC]);
+    } else {
+      const sortField = sort ?? SortFilter.UpdatedAt;
+      const sortDirection = direction ?? DirectionFilter.DESC;
+
+      if (sortField === SortFilter.Title) {
+        order.push([
+          Sequelize.fn("LOWER", Sequelize.col("title")),
+          sortDirection,
+        ]);
+      } else {
+        order.push([sortField, sortDirection]);
+      }
+
+      if (query) {
+        order.push(["searchRanking", "DESC"]);
+      }
     }
 
     return { attributes, replacements, order };
@@ -731,9 +740,9 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
       );
 
       // Extract quoted queries and add them to the where clause, up to a maximum of 3 total.
-      const quotedQueries = Array.from(
-        limitedQuery.matchAll(/"([^"]*)"/g)
-      ).map((match) => match[1]);
+      const quotedQueries = Array.from(limitedQuery.matchAll(/"([^"]*)"/g)).map(
+        (match) => match[1]
+      );
 
       // remove quoted queries from the limited query
       limitedQuery = limitedQuery.replace(/"([^"]*)"/g, "");

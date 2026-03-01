@@ -311,12 +311,14 @@ export const MentionIssue = observer((props: IssuePrProps) => {
   }
 
   const issue = unfurl as UnfurlResponse[UnfurlResourceType.Issue];
-
   const url = new URL(issue.url);
+
   const service =
     url.hostname === "github.com"
       ? IntegrationService.GitHub
-      : IntegrationService.Linear;
+      : url.hostname === "linear.app"
+        ? IntegrationService.Linear
+        : IntegrationService.GitLab;
 
   return (
     <a

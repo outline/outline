@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { ArchiveIcon, GoToIcon, ShapesIcon, TrashIcon } from "outline-icons";
+import { ArchiveIcon, GoToIcon, TrashIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
@@ -11,7 +11,7 @@ import CollectionIcon from "~/components/Icons/CollectionIcon";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import { archivePath, settingsPath, trashPath } from "~/utils/routeHelpers";
+import { archivePath, trashPath } from "~/utils/routeHelpers";
 import { createInternalLinkAction } from "~/actions";
 import { ActiveDocumentSection } from "~/actions/sections";
 
@@ -66,13 +66,6 @@ function DocumentBreadcrumb(
         icon: <ArchiveIcon />,
         visible: document.isArchived,
         to: archivePath(),
-      }),
-      createInternalLinkAction({
-        name: t("Templates"),
-        section: ActiveDocumentSection,
-        icon: <ShapesIcon />,
-        visible: document.template,
-        to: settingsPath("templates"),
       }),
       createInternalLinkAction({
         name: collection?.name,

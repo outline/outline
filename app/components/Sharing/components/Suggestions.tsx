@@ -193,8 +193,8 @@ export const Suggestions = observer(
             ...pending.map((suggestion) => (
               <PendingListItem
                 keyboardNavigation
-                {...getListItemProps(suggestion)}
                 key={suggestion.id}
+                {...getListItemProps(suggestion)}
                 onClick={() => removePendingId(suggestion.id)}
                 onKeyDown={(ev) => {
                   if (ev.key === "Enter") {
@@ -212,12 +212,14 @@ export const Suggestions = observer(
               />
             )),
             pending.length > 0 &&
-              (suggestionsWithPending.length > 0 || isEmpty) && <Separator />,
+              (suggestionsWithPending.length > 0 || isEmpty) && (
+                <Separator key="separator" />
+              ),
             ...suggestionsWithPending.map((suggestion) => (
               <ListItem
                 keyboardNavigation
-                {...getListItemProps(suggestion as User)}
                 key={suggestion.id}
+                {...getListItemProps(suggestion as User)}
                 onClick={() => addPendingId(suggestion.id)}
                 onKeyDown={(ev) => {
                   if (ev.key === "Enter") {
@@ -230,7 +232,9 @@ export const Suggestions = observer(
               />
             )),
             isEmpty && (
-              <Empty style={{ marginTop: 22 }}>{t("No matches")}</Empty>
+              <Empty key="empty" style={{ marginTop: 22 }}>
+                {t("No matches")}
+              </Empty>
             ),
           ]}
         </ArrowKeyNavigation>

@@ -5,6 +5,7 @@ import WebhookDisabledEmail from "@server/emails/templates/WebhookDisabledEmail"
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import {
+  Attachment,
   Collection,
   FileOperation,
   Group,
@@ -25,6 +26,7 @@ import {
   Comment,
 } from "@server/models";
 import {
+  presentAttachment,
   presentCollection,
   presentDocument,
   presentRevision,
@@ -44,6 +46,7 @@ import {
 } from "@server/presenters";
 import { BaseTask } from "@server/queues/tasks/base/BaseTask";
 import type {
+  AttachmentEvent,
   CollectionEvent,
   CollectionGroupEvent,
   CollectionUserEvent,
@@ -103,11 +106,13 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     });
 
     switch (event.name) {
-      case "api_keys.create":
-      case "api_keys.delete":
       case "attachments.create":
       case "attachments.update":
       case "attachments.delete":
+        await this.handleAttachmentEvent(subscription, event);
+        return;
+      case "api_keys.create":
+      case "api_keys.delete":
       case "subscriptions.create":
       case "subscriptions.delete":
       case "authenticationProviders.update":
@@ -246,6 +251,10 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       case "oauthClients.delete":
         // Ignored
         return;
+      case "templates.create":
+      case "templates.update":
+      case "templates.delete":
+      case "templates.restore":
       case "passkeys.create":
       case "passkeys.update":
       case "passkeys.delete":
@@ -254,6 +263,24 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       default:
         assertUnreachable(event);
     }
+  }
+
+  private async handleAttachmentEvent(
+    subscription: WebhookSubscription,
+    event: AttachmentEvent
+  ): Promise<void> {
+    const model = await Attachment.findByPk(event.modelId, {
+      paranoid: false,
+    });
+
+    await this.sendWebhook({
+      event,
+      subscription,
+      payload: {
+        id: event.modelId,
+        model: model && presentAttachment(model),
+      },
+    });
   }
 
   private async handleWebhookSubscriptionEvent(
@@ -690,6 +717,9 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     });
   }
 
+  /** Maximum number of bytes to read from webhook response bodies. */
+  private static readonly MAX_RESPONSE_BODY_SIZE = 1024;
+
   private async sendWebhook({
     event,
     subscription,
@@ -704,8 +734,11 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       status: "pending",
     });
 
-    let response, requestBody, requestHeaders;
+    let response: Awaited<ReturnType<typeof fetch>> | undefined;
+    let requestBody, requestHeaders;
     let status: WebhookDeliveryStatus;
+    let responseBody = "";
+
     try {
       requestBody = presentWebhook({
         event,
@@ -744,12 +777,25 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       status = "failed";
     }
 
+    if (response) {
+      try {
+        // TODO: Use stream to avoid buffering large responses in memory.
+        const text = await response.text();
+        responseBody = text.slice(0, DeliverWebhookTask.MAX_RESPONSE_BODY_SIZE);
+      } catch (err) {
+        Logger.debug(
+          "task",
+          `Failed to read webhook response body: ${(err as Error).message}`
+        );
+      }
+    }
+
     await delivery.update({
       status,
       statusCode: response ? response.status : null,
       requestBody,
       requestHeaders,
-      responseBody: response ? await response.text() : "",
+      responseBody,
       responseHeaders: response
         ? Object.fromEntries(response.headers.entries())
         : {},

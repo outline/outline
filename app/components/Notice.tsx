@@ -39,7 +39,7 @@ const Container = styled(Text)`
   border-radius: 4px;
   position: relative;
   font-size: 14px;
-  margin: 1em 0 0;
+  margin: 1em 0;
 
   svg {
     flex-shrink: 0;

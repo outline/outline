@@ -27,7 +27,7 @@ import env from "~/env";
 import usePaginatedRequest from "~/hooks/usePaginatedRequest";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
-import type { SearchResult } from "~/types";
+import type { PaginationParams, SearchResult } from "~/types";
 import { searchPath } from "~/utils/routeHelpers";
 import { decodeURIComponentSafe } from "~/utils/urls";
 import CollectionFilter from "./components/CollectionFilter";
@@ -39,10 +39,12 @@ import SearchInput from "./components/SearchInput";
 import { SortInput } from "./components/SortInput";
 import UserFilter from "./components/UserFilter";
 import { HStack } from "~/components/primitives/HStack";
+import useMobile from "~/hooks/useMobile";
 
 function Search() {
   const { t } = useTranslation();
   const { documents, searches } = useStores();
+  const isMobile = useMobile();
 
   // routing
   const params = useQuery();
@@ -122,10 +124,15 @@ function Search() {
     }
 
     if (isSearchable) {
-      return async () =>
-        titleFilter
-          ? await documents.searchTitles(filters)
-          : await documents.search(filters);
+      return async (params?: PaginationParams) => {
+        const paginationParams = {
+          offset: params?.offset,
+          limit: params?.limit,
+        };
+        return titleFilter
+          ? await documents.searchTitles({ ...filters, ...paginationParams })
+          : await documents.search({ ...filters, ...paginationParams });
+      };
     }
 
     return () => Promise.resolve([] as SearchResult[]);
@@ -179,6 +186,10 @@ function Search() {
   };
 
   const handleKeyDown = (ev: React.KeyboardEvent<HTMLInputElement>) => {
+    if (ev.nativeEvent.isComposing) {
+      return;
+    }
+
     if (ev.key === "Enter") {
       updateLocation(ev.currentTarget.value);
       return;
@@ -224,8 +235,19 @@ function Search() {
   const handleEscape = () => searchInputRef.current?.focus();
   const showEmpty = !loading && query && data?.length === 0;
 
+  const sortInput = filterVisibility.sort ? (
+    <SortInput
+      sort={sort}
+      direction={direction}
+      onSelect={(sort, direction) => handleFilterChange({ sort, direction })}
+    />
+  ) : null;
+
   return (
-    <Scene textTitle={query ? `${query} – ${t("Search")}` : t("Search")}>
+    <Scene
+      textTitle={query ? `${query} – ${t("Search")}` : t("Search")}
+      actions={isMobile ? sortInput : null}
+    >
       <RegisterKeyDown trigger="Escape" handler={history.goBack} />
       {loading && <LoadingIndicator />}
       <ResultsWrapper column auto>
@@ -248,9 +270,8 @@ function Search() {
             onKeyDown={handleKeyDown}
             defaultValue={query ?? ""}
           />
-
           <Filters>
-            <Flex align="center" gap={4}>
+            <Flex align="center" gap={4} wrap>
               {filterVisibility.document && (
                 <DocumentFilter
                   document={document!}
@@ -299,15 +320,7 @@ function Search() {
                 />
               )}
             </Flex>
-            {filterVisibility.sort && (
-              <SortInput
-                sort={sort}
-                direction={direction}
-                onSelect={(sort, direction) =>
-                  handleFilterChange({ sort, direction })
-                }
-              />
-            )}
+            {isMobile ? null : sortInput}
           </Filters>
         </form>
         {isSearchable ? (
@@ -349,7 +362,6 @@ function Search() {
                           highlight={query}
                           context={result.context}
                           showCollection
-                          showTemplate
                         />
                       ))
                     : null

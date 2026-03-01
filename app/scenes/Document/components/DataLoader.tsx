@@ -27,6 +27,7 @@ import {
 } from "~/utils/errors";
 import history from "~/utils/history";
 import { matchDocumentEdit, settingsPath } from "~/utils/routeHelpers";
+import useDocumentSidebar from "../hooks/useDocumentSidebar";
 import Loading from "./Loading";
 import MarkAsViewed from "./MarkAsViewed";
 
@@ -89,6 +90,8 @@ function DataLoader({ match, children }: Props) {
   const location = useLocation<LocationState>();
   const missingPolicy = !can || Object.keys(can).length === 0;
 
+  useDocumentSidebar();
+
   React.useEffect(() => {
     async function fetchDocument() {
       try {
@@ -104,18 +107,23 @@ function DataLoader({ match, children }: Props) {
 
   React.useEffect(() => {
     async function fetchRevision() {
-      if (revisionId) {
-        try {
-          await revisions[revisionId === "latest" ? "fetchLatest" : "fetch"](
-            revisionId
-          );
-        } catch (err) {
-          setError(err);
+      if (!revisionId) {
+        return;
+      }
+      try {
+        if (revisionId === "latest") {
+          if (document?.id) {
+            await revisions.fetchLatest(document.id);
+          }
+        } else {
+          await revisions.fetch(revisionId);
         }
+      } catch (err) {
+        setError(err);
       }
     }
     void fetchRevision();
-  }, [revisions, revisionId]);
+  }, [revisions, revisionId, document?.id]);
 
   React.useEffect(() => {
     async function fetchViews() {
@@ -162,7 +170,7 @@ function DataLoader({ match, children }: Props) {
 
       // If we're attempting to update an archived, deleted, or otherwise
       // uneditable document then forward to the canonical read url.
-      if (!missingPolicy && !can.update && isEditRoute && !document.template) {
+      if (!missingPolicy && !can.update && isEditRoute) {
         history.push(document.url);
         return;
       }

@@ -14,6 +14,7 @@ it("should serialize domain policies on Team", async () => {
     teamId: team.id,
   });
   const response = serialize(user, team);
-  expect(response.createTemplate).toBeTruthy();
+  expect(response.readTemplate).toBeTruthy();
+  expect(response.createTemplate).toEqual(false);
   expect(response.inviteUser).toBeTruthy();
 });

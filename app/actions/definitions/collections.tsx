@@ -29,8 +29,8 @@ import DynamicCollectionIcon from "~/components/Icons/CollectionIcon";
 import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
 import {
   createAction,
-  createActionWithChildren,
   createInternalLinkAction,
+  createActionWithChildren,
 } from "~/actions";
 import { ActiveCollectionSection, CollectionSection } from "~/actions/sections";
 import { setPersistedState } from "~/hooks/usePersistedState";
@@ -152,7 +152,7 @@ export const importDocument = createAction({
     getActivePolicies(Collection).some(
       (policy) => policy.abilities.createDocument
     ),
-  perform: ({ getActiveModel, stores }) => {
+  perform: ({ t, getActiveModel, stores }) => {
     const { documents } = stores;
     const collection = getActiveModel(Collection);
     if (!collection) {
@@ -165,6 +165,7 @@ export const importDocument = createAction({
     input.onchange = async (ev) => {
       const files = getEventFiles(ev);
       const file = files[0];
+      const toastId = toast.loading(`${t("Uploading")}…`);
 
       try {
         const document = await documents.import(file, null, collection.id, {
@@ -173,6 +174,8 @@ export const importDocument = createAction({
         history.push(document.path);
       } catch (err) {
         toast.error(err.message);
+      } finally {
+        toast.dismiss(toastId);
       }
     };
 
@@ -525,17 +528,11 @@ export const createTemplate = createInternalLinkAction({
   keywords: "new create template",
   visible: ({ getActivePolicies }) =>
     getActivePolicies(Collection).some(
-      (policy) => policy.abilities.createDocument
+      (policy) => policy.abilities.createTemplate
     ),
-  to: ({ getActiveModel, sidebarContext }) => {
+  to: ({ getActiveModel }) => {
     const collection = getActiveModel(Collection);
-    const [pathname, search] = newTemplatePath(collection?.id).split("?");
-
-    return {
-      pathname,
-      search,
-      state: { sidebarContext },
-    };
+    return newTemplatePath(collection?.id);
   },
 });
 

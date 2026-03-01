@@ -44,7 +44,6 @@ type Props = Omit<
 
 function MentionMenu({ search, isActive, ...rest }: Props) {
   const [loaded, setLoaded] = useState(false);
-  const [items, setItems] = useState<MentionItem[]>([]);
   const { t } = useTranslation();
   const { auth, documents, users, collections, groups } = useStores();
   const actorId = auth.currentUserId;
@@ -76,7 +75,15 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
 
   useEffect(() => {
     if (actorId && !loading) {
-      const items: MentionItem[] = users
+      setLoaded(true);
+    }
+  }, [actorId, loading]);
+
+  // Computed in the render body so MobX observer can track store access
+  // (e.g. searchSuppressed). Previously this lived inside a useEffect which
+  // runs outside the reactive context and triggered MobX warnings.
+  const items: MentionItem[] = actorId
+    ? users
         .findByQuery(search, { maxResults: maxResultsInSection })
         .map(
           (user) =>
@@ -122,7 +129,9 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
                 </Flex>
               ),
               title: group.name,
-              subtitle: t("{{ count }} members", { count: group.memberCount }),
+              subtitle: t("{{ count }} members", {
+                count: group.memberCount,
+              }),
               section: GroupSection,
               appendSpace: true,
               attrs: {
@@ -218,22 +227,8 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
               label: search,
             },
           } as MentionItem,
-        ]);
-
-      setItems(items);
-      setLoaded(true);
-    }
-  }, [
-    t,
-    actorId,
-    loading,
-    search,
-    users,
-    documents,
-    maxResultsInSection,
-    groups,
-    collections,
-  ]);
+        ])
+    : [];
 
   const handleSelect = useCallback(
     async (item: MentionItem) => {

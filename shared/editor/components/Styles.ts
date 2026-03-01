@@ -7,7 +7,7 @@ import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { videoStyle } from "./Video";
 
 export type Props = {
-  rtl: boolean;
+  $rtl: boolean;
   readOnly?: boolean;
   readOnlyWriteCheckboxes?: boolean;
   commenting?: boolean;
@@ -1101,7 +1101,7 @@ h6:not(.placeholder)::before {
 }
 
 .with-emoji {
-  margin-${props.rtl ? "right" : "left"}: -1em;
+  margin-${props.$rtl ? "right" : "left"}: -1em;
 }
 
 .emoji img {
@@ -1253,13 +1253,16 @@ ${
   &:not([data-resolved]):not([data-draft]), &[data-draft][data-user-id="${
     props.userId ?? ""
   }"]  {
-    border-bottom: 2px solid ${props.theme.commentMarkBackground};
+    text-decoration: underline 2px ${props.theme.commentMarkBackground};
     transition: background 100ms ease-in-out;
-    border-radius: 2px;
 
     &:hover {
       ${props.readOnly ? "cursor: var(--pointer);" : ""}
       background: ${props.theme.commentMarkBackground};
+
+      * {
+        background: transparent !important;
+      }
     }
   }
 }
@@ -1486,6 +1489,11 @@ ol li {
 .${EditorStyleHelper.checklistWrapper} {
   position: relative;
   margin: 1em 0;
+
+  .${EditorStyleHelper.checklistWrapper} {
+    position: static;
+    margin: 0;
+  }
 }
 
 .${EditorStyleHelper.checklistCompletedToggle} {
@@ -1762,6 +1770,17 @@ mark {
     overflow: hidden;
     position: relative;
   }
+
+  &.ProseMirror-selectednode {
+    outline: none;
+
+    & + .mermaid-diagram-wrapper {
+      &:not(.empty) {
+        cursor: zoom-in;
+      }
+      outline: 2px solid ${props.theme.selected};
+    }
+  }
 }
 
 .ProseMirror[contenteditable="false"] .code-block[data-language=mermaid],
@@ -1954,8 +1973,10 @@ table {
     padding: 4px 0;
   }
 
-  td[data-bgcolor] {
+  td[data-bgcolor],
+  th[data-bgcolor] {
     color: var(--cell-text-color);
+    background: linear-gradient(var(--cell-bg-color), var(--cell-bg-color)), linear-gradient(${props.theme.background}, ${props.theme.background});
 
     p, a, p a {
       color: var(--cell-text-color, inherit);
@@ -1968,12 +1989,8 @@ table {
   }
 
   .selectedCell {
-    ${
-      props.readOnly
-        ? "background: inherit;"
-        : `/* Using box-shadow inset instead of background to allow overlay on cell background colors */
-    box-shadow: inset 0 0 0 9999px ${props.theme.tableSelectedBackground};`
-    }
+    /* Using box-shadow inset instead of background to allow overlay on cell background colors */
+    box-shadow: inset 0 0 0 9999px ${props.theme.tableSelectedBackground};
 
     /* fixes Firefox background color painting over border:
       * https://bugzilla.mozilla.org/show_bug.cgi?id=688556 */
@@ -2287,7 +2304,7 @@ table {
 }
 
 .${EditorStyleHelper.tableStickyHeader} {
-  th {
+  tr:first-child th {
     transform: translateY(calc(var(--header-offset, 64px) + var(--sticky-scroll-offset, 0px)));
     border-bottom: 1px solid ${props.theme.divider};
 
@@ -2395,7 +2412,7 @@ table {
   border: 0;
   padding: 0;
   margin-top: 1px;
-  margin-${props.rtl ? "right" : "left"}: -28px;
+  margin-${props.$rtl ? "right" : "left"}: -28px;
   border-radius: 4px;
 
   &:hover,
@@ -2585,6 +2602,7 @@ del {
     }
     flex-grow: 1;
     overflow: unset;
+    min-width: 0;
   }
 }
 `;

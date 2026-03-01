@@ -6,7 +6,7 @@ export const OAuthClientsInfoSchema = BaseSchema.extend({
   body: z
     .object({
       /** OAuth client id */
-      id: z.string().uuid().optional(),
+      id: z.uuid().optional(),
 
       /** OAuth clientId */
       clientId: z.string().optional(),
@@ -14,7 +14,7 @@ export const OAuthClientsInfoSchema = BaseSchema.extend({
       redirectUri: z.string().optional(),
     })
     .refine((data) => data.id || data.clientId, {
-      message: "Either id or clientId is required",
+      error: "Either id or clientId is required",
     }),
 });
 
@@ -25,7 +25,7 @@ export const OAuthClientsCreateSchema = BaseSchema.extend({
     /** OAuth client type */
     clientType: z
       .enum(OAuthClientValidation.clientTypes)
-      .default("confidential"),
+      .prefault("confidential"),
 
     /** OAuth client name */
     name: z.string(),
@@ -44,9 +44,13 @@ export const OAuthClientsCreateSchema = BaseSchema.extend({
 
     /** OAuth client redirect uri */
     redirectUris: z
-      .array(z.string().url())
-      .min(1, { message: "At least one redirect uri is required" })
-      .max(10, { message: "A maximum of 10 redirect uris are allowed" })
+      .array(z.url())
+      .min(1, {
+        error: "At least one redirect uri is required",
+      })
+      .max(10, {
+        error: "A maximum of 10 redirect uris are allowed",
+      })
       .refine(
         (uris) =>
           uris.every(
@@ -58,7 +62,7 @@ export const OAuthClientsCreateSchema = BaseSchema.extend({
       ),
 
     /** OAuth client published */
-    published: z.boolean().default(false),
+    published: z.boolean().prefault(false),
   }),
 });
 
@@ -66,7 +70,7 @@ export type OAuthClientsCreateReq = z.infer<typeof OAuthClientsCreateSchema>;
 
 export const OAuthClientsUpdateSchema = BaseSchema.extend({
   body: z.object({
-    id: z.string().uuid(),
+    id: z.uuid(),
 
     /** OAuth client type */
     clientType: z.enum(OAuthClientValidation.clientTypes).optional(),
@@ -88,9 +92,13 @@ export const OAuthClientsUpdateSchema = BaseSchema.extend({
 
     /** OAuth client redirect uri */
     redirectUris: z
-      .array(z.string().url())
-      .min(1, { message: "At least one redirect uri is required" })
-      .max(10, { message: "A maximum of 10 redirect uris are allowed" })
+      .array(z.url())
+      .min(1, {
+        error: "At least one redirect uri is required",
+      })
+      .max(10, {
+        error: "A maximum of 10 redirect uris are allowed",
+      })
       .refine(
         (uris) =>
           uris.every(
@@ -112,7 +120,7 @@ export type OAuthClientsUpdateReq = z.infer<typeof OAuthClientsUpdateSchema>;
 export const OAuthClientsDeleteSchema = BaseSchema.extend({
   body: z.object({
     /** OAuth client id */
-    id: z.string().uuid(),
+    id: z.uuid(),
   }),
 });
 
@@ -121,7 +129,7 @@ export type OAuthClientsDeleteReq = z.infer<typeof OAuthClientsDeleteSchema>;
 export const OAuthClientsRotateSecretSchema = BaseSchema.extend({
   body: z.object({
     /** OAuth client id */
-    id: z.string().uuid(),
+    id: z.uuid(),
   }),
 });
 

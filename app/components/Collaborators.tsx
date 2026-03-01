@@ -125,8 +125,8 @@ function Collaborators(props: Props) {
 
       return (
         <AvatarWithPresence
-          {...rest}
           key={collaborator.id}
+          {...rest}
           user={collaborator}
           isPresent={isPresent}
           isEditing={isEditing}

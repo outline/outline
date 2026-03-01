@@ -342,6 +342,16 @@ export class Environment {
   public FORCE_HTTPS = this.toBoolean(environment.FORCE_HTTPS ?? "true");
 
   /**
+   * When the app is behind a proxy, sets the HTTP header used for the client IP. 
+   * The default value is "X-Forwarded-For", common values are "X-Real-IP"
+   * and "X-Client-IP".
+   */
+  @IsOptional()
+  public PROXY_IP_HEADER = this.toOptionalString(
+    environment.PROXY_IP_HEADER
+  );
+
+  /**
    * Should the installation send anonymized statistics to the maintainers.
    * Defaults to true.
    */
@@ -722,6 +732,15 @@ export class Environment {
     this.toOptionalNumber(
       environment.OAUTH_PROVIDER_AUTHORIZATION_CODE_LIFETIME
     ) ?? 300;
+
+  /**
+   * Whether to disable OAuth Dynamic Client Registration (DCR). When set to
+   * true, the POST /oauth/register endpoint will be unavailable.
+   */
+  @IsBoolean()
+  public OAUTH_DISABLE_DCR = this.toBoolean(
+    environment.OAUTH_DISABLE_DCR ?? "false"
+  );
 
   /**
    * Enable unsafe-inline in script-src CSP directive

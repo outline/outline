@@ -37,10 +37,8 @@ type AuthInput = {
 export default function auth(options: AuthenticationOptions = {}) {
   return async function authMiddleware(ctx: AppContext, next: Next) {
     try {
-      const { type, token, user, service } = await validateAuthentication(
-        ctx,
-        options
-      );
+      const { type, token, user, service, scope } =
+        await validateAuthentication(ctx, options);
 
       await Promise.all([
         user.updateActiveAt(ctx),
@@ -52,6 +50,7 @@ export default function auth(options: AuthenticationOptions = {}) {
         token,
         type,
         service,
+        scope,
       };
 
       if (tracer) {
@@ -71,17 +70,6 @@ export default function auth(options: AuthenticationOptions = {}) {
         throw err;
       }
     }
-
-    Object.defineProperty(ctx, "context", {
-      configurable: true,
-      get() {
-        return {
-          auth: ctx.state.auth,
-          transaction: ctx.state.transaction,
-          ip: ctx.request.ip,
-        };
-      },
-    });
 
     return next();
   };
@@ -152,6 +140,7 @@ async function validateAuthentication(
   token: string;
   type: AuthenticationType;
   service?: string;
+  scope?: string[];
 }> {
   const { token, transport } = parseAuthentication(ctx);
 
@@ -162,6 +151,7 @@ async function validateAuthentication(
   let user: User | null;
   let type: AuthenticationType;
   let service: string | undefined;
+  let scope: string[] | undefined;
 
   if (OAuthAuthentication.match(token)) {
     if (transport !== "header") {
@@ -186,7 +176,7 @@ async function validateAuthentication(
     if (authentication.accessTokenExpiresAt < new Date()) {
       throw AuthenticationError("Access token is expired");
     }
-    if (!authentication.canAccess(ctx.request.url)) {
+    if (!authentication.canAccess(ctx.originalUrl)) {
       throw AuthenticationError(
         "Access token does not have access to this resource"
       );
@@ -205,6 +195,7 @@ async function validateAuthentication(
       throw AuthenticationError("Invalid access token");
     }
 
+    scope = authentication.scope;
     await authentication.updateActiveAt();
   } else if (ApiKey.match(token)) {
     if (transport === "cookie") {
@@ -228,7 +219,7 @@ async function validateAuthentication(
       throw AuthenticationError("API key is expired");
     }
 
-    if (!apiKey.canAccess(ctx.request.url)) {
+    if (!apiKey.canAccess(ctx.originalUrl)) {
       throw AuthenticationError(
         "API key does not have access to this resource"
       );
@@ -283,5 +274,6 @@ async function validateAuthentication(
     type,
     token,
     service,
+    scope,
   };
 }

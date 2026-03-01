@@ -27,6 +27,16 @@ export const isURLMentionable = ({
       );
     }
 
+    case IntegrationService.GitLab: {
+      const settings =
+        integration.settings as IntegrationSettings<IntegrationType.Embed>;
+      const gitlabHostname = settings.gitlab?.url
+        ? new URL(settings.gitlab?.url).hostname
+        : undefined;
+
+      return hostname === "gitlab.com" || hostname === gitlabHostname;
+    }
+
     default:
       return false;
   }
@@ -55,6 +65,14 @@ export const determineMentionType = ({
     case IntegrationService.Linear: {
       const type = pathParts[2];
       return type === "issue" ? MentionType.Issue : undefined;
+    }
+
+    case IntegrationService.GitLab: {
+      return pathname.includes("merge_requests")
+        ? MentionType.PullRequest
+        : pathname.includes("issues")
+          ? MentionType.Issue
+          : undefined;
     }
 
     default:

@@ -1,10 +1,6 @@
 import type { DateFilter } from "@shared/types";
 import type { SearchableModel } from "@shared/types";
-import type {
-  DirectionFilter,
-  SortFilter,
-  StatusFilter,
-} from "@shared/types";
+import type { DirectionFilter, SortFilter, StatusFilter } from "@shared/types";
 import type Collection from "@server/models/Collection";
 import type Document from "@server/models/Document";
 import type Share from "@server/models/Share";
@@ -51,6 +47,8 @@ export interface SearchOptions {
   sort?: SortFilter;
   /** The sort direction. */
   direction?: DirectionFilter;
+  /** Whether to boost results by popularity score. Defaults to true. */
+  usePopularityBoost?: boolean;
 }
 
 /**

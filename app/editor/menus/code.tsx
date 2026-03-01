@@ -1,5 +1,6 @@
 import { CopyIcon, EditIcon, ExpandedIcon } from "outline-icons";
 import type { Node as ProseMirrorNode } from "prosemirror-model";
+import { NodeSelection } from "prosemirror-state";
 import type { EditorState } from "prosemirror-state";
 import {
   pluginKey as mermaidPluginKey,
@@ -19,7 +20,10 @@ export default function codeMenuItems(
   readOnly: boolean | undefined,
   dictionary: Dictionary
 ): MenuItem[] {
-  const node = state.selection.$from.node();
+  const node =
+    state.selection instanceof NodeSelection
+      ? state.selection.node
+      : state.selection.$from.node();
 
   const frequentLanguages = getFrequentCodeLanguages();
 

@@ -7,7 +7,7 @@ import { BaseSchema } from "../schema";
 const SubscriptionBody = z
   .object({
     event: z.literal(SubscriptionType.Document),
-    collectionId: z.string().uuid().optional(),
+    collectionId: z.uuid().optional(),
     documentId: z
       .string()
       .refine(ValidateDocumentId.isValid, {
@@ -16,7 +16,7 @@ const SubscriptionBody = z
       .optional(),
   })
   .refine((obj) => !(isEmpty(obj.collectionId) && isEmpty(obj.documentId)), {
-    message: "one of collectionId or documentId is required",
+    error: "one of collectionId or documentId is required",
   });
 
 export const SubscriptionsListSchema = BaseSchema.extend({
@@ -39,7 +39,7 @@ export type SubscriptionsCreateReq = z.infer<typeof SubscriptionsCreateSchema>;
 
 export const SubscriptionsDeleteSchema = BaseSchema.extend({
   body: z.object({
-    id: z.string().uuid(),
+    id: z.uuid(),
   }),
 });
 
@@ -47,9 +47,9 @@ export type SubscriptionsDeleteReq = z.infer<typeof SubscriptionsDeleteSchema>;
 
 export const SubscriptionsDeleteTokenSchema = BaseSchema.extend({
   query: z.object({
-    follow: z.string().default(""),
-    userId: z.string().uuid(),
-    documentId: z.string().uuid(),
+    follow: z.string().prefault(""),
+    userId: z.uuid(),
+    documentId: z.uuid(),
     token: z.string(),
   }),
 });

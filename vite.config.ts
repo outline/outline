@@ -3,7 +3,8 @@ import path from "node:path";
 import react from "@vitejs/plugin-react-oxc";
 import browserslistToEsbuild from "browserslist-to-esbuild";
 import webpackStats from "rollup-plugin-webpack-stats";
-import { ServerOptions, defineConfig } from "vite";
+import type { ServerOptions } from "vite";
+import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 import environment from "./server/utils/environment";
 
@@ -160,6 +161,67 @@ export default () =>
           assetFileNames: "assets/[name].[hash][extname]",
           chunkFileNames: "assets/[name].[hash].js",
           entryFileNames: "assets/[name].[hash].js",
+          advancedChunks: {
+            groups: [
+              // Shared utilities used across the app — higher priority
+              // prevents them being absorbed into lazy vendor chunks
+              {
+                name: "vendor-shared",
+                test: /node_modules[\\/]uuid|vite[\\/]preload-helper/,
+                priority: 30,
+              },
+              {
+                name: "vendor-react",
+                test: /node_modules[\\/](react|react-dom|scheduler|react-router)/,
+                priority: 20,
+              },
+              {
+                name: "vendor-prosemirror",
+                test: /node_modules[\\/](@benrbray[\\/])?prosemirror/,
+                priority: 20,
+              },
+              {
+                name: "vendor-collab",
+                test: /node_modules[\\/](yjs|y-prosemirror|y-indexeddb|@hocuspocus|lib0)/,
+                priority: 20,
+              },
+              {
+                name: "vendor-styled",
+                test: /node_modules[\\/]styled-components/,
+                priority: 20,
+              },
+              {
+                name: "vendor-mermaid",
+                test: /node_modules[\\/](mermaid|cytoscape|cytoscape-fcose|layout-base|dagre-d3-es|langium|chevrotain|roughjs|@mermaid-js)/,
+                priority: 20,
+              },
+              {
+                name: "vendor-katex",
+                test: /node_modules[\\/]katex/,
+                priority: 20,
+              },
+              {
+                name: "vendor-emoji",
+                test: /node_modules[\\/](@emoji-mart|emoji-mart)/,
+                priority: 20,
+              },
+              {
+                name: "vendor-lodash",
+                test: /node_modules[\\/](lodash|lodash-es)/,
+                priority: 20,
+              },
+              {
+                name: "vendor-date",
+                test: /node_modules[\\/]date-fns/,
+                priority: 20,
+              },
+              {
+                name: "vendor-sentry",
+                test: /node_modules[\\/]@sentry/,
+                priority: 20,
+              },
+            ],
+          },
         },
       },
     },

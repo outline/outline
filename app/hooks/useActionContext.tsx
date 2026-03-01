@@ -7,14 +7,25 @@ import useStores from "~/hooks/useStores";
 import type Model from "~/models/base/Model";
 import type Policy from "~/models/Policy";
 import type { ActionContext as ActionContextType } from "~/types";
+import type { SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
 
 export const ActionContext = createContext<ActionContextType | undefined>(
   undefined
 );
 
+interface ActionContextProviderValue {
+  /** Models to add to the active models context for this subtree. */
+  activeModels?: Model[];
+  isMenu?: boolean;
+  isCommandBar?: boolean;
+  isButton?: boolean;
+  sidebarContext?: SidebarContextType;
+  event?: Event;
+}
+
 type ActionContextProviderProps = {
   children: ReactNode;
-  value?: Partial<ActionContextType>;
+  value?: ActionContextProviderValue;
 };
 
 /**
@@ -23,15 +34,15 @@ type ActionContextProviderProps = {
  *
  * @example
  * ```tsx
- * // Override context for a command bar
- * <ActionContextProvider value={{ isCommandBar: true }}>
- *   <CommandBar />
+ * // Override active models for a collection menu
+ * <ActionContextProvider value={{ activeModels: [collection] }}>
+ *   <CollectionMenu />
  * </ActionContextProvider>
  *
  * // Nested overrides
- * <ActionContextProvider value={{ activeCollectionId: "collection-1" }}>
+ * <ActionContextProvider value={{ activeModels: [collection] }}>
  *   <CollectionView />
- *   <ActionContextProvider value={{ activeDocumentId: "doc-1" }}>
+ *   <ActionContextProvider value={{ activeModels: [document] }}>
  *     <DocumentView />
  *   </ActionContextProvider>
  * </ActionContextProvider>
@@ -45,6 +56,7 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
   const stores = useStores();
   const { t } = useTranslation();
   const location = useLocation();
+  const { activeModels: valueModels, ...overrides } = value;
 
   // Create the base context if we don't have a parent context
   const baseContext: ActionContextType = parentContext ?? {
@@ -56,7 +68,6 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
     activeCollectionId: stores.ui.activeCollectionId ?? undefined,
     activeDocumentId: stores.ui.activeDocumentId ?? undefined,
 
-    // New API
     getActiveModels: <T extends Model>(
       modelClass: new (...args: any[]) => T
     ): T[] => stores.ui.getActiveModels<T>(modelClass),
@@ -83,33 +94,18 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
     t,
   };
 
-  // Merge the parent context with the provided overrides
-  const activeCollectionId =
-    value.activeCollectionId ?? baseContext.activeCollectionId;
-  const activeDocumentId =
-    value.activeDocumentId ?? baseContext.activeDocumentId;
-
-  const getActiveModels = <T extends Model>(
-    modelClass: new (...args: any[]) => T
-  ): T[] => {
-    // @ts-expect-error modelName
-    if (activeCollectionId && modelClass.modelName === "Collection") {
-      const model = stores.collections.get(activeCollectionId);
-      if (model) {
-        return [model as unknown as T];
-      }
-    }
-
-    // @ts-expect-error modelName
-    if (activeDocumentId && modelClass.modelName === "Document") {
-      const model = stores.documents.get(activeDocumentId);
-      if (model) {
-        return [model as unknown as T];
-      }
-    }
-
-    return baseContext.getActiveModels(modelClass);
-  };
+  // Override model accessors when models are provided in value
+  const getActiveModels =
+    valueModels && valueModels.length > 0
+      ? <T extends Model>(modelClass: new (...args: any[]) => T): T[] => {
+          const matching = valueModels.filter(
+            (model): model is T => model instanceof modelClass
+          );
+          return matching.length > 0
+            ? matching
+            : baseContext.getActiveModels(modelClass);
+        }
+      : baseContext.getActiveModels;
 
   const getActiveModel = <T extends Model>(
     modelClass: new (...args: any[]) => T
@@ -122,12 +118,34 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
       .map((node) => stores.policies.get(node.id))
       .filter((policy): policy is Policy => policy !== undefined);
 
+  const allActiveModels =
+    valueModels && valueModels.length > 0
+      ? new Set([...baseContext.activeModels, ...valueModels])
+      : baseContext.activeModels;
+
+  const isModelActive = (model: Model): boolean => allActiveModels.has(model);
+
+  // Derive legacy IDs from value models, falling back to base context
+  const activeCollectionId =
+    valueModels?.find(
+      (m) => (m.constructor as typeof Model).modelName === "Collection"
+    )?.id ?? baseContext.activeCollectionId;
+
+  const activeDocumentId =
+    valueModels?.find(
+      (m) => (m.constructor as typeof Model).modelName === "Document"
+    )?.id ?? baseContext.activeDocumentId;
+
   const contextValue: ActionContextType = {
     ...baseContext,
-    ...value,
+    ...overrides,
+    activeCollectionId,
+    activeDocumentId,
     getActiveModels,
     getActiveModel,
     getActivePolicies,
+    isModelActive,
+    activeModels: allActiveModels,
   };
 
   return (

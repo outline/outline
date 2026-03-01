@@ -16,6 +16,7 @@ import { fadeAndScaleIn, fadeIn } from "~/styles/animations";
 import Desktop from "~/utils/Desktop";
 import ErrorBoundary from "./ErrorBoundary";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
+import Tooltip from "./Tooltip";
 
 type Props = {
   children?: React.ReactNode;
@@ -93,9 +94,11 @@ const Modal: React.FC<Props> = ({
                 </DesktopContent>
                 <Header>
                   {title && <Text size="large">{title}</Text>}
-                  <NudeButton onClick={onRequestClose}>
-                    <CloseIcon />
-                  </NudeButton>
+                  <Tooltip content={t("Close")} shortcut="Esc">
+                    <NudeButton onClick={onRequestClose}>
+                      <CloseIcon />
+                    </NudeButton>
+                  </Tooltip>
                 </Header>
               </Centered>
             </Wrapper>

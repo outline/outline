@@ -5,7 +5,6 @@ import { s, ellipsis, hover } from "@shared/styles";
 import type { ConfigItem } from "~/hooks/useSettingsConfig";
 import Button from "../../../components/Button";
 import Text from "../../../components/Text";
-import { HStack } from "~/components/primitives/HStack";
 import { VStack } from "~/components/primitives/VStack";
 import { Status } from "./Status";
 import Flex from "@shared/components/Flex";
@@ -20,14 +19,14 @@ function IntegrationCard({ integration, isConnected }: Props) {
 
   return (
     <Card as={Link} to={integration.path}>
-      <Flex justify="space-between" align="center">
-        <HStack>
-          <integration.icon size={32} />
-          <VStack spacing={0} align="flex-start">
+      <Flex justify="space-between" align="flex-start">
+        <VStack align="flex-start">
+          <integration.icon size={32} monochrome={false} />
+          <VStack spacing={2} align="flex-start">
             <Name>{integration.name}</Name>
             {isConnected && <Status>{t("Connected")}</Status>}
           </VStack>
-        </HStack>
+        </VStack>
         <Button as="span" neutral>
           {isConnected ? t("Configure") : t("Connect")}
         </Button>

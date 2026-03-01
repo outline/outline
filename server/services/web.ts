@@ -20,6 +20,7 @@ import { initI18n } from "@server/utils/i18n";
 import routes from "../routes";
 import api from "../routes/api";
 import auth from "../routes/auth";
+import mcp from "../routes/mcp";
 import oauth from "../routes/oauth";
 import type { UserAgentContext } from "koa-useragent";
 import userAgent from "koa-useragent";
@@ -46,6 +47,9 @@ export default function init(app: Koa = new Koa(), server?: Server) {
 
     // trust header fields set by our proxy. eg X-Forwarded-For
     app.proxy = true;
+    if (env.PROXY_IP_HEADER) {
+      app.proxyIpHeader = env.PROXY_IP_HEADER;
+    }
   }
 
   // Make `ctx.userAgent` available
@@ -70,6 +74,7 @@ export default function init(app: Koa = new Koa(), server?: Server) {
   });
 
   app.use(mount("/api", api));
+  app.use(mount("/mcp", mcp));
 
   // Generate and attach a CSRF token to the session on non-API requests
   app.use(attachCSRFToken());

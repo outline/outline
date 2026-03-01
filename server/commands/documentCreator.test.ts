@@ -4,6 +4,7 @@ import {
   buildCollection,
   buildDocument,
   buildFileOperation,
+  buildTemplate,
 } from "@server/test/factories";
 import { withAPIContext } from "@server/test/support";
 import documentCreator from "./documentCreator";
@@ -183,7 +184,7 @@ describe("documentCreator", () => {
         teamId: user.teamId,
       });
 
-      const templateDocument = await buildDocument({
+      const template = await buildTemplate({
         title: "Template Document",
         text: "Template content",
         icon: "📋",
@@ -197,7 +198,7 @@ describe("documentCreator", () => {
       const document = await withAPIContext(user, (ctx) =>
         documentCreator(ctx, {
           title: "From Template",
-          templateDocument,
+          template,
           collectionId: collection.id,
         })
       );
@@ -215,7 +216,7 @@ describe("documentCreator", () => {
         teamId: user.teamId,
       });
 
-      const templateDocument = await buildDocument({
+      const template = await buildTemplate({
         title: "Template Title",
         text: "Template content",
         userId: user.id,
@@ -225,7 +226,7 @@ describe("documentCreator", () => {
 
       const document = await withAPIContext(user, (ctx) =>
         documentCreator(ctx, {
-          templateDocument,
+          template,
           collectionId: collection.id,
         })
       );
@@ -240,7 +241,7 @@ describe("documentCreator", () => {
         teamId: user.teamId,
       });
 
-      const templateDocument = await buildDocument({
+      const template = await buildTemplate({
         title: "Template Document",
         text: "Template content",
         userId: user.id,
@@ -251,7 +252,7 @@ describe("documentCreator", () => {
       await expect(
         withAPIContext(user, (ctx) =>
           documentCreator(ctx, {
-            templateDocument,
+            template,
             state: Buffer.from("some state"),
             collectionId: collection.id,
           })
@@ -259,33 +260,6 @@ describe("documentCreator", () => {
       ).rejects.toThrow(
         "State cannot be set when creating a document from a template"
       );
-    });
-
-    it("should handle template flag correctly", async () => {
-      const user = await buildUser();
-      const collection = await buildCollection({
-        userId: user.id,
-        teamId: user.teamId,
-      });
-
-      const templateDocument = await buildDocument({
-        title: "Template Document",
-        text: "Template content",
-        userId: user.id,
-        teamId: user.teamId,
-        collectionId: collection.id,
-      });
-
-      const document = await withAPIContext(user, (ctx) =>
-        documentCreator(ctx, {
-          templateDocument,
-          template: true,
-          collectionId: collection.id,
-        })
-      );
-
-      expect(document.template).toBe(true);
-      expect(document.templateId).toBe(templateDocument.id);
     });
   });
 
@@ -344,6 +318,38 @@ describe("documentCreator", () => {
 
       expect(document.importId).toBe(fileOperation.id);
       expect(document.sourceMetadata).toEqual(sourceMetadata);
+    });
+  });
+
+  describe("custom emoji handling", () => {
+    it("should not escape custom emoji UUIDs in text", async () => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+
+      const customEmojiId = "550e8400-e29b-41d4-a716-446655440000";
+      const text = `Check this :${customEmojiId}: custom emoji`;
+
+      const document = await withAPIContext(user, (ctx) =>
+        documentCreator(ctx, {
+          title: "Custom Emoji Test",
+          text,
+          collectionId: collection.id,
+        })
+      );
+
+      // The custom emoji should be preserved in the text without escaping
+      expect(document.text).toContain(`:${customEmojiId}:`);
+      expect(document.text).not.toContain(`\\:${customEmojiId}:`);
+      expect(document.text).not.toContain(`\\:${customEmojiId}\\:`);
+
+      // The JSON content should include an emoji node with the UUID
+      expect(document.content).toBeDefined();
+      const contentStr = JSON.stringify(document.content);
+      expect(contentStr).toContain('"type":"emoji"');
+      expect(contentStr).toContain(`"data-name":"${customEmojiId}"`);
     });
   });
 });
