@@ -1050,7 +1050,7 @@ export const createTemplateFromDocument = createAction({
     }
     return !!(
       !!activeCollectionId &&
-      stores.policies.abilities(activeCollectionId).updateDocument
+      stores.policies.abilities(activeCollectionId).createTemplate
     );
   },
   perform: ({ activeDocumentId, stores, t, event }) => {

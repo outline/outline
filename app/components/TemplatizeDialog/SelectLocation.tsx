@@ -49,7 +49,7 @@ const SelectLocation = ({ defaultCollectionId, onSelect }: Props) => {
       collections.orderedData.reduce<Option[]>((memo, collection) => {
         const canCollection = policies.abilities(collection.id);
 
-        if (canCollection.createDocument) {
+        if (canCollection.createTemplate) {
           memo.push({
             type: "item",
             label: collection.name,

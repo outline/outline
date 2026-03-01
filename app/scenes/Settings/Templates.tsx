@@ -110,7 +110,7 @@ function Templates() {
       icon={<ShapesIcon />}
       actions={
         <>
-          {can.createTemplate && (
+          {can.readTemplate && (
             <Action>
               <NewTemplateMenu />
             </Action>
