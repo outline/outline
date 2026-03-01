@@ -5,7 +5,6 @@ import { action } from "mobx";
 import { observer } from "mobx-react";
 import { ImageIcon } from "outline-icons";
 import * as React from "react";
-import { Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useTheme } from "styled-components";
@@ -313,7 +312,7 @@ function CommentForm({
           {highlightedText && (
             <HighlightedText>{highlightedText}</HighlightedText>
           )}
-          <Suspense fallback={<div style={{ height: 24 }} />}>
+          <React.Suspense fallback={<div style={{ height: 24 }} />}>
             <CommentEditor
               key={`${forceRender}`}
               ref={mergeRefs([editorRef, handleMounted])}
@@ -333,7 +332,7 @@ function CommentForm({
                   : `${t("Add a reply")}…`)
               }
             />
-          </Suspense>
+          </React.Suspense>
           {(inputFocused || draft) && (
             <Flex justify="space-between" reverse={dir === "rtl"} gap={8}>
               <HStack>
