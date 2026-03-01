@@ -2094,19 +2094,19 @@ describe("#documents.templatize", () => {
     expect(body.data.collectionId).toEqual(collection.id);
   });
   it("should create a published workspace template", async () => {
-    const user = await buildUser();
+    const admin = await buildAdmin();
     const collection = await buildCollection({
-      createdById: user.id,
-      teamId: user.teamId,
+      createdById: admin.id,
+      teamId: admin.teamId,
     });
     const document = await buildDocument({
-      userId: user.id,
-      teamId: user.teamId,
+      userId: admin.id,
+      teamId: admin.teamId,
       collectionId: collection.id,
     });
     const res = await server.post("/api/documents.templatize", {
       body: {
-        token: user.getJwtToken(),
+        token: admin.getJwtToken(),
         id: document.id,
         publish: true,
       },
@@ -2141,19 +2141,19 @@ describe("#documents.templatize", () => {
     expect(body.data.collectionId).toEqual(collection.id);
   });
   it("should create a draft workspace template", async () => {
-    const user = await buildUser();
+    const admin = await buildAdmin();
     const collection = await buildCollection({
-      createdById: user.id,
-      teamId: user.teamId,
+      createdById: admin.id,
+      teamId: admin.teamId,
     });
     const document = await buildDocument({
-      userId: user.id,
-      teamId: user.teamId,
+      userId: admin.id,
+      teamId: admin.teamId,
       collectionId: collection.id,
     });
     const res = await server.post("/api/documents.templatize", {
       body: {
-        token: user.getJwtToken(),
+        token: admin.getJwtToken(),
         id: document.id,
         publish: false,
       },
@@ -2190,6 +2190,55 @@ describe("#documents.templatize", () => {
     expect(res.status).toBe(200);
     expect(body.data.publishedAt).toBeTruthy();
     expect(body.data.collectionId).toEqual(anotherCollection.id);
+  });
+  it("should not allow non-admin to create workspace template", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      createdById: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    const res = await server.post("/api/documents.templatize", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        publish: true,
+      },
+    });
+    expect(res.status).toBe(403);
+  });
+  it("should not allow editor without collection admin to templatize", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+      permission: null,
+    });
+
+    // Downgrade user from Admin (default for creator) to ReadWrite
+    await UserMembership.update(
+      { permission: CollectionPermission.ReadWrite },
+      { where: { userId: user.id, collectionId: collection.id } }
+    );
+
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    const res = await server.post("/api/documents.templatize", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        collectionId: collection.id,
+        publish: true,
+      },
+    });
+    expect(res.status).toBe(403);
   });
 });
 

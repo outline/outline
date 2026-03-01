@@ -27,7 +27,6 @@ router.post(
 
     const { transaction } = ctx.state;
     const { user } = ctx.state.auth;
-    authorize(user, "createTemplate", user.team);
 
     let collection;
     if (collectionId) {
@@ -35,7 +34,9 @@ router.post(
         userId: user.id,
         transaction,
       });
-      authorize(user, "createDocument", collection);
+      authorize(user, "createTemplate", collection);
+    } else {
+      authorize(user, "createTemplate", user.team);
     }
 
     let template = await Template.createWithCtx(ctx, {
@@ -233,7 +234,7 @@ router.post(
         userId: user.id,
         transaction,
       });
-      authorize(user, "createDocument", collection);
+      authorize(user, "createTemplate", collection);
     } else {
       authorize(user, "createTemplate", user.team);
     }
@@ -291,7 +292,7 @@ router.post(
             transaction,
           }
         );
-        authorize(user, "update", collection);
+        authorize(user, "createTemplate", collection);
       } else {
         authorize(user, "createTemplate", user.team);
       }

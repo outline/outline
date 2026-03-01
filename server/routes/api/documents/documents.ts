@@ -1215,7 +1215,7 @@ router.post(
         userId: user.id,
         transaction,
       });
-      authorize(user, "createDocument", collection);
+      authorize(user, "createTemplate", collection);
     } else {
       authorize(user, "createTemplate", user.team);
     }

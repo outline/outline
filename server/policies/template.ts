@@ -2,7 +2,7 @@ import { Template, User, Team } from "@server/models";
 import { allow, can } from "./cancan";
 import { and, isTeamModel, isTeamMutable, or } from "./utils";
 
-allow(User, ["createTemplate", "updateTemplate"], Team, (actor, team) =>
+allow(User, "updateTemplate", Team, (actor, team) =>
   and(
     //
     actor.isAdmin,

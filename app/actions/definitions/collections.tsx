@@ -528,7 +528,7 @@ export const createTemplate = createInternalLinkAction({
   keywords: "new create template",
   visible: ({ getActivePolicies }) =>
     getActivePolicies(Collection).some(
-      (policy) => policy.abilities.createDocument
+      (policy) => policy.abilities.createTemplate
     ),
   to: ({ getActiveModel }) => {
     const collection = getActiveModel(Collection);

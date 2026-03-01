@@ -5,6 +5,7 @@ import type Template from "~/models/Template";
 import { ActionSeparator, createAction } from "~/actions";
 import {
   copyTemplate,
+  createDocumentFromTemplate,
   deleteTemplate,
   moveTemplate,
 } from "~/actions/definitions/templates";
@@ -49,6 +50,7 @@ export function useTemplateSettingsActions(
             }),
             moveTemplate,
             ActionSeparator,
+            createDocumentFromTemplate,
             copyTemplate,
             ActionSeparator,
             deleteTemplate,

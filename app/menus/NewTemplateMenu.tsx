@@ -33,7 +33,7 @@ function NewTemplateMenu() {
           name: collection.name,
           section: DocumentSection,
           icon: <CollectionIcon collection={collection} />,
-          visible: !!canCollection.createDocument,
+          visible: !!canCollection.createTemplate,
           to: newTemplatePath(collection.id),
         });
       }),
