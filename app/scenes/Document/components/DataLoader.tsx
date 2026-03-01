@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import type { RouteComponentProps, StaticContext } from "react-router";
-import { useLocation } from "react-router";
+import { matchPath, useLocation } from "react-router";
 import { TeamPreference } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
@@ -26,7 +26,12 @@ import {
   PaymentRequiredError,
 } from "~/utils/errors";
 import history from "~/utils/history";
-import { matchDocumentEdit, settingsPath } from "~/utils/routeHelpers";
+import {
+  matchDocumentEdit,
+  matchDocumentHistory,
+  settingsPath,
+} from "~/utils/routeHelpers";
+import useDocumentSidebar from "../hooks/useDocumentSidebar";
 import Loading from "./Loading";
 import MarkAsViewed from "./MarkAsViewed";
 
@@ -88,6 +93,19 @@ function DataLoader({ match, children }: Props) {
   const can = usePolicy(document);
   const location = useLocation<LocationState>();
   const missingPolicy = !can || Object.keys(can).length === 0;
+  const isHistoryRoute = !!matchPath(location.pathname, {
+    path: matchDocumentHistory,
+  });
+
+  useDocumentSidebar();
+
+  React.useEffect(() => {
+    if (isHistoryRoute) {
+      ui.set({ rightSidebar: "history" });
+    } else if (ui.rightSidebar === "history") {
+      ui.set({ rightSidebar: null });
+    }
+  }, [isHistoryRoute, ui]);
 
   React.useEffect(() => {
     async function fetchDocument() {

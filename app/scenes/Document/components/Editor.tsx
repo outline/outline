@@ -101,7 +101,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
       ) {
         setFocusedCommentId(focusedComment.id);
       }
-      ui.set({ commentsExpanded: true });
+      ui.set({ rightSidebar: "comments" });
     }
   }, [focusedComment, ui, document.id, params]);
 
