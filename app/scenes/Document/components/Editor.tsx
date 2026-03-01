@@ -101,7 +101,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
       ) {
         setFocusedCommentId(focusedComment.id);
       }
-      ui.set({ commentsExpanded: true });
+      ui.set({ rightSidebar: "comments" });
     }
   }, [focusedComment, ui, document.id, params]);
 
@@ -250,7 +250,9 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
           commentingEnabled && can.comment ? handleRemoveComment : undefined
         }
         onOpenCommentsSidebar={
-          commentingEnabled ? ui.toggleComments : undefined
+          commentingEnabled
+            ? () => ui.set({ rightSidebar: "comments" })
+            : undefined
         }
         onInit={handleInit}
         onDestroy={handleDestroy}

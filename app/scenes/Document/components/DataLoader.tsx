@@ -27,6 +27,7 @@ import {
 } from "~/utils/errors";
 import history from "~/utils/history";
 import { matchDocumentEdit, settingsPath } from "~/utils/routeHelpers";
+import useDocumentSidebar from "../hooks/useDocumentSidebar";
 import Loading from "./Loading";
 import MarkAsViewed from "./MarkAsViewed";
 
@@ -88,6 +89,8 @@ function DataLoader({ match, children }: Props) {
   const can = usePolicy(document);
   const location = useLocation<LocationState>();
   const missingPolicy = !can || Object.keys(can).length === 0;
+
+  useDocumentSidebar();
 
   React.useEffect(() => {
     async function fetchDocument() {

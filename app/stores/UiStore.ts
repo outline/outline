@@ -28,7 +28,7 @@ export enum SystemTheme {
 type PersistedData = Pick<
   UiStore,
   | "languagePromptDismissed"
-  | "commentsExpanded"
+  | "rightSidebar"
   | "theme"
   | "sidebarWidth"
   | "sidebarRightWidth"
@@ -78,7 +78,7 @@ class UiStore {
   sidebarCollapsed = false;
 
   @observable
-  commentsExpanded = false;
+  rightSidebar: "comments" | "history" | null = null;
 
   @observable
   sidebarIsResizing = false;
@@ -111,7 +111,7 @@ class UiStore {
     this.sidebarRightWidth =
       data.sidebarRightWidth || defaultTheme.sidebarRightWidth;
     this.tocVisible = data.tocVisible;
-    this.commentsExpanded = !!data.commentsExpanded;
+    this.rightSidebar = data.rightSidebar ?? null;
     this.theme = data.theme || Theme.System;
 
     // system theme listeners
@@ -341,11 +341,6 @@ class UiStore {
   };
 
   @action
-  toggleComments = () => {
-    this.set({ commentsExpanded: !this.commentsExpanded });
-  };
-
-  @action
   toggleCollapsedSidebar = () => {
     sidebarHidden = false;
     this.set({ sidebarCollapsed: !this.sidebarCollapsed });
@@ -433,7 +428,7 @@ class UiStore {
       sidebarWidth: this.sidebarWidth,
       sidebarRightWidth: this.sidebarRightWidth,
       languagePromptDismissed: this.languagePromptDismissed,
-      commentsExpanded: this.commentsExpanded,
+      rightSidebar: this.rightSidebar,
       theme: this.theme,
     };
   }

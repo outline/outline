@@ -1,17 +1,10 @@
-import { AnimatePresence } from "framer-motion";
 import { observer } from "mobx-react";
 import * as React from "react";
-import {
-  Switch,
-  Route,
-  useLocation,
-  matchPath,
-  Redirect,
-} from "react-router-dom";
-import { TeamPreference } from "@shared/types";
+import { Switch, Route, Redirect } from "react-router-dom";
 import ErrorSuspended from "~/scenes/Errors/ErrorSuspended";
 import Layout from "~/components/Layout";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
+import { RightSidebarProvider } from "~/components/RightSidebarContext";
 import Sidebar from "~/components/Sidebar";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import { usePostLoginPath } from "~/hooks/useLastVisitedPath";
@@ -23,8 +16,6 @@ import {
   searchPath,
   newDocumentPath,
   settingsPath,
-  matchDocumentHistory,
-  matchDocumentSlug as slug,
 } from "~/utils/routeHelpers";
 import { DocumentContextProvider } from "./DocumentContext";
 import Fade from "./Fade";
@@ -32,12 +23,6 @@ import NotificationBadge from "./NotificationBadge";
 import { PortalContext } from "./Portal";
 import CommandBar from "./CommandBar";
 
-const DocumentComments = lazyWithRetry(
-  () => import("~/scenes/Document/components/Comments/Comments")
-);
-const DocumentHistory = lazyWithRetry(
-  () => import("~/scenes/Document/components/History")
-);
 const SettingsSidebar = lazyWithRetry(
   () => import("~/components/Sidebar/Settings")
 );
@@ -48,9 +33,7 @@ type Props = {
 
 const AuthenticatedLayout: React.FC = ({ children }: Props) => {
   const { ui, auth } = useStores();
-  const location = useLocation();
   const layoutRef = React.useRef<HTMLDivElement>(null);
-  const can = usePolicy(ui.activeDocumentId);
   const canCollection = usePolicy(ui.activeCollectionId);
   const team = useCurrentTeam();
   const [spendPostLoginPath] = usePostLoginPath();
@@ -92,50 +75,20 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
     </Fade>
   );
 
-  const showHistory =
-    !!matchPath(location.pathname, {
-      path: matchDocumentHistory,
-    }) && can.listRevisions;
-  const showComments =
-    !showHistory &&
-    can.comment &&
-    ui.activeDocumentId &&
-    ui.commentsExpanded &&
-    !!team.getPreference(TeamPreference.Commenting);
-
-  const sidebarRight = (
-    <AnimatePresence
-      initial={false}
-      key={ui.activeDocumentId ? "active" : "inactive"}
-    >
-      {(showHistory || showComments) && (
-        <Route path={`/doc/${slug}`}>
-          <React.Suspense fallback={null}>
-            {showHistory && <DocumentHistory />}
-            {showComments && <DocumentComments />}
-          </React.Suspense>
-        </Route>
-      )}
-    </AnimatePresence>
-  );
-
   return (
     <DocumentContextProvider>
-      <PortalContext.Provider value={layoutRef.current}>
-        <Layout
-          title={team.name}
-          sidebar={sidebar}
-          sidebarRight={sidebarRight}
-          ref={layoutRef}
-        >
-          <RegisterKeyDown trigger="n" handler={goToNewDocument} />
-          <RegisterKeyDown trigger="t" handler={goToSearch} />
-          <RegisterKeyDown trigger="/" handler={goToSearch} />
-          {children}
-          <CommandBar />
-          <NotificationBadge />
-        </Layout>
-      </PortalContext.Provider>
+      <RightSidebarProvider>
+        <PortalContext.Provider value={layoutRef.current}>
+          <Layout title={team.name} sidebar={sidebar} ref={layoutRef}>
+            <RegisterKeyDown trigger="n" handler={goToNewDocument} />
+            <RegisterKeyDown trigger="t" handler={goToSearch} />
+            <RegisterKeyDown trigger="/" handler={goToSearch} />
+            {children}
+            <CommandBar />
+            <NotificationBadge />
+          </Layout>
+        </PortalContext.Provider>
+      </RightSidebarProvider>
     </DocumentContextProvider>
   );
 };

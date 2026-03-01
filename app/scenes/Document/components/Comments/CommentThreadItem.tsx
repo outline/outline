@@ -233,16 +233,18 @@ function CommentThreadItem({
           <HighlightedText>{highlightedText}</HighlightedText>
         )}
         <Body ref={formRef} onSubmit={handleSubmit}>
-          <StyledCommentEditor
-            key={String(isEditing)}
-            readOnly={!isEditing}
-            value={comment.data}
-            defaultValue={data}
-            onChange={handleChange}
-            onSave={handleSave}
-            onCancel={handleCancel}
-            autoFocus
-          />
+          <React.Suspense fallback={null}>
+            <StyledCommentEditor
+              key={String(isEditing)}
+              readOnly={!isEditing}
+              value={comment.data}
+              defaultValue={data}
+              onChange={handleChange}
+              onSave={handleSave}
+              onCancel={handleCancel}
+              autoFocus
+            />
+          </React.Suspense>
           {isEditing && (
             <Flex align="flex-end" gap={8}>
               <ButtonSmall type="submit" borderOnHover>
