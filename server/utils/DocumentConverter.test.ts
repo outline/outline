@@ -396,4 +396,67 @@ Content`;
       expect(image.attrs.height).toBe(300);
     });
   });
+
+  describe("extractFrontmatterTags", () => {
+    it("should extract tags from inline array syntax", () => {
+      const md = `---\ntitle: My Doc\ntags: [alpha, beta, gamma]\n---\n\nContent`;
+      expect(DocumentConverter.extractFrontmatterTags(md)).toEqual([
+        "alpha",
+        "beta",
+        "gamma",
+      ]);
+    });
+
+    it("should extract tags from YAML list syntax", () => {
+      const md = `---\ntags:\n  - foo\n  - Bar\n  - BAZ\n---\n\nContent`;
+      expect(DocumentConverter.extractFrontmatterTags(md)).toEqual([
+        "foo",
+        "bar",
+        "baz",
+      ]);
+    });
+
+    it("should normalise tags to lowercase and trim whitespace", () => {
+      const md = `---\ntags: [ Outline , KNOWLEDGE , base ]\n---\n\nContent`;
+      expect(DocumentConverter.extractFrontmatterTags(md)).toEqual([
+        "outline",
+        "knowledge",
+        "base",
+      ]);
+    });
+
+    it("should return empty array when no frontmatter", () => {
+      const md = `# Title\n\nJust content`;
+      expect(DocumentConverter.extractFrontmatterTags(md)).toEqual([]);
+    });
+
+    it("should return empty array when frontmatter has no tags key", () => {
+      const md = `---\ntitle: My Doc\ndate: 2024-01-01\n---\n\nContent`;
+      expect(DocumentConverter.extractFrontmatterTags(md)).toEqual([]);
+    });
+
+    it("should return empty array for invalid YAML", () => {
+      const md = `---\ntags: [unclosed\n---\n\nContent`;
+      expect(DocumentConverter.extractFrontmatterTags(md)).toEqual([]);
+    });
+
+    it("should accept a Buffer as input", () => {
+      const md = Buffer.from(`---\ntags: [buf, test]\n---\n\nContent`);
+      expect(DocumentConverter.extractFrontmatterTags(md)).toEqual([
+        "buf",
+        "test",
+      ]);
+    });
+
+    it("should skip tags longer than 64 characters", () => {
+      const longTag = "a".repeat(65);
+      const md = `---\ntags: [short, ${longTag}]\n---\n\nContent`;
+      expect(DocumentConverter.extractFrontmatterTags(md)).toEqual(["short"]);
+    });
+
+    it("should return empty array when frontmatter is not at start of file", () => {
+      const md = `# Title\n\n---\ntags: [test]\n---\n\nContent`;
+      expect(DocumentConverter.extractFrontmatterTags(md)).toEqual([]);
+    });
+  });
 });

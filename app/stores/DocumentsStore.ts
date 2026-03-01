@@ -30,6 +30,7 @@ import { extname, uploadFile } from "~/utils/files";
 type FetchPageParams = PaginationParams & {
   template?: boolean;
   collectionId?: string;
+  tagName?: string;
 };
 
 export type SearchParams = {
@@ -375,6 +376,15 @@ export default class DocumentsStore extends Store<Document> {
   @action
   fetchOwned = (options?: PaginationParams): Promise<Document[]> =>
     this.fetchNamedPage("list", options);
+
+  @action
+  fetchByTag = (tagName: string, options?: FetchPageParams): Promise<Document[]> =>
+    this.fetchNamedPage("list", { tagName, ...options });
+
+  byTag = (tagName: string): Document[] =>
+    filter(this.all, (doc) =>
+      (doc.tags ?? []).some((tag) => tag.name === tagName)
+    );
 
   @action
   searchTitles = async (options?: SearchParams): Promise<SearchResult[]> => {

@@ -23,6 +23,14 @@ export function archivePath(): string {
   return "/archive";
 }
 
+export function tagsPath(): string {
+  return "/tags";
+}
+
+export function tagPath(tagName: string): string {
+  return `/tags/${encodeURIComponent(tagName)}`;
+}
+
 export function trashPath(): string {
   return "/trash";
 }

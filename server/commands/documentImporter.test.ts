@@ -239,6 +239,46 @@ describe("documentImporter", () => {
     expect(response.title).toEqual("Heading 1");
   });
 
+  it("should extract tags from YAML frontmatter", async () => {
+    const user = await buildUser();
+    const fileName = "markdown-frontmatter.md";
+    const content = await fs.readFile(
+      path.resolve(__dirname, "..", "test", "fixtures", fileName),
+      "utf8"
+    );
+    const response = await sequelize.transaction((transaction) =>
+      documentImporter({
+        user,
+        mimeType: "text/plain",
+        fileName,
+        content,
+        ctx: createContext({ user, transaction }),
+      })
+    );
+
+    expect(response.tags).toEqual(["test", "markdown"]);
+  });
+
+  it("should return empty tags array when no frontmatter", async () => {
+    const user = await buildUser();
+    const fileName = "markdown.md";
+    const content = await fs.readFile(
+      path.resolve(__dirname, "..", "test", "fixtures", fileName),
+      "utf8"
+    );
+    const response = await sequelize.transaction((transaction) =>
+      documentImporter({
+        user,
+        mimeType: "text/plain",
+        fileName,
+        content,
+        ctx: createContext({ user, transaction }),
+      })
+    );
+
+    expect(response.tags).toEqual([]);
+  });
+
   it("should fallback to extension if mimetype unknown", async () => {
     const user = await buildUser();
     const fileName = "markdown.md";

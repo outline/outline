@@ -72,3 +72,7 @@ export { default as Subscription } from "./Subscription";
 
 export { default as Emoji } from "./Emoji";
 export { default as UserPasskey } from "./UserPasskey";
+
+export { default as Tag } from "./Tag";
+
+export { default as DocumentTag } from "./DocumentTag";

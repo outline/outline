@@ -74,6 +74,8 @@ import { APIUpdateExtension } from "@server/collaboration/APIUpdateExtension";
 import { SkipChangeset } from "./decorators/Changeset";
 import type { HookContext } from "./base/Model";
 import Template from "./Template";
+import DocumentTag from "./DocumentTag";
+import Tag from "./Tag";
 
 export const DOCUMENT_VERSION = 2;
 
@@ -154,6 +156,14 @@ type AdditionalFindOptions = {
       {
         association: "updatedBy",
         paranoid: false,
+      },
+    ],
+  },
+  withTags: {
+    include: [
+      {
+        association: "tags",
+        through: { attributes: [] },
       },
     ],
   },
@@ -659,6 +669,9 @@ class Document extends ArchivableModel<
   @BelongsToMany(() => User, () => UserMembership)
   users: User[];
 
+  @BelongsToMany(() => Tag, () => DocumentTag)
+  tags: Tag[];
+
   @ForeignKey(() => Collection)
   @Column(DataType.UUID)
   collectionId?: string | null;
@@ -713,6 +726,7 @@ class Document extends ArchivableModel<
     return this.scope([
       options?.includeDrafts ? "withDrafts" : "defaultScope",
       "withoutState",
+      "withTags",
       {
         method: ["withViews", userId],
       },
@@ -758,6 +772,7 @@ class Document extends ArchivableModel<
     // almost every endpoint needs the collection membership to determine policy permissions.
     const scope = this.scope([
       "withDrafts",
+      "withTags",
       includeState ? "withState" : "withoutState",
       ...((includeViews
         ? [

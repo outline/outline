@@ -18,6 +18,7 @@ import {
   homePath,
   searchPath,
   settingsPath,
+  tagsPath,
   matchDocumentSlug as documentSlug,
   matchCollectionSlug as collectionSlug,
   trashPath,
@@ -32,6 +33,7 @@ const Document = lazy(() => import("~/scenes/Document"));
 const Drafts = lazy(() => import("~/scenes/Drafts"));
 const Home = lazy(() => import("~/scenes/Home"));
 const Search = lazy(() => import("~/scenes/Search"));
+const TagDocuments = lazy(() => import("~/scenes/TagDocuments"));
 const Trash = lazy(() => import("~/scenes/Trash"));
 const Debug = lazy(() => import("~/scenes/Developer/Debug"));
 const Changesets = lazy(() => import("~/scenes/Developer/Changesets"));
@@ -70,6 +72,11 @@ function AuthenticatedRoutes() {
             {can.createDocument && (
               <Route exact path={draftsPath()} component={Drafts} />
             )}
+            <Route
+              exact
+              path={`${tagsPath()}/:tagName`}
+              component={TagDocuments}
+            />
             {can.createDocument && (
               <Route exact path={archivePath()} component={Archive} />
             )}

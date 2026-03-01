@@ -123,7 +123,7 @@ export default class ImportMarkdownZipTask extends ImportTask {
 
           const id = randomUUID();
 
-          const { title, icon, text } = await sequelize.transaction(
+          const { title, icon, text, tags } = await sequelize.transaction(
             async (transaction) =>
               documentImporter({
                 mimeType: "text/markdown",
@@ -168,6 +168,7 @@ export default class ImportMarkdownZipTask extends ImportTask {
               title,
               icon,
               text,
+              tags,
               collectionId,
               parentDocumentId,
               path: child.path,
