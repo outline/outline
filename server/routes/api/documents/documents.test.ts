@@ -2212,15 +2212,22 @@ describe("#documents.templatize", () => {
     expect(res.status).toBe(403);
   });
   it("should not allow editor without collection admin to templatize", async () => {
-    const admin = await buildAdmin();
+    const user = await buildUser();
     const collection = await buildCollection({
-      createdById: admin.id,
-      teamId: admin.teamId,
+      userId: user.id,
+      teamId: user.teamId,
+      permission: null,
     });
-    const user = await buildUser({ teamId: admin.teamId });
+
+    // Downgrade user from Admin (default for creator) to ReadWrite
+    await UserMembership.update(
+      { permission: CollectionPermission.ReadWrite },
+      { where: { userId: user.id, collectionId: collection.id } }
+    );
+
     const document = await buildDocument({
-      userId: admin.id,
-      teamId: admin.teamId,
+      userId: user.id,
+      teamId: user.teamId,
       collectionId: collection.id,
     });
     const res = await server.post("/api/documents.templatize", {
