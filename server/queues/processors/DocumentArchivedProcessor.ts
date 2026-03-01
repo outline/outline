@@ -1,4 +1,5 @@
-import { Star } from "@server/models";
+import { createContext } from "@server/context";
+import { Star, User } from "@server/models";
 import type { DocumentEvent, Event } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
 
@@ -14,12 +15,16 @@ export default class DocumentArchivedProcessor extends BaseProcessor {
    * @throws {Error} If the database operation fails.
    */
   async perform(event: DocumentEvent) {
-    // Remove the document from the actor's starred documents
-    await Star.destroy({
+    const star = await Star.findOne({
       where: {
         documentId: event.documentId,
         userId: event.actorId,
       },
     });
+
+    if (star) {
+      const user = await User.findByPk(event.actorId, { rejectOnEmpty: true });
+      await star.destroyWithCtx(createContext({ user, ip: event.ip }));
+    }
   }
 }
