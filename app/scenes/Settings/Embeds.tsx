@@ -65,6 +65,18 @@ function Embeds() {
     [team, saveData]
   );
 
+  const handleToggleAllEmbeds = React.useCallback(
+    async (enabled: boolean) => {
+      const updated = enabled ? [] : providers.map((e) => e.id);
+
+      team.setPreference(TeamPreference.DisabledEmbeds, updated);
+      await saveData({
+        preferences: { ...team.preferences },
+      });
+    },
+    [team, saveData]
+  );
+
   const disabledEmbeds =
     (team.getPreference(TeamPreference.DisabledEmbeds) as string[]) || [];
 
@@ -96,6 +108,18 @@ function Embeds() {
               documents will continue to display regardless of these settings.
             </Trans>
           </Text>
+          <SettingRow
+            name="allEmbeds"
+            label={t("All providers")}
+            compact
+            border={false}
+          >
+            <Switch
+              id="allEmbeds"
+              checked={disabledEmbeds.length === 0}
+              onChange={handleToggleAllEmbeds}
+            />
+          </SettingRow>
           {providers.map((embed) => {
             const enabled = !disabledEmbeds.includes(embed.id);
             return (
