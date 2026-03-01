@@ -1,27 +1,23 @@
 import { observer } from "mobx-react";
 import * as React from "react";
-import { Route } from "react-router-dom";
+import { Route, matchPath, useLocation } from "react-router-dom";
 import {
   RightSidebarWrappedContext,
   useSetRightSidebar,
 } from "~/components/RightSidebarContext";
 import RightSidebar from "~/components/Sidebar/Right";
+import PlaceholderText from "~/components/PlaceholderText";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 import lazyWithRetry from "~/utils/lazyWithRetry";
-import { matchDocumentSlug } from "~/utils/routeHelpers";
+import { matchDocumentHistory, matchDocumentSlug } from "~/utils/routeHelpers";
+import SidebarLayout from "~/scenes/Document/components/SidebarLayout";
 
 const DocumentComments = lazyWithRetry(
   () => import("~/scenes/Document/components/Comments/Comments")
 );
 const DocumentHistory = lazyWithRetry(
   () => import("~/scenes/Document/components/History")
-);
-const SidebarLayout = lazyWithRetry(
-  () => import("~/scenes/Document/components/SidebarLayout")
-);
-const PlaceholderText = lazyWithRetry(
-  () => import("~/components/PlaceholderText")
 );
 
 /**
@@ -63,13 +59,26 @@ const DocumentSidebarContent = observer(function DocumentSidebarContent() {
 });
 
 /**
- * Manages the right sidebar for the Document scene. Sets a stable component
- * into the sidebar context when open, and clears it when closed or on unmount.
+ * Manages the right sidebar for the Document scene. Syncs the history route
+ * to store state, sets a stable component into the sidebar context when open,
+ * and clears it when closed or on unmount.
  */
 export default function useDocumentSidebar() {
   const { ui } = useStores();
+  const location = useLocation();
   const setSidebar = useSetRightSidebar();
+  const isHistoryRoute = !!matchPath(location.pathname, {
+    path: matchDocumentHistory,
+  });
   const isOpen = ui.rightSidebar !== null;
+
+  React.useEffect(() => {
+    if (isHistoryRoute) {
+      ui.set({ rightSidebar: "history" });
+    } else if (ui.rightSidebar === "history") {
+      ui.set({ rightSidebar: null });
+    }
+  }, [isHistoryRoute, ui]);
 
   React.useEffect(() => {
     if (isOpen) {
