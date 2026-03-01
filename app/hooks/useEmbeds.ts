@@ -47,7 +47,7 @@ export default function useEmbeds(loadIfMissing = false) {
           e.settings = integration.settings;
         }
 
-        e.disabled = disabledEmbeds.includes(e.title);
+        e.disabled = disabledEmbeds.includes(e.id);
 
         return e;
       }),

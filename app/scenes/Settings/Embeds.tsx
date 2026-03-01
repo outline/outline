@@ -12,11 +12,10 @@ import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import { IntegrationScene } from "./components/IntegrationScene";
 import SettingRow from "./components/SettingRow";
+import { HStack } from "~/components/primitives/HStack";
 
 /** List of embed providers available for configuration. */
-const providers = embeds.filter(
-  (e) => e.title !== "Embed" && e.visible !== false
-);
+const providers = embeds.filter((e) => e.id !== "embed");
 
 function Embeds() {
   const team = useCurrentTeam();
@@ -50,13 +49,13 @@ function Embeds() {
   );
 
   const handleToggleEmbed = React.useCallback(
-    async (title: string, enabled: boolean) => {
+    async (id: string, enabled: boolean) => {
       const disabledEmbeds =
         (team.getPreference(TeamPreference.DisabledEmbeds) as string[]) || [];
 
       const updated = enabled
-        ? disabledEmbeds.filter((t) => t !== title)
-        : [...disabledEmbeds, title];
+        ? disabledEmbeds.filter((t) => t !== id)
+        : [...disabledEmbeds, id];
 
       team.setPreference(TeamPreference.DisabledEmbeds, updated);
       await saveData({
@@ -70,24 +69,14 @@ function Embeds() {
     (team.getPreference(TeamPreference.DisabledEmbeds) as string[]) || [];
 
   return (
-    <IntegrationScene
-      title={t("Embeds")}
-      icon={<BrowserIcon />}
-    >
+    <IntegrationScene title={t("Embeds")} icon={<BrowserIcon />}>
       <Heading>{t("Embeds")}</Heading>
-      <Text as="p" type="secondary">
-        <Trans>
-          Configure which embed providers are available in the editor. Existing
-          embeds in documents will continue to display regardless of these
-          settings.
-        </Trans>
-      </Text>
 
       <SettingRow
-        label={t("Rich service embeds")}
+        label={t("Enabled")}
         name="documentEmbeds"
         description={t(
-          "Links to supported services are shown as rich embeds within your documents"
+          "Allow supported providers to be inserted as interactive embeds in documents."
         )}
       >
         <Switch
@@ -100,20 +89,36 @@ function Embeds() {
       {team.documentEmbeds && (
         <>
           <Heading as="h2">{t("Providers")}</Heading>
+          <Text as="p" type="secondary">
+            <Trans>
+              Enabled providers will appear in the editor slash menu and embed
+              automatically when a compatible link is pasted. Existing embeds in
+              documents will continue to display regardless of these settings.
+            </Trans>
+          </Text>
           {providers.map((embed) => {
-            const enabled = !disabledEmbeds.includes(embed.title);
+            const enabled = !disabledEmbeds.includes(embed.id);
             return (
               <SettingRow
-                key={embed.title}
-                label={embed.title}
+                key={embed.id}
                 name={embed.title}
-                description={embed.keywords}
+                label={
+                  <HStack
+                    style={{ filter: enabled ? "none" : "grayscale(100%)" }}
+                  >
+                    {embed.icon}
+                    <Text type={enabled ? undefined : "tertiary"}>
+                      {embed.title}
+                    </Text>
+                  </HStack>
+                }
+                compact
               >
                 <Switch
-                  id={embed.title}
+                  id={embed.id}
                   checked={enabled}
                   onChange={(checked: boolean) =>
-                    handleToggleEmbed(embed.title, checked)
+                    handleToggleEmbed(embed.id, checked)
                   }
                 />
               </SettingRow>

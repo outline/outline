@@ -241,6 +241,9 @@ const useSettingsConfig = () => {
         path: integrationSettingsPath("embeds"),
         component: Embeds.Component,
         preload: Embeds.preload,
+        description: t(
+          "Configure which embed providers are available in the editor."
+        ),
         enabled: can.update,
         group: t("Integrations"),
         icon: BrowserIcon,
