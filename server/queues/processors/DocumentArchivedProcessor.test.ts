@@ -11,7 +11,6 @@ describe("DocumentArchivedProcessor", () => {
       teamId: user.teamId,
       userId: user.id,
     });
-    
     // Create a star for the document by the user
     await buildStar({
       userId: user.id,
@@ -67,7 +66,6 @@ describe("DocumentArchivedProcessor", () => {
       userId: otherUser.id,
       documentId: document.id,
     });
-    
     // Verify both stars exist
     expect(
       await Star.count({
@@ -115,9 +113,7 @@ describe("DocumentArchivedProcessor", () => {
       teamId: user.teamId,
       userId: user.id,
     });
-    
     // Do not create a star for the document
-    
     // Verify the star doesn't exist
     expect(
       await Star.count({

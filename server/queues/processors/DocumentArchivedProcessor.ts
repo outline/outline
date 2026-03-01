@@ -11,6 +11,7 @@ export default class DocumentArchivedProcessor extends BaseProcessor {
    *
    * @param event The document archive event.
    * @returns A promise that resolves when the operation is complete.
+   * @throws {Error} If the database operation fails.
    */
   async perform(event: DocumentEvent) {
     // Remove the document from the actor's starred documents
