@@ -20,13 +20,19 @@ const DocumentHistory = lazyWithRetry(
   () => import("~/scenes/Document/components/History")
 );
 
+interface DocumentSidebarContentProps {
+  skipInitialAnimation?: boolean;
+}
+
 /**
  * Stable component that reads `ui.rightSidebar` and renders the appropriate
  * sidebar content. On desktop, wraps content in a single Right sidebar that
  * stays mounted across panel switches to avoid re-triggering the open/close
  * animation.
  */
-const DocumentSidebarContent = observer(function DocumentSidebarContent() {
+const DocumentSidebarContent = observer(function DocumentSidebarContent({
+  skipInitialAnimation,
+}: DocumentSidebarContentProps) {
   const { ui } = useStores();
   const isMobile = useMobile();
 
@@ -50,7 +56,7 @@ const DocumentSidebarContent = observer(function DocumentSidebarContent() {
   }
 
   return (
-    <RightSidebar>
+    <RightSidebar skipInitialAnimation={skipInitialAnimation}>
       <RightSidebarWrappedContext.Provider value={true}>
         {inner}
       </RightSidebarWrappedContext.Provider>
@@ -71,6 +77,7 @@ export default function useDocumentSidebar() {
     path: matchDocumentHistory,
   });
   const isOpen = ui.rightSidebar !== null;
+  const isInitialOpenRef = React.useRef(isOpen);
 
   React.useEffect(() => {
     if (isHistoryRoute) {
@@ -82,7 +89,12 @@ export default function useDocumentSidebar() {
 
   React.useEffect(() => {
     if (isOpen) {
-      setSidebar(<DocumentSidebarContent />);
+      setSidebar(
+        <DocumentSidebarContent
+          skipInitialAnimation={isInitialOpenRef.current}
+        />
+      );
+      isInitialOpenRef.current = false;
     } else {
       setSidebar(null);
     }

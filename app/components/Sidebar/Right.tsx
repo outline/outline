@@ -14,9 +14,11 @@ import { sidebarAppearDuration } from "~/styles/animations";
 interface Props extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
   border?: boolean;
+  /** When true, skip the entrance animation and render at full width immediately. */
+  skipInitialAnimation?: boolean;
 }
 
-function Right({ children, border, className }: Props) {
+function Right({ children, border, className, skipInitialAnimation }: Props) {
   const theme = useTheme();
   const { ui } = useStores();
   const [isResizing, setResizing] = React.useState(false);
@@ -77,10 +79,12 @@ function Right({ children, border, className }: Props) {
   );
 
   const animationProps = {
-    initial: {
-      width: 0,
-      opacity: 0.9,
-    },
+    initial: skipInitialAnimation
+      ? false
+      : {
+          width: 0,
+          opacity: 0.9,
+        },
     animate: {
       transition: isResizing
         ? { duration: 0 }
