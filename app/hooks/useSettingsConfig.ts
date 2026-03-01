@@ -17,6 +17,7 @@ import {
   InternetIcon,
   SmileyIcon,
   BuildingBlocksIcon,
+  BrowserIcon,
 } from "outline-icons";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -48,6 +49,7 @@ const Security = lazy(() => import("~/scenes/Settings/Security"));
 const Shares = lazy(() => import("~/scenes/Settings/Shares"));
 const Templates = lazy(() => import("~/scenes/Settings/Templates"));
 const CustomEmojis = lazy(() => import("~/scenes/Settings/CustomEmojis"));
+const Embeds = lazy(() => import("~/scenes/Settings/Embeds"));
 
 export type ConfigItem = {
   name: string;
@@ -234,6 +236,18 @@ const useSettingsConfig = () => {
         icon: ExportIcon,
       },
       // Integrations
+      {
+        name: t("Embeds"),
+        path: integrationSettingsPath("embeds"),
+        component: Embeds.Component,
+        preload: Embeds.preload,
+        description: t(
+          "Configure which embed providers are available in the editor."
+        ),
+        enabled: can.update,
+        group: t("Integrations"),
+        icon: BrowserIcon,
+      },
       {
         name: `${t("Install")}…`,
         path: settingsPath("integrations"),

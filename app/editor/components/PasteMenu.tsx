@@ -67,7 +67,10 @@ function useItems({
 
   const singleUrl =
     typeof pastedText === "string" && isUrl(pastedText) ? pastedText : null;
-  const embed = singleUrl ? getMatchingEmbed(embeds, singleUrl)?.embed : null;
+  const matchedEmbed = singleUrl
+    ? getMatchingEmbed(embeds, singleUrl)?.embed
+    : null;
+  const embed = matchedEmbed?.disabled ? null : matchedEmbed;
 
   // Check embeddability for single URL
   useEffect(() => {

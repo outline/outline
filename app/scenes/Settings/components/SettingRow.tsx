@@ -12,11 +12,13 @@ type Props = {
   name: string;
   visible?: boolean;
   border?: boolean;
+  compact?: boolean;
 };
 
-const Row = styled(Flex)<{ $border?: boolean }>`
+const Row = styled(Flex)<{ $border?: boolean; $compact?: boolean }>`
   display: block;
-  padding: 22px 0;
+  padding: ${(props) => (props.$compact ? "12px 0" : "22px 0")};
+  align-items: ${(props) => (props.$compact ? "center" : "initial")};
   border-bottom: 1px solid
     ${(props) =>
       props.$border === false
@@ -60,6 +62,7 @@ const Label = styled(Text)`
 const SettingRow: React.FC<Props> = ({
   visible,
   description,
+  compact,
   name,
   label,
   border,
@@ -69,7 +72,7 @@ const SettingRow: React.FC<Props> = ({
     return null;
   }
   return (
-    <Row gap={32} $border={border}>
+    <Row gap={32} $border={border} $compact={compact}>
       <Column>
         <Label as="h3">
           <label htmlFor={name}>{label}</label>
