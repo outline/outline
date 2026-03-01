@@ -135,19 +135,6 @@ export class EmbedDescriptor {
 
 const embeds: EmbedDescriptor[] = [
   new EmbedDescriptor({
-    id: "abstract",
-    title: "Abstract",
-    keywords: "design",
-    defaultHidden: true,
-    icon: <Img src="/images/abstract.png" alt="Abstract" />,
-    regexMatch: [
-      new RegExp("^https?://share\\.(?:go)?abstract\\.com/(.*)$"),
-      new RegExp("^https?://app\\.(?:go)?abstract\\.com/(?:share|embed)/(.*)$"),
-    ],
-    transformMatch: (matches: RegExpMatchArray) =>
-      `https://app.goabstract.com/embed/${matches[1]}`,
-  }),
-  new EmbedDescriptor({
     id: "airtable",
     title: "Airtable",
     keywords: "spreadsheet",

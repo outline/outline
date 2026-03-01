@@ -1213,6 +1213,7 @@
   "Allow supported providers to be inserted as interactive embeds in documents.": "Allow supported providers to be inserted as interactive embeds in documents.",
   "Providers": "Providers",
   "Enabled providers will appear in the editor slash menu and embed automatically when a compatible link is pasted. Existing embeds in documents will continue to display regardless of these settings.": "Enabled providers will appear in the editor slash menu and embed automatically when a compatible link is pasted. Existing embeds in documents will continue to display regardless of these settings.",
+  "All providers": "All providers",
   "Export data": "Export data",
   "A full export might take some time, consider exporting a single document or collection. You may leave this page once the export has started – if you have notifications enabled, we will email a link to <em>{{ userEmail }}</em> when it’s complete.": "A full export might take some time, consider exporting a single document or collection. You may leave this page once the export has started – if you have notifications enabled, we will email a link to <em>{{ userEmail }}</em> when it’s complete.",
   "Recent exports": "Recent exports",
