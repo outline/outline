@@ -158,17 +158,20 @@ export function searchPath({
   query,
   collectionId,
   documentId,
+  tagId,
   ref,
 }: {
   query?: string;
   collectionId?: string;
   documentId?: string;
+  tagId?: string;
   ref?: string;
 } = {}): string {
   const search = queryString.stringify({
     q: query,
     collectionId,
     documentId,
+    tagId,
     ref,
   });
 

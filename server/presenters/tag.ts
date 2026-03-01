@@ -16,6 +16,7 @@ function presentTag(tag: Tag, options: { isPublic?: boolean } = {}) {
 		res.id = tag.id;
 		res.teamId = tag.teamId;
 		res.color = tag.color ?? null;
+		res.documentCount = tag.documentCount;
 		res.createdAt = tag.createdAt;
 		res.updatedAt = tag.updatedAt;
 	}

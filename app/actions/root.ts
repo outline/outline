@@ -5,6 +5,7 @@ import { rootNavigationActions } from "./definitions/navigation";
 import { rootNotificationActions } from "./definitions/notifications";
 import { rootRevisionActions } from "./definitions/revisions";
 import { rootSettingsActions } from "./definitions/settings";
+import { rootTagActions } from "./definitions/tags";
 import { rootTeamActions } from "./definitions/teams";
 import { rootUserActions } from "./definitions/users";
 
@@ -18,4 +19,5 @@ export default [
   ...rootSettingsActions,
   ...rootDeveloperActions,
   ...rootTeamActions,
+  ...rootTagActions,
 ];

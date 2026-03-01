@@ -6,12 +6,6 @@ import { client } from "~/utils/ApiClient";
 import type RootStore from "./RootStore";
 import Store from "./base/Store";
 
-type TagUsageEntry = {
-	id: string;
-	name: string;
-	documentCount: number;
-};
-
 export default class TagsStore extends Store<Tag> {
 	constructor(rootStore: RootStore) {
 		super(rootStore, Tag);
@@ -43,37 +37,12 @@ export default class TagsStore extends Store<Tag> {
 	};
 
 	/**
-	 * Fetch usage statistics (document count per tag) for the current team.
+	 * Fetch tags with usage statistics (documentCount) for the current team.
+	 * documentCount is now a cached field on the Tag model, so this is equivalent to fetchPage.
 	 *
 	 * @returns An array of Tag models with `documentCount` populated.
 	 */
-	@action
-	fetchUsage = async (): Promise<Tag[]> => {
-		this.isFetching = true;
-
-		try {
-			const res = await client.post("/tags.usage");
-			invariant(res?.data, "Data not available");
-
-			return runInAction("TagsStore#fetchUsage", () => {
-				return res.data.tags.map((entry: TagUsageEntry) => {
-					const existing = this.get(entry.id);
-					if (existing) {
-						existing.documentCount = entry.documentCount;
-						if ("color" in entry) {
-							existing.color = (entry as TagUsageEntry & { color: string | null }).color;
-						}
-						return existing;
-					}
-					const tag = this.add(entry);
-					tag.documentCount = entry.documentCount;
-					return tag;
-				});
-			});
-		} finally {
-			this.isFetching = false;
-		}
-	};
+	fetchUsage = (): Promise<Tag[]> => this.fetchPage();
 
 	/**
 	 * Add a tag to a document and update the document model in-store.
@@ -83,7 +52,7 @@ export default class TagsStore extends Store<Tag> {
 	 */
 	@action
 	addToDocument = async (documentId: string, tagId: string): Promise<void> => {
-		await client.post("/documents.addTag", { id: documentId, tagId });
+		await client.post("/documents.add_tag", { id: documentId, tagId });
 		const document = this.rootStore.documents.get(documentId);
 		if (document) {
 			const tag = this.get(tagId);
@@ -111,7 +80,7 @@ export default class TagsStore extends Store<Tag> {
 		documentId: string,
 		tagId: string
 	): Promise<void> => {
-		await client.post("/documents.removeTag", { id: documentId, tagId });
+		await client.post("/documents.remove_tag", { id: documentId, tagId });
 		const document = this.rootStore.documents.get(documentId);
 		if (document?.tags) {
 			runInAction("TagsStore#removeFromDocument", () => {
@@ -120,6 +89,31 @@ export default class TagsStore extends Store<Tag> {
 				);
 			});
 		}
+	};
+
+	/**
+	 * Star a tag for the current user.
+	 *
+	 * @param tag The tag to star.
+	 * @param index Optional fractional index for sidebar ordering.
+	 */
+	star = async (tag: Tag, index?: string): Promise<void> => {
+		await this.rootStore.stars.create({
+			tagId: tag.id,
+			index,
+		});
+	};
+
+	/**
+	 * Unstar a tag for the current user.
+	 *
+	 * @param tag The tag to unstar.
+	 */
+	unstar = async (tag: Tag): Promise<void> => {
+		const star = this.rootStore.stars.orderedData.find(
+			(s) => s.tagId === tag.id
+		);
+		await star?.delete();
 	};
 
 	/**

@@ -23,6 +23,9 @@ export default class StarsStore extends Store<Star> {
 
       return runInAction(`StarsStore#fetchPage`, () => {
         res.data.documents.forEach(this.rootStore.documents.add);
+        if (res.data.tags) {
+          res.data.tags.forEach(this.rootStore.tags.add);
+        }
         const models = res.data.stars.map(this.add);
         this.addPolicies(res.policies);
         this.isLoaded = true;

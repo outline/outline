@@ -57,6 +57,8 @@ type SearchOptions = {
   documentIds?: string[];
   /** Limit results to a list of users that collaborated on the document. */
   collaboratorIds?: string[];
+  /** Limit results to documents with a specific tag. */
+  tagId?: string;
   /** The minimum number of words to be returned in the contextual snippet */
   snippetMinWords?: number;
   /** The maximum number of words to be returned in the contextual snippet */
@@ -654,6 +656,14 @@ export default class SearchHelper {
       where[Op.and].push({
         id: options.documentIds,
       });
+    }
+
+    if (options.tagId) {
+      where[Op.and].push(
+        Sequelize.literal(
+          `EXISTS (SELECT 1 FROM document_tags WHERE document_tags."documentId" = "document"."id" AND document_tags."tagId" = '${options.tagId}')`
+        )
+      );
     }
 
     const statusQuery = [];

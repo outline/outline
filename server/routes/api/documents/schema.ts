@@ -57,6 +57,9 @@ const BaseSearchSchema = DateFilterSchema.extend({
   /** Filter results based on content within a document and it's children */
   documentId: z.uuid().optional(),
 
+  /** Filter results to documents with a specific tag */
+  tagId: z.uuid().optional(),
+
   /** Document statuses to include in results */
   statusFilter: z.enum(StatusFilter).array().optional(),
 

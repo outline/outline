@@ -20,6 +20,7 @@ import {
   FileOperationState,
   FileOperationType,
   StatusFilter,
+  UserPreference,
   UserRole,
 } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
@@ -836,7 +837,7 @@ router.post(
       DocumentHelper.toMarkdown(document, {
         signedUrls,
         teamId: user.teamId,
-        includeFrontmatter: true,
+        includeFrontmatter: user.getPreference(UserPreference.MarkdownFrontmatter),
       });
 
     if (format === FileOperationFormat.HTMLZip) {
@@ -1079,6 +1080,7 @@ router.post(
       collectionId,
       documentId,
       userId,
+      tagId,
       dateFilter,
       statusFilter = [],
       shareId,
@@ -1180,6 +1182,7 @@ router.post(
         collaboratorIds,
         collectionId,
         documentIds,
+        tagId,
         dateFilter,
         statusFilter,
         offset,
@@ -2160,7 +2163,7 @@ router.post(
 );
 
 router.post(
-  "documents.addTag",
+  "documents.add_tag",
   auth(),
   validate(T.DocumentsAddTagSchema),
   transaction(),
@@ -2222,7 +2225,7 @@ router.post(
 );
 
 router.post(
-  "documents.removeTag",
+  "documents.remove_tag",
   auth(),
   validate(T.DocumentsRemoveTagSchema),
   transaction(),
@@ -2252,85 +2255,6 @@ router.post(
       data: await presentDocument(ctx, updatedDocument!),
       policies: presentPolicies(user, [updatedDocument!]),
     };
-  }
-);
-
-router.post(
-  "documents.addTag",
-  auth(),
-  validate(T.DocumentsAddTagSchema),
-  transaction(),
-  async (ctx: APIContext<T.DocumentsAddTagReq>) => {
-    const { id, tagId, name } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
-
-    const document = await Document.findByPk(id, {
-      userId: user.id,
-      transaction,
-    } as any);
-
-    authorize(user, "update", document);
-
-    let tag: Tag | null = null;
-
-    if (tagId) {
-      tag = await Tag.findOne({
-        where: { id: tagId, teamId: user.teamId },
-        transaction,
-      });
-    } else if (name) {
-      const normalized = name.toLowerCase().trim();
-      tag = await Tag.findOne({
-        where: { name: normalized, teamId: user.teamId },
-        transaction,
-      });
-      if (!tag) {
-        tag = await Tag.create(
-          { name: normalized, teamId: user.teamId, createdById: user.id },
-          { transaction }
-        );
-      }
-    }
-
-    if (!tag) {
-      ctx.throw(404, "Tag not found");
-      return;
-    }
-
-    await DocumentTag.findOrCreate({
-      where: { documentId: document.id, tagId: tag.id },
-      defaults: { documentId: document.id, tagId: tag.id },
-      transaction,
-    });
-
-    ctx.body = { success: true };
-  }
-);
-
-router.post(
-  "documents.removeTag",
-  auth(),
-  validate(T.DocumentsRemoveTagSchema),
-  transaction(),
-  async (ctx: APIContext<T.DocumentsRemoveTagReq>) => {
-    const { id, tagId } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
-
-    const document = await Document.findByPk(id, {
-      userId: user.id,
-      transaction,
-    } as any);
-
-    authorize(user, "update", document);
-
-    await DocumentTag.destroy({
-      where: { documentId: document.id, tagId },
-      transaction,
-    });
-
-    ctx.body = { success: true };
   }
 );
 

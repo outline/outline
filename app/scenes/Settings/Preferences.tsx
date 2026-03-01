@@ -120,6 +120,15 @@ function Preferences() {
     [t]
   );
 
+  const handleMarkdownFrontmatterChange = React.useCallback(
+    async (checked: boolean) => {
+      user.setPreference(UserPreference.MarkdownFrontmatter, checked);
+      await user.save();
+      toast.success(t("Preferences saved"));
+    },
+    [user, t]
+  );
+
   const handleNotificationBadgeChange = React.useCallback(
     async (value: string) => {
       user.setPreference(
@@ -272,6 +281,7 @@ function Preferences() {
         description={t(
           "Auto-format text by replacing shortcuts with symbols, dashes, smart quotes, and other typographical elements."
         )}
+        border={false}
       >
         <Switch
           id={UserPreference.EnableSmartText}
@@ -280,6 +290,24 @@ function Preferences() {
           onChange={handleEnableSmartTextChange}
         />
       </SettingRow>
+
+      <Heading as="h2">{t("Export")}</Heading>
+      <SettingRow
+        name={UserPreference.MarkdownFrontmatter}
+        label={t("Include YAML frontmatter")}
+        description={t(
+          "When exporting documents as Markdown, include a YAML frontmatter block with the document's tags."
+        )}
+      >
+        <Switch
+          id={UserPreference.MarkdownFrontmatter}
+          name={UserPreference.MarkdownFrontmatter}
+          checked={!!user.getPreference(UserPreference.MarkdownFrontmatter)}
+          onChange={handleMarkdownFrontmatterChange}
+        />
+      </SettingRow>
+
+      <Heading as="h2">{t("Notifications")}</Heading>
       <SettingRow
         border={false}
         name={UserPreference.NotificationBadge}

@@ -1,5 +1,14 @@
-import type { InferAttributes, InferCreationAttributes } from "sequelize";
+import type {
+	Attributes,
+	CreationAttributes,
+	FindOrCreateOptions,
+	InferAttributes,
+	InferCreationAttributes,
+	InstanceDestroyOptions,
+} from "sequelize";
 import {
+	AfterCreate,
+	AfterDestroy,
 	BelongsTo,
 	Column,
 	DataType,
@@ -40,6 +49,39 @@ class DocumentTag extends IdModel<
 	@ForeignKey(() => User)
 	@Column(DataType.UUID)
 	createdById: string | null;
+
+	// hooks
+
+	/**
+	 * Increments the cached documentCount on the associated Tag after a DocumentTag is created.
+	 */
+	@AfterCreate
+	public static async incrementTagDocumentCount(
+		model: DocumentTag,
+		ctx: FindOrCreateOptions<Attributes<DocumentTag>, CreationAttributes<DocumentTag>>
+	) {
+		const { transaction } = ctx;
+		await Tag.increment("documentCount", {
+			where: { id: model.tagId },
+			transaction,
+		});
+	}
+
+	/**
+	 * Decrements the cached documentCount on the associated Tag after a DocumentTag is destroyed.
+	 */
+	@AfterDestroy
+	public static async decrementTagDocumentCount(
+		model: DocumentTag,
+		ctx: InstanceDestroyOptions
+	) {
+		const { transaction } = ctx;
+		await Tag.decrement("documentCount", {
+			where: { id: model.tagId },
+			by: 1,
+			transaction,
+		});
+	}
 }
 
 export default DocumentTag;

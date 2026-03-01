@@ -1,4 +1,4 @@
-import { observable } from "mobx";
+import { computed, observable } from "mobx";
 import type TagsStore from "~/stores/TagsStore";
 import Model from "./base/Model";
 import Field from "./decorators/Field";
@@ -21,9 +21,18 @@ class Tag extends Model {
 	@observable
 	color: string | null;
 
-	/** The number of documents using this tag (only present in usage responses). */
+	/** Cached count of documents using this tag. */
+	@Field
 	@observable
-	documentCount?: number;
+	documentCount: number;
+
+	/** Whether the current user has starred this tag. */
+	@computed
+	get isStarred(): boolean {
+		return !!this.store.rootStore.stars.orderedData.find(
+			(star) => star.tagId === this.id
+		);
+	}
 }
 
 export default Tag;

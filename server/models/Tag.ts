@@ -6,6 +6,7 @@ import {
 	BelongsToMany,
 	Column,
 	DataType,
+	Default,
 	ForeignKey,
 	Length,
 	Scopes,
@@ -43,6 +44,14 @@ class Tag extends ParanoidModel<
 	 */
 	@Column(DataType.STRING(7))
 	color: string | null;
+
+	/**
+	 * Cached count of documents associated with this tag.
+	 * Maintained via AfterCreate/AfterDestroy hooks on DocumentTag.
+	 */
+	@Default(0)
+	@Column(DataType.INTEGER)
+	documentCount: number;
 
 	// associations
 

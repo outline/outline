@@ -3,7 +3,7 @@ import { Op } from "sequelize";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { Tag, Document, DocumentTag } from "@server/models";
+import { Tag, DocumentTag } from "@server/models";
 import { authorize } from "@server/policies";
 import presentTag from "@server/presenters/tag";
 import { presentPolicies } from "@server/presenters";
@@ -137,22 +137,13 @@ router.post(
 			order: [["name", "ASC"]],
 		});
 
-		const counts = await DocumentTag.findAll({
-			where: { tagId: tags.map((t) => t.id) },
-			attributes: ["tagId", [Tag.sequelize!.fn("COUNT", Tag.sequelize!.col("tagId")), "documentCount"]],
-			group: ["tagId"],
-			raw: true,
-		}) as unknown as Array<{ tagId: string; documentCount: string }>;
-
-		const countMap = new Map(counts.map((c) => [c.tagId, parseInt(c.documentCount, 10)]));
-
 		ctx.body = {
 			data: {
 				tags: tags.map((tag) => ({
 					id: tag.id,
 					name: tag.name,
 					color: tag.color ?? null,
-					documentCount: countMap.get(tag.id) ?? 0,
+					documentCount: tag.documentCount,
 				})),
 			},
 		};
@@ -182,12 +173,8 @@ router.post(
 		authorize(user, "delete", tag);
 
 		if (!confirm) {
-			const documentCount = await DocumentTag.count({
-				where: { tagId: tag.id },
-				transaction,
-			});
 			throw InvalidRequestError(
-				`Deleting this tag will remove it from ${documentCount} document(s). Send confirm: true to proceed.`
+				`Deleting this tag will remove it from ${tag.documentCount} document(s). Send confirm: true to proceed.`
 			);
 		}
 

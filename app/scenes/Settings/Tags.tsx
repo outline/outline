@@ -1,9 +1,10 @@
 import { observer } from "mobx-react";
-import { EditIcon, HashtagIcon, PlusIcon, TrashIcon } from "outline-icons";
+import { CloseIcon, EditIcon, HashtagIcon, PlusIcon, TrashIcon } from "outline-icons";
 import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
+import ColorPicker from "@shared/components/ColorPicker";
 import { s } from "@shared/styles";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
@@ -22,94 +23,9 @@ import type { Properties } from "~/types";
 
 const TAG_MAX_LENGTH = 64;
 
-const PRESET_COLORS = [
-	"#a8e063",
-	"#4caf50",
-	"#26d7ae",
-	"#29b6f6",
-	"#7e57c2",
-	"#ab47bc",
-	"#ec407a",
-	"#ef5350",
-	"#ffa726",
-];
-
 interface TagFormState {
 	name: string;
 	color: string | null;
-}
-
-function ColorPicker({
-	value,
-	onChange,
-}: {
-	value: string | null;
-	onChange: (color: string | null) => void;
-}) {
-	const [custom, setCustom] = useState(
-		value && !PRESET_COLORS.includes(value) ? value : ""
-	);
-
-	return (
-		<ColorPickerRow gap={6} align="center">
-			{PRESET_COLORS.map((c) => (
-				<ColorSwatch
-					key={c}
-					$color={c}
-					$active={value === c}
-					onClick={() => onChange(value === c ? null : c)}
-					type="button"
-					aria-label={c}
-				/>
-			))}
-			<ColorSwatch
-				$color={custom || "#ffffff"}
-				$active={!!custom && value === custom}
-				$isCustom
-				onClick={() => {
-					if (custom && value === custom) {
-						onChange(null);
-					}
-				}}
-				type="button"
-				aria-label="custom color"
-			>
-				<input
-					type="color"
-					value={custom || "#ffffff"}
-					onChange={(ev) => {
-						setCustom(ev.target.value);
-						onChange(ev.target.value);
-					}}
-					style={{
-						opacity: 0,
-						position: "absolute",
-						inset: 0,
-						width: "100%",
-						height: "100%",
-						cursor: "pointer",
-						border: "none",
-						padding: 0,
-					}}
-					aria-hidden
-				/>
-				{!custom && <span style={{ pointerEvents: "none", fontSize: 18, lineHeight: 1 }}>+</span>}
-			</ColorSwatch>
-			{value && (
-				<Tooltip content="Farbe entfernen">
-					<ResetButton
-						type="button"
-						onClick={() => {
-							setCustom("");
-							onChange(null);
-						}}
-					>
-						↺
-					</ResetButton>
-				</Tooltip>
-			)}
-		</ColorPickerRow>
-	);
 }
 
 interface TagEditFormProps {
@@ -162,7 +78,17 @@ function TagEditForm({ initialName, initialColor, submitLabel, onSubmit }: TagEd
 			</FormGroup>
 			<FormGroup>
 				<label>{t("Color")}</label>
-				<ColorPicker value={color} onChange={setColor} />
+				<ColorPickerWrapper>
+					<ColorPicker alpha={false} activeColor={color} onSelect={setColor} />
+					{color && (
+						<Tooltip content={t("Remove color")}>
+							<NudeButton type="button" onClick={() => setColor(null)}>
+								<CloseIcon size={16} />
+								{t("Remove color")}
+							</NudeButton>
+						</Tooltip>
+					)}
+				</ColorPickerWrapper>
 			</FormGroup>
 			<FormFooter align="center" justify="space-between">
 				<TagPreview $color={color}>
@@ -384,50 +310,11 @@ const ActionCell = styled(Flex)`
 	justify-content: flex-end;
 `;
 
-const ColorPickerRow = styled(Flex)`
-	flex-wrap: wrap;
-	margin-top: 4px;
-`;
-
-const ColorSwatch = styled.button<{
-	$color: string;
-	$active: boolean;
-	$isCustom?: boolean;
-}>`
-	position: relative;
-	width: 32px;
-	height: 32px;
-	border-radius: 6px;
-	background: ${({ $color }) => $color};
-	border: 2.5px solid ${({ $active, $color }) => ($active ? "rgba(0,0,0,0.5)" : "transparent")};
-	cursor: pointer;
+const ColorPickerWrapper = styled.div`
 	display: flex;
-	align-items: center;
-	justify-content: center;
-	overflow: hidden;
-	color: #555;
-	font-weight: bold;
-	outline: ${({ $active }) => ($active ? "2px solid rgba(0,0,0,0.25)" : "none")};
-	outline-offset: 1px;
-	transition: border-color 0.15s;
-
-	&:hover {
-		border-color: rgba(0, 0, 0, 0.35);
-	}
-`;
-
-const ResetButton = styled.button`
-	background: none;
-	border: none;
-	cursor: pointer;
-	font-size: 18px;
-	color: ${s("textTertiary")};
-	padding: 2px 4px;
-	line-height: 1;
-
-	&:hover {
-		color: ${s("text")};
-	}
+	flex-direction: column;
+	gap: 8px;
+	align-items: flex-start;
 `;
 
 const FormGroup = styled.div`
