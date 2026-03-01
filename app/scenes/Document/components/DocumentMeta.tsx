@@ -60,7 +60,7 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
               pathname: documentPath(document as Document),
               state: { sidebarContext },
             }}
-            onClick={() => ui.toggleComments()}
+            onClick={() => ui.set({ rightSidebar: "comments" })}
           >
             <CommentIcon size={18} />
             {commentsCount

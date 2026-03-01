@@ -341,13 +341,6 @@ class UiStore {
   };
 
   @action
-  toggleComments = () => {
-    this.set({
-      rightSidebar: this.rightSidebar === "comments" ? null : "comments",
-    });
-  };
-
-  @action
   toggleCollapsedSidebar = () => {
     sidebarHidden = false;
     this.set({ sidebarCollapsed: !this.sidebarCollapsed });
@@ -435,7 +428,7 @@ class UiStore {
       sidebarWidth: this.sidebarWidth,
       sidebarRightWidth: this.sidebarRightWidth,
       languagePromptDismissed: this.languagePromptDismissed,
-      rightSidebar: this.rightSidebar === "comments" ? "comments" : null,
+      rightSidebar: this.rightSidebar,
       theme: this.theme,
     };
   }

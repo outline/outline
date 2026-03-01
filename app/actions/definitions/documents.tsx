@@ -1381,7 +1381,7 @@ export const openDocumentComments = createAction({
       return;
     }
 
-    stores.ui.toggleComments();
+    stores.ui.set({ rightSidebar: "comments" });
   },
 });
 
