@@ -13,7 +13,7 @@ describe("DocumentArchivedProcessor", () => {
     });
     
     // Create a star for the document by the user
-    const star = await buildStar({
+    await buildStar({
       userId: user.id,
       documentId: document.id,
     });
