@@ -88,6 +88,8 @@ export class EmbedDescriptor {
   component?: React.FunctionComponent<EmbedProps>;
   /** The integration settings, if any */
   settings?: IntegrationSettings<IntegrationType.Embed>;
+  /** Whether this embed has been disabled by the team admin */
+  disabled?: boolean;
 
   constructor(options: Omit<EmbedDescriptor, "matcher">) {
     this.icon = options.icon;

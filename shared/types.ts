@@ -386,6 +386,8 @@ export enum TeamPreference {
   EmailDisplay = "emailDisplay",
   /** Whether external MCP clients can connect to the workspace. */
   MCP = "mcp",
+  /** List of disabled embed provider titles. */
+  DisabledEmbeds = "disabledEmbeds",
 }
 
 export type TeamPreferences = {
@@ -402,6 +404,7 @@ export type TeamPreferences = {
   [TeamPreference.PreventDocumentEmbedding]?: boolean;
   [TeamPreference.EmailDisplay]?: EmailDisplay;
   [TeamPreference.MCP]?: boolean;
+  [TeamPreference.DisabledEmbeds]?: string[];
 };
 
 export enum NavigationNodeType {

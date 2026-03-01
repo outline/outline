@@ -461,7 +461,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     const embedItems: EmbedDescriptor[] = [];
 
     for (const embed of embeds) {
-      if (embed.title && embed.visible !== false) {
+      if (embed.title && embed.visible !== false && !embed.disabled) {
         embedItems.push(
           new EmbedDescriptor({
             ...embed,
