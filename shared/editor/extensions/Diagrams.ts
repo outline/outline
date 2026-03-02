@@ -20,6 +20,8 @@ import { sanitizeUrl } from "../../utils/urls";
 interface DiagramSession {
   /** The current src used to locate the node in the document. Updated after each successful export. */
   nodeSrc: string;
+  /** The format to use for exporting the diagram (xmlsvg or xmlpng). */
+  format: "xmlsvg" | "xmlpng";
 }
 
 /**
@@ -100,9 +102,13 @@ export default class Diagrams extends Extension {
     const nodeSrc = node?.attrs.src ?? "";
     const sourceUrl = nodeSrc || EMPTY_DIAGRAM_IMAGE;
 
+    // Detect the format from the source URL - default to SVG for new diagrams
+    // PNG diagrams will have .png extension or image/png content type
+    const format = this.detectDiagramFormat(sourceUrl);
+
     // Create a per-session object. Async callbacks close over this object so
     // that a second editing session does not clobber the first session's state.
-    const session: DiagramSession = { nodeSrc };
+    const session: DiagramSession = { nodeSrc, format };
 
     // Clean up any existing client
     if (this.client) {
@@ -111,10 +117,32 @@ export default class Diagrams extends Extension {
 
     this.client = new DiagramsNetClient(
       (client) => this.onDiagramReady(client, sourceUrl),
-      (base64Data) => this.onDiagramExported(base64Data, session)
+      (base64Data) => this.onDiagramExported(base64Data, session),
+      format
     );
 
     this.client.open(this.getDiagramsNetUrl());
+  }
+
+  /**
+   * Detects the diagram format from the source URL.
+   *
+   * @param sourceUrl - the URL of the diagram.
+   * @returns the format to use for exporting ("xmlsvg" or "xmlpng").
+   */
+  private detectDiagramFormat(sourceUrl: string): "xmlsvg" | "xmlpng" {
+    // Check if it's a data URI with PNG content type
+    if (sourceUrl.startsWith("data:image/png")) {
+      return "xmlpng";
+    }
+
+    // Check if the URL ends with .png or .drawio.png
+    if (sourceUrl.toLowerCase().endsWith(".png")) {
+      return "xmlpng";
+    }
+
+    // Default to SVG for empty diagrams and all other cases
+    return "xmlsvg";
   }
 
   /**
@@ -140,16 +168,17 @@ export default class Diagrams extends Extension {
   /**
    * Called when a diagram has been exported from the editor.
    *
-   * @param base64Data - the exported diagram as base64 encoded SVG.
+   * @param base64Data - the exported diagram as base64 encoded SVG or PNG.
    * @param session - the editing session that produced this export.
    */
   private async onDiagramExported(base64Data: string, session: DiagramSession) {
     try {
-      const file = FileHelper.base64ToFile(
-        base64Data,
-        "diagram.svg",
-        "image/svg+xml"
-      );
+      // Use the format from the session to create the appropriate file
+      const isPng = session.format === "xmlpng";
+      const filename = isPng ? "diagram.png" : "diagram.svg";
+      const mimeType = isPng ? "image/png" : "image/svg+xml";
+
+      const file = FileHelper.base64ToFile(base64Data, filename, mimeType);
 
       const dimensions = await FileHelper.getImageDimensions(file);
       const uploadedUrl = await this.uploadDiagramFile(file);
