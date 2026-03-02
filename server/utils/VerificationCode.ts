@@ -21,9 +21,19 @@ export class VerificationCode {
   private static readonly TTL = Minute.ms * 10;
 
   /**
+   * Maximum number of verification attempts before the code is deleted
+   */
+  private static readonly MAX_ATTEMPTS = 10;
+
+  /**
    * Prefix for Redis keys
    */
   private static readonly KEY_PREFIX = "email_verification_code:";
+
+  /**
+   * Prefix for Redis attempt counter keys
+   */
+  private static readonly ATTEMPTS_PREFIX = "email_verification_attempts:";
 
   /**
    * Generate a random 6-digit code
@@ -68,6 +78,23 @@ export class VerificationCode {
    */
   public static async verify(email: string, code: string): Promise<boolean> {
     const storedCode = await this.retrieve(email);
+
+    if (!storedCode) {
+      return false;
+    }
+
+    const attemptsKey = this.getAttemptsKey(email);
+    const attempts = await this.redis.incr(attemptsKey);
+
+    if (attempts === 1) {
+      await this.redis.pexpire(attemptsKey, this.TTL);
+    }
+
+    if (attempts > this.MAX_ATTEMPTS) {
+      await this.delete(email);
+      return false;
+    }
+
     return safeEqual(storedCode, code);
   }
 
@@ -79,7 +106,8 @@ export class VerificationCode {
    */
   public static async delete(email: string): Promise<boolean> {
     const key = this.getKey(email);
-    await this.redis.del(key);
+    const attemptsKey = this.getAttemptsKey(email);
+    await this.redis.del(key, attemptsKey);
     return true;
   }
 
@@ -91,5 +119,15 @@ export class VerificationCode {
    */
   private static getKey(email: string): string {
     return `${this.KEY_PREFIX}${email.toLowerCase()}`;
+  }
+
+  /**
+   * Get the Redis key for tracking verification attempts.
+   *
+   * @param email The email address.
+   * @returns the Redis key for attempts.
+   */
+  private static getAttemptsKey(email: string): string {
+    return `${this.ATTEMPTS_PREFIX}${email.toLowerCase()}`;
   }
 }
