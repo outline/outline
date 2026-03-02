@@ -123,6 +123,7 @@ export default function useDictionary() {
       uploadImage: t("Upload an image"),
       formattingControls: t("Formatting controls"),
       distributeColumns: t("Distribute columns"),
+      wrapText: t("Wrap text"),
     }),
     [t]
   );
