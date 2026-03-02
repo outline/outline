@@ -36,6 +36,7 @@ function Switch(
     width = 32,
     height = 18,
     labelPosition = "left",
+    inForm = true,
     label,
     disabled,
     className,
@@ -72,7 +73,7 @@ function Switch(
 
   if (label) {
     return (
-      <Wrapper $inForm={props.inForm}>
+      <Wrapper $inForm={inForm}>
         <Label
           disabled={disabled}
           htmlFor={props.id}

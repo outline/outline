@@ -15,7 +15,7 @@ import useStores from "./useStores";
  */
 export default function useEmbeds(loadIfMissing = false) {
   const { integrations } = useStores();
-  const team = useCurrentTeam();
+  const team = useCurrentTeam({ rejectOnEmpty: false });
 
   useEffect(() => {
     async function fetchEmbedIntegrations() {
