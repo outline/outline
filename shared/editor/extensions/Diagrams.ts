@@ -102,13 +102,10 @@ export default class Diagrams extends Extension {
     const nodeSrc = node?.attrs.src ?? "";
     const sourceUrl = nodeSrc || EMPTY_DIAGRAM_IMAGE;
 
-    // Detect the format from the source URL - default to SVG for new diagrams
-    // PNG diagrams will have .png extension or image/png content type
-    const format = this.detectDiagramFormat(sourceUrl);
-
     // Create a per-session object. Async callbacks close over this object so
     // that a second editing session does not clobber the first session's state.
-    const session: DiagramSession = { nodeSrc, format };
+    // Format defaults to SVG and is updated after fetching the actual content.
+    const session: DiagramSession = { nodeSrc, format: "xmlsvg" };
 
     // Clean up any existing client
     if (this.client) {
@@ -116,37 +113,11 @@ export default class Diagrams extends Extension {
     }
 
     this.client = new DiagramsNetClient(
-      (client) => this.onDiagramReady(client, sourceUrl),
-      (base64Data) => this.onDiagramExported(base64Data, session),
-      format
+      (client) => this.onDiagramReady(client, sourceUrl, session),
+      (base64Data) => this.onDiagramExported(base64Data, session)
     );
 
     this.client.open(this.getDiagramsNetUrl());
-  }
-
-  /**
-   * Detects the diagram format from the source URL.
-   * 
-   * PNG diagrams are identified by:
-   * - Data URIs starting with "data:image/png" (e.g., "data:image/png;base64,...")
-   * - URLs ending with ".png" (e.g., "https://example.com/diagram.png" or "diagram.drawio.png")
-   *
-   * @param sourceUrl - the URL of the diagram.
-   * @returns the format to use for exporting ("xmlsvg" or "xmlpng").
-   */
-  private detectDiagramFormat(sourceUrl: string): "xmlsvg" | "xmlpng" {
-    // Check if it's a data URI with PNG content type
-    if (sourceUrl.startsWith("data:image/png")) {
-      return "xmlpng";
-    }
-
-    // Check if the URL ends with .png (includes .drawio.png)
-    if (sourceUrl.toLowerCase().endsWith(".png")) {
-      return "xmlpng";
-    }
-
-    // Default to SVG for empty diagrams and all other cases
-    return "xmlsvg";
   }
 
   /**
@@ -154,8 +125,13 @@ export default class Diagrams extends Extension {
    *
    * @param client - the DiagramsNetClient that fired the ready event.
    * @param sourceUrl - the URL of the diagram to load, or the empty diagram constant.
+   * @param session - the editing session to update with the detected format.
    */
-  private async onDiagramReady(client: DiagramsNetClient, sourceUrl: string) {
+  private async onDiagramReady(
+    client: DiagramsNetClient,
+    sourceUrl: string,
+    session: DiagramSession
+  ) {
     let data: string;
 
     if (sourceUrl === EMPTY_DIAGRAM_IMAGE) {
@@ -165,6 +141,11 @@ export default class Diagrams extends Extension {
       // For existing diagrams, send the full data URI
       data = await FileHelper.urlToBase64(sourceUrl);
     }
+
+    // Detect format from the data URI now that we have the actual content.
+    const format = data.startsWith("data:image/png") ? "xmlpng" : "xmlsvg";
+    session.format = format;
+    client.format = format;
 
     client.loadDiagram(data);
   }

@@ -49,22 +49,19 @@ export interface DiagramsNetMessage {
 export class DiagramsNetClient {
   private window: Window | null = null;
 
-  private exportFormat: "xmlsvg" | "xmlpng" = "xmlsvg";
+  /** The format to use when exporting diagrams. */
+  format: "xmlsvg" | "xmlpng" = "xmlsvg";
 
   /**
    * Creates a new DiagramsNetClient instance.
    *
    * @param onDiagramReady - callback when the editor is ready to receive commands.
    * @param onDiagramExported - callback when a diagram has been exported.
-   * @param format - the export format to use ("xmlsvg" or "xmlpng"). Defaults to "xmlsvg".
    */
   constructor(
     private onDiagramReady: (client: DiagramsNetClient) => void,
-    private onDiagramExported: (base64Data: string) => void,
-    format: "xmlsvg" | "xmlpng" = "xmlsvg"
-  ) {
-    this.exportFormat = format;
-  }
+    private onDiagramExported: (base64Data: string) => void
+  ) {}
 
   /**
    * Opens the diagrams.net editor in a new window.
@@ -107,12 +104,12 @@ export class DiagramsNetClient {
 
   /**
    * Requests an export of the current diagram with embedded XML.
-   * Uses the format specified during construction (xmlsvg or xmlpng).
+   * Uses the current format setting (xmlsvg or xmlpng).
    */
   exportDiagram = () => {
     this.sendMessage({
       action: DiagramsNetAction.Export,
-      format: this.exportFormat,
+      format: this.format,
       spinKey: "saving",
     });
   };
