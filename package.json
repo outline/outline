@@ -178,7 +178,7 @@
     "node-fetch": "2.7.0",
     "nodemailer": "^7.0.11",
     "octokit": "^3.2.2",
-    "outline-icons": "^4.0.0",
+    "outline-icons": "^4.1.0",
     "oy-vey": "^0.12.1",
     "pako": "^2.1.0",
     "passport": "^0.7.0",

@@ -1,4 +1,4 @@
-import { CopyIcon, EditIcon, ExpandedIcon } from "outline-icons";
+import { CopyIcon, EditIcon, ExpandedIcon, TextWrapIcon } from "outline-icons";
 import type { Node as ProseMirrorNode } from "prosemirror-model";
 import { NodeSelection } from "prosemirror-state";
 import type { EditorState } from "prosemirror-state";
@@ -68,6 +68,16 @@ export default function codeMenuItems(
         !(mermaidPluginKey.getState(state) as MermaidState)?.editingId &&
         isMermaid(node) &&
         !readOnly,
+    },
+    {
+      name: "separator",
+    },
+    {
+      name: "toggleCodeBlockWrap",
+      icon: <TextWrapIcon />,
+      tooltip: dictionary.wrapText,
+      active: () => node.attrs.wrap,
+      visible: !readOnly,
     },
     {
       name: "separator",
