@@ -34,7 +34,7 @@ export default function useEmbeds(loadIfMissing = false) {
   }, [integrations, loadIfMissing]);
 
   const disabledEmbeds =
-    (team.getPreference(TeamPreference.DisabledEmbeds) as string[]) || [];
+    (team?.getPreference(TeamPreference.DisabledEmbeds) as string[]) || [];
 
   return useMemo(
     () =>
@@ -52,6 +52,6 @@ export default function useEmbeds(loadIfMissing = false) {
         return e;
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [integrations.orderedData, team.preferences]
+    [integrations.orderedData, team?.preferences]
   );
 }
