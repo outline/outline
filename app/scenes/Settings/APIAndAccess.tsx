@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { BuildingBlocksIcon } from "outline-icons";
+import { PadlockIcon } from "outline-icons";
 import { useTranslation, Trans } from "react-i18next";
 import type ApiKey from "~/models/ApiKey";
 import type OAuthAuthentication from "~/models/oauth/OAuthAuthentication";
@@ -18,7 +18,7 @@ import useStores from "~/hooks/useStores";
 import ApiKeyListItem from "./components/ApiKeyListItem";
 import OAuthAuthenticationListItem from "./components/OAuthAuthenticationListItem";
 
-function APIAndApps() {
+function APIAndAccess() {
   const team = useCurrentTeam();
   const user = useCurrentUser();
   const { t } = useTranslation();
@@ -28,8 +28,8 @@ function APIAndApps() {
 
   return (
     <Scene
-      title={t("API & Apps")}
-      icon={<BuildingBlocksIcon />}
+      title={t("API & Access")}
+      icon={<PadlockIcon />}
       actions={
         <>
           {can.createApiKey && (
@@ -44,7 +44,7 @@ function APIAndApps() {
         </>
       }
     >
-      <Heading>{t("API & Apps")}</Heading>
+      <Heading>{t("API & Access")}</Heading>
       <h2>{t("API keys")}</h2>
       {can.createApiKey ? (
         <Text as="p" type="secondary">
@@ -98,4 +98,4 @@ function APIAndApps() {
   );
 }
 
-export default observer(APIAndApps);
+export default observer(APIAndAccess);

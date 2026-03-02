@@ -16,7 +16,6 @@ import {
   PlusIcon,
   InternetIcon,
   SmileyIcon,
-  BuildingBlocksIcon,
   BrowserIcon,
 } from "outline-icons";
 import { useEffect } from "react";
@@ -33,7 +32,7 @@ import useStores from "./useStores";
 
 const ApiKeys = lazy(() => import("~/scenes/Settings/ApiKeys"));
 const Applications = lazy(() => import("~/scenes/Settings/Applications"));
-const APIAndApps = lazy(() => import("~/scenes/Settings/APIAndApps"));
+const APIAndAccess = lazy(() => import("~/scenes/Settings/APIAndAccess"));
 const Authentication = lazy(() => import("~/scenes/Settings/Authentication"));
 const Details = lazy(() => import("~/scenes/Settings/Details"));
 const Export = lazy(() => import("~/scenes/Settings/Export"));
@@ -109,13 +108,13 @@ const useSettingsConfig = () => {
         icon: EmailIcon,
       },
       {
-        name: t("API & Apps"),
-        path: settingsPath("api-and-apps"),
-        component: APIAndApps.Component,
-        preload: APIAndApps.preload,
+        name: t("API & Access"),
+        path: settingsPath("api-and-access"),
+        component: APIAndAccess.Component,
+        preload: APIAndAccess.preload,
         enabled: true,
         group: t("Account"),
-        icon: BuildingBlocksIcon,
+        icon: PadlockIcon,
       },
       // Workspace
       {

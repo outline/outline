@@ -317,6 +317,7 @@ function Search() {
                     handleFilterChange({ titleFilter: checked });
                   }}
                   checked={titleFilter}
+                  inForm={false}
                 />
               )}
             </Flex>
@@ -420,9 +421,9 @@ const Filters = styled(HStack)`
 const SearchTitlesFilter = styled(Switch)`
   white-space: nowrap;
   margin-left: 8px;
-  margin-top: 8px;
   font-size: 14px;
   font-weight: 400;
+  height: 28px;
 `;
 
 export default observer(Search);
