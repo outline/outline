@@ -126,6 +126,10 @@ export default class Diagrams extends Extension {
 
   /**
    * Detects the diagram format from the source URL.
+   * 
+   * PNG diagrams are identified by:
+   * - Data URIs starting with "data:image/png" (e.g., "data:image/png;base64,...")
+   * - URLs ending with ".png" (e.g., "https://example.com/diagram.png" or "diagram.drawio.png")
    *
    * @param sourceUrl - the URL of the diagram.
    * @returns the format to use for exporting ("xmlsvg" or "xmlpng").
@@ -136,7 +140,7 @@ export default class Diagrams extends Extension {
       return "xmlpng";
     }
 
-    // Check if the URL ends with .png or .drawio.png
+    // Check if the URL ends with .png (includes .drawio.png)
     if (sourceUrl.toLowerCase().endsWith(".png")) {
       return "xmlpng";
     }

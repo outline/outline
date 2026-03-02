@@ -48,6 +48,7 @@ export interface DiagramsNetMessage {
  */
 export class DiagramsNetClient {
   private window: Window | null = null;
+
   private exportFormat: "xmlsvg" | "xmlpng" = "xmlsvg";
 
   /**
