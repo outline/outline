@@ -10,7 +10,12 @@ import PlaceholderText from "~/components/PlaceholderText";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 import lazyWithRetry from "~/utils/lazyWithRetry";
-import { matchDocumentHistory, matchDocumentSlug } from "~/utils/routeHelpers";
+import history from "~/utils/history";
+import {
+  documentPath,
+  matchDocumentHistory,
+  matchDocumentSlug,
+} from "~/utils/routeHelpers";
 import SidebarLayout from "~/scenes/Document/components/SidebarLayout";
 
 const DocumentComments = lazyWithRetry(
@@ -70,7 +75,7 @@ const DocumentSidebarContent = observer(function DocumentSidebarContent({
  * and clears it when closed or on unmount.
  */
 export default function useDocumentSidebar() {
-  const { ui } = useStores();
+  const { ui, documents } = useStores();
   const location = useLocation();
   const setSidebar = useSetRightSidebar();
   const isHistoryRoute = !!matchPath(location.pathname, {
@@ -86,6 +91,19 @@ export default function useDocumentSidebar() {
       ui.set({ rightSidebar: null });
     }
   }, [isHistoryRoute, ui]);
+
+  // When the sidebar switches away from history while still on a /history URL,
+  // update the URL to remove the /history suffix.
+  React.useEffect(() => {
+    if (isHistoryRoute && ui.rightSidebar !== "history") {
+      const document = ui.activeDocumentId
+        ? documents.get(ui.activeDocumentId)
+        : undefined;
+      if (document) {
+        history.push(documentPath(document));
+      }
+    }
+  }, [ui.rightSidebar, isHistoryRoute, ui.activeDocumentId, documents]);
 
   React.useEffect(() => {
     if (isOpen) {
