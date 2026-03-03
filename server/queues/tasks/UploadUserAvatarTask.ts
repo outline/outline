@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { AttachmentPreset } from "@shared/types";
 import attachmentCreator from "@server/commands/attachmentCreator";
 import { createContext } from "@server/context";
-import { User } from "@server/models";
+import { Attachment, User } from "@server/models";
 import { BaseTask, TaskPriority } from "./base/BaseTask";
 
 type Props = {
@@ -24,9 +24,22 @@ export default class UploadUserAvatarTask extends BaseTask<Props> {
 
     const hash = createHash("sha256").update(props.avatarUrl).digest("hex");
 
-    // If the user's avatar URL already contains this hash, skip the upload
+    // If the user's avatar URL already contains this hash, skip the upload.
+    // This handles old-style canonical S3 URLs that include the hash in the path.
     if (user.avatarUrl?.includes(hash)) {
       return;
+    }
+
+    // For redirect-style avatar URLs, check if the underlying attachment
+    // already has this hash in its key to avoid re-uploading the same avatar.
+    const redirectMatch = user.avatarUrl?.match(
+      /attachments\.redirect\?id=([^&]+)/
+    );
+    if (redirectMatch) {
+      const existing = await Attachment.findByPk(redirectMatch[1]);
+      if (existing?.key.endsWith(`/${hash}`)) {
+        return;
+      }
     }
 
     const attachment = await attachmentCreator({
@@ -38,7 +51,7 @@ export default class UploadUserAvatarTask extends BaseTask<Props> {
     });
 
     if (attachment) {
-      await user.update({ avatarUrl: attachment.url });
+      await user.update({ avatarUrl: attachment.redirectUrl });
     }
   }
 
