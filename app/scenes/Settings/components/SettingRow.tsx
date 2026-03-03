@@ -16,7 +16,6 @@ type Props = {
 };
 
 const Row = styled(Flex)<{ $border?: boolean; $compact?: boolean }>`
-  display: block;
   padding: ${(props) => (props.$compact ? "12px 0" : "22px 0")};
   align-items: ${(props) => (props.$compact ? "center" : "initial")};
   border-bottom: 1px solid
@@ -24,10 +23,6 @@ const Row = styled(Flex)<{ $border?: boolean; $compact?: boolean }>`
       props.$border === false
         ? "transparent"
         : transparentize(0.5, props.theme.divider)};
-
-  ${breakpoint("tablet")`
-    display: flex;
-  `};
 
   &:last-child {
     border-bottom: 0;
@@ -41,11 +36,25 @@ const Column = styled.div`
   flex: 1;
 
   &:first-child {
-    min-width: 65%;
+    min-width: 50%;
+
+    ${breakpoint("tablet")`
+      min-width: 65%;
+    `}
   }
 
   &:last-child {
     min-width: 0;
+
+    > * {
+      align-self: flex-end;
+    }
+
+    ${breakpoint("tablet")`
+      > * {
+        align-self: initial;
+      }
+    `}
   }
 
   ${breakpoint("tablet")`
@@ -71,6 +80,7 @@ const SettingRow: React.FC<Props> = ({
   if (visible === false) {
     return null;
   }
+
   return (
     <Row gap={32} $border={border} $compact={compact}>
       <Column>
