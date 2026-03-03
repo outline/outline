@@ -84,7 +84,25 @@ class MermaidRenderer {
     document.body.appendChild(renderElement);
 
     try {
-      mermaid ??= (await import("mermaid")).default;
+      if (!mermaid) {
+        mermaid = (await import("mermaid")).default;
+        mermaid.registerLayoutLoaders([
+          {
+            name: "elk",
+            loader: async () => {
+              const { default: elkLayouts } =
+                await import("@mermaid-js/layout-elk");
+              const elkDef = elkLayouts.find(
+                (d: { name: string }) => d.name === "elk"
+              );
+              if (!elkDef) {
+                throw new Error("ELK layout not found");
+              }
+              return elkDef.loader();
+            },
+          },
+        ]);
+      }
       mermaid.initialize({
         startOnLoad: true,
         suppressErrorRendering: true,
