@@ -44,6 +44,9 @@ class ApiClient {
 
   shareId?: string;
 
+  /** Map of in-flight POST requests for deduplication, keyed by path + body. */
+  private inflightRequests = new Map<string, Promise<any>>();
+
   constructor(options: Options = {}) {
     this.baseUrl = options.baseUrl || "/api";
   }
@@ -280,7 +283,23 @@ class ApiClient {
     path: string,
     data?: JSONObject | FormData | undefined,
     options?: FetchOptions
-  ) => this.fetch<T>(path, "POST", data, options);
+  ): Promise<T> => {
+    if (data instanceof FormData) {
+      return this.fetch<T>(path, "POST", data, options);
+    }
+
+    const key = `${path}:${JSON.stringify(data)}:${JSON.stringify(options)}`;
+    const inflight = this.inflightRequests.get(key);
+    if (inflight) {
+      return inflight;
+    }
+
+    const promise = this.fetch<T>(path, "POST", data, options).finally(() => {
+      this.inflightRequests.delete(key);
+    });
+    this.inflightRequests.set(key, promise);
+    return promise;
+  };
 }
 
 export const client = new ApiClient();
