@@ -191,6 +191,11 @@ export default () =>
                 priority: 20,
               },
               {
+                name: "vendor-mermaid-elk",
+                test: /node_modules[\\/](@mermaid-js[\\/]layout-elk|elkjs)/,
+                priority: 25,
+              },
+              {
                 name: "vendor-mermaid",
                 test: /node_modules[\\/](mermaid|cytoscape|cytoscape-fcose|layout-base|dagre-d3-es|langium|chevrotain|roughjs|@mermaid-js)/,
                 priority: 20,
