@@ -471,5 +471,172 @@ describe("DocumentMovedProcessor", () => {
     });
     expect(childUserMemberships.length).toBe(0);
     expect(childGroupMemberships.length).toBe(0);
+
+    // Verify inherited permissions from the new parent are applied
+    const newChildUserMemberships = await UserMembership.findAll({
+      where: { documentId: childDocument.id, userId: user3.id },
+    });
+    const newChildGroupMemberships = await GroupMembership.findAll({
+      where: { documentId: childDocument.id, groupId: group2.id },
+    });
+    expect(newChildUserMemberships.length).toBe(1);
+    expect(newChildGroupMemberships.length).toBe(1);
+    expect(newChildUserMemberships[0].sourceId).toBeTruthy();
+    expect(newChildGroupMemberships[0].sourceId).toBeTruthy();
+  });
+
+  it("should remove all sourced permissions when a document is moved to root level", async () => {
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+    const user2 = await buildUser({ teamId: team.id });
+    const group = await buildGroup({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+
+    const parentDocument = await buildDocument({
+      collectionId: collection.id,
+      teamId: team.id,
+    });
+    const childDocument = await buildDocument({
+      teamId: team.id,
+      parentDocumentId: parentDocument.id,
+    });
+
+    await UserMembership.create({
+      userId: user2.id,
+      documentId: parentDocument.id,
+      createdById: user.id,
+    });
+    await GroupMembership.create({
+      groupId: group.id,
+      documentId: parentDocument.id,
+      createdById: user.id,
+    });
+
+    // Verify sourced permissions exist on child
+    let childUserMemberships = await UserMembership.findAll({
+      where: { documentId: childDocument.id, userId: user2.id },
+    });
+    let childGroupMemberships = await GroupMembership.findAll({
+      where: { documentId: childDocument.id, groupId: group.id },
+    });
+    expect(childUserMemberships.length).toBe(1);
+    expect(childGroupMemberships.length).toBe(1);
+
+    // Move child to root level (no parent)
+    childDocument.parentDocumentId = null;
+    await childDocument.save();
+
+    const processor = new DocumentMovedProcessor();
+    await processor.perform({
+      name: "documents.move",
+      documentId: childDocument.id,
+      collectionId: collection.id,
+      teamId: team.id,
+      actorId: user.id,
+      ip,
+      data: {
+        collectionIds: [],
+        documentIds: [],
+      },
+    });
+
+    // Sourced permissions should be removed
+    childUserMemberships = await UserMembership.findAll({
+      where: { documentId: childDocument.id, userId: user2.id },
+    });
+    childGroupMemberships = await GroupMembership.findAll({
+      where: { documentId: childDocument.id, groupId: group.id },
+    });
+    expect(childUserMemberships.length).toBe(0);
+    expect(childGroupMemberships.length).toBe(0);
+  });
+
+  it("should preserve direct (non-sourced) permissions when a document is moved", async () => {
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+    const user2 = await buildUser({ teamId: team.id });
+    const user3 = await buildUser({ teamId: team.id });
+    const group = await buildGroup({ teamId: team.id });
+    const group2 = await buildGroup({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+
+    const parentDocument = await buildDocument({
+      collectionId: collection.id,
+      teamId: team.id,
+    });
+    const childDocument = await buildDocument({
+      teamId: team.id,
+      parentDocumentId: parentDocument.id,
+    });
+
+    // Add sourced permissions via parent
+    await UserMembership.create({
+      userId: user2.id,
+      documentId: parentDocument.id,
+      createdById: user.id,
+    });
+    await GroupMembership.create({
+      groupId: group.id,
+      documentId: parentDocument.id,
+      createdById: user.id,
+    });
+
+    // Add direct permissions to the child document
+    await UserMembership.create({
+      userId: user3.id,
+      documentId: childDocument.id,
+      createdById: user.id,
+    });
+    await GroupMembership.create({
+      groupId: group2.id,
+      documentId: childDocument.id,
+      createdById: user.id,
+    });
+
+    // Move child to root level
+    childDocument.parentDocumentId = null;
+    await childDocument.save();
+
+    const processor = new DocumentMovedProcessor();
+    await processor.perform({
+      name: "documents.move",
+      documentId: childDocument.id,
+      collectionId: collection.id,
+      teamId: team.id,
+      actorId: user.id,
+      ip,
+      data: {
+        collectionIds: [],
+        documentIds: [],
+      },
+    });
+
+    // Sourced permissions should be removed
+    const sourcedUserMemberships = await UserMembership.findAll({
+      where: { documentId: childDocument.id, userId: user2.id },
+    });
+    const sourcedGroupMemberships = await GroupMembership.findAll({
+      where: { documentId: childDocument.id, groupId: group.id },
+    });
+    expect(sourcedUserMemberships.length).toBe(0);
+    expect(sourcedGroupMemberships.length).toBe(0);
+
+    // Direct permissions should be preserved
+    const directUserMemberships = await UserMembership.findAll({
+      where: { documentId: childDocument.id, userId: user3.id },
+    });
+    const directGroupMemberships = await GroupMembership.findAll({
+      where: { documentId: childDocument.id, groupId: group2.id },
+    });
+    expect(directUserMemberships.length).toBe(1);
+    expect(directGroupMemberships.length).toBe(1);
+    expect(directUserMemberships[0].sourceId).toBeNull();
+    expect(directGroupMemberships[0].sourceId).toBeNull();
   });
 });
