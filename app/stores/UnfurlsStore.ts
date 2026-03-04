@@ -22,6 +22,15 @@ class UnfurlsStore extends Store<Unfurl<any>> {
     url: string;
     documentId?: string;
   }): Promise<Unfurl<UnfurlType> | undefined> => {
+    try {
+      const protocol = new URL(url).protocol;
+      if (protocol !== "http:" && protocol !== "https:" && protocol !== "mention:") {
+        return;
+      }
+    } catch (_err) {
+      return;
+    }
+
     const unfurl = this.get(url);
 
     if (unfurl) {
