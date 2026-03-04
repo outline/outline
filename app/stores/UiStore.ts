@@ -393,7 +393,9 @@ class UiStore {
   get readyToShow() {
     return (
       !this.rootStore.auth.user ||
-      (this.rootStore.collections.isLoaded && this.rootStore.documents.isLoaded)
+      (this.rootStore.collections.isLoaded &&
+        this.rootStore.stars.isLoaded &&
+        this.rootStore.userMemberships.isLoaded)
     );
   }
 
