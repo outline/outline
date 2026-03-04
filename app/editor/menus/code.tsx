@@ -48,6 +48,9 @@ export default function codeMenuItems(
         ]
       : remainingLangMenuItems;
 
+  const isEditingMermaid = !!(mermaidPluginKey.getState(state) as MermaidState)
+    ?.editingId;
+
   return [
     {
       name: "copyToClipboard",
@@ -64,10 +67,7 @@ export default function codeMenuItems(
       name: "edit_mermaid",
       icon: <EditIcon />,
       tooltip: dictionary.editDiagram,
-      visible:
-        !(mermaidPluginKey.getState(state) as MermaidState)?.editingId &&
-        isMermaid(node) &&
-        !readOnly,
+      visible: isMermaid(node) && !isEditingMermaid && !readOnly,
     },
     {
       name: "separator",
@@ -77,7 +77,7 @@ export default function codeMenuItems(
       icon: <TextWrapIcon />,
       tooltip: dictionary.wrapText,
       active: () => node.attrs.wrap,
-      visible: !readOnly,
+      visible: !readOnly && (!isMermaid(node) || isEditingMermaid),
     },
     {
       name: "separator",
