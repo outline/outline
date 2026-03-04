@@ -186,6 +186,11 @@ export default () =>
                 priority: 20,
               },
               {
+                name: "vendor-framer-motion",
+                test: /node_modules[\\/]framer-motion/,
+                priority: 20,
+              },
+              {
                 name: "vendor-styled",
                 test: /node_modules[\\/]styled-components/,
                 priority: 20,
