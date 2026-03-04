@@ -1,4 +1,4 @@
-import { AnimateSharedLayout } from "framer-motion";
+import { LayoutGroup } from "framer-motion";
 import { transparentize } from "polished";
 import * as React from "react";
 import styled from "styled-components";
@@ -84,13 +84,13 @@ const Tabs: React.FC = ({ children }: Props) => {
   }, [width, updateShadows]);
 
   return (
-    <AnimateSharedLayout>
+    <LayoutGroup>
       <Sticky>
         <Nav ref={ref} onScroll={updateShadows} $shadowVisible={shadowVisible}>
           {children}
         </Nav>
       </Sticky>
-    </AnimateSharedLayout>
+    </LayoutGroup>
   );
 };
 

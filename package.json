@@ -133,7 +133,7 @@
     "fetch-retry": "^5.0.6",
     "form-data": "^4.0.5",
     "fractional-index": "^1.0.0",
-    "framer-motion": "^4.1.17",
+    "framer-motion": "^6.5.1",
     "franc": "^6.2.0",
     "fs-extra": "^11.3.2",
     "fuzzy-search": "^3.2.1",
