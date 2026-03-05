@@ -138,13 +138,14 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
   }, [props.isActive]);
 
   React.useEffect(() => {
+    setSubmenu(null);
+
     if (!props.isActive) {
       return;
     }
 
     setSelectedIndex(0);
     setInsertItem(undefined);
-    setSubmenu(null);
   }, [props.isActive]);
 
   React.useEffect(() => {
@@ -915,6 +916,15 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
           onOpenAutoFocus={(e) => e.preventDefault()}
           onCloseAutoFocus={(e) => e.preventDefault()}
           onEscapeKeyDown={(e) => e.preventDefault()}
+          onInteractOutside={(e) => {
+            if (
+              submenuContentRef.current?.contains(
+                e.target as Node
+              )
+            ) {
+              e.preventDefault();
+            }
+          }}
         >
           {insertItem ? (
             <LinkInputWrapper>
