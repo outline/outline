@@ -64,6 +64,7 @@ function ShareButton({ collection }: Props) {
         minHeight={175}
         side="bottom"
         align="end"
+        onEscapeKeyDown={(e) => e.preventDefault()}
       >
         <Suspense fallback={null}>
           <SharePopover
