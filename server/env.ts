@@ -532,7 +532,7 @@ export class Environment {
   @IsOptional()
   @IsBoolean()
   public RATE_LIMITER_ENABLED = this.toBoolean(
-    environment.RATE_LIMITER_ENABLED ?? "false"
+    environment.RATE_LIMITER_ENABLED ?? "true"
   );
 
   /**
