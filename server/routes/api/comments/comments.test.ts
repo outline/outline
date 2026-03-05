@@ -773,6 +773,103 @@ describe("#comments.create", () => {
   });
 });
 
+describe("#comments.create anchorText", () => {
+  it("should anchor comment to text in document", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      text: "# Heading\n\nThis is some paragraph text with important content here.",
+    });
+
+    const comment = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+    });
+
+    const res = await server.post("/api/comments.create", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: document.id,
+        data: comment.data,
+        anchorText: "important content",
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+
+    // Verify the document now has the comment mark
+    await document.reload();
+    const content = document.content as any;
+    const hasCommentMark = JSON.stringify(content).includes(body.data.id);
+    expect(hasCommentMark).toBeTruthy();
+  });
+
+  it("should create unanchored comment when text not found", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      text: "# Heading\n\nSome text here.",
+    });
+
+    const comment = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+    });
+
+    const res = await server.post("/api/comments.create", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: document.id,
+        data: comment.data,
+        anchorText: "nonexistent text that does not appear anywhere",
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toBeDefined();
+  });
+
+  it("should not anchor reply comments", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      text: "# Heading\n\nSome target text here.",
+    });
+
+    const parentComment = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+    });
+
+    const res = await server.post("/api/comments.create", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: document.id,
+        parentCommentId: parentComment.id,
+        data: parentComment.data,
+        anchorText: "target text",
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+
+    // Verify the document does NOT have the comment mark (replies shouldn't anchor)
+    await document.reload();
+    const content = document.content as any;
+    const hasCommentMark = JSON.stringify(content).includes(body.data.id);
+    expect(hasCommentMark).toBeFalsy();
+  });
+});
+
 describe("#comments.update", () => {
   it("should require authentication", async () => {
     const res = await server.post("/api/comments.update");

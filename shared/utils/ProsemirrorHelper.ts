@@ -284,6 +284,171 @@ export class ProsemirrorHelper {
   }
 
   /**
+   * Adds a comment mark to the first occurrence of `anchorText` in the
+   * document. The mark wraps the matching text range with the given comment ID
+   * and user ID. If the anchor text spans multiple adjacent text nodes within
+   * a single parent, all are wrapped.
+   *
+   * @param data The document as raw ProseMirror JSON
+   * @param commentId The UUID of the comment to anchor
+   * @param anchorText The exact text to search for and wrap
+   * @param userId The UUID of the user creating the comment
+   * @returns The modified document JSON, or null if the text was not found
+   */
+  static addCommentMark(
+    data: ProsemirrorData,
+    commentId: string,
+    anchorText: string,
+    userId: string
+  ): ProsemirrorData | null {
+    const result = this.addCommentMarkToNode(
+      data,
+      commentId,
+      anchorText,
+      userId
+    );
+    return result.found ? result.node : null;
+  }
+
+  private static addCommentMarkToNode(
+    node: ProsemirrorData,
+    commentId: string,
+    anchorText: string,
+    userId: string
+  ): { node: ProsemirrorData; found: boolean } {
+    const content = node.content;
+    if (!content) {
+      return { node, found: false };
+    }
+
+    // Build concatenated text from child text nodes to find anchor position
+    let concat = "";
+    const textRanges: Array<{
+      start: number;
+      end: number;
+      index: number;
+    }> = [];
+
+    for (let i = 0; i < content.length; i++) {
+      const child = content[i];
+      if (child.type === "text" && child.text) {
+        const start = concat.length;
+        concat += child.text;
+        textRanges.push({ start, end: concat.length, index: i });
+      } else {
+        // Non-text children contribute to position but can't be marked
+        concat += this.flattenText(child);
+      }
+    }
+
+    const pos = concat.indexOf(anchorText);
+    if (pos !== -1) {
+      const anchorEnd = pos + anchorText.length;
+      const newContent: ProsemirrorData[] = [];
+      let handled = false;
+
+      for (let i = 0; i < content.length; i++) {
+        const child = content[i];
+        if (child.type !== "text" || !child.text) {
+          newContent.push(child);
+          continue;
+        }
+
+        const range = textRanges.find((r) => r.index === i);
+        if (!range) {
+          newContent.push(child);
+          continue;
+        }
+
+        // Calculate overlap with anchor range
+        const overlapStart = Math.max(pos, range.start);
+        const overlapEnd = Math.min(anchorEnd, range.end);
+
+        if (overlapStart >= overlapEnd) {
+          newContent.push(child);
+          continue;
+        }
+
+        handled = true;
+        const existingMarks = child.marks || [];
+        const commentMark = {
+          type: "comment" as const,
+          attrs: { id: commentId, userId, resolved: false },
+        };
+
+        const relStart = overlapStart - range.start;
+        const relEnd = overlapEnd - range.start;
+        const text = child.text;
+
+        const beforeText = text.substring(0, relStart);
+        const markedText = text.substring(relStart, relEnd);
+        const afterText = text.substring(relEnd);
+
+        if (beforeText) {
+          const beforeNode: ProsemirrorData = {
+            type: "text",
+            text: beforeText,
+          };
+          if (existingMarks.length) {
+            beforeNode.marks = [...existingMarks];
+          }
+          newContent.push(beforeNode);
+        }
+
+        if (markedText) {
+          newContent.push({
+            type: "text",
+            text: markedText,
+            marks: [...existingMarks, commentMark],
+          });
+        }
+
+        if (afterText) {
+          const afterNode: ProsemirrorData = {
+            type: "text",
+            text: afterText,
+          };
+          if (existingMarks.length) {
+            afterNode.marks = [...existingMarks];
+          }
+          newContent.push(afterNode);
+        }
+      }
+
+      if (handled) {
+        return { node: { ...node, content: newContent }, found: true };
+      }
+    }
+
+    // Recurse into children
+    const newContent: ProsemirrorData[] = [];
+    let found = false;
+    for (const child of content) {
+      if (found) {
+        newContent.push(child);
+      } else {
+        const result = this.addCommentMarkToNode(
+          child,
+          commentId,
+          anchorText,
+          userId
+        );
+        newContent.push(result.node);
+        found = result.found;
+      }
+    }
+
+    return { node: { ...node, content: newContent }, found };
+  }
+
+  private static flattenText(node: ProsemirrorData): string {
+    if (node.type === "text") {
+      return node.text || "";
+    }
+    return (node.content || []).map((c) => this.flattenText(c)).join("");
+  }
+
+  /**
    * Iterates through the document to find all of the images.
    *
    * @param doc Prosemirror document node
