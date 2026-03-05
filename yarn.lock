@@ -8552,6 +8552,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/pako@npm:^2.0.4":
+  version: 2.0.4
+  resolution: "@types/pako@npm:2.0.4"
+  checksum: 10c0/5765bf8bc7e77ee141c454118f03e544b8f6cb51eb257d82dc5830feeab8cd00818af3a1eabefdfbe8dd3ae9916ed5403937bf1031a0ee51deea27fdf4dccdfb
+  languageName: node
+  linkType: hard
+
 "@types/passport-oauth2@npm:^1.8.0":
   version: 1.8.0
   resolution: "@types/passport-oauth2@npm:1.8.0"
@@ -17687,6 +17694,7 @@ __metadata:
     "@types/node": "npm:20.19.21"
     "@types/node-fetch": "npm:^2.6.9"
     "@types/nodemailer": "npm:^6.4.17"
+    "@types/pako": "npm:^2.0.4"
     "@types/passport-oauth2": "npm:^1.8.0"
     "@types/pluralize": "npm:^0.0.33"
     "@types/png-chunks-extract": "npm:^1.0.2"

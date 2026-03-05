@@ -106,6 +106,7 @@
     "@tanstack/react-virtual": "^3.13.12",
     "@types/form-data": "^2.5.2",
     "@types/mailparser": "^3.4.6",
+    "@types/pako": "^2.0.4",
     "@types/sanitize-filename": "^1.6.3",
     "@vitejs/plugin-react-oxc": "^0.2.3",
     "addressparser": "^1.0.1",
