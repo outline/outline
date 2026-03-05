@@ -3,6 +3,7 @@ import { actionToMenuItem } from "~/actions";
 import useActionContext from "~/hooks/useActionContext";
 import useMobile from "~/hooks/useMobile";
 import type { ActionVariant, ActionWithChildren } from "~/types";
+import { preventDefault } from "~/utils/events";
 import { toMenuItems } from "./transformer";
 import { observer } from "mobx-react";
 import { useComputed } from "~/hooks/useComputed";
@@ -61,11 +62,6 @@ export const ContextMenu = observer(
       }
     }, []);
 
-    const handleCloseAutoFocus = React.useCallback(
-      (e: Event) => e.preventDefault(),
-      []
-    );
-
     if (isMobile || !action || menuItems.length === 0) {
       return <>{children}</>;
     }
@@ -80,7 +76,7 @@ export const ContextMenu = observer(
             aria-label={ariaLabel}
             onAnimationStart={disablePointerEvents}
             onAnimationEnd={enablePointerEvents}
-            onCloseAutoFocus={handleCloseAutoFocus}
+            onCloseAutoFocus={preventDefault}
           >
             {content}
           </MenuContent>
