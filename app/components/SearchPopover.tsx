@@ -16,6 +16,7 @@ import {
 import { id as bodyContentId } from "~/components/SkipNavContent";
 import useKeyDown from "~/hooks/useKeyDown";
 import useStores from "~/hooks/useStores";
+import { preventDefault } from "~/utils/events";
 import type { SearchResult } from "~/types";
 import SearchListItem from "./SearchListItem";
 
@@ -230,7 +231,7 @@ function SearchPopover({ shareId, className }: Props) {
         align="start"
         shrink
         onEscapeKeyDown={handleEscapeList}
-        onOpenAutoFocus={(e) => e.preventDefault()}
+        onOpenAutoFocus={preventDefault}
         onInteractOutside={(event) => {
           const target = event.target as Element | null;
           if (target === searchInputRef.current) {

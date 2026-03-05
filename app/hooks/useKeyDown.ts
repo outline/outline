@@ -63,9 +63,14 @@ window.addEventListener("keydown", (event) => {
     return;
   }
 
+  // Track whether defaultPrevented was already set by an external handler (e.g.
+  // Radix UI's DismissableLayer) so we only break on preventDefault calls made
+  // by our own callbacks.
+  const wasDefaultPrevented = event.defaultPrevented;
+
   // reverse so that the last registered callbacks get executed first
-  for (const registered of callbacks.reverse()) {
-    if (event.defaultPrevented === true) {
+  for (const registered of [...callbacks].reverse()) {
+    if (!wasDefaultPrevented && event.defaultPrevented) {
       break;
     }
 

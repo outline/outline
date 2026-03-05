@@ -28,6 +28,7 @@ import usePaginatedRequest from "~/hooks/usePaginatedRequest";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import type { PaginationParams, SearchResult } from "~/types";
+import { preventDefault } from "~/utils/events";
 import { searchPath } from "~/utils/routeHelpers";
 import { decodeURIComponentSafe } from "~/utils/urls";
 import CollectionFilter from "./components/CollectionFilter";
@@ -251,11 +252,7 @@ function Search() {
       <RegisterKeyDown trigger="Escape" handler={history.goBack} />
       {loading && <LoadingIndicator />}
       <ResultsWrapper column auto>
-        <form
-          method="GET"
-          action={searchPath()}
-          onSubmit={(ev) => ev.preventDefault()}
-        >
+        <form method="GET" action={searchPath()} onSubmit={preventDefault}>
           <SearchInput
             name="query"
             key={query ? "search" : "recent"}
