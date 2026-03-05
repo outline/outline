@@ -37,11 +37,6 @@ const BATCH_SIZE = 100;
 const INTER_BATCH_DELAY_MS = 500;
 
 /**
- * Statement timeout for individual queries to prevent runaway locks
- */
-const STATEMENT_TIMEOUT_MS = 30000;
-
-/**
  * Base name for the working table used to track documents to process
  */
 const WORKING_TABLE_PREFIX = "popularity_score_working";
@@ -305,82 +300,72 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
     threshold: Date,
     now: Date
   ): Promise<DocumentScore[]> {
-    const results = await sequelizeReadOnly.transaction(async (transaction) => {
-      // Set statement timeout within the transaction - this prevents any single
-      // query from running too long and holding resources
-      await sequelizeReadOnly.query(
-        `SET LOCAL statement_timeout = '${STATEMENT_TIMEOUT_MS}ms'`,
-        { transaction }
-      );
-
-      return sequelizeReadOnly.query<{
-        documentId: string;
-        total_score: string;
-      }>(
-        `
-        WITH batch_docs AS (
-          SELECT * FROM unnest(ARRAY[:documentIds]::uuid[]) AS t(id)
-        ),
-        revision_scores AS (
-          SELECT
-            r."documentId",
-            SUM(:revisionWeight / POWER(
-              GREATEST(EXTRACT(EPOCH FROM (:now::timestamp - r."createdAt")) / 3600 + :timeOffset, 0.1),
-              :gravity
-            )) as score
-          FROM revisions r
-          INNER JOIN batch_docs bd ON r."documentId" = bd.id
-          WHERE r."createdAt" >= :threshold
-          GROUP BY r."documentId"
-        ),
-        comment_scores AS (
-          SELECT
-            c."documentId",
-            SUM(:commentWeight / POWER(
-              GREATEST(EXTRACT(EPOCH FROM (:now::timestamp - c."createdAt")) / 3600 + :timeOffset, 0.1),
-              :gravity
-            )) as score
-          FROM comments c
-          INNER JOIN batch_docs bd ON c."documentId" = bd.id
-          WHERE c."createdAt" >= :threshold
-          GROUP BY c."documentId"
-        ),
-        view_scores AS (
-          SELECT
-            v."documentId",
-            SUM(:viewWeight / POWER(
-              GREATEST(EXTRACT(EPOCH FROM (:now::timestamp - v."updatedAt")) / 3600 + :timeOffset, 0.1),
-              :gravity
-            )) as score
-          FROM views v
-          INNER JOIN batch_docs bd ON v."documentId" = bd.id
-          WHERE v."updatedAt" >= :threshold
-          GROUP BY v."documentId"
-        )
+    const results = await sequelizeReadOnly.query<{
+      documentId: string;
+      total_score: string;
+    }>(
+      `
+      WITH batch_docs AS (
+        SELECT * FROM unnest(ARRAY[:documentIds]::uuid[]) AS t(id)
+      ),
+      revision_scores AS (
         SELECT
-          bd.id as "documentId",
-          COALESCE(rs.score, 0) + COALESCE(cs.score, 0) + COALESCE(vs.score, 0) as total_score
-        FROM batch_docs bd
-        LEFT JOIN revision_scores rs ON bd.id = rs."documentId"
-        LEFT JOIN comment_scores cs ON bd.id = cs."documentId"
-        LEFT JOIN view_scores vs ON bd.id = vs."documentId"
-        `,
-        {
-          replacements: {
-            documentIds,
-            threshold,
-            now,
-            gravity: env.POPULARITY_GRAVITY,
-            timeOffset: TIME_OFFSET_HOURS,
-            revisionWeight: ACTIVITY_WEIGHTS.revision,
-            commentWeight: ACTIVITY_WEIGHTS.comment,
-            viewWeight: ACTIVITY_WEIGHTS.view,
-          },
-          type: QueryTypes.SELECT,
-          transaction,
-        }
-      );
-    });
+          r."documentId",
+          SUM(:revisionWeight / POWER(
+            GREATEST(EXTRACT(EPOCH FROM (:now::timestamp - r."createdAt")) / 3600 + :timeOffset, 0.1),
+            :gravity
+          )) as score
+        FROM revisions r
+        INNER JOIN batch_docs bd ON r."documentId" = bd.id
+        WHERE r."createdAt" >= :threshold
+        GROUP BY r."documentId"
+      ),
+      comment_scores AS (
+        SELECT
+          c."documentId",
+          SUM(:commentWeight / POWER(
+            GREATEST(EXTRACT(EPOCH FROM (:now::timestamp - c."createdAt")) / 3600 + :timeOffset, 0.1),
+            :gravity
+          )) as score
+        FROM comments c
+        INNER JOIN batch_docs bd ON c."documentId" = bd.id
+        WHERE c."createdAt" >= :threshold
+        GROUP BY c."documentId"
+      ),
+      view_scores AS (
+        SELECT
+          v."documentId",
+          SUM(:viewWeight / POWER(
+            GREATEST(EXTRACT(EPOCH FROM (:now::timestamp - v."updatedAt")) / 3600 + :timeOffset, 0.1),
+            :gravity
+          )) as score
+        FROM views v
+        INNER JOIN batch_docs bd ON v."documentId" = bd.id
+        WHERE v."updatedAt" >= :threshold
+        GROUP BY v."documentId"
+      )
+      SELECT
+        bd.id as "documentId",
+        COALESCE(rs.score, 0) + COALESCE(cs.score, 0) + COALESCE(vs.score, 0) as total_score
+      FROM batch_docs bd
+      LEFT JOIN revision_scores rs ON bd.id = rs."documentId"
+      LEFT JOIN comment_scores cs ON bd.id = cs."documentId"
+      LEFT JOIN view_scores vs ON bd.id = vs."documentId"
+      `,
+      {
+        replacements: {
+          documentIds,
+          threshold,
+          now,
+          gravity: env.POPULARITY_GRAVITY,
+          timeOffset: TIME_OFFSET_HOURS,
+          revisionWeight: ACTIVITY_WEIGHTS.revision,
+          commentWeight: ACTIVITY_WEIGHTS.comment,
+          viewWeight: ACTIVITY_WEIGHTS.view,
+        },
+        type: QueryTypes.SELECT,
+      }
+    );
 
     return results.map((r) => ({
       documentId: r.documentId,
