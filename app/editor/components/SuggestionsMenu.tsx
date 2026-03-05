@@ -518,9 +518,26 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       const children = resolveChildren(
         "children" in item ? item.children : undefined
       );
-      if (children?.length) {
-        setSubmenu({ index, items: children, selectedIndex: 0 });
+      if (!children?.length) {
+        return;
       }
+
+      const normalized = filterExcessSeparators(
+        children.filter((child) => child.visible !== false)
+      );
+      const firstSelectable = normalized.findIndex(
+        (child) =>
+          child.name !== "separator" && !("disabled" in child && child.disabled)
+      );
+      if (firstSelectable === -1) {
+        return;
+      }
+
+      setSubmenu({
+        index,
+        items: normalized,
+        selectedIndex: firstSelectable,
+      });
     },
     [filtered]
   );
@@ -531,6 +548,11 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         return;
       }
       if (!props.isActive) {
+        return;
+      }
+
+      // Let the link input's own handlers manage navigation keys
+      if (insertItem) {
         return;
       }
 
@@ -704,7 +726,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         capture: true,
       });
     };
-  }, [close, filtered, handleClickItem, openSubmenu, props, selectedIndex, submenu]);
+  }, [close, filtered, handleClickItem, insertItem, openSubmenu, props, selectedIndex, submenu]);
 
   const { isActive, uploadFile } = props;
   const items = filtered;
