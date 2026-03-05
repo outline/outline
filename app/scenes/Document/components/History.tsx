@@ -238,6 +238,7 @@ const Content = styled.div`
   border: 1px solid ${(props) => props.theme.inputBorder};
   border-radius: 8px;
   padding: 8px 8px 0;
+  flex-shrink: 0;
 `;
 
 export default observer(History);
