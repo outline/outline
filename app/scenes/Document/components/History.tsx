@@ -218,6 +218,9 @@ function History() {
                 align="center"
                 justify="center"
                 style={{
+                  // When there are no items, drawer renders with a minimum height
+                  // and that height is retained when items are fetched and re-rendered.
+                  // To circumvent this, we force some `minHeight` here.
                   minHeight: isMobile ? "70vh" : undefined,
                   height: "100%",
                 }}
