@@ -6,7 +6,7 @@ import { TextSelection } from "prosemirror-state";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import insertFiles from "@shared/editor/commands/insertFiles";
 import { EmbedDescriptor } from "@shared/editor/embeds";
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
@@ -700,7 +700,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     <>
       <Popover open={isActive} onOpenChange={handleOpenChange} modal={false}>
         <PopoverAnchor virtualRef={caretRef} />
-        <PopoverContent
+        <BouncyPopoverContent
           side="bottom"
           align="start"
           width={280}
@@ -734,11 +734,24 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
             <List>{renderItems()}</List>
           )}
           {fileInput}
-        </PopoverContent>
+        </BouncyPopoverContent>
       </Popover>
     </>
   );
 }
+
+const bouncyFadeIn = keyframes`
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+`;
+
+const BouncyPopoverContent = styled(PopoverContent)`
+  &[data-state="open"] {
+    animation: ${bouncyFadeIn} 150ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+`;
 
 const LinkInputWrapper = styled.div`
   margin: 8px;
