@@ -344,6 +344,7 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
           onChange={handleQuery}
           onClick={showPicker}
           onKeyDown={handleKeyDown}
+          onEscape={hidePicker}
           query={query}
           back={backButton}
           action={rightButton}

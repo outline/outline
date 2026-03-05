@@ -12,12 +12,13 @@ type Props = {
   onChange: React.ChangeEventHandler;
   onClick: React.MouseEventHandler;
   onKeyDown: React.KeyboardEventHandler;
+  onEscape: () => void;
   back: React.ReactNode;
   action: React.ReactNode;
 };
 
 export const SearchInput = React.forwardRef(function SearchInput_(
-  { onChange, onClick, onKeyDown, query, back, action }: Props,
+  { onChange, onClick, onKeyDown, onEscape, query, back, action }: Props,
   ref: React.Ref<HTMLInputElement>
 ) {
   const { t } = useTranslation();
@@ -36,6 +37,18 @@ export const SearchInput = React.forwardRef(function SearchInput_(
     [onClick]
   );
 
+  const handleKeyDown = React.useCallback(
+    (ev: React.KeyboardEvent<HTMLInputElement>) => {
+      if (ev.key === "Escape") {
+        ev.preventDefault();
+        onEscape();
+        return;
+      }
+      onKeyDown(ev);
+    },
+    [onKeyDown, onEscape]
+  );
+
   return isMobile ? (
     <Flex align="center" style={{ marginBottom: 12 }} auto>
       {back}
@@ -45,7 +58,7 @@ export const SearchInput = React.forwardRef(function SearchInput_(
         value={query}
         onChange={onChange}
         onClick={onClick}
-        onKeyDown={onKeyDown}
+        onKeyDown={handleKeyDown}
         autoFocus
         margin={0}
         flex
@@ -64,7 +77,7 @@ export const SearchInput = React.forwardRef(function SearchInput_(
           value={query}
           onChange={onChange}
           onClick={onClick}
-          onKeyDown={onKeyDown}
+          onKeyDown={handleKeyDown}
           style={{ padding: "6px 0" }}
         />
         {action}
