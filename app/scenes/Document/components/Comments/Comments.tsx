@@ -31,7 +31,8 @@ import useMobile from "~/hooks/useMobile";
 function Comments() {
   const { ui, comments, documents } = useStores();
   const user = useCurrentUser();
-  const { editor, isEditorInitialized } = useDocumentContext();
+  const { editor, isEditorInitialized, setFocusedCommentId } =
+    useDocumentContext();
   const { t } = useTranslation();
   const match = useRouteMatch<{ documentSlug: string }>();
   const document = documents.get(match.params.documentSlug);
@@ -203,7 +204,10 @@ function Comments() {
           />
         </Flex>
       }
-      onClose={() => ui.set({ rightSidebar: null })}
+      onClose={() => {
+        ui.set({ rightSidebar: null });
+        setFocusedCommentId(null);
+      }}
       scrollable={false}
     >
       {content}
