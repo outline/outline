@@ -217,7 +217,10 @@ function History() {
               <Flex
                 align="center"
                 justify="center"
-                style={{ height: "100%" }}
+                style={{
+                  minHeight: isMobile ? "70vh" : undefined,
+                  height: "100%",
+                }}
                 auto
               >
                 <Empty>{t("No history yet")}</Empty>
