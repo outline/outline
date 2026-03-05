@@ -25,6 +25,7 @@ import {
   PopoverAnchor,
   PopoverContent,
 } from "~/components/primitives/Popover";
+import { MouseSafeArea } from "~/components/MouseSafeArea";
 import Scrollable from "~/components/Scrollable";
 import useDictionary from "~/hooks/useDictionary";
 import useMobile from "~/hooks/useMobile";
@@ -52,6 +53,7 @@ export type Props<T extends MenuItem = MenuItem> = {
     index: number,
     options: {
       selected: boolean;
+      disclosure?: boolean;
       onClick: (event: React.SyntheticEvent) => void;
     }
   ) => React.ReactNode;
@@ -74,6 +76,14 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     MenuItem | EmbedDescriptor
   >();
   const [selectedIndex, setSelectedIndex] = React.useState(0);
+  const [submenu, setSubmenu] = React.useState<{
+    index: number;
+    items: MenuItem[];
+    selectedIndex: number;
+  } | null>(null);
+  const itemRefs = React.useRef<Map<number, HTMLElement>>(new Map());
+  const submenuContentRef = React.useRef<HTMLDivElement>(null);
+  const hoverTimerRef = React.useRef<ReturnType<typeof setTimeout>>();
 
   // Stores the caret bounding rect, snapshotted when the menu opens
   const caretRectRef = React.useRef(new DOMRect());
@@ -108,6 +118,11 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
 
   caretRectRef.current = caretRect;
 
+  const resolveChildren = (
+    children: MenuItem["children"]
+  ): MenuItem[] | undefined =>
+    typeof children === "function" ? children() : children;
+
   React.useEffect(() => {
     if (props.isActive) {
       // Save the selection position when the menu opens. On mobile, the editor
@@ -129,10 +144,12 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
 
     setSelectedIndex(0);
     setInsertItem(undefined);
+    setSubmenu(null);
   }, [props.isActive]);
 
   React.useEffect(() => {
     setSelectedIndex(0);
+    setSubmenu(null);
   }, [props.search]);
 
   const handleClearSearch = React.useCallback(() => {
@@ -399,9 +416,45 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     }
 
     const searchInput = search.toLowerCase();
+
+    const matchesSearch = (item: MenuItem | EmbedDescriptor) =>
+      (item.name || "").toLocaleLowerCase().includes(searchInput) ||
+      (item.title || "").toLocaleLowerCase().includes(searchInput) ||
+      (item.keywords || "").toLocaleLowerCase().includes(searchInput);
+
+    // When searching, flatten matching children into the top-level list so
+    // they are directly navigable with the keyboard. If all children match,
+    // exclude the parent item since it would be redundant.
+    const fullyFlattenedParents = new Set<MenuItem | EmbedDescriptor>();
+    if (search && filterable) {
+      const flattened: (EmbedDescriptor | MenuItem)[] = [];
+      for (const item of items) {
+        if ("children" in item && item.children) {
+          const children = resolveChildren(item.children);
+          if (children) {
+            const matching = children.filter(matchesSearch);
+            if (matching.length > 0) {
+              for (const child of matching) {
+                const { children: _, ...flat } = child;
+                flattened.push(flat);
+              }
+              if (matching.length === children.length) {
+                fullyFlattenedParents.add(item);
+              }
+            }
+          }
+        }
+      }
+      items = items.concat(flattened);
+    }
+
     const filtered = items.filter((item) => {
       if (item.name === "separator") {
         return true;
+      }
+
+      if (fullyFlattenedParents.has(item)) {
+        return false;
       }
 
       if (item.visible === false) {
@@ -432,11 +485,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         return item;
       }
 
-      return (
-        (item.name || "").toLocaleLowerCase().includes(searchInput) ||
-        (item.title || "").toLocaleLowerCase().includes(searchInput) ||
-        (item.keywords || "").toLocaleLowerCase().includes(searchInput)
-      );
+      return matchesSearch(item);
     });
 
     return filterExcessSeparators(
@@ -459,6 +508,22 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     );
   }, [commands, props]);
 
+  const openSubmenu = React.useCallback(
+    (index: number) => {
+      const item = filtered[index];
+      if (!item) {
+        return;
+      }
+      const children = resolveChildren(
+        "children" in item ? item.children : undefined
+      );
+      if (children?.length) {
+        setSubmenu({ index, items: children, selectedIndex: 0 });
+      }
+    },
+    [filtered]
+  );
+
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.isComposing) {
@@ -468,15 +533,101 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         return;
       }
 
+      // --- Submenu open: route keys into it ---
+      if (submenu) {
+        if (event.key === "ArrowDown" || (event.ctrlKey && event.key === "n")) {
+          event.preventDefault();
+          event.stopPropagation();
+          const total = submenu.items.length - 1;
+          let next = submenu.selectedIndex + 1;
+          while (next <= total) {
+            const child = submenu.items[next];
+            if (
+              child?.name !== "separator" &&
+              !("disabled" in child && child.disabled)
+            ) {
+              break;
+            }
+            next++;
+          }
+          if (next <= total) {
+            setSubmenu((s) => (s ? { ...s, selectedIndex: next } : s));
+          }
+          return;
+        }
+
+        if (event.key === "ArrowUp" || (event.ctrlKey && event.key === "p")) {
+          event.preventDefault();
+          event.stopPropagation();
+          let prev = submenu.selectedIndex - 1;
+          while (prev >= 0) {
+            const child = submenu.items[prev];
+            if (
+              child?.name !== "separator" &&
+              !("disabled" in child && child.disabled)
+            ) {
+              break;
+            }
+            prev--;
+          }
+          if (prev >= 0) {
+            setSubmenu((s) => (s ? { ...s, selectedIndex: prev } : s));
+          }
+          return;
+        }
+
+        if (event.key === "ArrowLeft" || event.key === "Escape") {
+          event.preventDefault();
+          event.stopPropagation();
+          setSubmenu(null);
+          return;
+        }
+
+        if (event.key === "Enter") {
+          event.preventDefault();
+          event.stopPropagation();
+          const child = submenu.items[submenu.selectedIndex];
+          if (child) {
+            handleClickItem(child);
+            setSubmenu(null);
+          }
+          return;
+        }
+        return;
+      }
+
+      // --- Normal (no submenu) ---
       if (event.key === "Enter") {
         event.preventDefault();
 
         const item = filtered[selectedIndex];
 
         if (item) {
-          handleClickItem(item);
+          const children = resolveChildren(
+            "children" in item ? item.children : undefined
+          );
+          if (children?.length) {
+            openSubmenu(selectedIndex);
+          } else {
+            handleClickItem(item);
+          }
         } else {
           props.onClose(true);
+        }
+      }
+
+      if (event.key === "ArrowRight") {
+        const item = filtered[selectedIndex];
+        if (item) {
+          const children = resolveChildren(
+            "children" in item ? item.children : undefined
+          );
+          if (children?.length) {
+            event.preventDefault();
+            event.stopPropagation();
+            openSubmenu(selectedIndex);
+            return;
+          }
         }
       }
 
@@ -552,7 +703,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         capture: true,
       });
     };
-  }, [close, filtered, handleClickItem, props, selectedIndex]);
+  }, [close, filtered, handleClickItem, openSubmenu, props, selectedIndex, submenu]);
 
   const { isActive, uploadFile } = props;
   const items = filtered;
@@ -580,6 +731,23 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     </VisuallyHidden.Root>
   );
 
+  // Close submenu when parent selection moves away from the trigger
+  React.useEffect(() => {
+    if (submenu && submenu.index !== selectedIndex) {
+      setSubmenu(null);
+    }
+  }, [selectedIndex, submenu]);
+
+  // Cleanup hover timer on unmount
+  React.useEffect(
+    () => () => {
+      if (hoverTimerRef.current) {
+        clearTimeout(hoverTimerRef.current);
+      }
+    },
+    []
+  );
+
   const renderItems = () => {
     let prevHeading: string | undefined;
 
@@ -598,6 +766,10 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
             return null;
           }
 
+          const hasChildren = !!(
+            "children" in item && resolveChildren(item.children)?.length
+          );
+
           const handlePointerMove = (ev: React.PointerEvent) => {
             if (
               !("disabled" in item && item.disabled) &&
@@ -613,6 +785,22 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
               clientX: ev.clientX,
               clientY: ev.clientY,
             };
+
+            // Hover to open submenu with delay
+            if (hasChildren) {
+              if (hoverTimerRef.current) {
+                clearTimeout(hoverTimerRef.current);
+              }
+              hoverTimerRef.current = setTimeout(() => {
+                openSubmenu(index);
+              }, 150);
+            } else {
+              // Close submenu when hovering a regular item
+              if (hoverTimerRef.current) {
+                clearTimeout(hoverTimerRef.current);
+              }
+              setSubmenu(null);
+            }
           };
 
           const handlePointerDown = () => {
@@ -627,11 +815,23 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
           const handleOnClick = (ev: React.MouseEvent) => {
             ev.preventDefault();
             ev.stopPropagation();
-            handleClickItem(item);
+            if (hasChildren) {
+              openSubmenu(index);
+            } else {
+              handleClickItem(item);
+            }
           };
 
           const currentHeading =
             "section" in item ? item.section?.({ t }) : undefined;
+
+          const itemRef = (node: HTMLElement | null) => {
+            if (node) {
+              itemRefs.current.set(index, node);
+            } else {
+              itemRefs.current.delete(index);
+            }
+          };
 
           const response = (
             <React.Fragment key={`${index}-${item.name}`}>
@@ -639,11 +839,13 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
                 <MenuHeader key={currentHeading}>{currentHeading}</MenuHeader>
               )}
               <ListItem
+                ref={itemRef}
                 onPointerMove={handlePointerMove}
                 onPointerDown={handlePointerDown}
               >
                 {props.renderMenuItem(item as any, index, {
                   selected: index === selectedIndex,
+                  disclosure: hasChildren,
                   onClick: handleOnClick,
                 })}
               </ListItem>
@@ -736,6 +938,83 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
           {fileInput}
         </BouncyPopoverContent>
       </Popover>
+      {submenu && itemRefs.current.get(submenu.index) && (
+        <Popover open modal={false}>
+          <PopoverAnchor
+            virtualRef={{
+              current: {
+                getBoundingClientRect: () =>
+                  itemRefs.current
+                    .get(submenu.index)!
+                    .getBoundingClientRect(),
+              },
+            }}
+          />
+          <SubmenuPopoverContent
+            ref={submenuContentRef}
+            side="right"
+            align="start"
+            sideOffset={0}
+            width={220}
+            shrink
+            style={{ padding: 0 }}
+            onOpenAutoFocus={(e) => e.preventDefault()}
+            onCloseAutoFocus={(e) => e.preventDefault()}
+            onPointerLeave={() => setSubmenu(null)}
+          >
+            <MouseSafeArea parentRef={submenuContentRef} />
+            <List>
+              {submenu.items.map((child, childIndex) => {
+                if (child.name === "separator") {
+                  return (
+                    <ListItem key={childIndex}>
+                      <hr />
+                    </ListItem>
+                  );
+                }
+                if (!child.title) {
+                  return null;
+                }
+
+                const handleChildPointerMove = (ev: React.PointerEvent) => {
+                  if (
+                    submenu.selectedIndex !== childIndex &&
+                    (pointerRef.current.clientX !== ev.clientX ||
+                      pointerRef.current.clientY !== ev.clientY)
+                  ) {
+                    setSubmenu((s) =>
+                      s ? { ...s, selectedIndex: childIndex } : s
+                    );
+                  }
+                  pointerRef.current = {
+                    clientX: ev.clientX,
+                    clientY: ev.clientY,
+                  };
+                };
+
+                const handleChildClick = (ev: React.MouseEvent) => {
+                  ev.preventDefault();
+                  ev.stopPropagation();
+                  handleClickItem(child);
+                  setSubmenu(null);
+                };
+
+                return (
+                  <ListItem
+                    key={`sub-${childIndex}-${child.name}`}
+                    onPointerMove={handleChildPointerMove}
+                  >
+                    {props.renderMenuItem(child as any, childIndex, {
+                      selected: childIndex === submenu.selectedIndex,
+                      onClick: handleChildClick,
+                    })}
+                  </ListItem>
+                );
+              })}
+            </List>
+          </SubmenuPopoverContent>
+        </Popover>
+      )}
     </>
   );
 }
@@ -751,6 +1030,10 @@ const BouncyPopoverContent = styled(PopoverContent)`
   &[data-state="open"] {
     animation: ${bouncyFadeIn} 150ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
+`;
+
+const SubmenuPopoverContent = styled(PopoverContent)`
+  max-height: min(324px, var(--radix-popover-content-available-height));
 `;
 
 const LinkInputWrapper = styled.div`
