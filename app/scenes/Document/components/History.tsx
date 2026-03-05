@@ -217,7 +217,13 @@ function History() {
               <Flex
                 align="center"
                 justify="center"
-                style={{ height: "100%" }}
+                style={{
+                  // When there are no items, drawer renders with a minimum height
+                  // and that height is retained when items are fetched and re-rendered.
+                  // To circumvent this, we force some `minHeight` here.
+                  minHeight: isMobile ? "70vh" : undefined,
+                  height: "100%",
+                }}
                 auto
               >
                 <Empty>{t("No history yet")}</Empty>
@@ -235,6 +241,7 @@ const Content = styled.div`
   border: 1px solid ${(props) => props.theme.inputBorder};
   border-radius: 8px;
   padding: 8px 8px 0;
+  flex-shrink: 0;
 `;
 
 export default observer(History);
