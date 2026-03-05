@@ -55,12 +55,10 @@ export default class BlockMenuExtension extends Suggestion {
                 Decoration.widget(
                   parent.pos,
                   () => {
-                    button.addEventListener(
-                      "click",
-                      action(() => {
-                        this.state.open = true;
-                      })
-                    );
+                    button.onclick = action(() => {
+                      this.state.query = "";
+                      this.state.open = true;
+                    });
                     return button;
                   },
                   {
