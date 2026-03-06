@@ -1,0 +1,21 @@
+diff --git a/node_modules/@chat-adapter/slack/package.json b/node_modules/@chat-adapter/slack/package.json
+index 871fe33..a454831 100644
+--- a/node_modules/@chat-adapter/slack/package.json
++++ b/node_modules/@chat-adapter/slack/package.json
+@@ -9,7 +9,8 @@
+   "exports": {
+     ".": {
+       "types": "./dist/index.d.ts",
+-      "import": "./dist/index.js"
++      "import": "./dist/index.js",
++      "default": "./dist/index.js"
+     }
+   },
+   "files": [
+@@ -53,4 +54,4 @@
+     "typecheck": "tsc --noEmit",
+     "clean": "rm -rf dist"
+   }
+-}
+\ No newline at end of file
++}

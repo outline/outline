@@ -1,0 +1,21 @@
+diff --git a/node_modules/@chat-adapter/shared/package.json b/node_modules/@chat-adapter/shared/package.json
+index 3015551..d624867 100644
+--- a/node_modules/@chat-adapter/shared/package.json
++++ b/node_modules/@chat-adapter/shared/package.json
+@@ -6,7 +6,8 @@
+   "exports": {
+     ".": {
+       "types": "./dist/index.d.ts",
+-      "import": "./dist/index.js"
++      "import": "./dist/index.js",
++      "default": "./dist/index.js"
+     }
+   },
+   "main": "./dist/index.js",
+@@ -46,4 +47,4 @@
+     "build": "tsup",
+     "test": "vitest run --coverage"
+   }
+-}
+\ No newline at end of file
++}

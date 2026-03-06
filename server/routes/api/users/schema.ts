@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   NotificationBadgeType,
+  NotificationChannelType,
   NotificationEventType,
   UserPreference,
   UserRole,
