@@ -1,7 +1,7 @@
 import { subDays } from "date-fns";
 import { Op } from "sequelize";
 import { ImportState } from "@shared/types";
-import { Minute, Hour } from "@shared/utils/time";
+import { Hour } from "@shared/utils/time";
 import Logger from "@server/logging/Logger";
 import { Import, ImportTask } from "@server/models";
 import { TaskPriority } from "./base/BaseTask";
