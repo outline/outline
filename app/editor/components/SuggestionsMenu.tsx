@@ -125,8 +125,11 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
 
   React.useEffect(() => {
     if (props.isActive) {
-      // Save the selection position when the menu opens. On mobile, the editor
-      // may lose focus/selection when tapping on menu items, so we restore it.
+      // Save the selection position when the menu opens and as the user types.
+      // On mobile, the editor may lose focus/selection when tapping on menu
+      // items, so we restore it. The position must stay current as the search
+      // text grows, otherwise the deletion range calculated in handleClearSearch
+      // will be wrong.
       requestAnimationFrame(() => {
         const { from, to } = view.state.selection;
         selectionRef.current = { from, to };
@@ -135,7 +138,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       selectionRef.current = null;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.isActive]);
+  }, [props.isActive, props.search]);
 
   React.useEffect(() => {
     setSubmenu(null);
@@ -726,7 +729,16 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         capture: true,
       });
     };
-  }, [close, filtered, handleClickItem, insertItem, openSubmenu, props, selectedIndex, submenu]);
+  }, [
+    close,
+    filtered,
+    handleClickItem,
+    insertItem,
+    openSubmenu,
+    props,
+    selectedIndex,
+    submenu,
+  ]);
 
   const { isActive, uploadFile } = props;
   const items = filtered;
@@ -939,11 +951,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
           onCloseAutoFocus={(e) => e.preventDefault()}
           onEscapeKeyDown={(e) => e.preventDefault()}
           onInteractOutside={(e) => {
-            if (
-              submenuContentRef.current?.contains(
-                e.target as Node
-              )
-            ) {
+            if (submenuContentRef.current?.contains(e.target as Node)) {
               e.preventDefault();
             }
           }}
@@ -976,9 +984,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
             virtualRef={{
               current: {
                 getBoundingClientRect: () =>
-                  itemRefs.current
-                    .get(submenu.index)!
-                    .getBoundingClientRect(),
+                  itemRefs.current.get(submenu.index)!.getBoundingClientRect(),
               },
             }}
           />
