@@ -11,7 +11,7 @@ export type OAuthAuthenticationsListReq = z.infer<
 
 export const OAuthAuthenticationsDeleteSchema = BaseSchema.extend({
   body: z.object({
-    oauthClientId: z.string(),
+    oauthClientId: z.string().uuid(),
     scope: z.array(z.string()).optional(),
   }),
 });

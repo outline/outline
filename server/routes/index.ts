@@ -174,7 +174,13 @@ router.get("/opensearch.xml", (ctx) => {
   ctx.body = opensearchResponse(ctx.request.URL.origin);
 });
 
+router.get("/s/:shareId.:format", shareDomains(), renderShare);
 router.get("/s/:shareId", shareDomains(), renderShare);
+router.get(
+  "/s/:shareId/doc/:documentSlug.:format",
+  shareDomains(),
+  renderShare
+);
 router.get("/s/:shareId/doc/:documentSlug", shareDomains(), renderShare);
 router.get("/s/:shareId/*", shareDomains(), renderShare);
 

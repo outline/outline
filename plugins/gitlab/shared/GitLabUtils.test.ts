@@ -60,6 +60,21 @@ describe("GitLabUtils.parseUrl", () => {
       );
       expect(result).toBeUndefined();
     });
+
+    it("should return undefined for an issues list URL without an ID", () => {
+      const result = GitLabUtils.parseUrl(
+        "https://gitlab.com/speak/purser/-/issues"
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it("should return undefined for an invalid custom URL", () => {
+      const result = GitLabUtils.parseUrl(
+        "https://gitlab.example.com/team/project/-/issues/10",
+        "not-a-valid-url"
+      );
+      expect(result).toBeUndefined();
+    });
   });
 
   describe("base64 show parameter URLs", () => {

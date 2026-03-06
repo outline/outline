@@ -118,10 +118,10 @@ export const createSubscriptionsForDocument = async (
   document: Document,
   event: DocumentEvent | RevisionEvent
 ): Promise<void> => {
-  await sequelize.transaction(async (transaction) => {
-    const users = await document.collaborators({ transaction });
+  const users = await document.collaborators();
 
-    for (const user of users) {
+  for (const user of users) {
+    await sequelize.transaction(async (transaction) => {
       await subscriptionCreator({
         ctx: createContext({
           user,
@@ -133,6 +133,6 @@ export const createSubscriptionsForDocument = async (
         event: SubscriptionType.Document,
         resubscribe: false,
       });
-    }
-  });
+    });
+  }
 };
