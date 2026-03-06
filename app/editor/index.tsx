@@ -621,11 +621,24 @@ export class Editor extends React.PureComponent<
   };
 
   /**
+   * Insert content into the editor, replacing the block at the current selection.
+   *
+   * @param content The prosemirror data to insert.
+   */
+  public insertContent = (content: ProsemirrorData) => {
+    const doc = ProsemirrorNode.fromJSON(this.schema, content);
+    const { $from } = this.view.state.selection;
+    const start = $from.before($from.depth);
+    const end = $from.after($from.depth);
+    this.view.dispatch(this.view.state.tr.replaceWith(start, end, doc.content));
+  };
+
+  /**
    * Insert files at the current selection.
-   * =
-   * @param event The source event
-   * @param files The files to insert
-   * @returns True if the files were inserted
+   *
+   * @param event The source event.
+   * @param files The files to insert.
+   * @returns True if the files were inserted.
    */
   public insertFiles = (
     event: React.ChangeEvent<HTMLInputElement>,

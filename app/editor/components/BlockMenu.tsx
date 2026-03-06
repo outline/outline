@@ -1,6 +1,5 @@
-import { DocumentIcon } from "outline-icons";
+import { DocumentIcon, ShapesIcon } from "outline-icons";
 import cloneDeep from "lodash/cloneDeep";
-import { Node } from "prosemirror-model";
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import Icon from "@shared/components/Icon";
@@ -16,76 +15,70 @@ import type { Props as SuggestionsMenuProps } from "./SuggestionsMenu";
 import SuggestionsMenu from "./SuggestionsMenu";
 import SuggestionsMenuItem from "./SuggestionsMenuItem";
 
-type Props = Omit<SuggestionsMenuProps, "renderMenuItem" | "items"> &
-  Required<Pick<SuggestionsMenuProps, "embeds">>;
-
-function BlockMenu(props: Props) {
-  const dictionary = useDictionary();
+/**
+ * Hook that returns a template menu item with children for inserting template
+ * content into the editor, or undefined if no templates are available.
+ */
+function useTemplateMenuItem(): MenuItem | undefined {
   const { t } = useTranslation();
   const user = useCurrentUser({ rejectOnEmpty: false });
   const { documents, templates: templatesStore } = useStores();
-  const { elementRef, view, schema, props: editorProps } = useEditor();
-  const documentId = editorProps.id;
+  const editor = useEditor();
+  const documentId = editor.props.id;
   const document = documentId ? documents.get(documentId) : undefined;
   const collectionId = document?.collectionId;
 
-  const items = useMemo(() => {
-    const baseItems = getMenuItems(dictionary, elementRef);
-
+  return useMemo(() => {
     if (!user) {
-      return baseItems;
+      return undefined;
     }
 
-    const templateChildren = (): MenuItem[] => {
-      const allTemplates = templatesStore.orderedData.filter(
-        (template) => template.isActive
-      );
+    const allTemplates = templatesStore.orderedData.filter(
+      (template) => template.isActive
+    );
+    const hasTemplates = allTemplates.some(
+      (template) =>
+        template.isWorkspaceTemplate || template.collectionId === collectionId
+    );
 
+    if (!hasTemplates) {
+      return undefined;
+    }
+
+    const toMenuItem = (template: (typeof allTemplates)[0]): MenuItem => ({
+      name: "noop",
+      title: TextHelper.replaceTemplateVariables(
+        template.titleWithDefault,
+        user
+      ),
+      icon: template.icon ? (
+        <Icon
+          value={template.icon}
+          initial={template.initial}
+          color={template.color ?? undefined}
+        />
+      ) : (
+        <DocumentIcon />
+      ),
+      keywords: template.titleWithDefault,
+      onClick: () => {
+        const data = cloneDeep(template.data);
+        ProsemirrorHelper.replaceTemplateVariables(data, user);
+        editor.insertContent(data);
+      },
+    });
+
+    const children = (): MenuItem[] => {
       const collectionTemplates = allTemplates.filter(
         (template) =>
           !template.isWorkspaceTemplate &&
           template.collectionId === collectionId
       );
-
       const workspaceTemplates = allTemplates.filter(
         (tmpl) => tmpl.isWorkspaceTemplate
       );
 
-      const toMenuItem = (template: (typeof allTemplates)[0]): MenuItem => ({
-        name: "noop",
-        title: TextHelper.replaceTemplateVariables(
-          template.titleWithDefault,
-          user
-        ),
-        icon: template.icon ? (
-          <Icon
-            value={template.icon}
-            initial={template.initial}
-            color={template.color ?? undefined}
-          />
-        ) : (
-          <DocumentIcon />
-        ),
-        keywords: template.titleWithDefault,
-        onClick: () => {
-          const data = cloneDeep(template.data);
-          ProsemirrorHelper.replaceTemplateVariables(data, user);
-          const doc = Node.fromJSON(schema, data);
-
-          const { $from } = view.state.selection;
-          const start = $from.before($from.depth);
-          const end = $from.after($from.depth);
-          view.dispatch(
-            view.state.tr.replaceWith(start, end, doc.content)
-          );
-        },
-      });
-
-      const items: MenuItem[] = [];
-
-      for (const template of collectionTemplates) {
-        items.push(toMenuItem(template));
-      }
+      const items: MenuItem[] = collectionTemplates.map(toMenuItem);
 
       if (collectionTemplates.length && workspaceTemplates.length) {
         items.push({ name: "separator" });
@@ -100,40 +93,33 @@ function BlockMenu(props: Props) {
       return items;
     };
 
-    const allTemplates = templatesStore.orderedData.filter(
-      (template) => template.isActive
-    );
-    const hasTemplates = allTemplates.some(
-      (template) =>
-        template.isWorkspaceTemplate ||
-        template.collectionId === collectionId
-    );
+    return {
+      name: "noop",
+      title: t("Templates"),
+      icon: <ShapesIcon />,
+      keywords: "template",
+      children,
+    } satisfies MenuItem;
+  }, [user, templatesStore.orderedData, collectionId, editor, t]);
+}
 
-    if (!hasTemplates) {
+type Props = Omit<SuggestionsMenuProps, "renderMenuItem" | "items"> &
+  Required<Pick<SuggestionsMenuProps, "embeds">>;
+
+function BlockMenu(props: Props) {
+  const dictionary = useDictionary();
+  const { elementRef } = useEditor();
+  const templateMenuItem = useTemplateMenuItem();
+
+  const items = useMemo(() => {
+    const baseItems = getMenuItems(dictionary, elementRef);
+
+    if (!templateMenuItem) {
       return baseItems;
     }
 
-    return [
-      ...baseItems,
-      { name: "separator" },
-      {
-        name: "noop",
-        title: t("Templates"),
-        icon: <DocumentIcon />,
-        keywords: "template",
-        children: templateChildren,
-      } satisfies MenuItem,
-    ];
-  }, [
-    dictionary,
-    elementRef,
-    user,
-    templatesStore.orderedData,
-    collectionId,
-    schema,
-    view,
-    t,
-  ]);
+    return [...baseItems, { name: "separator" } as MenuItem, templateMenuItem];
+  }, [dictionary, elementRef, templateMenuItem]);
 
   const renderMenuItem = useCallback(
     (item, _index, options) => (
