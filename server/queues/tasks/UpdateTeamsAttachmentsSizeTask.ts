@@ -6,6 +6,7 @@ import { sequelize } from "@server/storage/database";
 import { TaskPriority } from "./base/BaseTask";
 import { CronTask, TaskInterval } from "./base/CronTask";
 import UpdateTeamAttachmentsSizeTask from "./UpdateTeamAttachmentsSizeTask";
+import { Hour } from "@shared/utils/time";
 
 type Props = {
   limit: number;
@@ -53,6 +54,7 @@ export default class UpdateTeamsAttachmentsSizeTask extends CronTask {
     return {
       attempts: 1,
       priority: TaskPriority.Background,
+      timeout: Hour.ms,
     };
   }
 }

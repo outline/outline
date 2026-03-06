@@ -2,6 +2,7 @@ import fs from "fs-extra";
 import truncate from "lodash/truncate";
 import type { NavigationNode } from "@shared/types";
 import { FileOperationState, NotificationEventType } from "@shared/types";
+import { Hour } from "@shared/utils/time";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import ExportFailureEmail from "@server/emails/templates/ExportFailureEmail";
 import ExportSuccessEmail from "@server/emails/templates/ExportSuccessEmail";
@@ -251,6 +252,7 @@ export default abstract class ExportTask extends BaseTask<Props> {
     return {
       priority: TaskPriority.Background,
       attempts: 1,
+      timeout: 24 * Hour.ms,
     };
   }
 }
