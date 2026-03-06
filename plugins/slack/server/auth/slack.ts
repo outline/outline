@@ -246,17 +246,38 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
         case IntegrationType.LinkedAccount: {
           // validation middleware ensures that code is non-null at this point
           const data = await Slack.oauthAccess(code!, SlackUtils.connectUrl());
-          await Integration.create<Integration<IntegrationType.LinkedAccount>>({
-            service: IntegrationService.Slack,
-            type: IntegrationType.LinkedAccount,
-            userId: user.id,
-            teamId: user.teamId,
-            settings: {
-              slack: {
-                serviceUserId: data.user_id,
-                serviceTeamId: data.team_id,
+
+          await sequelize.transaction(async (transaction) => {
+            const authentication = await IntegrationAuthentication.create(
+              {
+                service: IntegrationService.Slack,
+                userId: user.id,
+                teamId: user.teamId,
+                token: data.access_token,
+                scopes: data.scope.split(","),
               },
-            },
+              { transaction }
+            );
+
+            await Integration.create<
+              Integration<IntegrationType.LinkedAccount>
+            >(
+              {
+                service: IntegrationService.Slack,
+                type: IntegrationType.LinkedAccount,
+                userId: user.id,
+                teamId: user.teamId,
+                // need to add events
+                authenticationId: authentication.id,
+                settings: {
+                  slack: {
+                    serviceUserId: data.user_id,
+                    serviceTeamId: data.team_id,
+                  },
+                },
+              },
+              { transaction }
+            );
           });
           break;
         }

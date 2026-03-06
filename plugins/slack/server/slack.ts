@@ -1,10 +1,52 @@
 import querystring from "node:querystring";
+import { createSlackAdapter } from "@chat-adapter/slack";
 import { InvalidRequestError } from "@server/errors";
 import fetch from "@server/utils/fetch";
 import { SlackUtils } from "../shared/SlackUtils";
 import env from "./env";
+import type { AdapterPostableMessage } from "chat";
 
 const SLACK_API_URL = "https://slack.com/api";
+
+/**
+ * send a message to a Slack channel
+ *
+ * @param token - the Slack API token to authenticate the request.
+ * @param channel - the channel ID or user ID to send the message to.
+ * @param message - the message content to send.
+ *
+ * @returns the response after posting the message.
+ */
+export async function postMessage({
+  token,
+  channel,
+  message,
+}: {
+  token: string;
+  channel: string;
+  message: AdapterPostableMessage;
+}) {
+  if (!token) {
+    throw InvalidRequestError("Slack API token is required");
+  }
+
+  try {
+    const adapter = createSlackAdapter({
+      botToken: token,
+      signingSecret: env.SLACK_SIGNING_SECRET,
+    });
+
+    const threadId = await adapter.openDM(channel);
+    const result = await adapter.postMessage(threadId, message);
+
+    return result;
+  } catch (err) {
+    if (err.data) {
+      throw InvalidRequestError(err.data.error || err.message);
+    }
+    throw InvalidRequestError(err.message);
+  }
+}
 
 /**
  * Makes a POST request to the Slack API with JSON body.
