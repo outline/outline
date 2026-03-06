@@ -73,6 +73,19 @@ describe("/s/:id", () => {
     expect(body).toContain(`# ${document.title}`);
   });
 
+  it("should return markdown when URL path ends with .md", async () => {
+    const document = await buildDocument();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: document.teamId,
+    });
+    const res = await server.get(`/s/${share.id}.md`);
+    const body = await res.text();
+    expect(res.status).toEqual(200);
+    expect(res.headers.get("content-type")).toContain("text/markdown");
+    expect(body).toContain(`# ${document.title}`);
+  });
+
   it("should return html when Accept header prefers text/html over text/markdown", async () => {
     const document = await buildDocument();
     const share = await buildShare({
