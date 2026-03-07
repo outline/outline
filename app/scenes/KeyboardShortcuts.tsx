@@ -111,6 +111,15 @@ function KeyboardShortcuts({ defaultQuery = "" }: Props) {
           {
             shortcut: (
               <>
+                <Key symbol>{metaDisplay}</Key> + <Key symbol>{altDisplay}</Key>{" "}
+                + <Key>p</Key>
+              </>
+            ),
+            label: t("Present document"),
+          },
+          {
+            shortcut: (
+              <>
                 <Key symbol>{metaDisplay}</Key> + <Key symbol>⇧</Key> +{" "}
                 <Key>p</Key>
               </>
