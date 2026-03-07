@@ -11,63 +11,23 @@ import type {
   WhereOptions,
 } from "sequelize";
 import { Op, Sequelize } from "sequelize";
-import type { DateFilter } from "@shared/types";
-import { DirectionFilter, SortFilter } from "@shared/types";
-import { StatusFilter } from "@shared/types";
+import type { SearchableModel } from "@shared/types";
+import { DirectionFilter, SortFilter, StatusFilter } from "@shared/types";
 import { regexIndexOf, regexLastIndexOf } from "@shared/utils/string";
 import { getUrls } from "@shared/utils/urls";
 import { ValidationError } from "@server/errors";
 import Collection from "@server/models/Collection";
+import type Comment from "@server/models/Comment";
 import Document from "@server/models/Document";
-import type Share from "@server/models/Share";
 import Team from "@server/models/Team";
 import User from "@server/models/User";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { sequelize } from "@server/storage/database";
-import { DocumentHelper } from "./DocumentHelper";
-
-type SearchResponse = {
-  results: {
-    /** The search ranking, for sorting results */
-    ranking: number;
-    /** A snippet of contextual text around the search result */
-    context?: string;
-    /** The document result */
-    document: Document;
-  }[];
-  /** The total number of results for the search query without pagination */
-  total: number;
-};
-
-type SearchOptions = {
-  /** The query limit for pagination */
-  limit?: number;
-  /** The query offset for pagination */
-  offset?: number;
-  /** The text to search for */
-  query?: string;
-  /** Limit results to a collection. Authorization is presumed to have been done before passing to this helper. */
-  collectionId?: string | null;
-  /** Limit results to a shared document. */
-  share?: Share;
-  /** Limit results to a date range. */
-  dateFilter?: DateFilter;
-  /** Status of the documents to return */
-  statusFilter?: StatusFilter[];
-  /** Limit results to a list of documents. */
-  documentIds?: string[];
-  /** Limit results to a list of users that collaborated on the document. */
-  collaboratorIds?: string[];
-  /** The minimum number of words to be returned in the contextual snippet */
-  snippetMinWords?: number;
-  /** The maximum number of words to be returned in the contextual snippet */
-  snippetMaxWords?: number;
-  /** The field to sort results by */
-  sort?: SortFilter;
-  /** The sort direction */
-  direction?: DirectionFilter;
-  /** Whether to boost results by popularity score. Defaults to true. */
-  usePopularityBoost?: boolean;
-};
+import type {
+  SearchOptions,
+  SearchResponse,
+} from "@server/utils/BaseSearchProvider";
+import BaseSearchProvider from "@server/utils/BaseSearchProvider";
 
 type RankedDocument = Document & {
   id: string;
@@ -76,24 +36,31 @@ type RankedDocument = Document & {
   };
 };
 
-export default class SearchHelper {
+/**
+ * Search provider that uses PostgreSQL full-text search via tsvector.
+ * Indexing is handled by database triggers, so index/remove/updateMetadata
+ * are no-ops.
+ */
+export default class PostgresSearchProvider extends BaseSearchProvider {
+  id = "postgres";
+
   /**
    * The maximum length of a search query.
    */
   public static maxQueryLength = 1000;
 
   /**
-   * Cached regex pattern for single quotes to avoid recompilation
+   * Cached regex pattern for single quotes to avoid recompilation.
    */
   private static readonly SINGLE_QUOTE_REGEX = /'+/g;
 
   /**
-   * Cached regex pattern for quoted queries
+   * Cached regex pattern for quoted queries.
    */
   private static readonly QUOTED_QUERY_REGEX = /"([^"]*)"/g;
 
   /**
-   * Cached regex pattern for break characters
+   * Cached regex pattern for break characters.
    */
   private static readonly BREAK_CHARS_REGEX = new RegExp(
     `[ .,"'\n。！？!?…]`,
@@ -101,7 +68,7 @@ export default class SearchHelper {
   );
 
   /**
-   * Cached stop words set for efficient lookup
+   * Cached stop words set for efficient lookup.
    * Based on: https://github.com/postgres/postgres/blob/fc0d0ce978752493868496be6558fa17b7c4c3cf/src/backend/snowball/stopwords/english.stop
    */
   private static readonly STOP_WORDS = new Set([
@@ -215,13 +182,13 @@ export default class SearchHelper {
     "should",
   ]);
 
-  public static async searchForTeam(
+  async searchForTeam(
     team: Team,
     options: SearchOptions = {}
   ): Promise<SearchResponse> {
     const { limit = 15, offset = 0, query } = options;
 
-    const where = await this.buildWhere(team, {
+    const where = await PostgresSearchProvider.buildWhere(team, {
       ...options,
       statusFilter: [...(options.statusFilter || []), StatusFilter.Published],
     });
@@ -256,7 +223,7 @@ export default class SearchHelper {
       });
     }
 
-    const findOptions = this.buildFindOptions({
+    const findOptions = PostgresSearchProvider.buildFindOptions({
       query,
       sort: options.sort,
       direction: options.direction,
@@ -292,7 +259,7 @@ export default class SearchHelper {
         ],
       });
 
-      return this.buildResponse({
+      return PostgresSearchProvider.buildResponse({
         query,
         results,
         documents,
@@ -306,12 +273,12 @@ export default class SearchHelper {
     }
   }
 
-  public static async searchTitlesForUser(
+  async searchTitlesForUser(
     user: User,
     options: SearchOptions = {}
   ): Promise<Document[]> {
     const { limit = 15, offset = 0, query, ...rest } = options;
-    const where = await this.buildWhere(user, rest);
+    const where = await PostgresSearchProvider.buildWhere(user, rest);
 
     if (query) {
       where[Op.and].push({
@@ -379,7 +346,7 @@ export default class SearchHelper {
     });
   }
 
-  public static async searchCollectionsForUser(
+  async searchCollectionsForUser(
     user: User,
     options: SearchOptions = {}
   ): Promise<Collection[]> {
@@ -408,15 +375,15 @@ export default class SearchHelper {
     });
   }
 
-  public static async searchForUser(
+  async searchForUser(
     user: User,
     options: SearchOptions = {}
   ): Promise<SearchResponse> {
     const { limit = 15, offset = 0, query } = options;
 
-    const where = await this.buildWhere(user, options);
+    const where = await PostgresSearchProvider.buildWhere(user, options);
 
-    const findOptions = this.buildFindOptions({
+    const findOptions = PostgresSearchProvider.buildFindOptions({
       query,
       sort: options.sort,
       direction: options.direction,
@@ -484,7 +451,7 @@ export default class SearchHelper {
           : countQuery,
       ]);
 
-      return this.buildResponse({
+      return PostgresSearchProvider.buildResponse({
         query,
         results,
         documents,
@@ -496,6 +463,49 @@ export default class SearchHelper {
       }
       throw err;
     }
+  }
+
+  /**
+   * No-op for PostgreSQL — indexing is handled by database triggers.
+   *
+   * @param _model - unused.
+   * @param _item - unused.
+   */
+  async index(
+    _model: SearchableModel,
+    _item: Document | Collection | Comment
+  ): Promise<void> {
+    // PostgreSQL uses tsvector triggers for indexing
+  }
+
+  /**
+   * No-op for PostgreSQL — removal is handled by database cascades.
+   *
+   * @param _model - unused.
+   * @param _id - unused.
+   * @param _teamId - unused.
+   */
+  async remove(
+    _model: SearchableModel,
+    _id: string,
+    _teamId: string
+  ): Promise<void> {
+    // PostgreSQL handles removal via cascading deletes
+  }
+
+  /**
+   * No-op for PostgreSQL — metadata is stored in the same tables.
+   *
+   * @param _model - unused.
+   * @param _id - unused.
+   * @param _metadata - unused.
+   */
+  async updateMetadata(
+    _model: SearchableModel,
+    _id: string,
+    _metadata: Record<string, unknown>
+  ): Promise<void> {
+    // PostgreSQL metadata lives in the same row as the document
   }
 
   private static buildFindOptions({
@@ -519,7 +529,7 @@ export default class SearchHelper {
         : `ts_rank("searchVector", to_tsquery('english', :query))`;
 
       attributes.push([Sequelize.literal(rankExpression), "searchRanking"]);
-      replacements["query"] = this.webSearchQuery(query);
+      replacements["query"] = PostgresSearchProvider.webSearchQuery(query);
     }
 
     // When searching with a query and no explicit sort, prioritize search
@@ -551,8 +561,10 @@ export default class SearchHelper {
 
   private static buildResultContext(document: Document, query: string) {
     // Reset regex lastIndex to avoid state issues with global regex
-    this.QUOTED_QUERY_REGEX.lastIndex = 0;
-    const quotedQueries = Array.from(query.matchAll(this.QUOTED_QUERY_REGEX));
+    PostgresSearchProvider.QUOTED_QUERY_REGEX.lastIndex = 0;
+    const quotedQueries = Array.from(
+      query.matchAll(PostgresSearchProvider.QUOTED_QUERY_REGEX)
+    );
     const text = DocumentHelper.toPlainText(document);
 
     // Regex to highlight quoted queries as ts_headline will not do this by default due to stemming.
@@ -562,7 +574,7 @@ export default class SearchHelper {
         fullMatchRegex.source,
         ...(quotedQueries.length
           ? quotedQueries.map((match) => escapeRegExp(match[1]))
-          : this.removeStopWords(query)
+          : PostgresSearchProvider.removeStopWords(query)
               .trim()
               .split(" ")
               .map((match) => `\\b${escapeRegExp(match)}\\b`)),
@@ -571,8 +583,8 @@ export default class SearchHelper {
     );
 
     // Reset regex lastIndex to avoid state issues with global regex
-    this.BREAK_CHARS_REGEX.lastIndex = 0;
-    const breakCharsRegex = this.BREAK_CHARS_REGEX;
+    PostgresSearchProvider.BREAK_CHARS_REGEX.lastIndex = 0;
+    const breakCharsRegex = PostgresSearchProvider.BREAK_CHARS_REGEX;
 
     // chop text around the first match, prefer the first full match if possible.
     const fullMatchIndex = text.search(fullMatchRegex);
@@ -715,15 +727,17 @@ export default class SearchHelper {
       let likelyUrls = getUrls(options.query);
 
       // remove likely urls, and escape the rest of the query.
-      let limitedQuery = this.escapeQuery(
+      let limitedQuery = PostgresSearchProvider.escapeQuery(
         likelyUrls
           .reduce((q, url) => q.replace(url, ""), options.query)
-          .slice(0, this.maxQueryLength)
+          .slice(0, PostgresSearchProvider.maxQueryLength)
           .trim()
       );
 
       // Escape the URLs
-      likelyUrls = likelyUrls.map((url) => this.escapeQuery(url));
+      likelyUrls = likelyUrls.map((url) =>
+        PostgresSearchProvider.escapeQuery(url)
+      );
 
       // Extract quoted queries and add them to the where clause, up to a maximum of 3 total.
       const quotedQueries = Array.from(limitedQuery.matchAll(/"([^"]*)"/g)).map(
@@ -785,7 +799,9 @@ export default class SearchHelper {
 
         return {
           ranking: result.dataValues.searchRanking,
-          context: query ? this.buildResultContext(document, query) : undefined,
+          context: query
+            ? PostgresSearchProvider.buildResultContext(document, query)
+            : undefined,
           document,
         };
       }),
@@ -794,22 +810,26 @@ export default class SearchHelper {
   }
 
   /**
-   * Convert a user search query into a format that can be used by Postgres
+   * Convert a user search query into a format that can be used by Postgres.
    *
-   * @param query The user search query
-   * @returns The query formatted for Postgres ts_query
+   * @param query - the user search query.
+   * @returns the query formatted for Postgres ts_query.
    */
   public static webSearchQuery(query: string): string {
     // limit length of search queries as we're using regex against untrusted input
-    let limitedQuery = this.escapeQuery(query.slice(0, this.maxQueryLength));
+    let limitedQuery = PostgresSearchProvider.escapeQuery(
+      query.slice(0, PostgresSearchProvider.maxQueryLength)
+    );
 
     const quotedSearch =
       limitedQuery.startsWith('"') && limitedQuery.endsWith('"');
 
     // Replace single quote characters with &.
     // Reset regex lastIndex to avoid state issues with global regex
-    this.SINGLE_QUOTE_REGEX.lastIndex = 0;
-    const singleQuotes = limitedQuery.matchAll(this.SINGLE_QUOTE_REGEX);
+    PostgresSearchProvider.SINGLE_QUOTE_REGEX.lastIndex = 0;
+    const singleQuotes = limitedQuery.matchAll(
+      PostgresSearchProvider.SINGLE_QUOTE_REGEX
+    );
 
     for (const match of singleQuotes) {
       if (
@@ -851,11 +871,9 @@ export default class SearchHelper {
   }
 
   private static removeStopWords(query: string): string {
-    // Based on:
-    // https://github.com/postgres/postgres/blob/fc0d0ce978752493868496be6558fa17b7c4c3cf/src/backend/snowball/stopwords/english.stop
     return query
       .split(" ")
-      .filter((word) => !this.STOP_WORDS.has(word))
+      .filter((word) => !PostgresSearchProvider.STOP_WORDS.has(word))
       .join(" ");
   }
 }
