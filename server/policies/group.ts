@@ -44,6 +44,7 @@ allow(User, "delete", Group, (actor, group) =>
   and(
     //
     isTeamAdmin(actor, group),
-    isTeamMutable(actor)
+    isTeamMutable(actor),
+    !group?.externalGroups?.length
   )
 );

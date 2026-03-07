@@ -1,4 +1,5 @@
 import type Group from "@server/models/Group";
+import presentExternalGroup from "./externalGroup";
 
 /**
  * Presents a group for the API response.
@@ -17,12 +18,7 @@ export default async function presentGroup(group: Group) {
     memberCount: await group.memberCount,
     disableMentions: group.disableMentions,
     externalGroup: externalGroup
-      ? {
-          id: externalGroup.id,
-          externalId: externalGroup.externalId,
-          providerName: externalGroup.authenticationProvider?.name,
-          lastSyncedAt: externalGroup.lastSyncedAt,
-        }
+      ? presentExternalGroup(externalGroup)
       : undefined,
     createdAt: group.createdAt,
     updatedAt: group.updatedAt,

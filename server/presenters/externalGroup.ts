@@ -12,6 +12,8 @@ export default function presentExternalGroup(externalGroup: ExternalGroup) {
     externalId: externalGroup.externalId,
     name: externalGroup.name,
     groupId: externalGroup.groupId,
+    provider: externalGroup.authenticationProvider?.name,
+    displayName: externalGroup.authenticationProvider?.displayName,
     authenticationProviderId: externalGroup.authenticationProviderId,
     lastSyncedAt: externalGroup.lastSyncedAt,
     createdAt: externalGroup.createdAt,

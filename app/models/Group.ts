@@ -8,7 +8,8 @@ import type { Searchable } from "./interfaces/Searchable";
 interface ExternalGroupInfo {
   id: string;
   externalId: string;
-  providerName: string;
+  provider: string;
+  displayName: string;
   lastSyncedAt: string | null;
 }
 

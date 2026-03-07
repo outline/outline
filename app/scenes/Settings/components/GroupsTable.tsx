@@ -144,25 +144,24 @@ export function GroupsTable(props: Props) {
           type: "data",
           id: "source",
           header: t("Source"),
-          accessor: (group) =>
-            group.externalGroup?.providerName ?? "manual",
+          accessor: (group) => group.externalGroup?.displayName ?? "manual",
           component: (group) =>
             group.externalGroup ? (
               <Flex column>
                 <Text type="secondary" size="small" weight="normal">
-                  {group.externalGroup.providerName}
+                  {group.externalGroup.displayName}
                 </Text>
                 {group.externalGroup.lastSyncedAt && (
                   <Text type="tertiary" size="xsmall" weight="normal">
                     <Trans>
-                      Synced <Time dateTime={group.externalGroup.lastSyncedAt} /> ago
+                      Synced{" "}
+                      <Time dateTime={group.externalGroup.lastSyncedAt} /> ago
                     </Trans>
                   </Text>
                 )}
               </Flex>
             ) : null,
           width: "1fr",
-          sortable: false,
         },
         {
           type: "data",

@@ -417,7 +417,9 @@ export const ViewGroupMembersDialog = observer(function ({
             groupUser={groupUsers.orderedData.find(
               (gu) => gu.userId === user.id && gu.groupId === group.id
             )}
-            onRemove={canModifyMembers ? () => handleRemoveUser(user) : undefined}
+            onRemove={
+              canModifyMembers ? () => handleRemoveUser(user) : undefined
+            }
           />
         )}
       />
@@ -593,7 +595,7 @@ const GroupMemberListItem = observer(function ({
             </Trans>
           ) : (
             t("Never signed in")
-          )}
+          )}{" "}
           {user.isInvited && <Badge>{t("Invited")}</Badge>}
           {user.isAdmin && <Badge primary={user.isAdmin}>{t("Admin")}</Badge>}
         </>

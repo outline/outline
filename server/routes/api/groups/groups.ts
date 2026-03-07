@@ -49,7 +49,8 @@ router.post(
   pagination(),
   validate(T.GroupsListSchema),
   async (ctx: APIContext<T.GroupsListReq>) => {
-    const { sort, direction, query, userId, externalId, name } = ctx.input.body;
+    const { sort, direction, query, userId, externalId, name, source } =
+      ctx.input.body;
     const { user } = ctx.state.auth;
     authorize(user, "listGroups", user.team);
 
@@ -95,6 +96,37 @@ router.post(
       };
     }
 
+    if (source) {
+      const externalGroupWhere: WhereOptions<ExternalGroup> = {
+        groupId: { [Op.ne]: null },
+      };
+
+      const sourceGroupIds = await ExternalGroup.findAll({
+        attributes: ["groupId"],
+        where: externalGroupWhere,
+        ...(source !== "manual" && {
+          include: [
+            {
+              model: AuthenticationProvider,
+              as: "authenticationProvider",
+              attributes: [],
+              where: { name: source },
+            },
+          ],
+        }),
+      }).then((egs) =>
+        egs.map((eg) => eg.groupId).filter((id): id is string => id !== null)
+      );
+
+      where = {
+        ...where,
+        id: {
+          ...((where.id as object) ?? {}),
+          [source === "manual" ? Op.notIn : Op.in]: sourceGroupIds,
+        },
+      };
+    }
+
     const [groups, total] = await Promise.all([
       Group.findAll({
         where,
@@ -109,7 +141,16 @@ router.post(
           },
           externalGroupInclude,
         ],
-        order: [[sort, direction]],
+        order: [
+          sort === "source"
+            ? [
+                { model: ExternalGroup, as: "externalGroups" },
+                { model: AuthenticationProvider, as: "authenticationProvider" },
+                "name",
+                direction,
+              ]
+            : [sort, direction],
+        ],
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
       }),
@@ -266,6 +307,7 @@ router.post(
     const group = await Group.findByPk(id, {
       transaction,
       lock: transaction.LOCK.UPDATE,
+      include: [externalGroupInclude],
     });
     authorize(user, "delete", group);
 

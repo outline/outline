@@ -19,7 +19,7 @@ import { useMenuAction } from "~/hooks/useMenuAction";
 
 /**
  * Hook that constructs the action menu for group management operations.
- * 
+ *
  * @param targetGroup - the group to build actions for, or null to skip.
  * @returns action with children for use in menus, or undefined if group is null.
  */
@@ -45,7 +45,10 @@ export function useGroupMenuActions(targetGroup: Group | null) {
     dialogs.openModal({
       title: t("Edit group"),
       content: (
-        <EditGroupDialog group={targetGroup} onSubmit={dialogs.closeAllModals} />
+        <EditGroupDialog
+          group={targetGroup}
+          onSubmit={dialogs.closeAllModals}
+        />
       ),
     });
   }, [t, targetGroup, dialogs]);
@@ -57,7 +60,10 @@ export function useGroupMenuActions(targetGroup: Group | null) {
     dialogs.openModal({
       title: t("Delete group"),
       content: (
-        <DeleteGroupDialog group={targetGroup} onSubmit={dialogs.closeAllModals} />
+        <DeleteGroupDialog
+          group={targetGroup}
+          onSubmit={dialogs.closeAllModals}
+        />
       ),
     });
   }, [t, targetGroup, dialogs]);
@@ -95,6 +101,13 @@ export function useGroupMenuActions(targetGroup: Group | null) {
               name: targetGroup.externalId ?? "",
               section: GroupSection,
               visible: !!targetGroup.externalId,
+              disabled: true,
+              url: "",
+            }),
+            createExternalLinkAction({
+              name: `External ID: ${targetGroup.externalGroup?.externalId ?? ""}`,
+              section: GroupSection,
+              visible: !!targetGroup.externalGroup?.externalId,
               disabled: true,
               url: "",
             }),
