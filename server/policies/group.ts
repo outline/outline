@@ -45,6 +45,6 @@ allow(User, "delete", Group, (actor, group) =>
     //
     isTeamAdmin(actor, group),
     isTeamMutable(actor),
-    !group?.externalGroups?.length
+    !Array.isArray(group?.externalGroups) || group.externalGroups.length === 0
   )
 );

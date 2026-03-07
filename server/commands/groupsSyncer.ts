@@ -73,6 +73,16 @@ async function groupsSyncer(
       };
       if (externalGroup.name !== eg.name) {
         updates.name = eg.name;
+
+        // Also update the linked internal Group name
+        if (externalGroup.groupId) {
+          const group = await Group.findByPk(externalGroup.groupId, {
+            transaction,
+          });
+          if (group) {
+            await group.update({ name: eg.name }, { transaction });
+          }
+        }
       }
       await externalGroup.update(updates, { transaction });
     }
@@ -100,54 +110,44 @@ async function groupsSyncer(
     }
   }
 
-  // Remove user from synced groups they are no longer a member of
+  // Remove user from synced groups they are no longer a member of.
+  // Scope query to groups the user is actually a member of to avoid
+  // touching unrelated external group records.
+  const staleWhere: Record<string, unknown> = {
+    authenticationProviderId: authenticationProvider.id,
+    teamId: team.id,
+    groupId: { [Op.ne]: null },
+  };
+
   if (externalGroupIds.size > 0) {
-    const staleExternalGroups = await ExternalGroup.findAll({
-      where: {
-        authenticationProviderId: authenticationProvider.id,
-        teamId: team.id,
-        groupId: { [Op.ne]: null },
-        externalId: { [Op.notIn]: [...externalGroupIds] },
-      },
-      transaction,
-    });
+    staleWhere.externalId = { [Op.notIn]: [...externalGroupIds] };
+  }
 
-    for (const stale of staleExternalGroups) {
-      await stale.update({ lastSyncedAt: now }, { transaction });
-      if (stale.groupId) {
-        const existing = await GroupUser.findOne({
-          where: { groupId: stale.groupId, userId: user.id },
-          transaction,
-        });
-        if (existing) {
-          await existing.destroyWithCtx(ctx);
-          result.membershipsRemoved++;
-        }
-      }
-    }
-  } else {
-    // User has no external groups — remove them from all synced groups
-    const allExternalGroups = await ExternalGroup.findAll({
-      where: {
-        authenticationProviderId: authenticationProvider.id,
-        teamId: team.id,
-        groupId: { [Op.ne]: null },
+  const staleExternalGroups = await ExternalGroup.findAll({
+    where: staleWhere,
+    include: [
+      {
+        model: Group,
+        as: "group",
+        required: true,
+        include: [
+          {
+            model: GroupUser,
+            as: "groupUsers",
+            required: true,
+            where: { userId: user.id },
+          },
+        ],
       },
-      transaction,
-    });
+    ],
+    transaction,
+  });
 
-    for (const eg of allExternalGroups) {
-      await eg.update({ lastSyncedAt: now }, { transaction });
-      if (eg.groupId) {
-        const existing = await GroupUser.findOne({
-          where: { groupId: eg.groupId, userId: user.id },
-          transaction,
-        });
-        if (existing) {
-          await existing.destroyWithCtx(ctx);
-          result.membershipsRemoved++;
-        }
-      }
+  for (const stale of staleExternalGroups) {
+    const membership = stale.group?.groupUsers?.[0];
+    if (membership) {
+      await membership.destroyWithCtx(ctx);
+      result.membershipsRemoved++;
     }
   }
 

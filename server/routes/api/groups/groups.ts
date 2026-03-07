@@ -98,6 +98,7 @@ router.post(
 
     if (source) {
       const externalGroupWhere: WhereOptions<ExternalGroup> = {
+        teamId: user.teamId,
         groupId: { [Op.ne]: null },
       };
 

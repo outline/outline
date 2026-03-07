@@ -230,12 +230,11 @@ export async function getTeamFromContext(
   const state = options.includeStateCookie
     ? ctx.cookies.get("state")
     : undefined;
-  const host =
-    (state
-      ? parseState(state).host
-      : options.includeHostQueryParam
-        ? String(ctx.query.host)
-        : undefined) || ctx.hostname;
+  const queryHost =
+    options.includeHostQueryParam && typeof ctx.query.host === "string"
+      ? ctx.query.host
+      : undefined;
+  const host = (state ? parseState(state).host : queryHost) || ctx.hostname;
   const domain = parseDomain(host);
 
   let team;

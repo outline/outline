@@ -64,7 +64,7 @@ router.post(
     if (settings !== undefined) {
       await authenticationProvider.updateWithCtx(ctx, {
         settings: {
-          ...authenticationProvider.settings,
+          ...(authenticationProvider.settings ?? {}),
           ...settings,
         },
       });
