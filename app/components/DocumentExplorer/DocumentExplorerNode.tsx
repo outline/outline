@@ -40,10 +40,9 @@ function DocumentExplorerNode(
   ref: React.RefObject<HTMLSpanElement>
 ) {
   const { t } = useTranslation();
-  const OFFSET = 12;
   const DISCLOSURE = 20;
 
-  const width = depth ? depth * DISCLOSURE + OFFSET : DISCLOSURE;
+  const width = (depth + 1) * DISCLOSURE;
 
   return (
     <Node
