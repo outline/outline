@@ -1,11 +1,11 @@
 import * as React from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
-import { ExpandedIcon, CollapseIcon } from "outline-icons";
+import { ShrinkIcon, GrowIcon, CloseIcon } from "outline-icons";
 import styled, { useTheme } from "styled-components";
 import Icon from "@shared/components/Icon";
 import { richExtensions } from "@shared/editor/nodes";
-import { s } from "@shared/styles";
+import { s, depths } from "@shared/styles";
 import type { ProsemirrorData } from "@shared/types";
 import { colorPalette } from "@shared/utils/collections";
 import Editor from "~/components/Editor";
@@ -14,9 +14,24 @@ import Text from "~/components/Text";
 import Tooltip from "~/components/Tooltip";
 import useIdle from "~/hooks/useIdle";
 import useKeyDown from "~/hooks/useKeyDown";
+import { ArrowLeftIcon, ArrowRightIcon } from "~/components/Icons/ArrowIcon";
+
+/** Activity events that reset the idle timer — excludes keyboard to stay idle during navigation. */
+const idleEvents = [
+  "click",
+  "mousemove",
+  "mousedown",
+  "touchstart",
+  "touchmove",
+];
 
 type Slide =
-  | { type: "title"; title: string; icon?: string | null; iconColor?: string | null }
+  | {
+      type: "title";
+      title: string;
+      icon?: string | null;
+      iconColor?: string | null;
+    }
   | { type: "content"; content: ProsemirrorData[] };
 
 interface Props {
@@ -95,12 +110,7 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
   const [currentSlide, setCurrentSlide] = React.useState(0);
   const containerRef = React.useRef<HTMLDivElement>(null);
   const slideContentRef = React.useRef<HTMLDivElement>(null);
-  const [scale, setScale] = React.useState(1);
   const [isFullscreen, setIsFullscreen] = React.useState(false);
-  const idleEvents = React.useMemo(
-    () => ["click", "mousemove", "mousedown", "touchstart", "touchmove"],
-    []
-  );
   const isIdle = useIdle(3000, idleEvents);
 
   const slides = React.useMemo(
@@ -181,7 +191,10 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
     };
   }, []);
 
-  // Auto-scale slide content to fit available space
+  // Measure natural size once per slide, then apply scale directly to the DOM
+  // to avoid React re-render loops during window resize.
+  const naturalSize = React.useRef({ width: 0, height: 0 });
+
   React.useEffect(() => {
     const el = slideContentRef.current;
     const container = containerRef.current;
@@ -189,33 +202,34 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
       return;
     }
 
-    const computeScale = () => {
-      // Available area minus bottom bar (~48px) and padding
-      const availableWidth = container.clientWidth - 160;
-      const availableHeight = container.clientHeight - 48 - 80;
-
-      // Reset scale to measure natural size
-      el.style.transform = "none";
-      const naturalWidth = el.scrollWidth;
-      const naturalHeight = el.scrollHeight;
-
-      if (naturalWidth === 0 || naturalHeight === 0) {
-        setScale(1);
+    const applyScale = () => {
+      const { width, height } = naturalSize.current;
+      if (width === 0 || height === 0) {
+        el.style.transform = "scale(1)";
         return;
       }
 
-      const scaleX = availableWidth / naturalWidth;
-      const scaleY = availableHeight / naturalHeight;
+      const availableWidth = container.clientWidth - 160;
+      const availableHeight = container.clientHeight - 48 - 160;
+      const scaleX = availableWidth / width;
+      const scaleY = availableHeight / height;
       const newScale = Math.min(scaleX, scaleY, 1.5);
-      setScale(Math.max(newScale, 0.5));
+      el.style.transform = `scale(${Math.max(newScale, 0.5)})`;
     };
 
-    // Compute after render to allow editor to layout
-    const timer = requestAnimationFrame(computeScale);
-    window.addEventListener("resize", computeScale);
+    // Measure natural size with scale removed, then apply
+    el.style.transform = "none";
+    requestAnimationFrame(() => {
+      naturalSize.current = {
+        width: el.scrollWidth,
+        height: el.scrollHeight,
+      };
+      applyScale();
+      window.addEventListener("resize", applyScale);
+    });
+
     return () => {
-      cancelAnimationFrame(timer);
-      window.removeEventListener("resize", computeScale);
+      window.removeEventListener("resize", applyScale);
     };
   }, [currentSlide]);
 
@@ -234,7 +248,7 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
   return createPortal(
     <Container ref={containerRef} $background={theme.background} $idle={isIdle}>
       <SlideArea onClick={goNext}>
-        <SlideContent ref={slideContentRef} style={{ transform: `scale(${scale})` }}>
+        <SlideContent ref={slideContentRef}>
           {slide.type === "title" ? (
             <TitleSlide>
               {slide.icon && (
@@ -262,31 +276,37 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
         </SlideContent>
       </SlideArea>
       <BottomBar $idle={isIdle}>
-        <ExitText onClick={onClose}>
-          <Text type="tertiary" size="small">
-            {t("Exit")}
-          </Text>
-        </ExitText>
+        <Tooltip content={t("Close")} delay={500}>
+          <ExitText onClick={onClose}>
+            <Text type="tertiary" size="small">
+              <CloseIcon />
+            </Text>
+          </ExitText>
+        </Tooltip>
         <Flex align="center" gap={12}>
-          <SlideNav onClick={goPrev} disabled={currentSlide === 0}>
-            <Arrow>&#8249;</Arrow>
-          </SlideNav>
+          <Tooltip content={t("Previous slide")} delay={500}>
+            <SlideNav onClick={goPrev} disabled={currentSlide === 0}>
+              <ArrowLeftIcon />
+            </SlideNav>
+          </Tooltip>
           <SlideCounter>
             {currentSlide + 1} / {totalSlides}
           </SlideCounter>
-          <SlideNav
-            onClick={goNext}
-            disabled={currentSlide === totalSlides - 1}
-          >
-            <Arrow>&#8250;</Arrow>
-          </SlideNav>
+          <Tooltip content={t("Next slide")} delay={500}>
+            <SlideNav
+              onClick={goNext}
+              disabled={currentSlide === totalSlides - 1}
+            >
+              <ArrowRightIcon />
+            </SlideNav>
+          </Tooltip>
         </Flex>
         <Tooltip content={t("Toggle fullscreen")} delay={500}>
           <FullscreenButton onClick={toggleFullscreen}>
             {isFullscreen ? (
-              <CollapseIcon color="currentColor" />
+              <ShrinkIcon color="currentColor" />
             ) : (
-              <ExpandedIcon color="currentColor" />
+              <GrowIcon color="currentColor" />
             )}
           </FullscreenButton>
         </Tooltip>
@@ -299,12 +319,16 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
 const Container = styled.div<{ $background: string; $idle: boolean }>`
   position: fixed;
   inset: 0;
-  z-index: 100000;
+  z-index: ${depths.presentation};
   background: ${(props) => props.$background};
   display: flex;
   flex-direction: column;
   user-select: none;
   cursor: ${(props) => (props.$idle ? "none" : "default")};
+
+  * {
+    cursor: inherit;
+  }
 `;
 
 const SlideArea = styled.div`
@@ -313,14 +337,12 @@ const SlideArea = styled.div`
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  cursor: pointer;
-  padding: 40px 80px;
+  padding: 80px;
 `;
 
 const SlideContent = styled.div`
   max-width: 960px;
   width: 100%;
-  cursor: default;
   transform-origin: center center;
 
   .ProseMirror {
@@ -382,20 +404,10 @@ const SlideCounter = styled(Text)`
 const SlideNav = styled.button<{ disabled?: boolean }>`
   background: none;
   border: none;
+  color: ${(props) => (props.disabled ? s("textTertiary") : s("text"))};
   cursor: ${(props) => (props.disabled ? "default" : "pointer")};
-  opacity: ${(props) => (props.disabled ? 0.2 : 0.6)};
   padding: 4px 8px;
   transition: opacity 100ms ease;
-
-  &:hover {
-    opacity: ${(props) => (props.disabled ? 0.2 : 1)};
-  }
-`;
-
-const Arrow = styled.span`
-  font-size: 28px;
-  line-height: 1;
-  color: ${s("textTertiary")};
 `;
 
 const ExitText = styled.button`

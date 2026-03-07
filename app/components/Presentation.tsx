@@ -22,7 +22,7 @@ function Presentation() {
         iconColor={ui.presentationData.color}
         data={ui.presentationData.data}
         onClose={() => {
-          ui.presentationData = null;
+          ui.setPresentingDocument(null);
         }}
       />
     </Suspense>

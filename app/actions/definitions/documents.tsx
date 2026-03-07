@@ -960,12 +960,7 @@ export const presentDocument = createAction({
       return;
     }
 
-    stores.ui.presentationData = {
-      title: document.title,
-      icon: document.icon,
-      color: document.color,
-      data: document.data,
-    };
+    stores.ui.setPresentingDocument(document);
   },
 });
 

@@ -102,6 +102,23 @@ class UiStore {
     data: ProsemirrorData;
   } | null = null;
 
+  /**
+   * Enter presentation mode for the given document.
+   *
+   * @param document the document to present, or null to exit.
+   */
+  @action
+  setPresentingDocument = (document: Document | null): void => {
+    this.presentationData = document
+      ? {
+          title: document.title,
+          icon: document.icon,
+          color: document.color,
+          data: document.data,
+        }
+      : null;
+  };
+
   /** Tracks active export toasts for in-place updates when export completes */
   exportToasts = observable.map<
     string,
