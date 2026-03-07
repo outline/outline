@@ -225,7 +225,8 @@ function DocumentExplorer({
   };
 
   const hasChildren = (node: number) =>
-    nodes[node].children.length > 0 || showDocuments !== false;
+    nodes[node].children.length > 0 ||
+    (showDocuments !== false && nodes[node].type === "collection");
 
   const toggleCollapse = (node: number) => {
     if (!hasChildren(node)) {
