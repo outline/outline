@@ -692,19 +692,14 @@ export class Editor extends React.PureComponent<
   public removeComment = (commentId: string) => {
     const { state, dispatch } = this.view;
     const tr = state.tr;
-    let markRemoved = false;
 
     state.doc.descendants((node, pos) => {
-      if (markRemoved) {
-        return false;
-      }
       const mark = node.marks.find(
         (m) => m.type === state.schema.marks.comment && m.attrs.id === commentId
       );
 
       if (mark) {
         tr.removeMark(pos, pos + node.nodeSize, mark);
-        markRemoved = true;
         return;
       }
 
@@ -718,10 +713,7 @@ export class Editor extends React.PureComponent<
           marks: updatedMarks,
         };
         tr.setNodeMarkup(pos, undefined, attrs);
-        markRemoved = true;
       }
-
-      return;
     });
 
     dispatch(tr);
@@ -739,13 +731,8 @@ export class Editor extends React.PureComponent<
   ) => {
     const { state, dispatch } = this.view;
     const tr = state.tr;
-    let markUpdated = false;
 
     state.doc.descendants((node, pos) => {
-      if (markUpdated) {
-        return false;
-      }
-
       const mark = node.marks.find(
         (m) => m.type === state.schema.marks.comment && m.attrs.id === commentId
       );
@@ -758,7 +745,6 @@ export class Editor extends React.PureComponent<
           ...attrs,
         });
         tr.removeMark(from, to, mark).addMark(from, to, newMark);
-        markUpdated = true;
         return;
       }
 
@@ -774,10 +760,7 @@ export class Editor extends React.PureComponent<
           marks: updatedMarks,
         };
         tr.setNodeMarkup(pos, undefined, newAttrs);
-        markUpdated = true;
       }
-
-      return;
     });
 
     dispatch(tr);
@@ -911,7 +894,11 @@ const EditorContainer = styled(Styles)<{
     css`
       span#comment-${props.focusedCommentId} {
         background: ${transparentize(0.5, props.theme.brand.marine)};
-        border-bottom: 2px solid ${props.theme.commentMarkBackground};
+        text-decoration: underline 2px ${props.theme.commentMarkBackground};
+
+        * {
+          background: transparent !important;
+        }
       }
       a#comment-${props.focusedCommentId}
         ~ span.component-image

@@ -276,6 +276,19 @@ exports[`NotionConverter converts a page 1`] = `
       "type": "heading",
     },
     {
+      "content": [
+        {
+          "attrs": {
+            "label": "Test database",
+            "modelId": "1b32c2bb-bca8-80b7-9c46-e78bf6050c82",
+            "type": "document",
+          },
+          "type": "mention",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
       "attrs": {
         "level": 2,
       },
@@ -287,6 +300,19 @@ exports[`NotionConverter converts a page 1`] = `
         },
       ],
       "type": "heading",
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "label": "Child page of all possible nodes",
+            "modelId": "1b32c2bb-bca8-80a4-aece-c773a563395b",
+            "type": "document",
+          },
+          "type": "mention",
+        },
+      ],
+      "type": "paragraph",
     },
     {
       "attrs": {

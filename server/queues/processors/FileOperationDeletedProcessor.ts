@@ -14,11 +14,14 @@ export default class FileOperationDeletedProcessor extends BaseProcessor {
 
   async perform(event: FileOperationEvent) {
     await sequelize.transaction(async (transaction) => {
-      const fileOperation = await FileOperation.findByPk(event.modelId, {
-        rejectOnEmpty: true,
-        paranoid: false,
-        transaction,
-      });
+      const fileOperation = await FileOperation.unscoped().findByPk(
+        event.modelId,
+        {
+          rejectOnEmpty: true,
+          paranoid: false,
+          transaction,
+        }
+      );
       if (fileOperation.type === FileOperationType.Export) {
         return;
       }

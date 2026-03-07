@@ -31,7 +31,8 @@ import useMobile from "~/hooks/useMobile";
 function Comments() {
   const { ui, comments, documents } = useStores();
   const user = useCurrentUser();
-  const { editor, isEditorInitialized } = useDocumentContext();
+  const { editor, isEditorInitialized, setFocusedCommentId } =
+    useDocumentContext();
   const { t } = useTranslation();
   const match = useRouteMatch<{ documentSlug: string }>();
   const document = documents.get(match.params.documentSlug);
@@ -48,7 +49,7 @@ function Comments() {
   const isAtBottom = useRef(true);
   const [showJumpToRecentBtn, setShowJumpToRecentBtn] = useState(false);
 
-  useKeyDown("Escape", () => document && ui.set({ commentsExpanded: false }));
+  useKeyDown("Escape", () => document && ui.set({ rightSidebar: null }));
 
   // Account for the resolved status of the comment changing
   useEffect(() => {
@@ -203,7 +204,10 @@ function Comments() {
           />
         </Flex>
       }
-      onClose={() => ui.set({ commentsExpanded: false })}
+      onClose={() => {
+        ui.set({ rightSidebar: null });
+        setFocusedCommentId(null);
+      }}
       scrollable={false}
     >
       {content}

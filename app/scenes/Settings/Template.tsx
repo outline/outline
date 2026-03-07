@@ -10,6 +10,7 @@ import Breadcrumb from "~/components/Breadcrumb";
 import Button from "~/components/Button";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import LoadingIndicator from "~/components/LoadingIndicator";
+import Error404 from "~/scenes/Errors/Error404";
 import Scene from "~/components/Scene";
 import { TemplateForm } from "~/components/Template/TemplateForm";
 import { createInternalLinkAction } from "~/actions";
@@ -29,7 +30,7 @@ const LoadingState = observer(function LoadingState() {
   const { id } = useParams<{ id: string }>();
   const { templates, ui } = useStores();
   const template = templates.get(id);
-  const { request } = useRequest(() => templates.fetch(id));
+  const { request, error } = useRequest(() => templates.fetch(id));
 
   useEffect(() => {
     if (!template) {
@@ -45,6 +46,10 @@ const LoadingState = observer(function LoadingState() {
       template && ui.removeActiveModel(template);
     };
   }, [template, ui]);
+
+  if (error) {
+    return <Error404 />;
+  }
 
   if (!template) {
     return <LoadingIndicator />;

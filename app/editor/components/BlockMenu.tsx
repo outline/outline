@@ -20,6 +20,7 @@ function BlockMenu(props: Props) {
         icon={item.icon}
         title={item.title}
         shortcut={item.shortcut}
+        disclosure={options.disclosure}
       />
     ),
     []

@@ -53,7 +53,7 @@ function createMcpServer(scopes: string[]): McpServer {
 router.post(
   "/",
   rateLimiter(RateLimiterStrategy.OneThousandPerHour),
-  auth({ type: AuthenticationType.OAUTH }),
+  auth({ type: [AuthenticationType.MCP, AuthenticationType.OAUTH] }),
   async (ctx) => {
     const { user, token, scope } = ctx.state.auth;
 
@@ -78,7 +78,7 @@ router.post(
       token,
       clientId: "",
       scopes: scope ?? [],
-      extra: { user, scope: scope ?? [] },
+      extra: { user, scope: scope ?? [], ip: ctx.request.ip },
     };
 
     ctx.respond = false;

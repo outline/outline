@@ -123,7 +123,7 @@ export class Mailer {
    * @returns Message ID header from SMTP server
    */
   sendMail = async (data: SendMailOptions): Promise<void> => {
-    const { transporter } = this;
+    const transporter = this.transporter;
 
     if (env.isDevelopment) {
       Logger.debug(

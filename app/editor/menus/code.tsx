@@ -1,5 +1,6 @@
-import { CopyIcon, EditIcon, ExpandedIcon } from "outline-icons";
+import { CopyIcon, EditIcon, ExpandedIcon, TextWrapIcon } from "outline-icons";
 import type { Node as ProseMirrorNode } from "prosemirror-model";
+import { NodeSelection } from "prosemirror-state";
 import type { EditorState } from "prosemirror-state";
 import {
   pluginKey as mermaidPluginKey,
@@ -19,7 +20,10 @@ export default function codeMenuItems(
   readOnly: boolean | undefined,
   dictionary: Dictionary
 ): MenuItem[] {
-  const node = state.selection.$from.node();
+  const node =
+    state.selection instanceof NodeSelection
+      ? state.selection.node
+      : state.selection.$from.node();
 
   const frequentLanguages = getFrequentCodeLanguages();
 
@@ -44,6 +48,9 @@ export default function codeMenuItems(
         ]
       : remainingLangMenuItems;
 
+  const isEditingMermaid = !!(mermaidPluginKey.getState(state) as MermaidState)
+    ?.editingId;
+
   return [
     {
       name: "copyToClipboard",
@@ -60,10 +67,17 @@ export default function codeMenuItems(
       name: "edit_mermaid",
       icon: <EditIcon />,
       tooltip: dictionary.editDiagram,
-      visible:
-        !(mermaidPluginKey.getState(state) as MermaidState)?.editingId &&
-        isMermaid(node) &&
-        !readOnly,
+      visible: isMermaid(node) && !isEditingMermaid && !readOnly,
+    },
+    {
+      name: "separator",
+    },
+    {
+      name: "toggleCodeBlockWrap",
+      icon: <TextWrapIcon />,
+      tooltip: dictionary.wrapText,
+      active: () => node.attrs.wrap,
+      visible: !readOnly && (!isMermaid(node) || isEditingMermaid),
     },
     {
       name: "separator",

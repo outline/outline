@@ -58,11 +58,11 @@ export const inlineExtensions: Nodes = [
   Emoji,
   Text,
   SimpleImage,
+  Link,
   Code,
   Bold,
   Italic,
   Underline,
-  Link,
   Strikethrough,
   History,
   TrailingNode,
@@ -127,7 +127,7 @@ export const richExtensions: Nodes = [
  * Add commenting and mentions to a set of nodes
  */
 export const withComments = (nodes: Nodes) => [
-  ...nodes.filter((node) => node !== Mention),
   Mention,
   Comment,
+  ...nodes.filter((node) => node !== Mention),
 ];

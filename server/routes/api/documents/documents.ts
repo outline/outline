@@ -69,6 +69,7 @@ import { TextHelper } from "@server/models/helpers/TextHelper";
 import { authorize, cannot } from "@server/policies";
 import {
   presentDocument,
+  presentDocuments,
   presentPolicies,
   presentTemplate,
   presentMembership,
@@ -111,6 +112,7 @@ router.post(
       userId: createdById,
       statusFilter,
     } = ctx.input.body;
+    const { offset, limit } = ctx.state.pagination;
 
     // always filter by the current team
     const { user } = ctx.state.auth;
@@ -155,11 +157,8 @@ router.post(
       if (sort === "index") {
         // Extract all document IDs from the collection structure.
         documentIds = (collection.documentStructure || [])
-          .map((node) => node.id)
-          .slice(
-            ctx.state.pagination.offset,
-            ctx.state.pagination.offset + ctx.state.pagination.limit
-          );
+          .slice(offset, offset + limit)
+          .map((node) => node.id);
         where[Op.and].push({ id: documentIds });
       } // if it's not a backlink request, filter by all collections the user has access to
     } else if (!backlinkDocumentId) {
@@ -286,7 +285,7 @@ router.post(
           ? [
               [
                 Sequelize.literal(
-                  `array_position(ARRAY[${documentIds.map((id) => `'${id}'`).join(",")}]::uuid[], "document"."id")`
+                  `array_position(ARRAY[:documentIds]::uuid[], "document"."id")`
                 ),
                 direction,
               ],
@@ -302,13 +301,14 @@ router.post(
         order: orderClause as Order,
         offset: sort === "index" ? 0 : ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
+        replacements: {
+          documentIds,
+        },
       }),
       Document.count({ where }),
     ]);
 
-    const data = await Promise.all(
-      documents.map((document) => presentDocument(ctx, document))
-    );
+    const data = await presentDocuments(ctx, documents);
     const policies = presentPolicies(user, documents);
 
     ctx.body = {
@@ -365,9 +365,7 @@ router.post(
       limit: ctx.state.pagination.limit,
     });
 
-    const data = await Promise.all(
-      documents.map((document) => presentDocument(ctx, document))
-    );
+    const data = await presentDocuments(ctx, documents);
     const policies = presentPolicies(user, documents);
 
     ctx.body = {
@@ -424,9 +422,7 @@ router.post(
       offset: ctx.state.pagination.offset,
       limit: ctx.state.pagination.limit,
     });
-    const data = await Promise.all(
-      documents.map((document) => presentDocument(ctx, document))
-    );
+    const data = await presentDocuments(ctx, documents);
     const policies = presentPolicies(user, documents);
 
     ctx.body = {
@@ -474,9 +470,7 @@ router.post(
       document.views = [view];
       return document;
     });
-    const data = await Promise.all(
-      documents.map((document) => presentDocument(ctx, document))
-    );
+    const data = await presentDocuments(ctx, documents);
     const policies = presentPolicies(user, documents);
 
     ctx.body = {
@@ -533,9 +527,7 @@ router.post(
       offset: ctx.state.pagination.offset,
       limit: ctx.state.pagination.limit,
     });
-    const data = await Promise.all(
-      documents.map((document) => presentDocument(ctx, document))
-    );
+    const data = await presentDocuments(ctx, documents);
     const policies = presentPolicies(user, documents);
 
     ctx.body = {
@@ -1032,9 +1024,7 @@ router.post(
       direction: direction as DirectionFilter,
     });
     const policies = presentPolicies(user, documents);
-    const data = await Promise.all(
-      documents.map((document) => presentDocument(ctx, document))
-    );
+    const data = await presentDocuments(ctx, documents);
 
     ctx.body = {
       pagination: ctx.state.pagination,
@@ -1118,6 +1108,7 @@ router.post(
         snippetMaxWords,
         sort: sort as SortFilter,
         direction: direction as DirectionFilter,
+        usePopularityBoost: false,
       });
     } else {
       if (!user) {
@@ -1224,7 +1215,7 @@ router.post(
         userId: user.id,
         transaction,
       });
-      authorize(user, "createDocument", collection);
+      authorize(user, "createTemplate", collection);
     } else {
       authorize(user, "createTemplate", user.team);
     }
@@ -1379,9 +1370,7 @@ router.post(
 
     ctx.body = {
       data: {
-        documents: await Promise.all(
-          response.map((document) => presentDocument(ctx, document))
-        ),
+        documents: await presentDocuments(ctx, response),
       },
       policies: presentPolicies(user, response),
     };
@@ -1434,9 +1423,7 @@ router.post(
 
     ctx.body = {
       data: {
-        documents: await Promise.all(
-          documents.map((doc) => presentDocument(ctx, doc))
-        ),
+        documents: await presentDocuments(ctx, documents),
         // Included for backwards compatibility
         collections: [],
       },

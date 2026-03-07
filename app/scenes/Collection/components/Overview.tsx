@@ -87,7 +87,7 @@ function Overview({ collection, readOnly }: Props) {
   return (
     <>
       {collections.isSaving && <LoadingIndicator />}
-      {(collection.hasDescription || can.update) && (
+      {(can.update || readOnly) && (
         <Suspense fallback={<Placeholder>Loading…</Placeholder>}>
           <MeasuredContainer name="document">
             <Editor

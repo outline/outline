@@ -32,6 +32,7 @@ import {
   CaseSensitiveIcon,
   RestoreIcon,
   EditIcon,
+  EmbedIcon,
 } from "outline-icons";
 import { toast } from "sonner";
 import Icon from "@shared/components/Icon";
@@ -199,48 +200,6 @@ export const createDraftDocument = createInternalLinkAction({
     pathname: newDocumentPath(),
     state: { sidebarContext },
   }),
-});
-
-export const createDocumentFromTemplate = createInternalLinkAction({
-  name: ({ t }) => t("New from template"),
-  analyticsName: "New document",
-  section: DocumentSection,
-  icon: <NewDocumentIcon />,
-  keywords: "create",
-  visible: ({
-    currentTeamId,
-    activeCollectionId,
-    activeDocumentId,
-    stores,
-  }) => {
-    const document = activeDocumentId
-      ? stores.documents.get(activeDocumentId)
-      : undefined;
-
-    if (!currentTeamId || !!document?.isDraft || !!document?.isDeleted) {
-      return false;
-    }
-
-    if (activeCollectionId) {
-      return stores.policies.abilities(activeCollectionId).createDocument;
-    }
-    return stores.policies.abilities(currentTeamId).createDocument;
-  },
-  to: ({ activeDocumentId, activeCollectionId, sidebarContext }) => {
-    if (!activeDocumentId || !activeCollectionId) {
-      return "";
-    }
-
-    const [pathname, search] = newDocumentPath(activeCollectionId, {
-      templateId: activeDocumentId,
-    }).split("?");
-
-    return {
-      pathname,
-      search,
-      state: { sidebarContext },
-    };
-  },
 });
 
 /**
@@ -982,7 +941,26 @@ export const printDocument = createAction({
   icon: <PrintIcon />,
   visible: ({ activeDocumentId }) => !!(activeDocumentId && window.print),
   perform: () => {
-    queueMicrotask(window.print);
+    setTimeout(window.print, 0);
+  },
+});
+
+export const presentDocument = createAction({
+  name: ({ t, isMenu }) => (isMenu ? t("Present") : t("Present document")),
+  analyticsName: "Present document",
+  section: ActiveDocumentSection,
+  icon: <EmbedIcon />,
+  shortcut: ["Meta+Alt+p"],
+  visible: ({ activeDocumentId }) => !!activeDocumentId,
+  perform: ({ activeDocumentId, stores }) => {
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+    if (!document) {
+      return;
+    }
+
+    stores.ui.setPresentingDocument(document);
   },
 });
 
@@ -1050,7 +1028,7 @@ export const createTemplateFromDocument = createAction({
     }
     return !!(
       !!activeCollectionId &&
-      stores.policies.abilities(activeCollectionId).updateDocument
+      stores.policies.abilities(activeCollectionId).createTemplate
     );
   },
   perform: ({ activeDocumentId, stores, t, event }) => {
@@ -1381,7 +1359,7 @@ export const openDocumentComments = createAction({
       return;
     }
 
-    stores.ui.toggleComments();
+    stores.ui.set({ rightSidebar: "comments" });
   },
 });
 
@@ -1529,6 +1507,7 @@ export const rootDocumentActions = [
   openRandomDocument,
   permanentlyDeleteDocument,
   permanentlyDeleteDocumentsInTrash,
+  presentDocument,
   printDocument,
   pinDocumentToCollection,
   pinDocumentToHome,

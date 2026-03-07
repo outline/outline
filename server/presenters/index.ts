@@ -4,7 +4,7 @@ import presentAuthenticationProvider from "./authenticationProvider";
 import presentAvailableTeam from "./availableTeam";
 import presentCollection from "./collection";
 import presentComment from "./comment";
-import presentDocument from "./document";
+import presentDocument, { presentDocuments } from "./document";
 import presentEvent from "./event";
 import presentExternalGroup from "./externalGroup";
 import presentFileOperation from "./fileOperation";
@@ -40,6 +40,7 @@ export {
   presentCollection,
   presentComment,
   presentDocument,
+  presentDocuments,
   presentEvent,
   presentExternalGroup,
   presentFileOperation,

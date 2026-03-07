@@ -44,6 +44,7 @@ import type {
 export enum AuthenticationType {
   API = "api",
   APP = "app",
+  MCP = "mcp",
   OAUTH = "oauth",
 }
 

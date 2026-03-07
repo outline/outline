@@ -11,6 +11,7 @@ import {
 } from "~/components/primitives/Popover";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
+import { preventDefault } from "~/utils/events";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 
 const SharePopover = lazyWithRetry(
@@ -58,6 +59,7 @@ function ShareButton({ document }: Props) {
         minHeight={175}
         side="bottom"
         align="end"
+        onEscapeKeyDown={preventDefault}
       >
         <Suspense fallback={null}>
           <SharePopover

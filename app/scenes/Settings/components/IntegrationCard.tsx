@@ -28,7 +28,7 @@ function IntegrationCard({ integration, isConnected }: Props) {
           </VStack>
         </VStack>
         <Button as="span" neutral>
-          {isConnected ? t("Configure") : t("Connect")}
+          {t("Configure")}
         </Button>
       </Flex>
 
@@ -39,7 +39,7 @@ function IntegrationCard({ integration, isConnected }: Props) {
 
 export default IntegrationCard;
 
-const Card = styled.div`
+export const Card = styled.div`
   display: flex;
   flex-direction: column;
   flex-grow: 1;

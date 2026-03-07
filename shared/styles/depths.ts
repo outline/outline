@@ -14,6 +14,8 @@ const depths = {
   titleBarDivider: 10000,
   loadingIndicatorBar: 20000,
   commandBar: 30000,
+  presentation: 40000,
+  tooltip: 50000,
 };
 
 export default depths;

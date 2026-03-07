@@ -1,4 +1,5 @@
 import { version } from "../../package.json";
+import Logger from "@server/logging/Logger";
 import fetch from "./fetch";
 
 const dockerhubLink =
@@ -13,48 +14,64 @@ export async function getVersionInfo(currentVersion: string): Promise<{
   latestVersion: string;
   versionsBehind: number;
 }> {
-  let allVersions: string[] = [];
-  let latestVersion: string | null = null;
-  let nextUrl: string | null =
-    dockerhubLink + "/tags?name=&ordering=last_updated&page_size=100";
+  try {
+    let allVersions: string[] = [];
+    let latestVersion: string | null = null;
+    let nextUrl: string | null =
+      dockerhubLink + "/tags?name=&ordering=last_updated&page_size=100";
 
-  // Continue fetching pages until the required versions are found or no more pages
-  while (nextUrl) {
-    const response = await fetch(nextUrl);
-    const data = await response.json();
+    // Continue fetching pages until the required versions are found or no more pages
+    while (nextUrl) {
+      const response = await fetch(nextUrl);
+      const data = await response.json();
 
-    // Map and filter the versions to keep only full releases
-    const pageVersions = data.results
-      .map((result: any) => result.name)
-      .filter(isFullReleaseVersion);
+      // Map and filter the versions to keep only full releases
+      const pageVersions = data.results
+        .map((result: any) => result.name)
+        .filter(isFullReleaseVersion);
 
-    allVersions = allVersions.concat(pageVersions);
+      allVersions = allVersions.concat(pageVersions);
 
-    // Set the latest version if not already set
-    if (!latestVersion && pageVersions.length > 0) {
-      latestVersion = pageVersions[0];
+      // Set the latest version if not already set
+      if (!latestVersion && pageVersions.length > 0) {
+        latestVersion = pageVersions[0];
+      }
+
+      // Check if the current version is found
+      const currentIndex = allVersions.findIndex(
+        (version: string) => version === currentVersion
+      );
+
+      if (currentIndex !== -1) {
+        const versionsBehind = currentIndex; // The number of versions behind
+        return {
+          latestVersion: latestVersion || currentVersion, // Fallback to current if no latest found
+          versionsBehind,
+        };
+      }
+
+      nextUrl = data.next || null;
     }
 
-    // Check if the current version is found
-    const currentIndex = allVersions.findIndex(
-      (version: string) => version === currentVersion
+    return {
+      latestVersion: latestVersion || currentVersion,
+      versionsBehind: -1, // Return -1 if current version is not found
+    };
+  } catch (error) {
+    Logger.warn(
+      "Failed to fetch version information from Docker Hub. This is expected in isolated environments.",
+      {
+        currentVersion,
+        error: error instanceof Error ? error.message : String(error),
+      }
     );
 
-    if (currentIndex !== -1) {
-      const versionsBehind = currentIndex; // The number of versions behind
-      return {
-        latestVersion: latestVersion || currentVersion, // Fallback to current if no latest found
-        versionsBehind,
-      };
-    }
-
-    nextUrl = data.next || null;
+    // Return fallback values when external request fails
+    return {
+      latestVersion: currentVersion,
+      versionsBehind: -1,
+    };
   }
-
-  return {
-    latestVersion: latestVersion || currentVersion,
-    versionsBehind: -1, // Return -1 if current version is not found
-  };
 }
 
 export function getVersion(): string {

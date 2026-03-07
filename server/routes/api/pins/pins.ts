@@ -8,7 +8,7 @@ import { Collection, Document, Pin } from "@server/models";
 import { authorize } from "@server/policies";
 import {
   presentPin,
-  presentDocument,
+  presentDocuments,
   presentPolicies,
 } from "@server/presenters";
 import type { APIContext } from "@server/types";
@@ -138,9 +138,7 @@ router.post(
       pagination: ctx.state.pagination,
       data: {
         pins: pins.map(presentPin),
-        documents: await Promise.all(
-          documents.map((document: Document) => presentDocument(ctx, document))
-        ),
+        documents: await presentDocuments(ctx, documents),
       },
       policies,
     };

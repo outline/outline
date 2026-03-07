@@ -18,7 +18,13 @@ import {
   createActionWithChildren,
   createInternalLinkAction,
 } from "~/actions";
-import { newDocumentPath, newTemplatePath, urlify } from "~/utils/routeHelpers";
+import history from "~/utils/history";
+import {
+  newDocumentPath,
+  newTemplatePath,
+  settingsPath,
+  urlify,
+} from "~/utils/routeHelpers";
 import { ActiveTemplateSection, TemplateSection } from "../sections";
 import Template from "~/models/Template";
 import { AvatarSize } from "~/components/Avatar";
@@ -57,6 +63,7 @@ export const deleteTemplate = createAction({
         <ConfirmationDialog
           onSubmit={async () => {
             await template.delete();
+            history.push(settingsPath("templates"));
             toast.success(t("Template deleted"));
           }}
           savingText={`${t("Deleting")}…`}
@@ -217,7 +224,7 @@ export const printTemplate = createAction({
   icon: <PrintIcon />,
   visible: ({ getActiveModel }) => !!getActiveModel(Template) && !!window.print,
   perform: () => {
-    queueMicrotask(window.print);
+    setTimeout(window.print, 0);
   },
 });
 

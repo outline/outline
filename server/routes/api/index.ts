@@ -8,6 +8,7 @@ import env from "@server/env";
 import { NotFoundError } from "@server/errors";
 import { apiContext } from "@server/middlewares/apiContext";
 import coalesceBody from "@server/middlewares/coaleseBody";
+import requestContextMiddleware from "@server/middlewares/requestContext";
 import requestTracer from "@server/middlewares/requestTracer";
 import { verifyCSRFToken } from "@server/middlewares/csrf";
 import type { AppState, AppContext } from "@server/types";
@@ -56,6 +57,7 @@ const api = new Koa<AppState, AppContext>();
 const router = new Router();
 
 // middlewares
+api.use(requestContextMiddleware());
 api.use(
   bodyParser({
     multipart: true,

@@ -8,7 +8,12 @@ import type {
   Node as ProsemirrorNode,
 } from "prosemirror-model";
 import type { Command, EditorState } from "prosemirror-state";
-import { Plugin, PluginKey, TextSelection } from "prosemirror-state";
+import {
+  NodeSelection,
+  Plugin,
+  PluginKey,
+  TextSelection,
+} from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { toast } from "sonner";
 import type { Primitive } from "utility-types";
@@ -69,6 +74,10 @@ export default class CodeFence extends Node {
           default: DEFAULT_LANGUAGE,
           validate: "string",
         },
+        wrap: {
+          default: false,
+          validate: "boolean",
+        },
       },
       content: "text*",
       marks: "comment",
@@ -84,6 +93,7 @@ export default class CodeFence extends Node {
             node.querySelector("code") || node,
           getAttrs: (dom: HTMLDivElement) => ({
             language: dom.dataset.language,
+            wrap: dom.classList.contains("with-line-wrap"),
           }),
         },
         {
@@ -103,7 +113,11 @@ export default class CodeFence extends Node {
         "div",
         {
           class: `code-block ${
-            this.showLineNumbers ? "with-line-numbers" : ""
+            node.attrs.wrap
+              ? "with-line-wrap"
+              : this.showLineNumbers
+                ? "with-line-numbers"
+                : ""
           }`,
           "data-language": node.attrs.language,
         },
@@ -123,8 +137,28 @@ export default class CodeFence extends Node {
           ...attrs,
         });
       },
-      edit_mermaid: (): Command => (state, dispatch) => {
+      toggleCodeBlockWrap: (): Command => (state, dispatch) => {
         const codeBlock = findParentNode(isCode)(state.selection);
+        if (!codeBlock) {
+          return false;
+        }
+
+        if (dispatch) {
+          dispatch(
+            state.tr.setNodeMarkup(codeBlock.pos, undefined, {
+              ...codeBlock.node.attrs,
+              wrap: !codeBlock.node.attrs.wrap,
+            })
+          );
+        }
+        return true;
+      },
+      edit_mermaid: (): Command => (state, dispatch) => {
+        const codeBlock =
+          state.selection instanceof NodeSelection &&
+          isCode(state.selection.node)
+            ? { pos: state.selection.from, node: state.selection.node }
+            : findParentNode(isCode)(state.selection);
         if (!codeBlock || !isMermaid(codeBlock.node)) {
           return false;
         }

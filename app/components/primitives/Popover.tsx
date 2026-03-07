@@ -129,7 +129,7 @@ const StyledContent = styled(PopoverPrimitive.Content)<StyledContentProps>`
     		`}
 
   &[data-state="open"] {
-    animation: ${fadeAndScaleIn} 150ms cubic-bezier(0.08, 0.82, 0.17, 1); // ease-out-circ
+    animation: ${fadeAndScaleIn} 150ms cubic-bezier(0.08, 0.82, 0.17, 1);
   }
 `;
 
