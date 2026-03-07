@@ -15,6 +15,7 @@ import { MarkdownSerializer } from "./markdown/serializer";
 
 export default class ExtensionManager {
   extensions: (Node | Mark | Extension)[] = [];
+  readOnly: boolean;
 
   constructor(
     extensions: (
@@ -25,6 +26,8 @@ export default class ExtensionManager {
     )[] = [],
     editor?: Editor
   ) {
+    this.readOnly = editor?.props.readOnly ?? false;
+
     extensions.forEach((ext) => {
       let extension;
 
@@ -33,6 +36,14 @@ export default class ExtensionManager {
         extension = new ext(editor?.props);
       } else {
         extension = ext;
+      }
+
+      if (
+        this.readOnly &&
+        extension.type === "extension" &&
+        !extension.allowInReadOnly
+      ) {
+        return;
       }
 
       if (editor) {
