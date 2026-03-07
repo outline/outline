@@ -5,12 +5,13 @@ import { ShrinkIcon, GrowIcon, CloseIcon } from "outline-icons";
 import styled, { useTheme } from "styled-components";
 import Icon from "@shared/components/Icon";
 import { richExtensions } from "@shared/editor/nodes";
-import { s, depths } from "@shared/styles";
+import { s, depths, hover } from "@shared/styles";
 import type { ProsemirrorData } from "@shared/types";
 import { colorPalette } from "@shared/utils/collections";
 import Editor from "~/components/Editor";
-import Flex from "~/components/Flex";
+import NudeButton from "~/components/NudeButton";
 import Text from "~/components/Text";
+import Flex from "~/components/Flex";
 import Tooltip from "~/components/Tooltip";
 import useIdle from "~/hooks/useIdle";
 import useKeyDown from "~/hooks/useKeyDown";
@@ -247,6 +248,42 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
 
   return createPortal(
     <Container ref={containerRef} $background={theme.background} $idle={isIdle}>
+      <TopBar $idle={isIdle}>
+        <Flex align="center" gap={12}>
+          <Tooltip content={t("Previous slide")} delay={500}>
+            <Button onClick={goPrev} disabled={currentSlide === 0}>
+              <ArrowLeftIcon />
+            </Button>
+          </Tooltip>
+          <SlideCounter>
+            {currentSlide + 1} / {totalSlides}
+          </SlideCounter>
+          <Tooltip content={t("Next slide")} delay={500}>
+            <Button
+              onClick={goNext}
+              disabled={currentSlide === totalSlides - 1}
+            >
+              <ArrowRightIcon color="currentColor" />
+            </Button>
+          </Tooltip>
+        </Flex>
+        <RightButtons>
+          <Tooltip content={t("Toggle fullscreen")} delay={500}>
+            <Button onClick={toggleFullscreen}>
+              {isFullscreen ? (
+                <ShrinkIcon color="currentColor" />
+              ) : (
+                <GrowIcon color="currentColor" />
+              )}
+            </Button>
+          </Tooltip>
+          <Tooltip content={t("Close")} delay={500}>
+            <Button onClick={onClose}>
+              <CloseIcon />
+            </Button>
+          </Tooltip>
+        </RightButtons>
+      </TopBar>
       <SlideArea onClick={goNext}>
         <SlideContent ref={slideContentRef}>
           {slide.type === "title" ? (
@@ -275,42 +312,6 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
           ) : null}
         </SlideContent>
       </SlideArea>
-      <BottomBar $idle={isIdle}>
-        <Tooltip content={t("Close")} delay={500}>
-          <ExitText onClick={onClose}>
-            <Text type="tertiary" size="small">
-              <CloseIcon />
-            </Text>
-          </ExitText>
-        </Tooltip>
-        <Flex align="center" gap={12}>
-          <Tooltip content={t("Previous slide")} delay={500}>
-            <SlideNav onClick={goPrev} disabled={currentSlide === 0}>
-              <ArrowLeftIcon />
-            </SlideNav>
-          </Tooltip>
-          <SlideCounter>
-            {currentSlide + 1} / {totalSlides}
-          </SlideCounter>
-          <Tooltip content={t("Next slide")} delay={500}>
-            <SlideNav
-              onClick={goNext}
-              disabled={currentSlide === totalSlides - 1}
-            >
-              <ArrowRightIcon />
-            </SlideNav>
-          </Tooltip>
-        </Flex>
-        <Tooltip content={t("Toggle fullscreen")} delay={500}>
-          <FullscreenButton onClick={toggleFullscreen}>
-            {isFullscreen ? (
-              <ShrinkIcon color="currentColor" />
-            ) : (
-              <GrowIcon color="currentColor" />
-            )}
-          </FullscreenButton>
-        </Tooltip>
-      </BottomBar>
     </Container>,
     document.body
   );
@@ -383,11 +384,11 @@ const TitleText = styled.h1`
   color: ${s("text")};
 `;
 
-const BottomBar = styled.div<{ $idle: boolean }>`
+const TopBar = styled.div<{ $idle: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 12px 24px;
+  padding: 16px;
   position: relative;
   opacity: ${(props) => (props.$idle ? 0 : 1)};
   transition: opacity 300ms ease;
@@ -401,42 +402,24 @@ const SlideCounter = styled(Text)`
   text-align: center;
 `;
 
-const SlideNav = styled.button<{ disabled?: boolean }>`
-  background: none;
-  border: none;
-  color: ${(props) => (props.disabled ? s("textTertiary") : s("text"))};
-  cursor: ${(props) => (props.disabled ? "default" : "pointer")};
-  padding: 4px 8px;
-  transition: opacity 100ms ease;
+const RightButtons = styled(Flex).attrs({ align: "center", gap: 16 })`
+  position: absolute;
+  right: 16px;
 `;
 
-const ExitText = styled.button`
-  position: absolute;
-  left: 24px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px 8px;
-  color: ${s("textTertiary")};
+const Button = styled(NudeButton).attrs({ size: 32 })`
+  &:not(:disabled) {
+    color: ${s("textTertiary")};
 
-  &:hover {
-    color: ${s("text")};
+    &:${hover},
+    &:active {
+      color: ${s("text")};
+    }
   }
-`;
 
-const FullscreenButton = styled.button`
-  position: absolute;
-  right: 24px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
-  color: ${s("textTertiary")};
-  display: flex;
-  align-items: center;
-
-  &:hover {
-    color: ${s("text")};
+  &:disabled {
+    color: ${s("textTertiary")};
+    opacity: 0.5;
   }
 `;
 
