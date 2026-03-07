@@ -32,6 +32,7 @@ import {
   CaseSensitiveIcon,
   RestoreIcon,
   EditIcon,
+  EmbedIcon,
 } from "outline-icons";
 import { toast } from "sonner";
 import Icon from "@shared/components/Icon";
@@ -944,6 +945,25 @@ export const printDocument = createAction({
   },
 });
 
+export const presentDocument = createAction({
+  name: ({ t, isMenu }) => (isMenu ? t("Present") : t("Present document")),
+  analyticsName: "Present document",
+  section: ActiveDocumentSection,
+  icon: <EmbedIcon />,
+  shortcut: ["Meta+Alt+p"],
+  visible: ({ activeDocumentId }) => !!activeDocumentId,
+  perform: ({ activeDocumentId, stores }) => {
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+    if (!document) {
+      return;
+    }
+
+    stores.ui.setPresentingDocument(document);
+  },
+});
+
 export const importDocument = createAction({
   name: ({ t }) => t("Import document"),
   analyticsName: "Import document",
@@ -1487,6 +1507,7 @@ export const rootDocumentActions = [
   openRandomDocument,
   permanentlyDeleteDocument,
   permanentlyDeleteDocumentsInTrash,
+  presentDocument,
   printDocument,
   pinDocumentToCollection,
   pinDocumentToHome,

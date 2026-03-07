@@ -11,6 +11,7 @@ import { Router } from "react-router-dom";
 import stores from "~/stores";
 import Analytics from "~/components/Analytics";
 import Dialogs from "~/components/Dialogs";
+import Presentation from "~/components/Presentation";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import PageTheme from "~/components/PageTheme";
 import ScrollToTop from "~/components/ScrollToTop";
@@ -72,6 +73,7 @@ if (element) {
                             </ScrollToTop>
                             <Toasts />
                             <Dialogs />
+                            <Presentation />
                             <Desktop />
                           </PageScroll>
                         </LazyMotion>

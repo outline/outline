@@ -1,6 +1,7 @@
 import { action, computed, observable } from "mobx";
 import { flushSync } from "react-dom";
 import { light as defaultTheme } from "@shared/styles/theme";
+import type { ProsemirrorData } from "@shared/types";
 import Storage from "@shared/utils/Storage";
 import Document from "~/models/Document";
 import type Model from "~/models/base/Model";
@@ -91,6 +92,32 @@ class UiStore {
 
   @observable
   debugSafeArea = false;
+
+  /** Data for the currently active presentation, if any. */
+  @observable
+  presentationData: {
+    title: string;
+    icon?: string | null;
+    color?: string | null;
+    data: ProsemirrorData;
+  } | null = null;
+
+  /**
+   * Enter presentation mode for the given document.
+   *
+   * @param document the document to present, or null to exit.
+   */
+  @action
+  setPresentingDocument = (document: Document | null): void => {
+    this.presentationData = document
+      ? {
+          title: document.title,
+          icon: document.icon,
+          color: document.color,
+          data: document.data,
+        }
+      : null;
+  };
 
   /** Tracks active export toasts for in-place updates when export completes */
   exportToasts = observable.map<
