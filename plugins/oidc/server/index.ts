@@ -1,7 +1,6 @@
 import Logger from "@server/logging/Logger";
 import { PluginManager, Hook } from "@server/utils/PluginManager";
 import config from "../plugin.json";
-import OIDCGroupSyncProvider from "./OIDCGroupSyncProvider";
 import router from "./auth/oidc";
 import env from "./env";
 
@@ -30,11 +29,6 @@ if (enabled) {
       type: Hook.AuthProvider,
       value: { router, id: config.id },
       name: env.OIDC_DISPLAY_NAME || config.name,
-    },
-    {
-      ...config,
-      type: Hook.GroupSyncProvider,
-      value: { id: config.id, provider: new OIDCGroupSyncProvider() },
     },
   ]);
   Logger.info("plugins", "OIDC plugin registered");
