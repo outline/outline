@@ -40,9 +40,8 @@ function DocumentExplorerNode(
   ref: React.RefObject<HTMLSpanElement>
 ) {
   const { t } = useTranslation();
-  const DISCLOSURE = 20;
-
-  const width = (depth + 1) * DISCLOSURE;
+  const DISCLOSURE = 24;
+  const width = (depth + (hasChildren ? 2 : 1)) * DISCLOSURE;
 
   return (
     <Node
@@ -79,7 +78,7 @@ const Title = styled(Text)`
 const StyledDisclosure = styled(Disclosure)`
   position: relative;
   left: auto;
-  margin-top: 2px;
+  margin: 2px 0;
 `;
 
 const Spacer = styled(Flex)<{ width: number }>`
