@@ -88,6 +88,7 @@ function Header(
           <Breadcrumbs ref={setBreadcrumbRef}>
             {hasMobileSidebar && (
               <MobileMenuButton
+                haptic="light"
                 onClick={ui.toggleMobileSidebar}
                 icon={<MenuIcon />}
                 neutral
