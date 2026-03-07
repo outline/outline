@@ -1,11 +1,28 @@
 import { observer } from "mobx-react";
-import { Toaster } from "sonner";
+import * as React from "react";
+import { Toaster, useSonner } from "sonner";
 import styled, { useTheme } from "styled-components";
+import { useWebHaptics } from "web-haptics/react";
 import useStores from "~/hooks/useStores";
 
 function Toasts() {
   const { ui } = useStores();
   const theme = useTheme();
+  const { toasts } = useSonner();
+  const { trigger } = useWebHaptics();
+  const prevCountRef = React.useRef(toasts.length);
+
+  React.useEffect(() => {
+    if (toasts.length > prevCountRef.current) {
+      const latest = toasts[toasts.length - 1];
+      if (latest.type === "error") {
+        void trigger("error");
+      } else if (latest.type === "success") {
+        void trigger("success");
+      }
+    }
+    prevCountRef.current = toasts.length;
+  }, [toasts, trigger]);
 
   return (
     <StyledToaster
