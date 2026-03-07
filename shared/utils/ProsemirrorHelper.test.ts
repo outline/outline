@@ -90,6 +90,161 @@ describe("ProsemirrorHelper", () => {
     });
   });
 
+  describe("addCommentMark", () => {
+    it("should add a comment mark to matching text", () => {
+      const doc: ProsemirrorData = {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              { type: "text", text: "Hello world, this is important text here." },
+            ],
+          },
+        ],
+      };
+
+      const result = ProsemirrorHelper.addCommentMark(
+        doc,
+        "comment-123",
+        "important text",
+        "user-456"
+      );
+
+      expect(result).not.toBeNull();
+      const paragraph = result!.content![0];
+      expect(paragraph.content).toHaveLength(3);
+      expect(paragraph.content![0].text).toEqual("Hello world, this is ");
+      expect(paragraph.content![1].text).toEqual("important text");
+      expect(paragraph.content![1].marks).toEqual([
+        { type: "comment", attrs: { id: "comment-123", userId: "user-456", resolved: false } },
+      ]);
+      expect(paragraph.content![2].text).toEqual(" here.");
+    });
+
+    it("should return null when text is not found", () => {
+      const doc: ProsemirrorData = {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [{ type: "text", text: "Hello world." }],
+          },
+        ],
+      };
+
+      const result = ProsemirrorHelper.addCommentMark(
+        doc,
+        "comment-123",
+        "nonexistent",
+        "user-456"
+      );
+
+      expect(result).toBeNull();
+    });
+
+    it("should preserve existing marks on text", () => {
+      const doc: ProsemirrorData = {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              {
+                type: "text",
+                text: "bold and commented",
+                marks: [{ type: "bold" }],
+              },
+            ],
+          },
+        ],
+      };
+
+      const result = ProsemirrorHelper.addCommentMark(
+        doc,
+        "comment-123",
+        "and commented",
+        "user-456"
+      );
+
+      expect(result).not.toBeNull();
+      const paragraph = result!.content![0];
+      expect(paragraph.content).toHaveLength(2);
+      expect(paragraph.content![0].text).toEqual("bold ");
+      expect(paragraph.content![0].marks).toEqual([{ type: "bold" }]);
+      expect(paragraph.content![1].text).toEqual("and commented");
+      expect(paragraph.content![1].marks).toEqual([
+        { type: "bold" },
+        { type: "comment", attrs: { id: "comment-123", userId: "user-456", resolved: false } },
+      ]);
+    });
+
+    it("should only mark the first occurrence", () => {
+      const doc: ProsemirrorData = {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [{ type: "text", text: "hello hello hello" }],
+          },
+        ],
+      };
+
+      const result = ProsemirrorHelper.addCommentMark(
+        doc,
+        "comment-123",
+        "hello",
+        "user-456"
+      );
+
+      expect(result).not.toBeNull();
+      const paragraph = result!.content![0];
+      expect(paragraph.content).toHaveLength(2);
+      expect(paragraph.content![0].text).toEqual("hello");
+      expect(paragraph.content![0].marks).toBeDefined();
+      expect(paragraph.content![1].text).toEqual(" hello hello");
+      expect(paragraph.content![1].marks).toBeUndefined();
+    });
+
+    it("should find text in nested nodes", () => {
+      const doc: ProsemirrorData = {
+        type: "doc",
+        content: [
+          {
+            type: "heading",
+            attrs: { level: 1 },
+            content: [{ type: "text", text: "Title" }],
+          },
+          {
+            type: "paragraph",
+            content: [{ type: "text", text: "First paragraph." }],
+          },
+          {
+            type: "paragraph",
+            content: [{ type: "text", text: "Second paragraph with target." }],
+          },
+        ],
+      };
+
+      const result = ProsemirrorHelper.addCommentMark(
+        doc,
+        "comment-123",
+        "target",
+        "user-456"
+      );
+
+      expect(result).not.toBeNull();
+      // First two nodes should be unchanged
+      expect(result!.content![0]).toEqual(doc.content![0]);
+      expect(result!.content![1]).toEqual(doc.content![1]);
+      // Third node should have the mark
+      const thirdParagraph = result!.content![2];
+      expect(thirdParagraph.content).toHaveLength(3);
+      expect(thirdParagraph.content![1].text).toEqual("target");
+      expect(thirdParagraph.content![1].marks![0].type).toEqual("comment");
+    });
+  });
+
   describe("getPlainParagraphs", () => {
     it("should return an array of plain paragraphs", async () => {
       const data = {
