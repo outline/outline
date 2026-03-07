@@ -25,6 +25,10 @@ export default class Multiplayer extends Extension {
     return "multiplayer";
   }
 
+  get allowInReadOnly() {
+    return true;
+  }
+
   get plugins() {
     const { user, provider, document: doc } = this.options;
     const type = doc.get("default", Y.XmlFragment);

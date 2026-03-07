@@ -12,6 +12,10 @@ export default class ClipboardTextSerializer extends Extension {
     return "clipboardTextSerializer";
   }
 
+  get allowInReadOnly() {
+    return true;
+  }
+
   get plugins() {
     const mdSerializer = this.editor.extensions.serializer();
 
