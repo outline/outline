@@ -32,18 +32,29 @@ export default class ExtensionManager {
       let extension;
 
       if (typeof ext === "function") {
+        // Check the prototype before instantiation to avoid constructor cost
+        // for extensions not needed in read-only mode.
+        if (
+          this.readOnly &&
+          ext.prototype.type === "extension" &&
+          !ext.prototype.allowInReadOnly
+        ) {
+          return;
+        }
+
         // @ts-expect-error We won't instantiate an abstract class
         extension = new ext(editor?.props);
       } else {
-        extension = ext;
-      }
+        // For already-instantiated extensions, check the instance.
+        if (
+          this.readOnly &&
+          ext.type === "extension" &&
+          !ext.allowInReadOnly
+        ) {
+          return;
+        }
 
-      if (
-        this.readOnly &&
-        extension.type === "extension" &&
-        !extension.allowInReadOnly
-      ) {
-        return;
+        extension = ext;
       }
 
       if (editor) {
