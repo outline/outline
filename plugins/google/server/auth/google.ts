@@ -152,7 +152,6 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
   );
 
   router.get(config.id, async (ctx, next) => {
-    // Look up group sync scopes for this team's Google provider
     const team = await getTeamFromContext(ctx, {
       includeHostQueryParam: true,
     });

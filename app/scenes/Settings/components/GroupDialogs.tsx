@@ -155,10 +155,17 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
   return (
     <form onSubmit={handleSubmit}>
       <Text as="p" type="secondary">
-        <Trans>
-          You can edit the name of this group at any time, however doing so too
-          often might confuse your team mates.
-        </Trans>
+        {group.isExternallyManaged ? (
+          <Trans>
+            This group is managed by an external authentication provider. The
+            name is synced automatically and cannot be changed.
+          </Trans>
+        ) : (
+          <Trans>
+            You can edit the name of this group at any time, however doing so
+            too often might confuse your team mates.
+          </Trans>
+        )}
       </Text>
       <Flex column>
         <Input
@@ -166,6 +173,7 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
           label={t("Name")}
           onChange={handleNameChange}
           value={name}
+          disabled={group.isExternallyManaged}
           required
           autoFocus
           flex

@@ -5,11 +5,19 @@ import Field from "./decorators/Field";
 import { GroupPermission } from "@shared/types";
 import type { Searchable } from "./interfaces/Searchable";
 
+/**
+ * Information about a group that is managed by an external provider.
+ */
 interface ExternalGroupInfo {
+  /** The unique identifier of the external group record in Outline. */
   id: string;
+  /** The unique identifier of the group in the external provider. */
   externalId: string;
+  /** The name of the external provider (e.g. google, slack, azure). */
   provider: string;
+  /** The display name of the group in the external provider. */
   displayName: string;
+  /** The date and time the group was last synced from the external provider. */
   lastSyncedAt: string | null;
 }
 

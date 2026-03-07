@@ -94,6 +94,15 @@ export const GroupsDeleteSchema = z.object({
 
 export type GroupsDeleteReq = z.infer<typeof GroupsDeleteSchema>;
 
+export const GroupsDeleteAllSchema = z.object({
+  body: z.object({
+    /** The authentication provider whose synced groups should be deleted. */
+    authenticationProviderId: z.uuid(),
+  }),
+});
+
+export type GroupsDeleteAllReq = z.infer<typeof GroupsDeleteAllSchema>;
+
 export const GroupsMembershipsSchema = z.object({
   body: BaseIdSchema.extend({
     /** Group name search query */

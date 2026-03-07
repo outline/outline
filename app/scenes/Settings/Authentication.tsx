@@ -7,6 +7,7 @@ import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import Input from "~/components/Input";
+import { InputSelect } from "~/components/InputSelect";
 import type AuthenticationProvider from "~/models/AuthenticationProvider";
 import PluginIcon from "~/components/PluginIcon";
 import Scene from "~/components/Scene";
@@ -22,6 +23,7 @@ import { settingsPath } from "~/utils/routeHelpers";
 import DomainManagement from "./components/DomainManagement";
 import Button from "~/components/Button";
 import { ConnectedIcon } from "~/components/Icons/ConnectedIcon";
+import { client } from "~/utils/ApiClient";
 import { useTheme } from "styled-components";
 import { VStack } from "~/components/primitives/VStack";
 
@@ -99,20 +101,34 @@ function Authentication() {
   }, []);
 
   const handleToggleGroupSync = React.useCallback(
-    async (provider: AuthenticationProvider, checked: boolean) => {
-      try {
-        await provider.save({
-          settings: {
-            ...provider.settings,
-            groupSyncEnabled: checked,
-          },
+    (provider: AuthenticationProvider, checked: boolean) => {
+      if (checked) {
+        void (async () => {
+          try {
+            await provider.save({
+              settings: {
+                ...provider.settings,
+                groupSyncEnabled: true,
+              },
+            });
+            toast.success(t("Settings saved"));
+          } catch (err) {
+            toast.error(err.message);
+          }
+        })();
+      } else {
+        dialogs.openModal({
+          title: t("Disable group sync"),
+          content: (
+            <DisableGroupSyncDialog
+              provider={provider}
+              onSubmit={dialogs.closeAllModals}
+            />
+          ),
         });
-        toast.success(t("Settings saved"));
-      } catch (err) {
-        toast.error(err.message);
       }
     },
-    [t]
+    [t, dialogs]
   );
 
   const handleGroupClaimChange = React.useCallback(
@@ -302,5 +318,88 @@ function Authentication() {
     </Scene>
   );
 }
+
+const DisableGroupSyncDialog = observer(function DisableGroupSyncDialog({
+  provider,
+  onSubmit,
+}: {
+  provider: AuthenticationProvider;
+  onSubmit: () => void;
+}) {
+  const { t } = useTranslation();
+  const [action, setAction] = React.useState("keep");
+  const [isSaving, setIsSaving] = React.useState(false);
+
+  const options = React.useMemo(
+    () => [
+      {
+        type: "item" as const,
+        label: t("Keep synced groups"),
+        description: t("Groups will remain but no longer update"),
+        value: "keep",
+      },
+      {
+        type: "item" as const,
+        label: t("Delete synced groups"),
+        description: t("Remove all groups created by sync"),
+        value: "delete",
+      },
+    ],
+    [t]
+  );
+
+  const handleSubmit = React.useCallback(
+    async (ev: React.SyntheticEvent) => {
+      ev.preventDefault();
+      setIsSaving(true);
+      try {
+        await provider.save({
+          settings: {
+            ...provider.settings,
+            groupSyncEnabled: false,
+          },
+        });
+
+        if (action === "delete") {
+          await client.post("/groups.deleteAll", {
+            authenticationProviderId: provider.id,
+          });
+        }
+
+        toast.success(t("Settings saved"));
+        onSubmit();
+      } catch (err) {
+        toast.error(err.message);
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [provider, action, onSubmit, t]
+  );
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <Flex gap={12} column>
+        <Text type="secondary">
+          {t(
+            "Group memberships will no longer be synced from {{ authProvider }} when members sign in.",
+            { authProvider: provider.displayName }
+          )}
+        </Text>
+        <InputSelect
+          label={t("Existing groups")}
+          options={options}
+          value={action}
+          onChange={setAction}
+        />
+        <Flex justify="flex-end">
+          <Button type="submit" disabled={isSaving} danger>
+            {isSaving ? `${t("Disabling")}…` : t("Disable")}
+          </Button>
+        </Flex>
+      </Flex>
+    </form>
+  );
+});
 
 export default observer(Authentication);

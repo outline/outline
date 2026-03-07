@@ -2,7 +2,7 @@ import Router from "koa-router";
 import type { WhereOptions } from "sequelize";
 import { Op } from "sequelize";
 import { MAX_AVATAR_DISPLAY } from "@shared/constants";
-import { GroupPermission } from "@shared/types";
+import { GroupPermission, UserRole } from "@shared/types";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -285,6 +285,16 @@ router.post(
     });
     authorize(user, "update", group);
 
+    if (
+      group.externalGroups?.length &&
+      ctx.input.body.name !== undefined &&
+      ctx.input.body.name !== group.name
+    ) {
+      throw ValidationError(
+        "The name of a group synced from an external provider cannot be changed"
+      );
+    }
+
     await group.updateWithCtx(ctx, ctx.input.body);
 
     ctx.body = {
@@ -312,6 +322,47 @@ router.post(
     authorize(user, "delete", group);
 
     await group.destroyWithCtx(ctx);
+
+    ctx.body = {
+      success: true,
+    };
+  }
+);
+
+router.post(
+  "groups.deleteAll",
+  auth({ role: UserRole.Admin }),
+  validate(T.GroupsDeleteAllSchema),
+  transaction(),
+  async (ctx: APIContext<T.GroupsDeleteAllReq>) => {
+    const { authenticationProviderId } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
+
+    const authenticationProvider = await AuthenticationProvider.findByPk(
+      authenticationProviderId,
+      { transaction }
+    );
+    authorize(user, "update", authenticationProvider);
+
+    const groupIds = await ExternalGroup.findAll({
+      attributes: ["groupId"],
+      where: {
+        authenticationProviderId,
+        teamId: user.teamId,
+        groupId: { [Op.ne]: null },
+      },
+      transaction,
+    }).then((egs) =>
+      egs.map((eg) => eg.groupId).filter((id): id is string => id !== null)
+    );
+
+    if (groupIds.length) {
+      await Group.destroy({
+        where: { id: groupIds },
+        transaction,
+      });
+    }
 
     ctx.body = {
       success: true,
