@@ -6,6 +6,7 @@ import validate from "@server/middlewares/validate";
 import { AuthenticationProvider } from "@server/models";
 import AuthenticationHelper from "@server/models/helpers/AuthenticationHelper";
 import { authorize } from "@server/policies";
+import { PluginManager } from "@server/utils/PluginManager";
 import {
   presentAuthenticationProvider,
   presentPolicies,
@@ -40,7 +41,7 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.AuthenticationProvidersUpdateReq>) => {
     const { transaction } = ctx.state;
-    const { id, isEnabled } = ctx.input.body;
+    const { id, isEnabled, settings } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     const authenticationProvider = await AuthenticationProvider.findByPk(id, {
@@ -49,12 +50,24 @@ router.post(
     });
 
     authorize(user, "update", authenticationProvider);
-    const enabled = !!isEnabled;
 
-    if (enabled) {
-      await authenticationProvider.enable(ctx);
-    } else {
-      await authenticationProvider.disable(ctx);
+    if (isEnabled !== undefined) {
+      const enabled = !!isEnabled;
+
+      if (enabled) {
+        await authenticationProvider.enable(ctx);
+      } else {
+        await authenticationProvider.disable(ctx);
+      }
+    }
+
+    if (settings !== undefined) {
+      await authenticationProvider.updateWithCtx(ctx, {
+        settings: {
+          ...(authenticationProvider.settings ?? {}),
+          ...settings,
+        },
+      });
     }
 
     ctx.body = {
@@ -110,6 +123,9 @@ router.post(
         const row = teamAuthenticationProviders.find(
           (t) => t.name === p.value.id
         );
+        const groupSyncProvider = PluginManager.getGroupSyncProvider(
+          p.value.id
+        );
 
         return {
           id: p.value.id,
@@ -117,6 +133,8 @@ router.post(
           displayName: p.name,
           isEnabled: false,
           isConnected: false,
+          groupSyncSupported: !!groupSyncProvider,
+          groupSyncUsesClaim: groupSyncProvider?.useGroupClaim ?? false,
           ...(row ? presentAuthenticationProvider(row) : {}),
         };
       })

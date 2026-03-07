@@ -11,6 +11,7 @@ import {
   Scopes,
 } from "sequelize-typescript";
 import { GroupValidation } from "@shared/validations";
+import ExternalGroup from "./ExternalGroup";
 import GroupMembership from "./GroupMembership";
 import GroupUser from "./GroupUser";
 import Team from "./Team";
@@ -91,6 +92,9 @@ class Group extends ParanoidModel<
 
   @HasMany(() => GroupUser, "groupId")
   groupUsers: GroupUser[];
+
+  @HasMany(() => ExternalGroup, "groupId")
+  externalGroups: ExternalGroup[];
 
   @HasMany(() => GroupMembership, "groupId")
   groupMemberships: GroupMembership[];

@@ -18,9 +18,13 @@ export const GroupsListSchema = z.object({
     /** Groups sorting column */
     sort: z
       .string()
-      .refine((val) => Object.keys(Group.getAttributes()).includes(val), {
-        error: "Invalid sort parameter",
-      })
+      .refine(
+        (val) =>
+          Object.keys(Group.getAttributes()).includes(val) || val === "source",
+        {
+          error: "Invalid sort parameter",
+        }
+      )
       .prefault("updatedAt"),
     /** Only list groups where this user is a member */
     userId: z.uuid().optional(),
@@ -28,6 +32,8 @@ export const GroupsListSchema = z.object({
     externalId: z.string().optional(),
     /** @deprecated Find group with matching name */
     name: z.string().optional(),
+    /** Filter groups by source: "manual" for non-synced, or a provider name */
+    source: z.string().optional(),
     /** Find group matching query */
     query: z.string().optional(),
   }),
@@ -87,6 +93,15 @@ export const GroupsDeleteSchema = z.object({
 });
 
 export type GroupsDeleteReq = z.infer<typeof GroupsDeleteSchema>;
+
+export const GroupsDeleteAllSchema = z.object({
+  body: z.object({
+    /** The authentication provider whose synced groups should be deleted. */
+    authenticationProviderId: z.uuid(),
+  }),
+});
+
+export type GroupsDeleteAllReq = z.infer<typeof GroupsDeleteAllSchema>;
 
 export const GroupsMembershipsSchema = z.object({
   body: BaseIdSchema.extend({
