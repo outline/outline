@@ -678,9 +678,9 @@ router.post(
   validate(T.UsersNotificationsSubscribeSchema),
   transaction(),
   async (ctx: APIContext<T.UsersNotificationsSubscribeReq>) => {
-    const { eventType } = ctx.input.body;
+    const { eventType, channel } = ctx.input.body;
     const { user } = ctx.state.auth;
-    user.setNotificationEventType(eventType, true);
+    user.setNotificationEventType(eventType, true, channel);
 
     await user.saveWithCtx(ctx);
 
@@ -696,9 +696,9 @@ router.post(
   validate(T.UsersNotificationsUnsubscribeSchema),
   transaction(),
   async (ctx: APIContext<T.UsersNotificationsUnsubscribeReq>) => {
-    const { eventType } = ctx.input.body;
+    const { eventType, channel } = ctx.input.body;
     const { user } = ctx.state.auth;
-    user.setNotificationEventType(eventType, false);
+    user.setNotificationEventType(eventType, false, channel);
 
     await user.saveWithCtx(ctx);
 

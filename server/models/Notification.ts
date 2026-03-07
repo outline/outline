@@ -114,6 +114,10 @@ class Notification extends Model<
 
   @AllowNull
   @Column
+  slackSentAt?: Date | null;
+
+  @AllowNull
+  @Column
   viewedAt: Date | null;
 
   @AllowNull

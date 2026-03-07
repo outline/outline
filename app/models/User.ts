@@ -3,6 +3,7 @@ import { computed, action, observable } from "mobx";
 import { now } from "mobx-utils";
 import { UserPreferenceDefaults } from "@shared/constants";
 import {
+  NotificationChannelType,
   NotificationEventDefaults,
   type NotificationEventType,
   TeamPreference,
@@ -190,36 +191,76 @@ class User extends ParanoidModel implements Searchable {
    * Returns the current preference for the given notification event type taking
    * into account the default system value.
    *
-   * @param type The type of notification event
-   * @returns The current preference
+   * @param type The type of notification event.
+   * @param channel Optional channel type for channel-specific check.
+   * @returns The current preference.
    */
-  public subscribedToEventType = (type: NotificationEventType) =>
-    this.notificationSettings[type] ?? NotificationEventDefaults[type] ?? false;
+  public subscribedToEventType = (
+    type: NotificationEventType,
+    channel = NotificationChannelType.Email
+  ): boolean => {
+    const setting = this.notificationSettings[type];
+    const defaultValue = NotificationEventDefaults[type] ?? false;
+
+    if (setting === undefined) {
+      return defaultValue;
+    }
+
+    if (typeof setting === "boolean") {
+      return setting;
+    }
+
+    if (typeof setting === "object") {
+      return setting[channel] ?? defaultValue;
+    }
+
+    return defaultValue;
+  };
 
   /**
    * Sets a preference for the users notification settings on the model and
    * saves the change to the server.
    *
-   * @param type The type of notification event
-   * @param value Set the preference to true/false
+   * @param type The type of notification event.
+   * @param value Set the preference to true/false.
+   * @param channel Optional channel type for channel-specific settings.
    */
   @action
   setNotificationEventType = async (
     eventType: NotificationEventType,
-    value: boolean
+    value: boolean | Record<NotificationChannelType, boolean>,
+    channel?: NotificationChannelType
   ) => {
-    this.notificationSettings = {
-      ...this.notificationSettings,
-      [eventType]: value,
-    };
+    if (channel !== undefined) {
+      // Setting a specific channel preference
+      const currentSetting = this.notificationSettings[eventType];
+      const channelSettings =
+        typeof currentSetting === "object" ? currentSetting : {};
+
+      this.notificationSettings = {
+        ...this.notificationSettings,
+        [eventType]: {
+          ...channelSettings,
+          [channel]: value,
+        },
+      };
+    } else {
+      // Setting all channels or simple boolean
+      this.notificationSettings = {
+        ...this.notificationSettings,
+        [eventType]: value,
+      };
+    }
 
     if (value) {
       await client.post(`/users.notificationsSubscribe`, {
         eventType,
+        channel,
       });
     } else {
       await client.post(`/users.notificationsUnsubscribe`, {
         eventType,
+        channel,
       });
     }
   };
