@@ -113,6 +113,7 @@ async function groupsSyncer(
     });
 
     for (const stale of staleExternalGroups) {
+      await stale.update({ lastSyncedAt: now }, { transaction });
       if (stale.groupId) {
         const existing = await GroupUser.findOne({
           where: { groupId: stale.groupId, userId: user.id },
@@ -136,6 +137,7 @@ async function groupsSyncer(
     });
 
     for (const eg of allExternalGroups) {
+      await eg.update({ lastSyncedAt: now }, { transaction });
       if (eg.groupId) {
         const existing = await GroupUser.findOne({
           where: { groupId: eg.groupId, userId: user.id },

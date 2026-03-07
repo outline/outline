@@ -181,7 +181,7 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
         />
         <Switch
           id="mentions"
-          label={t("Disable mentions")}
+          label={t("Hidden")}
           note={t(
             "Prevent this group from being mentionable in documents or comments"
           )}
