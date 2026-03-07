@@ -15,6 +15,9 @@ export interface ExternalGroupData {
  * group synchronization.
  */
 export interface GroupSyncProvider {
+  /** Whether this provider requires a configurable group claim path. */
+  useGroupClaim: boolean;
+
   /**
    * Fetch the groups that a user belongs to from the external provider.
    *

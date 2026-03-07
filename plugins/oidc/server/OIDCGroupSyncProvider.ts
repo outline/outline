@@ -12,6 +12,8 @@ import env from "./env";
  * userinfo endpoint response using the configured claim path.
  */
 export default class OIDCGroupSyncProvider implements GroupSyncProvider {
+  useGroupClaim = true;
+
   /**
    * Fetch the groups a user belongs to from the OIDC provider's userinfo
    * endpoint using the configured group claim path.

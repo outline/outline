@@ -6,6 +6,7 @@ import validate from "@server/middlewares/validate";
 import { AuthenticationProvider } from "@server/models";
 import AuthenticationHelper from "@server/models/helpers/AuthenticationHelper";
 import { authorize } from "@server/policies";
+import { PluginManager } from "@server/utils/PluginManager";
 import {
   presentAuthenticationProvider,
   presentPolicies,
@@ -122,6 +123,9 @@ router.post(
         const row = teamAuthenticationProviders.find(
           (t) => t.name === p.value.id
         );
+        const groupSyncProvider = PluginManager.getGroupSyncProvider(
+          p.value.id
+        );
 
         return {
           id: p.value.id,
@@ -129,6 +133,8 @@ router.post(
           displayName: p.name,
           isEnabled: false,
           isConnected: false,
+          groupSyncSupported: !!groupSyncProvider,
+          groupSyncUsesClaim: groupSyncProvider?.useGroupClaim ?? false,
           ...(row ? presentAuthenticationProvider(row) : {}),
         };
       })

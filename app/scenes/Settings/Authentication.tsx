@@ -150,58 +150,107 @@ function Authentication() {
       <Heading as="h2">{t("Sign In")}</Heading>
 
       {authenticationProviders.orderedData.map((provider) => (
-        <SettingRow
-          key={provider.name}
-          label={
-            <Flex gap={8} align="center">
-              <PluginIcon id={provider.name} /> {provider.displayName}
-            </Flex>
-          }
-          name={provider.name}
-          description={
-            provider.isConnected
-              ? t("Allow members to sign-in with {{ authProvider }}", {
-                  authProvider: provider.displayName,
-                })
-              : t("Connect {{ authProvider }} to allow members to sign-in", {
-                  authProvider: provider.displayName,
-                })
-          }
-        >
-          <Flex align="center" gap={12}>
-            {provider.isConnected ? (
-              <VStack align="start">
+        <React.Fragment key={provider.name}>
+          <SettingRow
+            label={
+              <Flex gap={8} align="center">
+                <PluginIcon id={provider.name} /> {provider.displayName}
+              </Flex>
+            }
+            name={provider.name}
+            description={
+              provider.isConnected
+                ? t("Allow members to sign-in with {{ authProvider }}", {
+                    authProvider: provider.displayName,
+                  })
+                : t("Connect {{ authProvider }} to allow members to sign-in", {
+                    authProvider: provider.displayName,
+                  })
+            }
+            border={!(provider.isActive && provider.groupSyncSupported)}
+          >
+            <Flex align="center" gap={12}>
+              {provider.isConnected ? (
+                <VStack align="start">
+                  <Button
+                    icon={
+                      provider.isEnabled ? (
+                        <ConnectedIcon />
+                      ) : (
+                        <ConnectedIcon color={theme.textSecondary} />
+                      )
+                    }
+                    onClick={() =>
+                      !provider.isEnabled
+                        ? handleToggleProvider(provider, true)
+                        : handleRemoveProvider(provider)
+                    }
+                    neutral
+                  >
+                    {provider.isEnabled ? t("Connected") : t("Disabled")}
+                  </Button>
+                  <Text type="tertiary" size="small">
+                    {provider.providerId}
+                  </Text>
+                </VStack>
+              ) : (
                 <Button
-                  icon={
-                    provider.isEnabled ? (
-                      <ConnectedIcon />
-                    ) : (
-                      <ConnectedIcon color={theme.textSecondary} />
-                    )
-                  }
-                  onClick={() =>
-                    !provider.isEnabled
-                      ? handleToggleProvider(provider, true)
-                      : handleRemoveProvider(provider)
-                  }
+                  onClick={() => handleConnectProvider(provider.name)}
                   neutral
                 >
-                  {provider.isEnabled ? t("Connected") : t("Disabled")}
+                  {t("Connect")}
                 </Button>
-                <Text type="tertiary" size="small">
-                  {provider.providerId}
-                </Text>
-              </VStack>
-            ) : (
-              <Button
-                onClick={() => handleConnectProvider(provider.name)}
-                neutral
+              )}
+            </Flex>
+          </SettingRow>
+          {provider.isActive && provider.groupSyncSupported && (
+            <SettingRow
+              label={t("Group sync")}
+              name={`groupSync-${provider.name}`}
+              description={t(
+                "Sync group memberships from {{ authProvider }} on each sign-in",
+                { authProvider: provider.displayName }
+              )}
+              border={
+                !(
+                  provider.settings?.groupSyncEnabled &&
+                  provider.groupSyncUsesClaim
+                )
+              }
+            >
+              <Switch
+                id={`groupSync-${provider.name}`}
+                checked={provider.settings?.groupSyncEnabled ?? false}
+                onChange={(checked) => handleToggleGroupSync(provider, checked)}
+              />
+            </SettingRow>
+          )}
+          {provider.isActive &&
+            provider.groupSyncSupported &&
+            provider.groupSyncUsesClaim &&
+            provider.settings?.groupSyncEnabled && (
+              <SettingRow
+                label={t("Group claim")}
+                name={`groupClaim-${provider.name}`}
+                description={t(
+                  "The claim in the provider response that contains group names (e.g. groups, roles)"
+                )}
+                border={false}
               >
-                {t("Connect")}
-              </Button>
+                <Input
+                  id={`groupClaim-${provider.name}`}
+                  defaultValue={provider.settings?.groupClaim ?? "groups"}
+                  placeholder="groups"
+                  onBlur={(ev: React.FocusEvent<HTMLInputElement>) => {
+                    const value = ev.target.value.trim();
+                    if (value !== (provider.settings?.groupClaim ?? "")) {
+                      void handleGroupClaimChange(provider, value);
+                    }
+                  }}
+                />
+              </SettingRow>
             )}
-          </Flex>
-        </SettingRow>
+        </React.Fragment>
       ))}
       <SettingRow
         label={
@@ -247,72 +296,6 @@ function Authentication() {
           }}
         />
       </SettingRow>
-
-      {authenticationProviders.orderedData.some(
-        (p) => p.isActive && p.name !== "email"
-      ) && (
-        <>
-          <Heading as="h2">{t("Group Sync")}</Heading>
-          <Text as="p" type="secondary">
-            <Trans>
-              Automatically sync group memberships from your authentication
-              provider when members sign in.
-            </Trans>
-          </Text>
-
-          {authenticationProviders.orderedData
-            .filter((p) => p.isActive && p.name !== "email")
-            .map((provider) => (
-              <React.Fragment key={`groupsync-${provider.name}`}>
-                <SettingRow
-                  label={
-                    <Flex gap={8} align="center">
-                      <PluginIcon id={provider.name} />{" "}
-                      {t("{{ authProvider }} group sync", {
-                        authProvider: provider.displayName,
-                      })}
-                    </Flex>
-                  }
-                  name={`groupSync-${provider.name}`}
-                  description={t(
-                    "Sync group memberships from {{ authProvider }} on each sign-in",
-                    { authProvider: provider.displayName }
-                  )}
-                >
-                  <Switch
-                    id={`groupSync-${provider.name}`}
-                    checked={provider.settings?.groupSyncEnabled ?? false}
-                    onChange={(checked) =>
-                      handleToggleGroupSync(provider, checked)
-                    }
-                  />
-                </SettingRow>
-                {provider.settings?.groupSyncEnabled && (
-                  <SettingRow
-                    label={t("Group claim")}
-                    name={`groupClaim-${provider.name}`}
-                    description={t(
-                      "The claim in the provider response that contains group names (e.g. groups, roles)"
-                    )}
-                    border={false}
-                  >
-                    <Input
-                      id={`groupClaim-${provider.name}`}
-                      defaultValue={provider.settings?.groupClaim ?? "groups"}
-                      placeholder="groups"
-                      onBlur={(ev: React.FocusEvent<HTMLInputElement>) => {
-                        const value = ev.target.value.trim();
-                        if (value !== (provider.settings?.groupClaim ?? "")) {
-                          void handleGroupClaimChange(provider, value);
-                        }
-                      }}
-                    />
-                  </SettingRow>
-                )}
-              </React.Fragment>
-            ))}
-        </>
-      )}
 
       <Heading as="h2">{t("Restrictions")}</Heading>
       <DomainManagement onSuccess={showSuccessMessage} />

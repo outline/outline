@@ -14,6 +14,10 @@ class AuthenticationProvider extends Model {
 
   providerId: string;
 
+  groupSyncSupported: boolean;
+
+  groupSyncUsesClaim: boolean;
+
   @observable
   isConnected: boolean;
 

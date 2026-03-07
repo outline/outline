@@ -24,6 +24,8 @@ interface DirectoryGroupsResponse {
  * https://www.googleapis.com/auth/admin.directory.group.readonly
  */
 export default class GoogleGroupSyncProvider implements GroupSyncProvider {
+  useGroupClaim = false;
+
   /**
    * Fetch the groups a user belongs to from Google Workspace using the
    * Admin Directory API.
