@@ -316,8 +316,11 @@ router.post(
 
     const group = await Group.findByPk(id, {
       transaction,
-      lock: transaction.LOCK.UPDATE,
       include: [externalGroupInclude],
+      lock: {
+        level: transaction.LOCK.UPDATE,
+        of: Group,
+      },
     });
     authorize(user, "delete", group);
 
