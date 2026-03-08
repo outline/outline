@@ -213,7 +213,9 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         typeof item.attrs === "function" ? item.attrs(view.state) : item.attrs;
 
       if (item.name === "noop") {
-        // Do nothing
+        if ("onClick" in item) {
+          item.onClick?.();
+        }
       } else if (command) {
         command(attrs);
       } else {
