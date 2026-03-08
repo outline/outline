@@ -15,6 +15,7 @@ import { MarkdownSerializer } from "./markdown/serializer";
 
 export default class ExtensionManager {
   extensions: (Node | Mark | Extension)[] = [];
+  readOnly: boolean;
 
   constructor(
     extensions: (
@@ -25,13 +26,34 @@ export default class ExtensionManager {
     )[] = [],
     editor?: Editor
   ) {
+    this.readOnly = editor?.props.readOnly ?? false;
+
     extensions.forEach((ext) => {
       let extension;
 
       if (typeof ext === "function") {
+        // Check the prototype before instantiation to avoid constructor cost
+        // for extensions not needed in read-only mode.
+        if (
+          this.readOnly &&
+          ext.prototype.type === "extension" &&
+          !ext.prototype.allowInReadOnly
+        ) {
+          return;
+        }
+
         // @ts-expect-error We won't instantiate an abstract class
         extension = new ext(editor?.props);
       } else {
+        // For already-instantiated extensions, check the instance.
+        if (
+          this.readOnly &&
+          ext.type === "extension" &&
+          !ext.allowInReadOnly
+        ) {
+          return;
+        }
+
         extension = ext;
       }
 
