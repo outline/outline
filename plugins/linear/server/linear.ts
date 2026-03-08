@@ -7,7 +7,11 @@ import { IntegrationService, UnfurlResourceType } from "@shared/types";
 import Logger from "@server/logging/Logger";
 import { Integration } from "@server/models";
 import type User from "@server/models/User";
-import type { UnfurlIssueOrPR, UnfurlSignature } from "@server/types";
+import type {
+  UnfurlIssueOrPR,
+  UnfurlProject,
+  UnfurlSignature,
+} from "@server/types";
 import { LinearUtils } from "../shared/LinearUtils";
 import env from "./env";
 import { Minute } from "@shared/utils/time";
@@ -25,7 +29,10 @@ const AccessTokenResponseSchema = z.object({
 });
 
 export class Linear {
-  private static supportedUnfurls = [UnfurlResourceType.Issue];
+  private static supportedUnfurls = [
+    UnfurlResourceType.Issue,
+    UnfurlResourceType.Project,
+  ];
 
   static async oauthAccess(code: string) {
     const headers = {
@@ -102,7 +109,7 @@ export class Linear {
    *
    * @param url Linear resource url
    * @param actor User attempting to unfurl resource url
-   * @returns An object containing resource details e.g, a Linear issue details
+   * @returns An object containing resource details e.g, a Linear issue or project details
    */
   static unfurl: UnfurlSignature = async (url: string, actor?: User) => {
     const resource = Linear.parseUrl(url);
@@ -137,59 +144,115 @@ export class Linear {
       );
 
       const client = new LinearClient({ accessToken });
-      const issue = await client.issue(resource.id);
 
-      if (!issue) {
-        return { error: "Resource not found" };
+      switch (resource.type) {
+        case UnfurlResourceType.Issue:
+          return Linear.unfurlIssue(client, resource.id, actor);
+        case UnfurlResourceType.Project:
+          return Linear.unfurlProject(client, resource.id, actor);
+        default:
+          return;
       }
-
-      const [author, state, labels] = await Promise.all([
-        issue.creator,
-        issue.state,
-        issue.paginate(issue.labels, {}),
-      ]);
-
-      if (!state || !labels) {
-        return { error: "Failed to fetch auxiliary data from Linear" };
-      }
-
-      const completionPercentage = await Linear.completionPercentage(
-        client,
-        issue,
-        state
-      );
-
-      return {
-        type: UnfurlResourceType.Issue,
-        url: issue.url,
-        id: issue.identifier,
-        title: issue.title,
-        description: issue.description ?? null,
-        author: {
-          name:
-            author?.name ??
-            issue.botActor?.userDisplayName ??
-            issue.botActor?.name ??
-            t("Unknown", opts(actor)),
-          avatarUrl: author?.avatarUrl ?? "",
-        },
-        labels: labels.map((label) => ({
-          name: label.name,
-          color: label.color,
-        })),
-        state: {
-          type: state.type,
-          name: state.name,
-          color: state.color,
-          completionPercentage,
-        },
-        createdAt: issue.createdAt.toISOString(),
-      } satisfies UnfurlIssueOrPR;
     } catch (err) {
       Logger.warn("Failed to fetch resource from Linear", err);
       return { error: err.message || "Unknown error" };
     }
   };
+
+  private static async unfurlIssue(
+    client: LinearClient,
+    id: string,
+    actor: User | undefined
+  ) {
+    const issue = await client.issue(id);
+
+    if (!issue) {
+      return { error: "Resource not found" };
+    }
+
+    const [author, state, labels] = await Promise.all([
+      issue.creator,
+      issue.state,
+      issue.paginate(issue.labels, {}),
+    ]);
+
+    if (!state || !labels) {
+      return { error: "Failed to fetch auxiliary data from Linear" };
+    }
+
+    const completionPercentage = await Linear.completionPercentage(
+      client,
+      issue,
+      state
+    );
+
+    return {
+      type: UnfurlResourceType.Issue,
+      url: issue.url,
+      id: issue.identifier,
+      title: issue.title,
+      description: issue.description ?? null,
+      author: {
+        name:
+          author?.name ??
+          issue.botActor?.userDisplayName ??
+          issue.botActor?.name ??
+          t("Unknown", opts(actor)),
+        avatarUrl: author?.avatarUrl ?? "",
+      },
+      labels: labels.map((label) => ({
+        name: label.name,
+        color: label.color,
+      })),
+      state: {
+        type: state.type,
+        name: state.name,
+        color: state.color,
+        completionPercentage,
+      },
+      createdAt: issue.createdAt.toISOString(),
+    } satisfies UnfurlIssueOrPR;
+  }
+
+  private static async unfurlProject(
+    client: LinearClient,
+    id: string,
+    _actor: User | undefined
+  ) {
+    const project = await client.project(id);
+
+    if (!project) {
+      return { error: "Resource not found" };
+    }
+
+    const [lead, status] = await Promise.all([project.lead, project.status]);
+
+    if (!status) {
+      return { error: "Failed to fetch auxiliary data from Linear" };
+    }
+
+    return {
+      type: UnfurlResourceType.Project,
+      url: project.url,
+      id: project.id,
+      name: project.name,
+      description: project.description ?? null,
+      lead: lead
+        ? {
+            name: lead.name,
+            avatarUrl: lead.avatarUrl ?? "",
+          }
+        : null,
+      state: {
+        type: status.type,
+        name: status.name,
+        color: status.color,
+      },
+      progress: project.progress,
+      createdAt: project.createdAt.toISOString(),
+      targetDate: project.targetDate ?? null,
+    } satisfies UnfurlProject;
+  }
 
   private static async completionPercentage(
     client: LinearClient,
