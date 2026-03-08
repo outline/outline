@@ -24,7 +24,7 @@ router.post(
   async (ctx: APIContext<T.UserMembershipsListReq>) => {
     const { user } = ctx.state.auth;
 
-    const memberships = await UserMembership.findAll({
+    const memberships = await UserMembership.scope("withUser").findAll({
       where: {
         userId: user.id,
         documentId: {
@@ -72,9 +72,12 @@ router.post(
     const { transaction } = ctx.state;
 
     const { user } = ctx.state.auth;
-    const membership = await UserMembership.findByPk(id, {
+    const membership = await UserMembership.scope("withUser").findByPk(id, {
       transaction,
-      lock: transaction.LOCK.UPDATE,
+      lock: {
+        level: transaction.LOCK.UPDATE,
+        of: UserMembership,
+      },
       rejectOnEmpty: true,
     });
     authorize(user, "update", membership);
