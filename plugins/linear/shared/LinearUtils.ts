@@ -7,7 +7,10 @@ export type OAuthState = {
 };
 
 export class LinearUtils {
-  private static oauthScopes = "read,issues:create";
+  // TODO: "write" is broader than ideal — Linear does not offer a granular
+  // scope for attachments alone, so we request "write" to allow
+  // attachmentCreate / attachmentDelete for backlink sync.
+  private static oauthScopes = "read,write";
 
   public static tokenUrl = "https://api.linear.app/oauth/token";
   public static revokeUrl = "https://api.linear.app/oauth/revoke";

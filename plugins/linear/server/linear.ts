@@ -27,6 +27,65 @@ const AccessTokenResponseSchema = z.object({
 export class Linear {
   private static supportedUnfurls = [UnfurlResourceType.Issue];
 
+  /**
+   * Creates a LinearClient with a valid access token for the given team.
+   *
+   * @param teamId The team ID to find the integration for.
+   * @returns A LinearClient instance, or undefined if no valid integration.
+   */
+  static async getClientForTeam(
+    teamId: string
+  ): Promise<LinearClient | undefined> {
+    // Linear integrations are always created with IntegrationType.Embed
+    // (see plugins/linear/server/api/linear.ts where integration is created)
+    const integrations = (await Integration.scope("withAuthentication").findAll(
+      {
+        where: {
+          service: IntegrationService.Linear,
+          teamId,
+        },
+      }
+    )) as Integration<IntegrationType.Embed>[];
+
+    if (integrations.length === 0) {
+      return;
+    }
+
+    const integration = integrations[0];
+
+    try {
+      const accessToken = await integration.authentication.refreshTokenIfNeeded(
+        async (refreshToken: string) => Linear.refreshToken(refreshToken),
+        5 * Minute.ms
+      );
+      return new LinearClient({ accessToken });
+    } catch (err) {
+      Logger.warn("Failed to get Linear access token", err);
+      return;
+    }
+  }
+
+  /**
+   * Finds a Linear integration for the given team.
+   *
+   * @param teamId The team ID to search for integrations.
+   * @returns The first matching Linear integration, or undefined.
+   */
+  static async getIntegrationForTeam(
+    teamId: string
+  ): Promise<Integration<IntegrationType.Embed> | undefined> {
+    // Linear integrations are always created with IntegrationType.Embed
+    // (see plugins/linear/server/api/linear.ts where integration is created)
+    const integrations = await Integration.findAll({
+      where: {
+        service: IntegrationService.Linear,
+        teamId,
+      },
+    });
+
+    return integrations[0] as Integration<IntegrationType.Embed> | undefined;
+  }
+
   static async oauthAccess(code: string) {
     const headers = {
       "Content-Type": "application/x-www-form-urlencoded",
@@ -240,7 +299,7 @@ export class Linear {
    * @param url URL to parse
    * @returns An object containing resource identifiers - `workspaceKey`, `type`, `id` and `name`.
    */
-  private static parseUrl(url: string) {
+  static parseUrl(url: string) {
     try {
       const { hostname, pathname } = new URL(url);
       if (hostname !== "linear.app") {
