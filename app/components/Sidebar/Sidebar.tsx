@@ -1,5 +1,6 @@
 import { observer } from "mobx-react";
 import * as React from "react";
+import { useWebHaptics } from "web-haptics/react";
 import { useLocation } from "react-router-dom";
 import styled, { css, useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -53,6 +54,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
   const collapsed = ui.sidebarIsClosed && canCollapse;
   const maxWidth = theme.sidebarMaxWidth;
   const minWidth = theme.sidebarMinWidth + 16; // padding
+  const { trigger } = useWebHaptics();
 
   const [offset, setOffset] = React.useState(0);
   const [isHovering, setHovering] = React.useState(false);
@@ -224,6 +226,11 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
     [width]
   );
 
+  const handleCloseSidebar = () => {
+    trigger("light");
+    ui.toggleMobileSidebar();
+  };
+
   return (
     <TooltipProvider>
       <Container
@@ -275,7 +282,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
           onDoubleClick={ui.sidebarIsClosed ? undefined : handleReset}
         />
       </Container>
-      {ui.mobileSidebarVisible && <Backdrop onClick={ui.toggleMobileSidebar} />}
+      {ui.mobileSidebarVisible && <Backdrop onClick={handleCloseSidebar} />}
     </TooltipProvider>
   );
 });
