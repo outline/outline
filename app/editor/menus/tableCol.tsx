@@ -5,7 +5,6 @@ import {
   AlignCenterIcon,
   InsertLeftIcon,
   InsertRightIcon,
-  MoreIcon,
   PaletteIcon,
   TableHeaderColumnIcon,
   TableMergeCellsIcon,
@@ -24,7 +23,11 @@ import {
   isMultipleCellSelection,
   tableHasRowspan,
 } from "@shared/editor/queries/table";
-import type { MenuItem, NodeAttrMark } from "@shared/editor/types";
+import {
+  MenuType,
+  type MenuItem,
+  type NodeAttrMark,
+} from "@shared/editor/types";
 import type { Dictionary } from "~/hooks/useDictionary";
 import { ArrowLeftIcon, ArrowRightIcon } from "~/components/Icons/ArrowIcon";
 import CircleIcon from "~/components/Icons/CircleIcon";
@@ -88,119 +91,138 @@ export default function tableColMenuItems(
 
   return [
     {
-      name: "setColumnAttr",
-      tooltip: dictionary.alignLeft,
-      icon: <AlignLeftIcon />,
-      attrs: { index, alignment: "left" },
-      active: isNodeActive(schema.nodes.th, {
-        colspan: 1,
-        rowspan: 1,
-        alignment: "left",
-      }),
-    },
-    {
-      name: "setColumnAttr",
-      tooltip: dictionary.alignCenter,
-      icon: <AlignCenterIcon />,
-      attrs: { index, alignment: "center" },
-      active: isNodeActive(schema.nodes.th, {
-        colspan: 1,
-        rowspan: 1,
-        alignment: "center",
-      }),
-    },
-    {
-      name: "setColumnAttr",
-      tooltip: dictionary.alignRight,
-      icon: <AlignRightIcon />,
-      attrs: { index, alignment: "right" },
-      active: isNodeActive(schema.nodes.th, {
-        colspan: 1,
-        rowspan: 1,
-        alignment: "right",
-      }),
-    },
-    {
-      name: "separator",
-    },
-    {
-      name: "sortTable",
-      tooltip: dictionary.sortAsc,
-      attrs: { index, direction: "asc" },
-      icon: <SortAscendingIcon />,
-      disabled: tableHasRowspan(state),
-    },
-    {
-      name: "sortTable",
-      tooltip: dictionary.sortDesc,
-      attrs: { index, direction: "desc" },
-      icon: <SortDescendingIcon />,
-      disabled: tableHasRowspan(state),
-    },
-    {
-      name: "separator",
-    },
-    {
-      tooltip: dictionary.background,
-      icon:
-        colColors.size > 1 ? (
-          <CircleIcon color="rainbow" />
-        ) : colColors.size === 1 ? (
-          <CircleIcon color={colColors.values().next().value} />
-        ) : (
-          <PaletteIcon />
-        ),
+      type: MenuType.inline,
       children: [
-        ...[
-          {
-            name: "toggleColumnBackgroundAndCollapseSelection",
-            label: dictionary.none,
-            icon: <DottedCircleIcon retainColor color="transparent" />,
-            active: () => (hasBackground ? false : true),
-            attrs: { color: null },
-          },
-        ],
-        ...TableCell.presetColors.map((preset) => ({
-          name: "toggleColumnBackgroundAndCollapseSelection",
-          label: preset.name,
-          icon: <CircleIcon retainColor color={preset.hex} />,
-          active: () => colColors.size === 1 && colColors.has(preset.hex),
-          attrs: { color: preset.hex },
-        })),
-        ...(customColor
-          ? [
-              {
-                name: "toggleColumnBackgroundAndCollapseSelection",
-                label: customColor,
-                icon: <CircleIcon retainColor color={customColor} />,
-                active: () => true,
-                attrs: { color: customColor },
-              },
-            ]
-          : []),
         {
-          icon: <CircleIcon retainColor color="rainbow" />,
-          label: "Custom",
+          name: "setColumnAttr",
+          label: dictionary.align,
+          icon: <AlignCenterIcon />,
+          attrs: { index, alignment: "left" },
           children: [
             {
-              content: (
-                <CellBackgroundColorPicker
-                  activeColor={activeColor}
-                  command="toggleColumnBackground"
-                />
-              ),
-              preventCloseCondition: () =>
-                !!document.activeElement?.matches(
-                  ".ProseMirror.ProseMirror-focused"
-                ),
+              name: "setColumnAttr",
+              label: dictionary.alignLeft,
+              icon: <AlignLeftIcon />,
+              attrs: { index, alignment: "left" },
+              active: isNodeActive(schema.nodes.th, {
+                colspan: 1,
+                rowspan: 1,
+                alignment: "left",
+              }),
+            },
+            {
+              name: "setColumnAttr",
+              label: dictionary.alignCenter,
+              icon: <AlignCenterIcon />,
+              attrs: { index, alignment: "center" },
+              active: isNodeActive(schema.nodes.th, {
+                colspan: 1,
+                rowspan: 1,
+                alignment: "center",
+              }),
+            },
+            {
+              name: "setColumnAttr",
+              label: dictionary.alignRight,
+              icon: <AlignRightIcon />,
+              attrs: { index, alignment: "right" },
+              active: isNodeActive(schema.nodes.th, {
+                colspan: 1,
+                rowspan: 1,
+                alignment: "right",
+              }),
             },
           ],
         },
-      ],
-    },
-    {
-      icon: <MoreIcon />,
-      children: [
+        {
+          name: "separator",
+        },
+        {
+          name: "sortTable",
+          label: dictionary.sort,
+          icon: <SortAscendingIcon />,
+          disabled: tableHasRowspan(state),
+          children: [
+            {
+              name: "sortTable",
+              label: dictionary.sortAsc,
+              attrs: { index, direction: "asc" },
+              icon: <SortAscendingIcon />,
+              disabled: tableHasRowspan(state),
+            },
+            {
+              name: "sortTable",
+              label: dictionary.sortDesc,
+              attrs: { index, direction: "desc" },
+              icon: <SortDescendingIcon />,
+              disabled: tableHasRowspan(state),
+            },
+          ],
+        },
+        {
+          name: "separator",
+        },
+        {
+          label: dictionary.background,
+          icon:
+            colColors.size > 1 ? (
+              <CircleIcon color="rainbow" />
+            ) : colColors.size === 1 ? (
+              <CircleIcon color={colColors.values().next().value} />
+            ) : (
+              <PaletteIcon />
+            ),
+          children: [
+            ...[
+              {
+                name: "toggleColumnBackgroundAndCollapseSelection",
+                label: dictionary.none,
+                icon: <DottedCircleIcon retainColor color="transparent" />,
+                active: () => (hasBackground ? false : true),
+                attrs: { color: null },
+              },
+            ],
+            ...TableCell.presetColors.map((preset) => ({
+              name: "toggleColumnBackgroundAndCollapseSelection",
+              label: preset.name,
+              icon: <CircleIcon retainColor color={preset.hex} />,
+              active: () => colColors.size === 1 && colColors.has(preset.hex),
+              attrs: { color: preset.hex },
+            })),
+            ...(customColor
+              ? [
+                  {
+                    name: "toggleColumnBackgroundAndCollapseSelection",
+                    label: customColor,
+                    icon: <CircleIcon retainColor color={customColor} />,
+                    active: () => true,
+                    attrs: { color: customColor },
+                  },
+                ]
+              : []),
+            {
+              icon: <CircleIcon retainColor color="rainbow" />,
+              label: "Custom",
+              children: [
+                {
+                  content: (
+                    <CellBackgroundColorPicker
+                      activeColor={activeColor}
+                      command="toggleColumnBackground"
+                    />
+                  ),
+                  preventCloseCondition: () =>
+                    !!document.activeElement?.matches(
+                      ".ProseMirror.ProseMirror-focused"
+                    ),
+                },
+              ],
+            },
+          ],
+        },
+        {
+          name: "separator",
+        },
         {
           name: "toggleHeaderColumn",
           label: dictionary.toggleHeader,
