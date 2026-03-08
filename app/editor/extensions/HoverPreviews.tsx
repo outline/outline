@@ -33,6 +33,10 @@ export default class HoverPreviews extends Extension {
     return "hover-previews";
   }
 
+  get allowInReadOnly() {
+    return true;
+  }
+
   get plugins() {
     const isHoverTarget = (target: Element | null, view: EditorView) =>
       target instanceof HTMLElement &&
