@@ -177,12 +177,9 @@ function Notifications() {
           NotificationChannelType.Slack,
         ]) {
           const shouldEnable = channels.includes(channel);
-          const currentlyEnabled = user.subscribedToEventType(
-            eventType,
-            channel
-          );
+          const enabled = user.subscribedToEventType(eventType, channel);
 
-          if (shouldEnable !== currentlyEnabled) {
+          if (shouldEnable !== enabled) {
             await user.setNotificationEventType(
               eventType,
               shouldEnable,

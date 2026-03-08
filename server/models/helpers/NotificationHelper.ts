@@ -5,6 +5,7 @@ import {
   NotificationEventType,
   MentionType,
   SubscriptionType,
+  NotificationChannelType,
 } from "@shared/types";
 import Logger from "@server/logging/Logger";
 import type { Document, Collection } from "@server/models";
@@ -160,11 +161,13 @@ export default class NotificationHelper {
     notificationType,
     actorId,
     disableAccessCheck = false,
+    channel = NotificationChannelType.Email,
   }: {
     document: Document;
     notificationType: NotificationEventType;
     actorId: string;
     disableAccessCheck?: boolean;
+    channel?: NotificationChannelType;
   }): Promise<User[]> => {
     let recipients: User[];
 
@@ -176,7 +179,11 @@ export default class NotificationHelper {
           },
           teamId: document.teamId,
           notificationSettings: {
-            [notificationType]: true,
+            [Op.and]: {
+              [notificationType]: {
+                [channel]: true,
+              },
+            },
           },
         },
       });

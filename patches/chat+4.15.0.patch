@@ -1,8 +1,8 @@
 diff --git a/node_modules/chat/package.json b/node_modules/chat/package.json
-index 89e4e44..24b552d 100644
+index 89e4e44..7cfcb8f 100644
 --- a/node_modules/chat/package.json
 +++ b/node_modules/chat/package.json
-@@ -9,15 +9,18 @@
+@@ -9,7 +9,8 @@
    "exports": {
      ".": {
        "types": "./dist/index.d.ts",
@@ -12,19 +12,7 @@ index 89e4e44..24b552d 100644
      },
      "./jsx-runtime": {
        "types": "./dist/jsx-runtime.d.ts",
--      "import": "./dist/jsx-runtime.js"
-+      "import": "./dist/jsx-runtime.js",
-+      "default": "./dist/jsx-runtime.js"
-     },
-     "./jsx-dev-runtime": {
-       "types": "./dist/jsx-runtime.d.ts",
--      "import": "./dist/jsx-runtime.js"
-+      "import": "./dist/jsx-runtime.js",
-+      "default": "./dist/jsx-runtime.js"
-     }
-   },
-   "files": [
-@@ -68,4 +71,4 @@
+@@ -68,4 +69,4 @@
      "typecheck": "tsc --noEmit",
      "clean": "rm -rf dist docs"
    }

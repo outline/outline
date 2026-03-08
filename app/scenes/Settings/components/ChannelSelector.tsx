@@ -19,21 +19,25 @@ type Props = {
 function ChannelSelector({ value, onChange, slackDisabled = false }: Props) {
   const { t } = useTranslation();
 
-  const channels = React.useMemo(
-    () => [
+  const channels = React.useMemo(() => {
+    const availableChannels = [
       {
         key: NotificationChannelType.Email,
         label: t("Email"),
         icon: <EmailIcon size={16} />,
       },
-      {
+    ];
+
+    if (!slackDisabled) {
+      availableChannels.push({
         key: NotificationChannelType.Slack,
         label: t("Slack"),
         icon: <FontAwesomeIcon icon={faSlack} size="xs" />,
-      },
-    ],
-    [t, slackDisabled]
-  );
+      });
+    }
+
+    return availableChannels;
+  }, [t, slackDisabled]);
 
   const handleToggle = React.useCallback(
     (channelType: NotificationChannelType) => {

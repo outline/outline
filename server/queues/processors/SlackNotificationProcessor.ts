@@ -15,7 +15,7 @@ import { paragraph, root, strong, text, link } from "chat";
  * Listens for notification.create events and sends Slack DMs to users
  * who have linked their Slack accounts and enabled Slack notifications.
  */
-export default class SlackNotificationsProcessor extends BaseProcessor {
+export default class SlackNotificationProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = ["notifications.create"];
 
   async perform(event: NotificationEvent) {

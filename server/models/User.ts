@@ -44,6 +44,7 @@ import {
   NotificationEventDefaults,
   UserRole,
   DocumentPermission,
+  IntegrationType,
 } from "@shared/types";
 import { UserRoleHelper } from "@shared/utils/UserRoleHelper";
 import { stringToColor } from "@shared/utils/color";
@@ -72,6 +73,7 @@ import IsUrlOrRelativePath from "./validators/IsUrlOrRelativePath";
 import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
 import { SkipChangeset } from "./decorators/Changeset";
+import Integration from "./Integration";
 
 /**
  * Flags that are available for setting on the user.
@@ -401,8 +403,6 @@ class User extends ParanoidModel<
    * @returns The Slack user ID or null.
    */
   public getSlackUserId = async (): Promise<string | null> => {
-    const { Integration } = await import("./index");
-    const { IntegrationType } = await import("@shared/types");
     const integration = await Integration.findOne({
       where: {
         userId: this.id,
