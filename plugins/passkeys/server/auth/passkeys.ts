@@ -12,7 +12,7 @@ import { User, UserPasskey, Team } from "@server/models";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
 import env from "@server/env";
-import { ValidationError } from "@server/errors";
+import { AuthorizationError, ValidationError } from "@server/errors";
 import type { APIContext } from "@server/types";
 import Logger from "@server/logging/Logger";
 import Redis from "@server/storage/redis";
@@ -56,7 +56,10 @@ export const getExpectedOrigin = (ctx: APIContext): string => {
   if (forwardedPort) {
     const port = parseInt(forwardedPort, 10);
     // Only add port if it's not the default for the protocol
-    if ((protocol === "https" && port !== 443) || (protocol === "http" && port !== 80)) {
+    if (
+      (protocol === "https" && port !== 443) ||
+      (protocol === "http" && port !== 80)
+    ) {
       origin = `${protocol}://${hostname}:${port}`;
     }
   } else if (hostWithPort !== hostname) {
@@ -261,6 +264,12 @@ router.post(
 
     const user = passkey.user;
     const team = user.team;
+
+    if (!team.passkeysEnabled) {
+      throw AuthorizationError(
+        "Passkey authentication is not enabled for this team"
+      );
+    }
 
     let verification;
     try {
