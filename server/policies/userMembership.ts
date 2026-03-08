@@ -1,11 +1,10 @@
 import { User, UserMembership } from "@server/models";
 import { allow } from "./cancan";
-import { isOwner, or } from "./utils";
+import { and, isOwner, isTeamModel, or } from "./utils";
 
 allow(User, ["update", "delete"], UserMembership, (actor, membership) =>
-  or(
-    //
-    isOwner(actor, membership),
-    actor.isAdmin
+  and(
+    isTeamModel(actor, membership?.user),
+    or(isOwner(actor, membership), actor.isAdmin)
   )
 );
