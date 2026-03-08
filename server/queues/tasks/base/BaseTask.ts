@@ -1,4 +1,5 @@
 import type { Job, JobOptions } from "bull";
+import { Minute } from "@shared/utils/time";
 import { taskQueue } from "../../";
 
 export enum TaskPriority {
@@ -7,6 +8,13 @@ export enum TaskPriority {
   Normal = 20,
   High = 10,
 }
+
+/**
+ * Default timeout for tasks. Tasks that do not explicitly set a timeout will
+ * use this value. This prevents hung tasks (e.g. waiting on a downed external
+ * service) from blocking the worker indefinitely.
+ */
+const DEFAULT_TASK_TIMEOUT = 5 * Minute.ms;
 
 export abstract class BaseTask<T extends Record<string, any>> {
   /**
@@ -22,7 +30,7 @@ export abstract class BaseTask<T extends Record<string, any>> {
         name: this.constructor.name,
         props,
       },
-      { ...options, ...this.options }
+      { timeout: DEFAULT_TASK_TIMEOUT, ...options, ...this.options }
     );
   }
 
@@ -56,6 +64,7 @@ export abstract class BaseTask<T extends Record<string, any>> {
         type: "exponential",
         delay: 60 * 1000,
       },
+      timeout: DEFAULT_TASK_TIMEOUT,
     };
   }
 }

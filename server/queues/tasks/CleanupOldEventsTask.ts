@@ -5,7 +5,7 @@ import { Event } from "@server/models";
 import { TaskPriority } from "./base/BaseTask";
 import type { Props } from "./base/CronTask";
 import { CronTask, TaskInterval } from "./base/CronTask";
-import { Minute } from "@shared/utils/time";
+import { Minute, Hour } from "@shared/utils/time";
 
 export default class CleanupOldEventsTask extends CronTask {
   public async perform({ partition }: Props) {
@@ -59,6 +59,7 @@ export default class CleanupOldEventsTask extends CronTask {
     return {
       attempts: 1,
       priority: TaskPriority.Background,
+      timeout: Hour.ms,
     };
   }
 }

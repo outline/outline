@@ -13,6 +13,7 @@ import type {
   ProsemirrorDoc,
 } from "@shared/types";
 import { AttachmentPreset, ImportState, ImportTaskState } from "@shared/types";
+import { Hour } from "@shared/utils/time";
 import { ProsemirrorHelper as SharedProseMirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { createContext } from "@server/context";
 import { schema } from "@server/editor";
@@ -399,6 +400,7 @@ export default abstract class APIImportTask<
         type: "exponential",
         delay: 60 * 1000,
       },
+      timeout: 24 * Hour.ms,
     };
   }
 }

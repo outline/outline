@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import { setTimeout } from "node:timers/promises";
 import { subWeeks } from "date-fns";
 import { QueryTypes } from "sequelize";
-import { Minute } from "@shared/utils/time";
+import { Hour, Minute } from "@shared/utils/time";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { TaskPriority } from "./base/BaseTask";
@@ -467,6 +467,7 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
     return {
       attempts: 1,
       priority: TaskPriority.Background,
+      timeout: Hour.ms,
     };
   }
 }

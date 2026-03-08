@@ -1,6 +1,7 @@
 import { subDays } from "date-fns";
 import { Op } from "sequelize";
 import { ImportState } from "@shared/types";
+import { Hour } from "@shared/utils/time";
 import Logger from "@server/logging/Logger";
 import { Import, ImportTask } from "@server/models";
 import { TaskPriority } from "./base/BaseTask";
@@ -83,6 +84,7 @@ export default class CleanupOldImportsTask extends CronTask {
     return {
       attempts: 1,
       priority: TaskPriority.Background,
+      timeout: Hour.ms,
     };
   }
 }
