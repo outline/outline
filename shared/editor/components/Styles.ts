@@ -1736,6 +1736,7 @@ mark {
 
 .code-block {
   position: relative;
+  font-size: 90%;
 }
 
 .code-block[data-language=none],
@@ -1831,7 +1832,6 @@ mark {
     word-break: break-all;
     white-space: break-spaces;
     font-family: ${props.theme.fontFamilyMono};
-    font-size: 13px;
     line-height: 1.4em;
     color: ${props.theme.textTertiary};
     background: ${props.theme.codeBackground};
@@ -1884,7 +1884,6 @@ pre {
 
   -webkit-font-smoothing: initial;
   font-family: ${props.theme.fontFamilyMono};
-  font-size: 13px;
   direction: ltr;
   text-align: left;
   white-space: pre;
@@ -1900,7 +1899,7 @@ pre {
   color: ${props.theme.code};
 
   code {
-    font-size: 13px;
+    font-size: inherit;
     background: none;
     padding: 0;
     border: 0;
