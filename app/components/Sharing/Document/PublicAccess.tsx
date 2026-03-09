@@ -1,7 +1,7 @@
 import debounce from "lodash/debounce";
 import isEmpty from "lodash/isEmpty";
 import { observer } from "mobx-react";
-import { CopyIcon, GlobeIcon, QuestionMarkIcon } from "outline-icons";
+import { CopyIcon, GlobeIcon, QuestionMarkIcon, RefreshIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -116,6 +116,15 @@ function PublicAccess(
   const handleGuestEditLinkCopied = React.useCallback(() => {
     toast.success(t("Guest edit link copied to clipboard"));
   }, [t]);
+
+  const handleRotateGuestToken = React.useCallback(async () => {
+    try {
+      await share?.rotateGuestEditToken();
+      toast.success(t("Guest edit link rotated — copy the new link below"));
+    } catch (err) {
+      toast.error(err.message);
+    }
+  }, [share, t]);
   // END CUSTOM FORK
 
   const handleUrlChange = React.useMemo(
@@ -318,6 +327,11 @@ function PublicAccess(
         {/* CUSTOM FORK: Guest edit URL display (only visible to admins; contains the secret token) */}
         {share?.allowGuestEdit && share?.guestEditUrl && (
           <ShareLinkInput type="text" disabled defaultValue={share.guestEditUrl}>
+            <Tooltip content={t("Rotate guest edit link")} placement="top">
+              <NudeButton type="button" onClick={handleRotateGuestToken} style={{ marginRight: 3 }}>
+                <RefreshIcon color={theme.placeholder} size={18} />
+              </NudeButton>
+            </Tooltip>
             <Tooltip content={t("Copy guest edit link")} placement="top">
               <CopyToClipboard text={share.guestEditUrl} onCopy={handleGuestEditLinkCopied}>
                 <NudeButton type="button" style={{ marginRight: 3 }}>

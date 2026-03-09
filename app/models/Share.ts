@@ -87,6 +87,14 @@ class Share extends Model implements Searchable {
   @observable
   guestEditUrl: string | undefined;
 
+  /** CUSTOM FORK: rotate the guest edit token without disabling the feature */
+  async rotateGuestEditToken(): Promise<void> {
+    const res = await this.store.dispatch("shares.rotateGuestToken", { id: this.id });
+    if (res?.data?.guestEditUrl) {
+      this.guestEditUrl = res.data.guestEditUrl;
+    }
+  }
+
   @observable
   views: number;
 

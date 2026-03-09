@@ -92,6 +92,15 @@ export const SharesCreateSchema = BaseSchema.extend({
 
 export type SharesCreateReq = z.infer<typeof SharesCreateSchema>;
 
+/** Rotate the guest edit token without disabling the feature. */
+export const SharesRotateGuestTokenSchema = BaseSchema.extend({
+  body: z.object({
+    id: z.string().uuid(),
+  }),
+});
+
+export type SharesRotateGuestTokenReq = z.infer<typeof SharesRotateGuestTokenSchema>;
+
 export const SharesRevokeSchema = BaseSchema.extend({
   body: z.object({
     id: z.string().uuid(),

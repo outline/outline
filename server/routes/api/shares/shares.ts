@@ -10,11 +10,12 @@ import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import {
+  Collection,
+  CollectionMembership,
   Document,
-  User,
   Share,
   Team,
-  Collection,
+  User,
   UserMembership,
 } from "@server/models";
 import { authorize, cannot } from "@server/policies";
@@ -360,14 +361,15 @@ router.post(
       share.showTOC = showTOC;
     }
 
-    // Handle guest editing — only supported for document shares.
-    if (allowGuestEdit !== undefined && share.documentId) {
+    // Handle guest editing — supported for both document and collection shares.
+    if (allowGuestEdit !== undefined && (share.documentId || share.collectionId)) {
       const { transaction: t } = ctx.state;
 
       if (allowGuestEdit) {
         // Find or create a ghost user to hold the guest editing session.
         // The ghost user has no password, no OAuth, and no API keys;
-        // it can only authenticate via the short-lived JWT cookie set below.
+        // it can only authenticate via the short-lived JWT cookie set by the
+        // token-redemption route.
         const ghostEmail = `ghost-${share.id}@outline.internal`;
         const [ghostUser] = await User.findOrCreate({
           where: { email: ghostEmail, teamId: share.teamId },
@@ -385,22 +387,33 @@ router.post(
           await ghostUser.update({ suspendedAt: null }, { transaction: t });
         }
 
-        // Grant ReadWrite access to the specific document.
-        await UserMembership.findOrCreate({
-          where: {
-            userId: ghostUser.id,
-            documentId: share.documentId,
-          },
-          defaults: {
-            userId: ghostUser.id,
-            documentId: share.documentId,
-            permission: DocumentPermission.ReadWrite,
-            createdById: share.userId,
-            teamId: share.teamId,
-            sourceType: "document",
-          },
-          transaction: t,
-        });
+        if (share.documentId) {
+          // Document share: grant ReadWrite on the specific document only.
+          await UserMembership.findOrCreate({
+            where: { userId: ghostUser.id, documentId: share.documentId },
+            defaults: {
+              userId: ghostUser.id,
+              documentId: share.documentId,
+              permission: DocumentPermission.ReadWrite,
+              createdById: share.userId,
+              teamId: share.teamId,
+              sourceType: "document",
+            },
+            transaction: t,
+          });
+        } else if (share.collectionId) {
+          // Collection share: grant ReadWrite on the entire collection.
+          await CollectionMembership.findOrCreate({
+            where: { userId: ghostUser.id, collectionId: share.collectionId },
+            defaults: {
+              userId: ghostUser.id,
+              collectionId: share.collectionId,
+              permission: CollectionPermission.ReadWrite,
+              createdById: share.userId,
+            },
+            transaction: t,
+          });
+        }
 
         share.allowGuestEdit = true;
         share.guestEditToken = crypto.randomBytes(32).toString("hex");
@@ -413,13 +426,19 @@ router.post(
             { suspendedAt: new Date() },
             { where: { id: share.ghostUserId }, transaction: t }
           );
-          await UserMembership.destroy({
-            where: {
-              userId: share.ghostUserId,
-              documentId: share.documentId,
-            },
-            transaction: t,
-          });
+          // Remove whichever membership type was granted.
+          if (share.documentId) {
+            await UserMembership.destroy({
+              where: { userId: share.ghostUserId, documentId: share.documentId },
+              transaction: t,
+            });
+          }
+          if (share.collectionId) {
+            await CollectionMembership.destroy({
+              where: { userId: share.ghostUserId, collectionId: share.collectionId },
+              transaction: t,
+            });
+          }
         }
         share.allowGuestEdit = false;
         share.guestEditToken = null;
@@ -427,6 +446,41 @@ router.post(
       }
     }
 
+    await share.saveWithCtx(ctx);
+
+    ctx.body = {
+      data: presentShare(share, user.isAdmin),
+      policies: presentPolicies(user, [share]),
+    };
+  }
+);
+
+/**
+ * Rotate the guest edit token for a share.
+ * Generates a new secret token, immediately invalidating the old guest edit URL.
+ * The ghost user and their permissions are left untouched.
+ */
+router.post(
+  "shares.rotateGuestToken",
+  auth(),
+  validate(T.SharesRotateGuestTokenSchema),
+  transaction(),
+  async (ctx: APIContext<T.SharesRotateGuestTokenReq>) => {
+    const { id } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    authorize(user, "share", user.team);
+
+    const share = await Share.scope({
+      method: ["withCollectionPermissions", user.id],
+    }).findByPk(id);
+
+    authorize(user, "update", share);
+
+    if (!share.allowGuestEdit) {
+      throw new Error("Guest editing is not enabled for this share.");
+    }
+
+    share.guestEditToken = crypto.randomBytes(32).toString("hex");
     await share.saveWithCtx(ctx);
 
     ctx.body = {

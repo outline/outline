@@ -183,11 +183,17 @@ router.get("/s/:shareId/edit", async (ctx) => {
       return;
     }
 
-    const document = share.documentId
-      ? await Document.findByPk(share.documentId)
-      : null;
+    // Resolve the destination: document for document shares, collection for collection shares.
+    let destinationUrl: string | null = null;
+    if (share.documentId) {
+      const document = await Document.findByPk(share.documentId);
+      destinationUrl = document?.url ?? null;
+    } else if (share.collectionId) {
+      const collection = await Collection.findByPk(share.collectionId);
+      destinationUrl = collection?.url ?? null;
+    }
 
-    if (!document) {
+    if (!destinationUrl) {
       ctx.redirect(fallbackUrl);
       return;
     }
@@ -214,7 +220,7 @@ router.get("/s/:shareId/edit", async (ctx) => {
     });
 
     // Redirect to the actual document (the authenticated app route).
-    ctx.redirect(document.url);
+    ctx.redirect(destinationUrl);
   } catch (err) {
     Logger.error("Guest edit token redemption failed", err, { shareId });
     ctx.redirect(fallbackUrl);
