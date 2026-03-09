@@ -1738,6 +1738,15 @@ mark {
   position: relative;
 }
 
+.code-block.collapsed {
+  overflow: auto;
+  max-height: 350px;
+
+  pre {
+    padding-top: 3px;
+  }
+}
+
 .code-block[data-language=none],
 .code-block[data-language=markdown] {
   pre code {
