@@ -1,14 +1,22 @@
+import crypto from "node:crypto";
 import Router from "koa-router";
 import isUndefined from "lodash/isUndefined";
 import type { FindOptions, WhereAttributeHash, WhereOptions } from "sequelize";
 import { Op } from "sequelize";
-import { TeamPreference } from "@shared/types";
+import { DocumentPermission, TeamPreference, UserRole } from "@shared/types";
 import { AuthenticationError, NotFoundError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { Document, User, Share, Team, Collection } from "@server/models";
+import {
+  Document,
+  User,
+  Share,
+  Team,
+  Collection,
+  UserMembership,
+} from "@server/models";
 import { authorize, cannot } from "@server/policies";
 import {
   presentShare,
@@ -314,6 +322,7 @@ router.post(
       allowIndexing,
       showLastUpdated,
       showTOC,
+      allowGuestEdit,
     } = ctx.input.body;
 
     const { user } = ctx.state.auth;
@@ -349,6 +358,73 @@ router.post(
     }
     if (showTOC !== undefined) {
       share.showTOC = showTOC;
+    }
+
+    // Handle guest editing — only supported for document shares.
+    if (allowGuestEdit !== undefined && share.documentId) {
+      const { transaction: t } = ctx.state;
+
+      if (allowGuestEdit) {
+        // Find or create a ghost user to hold the guest editing session.
+        // The ghost user has no password, no OAuth, and no API keys;
+        // it can only authenticate via the short-lived JWT cookie set below.
+        const ghostEmail = `ghost-${share.id}@outline.internal`;
+        const [ghostUser] = await User.findOrCreate({
+          where: { email: ghostEmail, teamId: share.teamId },
+          defaults: {
+            name: "Guest Editor",
+            role: UserRole.Guest,
+            email: ghostEmail,
+            teamId: share.teamId,
+          },
+          transaction: t,
+        });
+
+        // Reactivate the ghost user if it was previously suspended.
+        if (ghostUser.suspendedAt) {
+          await ghostUser.update({ suspendedAt: null }, { transaction: t });
+        }
+
+        // Grant ReadWrite access to the specific document.
+        await UserMembership.findOrCreate({
+          where: {
+            userId: ghostUser.id,
+            documentId: share.documentId,
+          },
+          defaults: {
+            userId: ghostUser.id,
+            documentId: share.documentId,
+            permission: DocumentPermission.ReadWrite,
+            createdById: share.userId,
+            teamId: share.teamId,
+            sourceType: "document",
+          },
+          transaction: t,
+        });
+
+        share.allowGuestEdit = true;
+        share.guestEditToken = crypto.randomBytes(32).toString("hex");
+        share.ghostUserId = ghostUser.id;
+      } else {
+        // Revoke: immediately suspend the ghost user so any active
+        // sessions are rejected on the next API call.
+        if (share.ghostUserId) {
+          await User.update(
+            { suspendedAt: new Date() },
+            { where: { id: share.ghostUserId }, transaction: t }
+          );
+          await UserMembership.destroy({
+            where: {
+              userId: share.ghostUserId,
+              documentId: share.documentId,
+            },
+            transaction: t,
+          });
+        }
+        share.allowGuestEdit = false;
+        share.guestEditToken = null;
+        share.ghostUserId = null;
+      }
     }
 
     await share.saveWithCtx(ctx);

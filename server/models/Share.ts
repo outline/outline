@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import { type SaveOptions } from "sequelize";
 import {
@@ -120,7 +121,6 @@ class Share extends IdModel<
   @Column
   lastAccessedAt: Date | null;
 
-  /** Total count of times the shared link has been accessed */
   @Default(0)
   @Column
   views: number;
@@ -150,6 +150,19 @@ class Share extends IdModel<
   @Default(false)
   @Column
   showTOC: boolean;
+
+  /** Whether unauthenticated guest editing is enabled for this share. */
+  @Default(false)
+  @Column
+  allowGuestEdit: boolean;
+
+  /**
+   * Secret token (64 hex chars) used in the guest edit URL.
+   * Only returned in API responses for admin users.
+   */
+  @AllowNull
+  @Column
+  guestEditToken: string | null;
 
   // hooks
 
@@ -228,6 +241,18 @@ class Share extends IdModel<
   @ForeignKey(() => Document)
   @Column(DataType.UUID)
   documentId: string | null;
+
+  /**
+   * The auto-created ghost user that holds the guest editor session.
+   * Suspended when guest editing is disabled.
+   */
+  @BelongsTo(() => User, "ghostUserId")
+  ghostUser: User | null;
+
+  @ForeignKey(() => User)
+  @AllowNull
+  @Column(DataType.UUID)
+  ghostUserId: string | null;
 
   revoke(ctx: APIContext) {
     const { user } = ctx.state.auth;

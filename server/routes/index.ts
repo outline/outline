@@ -1,6 +1,8 @@
 import crypto from "node:crypto";
 import path from "node:path";
+import { addHours } from "date-fns";
 import { formatRFC7231 } from "date-fns";
+import JWT from "jsonwebtoken";
 import Koa from "koa";
 import Router from "koa-router";
 import send from "koa-send";
@@ -10,8 +12,9 @@ import { parseDomain } from "@shared/utils/domains";
 import { Day } from "@shared/utils/time";
 import env from "@server/env";
 import { NotFoundError } from "@server/errors";
+import Logger from "@server/logging/Logger";
 import shareDomains from "@server/middlewares/shareDomains";
-import { Integration } from "@server/models";
+import { Document, Integration, Share, User } from "@server/models";
 import { opensearchResponse } from "@server/utils/opensearch";
 import { getTeamFromContext } from "@server/utils/passport";
 import { robotsResponse } from "@server/utils/robots";
@@ -105,64 +108,10 @@ router.get("/locales/:lng.json", async (ctx) => {
         "ETag",
         crypto.createHash("md5").update(stats.mtime.toISOString()).digest("hex")
       );
-      res.setHeader("Access-Control-Allow-Origin", "*");
     },
     root: path.join(__dirname, "../../shared/i18n/locales"),
   });
 });
-
-router.get(
-  [
-    "/.well-known/oauth-authorization-server",
-    "/.well-known/oauth-authorization-server/mcp",
-  ],
-  async (ctx) => {
-    const origin = ctx.request.URL.origin;
-    const team = await getTeamFromContext(ctx, { includeStateCookie: false });
-    const mcpEnabled = team?.getPreference(TeamPreference.MCP) ?? true;
-
-    ctx.body = {
-      issuer: origin,
-      authorization_endpoint: `${origin}/oauth/authorize`,
-      token_endpoint: `${origin}/oauth/token`,
-      revocation_endpoint: `${origin}/oauth/revoke`,
-      ...(!env.OAUTH_DISABLE_DCR &&
-        mcpEnabled && {
-          registration_endpoint: `${origin}/oauth/register`,
-        }),
-      response_types_supported: ["code"],
-      grant_types_supported: ["authorization_code", "refresh_token"],
-      token_endpoint_auth_methods_supported: ["client_secret_post", "none"],
-      code_challenge_methods_supported: ["S256"],
-      scopes_supported: ["read", "write"],
-    };
-  }
-);
-
-router.get(
-  [
-    "/.well-known/oauth-protected-resource",
-    "/.well-known/oauth-protected-resource/mcp",
-  ],
-  async (ctx) => {
-    const team = await getTeamFromContext(ctx, { includeStateCookie: false });
-    const mcpEnabled = team?.getPreference(TeamPreference.MCP) ?? true;
-
-    if (!mcpEnabled) {
-      ctx.status = 404;
-      return;
-    }
-
-    const origin = ctx.request.URL.origin;
-
-    ctx.body = {
-      resource: `${origin}/mcp`,
-      authorization_servers: [origin],
-      scopes_supported: ["read", "write"],
-      bearer_methods_supported: ["header"],
-    };
-  }
-);
 
 router.get("/robots.txt", (ctx) => {
   ctx.body = robotsResponse();
@@ -174,14 +123,104 @@ router.get("/opensearch.xml", (ctx) => {
   ctx.body = opensearchResponse(ctx.request.URL.origin);
 });
 
-router.get("/s/:shareId.:format", shareDomains(), renderShare);
 router.get("/s/:shareId", shareDomains(), renderShare);
-router.get(
-  "/s/:shareId/doc/:documentSlug.:format",
-  shareDomains(),
-  renderShare
-);
 router.get("/s/:shareId/doc/:documentSlug", shareDomains(), renderShare);
+
+/**
+ * Guest Edit Token Redemption
+ *
+ * Validates a one-time token from a share's guest edit URL, sets an
+ * authenticated session cookie for the ghost user, and redirects to the
+ * document's edit page — all without requiring the visitor to have an account.
+ *
+ * Must be registered BEFORE /s/:shareId/* so it takes priority over the
+ * catch-all share renderer.
+ *
+ * Flow:
+ *   GET /s/:shareId/edit?token=<guestEditToken>
+ *     → validate token against share
+ *     → set "accessToken" cookie (8h JWT for ghost user)
+ *     → redirect to /doc/:urlId
+ */
+router.get("/s/:shareId/edit", async (ctx) => {
+  const { shareId } = ctx.params;
+  const token = ctx.query.token as string | undefined;
+  const fallbackUrl = `/s/${shareId}`;
+
+  try {
+    if (!token) {
+      ctx.redirect(fallbackUrl);
+      return;
+    }
+
+    // Look up by urlId — share canonical URLs use the human-readable urlId
+    // (e.g. /s/my-document), not the UUID primary key.
+    const share = await Share.findOne({
+      where: { urlId: shareId, revokedAt: null },
+      include: [{ association: "team", required: true }],
+    });
+
+    if (
+      !share ||
+      !share.allowGuestEdit ||
+      !share.guestEditToken ||
+      share.guestEditToken !== token
+    ) {
+      // Token missing, invalid, or guest editing not enabled — fall back to read-only view.
+      ctx.redirect(fallbackUrl);
+      return;
+    }
+
+    if (!share.ghostUserId) {
+      ctx.redirect(fallbackUrl);
+      return;
+    }
+
+    const ghostUser = await User.findByPk(share.ghostUserId);
+    if (!ghostUser || ghostUser.suspendedAt) {
+      // Guest editing has been revoked.
+      ctx.redirect(fallbackUrl);
+      return;
+    }
+
+    const document = share.documentId
+      ? await Document.findByPk(share.documentId)
+      : null;
+
+    if (!document) {
+      ctx.redirect(fallbackUrl);
+      return;
+    }
+
+    // Generate an 8-hour session JWT for the ghost user.
+    // The payload format matches Outline's existing session token structure.
+    const expiresAt = addHours(new Date(), 8);
+    const sessionToken = JWT.sign(
+      {
+        id: ghostUser.id,
+        type: "session",
+        expiresAt: expiresAt.toISOString(),
+      },
+      ghostUser.jwtSecret
+    );
+
+    // Set the cookie that Outline's auth middleware reads on subsequent requests.
+    const isHttps = env.URL.startsWith("https");
+    ctx.cookies.set("accessToken", sessionToken, {
+      httpOnly: true,
+      sameSite: "lax",
+      expires: expiresAt,
+      secure: isHttps,
+    });
+
+    // Redirect to the actual document (the authenticated app route).
+    ctx.redirect(document.url);
+  } catch (err) {
+    Logger.error("Guest edit token redemption failed", err, { shareId });
+    ctx.redirect(fallbackUrl);
+  }
+});
+
 router.get("/s/:shareId/*", shareDomains(), renderShare);
 
 router.get("/embeds/gitlab", renderEmbed);

@@ -60,9 +60,7 @@ function PublicAccess(
   const handleIndexingChanged = React.useCallback(
     async (checked: boolean) => {
       try {
-        await share?.save({
-          allowIndexing: checked,
-        });
+        await share?.save({ allowIndexing: checked });
       } catch (err) {
         toast.error(err.message);
       }
@@ -73,9 +71,7 @@ function PublicAccess(
   const handleShowLastModifiedChanged = React.useCallback(
     async (checked: boolean) => {
       try {
-        await share?.save({
-          showLastUpdated: checked,
-        });
+        await share?.save({ showLastUpdated: checked });
       } catch (err) {
         toast.error(err.message);
       }
@@ -86,9 +82,7 @@ function PublicAccess(
   const handleShowTOCChanged = React.useCallback(
     async (checked: boolean) => {
       try {
-        await share?.save({
-          showTOC: checked,
-        });
+        await share?.save({ showTOC: checked });
       } catch (err) {
         toast.error(err.message);
       }
@@ -99,9 +93,7 @@ function PublicAccess(
   const handlePublishedChange = React.useCallback(
     async (checked: boolean) => {
       try {
-        await share?.save({
-          published: checked,
-        });
+        await share?.save({ published: checked });
       } catch (err) {
         toast.error(err.message);
       }
@@ -109,26 +101,36 @@ function PublicAccess(
     [share]
   );
 
+  // CUSTOM FORK: guest edit toggle handler
+  const handleGuestEditChanged = React.useCallback(
+    async (checked: boolean) => {
+      try {
+        await share?.save({ allowGuestEdit: checked });
+      } catch (err) {
+        toast.error(err.message);
+      }
+    },
+    [share]
+  );
+
+  const handleGuestEditLinkCopied = React.useCallback(() => {
+    toast.success(t("Guest edit link copied to clipboard"));
+  }, [t]);
+  // END CUSTOM FORK
+
   const handleUrlChange = React.useMemo(
     () =>
       debounce(async (ev) => {
-        if (!share) {
-          return;
-        }
-
+        if (!share) return;
         const val = ev.target.value;
         setUrlId(val);
         if (val && !UrlHelper.SHARE_URL_SLUG_REGEX.test(val)) {
-          setValidationError(
-            t("Only lowercase letters, digits and dashes allowed")
-          );
+          setValidationError(t("Only lowercase letters, digits and dashes allowed"));
         } else {
           setValidationError("");
           if (share.urlId !== val) {
             try {
-              await share.save({
-                urlId: isEmpty(val) ? null : val,
-              });
+              await share.save({ urlId: isEmpty(val) ? null : val });
             } catch (err) {
               if (err.message.includes("must be unique")) {
                 setValidationError(t("Sorry, this link has already been used"));
@@ -168,11 +170,8 @@ function PublicAccess(
             {sharedParent && !document.isDraft ? (
               sharedParent.collectionId ? (
                 <Trans>
-                  Anyone with the link can access because the containing
-                  collection,{" "}
-                  <UnderlinedLink
-                    to={`/collection/${sharedParent.collectionId}`}
-                  >
+                  Anyone with the link can access because the containing collection,{" "}
+                  <UnderlinedLink to={`/collection/${sharedParent.collectionId}`}>
                     {sharedParent.sourceTitle}
                   </UnderlinedLink>
                   , is shared
@@ -217,14 +216,8 @@ function PublicAccess(
               title={
                 <Text type="tertiary" as={Flex}>
                   {t("Search engine indexing")}&nbsp;
-                  <Tooltip
-                    content={t(
-                      "Disable this setting to discourage search engines from indexing the page"
-                    )}
-                  >
-                    <NudeButton size={18}>
-                      <QuestionMarkIcon size={18} />
-                    </NudeButton>
+                  <Tooltip content={t("Disable this setting to discourage search engines from indexing the page")}>
+                    <NudeButton size={18}><QuestionMarkIcon size={18} /></NudeButton>
                   </Tooltip>
                 </Text>
               }
@@ -242,14 +235,8 @@ function PublicAccess(
               title={
                 <Text type="tertiary" as={Flex}>
                   {t("Show last modified")}&nbsp;
-                  <Tooltip
-                    content={t(
-                      "Display the last modified timestamp on the shared page"
-                    )}
-                  >
-                    <NudeButton size={18}>
-                      <QuestionMarkIcon size={18} />
-                    </NudeButton>
+                  <Tooltip content={t("Display the last modified timestamp on the shared page")}>
+                    <NudeButton size={18}><QuestionMarkIcon size={18} /></NudeButton>
                   </Tooltip>
                 </Text>
               }
@@ -267,14 +254,8 @@ function PublicAccess(
               title={
                 <Text type="tertiary" as={Flex}>
                   {t("Show table of contents")}&nbsp;
-                  <Tooltip
-                    content={t(
-                      "Display the table of contents on documents by default"
-                    )}
-                  >
-                    <NudeButton size={18}>
-                      <QuestionMarkIcon size={18} />
-                    </NudeButton>
+                  <Tooltip content={t("Display the table of contents on documents by default")}>
+                    <NudeButton size={18}><QuestionMarkIcon size={18} /></NudeButton>
                   </Tooltip>
                 </Text>
               }
@@ -288,6 +269,27 @@ function PublicAccess(
                 />
               }
             />
+            {/* CUSTOM FORK: Allow guest editing toggle */}
+            <ListItem
+              title={
+                <Text type="tertiary" as={Flex}>
+                  {t("Allow guest editing")}&nbsp;
+                  <Tooltip content={t("Share a secret link that lets anyone edit this document without signing in")}>
+                    <NudeButton size={18}><QuestionMarkIcon size={18} /></NudeButton>
+                  </Tooltip>
+                </Text>
+              }
+              actions={
+                <Switch
+                  aria-label={t("Allow guest editing")}
+                  checked={share?.allowGuestEdit ?? false}
+                  onChange={handleGuestEditChanged}
+                  width={26}
+                  height={14}
+                />
+              }
+            />
+            {/* END CUSTOM FORK */}
           </>
         )}
 
@@ -313,14 +315,25 @@ function PublicAccess(
           </ShareLinkInput>
         ) : null}
 
+        {/* CUSTOM FORK: Guest edit URL display (only visible to admins; contains the secret token) */}
+        {share?.allowGuestEdit && share?.guestEditUrl && (
+          <ShareLinkInput type="text" disabled defaultValue={share.guestEditUrl}>
+            <Tooltip content={t("Copy guest edit link")} placement="top">
+              <CopyToClipboard text={share.guestEditUrl} onCopy={handleGuestEditLinkCopied}>
+                <NudeButton type="button" style={{ marginRight: 3 }}>
+                  <CopyIcon color={theme.placeholder} size={18} />
+                </NudeButton>
+              </CopyToClipboard>
+            </Tooltip>
+          </ShareLinkInput>
+        )}
+        {/* END CUSTOM FORK */}
+
         {share?.published && !share.includeChildDocuments ? (
           <Text as="p" type="tertiary" size="xsmall">
             <StyledInfoIcon color={theme.textTertiary} />
             <span>
-              {t(
-                "Nested documents are not shared on the web. Toggle sharing to enable access, this will be the default behavior in the future"
-              )}
-              .
+              {t("Nested documents are not shared on the web. Toggle sharing to enable access, this will be the default behavior in the future")}.
             </span>
           </Text>
         ) : null}

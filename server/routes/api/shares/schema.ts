@@ -20,7 +20,7 @@ export const SharesInfoSchema = BaseSchema.extend({
           isEmpty(body.documentId)
         ),
       {
-        error: "one of id, collectionId, or documentId is required",
+        message: "one of id, collectionId, or documentId is required",
       }
     ),
 });
@@ -37,7 +37,7 @@ export const SharesListSchema = BaseSchema.extend({
           ", "
         )}`,
       })
-      .prefault("updatedAt"),
+      .default("updatedAt"),
     direction: z
       .string()
       .optional()
@@ -49,16 +49,18 @@ export type SharesListReq = z.infer<typeof SharesListSchema>;
 
 export const SharesUpdateSchema = BaseSchema.extend({
   body: z.object({
-    id: z.uuid(),
+    id: z.string().uuid(),
     includeChildDocuments: z.boolean().optional(),
     published: z.boolean().optional(),
     allowIndexing: z.boolean().optional(),
     showLastUpdated: z.boolean().optional(),
     showTOC: z.boolean().optional(),
+    /** Enable or disable unauthenticated guest editing via a secret token URL. */
+    allowGuestEdit: z.boolean().optional(),
     urlId: z
       .string()
       .regex(UrlHelper.SHARE_URL_SLUG_REGEX, {
-        error: "must contain only alphanumeric and dashes",
+        message: "must contain only alphanumeric and dashes",
       })
       .nullish(),
   }),
@@ -71,20 +73,20 @@ export const SharesCreateSchema = BaseSchema.extend({
     .object({
       collectionId: zodIdType().optional(),
       documentId: zodIdType().optional(),
-      published: z.boolean().prefault(false),
+      published: z.boolean().default(false),
       allowIndexing: z.boolean().optional(),
       showLastUpdated: z.boolean().optional(),
       showTOC: z.boolean().optional(),
       urlId: z
         .string()
         .regex(UrlHelper.SHARE_URL_SLUG_REGEX, {
-          error: "must contain only alphanumeric and dashes",
+          message: "must contain only alphanumeric and dashes",
         })
         .optional(),
-      includeChildDocuments: z.boolean().prefault(false),
+      includeChildDocuments: z.boolean().default(false),
     })
     .refine((obj) => !(isEmpty(obj.collectionId) && isEmpty(obj.documentId)), {
-      error: "one of collectionId or documentId is required",
+      message: "one of collectionId or documentId is required",
     }),
 });
 
@@ -92,7 +94,7 @@ export type SharesCreateReq = z.infer<typeof SharesCreateSchema>;
 
 export const SharesRevokeSchema = BaseSchema.extend({
   body: z.object({
-    id: z.uuid(),
+    id: z.string().uuid(),
   }),
 });
 

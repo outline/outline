@@ -78,6 +78,15 @@ class Share extends Model implements Searchable {
   @observable
   showTOC: boolean;
 
+  /** CUSTOM FORK: whether guest editing is enabled for this share */
+  @Field
+  @observable
+  allowGuestEdit: boolean;
+
+  /** CUSTOM FORK: secret URL for guest editing (only returned for admins) */
+  @observable
+  guestEditUrl: string | undefined;
+
   @observable
   views: number;
 

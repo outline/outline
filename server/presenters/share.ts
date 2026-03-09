@@ -2,7 +2,7 @@ import type { Share } from "@server/models";
 import { presentUser } from ".";
 
 export default function presentShare(share: Share, isAdmin = false) {
-  const data = {
+  const data: Record<string, unknown> = {
     id: share.id,
     sourceTitle: share.collection?.name ?? share.document?.title,
     sourcePath: share.collection?.path ?? share.document?.path,
@@ -18,6 +18,7 @@ export default function presentShare(share: Share, isAdmin = false) {
     allowIndexing: share.allowIndexing,
     showLastUpdated: share.showLastUpdated,
     showTOC: share.showTOC,
+    allowGuestEdit: share.allowGuestEdit ?? false,
     lastAccessedAt: share.lastAccessedAt || undefined,
     views: share.views || 0,
     domain: share.domain,
@@ -27,6 +28,11 @@ export default function presentShare(share: Share, isAdmin = false) {
 
   if (!isAdmin) {
     delete data.lastAccessedAt;
+  }
+
+  // The guest edit URL contains the secret token — only expose it to admins.
+  if (isAdmin && share.allowGuestEdit && share.guestEditToken) {
+    data.guestEditUrl = `${share.canonicalUrl}/edit?token=${share.guestEditToken}`;
   }
 
   return data;
