@@ -29,6 +29,12 @@ const handleTeamUpdate = async (ctx: APIContext<T.TeamsUpdateSchemaReq>) => {
   });
   authorize(user, "update", team);
 
+  if (env.ALLOWED_DOMAINS && ctx.input.body.allowedDomains !== undefined) {
+    throw ValidationError(
+      "Allowed domains are managed by the ALLOWED_DOMAINS environment variable"
+    );
+  }
+
   const updatedTeam = await teamUpdater(ctx, {
     params: ctx.input.body,
     user,

@@ -1097,6 +1097,8 @@
   "Are you sure you want to disconnect the <em>{{ service }}</em> integration?": "Are you sure you want to disconnect the <em>{{ service }}</em> integration?",
   "This will stop sending analytics events to the configured instance.": "This will stop sending analytics events to the configured instance.",
   "Allowed domains": "Allowed domains",
+  "Allowed domains are managed by the ALLOWED_DOMAINS environment variable.": "Allowed domains are managed by the ALLOWED_DOMAINS environment variable.",
+  "No domains configured": "No domains configured",
   "The domains which should be allowed to create new accounts using SSO. Changing this setting does not affect existing user accounts.": "The domains which should be allowed to create new accounts using SSO. Changing this setting does not affect existing user accounts.",
   "Remove domain": "Remove domain",
   "Add a domain": "Add a domain",

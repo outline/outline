@@ -78,6 +78,9 @@ class Team extends Model {
   @observable
   allowedDomains: string[] | null | undefined;
 
+  @observable
+  domainsManagedByEnv: boolean;
+
   @computed
   get signinMethods(): string {
     return "SSO";

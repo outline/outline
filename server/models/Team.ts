@@ -328,14 +328,20 @@ class Team extends ParanoidModel<
     this: Team,
     domainOrEmail: string
   ): Promise<boolean> {
-    const allowedDomains = (await this.$get("allowedDomains")) || [];
-
     let domain = domainOrEmail;
     if (isEmail(domainOrEmail)) {
       const parsed = parseEmail(domainOrEmail);
       domain = parsed.domain;
     }
 
+    if (env.ALLOWED_DOMAINS) {
+      const envDomains = env.ALLOWED_DOMAINS.split(",")
+        .map((d) => d.trim().toLowerCase())
+        .filter(Boolean);
+      return envDomains.length === 0 || envDomains.includes(domain);
+    }
+
+    const allowedDomains = (await this.$get("allowedDomains")) || [];
     return (
       allowedDomains.length === 0 ||
       allowedDomains.map((d: TeamDomain) => d.name).includes(domain)

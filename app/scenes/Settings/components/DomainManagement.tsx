@@ -10,6 +10,7 @@ import Input from "~/components/Input";
 import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import Text from "~/components/Text";
 import SettingRow from "./SettingRow";
 
 type Props = {
@@ -75,6 +76,30 @@ function DomainManagement({ onSuccess }: Props) {
     existingDomainsTouched ||
     allowedDomains.filter((value: string) => value !== "").length > // New domains were added
       lastKnownDomainCount;
+
+  if (team.domainsManagedByEnv) {
+    return (
+      <SettingRow
+        label={t("Allowed domains")}
+        name="allowedDomains"
+        description={t(
+          "Allowed domains are managed by the ALLOWED_DOMAINS environment variable."
+        )}
+      >
+        {allowedDomains.length > 0 ? (
+          allowedDomains.map((domain, index) => (
+            <Text key={index} type="secondary">
+              {domain}
+            </Text>
+          ))
+        ) : (
+          <Text type="secondary">
+            <Trans>No domains configured</Trans>
+          </Text>
+        )}
+      </SettingRow>
+    );
+  }
 
   return (
     <SettingRow
