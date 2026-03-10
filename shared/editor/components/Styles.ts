@@ -1739,12 +1739,27 @@ mark {
 }
 
 .code-block.collapsed {
-  overflow: auto;
   max-height: 350px;
+  clip-path: inset(0 -1px 0 0);
+  pointer-events: none;
 
-  pre {
-    padding-top: 3px;
+
+  &::before {
+    z-index: 1;
+    content: "";
+    position: absolute;
+    bottom: 0;
+    height: 150px;
+    width: 100%;
+    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0), /* Fully transparent at the top */
+      rgba(0, 0, 0, 0.2) 60%, /* Light fade in the middle */
+      rgba(0, 0, 0, 0.4) 100% /* Fully opaque at the bottom */
+    );
   }
+
 }
 
 .code-block[data-language=none],
