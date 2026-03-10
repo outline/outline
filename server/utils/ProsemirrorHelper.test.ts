@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import { Node } from "prosemirror-model";
 import { ProsemirrorHelper as ServerProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
@@ -225,12 +226,8 @@ describe("#ProsemirrorHelper", () => {
       const tdAttrsMarks = result.content?.[0]?.content?.[0]?.content?.[0]
         ?.attrs?.marks as Array<{ type: string }> | undefined;
 
-      expect(
-        tdAttrsMarks?.find((m) => m.type === "background")
-      ).toBeDefined();
-      expect(
-        tdAttrsMarks?.find((m) => m.type === "comment")
-      ).toBeUndefined();
+      expect(tdAttrsMarks?.find((m) => m.type === "background")).toBeDefined();
+      expect(tdAttrsMarks?.find((m) => m.type === "comment")).toBeUndefined();
     });
 
     it("removes comment marks from text nodes when duplicating", () => {
@@ -243,7 +240,12 @@ describe("#ProsemirrorHelper", () => {
               {
                 type: "text",
                 text: "Hello",
-                marks: [{ type: "comment", attrs: { id: "comment-2" } }],
+                marks: [
+                  {
+                    type: "comment",
+                    attrs: { id: "comment-2", userId: crypto.randomUUID() },
+                  },
+                ],
               },
             ],
           },
