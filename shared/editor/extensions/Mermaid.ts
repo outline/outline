@@ -2,6 +2,7 @@ import last from "lodash/last";
 import sortBy from "lodash/sortBy";
 import { v4 as uuidv4 } from "uuid";
 import type MermaidUnsafe from "mermaid";
+import type { IconPack } from "@fortawesome/fontawesome-common-types";
 import type { Node } from "prosemirror-model";
 import type { Transaction } from "prosemirror-state";
 import { NodeSelection, Plugin, PluginKey } from "prosemirror-state";
@@ -42,6 +43,38 @@ class Cache {
 }
 
 let mermaid: typeof MermaidUnsafe;
+
+/** Minimal Iconify JSON icon set format required by Mermaid's `registerIconPacks` API. */
+interface IconifyIconSet {
+  prefix: string;
+  icons: Record<string, { body: string; width: number; height: number }>;
+}
+
+/**
+ * Converts a FontAwesome icon pack to the Iconify JSON format expected by Mermaid's
+ * `registerIconPacks` API.
+ *
+ * @param pack the FontAwesome icon pack to convert.
+ * @param prefix the Iconify prefix to use (e.g. "fa-solid" or "fa-brands").
+ * @returns an Iconify-compatible JSON icon set.
+ */
+function fontAwesomeToIconify(pack: IconPack, prefix: string): IconifyIconSet {
+  const icons: IconifyIconSet["icons"] = {};
+
+  for (const iconDef of Object.values(pack)) {
+    // icon array layout: [width, height, ligatures, unicode, svgPathData]
+    if (!iconDef.iconName || !iconDef.icon) {
+      continue;
+    }
+    const [width, height, , , paths] = iconDef.icon;
+    const body = Array.isArray(paths)
+      ? paths.map((p) => `<path d="${p}"/>`).join("")
+      : `<path d="${paths}"/>`;
+    icons[iconDef.iconName] = { body, width, height };
+  }
+
+  return { prefix, icons };
+}
 
 class MermaidRenderer {
   readonly diagramId: string;
@@ -99,6 +132,24 @@ class MermaidRenderer {
                 throw new Error("ELK layout not found");
               }
               return elkDef.loader();
+            },
+          },
+        ]);
+        mermaid.registerIconPacks([
+          {
+            name: "fa-solid",
+            loader: async () => {
+              const { fas } = await import("@fortawesome/free-solid-svg-icons");
+              return fontAwesomeToIconify(fas, "fa-solid");
+            },
+          },
+          {
+            name: "fa-brands",
+            loader: async () => {
+              const { fab } = await import(
+                "@fortawesome/free-brands-svg-icons"
+              );
+              return fontAwesomeToIconify(fab, "fa-brands");
             },
           },
         ]);
