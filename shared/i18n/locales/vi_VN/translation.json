@@ -1092,6 +1092,7 @@
   "Are you sure you want to disconnect the <em>{{ service }}</em> integration?": "Are you sure you want to disconnect the <em>{{ service }}</em> integration?",
   "This will stop sending analytics events to the configured instance.": "This will stop sending analytics events to the configured instance.",
   "Allowed domains": "Các tên miền cho phép",
+  "Allowed domains are managed by the ALLOWED_DOMAINS environment variable.": "Các tên miền cho phép được quản lý bởi biến môi trường ALLOWED_DOMAINS.",
   "The domains which should be allowed to create new accounts using SSO. Changing this setting does not affect existing user accounts.": "Các miền được phép tạo tài khoản mới bằng SSO. Việc thay đổi cài đặt này không ảnh hưởng đến các tài khoản người dùng hiện có.",
   "Remove domain": "Xóa tên miền",
   "Add a domain": "Thêm tên miền",

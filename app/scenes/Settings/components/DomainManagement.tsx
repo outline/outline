@@ -17,7 +17,27 @@ type Props = {
   onSuccess: () => void;
 };
 
-function DomainManagement({ onSuccess }: Props) {
+function EnvManagedDomains({ domains }: { domains: string[] }) {
+  const { t } = useTranslation();
+
+  return (
+    <SettingRow
+      label={t("Allowed domains")}
+      name="allowedDomains"
+      description={t(
+        "Allowed domains are managed by the ALLOWED_DOMAINS environment variable."
+      )}
+    >
+      {domains.map((domain, index) => (
+        <Text key={index} type="secondary">
+          {domain}
+        </Text>
+      ))}
+    </SettingRow>
+  );
+}
+
+function EditableDomains({ onSuccess }: Props) {
   const team = useCurrentTeam();
   const { t } = useTranslation();
 
@@ -77,30 +97,6 @@ function DomainManagement({ onSuccess }: Props) {
     allowedDomains.filter((value: string) => value !== "").length > // New domains were added
       lastKnownDomainCount;
 
-  if (team.domainsManagedByEnv) {
-    return (
-      <SettingRow
-        label={t("Allowed domains")}
-        name="allowedDomains"
-        description={t(
-          "Allowed domains are managed by the ALLOWED_DOMAINS environment variable."
-        )}
-      >
-        {allowedDomains.length > 0 ? (
-          allowedDomains.map((domain, index) => (
-            <Text key={index} type="secondary">
-              {domain}
-            </Text>
-          ))
-        ) : (
-          <Text type="secondary">
-            <Trans>No domains configured</Trans>
-          </Text>
-        )}
-      </SettingRow>
-    );
-  }
-
   return (
     <SettingRow
       label={t("Allowed domains")}
@@ -157,6 +153,16 @@ function DomainManagement({ onSuccess }: Props) {
       </Flex>
     </SettingRow>
   );
+}
+
+function DomainManagement({ onSuccess }: Props) {
+  const team = useCurrentTeam();
+
+  if (team.domainsManagedByEnv) {
+    return <EnvManagedDomains domains={team.domainsManagedByEnv} />;
+  }
+
+  return <EditableDomains onSuccess={onSuccess} />;
 }
 
 const Remove = styled("div")`

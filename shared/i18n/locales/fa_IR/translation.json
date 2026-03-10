@@ -1092,6 +1092,7 @@
   "Are you sure you want to disconnect the <em>{{ service }}</em> integration?": "آیا مطمئن هستید که می‌خواهید یکپارچه‌سازی <em>{{ service }}</em> را قطع کنید؟",
   "This will stop sending analytics events to the configured instance.": "با این کار، ارسال رویدادهای تحلیلی به نمونهٔ پیکربندی‌شده متوقف می‌شود.",
   "Allowed domains": "دامنه‌های مجاز",
+  "Allowed domains are managed by the ALLOWED_DOMAINS environment variable.": "دامنه‌های مجاز توسط متغیر محیطی ALLOWED_DOMAINS مدیریت می‌شوند.",
   "The domains which should be allowed to create new accounts using SSO. Changing this setting does not affect existing user accounts.": "دامنه‌هایی که باید اجازه ایجاد حساب‌های جدید با استفاده از SSO را داشته باشند. تغییر این تنظیمات بر حساب‌های کاربری موجود تأثیری نخواهد داشت.",
   "Remove domain": "حذف دامنه",
   "Add a domain": "افزودن دامنه",

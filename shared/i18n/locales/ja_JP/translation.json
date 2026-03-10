@@ -1092,6 +1092,7 @@
   "Are you sure you want to disconnect the <em>{{ service }}</em> integration?": "Are you sure you want to disconnect the <em>{{ service }}</em> integration?",
   "This will stop sending analytics events to the configured instance.": "This will stop sending analytics events to the configured instance.",
   "Allowed domains": "許可されているドメイン",
+  "Allowed domains are managed by the ALLOWED_DOMAINS environment variable.": "許可されているドメインは ALLOWED_DOMAINS 環境変数で管理されています。",
   "The domains which should be allowed to create new accounts using SSO. Changing this setting does not affect existing user accounts.": "SSO を使用して新しいアカウントを作成できるドメイン。この設定を変更しても、既存のユーザーには影響しません。",
   "Remove domain": "ドメインを削除",
   "Add a domain": "ドメインを追加",

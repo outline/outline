@@ -1092,6 +1092,7 @@
   "Are you sure you want to disconnect the <em>{{ service }}</em> integration?": "<em>{{ service }}</em> entegrasyonunun bağlantısını kesmek istediğinizden emin misiniz?",
   "This will stop sending analytics events to the configured instance.": "Bu, yapılandırılan örneğe analitik olayları göndermeyi durduracaktır.",
   "Allowed domains": "İzin verilen alan adları",
+  "Allowed domains are managed by the ALLOWED_DOMAINS environment variable.": "İzin verilen alan adları ALLOWED_DOMAINS ortam değişkeni tarafından yönetilir.",
   "The domains which should be allowed to create new accounts using SSO. Changing this setting does not affect existing user accounts.": "SSO kullanarak yeni hesap oluşturmasına izin verilmesi gereken alan adları. Bu ayarın değiştirilmesi mevcut kullanıcı hesaplarını etkilemez.",
   "Remove domain": "Alan adını kaldır",
   "Add a domain": "Bir alan adı ekle",

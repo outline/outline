@@ -1092,6 +1092,7 @@
   "Are you sure you want to disconnect the <em>{{ service }}</em> integration?": "Opravdu chcete odpojit integraci <em>{{ service }}</em>?",
   "This will stop sending analytics events to the configured instance.": "Tímto zastavíte odesílání analytických událostí do nastavené instance.",
   "Allowed domains": "Povolené domény",
+  "Allowed domains are managed by the ALLOWED_DOMAINS environment variable.": "Povolené domény jsou spravovány proměnnou prostředí ALLOWED_DOMAINS.",
   "The domains which should be allowed to create new accounts using SSO. Changing this setting does not affect existing user accounts.": "Domény, které mají povoleno vytvářet účty přes SSO. Změna se nedotkne stávajících účtů.",
   "Remove domain": "Odstranit doménu",
   "Add a domain": "Přidat doménu",

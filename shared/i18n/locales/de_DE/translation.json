@@ -1092,6 +1092,7 @@
   "Are you sure you want to disconnect the <em>{{ service }}</em> integration?": "Sind Sie sicher, dass Sie die <em>{{ service }}</em> Integration trennen möchten?",
   "This will stop sending analytics events to the configured instance.": "Dies stoppt das Senden von Analyseereignissen an die konfigurierte Instanz.",
   "Allowed domains": "Erlaubte Domains",
+  "Allowed domains are managed by the ALLOWED_DOMAINS environment variable.": "Die erlaubten Domains werden über die Umgebungsvariable ALLOWED_DOMAINS verwaltet.",
   "The domains which should be allowed to create new accounts using SSO. Changing this setting does not affect existing user accounts.": "Die Domänen, die mit SSO neue Konten erstellen dürfen. Das Ändern dieser Einstellung wirkt sich nicht auf bestehende Benutzerkonten aus.",
   "Remove domain": "Domäne entfernen",
   "Add a domain": "Eine Domäne hinzufügen",

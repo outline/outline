@@ -1092,6 +1092,7 @@
   "Are you sure you want to disconnect the <em>{{ service }}</em> integration?": "您确定要移除与 <em>{{ service }}</em> 的集成吗？",
   "This will stop sending analytics events to the configured instance.": "这将停止向配置实例发送分析事件。",
   "Allowed domains": "允许的域",
+  "Allowed domains are managed by the ALLOWED_DOMAINS environment variable.": "允许的域由 ALLOWED_DOMAINS 环境变量管理。",
   "The domains which should be allowed to create new accounts using SSO. Changing this setting does not affect existing user accounts.": "应该允许使用 SSO 创建新帐户的域。更改此设置不会影响现有用户帐户。",
   "Remove domain": "删除域",
   "Add a domain": "添加域",

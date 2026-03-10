@@ -19,12 +19,8 @@ export default function presentTeam(team: Team) {
     url: team.url,
     defaultUserRole: team.defaultUserRole,
     inviteRequired: team.inviteRequired,
-    allowedDomains: env.ALLOWED_DOMAINS
-      ? env.ALLOWED_DOMAINS.split(",")
-          .map((d) => d.trim().toLowerCase())
-          .filter(Boolean)
-      : team.allowedDomains?.map((d) => d.name),
-    domainsManagedByEnv: !!env.ALLOWED_DOMAINS,
+    allowedDomains: team.allowedDomains?.map((d) => d.name),
+    domainsManagedByEnv: env.getAllowedDomains(),
     preferences: team.preferences,
   };
 }

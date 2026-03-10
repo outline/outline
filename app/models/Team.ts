@@ -79,7 +79,7 @@ class Team extends Model {
   allowedDomains: string[] | null | undefined;
 
   @observable
-  domainsManagedByEnv: boolean;
+  domainsManagedByEnv?: string[];
 
   @computed
   get signinMethods(): string {

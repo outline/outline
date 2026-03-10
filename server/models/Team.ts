@@ -318,11 +318,26 @@ class Team extends ParanoidModel<
   };
 
   /**
+   * Returns the effective list of allowed domains for this team, consulting
+   * the environment variable first and falling back to database records.
+   *
+   * @returns the list of allowed domain names.
+   */
+  public async getEffectiveAllowedDomains(): Promise<string[]> {
+    const envDomains = env.getAllowedDomains();
+    if (envDomains) {
+      return envDomains;
+    }
+    const dbDomains = (await this.$get("allowedDomains")) || [];
+    return dbDomains.map((d: TeamDomain) => d.name);
+  }
+
+  /**
    * Find whether the passed domain can be used to sign-in to this team. Note
    * that this method always returns true if no domain restrictions are set.
    *
-   * @param domainOrEmail The domain or email to check
-   * @returns True if the domain is allowed to sign-in to this team
+   * @param domainOrEmail the domain or email to check.
+   * @returns true if the domain is allowed to sign-in to this team.
    */
   public isDomainAllowed = async function (
     this: Team,
@@ -334,18 +349,8 @@ class Team extends ParanoidModel<
       domain = parsed.domain;
     }
 
-    if (env.ALLOWED_DOMAINS) {
-      const envDomains = env.ALLOWED_DOMAINS.split(",")
-        .map((d) => d.trim().toLowerCase())
-        .filter(Boolean);
-      return envDomains.length === 0 || envDomains.includes(domain);
-    }
-
-    const allowedDomains = (await this.$get("allowedDomains")) || [];
-    return (
-      allowedDomains.length === 0 ||
-      allowedDomains.map((d: TeamDomain) => d.name).includes(domain)
-    );
+    const allowed = await this.getEffectiveAllowedDomains();
+    return allowed.length === 0 || allowed.includes(domain);
   };
 
   // associations

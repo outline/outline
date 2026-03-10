@@ -366,6 +366,22 @@ export class Environment {
   public ALLOWED_DOMAINS =
     environment.ALLOWED_DOMAINS ?? environment.GOOGLE_ALLOWED_DOMAINS;
 
+  /**
+   * Returns the parsed list of allowed domains from the ALLOWED_DOMAINS
+   * environment variable, or undefined if the variable is not set.
+   *
+   * @returns the parsed allowed domains, or undefined.
+   */
+  public getAllowedDomains(): string[] | undefined {
+    if (!this.ALLOWED_DOMAINS) {
+      return undefined;
+    }
+    const domains = this.ALLOWED_DOMAINS.split(",")
+      .map((d) => d.trim().toLowerCase())
+      .filter(Boolean);
+    return domains.length > 0 ? domains : undefined;
+  }
+
   // Third-party services
 
   /**

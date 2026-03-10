@@ -1092,6 +1092,7 @@
   "Are you sure you want to disconnect the <em>{{ service }}</em> integration?": "서비스 <em>{{ service }}</em>와 통합을 해제하시겠습니까?",
   "This will stop sending analytics events to the configured instance.": "이렇게 하면 구성된 인스턴스로 분석 이벤트가 전송되지 않습니다.",
   "Allowed domains": "허용된 도메인",
+  "Allowed domains are managed by the ALLOWED_DOMAINS environment variable.": "허용된 도메인은 ALLOWED_DOMAINS 환경 변수로 관리됩니다.",
   "The domains which should be allowed to create new accounts using SSO. Changing this setting does not affect existing user accounts.": "SSO를 사용하여 새 계정을 만들 수 있도록 허용해야 하는 도메인입니다. 이 설정을 변경해도 기존 사용자 계정에는 영향을 미치지 않습니다.",
   "Remove domain": "도메인 삭제",
   "Add a domain": "도메인 추가",
