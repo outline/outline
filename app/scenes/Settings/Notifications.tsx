@@ -1,4 +1,5 @@
 import debounce from "lodash/debounce";
+import { runInAction } from "mobx";
 import { observer } from "mobx-react";
 import {
   AcademicCapIcon,
@@ -24,19 +25,14 @@ import Notice from "~/components/Notice";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
-import { HStack } from "~/components/primitives/HStack";
-import env from "~/env";
-import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import usePolicy from "~/hooks/usePolicy";
+import { client } from "~/utils/ApiClient";
 import isCloudHosted from "~/utils/isCloudHosted";
 import SettingRow from "./components/SettingRow";
 
 function Notifications() {
   const user = useCurrentUser();
-  const team = useCurrentTeam();
   const { t } = useTranslation();
-  const can = usePolicy(team.id);
 
   const options = [
     {
@@ -151,6 +147,8 @@ function Notifications() {
     },
   ];
 
+  const visibleOptions = options.filter((o) => o.visible !== false);
+
   const showSuccessMessage = debounce(() => {
     toast.success(t("Notifications saved"));
   }, 500);
@@ -161,6 +159,29 @@ function Notifications() {
       showSuccessMessage();
     },
     [user, showSuccessMessage]
+  );
+
+  const handleToggleAll = React.useCallback(
+    async (checked: boolean) => {
+      runInAction(() => {
+        const updated = { ...user.notificationSettings };
+        for (const option of visibleOptions) {
+          updated[option.event] = checked;
+        }
+        user.notificationSettings = updated;
+      });
+      await client.post(
+        checked
+          ? `/users.notificationsSubscribe`
+          : `/users.notificationsUnsubscribe`
+      );
+      showSuccessMessage();
+    },
+    [user, visibleOptions, showSuccessMessage]
+  );
+
+  const allEnabled = visibleOptions.every((o) =>
+    user.subscribedToEventType(o.event)
   );
 
   const showSuccessNotice = window.location.search === "?success";
@@ -180,17 +201,18 @@ function Notifications() {
         <Trans>Manage when and where you receive email notifications.</Trans>
       </Text>
 
-      {env.EMAIL_ENABLED && can.manage && (
-        <Notice>
-          <Trans>
-            The email integration is currently disabled. Please set the
-            associated environment variables and restart the server to enable
-            notifications.
-          </Trans>
-        </Notice>
-      )}
-
-      <h2>{t("Notifications")}</h2>
+      <SettingRow
+        name="allNotifications"
+        label={t("All notifications")}
+        compact
+        border={false}
+      >
+        <Switch
+          id="allNotifications"
+          checked={allEnabled}
+          onChange={handleToggleAll}
+        />
+      </SettingRow>
 
       {options.map((option) => {
         const setting = user.subscribedToEventType(option.event);
@@ -199,13 +221,14 @@ function Notifications() {
           <SettingRow
             key={option.event}
             visible={option.visible}
-            label={
-              <HStack spacing={4}>
-                {option.icon} {option.title}
-              </HStack>
-            }
+            label={option.title}
             name={option.event}
-            description={option.description}
+            description={
+              <Text size="small" type="secondary">
+                {option.description}
+              </Text>
+            }
+            compact
           >
             <Switch
               key={option.event}
