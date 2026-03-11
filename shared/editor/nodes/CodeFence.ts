@@ -78,6 +78,10 @@ export default class CodeFence extends Node {
           default: false,
           validate: "boolean",
         },
+        collapsed: {
+          default: false,
+          validate: "boolean",
+        },
       },
       content: "text*",
       marks: "comment",
@@ -118,7 +122,7 @@ export default class CodeFence extends Node {
               : this.showLineNumbers
                 ? "with-line-numbers"
                 : ""
-          }`,
+          } ${node.attrs.collapsed ? "collapsed" : ""}`,
           "data-language": node.attrs.language,
         },
         ["pre", ["code", { spellCheck: "false" }, 0]],
@@ -217,6 +221,18 @@ export default class CodeFence extends Node {
         }
 
         return false;
+      },
+      toggleCodeBlockCollapse: (): Command => (state, dispatch) => {
+        const codeBlock = findParentNode(isCode)(state.selection);
+        if (codeBlock && dispatch) {
+          dispatch(
+            state.tr.setNodeMarkup(codeBlock.pos, undefined, {
+              ...codeBlock.node.attrs,
+              collapsed: !codeBlock.node.attrs.collapsed,
+            })
+          );
+        }
+        return true;
       },
     };
   }
@@ -361,6 +377,58 @@ export default class CodeFence extends Node {
           decorations(state) {
             return this.getState(state);
           },
+        },
+      }),
+      new Plugin({
+        key: new PluginKey("expand-on-click"),
+        props: {
+          handleClick: (view) => {
+            const { state, dispatch } = view;
+            const codeBlock = findParentNode(isCode)(state.selection);
+
+            if (codeBlock && codeBlock.node.attrs.collapsed) {
+              dispatch?.(
+                state.tr.setNodeMarkup(codeBlock.pos, undefined, {
+                  ...codeBlock.node.attrs,
+                  collapsed: false,
+                })
+              );
+              return true;
+            }
+            return false;
+          },
+        },
+      }),
+      new Plugin({
+        key: new PluginKey("auto-collapse-on-load"),
+        appendTransaction: (_transactions, _oldState, newState) => {
+          const tr = newState.tr;
+          let modified = false;
+
+          newState.doc.descendants((node, pos) => {
+            if (
+              node.type.name === "code_fence" &&
+              node.attrs.collapsed === false
+            ) {
+              const dom = document.querySelector(
+                `[data-pos="${pos}"]`
+              ) as HTMLElement;
+              if (dom) {
+                const height = dom.offsetHeight;
+                const MAX_HEIGHT = 350;
+
+                if (height > MAX_HEIGHT) {
+                  tr.setNodeMarkup(pos, undefined, {
+                    ...node.attrs,
+                    collapsed: true,
+                  });
+                  modified = true;
+                }
+              }
+            }
+          });
+
+          return modified ? tr : null;
         },
       }),
     ].filter(Boolean) as Plugin[];
