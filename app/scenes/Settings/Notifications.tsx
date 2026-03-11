@@ -25,20 +25,14 @@ import Notice from "~/components/Notice";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
-import { HStack } from "~/components/primitives/HStack";
-import env from "~/env";
-import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import usePolicy from "~/hooks/usePolicy";
 import { client } from "~/utils/ApiClient";
 import isCloudHosted from "~/utils/isCloudHosted";
 import SettingRow from "./components/SettingRow";
 
 function Notifications() {
   const user = useCurrentUser();
-  const team = useCurrentTeam();
   const { t } = useTranslation();
-  const can = usePolicy(team.id);
 
   const options = [
     {
@@ -207,18 +201,6 @@ function Notifications() {
         <Trans>Manage when and where you receive email notifications.</Trans>
       </Text>
 
-      {env.EMAIL_ENABLED && can.manage && (
-        <Notice>
-          <Trans>
-            The email integration is currently disabled. Please set the
-            associated environment variables and restart the server to enable
-            notifications.
-          </Trans>
-        </Notice>
-      )}
-
-      <h2>{t("Notifications")}</h2>
-
       <SettingRow
         name="allNotifications"
         label={t("All notifications")}
@@ -239,13 +221,14 @@ function Notifications() {
           <SettingRow
             key={option.event}
             visible={option.visible}
-            label={
-              <HStack spacing={4}>
-                {option.icon} {option.title}
-              </HStack>
-            }
+            label={option.title}
             name={option.event}
-            description={option.description}
+            description={
+              <Text size="small" type="secondary">
+                {option.description}
+              </Text>
+            }
+            compact
           >
             <Switch
               key={option.event}
