@@ -360,12 +360,6 @@ export class Environment {
     environment.ENABLE_UPDATES ?? environment.TELEMETRY ?? "true"
   );
 
-  /**
-   * An optional comma separated list of allowed domains.
-   */
-  public ALLOWED_DOMAINS =
-    environment.ALLOWED_DOMAINS ?? environment.GOOGLE_ALLOWED_DOMAINS;
-
   // Third-party services
 
   /**
