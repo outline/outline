@@ -336,8 +336,15 @@ export const createNewDocument = createActionWithChildren({
   section: ActiveDocumentSection,
   icon: <NewDocumentIcon />,
   keywords: "create",
-  visible: ({ currentTeamId, stores }) =>
-    !!currentTeamId && stores.policies.abilities(currentTeamId).createDocument,
+  visible: ({ currentTeamId, activeDocumentId, stores }) => {
+    if (!activeDocumentId) {
+      return false;
+    }
+
+    return (
+      !!currentTeamId && stores.policies.abilities(currentTeamId).createDocument
+    );
+  },
   children: [createDocumentBefore, createDocumentAfter, createNestedDocument],
 });
 
@@ -566,7 +573,10 @@ export const shareDocument = createAction({
   section: ActiveDocumentSection,
   icon: <PadlockIcon />,
   visible: ({ stores, activeDocumentId }) => {
-    const can = stores.policies.abilities(activeDocumentId!);
+    if (!activeDocumentId) {
+      return false;
+    }
+    const can = stores.policies.abilities(activeDocumentId);
     return can.manageUsers || can.share;
   },
   perform: async ({ activeDocumentId, stores, currentUserId, t }) => {
