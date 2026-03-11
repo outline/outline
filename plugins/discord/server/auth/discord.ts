@@ -227,7 +227,7 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
     config.id,
     passport.authenticate(config.id, {
       scope,
-      prompt: "consent",
+      prompt: "none",
     })
   );
   router.get(`${config.id}.callback`, passportMiddleware(config.id));
