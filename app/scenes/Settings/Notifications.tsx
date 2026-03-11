@@ -1,4 +1,5 @@
 import debounce from "lodash/debounce";
+import { runInAction } from "mobx";
 import { observer } from "mobx-react";
 import {
   AcademicCapIcon,
@@ -29,6 +30,7 @@ import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
+import { client } from "~/utils/ApiClient";
 import isCloudHosted from "~/utils/isCloudHosted";
 import SettingRow from "./components/SettingRow";
 
@@ -151,6 +153,8 @@ function Notifications() {
     },
   ];
 
+  const visibleOptions = options.filter((o) => o.visible !== false);
+
   const showSuccessMessage = debounce(() => {
     toast.success(t("Notifications saved"));
   }, 500);
@@ -161,6 +165,29 @@ function Notifications() {
       showSuccessMessage();
     },
     [user, showSuccessMessage]
+  );
+
+  const handleToggleAll = React.useCallback(
+    async (checked: boolean) => {
+      runInAction(() => {
+        const updated = { ...user.notificationSettings };
+        for (const option of visibleOptions) {
+          updated[option.event] = checked;
+        }
+        user.notificationSettings = updated;
+      });
+      await client.post(
+        checked
+          ? `/users.notificationsSubscribe`
+          : `/users.notificationsUnsubscribe`
+      );
+      showSuccessMessage();
+    },
+    [user, visibleOptions, showSuccessMessage]
+  );
+
+  const allEnabled = visibleOptions.every((o) =>
+    user.subscribedToEventType(o.event)
   );
 
   const showSuccessNotice = window.location.search === "?success";
@@ -191,6 +218,19 @@ function Notifications() {
       )}
 
       <h2>{t("Notifications")}</h2>
+
+      <SettingRow
+        name="allNotifications"
+        label={t("All notifications")}
+        compact
+        border={false}
+      >
+        <Switch
+          id="allNotifications"
+          checked={allEnabled}
+          onChange={handleToggleAll}
+        />
+      </SettingRow>
 
       {options.map((option) => {
         const setting = user.subscribedToEventType(option.event);
