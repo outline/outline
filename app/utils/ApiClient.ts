@@ -2,6 +2,7 @@ import retry from "fetch-retry";
 import trim from "lodash/trim";
 import queryString from "query-string";
 import EDITOR_VERSION from "@shared/editor/version";
+import { version } from "../../package.json";
 import type { JSONObject } from "@shared/types";
 import { Scope } from "@shared/types";
 import stores from "~/stores";
@@ -109,6 +110,7 @@ class ApiClient {
       "cache-control": "no-cache",
       "x-editor-version": EDITOR_VERSION,
       "x-api-version": "4",
+      "x-client-version": version,
       pragma: "no-cache",
       ...options?.headers,
     };
