@@ -1,5 +1,6 @@
 import { DocumentIcon, ShapesIcon } from "outline-icons";
 import cloneDeep from "lodash/cloneDeep";
+import { observer } from "mobx-react";
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import Icon from "@shared/components/Icon";
@@ -145,4 +146,4 @@ function BlockMenu(props: Props) {
   );
 }
 
-export default BlockMenu;
+export default observer(BlockMenu);
