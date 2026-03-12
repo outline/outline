@@ -88,7 +88,7 @@ import ZipHelper from "@server/utils/ZipHelper";
 import { convertBareUrlsToEmbedMarkdown } from "@server/utils/embeds";
 import { getTeamFromContext } from "@server/utils/passport";
 import { assertPresent } from "@server/validation";
-import pagination from "../middlewares/pagination";
+import pagination, { paginateQuery } from "../middlewares/pagination";
 import * as T from "./schema";
 import {
   loadPublicShare,
@@ -295,24 +295,26 @@ router.post(
 
     // When sorting by index, pagination is already handled by slicing documentIds,
     // so we skip the SQL-level offset to avoid double-pagination
-    const [documents, total] = await Promise.all([
-      Document.withMembershipScope(user.id).findAll({
-        where,
-        order: orderClause as Order,
-        offset: sort === "index" ? 0 : ctx.state.pagination.offset,
-        limit: ctx.state.pagination.limit,
-        replacements: {
-          documentIds,
-        },
-      }),
-      Document.count({ where }),
-    ]);
+    const { results: documents, pagination } = await paginateQuery(
+      ctx,
+      ({ offset: queryOffset, limit: queryLimit }) =>
+        Document.withMembershipScope(user.id).findAll({
+          where,
+          order: orderClause as Order,
+          offset: sort === "index" ? 0 : queryOffset,
+          limit: queryLimit,
+          replacements: {
+            documentIds,
+          },
+        }),
+      () => Document.count({ where })
+    );
 
     const data = await presentDocuments(ctx, documents);
     const policies = presentPolicies(user, documents);
 
     ctx.body = {
-      pagination: { ...ctx.state.pagination, total },
+      pagination,
       data,
       policies,
     };
@@ -627,7 +629,6 @@ router.post(
   async (ctx: APIContext<T.DocumentsUsersReq>) => {
     const { id, userId, query } = ctx.input.body;
     const actor = ctx.state.auth.user;
-    const { offset, limit } = ctx.state.pagination;
     const document = await Document.findByPk(id, {
       userId: actor.id,
     });
@@ -686,17 +687,19 @@ router.post(
 
     const replacements = { query: `%${query}%` };
 
-    const [users, total] = await Promise.all([
-      User.findAll({ where, replacements, offset, limit }),
-      User.count({
-        where,
-        // @ts-expect-error Types are incorrect for count
-        replacements,
-      }),
-    ]);
+    const { results: users, pagination } = await paginateQuery<User>(
+      ctx,
+      (opts) => User.findAll({ where, replacements, ...opts }),
+      () =>
+        User.count({
+          where,
+          // @ts-expect-error Types are incorrect for count
+          replacements,
+        }) as unknown as Promise<number>
+    );
 
     ctx.body = {
-      pagination: { ...ctx.state.pagination, total },
+      pagination,
       data: users.map((user) => presentUser(user)),
       policies: presentPolicies(actor, users),
     };
@@ -1991,18 +1994,19 @@ router.post(
       ],
     };
 
-    const [total, memberships] = await Promise.all([
-      UserMembership.count(options),
-      UserMembership.findAll({
-        ...options,
-        order: [["createdAt", "DESC"]],
-        offset: ctx.state.pagination.offset,
-        limit: ctx.state.pagination.limit,
-      }),
-    ]);
+    const { results: memberships, pagination } = await paginateQuery(
+      ctx,
+      (opts) =>
+        UserMembership.findAll({
+          ...options,
+          order: [["createdAt", "DESC"]],
+          ...opts,
+        }),
+      () => UserMembership.count(options)
+    );
 
     ctx.body = {
-      pagination: { ...ctx.state.pagination, total },
+      pagination,
       data: {
         memberships: memberships.map(presentMembership),
         users: memberships.map((membership) => presentUser(membership.user)),
@@ -2052,20 +2056,21 @@ router.post(
       ],
     };
 
-    const [total, memberships] = await Promise.all([
-      GroupMembership.count(options),
-      GroupMembership.findAll({
-        ...options,
-        order: [["createdAt", "DESC"]],
-        offset: ctx.state.pagination.offset,
-        limit: ctx.state.pagination.limit,
-      }),
-    ]);
+    const { results: memberships, pagination } = await paginateQuery(
+      ctx,
+      (opts) =>
+        GroupMembership.findAll({
+          ...options,
+          order: [["createdAt", "DESC"]],
+          ...opts,
+        }),
+      () => GroupMembership.count(options)
+    );
 
     const groupMemberships = memberships.map(presentGroupMembership);
 
     ctx.body = {
-      pagination: { ...ctx.state.pagination, total },
+      pagination,
       data: {
         groupMemberships,
         groups: await Promise.all(

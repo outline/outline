@@ -4,6 +4,8 @@ import queryString from "query-string";
 import EDITOR_VERSION from "@shared/editor/version";
 import type { JSONObject } from "@shared/types";
 import { Scope } from "@shared/types";
+import { version } from "../../package.json";
+import env from "~/env";
 import stores from "~/stores";
 import Logger from "./Logger";
 import download from "./download";
@@ -109,6 +111,7 @@ class ApiClient {
       "cache-control": "no-cache",
       "x-editor-version": EDITOR_VERSION,
       "x-api-version": "4",
+      "x-client-version": env.VERSION ? `${version}-${env.VERSION}` : version,
       pragma: "no-cache",
       ...options?.headers,
     };
