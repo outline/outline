@@ -254,132 +254,92 @@ function DocumentExplorer({
     }
   };
 
-  const stateRef = React.useRef({
-    searchTerm,
-    activeNode,
-    selectedNode,
-    expandedNodes,
-    normalizedBaseDepth,
-    showDocuments,
-    itemRefs,
-    setActiveNode,
-    toggleSelect,
-    toggleCollapse,
-    isSelected,
-    isExpanded,
-    hasChildren,
-  });
-  stateRef.current = {
-    searchTerm,
-    activeNode,
-    selectedNode,
-    expandedNodes,
-    normalizedBaseDepth,
-    showDocuments,
-    itemRefs,
-    setActiveNode,
-    toggleSelect,
-    toggleCollapse,
-    isSelected,
-    isExpanded,
-    hasChildren,
-  };
+  const ListItem = observer(
+    ({
+      index,
+      data,
+      style,
+    }: {
+      index: number;
+      data: NavigationNode[];
+      style: React.CSSProperties;
+    }) => {
+      const node = data[index];
+      const isCollection = node.type === "collection";
+      let renderedIcon,
+        title: string,
+        icon: string | undefined,
+        color: string | undefined,
+        path;
 
-  const ListItem = React.useMemo(
-    () =>
-      observer(
-        ({
-          index,
-          data,
-          style,
-        }: {
-          index: number;
-          data: NavigationNode[];
-          style: React.CSSProperties;
-        }) => {
-          const state = stateRef.current;
-          const node = data[index];
-          const isCollection = node.type === "collection";
-          let renderedIcon,
-            title: string,
-            icon: string | undefined,
-            color: string | undefined,
-            path;
+      if (isCollection) {
+        const col = collections.get(node.collectionId as string);
+        renderedIcon = col && (
+          <CollectionIcon collection={col} expanded={isExpanded(index)} />
+        );
+        title = node.title;
+      } else {
+        const doc = documents.get(node.id);
+        icon = doc?.icon ?? node.icon ?? node.emoji;
+        color = doc?.color ?? node.color;
+        title = doc?.title ?? node.title;
 
-          if (isCollection) {
-            const col = collections.get(node.collectionId as string);
-            renderedIcon = col && (
-              <CollectionIcon
-                collection={col}
-                expanded={state.isExpanded(index)}
-              />
-            );
-            title = node.title;
-          } else {
-            const doc = documents.get(node.id);
-            icon = doc?.icon ?? node.icon ?? node.emoji;
-            color = doc?.color ?? node.color;
-            title = doc?.title ?? node.title;
-
-            if (icon) {
-              renderedIcon = (
-                <Icon value={icon} initial={node.title} color={color} />
-              );
-            } else if (doc?.isStarred) {
-              renderedIcon = <StarredIcon color={theme.yellow} />;
-            } else {
-              renderedIcon = <DocumentIcon color={theme.textSecondary} />;
-            }
-
-            path = ancestors(node)
-              .map((a) => a.title)
-              .join(" / ");
-          }
-
-          return state.searchTerm ? (
-            <DocumentExplorerSearchResult
-              selected={state.isSelected(index)}
-              active={state.activeNode === index}
-              style={{
-                ...style,
-                top: (style.top as number) + VERTICAL_PADDING,
-                left: (style.left as number) + HORIZONTAL_PADDING,
-                width: `calc(${style.width} - ${HORIZONTAL_PADDING * 2}px)`,
-              }}
-              onPointerMove={() => state.setActiveNode(index)}
-              onClick={() => state.toggleSelect(index)}
-              icon={renderedIcon}
-              title={title}
-              path={path}
-            />
-          ) : (
-            <DocumentExplorerNode
-              style={{
-                ...style,
-                top: (style.top as number) + VERTICAL_PADDING,
-                left: (style.left as number) + HORIZONTAL_PADDING,
-                width: `calc(${style.width} - ${HORIZONTAL_PADDING * 2}px)`,
-              }}
-              onPointerMove={() => state.setActiveNode(index)}
-              onClick={() => state.toggleSelect(index)}
-              onDisclosureClick={(ev) => {
-                ev.stopPropagation();
-                state.toggleCollapse(index);
-              }}
-              selected={state.isSelected(index)}
-              active={state.activeNode === index}
-              expanded={state.isExpanded(index)}
-              icon={renderedIcon}
-              title={title}
-              depth={(node.depth ?? 0) - state.normalizedBaseDepth}
-              hasChildren={state.hasChildren(index)}
-              ref={state.itemRefs[index]}
-            />
+        if (icon) {
+          renderedIcon = (
+            <Icon value={icon} initial={node.title} color={color} />
           );
+        } else if (doc?.isStarred) {
+          renderedIcon = <StarredIcon color={theme.yellow} />;
+        } else {
+          renderedIcon = <DocumentIcon color={theme.textSecondary} />;
         }
-      ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [collections, documents, theme]
+
+        path = ancestors(node)
+          .map((a) => a.title)
+          .join(" / ");
+      }
+
+      return searchTerm ? (
+        <DocumentExplorerSearchResult
+          selected={isSelected(index)}
+          active={activeNode === index}
+          style={{
+            ...style,
+            top: (style.top as number) + VERTICAL_PADDING,
+            left: (style.left as number) + HORIZONTAL_PADDING,
+            width: `calc(${style.width} - ${HORIZONTAL_PADDING * 2}px)`,
+          }}
+          onPointerMove={() => setActiveNode(index)}
+          onClick={() => toggleSelect(index)}
+          icon={renderedIcon}
+          title={title}
+          path={path}
+        />
+      ) : (
+        <DocumentExplorerNode
+          style={{
+            ...style,
+            top: (style.top as number) + VERTICAL_PADDING,
+            left: (style.left as number) + HORIZONTAL_PADDING,
+            width: `calc(${style.width} - ${HORIZONTAL_PADDING * 2}px)`,
+          }}
+          onPointerMove={() => setActiveNode(index)}
+          onClick={() => toggleSelect(index)}
+          onDisclosureClick={(ev) => {
+            ev.stopPropagation();
+            toggleCollapse(index);
+          }}
+          selected={isSelected(index)}
+          active={activeNode === index}
+          expanded={isExpanded(index)}
+          icon={renderedIcon}
+          title={title}
+          depth={(node.depth ?? 0) - normalizedBaseDepth}
+          hasChildren={hasChildren(index)}
+          ref={itemRefs[index]}
+        />
+      );
+    }
   );
 
   const focusSearchInput = () => {
