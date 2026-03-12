@@ -173,7 +173,7 @@
   "Are you sure about that? Deleting the <em>{{ templateName }}</em> template is permanent.": "Are you sure about that? Deleting the <em>{{ templateName }}</em> template is permanent.",
   "Move to workspace": "העבר לעזור העבודה",
   "Template moved": "Template moved",
-  "Couldn't move the template, try again?": "Couldn't move the template, try again?",
+  "Couldn't move the template, try again?": "לא הצלחנו להעביר את התבנית. לנסות שוב?",
   "Move to collection": "העבר לאוסף",
   "Move template": "Move template",
   "Print template": "Print template",
