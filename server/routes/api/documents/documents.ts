@@ -20,7 +20,6 @@ import {
   FileOperationState,
   FileOperationType,
   StatusFilter,
-  UserPreference,
   UserRole,
 } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
@@ -838,7 +837,6 @@ router.post(
       DocumentHelper.toMarkdown(document, {
         signedUrls,
         teamId: user.teamId,
-        includeFrontmatter: user.getPreference(UserPreference.MarkdownFrontmatter),
       });
 
     if (format === FileOperationFormat.HTMLZip) {
