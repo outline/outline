@@ -1,7 +1,6 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import scrollIntoView from "scroll-into-view-if-needed";
 import styled from "styled-components";
 import { ellipsis } from "@shared/styles";
 import { Node as SearchResult } from "./DocumentExplorerNode";
@@ -32,22 +31,8 @@ function DocumentExplorerSearchResult({
 }: Props) {
   const { t } = useTranslation();
 
-  const ref = React.useCallback(
-    (node: HTMLSpanElement | null) => {
-      if (active && node) {
-        scrollIntoView(node, {
-          scrollMode: "if-needed",
-          behavior: "auto",
-          block: "nearest",
-        });
-      }
-    },
-    [active]
-  );
-
   return (
     <SearchResult
-      ref={ref}
       selected={selected}
       active={active}
       onClick={onClick}
