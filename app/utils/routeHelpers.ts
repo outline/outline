@@ -179,6 +179,16 @@ export function urlify(path: string): string {
   return `${window.location.origin}${path}`;
 }
 
+/**
+ * Converts a path to a desktop app URL using the outline:// protocol.
+ *
+ * @param path The path to convert.
+ * @returns The desktop app URL.
+ */
+export function desktopify(path: string): string {
+  return urlify(path).replace(/^https?:\/\//, "outline://");
+}
+
 export const matchCollectionSlug =
   ":collectionSlug([0-9a-zA-Z-_~]*-[a-zA-z0-9]{10,15})";
 
