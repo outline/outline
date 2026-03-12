@@ -1,7 +1,7 @@
 import { FileOperationState, FileOperationType } from "@shared/types";
 import { User, Team, FileOperation } from "@server/models";
 import { allow } from "./cancan";
-import { and, isTeamAdmin, isTeamMutable, or } from "./utils";
+import { and, isTeamAdmin, isTeamModel, isTeamMutable, or } from "./utils";
 
 allow(
   User,
@@ -11,7 +11,12 @@ allow(
   isTeamAdmin
 );
 
-allow(User, "read", FileOperation, isTeamAdmin);
+allow(User, "read", FileOperation, (actor, fileOperation) =>
+  and(
+    isTeamModel(actor, fileOperation),
+    or(isTeamAdmin(actor, fileOperation), fileOperation?.userId === actor.id)
+  )
+);
 
 allow(User, "delete", FileOperation, (actor, fileOperation) =>
   and(
