@@ -33,6 +33,7 @@ import {
   RestoreIcon,
   EditIcon,
   EmbedIcon,
+  OpenIcon,
 } from "outline-icons";
 import { toast } from "sonner";
 import Icon from "@shared/components/Icon";
@@ -74,6 +75,7 @@ import {
   searchPath,
   documentPath,
   urlify,
+  desktopify,
   trashPath,
   documentEditPath,
 } from "~/utils/routeHelpers";
@@ -87,6 +89,8 @@ import type {
 } from "~/types";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 import env from "~/env";
+import { isMac, isWindows } from "@shared/utils/browser";
+import isCloudHosted from "~/utils/isCloudHosted";
 import DocumentMove from "~/components/DocumentExplorer/DocumentMove";
 
 const Insights = lazyWithRetry(
@@ -955,6 +959,28 @@ export const printDocument = createAction({
   },
 });
 
+export const openDocumentInDesktop = createAction({
+  name: ({ t }) => t("Open in Desktop"),
+  analyticsName: "Open in desktop",
+  section: ActiveDocumentSection,
+  icon: <OpenIcon />,
+  visible: ({ activeDocumentId, stores }) => {
+    if (!activeDocumentId) {
+      return false;
+    }
+    const document = stores.documents.get(activeDocumentId);
+    return isCloudHosted && (isMac || isWindows) && !!document && !document.isDeleted;
+  },
+  perform: ({ activeDocumentId, stores }) => {
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+    if (document) {
+      window.location.href = desktopify(documentPath(document));
+    }
+  },
+});
+
 export const presentDocument = createAction({
   name: ({ t, isMenu }) => (isMenu ? t("Present") : t("Present document")),
   analyticsName: "Present document",
@@ -1524,5 +1550,6 @@ export const rootDocumentActions = [
   openDocumentComments,
   openDocumentHistory,
   openDocumentInsights,
+  openDocumentInDesktop,
   shareDocument,
 ];
