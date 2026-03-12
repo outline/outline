@@ -95,7 +95,7 @@ export class PluginManager {
     }
 
     if (!this.plugins.has(plugin.type)) {
-      this.plugins.set(plugin.type, observable.array([]));
+      this.plugins.set(plugin.type, observable.array([], { deep: false }));
     }
 
     this.plugins
