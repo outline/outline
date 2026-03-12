@@ -12,7 +12,6 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList as List } from "react-window";
-import scrollIntoView from "scroll-into-view-if-needed";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Icon from "@shared/components/Icon";
@@ -42,6 +41,28 @@ type Props = {
   showDocuments?: boolean;
 };
 
+const VERTICAL_PADDING = 6;
+const HORIZONTAL_PADDING = 24;
+
+const innerElementType = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(function innerElementType(
+  { style, ...rest }: React.HTMLAttributes<HTMLDivElement>,
+  ref
+) {
+  return (
+    <div
+      ref={ref}
+      style={{
+        ...style,
+        height: `${parseFloat(style?.height + "") + VERTICAL_PADDING * 2}px`,
+      }}
+      {...rest}
+    />
+  );
+});
+
 function DocumentExplorer({
   onSubmit,
   onSelect,
@@ -67,8 +88,6 @@ function DocumentExplorer({
       return node || null;
     }
   );
-  const [initialScrollOffset, setInitialScrollOffset] =
-    React.useState<number>(0);
   const [activeNode, setActiveNode] = React.useState<number>(0);
   const [expandedNodes, setExpandedNodes] = React.useState<string[]>(() => {
     if (defaultValue) {
@@ -90,9 +109,6 @@ function DocumentExplorer({
     null
   );
   const listRef = React.useRef<List<NavigationNode[]>>(null);
-
-  const VERTICAL_PADDING = 6;
-  const HORIZONTAL_PADDING = 24;
 
   const searchIndex = React.useMemo(
     () =>
@@ -144,7 +160,8 @@ function DocumentExplorer({
         setTimeout(() => listRef.current?.scrollToItem(index, "center"), 50);
       }
     }
-  }, [defaultValue, selectedNode, nodes]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defaultValue]);
   const baseDepth = nodes.reduce(
     (min, node) => (node.depth ? Math.min(min, node.depth) : min),
     Infinity
@@ -152,17 +169,9 @@ function DocumentExplorer({
   const normalizedBaseDepth =
     (baseDepth === Infinity ? 0 : baseDepth) + (showDocuments ? 0 : 1);
 
-  const scrollNodeIntoView = React.useCallback(
-    (node: number) => {
-      if (itemRefs[node] && itemRefs[node].current) {
-        scrollIntoView(itemRefs[node].current as HTMLSpanElement, {
-          behavior: "auto",
-          block: "center",
-        });
-      }
-    },
-    [itemRefs]
-  );
+  const scrollNodeIntoView = React.useCallback((node: number) => {
+    listRef.current?.scrollToItem(node, "smart");
+  }, []);
 
   const handleSearch = (ev: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(ev.target.value);
@@ -170,16 +179,16 @@ function DocumentExplorer({
 
   const isExpanded = (node: number) => includes(expandedNodes, nodes[node].id);
 
-  const calculateInitialScrollOffset = (itemCount: number) => {
+  const preserveScrollOffset = (itemCount: number) => {
     if (listRef.current) {
       const { height, itemSize } = listRef.current.props;
       const { scrollOffset } = listRef.current.state as {
         scrollOffset: number;
       };
       const itemsHeight = itemCount * itemSize;
-      return itemsHeight < Number(height) ? 0 : scrollOffset;
+      const offset = itemsHeight < Number(height) ? 0 : scrollOffset;
+      setTimeout(() => listRef.current?.scrollTo(offset), 0);
     }
-    return 0;
   };
 
   const collapse = (node: number) => {
@@ -190,8 +199,7 @@ function DocumentExplorer({
 
     // remove children
     const newNodes = filter(nodes, (n) => !includes(descendantIds, n.id));
-    const scrollOffset = calculateInitialScrollOffset(newNodes.length);
-    setInitialScrollOffset(scrollOffset);
+    preserveScrollOffset(newNodes.length);
   };
 
   const expand = (node: number) => {
@@ -200,8 +208,7 @@ function DocumentExplorer({
     // add children
     const newNodes = nodes.slice();
     newNodes.splice(node + 1, 0, ...descendants(nodes[node], 1));
-    const scrollOffset = calculateInitialScrollOffset(newNodes.length);
-    setInitialScrollOffset(scrollOffset);
+    preserveScrollOffset(newNodes.length);
   };
 
   React.useEffect(() => {
@@ -247,92 +254,132 @@ function DocumentExplorer({
     }
   };
 
-  const ListItem = observer(
-    ({
-      index,
-      data,
-      style,
-    }: {
-      index: number;
-      data: NavigationNode[];
-      style: React.CSSProperties;
-    }) => {
-      const node = data[index];
-      const isCollection = node.type === "collection";
-      let renderedIcon,
-        title: string,
-        icon: string | undefined,
-        color: string | undefined,
-        path;
+  const stateRef = React.useRef({
+    searchTerm,
+    activeNode,
+    selectedNode,
+    expandedNodes,
+    normalizedBaseDepth,
+    showDocuments,
+    itemRefs,
+    setActiveNode,
+    toggleSelect,
+    toggleCollapse,
+    isSelected,
+    isExpanded,
+    hasChildren,
+  });
+  stateRef.current = {
+    searchTerm,
+    activeNode,
+    selectedNode,
+    expandedNodes,
+    normalizedBaseDepth,
+    showDocuments,
+    itemRefs,
+    setActiveNode,
+    toggleSelect,
+    toggleCollapse,
+    isSelected,
+    isExpanded,
+    hasChildren,
+  };
 
-      if (isCollection) {
-        const col = collections.get(node.collectionId as string);
-        renderedIcon = col && (
-          <CollectionIcon collection={col} expanded={isExpanded(index)} />
-        );
-        title = node.title;
-      } else {
-        const doc = documents.get(node.id);
-        icon = doc?.icon ?? node.icon ?? node.emoji;
-        color = doc?.color ?? node.color;
-        title = doc?.title ?? node.title;
+  const ListItem = React.useMemo(
+    () =>
+      observer(
+        ({
+          index,
+          data,
+          style,
+        }: {
+          index: number;
+          data: NavigationNode[];
+          style: React.CSSProperties;
+        }) => {
+          const state = stateRef.current;
+          const node = data[index];
+          const isCollection = node.type === "collection";
+          let renderedIcon,
+            title: string,
+            icon: string | undefined,
+            color: string | undefined,
+            path;
 
-        if (icon) {
-          renderedIcon = (
-            <Icon value={icon} initial={node.title} color={color} />
+          if (isCollection) {
+            const col = collections.get(node.collectionId as string);
+            renderedIcon = col && (
+              <CollectionIcon
+                collection={col}
+                expanded={state.isExpanded(index)}
+              />
+            );
+            title = node.title;
+          } else {
+            const doc = documents.get(node.id);
+            icon = doc?.icon ?? node.icon ?? node.emoji;
+            color = doc?.color ?? node.color;
+            title = doc?.title ?? node.title;
+
+            if (icon) {
+              renderedIcon = (
+                <Icon value={icon} initial={node.title} color={color} />
+              );
+            } else if (doc?.isStarred) {
+              renderedIcon = <StarredIcon color={theme.yellow} />;
+            } else {
+              renderedIcon = <DocumentIcon color={theme.textSecondary} />;
+            }
+
+            path = ancestors(node)
+              .map((a) => a.title)
+              .join(" / ");
+          }
+
+          return state.searchTerm ? (
+            <DocumentExplorerSearchResult
+              selected={state.isSelected(index)}
+              active={state.activeNode === index}
+              style={{
+                ...style,
+                top: (style.top as number) + VERTICAL_PADDING,
+                left: (style.left as number) + HORIZONTAL_PADDING,
+                width: `calc(${style.width} - ${HORIZONTAL_PADDING * 2}px)`,
+              }}
+              onPointerMove={() => state.setActiveNode(index)}
+              onClick={() => state.toggleSelect(index)}
+              icon={renderedIcon}
+              title={title}
+              path={path}
+            />
+          ) : (
+            <DocumentExplorerNode
+              style={{
+                ...style,
+                top: (style.top as number) + VERTICAL_PADDING,
+                left: (style.left as number) + HORIZONTAL_PADDING,
+                width: `calc(${style.width} - ${HORIZONTAL_PADDING * 2}px)`,
+              }}
+              onPointerMove={() => state.setActiveNode(index)}
+              onClick={() => state.toggleSelect(index)}
+              onDisclosureClick={(ev) => {
+                ev.stopPropagation();
+                state.toggleCollapse(index);
+              }}
+              selected={state.isSelected(index)}
+              active={state.activeNode === index}
+              expanded={state.isExpanded(index)}
+              icon={renderedIcon}
+              title={title}
+              depth={(node.depth ?? 0) - state.normalizedBaseDepth}
+              hasChildren={state.hasChildren(index)}
+              ref={state.itemRefs[index]}
+            />
           );
-        } else if (doc?.isStarred) {
-          renderedIcon = <StarredIcon color={theme.yellow} />;
-        } else {
-          renderedIcon = <DocumentIcon color={theme.textSecondary} />;
         }
-
-        path = ancestors(node)
-          .map((a) => a.title)
-          .join(" / ");
-      }
-
-      return searchTerm ? (
-        <DocumentExplorerSearchResult
-          selected={isSelected(index)}
-          active={activeNode === index}
-          style={{
-            ...style,
-            top: (style.top as number) + VERTICAL_PADDING,
-            left: (style.left as number) + HORIZONTAL_PADDING,
-            width: `calc(${style.width} - ${HORIZONTAL_PADDING * 2}px)`,
-          }}
-          onPointerMove={() => setActiveNode(index)}
-          onClick={() => toggleSelect(index)}
-          icon={renderedIcon}
-          title={title}
-          path={path}
-        />
-      ) : (
-        <DocumentExplorerNode
-          style={{
-            ...style,
-            top: (style.top as number) + VERTICAL_PADDING,
-            left: (style.left as number) + HORIZONTAL_PADDING,
-            width: `calc(${style.width} - ${HORIZONTAL_PADDING * 2}px)`,
-          }}
-          onPointerMove={() => setActiveNode(index)}
-          onClick={() => toggleSelect(index)}
-          onDisclosureClick={(ev) => {
-            ev.stopPropagation();
-            toggleCollapse(index);
-          }}
-          selected={isSelected(index)}
-          active={activeNode === index}
-          expanded={isExpanded(index)}
-          icon={renderedIcon}
-          title={title}
-          depth={(node.depth ?? 0) - normalizedBaseDepth}
-          hasChildren={hasChildren(index)}
-          ref={itemRefs[index]}
-        />
-      );
-    }
+      ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [collections, documents, theme]
   );
 
   const focusSearchInput = () => {
@@ -388,25 +435,6 @@ function DocumentExplorer({
     }
   };
 
-  const innerElementType = React.forwardRef<
-    HTMLDivElement,
-    React.HTMLAttributes<HTMLDivElement>
-  >(function innerElementType(
-    { style, ...rest }: React.HTMLAttributes<HTMLDivElement>,
-    ref
-  ) {
-    return (
-      <div
-        ref={ref}
-        style={{
-          ...style,
-          height: `${parseFloat(style?.height + "") + VERTICAL_PADDING * 2}px`,
-        }}
-        {...rest}
-      />
-    );
-  });
-
   return (
     <Container tabIndex={-1} onKeyDown={handleKeyDown}>
       <ListSearch
@@ -426,14 +454,12 @@ function DocumentExplorer({
               <Flex role="listbox" column>
                 <List
                   ref={listRef}
-                  key={nodes.length}
                   width={width}
                   height={height}
                   itemData={nodes}
                   itemCount={nodes.length}
                   itemSize={isMobile ? 48 : 32}
                   innerElementType={innerElementType}
-                  initialScrollOffset={initialScrollOffset}
                   itemKey={(index, results) => results[index].id}
                 >
                   {ListItem}
