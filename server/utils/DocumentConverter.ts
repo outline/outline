@@ -413,50 +413,6 @@ export class DocumentConverter {
   }
 
   /**
-   * Extract the `tags` array from YAML frontmatter in a markdown document.
-   * Supports both YAML list syntax and inline array syntax.
-   * Returns an empty array if there is no frontmatter or no `tags` key.
-   *
-   * @param content The raw markdown content (may include YAML frontmatter).
-   * @returns An array of normalised (lowercase, trimmed) tag name strings.
-   */
-  public static extractFrontmatterTags(content: Buffer | string): string[] {
-    const text =
-      typeof content === "string" ? content : content.toString("utf8");
-    const frontmatterRegex = /^---\n([\s\S]*?)\n---(?:\n|$)/;
-    const match = text.match(frontmatterRegex);
-
-    if (!match) {
-      return [];
-    }
-
-    try {
-      const parsed = yaml.load(match[1]) as Record<string, unknown> | null;
-      if (!parsed || typeof parsed !== "object") {
-        return [];
-      }
-
-      const raw = parsed["tags"];
-      if (!raw) {
-        return [];
-      }
-
-      const asList: string[] = Array.isArray(raw)
-        ? raw.map(String)
-        : String(raw)
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean);
-
-      return asList
-        .map((t) => t.toLowerCase().trim())
-        .filter((t) => t.length > 0 && t.length <= 64);
-    } catch {
-      return [];
-    }
-  }
-
-  /**
    * Parse and convert frontmatter to a YAML codeblock.
    *
    * @param content The markdown content that may contain frontmatter.

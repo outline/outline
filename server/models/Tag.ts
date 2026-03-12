@@ -11,7 +11,6 @@ import {
 	Length,
 	Scopes,
 	Table,
-	Unique,
 } from "sequelize-typescript";
 import Document from "./Document";
 import Team from "./Team";
@@ -35,7 +34,6 @@ class Tag extends ParanoidModel<
 	 * The display name of the tag. Stored and compared as lowercase.
 	 */
 	@Length({ max: 64, msg: "name must be 64 characters or less" })
-	@Unique("tags_team_id_name_unique")
 	@Column
 	name: string;
 
@@ -59,7 +57,6 @@ class Tag extends ParanoidModel<
 	team: Team;
 
 	@ForeignKey(() => Team)
-	@Unique("tags_team_id_name_unique")
 	@Column(DataType.UUID)
 	teamId: string;
 

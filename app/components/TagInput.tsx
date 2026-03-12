@@ -57,7 +57,7 @@ function TagInput({ document }: Props) {
 			}
 			setIsAdding(true);
 			try {
-				await tags.addToDocument(document.id, tag.id);
+				await tags.addToDocument(document.id, { tagId: tag.id });
 				setInputValue("");
 				inputRef.current?.focus();
 			} catch (err) {
@@ -84,11 +84,7 @@ function TagInput({ document }: Props) {
 			}
 			setIsAdding(true);
 			try {
-				let tag = tags.orderedData.find((t) => t.name === trimmed);
-				if (!tag) {
-					tag = await tags.create({ name: trimmed } as Partial<Tag>);
-				}
-				await tags.addToDocument(document.id, tag.id);
+				await tags.addToDocument(document.id, { name: trimmed });
 				setInputValue("");
 				inputRef.current?.focus();
 			} catch (err) {
@@ -170,18 +166,6 @@ function TagInput({ document }: Props) {
 				/>
 				{focused && showInput && (filtered.length > 0 || showCreateOption) && (
 					<Dropdown>
-						{filtered.map((tag) => (
-							<DropdownItem
-								key={tag.id}
-								onMouseDown={(ev) => {
-									ev.preventDefault();
-									void addTag(tag);
-								}}
-							>
-								<DropDot $color={tag.color ?? null} />
-								{tag.name}
-							</DropdownItem>
-						))}
 						{showCreateOption && (
 							<DropdownItem
 								onMouseDown={(ev) => {
@@ -196,6 +180,18 @@ function TagInput({ document }: Props) {
 								</CreateLabel>
 							</DropdownItem>
 						)}
+						{filtered.map((tag) => (
+							<DropdownItem
+								key={tag.id}
+								onMouseDown={(ev) => {
+									ev.preventDefault();
+									void addTag(tag);
+								}}
+							>
+								<DropDot $color={tag.color ?? null} />
+								{tag.name}
+							</DropdownItem>
+						))}
 					</Dropdown>
 				)}
 			</InputWrapper>
@@ -203,7 +199,7 @@ function TagInput({ document }: Props) {
 			{unassignedTags.length > 0 && (
 				<SuggestionsSection column gap={6}>
 					<SuggestionsLabel>{t("Available tags")}</SuggestionsLabel>
-					<TagList wrap gap={4}>
+					<SuggestionsList wrap gap={4}>
 						{unassignedTags.map((tag) => (
 							<SuggestionChip
 								key={tag.id}
@@ -217,7 +213,7 @@ function TagInput({ document }: Props) {
 								{tag.name}
 							</SuggestionChip>
 						))}
-					</TagList>
+					</SuggestionsList>
 				</SuggestionsSection>
 			)}
 		</Wrapper>
@@ -230,6 +226,12 @@ const Wrapper = styled(Flex)`
 
 const TagList = styled(Flex)`
 	flex-wrap: wrap;
+`;
+
+const SuggestionsList = styled(Flex)`
+	flex-wrap: wrap;
+	max-height: 120px;
+	overflow-y: auto;
 `;
 
 const InputWrapper = styled.div`

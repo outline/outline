@@ -668,69 +668,6 @@ This is a [test paragraph](https://example.net)`,
     });
   });
 
-  describe("toMarkdown with frontmatter", () => {
-    it("should include YAML frontmatter with tags when includeFrontmatter is true", async () => {
-      const document = await buildDocument({
-        title: "Tagged Document",
-        text: "Some content here.",
-      });
-      const tag = { name: "outline" } as any;
-      document.tags = [tag];
-
-      const result = await DocumentHelper.toMarkdown(document, {
-        includeFrontmatter: true,
-      });
-
-      expect(result).toContain("---\ntags: [outline]\n---");
-      expect(result).toContain("# Tagged Document");
-      expect(result).toContain("Some content here.");
-    });
-
-    it("should include multiple tags in frontmatter", async () => {
-      const document = await buildDocument({
-        title: "Multi Tag Doc",
-        text: "Content.",
-      });
-      document.tags = [{ name: "alpha" }, { name: "beta" }, { name: "gamma" }] as any;
-
-      const result = await DocumentHelper.toMarkdown(document, {
-        includeFrontmatter: true,
-      });
-
-      expect(result).toContain("---\ntags: [alpha, beta, gamma]\n---");
-    });
-
-    it("should not include frontmatter when includeFrontmatter is false", async () => {
-      const document = await buildDocument({
-        title: "No Frontmatter",
-        text: "Content.",
-      });
-      document.tags = [{ name: "test" }] as any;
-
-      const result = await DocumentHelper.toMarkdown(document, {
-        includeFrontmatter: false,
-      });
-
-      expect(result).not.toContain("---");
-      expect(result).not.toContain("tags:");
-    });
-
-    it("should not include frontmatter when document has no tags", async () => {
-      const document = await buildDocument({
-        title: "No Tags",
-        text: "Content.",
-      });
-      document.tags = [];
-
-      const result = await DocumentHelper.toMarkdown(document, {
-        includeFrontmatter: true,
-      });
-
-      expect(result).not.toContain("---");
-      expect(result).toContain("# No Tags");
-    });
-  });
-
   describe("toPlainText", () => {
     it("should return only plain text", async () => {
       const revision = new Revision({

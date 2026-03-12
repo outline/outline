@@ -46,5 +46,4 @@ export const UserPreferenceDefaults: UserPreferences = {
   [UserPreference.SortCommentsByOrderInDocument]: true,
   [UserPreference.EnableSmartText]: true,
   [UserPreference.NotificationBadge]: NotificationBadgeType.Count,
-  [UserPreference.MarkdownFrontmatter]: false,
 };

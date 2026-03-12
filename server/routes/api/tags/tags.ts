@@ -63,9 +63,17 @@ router.post(
 		const existing = await Tag.findOne({
 			where: { teamId: user.teamId, name: normalizedName },
 			transaction,
+			paranoid: false,
 		});
 
 		if (existing) {
+			if (existing.deletedAt) {
+				await existing.restore({ transaction });
+				if (color !== undefined) {
+					existing.color = color ?? null;
+					await existing.save({ transaction });
+				}
+			}
 			authorize(user, "read", existing);
 			ctx.body = {
 				data: presentTag(existing),

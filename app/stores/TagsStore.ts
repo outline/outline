@@ -49,24 +49,22 @@ export default class TagsStore extends Store<Tag> {
 	 *
 	 * @param documentId The document ID.
 	 * @param tagId The tag ID.
+	 * @param name The tag name.
 	 */
 	@action
-	addToDocument = async (documentId: string, tagId: string): Promise<void> => {
-		await client.post("/documents.add_tag", { id: documentId, tagId });
-		const document = this.rootStore.documents.get(documentId);
-		if (document) {
-			const tag = this.get(tagId);
-			if (tag && document.tags) {
-				runInAction("TagsStore#addToDocument", () => {
-					if (!document.tags!.find((t) => t.id === tagId)) {
-						document.tags = [
-							...document.tags!,
-							{ id: tagId, name: tag.name, color: tag.color ?? null },
-						];
-					}
-				});
+	addToDocument = async (
+		documentId: string,
+		input: { tagId: string } | { name: string }
+	): Promise<void> => {
+		const res = await client.post("/documents.add_tag", { id: documentId, ...input });
+
+		runInAction("TagsStore#addToDocument", () => {
+			if (res?.data) {
+				this.rootStore.documents.add(res.data);
+				(res.data.tags ?? []).forEach((tag: Tag) => this.add(tag));
 			}
-		}
+			this.addPolicies(res?.policies);
+		});
 	};
 
 	/**
@@ -80,15 +78,14 @@ export default class TagsStore extends Store<Tag> {
 		documentId: string,
 		tagId: string
 	): Promise<void> => {
-		await client.post("/documents.remove_tag", { id: documentId, tagId });
-		const document = this.rootStore.documents.get(documentId);
-		if (document?.tags) {
-			runInAction("TagsStore#removeFromDocument", () => {
-				document.tags = document.tags!.filter(
-					(t: { id: string }) => t.id !== tagId
-				);
-			});
-		}
+		const res = await client.post("/documents.remove_tag", { id: documentId, tagId });
+
+		runInAction("TagsStore#removeFromDocument", () => {
+			if (res?.data) {
+				this.rootStore.documents.add(res.data);
+			}
+			this.addPolicies(res?.policies);
+		});
 	};
 
 	/**

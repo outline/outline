@@ -89,6 +89,8 @@ const stateIfContentEmpty = Sequelize.literal(
 type AdditionalFindOptions = {
   /** The user ID to load associated permissions for. */
   userId?: string;
+  /** Whether to include associated tags in the query result. */
+  includeTags?: boolean;
   /** Whether to include the state column in the attributes. */
   includeState?: boolean;
   /** Whether to views (default: true). */
@@ -721,12 +723,15 @@ class Document extends ArchivableModel<
 
   static withMembershipScope(
     userId: string,
-    options?: FindOptions<Document> & { includeDrafts?: boolean }
+    options?: FindOptions<Document> & {
+      includeDrafts?: boolean;
+      includeTags?: boolean;
+    }
   ) {
     return this.scope([
       options?.includeDrafts ? "withDrafts" : "defaultScope",
       "withoutState",
-      "withTags",
+      ...(options?.includeTags ? (["withTags"] as ScopeOptions[]) : []),
       {
         method: ["withViews", userId],
       },
@@ -763,6 +768,7 @@ class Document extends ArchivableModel<
 
     const {
       includeViews = true,
+      includeTags = false,
       includeState = false,
       userId,
       ...rest
@@ -772,7 +778,7 @@ class Document extends ArchivableModel<
     // almost every endpoint needs the collection membership to determine policy permissions.
     const scope = this.scope([
       "withDrafts",
-      "withTags",
+      ...(includeTags ? (["withTags"] as ScopeOptions[]) : []),
       includeState ? "withState" : "withoutState",
       ...((includeViews
         ? [

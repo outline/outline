@@ -328,7 +328,7 @@ router.post(
     const { results: documents, pagination } = await paginateQuery(
       ctx,
       ({ offset: queryOffset, limit: queryLimit }) =>
-        Document.withMembershipScope(user.id).findAll({
+        Document.withMembershipScope(user.id, { includeTags: true }).findAll({
           where,
           order: orderClause as Order,
           offset: sort === "index" ? 0 : queryOffset,
@@ -602,6 +602,7 @@ router.post(
       // reload with membership scope if user is authenticated
       if (user) {
         document = await Document.findByPk(document.id, {
+          includeTags: true,
           userId: user.id,
           rejectOnEmpty: true,
         });

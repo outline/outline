@@ -1,6 +1,6 @@
 import type { LocationDescriptor } from "history";
 import { observer, useObserver } from "mobx-react";
-import { CommentIcon, HashtagIcon } from "outline-icons";
+import { CommentIcon } from "outline-icons";
 import { useRef, Fragment } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -74,22 +74,6 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
           </CommentLink>
         </>
       )}
-      {"tags" in document && (
-        <>
-          <Separator />
-          <TagsToggle
-            onClick={() => ui.toggleTags()}
-            aria-label={t("Toggle tags")}
-          >
-            <HashtagIcon size={16} />
-            {(document as Document).tags?.length
-              ? t("{{ count }} tag", {
-                  count: (document as Document).tags!.length,
-                })
-              : t("Tags")}
-          </TagsToggle>
-        </>
-      )}
       {totalViewers && can.listViews && !(document as Document).isDraft ? (
         <Wrapper>
           <Separator />
@@ -111,22 +95,6 @@ const CommentLink = styled(Link)`
   display: inline-flex;
   align-items: center;
   gap: 2px;
-`;
-
-const TagsToggle = styled.button`
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: var(--pointer);
-  color: inherit;
-  font: inherit;
-
-  &:hover {
-    text-decoration: underline;
-  }
 `;
 
 const InsightsButton = styled(NudeButton)`

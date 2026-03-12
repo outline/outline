@@ -23,8 +23,6 @@ type ImportResult = {
   text: string;
   title: string;
   state: Buffer;
-  /** Tag names extracted from YAML frontmatter (already normalised). */
-  tags: string[];
 };
 
 /**
@@ -67,9 +65,6 @@ async function documentImporter({
     ""
   );
 
-  // Extract tags from YAML frontmatter before conversion strips it
-  const tags = DocumentConverter.extractFrontmatterTags(content);
-
   // Convert document using unified converter
   const {
     doc,
@@ -98,7 +93,7 @@ async function documentImporter({
   title = truncate(title, { length: DocumentValidation.maxTitleLength });
   const state = convertToState(processedDoc.toJSON() as ProsemirrorData, title);
 
-  return { text, state, title, icon, tags };
+  return { text, state, title, icon };
 }
 
 export default traceFunction({

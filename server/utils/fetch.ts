@@ -4,19 +4,11 @@ import type https from "node:https";
 import nodeFetch, { type RequestInit, type Response } from "node-fetch";
 import { getProxyForUrl } from "proxy-from-env";
 import tunnelAgent, { type TunnelAgent } from "tunnel-agent";
+import { useAgent as useFilteringAgent } from "request-filtering-agent";
 import env from "@server/env";
-
 import { InternalError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import { capitalize } from "lodash";
-
-let _filteringAgent: typeof import("request-filtering-agent") | undefined;
-const getFilteringAgent = async () => {
-  if (!_filteringAgent) {
-    _filteringAgent = await import("request-filtering-agent");
-  }
-  return _filteringAgent;
-};
 
 interface UrlWithTunnel extends URL {
   tunnelMethod?: string;
@@ -88,7 +80,7 @@ export default async function fetch(
         ...rest?.headers,
       },
       signal,
-      agent: await buildAgent(url, { signal, allowPrivateIPAddress }),
+      agent: buildAgent(url, { signal, allowPrivateIPAddress }),
     });
 
     if (!response.ok) {
@@ -182,14 +174,13 @@ const buildTunnel = (proxy: UrlWithTunnel, options: RequestInit) => {
  * @param options.allowPrivateIPAddress Whether to allow requests to private IP addresses.
  * @returns An http or https agent configured for the URL.
  */
-async function buildAgent(
+function buildAgent(
   url: string,
   options: {
     signal?: AbortSignal | null;
     allowPrivateIPAddress?: boolean;
   } = {}
 ) {
-  const { useAgent: useFilteringAgent } = await getFilteringAgent();
   const agentOptions = { ...DefaultOptions };
   const parsedURL = new URL(url);
   const proxyURL = getProxyForUrl(parsedURL.href);

@@ -190,7 +190,6 @@ const StarredCollectionLink = observer(function StarredCollectionLink({
   );
 });
 
-
 function StarredLink({ star }: Props) {
   const theme = useTheme();
   const { ui, collections, documents } = useStores();

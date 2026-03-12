@@ -297,8 +297,6 @@ export enum UserPreference {
   EnableSmartText = "enableSmartText",
   /** The style of notification badge to display. */
   NotificationBadge = "notificationBadge",
-  /** Whether to include YAML frontmatter with tags in Markdown exports. */
-  MarkdownFrontmatter = "markdownFrontmatter",
 }
 
 export enum NotificationBadgeType {
@@ -319,7 +317,6 @@ export type UserPreferences = {
   [UserPreference.SortCommentsByOrderInDocument]?: boolean;
   [UserPreference.EnableSmartText]?: boolean;
   [UserPreference.NotificationBadge]?: NotificationBadgeType;
-  [UserPreference.MarkdownFrontmatter]?: boolean;
 };
 
 export type SourceMetadata = {

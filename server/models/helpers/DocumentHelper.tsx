@@ -167,8 +167,6 @@ export class DocumentHelper {
       signedUrls?: number;
       /** The team context */
       teamId?: string;
-      /** Whether to include a YAML frontmatter block with tag names (default: false) */
-      includeFrontmatter?: boolean;
     }
   ) {
     let node = DocumentHelper.toProsemirror(document);
@@ -191,17 +189,6 @@ export class DocumentHelper {
       .replace(/’/g, "'")
       .trim();
 
-    let frontmatter = "";
-    if (
-      options?.includeFrontmatter &&
-      document instanceof Document &&
-      document.tags &&
-      document.tags.length > 0
-    ) {
-      const tagList = document.tags.map((t) => t.name);
-      frontmatter = `---\ntags: [${tagList.join(", ")}]\n---\n\n`;
-    }
-
     if (
       (document instanceof Collection ||
         document instanceof Document ||
@@ -212,10 +199,10 @@ export class DocumentHelper {
       const name =
         document instanceof Collection ? document.name : document.title;
       const title = `${iconType === IconType.Emoji ? document.icon + " " : ""}${name}`;
-      return `${frontmatter}# ${title}\n\n${text}`;
+      return `# ${title}\n\n${text}`;
     }
 
-    return `${frontmatter}${text}`;
+    return text;
   }
 
   /**

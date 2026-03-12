@@ -56,6 +56,9 @@ export default class DocumentsStore extends Store<Document> {
   backlinks: Map<string, string[]> = new Map();
 
   @observable
+  taggedDocumentIds: Map<string, string[]> = new Map();
+
+  @observable
   movingDocumentId: string | null | undefined;
 
   importFileTypes: string[] = [
@@ -379,12 +382,34 @@ export default class DocumentsStore extends Store<Document> {
     this.fetchNamedPage("list", options);
 
   @action
-  fetchByTag = (tagName: string, options?: FetchPageParams): Promise<Document[]> =>
-    this.fetchNamedPage("list", { tagName, ...options });
+  fetchByTag = async (
+    tagName: string,
+    options?: FetchPageParams
+  ): Promise<Document[]> => {
+    const documents = await this.fetchNamedPage("list", { tagName, ...options });
+
+    runInAction("DocumentsStore#fetchByTag", () => {
+      const newIds = documents.map((document) => document.id);
+      if (!options?.offset) {
+        this.taggedDocumentIds.set(tagName, newIds);
+      } else {
+        const existingIds = this.taggedDocumentIds.get(tagName) ?? [];
+        this.taggedDocumentIds.set(tagName, [
+          ...new Set([...existingIds, ...newIds]),
+        ]);
+      }
+    });
+
+    return documents;
+  };
 
   byTag = (tagName: string): Document[] =>
-    filter(this.all, (doc) =>
-      (doc.tags ?? []).some((tag) => tag.name === tagName)
+    orderBy(
+      compact(
+        (this.taggedDocumentIds.get(tagName) ?? []).map((id) => this.data.get(id))
+      ),
+      "updatedAt",
+      "desc"
     );
 
   @action

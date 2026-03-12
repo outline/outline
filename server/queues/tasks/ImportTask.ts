@@ -23,8 +23,6 @@ import {
   Collection,
   FileOperation,
   Attachment,
-  Tag,
-  DocumentTag,
 } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import ZipHelper from "@server/utils/ZipHelper";
@@ -90,8 +88,6 @@ export type StructuredImportData = {
     createdByEmail?: string | null;
     path: string;
     mimeType: string;
-    /** Tag names extracted from YAML frontmatter (already normalised). */
-    tags?: string[];
     /** Optional id from import source, useful for mapping */
     externalId?: string;
   }[];
@@ -463,31 +459,6 @@ export default abstract class ImportTask extends BaseTask<Props> {
               importId: fileOperation.id,
             });
             documents.set(item.id, document);
-
-            if (item.tags && item.tags.length > 0) {
-              await Promise.all(
-                item.tags.map(async (tagName) => {
-                  const [tag] = await Tag.findOrCreate({
-                    where: { teamId: fileOperation.teamId, name: tagName },
-                    defaults: {
-                      teamId: fileOperation.teamId,
-                      name: tagName,
-                      createdById: fileOperation.userId,
-                    },
-                    transaction,
-                  });
-                  await DocumentTag.findOrCreate({
-                    where: { documentId: document.id, tagId: tag.id },
-                    defaults: {
-                      documentId: document.id,
-                      tagId: tag.id,
-                      createdById: fileOperation.userId,
-                    },
-                    transaction,
-                  });
-                })
-              );
-            }
 
             await collection.addDocumentToStructure(document, undefined, {
               transaction,

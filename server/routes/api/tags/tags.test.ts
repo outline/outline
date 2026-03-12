@@ -147,33 +147,23 @@ describe("#tags.usage", () => {
 		expect(res.status).toEqual(401);
 	});
 
-	it("should return usage count for a tag", async () => {
+	it("should return cached usage counts for all tags in the team", async () => {
 		const user = await buildUser();
 		const tag = await buildTag({ teamId: user.teamId });
 		const doc = await buildDocument({ userId: user.id, teamId: user.teamId });
 		await buildDocumentTag({ documentId: doc.id, tagId: tag.id });
 
 		const res = await server.post("/api/tags.usage", {
-			body: { token: user.getJwtToken(), id: tag.id },
+			body: { token: user.getJwtToken() },
 		});
 		const body = await res.json();
 
 		expect(res.status).toEqual(200);
-		expect(body.data.documentCount).toEqual(1);
-		expect(body.data.sampleTitles).toContain(doc.title);
-	});
+		expect(Array.isArray(body.data.tags)).toEqual(true);
 
-	it("should return zero count for unused tag", async () => {
-		const user = await buildUser();
-		const tag = await buildTag({ teamId: user.teamId });
-
-		const res = await server.post("/api/tags.usage", {
-			body: { token: user.getJwtToken(), id: tag.id },
-		});
-		const body = await res.json();
-
-		expect(res.status).toEqual(200);
-		expect(body.data.documentCount).toEqual(0);
+		const usage = body.data.tags.find((t: { id: string }) => t.id === tag.id);
+		expect(usage).toBeTruthy();
+		expect(usage.documentCount).toEqual(1);
 	});
 });
 
@@ -223,9 +213,9 @@ describe("#tags.delete", () => {
 	});
 });
 
-describe("#documents.addTag", () => {
+describe("#documents.add_tag", () => {
 	it("should require authentication", async () => {
-		const res = await server.post("/api/documents.addTag");
+		const res = await server.post("/api/documents.add_tag");
 		expect(res.status).toEqual(401);
 	});
 
@@ -234,7 +224,7 @@ describe("#documents.addTag", () => {
 		const doc = await buildDocument({ userId: user.id, teamId: user.teamId });
 		const tag = await buildTag({ teamId: user.teamId });
 
-		const res = await server.post("/api/documents.addTag", {
+		const res = await server.post("/api/documents.add_tag", {
 			body: { token: user.getJwtToken(), id: doc.id, tagId: tag.id },
 		});
 		const body = await res.json();
@@ -248,7 +238,7 @@ describe("#documents.addTag", () => {
 		const user = await buildUser();
 		const doc = await buildDocument({ userId: user.id, teamId: user.teamId });
 
-		const res = await server.post("/api/documents.addTag", {
+		const res = await server.post("/api/documents.add_tag", {
 			body: { token: user.getJwtToken(), id: doc.id, name: "newtag" },
 		});
 		const body = await res.json();
@@ -263,10 +253,10 @@ describe("#documents.addTag", () => {
 		const doc = await buildDocument({ userId: user.id, teamId: user.teamId });
 		const tag = await buildTag({ teamId: user.teamId });
 
-		await server.post("/api/documents.addTag", {
+		await server.post("/api/documents.add_tag", {
 			body: { token: user.getJwtToken(), id: doc.id, tagId: tag.id },
 		});
-		const res = await server.post("/api/documents.addTag", {
+		const res = await server.post("/api/documents.add_tag", {
 			body: { token: user.getJwtToken(), id: doc.id, tagId: tag.id },
 		});
 		const body = await res.json();
@@ -279,16 +269,16 @@ describe("#documents.addTag", () => {
 		const user = await buildUser();
 		const doc = await buildDocument({ userId: user.id, teamId: user.teamId });
 
-		const res = await server.post("/api/documents.addTag", {
+		const res = await server.post("/api/documents.add_tag", {
 			body: { token: user.getJwtToken(), id: doc.id },
 		});
 		expect(res.status).toEqual(400);
 	});
 });
 
-describe("#documents.removeTag", () => {
+describe("#documents.remove_tag", () => {
 	it("should require authentication", async () => {
-		const res = await server.post("/api/documents.removeTag");
+		const res = await server.post("/api/documents.remove_tag");
 		expect(res.status).toEqual(401);
 	});
 
@@ -298,7 +288,7 @@ describe("#documents.removeTag", () => {
 		const tag = await buildTag({ teamId: user.teamId });
 		await buildDocumentTag({ documentId: doc.id, tagId: tag.id });
 
-		const res = await server.post("/api/documents.removeTag", {
+		const res = await server.post("/api/documents.remove_tag", {
 			body: { token: user.getJwtToken(), id: doc.id, tagId: tag.id },
 		});
 		const body = await res.json();

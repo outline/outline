@@ -11,12 +11,13 @@ interface Props {
 	color?: string | null;
 	/** If provided, renders a remove button and calls this handler on click. */
 	onRemove?: () => void;
+	removeOnHover?: boolean;
 }
 
 /**
  * A small pill badge that displays a tag name with an optional remove button.
  */
-function TagBadge({ name, color, onRemove }: Props) {
+function TagBadge({ name, color, onRemove, removeOnHover }: Props) {
 	const { t } = useTranslation();
 
 	const handleRemove = React.useCallback(
@@ -29,12 +30,13 @@ function TagBadge({ name, color, onRemove }: Props) {
 	);
 
 	return (
-		<Pill $color={color ?? null}>
+		<Pill $color={color ?? null} $interactive={!!onRemove}>
 			<Dot $color={color ?? null} />
 			<Label>{name}</Label>
 			{onRemove && (
 				<RemoveButton
 					type="button"
+					$hiddenUntilHover={!!removeOnHover}
 					aria-label={t("Remove tag {{ name }}", { name })}
 					onClick={handleRemove}
 				>
@@ -54,7 +56,7 @@ const Dot = styled.span<{ $color: string | null }>`
 	opacity: ${({ $color }) => ($color ? 1 : 0.4)};
 `;
 
-const Pill = styled.span<{ $color: string | null }>`
+const Pill = styled.span<{ $color: string | null; $interactive: boolean }>`
 	display: inline-flex;
 	align-items: center;
 	gap: 4px;
@@ -70,6 +72,19 @@ const Pill = styled.span<{ $color: string | null }>`
 		$color ? `${$color}22` : theme.listItemHoverBackground};
 	border: 1px solid
 		${({ $color, theme }) => $color ?? theme.inputBorder};
+
+	${({ $interactive }) =>
+		$interactive
+			? `
+				&:hover button,
+				&:focus-within button {
+					opacity: 1;
+					width: 10px;
+					margin-left: 2px;
+					pointer-events: auto;
+				}
+			`
+			: ""}
 `;
 
 const Label = styled.span`
@@ -78,7 +93,7 @@ const Label = styled.span`
 	text-overflow: ellipsis;
 `;
 
-const RemoveButton = styled.button`
+const RemoveButton = styled.button<{ $hiddenUntilHover: boolean }>`
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -88,9 +103,24 @@ const RemoveButton = styled.button`
 	cursor: pointer;
 	color: ${s("textTertiary")};
 	flex-shrink: 0;
+	width: ${({ $hiddenUntilHover }) => ($hiddenUntilHover ? "0" : "10px")};
+	overflow: hidden;
+	opacity: ${({ $hiddenUntilHover }) => ($hiddenUntilHover ? 0 : 1)};
+	pointer-events: ${({ $hiddenUntilHover }) =>
+		$hiddenUntilHover ? "none" : "auto"};
+	transition:
+		opacity 120ms ease,
+		width 120ms ease,
+		margin-left 120ms ease;
 
 	&:hover {
 		color: ${s("text")};
+	}
+
+	@media (hover: none), (pointer: coarse) {
+		width: 10px;
+		opacity: 1;
+		pointer-events: auto;
 	}
 `;
 
