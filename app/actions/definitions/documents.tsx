@@ -960,7 +960,7 @@ export const printDocument = createAction({
 });
 
 export const openDocumentInDesktop = createAction({
-  name: ({ t }) => t("Open in Desktop"),
+  name: ({ t }) => t("Open in desktop app"),
   analyticsName: "Open in desktop",
   section: ActiveDocumentSection,
   icon: <OpenIcon />,
@@ -969,7 +969,9 @@ export const openDocumentInDesktop = createAction({
       return false;
     }
     const document = stores.documents.get(activeDocumentId);
-    return isCloudHosted && (isMac || isWindows) && !!document && !document.isDeleted;
+    return (
+      isCloudHosted && (isMac || isWindows) && !!document && !document.isDeleted
+    );
   },
   perform: ({ activeDocumentId, stores }) => {
     const document = activeDocumentId
