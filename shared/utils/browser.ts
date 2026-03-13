@@ -94,6 +94,31 @@ export const isSafari =
 export const isFirefox =
   isBrowser && window.navigator.userAgent.includes("Firefox");
 
+/**
+ * Returns true if the browser supports the Element Fullscreen API. This is
+ * false on iOS Safari which does not implement it.
+ *
+ * @returns whether element fullscreen is available.
+ */
+export function canUseElementFullscreen(): boolean {
+  if (!isBrowser) {
+    return false;
+  }
+
+  const doc = document as Document & {
+    webkitFullscreenEnabled?: boolean;
+    msFullscreenEnabled?: boolean;
+  };
+  const fullscreenAPI =
+    doc.fullscreenEnabled ??
+    doc.webkitFullscreenEnabled ??
+    doc.msFullscreenEnabled;
+
+  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+
+  return !!fullscreenAPI && !isIOS;
+}
+
 let supportsPassive = false;
 
 try {

@@ -5,6 +5,7 @@ import { ShrinkIcon, GrowIcon, CloseIcon } from "outline-icons";
 import styled, { useTheme } from "styled-components";
 import Icon from "@shared/components/Icon";
 import { richExtensions } from "@shared/editor/nodes";
+import { canUseElementFullscreen } from "@shared/utils/browser";
 import { s, depths, hover } from "@shared/styles";
 import type { ProsemirrorData } from "@shared/types";
 import { colorPalette } from "@shared/utils/collections";
@@ -126,6 +127,7 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const slideContentRef = React.useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = React.useState(false);
+  const supportsFullscreen = React.useMemo(() => canUseElementFullscreen(), []);
   const isIdle = useIdle(3000, idleEvents);
 
   const slides = React.useMemo(() => {
@@ -163,6 +165,10 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
   }, [totalSlides]);
 
   const toggleFullscreen = React.useCallback(() => {
+    if (!supportsFullscreen) {
+      return;
+    }
+
     const el = containerRef.current;
     if (!el) {
       return;
@@ -177,7 +183,7 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
         // ignore
       });
     }
-  }, []);
+  }, [supportsFullscreen]);
 
   useKeyDown("Escape", onClose);
   useKeyDown("ArrowRight", goNext);
@@ -202,6 +208,10 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
 
   // Track fullscreen state changes
   React.useEffect(() => {
+    if (!supportsFullscreen) {
+      return;
+    }
+
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
     };
@@ -215,7 +225,7 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
         });
       }
     };
-  }, []);
+  }, [supportsFullscreen]);
 
   // Measure natural size once per slide, then apply scale directly to the DOM
   // to avoid React re-render loops during window resize.
@@ -293,15 +303,17 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
           </Tooltip>
         </Flex>
         <RightButtons>
-          <Tooltip content={t("Toggle fullscreen")} delay={500}>
-            <Button onClick={toggleFullscreen}>
-              {isFullscreen ? (
-                <ShrinkIcon color="currentColor" />
-              ) : (
-                <GrowIcon color="currentColor" />
-              )}
-            </Button>
-          </Tooltip>
+          {supportsFullscreen && (
+            <Tooltip content={t("Toggle fullscreen")} delay={500}>
+              <Button onClick={toggleFullscreen}>
+                {isFullscreen ? (
+                  <ShrinkIcon color="currentColor" />
+                ) : (
+                  <GrowIcon color="currentColor" />
+                )}
+              </Button>
+            </Tooltip>
+          )}
           <Tooltip content={t("Close")} delay={500}>
             <Button onClick={onClose}>
               <CloseIcon />
