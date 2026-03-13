@@ -15,7 +15,6 @@ allow(User, "readTemplate", Team, (actor, team) =>
   and(
     //
     !actor.isGuest,
-    !actor.isViewer,
     isTeamModel(actor, team)
   )
 );

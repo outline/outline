@@ -1,9 +1,12 @@
 import {
   buildAdmin,
   buildUser,
+  buildViewer,
   buildTemplate,
   buildCollection,
 } from "@server/test/factories";
+import { UserMembership } from "@server/models";
+import { CollectionPermission } from "@shared/types";
 import { getTestServer } from "@server/test/support";
 
 const server = getTestServer();
@@ -157,6 +160,62 @@ describe("#templates.update", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.data).toEqual(data);
+  });
+
+  it("should allow workspace viewer with collection admin membership to update template", async () => {
+    const viewer = await buildViewer();
+    const collection = await buildCollection({
+      teamId: viewer.teamId,
+      permission: null,
+    });
+
+    await UserMembership.create({
+      createdById: viewer.id,
+      collectionId: collection.id,
+      userId: viewer.id,
+      permission: CollectionPermission.Admin,
+    });
+
+    const template = await buildTemplate({
+      teamId: viewer.teamId,
+      collectionId: collection.id,
+    });
+
+    const res = await server.post("/api/templates.update", {
+      body: {
+        token: viewer.getJwtToken(),
+        id: template.id,
+        title: "Updated by collection manager",
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.title).toEqual("Updated by collection manager");
+    expect(body.policies[0].abilities.update).toEqual(true);
+  });
+
+  it("should not allow workspace viewer without collection admin to update template", async () => {
+    const viewer = await buildViewer();
+    const collection = await buildCollection({
+      teamId: viewer.teamId,
+      permission: CollectionPermission.ReadWrite,
+    });
+
+    const template = await buildTemplate({
+      teamId: viewer.teamId,
+      collectionId: collection.id,
+    });
+
+    const res = await server.post("/api/templates.update", {
+      body: {
+        token: viewer.getJwtToken(),
+        id: template.id,
+        title: "Should fail",
+      },
+    });
+
+    expect(res.status).toEqual(403);
   });
 
   it("should allow admin to move template to another accessible collection", async () => {
