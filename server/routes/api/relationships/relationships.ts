@@ -77,16 +77,22 @@ router.post(
       { userId: user.id }
     );
 
-    const policies = presentPolicies(user, [...documents, ...relationships]);
+    const documentIds = new Set(documents.map((d) => d.id));
+    const filteredRelationships = relationships.filter((relationship) =>
+      documentIds.has(
+        where.reverseDocumentId
+          ? relationship.documentId
+          : relationship.reverseDocumentId
+      )
+    );
 
     ctx.body = {
       pagination: ctx.state.pagination,
       data: {
-        relationships: relationships.map(presentRelationship),
+        relationships: filteredRelationships.map(presentRelationship),
         documents: await presentDocuments(ctx, documents),
-        policies: presentPolicies(user, documents),
       },
-      policies,
+      policies: presentPolicies(user, [...documents, ...filteredRelationships]),
     };
   }
 );
