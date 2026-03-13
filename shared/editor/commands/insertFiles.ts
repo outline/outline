@@ -82,7 +82,6 @@ const insertFiles = async function (
         FileHelper.isVideo(file.type) &&
         !options.isAttachment &&
         !!schema.nodes.video;
-      const isPdf = FileHelper.isPdf(file.type) && !options.isAttachment;
       const getDimensions = isImage
         ? FileHelper.getImageDimensions
         : isVideo
@@ -95,7 +94,6 @@ const insertFiles = async function (
         source: await FileHelper.getImageSourceAttr(file),
         isImage,
         isVideo,
-        isPdf,
         file,
       };
     })
@@ -204,7 +202,7 @@ const insertFiles = async function (
                   title: upload.file.name ?? dictionary.untitled,
                   size: upload.file.size,
                   contentType: upload.file.type,
-                  preview: upload.isPdf,
+                  preview: false,
                   ...options.attrs,
                 })
               )
