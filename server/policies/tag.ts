@@ -1,6 +1,6 @@
 import { User, Tag } from "@server/models";
 import { allow } from "./cancan";
-import { and, isTeamAdmin, isTeamMember, isTeamModel, isTeamMutable } from "./utils";
+import { and, isTeamAdmin, isTeamModel, isTeamMutable } from "./utils";
 
 allow(User, "read", Tag, (actor, tag) =>
 	and(isTeamModel(actor, tag), (actor.isMember || actor.isAdmin))

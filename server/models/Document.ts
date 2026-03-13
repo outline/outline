@@ -731,7 +731,7 @@ class Document extends ArchivableModel<
     return this.scope([
       options?.includeDrafts ? "withDrafts" : "defaultScope",
       "withoutState",
-      ...(options?.includeTags ? (["withTags"] as ScopeOptions[]) : []),
+      ...(options?.includeTags ? (["withTags"] as unknown as ScopeOptions[]) : []),
       {
         method: ["withViews", userId],
       },
@@ -778,7 +778,7 @@ class Document extends ArchivableModel<
     // almost every endpoint needs the collection membership to determine policy permissions.
     const scope = this.scope([
       "withDrafts",
-      ...(includeTags ? (["withTags"] as ScopeOptions[]) : []),
+      ...(includeTags ? (["withTags"] as unknown as ScopeOptions[]) : []),
       includeState ? "withState" : "withoutState",
       ...((includeViews
         ? [

@@ -1,5 +1,5 @@
 import { HashtagIcon, SearchIcon, StarredIcon, UnstarredIcon } from "outline-icons";
-import Tag from "~/models/Tag";
+import type Tag from "~/models/Tag";
 import { createAction, createActionWithChildren, createInternalLinkAction } from "~/actions";
 import { NavigationSection } from "~/actions/sections";
 import { searchPath, tagPath } from "~/utils/routeHelpers";
