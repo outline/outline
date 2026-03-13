@@ -1,6 +1,4 @@
 import { CopyIcon, EditIcon, ExpandedIcon, TextWrapIcon } from "outline-icons";
-import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { Node as ProseMirrorNode } from "prosemirror-model";
 import { NodeSelection } from "prosemirror-state";
 import type { EditorState } from "prosemirror-state";
@@ -61,24 +59,6 @@ export default function codeMenuItems(
         ? getLabelForLanguage(node.attrs.language ?? "none")
         : undefined,
       tooltip: dictionary.copy,
-    },
-    {
-      name: "separator",
-    },
-    {
-      name: "toggleCodeBlockCollapse",
-      icon: node.attrs.collapsed ? (
-        <FontAwesomeIcon icon={faChevronDown} />
-      ) : (
-        <FontAwesomeIcon icon={faChevronUp} />
-      ),
-      tooltip: node.attrs.collapsed
-        ? dictionary.expandCode
-        : dictionary.collapseCode,
-      visible: !readOnly && (!isMermaid(node) || isEditingMermaid),
-    },
-    {
-      name: "separator",
     },
     {
       name: "edit_mermaid",

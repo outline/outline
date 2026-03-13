@@ -7,13 +7,14 @@ import type {
   Schema,
   Node as ProsemirrorNode,
 } from "prosemirror-model";
-import type { Command, EditorState } from "prosemirror-state";
+import type { Command, EditorState, Transaction } from "prosemirror-state";
 import {
   NodeSelection,
   Plugin,
   PluginKey,
   TextSelection,
 } from "prosemirror-state";
+import type { EditorView } from "prosemirror-view";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { toast } from "sonner";
 import type { Primitive } from "utility-types";
@@ -44,12 +45,23 @@ import {
 import { isCode, isMermaid } from "../lib/isCode";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { findNextNewline, findPreviousNewline } from "../queries/findNewlines";
-import { findParentNode } from "../queries/findParentNode";
+import {
+  findParentNode,
+  findParentNodeClosestToPos,
+} from "../queries/findParentNode";
 import { getMarkRange } from "../queries/getMarkRange";
 import { isInCode } from "../queries/isInCode";
+import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import Node from "./Node";
 
 const DEFAULT_LANGUAGE = "javascript";
+const TALL_HEIGHT = 350;
+
+const CHEVRON_DOWN =
+  '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M4 7L8 11L12 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+const CHEVRON_UP =
+  '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M4 11L8 7L12 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
 export default class CodeFence extends Node {
   constructor(options: {
@@ -79,8 +91,9 @@ export default class CodeFence extends Node {
           validate: "boolean",
         },
         collapsed: {
-          default: false,
-          validate: "boolean",
+          default: null,
+          validate: (value: any) =>
+            value === null || typeof value === "boolean",
         },
       },
       content: "text*",
@@ -113,20 +126,48 @@ export default class CodeFence extends Node {
           },
         },
       ],
-      toDOM: (node) => [
-        "div",
-        {
-          class: `code-block ${
-            node.attrs.wrap
-              ? "with-line-wrap"
-              : this.showLineNumbers
-                ? "with-line-numbers"
-                : ""
-          } ${node.attrs.collapsed ? "collapsed" : ""}`,
-          "data-language": node.attrs.language,
-        },
-        ["pre", ["code", { spellCheck: "false" }, 0]],
-      ],
+      toDOM: (node) => {
+        const buttonIcon = document.createElement("i");
+        buttonIcon.innerHTML = node.attrs.collapsed ? CHEVRON_DOWN : CHEVRON_UP;
+
+        return [
+          "div",
+          {
+            class: `code-block ${
+              node.attrs.wrap
+                ? "with-line-wrap"
+                : this.showLineNumbers
+                  ? "with-line-numbers"
+                  : ""
+            } ${node.attrs.collapsed === null ? "" : node.attrs.collapsed ? "tall collapsed" : "tall"} `,
+            "data-language": node.attrs.language,
+          },
+          ["pre", ["code", { spellCheck: "false" }, 0]],
+          [
+            "button",
+            {
+              class: EditorStyleHelper.codeBlockToggle,
+              contenteditable: "false",
+              type: "button",
+              "data-expand-label": this.options.dictionary.expandCode,
+              "data-collapse-label": this.options.dictionary.collapseCode,
+            },
+            [
+              "span",
+              {
+                class: "icon",
+              },
+              buttonIcon,
+            ],
+            `
+          ${
+            node.attrs.collapsed
+              ? this.options.dictionary.expandCode
+              : this.options.dictionary.collapseCode
+          }`,
+          ],
+        ];
+      },
     };
   }
 
@@ -380,55 +421,124 @@ export default class CodeFence extends Node {
         },
       }),
       new Plugin({
-        key: new PluginKey("expand-on-click"),
+        key: new PluginKey("collapse-toggle"),
         props: {
-          handleClick: (view) => {
-            const { state, dispatch } = view;
-            const codeBlock = findParentNode(isCode)(state.selection);
+          handleDOMEvents: {
+            mousedown: (view, event) => {
+              const target = event.target as HTMLElement;
+              const button = target.closest(
+                `.${EditorStyleHelper.codeBlockToggle}`
+              ) as HTMLElement | null;
 
-            if (codeBlock && codeBlock.node.attrs.collapsed) {
-              dispatch?.(
-                state.tr.setNodeMarkup(codeBlock.pos, undefined, {
-                  ...codeBlock.node.attrs,
-                  collapsed: false,
-                })
+              if (!button) {
+                return false;
+              }
+
+              event.preventDefault();
+              event.stopPropagation();
+
+              const codeBlockEl = button.closest<HTMLElement>(".code-block");
+              const codeEl = codeBlockEl?.querySelector("code");
+              if (!codeEl) {
+                return false;
+              }
+
+              const innerPos = view.posAtDOM(codeEl, 0);
+              const $pos = view.state.doc.resolve(innerPos);
+              const codeBlock = findParentNodeClosestToPos($pos, isCode);
+
+              if (!codeBlock) {
+                return false;
+              }
+
+              view.dispatch(
+                view.state.tr
+                  .setNodeMarkup(codeBlock.pos, undefined, {
+                    ...codeBlock.node.attrs,
+                    collapsed: !codeBlock.node.attrs.collapsed,
+                  })
+                  .setMeta("collapsed", { changed: true })
               );
               return true;
-            }
-            return false;
+            },
           },
         },
       }),
       new Plugin({
-        key: new PluginKey("auto-collapse-on-load"),
-        appendTransaction: (_transactions, _oldState, newState) => {
-          const tr = newState.tr;
-          let modified = false;
+        key: new PluginKey("auto-collapse-code-block"),
+        view: () => {
+          let initialized = false;
+          let processing = false;
 
-          newState.doc.descendants((node, pos) => {
-            if (
-              node.type.name === "code_fence" &&
-              node.attrs.collapsed === false
-            ) {
-              const dom = document.querySelector(
-                `[data-pos="${pos}"]`
-              ) as HTMLElement;
-              if (dom) {
-                const height = dom.offsetHeight;
-                const MAX_HEIGHT = 350;
+          const processNode = (
+            view: EditorView,
+            tr: Transaction,
+            node: ProsemirrorNode,
+            pos: number,
+            initialized: boolean
+          ) => {
+            if (!isCode(node)) {return false;}
 
-                if (height > MAX_HEIGHT) {
-                  tr.setNodeMarkup(pos, undefined, {
-                    ...node.attrs,
-                    collapsed: true,
-                  });
-                  modified = true;
+            const dom = view.nodeDOM(pos) as HTMLElement | null;
+            if (!dom) {return false;}
+
+            let modified = false;
+
+            if (node.attrs.collapsed === null) {
+              const collapsedValue =
+                dom.scrollHeight > TALL_HEIGHT ? false : null;
+              if (collapsedValue !== node.attrs.collapsed) {
+                tr.setNodeMarkup(pos, undefined, {
+                  ...node.attrs,
+                  collapsed: collapsedValue,
+                });
+                modified = true;
+              }
+            } else if (dom.scrollHeight < TALL_HEIGHT) {
+              if (node.attrs.collapsed !== null) {
+                tr.setNodeMarkup(pos, undefined, {
+                  ...node.attrs,
+                  collapsed: null,
+                });
+                modified = true;
+              }
+            } else if (!initialized && node.attrs.collapsed !== true) {
+              tr.setNodeMarkup(pos, undefined, {
+                ...node.attrs,
+                collapsed: true,
+              });
+              modified = true;
+            }
+
+            return modified;
+          };
+
+          return {
+            update: (view, prevState) => {
+              if (processing) {return;}
+              processing = true;
+
+              const { state } = view;
+              const docChanged = !prevState || state.doc !== prevState.doc;
+
+              if (docChanged || !initialized) {
+                const tr = state.tr;
+                let modified = false;
+
+                state.doc.descendants((node, pos) => {
+                  modified =
+                    processNode(view, tr, node, pos, initialized) || modified;
+                });
+
+                if (modified) {
+                  view.dispatch(tr);
                 }
               }
-            }
-          });
 
-          return modified ? tr : null;
+              initialized = true;
+              processing = false;
+            },
+          };
         },
       }),
     ].filter(Boolean) as Plugin[];

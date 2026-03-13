@@ -206,6 +206,7 @@ export function CodeHighlighting({
     state: {
       init: (_, { doc }) => DecorationSet.create(doc, []),
       apply: (transaction: Transaction, decorationSet, oldState, state) => {
+        const collapsedChanged = transaction.getMeta("collapsed")?.changed;
         const nodeName = state.selection.$head.parent.type.name;
         const previousNodeName = oldState.selection.$head.parent.type.name;
         const codeBlockChanged =
@@ -216,6 +217,7 @@ export function CodeHighlighting({
         const langLoaded = transaction.getMeta("codeHighlighting")?.langLoaded;
 
         if (
+          collapsedChanged ||
           !highlighted ||
           codeBlockChanged ||
           isPaste ||
