@@ -44,6 +44,7 @@ export default function useDictionary() {
       deleteRow: t("Delete"),
       deleteTable: t("Delete table"),
       deleteAttachment: t("Delete file"),
+      previewAttachment: t("Preview PDF"),
       dimensions: `${t("Width")} × ${t("Height")}`,
       download: t("Download"),
       downloadAttachment: t("Download file"),

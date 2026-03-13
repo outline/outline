@@ -1,4 +1,4 @@
-import { TrashIcon, DownloadIcon, ReplaceIcon } from "outline-icons";
+import { TrashIcon, DownloadIcon, ReplaceIcon, EyeIcon } from "outline-icons";
 import type { EditorState } from "prosemirror-state";
 import type { MenuItem } from "@shared/editor/types";
 import type { Dictionary } from "~/hooks/useDictionary";
@@ -17,6 +17,9 @@ export default function attachmentMenuItems(
   const isAttachmentWithPreview = isNodeActive(schema.nodes.attachment, {
     preview: true,
   });
+  const isPdfAttachment = isNodeActive(schema.nodes.attachment, {
+    contentType: "application/pdf",
+  });
 
   return [
     {
@@ -31,6 +34,13 @@ export default function attachmentMenuItems(
     },
     {
       name: "separator",
+    },
+    {
+      name: "toggleAttachmentPreview",
+      tooltip: dictionary.previewAttachment,
+      icon: <EyeIcon />,
+      active: isAttachmentWithPreview,
+      visible: isPdfAttachment(state),
     },
     {
       name: "dimensions",
