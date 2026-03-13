@@ -54,6 +54,9 @@ export default class DocumentsStore extends Store<Document> {
   backlinks: Map<string, string[]> = new Map();
 
   @observable
+  similar: Map<string, string[]> = new Map();
+
+  @observable
   movingDocumentId: string | null | undefined;
 
   importFileTypes: string[] = [
@@ -254,21 +257,41 @@ export default class DocumentsStore extends Store<Document> {
   }
 
   @action
-  fetchBacklinks = async (documentId: string): Promise<void> => {
-    const documents = await this.fetchAll({
-      backlinkDocumentId: documentId,
-    });
+  fetchRelationships = async (documentId: string): Promise<void> => {
+    const res = await client.post("/relationships.list", { documentId });
+    invariant(res?.data, "Relationships not available");
 
-    runInAction("DocumentsStore#fetchBacklinks", () => {
-      this.backlinks.set(
-        documentId,
-        documents.map((doc) => doc.id)
-      );
+    runInAction("DocumentsStore#fetchRelationships", () => {
+      res.data.documents.forEach(this.add);
+      this.addPolicies(res.policies);
+
+      const backlinkIds: string[] = [];
+      const similarIds: string[] = [];
+
+      for (const relationship of res.data.relationships) {
+        if (relationship.type === "backlink") {
+          backlinkIds.push(relationship.reverseDocumentId);
+        } else if (relationship.type === "similar") {
+          similarIds.push(relationship.reverseDocumentId);
+        }
+      }
+
+      this.backlinks.set(documentId, backlinkIds);
+      this.similar.set(documentId, similarIds);
     });
   };
 
   getBacklinkedDocuments(documentId: string): Document[] {
     const documentIds = this.backlinks.get(documentId) || [];
+    return orderBy(
+      compact(documentIds.map((id) => this.data.get(id))),
+      "title",
+      "asc"
+    );
+  }
+
+  getSimilarDocuments(documentId: string): Document[] {
+    const documentIds = this.similar.get(documentId) || [];
     return orderBy(
       compact(documentIds.map((id) => this.data.get(id))),
       "title",
