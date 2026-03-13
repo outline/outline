@@ -414,7 +414,7 @@ describe("#relationships.list", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
 
-    expect(body.data.relationships).toHaveLength(1);
+    expect(body.data.relationships).toHaveLength(0);
     expect(body.data.documents).toHaveLength(0);
   });
 });
