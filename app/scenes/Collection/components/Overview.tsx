@@ -61,7 +61,7 @@ function Overview({ collection, readOnly }: Props) {
     () => ({
       padding: "0 32px",
       margin: "0 -32px",
-      paddingBottom: `calc(50vh - ${childOffsetHeight}px)`,
+      paddingBottom: `calc(30vh - ${childOffsetHeight}px)`,
     }),
     [childOffsetHeight]
   );
