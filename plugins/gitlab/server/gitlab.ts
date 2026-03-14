@@ -214,10 +214,6 @@ export class GitLab {
     }
 
     if (!resource) {
-      Logger.debug(
-        "plugins",
-        `Could not parse GitLab resource from URL: ${url}`
-      );
       return;
     }
 
