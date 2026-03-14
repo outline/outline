@@ -1,4 +1,4 @@
-import { TrashIcon, DownloadIcon, ReplaceIcon, EyeIcon } from "outline-icons";
+import { TrashIcon, DownloadIcon, ReplaceIcon, PDFIcon } from "outline-icons";
 import type { EditorState } from "prosemirror-state";
 import type { MenuItem } from "@shared/editor/types";
 import type { Dictionary } from "~/hooks/useDictionary";
@@ -33,14 +33,14 @@ export default function attachmentMenuItems(
       icon: <TrashIcon />,
     },
     {
-      name: "separator",
-    },
-    {
       name: "toggleAttachmentPreview",
       tooltip: dictionary.previewAttachment,
-      icon: <EyeIcon />,
+      icon: <PDFIcon />,
       active: isAttachmentWithPreview,
       visible: isPdfAttachment(state),
+    },
+    {
+      name: "separator",
     },
     {
       name: "dimensions",
