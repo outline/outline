@@ -9,6 +9,128 @@ import { richExtensions, withComments } from "../nodes";
 import type { ProsemirrorData } from "../../types";
 
 /**
+ * Merges adjacent Change objects that represent interleaved deletions/insertions.
+ *
+ * When word-level diffing is used, replacing "no-await-in-loop" with
+ * "jsx-no-jsx-as-prop" can produce multiple adjacent Change objects like:
+ *   Change1: delete "no", insert "jsx"
+ *   Change2: delete "await", insert "no"
+ *   ...
+ *
+ * This function merges such adjacent changes into a single change:
+ *   Change: delete "no-await-in-loop", insert "jsx-no-jsx-as-prop"
+ *
+ * @param changes - The changes from simplifyChanges
+ * @param docOld - The old document (to extract merged deletion content)
+ * @returns Changes with adjacent interleaved changes merged
+ */
+function mergeInterleavedChanges<T extends { step: Step; slice: Slice | null }>(
+  changes: readonly Change<T>[],
+  docOld: Node
+): Change<T>[] {
+  if (changes.length <= 1) {
+    return [...changes];
+  }
+
+  const result: Change<T>[] = [];
+  let i = 0;
+
+  while (i < changes.length) {
+    const current = changes[i];
+
+    // Check if this change and subsequent changes form a contiguous replacement
+    // (i.e., they're adjacent in both old and new document positions)
+    let j = i + 1;
+    while (j < changes.length) {
+      const prev = changes[j - 1];
+      const next = changes[j];
+
+      // Check if changes are adjacent (toA of prev equals fromA of next, same for B)
+      // Allow gaps (like hyphens or other unchanged characters between changes)
+      const gapA = next.fromA - prev.toA;
+      const gapB = next.fromB - prev.toB;
+
+      // Check if changes are in the same parent node (e.g., same table cell, same paragraph)
+      // by verifying that the gap in the old document doesn't cross node boundaries
+      let crossesNodeBoundary = false;
+      if (gapA > 0) {
+        try {
+          const gapSlice = docOld.slice(prev.toA, next.fromA);
+          // If the gap contains any non-text nodes or node boundaries, don't merge
+          gapSlice.content.forEach((node) => {
+            if (!node.isText) {
+              crossesNodeBoundary = true;
+            }
+          });
+        } catch {
+          crossesNodeBoundary = true;
+        }
+      }
+
+      // If gaps are equal, reasonably small, and don't cross node boundaries,
+      // they're part of the same logical replacement
+      if (gapA === gapB && gapA >= 0 && gapA <= 5 && !crossesNodeBoundary) {
+        j++;
+      } else {
+        break;
+      }
+    }
+
+    // If we found multiple adjacent changes, merge them
+    if (j > i + 1) {
+      const firstChange = changes[i];
+      const lastChange = changes[j - 1];
+
+      // Collect all deletions and insertions
+      const allDeleted: Array<{ length: number; data: T }> = [];
+      const allInserted: Array<{ length: number; data: T }> = [];
+
+      for (let k = i; k < j; k++) {
+        allDeleted.push(...changes[k].deleted);
+        allInserted.push(...changes[k].inserted);
+      }
+
+      // Create merged change
+      const mergedChange: Change<T> = {
+        fromA: firstChange.fromA,
+        toA: lastChange.toA,
+        fromB: firstChange.fromB,
+        toB: lastChange.toB,
+        deleted:
+          allDeleted.length > 0
+            ? [
+                {
+                  length: lastChange.toA - firstChange.fromA,
+                  data: {
+                    ...allDeleted[0].data,
+                    slice: docOld.slice(firstChange.fromA, lastChange.toA),
+                  } as T,
+                },
+              ]
+            : [],
+        inserted:
+          allInserted.length > 0
+            ? [
+                {
+                  length: lastChange.toB - firstChange.fromB,
+                  data: allInserted[0].data,
+                },
+              ]
+            : [],
+      };
+
+      result.push(mergedChange);
+      i = j;
+    } else {
+      result.push(current);
+      i++;
+    }
+  }
+
+  return result;
+}
+
+/**
  * Represents a modification (attribute change) in the document.
  */
 export type Modification = {
@@ -145,6 +267,9 @@ export class ChangesetHelper {
       );
 
       let changes = simplifyChanges(changeset.changes, docNew);
+
+      // Merge interleaved deletions/insertions into cleaner blocks
+      changes = mergeInterleavedChanges(changes, docOld);
 
       // Post-process changes to detect modifications (attribute-only changes)
       const extendedChanges: ExtendedChange[] = changes.map((change) => {
