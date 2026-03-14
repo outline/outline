@@ -51,7 +51,8 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
         store: new StateStore(),
         state: true,
         callbackURL: `${env.URL}/auth/${config.id}.callback`,
-        authorizationURL: "https://discord.com/api/oauth2/authorize",
+        authorizationURL:
+          "https://discord.com/api/oauth2/authorize?prompt=none",
         tokenURL: "https://discord.com/api/oauth2/token",
         pkce: false,
       },
@@ -227,7 +228,6 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
     config.id,
     passport.authenticate(config.id, {
       scope,
-      prompt: "consent",
     })
   );
   router.get(`${config.id}.callback`, passportMiddleware(config.id));
