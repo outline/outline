@@ -24,6 +24,7 @@ import {
   Share,
   Team,
   User,
+  UserPasskey,
   Event,
   Document,
   Emoji,
@@ -946,6 +947,24 @@ export async function buildRelationship(overrides: Partial<Relationship> = {}) {
 
   return Relationship.create({
     type: RelationshipType.Backlink,
+    ...overrides,
+  });
+}
+
+export async function buildUserPasskey(
+  overrides: Partial<InferCreationAttributes<UserPasskey>> = {}
+) {
+  if (!overrides.userId) {
+    const user = await buildUser();
+    overrides.userId = user.id;
+  }
+
+  return UserPasskey.create({
+    credentialId: randomString(32),
+    credentialPublicKey: Buffer.from(randomString(64)),
+    counter: 0,
+    transports: ["internal"],
+    name: faker.word.noun(),
     ...overrides,
   });
 }

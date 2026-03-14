@@ -41,7 +41,7 @@ router.post("auth.config", async (ctx: APIContext<T.AuthConfigReq>) => {
           logo: team.getPreference(TeamPreference.PublicBranding)
             ? team.avatarUrl
             : undefined,
-          providers: AuthenticationHelper.providersForTeam(team).map(
+          providers: (await AuthenticationHelper.providersForTeam(team)).map(
             presentProviderConfig
           ),
         },
@@ -68,7 +68,7 @@ router.post("auth.config", async (ctx: APIContext<T.AuthConfigReq>) => {
             ? team.avatarUrl
             : undefined,
           hostname: ctx.request.hostname,
-          providers: AuthenticationHelper.providersForTeam(team).map(
+          providers: (await AuthenticationHelper.providersForTeam(team)).map(
             presentProviderConfig
           ),
         },
@@ -95,7 +95,7 @@ router.post("auth.config", async (ctx: APIContext<T.AuthConfigReq>) => {
             ? team.avatarUrl
             : undefined,
           hostname: ctx.request.hostname,
-          providers: AuthenticationHelper.providersForTeam(team).map(
+          providers: (await AuthenticationHelper.providersForTeam(team)).map(
             presentProviderConfig
           ),
         },
@@ -107,7 +107,7 @@ router.post("auth.config", async (ctx: APIContext<T.AuthConfigReq>) => {
   // Otherwise, we're requesting from the standard root signin page
   ctx.body = {
     data: {
-      providers: AuthenticationHelper.providersForTeam().map(
+      providers: (await AuthenticationHelper.providersForTeam()).map(
         presentProviderConfig
       ),
     },
