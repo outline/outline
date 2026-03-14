@@ -18,6 +18,7 @@ import {
   MentionDocument,
   MentionGroup,
   MentionIssue,
+  MentionProject,
   MentionPullRequest,
   MentionURL,
   MentionUser,
@@ -110,7 +111,8 @@ export default class Mention extends Node {
           "data-actorid": node.attrs.actorId,
           "data-url":
             node.attrs.type === MentionType.PullRequest ||
-            node.attrs.type === MentionType.Issue
+            node.attrs.type === MentionType.Issue ||
+            node.attrs.type === MentionType.Project
               ? node.attrs.href
               : `mention://${node.attrs.id}/${node.attrs.type}/${node.attrs.modelId}`,
           "data-unfurl": JSON.stringify(node.attrs.unfurl),
@@ -141,6 +143,13 @@ export default class Mention extends Node {
       case MentionType.PullRequest:
         return (
           <MentionPullRequest
+            {...props}
+            onChangeUnfurl={this.handleChangeUnfurl(props)}
+          />
+        );
+      case MentionType.Project:
+        return (
+          <MentionProject
             {...props}
             onChangeUnfurl={this.handleChangeUnfurl(props)}
           />
@@ -199,6 +208,7 @@ export default class Mention extends Node {
       MentionType.Document,
       MentionType.Issue,
       MentionType.PullRequest,
+      MentionType.Project,
     ];
 
     return {
@@ -215,7 +225,8 @@ export default class Mention extends Node {
 
           if (
             mentionType === MentionType.Issue ||
-            mentionType === MentionType.PullRequest
+            mentionType === MentionType.PullRequest ||
+            mentionType === MentionType.Project
           ) {
             link = selection.node.attrs.href;
           } else {
@@ -340,7 +351,9 @@ export default class Mention extends Node {
         unfurl.type === UnfurlResourceType.PR ||
         unfurl.type === UnfurlResourceType.URL
           ? unfurl.title
-          : undefined;
+          : unfurl.type === UnfurlResourceType.Project
+            ? unfurl.name
+            : undefined;
 
       const overrides: Record<string, unknown> = label ? { label } : {};
       overrides.unfurl = unfurl;
