@@ -16,7 +16,9 @@ import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { Document, Comment, Collection, Reaction, Emoji } from "@server/models";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
+import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
 import { authorize } from "@server/policies";
 import { presentComment, presentPolicies } from "@server/presenters";
@@ -35,7 +37,7 @@ router.post(
   validate(T.CommentsCreateSchema),
   transaction(),
   async (ctx: APIContext<T.CommentsCreateReq>) => {
-    const { id, documentId, parentCommentId } = ctx.input.body;
+    const { id, documentId, parentCommentId, anchorText } = ctx.input.body;
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
 
@@ -63,6 +65,25 @@ router.post(
       documentId,
       parentCommentId,
     });
+
+    // If anchorText is provided, add a comment mark to the document content
+    // linking this comment to the specified text.
+    if (anchorText && !parentCommentId) {
+      const prosemirrorNode = DocumentHelper.toProsemirror(document);
+      const docJSON = prosemirrorNode.toJSON();
+      const updatedDoc = SharedProsemirrorHelper.addCommentMark(
+        docJSON,
+        comment.id,
+        anchorText,
+        user.id
+      );
+
+      if (updatedDoc) {
+        document.content = updatedDoc;
+        document.changed("content", true);
+        await document.save({ transaction });
+      }
+    }
 
     comment.createdBy = user;
 

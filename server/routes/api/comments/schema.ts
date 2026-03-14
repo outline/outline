@@ -41,6 +41,15 @@ export const CommentsCreateSchema = BaseSchema.extend({
 
       /** Create comment with this text */
       text: z.string().optional(),
+
+      /**
+       * Text to anchor the comment to within the document. When provided, the
+       * comment will be linked to the first occurrence of this text in the
+       * document by adding a comment mark to the document's ProseMirror content.
+       * If the text is not found, the comment is created as a document-level
+       * comment (unanchored).
+       */
+      anchorText: z.string().max(1000).optional(),
     })
     .refine((obj) => !(isEmpty(obj.data) && isEmpty(obj.text)), {
       error: "One of data or text is required",
