@@ -75,7 +75,7 @@ const HoverPreviewIssue = React.forwardRef(function HoverPreviewIssue_(
                 </Description>
               )}
 
-              <Flex wrap>
+              <Flex wrap gap={6} style={{ marginTop: 8 }}>
                 {labels.map((label, index) => (
                   <Label key={index} color={label.color}>
                     {label.name}
