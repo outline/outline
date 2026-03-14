@@ -8,6 +8,7 @@ export class GitLabUtils {
   private static supportedResources = [
     UnfurlResourceType.Issue,
     UnfurlResourceType.PR,
+    UnfurlResourceType.Project,
   ];
 
   /**
@@ -103,7 +104,24 @@ export class GitLabUtils {
    * @param customUrl - Optional custom GitLab URL from integration settings.
    * @returns An object containing resource identifiers or undefined if the URL is invalid.
    */
-  public static parseUrl(url: string, customUrl?: string) {
+  public static parseUrl(
+    url: string,
+    customUrl?: string
+  ):
+    | {
+        owner: string;
+        repo: string | undefined;
+        type: UnfurlResourceType.Issue | UnfurlResourceType.PR;
+        id: number;
+        url: string;
+      }
+    | {
+        owner: string;
+        repo: string;
+        type: UnfurlResourceType.Project;
+        url: string;
+      }
+    | undefined {
     try {
       const parsed = new URL(url);
       const urlHostname = new URL(this.getGitlabUrl(customUrl)).hostname;
@@ -146,6 +164,21 @@ export class GitLabUtils {
         }
       }
 
+      // Check if it's a project URL (no -/ separator pattern in path)
+      if (!parsed.pathname.includes("/-/")) {
+        if (parts.length >= 2 && !this.isSystemPath(parts[0])) {
+          const repo = parts[parts.length - 1];
+          const owner = parts.slice(0, -1).join("/");
+          return {
+            owner,
+            repo,
+            type: UnfurlResourceType.Project,
+            url,
+          };
+        }
+        return;
+      }
+
       if (parts.length < 5) {
         return;
       }
@@ -182,6 +215,28 @@ export class GitLabUtils {
   }
 
   /**
+   * Checks if the first path segment is a known GitLab system path.
+   *
+   * @param segment - the first path segment of the URL.
+   * @returns true if the segment is a known system path.
+   */
+  private static isSystemPath(segment: string): boolean {
+    const systemPaths = new Set([
+      "explore",
+      "help",
+      "admin",
+      "dashboard",
+      "users",
+      "groups",
+      "projects",
+      "snippets",
+      "search",
+      "-",
+    ]);
+    return systemPaths.has(segment);
+  }
+
+  /**
    * Returns the color associated with a given status.
    *
    * @param status - The status of the resource.
@@ -199,7 +254,42 @@ export class GitLabUtils {
       merged: "#8250df",
       canceled: "#848d97",
     };
-
     return statusColors[status] ?? "#848d97";
+  }
+
+  /**
+   * Returns a deterministic color for a GitLab project based on its ID.
+   * Mirrors GitLab's identicon algorithm: (id % 7) mapped to a palette.
+   *
+   * @param projectId - the numeric project ID.
+   * @returns a hex color string.
+   */
+  public static getColorForProject(projectId: number): string {
+    const palette = [
+      "#e05842", // red
+      "#a972cc", // purple
+      "#5b6abf", // indigo
+      "#3e8fda", // blue
+      "#42a68c", // teal
+      "#e67e3c", // orange
+      "#7e7e7e", // neutral
+    ];
+    return palette[projectId % 7];
+  }
+
+  /**
+   * Returns the color associated with a given visibility level.
+   *
+   * @param visibility - The visibility level of the resource.
+   * @returns The color associated with the visibility level.
+   */
+  public static getColorForVisibility(visibility: string): string {
+    const visibilityColors: Record<string, string> = {
+      public: "#1f75cb",
+      internal: "#f8ae1a",
+      private: "#848d97",
+    };
+
+    return visibilityColors[visibility] ?? "#848d97";
   }
 }

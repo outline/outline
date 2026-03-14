@@ -624,6 +624,8 @@ export type UnfurlResponse = {
     name: string;
     /** Project color */
     color: string;
+    /** Project avatar URL */
+    avatarUrl?: string;
     /** Project description */
     description: string | null;
     /** Project lead */
