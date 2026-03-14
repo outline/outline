@@ -1,4 +1,5 @@
 import isEqual from "fast-deep-equal";
+import Redis from "@server/storage/redis";
 import revisionCreator from "@server/commands/revisionCreator";
 import { Revision, Document, User } from "@server/models";
 import type { DocumentEvent, RevisionEvent, Event } from "@server/types";
@@ -20,6 +21,11 @@ export default class RevisionsProcessor extends BaseProcessor {
         if (event.name === "documents.update" && !event.data?.done) {
           return;
         }
+
+        // Get collaborator IDs since last revision was written.
+        const key = Document.getCollaboratorKey(event.documentId);
+        const collaboratorIds = await Redis.defaultClient.smembers(key);
+        await Redis.defaultClient.del(key);
 
         const document = await Document.findByPk(event.documentId, {
           paranoid: false,
@@ -43,9 +49,11 @@ export default class RevisionsProcessor extends BaseProcessor {
           paranoid: false,
           rejectOnEmpty: true,
         });
+
         await revisionCreator({
           event,
           user,
+          collaboratorIds,
           document,
         });
         break;
