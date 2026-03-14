@@ -152,7 +152,7 @@ function SidebarLink(
       $isActiveDrop={isActiveDrop}
       $isDraft={isDraft}
       $disabled={disabled}
-      style={style}
+      style={active ? activeStyle : style}
       activeStyle={isActiveDrop ? activeDropStyle : activeStyle}
       onClick={handleClick}
       onActiveClick={handleDisclosureClick}
