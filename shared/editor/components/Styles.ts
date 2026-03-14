@@ -1253,13 +1253,16 @@ ${
   &:not([data-resolved]):not([data-draft]), &[data-draft][data-user-id="${
     props.userId ?? ""
   }"]  {
-    border-bottom: 2px solid ${props.theme.commentMarkBackground};
+    text-decoration: underline 2px ${props.theme.commentMarkBackground};
     transition: background 100ms ease-in-out;
-    border-radius: 2px;
 
     &:hover {
       ${props.readOnly ? "cursor: var(--pointer);" : ""}
       background: ${props.theme.commentMarkBackground};
+
+      * {
+        background: transparent !important;
+      }
     }
   }
 }
@@ -1486,6 +1489,11 @@ ol li {
 .${EditorStyleHelper.checklistWrapper} {
   position: relative;
   margin: 1em 0;
+
+  .${EditorStyleHelper.checklistWrapper} {
+    position: static;
+    margin: 0;
+  }
 }
 
 .${EditorStyleHelper.checklistCompletedToggle} {
@@ -1728,6 +1736,7 @@ mark {
 
 .code-block {
   position: relative;
+  font-size: 90%;
 }
 
 .code-block[data-language=none],
@@ -1762,6 +1771,17 @@ mark {
     overflow: hidden;
     position: relative;
   }
+
+  &.ProseMirror-selectednode {
+    outline: none;
+
+    & + .mermaid-diagram-wrapper {
+      &:not(.empty) {
+        cursor: zoom-in;
+      }
+      outline: 2px solid ${props.theme.selected};
+    }
+  }
 }
 
 .ProseMirror[contenteditable="false"] .code-block[data-language=mermaid],
@@ -1790,6 +1810,13 @@ mark {
     }
 }
 
+.code-block.with-line-wrap {
+  pre {
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+}
+
 .code-block.with-line-numbers {
   pre {
     padding-left: calc(var(--line-number-gutter-width, 0) * 1em + 1.5em);
@@ -1805,7 +1832,6 @@ mark {
     word-break: break-all;
     white-space: break-spaces;
     font-family: ${props.theme.fontFamilyMono};
-    font-size: 13px;
     line-height: 1.4em;
     color: ${props.theme.textTertiary};
     background: ${props.theme.codeBackground};
@@ -1858,7 +1884,6 @@ pre {
 
   -webkit-font-smoothing: initial;
   font-family: ${props.theme.fontFamilyMono};
-  font-size: 13px;
   direction: ltr;
   text-align: left;
   white-space: pre;
@@ -1874,7 +1899,7 @@ pre {
   color: ${props.theme.code};
 
   code {
-    font-size: 13px;
+    font-size: inherit;
     background: none;
     padding: 0;
     border: 0;
@@ -1970,12 +1995,8 @@ table {
   }
 
   .selectedCell {
-    ${
-      props.readOnly
-        ? "background: inherit;"
-        : `/* Using box-shadow inset instead of background to allow overlay on cell background colors */
-    box-shadow: inset 0 0 0 9999px ${props.theme.tableSelectedBackground};`
-    }
+    /* Using box-shadow inset instead of background to allow overlay on cell background colors */
+    box-shadow: inset 0 0 0 9999px ${props.theme.tableSelectedBackground};
 
     /* fixes Firefox background color painting over border:
       * https://bugzilla.mozilla.org/show_bug.cgi?id=688556 */
@@ -2587,6 +2608,7 @@ del {
     }
     flex-grow: 1;
     overflow: unset;
+    min-width: 0;
   }
 }
 `;

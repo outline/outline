@@ -6,9 +6,11 @@ import { Sequelize } from "sequelize-typescript";
 import type { MigrationError } from "umzug";
 import { Umzug, SequelizeStorage } from "umzug";
 import env from "@server/env";
+import { ClientClosedRequestError } from "@server/errors";
 import type Model from "@server/models/base/Model";
 import Logger from "../logging/Logger";
 import * as models from "../models";
+import { requestContext } from "./requestContext";
 import { getConnectionName } from "./utils";
 
 /**
@@ -106,6 +108,18 @@ export function createDatabaseInstance(
     if (env.isTest) {
       instance = monkeyPatchSequelizeErrorsForJest(instance);
     }
+
+    // Skip queries when the originating HTTP request socket has been destroyed
+    // (e.g. client disconnected or server timeout). This avoids wasting database
+    // resources on work whose response can never be delivered.
+    const assertConnectionOpen = () => {
+      const store = requestContext.getStore();
+      if (store?.req.socket.destroyed) {
+        throw ClientClosedRequestError();
+      }
+    };
+    instance.addHook("beforeFind", assertConnectionOpen);
+    instance.addHook("beforeCount", assertConnectionOpen);
 
     // Add hooks to warn about write operations on read-only connections
     if (isReadOnly) {

@@ -15,6 +15,7 @@ export default class Keys extends Extension {
     return "keys";
   }
 
+
   keys(): Record<string, Command> {
     const onCancel = () => {
       if (this.editor.props.onCancel) {

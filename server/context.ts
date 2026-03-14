@@ -3,6 +3,9 @@ import type { User } from "@server/models";
 import type { APIContext } from "@server/types";
 import { AuthenticationType } from "@server/types";
 
+/**
+ * Factory to create a new API context.
+ */
 export function createContext({
   user,
   authType = AuthenticationType.APP,

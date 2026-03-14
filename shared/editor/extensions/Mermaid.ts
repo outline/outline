@@ -2,9 +2,10 @@ import last from "lodash/last";
 import sortBy from "lodash/sortBy";
 import { v4 as uuidv4 } from "uuid";
 import type MermaidUnsafe from "mermaid";
+import type { IconPack } from "@fortawesome/fontawesome-common-types";
 import type { Node } from "prosemirror-model";
 import type { Transaction } from "prosemirror-state";
-import { Plugin, PluginKey, TextSelection } from "prosemirror-state";
+import { NodeSelection, Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { toast } from "sonner";
 import { isCode, isMermaid } from "../lib/isCode";
@@ -42,6 +43,38 @@ class Cache {
 }
 
 let mermaid: typeof MermaidUnsafe;
+
+/** Minimal Iconify JSON icon set format required by Mermaid's `registerIconPacks` API. */
+interface IconifyIconSet {
+  prefix: string;
+  icons: Record<string, { body: string; width: number; height: number }>;
+}
+
+/**
+ * Converts a FontAwesome icon pack to the Iconify JSON format expected by Mermaid's
+ * `registerIconPacks` API.
+ *
+ * @param pack the FontAwesome icon pack to convert.
+ * @param prefix the Iconify prefix to use (e.g. "fa-solid" or "fa-brands").
+ * @returns an Iconify-compatible JSON icon set.
+ */
+function fontAwesomeToIconify(pack: IconPack, prefix: string): IconifyIconSet {
+  const icons: IconifyIconSet["icons"] = {};
+
+  for (const iconDef of Object.values(pack)) {
+    // icon array layout: [width, height, ligatures, unicode, svgPathData]
+    if (!iconDef.iconName || !iconDef.icon) {
+      continue;
+    }
+    const [width, height, , , paths] = iconDef.icon;
+    const body = Array.isArray(paths)
+      ? paths.map((p) => `<path d="${p}"/>`).join("")
+      : `<path d="${paths}"/>`;
+    icons[iconDef.iconName] = { body, width, height };
+  }
+
+  return { prefix, icons };
+}
 
 class MermaidRenderer {
   readonly diagramId: string;
@@ -84,7 +117,43 @@ class MermaidRenderer {
     document.body.appendChild(renderElement);
 
     try {
-      mermaid ??= (await import("mermaid")).default;
+      if (!mermaid) {
+        mermaid = (await import("mermaid")).default;
+        mermaid.registerLayoutLoaders([
+          {
+            name: "elk",
+            loader: async () => {
+              const { default: elkLayouts } =
+                await import("@mermaid-js/layout-elk");
+              const elkDef = elkLayouts.find(
+                (d: { name: string }) => d.name === "elk"
+              );
+              if (!elkDef) {
+                throw new Error("ELK layout not found");
+              }
+              return elkDef.loader();
+            },
+          },
+        ]);
+        mermaid.registerIconPacks([
+          {
+            name: "fa-solid",
+            loader: async () => {
+              const { fas } = await import("@fortawesome/free-solid-svg-icons");
+              return fontAwesomeToIconify(fas, "fa-solid");
+            },
+          },
+          {
+            name: "fa-brands",
+            loader: async () => {
+              const { fab } = await import(
+                "@fortawesome/free-brands-svg-icons"
+              );
+              return fontAwesomeToIconify(fab, "fa-brands");
+            },
+          },
+        ]);
+      }
       mermaid.initialize({
         startOnLoad: true,
         suppressErrorRendering: true,
@@ -160,12 +229,15 @@ function getNewState({
   doc,
   pluginState,
   editor,
+  autoEditEmpty = false,
 }: {
   doc: Node;
   pluginState: MermaidState;
   editor: Editor;
+  autoEditEmpty?: boolean;
 }): MermaidState {
   const decorations: Decoration[] = [];
+  let newEditingId: string | undefined;
 
   // Find all blocks that represent Mermaid diagrams (supports both "mermaid" and "mermaidjs")
   const blocks = findBlockNodes(doc).filter((item) => isMermaid(item.node));
@@ -182,8 +254,18 @@ function getNewState({
       block
     );
 
+    const isNewBlock = !bestDecoration;
     const renderer: MermaidRenderer =
       bestDecoration?.spec?.renderer ?? new MermaidRenderer(editor);
+
+    // Auto-enter edit mode for newly created empty mermaid diagrams
+    if (
+      autoEditEmpty &&
+      isNewBlock &&
+      block.node.textContent.trim().length === 0
+    ) {
+      newEditingId = renderer.diagramId;
+    }
 
     const diagramDecoration = Decoration.widget(
       block.pos + block.node.nodeSize,
@@ -214,6 +296,7 @@ function getNewState({
 
   return {
     ...pluginState,
+    ...(newEditingId !== undefined ? { editingId: newEditingId } : {}),
     decorationSet: DecorationSet.create(doc, decorations),
   };
 }
@@ -307,11 +390,47 @@ export default function Mermaid({
             doc: transaction.doc,
             pluginState: nextPluginState,
             editor,
+            autoEditEmpty:
+              codeBlockChanged &&
+              transaction.docChanged &&
+              !isPaste &&
+              !isRemoteTransaction(transaction),
           });
         }
 
         return nextPluginState;
       },
+    },
+    appendTransaction(_transactions, _oldState, newState) {
+      const { selection } = newState;
+      if (selection instanceof NodeSelection) {
+        return null;
+      }
+
+      const codeBlock = findParentNode(isCode)(selection);
+      if (!codeBlock || !isMermaid(codeBlock.node)) {
+        return null;
+      }
+
+      const mermaidState = pluginKey.getState(newState) as MermaidState;
+      const decorations = mermaidState?.decorationSet.find(
+        codeBlock.pos,
+        codeBlock.pos + codeBlock.node.nodeSize
+      );
+      const nodeDecoration = decorations?.find(
+        (d) => d.spec.diagramId && d.from === codeBlock.pos
+      );
+
+      if (
+        nodeDecoration?.spec.diagramId &&
+        mermaidState?.editingId === nodeDecoration.spec.diagramId
+      ) {
+        return null;
+      }
+
+      return newState.tr.setSelection(
+        NodeSelection.create(newState.doc, codeBlock.pos)
+      );
     },
     view: (view) => {
       view.dispatch(view.state.tr.setMeta(pluginKey, { loaded: true }));
@@ -334,12 +453,50 @@ export default function Mermaid({
 
           return true;
         },
+        mousedown(view, event) {
+          const target = event.target as HTMLElement;
+          const diagram = target?.closest(".mermaid-diagram-wrapper");
+          if (!diagram) {
+            return false;
+          }
+
+          const codeBlock = diagram.previousElementSibling;
+          if (!codeBlock) {
+            return false;
+          }
+
+          const pos = view.posAtDOM(codeBlock, 0);
+          const $pos = view.state.doc.resolve(pos);
+          const nodePos = $pos.before();
+          const node = view.state.doc.nodeAt(nodePos);
+
+          const isSelected =
+            view.state.selection instanceof NodeSelection &&
+            view.state.selection.from === nodePos;
+
+          event.preventDefault();
+
+          if (isSelected || editor.props.readOnly) {
+            // Already selected or read-only, open lightbox
+            if (node && node.textContent.trim().length > 0) {
+              editor.updateActiveLightboxImage(
+                LightboxImageFactory.createLightboxImage(view, nodePos)
+              );
+            }
+          } else {
+            // First click, select the node
+            view.dispatch(
+              view.state.tr
+                .setSelection(NodeSelection.create(view.state.doc, nodePos))
+                .scrollIntoView()
+            );
+          }
+          return true;
+        },
         mouseup(view, event) {
           const target = event.target as HTMLElement;
           const diagram = target?.closest(".mermaid-diagram-wrapper");
-          const codeBlock = diagram?.previousElementSibling;
-
-          if (!codeBlock) {
+          if (!diagram) {
             return false;
           }
 
@@ -355,85 +512,6 @@ export default function Mermaid({
               }
             } catch (_err) {
               toast.error(dictionary.openLinkError);
-            }
-
-            return false;
-          }
-
-          const pos = view.posAtDOM(codeBlock, 0);
-          if (!pos) {
-            return false;
-          }
-
-          if (diagram && event.detail === 1) {
-            const { selection: textSelection } = view.state;
-            const $pos = view.state.doc.resolve(pos);
-            const selected =
-              textSelection.from >= $pos.start() &&
-              textSelection.to <= $pos.end();
-            if (selected || editor.props.readOnly) {
-              editor.updateActiveLightboxImage(
-                LightboxImageFactory.createLightboxImage(view, $pos.before())
-              );
-              return true;
-            }
-
-            // select node
-            view.dispatch(
-              view.state.tr
-                .setSelection(TextSelection.near(view.state.doc.resolve(pos)))
-                .scrollIntoView()
-            );
-            return true;
-          }
-
-          return false;
-        },
-        keydown: (view, event) => {
-          switch (event.key) {
-            case "ArrowDown": {
-              const { selection } = view.state;
-              const $pos = view.state.doc.resolve(
-                Math.min(selection.from + 1, view.state.doc.nodeSize)
-              );
-              const nextBlock = $pos.nodeAfter;
-
-              if (nextBlock && isMermaid(nextBlock)) {
-                view.dispatch(
-                  view.state.tr
-                    .setSelection(
-                      TextSelection.near(
-                        view.state.doc.resolve(selection.to + 1)
-                      )
-                    )
-                    .scrollIntoView()
-                );
-                event.preventDefault();
-                return true;
-              }
-              return false;
-            }
-            case "ArrowUp": {
-              const { selection } = view.state;
-              const $pos = view.state.doc.resolve(
-                Math.max(0, selection.from - 1)
-              );
-              const prevBlock = $pos.nodeBefore;
-
-              if (prevBlock && isMermaid(prevBlock)) {
-                view.dispatch(
-                  view.state.tr
-                    .setSelection(
-                      TextSelection.near(
-                        view.state.doc.resolve(selection.from - 2)
-                      )
-                    )
-                    .scrollIntoView()
-                );
-                event.preventDefault();
-                return true;
-              }
-              return false;
             }
           }
 

@@ -1,4 +1,4 @@
-import Redlock, { type Lock } from "redlock";
+import Redlock, { type Lock, type RedlockAbortSignal } from "redlock";
 import Redis from "@server/storage/redis";
 import ShutdownHelper, { ShutdownOrder } from "./ShutdownHelper";
 
@@ -44,6 +44,25 @@ export class MutexLock {
       ShutdownHelper.add(key, ShutdownOrder.last, lock.release.bind(lock));
     }
     return lock;
+  }
+
+  /**
+   * Execute a routine in the context of an auto-extending lock. The lock is
+   * automatically acquired before the routine runs and released when it
+   * completes. If the lock cannot be extended, the provided AbortSignal will
+   * be triggered so the routine can bail out.
+   *
+   * @param resource The resource to lock.
+   * @param timeout The initial lock duration in milliseconds (auto-extended while running).
+   * @param routine The async routine to execute while holding the lock.
+   * @returns A promise that resolves with the routine's return value.
+   */
+  public static async using<T>(
+    resource: string,
+    timeout: number,
+    routine: (signal: RedlockAbortSignal) => Promise<T>
+  ): Promise<T> {
+    return this.lock.using([resource], timeout, routine);
   }
 
   /**

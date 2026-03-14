@@ -8,7 +8,7 @@ import { useAgent as useFilteringAgent } from "request-filtering-agent";
 import env from "@server/env";
 import { InternalError } from "@server/errors";
 import Logger from "@server/logging/Logger";
-import { capitalize, defaults } from "lodash";
+import { capitalize } from "lodash";
 
 interface UrlWithTunnel extends URL {
   tunnelMethod?: string;
@@ -70,6 +70,8 @@ export default async function fetch(
     }, timeout);
   }
 
+  const signal = abortController?.signal || rest.signal;
+
   try {
     const response = await nodeFetch(url, {
       ...rest,
@@ -77,8 +79,8 @@ export default async function fetch(
         "User-Agent": outlineUserAgent,
         ...rest?.headers,
       },
-      signal: abortController?.signal || rest.signal,
-      agent: buildAgent(url, init),
+      signal,
+      agent: buildAgent(url, { signal, allowPrivateIPAddress }),
     });
 
     if (!response.ok) {
@@ -166,17 +168,20 @@ const buildTunnel = (proxy: UrlWithTunnel, options: RequestInit) => {
  * if necessary. If a proxy is detected in the environment, it will use that
  * proxy agent to tunnel the request.
  *
- * @param url The URL to fetch
- * @param options The fetch options
- * @returns An http or https agent configured for the URL
+ * @param url The URL to fetch.
+ * @param options Options controlling agent behavior.
+ * @param options.signal An abort signal used to destroy the agent on cancellation or timeout.
+ * @param options.allowPrivateIPAddress Whether to allow requests to private IP addresses.
+ * @returns An http or https agent configured for the URL.
  */
 function buildAgent(
   url: string,
-  options: RequestInit & {
+  options: {
+    signal?: AbortSignal | null;
     allowPrivateIPAddress?: boolean;
   } = {}
 ) {
-  const agentOptions = defaults(options, DefaultOptions);
+  const agentOptions = { ...DefaultOptions };
   const parsedURL = new URL(url);
   const proxyURL = getProxyForUrl(parsedURL.href);
   let agent: https.Agent | http.Agent | undefined;
@@ -184,6 +189,7 @@ function buildAgent(
   // Add allowIPAddressList from environment configuration
   const filteringOptions = {
     ...agentOptions,
+    allowPrivateIPAddress: options.allowPrivateIPAddress,
     allowIPAddressList: env.ALLOWED_PRIVATE_IP_ADDRESSES,
   };
 

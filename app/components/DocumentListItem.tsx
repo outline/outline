@@ -22,6 +22,7 @@ import StarButton, { AnimatedStar } from "~/components/Star";
 import Tooltip from "~/components/Tooltip";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import useMobile from "~/hooks/useMobile";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import DocumentMenu from "~/menus/DocumentMenu";
 import { documentPath } from "~/utils/routeHelpers";
@@ -58,6 +59,7 @@ function DocumentListItem(
   const { userMemberships, groupMemberships } = useStores();
   const locationSidebarContext = useLocationSidebarContext();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
+  const isMobile = useMobile();
 
   let itemRef: React.Ref<HTMLAnchorElement> =
     React.useRef<HTMLAnchorElement>(null);
@@ -159,7 +161,7 @@ function DocumentListItem(
                     <Badge>{t("Draft")}</Badge>
                   </Tooltip>
                 )}
-                {canStar && <StarButton document={document} />}
+                {canStar && !isMobile && <StarButton document={document} />}
               </Heading>
 
               {!queryIsInTitle && (

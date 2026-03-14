@@ -1223,6 +1223,129 @@ describe("SearchHelper", () => {
       expect(results[1].document.id).toBe(doc3.id);
       expect(results[2].document.id).toBe(doc1.id);
     });
+
+    it("should order results by search ranking when query is provided and no explicit sort", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+
+      // Create a document with a less relevant title but more recent updatedAt
+      const recentDoc = await buildDocument({
+        teamId: team.id,
+        collectionId: collection.id,
+        userId: user.id,
+        title: "unrelated recent",
+        text: "This document mentions search only once",
+        updatedAt: new Date("2025-12-01"),
+      });
+
+      // Create a document with a highly relevant title but older updatedAt
+      const relevantDoc = await buildDocument({
+        teamId: team.id,
+        collectionId: collection.id,
+        userId: user.id,
+        title: "search search search",
+        text: "search search search search search",
+        updatedAt: new Date("2023-01-01"),
+      });
+
+      const { results } = await SearchHelper.searchForUser(user, {
+        query: "search",
+      });
+
+      expect(results.length).toBe(2);
+      // The more relevant document should come first, despite being older
+      expect(results[0].document.id).toBe(relevantDoc.id);
+      expect(results[1].document.id).toBe(recentDoc.id);
+    });
+
+    it("should use explicit sort over search ranking when sort is provided", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+
+      await buildDocument({
+        teamId: team.id,
+        collectionId: collection.id,
+        userId: user.id,
+        title: "search search search",
+        text: "search search search search search",
+        updatedAt: new Date("2023-01-01"),
+      });
+
+      const recentDoc = await buildDocument({
+        teamId: team.id,
+        collectionId: collection.id,
+        userId: user.id,
+        title: "unrelated recent",
+        text: "This document mentions search only once",
+        updatedAt: new Date("2025-12-01"),
+      });
+
+      const { results } = await SearchHelper.searchForUser(user, {
+        query: "search",
+        sort: SortFilter.UpdatedAt,
+        direction: DirectionFilter.DESC,
+      });
+
+      expect(results.length).toBe(2);
+      // With explicit sort, updatedAt should take priority
+      expect(results[0].document.id).toBe(recentDoc.id);
+    });
+  });
+
+  describe("popularity boost", () => {
+    it("should not apply popularity boost when usePopularityBoost is false", async () => {
+      const team = await buildTeam();
+      const collection = await buildCollection({
+        teamId: team.id,
+      });
+
+      // Create a less relevant document with a high popularity score
+      await buildDocument({
+        teamId: team.id,
+        collectionId: collection.id,
+        title: "guide",
+        text: "This is a guide that mentions testing once",
+        popularityScore: 1000,
+      });
+
+      // Create a highly relevant document with no popularity
+      const relevantDoc = await buildDocument({
+        teamId: team.id,
+        collectionId: collection.id,
+        title: "testing testing testing",
+        text: "testing testing testing testing testing",
+        popularityScore: 0,
+      });
+
+      // Without popularity boost, pure relevance should win
+      const { results: withoutBoost } = await SearchHelper.searchForTeam(team, {
+        query: "testing",
+        usePopularityBoost: false,
+      });
+
+      expect(withoutBoost.length).toBe(2);
+      expect(withoutBoost[0].document.id).toBe(relevantDoc.id);
+
+      // With popularity boost, the popular document may rank higher
+      const { results: withBoost } = await SearchHelper.searchForTeam(team, {
+        query: "testing",
+        usePopularityBoost: true,
+      });
+
+      expect(withBoost.length).toBe(2);
+      // The popular document should have a higher ranking with boost
+      expect(withBoost[0].ranking).toBeGreaterThanOrEqual(
+        withoutBoost[0].ranking
+      );
+    });
   });
 
   describe("webSearchQuery", () => {

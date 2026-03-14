@@ -32,6 +32,8 @@ import {
   CaseSensitiveIcon,
   RestoreIcon,
   EditIcon,
+  EmbedIcon,
+  OpenIcon,
 } from "outline-icons";
 import { toast } from "sonner";
 import Icon from "@shared/components/Icon";
@@ -73,6 +75,7 @@ import {
   searchPath,
   documentPath,
   urlify,
+  desktopify,
   trashPath,
   documentEditPath,
 } from "~/utils/routeHelpers";
@@ -86,6 +89,8 @@ import type {
 } from "~/types";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 import env from "~/env";
+import { isMac, isWindows } from "@shared/utils/browser";
+import isCloudHosted from "~/utils/isCloudHosted";
 import DocumentMove from "~/components/DocumentExplorer/DocumentMove";
 
 const Insights = lazyWithRetry(
@@ -199,48 +204,6 @@ export const createDraftDocument = createInternalLinkAction({
     pathname: newDocumentPath(),
     state: { sidebarContext },
   }),
-});
-
-export const createDocumentFromTemplate = createInternalLinkAction({
-  name: ({ t }) => t("New from template"),
-  analyticsName: "New document",
-  section: DocumentSection,
-  icon: <NewDocumentIcon />,
-  keywords: "create",
-  visible: ({
-    currentTeamId,
-    activeCollectionId,
-    activeDocumentId,
-    stores,
-  }) => {
-    const document = activeDocumentId
-      ? stores.documents.get(activeDocumentId)
-      : undefined;
-
-    if (!currentTeamId || !!document?.isDraft || !!document?.isDeleted) {
-      return false;
-    }
-
-    if (activeCollectionId) {
-      return stores.policies.abilities(activeCollectionId).createDocument;
-    }
-    return stores.policies.abilities(currentTeamId).createDocument;
-  },
-  to: ({ activeDocumentId, activeCollectionId, sidebarContext }) => {
-    if (!activeDocumentId || !activeCollectionId) {
-      return "";
-    }
-
-    const [pathname, search] = newDocumentPath(activeCollectionId, {
-      templateId: activeDocumentId,
-    }).split("?");
-
-    return {
-      pathname,
-      search,
-      state: { sidebarContext },
-    };
-  },
 });
 
 /**
@@ -377,8 +340,15 @@ export const createNewDocument = createActionWithChildren({
   section: ActiveDocumentSection,
   icon: <NewDocumentIcon />,
   keywords: "create",
-  visible: ({ currentTeamId, stores }) =>
-    !!currentTeamId && stores.policies.abilities(currentTeamId).createDocument,
+  visible: ({ currentTeamId, activeDocumentId, stores }) => {
+    if (!activeDocumentId) {
+      return false;
+    }
+
+    return (
+      !!currentTeamId && stores.policies.abilities(currentTeamId).createDocument
+    );
+  },
   children: [createDocumentBefore, createDocumentAfter, createNestedDocument],
 });
 
@@ -607,7 +577,10 @@ export const shareDocument = createAction({
   section: ActiveDocumentSection,
   icon: <PadlockIcon />,
   visible: ({ stores, activeDocumentId }) => {
-    const can = stores.policies.abilities(activeDocumentId!);
+    if (!activeDocumentId) {
+      return false;
+    }
+    const can = stores.policies.abilities(activeDocumentId);
     return can.manageUsers || can.share;
   },
   perform: async ({ activeDocumentId, stores, currentUserId, t }) => {
@@ -982,7 +955,50 @@ export const printDocument = createAction({
   icon: <PrintIcon />,
   visible: ({ activeDocumentId }) => !!(activeDocumentId && window.print),
   perform: () => {
-    queueMicrotask(window.print);
+    setTimeout(window.print, 0);
+  },
+});
+
+export const openDocumentInDesktop = createAction({
+  name: ({ t }) => t("Open in desktop app"),
+  analyticsName: "Open in desktop",
+  section: ActiveDocumentSection,
+  icon: <OpenIcon />,
+  visible: ({ activeDocumentId, stores }) => {
+    if (!activeDocumentId) {
+      return false;
+    }
+    const document = stores.documents.get(activeDocumentId);
+    return (
+      isCloudHosted && (isMac || isWindows) && !!document && !document.isDeleted
+    );
+  },
+  perform: ({ activeDocumentId, stores }) => {
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+    if (document) {
+      window.location.href = desktopify(documentPath(document));
+    }
+  },
+});
+
+export const presentDocument = createAction({
+  name: ({ t, isMenu }) => (isMenu ? t("Present") : t("Present document")),
+  analyticsName: "Present document",
+  section: ActiveDocumentSection,
+  icon: <EmbedIcon />,
+  shortcut: ["Meta+Alt+p"],
+  visible: ({ activeDocumentId }) => !!activeDocumentId,
+  perform: ({ activeDocumentId, stores }) => {
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+    if (!document) {
+      return;
+    }
+
+    stores.ui.setPresentingDocument(document);
   },
 });
 
@@ -1050,7 +1066,7 @@ export const createTemplateFromDocument = createAction({
     }
     return !!(
       !!activeCollectionId &&
-      stores.policies.abilities(activeCollectionId).updateDocument
+      stores.policies.abilities(activeCollectionId).createTemplate
     );
   },
   perform: ({ activeDocumentId, stores, t, event }) => {
@@ -1381,7 +1397,7 @@ export const openDocumentComments = createAction({
       return;
     }
 
-    stores.ui.toggleComments();
+    stores.ui.set({ rightSidebar: "comments" });
   },
 });
 
@@ -1529,11 +1545,13 @@ export const rootDocumentActions = [
   openRandomDocument,
   permanentlyDeleteDocument,
   permanentlyDeleteDocumentsInTrash,
+  presentDocument,
   printDocument,
   pinDocumentToCollection,
   pinDocumentToHome,
   openDocumentComments,
   openDocumentHistory,
   openDocumentInsights,
+  openDocumentInDesktop,
   shareDocument,
 ];

@@ -6,17 +6,18 @@ import styled from "styled-components";
 import { s, ellipsis } from "@shared/styles";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
+import { PortalContext } from "~/components/Portal";
+import { RightSidebarWrappedContext } from "~/components/RightSidebarContext";
 import Scrollable from "~/components/Scrollable";
-import Tooltip from "~/components/Tooltip";
-import useMobile from "~/hooks/useMobile";
-import { draggableOnDesktop } from "~/styles";
 import RightSidebar from "~/components/Sidebar/Right";
+import Tooltip from "~/components/Tooltip";
 import {
   Drawer,
   DrawerContent,
   DrawerTitle,
 } from "~/components/primitives/Drawer";
-import { PortalContext } from "~/components/Portal";
+import useMobile from "~/hooks/useMobile";
+import { draggableOnDesktop } from "~/styles";
 
 type Props = Omit<React.HTMLAttributes<HTMLDivElement>, "title"> & {
   /* The title of the sidebar */
@@ -24,7 +25,7 @@ type Props = Omit<React.HTMLAttributes<HTMLDivElement>, "title"> & {
   /* The content of the sidebar */
   children: React.ReactNode;
   /* Called when the sidebar is closed */
-  onClose: () => void;
+  onClose?: () => void;
   /* Whether the sidebar should be scrollable */
   scrollable?: boolean;
 };
@@ -32,6 +33,7 @@ type Props = Omit<React.HTMLAttributes<HTMLDivElement>, "title"> & {
 function SidebarLayout({ title, onClose, children, scrollable = true }: Props) {
   const { t } = useTranslation();
   const isMobile = useMobile();
+  const isWrapped = React.useContext(RightSidebarWrappedContext);
   const [drawerElement, setDrawerElement] =
     React.useState<HTMLDivElement | null>(null);
 
@@ -43,17 +45,21 @@ function SidebarLayout({ title, onClose, children, scrollable = true }: Props) {
     children
   );
 
-  return isMobile ? (
-    <Drawer onClose={onClose} defaultOpen>
-      <DrawerContent ref={setDrawerElement}>
-        <DrawerTitle>{title}</DrawerTitle>
-        <PortalContext.Provider value={drawerElement}>
-          {content}
-        </PortalContext.Provider>
-      </DrawerContent>
-    </Drawer>
-  ) : (
-    <RightSidebar>
+  if (isMobile) {
+    return (
+      <Drawer onClose={onClose} defaultOpen>
+        <DrawerContent ref={setDrawerElement}>
+          <DrawerTitle>{title}</DrawerTitle>
+          <PortalContext.Provider value={drawerElement}>
+            {content}
+          </PortalContext.Provider>
+        </DrawerContent>
+      </Drawer>
+    );
+  }
+
+  const inner = (
+    <>
       <Header>
         <Title>{title}</Title>
         <Tooltip content={t("Close")} shortcut="Esc">
@@ -66,8 +72,14 @@ function SidebarLayout({ title, onClose, children, scrollable = true }: Props) {
         </Tooltip>
       </Header>
       {content}
-    </RightSidebar>
+    </>
   );
+
+  if (isWrapped) {
+    return inner;
+  }
+
+  return <RightSidebar>{inner}</RightSidebar>;
 }
 
 const ForwardIcon = styled(BackIcon)`

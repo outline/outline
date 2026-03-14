@@ -1,3 +1,4 @@
+import compact from "lodash/compact";
 import concat from "lodash/concat";
 import uniq from "lodash/uniq";
 import uniqBy from "lodash/uniqBy";
@@ -92,6 +93,21 @@ export default class WebsocketsProcessor {
 
         const channels = await this.getDocumentEventChannels(event, document);
 
+        let collectionIds: { id: string; updatedAt?: Date }[] = [];
+        if (document.collectionId) {
+          const collection = await Collection.findByPk(document.collectionId, {
+            attributes: ["id", "updatedAt"],
+          });
+          if (collection) {
+            collectionIds = [
+              {
+                id: collection.id,
+                updatedAt: collection.updatedAt,
+              },
+            ];
+          }
+        }
+
         return socketio.to(channels).emit("entities", {
           event: event.name,
           invalidatedPolicies:
@@ -102,13 +118,7 @@ export default class WebsocketsProcessor {
               updatedAt: document.updatedAt,
             },
           ],
-          collectionIds: document.collectionId
-            ? [
-                {
-                  id: document.collectionId,
-                },
-              ]
-            : [],
+          collectionIds,
         });
       }
 
@@ -162,6 +172,12 @@ export default class WebsocketsProcessor {
 
         const channels = uniq(concat(documentChannels, collectionChannels));
 
+        const destCollection = document.collectionId
+          ? await Collection.findByPk(document.collectionId, {
+              attributes: ["id", "updatedAt"],
+            })
+          : null;
+
         return socketio.to(channels).emit("entities", {
           event: event.name,
           invalidatedPolicies: [document.id],
@@ -172,14 +188,18 @@ export default class WebsocketsProcessor {
             },
           ],
           collectionIds: uniqBy(
-            [
-              {
-                id: document.collectionId,
-              },
+            compact([
+              destCollection
+                ? {
+                    id: destCollection.id,
+                    updatedAt: destCollection.updatedAt,
+                  }
+                : undefined,
               {
                 id: srcCollection.id,
+                updatedAt: srcCollection.updatedAt,
               },
-            ],
+            ]),
             "id"
           ),
         });
@@ -226,12 +246,17 @@ export default class WebsocketsProcessor {
             ],
           });
         });
-        event.data.collectionIds.forEach((collectionId) => {
-          socketio.to(`collection-${collectionId}`).emit("entities", {
+        const moveCollections = await Collection.findAll({
+          where: { id: event.data.collectionIds },
+          attributes: ["id", "updatedAt"],
+        });
+        moveCollections.forEach((collection) => {
+          socketio.to(`collection-${collection.id}`).emit("entities", {
             event: event.name,
             collectionIds: [
               {
-                id: collectionId,
+                id: collection.id,
+                updatedAt: collection.updatedAt,
               },
             ],
           });

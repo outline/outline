@@ -1,6 +1,7 @@
 import { action, computed, observable } from "mobx";
 import { flushSync } from "react-dom";
 import { light as defaultTheme } from "@shared/styles/theme";
+import type { ProsemirrorData } from "@shared/types";
 import Storage from "@shared/utils/Storage";
 import Document from "~/models/Document";
 import type Model from "~/models/base/Model";
@@ -28,7 +29,7 @@ export enum SystemTheme {
 type PersistedData = Pick<
   UiStore,
   | "languagePromptDismissed"
-  | "commentsExpanded"
+  | "rightSidebar"
   | "theme"
   | "sidebarWidth"
   | "sidebarRightWidth"
@@ -78,7 +79,7 @@ class UiStore {
   sidebarCollapsed = false;
 
   @observable
-  commentsExpanded = false;
+  rightSidebar: "comments" | "history" | null = null;
 
   @observable
   sidebarIsResizing = false;
@@ -91,6 +92,32 @@ class UiStore {
 
   @observable
   debugSafeArea = false;
+
+  /** Data for the currently active presentation, if any. */
+  @observable
+  presentationData: {
+    title: string;
+    icon?: string | null;
+    color?: string | null;
+    data: ProsemirrorData;
+  } | null = null;
+
+  /**
+   * Enter presentation mode for the given document.
+   *
+   * @param document the document to present, or null to exit.
+   */
+  @action
+  setPresentingDocument = (document: Document | null): void => {
+    this.presentationData = document
+      ? {
+          title: document.title,
+          icon: document.icon,
+          color: document.color,
+          data: document.data,
+        }
+      : null;
+  };
 
   /** Tracks active export toasts for in-place updates when export completes */
   exportToasts = observable.map<
@@ -111,7 +138,7 @@ class UiStore {
     this.sidebarRightWidth =
       data.sidebarRightWidth || defaultTheme.sidebarRightWidth;
     this.tocVisible = data.tocVisible;
-    this.commentsExpanded = !!data.commentsExpanded;
+    this.rightSidebar = data.rightSidebar ?? null;
     this.theme = data.theme || Theme.System;
 
     // system theme listeners
@@ -341,11 +368,6 @@ class UiStore {
   };
 
   @action
-  toggleComments = () => {
-    this.set({ commentsExpanded: !this.commentsExpanded });
-  };
-
-  @action
   toggleCollapsedSidebar = () => {
     sidebarHidden = false;
     this.set({ sidebarCollapsed: !this.sidebarCollapsed });
@@ -398,7 +420,9 @@ class UiStore {
   get readyToShow() {
     return (
       !this.rootStore.auth.user ||
-      (this.rootStore.collections.isLoaded && this.rootStore.documents.isLoaded)
+      (this.rootStore.collections.isLoaded &&
+        this.rootStore.stars.isLoaded &&
+        this.rootStore.userMemberships.isLoaded)
     );
   }
 
@@ -433,7 +457,7 @@ class UiStore {
       sidebarWidth: this.sidebarWidth,
       sidebarRightWidth: this.sidebarRightWidth,
       languagePromptDismissed: this.languagePromptDismissed,
-      commentsExpanded: this.commentsExpanded,
+      rightSidebar: this.rightSidebar,
       theme: this.theme,
     };
   }

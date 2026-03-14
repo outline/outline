@@ -95,6 +95,13 @@ const transition = {
   damping: 30,
 };
 
+/** Restrict shared layout animation to the X axis only. */
+const horizontalOnly = (transform: Record<string, string>, generated: string) =>
+  generated.replace(
+    /translate3d\(([^,]+),\s*[^,]+,\s*([^)]+)\)/,
+    "translate3d($1, 0px, $2)"
+  );
+
 const Tab: React.FC<Props> = (props: Props) => {
   const { children, exact, exactQueryString } = props;
   const theme = useTheme();
@@ -112,6 +119,7 @@ const Tab: React.FC<Props> = (props: Props) => {
             layoutId="underline"
             initial={false}
             transition={transition}
+            transformTemplate={horizontalOnly}
           />
         )}
       </TabButton>
@@ -140,6 +148,7 @@ const Tab: React.FC<Props> = (props: Props) => {
                 layoutId="underline"
                 initial={false}
                 transition={transition}
+                transformTemplate={horizontalOnly}
               />
             )}
         </>

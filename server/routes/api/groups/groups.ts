@@ -104,7 +104,7 @@ router.post(
         groupMemberships: (
           await Promise.all(
             groups.map((group) =>
-              GroupUser.findAll({
+              GroupUser.scope("withUser").findAll({
                 where: {
                   groupId: group.id,
                 },

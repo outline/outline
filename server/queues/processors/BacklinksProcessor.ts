@@ -26,10 +26,14 @@ export default class BacklinksProcessor extends BaseProcessor {
         await Promise.all(
           linkIds.map(async (linkId) => {
             const linkedDocument = await Document.findByPk(linkId, {
-              attributes: ["id"],
+              attributes: ["id", "teamId"],
             });
 
-            if (!linkedDocument || linkedDocument.id === event.documentId) {
+            if (
+              !linkedDocument ||
+              linkedDocument.id === event.documentId ||
+              linkedDocument.teamId !== document.teamId
+            ) {
               return;
             }
 
@@ -72,10 +76,14 @@ export default class BacklinksProcessor extends BaseProcessor {
         await Promise.all(
           linkIds.map(async (linkId) => {
             const linkedDocument = await Document.findByPk(linkId, {
-              attributes: ["id"],
+              attributes: ["id", "teamId"],
             });
 
-            if (!linkedDocument || linkedDocument.id === event.documentId) {
+            if (
+              !linkedDocument ||
+              linkedDocument.id === event.documentId ||
+              linkedDocument.teamId !== document.teamId
+            ) {
               return;
             }
 

@@ -342,6 +342,16 @@ export class Environment {
   public FORCE_HTTPS = this.toBoolean(environment.FORCE_HTTPS ?? "true");
 
   /**
+   * When the app is behind a proxy, sets the HTTP header used for the client IP. 
+   * The default value is "X-Forwarded-For", common values are "X-Real-IP"
+   * and "X-Client-IP".
+   */
+  @IsOptional()
+  public PROXY_IP_HEADER = this.toOptionalString(
+    environment.PROXY_IP_HEADER
+  );
+
+  /**
    * Should the installation send anonymized statistics to the maintainers.
    * Defaults to true.
    */
@@ -349,12 +359,6 @@ export class Environment {
   public TELEMETRY = this.toBoolean(
     environment.ENABLE_UPDATES ?? environment.TELEMETRY ?? "true"
   );
-
-  /**
-   * An optional comma separated list of allowed domains.
-   */
-  public ALLOWED_DOMAINS =
-    environment.ALLOWED_DOMAINS ?? environment.GOOGLE_ALLOWED_DOMAINS;
 
   // Third-party services
 
@@ -522,7 +526,7 @@ export class Environment {
   @IsOptional()
   @IsBoolean()
   public RATE_LIMITER_ENABLED = this.toBoolean(
-    environment.RATE_LIMITER_ENABLED ?? "false"
+    environment.RATE_LIMITER_ENABLED ?? "true"
   );
 
   /**

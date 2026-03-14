@@ -13,19 +13,22 @@ import { parseAuthentication } from "./authentication";
 
 /**
  * Returns a unique identifier for rate limiting based on the request context.
- * Uses the authenticated user's ID if a valid JWT is present, otherwise falls
- * back to the client's IP address.
+ * Combines the user ID from the JWT payload with the client's IP address for
+ * authenticated requests, otherwise falls back to the client's IP address alone.
  *
  * @param ctx The application context.
- * @returns A string identifier for rate limiting (user ID or IP address).
+ * @returns A string identifier for rate limiting.
  */
 function getRateLimiterIdentifier(ctx: AppContext): string {
   try {
     const { token } = parseAuthentication(ctx);
     if (token && !ApiKey.match(token) && !OAuthAuthentication.match(token)) {
+      // Note: JWT is not validated here which would require a DB request,
+      // just decoded to extract the user ID for separating rate limits by user
+      // on shared networks.
       const payload = getJWTPayload(token);
       if (payload.id) {
-        return `user:${payload.id}`;
+        return `user:${payload.id}:${ctx.ip}`;
       }
     }
   } catch {

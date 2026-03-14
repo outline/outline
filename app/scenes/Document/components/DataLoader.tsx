@@ -16,6 +16,7 @@ import { useDocumentContext } from "~/components/DocumentContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
+import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import type { Properties } from "~/types";
 import Logger from "~/utils/Logger";
@@ -27,6 +28,7 @@ import {
 } from "~/utils/errors";
 import history from "~/utils/history";
 import { matchDocumentEdit, settingsPath } from "~/utils/routeHelpers";
+import useDocumentSidebar from "../hooks/useDocumentSidebar";
 import Loading from "./Loading";
 import MarkAsViewed from "./MarkAsViewed";
 
@@ -87,7 +89,10 @@ function DataLoader({ match, children }: Props) {
   const isEditing = isEditRoute || !user?.separateEditMode;
   const can = usePolicy(document);
   const location = useLocation<LocationState>();
+  const query = useQuery();
   const missingPolicy = !can || Object.keys(can).length === 0;
+
+  useDocumentSidebar();
 
   React.useEffect(() => {
     async function fetchDocument() {
@@ -201,6 +206,13 @@ function DataLoader({ match, children }: Props) {
     ui,
     revisionId,
   ]);
+
+  // Auto-enter presentation mode when ?present=true query param is set
+  React.useEffect(() => {
+    if (document && query.has("present") && !ui.presentationData) {
+      ui.setPresentingDocument(document);
+    }
+  }, [document, query, ui]);
 
   if (error) {
     return error instanceof OfflineError ? (

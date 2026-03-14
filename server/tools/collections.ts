@@ -17,6 +17,7 @@ import {
   buildAPIContext,
   pathToUrl,
   withTracing,
+  withResourceTracing,
 } from "./util";
 
 /**
@@ -128,7 +129,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
           "Fetches the details of a collection by its ID, including its document structure.",
         mimeType: "application/json",
       },
-      withTracing("get_collection", async (uri, variables, extra) => {
+      withResourceTracing("get_collection", async (uri, variables, extra) => {
         try {
           const { id } = variables;
           const user = getActorFromContext(extra);

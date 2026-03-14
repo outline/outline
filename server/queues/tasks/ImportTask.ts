@@ -110,9 +110,12 @@ export default abstract class ImportTask extends BaseTask<Props> {
    */
   public async perform({ fileOperationId }: Props) {
     let dirPath;
-    const fileOperation = await FileOperation.findByPk(fileOperationId, {
-      rejectOnEmpty: true,
-    });
+    const fileOperation = await FileOperation.unscoped().findByPk(
+      fileOperationId,
+      {
+        rejectOnEmpty: true,
+      }
+    );
 
     try {
       Logger.info("task", `ImportTask fetching data for ${fileOperationId}`);

@@ -5,7 +5,7 @@ import { Document, Relationship } from "@server/models";
 import { authorize } from "@server/policies";
 import {
   presentRelationship,
-  presentDocument,
+  presentDocuments,
   presentPolicies,
 } from "@server/presenters";
 import type { APIContext } from "@server/types";
@@ -45,9 +45,7 @@ router.post(
     ctx.body = {
       data: {
         relationship: presentRelationship(relationship),
-        documents: await Promise.all(
-          documents.map((doc: Document) => presentDocument(ctx, doc))
-        ),
+        documents: await presentDocuments(ctx, documents),
       },
       policies: presentPolicies(user, documents),
     };
@@ -79,18 +77,22 @@ router.post(
       { userId: user.id }
     );
 
-    const policies = presentPolicies(user, [...documents, ...relationships]);
+    const documentIds = new Set(documents.map((d) => d.id));
+    const filteredRelationships = relationships.filter((relationship) =>
+      documentIds.has(
+        where.reverseDocumentId
+          ? relationship.documentId
+          : relationship.reverseDocumentId
+      )
+    );
 
     ctx.body = {
       pagination: ctx.state.pagination,
       data: {
-        relationships: relationships.map(presentRelationship),
-        documents: await Promise.all(
-          documents.map((document: Document) => presentDocument(ctx, document))
-        ),
-        policies: presentPolicies(user, documents),
+        relationships: filteredRelationships.map(presentRelationship),
+        documents: await presentDocuments(ctx, documents),
       },
-      policies,
+      policies: presentPolicies(user, [...documents, ...filteredRelationships]),
     };
   }
 );

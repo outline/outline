@@ -186,9 +186,19 @@ export default () =>
                 priority: 20,
               },
               {
+                name: "vendor-framer-motion",
+                test: /node_modules[\\/]framer-motion/,
+                priority: 20,
+              },
+              {
                 name: "vendor-styled",
                 test: /node_modules[\\/]styled-components/,
                 priority: 20,
+              },
+              {
+                name: "vendor-mermaid-elk",
+                test: /node_modules[\\/](@mermaid-js[\\/]layout-elk|elkjs)/,
+                priority: 25,
               },
               {
                 name: "vendor-mermaid",

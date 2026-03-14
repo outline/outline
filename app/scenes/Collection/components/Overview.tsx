@@ -61,7 +61,7 @@ function Overview({ collection, readOnly }: Props) {
     () => ({
       padding: "0 32px",
       margin: "0 -32px",
-      paddingBottom: `calc(50vh - ${childOffsetHeight}px)`,
+      paddingBottom: `calc(30vh - ${childOffsetHeight}px)`,
     }),
     [childOffsetHeight]
   );
@@ -87,7 +87,7 @@ function Overview({ collection, readOnly }: Props) {
   return (
     <>
       {collections.isSaving && <LoadingIndicator />}
-      {can.update && (
+      {(can.update || readOnly) && (
         <Suspense fallback={<Placeholder>Loading…</Placeholder>}>
           <MeasuredContainer name="document">
             <Editor

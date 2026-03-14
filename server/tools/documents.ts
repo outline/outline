@@ -25,6 +25,7 @@ import {
   getActorFromContext,
   pathToUrl,
   withTracing,
+  withResourceTracing,
 } from "./util";
 import { TextEditMode } from "@shared/types";
 
@@ -45,7 +46,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
         description: "Fetches the content of a document by its ID.",
         mimeType: "text/markdown",
       },
-      withTracing("get_document", async (uri, variables, extra) => {
+      withResourceTracing("get_document", async (uri, variables, extra) => {
         try {
           const { id } = variables;
           const user = getActorFromContext(extra);

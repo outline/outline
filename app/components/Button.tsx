@@ -3,6 +3,8 @@ import { DisclosureIcon } from "outline-icons";
 import { darken, lighten, transparentize } from "polished";
 import * as React from "react";
 import styled from "styled-components";
+import type { HapticInput } from "web-haptics";
+import { useWebHaptics } from "web-haptics/react";
 import { s } from "@shared/styles";
 import type { Props as ActionButtonProps } from "~/components/ActionButton";
 import ActionButton from "~/components/ActionButton";
@@ -152,6 +154,8 @@ export type Props<T> = ActionButtonProps & {
   fullwidth?: boolean;
   as?: T;
   to?: LocationDescriptor;
+  /** Haptic feedback to trigger on click. Pass a preset name or custom pattern. */
+  haptic?: HapticInput;
   borderOnHover?: boolean;
   hideIcon?: boolean;
   href?: string;
@@ -176,11 +180,13 @@ const Button = <T extends React.ElementType = "button">(
     hideIcon,
     fullwidth,
     danger,
+    haptic,
     ...rest
   } = props;
   const hasText = !!children || value !== undefined;
   const ic = hideIcon ? undefined : (action?.icon ?? icon);
   const hasIcon = ic !== undefined;
+  const { trigger } = useWebHaptics();
 
   return (
     <RealButton
@@ -191,6 +197,7 @@ const Button = <T extends React.ElementType = "button">(
       $danger={danger}
       $fullwidth={fullwidth}
       $borderOnHover={borderOnHover}
+      onClickCapture={haptic ? () => void trigger(haptic) : undefined}
       {...rest}
     >
       <Inner hasIcon={hasIcon} hasText={hasText} disclosure={disclosure}>

@@ -7,7 +7,11 @@ import validate from "@server/middlewares/validate";
 import { Group, User } from "@server/models";
 import SearchHelper from "@server/models/helpers/SearchHelper";
 import { can } from "@server/policies";
-import { presentDocument, presentGroup, presentUser } from "@server/presenters";
+import {
+  presentDocuments,
+  presentGroup,
+  presentUser,
+} from "@server/presenters";
 import type { APIContext } from "@server/types";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
@@ -76,9 +80,7 @@ router.post(
     ctx.body = {
       pagination: ctx.state.pagination,
       data: {
-        documents: await Promise.all(
-          documents.map((document) => presentDocument(ctx, document))
-        ),
+        documents: await presentDocuments(ctx, documents),
         users: users.map((user) =>
           presentUser(user, {
             includeEmail: !!can(actor, "readEmail", user),

@@ -65,6 +65,8 @@ type SearchOptions = {
   sort?: SortFilter;
   /** The sort direction */
   direction?: DirectionFilter;
+  /** Whether to boost results by popularity score. Defaults to true. */
+  usePopularityBoost?: boolean;
 };
 
 type RankedDocument = Document & {
@@ -258,6 +260,7 @@ export default class SearchHelper {
       query,
       sort: options.sort,
       direction: options.direction,
+      usePopularityBoost: options.usePopularityBoost,
     });
 
     try {
@@ -499,43 +502,48 @@ export default class SearchHelper {
     query,
     sort,
     direction,
+    usePopularityBoost = true,
   }: {
     query?: string;
     sort?: SortFilter;
     direction?: DirectionFilter;
+    usePopularityBoost?: boolean;
   }): FindOptions {
     const attributes: FindAttributeOptions = ["id"];
     const replacements: BindOrReplacements = {};
     const order: Order = [];
 
     if (query) {
-      // Combine text relevance with logarithmic popularity boost
-      // Popular documents get a small boost, but text relevance remains primary
-      attributes.push([
-        Sequelize.literal(
-          `ts_rank("searchVector", to_tsquery('english', :query)) * (1 + 0.25 * LN(1 + COALESCE("popularityScore", 0)))`
-        ),
-        "searchRanking",
-      ]);
+      const rankExpression = usePopularityBoost
+        ? `ts_rank("searchVector", to_tsquery('english', :query)) * (1 + 0.25 * LN(1 + COALESCE("popularityScore", 0)))`
+        : `ts_rank("searchVector", to_tsquery('english', :query))`;
+
+      attributes.push([Sequelize.literal(rankExpression), "searchRanking"]);
       replacements["query"] = this.webSearchQuery(query);
     }
 
-    // Apply custom sort or default to updatedAt DESC
-    const sortField = sort ?? SortFilter.UpdatedAt;
-    const sortDirection = direction ?? DirectionFilter.DESC;
-
-    if (sortField === SortFilter.Title) {
-      order.push([
-        Sequelize.fn("LOWER", Sequelize.col("title")),
-        sortDirection,
-      ]);
-    } else {
-      order.push([sortField, sortDirection]);
-    }
-
-    // Always prioritize search ranking as a secondary sort criterion
-    if (query) {
+    // When searching with a query and no explicit sort, prioritize search
+    // ranking as the primary sort criterion. Otherwise, use the specified sort
+    // with ranking as a tiebreaker.
+    if (query && !sort) {
       order.push(["searchRanking", "DESC"]);
+      order.push([SortFilter.UpdatedAt, DirectionFilter.DESC]);
+    } else {
+      const sortField = sort ?? SortFilter.UpdatedAt;
+      const sortDirection = direction ?? DirectionFilter.DESC;
+
+      if (sortField === SortFilter.Title) {
+        order.push([
+          Sequelize.fn("LOWER", Sequelize.col("title")),
+          sortDirection,
+        ]);
+      } else {
+        order.push([sortField, sortDirection]);
+      }
+
+      if (query) {
+        order.push(["searchRanking", "DESC"]);
+      }
     }
 
     return { attributes, replacements, order };

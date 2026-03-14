@@ -30,9 +30,15 @@ export const isURLMentionable = ({
     case IntegrationService.GitLab: {
       const settings =
         integration.settings as IntegrationSettings<IntegrationType.Embed>;
-      const gitlabHostname = settings.gitlab?.url
-        ? new URL(settings.gitlab?.url).hostname
-        : undefined;
+      let gitlabHostname: string | undefined;
+      try {
+        gitlabHostname = settings.gitlab?.url
+          ? new URL(settings.gitlab.url).hostname
+          : undefined;
+      } catch {
+        // Invalid URL stored in settings
+        return false;
+      }
 
       return hostname === "gitlab.com" || hostname === gitlabHostname;
     }
@@ -72,11 +78,21 @@ export const determineMentionType = ({
     }
 
     case IntegrationService.GitLab: {
-      return pathname.includes("merge_requests")
-        ? MentionType.PullRequest
-        : pathname.includes("issues")
-          ? MentionType.Issue
-          : undefined;
+      const hasShowParam = url.searchParams.has("show");
+
+      if (
+        /\/-\/merge_requests\/\d+/.test(pathname) ||
+        (/\/-\/merge_requests\/?$/.test(pathname) && hasShowParam)
+      ) {
+        return MentionType.PullRequest;
+      }
+      if (
+        /\/-\/issues\/\d+/.test(pathname) ||
+        (/\/-\/issues\/?$/.test(pathname) && hasShowParam)
+      ) {
+        return MentionType.Issue;
+      }
+      return undefined;
     }
 
     default:

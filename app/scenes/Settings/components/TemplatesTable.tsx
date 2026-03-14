@@ -25,6 +25,7 @@ import { useTemplateSettingsActions } from "~/hooks/useTemplateSettingsActions";
 import TemplateMenu from "~/menus/TemplateMenu";
 import { FILTER_HEIGHT } from "./StickyFilters";
 import history from "~/utils/history";
+import usePolicy from "~/hooks/usePolicy";
 
 const ROW_HEIGHT = 50;
 const STICKY_OFFSET = HEADER_HEIGHT + FILTER_HEIGHT;
@@ -54,7 +55,6 @@ const TemplateRowContextMenu = observer(function TemplateRowContextMenu({
 
 export function TemplatesTable(props: Props) {
   const { t } = useTranslation();
-  const theme = useTheme();
 
   const handleOpen = (template: Template) => () => {
     history.push(template.path);
@@ -81,21 +81,7 @@ export function TemplatesTable(props: Props) {
           header: t("Title"),
           accessor: (template) => template.titleWithDefault,
           component: (template) => (
-            <ButtonLink onClick={handleOpen(template)}>
-              <Flex align="center" gap={4}>
-                {template.icon ? (
-                  <Icon
-                    value={template.icon}
-                    initial={template.initial}
-                    color={template.color || undefined}
-                    size={24}
-                  />
-                ) : (
-                  <DocumentIcon size={24} color={theme.textSecondary} />
-                )}
-                <Title>{template.titleWithDefault}</Title>
-              </Flex>
-            </ButtonLink>
+            <TemplateLink template={template} onClick={handleOpen} />
           ),
           width: "4fr",
         },
@@ -154,6 +140,44 @@ export function TemplatesTable(props: Props) {
     />
   );
 }
+
+const TemplateLink = observer(
+  ({
+    template,
+    onClick,
+  }: {
+    template: Template;
+    onClick: (template: Template) => void;
+  }) => {
+    const theme = useTheme();
+    const can = usePolicy(template);
+    const content = (
+      <Flex align="center" gap={4}>
+        {template.icon ? (
+          <Icon
+            value={template.icon}
+            initial={template.initial}
+            color={template.color || undefined}
+            size={24}
+          />
+        ) : (
+          <DocumentIcon size={24} color={theme.textSecondary} />
+        )}
+        {can.update ? (
+          <Title>{template.titleWithDefault}</Title>
+        ) : (
+          <Text>{template.titleWithDefault}</Text>
+        )}
+      </Flex>
+    );
+
+    if (!can.update) {
+      return content;
+    }
+
+    return <ButtonLink onClick={() => onClick(template)}>{content}</ButtonLink>;
+  }
+);
 
 const Permission = observer(({ template }: { template: Template }) => {
   const { t } = useTranslation();
