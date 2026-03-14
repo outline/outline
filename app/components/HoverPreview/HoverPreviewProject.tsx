@@ -62,7 +62,11 @@ const HoverPreviewProject = React.forwardRef(function HoverPreviewProject_(
                   </React.Suspense>
                 </Description>
               )}
-              <Text type="tertiary" size="small">
+              <Text
+                type="tertiary"
+                size="small"
+                style={{ textTransform: "capitalize" }}
+              >
                 {state.name}
               </Text>
 
