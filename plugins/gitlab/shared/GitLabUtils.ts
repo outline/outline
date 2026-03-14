@@ -104,7 +104,19 @@ export class GitLabUtils {
    * @param customUrl - Optional custom GitLab URL from integration settings.
    * @returns An object containing resource identifiers or undefined if the URL is invalid.
    */
-  public static parseUrl(url: string, customUrl?: string) {
+  public static parseUrl(
+    url: string,
+    customUrl?: string
+  ):
+    | {
+        owner: string;
+        repo: string | undefined;
+        type: UnfurlResourceType.Issue | UnfurlResourceType.PR;
+        id: number;
+        url: string;
+      }
+    | { owner: string; repo: string; type: UnfurlResourceType.Project; url: string }
+    | undefined {
     try {
       const parsed = new URL(url);
       const urlHostname = new URL(this.getGitlabUrl(customUrl)).hostname;
