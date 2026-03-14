@@ -197,13 +197,12 @@ const HoverPreviewDesktop = observer(
                 <HoverPreviewProject
                   ref={cardRef}
                   url={data.url}
-                  id={data.id}
                   name={data.name}
-                  description={data.description}
+                  color={data.color}
                   lead={data.lead}
+                  labels={data.labels}
+                  description={data.description}
                   state={data.state}
-                  progress={data.progress}
-                  createdAt={data.createdAt}
                   targetDate={data.targetDate}
                 />
               ) : (

@@ -29,6 +29,7 @@ import {
 import { cn } from "../styles/utils";
 import type { ComponentProps } from "../types";
 import { toDisplayUrl, cdnPath } from "../../utils/urls";
+import Squircle from "../../components/Squircle";
 
 type Attrs = {
   className: string;
@@ -409,7 +410,7 @@ export const MentionProject = observer((props: ProjectProps) => {
       rel="noopener noreferrer nofollow"
     >
       <Flex align="center" gap={6}>
-        <StateIndicator color={project.state.color} />
+        <Squircle color={project.color} size={12} />
         <Flex align="center" gap={4}>
           <Text>
             <Backticks content={project.name} />
@@ -523,13 +524,4 @@ const StyledWarningIcon = styled(WarningIcon)`
 const Logo = styled.img`
   width: 16px;
   height: 16px;
-`;
-
-const StateIndicator = styled.span<{ color: string }>`
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background-color: ${(props) => props.color};
-  flex-shrink: 0;
 `;

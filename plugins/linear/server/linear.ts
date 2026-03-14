@@ -226,9 +226,13 @@ export class Linear {
       return { error: "Resource not found" };
     }
 
-    const [lead, status] = await Promise.all([project.lead, project.status]);
+    const [lead, status, labels] = await Promise.all([
+      project.lead,
+      project.status,
+      project.paginate(project.labels, {}),
+    ]);
 
-    if (!status) {
+    if (!status || !labels) {
       return { error: "Failed to fetch auxiliary data from Linear" };
     }
 
@@ -237,6 +241,7 @@ export class Linear {
       url: project.url,
       id: project.id,
       name: project.name,
+      color: project.color ?? status.color,
       description: project.description ?? null,
       lead: lead
         ? {
@@ -249,6 +254,10 @@ export class Linear {
         name: status.name,
         color: status.color,
       },
+      labels: labels.map((label) => ({
+        name: label.name,
+        color: label.color,
+      })),
       progress: project.progress,
       createdAt: project.createdAt.toISOString(),
       targetDate: project.targetDate ?? null,

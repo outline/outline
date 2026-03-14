@@ -1,60 +1,57 @@
 import * as React from "react";
-import { Trans } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import { Backticks } from "@shared/components/Backticks";
-import { richExtensions } from "@shared/editor/nodes";
-import type { UnfurlResourceType, UnfurlResponse } from "@shared/types";
-import { Avatar } from "~/components/Avatar";
+import Squircle from "@shared/components/Squircle";
 import Editor from "~/components/Editor";
+import type { UnfurlResourceType, UnfurlResponse } from "@shared/types";
+import { Avatar, AvatarSize } from "~/components/Avatar";
 import Flex from "~/components/Flex";
 import Text from "../Text";
 import Time from "../Time";
 import {
   Preview,
   Title,
-  Description,
   Card,
   CardContent,
-  Info,
+  Label,
+  Description,
 } from "./Components";
+import { richExtensions } from "@shared/editor/nodes";
 
-type Props = Omit<UnfurlResponse[UnfurlResourceType.Project], "type">;
+type Props = Pick<
+  UnfurlResponse[UnfurlResourceType.Project],
+  | "url"
+  | "name"
+  | "color"
+  | "lead"
+  | "labels"
+  | "state"
+  | "targetDate"
+  | "description"
+>;
 
 const HoverPreviewProject = React.forwardRef(function HoverPreviewProject_(
-  { url, name, description, lead, state, progress, createdAt, targetDate }: Props,
+  { url, name, color, lead, labels, state, description, targetDate }: Props,
   ref: React.Ref<HTMLDivElement>
 ) {
-  const leadName = lead?.name;
+  const { t } = useTranslation();
 
   return (
     <Preview as="a" href={url} target="_blank" rel="noopener noreferrer">
       <Flex column ref={ref}>
         <Card fadeOut={false}>
           <CardContent>
-            <Flex gap={2} column>
+            <Flex gap={4} column>
               <Title>
-                <StateIndicator color={state.color} />
+                <StyledSquircle color={color} size={16} />
                 <span>
                   <Backticks content={name} />
                 </span>
               </Title>
-              <Flex align="center" gap={6}>
-                {lead && <Avatar src={lead.avatarUrl} size={18} />}
-                <Info>
-                  {lead ? (
-                    <Trans>
-                      {{ leadName }} leads • created{" "}
-                      <Time dateTime={createdAt} addSuffix />
-                    </Trans>
-                  ) : (
-                    <Trans>
-                      Created <Time dateTime={createdAt} addSuffix />
-                    </Trans>
-                  )}
-                </Info>
-              </Flex>
               {description && (
-                <Description as="div">
+                <Description as="div" $margin="0">
                   <React.Suspense fallback={<div />}>
                     <Editor
                       extensions={richExtensions}
@@ -65,27 +62,50 @@ const HoverPreviewProject = React.forwardRef(function HoverPreviewProject_(
                   </React.Suspense>
                 </Description>
               )}
+              <Text type="tertiary" size="small">
+                {state.name}
+              </Text>
 
-              <Flex column gap={4}>
-                <Flex justify="space-between">
-                  <Text type="secondary" size="small">
-                    {state.name}
-                  </Text>
-                  <Text type="secondary" size="small">
-                    {Math.round(progress * 100)}% complete
-                  </Text>
-                </Flex>
-                <ProgressBarContainer>
-                  <ProgressBarFill progress={progress} color={state.color} />
-                </ProgressBarContainer>
-                {targetDate && (
-                  <Text type="tertiary" size="xsmall">
-                    <Trans>
-                      Target date: <Time dateTime={targetDate} />
-                    </Trans>
-                  </Text>
-                )}
-              </Flex>
+              {(lead || targetDate) && (
+                <>
+                  <Divider />
+
+                  {lead && (
+                    <MetadataRow>
+                      <MetadataLabel>{t("Lead")}</MetadataLabel>
+                      <Flex align="center" gap={6}>
+                        <Avatar src={lead.avatarUrl} size={AvatarSize.Toast} />
+                        <Text size="small">{lead.name}</Text>
+                      </Flex>
+                    </MetadataRow>
+                  )}
+
+                  {targetDate && (
+                    <MetadataRow>
+                      <MetadataLabel>{t("Target date")}</MetadataLabel>
+                      <Text size="small">
+                        <Time dateTime={targetDate} addSuffix />
+                      </Text>
+                    </MetadataRow>
+                  )}
+                </>
+              )}
+
+              {labels.length > 0 && (
+                <>
+                  <Divider />
+                  <MetadataRow>
+                    <MetadataLabel>{t("Labels")}</MetadataLabel>
+                    <Flex wrap gap={6}>
+                      {labels.map((label, index) => (
+                        <Label key={index} color={label.color}>
+                          {label.name}
+                        </Label>
+                      ))}
+                    </Flex>
+                  </MetadataRow>
+                </>
+              )}
             </Flex>
           </CardContent>
         </Card>
@@ -94,29 +114,31 @@ const HoverPreviewProject = React.forwardRef(function HoverPreviewProject_(
   );
 });
 
-const StateIndicator = styled.div<{ color: string }>`
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background-color: ${(props) => props.color};
-  margin-top: 4px;
+const StyledSquircle = styled(Squircle)`
   flex-shrink: 0;
+  margin-top: 4px;
 `;
 
-const ProgressBarContainer = styled.div`
-  width: 100%;
-  height: 6px;
-  background-color: ${(props) => props.theme.divider};
-  border-radius: 3px;
-  overflow: hidden;
+const Divider = styled.div`
+  height: 1px;
+  background: ${s("divider")};
+  margin: 4px 0;
 `;
 
-const ProgressBarFill = styled.div<{ progress: number; color: string }>`
-  height: 100%;
-  width: ${(props) => props.progress * 100}%;
-  background-color: ${(props) => props.color};
-  border-radius: 3px;
-  transition: width 0.3s ease;
+const MetadataRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 28px;
+`;
+
+const MetadataLabel = styled(Text).attrs({
+  type: "tertiary",
+  size: "small",
+})`
+  flex-shrink: 0;
+  min-width: 80px;
 `;
 
 export default HoverPreviewProject;

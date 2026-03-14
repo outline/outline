@@ -516,6 +516,8 @@ export type UnfurlResponse = {
     url: string;
     /** A text title, describing the resource */
     title: string;
+    /** A color representing the resource */
+    color?: string;
     /** A brief description about the resource */
     description: string;
     /** A URL to a thumbnail image representing the resource */
@@ -620,6 +622,8 @@ export type UnfurlResponse = {
     id: string;
     /** Project name */
     name: string;
+    /** Project color */
+    color: string;
     /** Project description */
     description: string | null;
     /** Project lead */
@@ -630,6 +634,8 @@ export type UnfurlResponse = {
       color: string;
       type: string;
     };
+    /** Project labels */
+    labels: Array<{ name: string; color: string }>;
     /** Project progress (0-1) */
     progress: number;
     /** Project creation time */
