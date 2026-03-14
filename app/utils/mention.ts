@@ -65,7 +65,9 @@ export const determineMentionType = ({
         ? MentionType.PullRequest
         : type === "issues"
           ? MentionType.Issue
-          : undefined;
+          : type === "projects"
+            ? MentionType.Project
+            : undefined;
     }
 
     case IntegrationService.Linear: {

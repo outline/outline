@@ -13,7 +13,11 @@ import { IntegrationService, UnfurlResourceType } from "@shared/types";
 import Logger from "@server/logging/Logger";
 import type { User } from "@server/models";
 import { Integration } from "@server/models";
-import type { UnfurlIssueOrPR, UnfurlProject, UnfurlSignature } from "@server/types";
+import type {
+  UnfurlIssueOrPR,
+  UnfurlProject,
+  UnfurlSignature,
+} from "@server/types";
 import { GitHubUtils } from "../shared/GitHubUtils";
 import env from "./env";
 
@@ -42,11 +46,10 @@ type ParsedProject = {
 
 type GitHubResource = ParsedIssueOrPR | ParsedProject;
 
-type GitHubProjectV2 = {
-  id: string;
+type GitHubProject = {
   number: number;
   title: string;
-  shortDescription: string | null;
+  description: string | null;
   url: string;
   createdAt: string;
   closed: boolean;
@@ -87,51 +90,58 @@ const requestPlugin = (octokit: Octokit) => ({
     }),
 
   /**
-   * Fetches details of a GitHub Project V2 using the GraphQL API.
+   * Fetches details of a GitHub ProjectV2 using the GraphQL API.
    *
-   * @param params Parsed project URL identifiers
-   * @returns Project data or undefined if not found
+   * @param params Parsed project URL identifiers.
+   * @returns Project data or undefined if not found.
    */
   requestProject: async (
     params: ParsedProject
-  ): Promise<GitHubProjectV2 | undefined> => {
-    const query =
-      params.ownerType === "orgs"
-        ? `query($login: String!, $number: Int!) {
-            organization(login: $login) {
-              projectV2(number: $number) {
-                id
-                number
-                title
-                shortDescription
-                url
-                createdAt
-                closed
-              }
-            }
-          }`
-        : `query($login: String!, $number: Int!) {
-            user(login: $login) {
-              projectV2(number: $number) {
-                id
-                number
-                title
-                shortDescription
-                url
-                createdAt
-                closed
-              }
-            }
-          }`;
+  ): Promise<GitHubProject | undefined> => {
+    const ownerField = params.ownerType === "orgs" ? "organization" : "user";
 
-    const result = await octokit.graphql<{
-      organization?: { projectV2: GitHubProjectV2 | null };
-      user?: { projectV2: GitHubProjectV2 | null };
-    }>(query, { login: params.owner, number: params.projectNumber });
+    const query = `query($login: String!, $number: Int!) {
+      ${ownerField}(login: $login) {
+        projectV2(number: $number) {
+          number
+          title
+          shortDescription
+          url
+          createdAt
+          closed
+        }
+      }
+    }`;
 
-    return params.ownerType === "orgs"
-      ? (result.organization?.projectV2 ?? undefined)
-      : (result.user?.projectV2 ?? undefined);
+    const result = await octokit.graphql<
+      Record<
+        string,
+        {
+          projectV2: {
+            number: number;
+            title: string;
+            shortDescription: string | null;
+            url: string;
+            createdAt: string;
+            closed: boolean;
+          } | null;
+        }
+      >
+    >(query, { login: params.owner, number: params.projectNumber });
+
+    const project = result[ownerField]?.projectV2;
+    if (!project) {
+      return undefined;
+    }
+
+    return {
+      number: project.number,
+      title: project.title,
+      description: project.shortDescription,
+      url: project.url,
+      createdAt: project.createdAt,
+      closed: project.closed,
+    };
   },
 
   /**
@@ -384,13 +394,19 @@ export class GitHub {
     client: InstanceType<typeof CustomOctokit>,
     resource: ParsedProject
   ) {
-    const project = await client.requestProject(resource);
+    let project: GitHubProject | undefined;
+    try {
+      project = await client.requestProject(resource);
+    } catch (err) {
+      Logger.warn("Failed to fetch project from GitHub", err);
+      return { error: "Resource not found" };
+    }
 
     if (!project) {
       return { error: "Resource not found" };
     }
 
-    const state = project.closed ? "closed" : "open";
+    const state = project.closed ? "completed" : "open";
 
     return {
       type: UnfurlResourceType.Project,
@@ -398,7 +414,7 @@ export class GitHub {
       id: `#${project.number}`,
       name: project.title,
       color: GitHubUtils.getColorForStatus(state),
-      description: project.shortDescription ?? null,
+      description: project.description,
       lead: null,
       state: {
         type: state,
@@ -406,7 +422,6 @@ export class GitHub {
         color: GitHubUtils.getColorForStatus(state),
       },
       labels: [],
-      progress: 0,
       createdAt: project.createdAt,
       targetDate: null,
     } satisfies UnfurlProject;
@@ -415,6 +430,12 @@ export class GitHub {
   private static transformData(data: Issue | PR, type: UnfurlResourceType) {
     if (type === UnfurlResourceType.Issue) {
       const issue = data as Issue;
+      const issueState =
+        issue.state === "closed"
+          ? issue.state_reason === "completed"
+            ? "completed"
+            : "canceled"
+          : issue.state;
       return {
         type: UnfurlResourceType.Issue,
         url: issue.html_url,
@@ -430,8 +451,8 @@ export class GitHub {
           color: `#${label.color}`,
         })),
         state: {
-          name: issue.state,
-          color: GitHubUtils.getColorForStatus(issue.state),
+          name: issueState,
+          color: GitHubUtils.getColorForStatus(issueState),
         },
         createdAt: issue.created_at,
       } satisfies UnfurlIssueOrPR;
