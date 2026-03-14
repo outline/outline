@@ -126,6 +126,7 @@ export default function blockMenuItems(
         accept: "application/pdf",
         width: 300,
         height: 424,
+        preview: true,
       },
     },
     {
