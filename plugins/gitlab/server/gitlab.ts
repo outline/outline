@@ -2,6 +2,7 @@ import { Gitlab } from "@gitbeaker/rest";
 import type {
   IssueSchemaWithExpandedLabels,
   MergeRequestSchema,
+  ProjectSchema,
 } from "@gitbeaker/rest";
 import z from "zod";
 import {
@@ -12,7 +13,7 @@ import {
 import Logger from "@server/logging/Logger";
 import type { User } from "@server/models";
 import { Integration, IntegrationAuthentication } from "@server/models";
-import type { UnfurlIssueOrPR, UnfurlSignature } from "@server/types";
+import type { UnfurlIssueOrPR, UnfurlProject, UnfurlSignature } from "@server/types";
 import fetch from "@server/utils/fetch";
 import { validateUrlNotPrivate } from "@server/utils/url";
 import { GitLabUtils } from "../shared/GitLabUtils";
@@ -117,6 +118,24 @@ export class GitLab {
     const client = await this.createClient(accessToken, customUrl);
     const mr = await client.MergeRequests.show(projectPath, mrIid);
     return mr;
+  }
+
+  /**
+   * Fetches a project from GitLab.
+   *
+   * @param accessToken - The access token for authentication.
+   * @param projectPath - The project path (owner/repo).
+   * @param customUrl - Optional custom GitLab URL from integration settings.
+   * @returns The project data.
+   */
+  public static async getProject(
+    accessToken: string,
+    projectPath: string,
+    customUrl?: string
+  ) {
+    const client = await this.createClient(accessToken, customUrl);
+    const project = await client.Projects.show(projectPath);
+    return project;
   }
 
   /**
@@ -254,6 +273,9 @@ export class GitLab {
           customUrl
         );
         return this.transformMR(mr);
+      } else if (resource.type === UnfurlResourceType.Project) {
+        const project = await this.getProject(token, projectPath, customUrl);
+        return this.transformProject(project);
       }
 
       return { error: "Resource not found" };
@@ -389,5 +411,31 @@ export class GitLab {
       },
       createdAt: mr.created_at,
     } satisfies UnfurlIssueOrPR;
+  }
+
+  private static transformProject(project: ProjectSchema) {
+    const visibility = project.visibility ?? "private";
+    return {
+      type: UnfurlResourceType.Project,
+      url: project.web_url,
+      id: String(project.id),
+      name: project.name,
+      color: "#FC6D26",
+      description: project.description ?? null,
+      lead: null,
+      state: {
+        type: visibility,
+        name:
+          visibility.charAt(0).toUpperCase() + visibility.slice(1),
+        color: GitLabUtils.getColorForVisibility(visibility),
+      },
+      labels: (project.topics ?? []).map((topic: string) => ({
+        name: topic,
+        color: "#6B7280",
+      })),
+      progress: 0,
+      createdAt: project.created_at,
+      targetDate: null,
+    } satisfies UnfurlProject;
   }
 }

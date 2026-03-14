@@ -8,6 +8,7 @@ export class GitLabUtils {
   private static supportedResources = [
     UnfurlResourceType.Issue,
     UnfurlResourceType.PR,
+    UnfurlResourceType.Project,
   ];
 
   /**
@@ -146,6 +147,21 @@ export class GitLabUtils {
         }
       }
 
+      // Check if it's a project URL (no -/ separator pattern in path)
+      if (!parsed.pathname.includes("/-/")) {
+        if (parts.length >= 2) {
+          const repo = parts[parts.length - 1];
+          const owner = parts.slice(0, -1).join("/");
+          return {
+            owner,
+            repo,
+            type: UnfurlResourceType.Project,
+            url,
+          };
+        }
+        return;
+      }
+
       if (parts.length < 5) {
         return;
       }
@@ -199,7 +215,22 @@ export class GitLabUtils {
       merged: "#8250df",
       canceled: "#848d97",
     };
-
     return statusColors[status] ?? "#848d97";
+  }
+
+  /**
+   * Returns the color associated with a given visibility level.
+   *
+   * @param visibility - The visibility level of the resource.
+   * @returns The color associated with the visibility level.
+   */
+  public static getColorForVisibility(visibility: string): string {
+    const visibilityColors: Record<string, string> = {
+      public: "#1f75cb",
+      internal: "#f8ae1a",
+      private: "#848d97",
+    };
+
+    return visibilityColors[visibility] ?? "#848d97";
   }
 }
