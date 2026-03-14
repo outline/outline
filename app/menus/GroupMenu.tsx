@@ -8,11 +8,13 @@ import { useGroupMenuActions } from "~/hooks/useGroupMenuActions";
 
 type Props = {
   group: Group;
+  /** Whether to hide the "Members" navigation action. */
+  hideMembers?: boolean;
 };
 
-function GroupMenu({ group }: Props) {
+function GroupMenu({ group, hideMembers }: Props) {
   const { t } = useTranslation();
-  const rootAction = useGroupMenuActions(group);
+  const rootAction = useGroupMenuActions(group, { hideMembers });
 
   return (
     <DropdownMenu
