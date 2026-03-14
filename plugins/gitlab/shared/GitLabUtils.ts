@@ -115,7 +115,12 @@ export class GitLabUtils {
         id: number;
         url: string;
       }
-    | { owner: string; repo: string; type: UnfurlResourceType.Project; url: string }
+    | {
+        owner: string;
+        repo: string;
+        type: UnfurlResourceType.Project;
+        url: string;
+      }
     | undefined {
     try {
       const parsed = new URL(url);
@@ -161,7 +166,7 @@ export class GitLabUtils {
 
       // Check if it's a project URL (no -/ separator pattern in path)
       if (!parsed.pathname.includes("/-/")) {
-        if (parts.length >= 2) {
+        if (parts.length >= 2 && !this.isSystemPath(parts[0])) {
           const repo = parts[parts.length - 1];
           const owner = parts.slice(0, -1).join("/");
           return {
@@ -210,6 +215,28 @@ export class GitLabUtils {
   }
 
   /**
+   * Checks if the first path segment is a known GitLab system path.
+   *
+   * @param segment - the first path segment of the URL.
+   * @returns true if the segment is a known system path.
+   */
+  private static isSystemPath(segment: string): boolean {
+    const systemPaths = new Set([
+      "explore",
+      "help",
+      "admin",
+      "dashboard",
+      "users",
+      "groups",
+      "projects",
+      "snippets",
+      "search",
+      "-",
+    ]);
+    return systemPaths.has(segment);
+  }
+
+  /**
    * Returns the color associated with a given status.
    *
    * @param status - The status of the resource.
@@ -228,6 +255,26 @@ export class GitLabUtils {
       canceled: "#848d97",
     };
     return statusColors[status] ?? "#848d97";
+  }
+
+  /**
+   * Returns a deterministic color for a GitLab project based on its ID.
+   * Mirrors GitLab's identicon algorithm: (id % 7) mapped to a palette.
+   *
+   * @param projectId - the numeric project ID.
+   * @returns a hex color string.
+   */
+  public static getColorForProject(projectId: number): string {
+    const palette = [
+      "#e05842", // red
+      "#a972cc", // purple
+      "#5b6abf", // indigo
+      "#3e8fda", // blue
+      "#42a68c", // teal
+      "#e67e3c", // orange
+      "#7e7e7e", // neutral
+    ];
+    return palette[projectId % 7];
   }
 
   /**

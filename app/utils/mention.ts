@@ -2,6 +2,19 @@ import type { IntegrationSettings, IntegrationType } from "@shared/types";
 import { IntegrationService, MentionType } from "@shared/types";
 import type Integration from "~/models/Integration";
 
+const gitlabSystemPaths = new Set([
+  "explore",
+  "help",
+  "admin",
+  "dashboard",
+  "users",
+  "groups",
+  "projects",
+  "snippets",
+  "search",
+  "-",
+]);
+
 export const isURLMentionable = ({
   url,
   integration,
@@ -93,6 +106,12 @@ export const determineMentionType = ({
         (/\/-\/issues\/?$/.test(pathname) && hasShowParam)
       ) {
         return MentionType.Issue;
+      }
+      if (!pathname.includes("/-/")) {
+        const parts = pathname.split("/").filter(Boolean);
+        if (parts.length >= 2 && !gitlabSystemPaths.has(parts[0])) {
+          return MentionType.Project;
+        }
       }
       return undefined;
     }

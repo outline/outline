@@ -97,6 +97,27 @@ describe("GitLabUtils.parseUrl", () => {
       );
       expect(result).toBeUndefined();
     });
+
+    it("should return undefined for system paths", () => {
+      expect(
+        GitLabUtils.parseUrl("https://gitlab.com/explore/projects")
+      ).toBeUndefined();
+      expect(
+        GitLabUtils.parseUrl("https://gitlab.com/help/topics")
+      ).toBeUndefined();
+      expect(
+        GitLabUtils.parseUrl("https://gitlab.com/admin/users")
+      ).toBeUndefined();
+      expect(
+        GitLabUtils.parseUrl("https://gitlab.com/dashboard/projects")
+      ).toBeUndefined();
+      expect(
+        GitLabUtils.parseUrl("https://gitlab.com/users/someone")
+      ).toBeUndefined();
+      expect(
+        GitLabUtils.parseUrl("https://gitlab.com/groups/mygroup")
+      ).toBeUndefined();
+    });
   });
 
   describe("base64 show parameter URLs", () => {

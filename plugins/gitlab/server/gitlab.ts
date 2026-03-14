@@ -13,7 +13,11 @@ import {
 import Logger from "@server/logging/Logger";
 import type { User } from "@server/models";
 import { Integration, IntegrationAuthentication } from "@server/models";
-import type { UnfurlIssueOrPR, UnfurlProject, UnfurlSignature } from "@server/types";
+import type {
+  UnfurlIssueOrPR,
+  UnfurlProject,
+  UnfurlSignature,
+} from "@server/types";
 import fetch from "@server/utils/fetch";
 import { validateUrlNotPrivate } from "@server/utils/url";
 import { GitLabUtils } from "../shared/GitLabUtils";
@@ -415,25 +419,33 @@ export class GitLab {
 
   private static transformProject(project: ProjectSchema) {
     const visibility = project.visibility ?? "private";
+    const owner = project.owner as
+      | { name: string; avatar_url?: string }
+      | undefined;
+
     return {
       type: UnfurlResourceType.Project,
       url: project.web_url,
       id: String(project.id),
       name: project.name,
-      color: "#FC6D26",
+      color: GitLabUtils.getColorForProject(project.id),
+      avatarUrl: project.avatar_url || undefined,
       description: project.description ?? null,
-      lead: null,
+      lead: owner
+        ? {
+            name: owner.name,
+            avatarUrl: owner.avatar_url ?? "",
+          }
+        : null,
       state: {
         type: visibility,
-        name:
-          visibility.charAt(0).toUpperCase() + visibility.slice(1),
+        name: visibility.charAt(0).toUpperCase() + visibility.slice(1),
         color: GitLabUtils.getColorForVisibility(visibility),
       },
       labels: (project.topics ?? []).map((topic: string) => ({
         name: topic,
         color: "#6B7280",
       })),
-      progress: 0,
       createdAt: project.created_at,
       targetDate: null,
     } satisfies UnfurlProject;
