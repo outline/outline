@@ -152,14 +152,13 @@ function SidebarLink(
       $isActiveDrop={isActiveDrop}
       $isDraft={isDraft}
       $disabled={disabled}
-      style={style}
+      style={active ? activeStyle : style}
       activeStyle={isActiveDrop ? activeDropStyle : activeStyle}
       onClick={handleClick}
       onActiveClick={handleDisclosureClick}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onDragEnter={handleMouseEnter}
-      isActive={active !== undefined ? () => active : undefined}
       // @ts-expect-error exact does not exist on div
       exact={exact !== false}
       to={to}

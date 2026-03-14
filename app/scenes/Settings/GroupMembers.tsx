@@ -216,4 +216,4 @@ const GroupMembersPage = observer(function GroupMembersPage({
   );
 });
 
-export default observer(GroupMembers);
+export const GroupMembersScene = observer(GroupMembers);
