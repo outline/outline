@@ -72,3 +72,5 @@ export { default as Subscription } from "./Subscription";
 
 export { default as Emoji } from "./Emoji";
 export { default as UserPasskey } from "./UserPasskey";
+
+export { default as AccessRequest } from "./AccessRequest";

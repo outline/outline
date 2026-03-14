@@ -457,6 +457,7 @@ export enum NotificationEventType {
   Onboarding = "emails.onboarding",
   Features = "emails.features",
   ExportCompleted = "emails.export_completed",
+  RequestDocumentAccess = "documents.request_access",
 }
 
 export enum NotificationChannelType {
@@ -496,6 +497,7 @@ export const NotificationEventDefaults: Record<NotificationEventType, boolean> =
     [NotificationEventType.ExportCompleted]: true,
     [NotificationEventType.AddUserToDocument]: true,
     [NotificationEventType.AddUserToCollection]: true,
+    [NotificationEventType.RequestDocumentAccess]: true,
   };
 
 export enum UnfurlResourceType {
