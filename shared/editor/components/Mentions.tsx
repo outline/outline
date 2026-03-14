@@ -410,7 +410,11 @@ export const MentionProject = observer((props: ProjectProps) => {
       rel="noopener noreferrer nofollow"
     >
       <Flex align="center" gap={6}>
-        <Squircle color={project.color} size={12} />
+        {project.avatarUrl ? (
+          <ProjectAvatar src={project.avatarUrl} alt="" />
+        ) : (
+          <Squircle color={project.color} size={12} />
+        )}
         <Flex align="center" gap={4}>
           <Text>
             <Backticks content={project.name} />
@@ -528,4 +532,10 @@ const StyledWarningIcon = styled(WarningIcon)`
 const Logo = styled.img`
   width: 16px;
   height: 16px;
+`;
+
+const ProjectAvatar = styled.img`
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
 `;
