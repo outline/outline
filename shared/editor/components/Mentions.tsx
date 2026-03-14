@@ -415,7 +415,11 @@ export const MentionProject = observer((props: ProjectProps) => {
           <Text>
             <Backticks content={project.name} />
           </Text>
-          <Text type="tertiary">{Math.round(project.progress * 100)}%</Text>
+          <Text type="tertiary">
+            {project.progress !== undefined
+              ? `${Math.round(project.progress * 100)}%`
+              : project.id}
+          </Text>
         </Flex>
       </Flex>
     </a>
