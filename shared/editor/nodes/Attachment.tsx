@@ -231,6 +231,27 @@ export default class Attachment extends Node {
         document.body.removeChild(link);
         return true;
       },
+      toggleAttachmentPreview: (): Command => (state, dispatch) => {
+        if (!(state.selection instanceof NodeSelection)) {
+          return false;
+        }
+        const { node } = state.selection;
+
+        if (node.attrs.contentType !== "application/pdf") {
+          return false;
+        }
+
+        const { attrs } = state.selection.node;
+        const transaction = state.tr
+          .setNodeMarkup(state.selection.from, undefined, {
+            ...attrs,
+            preview: !attrs.preview,
+          })
+          .setMeta("addToHistory", true);
+        const $pos = transaction.doc.resolve(state.selection.from);
+        dispatch?.(transaction.setSelection(new NodeSelection($pos)));
+        return true;
+      },
       resizeAttachment:
         ({ width, height }: { width: number; height?: number }): Command =>
         (state, dispatch) => {
