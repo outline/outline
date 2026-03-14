@@ -1,3 +1,4 @@
+import { Hour } from "@shared/utils/time";
 import teamPermanentDeleter from "@server/commands/teamPermanentDeleter";
 import { Team } from "@server/models";
 import { BaseTask, TaskPriority } from "./base/BaseTask";
@@ -20,6 +21,7 @@ export default class CleanupDeletedTeamTask extends BaseTask<Props> {
     return {
       attempts: 1,
       priority: TaskPriority.Background,
+      timeout: Hour.ms,
     };
   }
 }

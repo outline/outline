@@ -33,6 +33,7 @@ export default class CleanupDeletedDocumentsTask extends CronTask {
     return {
       attempts: 1,
       priority: TaskPriority.Background,
+      timeout: 30 * Minute.ms,
     };
   }
 

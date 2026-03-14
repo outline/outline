@@ -1,4 +1,5 @@
 import { Sema } from "async-sema";
+import { Hour } from "@shared/utils/time";
 import Logger from "@server/logging/Logger";
 import { Attachment } from "@server/models";
 import FileStorage from "@server/storage/files";
@@ -68,6 +69,7 @@ export default class UploadAttachmentsForImportTask extends BaseTask<Item[]> {
     return {
       attempts: 3,
       priority: TaskPriority.Normal,
+      timeout: 24 * Hour.ms,
     };
   }
 }

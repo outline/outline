@@ -10,6 +10,7 @@ import {
   CollectionPermission,
   FileOperationState,
 } from "@shared/types";
+import { Hour } from "@shared/utils/time";
 import { CollectionValidation } from "@shared/validations";
 import attachmentCreator from "@server/commands/attachmentCreator";
 import documentCreator from "@server/commands/documentCreator";
@@ -532,6 +533,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
     return {
       priority: TaskPriority.Low,
       attempts: 1,
+      timeout: 24 * Hour.ms,
     };
   }
 
