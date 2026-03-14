@@ -209,6 +209,9 @@ export default class Attachment extends Node {
             onFileUploadProgress,
             dictionary: this.options.dictionary,
             replaceExisting: true,
+            attrs: {
+              preview: node.attrs.preview,
+            },
           });
         };
         inputElement.click();
