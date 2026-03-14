@@ -10,6 +10,7 @@ import { Collection, Team } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentCollection } from "@server/presenters";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
+import { UrlHelper } from "@shared/utils/UrlHelper";
 import {
   success,
   error,
@@ -102,14 +103,38 @@ export function collectionTools(server: McpServer, scopes: string[]) {
               limit: limit ?? 25,
             });
 
+            // If the query looks like a collection ID or urlId, try direct
+            // lookup first so exact matches appear at the top of results.
+            let exactMatch: Collection | null = null;
+            if (query && UrlHelper.SLUG_URL_REGEX.test(query)) {
+              exactMatch = await Collection.findByPk(query, {
+                userId: user.id,
+              });
+              if (exactMatch && !collectionIds.includes(exactMatch.id)) {
+                exactMatch = null;
+              }
+            }
+
             const presented = await Promise.all(
-              collections.map(async (collection) =>
+              collections
+                .filter((c) => c.id !== exactMatch?.id)
+                .map(async (collection) =>
+                  pathToUrl(
+                    user.team,
+                    await presentCollection(undefined, collection)
+                  )
+                )
+            );
+
+            if (exactMatch) {
+              presented.unshift(
                 pathToUrl(
                   user.team,
-                  await presentCollection(undefined, collection)
+                  await presentCollection(undefined, exactMatch)
                 )
-              )
-            );
+              );
+            }
+
             return success(presented);
           } catch (message) {
             return error(message);

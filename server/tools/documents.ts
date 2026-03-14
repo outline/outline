@@ -18,6 +18,7 @@ import SearchHelper from "@server/models/helpers/SearchHelper";
 import { authorize } from "@server/policies";
 import { presentDocument } from "@server/presenters";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
+import { UrlHelper } from "@shared/utils/UrlHelper";
 import {
   error,
   success,
@@ -145,6 +146,22 @@ export function documentTools(server: McpServer, scopes: string[]) {
             }
 
             if (query) {
+              // If the query looks like a document ID or urlId, try direct
+              // lookup first so exact matches appear at the top of results.
+              let exactMatch: Document | null = null;
+              if (UrlHelper.SLUG_URL_REGEX.test(query)) {
+                exactMatch = await Document.findByPk(query, {
+                  userId: user.id,
+                });
+                if (
+                  exactMatch &&
+                  collectionId &&
+                  exactMatch.collectionId !== collectionId
+                ) {
+                  exactMatch = null;
+                }
+              }
+
               const { results } = await SearchHelper.searchForUser(user, {
                 query,
                 collectionId,
@@ -153,17 +170,31 @@ export function documentTools(server: McpServer, scopes: string[]) {
               });
 
               const presented = await Promise.all(
-                results.map(async (result) => {
-                  const doc = pathToUrl(
-                    user.team,
-                    await presentDocument(undefined, result.document, {
-                      includeData: false,
-                      includeText: false,
-                    })
-                  );
-                  return { ...doc, context: result.context };
-                })
+                results
+                  .filter((result) => result.document.id !== exactMatch?.id)
+                  .map(async (result) => {
+                    const doc = pathToUrl(
+                      user.team,
+                      await presentDocument(undefined, result.document, {
+                        includeData: false,
+                        includeText: false,
+                      })
+                    );
+                    return { ...doc, context: result.context };
+                  })
               );
+
+              if (exactMatch) {
+                const doc = pathToUrl(
+                  user.team,
+                  await presentDocument(undefined, exactMatch, {
+                    includeData: false,
+                    includeText: false,
+                  })
+                );
+                presented.unshift({ ...doc, context: undefined });
+              }
+
               return success(presented);
             }
 
