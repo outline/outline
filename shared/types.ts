@@ -637,7 +637,7 @@ export type UnfurlResponse = {
     /** Project labels */
     labels: Array<{ name: string; color: string }>;
     /** Project progress (0-1) */
-    progress: number;
+    progress?: number;
     /** Project creation time */
     createdAt: string;
     /** Project target date */
