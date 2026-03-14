@@ -7,6 +7,7 @@ import { settingsPath } from "~/utils/routeHelpers";
 import { observer } from "mobx-react";
 
 const Application = lazy(() => import("~/scenes/Settings/Application"));
+const GroupMembers = lazy(() => import("~/scenes/Settings/GroupMembers"));
 const Template = lazy(() => import("~/scenes/Settings/Template"));
 const TemplateNew = lazy(() => import("~/scenes/Settings/TemplateNew"));
 
@@ -24,6 +25,11 @@ function SettingsRoutes() {
         />
       ))}
       {/* TODO: Refactor these exceptions into config? */}
+      <Route
+        exact
+        path={settingsPath("groups", ":id", "members")}
+        component={GroupMembers}
+      />
       <Route
         exact
         path={settingsPath("applications", ":id")}
