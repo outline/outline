@@ -3,6 +3,7 @@ import type {
   IssueSchemaWithExpandedLabels,
   MergeRequestSchema,
   ProjectSchema,
+  StatisticsSchema,
 } from "@gitbeaker/rest";
 import z from "zod";
 import {
@@ -122,24 +123,6 @@ export class GitLab {
     const client = await this.createClient(accessToken, customUrl);
     const mr = await client.MergeRequests.show(projectPath, mrIid);
     return mr;
-  }
-
-  /**
-   * Fetches a project from GitLab.
-   *
-   * @param accessToken - The access token for authentication.
-   * @param projectPath - The project path (owner/repo).
-   * @param customUrl - Optional custom GitLab URL from integration settings.
-   * @returns The project data.
-   */
-  public static async getProject(
-    accessToken: string,
-    projectPath: string,
-    customUrl?: string
-  ) {
-    const client = await this.createClient(accessToken, customUrl);
-    const project = await client.Projects.show(projectPath);
-    return project;
   }
 
   /**
@@ -278,8 +261,12 @@ export class GitLab {
         );
         return this.transformMR(mr);
       } else if (resource.type === UnfurlResourceType.Project) {
-        const project = await this.getProject(token, projectPath, customUrl);
-        return this.transformProject(project);
+        const client = await this.createClient(token, customUrl);
+        const [project, issueStats] = await Promise.all([
+          client.Projects.show(projectPath),
+          client.IssuesStatistics.all({ projectId: projectPath }),
+        ]);
+        return this.transformProject(project, issueStats);
       }
 
       return { error: "Resource not found" };
@@ -417,11 +404,17 @@ export class GitLab {
     } satisfies UnfurlIssueOrPR;
   }
 
-  private static transformProject(project: ProjectSchema) {
+  private static transformProject(
+    project: ProjectSchema,
+    issueStats: StatisticsSchema
+  ) {
     const visibility = project.visibility ?? "private";
     const owner = project.owner as
       | { name: string; avatar_url?: string }
       | undefined;
+    const { opened, closed } = issueStats.statistics.counts;
+    const total = opened + closed;
+    const progress = total > 0 ? closed / total : 0;
 
     return {
       type: UnfurlResourceType.Project,
@@ -446,6 +439,7 @@ export class GitLab {
         name: topic,
         color: "#6B7280",
       })),
+      progress,
       createdAt: project.created_at,
       targetDate: null,
     } satisfies UnfurlProject;
