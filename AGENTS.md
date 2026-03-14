@@ -70,7 +70,7 @@ yarn install
 ### Exports
 
 - Exported members must appear at the top of the file.
-- Prefer named exports for components & classes.
+- Always use named exports for new components & classes.
 - Document ALL public/exported functions with JSDoc.
 
 ## React Usage
