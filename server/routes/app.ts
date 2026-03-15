@@ -160,8 +160,20 @@ export const renderApp = async (
     <link
       rel="apple-touch-icon"
       type="image/png"
-      href="${env.CDN_URL ?? ""}/images/apple-touch-icon.png"
+      href="${env.CDN_URL ?? ""}/images/icon-maskable-192.png"
       sizes="192x192"
+    />
+    <link
+      rel="apple-touch-icon"
+      type="image/png"
+      href="${env.CDN_URL ?? ""}/images/icon-maskable-512.png"
+      sizes="512x512"
+    />
+    <link
+      rel="apple-touch-icon"
+      type="image/png"
+      href="${env.CDN_URL ?? ""}/images/icon-maskable-1024.png"
+      sizes="1024x1024"
     />
     <link
       rel="search"
