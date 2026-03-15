@@ -269,6 +269,11 @@ export class ProsemirrorHelper {
       if (node.marks) {
         node.marks = node.marks.filter((mark) => !marks.includes(mark.type));
       }
+      if (node.attrs?.marks) {
+        node.attrs.marks = (node.attrs.marks as { type: string }[])?.filter(
+          (mark) => !marks.includes(mark.type)
+        );
+      }
       if (node.content) {
         node.content.forEach(removeMarksInner);
       }
@@ -583,6 +588,8 @@ export class ProsemirrorHelper {
         if (mermaidElements.length) {
           element.innerHTML = `
           import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+          import elkLayouts from 'https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk/dist/mermaid-layout-elk.esm.min.mjs';
+          mermaid.registerLayoutLoaders(elkLayouts);
           mermaid.initialize({
             startOnLoad: true,
             fontFamily: "inherit",

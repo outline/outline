@@ -1,6 +1,6 @@
 import { faker } from "@faker-js/faker";
 import { randomUUID } from "node:crypto";
-import { buildUser, buildTeam } from "@server/test/factories";
+import { buildUser, buildTeam, buildUserPasskey } from "@server/test/factories";
 import { getTestServer, setSelfHosted } from "@server/test/support";
 
 const mockTeamInSessionId = randomUUID();
@@ -190,6 +190,57 @@ describe("#auth.config", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.providers.length).toBe(0);
+  });
+
+  it("should not return passkeys provider when passkeysEnabled but no passkeys exist", async () => {
+    const subdomain = faker.internet.domainWord();
+    await buildTeam({
+      guestSignin: false,
+      passkeysEnabled: true,
+      subdomain,
+      authenticationProviders: [
+        {
+          name: "slack",
+          providerId: randomUUID(),
+        },
+      ],
+    });
+    const res = await server.post("/api/auth.config", {
+      headers: {
+        host: `${subdomain}.outline.dev`,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.providers.length).toBe(1);
+    expect(body.data.providers[0].name).toBe("Slack");
+  });
+
+  it("should return passkeys provider when passkeysEnabled and passkeys exist", async () => {
+    const subdomain = faker.internet.domainWord();
+    const team = await buildTeam({
+      guestSignin: false,
+      passkeysEnabled: true,
+      subdomain,
+      authenticationProviders: [
+        {
+          name: "slack",
+          providerId: randomUUID(),
+        },
+      ],
+    });
+    const user = await buildUser({ teamId: team.id });
+    await buildUserPasskey({ userId: user.id });
+    const res = await server.post("/api/auth.config", {
+      headers: {
+        host: `${subdomain}.outline.dev`,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.providers.length).toBe(2);
+    expect(body.data.providers[0].name).toBe("Slack");
+    expect(body.data.providers[1].name).toBe("Passkeys");
   });
 
   describe.skip("self hosted", () => {

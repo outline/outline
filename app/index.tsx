@@ -1,6 +1,6 @@
 // oxlint-disable-next-line import/no-unresolved
 import "vite/modulepreload-polyfill";
-import { LazyMotion } from "framer-motion";
+import { LazyMotion, domMax } from "framer-motion";
 import { KBarProvider } from "kbar";
 import { Provider } from "mobx-react";
 import { configure as configureMobx } from "mobx";
@@ -11,6 +11,7 @@ import { Router } from "react-router-dom";
 import stores from "~/stores";
 import Analytics from "~/components/Analytics";
 import Dialogs from "~/components/Dialogs";
+import Presentation from "~/components/Presentation";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import PageTheme from "~/components/PageTheme";
 import ScrollToTop from "~/components/ScrollToTop";
@@ -45,9 +46,6 @@ configureMobx({
   isolateGlobalState: true,
 });
 
-// Make sure to return the specific export containing the feature bundle.
-const loadFeatures = () => import("./utils/motion").then((res) => res.default);
-
 const commandBarOptions = {
   animations: {
     enterMs: 250,
@@ -67,7 +65,7 @@ if (element) {
                   <ErrorBoundary showTitle>
                     <KBarProvider actions={[]} options={commandBarOptions}>
                       <LazyPolyfill>
-                        <LazyMotion features={loadFeatures}>
+                        <LazyMotion features={domMax}>
                           <PageScroll>
                             <PageTheme />
                             <ScrollToTop>
@@ -75,6 +73,7 @@ if (element) {
                             </ScrollToTop>
                             <Toasts />
                             <Dialogs />
+                            <Presentation />
                             <Desktop />
                           </PageScroll>
                         </LazyMotion>

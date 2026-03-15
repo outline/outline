@@ -30,7 +30,7 @@ function References({ document }: Props) {
 
   useEffect(() => {
     if (!isShare) {
-      void documents.fetchBacklinks(document.id);
+      void documents.fetchRelationships(document.id);
     }
   }, [isShare, documents, document.id]);
 

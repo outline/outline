@@ -149,11 +149,11 @@ describe("rateLimiter middleware", () => {
 
       const middleware = defaultRateLimiter();
       const consumeSpy = jest.spyOn(RateLimiter.defaultRateLimiter, "consume");
-
+      const ip = "192.168.1.1";
       const mockCtx = {
         path: "/some/path",
         mountPath: undefined,
-        ip: "192.168.1.1",
+        ip,
         set: jest.fn(),
         request: {
           get: () => `Bearer ${token}`,
@@ -165,7 +165,7 @@ describe("rateLimiter middleware", () => {
 
       await middleware(mockCtx, jest.fn());
 
-      expect(consumeSpy).toHaveBeenCalledWith(`user:${userId}`);
+      expect(consumeSpy).toHaveBeenCalledWith(`user:${userId}:${ip}`);
       consumeSpy.mockRestore();
     });
 

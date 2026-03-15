@@ -28,6 +28,7 @@ import usePaginatedRequest from "~/hooks/usePaginatedRequest";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import type { PaginationParams, SearchResult } from "~/types";
+import { preventDefault } from "~/utils/events";
 import { searchPath } from "~/utils/routeHelpers";
 import { decodeURIComponentSafe } from "~/utils/urls";
 import CollectionFilter from "./components/CollectionFilter";
@@ -251,11 +252,7 @@ function Search() {
       <RegisterKeyDown trigger="Escape" handler={history.goBack} />
       {loading && <LoadingIndicator />}
       <ResultsWrapper column auto>
-        <form
-          method="GET"
-          action={searchPath()}
-          onSubmit={(ev) => ev.preventDefault()}
-        >
+        <form method="GET" action={searchPath()} onSubmit={preventDefault}>
           <SearchInput
             name="query"
             key={query ? "search" : "recent"}
@@ -317,6 +314,7 @@ function Search() {
                     handleFilterChange({ titleFilter: checked });
                   }}
                   checked={titleFilter}
+                  inForm={false}
                 />
               )}
             </Flex>
@@ -420,9 +418,9 @@ const Filters = styled(HStack)`
 const SearchTitlesFilter = styled(Switch)`
   white-space: nowrap;
   margin-left: 8px;
-  margin-top: 8px;
   font-size: 14px;
   font-weight: 400;
+  height: 28px;
 `;
 
 export default observer(Search);

@@ -2,6 +2,7 @@ import type { DateFilter } from "@shared/types";
 import type { SearchableModel } from "@shared/types";
 import type { DirectionFilter, SortFilter, StatusFilter } from "@shared/types";
 import type Collection from "@server/models/Collection";
+import type Comment from "@server/models/Comment";
 import type Document from "@server/models/Document";
 import type Share from "@server/models/Share";
 import type Team from "@server/models/Team";
@@ -55,7 +56,7 @@ export interface SearchOptions {
  * Abstract base class for search providers. Implementations handle full-text
  * search, title search, collection search, and index management.
  */
-export default abstract class BaseSearchProvider {
+export abstract class BaseSearchProvider {
   /** Unique identifier for this provider, matched against `SEARCH_PROVIDER` env var. */
   abstract id: string;
 
@@ -146,6 +147,3 @@ export default abstract class BaseSearchProvider {
     metadata: Record<string, unknown>
   ): Promise<void>;
 }
-
-// Import Comment type separately to avoid circular dependency at runtime
-import type Comment from "@server/models/Comment";

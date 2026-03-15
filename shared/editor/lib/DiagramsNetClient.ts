@@ -49,6 +49,9 @@ export interface DiagramsNetMessage {
 export class DiagramsNetClient {
   private window: Window | null = null;
 
+  /** The format to use when exporting diagrams. */
+  format: "xmlsvg" | "xmlpng" = "xmlsvg";
+
   /**
    * Creates a new DiagramsNetClient instance.
    *
@@ -100,12 +103,13 @@ export class DiagramsNetClient {
   };
 
   /**
-   * Requests an export of the current diagram as an SVG with embedded XML.
+   * Requests an export of the current diagram with embedded XML.
+   * Uses the current format setting (xmlsvg or xmlpng).
    */
   exportDiagram = () => {
     this.sendMessage({
       action: DiagramsNetAction.Export,
-      format: "xmlsvg",
+      format: this.format,
       spinKey: "saving",
     });
   };

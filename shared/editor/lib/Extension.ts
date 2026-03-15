@@ -47,6 +47,11 @@ export default class Extension {
     return {};
   }
 
+  /**
+   * Whether this extension is needed in read-only mode. When false (default), pure Extension types
+   * are not instantiated and their commands are blocked. Node and Mark extensions are always
+   * instantiated for the schema regardless of this setting.
+   */
   get allowInReadOnly(): boolean {
     return false;
   }

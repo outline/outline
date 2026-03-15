@@ -20,6 +20,8 @@ import { sanitizeUrl } from "../../utils/urls";
 interface DiagramSession {
   /** The current src used to locate the node in the document. Updated after each successful export. */
   nodeSrc: string;
+  /** The format to use for exporting the diagram (xmlsvg or xmlpng). */
+  format: "xmlsvg" | "xmlpng";
 }
 
 /**
@@ -102,7 +104,8 @@ export default class Diagrams extends Extension {
 
     // Create a per-session object. Async callbacks close over this object so
     // that a second editing session does not clobber the first session's state.
-    const session: DiagramSession = { nodeSrc };
+    // Format defaults to SVG and is updated after fetching the actual content.
+    const session: DiagramSession = { nodeSrc, format: "xmlsvg" };
 
     // Clean up any existing client
     if (this.client) {
@@ -110,7 +113,7 @@ export default class Diagrams extends Extension {
     }
 
     this.client = new DiagramsNetClient(
-      (client) => this.onDiagramReady(client, sourceUrl),
+      (client) => this.onDiagramReady(client, sourceUrl, session),
       (base64Data) => this.onDiagramExported(base64Data, session)
     );
 
@@ -122,8 +125,13 @@ export default class Diagrams extends Extension {
    *
    * @param client - the DiagramsNetClient that fired the ready event.
    * @param sourceUrl - the URL of the diagram to load, or the empty diagram constant.
+   * @param session - the editing session to update with the detected format.
    */
-  private async onDiagramReady(client: DiagramsNetClient, sourceUrl: string) {
+  private async onDiagramReady(
+    client: DiagramsNetClient,
+    sourceUrl: string,
+    session: DiagramSession
+  ) {
     let data: string;
 
     if (sourceUrl === EMPTY_DIAGRAM_IMAGE) {
@@ -134,22 +142,28 @@ export default class Diagrams extends Extension {
       data = await FileHelper.urlToBase64(sourceUrl);
     }
 
+    // Detect format from the data URI now that we have the actual content.
+    const format = data.startsWith("data:image/png") ? "xmlpng" : "xmlsvg";
+    session.format = format;
+    client.format = format;
+
     client.loadDiagram(data);
   }
 
   /**
    * Called when a diagram has been exported from the editor.
    *
-   * @param base64Data - the exported diagram as base64 encoded SVG.
+   * @param base64Data - the exported diagram as base64 encoded SVG or PNG.
    * @param session - the editing session that produced this export.
    */
   private async onDiagramExported(base64Data: string, session: DiagramSession) {
     try {
-      const file = FileHelper.base64ToFile(
-        base64Data,
-        "diagram.svg",
-        "image/svg+xml"
-      );
+      // Use the format from the session to create the appropriate file
+      const isPng = session.format === "xmlpng";
+      const filename = isPng ? "diagram.png" : "diagram.svg";
+      const mimeType = isPng ? "image/png" : "image/svg+xml";
+
+      const file = FileHelper.base64ToFile(base64Data, filename, mimeType);
 
       const dimensions = await FileHelper.getImageDimensions(file);
       const uploadedUrl = await this.uploadDiagramFile(file);

@@ -6,6 +6,7 @@ import presentCollection from "./collection";
 import presentComment from "./comment";
 import presentDocument, { presentDocuments } from "./document";
 import presentEvent from "./event";
+import presentExternalGroup from "./externalGroup";
 import presentFileOperation from "./fileOperation";
 import presentGroup from "./group";
 import presentGroupMembership from "./groupMembership";
@@ -41,6 +42,7 @@ export {
   presentDocument,
   presentDocuments,
   presentEvent,
+  presentExternalGroup,
   presentFileOperation,
   presentGroup,
   presentGroupUser,

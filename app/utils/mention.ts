@@ -2,6 +2,19 @@ import type { IntegrationSettings, IntegrationType } from "@shared/types";
 import { IntegrationService, MentionType } from "@shared/types";
 import type Integration from "~/models/Integration";
 
+const gitlabSystemPaths = new Set([
+  "explore",
+  "help",
+  "admin",
+  "dashboard",
+  "users",
+  "groups",
+  "projects",
+  "snippets",
+  "search",
+  "-",
+]);
+
 export const isURLMentionable = ({
   url,
   integration,
@@ -30,9 +43,15 @@ export const isURLMentionable = ({
     case IntegrationService.GitLab: {
       const settings =
         integration.settings as IntegrationSettings<IntegrationType.Embed>;
-      const gitlabHostname = settings.gitlab?.url
-        ? new URL(settings.gitlab?.url).hostname
-        : undefined;
+      let gitlabHostname: string | undefined;
+      try {
+        gitlabHostname = settings.gitlab?.url
+          ? new URL(settings.gitlab.url).hostname
+          : undefined;
+      } catch {
+        // Invalid URL stored in settings
+        return false;
+      }
 
       return hostname === "gitlab.com" || hostname === gitlabHostname;
     }
@@ -59,20 +78,42 @@ export const determineMentionType = ({
         ? MentionType.PullRequest
         : type === "issues"
           ? MentionType.Issue
-          : undefined;
+          : type === "projects"
+            ? MentionType.Project
+            : undefined;
     }
 
     case IntegrationService.Linear: {
       const type = pathParts[2];
-      return type === "issue" ? MentionType.Issue : undefined;
+      return type === "issue"
+        ? MentionType.Issue
+        : type === "project"
+          ? MentionType.Project
+          : undefined;
     }
 
     case IntegrationService.GitLab: {
-      return pathname.includes("merge_requests")
-        ? MentionType.PullRequest
-        : pathname.includes("issues")
-          ? MentionType.Issue
-          : undefined;
+      const hasShowParam = url.searchParams.has("show");
+
+      if (
+        /\/-\/merge_requests\/\d+/.test(pathname) ||
+        (/\/-\/merge_requests\/?$/.test(pathname) && hasShowParam)
+      ) {
+        return MentionType.PullRequest;
+      }
+      if (
+        /\/-\/issues\/\d+/.test(pathname) ||
+        (/\/-\/issues\/?$/.test(pathname) && hasShowParam)
+      ) {
+        return MentionType.Issue;
+      }
+      if (!pathname.includes("/-/")) {
+        const parts = pathname.split("/").filter(Boolean);
+        if (parts.length >= 2 && !gitlabSystemPaths.has(parts[0])) {
+          return MentionType.Project;
+        }
+      }
+      return undefined;
     }
 
     default:

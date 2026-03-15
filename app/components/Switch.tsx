@@ -28,6 +28,7 @@ interface Props extends Omit<
   disabled?: boolean;
   /** Callback when the switch state changes */
   onChange?: (checked: boolean) => void;
+  inForm?: boolean;
 }
 
 function Switch(
@@ -35,6 +36,7 @@ function Switch(
     width = 32,
     height = 18,
     labelPosition = "left",
+    inForm = true,
     label,
     disabled,
     className,
@@ -71,7 +73,7 @@ function Switch(
 
   if (label) {
     return (
-      <Wrapper>
+      <Wrapper $inForm={inForm}>
         <Label
           disabled={disabled}
           htmlFor={props.id}
@@ -100,8 +102,8 @@ function Switch(
   return component;
 }
 
-const Wrapper = styled.div`
-  padding-bottom: 8px;
+const Wrapper = styled.div<{ $inForm?: boolean }>`
+  padding-bottom: ${(props) => (props.$inForm ? 8 : 0)}px;
   ${undraggableOnDesktop()}
 `;
 

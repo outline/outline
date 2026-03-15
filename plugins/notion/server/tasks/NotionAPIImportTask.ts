@@ -24,7 +24,8 @@ type ParsePageOutput = ImportTaskOutput[number] & {
 export default class NotionAPIImportTask extends APIImportTask<IntegrationService.Notion> {
   private skippableErrorMessages = [
     "Database retrievals do not support linked databases",
-    "does not contain any data sources accessible by this API bot", // error msg for linked database views
+    "does not contain any data sources accessible by this API bot", // error msg for linked database views,
+    "Databases with multiple data sources are not supported in this API version", // https://github.com/outline/outline/issues/11573#issuecomment-3993691460
   ];
 
   /**

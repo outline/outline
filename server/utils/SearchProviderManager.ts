@@ -1,6 +1,6 @@
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
-import type BaseSearchProvider from "./BaseSearchProvider";
+import type { BaseSearchProvider } from "./BaseSearchProvider";
 import { Hook, PluginManager } from "./PluginManager";
 
 /**
@@ -28,10 +28,7 @@ export default class SearchProviderManager {
     for (const plugin of plugins) {
       if (plugin.value.id === providerId) {
         this.cachedProvider = plugin.value;
-        Logger.debug(
-          "plugins",
-          `Using search provider: ${plugin.value.id}`
-        );
+        Logger.debug("plugins", `Using search provider: ${plugin.value.id}`);
         return this.cachedProvider;
       }
     }

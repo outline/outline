@@ -110,7 +110,7 @@ function getDecorations({
     const lineDecorations = [];
 
     if (!cache[block.pos] || !cache[block.pos].node.eq(block.node)) {
-      if (lineNumbers) {
+      if (lineNumbers && !block.node.attrs.wrap) {
         const lineCount =
           (block.node.textContent.match(/\n/g) || []).length + 1;
         const gutterWidth = String(lineCount).length;

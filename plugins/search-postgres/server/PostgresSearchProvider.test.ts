@@ -1249,7 +1249,7 @@ describe("PostgresSearchProvider", () => {
         updatedAt: new Date("2023-01-01"),
       });
 
-      const { results } = await SearchHelper.searchForUser(user, {
+      const { results } = await provider.searchForUser(user, {
         query: "search",
       });
 
@@ -1285,7 +1285,7 @@ describe("PostgresSearchProvider", () => {
         updatedAt: new Date("2025-12-01"),
       });
 
-      const { results } = await SearchHelper.searchForUser(user, {
+      const { results } = await provider.searchForUser(user, {
         query: "search",
         sort: SortFilter.UpdatedAt,
         direction: DirectionFilter.DESC,
@@ -1323,7 +1323,7 @@ describe("PostgresSearchProvider", () => {
       });
 
       // Without popularity boost, pure relevance should win
-      const { results: withoutBoost } = await SearchHelper.searchForTeam(team, {
+      const { results: withoutBoost } = await provider.searchForTeam(team, {
         query: "testing",
         usePopularityBoost: false,
       });
@@ -1332,7 +1332,7 @@ describe("PostgresSearchProvider", () => {
       expect(withoutBoost[0].document.id).toBe(relevantDoc.id);
 
       // With popularity boost, the popular document may rank higher
-      const { results: withBoost } = await SearchHelper.searchForTeam(team, {
+      const { results: withBoost } = await provider.searchForTeam(team, {
         query: "testing",
         usePopularityBoost: true,
       });

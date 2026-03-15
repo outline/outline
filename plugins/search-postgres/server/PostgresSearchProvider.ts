@@ -27,7 +27,7 @@ import type {
   SearchOptions,
   SearchResponse,
 } from "@server/utils/BaseSearchProvider";
-import BaseSearchProvider from "@server/utils/BaseSearchProvider";
+import { BaseSearchProvider } from "@server/utils/BaseSearchProvider";
 
 type RankedDocument = Document & {
   id: string;

@@ -581,18 +581,22 @@ export type UnfurlIssueOrPR =
   | UnfurlResponse[UnfurlResourceType.Issue]
   | UnfurlResponse[UnfurlResourceType.PR];
 
+export type UnfurlProject = UnfurlResponse[UnfurlResourceType.Project];
+
 export type UnfurlURL = UnfurlResponse[UnfurlResourceType.URL] & {
   transformedUnfurl: true;
 };
 
 export type Unfurl =
   | UnfurlIssueOrPR
+  | UnfurlProject
   | UnfurlURL
   | {
       type: Exclude<
         UnfurlResourceType,
         | UnfurlResourceType.Issue
         | UnfurlResourceType.PR
+        | UnfurlResourceType.Project
         | UnfurlResourceType.URL
       >;
       [x: string]: JSONValue;

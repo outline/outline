@@ -2,6 +2,8 @@
 import find from "lodash/find";
 import env from "@server/env";
 import type Team from "@server/models/Team";
+import User from "@server/models/User";
+import UserPasskey from "@server/models/UserPasskey";
 import { Hook, PluginManager } from "@server/utils/PluginManager";
 
 export default class AuthenticationHelper {
@@ -20,10 +22,26 @@ export default class AuthenticationHelper {
    * if given otherwise all enabled providers are returned.
    *
    * @param team The team to get enabled providers for
-   * @returns A list of authentication providers
+   * @returns A promise resolving to a list of authentication providers
    */
-  public static providersForTeam(team?: Team) {
+  public static async providersForTeam(team?: Team) {
     const isCloudHosted = env.isCloudHosted;
+
+    // Only check passkeys count if the team has passkeys enabled, to avoid
+    // an unnecessary database query in the common case.
+    let teamHasPasskeys = false;
+    if (team?.passkeysEnabled) {
+      const count = await UserPasskey.count({
+        include: [
+          {
+            model: User,
+            where: { teamId: team.id },
+            required: true,
+          },
+        ],
+      });
+      teamHasPasskeys = count > 0;
+    }
 
     return AuthenticationHelper.providers
       .sort((hook) =>
@@ -38,8 +56,10 @@ export default class AuthenticationHelper {
 
         // Passkeys is an exception as it does not have an authentication
         // provider using passport, instead it exists as a boolean option.
+        // Only include passkeys if there is at least one passkey registered
+        // for the team, to avoid showing an unusable sign-in option.
         if (hook.value.id === "passkeys") {
-          return team?.passkeysEnabled;
+          return team?.passkeysEnabled && teamHasPasskeys;
         }
 
         // If no team return all possible authentication providers except email and passkeys.

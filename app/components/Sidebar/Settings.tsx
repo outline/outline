@@ -76,7 +76,8 @@ function SettingsSidebar() {
                     to={item.path}
                     onClickIntent={item.preload}
                     active={
-                      item.path.startsWith(settingsPath("templates"))
+                      item.path.startsWith(settingsPath("templates")) ||
+                      item.path.startsWith(settingsPath("groups"))
                         ? location.pathname.startsWith(item.path)
                         : undefined
                     }

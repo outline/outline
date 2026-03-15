@@ -74,6 +74,10 @@ export default class CodeFence extends Node {
           default: DEFAULT_LANGUAGE,
           validate: "string",
         },
+        wrap: {
+          default: false,
+          validate: "boolean",
+        },
       },
       content: "text*",
       marks: "comment",
@@ -89,6 +93,7 @@ export default class CodeFence extends Node {
             node.querySelector("code") || node,
           getAttrs: (dom: HTMLDivElement) => ({
             language: dom.dataset.language,
+            wrap: dom.classList.contains("with-line-wrap"),
           }),
         },
         {
@@ -108,7 +113,11 @@ export default class CodeFence extends Node {
         "div",
         {
           class: `code-block ${
-            this.showLineNumbers ? "with-line-numbers" : ""
+            node.attrs.wrap
+              ? "with-line-wrap"
+              : this.showLineNumbers
+                ? "with-line-numbers"
+                : ""
           }`,
           "data-language": node.attrs.language,
         },
@@ -127,6 +136,22 @@ export default class CodeFence extends Node {
           language: getRecentlyUsedCodeLanguage() ?? DEFAULT_LANGUAGE,
           ...attrs,
         });
+      },
+      toggleCodeBlockWrap: (): Command => (state, dispatch) => {
+        const codeBlock = findParentNode(isCode)(state.selection);
+        if (!codeBlock) {
+          return false;
+        }
+
+        if (dispatch) {
+          dispatch(
+            state.tr.setNodeMarkup(codeBlock.pos, undefined, {
+              ...codeBlock.node.attrs,
+              wrap: !codeBlock.node.attrs.wrap,
+            })
+          );
+        }
+        return true;
       },
       edit_mermaid: (): Command => (state, dispatch) => {
         const codeBlock =

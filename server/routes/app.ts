@@ -160,8 +160,20 @@ export const renderApp = async (
     <link
       rel="apple-touch-icon"
       type="image/png"
-      href="${env.CDN_URL ?? ""}/images/apple-touch-icon.png"
+      href="${env.CDN_URL ?? ""}/images/icon-maskable-192.png"
       sizes="192x192"
+    />
+    <link
+      rel="apple-touch-icon"
+      type="image/png"
+      href="${env.CDN_URL ?? ""}/images/icon-maskable-512.png"
+      sizes="512x512"
+    />
+    <link
+      rel="apple-touch-icon"
+      type="image/png"
+      href="${env.CDN_URL ?? ""}/images/icon-maskable-1024.png"
+      sizes="1024x1024"
     />
     <link
       rel="search"
@@ -247,11 +259,13 @@ export const renderShare = async (ctx: Context, next: Next) => {
   }
 
   // If the client explicitly requests markdown and prefers it over HTML,
-  // return the document as markdown. This is useful for LLMs and API clients.
+  // or the URL path ends with .md, return the document as markdown. This is
+  // useful for LLMs and API clients.
   const acceptHeader = ctx.request.headers.accept || "";
   const prefersMarkdown =
-    acceptHeader.includes("text/markdown") &&
-    ctx.accepts("text/markdown", "text/html") === "text/markdown";
+    ctx.params.format === "md" ||
+    (acceptHeader.includes("text/markdown") &&
+      ctx.accepts("text/markdown", "text/html") === "text/markdown");
 
   if (prefersMarkdown && (document || collection)) {
     let markdown = await DocumentHelper.toMarkdown(document || collection!, {

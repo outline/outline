@@ -14,10 +14,10 @@ import documentUpdater from "@server/commands/documentUpdater";
 import { Op } from "sequelize";
 import { Collection, Document } from "@server/models";
 import { sequelize } from "@server/storage/database";
-import SearchHelper from "@server/models/helpers/SearchHelper";
 import { authorize } from "@server/policies";
 import { presentDocument } from "@server/presenters";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
+import { UrlHelper } from "@shared/utils/UrlHelper";
 import {
   error,
   success,
@@ -28,6 +28,7 @@ import {
   withResourceTracing,
 } from "./util";
 import { TextEditMode } from "@shared/types";
+import SearchProviderManager from "@server/utils/SearchProviderManager";
 
 /**
  * Registers document-related MCP tools and resources on the given server,
@@ -145,7 +146,25 @@ export function documentTools(server: McpServer, scopes: string[]) {
             }
 
             if (query) {
-              const { results } = await SearchHelper.searchForUser(user, {
+              const searchProvider = SearchProviderManager.getProvider();
+
+              // If the query looks like a document ID or urlId, try direct
+              // lookup first so exact matches appear at the top of results.
+              let exactMatch: Document | null = null;
+              if (UrlHelper.SLUG_URL_REGEX.test(query)) {
+                exactMatch = await Document.findByPk(query, {
+                  userId: user.id,
+                });
+                if (
+                  exactMatch &&
+                  collectionId &&
+                  exactMatch.collectionId !== collectionId
+                ) {
+                  exactMatch = null;
+                }
+              }
+
+              const { results } = await searchProvider.searchForUser(user, {
                 query,
                 collectionId,
                 offset: effectiveOffset,
@@ -153,17 +172,31 @@ export function documentTools(server: McpServer, scopes: string[]) {
               });
 
               const presented = await Promise.all(
-                results.map(async (result) => {
-                  const doc = pathToUrl(
-                    user.team,
-                    await presentDocument(undefined, result.document, {
-                      includeData: false,
-                      includeText: false,
-                    })
-                  );
-                  return { ...doc, context: result.context };
-                })
+                results
+                  .filter((result) => result.document.id !== exactMatch?.id)
+                  .map(async (result) => {
+                    const doc = pathToUrl(
+                      user.team,
+                      await presentDocument(undefined, result.document, {
+                        includeData: false,
+                        includeText: false,
+                      })
+                    );
+                    return { ...doc, context: result.context };
+                  })
               );
+
+              if (exactMatch) {
+                const doc = pathToUrl(
+                  user.team,
+                  await presentDocument(undefined, exactMatch, {
+                    includeData: false,
+                    includeText: false,
+                  })
+                );
+                presented.unshift({ ...doc, context: undefined });
+              }
+
               return success(presented);
             }
 

@@ -115,12 +115,35 @@ export default () =>
               sizes: "512x512",
               type: "image/png",
             },
-            // last one duplicated for purpose: 'any maskable'
             {
-              src: "/images/icon-512.png",
+              src: "/images/icon-maskable-192.png",
+              sizes: "192x192",
+              type: "image/png",
+              purpose: "maskable",
+            },
+            {
+              src: "/images/icon-maskable-512.png",
               sizes: "512x512",
               type: "image/png",
-              purpose: "any maskable",
+              purpose: "maskable",
+            },
+            {
+              src: "/images/icon-maskable-1024.png",
+              sizes: "1024x1024",
+              type: "image/png",
+              purpose: "maskable",
+            },
+            {
+              src: "/images/icon-monochrome-512.png",
+              sizes: "512x512",
+              type: "image/png",
+              purpose: "monochrome",
+            },
+            {
+              src: "/images/icon-monochrome-1024.png",
+              sizes: "1024x1024",
+              type: "image/png",
+              purpose: "monochrome",
             },
           ],
         },
@@ -186,9 +209,19 @@ export default () =>
                 priority: 20,
               },
               {
+                name: "vendor-framer-motion",
+                test: /node_modules[\\/]framer-motion/,
+                priority: 20,
+              },
+              {
                 name: "vendor-styled",
                 test: /node_modules[\\/]styled-components/,
                 priority: 20,
+              },
+              {
+                name: "vendor-mermaid-elk",
+                test: /node_modules[\\/](@mermaid-js[\\/]layout-elk|elkjs)/,
+                priority: 25,
               },
               {
                 name: "vendor-mermaid",

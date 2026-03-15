@@ -49,8 +49,18 @@ describe("GitLabUtils.parseUrl", () => {
       expect(result).toBeUndefined();
     });
 
-    it("should return undefined for a URL with too few path segments", () => {
+    it("should parse a project URL", () => {
       const result = GitLabUtils.parseUrl("https://gitlab.com/speak/purser");
+      expect(result).toEqual({
+        owner: "speak",
+        repo: "purser",
+        type: UnfurlResourceType.Project,
+        url: "https://gitlab.com/speak/purser",
+      });
+    });
+
+    it("should return undefined for a URL with too few path segments", () => {
+      const result = GitLabUtils.parseUrl("https://gitlab.com/speak");
       expect(result).toBeUndefined();
     });
 
@@ -59,6 +69,54 @@ describe("GitLabUtils.parseUrl", () => {
         "https://github.com/speak/purser/-/issues/1"
       );
       expect(result).toBeUndefined();
+    });
+
+    it("should return undefined for an issues list URL without an ID", () => {
+      const result = GitLabUtils.parseUrl(
+        "https://gitlab.com/speak/purser/-/issues"
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it("should parse a nested group project URL", () => {
+      const result = GitLabUtils.parseUrl(
+        "https://gitlab.com/group/subgroup/repo"
+      );
+      expect(result).toEqual({
+        owner: "group/subgroup",
+        repo: "repo",
+        type: UnfurlResourceType.Project,
+        url: "https://gitlab.com/group/subgroup/repo",
+      });
+    });
+
+    it("should return undefined for an invalid custom URL", () => {
+      const result = GitLabUtils.parseUrl(
+        "https://gitlab.example.com/team/project/-/issues/10",
+        "not-a-valid-url"
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it("should return undefined for system paths", () => {
+      expect(
+        GitLabUtils.parseUrl("https://gitlab.com/explore/projects")
+      ).toBeUndefined();
+      expect(
+        GitLabUtils.parseUrl("https://gitlab.com/help/topics")
+      ).toBeUndefined();
+      expect(
+        GitLabUtils.parseUrl("https://gitlab.com/admin/users")
+      ).toBeUndefined();
+      expect(
+        GitLabUtils.parseUrl("https://gitlab.com/dashboard/projects")
+      ).toBeUndefined();
+      expect(
+        GitLabUtils.parseUrl("https://gitlab.com/users/someone")
+      ).toBeUndefined();
+      expect(
+        GitLabUtils.parseUrl("https://gitlab.com/groups/mygroup")
+      ).toBeUndefined();
     });
   });
 
@@ -152,6 +210,19 @@ describe("GitLabUtils.parseUrl", () => {
         type: UnfurlResourceType.Issue,
         id: 10,
         url: "https://git.example.com/team/project/-/issues/10",
+      });
+    });
+
+    it("should parse a project URL with a custom URL", () => {
+      const result = GitLabUtils.parseUrl(
+        "https://git.example.com/team/project",
+        "https://git.example.com"
+      );
+      expect(result).toEqual({
+        owner: "team",
+        repo: "project",
+        type: UnfurlResourceType.Project,
+        url: "https://git.example.com/team/project",
       });
     });
 
