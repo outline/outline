@@ -27,6 +27,8 @@ import ShutdownHelper, { ShutdownOrder } from "./utils/ShutdownHelper";
 import { checkConnection, sequelize } from "./storage/database";
 import Redis from "@server/storage/redis";
 import Metrics from "@server/logging/Metrics";
+import { CacheHelper } from "./utils/CacheHelper";
+import { RedisPrefixHelper } from "./utils/RedisPrefixHelper";
 import { PluginManager } from "./utils/PluginManager";
 
 // The number of processes to run, defaults to the number of CPU's available
@@ -60,6 +62,11 @@ async function master() {
 async function start(_id: number, disconnect: () => void) {
   // Ensure plugins are loaded
   PluginManager.loadPlugins();
+
+  // Clear unfurl cache in development so code changes take effect immediately
+  if (env.isDevelopment) {
+    void CacheHelper.clearData(RedisPrefixHelper.getUnfurlKey(""));
+  }
 
   // Find if SSL certs are available
   const ssl = getSSLOptions();

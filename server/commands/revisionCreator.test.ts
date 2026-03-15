@@ -14,6 +14,7 @@ describe("revisionCreator", () => {
     const revision = await revisionCreator({
       document,
       user,
+      collaboratorIds: [user.id],
       event: {
         name: "documents.update",
         authType: AuthenticationType.APP,

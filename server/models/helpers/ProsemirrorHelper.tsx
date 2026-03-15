@@ -269,6 +269,11 @@ export class ProsemirrorHelper {
       if (node.marks) {
         node.marks = node.marks.filter((mark) => !marks.includes(mark.type));
       }
+      if (node.attrs?.marks) {
+        node.attrs.marks = (node.attrs.marks as { type: string }[])?.filter(
+          (mark) => !marks.includes(mark.type)
+        );
+      }
       if (node.content) {
         node.content.forEach(removeMarksInner);
       }

@@ -4,6 +4,7 @@ import { GroupIcon, HiddenIcon } from "outline-icons";
 import * as React from "react";
 import { useCallback, useMemo } from "react";
 import { Trans, useTranslation } from "react-i18next";
+import { useHistory } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
 import { MAX_AVATAR_DISPLAY } from "@shared/constants";
 import { s, hover } from "@shared/styles";
@@ -20,14 +21,13 @@ import { ContextMenu } from "~/components/Menu/ContextMenu";
 import { useGroupMenuActions } from "~/hooks/useGroupMenuActions";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
-import useStores from "~/hooks/useStores";
 import GroupMenu from "~/menus/GroupMenu";
-import { ViewGroupMembersDialog } from "./GroupDialogs";
 import { FILTER_HEIGHT } from "./StickyFilters";
 import NudeButton from "~/components/NudeButton";
 import { AvatarSize } from "~/components/Avatar";
 import { HStack } from "~/components/primitives/HStack";
 import Tooltip from "~/components/Tooltip";
+import { settingsPath } from "~/utils/routeHelpers";
 
 const ROW_HEIGHT = 60;
 const STICKY_OFFSET = HEADER_HEIGHT + FILTER_HEIGHT;
@@ -53,17 +53,14 @@ const GroupRowContextMenu = observer(function GroupRowContextMenu({
 
 export function GroupsTable(props: Props) {
   const { t } = useTranslation();
-  const { dialogs } = useStores();
   const theme = useTheme();
+  const history = useHistory();
 
   const handleViewMembers = useCallback(
     (group: Group) => {
-      dialogs.openModal({
-        title: t("Group members"),
-        content: <ViewGroupMembersDialog group={group} />,
-      });
+      history.push(settingsPath("groups", group.id, "members"));
     },
-    [t, dialogs]
+    [history]
   );
 
   const applyContextMenu = useCallback(
@@ -195,7 +192,7 @@ export function GroupsTable(props: Props) {
           width: "50px",
         },
       ]),
-    [t, handleViewMembers]
+    [t, handleViewMembers, theme.textSecondary]
   );
 
   return (

@@ -5,6 +5,7 @@ import { ShrinkIcon, GrowIcon, CloseIcon } from "outline-icons";
 import styled, { useTheme } from "styled-components";
 import Icon from "@shared/components/Icon";
 import { richExtensions } from "@shared/editor/nodes";
+import { canUseElementFullscreen } from "@shared/utils/browser";
 import { s, depths, hover } from "@shared/styles";
 import type { ProsemirrorData } from "@shared/types";
 import { colorPalette } from "@shared/utils/collections";
@@ -33,7 +34,8 @@ type Slide =
       icon?: string | null;
       iconColor?: string | null;
     }
-  | { type: "content"; content: ProsemirrorData[] };
+  | { type: "content"; content: ProsemirrorData[] }
+  | { type: "instructions" };
 
 interface Props {
   /** The document title. */
@@ -46,6 +48,19 @@ interface Props {
   data: ProsemirrorData;
   /** Callback when presentation mode is closed. */
   onClose: () => void;
+}
+
+/**
+ * Returns true if the given content nodes contain no meaningful text or elements.
+ *
+ * @param nodes the prosemirror content nodes.
+ * @returns true when every node is an empty paragraph.
+ */
+function isContentEmpty(nodes: ProsemirrorData[]): boolean {
+  return nodes.every(
+    (node) =>
+      node.type === "paragraph" && (!node.content || node.content.length === 0)
+  );
 }
 
 /**
@@ -112,12 +127,24 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const slideContentRef = React.useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = React.useState(false);
+  const supportsFullscreen = React.useMemo(() => canUseElementFullscreen(), []);
   const isIdle = useIdle(3000, idleEvents);
 
-  const slides = React.useMemo(
-    () => splitIntoSlides(data, title, icon, iconColor),
-    [data, title, icon, iconColor]
-  );
+  const slides = React.useMemo(() => {
+    const result = splitIntoSlides(data, title, icon, iconColor);
+    const contentSlides = result.filter((s) => s.type === "content");
+    const hasContent =
+      contentSlides.length > 0 &&
+      contentSlides.some(
+        (s) => s.type === "content" && !isContentEmpty(s.content)
+      );
+
+    if (!hasContent) {
+      return [result[0], { type: "instructions" as const }];
+    }
+
+    return result;
+  }, [data, title, icon, iconColor]);
 
   const totalSlides = slides.length;
 
@@ -138,6 +165,10 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
   }, [totalSlides]);
 
   const toggleFullscreen = React.useCallback(() => {
+    if (!supportsFullscreen) {
+      return;
+    }
+
     const el = containerRef.current;
     if (!el) {
       return;
@@ -152,7 +183,7 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
         // ignore
       });
     }
-  }, []);
+  }, [supportsFullscreen]);
 
   useKeyDown("Escape", onClose);
   useKeyDown("ArrowRight", goNext);
@@ -177,6 +208,10 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
 
   // Track fullscreen state changes
   React.useEffect(() => {
+    if (!supportsFullscreen) {
+      return;
+    }
+
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
     };
@@ -190,7 +225,7 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
         });
       }
     };
-  }, []);
+  }, [supportsFullscreen]);
 
   // Measure natural size once per slide, then apply scale directly to the DOM
   // to avoid React re-render loops during window resize.
@@ -268,15 +303,17 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
           </Tooltip>
         </Flex>
         <RightButtons>
-          <Tooltip content={t("Toggle fullscreen")} delay={500}>
-            <Button onClick={toggleFullscreen}>
-              {isFullscreen ? (
-                <ShrinkIcon color="currentColor" />
-              ) : (
-                <GrowIcon color="currentColor" />
-              )}
-            </Button>
-          </Tooltip>
+          {supportsFullscreen && (
+            <Tooltip content={t("Toggle fullscreen")} delay={500}>
+              <Button onClick={toggleFullscreen}>
+                {isFullscreen ? (
+                  <ShrinkIcon color="currentColor" />
+                ) : (
+                  <GrowIcon color="currentColor" />
+                )}
+              </Button>
+            </Tooltip>
+          )}
           <Tooltip content={t("Close")} delay={500}>
             <Button onClick={onClose}>
               <CloseIcon />
@@ -300,6 +337,24 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
               )}
               <TitleText>{slide.title}</TitleText>
             </TitleSlide>
+          ) : slide.type === "instructions" ? (
+            <InstructionSlide>
+              <InstructionHeading>
+                {t("Create your presentation")}
+              </InstructionHeading>
+              <InstructionBody>
+                {t(
+                  "Add content to your document, then use headings or dividers to separate it into slides."
+                )}{" "}
+                <a
+                  href="https://docs.getoutline.com/s/guide/doc/present-mode-yMGzaY7A9L"
+                  target="_blank"
+                >
+                  {t("Learn more")}
+                </a>
+                .
+              </InstructionBody>
+            </InstructionSlide>
           ) : slideData ? (
             <Editor
               key={currentSlide}
@@ -421,6 +476,26 @@ const Button = styled(NudeButton).attrs({ size: 32 })`
     color: ${s("textTertiary")};
     opacity: 0.5;
   }
+`;
+
+const InstructionSlide = styled(TitleSlide)`
+  gap: 16px;
+  max-width: 560px;
+  margin: 0 auto;
+`;
+
+const InstructionHeading = styled.h2`
+  font-size: 2em;
+  font-weight: 600;
+  margin: 0;
+  color: ${s("text")};
+`;
+
+const InstructionBody = styled.p`
+  font-size: 1.2em;
+  line-height: 1.6;
+  margin: 0;
+  color: ${s("textSecondary")};
 `;
 
 export default PresentationMode;

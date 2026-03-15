@@ -250,17 +250,25 @@ export class Editor extends React.PureComponent<
       this.view.updateState(newState);
     }
 
-    // pass readOnly changes through to underlying editor instance
-    if (prevProps.readOnly !== this.props.readOnly) {
+    // When transitioning from readOnly to editable, reinitialize to create
+    // editing extensions, keymaps, input rules, and commands that were skipped.
+    if (prevProps.readOnly && !this.props.readOnly) {
+      const docJSON = this.view.state.doc.toJSON();
+      this.view.destroy();
+      this.init();
+      const newState = this.createState(docJSON);
+      this.view.updateState(newState);
+    } else if (!prevProps.readOnly && this.props.readOnly) {
+      // pass readOnly changes through to underlying editor instance
       this.view.update({
         ...this.view.props,
-        editable: () => !this.props.readOnly,
+        editable: () => false,
       });
 
       // NodeView will not automatically render when editable changes so we must trigger an update
       // manually, see: https://discuss.prosemirror.net/t/re-render-custom-nodeview-when-view-editable-changes/6441
       Array.from(this.renderers).forEach((view) =>
-        view.setProp("isEditable", !this.props.readOnly)
+        view.setProp("isEditable", false)
       );
     }
 
@@ -301,15 +309,24 @@ export class Editor extends React.PureComponent<
     this.nodes = this.createNodes();
     this.marks = this.createMarks();
     this.schema = this.createSchema();
-    this.widgets = this.createWidgets();
     this.plugins = this.createPlugins();
     this.rulePlugins = this.createRulePlugins();
-    this.keymaps = this.createKeymaps();
     this.serializer = this.createSerializer();
     this.parser = this.createParser();
-    this.pasteParser = this.createPasteParser();
-    this.inputRules = this.createInputRules();
     this.nodeViews = this.createNodeViews();
+
+    this.widgets = this.createWidgets();
+
+    if (this.props.readOnly) {
+      this.keymaps = [];
+      this.inputRules = [];
+      this.pasteParser = this.parser;
+    } else {
+      this.keymaps = this.createKeymaps();
+      this.inputRules = this.createInputRules();
+      this.pasteParser = this.createPasteParser();
+    }
+
     this.view = this.createView();
     this.commands = this.createCommands();
   }
@@ -410,6 +427,14 @@ export class Editor extends React.PureComponent<
 
   private createState(value?: string | ProsemirrorData | ProsemirrorNode) {
     const doc = this.createDocument(value || this.props.defaultValue);
+
+    if (this.props.readOnly) {
+      return EditorState.create({
+        schema: this.schema,
+        doc,
+        plugins: [...this.plugins, anchorPlugin()],
+      });
+    }
 
     return EditorState.create({
       schema: this.schema,
@@ -621,11 +646,24 @@ export class Editor extends React.PureComponent<
   };
 
   /**
+   * Insert content into the editor, replacing the block at the current selection.
+   *
+   * @param content The prosemirror data to insert.
+   */
+  public insertContent = (content: ProsemirrorData) => {
+    const doc = ProsemirrorNode.fromJSON(this.schema, content);
+    const { $from } = this.view.state.selection;
+    const start = $from.before($from.depth);
+    const end = $from.after($from.depth);
+    this.view.dispatch(this.view.state.tr.replaceWith(start, end, doc.content));
+  };
+
+  /**
    * Insert files at the current selection.
-   * =
-   * @param event The source event
-   * @param files The files to insert
-   * @returns True if the files were inserted
+   *
+   * @param event The source event.
+   * @param files The files to insert.
+   * @returns True if the files were inserted.
    */
   public insertFiles = (
     event: React.ChangeEvent<HTMLInputElement>,

@@ -22,6 +22,8 @@ async function presentUnfurl(
       return presentPR(data);
     case UnfurlResourceType.Issue:
       return presentIssue(data);
+    case UnfurlResourceType.Project:
+      return presentProject(data);
     default:
       return presentURL(data);
   }
@@ -110,6 +112,11 @@ const presentIssue = (
   data: Record<string, any>
 ): UnfurlResponse[UnfurlResourceType.Issue] =>
   data as UnfurlResponse[UnfurlResourceType.Issue]; // this would have been transformed by the unfurl plugin.
+
+const presentProject = (
+  data: Record<string, any>
+): UnfurlResponse[UnfurlResourceType.Project] =>
+  data as UnfurlResponse[UnfurlResourceType.Project]; // this would have been transformed by the unfurl plugin.
 
 const presentLastOnlineInfoFor = (user: User) => {
   const locale = dateLocale(user.language);

@@ -117,26 +117,7 @@ class Logger {
    */
   public warn(message: string, extra?: Extra) {
     Metrics.increment("logger.warning");
-
-    if (env.SENTRY_DSN) {
-      Sentry.withScope((scope) => {
-        scope.setLevel("warning");
-
-        for (const key in extra) {
-          scope.setExtra(key, this.sanitize(extra[key]));
-        }
-
-        Sentry.captureMessage(message);
-      });
-    }
-
-    if (env.isProduction) {
-      this.output.warn(message, this.sanitize(extra));
-    } else if (extra) {
-      console.warn(message, extra);
-    } else {
-      console.warn(message);
-    }
+    this.output.warn(message, this.sanitize(extra));
   }
 
   /**

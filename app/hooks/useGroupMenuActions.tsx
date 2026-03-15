@@ -1,11 +1,11 @@
 import * as React from "react";
 import { EditIcon, GroupIcon, TrashIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
+import { useHistory } from "react-router-dom";
 import type Group from "~/models/Group";
 import {
   DeleteGroupDialog,
   EditGroupDialog,
-  ViewGroupMembersDialog,
 } from "~/scenes/Settings/components/GroupDialogs";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -16,27 +16,35 @@ import {
 } from "~/actions";
 import { GroupSection } from "~/actions/sections";
 import { useMenuAction } from "~/hooks/useMenuAction";
+import { settingsPath } from "~/utils/routeHelpers";
+
+interface Options {
+  /** Whether to hide the "Members" navigation action. */
+  hideMembers?: boolean;
+}
 
 /**
  * Hook that constructs the action menu for group management operations.
  *
  * @param targetGroup - the group to build actions for, or null to skip.
+ * @param options - optional configuration for the menu.
  * @returns action with children for use in menus, or undefined if group is null.
  */
-export function useGroupMenuActions(targetGroup: Group | null) {
+export function useGroupMenuActions(
+  targetGroup: Group | null,
+  options?: Options
+) {
   const { t } = useTranslation();
   const { dialogs } = useStores();
+  const history = useHistory();
   const can = usePolicy(targetGroup ?? ({} as Group));
 
-  const openMembersDialog = React.useCallback(() => {
+  const navigateToMembers = React.useCallback(() => {
     if (!targetGroup) {
       return;
     }
-    dialogs.openModal({
-      title: t("Group members"),
-      content: <ViewGroupMembersDialog group={targetGroup} />,
-    });
-  }, [t, targetGroup, dialogs]);
+    history.push(settingsPath("groups", targetGroup.id, "members"));
+  }, [targetGroup, history]);
 
   const openEditDialog = React.useCallback(() => {
     if (!targetGroup) {
@@ -73,14 +81,18 @@ export function useGroupMenuActions(targetGroup: Group | null) {
       !targetGroup
         ? []
         : [
-            createAction({
-              name: `${t("Members")}…`,
-              icon: <GroupIcon />,
-              section: GroupSection,
-              visible: can.read,
-              perform: openMembersDialog,
-            }),
-            ActionSeparator,
+            ...(options?.hideMembers
+              ? []
+              : [
+                  createAction({
+                    name: t("Members"),
+                    icon: <GroupIcon />,
+                    section: GroupSection,
+                    visible: can.read,
+                    perform: navigateToMembers,
+                  }),
+                  ActionSeparator,
+                ]),
             createAction({
               name: `${t("Edit")}…`,
               icon: <EditIcon />,
@@ -118,7 +130,8 @@ export function useGroupMenuActions(targetGroup: Group | null) {
       can.read,
       can.update,
       can.delete,
-      openMembersDialog,
+      options?.hideMembers,
+      navigateToMembers,
       openEditDialog,
       openDeleteDialog,
     ]

@@ -1,6 +1,5 @@
 import debounce from "lodash/debounce";
 import { observer } from "mobx-react";
-import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -16,8 +15,6 @@ import DelayedMount from "~/components/DelayedMount";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
-import type { Item } from "~/components/InputSelect";
-import { InputSelect } from "~/components/InputSelect";
 import PlaceholderList from "~/components/List/Placeholder";
 import PaginatedList from "~/components/PaginatedList";
 import { ListItem } from "~/components/Sharing/components/ListItem";
@@ -34,6 +31,8 @@ import type { Permission } from "~/types";
 import { EmptySelectValue } from "~/types";
 import type GroupUser from "~/models/GroupUser";
 import Switch from "~/components/Switch";
+import history from "~/utils/history";
+import { settingsPath } from "~/utils/routeHelpers";
 
 type Props = {
   group: Group;
@@ -63,17 +62,14 @@ export function CreateGroupDialog() {
       try {
         await group.save();
         dialogs.closeAllModals();
-        dialogs.openModal({
-          title: t("Group members"),
-          content: <ViewGroupMembersDialog group={group} />,
-        });
+        history.push(settingsPath("groups", group.id, "members"));
       } catch (err) {
         toast.error(err.message);
       } finally {
         setIsSaving(false);
       }
     },
-    [t, dialogs, groups, name, description]
+    [dialogs, groups, name, description]
   );
 
   return (
@@ -233,209 +229,7 @@ export function DeleteGroupDialog({ group, onSubmit }: Props) {
   );
 }
 
-export const ViewGroupMembersDialog = observer(function ({
-  group,
-}: Pick<Props, "group">) {
-  const { dialogs, users, groupUsers } = useStores();
-  const { t } = useTranslation();
-  const can = usePolicy(group);
-  const [query, setQuery] = React.useState("");
-  const [permissionFilter, setPermissionFilter] = React.useState<
-    GroupPermission | "all"
-  >("all");
-
-  const handleAddPeople = React.useCallback(() => {
-    dialogs.openModal({
-      title: t(`Add people to {{groupName}}`, {
-        groupName: group.name,
-      }),
-      content: <AddPeopleToGroupDialog group={group} />,
-      replace: true,
-    });
-  }, [t, group, dialogs]);
-
-  const handleRemoveUser = React.useCallback(
-    async (user: User) => {
-      try {
-        await groupUsers.delete({
-          groupId: group.id,
-          userId: user.id,
-        });
-        toast.success(
-          t(`{{userName}} was removed from the group`, {
-            userName: user.name,
-          }),
-          {
-            icon: <Avatar model={user} size={AvatarSize.Toast} />,
-          }
-        );
-      } catch (_err) {
-        toast.error(t("Could not remove user"));
-      }
-    },
-    [t, groupUsers, group.id]
-  );
-
-  const handleFilter = React.useCallback(
-    (ev: React.ChangeEvent<HTMLInputElement>) => {
-      setQuery(ev.target.value);
-    },
-    []
-  );
-
-  const handlePermissionFilterChange = React.useCallback((value: string) => {
-    setPermissionFilter(value as GroupPermission | "all");
-  }, []);
-
-  const permissionOptions: Item[] = React.useMemo(
-    () => [
-      {
-        type: "item",
-        label: t("All permissions"),
-        value: "all",
-      },
-      {
-        type: "item",
-        label: t("Group admin"),
-        value: GroupPermission.Admin,
-      },
-      {
-        type: "item",
-        label: t("Member"),
-        value: GroupPermission.Member,
-      },
-    ],
-    [t]
-  );
-
-  const filteredUsers = React.useMemo(() => {
-    let result = users.inGroup(group.id, query);
-
-    if (permissionFilter !== "all") {
-      const groupUserMap = new Map(
-        groupUsers.orderedData
-          .filter((gu) => gu.groupId === group.id)
-          .map((gu) => [gu.userId, gu])
-      );
-
-      result = result.filter((user) => {
-        const groupUser = groupUserMap.get(user.id);
-        return groupUser?.permission === permissionFilter;
-      });
-    }
-
-    return result;
-  }, [users, group.id, query, permissionFilter, groupUsers.orderedData]);
-
-  const hasActiveFilters = query || permissionFilter !== "all";
-
-  const canModifyMembers = can.update && !group.isExternallyManaged;
-
-  return (
-    <Flex column>
-      {group.isExternallyManaged ? (
-        <Text as="p" type="secondary">
-          <Trans
-            defaults="Members of the <em>{{groupName}}</em> group are managed by an external authentication provider and cannot be modified here."
-            values={{
-              groupName: group.name,
-            }}
-            components={{
-              em: <strong />,
-            }}
-          />
-        </Text>
-      ) : can.update ? (
-        <>
-          <Text as="p" type="secondary">
-            <Trans
-              defaults="Add and remove members to the <em>{{groupName}}</em> group. Members of the group will have access to any collections this group has been added to."
-              values={{
-                groupName: group.name,
-              }}
-              components={{
-                em: <strong />,
-              }}
-            />
-          </Text>
-          <span>
-            <Button
-              type="button"
-              onClick={handleAddPeople}
-              icon={<PlusIcon />}
-              neutral
-            >
-              {t("Add people")}…
-            </Button>
-          </span>
-          <br />
-        </>
-      ) : (
-        <Text as="p" type="secondary">
-          <Trans
-            defaults="Listing members of the <em>{{groupName}}</em> group."
-            values={{
-              groupName: group.name,
-            }}
-            components={{
-              em: <strong />,
-            }}
-          />
-        </Text>
-      )}
-      {(filteredUsers.length || hasActiveFilters) && (
-        <Flex gap={8}>
-          <Input
-            type="search"
-            placeholder={`${t("Search by name")}…`}
-            value={query}
-            onChange={handleFilter}
-            label={t("Search members")}
-            labelHidden
-            flex
-          />
-          <InputSelect
-            options={permissionOptions}
-            value={permissionFilter}
-            onChange={handlePermissionFilterChange}
-            label={t("Filter by permissions")}
-            hideLabel
-            short
-          />
-        </Flex>
-      )}
-      <PaginatedList<User>
-        items={filteredUsers}
-        fetch={groupUsers.fetchPage}
-        options={{
-          id: group.id,
-        }}
-        empty={
-          hasActiveFilters ? (
-            <Empty>{t("No members matching your filters")}</Empty>
-          ) : (
-            <Empty>{t("This group has no members.")}</Empty>
-          )
-        }
-        renderItem={(user) => (
-          <GroupMemberListItem
-            key={user.id}
-            user={user}
-            group={group}
-            groupUser={groupUsers.orderedData.find(
-              (gu) => gu.userId === user.id && gu.groupId === group.id
-            )}
-            onRemove={
-              canModifyMembers ? () => handleRemoveUser(user) : undefined
-            }
-          />
-        )}
-      />
-    </Flex>
-  );
-});
-
-const AddPeopleToGroupDialog = observer(function ({
+export const AddPeopleToGroupDialog = observer(function ({
   group,
 }: Pick<Props, "group">) {
   const { dialogs, users, groupUsers } = useStores();

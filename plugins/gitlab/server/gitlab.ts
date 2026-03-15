@@ -2,6 +2,8 @@ import { Gitlab } from "@gitbeaker/rest";
 import type {
   IssueSchemaWithExpandedLabels,
   MergeRequestSchema,
+  ProjectSchema,
+  StatisticsSchema,
 } from "@gitbeaker/rest";
 import z from "zod";
 import {
@@ -12,7 +14,11 @@ import {
 import Logger from "@server/logging/Logger";
 import type { User } from "@server/models";
 import { Integration, IntegrationAuthentication } from "@server/models";
-import type { UnfurlIssueOrPR, UnfurlSignature } from "@server/types";
+import type {
+  UnfurlIssueOrPR,
+  UnfurlProject,
+  UnfurlSignature,
+} from "@server/types";
 import fetch from "@server/utils/fetch";
 import { validateUrlNotPrivate } from "@server/utils/url";
 import { GitLabUtils } from "../shared/GitLabUtils";
@@ -208,10 +214,6 @@ export class GitLab {
     }
 
     if (!resource) {
-      Logger.debug(
-        "plugins",
-        `Could not parse GitLab resource from URL: ${url}`
-      );
       return;
     }
 
@@ -254,6 +256,13 @@ export class GitLab {
           customUrl
         );
         return this.transformMR(mr);
+      } else if (resource.type === UnfurlResourceType.Project) {
+        const client = await this.createClient(token, customUrl);
+        const [project, issueStats] = await Promise.all([
+          client.Projects.show(projectPath),
+          client.IssuesStatistics.all({ projectId: projectPath }),
+        ]);
+        return this.transformProject(project, issueStats);
       }
 
       return { error: "Resource not found" };
@@ -389,5 +398,46 @@ export class GitLab {
       },
       createdAt: mr.created_at,
     } satisfies UnfurlIssueOrPR;
+  }
+
+  private static transformProject(
+    project: ProjectSchema,
+    issueStats: StatisticsSchema
+  ) {
+    const visibility = project.visibility ?? "private";
+    const owner = project.owner as
+      | { name: string; avatar_url?: string }
+      | undefined;
+    const { opened, closed } = issueStats.statistics.counts;
+    const total = opened + closed;
+    const progress = total > 0 ? closed / total : 0;
+
+    return {
+      type: UnfurlResourceType.Project,
+      url: project.web_url,
+      id: String(project.id),
+      name: project.name,
+      color: GitLabUtils.getColorForProject(project.id),
+      avatarUrl: project.avatar_url || undefined,
+      description: project.description ?? null,
+      lead: owner
+        ? {
+            name: owner.name,
+            avatarUrl: owner.avatar_url ?? "",
+          }
+        : null,
+      state: {
+        type: visibility,
+        name: visibility.charAt(0).toUpperCase() + visibility.slice(1),
+        color: GitLabUtils.getColorForVisibility(visibility),
+      },
+      labels: (project.topics ?? []).map((topic: string) => ({
+        name: topic,
+        color: "#6B7280",
+      })),
+      progress,
+      createdAt: project.created_at,
+      targetDate: null,
+    } satisfies UnfurlProject;
   }
 }

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import fetch from "@server/utils/fetch";
 import env from "./env";
 import { FigmaUtils } from "../shared/FigmaUtils";
 import type { UnfurlSignature } from "@server/types";

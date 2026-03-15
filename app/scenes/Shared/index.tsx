@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useLocation, useParams } from "react-router-dom";
 import styled, { ThemeProvider } from "styled-components";
 import { s } from "@shared/styles";
+import { isModKey } from "@shared/utils/keyboard";
 import type { NavigationNode } from "@shared/types";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
@@ -18,9 +19,11 @@ import Text from "~/components/Text";
 import env from "~/env";
 import useBuildTheme from "~/hooks/useBuildTheme";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import useKeyDown from "~/hooks/useKeyDown";
 import { usePostLoginPath } from "~/hooks/useLastVisitedPath";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
+import { Theme } from "~/stores/UiStore";
 import { client } from "~/utils/ApiClient";
 import { AuthorizationError, OfflineError } from "~/utils/errors";
 import isCloudHosted from "~/utils/isCloudHosted";
@@ -149,6 +152,18 @@ function SharedScene() {
         ]),
       [shares, documents, shareId, documentSlug]
     )
+  );
+
+  useKeyDown(
+    useCallback(
+      (ev: KeyboardEvent) => isModKey(ev) && ev.shiftKey && ev.code === "KeyL",
+      []
+    ),
+    useCallback(() => {
+      if (!ui.themeOverride) {
+        ui.setTheme(ui.resolvedTheme === "light" ? Theme.Dark : Theme.Light);
+      }
+    }, [ui])
   );
 
   useEffect(() => {
