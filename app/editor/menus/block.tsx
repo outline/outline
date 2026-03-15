@@ -166,6 +166,12 @@ export default function blockMenuItems(
       keywords: "math katex latex",
     },
     {
+      name: "container_toggle",
+      title: dictionary.toggleBlock,
+      icon: <CollapseIcon />,
+      keywords: "toggle collapsible collapse fold",
+    },
+    {
       name: "hr",
       title: dictionary.hr,
       icon: <HorizontalRuleIcon />,
@@ -243,12 +249,6 @@ export default function blockMenuItems(
       title: "Diagrams.net Diagram",
       icon: <Img src="/images/diagrams.png" alt="Diagrams.net Diagram" />,
       keywords: "diagram flowchart draw.io",
-    },
-    {
-      name: "container_toggle",
-      title: dictionary.toggleBlock,
-      icon: <CollapseIcon />,
-      keywords: "toggle collapsible collapse fold",
     },
   ];
 
