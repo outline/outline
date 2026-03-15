@@ -1,5 +1,9 @@
 import { SearchableModel } from "@shared/types";
-import { buildDocument, buildCollection, buildUser } from "@server/test/factories";
+import {
+  buildDocument,
+  buildCollection,
+  buildUser,
+} from "@server/test/factories";
 import SearchProviderManager from "@server/utils/SearchProviderManager";
 import SearchIndexProcessor from "./SearchIndexProcessor";
 
@@ -7,7 +11,9 @@ const processor = new SearchIndexProcessor();
 
 describe("SearchIndexProcessor", () => {
   it("should have the expected applicable events", () => {
-    expect(SearchIndexProcessor.applicableEvents).toContain("documents.publish");
+    expect(SearchIndexProcessor.applicableEvents).toContain(
+      "documents.publish"
+    );
     expect(SearchIndexProcessor.applicableEvents).toContain(
       "documents.update.delayed"
     );

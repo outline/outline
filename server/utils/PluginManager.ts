@@ -143,16 +143,9 @@ export class PluginManager {
 
     glob
       .sync(path.join(rootDir, "plugins/*/server/!(*.test|schema).[jt]s"))
-      .forEach((filePath: string) => {
-        try {
-          require(path.join(process.cwd(), filePath));
-        } catch (err) {
-          Logger.debug(
-            "plugins",
-            `Failed to load plugin from ${filePath}: ${err}`
-          );
-        }
-      });
+      .forEach((filePath: string) =>
+        require(path.join(process.cwd(), filePath))
+      );
     this.loaded = true;
   }
 

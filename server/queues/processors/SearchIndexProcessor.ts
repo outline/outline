@@ -39,6 +39,12 @@ export default class SearchIndexProcessor extends BaseProcessor {
   ): Promise<void> {
     const provider = SearchProviderManager.getProvider();
 
+    // When using the built-in Postgres search provider, tsvector triggers
+    // handle indexing directly and the provider methods are effectively no-ops for now.
+    if (process.env.SEARCH_PROVIDER === "postgres") {
+      return;
+    }
+
     switch (event.name) {
       case "documents.publish":
       case "documents.update.delayed":
@@ -59,14 +65,10 @@ export default class SearchIndexProcessor extends BaseProcessor {
           { paranoid: false }
         );
         if (document) {
-          await provider.updateMetadata(
-            SearchableModel.Document,
-            document.id,
-            {
-              archivedAt: document.archivedAt,
-              deletedAt: document.deletedAt,
-            }
-          );
+          await provider.updateMetadata(SearchableModel.Document, document.id, {
+            archivedAt: document.archivedAt,
+            deletedAt: document.deletedAt,
+          });
         }
         break;
       }
@@ -83,11 +85,9 @@ export default class SearchIndexProcessor extends BaseProcessor {
       case "documents.move": {
         const movedEvent = event as DocumentMovedEvent;
         for (const documentId of movedEvent.data.documentIds) {
-          await provider.updateMetadata(
-            SearchableModel.Document,
-            documentId,
-            { collectionId: movedEvent.collectionId }
-          );
+          await provider.updateMetadata(SearchableModel.Document, documentId, {
+            collectionId: movedEvent.collectionId,
+          });
         }
         break;
       }

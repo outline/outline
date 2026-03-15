@@ -28,7 +28,7 @@ export interface SearchOptions {
   offset?: number;
   /** The text to search for. */
   query?: string;
-  /** Limit results to a collection. Authorization is presumed to have been done before passing to this helper. */
+  /** Limit results to a collection. Authorization is presumed to have been done before passing to this provider. */
   collectionId?: string | null;
   /** Limit results to a shared document. */
   share?: Share;
