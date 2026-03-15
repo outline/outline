@@ -107,6 +107,8 @@ export const GroupsMembershipsSchema = z.object({
   body: BaseIdSchema.extend({
     /** Group name search query */
     query: z.string().optional(),
+    /** Filter by group permission */
+    permission: z.nativeEnum(GroupPermission).optional(),
   }),
 });
 

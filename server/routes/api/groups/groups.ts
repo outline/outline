@@ -380,7 +380,7 @@ router.post(
   pagination(),
   validate(T.GroupsMembershipsSchema),
   async (ctx: APIContext<T.GroupsMembershipsReq>) => {
-    const { id, query } = ctx.input.body;
+    const { id, query, permission } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     const group = await Group.findByPk(id);
@@ -395,10 +395,16 @@ router.post(
       };
     }
 
+    const groupUserWhere: Record<string, unknown> = {
+      groupId: id,
+    };
+
+    if (permission) {
+      groupUserWhere.permission = permission;
+    }
+
     const options = {
-      where: {
-        groupId: id,
-      },
+      where: groupUserWhere,
       include: [
         {
           model: User,
