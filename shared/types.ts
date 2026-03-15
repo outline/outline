@@ -204,6 +204,22 @@ export enum GroupPermission {
   Admin = "admin",
 }
 
+/** Settings stored on an AuthenticationProvider for group synchronization. */
+export interface AuthenticationProviderSettings {
+  /** Whether group sync from this provider is enabled. */
+  groupSyncEnabled?: boolean;
+  /**
+   * The claim path in the OIDC userinfo/id_token response that contains
+   * group data (e.g. "groups", "roles", "custom.groups").
+   */
+  groupClaim?: string;
+  /**
+   * Additional scopes to request when group sync is enabled
+   * (e.g. "groups" for OIDC).
+   */
+  groupSyncScopes?: string[];
+}
+
 export type IntegrationSettings<T> = T extends IntegrationType.Embed
   ? {
       url?: string;

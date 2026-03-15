@@ -1,5 +1,5 @@
 import type { Group, User } from "@server/models";
-import { Event } from "@server/models";
+import { AuthenticationProvider, Event, ExternalGroup } from "@server/models";
 import {
   buildUser,
   buildAdmin,
@@ -377,6 +377,49 @@ describe("#groups.list", () => {
     expect(res.status).toEqual(200);
     expect(body.pagination.total).toEqual(2);
     expect(body.data.groups.length).toEqual(1);
+  });
+
+  it("should not return groups from other teams when filtering by source", async () => {
+    const user = await buildUser();
+    const group = await buildGroup({ teamId: user.teamId });
+
+    const authProvider = (await AuthenticationProvider.findOne({
+      where: { teamId: user.teamId },
+    }))!;
+
+    await ExternalGroup.create({
+      externalId: "ext-1",
+      name: "Synced Group",
+      groupId: group.id,
+      authenticationProviderId: authProvider.id,
+      teamId: user.teamId,
+    });
+
+    // Create a group on a different team with an external group mapping
+    const otherUser = await buildUser();
+    const otherGroup = await buildGroup({ teamId: otherUser.teamId });
+    const otherAuthProvider = (await AuthenticationProvider.findOne({
+      where: { teamId: otherUser.teamId },
+    }))!;
+
+    await ExternalGroup.create({
+      externalId: "ext-2",
+      name: "Other Team Group",
+      groupId: otherGroup.id,
+      authenticationProviderId: otherAuthProvider.id,
+      teamId: otherUser.teamId,
+    });
+
+    const res = await server.post("/api/groups.list", {
+      body: {
+        source: authProvider.name,
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.groups.length).toEqual(1);
+    expect(body.data.groups[0].id).toEqual(group.id);
   });
 });
 

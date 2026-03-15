@@ -56,7 +56,6 @@ export default class Extension {
     return false;
   }
 
-
   get focusAfterExecution(): boolean {
     return true;
   }

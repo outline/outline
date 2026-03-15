@@ -151,10 +151,17 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
   return (
     <form onSubmit={handleSubmit}>
       <Text as="p" type="secondary">
-        <Trans>
-          You can edit the name of this group at any time, however doing so too
-          often might confuse your team mates.
-        </Trans>
+        {group.isExternallyManaged ? (
+          <Trans>
+            This group is managed by an external authentication provider. The
+            name is synced automatically and cannot be changed.
+          </Trans>
+        ) : (
+          <Trans>
+            You can edit the name of this group at any time, however doing so
+            too often might confuse your team mates.
+          </Trans>
+        )}
       </Text>
       <Flex column>
         <Input
@@ -162,6 +169,7 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
           label={t("Name")}
           onChange={handleNameChange}
           value={name}
+          disabled={group.isExternallyManaged}
           required
           autoFocus
           flex
@@ -177,7 +185,7 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
         />
         <Switch
           id="mentions"
-          label={t("Disable mentions")}
+          label={t("Hidden")}
           note={t(
             "Prevent this group from being mentionable in documents or comments"
           )}
@@ -389,7 +397,7 @@ const GroupMemberListItem = observer(function ({
             </Trans>
           ) : (
             t("Never signed in")
-          )}
+          )}{" "}
           {user.isInvited && <Badge>{t("Invited")}</Badge>}
           {user.isAdmin && <Badge primary={user.isAdmin}>{t("Admin")}</Badge>}
         </>
@@ -427,7 +435,7 @@ const GroupMemberListItem = observer(function ({
                   }
                   return true;
                 }}
-                disabled={!can.update}
+                disabled={!can.update || group.isExternallyManaged}
                 value={groupUser?.permission}
               />
             </div>

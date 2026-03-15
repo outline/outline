@@ -23,11 +23,13 @@ const enabled = hasManualConfig || hasIssuerConfig;
 
 if (enabled) {
   // Register plugin with the router (which handles both manual and discovery config)
-  PluginManager.add({
-    ...config,
-    type: Hook.AuthProvider,
-    value: { router, id: config.id },
-    name: env.OIDC_DISPLAY_NAME || config.name,
-  });
+  PluginManager.add([
+    {
+      ...config,
+      type: Hook.AuthProvider,
+      value: { router, id: config.id },
+      name: env.OIDC_DISPLAY_NAME || config.name,
+    },
+  ]);
   Logger.info("plugins", "OIDC plugin registered");
 }

@@ -1,11 +1,11 @@
 import compact from "lodash/compact";
 import { observer } from "mobx-react";
-import { GroupIcon } from "outline-icons";
+import { GroupIcon, HiddenIcon } from "outline-icons";
 import * as React from "react";
 import { useCallback, useMemo } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import { MAX_AVATAR_DISPLAY } from "@shared/constants";
 import { s, hover } from "@shared/styles";
 import type Group from "~/models/Group";
@@ -26,6 +26,7 @@ import { FILTER_HEIGHT } from "./StickyFilters";
 import NudeButton from "~/components/NudeButton";
 import { AvatarSize } from "~/components/Avatar";
 import { HStack } from "~/components/primitives/HStack";
+import Tooltip from "~/components/Tooltip";
 import { settingsPath } from "~/utils/routeHelpers";
 
 const ROW_HEIGHT = 60;
@@ -52,6 +53,7 @@ const GroupRowContextMenu = observer(function GroupRowContextMenu({
 
 export function GroupsTable(props: Props) {
   const { t } = useTranslation();
+  const theme = useTheme();
   const history = useHistory();
 
   const handleViewMembers = useCallback(
@@ -86,6 +88,14 @@ export function GroupsTable(props: Props) {
               <Flex column>
                 <Title onClick={() => handleViewMembers(group)}>
                   {group.name}
+                  {group.disableMentions && (
+                    <>
+                      {" "}
+                      <Tooltip content={t("This group is hidden")}>
+                        <HiddenIcon size={16} color={theme.textSecondary} />
+                      </Tooltip>
+                    </>
+                  )}
                 </Title>
                 <Text type="tertiary" size="small" weight="normal">
                   <Trans
@@ -139,6 +149,33 @@ export function GroupsTable(props: Props) {
         },
         {
           type: "data",
+          id: "source",
+          header: t("Source"),
+          accessor: (group) => group.externalGroup?.displayName ?? "manual",
+          component: (group) =>
+            group.externalGroup ? (
+              <Flex column>
+                <Text type="secondary" size="small" weight="normal">
+                  {group.externalGroup.displayName}
+                </Text>
+                {group.externalGroup.lastSyncedAt && (
+                  <Text type="tertiary" size="xsmall" weight="normal">
+                    <Trans>
+                      Synced{" "}
+                      <Time
+                        dateTime={group.externalGroup.lastSyncedAt}
+                        addSuffix
+                        shorten
+                      />
+                    </Trans>
+                  </Text>
+                )}
+              </Flex>
+            ) : null,
+          width: "1fr",
+        },
+        {
+          type: "data",
           id: "createdAt",
           header: t("Date created"),
           accessor: (group) => group.createdAt,
@@ -155,7 +192,7 @@ export function GroupsTable(props: Props) {
           width: "50px",
         },
       ]),
-    [t, handleViewMembers]
+    [t, handleViewMembers, theme.textSecondary]
   );
 
   return (
