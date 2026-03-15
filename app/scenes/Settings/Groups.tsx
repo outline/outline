@@ -2,6 +2,7 @@ import type { ColumnSort } from "@tanstack/react-table";
 import deburr from "lodash/deburr";
 import { observer } from "mobx-react";
 import { PlusIcon, GroupIcon } from "outline-icons";
+import * as React from "react";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
@@ -12,6 +13,7 @@ import Button from "~/components/Button";
 import Empty from "~/components/Empty";
 import { ConditionalFade } from "~/components/Fade";
 import Heading from "~/components/Heading";
+import styled from "styled-components";
 import InputSearch from "~/components/InputSearch";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
@@ -21,18 +23,30 @@ import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import { useTableRequest } from "~/hooks/useTableRequest";
 import { CreateGroupDialog } from "./components/GroupDialogs";
+import GroupSourceFilter from "./components/GroupSourceFilter";
 import { GroupsTable } from "./components/GroupsTable";
 import { StickyFilters } from "./components/StickyFilters";
+import { HStack } from "~/components/primitives/HStack";
 
-function getFilteredGroups(groups: Group[], query?: string) {
-  if (!query?.length) {
-    return groups;
+function getFilteredGroups(groups: Group[], query?: string, source?: string) {
+  let filtered = groups;
+
+  if (query?.length) {
+    const normalizedQuery = deburr(query.toLocaleLowerCase());
+    filtered = filtered.filter((group) =>
+      deburr(group.name).toLocaleLowerCase().includes(normalizedQuery)
+    );
   }
 
-  const normalizedQuery = deburr(query.toLocaleLowerCase());
-  return groups.filter((group) =>
-    deburr(group.name).toLocaleLowerCase().includes(normalizedQuery)
-  );
+  if (source === "manual") {
+    filtered = filtered.filter((group) => !group.externalGroup);
+  } else if (source) {
+    filtered = filtered.filter(
+      (group) => group.externalGroup?.provider === source
+    );
+  }
+
+  return filtered;
 }
 
 function Groups() {
@@ -48,6 +62,7 @@ function Groups() {
   const reqParams = useMemo(
     () => ({
       query: params.get("query") || undefined,
+      source: params.get("source") || undefined,
       sort: params.get("sort") || "name",
       direction: (params.get("direction") || "asc").toUpperCase() as
         | "ASC"
@@ -65,7 +80,11 @@ function Groups() {
   );
 
   const { data, error, loading, next } = useTableRequest({
-    data: getFilteredGroups(groups.orderedData, reqParams.query),
+    data: getFilteredGroups(
+      groups.orderedData,
+      reqParams.query,
+      reqParams.source
+    ),
     sort,
     reqFn: groups.fetchPage,
     reqParams,
@@ -73,12 +92,12 @@ function Groups() {
 
   const isEmpty = !loading && !groups.orderedData.length;
 
-  const updateQuery = useCallback(
-    (value: string) => {
+  const updateParams = useCallback(
+    (name: string, value: string) => {
       if (value) {
-        params.set("query", value);
+        params.set(name, value);
       } else {
-        params.delete("query");
+        params.delete(name);
       }
 
       history.replace({
@@ -89,10 +108,18 @@ function Groups() {
     [params, history, location.pathname]
   );
 
-  const handleSearch = useCallback((event) => {
-    const { value } = event.target;
-    setQuery(value);
-  }, []);
+  const handleSourceFilter = useCallback(
+    (source: string | null | undefined) => updateParams("source", source ?? ""),
+    [updateParams]
+  );
+
+  const handleSearch = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const { value } = event.target;
+      setQuery(value);
+    },
+    []
+  );
 
   const handleNewGroup = useCallback(() => {
     dialogs.openModal({
@@ -108,9 +135,9 @@ function Groups() {
   }, [t, error]);
 
   useEffect(() => {
-    const timeout = setTimeout(() => updateQuery(query), 250);
+    const timeout = setTimeout(() => updateParams("query", query), 250);
     return () => clearTimeout(timeout);
-  }, [query, updateQuery]);
+  }, [query, updateParams]);
 
   return (
     <Scene
@@ -144,11 +171,18 @@ function Groups() {
       ) : (
         <>
           <StickyFilters>
-            <InputSearch
-              value={query}
-              placeholder={`${t("Filter")}…`}
-              onChange={handleSearch}
-            />
+            <HStack>
+              <InputSearch
+                short
+                value={query}
+                placeholder={`${t("Filter")}…`}
+                onChange={handleSearch}
+              />
+              <LargeGroupSourceFilter
+                activeKey={reqParams.source ?? ""}
+                onSelect={handleSourceFilter}
+              />
+            </HStack>
           </StickyFilters>
           <ConditionalFade animate={!data}>
             <GroupsTable
@@ -166,5 +200,9 @@ function Groups() {
     </Scene>
   );
 }
+
+const LargeGroupSourceFilter = styled(GroupSourceFilter)`
+  height: 32px;
+`;
 
 export default observer(Groups);

@@ -161,9 +161,7 @@ function SharedScene() {
     ),
     useCallback(() => {
       if (!ui.themeOverride) {
-        ui.setTheme(
-          ui.resolvedTheme === "light" ? Theme.Dark : Theme.Light
-        );
+        ui.setTheme(ui.resolvedTheme === "light" ? Theme.Dark : Theme.Light);
       }
     }, [ui])
   );

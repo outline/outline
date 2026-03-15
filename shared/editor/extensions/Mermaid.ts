@@ -146,9 +146,8 @@ class MermaidRenderer {
           {
             name: "fa-brands",
             loader: async () => {
-              const { fab } = await import(
-                "@fortawesome/free-brands-svg-icons"
-              );
+              const { fab } =
+                await import("@fortawesome/free-brands-svg-icons");
               return fontAwesomeToIconify(fab, "fa-brands");
             },
           },

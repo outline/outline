@@ -151,6 +151,7 @@ export const GroupMembersTable = observer(function GroupMembersTable({
               component: (user: User) => (
                 <InputMemberPermissionSelect
                   permissions={permissions}
+                  disabled={group.isExternallyManaged}
                   onChange={(permission) =>
                     handlePermissionChange(
                       user,

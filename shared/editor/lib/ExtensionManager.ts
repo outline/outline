@@ -46,11 +46,7 @@ export default class ExtensionManager {
         extension = new ext(editor?.props);
       } else {
         // For already-instantiated extensions, check the instance.
-        if (
-          this.readOnly &&
-          ext.type === "extension" &&
-          !ext.allowInReadOnly
-        ) {
+        if (this.readOnly && ext.type === "extension" && !ext.allowInReadOnly) {
           return;
         }
 

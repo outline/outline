@@ -1,10 +1,11 @@
 import type { ColumnSort } from "@tanstack/react-table";
 import { observer } from "mobx-react";
-import { GroupIcon, PlusIcon } from "outline-icons";
+import { GroupIcon, HiddenIcon, PlusIcon } from "outline-icons";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 import { useHistory, useLocation } from "react-router-dom";
+import styled, { useTheme } from "styled-components";
 import { toast } from "sonner";
 import type User from "~/models/User";
 import { Action } from "~/components/Actions";
@@ -16,6 +17,7 @@ import InputSearch from "~/components/InputSearch";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
+import Tooltip from "~/components/Tooltip";
 import Error404 from "~/scenes/Errors/Error404";
 import { createInternalLinkAction } from "~/actions";
 import { NavigationSection } from "~/actions/sections";
@@ -28,6 +30,7 @@ import type { FetchPageParams, PaginatedResponse } from "~/stores/base/Store";
 import { PAGINATION_SYMBOL } from "~/stores/base/Store";
 import GroupMenu from "~/menus/GroupMenu";
 import { AddPeopleToGroupDialog } from "./components/GroupDialogs";
+import GroupPermissionFilter from "./components/GroupPermissionFilter";
 import { GroupMembersTable } from "./components/GroupMembersTable";
 import { StickyFilters } from "./components/StickyFilters";
 import { settingsPath } from "~/utils/routeHelpers";
@@ -64,6 +67,7 @@ const GroupMembersPage = observer(function GroupMembersPage({
   groupId: string;
 }) {
   const { t } = useTranslation();
+  const theme = useTheme();
   const { dialogs, groups, users, groupUsers } = useStores();
   const group = groups.get(groupId)!;
   const can = usePolicy(group);
@@ -76,6 +80,7 @@ const GroupMembersPage = observer(function GroupMembersPage({
     () => ({
       id: group.id,
       query: params.get("query") || undefined,
+      permission: params.get("permission") || undefined,
       sort: params.get("sort") || "name",
       direction: (params.get("direction") || "asc").toUpperCase() as
         | "ASC"
@@ -102,19 +107,41 @@ const GroupMembersPage = observer(function GroupMembersPage({
     [groupUsers]
   );
 
+  const filteredUsers = useMemo(() => {
+    let result = users.inGroup(group.id, reqParams.query);
+    if (reqParams.permission) {
+      const memberIds = new Set(
+        groupUsers.orderedData
+          .filter(
+            (gu) =>
+              gu.groupId === group.id && gu.permission === reqParams.permission
+          )
+          .map((gu) => gu.userId)
+      );
+      result = result.filter((user) => memberIds.has(user.id));
+    }
+    return result;
+  }, [
+    users,
+    groupUsers.orderedData,
+    group.id,
+    reqParams.query,
+    reqParams.permission,
+  ]);
+
   const { data, error, loading, next } = useTableRequest({
-    data: users.inGroup(group.id, reqParams.query),
+    data: filteredUsers,
     sort,
     reqFn: fetchMembers,
     reqParams,
   });
 
-  const updateQuery = useCallback(
-    (value: string) => {
+  const updateParams = useCallback(
+    (name: string, value: string) => {
       if (value) {
-        params.set("query", value);
+        params.set(name, value);
       } else {
-        params.delete("query");
+        params.delete(name);
       }
 
       history.replace({
@@ -123,6 +150,17 @@ const GroupMembersPage = observer(function GroupMembersPage({
       });
     },
     [params, history, location.pathname]
+  );
+
+  const updateQuery = useCallback(
+    (value: string) => updateParams("query", value),
+    [updateParams]
+  );
+
+  const handlePermissionFilter = useCallback(
+    (permission: string | null | undefined) =>
+      updateParams("permission", permission ?? ""),
+    [updateParams]
   );
 
   const handleSearch = useCallback(
@@ -176,6 +214,7 @@ const GroupMembersPage = observer(function GroupMembersPage({
               <Button
                 type="button"
                 onClick={handleAddPeople}
+                disabled={group.isExternallyManaged}
                 icon={<PlusIcon />}
               >
                 {`${t("Add people")}…`}
@@ -189,15 +228,37 @@ const GroupMembersPage = observer(function GroupMembersPage({
       }
       wide
     >
-      <Heading>{group.name}</Heading>
+      <Heading>
+        {group.name}
+        {group.disableMentions && (
+          <>
+            &nbsp;
+            <Tooltip content={t("This group is hidden")}>
+              <HiddenIcon size={32} color={theme.textSecondary} />
+            </Tooltip>
+          </>
+        )}
+      </Heading>
       <Text as="p" type="secondary">
-        {group.description || t("No description")}
+        {group.externalGroup && (
+          <>
+            {t("Synced to {{ provider }}", {
+              provider: group.externalGroup.displayName,
+            })}
+            {group.description && <> &middot; </>}
+          </>
+        )}
+        {group.description || (!group.externalGroup && t("No description"))}
       </Text>
       <StickyFilters>
         <InputSearch
           value={query}
           placeholder={`${t("Filter")}…`}
           onChange={handleSearch}
+        />
+        <LargeGroupPermissionFilter
+          activeKey={reqParams.permission ?? ""}
+          onSelect={handlePermissionFilter}
         />
       </StickyFilters>
       <ConditionalFade animate={!data}>
@@ -215,5 +276,9 @@ const GroupMembersPage = observer(function GroupMembersPage({
     </Scene>
   );
 });
+
+const LargeGroupPermissionFilter = styled(GroupPermissionFilter)`
+  height: 32px;
+`;
 
 export const GroupMembersScene = observer(GroupMembers);

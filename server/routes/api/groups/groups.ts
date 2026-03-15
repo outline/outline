@@ -2,13 +2,20 @@ import Router from "koa-router";
 import type { WhereOptions } from "sequelize";
 import { Op } from "sequelize";
 import { MAX_AVATAR_DISPLAY } from "@shared/constants";
-import { GroupPermission } from "@shared/types";
+import { GroupPermission, UserRole } from "@shared/types";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { User, Group, GroupUser } from "@server/models";
+import {
+  User,
+  Group,
+  GroupUser,
+  ExternalGroup,
+  AuthenticationProvider,
+} from "@server/models";
 import { authorize } from "@server/policies";
+import { ValidationError } from "@server/errors";
 import {
   presentGroup,
   presentGroupUser,
@@ -22,13 +29,28 @@ import * as T from "./schema";
 
 const router = new Router();
 
+/** Standard include for loading ExternalGroup with its AuthenticationProvider. */
+const externalGroupInclude = {
+  model: ExternalGroup,
+  as: "externalGroups",
+  required: false,
+  include: [
+    {
+      model: AuthenticationProvider,
+      as: "authenticationProvider",
+      attributes: ["id", "name", "providerId"],
+    },
+  ],
+};
+
 router.post(
   "groups.list",
   auth(),
   pagination(),
   validate(T.GroupsListSchema),
   async (ctx: APIContext<T.GroupsListReq>) => {
-    const { sort, direction, query, userId, externalId, name } = ctx.input.body;
+    const { sort, direction, query, userId, externalId, name, source } =
+      ctx.input.body;
     const { user } = ctx.state.auth;
     authorize(user, "listGroups", user.team);
 
@@ -74,6 +96,38 @@ router.post(
       };
     }
 
+    if (source) {
+      const externalGroupWhere: WhereOptions<ExternalGroup> = {
+        teamId: user.teamId,
+        groupId: { [Op.ne]: null },
+      };
+
+      const sourceGroupIds = await ExternalGroup.findAll({
+        attributes: ["groupId"],
+        where: externalGroupWhere,
+        ...(source !== "manual" && {
+          include: [
+            {
+              model: AuthenticationProvider,
+              as: "authenticationProvider",
+              attributes: [],
+              where: { name: source },
+            },
+          ],
+        }),
+      }).then((egs) =>
+        egs.map((eg) => eg.groupId).filter((id): id is string => id !== null)
+      );
+
+      where = {
+        ...where,
+        id: {
+          ...((where.id as object) ?? {}),
+          [source === "manual" ? Op.notIn : Op.in]: sourceGroupIds,
+        },
+      };
+    }
+
     const [groups, total] = await Promise.all([
       Group.findAll({
         where,
@@ -86,8 +140,18 @@ router.post(
               userId: user.id,
             },
           },
+          externalGroupInclude,
         ],
-        order: [[sort, direction]],
+        order: [
+          sort === "source"
+            ? [
+                { model: ExternalGroup, as: "externalGroups" },
+                { model: AuthenticationProvider, as: "authenticationProvider" },
+                "name",
+                direction,
+              ]
+            : [sort, direction],
+        ],
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
       }),
@@ -142,6 +206,7 @@ router.post(
           userId: user.id,
         },
       },
+      externalGroupInclude,
     ];
 
     const group = id
@@ -182,6 +247,7 @@ router.post(
     });
 
     group.groupUsers = [];
+    group.externalGroups = [];
 
     ctx.body = {
       data: await presentGroup(group),
@@ -211,6 +277,7 @@ router.post(
             userId: user.id,
           },
         },
+        externalGroupInclude,
       ],
       lock: {
         level: transaction.LOCK.UPDATE,
@@ -218,6 +285,16 @@ router.post(
       },
     });
     authorize(user, "update", group);
+
+    if (
+      group.externalGroups?.length &&
+      ctx.input.body.name !== undefined &&
+      ctx.input.body.name !== group.name
+    ) {
+      throw ValidationError(
+        "The name of a group synced from an external provider cannot be changed"
+      );
+    }
 
     await group.updateWithCtx(ctx, ctx.input.body);
 
@@ -240,11 +317,56 @@ router.post(
 
     const group = await Group.findByPk(id, {
       transaction,
-      lock: transaction.LOCK.UPDATE,
+      include: [externalGroupInclude],
+      lock: {
+        level: transaction.LOCK.UPDATE,
+        of: Group,
+      },
     });
     authorize(user, "delete", group);
 
     await group.destroyWithCtx(ctx);
+
+    ctx.body = {
+      success: true,
+    };
+  }
+);
+
+router.post(
+  "groups.deleteAll",
+  auth({ role: UserRole.Admin }),
+  validate(T.GroupsDeleteAllSchema),
+  transaction(),
+  async (ctx: APIContext<T.GroupsDeleteAllReq>) => {
+    const { authenticationProviderId } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
+
+    const authenticationProvider = await AuthenticationProvider.findByPk(
+      authenticationProviderId,
+      { transaction }
+    );
+    authorize(user, "update", authenticationProvider);
+
+    const groupIds = await ExternalGroup.findAll({
+      attributes: ["groupId"],
+      where: {
+        authenticationProviderId,
+        teamId: user.teamId,
+        groupId: { [Op.ne]: null },
+      },
+      transaction,
+    }).then((egs) =>
+      egs.map((eg) => eg.groupId).filter((id): id is string => id !== null)
+    );
+
+    if (groupIds.length) {
+      await Group.destroy({
+        where: { id: groupIds },
+        transaction,
+      });
+    }
 
     ctx.body = {
       success: true,
@@ -258,7 +380,7 @@ router.post(
   pagination(),
   validate(T.GroupsMembershipsSchema),
   async (ctx: APIContext<T.GroupsMembershipsReq>) => {
-    const { id, query } = ctx.input.body;
+    const { id, query, permission } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     const group = await Group.findByPk(id);
@@ -273,10 +395,16 @@ router.post(
       };
     }
 
+    const groupUserWhere: Record<string, unknown> = {
+      groupId: id,
+    };
+
+    if (permission) {
+      groupUserWhere.permission = permission;
+    }
+
     const options = {
-      where: {
-        groupId: id,
-      },
+      where: groupUserWhere,
       include: [
         {
           model: User,
@@ -334,9 +462,16 @@ router.post(
             userId: actor.id,
           },
         },
+        externalGroupInclude,
       ],
     });
     authorize(actor, "update", group);
+
+    if (group.externalGroups?.length) {
+      throw ValidationError(
+        "This group is managed by an external provider and its membership cannot be modified"
+      );
+    }
 
     const userPermission = permission;
 
@@ -396,9 +531,16 @@ router.post(
             userId: actor.id,
           },
         },
+        externalGroupInclude,
       ],
     });
     authorize(actor, "update", group);
+
+    if (group.externalGroups?.length) {
+      throw ValidationError(
+        "This group is managed by an external provider and its membership cannot be modified"
+      );
+    }
 
     const user = await User.findByPk(userId, { transaction });
     authorize(actor, "read", user);
@@ -444,9 +586,16 @@ router.post(
             userId: actor.id,
           },
         },
+        externalGroupInclude,
       ],
     });
     authorize(actor, "update", group);
+
+    if (group.externalGroups?.length) {
+      throw ValidationError(
+        "This group is managed by an external provider and its membership cannot be modified"
+      );
+    }
 
     const user = await User.findByPk(userId, { transaction });
     authorize(actor, "read", user);
