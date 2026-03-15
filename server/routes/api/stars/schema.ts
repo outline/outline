@@ -13,6 +13,7 @@ export const StarsCreateSchema = BaseSchema.extend({
         })
         .optional(),
       collectionId: z.uuid().optional(),
+      tagId: z.uuid().optional(),
       index: z
         .string()
         .regex(ValidateIndex.regex, {
@@ -21,9 +22,14 @@ export const StarsCreateSchema = BaseSchema.extend({
         .optional(),
     })
     .refine(
-      (body) => !(isEmpty(body.documentId) && isEmpty(body.collectionId)),
+      (body) =>
+        !(
+          isEmpty(body.documentId) &&
+          isEmpty(body.collectionId) &&
+          isEmpty(body.tagId)
+        ),
       {
-        error: "One of documentId or collectionId is required",
+        error: "One of documentId, collectionId or tagId is required",
       }
     ),
 });

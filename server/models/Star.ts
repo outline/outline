@@ -9,6 +9,7 @@ import {
 } from "sequelize-typescript";
 import Collection from "./Collection";
 import Document from "./Document";
+import Tag from "./Tag";
 import User from "./User";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
@@ -48,6 +49,13 @@ class Star extends IdModel<
   @ForeignKey(() => Collection)
   @Column(DataType.UUID)
   collectionId: string | null;
+
+  @BelongsTo(() => Tag, "tagId")
+  tag: Tag | null;
+
+  @ForeignKey(() => Tag)
+  @Column(DataType.UUID)
+  tagId: string | null;
 }
 
 export default Star;

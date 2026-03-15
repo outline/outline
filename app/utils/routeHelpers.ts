@@ -23,6 +23,14 @@ export function archivePath(): string {
   return "/archive";
 }
 
+export function tagsPath(): string {
+  return "/tags";
+}
+
+export function tagPath(tagName: string): string {
+  return `/tags/${encodeURIComponent(tagName)}`;
+}
+
 export function trashPath(): string {
   return "/trash";
 }
@@ -150,17 +158,20 @@ export function searchPath({
   query,
   collectionId,
   documentId,
+  tagId,
   ref,
 }: {
   query?: string;
   collectionId?: string;
   documentId?: string;
+  tagId?: string;
   ref?: string;
 } = {}): string {
   const search = queryString.stringify({
     q: query,
     collectionId,
     documentId,
+    tagId,
     ref,
   });
 

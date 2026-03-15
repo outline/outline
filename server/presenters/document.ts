@@ -6,6 +6,7 @@ import FileOperation from "@server/models/FileOperation";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import type { APIContext } from "@server/types";
 import presentUser from "./user";
+import presentTag from "./tag";
 
 type Options = {
   /** Whether to render the document's public fields. */
@@ -51,6 +52,10 @@ async function presentDocument(
       ? await DocumentHelper.toMarkdown(data, { includeTitle: false })
       : undefined;
 
+  const tags = document.tags
+    ? document.tags.map((tag) => presentTag(tag, { isPublic: options.isPublic }))
+    : [];
+
   const res: Record<string, unknown> = {
     id: document.id,
     url: document.path,
@@ -80,6 +85,7 @@ async function presentDocument(
     lastViewedAt: undefined,
     isCollectionDeleted: undefined,
     backlinkIds: options?.backlinkIds,
+    tags,
   };
 
   if (!!document.views && document.views.length > 0) {

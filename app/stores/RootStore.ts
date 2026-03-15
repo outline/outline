@@ -28,6 +28,7 @@ import SearchesStore from "./SearchesStore";
 import SharesStore from "./SharesStore";
 import StarsStore from "./StarsStore";
 import SubscriptionsStore from "./SubscriptionsStore";
+import TagsStore from "./TagsStore";
 import TemplatesStore from "./TemplatesStore";
 import UiStore from "./UiStore";
 import UnfurlsStore from "./UnfurlsStore";
@@ -71,6 +72,7 @@ export default class RootStore {
   views: ViewsStore;
   fileOperations: FileOperationsStore;
   webhookSubscriptions: WebhookSubscriptionsStore;
+  tags: TagsStore;
   userMemberships: UserMembershipsStore;
 
   constructor() {
@@ -104,6 +106,7 @@ export default class RootStore {
     this.registerStore(ViewsStore);
     this.registerStore(FileOperationsStore);
     this.registerStore(WebhookSubscriptionsStore);
+    this.registerStore(TagsStore);
     this.registerStore(UserMembershipsStore);
 
     // Non-models

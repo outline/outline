@@ -17,6 +17,7 @@ import {
   InternetIcon,
   SmileyIcon,
   BrowserIcon,
+  HashtagIcon,
 } from "outline-icons";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -49,6 +50,7 @@ const Shares = lazy(() => import("~/scenes/Settings/Shares"));
 const Templates = lazy(() => import("~/scenes/Settings/Templates"));
 const CustomEmojis = lazy(() => import("~/scenes/Settings/CustomEmojis"));
 const Embeds = lazy(() => import("~/scenes/Settings/Embeds"));
+const Tags = lazy(() => import("~/scenes/Settings/Tags"));
 
 export type ConfigItem = {
   name: string;
@@ -188,6 +190,15 @@ const useSettingsConfig = () => {
         enabled: can.update,
         group: t("Workspace"),
         icon: SmileyIcon,
+      },
+      {
+        name: t("Tags"),
+        path: settingsPath("tags"),
+        component: Tags.Component,
+        preload: Tags.preload,
+        enabled: can.update,
+        group: t("Workspace"),
+        icon: HashtagIcon,
       },
       {
         name: t("API Keys"),

@@ -38,6 +38,7 @@ import DocumentTypeFilter from "./components/DocumentTypeFilter";
 import RecentSearches from "./components/RecentSearches";
 import SearchInput from "./components/SearchInput";
 import { SortInput } from "./components/SortInput";
+import TagFilter from "./components/TagFilter";
 import UserFilter from "./components/UserFilter";
 import { HStack } from "~/components/primitives/HStack";
 import useMobile from "~/hooks/useMobile";
@@ -65,6 +66,7 @@ function Search() {
   const query = decodedQuery !== "" ? decodedQuery : undefined;
   const collectionId = params.get("collectionId") ?? "";
   const userId = params.get("userId") ?? "";
+  const tagId = params.get("tagId") ?? "";
   const documentId = params.get("documentId") ?? undefined;
   const dateFilter = (params.get("dateFilter") as TDateFilter) ?? "";
   const statusFilter = params.getAll("statusFilter")?.length
@@ -74,7 +76,7 @@ function Search() {
   const sort = (params.get("sort") as TSortFilter) ?? "";
   const direction = (params.get("direction") as TDirectionFilter) ?? "";
 
-  const isSearchable = !!(query || collectionId || userId);
+  const isSearchable = !!(query || collectionId || userId || tagId);
 
   const document = documentId ? documents.get(documentId) : undefined;
 
@@ -82,6 +84,7 @@ function Search() {
     document: !!document,
     collection: !document,
     user: !document || !!(document && query),
+    tag: !document,
     documentType: isSearchable,
     date: isSearchable,
     title: !!query && !document,
@@ -94,6 +97,7 @@ function Search() {
       statusFilter,
       collectionId,
       userId,
+      tagId,
       dateFilter,
       titleFilter,
       documentId,
@@ -105,6 +109,7 @@ function Search() {
       JSON.stringify(statusFilter),
       collectionId,
       userId,
+      tagId,
       dateFilter,
       titleFilter,
       documentId,
@@ -164,6 +169,7 @@ function Search() {
     collectionId?: string | undefined;
     documentId?: string | undefined;
     userId?: string | undefined;
+    tagId?: string | undefined;
     dateFilter?: TDateFilter;
     statusFilter?: TStatusFilter[];
     titleFilter?: boolean | undefined;
@@ -289,6 +295,12 @@ function Search() {
                 <UserFilter
                   userId={userId}
                   onSelect={(userId) => handleFilterChange({ userId })}
+                />
+              )}
+              {filterVisibility.tag && (
+                <TagFilter
+                  tagId={tagId}
+                  onSelect={(tagId) => handleFilterChange({ tagId })}
                 />
               )}
               {filterVisibility.documentType && (

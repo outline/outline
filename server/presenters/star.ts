@@ -5,6 +5,7 @@ export default function presentStar(star: Star) {
     id: star.id,
     documentId: star.documentId,
     collectionId: star.collectionId,
+    tagId: star.tagId,
     index: star.index,
     createdAt: star.createdAt,
     updatedAt: star.updatedAt,

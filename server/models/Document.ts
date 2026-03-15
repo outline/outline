@@ -74,6 +74,8 @@ import { APIUpdateExtension } from "@server/collaboration/APIUpdateExtension";
 import { SkipChangeset } from "./decorators/Changeset";
 import type { HookContext } from "./base/Model";
 import Template from "./Template";
+import DocumentTag from "./DocumentTag";
+import Tag from "./Tag";
 
 export const DOCUMENT_VERSION = 2;
 
@@ -87,6 +89,8 @@ const stateIfContentEmpty = Sequelize.literal(
 type AdditionalFindOptions = {
   /** The user ID to load associated permissions for. */
   userId?: string;
+  /** Whether to include associated tags in the query result. */
+  includeTags?: boolean;
   /** Whether to include the state column in the attributes. */
   includeState?: boolean;
   /** Whether to views (default: true). */
@@ -154,6 +158,14 @@ type AdditionalFindOptions = {
       {
         association: "updatedBy",
         paranoid: false,
+      },
+    ],
+  },
+  withTags: {
+    include: [
+      {
+        association: "tags",
+        through: { attributes: [] },
       },
     ],
   },
@@ -659,6 +671,9 @@ class Document extends ArchivableModel<
   @BelongsToMany(() => User, () => UserMembership)
   users: User[];
 
+  @BelongsToMany(() => Tag, () => DocumentTag)
+  tags: Tag[];
+
   @ForeignKey(() => Collection)
   @Column(DataType.UUID)
   collectionId?: string | null;
@@ -708,11 +723,15 @@ class Document extends ArchivableModel<
 
   static withMembershipScope(
     userId: string,
-    options?: FindOptions<Document> & { includeDrafts?: boolean }
+    options?: FindOptions<Document> & {
+      includeDrafts?: boolean;
+      includeTags?: boolean;
+    }
   ) {
     return this.scope([
       options?.includeDrafts ? "withDrafts" : "defaultScope",
       "withoutState",
+      ...(options?.includeTags ? (["withTags"] as unknown as ScopeOptions[]) : []),
       {
         method: ["withViews", userId],
       },
@@ -749,6 +768,7 @@ class Document extends ArchivableModel<
 
     const {
       includeViews = true,
+      includeTags = false,
       includeState = false,
       userId,
       ...rest
@@ -758,6 +778,7 @@ class Document extends ArchivableModel<
     // almost every endpoint needs the collection membership to determine policy permissions.
     const scope = this.scope([
       "withDrafts",
+      ...(includeTags ? (["withTags"] as unknown as ScopeOptions[]) : []),
       includeState ? "withState" : "withoutState",
       ...((includeViews
         ? [

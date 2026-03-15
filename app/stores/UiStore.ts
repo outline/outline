@@ -30,6 +30,7 @@ type PersistedData = Pick<
   UiStore,
   | "languagePromptDismissed"
   | "rightSidebar"
+  | "tagsExpanded"
   | "theme"
   | "sidebarWidth"
   | "sidebarRightWidth"
@@ -80,6 +81,9 @@ class UiStore {
 
   @observable
   rightSidebar: "comments" | "history" | null = null;
+
+  @observable
+  tagsExpanded = false;
 
   @observable
   sidebarIsResizing = false;
@@ -139,6 +143,7 @@ class UiStore {
       data.sidebarRightWidth || defaultTheme.sidebarRightWidth;
     this.tocVisible = data.tocVisible;
     this.rightSidebar = data.rightSidebar ?? null;
+    this.tagsExpanded = !!data.tagsExpanded;
     this.theme = data.theme || Theme.System;
 
     // system theme listeners
@@ -368,6 +373,11 @@ class UiStore {
   };
 
   @action
+  toggleTags = () => {
+    this.set({ tagsExpanded: !this.tagsExpanded });
+  };
+
+  @action
   toggleCollapsedSidebar = () => {
     sidebarHidden = false;
     this.set({ sidebarCollapsed: !this.sidebarCollapsed });
@@ -458,6 +468,7 @@ class UiStore {
       sidebarRightWidth: this.sidebarRightWidth,
       languagePromptDismissed: this.languagePromptDismissed,
       rightSidebar: this.rightSidebar,
+      tagsExpanded: this.tagsExpanded,
       theme: this.theme,
     };
   }

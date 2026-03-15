@@ -2,6 +2,7 @@ import { observable } from "mobx";
 import type StarsStore from "~/stores/StarsStore";
 import Collection from "./Collection";
 import Document from "./Document";
+import Tag from "./Tag";
 import Model from "./base/Model";
 import Field from "./decorators/Field";
 import Relation from "./decorators/Relation";
@@ -27,6 +28,13 @@ class Star extends Model {
   /** The collection that is starred. */
   @Relation(() => Collection, { onDelete: "cascade" })
   collection: Collection;
+
+  /** The tag ID that is starred. */
+  tagId?: string;
+
+  /** The tag that is starred. */
+  @Relation(() => Tag, { onDelete: "cascade" })
+  tag?: Tag;
 
   store: StarsStore;
 
