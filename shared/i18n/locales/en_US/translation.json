@@ -1249,6 +1249,7 @@
   "Add people to {{groupName}}": "Add people to {{groupName}}",
   "Could not load group members": "Could not load group members",
   "Add people": "Add people",
+  "Synced to {{ provider }}": "Synced to {{ provider }}",
   "No description": "No description",
   "Create a group": "Create a group",
   "Could not load groups": "Could not load groups",

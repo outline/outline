@@ -1,10 +1,11 @@
 import type { ColumnSort } from "@tanstack/react-table";
 import { observer } from "mobx-react";
-import { GroupIcon, PlusIcon } from "outline-icons";
+import { GroupIcon, HiddenIcon, PlusIcon } from "outline-icons";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 import { useHistory, useLocation } from "react-router-dom";
+import { useTheme } from "styled-components";
 import { toast } from "sonner";
 import type User from "~/models/User";
 import { Action } from "~/components/Actions";
@@ -16,6 +17,7 @@ import InputSearch from "~/components/InputSearch";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
+import Tooltip from "~/components/Tooltip";
 import Error404 from "~/scenes/Errors/Error404";
 import { createInternalLinkAction } from "~/actions";
 import { NavigationSection } from "~/actions/sections";
@@ -64,6 +66,7 @@ const GroupMembersPage = observer(function GroupMembersPage({
   groupId: string;
 }) {
   const { t } = useTranslation();
+  const theme = useTheme();
   const { dialogs, groups, users, groupUsers } = useStores();
   const group = groups.get(groupId)!;
   const can = usePolicy(group);
@@ -176,6 +179,7 @@ const GroupMembersPage = observer(function GroupMembersPage({
               <Button
                 type="button"
                 onClick={handleAddPeople}
+                disabled={group.isExternallyManaged}
                 icon={<PlusIcon />}
               >
                 {`${t("Add people")}…`}
@@ -189,9 +193,27 @@ const GroupMembersPage = observer(function GroupMembersPage({
       }
       wide
     >
-      <Heading>{group.name}</Heading>
+      <Heading>
+        {group.name}
+        {group.disableMentions && (
+          <>
+            &nbsp;
+            <Tooltip content={t("This group is hidden")}>
+              <HiddenIcon size={32} color={theme.textSecondary} />
+            </Tooltip>
+          </>
+        )}
+      </Heading>
       <Text as="p" type="secondary">
-        {group.description || t("No description")}
+        {group.externalGroup && (
+          <>
+            {t("Synced to {{ provider }}", {
+              provider: group.externalGroup.displayName,
+            })}
+            {group.description && <> &middot; </>}
+          </>
+        )}
+        {group.description || (!group.externalGroup && t("No description"))}
       </Text>
       <StickyFilters>
         <InputSearch
