@@ -669,9 +669,11 @@ const Main = styled.div<MainProps>`
 
   @media print {
     display: block;
-    max-width: calc(
-      ${EditorStyleHelper.documentWidth} + ${EditorStyleHelper.documentGutter}
-    );
+    max-width: ${({ fullWidth }: MainProps) =>
+    fullWidth
+      ? `100%`
+      : `calc(${EditorStyleHelper.documentWidth} + ${EditorStyleHelper.documentGutter})`
+    };
   }
 `;
 
@@ -720,10 +722,10 @@ const EditorContainer = styled.div<EditorContainerProps>`
 
     // Decides the editor column position & span
     grid-column: ${({
-      docFullWidth,
-      showContents,
-      tocPosition,
-    }: EditorContainerProps) =>
+  docFullWidth,
+  showContents,
+  tocPosition,
+}: EditorContainerProps) =>
       docFullWidth
         ? showContents
           ? tocPosition === TOCPosition.Left
