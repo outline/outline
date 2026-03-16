@@ -40,9 +40,7 @@ import Icon from "@shared/components/Icon";
 import type { NavigationNode } from "@shared/types";
 import { ExportContentType, TeamPreference } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
-import { Week } from "@shared/utils/time";
 import type UserMembership from "~/models/UserMembership";
-import { client } from "~/utils/ApiClient";
 import DocumentDelete from "~/scenes/DocumentDelete";
 import DocumentPermanentDelete from "~/scenes/DocumentPermanentDelete";
 import DocumentPublish from "~/scenes/DocumentPublish";
@@ -714,11 +712,9 @@ export const copyDocumentAsMarkdown = createAction({
       ? stores.documents.get(activeDocumentId)
       : undefined;
     if (document) {
-      const res = await client.post("/documents.export", {
-        id: document.id,
-        signedUrls: Week.seconds, // 7 days (AWS S3 max for presigned URLs)
-      });
-      copy(res.data);
+      const { ProsemirrorHelper } =
+        await import("~/models/helpers/ProsemirrorHelper");
+      copy(ProsemirrorHelper.toMarkdown(document));
       toast.success(t("Markdown copied to clipboard"));
     }
   },
