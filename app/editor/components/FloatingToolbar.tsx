@@ -36,14 +36,16 @@ const defaultPosition = {
   visible: false,
 };
 
-function usePosition({
+export function usePosition({
   menuRef,
   active,
   align = "center",
+  inline = false,
 }: {
   menuRef: React.RefObject<HTMLDivElement>;
   active?: boolean;
   align?: Props["align"];
+  inline?: boolean;
 }) {
   const { view } = useEditor();
   const { selection } = view.state;
@@ -127,13 +129,14 @@ function usePosition({
     selection instanceof ColumnSelection && selection.isColSelection();
   const isRowSelection =
     selection instanceof RowSelection && selection.isRowSelection();
+  let colWidth = 0;
 
   if (isTableSelected(view.state)) {
     const rect = selectedRect(view.state);
     const table = view.domAtPos(rect.tableStart);
     const bounds = (table.node as HTMLElement).getBoundingClientRect();
-    selectionBounds.top = bounds.top - 16;
-    selectionBounds.left = bounds.left - 10;
+    selectionBounds.top = bounds.top - (inline ? 160 : 16);
+    selectionBounds.left = bounds.left;
     selectionBounds.right = bounds.left - 10;
   } else if (isColSelection) {
     const rect = selectedRect(view.state);
@@ -143,6 +146,7 @@ function usePosition({
     );
     if (element instanceof HTMLElement) {
       const bounds = element.getBoundingClientRect();
+      colWidth = bounds.width;
       selectionBounds.top = bounds.top - 16;
       selectionBounds.left = bounds.left;
       selectionBounds.right = bounds.right;
@@ -155,8 +159,8 @@ function usePosition({
     );
     if (element instanceof HTMLElement) {
       const bounds = element.getBoundingClientRect();
-      selectionBounds.top = bounds.top;
-      selectionBounds.left = bounds.left - 10;
+      selectionBounds.top = bounds.top + (inline ? 55 : 0);
+      selectionBounds.left = bounds.left - (inline ? 410 : 10);
       selectionBounds.right = bounds.left - 10;
     }
   }
@@ -205,11 +209,13 @@ function usePosition({
     ),
     Math.max(
       Math.max(offsetParent.x, margin),
-      align === "center"
-        ? centerOfSelection - menuWidth / 2
-        : align === "start"
-          ? selectionBounds.left
-          : selectionBounds.right
+      isColSelection && colWidth < 300
+        ? selectionBounds.right + margin
+        : align === "center"
+          ? centerOfSelection - menuWidth / 2
+          : align === "start"
+            ? selectionBounds.left
+            : selectionBounds.right
     )
   );
   const top = Math.max(

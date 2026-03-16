@@ -108,6 +108,25 @@ export const MenuExternalLink = styled.a`
 
 export const MenuSubTrigger = styled.div<BaseMenuItemProps>`
   ${BaseMenuItemCSS}
+
+  ${(props) =>
+    !props.disabled &&
+    `
+      &:hover {
+        color: ${props.theme.accentText};
+        background: ${props.$dangerous ? props.theme.danger : props.theme.accent};
+        outline-color: ${
+          props.$dangerous ? props.theme.danger : props.theme.accent
+        };
+        box-shadow: none;
+        cursor: var(--pointer);
+  
+        svg:not([data-fixed-color]) {
+          color: ${props.theme.accentText};
+          fill: ${props.theme.accentText};
+        }
+      }
+    `}
 `;
 
 export const MenuSeparator = styled.hr`

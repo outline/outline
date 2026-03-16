@@ -48,67 +48,10 @@ function ToolbarDropdown(props: ToolbarDropdownProps) {
       return [];
     }
 
-    const handleClick = (menuItem: MenuItem) => () => {
-      if (!menuItem.name) {
-        return;
-      }
-
-      if (commands[menuItem.name]) {
-        commands[menuItem.name](
-          typeof menuItem.attrs === "function"
-            ? menuItem.attrs(state)
-            : menuItem.attrs
-        );
-      } else if (menuItem.onClick) {
-        menuItem.onClick();
-      }
-    };
-
-    const resolveChildren = (
-      children: MenuItem[] | (() => MenuItem[]) | undefined
-    ): MenuItem[] | undefined =>
-      typeof children === "function" ? children() : children;
-
-    const mapChildren = (children: MenuItem[]): TMenuItem[] =>
-      children.map((child) => {
-        if (child.name === "separator") {
-          return { type: "separator", visible: child.visible };
-        }
-        if ("content" in child) {
-          return {
-            type: "custom",
-            visible: child.visible,
-            content: child.content,
-          };
-        }
-        const resolvedChildren = resolveChildren(child.children);
-        if (resolvedChildren) {
-          const childWithPreventClose = resolvedChildren.find(
-            (c) => "preventCloseCondition" in c
-          );
-          return {
-            type: "submenu",
-            title: child.label,
-            icon: child.icon,
-            visible: child.visible,
-            preventCloseCondition: childWithPreventClose?.preventCloseCondition,
-            items: mapChildren(resolvedChildren),
-          };
-        }
-        return {
-          type: "button",
-          title: child.label,
-          icon: child.icon,
-          dangerous: child.dangerous,
-          visible: child.visible,
-          selected:
-            child.active !== undefined ? child.active(state) : undefined,
-          onClick: handleClick(child),
-        };
-      });
-
     const resolvedItemChildren = resolveChildren(item.children);
-    return resolvedItemChildren ? mapChildren(resolvedItemChildren) : [];
+    return resolvedItemChildren
+      ? mapMenuItems(resolvedItemChildren, commands, state)
+      : [];
   }, [isOpen, commands]);
 
   const handleCloseAutoFocus = useCallback((ev: Event) => {
@@ -219,6 +162,78 @@ function ToolbarMenu(props: Props) {
     </TooltipProvider>
   );
 }
+
+const resolveChildren = (
+  children: MenuItem[] | (() => MenuItem[]) | undefined
+): MenuItem[] | undefined =>
+  typeof children === "function" ? children() : children;
+
+export const mapMenuItems = (
+  children: MenuItem[],
+  commands: Record<string, Function>,
+  state: any,
+  parentId = "0"
+): TMenuItem[] => {
+  const handleClick = (menuItem: MenuItem) => () => {
+    if (!menuItem.name) {
+      return;
+    }
+
+    if (commands[menuItem.name]) {
+      commands[menuItem.name](
+        typeof menuItem.attrs === "function"
+          ? menuItem.attrs(state)
+          : menuItem.attrs
+      );
+    } else if (menuItem.onClick) {
+      menuItem.onClick();
+    }
+  };
+
+  return children.map((child, idx) => {
+    const id = `${parentId}-${idx}`;
+
+    if (child.name === "separator") {
+      return { id, type: "separator", visible: child.visible };
+    }
+
+    if ("content" in child) {
+      return {
+        id,
+        type: "custom",
+        visible: child.visible,
+        content: child.content,
+      };
+    }
+
+    const resolvedChildren = resolveChildren(child.children);
+    if (resolvedChildren) {
+      const childWithPreventClose = resolvedChildren.find(
+        (c) => "preventCloseCondition" in c
+      );
+      return {
+        id,
+        type: "submenu",
+        title: child.label || child.tooltip,
+        icon: child.icon,
+        visible: child.visible,
+        preventCloseCondition: childWithPreventClose?.preventCloseCondition,
+        items: mapMenuItems(resolvedChildren, commands, state, id),
+      };
+    }
+
+    return {
+      id,
+      type: "button",
+      title: child.label,
+      icon: child.icon,
+      dangerous: child.dangerous,
+      visible: child.visible,
+      selected: child.active !== undefined ? child.active(state) : undefined,
+      onClick: handleClick(child),
+    };
+  });
+};
 
 const FlexibleWrapper = styled.div`
   color: ${s("textSecondary")};

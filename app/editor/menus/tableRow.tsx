@@ -2,7 +2,6 @@ import {
   TrashIcon,
   InsertAboveIcon,
   InsertBelowIcon,
-  MoreIcon,
   PaletteIcon,
   TableHeaderRowIcon,
   TableSplitCellsIcon,
@@ -15,7 +14,11 @@ import {
   isMergedCellSelection,
   isMultipleCellSelection,
 } from "@shared/editor/queries/table";
-import type { MenuItem, NodeAttrMark } from "@shared/editor/types";
+import {
+  MenuType,
+  type MenuItem,
+  type NodeAttrMark,
+} from "@shared/editor/types";
 import type { Dictionary } from "~/hooks/useDictionary";
 import { ArrowDownIcon, ArrowUpIcon } from "~/components/Icons/ArrowIcon";
 import CircleIcon from "~/components/Icons/CircleIcon";
@@ -77,66 +80,66 @@ export default function tableRowMenuItems(
 
   return [
     {
-      tooltip: dictionary.background,
-      icon:
-        rowColors.size > 1 ? (
-          <CircleIcon color="rainbow" />
-        ) : rowColors.size === 1 ? (
-          <CircleIcon color={rowColors.values().next().value} />
-        ) : (
-          <PaletteIcon />
-        ),
+      type: MenuType.inline,
       children: [
-        ...[
-          {
-            name: "toggleRowBackgroundAndCollapseSelection",
-            label: dictionary.none,
-            icon: <DottedCircleIcon retainColor color="transparent" />,
-            active: () => (hasBackground ? false : true),
-            attrs: { color: null },
-          },
-        ],
-        ...TableCell.presetColors.map((preset) => ({
-          name: "toggleRowBackgroundAndCollapseSelection",
-          label: preset.name,
-          icon: <CircleIcon retainColor color={preset.hex} />,
-          active: () => rowColors.size === 1 && rowColors.has(preset.hex),
-          attrs: { color: preset.hex },
-        })),
-        ...(customColor
-          ? [
+        {
+          label: dictionary.background,
+          icon:
+            rowColors.size > 1 ? (
+              <CircleIcon color="rainbow" />
+            ) : rowColors.size === 1 ? (
+              <CircleIcon color={rowColors.values().next().value} />
+            ) : (
+              <PaletteIcon />
+            ),
+          children: [
+            ...[
               {
                 name: "toggleRowBackgroundAndCollapseSelection",
-                label: customColor,
-                icon: <CircleIcon retainColor color={customColor} />,
-                active: () => true,
-                attrs: { color: customColor },
+                label: dictionary.none,
+                icon: <DottedCircleIcon retainColor color="transparent" />,
+                active: () => (hasBackground ? false : true),
+                attrs: { color: null },
               },
-            ]
-          : []),
-        {
-          icon: <CircleIcon retainColor color="rainbow" />,
-          label: "Custom",
-          children: [
+            ],
+            ...TableCell.presetColors.map((preset) => ({
+              name: "toggleRowBackgroundAndCollapseSelection",
+              label: preset.name,
+              icon: <CircleIcon retainColor color={preset.hex} />,
+              active: () => rowColors.size === 1 && rowColors.has(preset.hex),
+              attrs: { color: preset.hex },
+            })),
+            ...(customColor
+              ? [
+                  {
+                    name: "toggleRowBackgroundAndCollapseSelection",
+                    label: customColor,
+                    icon: <CircleIcon retainColor color={customColor} />,
+                    active: () => true,
+                    attrs: { color: customColor },
+                  },
+                ]
+              : []),
             {
-              content: (
-                <CellBackgroundColorPicker
-                  activeColor={activeColor}
-                  command="toggleRowBackground"
-                />
-              ),
-              preventCloseCondition: () =>
-                !!document.activeElement?.matches(
-                  ".ProseMirror.ProseMirror-focused"
-                ),
+              icon: <CircleIcon retainColor color="rainbow" />,
+              label: "Custom",
+              children: [
+                {
+                  content: (
+                    <CellBackgroundColorPicker
+                      activeColor={activeColor}
+                      command="toggleRowBackground"
+                    />
+                  ),
+                  preventCloseCondition: () =>
+                    !!document.activeElement?.matches(
+                      ".ProseMirror.ProseMirror-focused"
+                    ),
+                },
+              ],
             },
           ],
         },
-      ],
-    },
-    {
-      icon: <MoreIcon />,
-      children: [
         {
           name: "toggleHeaderRow",
           label: dictionary.toggleHeader,
