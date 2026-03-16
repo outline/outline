@@ -24,7 +24,28 @@ export default async function documentPermanentDeleter(documents: Document[]) {
     "id" != :documentId
   `;
 
+  const confirmedDocumentIds: string[] = [];
+
   for (const document of documents) {
+    // Re-check that the document is still soft-deleted to guard against a
+    // concurrent restore between the initial query and this point in time.
+    const stillDeleted = await Document.unscoped().count({
+      where: {
+        id: document.id,
+        deletedAt: { [Op.ne]: null },
+      },
+    });
+
+    if (!stillDeleted) {
+      Logger.info(
+        "commands",
+        `Document ${document.id} was restored before permanent deletion, skipping`
+      );
+      continue;
+    }
+
+    confirmedDocumentIds.push(document.id);
+
     // Find any attachments that are referenced in the text content
     const attachmentIdsInText = ProsemirrorHelper.parseAttachmentIds(
       DocumentHelper.toProsemirror(document)
@@ -76,7 +97,10 @@ export default async function documentPermanentDeleter(documents: Document[]) {
     );
   }
 
-  const documentIds = documents.map((document) => document.id);
+  if (confirmedDocumentIds.length === 0) {
+    return 0;
+  }
+
   await Document.update(
     {
       parentDocumentId: null,
@@ -84,7 +108,7 @@ export default async function documentPermanentDeleter(documents: Document[]) {
     {
       where: {
         parentDocumentId: {
-          [Op.in]: documentIds,
+          [Op.in]: confirmedDocumentIds,
         },
       },
       paranoid: false,
@@ -93,7 +117,8 @@ export default async function documentPermanentDeleter(documents: Document[]) {
 
   return Document.scope("withDrafts").destroy({
     where: {
-      id: documents.map((document) => document.id),
+      id: { [Op.in]: confirmedDocumentIds },
+      deletedAt: { [Op.ne]: null },
     },
     force: true,
   });
