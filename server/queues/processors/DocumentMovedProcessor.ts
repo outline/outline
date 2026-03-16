@@ -38,8 +38,8 @@ export default class DocumentMovedProcessor extends BaseProcessor {
             : [],
         ]);
 
-      await this.destroyUserMemberships(document.id);
-      await this.destroyGroupMemberships(document.id);
+      await this.destroyUserMemberships(document.id, transaction);
+      await this.destroyGroupMemberships(document.id, transaction);
 
       await this.recalculateUserMemberships(
         parentDocumentUserMemberships,
@@ -54,27 +54,39 @@ export default class DocumentMovedProcessor extends BaseProcessor {
     });
   }
 
-  private async destroyUserMemberships(documentId: string) {
-    const document = await Document.findByPk(documentId);
-    const childDocumentIds = await document.findAllChildDocumentIds();
+  private async destroyUserMemberships(
+    documentId: string,
+    transaction: Transaction
+  ) {
+    const document = await Document.findByPk(documentId, { transaction });
+    const childDocumentIds = await document.findAllChildDocumentIds(undefined, {
+      transaction,
+    });
 
     await UserMembership.destroy({
       where: {
         sourceId: { [Op.ne]: null },
         documentId: [...childDocumentIds, documentId],
       },
+      transaction,
     });
   }
 
-  private async destroyGroupMemberships(documentId: string) {
-    const document = await Document.findByPk(documentId);
-    const childDocumentIds = await document.findAllChildDocumentIds();
+  private async destroyGroupMemberships(
+    documentId: string,
+    transaction: Transaction
+  ) {
+    const document = await Document.findByPk(documentId, { transaction });
+    const childDocumentIds = await document.findAllChildDocumentIds(undefined, {
+      transaction,
+    });
 
     await GroupMembership.destroy({
       where: {
         sourceId: { [Op.ne]: null },
         documentId: [...childDocumentIds, documentId],
       },
+      transaction,
     });
   }
 
