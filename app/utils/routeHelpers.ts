@@ -27,6 +27,10 @@ export function trashPath(): string {
   return "/trash";
 }
 
+export function tagsPath(): string {
+  return "/tags";
+}
+
 export function debugPath(): string {
   return "/debug";
 }
