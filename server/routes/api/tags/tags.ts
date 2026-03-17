@@ -40,7 +40,7 @@ router.post(
       modelId: tag.id,
       teamId: user.teamId,
       actorId: user.id,
-    } as Partial<Event>);
+    });
 
     ctx.body = {
       data: presentTag(tag),
@@ -73,7 +73,7 @@ router.post(
       modelId: tag.id,
       teamId: user.teamId,
       actorId: user.id,
-    } as Partial<Event>);
+    });
 
     ctx.body = {
       data: presentTag(tag),
@@ -106,7 +106,7 @@ router.post(
       modelId: id,
       teamId: user.teamId,
       actorId: user.id,
-    } as Partial<Event>);
+    });
 
     ctx.body = { success: true };
   }
@@ -178,7 +178,7 @@ router.post(
       documentId,
       teamId: user.teamId,
       actorId: user.id,
-    } as Partial<Event>);
+    });
 
     ctx.body = { success: true };
   }
@@ -213,7 +213,7 @@ router.post(
       documentId,
       teamId: user.teamId,
       actorId: user.id,
-    } as Partial<Event>);
+    });
 
     ctx.body = { success: true };
   }
