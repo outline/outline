@@ -1,8 +1,8 @@
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
+  BelongsTo,
   Column,
   DataType,
-  BelongsTo,
   ForeignKey,
   Table,
 } from "sequelize-typescript";
@@ -12,7 +12,11 @@ import User from "./User";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
 
-@Table({ tableName: "document_tags", modelName: "document_tag", updatedAt: false })
+@Table({
+  tableName: "document_tags",
+  modelName: "document_tag",
+  updatedAt: false,
+})
 @Fix
 class DocumentTag extends IdModel<
   InferAttributes<DocumentTag>,
