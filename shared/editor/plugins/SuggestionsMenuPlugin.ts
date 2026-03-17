@@ -53,6 +53,37 @@ export class SuggestionsMenuPlugin extends Plugin {
             });
           }
 
+          // Another plugin (e.g. the Placeholder mark) may consume the
+          // handleTextInput event by returning true, which prevents the
+          // InputRule from evaluating the trigger character. We use a timeout
+          // here so the re-evaluation happens after all synchronous handlers
+          // have run, ensuring the suggestion menu still opens in those cases.
+          if (
+            !event.ctrlKey &&
+            !event.metaKey &&
+            !event.altKey &&
+            event.key.length === 1
+          ) {
+            setTimeout(() => {
+              const { pos: fromPos } = view.state.selection.$from;
+              this.execute(
+                view,
+                fromPos,
+                fromPos,
+                openRegex,
+                action((_, match) => {
+                  if (match) {
+                    if (match[0].length <= 2) {
+                      extensionState.open = true;
+                    }
+                    extensionState.query = match[1];
+                  }
+                  return null;
+                })
+              );
+            });
+          }
+
           // If the menu is open then just ignore the key events in the editor
           // itself until we're done.
           if (
