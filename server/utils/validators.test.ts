@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import { isDatabaseUrl } from "./validators";
+import { isDatabaseUrl, isMailboxAddress } from "./validators";
 
 describe("isDatabaseUrl", () => {
   const defaultOptions = {
@@ -246,6 +246,73 @@ describe("isDatabaseUrl", () => {
           require_tld: false,
         })
       ).toBe(true);
+    });
+  });
+});
+
+describe("isMailboxAddress", () => {
+  describe("plain email addresses", () => {
+    it("should accept a plain email address", () => {
+      expect(isMailboxAddress("user@example.com")).toBe(true);
+    });
+
+    it("should accept an email with IP domain", () => {
+      expect(isMailboxAddress("user@192.168.1.1")).toBe(true);
+    });
+
+    it("should reject an invalid email address", () => {
+      expect(isMailboxAddress("notanemail")).toBe(false);
+    });
+
+    it("should reject an email without domain", () => {
+      expect(isMailboxAddress("user@")).toBe(false);
+    });
+  });
+
+  describe("mailbox format addresses", () => {
+    it("should accept a simple mailbox format", () => {
+      expect(isMailboxAddress("Outline <user@example.com>")).toBe(true);
+    });
+
+    it("should accept a mailbox format with a period in the display name", () => {
+      expect(isMailboxAddress("My App v1.0 <user@example.com>")).toBe(true);
+    });
+
+    it("should accept a mailbox format with quoted display name containing a comma", () => {
+      expect(
+        isMailboxAddress('"Company, Inc." <user@example.com>')
+      ).toBe(true);
+    });
+
+    it("should accept a mailbox format with a quoted display name", () => {
+      expect(isMailboxAddress('"Outline" <user@example.com>')).toBe(true);
+    });
+
+    it("should reject a mailbox format with an unquoted comma in the display name", () => {
+      // addressparser splits on commas, so this creates two addresses
+      expect(isMailboxAddress("Company, Inc. <user@example.com>")).toBe(false);
+    });
+
+    it("should reject a mailbox format with an empty email address", () => {
+      expect(isMailboxAddress("Outline <>")).toBe(false);
+    });
+
+    it("should reject a mailbox format with an invalid email address", () => {
+      expect(isMailboxAddress("Outline <notanemail>")).toBe(false);
+    });
+  });
+
+  describe("edge cases", () => {
+    it("should reject an empty string", () => {
+      expect(isMailboxAddress("")).toBe(false);
+    });
+
+    it("should reject a string with only spaces", () => {
+      expect(isMailboxAddress("   ")).toBe(false);
+    });
+
+    it("should reject a group address", () => {
+      expect(isMailboxAddress("Group: user@example.com;")).toBe(false);
     });
   });
 });
