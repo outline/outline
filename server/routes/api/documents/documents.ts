@@ -49,9 +49,11 @@ import {
   Relationship,
   Collection,
   Document,
+  DocumentTag,
   Event,
   Revision,
   SearchQuery,
+  Tag,
   Template,
   User,
   View,
@@ -71,6 +73,7 @@ import {
   presentDocument,
   presentDocuments,
   presentPolicies,
+  presentTag,
   presentTemplate,
   presentMembership,
   presentUser,
@@ -605,6 +608,13 @@ router.post(
         user,
       });
       serializedDocument = await presentDocument(ctx, document);
+      const documentTags = await DocumentTag.findAll({
+        where: { documentId: document.id },
+        include: [{ model: Tag }],
+      });
+      serializedDocument.tags = documentTags.map((dt) =>
+        presentTag(dt.tag)
+      );
     }
 
     ctx.body = {

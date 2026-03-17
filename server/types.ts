@@ -413,8 +413,8 @@ export type TagEvent =
   | (BaseEvent<Tag & DocumentTag> & {
       name: "tags.add" | "tags.remove";
       modelId: string;
-      tagId: string;
       documentId: string;
+      data: { tagId: string };
     });
 
 export type ShareEvent = BaseEvent<Share> & {
