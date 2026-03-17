@@ -29,6 +29,7 @@ import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import type { PaginationParams, SearchResult } from "~/types";
 import { preventDefault } from "~/utils/events";
+import { parseSearchQuery } from "~/utils/parseSearchQuery";
 import { searchPath } from "~/utils/routeHelpers";
 import { decodeURIComponentSafe } from "~/utils/urls";
 import CollectionFilter from "./components/CollectionFilter";
@@ -44,7 +45,7 @@ import useMobile from "~/hooks/useMobile";
 
 function Search() {
   const { t } = useTranslation();
-  const { documents, searches } = useStores();
+  const { documents, searches, tags: tagsStore } = useStores();
   const isMobile = useMobile();
 
   // routing
@@ -63,6 +64,10 @@ function Search() {
     routeMatch.params.query ?? params.get("q") ?? params.get("query") ?? ""
   ).trim();
   const query = decodedQuery !== "" ? decodedQuery : undefined;
+  const { cleanQuery, tagNames } = parseSearchQuery(query ?? "");
+  const tagIds = tagNames
+    .map((name) => tagsStore.getByName(name)?.id)
+    .filter(Boolean) as string[];
   const collectionId = params.get("collectionId") ?? "";
   const userId = params.get("userId") ?? "";
   const documentId = params.get("documentId") ?? undefined;
@@ -74,7 +79,7 @@ function Search() {
   const sort = (params.get("sort") as TSortFilter) ?? "";
   const direction = (params.get("direction") as TDirectionFilter) ?? "";
 
-  const isSearchable = !!(query || collectionId || userId);
+  const isSearchable = !!(query || collectionId || userId || tagIds.length);
 
   const document = documentId ? documents.get(documentId) : undefined;
 
@@ -90,7 +95,8 @@ function Search() {
 
   const filters = React.useMemo(
     () => ({
-      query,
+      query: cleanQuery || undefined,
+      tagIds: tagIds.length ? tagIds : undefined,
       statusFilter,
       collectionId,
       userId,
@@ -101,7 +107,8 @@ function Search() {
       direction,
     }),
     [
-      query,
+      cleanQuery,
+      JSON.stringify(tagIds),
       JSON.stringify(statusFilter),
       collectionId,
       userId,

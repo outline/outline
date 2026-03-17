@@ -41,6 +41,7 @@ export type SearchParams = {
   collectionId?: string;
   userId?: string;
   shareId?: string;
+  tagIds?: string[];
   sort?: SortFilter;
   direction?: DirectionFilter;
 };
