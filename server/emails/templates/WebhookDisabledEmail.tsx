@@ -24,7 +24,7 @@ export default class WebhookDisabledEmail extends BaseEmail<Props> {
   }
 
   protected subject() {
-    return this.t("Warning: Webhook disabled");
+    return this.t("Warning") + ": " + this.t("Webhook disabled");
   }
 
   protected preview({ webhookName }: Props) {
@@ -37,7 +37,7 @@ export default class WebhookDisabledEmail extends BaseEmail<Props> {
     return `
 ${this.t("Your webhook ({{ webhookName }}) has been automatically disabled due to a high failure rate in recent delivery attempts. You can re-enable by editing the webhook.", { webhookName })}
 
-${this.t("Webhook settings:")} ${teamUrl}/settings/webhooks
+${this.t("Webhook settings")}: ${teamUrl}/settings/webhooks
 `;
   }
 

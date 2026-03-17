@@ -125,7 +125,7 @@ export default class CommentMentionedEmail extends BaseEmail<
     return `
 ${action}${inCollection}.
 
-${this.t("Open Thread:")} ${teamUrl}${document.url}?commentId=${commentId}
+${this.t("Open Thread")}: ${teamUrl}${document.url}?commentId=${commentId}
 `;
   }
 

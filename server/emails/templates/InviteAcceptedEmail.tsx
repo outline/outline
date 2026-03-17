@@ -65,7 +65,7 @@ export default class InviteAcceptedEmail extends BaseEmail<
     return `
 ${this.t("Great news, {{ invitedName }} just accepted your invitation and has created an account. You can now start collaborating on documents.", { invitedName })}
 
-${this.t("Open {{ appName }}:", { appName: env.APP_NAME })} ${teamUrl}
+${this.t("Open {{ appName }}", { appName: env.APP_NAME }) + ":"} ${teamUrl}
 `;
   }
 

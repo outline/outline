@@ -121,7 +121,7 @@ ${this.t("You were mentioned")}
 
 ${this.t(`{{ actorName }} mentioned you in the document “{{ documentTitle }}”.`, { actorName, documentTitle: document.titleWithDefault })}
 
-${this.t("Open Document:")} ${teamUrl}${document.url}
+${this.t("Open Document")}: ${teamUrl}${document.url}
 `;
   }
 

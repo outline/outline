@@ -37,7 +37,7 @@ ${this.t(
   { appName: env.APP_NAME }
 )}
 
-${this.t("Code:")} ${deleteConfirmationCode}
+${this.t("Code")}: ${deleteConfirmationCode}
 `;
   }
 

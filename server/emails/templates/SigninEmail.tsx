@@ -46,18 +46,18 @@ export default class SigninEmail extends BaseEmail<Props, void> {
   }: Props): string {
     if (token) {
       return `
-${this.t("Use the link below to sign in:")}
+${this.t("Use the link below to sign in")}:
 
 ${this.signinLink(teamUrl, token, client)}
 
-${this.t("If the link expired you can request a new one from your team's signin page at:")} ${teamUrl}
+${this.t("If the link expired you can request a new one from your team's signin page at")}: ${teamUrl}
 `;
     }
 
     return `
-${this.t("Enter this verification code:")} ${verificationCode}
+${this.t("Enter this verification code")}: ${verificationCode}
 
-${this.t("If the code expired you can request a new one from your team's signin page at:")} ${teamUrl}
+${this.t("If the code expired you can request a new one from your team's signin page at")}: ${teamUrl}
 `;
   }
 
@@ -105,9 +105,9 @@ ${this.t("If the code expired you can request a new one from your team's signin 
             <EmptySpace height={20} />
             <p>
               {this.t(
-                "If the link expired you can request a new one from your team's sign-in page at:"
-              )}{" "}
-              <a href={teamUrl}>{teamUrl}</a>
+                "If the link expired you can request a new one from your team's sign-in page at"
+              )}
+              : <a href={teamUrl}>{teamUrl}</a>
             </p>
           </Body>
         ) : (
@@ -134,9 +134,9 @@ ${this.t("If the code expired you can request a new one from your team's signin 
             <EmptySpace height={20} />
             <p>
               {this.t(
-                "If the code expired you can request a new one from your team's sign-in page at:"
-              )}{" "}
-              <a href={teamUrl}>{teamUrl}</a>
+                "If the code expired you can request a new one from your team's sign-in page at"
+              )}
+              : <a href={teamUrl}>{teamUrl}</a>
             </p>
           </Body>
         )}

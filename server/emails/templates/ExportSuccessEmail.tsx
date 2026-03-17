@@ -66,7 +66,7 @@ export default class ExportSuccessEmail extends BaseEmail<
     return `
 ${this.t("Your Data Export")}
 
-${this.t("Your requested data export is complete - you can download from the link below in a browser that is logged into your account:")}
+${this.t("Your requested data export is complete, you can download from the link below in a browser that is logged into your account.")}
 
 ${downloadLink}
 `;

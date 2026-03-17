@@ -104,7 +104,7 @@ export default class CommentCreatedEmail extends BaseEmail<
         ? commentText
         : `${commentText.slice(0, MAX_SUBJECT_CONTENT)}...`;
 
-    return `${parentComment ? this.t("Re: ") : ""}${this.t(
+    return `${parentComment ? this.t("Re") + ": " : ""}${this.t(
       "New comment on “{{ documentTitle }}” - {{ trimmedText }}",
       { documentTitle: document.titleWithDefault, trimmedText }
     )}`;
@@ -153,7 +153,7 @@ export default class CommentCreatedEmail extends BaseEmail<
     return `
 ${action}${inCollection}.
 
-${this.t("Open Thread:")} ${teamUrl}${document.url}?commentId=${commentId}
+${this.t("Open Thread")}: ${teamUrl}${document.url}?commentId=${commentId}
 `;
   }
 

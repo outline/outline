@@ -138,7 +138,7 @@ export default class GroupCommentMentionedEmail extends BaseEmail<
     return `
 ${action}${inCollection}.
 
-${this.t("Open Thread:")} ${teamUrl}${document.url}?commentId=${commentId}
+${this.t("Open Thread")}: ${teamUrl}${document.url}?commentId=${commentId}
 `;
   }
 

@@ -28,12 +28,13 @@ export default class InviteReminderEmail extends BaseEmail<Props> {
   }
 
   protected subject({ actorName, teamName }: Props) {
-    return this.t(
-      "Reminder: {{ actorName }} invited you to join {{ teamName }}’s workspace",
-      {
+    return (
+      this.t("Reminder") +
+      ": " +
+      this.t("{{ actorName }} invited you to join {{ teamName }}’s workspace", {
         actorName,
         teamName,
-      }
+      })
     );
   }
 
@@ -56,7 +57,7 @@ export default class InviteReminderEmail extends BaseEmail<Props> {
 ${this.t("This is just a quick reminder that {{ actorName }} {{ actorEmail }} invited you to join them in the {{ teamName }} team on {{ appName }}, a place for your team to build and share knowledge.", { actorName, actorEmail: actorEmail ? `(${actorEmail})` : "", teamName, appName: env.APP_NAME })}
 ${this.t("We only send a reminder once.")}
 
-${this.t("If you haven't signed up yet, you can do so here:")} ${teamUrl}
+${this.t("If you haven't signed up yet, you can do so here")}: ${teamUrl}
 `;
   }
 
@@ -84,7 +85,7 @@ ${this.t("If you haven't signed up yet, you can do so here:")} ${teamUrl}
               }
             )}
           </p>
-          <p>{this.t("If you haven't signed up yet, you can do so here:")}</p>
+          <p>{this.t("If you haven't signed up yet, you can do so here")}:</p>
           <EmptySpace height={10} />
           <p>
             <Button href={inviteLink}>{this.t("Join now")}</Button>

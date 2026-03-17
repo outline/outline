@@ -161,7 +161,7 @@ ${this.t(`{{ actorName }} {{ eventName }} the document "{{ documentTitle }}"`, {
         : ""
     }.
 
-${this.t("Open Document:")} ${teamUrl}${document.url}
+${this.t("Open Document")}: ${teamUrl}${document.url}
 `;
   }
 

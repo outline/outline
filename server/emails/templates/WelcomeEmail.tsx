@@ -53,7 +53,7 @@ ${this.t("{{ appName }} is a place for your team to build and share knowledge.",
 
 ${this.t("To get started, head to the home screen and try creating a collection to help document your processes, create playbooks, or plan your team's work.")}
 
-${this.t("Or, learn more about everything Outline can do in the guide:")}
+${this.t("Or, learn more about everything Outline can do in the guide")}:
 https://docs.getoutline.com/s/guide
 
 ${teamUrl}/home

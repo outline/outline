@@ -42,13 +42,13 @@ export class PasskeyCreatedEmail extends BaseEmail<InputProps> {
     return `
 ${this.t("New Passkey Created")}
 
-${this.t("A new passkey has been added to your {{ appName }} account:", { appName: env.APP_NAME })}
+${this.t("A new passkey has been added to your {{ appName }} account", { appName: env.APP_NAME }) + ":"}
 
 ${passkeyName}
 
 ${this.t("Passkeys provide a secure, passwordless way to sign in to your account. If you did not create this passkey, please review your account security settings immediately.")}
 
-${this.t("You can manage your passkeys at any time:")}
+${this.t("You can manage your passkeys at any time")}:
 ${teamUrl}/settings/passkeys
 
 ---
@@ -68,9 +68,9 @@ ${this.t("If you have any concerns about your account security, please contact a
           <Heading>{this.t("New Passkey Created")}</Heading>
           <p>
             {this.t(
-              "A new passkey has been added to your {{ appName }} account:",
+              "A new passkey has been added to your {{ appName }} account",
               { appName: env.APP_NAME }
-            )}
+            ) + ":"}
           </p>
           <p>
             <strong>{passkeyName}</strong>

@@ -75,7 +75,7 @@ export default class DocumentSharedEmail extends BaseEmail<
     return `
 ${this.t(`{{ actorName }} shared “{{ documentTitle }}” with you.`, { actorName, documentTitle: document.titleWithDefault })}
 
-${this.t("View Document:")} ${teamUrl}${document.path}
+${this.t("View Document")}: ${teamUrl}${document.path}
 `;
   }
 

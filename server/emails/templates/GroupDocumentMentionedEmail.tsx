@@ -137,7 +137,7 @@ export default class GroupDocumentMentionedEmail extends BaseEmail<
     return `
 ${this.t(`{{ actorName }} mentioned the “{{ groupName }}” group in the document “{{ documentTitle }}”.`, { actorName, groupName, documentTitle: document.titleWithDefault })}
 
-${this.t("Open Document:")} ${teamUrl}${document.url}
+${this.t("Open Document")}: ${teamUrl}${document.url}
 `;
   }
 

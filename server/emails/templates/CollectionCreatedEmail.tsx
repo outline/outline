@@ -77,7 +77,7 @@ ${collection.name}
 
 ${this.t("{{ userName }} created the collection “{{ collectionName }}”", { userName: collection.user.name, collectionName: collection.name })}
 
-${this.t("Open Collection:")} ${teamUrl}${collection.path}
+${this.t("Open Collection")}: ${teamUrl}${collection.path}
 `;
   }
 

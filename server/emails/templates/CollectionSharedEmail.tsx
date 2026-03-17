@@ -72,7 +72,7 @@ export default class CollectionSharedEmail extends BaseEmail<
     return `
 ${this.t("{{ actorName }} invited you to the “{{ collectionName }}” collection.", { actorName, collectionName: collection.name })}
 
-${this.t("View Collection:")} ${teamUrl}${collection.path}
+${this.t("View Collection")}: ${teamUrl}${collection.path}
 `;
   }
 

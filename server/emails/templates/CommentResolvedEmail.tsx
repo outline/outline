@@ -121,7 +121,7 @@ export default class CommentResolvedEmail extends BaseEmail<
     const inCollection = collection.name
       ? ` ${this.t("in the {{ collectionName }} collection", { collectionName: collection.name })}`
       : "";
-    const openThread = `${this.t("Open Thread:")} ${teamUrl}${document.url}?commentId=${commentId}`;
+    const openThread = `${this.t("Open Thread")}: ${teamUrl}${document.url}?commentId=${commentId}`;
     return `${action}${inCollection}.\n\n${openThread}`;
   }
 
