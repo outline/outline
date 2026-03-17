@@ -52,6 +52,7 @@ import { InvalidRequestError, ValidationError } from "@server/errors";
 import { generateUrlId } from "@server/utils/url";
 import { createContext } from "@server/context";
 import Collection from "./Collection";
+import DocumentTag from "./DocumentTag";
 import FileOperation from "./FileOperation";
 import Group from "./Group";
 import GroupMembership from "./GroupMembership";
@@ -680,6 +681,9 @@ class Document extends ArchivableModel<
 
   @HasMany(() => View)
   views: View[];
+
+  @HasMany(() => DocumentTag, "documentId")
+  documentTags: DocumentTag[];
 
   /**
    * Returns an array of unique userIds that are members of a document
