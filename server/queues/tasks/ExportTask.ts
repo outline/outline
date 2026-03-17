@@ -83,6 +83,7 @@ export default abstract class ExportTask extends BaseTask<Props> {
       if (user.subscribedToEventType(NotificationEventType.ExportCompleted)) {
         await new ExportSuccessEmail({
           to: user.email,
+          language: user.language,
           userId: user.id,
           id: fileOperation.id,
           teamUrl: team.url,
@@ -97,6 +98,7 @@ export default abstract class ExportTask extends BaseTask<Props> {
       if (user.subscribedToEventType(NotificationEventType.ExportCompleted)) {
         await new ExportFailureEmail({
           to: user.email,
+          language: user.language,
           userId: user.id,
           teamUrl: team.url,
           teamId: team.id,

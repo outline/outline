@@ -886,6 +886,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       if (createdBy && team) {
         await new WebhookDisabledEmail({
           to: createdBy.email,
+          language: createdBy.language,
           teamUrl: team.url,
           webhookName: subscription.name,
         }).schedule();
