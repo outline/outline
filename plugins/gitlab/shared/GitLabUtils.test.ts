@@ -42,6 +42,32 @@ describe("GitLabUtils.parseUrl", () => {
       });
     });
 
+    it("should parse a work_items URL", () => {
+      const result = GitLabUtils.parseUrl(
+        "https://gitlab.com/speak/purser/-/work_items/39"
+      );
+      expect(result).toEqual({
+        owner: "speak",
+        repo: "purser",
+        type: UnfurlResourceType.Issue,
+        id: 39,
+        url: "https://gitlab.com/speak/purser/-/work_items/39",
+      });
+    });
+
+    it("should parse a nested group work_items URL", () => {
+      const result = GitLabUtils.parseUrl(
+        "https://gitlab.com/group/subgroup/repo/-/work_items/5"
+      );
+      expect(result).toEqual({
+        owner: "group/subgroup",
+        repo: "repo",
+        type: UnfurlResourceType.Issue,
+        id: 5,
+        url: "https://gitlab.com/group/subgroup/repo/-/work_items/5",
+      });
+    });
+
     it("should return undefined for unsupported resource type", () => {
       const result = GitLabUtils.parseUrl(
         "https://gitlab.com/speak/purser/-/pipelines/100"
@@ -179,6 +205,22 @@ describe("GitLabUtils.parseUrl", () => {
         type: UnfurlResourceType.Issue,
         id: 2,
         url: `https://gitlab.com/a/b/repo/-/issues?show=${show}`,
+      });
+    });
+
+    it("should parse a work_items URL with show parameter", () => {
+      const show = btoa(
+        JSON.stringify({ iid: "39", full_path: "speak/purser", id: 1215135 })
+      );
+      const result = GitLabUtils.parseUrl(
+        `https://gitlab.com/speak/purser/-/work_items?show=${show}`
+      );
+      expect(result).toEqual({
+        owner: "speak",
+        repo: "purser",
+        type: UnfurlResourceType.Issue,
+        id: 39,
+        url: `https://gitlab.com/speak/purser/-/work_items?show=${show}`,
       });
     });
 
