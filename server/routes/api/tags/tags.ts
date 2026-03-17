@@ -174,8 +174,8 @@ router.post(
     await Event.schedule({
       name: "tags.add",
       modelId: dt.id,
-      tagId,
       documentId,
+      data: { tagId },
       teamId: user.teamId,
       actorId: user.id,
     });
@@ -209,8 +209,8 @@ router.post(
     await Event.schedule({
       name: "tags.remove",
       modelId: dt?.id ?? tagId,
-      tagId,
       documentId,
+      data: { tagId },
       teamId: user.teamId,
       actorId: user.id,
     });
