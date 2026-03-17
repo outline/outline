@@ -187,6 +187,9 @@ export const DocumentsSearchSchema = BaseSchema.extend({
     direction: z
       .enum(Object.values(DirectionFilter) as [string, ...string[]])
       .optional(),
+
+    /** Filter results to documents with all of these tags */
+    tagIds: z.array(z.uuid()).optional(),
   }),
 });
 

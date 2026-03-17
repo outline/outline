@@ -1047,6 +1047,7 @@ router.post(
   async (ctx: APIContext<T.DocumentsSearchReq>) => {
     const {
       query,
+      tagIds,
       collectionId,
       documentId,
       userId,
@@ -1148,6 +1149,7 @@ router.post(
 
       response = await SearchProviderManager.getProvider().searchForUser(user, {
         query,
+        tagIds,
         collaboratorIds,
         collectionId,
         documentIds,
