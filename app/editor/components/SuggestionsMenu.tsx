@@ -240,6 +240,19 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       props.onSelect?.(item);
 
       switch (item.name) {
+        case "nested-link":
+          insertNode({
+            ...item,
+            name: "mention",
+          });
+          void editorProps.onCreateLink?.(
+            {
+              title: item.attrs.label,
+              id: item.attrs.modelId,
+            },
+            true
+          );
+          return;
         case "link":
           insertNode({
             ...item,

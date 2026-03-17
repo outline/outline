@@ -133,7 +133,10 @@ export type Props = {
   /** Callback when file upload progress changes */
   onFileUploadProgress?: (id: string, fractionComplete: number) => void;
   /** Callback when a link is created, should return url to created document */
-  onCreateLink?: (params: Properties<Document>) => Promise<string>;
+  onCreateLink?: (
+    params: Properties<Document>,
+    nested?: boolean
+  ) => Promise<string>;
   /** Callback when user clicks on any link in the document */
   onClickLink: (
     href: string,
