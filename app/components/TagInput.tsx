@@ -15,14 +15,6 @@ interface Props {
   canUpdate: boolean;
 }
 
-/**
- * Inline tag editor below the document title. Renders existing tags as
- * dismissible pills and an input with typeahead autocomplete.
- *
- * @param documentId - the document being tagged.
- * @param tags - current tags on the document.
- * @param canUpdate - whether the current user can edit tags.
- */
 function TagInput({ documentId, tags, canUpdate }: Props) {
   const { tags: tagsStore } = useStores();
   const { t } = useTranslation();
@@ -189,4 +181,8 @@ const SuggestionItem = styled.li`
   }
 `;
 
+/**
+ * Inline tag editor below the document title. Renders existing tags as
+ * dismissible pills and an input with typeahead autocomplete.
+ */
 export default observer(TagInput);
