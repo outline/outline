@@ -117,7 +117,7 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
   }
 
   protected subject({ document, eventType }: Props) {
-    return this.t(`”{{ documentTitle }}” {{ eventName }}`, {
+    return this.t(`“{{ documentTitle }}” {{ eventName }}`, {
       documentTitle: document.titleWithDefault,
       eventName: this.eventName(eventType),
     });
@@ -187,7 +187,7 @@ ${this.t("Open Document")}: ${teamUrl}${document.url}
 
         <Body>
           <Heading>
-            {this.t(`”{{ documentTitle }}” {{ eventName }}`, {
+            {this.t(`“{{ documentTitle }}” {{ eventName }}`, {
               documentTitle: document.titleWithDefault,
               eventName,
             })}

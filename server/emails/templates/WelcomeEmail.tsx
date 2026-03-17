@@ -28,7 +28,7 @@ export default class WelcomeEmail extends BaseEmail<Props, BeforeSend> {
   }
 
   protected subject() {
-    return this.t("Welcome to {{ appName }}", { appName: env.APP_NAME });
+    return this.t("Welcome to {{ appName }}!", { appName: env.APP_NAME });
   }
 
   protected async beforeSend(props: Props) {
@@ -69,7 +69,7 @@ ${teamUrl}/home
 
         <Body>
           <Heading>
-            {this.t("Welcome to {{ appName }}", { appName: env.APP_NAME })}
+            {this.t("Welcome to {{ appName }}!", { appName: env.APP_NAME })}
           </Heading>
           <p>
             {this.t(
@@ -79,7 +79,7 @@ ${teamUrl}/home
           </p>
           <p>
             {this.t(
-              "To get started, head to the home screen and try creating a collection to help document your processes, create playbooks, or plan your teams work."
+              "To get started, head to the home screen and try creating a collection to help document your processes, create playbooks, or plan your team's work."
             )}
           </p>
           <p>

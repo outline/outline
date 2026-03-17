@@ -33,7 +33,7 @@ export default class ConfirmTeamDeleteEmail extends BaseEmail<Props> {
   protected renderAsText({ deleteConfirmationCode }: Props): string {
     return `
 ${this.t(
-  "You requested to permanently delete your {{ appName }} workspace. Please enter the code below to confirm the workspace deletion.",
+  "You requested to permanently delete your {{ appName }} workspace. Please enter the code below to confirm your workspace deletion.",
   { appName: env.APP_NAME }
 )}
 
