@@ -2037,6 +2037,49 @@ describe("#documents.search", () => {
     const expectedIds = docsInCollection1.map((d) => d.id).sort();
     expect(returnedIds).toEqual(expectedIds);
   });
+
+  it("should filter documents by tagIds", async () => {
+    const user = await buildUser();
+    const docWithTag = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      title: "tagged document",
+    });
+    const docWithout = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      title: "untagged document",
+    });
+
+    const tagRes = await server.post("/api/tags.create", {
+      body: {
+        token: user.getJwtToken(),
+        name: "searchable",
+      },
+    });
+    const tagBody = await tagRes.json();
+
+    await server.post("/api/tags.add", {
+      body: {
+        token: user.getJwtToken(),
+        tagId: tagBody.data.id,
+        documentId: docWithTag.id,
+      },
+    });
+
+    const res = await server.post("/api/documents.search", {
+      body: {
+        token: user.getJwtToken(),
+        tagIds: [tagBody.data.id],
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    const ids = body.data.map((d: { document: { id: string } }) => d.document.id);
+    expect(ids).toContain(docWithTag.id);
+    expect(ids).not.toContain(docWithout.id);
+  });
 });
 
 describe("#documents.templatize", () => {

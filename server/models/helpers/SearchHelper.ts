@@ -55,6 +55,8 @@ type SearchOptions = {
   statusFilter?: StatusFilter[];
   /** Limit results to a list of documents. */
   documentIds?: string[];
+  /** Limit results to documents with all of these tag IDs (AND semantics) */
+  tagIds?: string[];
   /** Limit results to a list of users that collaborated on the document. */
   collaboratorIds?: string[];
   /** The minimum number of words to be returned in the contextual snippet */
@@ -654,6 +656,16 @@ export default class SearchHelper {
       where[Op.and].push({
         id: options.documentIds,
       });
+    }
+
+    if (options.tagIds?.length) {
+      for (const tagId of options.tagIds) {
+        where[Op.and].push(
+          Sequelize.literal(
+            `EXISTS (SELECT 1 FROM document_tags dt WHERE dt."documentId" = "document"."id" AND dt."tagId" = ${sequelize.escape(tagId)})`
+          ) as unknown as WhereOptions<Document>
+        );
+      }
     }
 
     const statusQuery = [];
