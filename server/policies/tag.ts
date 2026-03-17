@@ -4,7 +4,7 @@ import { isTeamAdmin, isTeamMember, or } from "./utils";
 
 allow(User, "read", Tag, isTeamMember);
 
-allow(User, ["create", "update"], Tag, (actor, tag) =>
+allow(User, "update", Tag, (actor, tag) =>
   or(isTeamMember(actor, tag), isTeamAdmin(actor, tag))
 );
 
