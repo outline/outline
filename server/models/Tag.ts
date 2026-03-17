@@ -1,11 +1,12 @@
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
-  BeforeSave,
+  BeforeValidate,
+  BelongsTo,
   Column,
   DataType,
-  BelongsTo,
-  HasMany,
   ForeignKey,
+  HasMany,
+  NotEmpty,
   Table,
 } from "sequelize-typescript";
 import DocumentTag from "./DocumentTag";
@@ -13,6 +14,7 @@ import Team from "./Team";
 import User from "./User";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
+import Length from "./validators/Length";
 
 @Table({ tableName: "tags", modelName: "tag" })
 @Fix
@@ -20,13 +22,10 @@ class Tag extends IdModel<
   InferAttributes<Tag>,
   Partial<InferCreationAttributes<Tag>>
 > {
-  @Column
+  @NotEmpty
+  @Length({ max: 255, msg: "name must be 255 characters or less" })
+  @Column(DataType.STRING)
   name: string;
-
-  @BeforeSave
-  static normalizeName(model: Tag) {
-    model.name = model.name.trim().toLowerCase();
-  }
 
   // associations
 
@@ -46,6 +45,13 @@ class Tag extends IdModel<
 
   @HasMany(() => DocumentTag, "tagId")
   documentTags: DocumentTag[];
+
+  // hooks
+
+  @BeforeValidate
+  static normalizeName(model: Tag) {
+    model.name = model.name.trim().toLowerCase();
+  }
 }
 
 export default Tag;
