@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import type Tag from "~/models/Tag";
 import Text from "./Text";
@@ -17,6 +18,8 @@ interface Props {
  * @param onRemove - optional handler when a pill's dismiss button is clicked.
  */
 export function TagList({ tags, onRemove }: Props) {
+  const { t } = useTranslation();
+
   if (!tags.length) {
     return null;
   }
@@ -31,7 +34,7 @@ export function TagList({ tags, onRemove }: Props) {
           {onRemove && (
             <Remove
               type="button"
-              aria-label={`Remove tag ${tag.name}`}
+              aria-label={t("Remove tag {{name}}", { name: tag.name })}
               onClick={() => onRemove(tag)}
             >
               ×
