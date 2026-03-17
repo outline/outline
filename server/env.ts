@@ -12,7 +12,6 @@ import {
   Length,
   IsNumber,
   IsIn,
-  IsEmail,
   IsBoolean,
 } from "class-validator";
 import uniq from "lodash/uniq";
@@ -24,6 +23,7 @@ import {
   CannotUseWithAny,
   IsInCaseInsensitive,
   IsDatabaseUrl,
+  IsMailboxAddress,
 } from "@server/utils/validators";
 import Deprecated from "./models/decorators/Deprecated";
 import { getArg } from "./utils/args";
@@ -405,7 +405,7 @@ export class Environment {
   /**
    * The email address from which emails are sent.
    */
-  @IsEmail({ allow_display_name: true, allow_ip_domain: true })
+  @IsMailboxAddress()
   @IsOptional()
   public SMTP_FROM_EMAIL = this.toOptionalString(environment.SMTP_FROM_EMAIL);
 
@@ -413,7 +413,7 @@ export class Environment {
    * The reply-to address for emails sent from Outline. If unset the from
    * address is used by default.
    */
-  @IsEmail({ allow_display_name: true, allow_ip_domain: true })
+  @IsMailboxAddress()
   @IsOptional()
   public SMTP_REPLY_EMAIL = this.toOptionalString(environment.SMTP_REPLY_EMAIL);
 

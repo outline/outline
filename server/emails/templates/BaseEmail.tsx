@@ -201,6 +201,10 @@ export default abstract class BaseEmail<
     );
 
     const parsedFrom = addressparser(env.SMTP_FROM_EMAIL)[0];
+    invariant(
+      parsedFrom?.address?.includes("@"),
+      `SMTP_FROM_EMAIL is not a valid email address: "${env.SMTP_FROM_EMAIL}"`
+    );
     const domain = parsedFrom.address.split("@")[1];
     const customFromName = this.fromName?.(props);
 

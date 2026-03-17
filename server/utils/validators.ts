@@ -1,5 +1,7 @@
+import addressparser from "addressparser";
 import type { ValidationArguments, ValidationOptions } from "class-validator";
 import { registerDecorator } from "class-validator";
+import { isEmail } from "validator";
 
 /**
  * Validates a PostgreSQL database connection URL, including support for
@@ -259,6 +261,74 @@ export function IsDatabaseUrl(
         },
         defaultMessage() {
           return `${propertyName} must be a URL address`;
+        },
+      },
+    });
+  };
+}
+
+/**
+ * Validates an email address in either plain format (email@domain.com) or
+ * mailbox format (Display Name <email@domain.com>). Uses addressparser to
+ * extract the email address before validation, which provides correct handling
+ * of display names that may contain characters like periods or other special
+ * characters.
+ *
+ * @param value the email address string to validate.
+ * @returns true if the value is a valid email or valid mailbox address, false otherwise.
+ */
+export function isMailboxAddress(value: string): boolean {
+  try {
+    const parsed = addressparser(value);
+    // If parsing results in multiple addresses (e.g., comma in unquoted display
+    // name), the input is malformed and should be rejected.
+    if (parsed.length !== 1) {
+      return false;
+    }
+    const [{ address }] = parsed;
+    if (!address?.includes("@")) {
+      return false;
+    }
+    return isEmail(address, { allow_ip_domain: true });
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Decorator that validates an email address in either plain format
+ * (email@domain.com) or mailbox format (Display Name <email@domain.com>).
+ *
+ * Unlike @IsEmail, this decorator supports display names containing characters
+ * such as periods, which are commonly used in application names
+ * (e.g., "App v1.0 <noreply@example.com>").
+ *
+ * Note: Display names containing commas must be quoted, e.g.:
+ * "Company, Inc." <email@example.com>
+ *
+ * @param validationOptions additional validation options.
+ * @returns decorator function.
+ */
+export function IsMailboxAddress(validationOptions?: ValidationOptions) {
+  return function (object: object, propertyName: string) {
+    registerDecorator({
+      name: "isMailboxAddress",
+      target: object.constructor,
+      propertyName,
+      constraints: [],
+      options: validationOptions,
+      validator: {
+        validate(value: unknown) {
+          if (value === undefined || value === null) {
+            return true;
+          }
+          if (typeof value !== "string") {
+            return false;
+          }
+          return isMailboxAddress(value);
+        },
+        defaultMessage() {
+          return `${propertyName} must be a valid email address or use mailbox format (e.g., "Display Name <email@example.com>"). Note: display names containing commas must be quoted (e.g., '"Company, Inc." <email@example.com>').`;
         },
       },
     });
