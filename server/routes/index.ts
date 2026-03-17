@@ -117,7 +117,11 @@ router.get(
     "/.well-known/oauth-authorization-server/mcp",
   ],
   async (ctx) => {
-    const origin = ctx.request.URL.origin;
+    // Use the configured URL for self-hosted deployments to preserve the port when behind
+    // a reverse proxy that may strip the port from the Host header.
+    const origin = env.isCloudHosted
+      ? ctx.request.URL.origin
+      : new URL(env.URL).origin;
     const team = await getTeamFromContext(ctx, { includeStateCookie: false });
     const mcpEnabled = team?.getPreference(TeamPreference.MCP) ?? true;
 
@@ -153,7 +157,11 @@ router.get(
       return;
     }
 
-    const origin = ctx.request.URL.origin;
+    // Use the configured URL for self-hosted deployments to preserve the port when behind
+    // a reverse proxy that may strip the port from the Host header.
+    const origin = env.isCloudHosted
+      ? ctx.request.URL.origin
+      : new URL(env.URL).origin;
 
     ctx.body = {
       resource: `${origin}/mcp`,
