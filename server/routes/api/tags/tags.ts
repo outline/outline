@@ -138,6 +138,7 @@ router.post(
     });
 
     ctx.body = {
+      pagination: ctx.state.pagination,
       data: tags.map((tag) =>
         presentTag(tag, Number((tag as Tag & { dataValues: { documentCount: string } }).dataValues.documentCount))
       ),
@@ -199,11 +200,15 @@ router.post(
     });
     authorize(user, "update", document);
 
+    const dt = await DocumentTag.findOne({
+      where: { tagId, documentId },
+      transaction: t,
+    });
     await DocumentTag.destroy({ where: { tagId, documentId }, transaction: t });
 
     await Event.schedule({
       name: "tags.remove",
-      modelId: tagId,
+      modelId: dt?.id ?? tagId,
       tagId,
       documentId,
       teamId: user.teamId,
