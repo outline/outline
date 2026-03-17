@@ -11,9 +11,6 @@ import Store from "./base/Store";
  * association of tags with documents.
  */
 export default class TagsStore extends Store<Tag> {
-  @observable
-  private nameMap = new Map<string, Tag>();
-
   constructor(rootStore: RootStore) {
     super(rootStore, Tag);
     // Capture the parent's arrow-function `add` (set on the instance by the
@@ -115,4 +112,17 @@ export default class TagsStore extends Store<Tag> {
       a.name.localeCompare(b.name)
     );
   }
+
+  /**
+   * Clear all tags and the name cache.
+   */
+  override clear() {
+    super.clear();
+    this.nameMap.clear();
+  }
+
+  // private
+
+  @observable
+  private nameMap = new Map<string, Tag>();
 }
