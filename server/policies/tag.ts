@@ -1,8 +1,8 @@
 import { User, Tag, Team } from "@server/models";
 import { allow } from "./cancan";
-import { isTeamAdmin, isTeamMember, or } from "./utils";
+import { isTeamAdmin, isTeamMember, isTeamModel, or } from "./utils";
 
-allow(User, "read", Tag, isTeamMember);
+allow(User, "read", Tag, isTeamModel);
 
 allow(User, "update", Tag, (actor, tag) =>
   or(isTeamMember(actor, tag), isTeamAdmin(actor, tag))
