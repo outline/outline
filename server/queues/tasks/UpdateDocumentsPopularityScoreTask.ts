@@ -72,6 +72,9 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
     this.workingTable = `${WORKING_TABLE_PREFIX}_${dateStr}_${uniqueId}`;
 
     try {
+      // Clean up any stale working tables left behind by previous crashed runs
+      await this.cleanupStaleWorkingTables();
+
       // Setup: Create working table and populate with active document IDs
       await this.setupWorkingTable(threshold, partition);
 
@@ -441,6 +444,41 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
       `,
       { replacements: { limit: BATCH_SIZE } }
     );
+  }
+
+  /**
+   * Drops any stale working tables from previous dates that were left behind
+   * by runs interrupted before cleanup could occur (e.g. worker killed mid-run).
+   * Only removes tables from before the current date to avoid race conditions
+   * with concurrent runs.
+   */
+  private async cleanupStaleWorkingTables(): Promise<void> {
+    try {
+      const todayStr = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+      const tables = await sequelize.query<{ tablename: string }>(
+        `SELECT tablename FROM pg_tables
+         WHERE schemaname = 'public'
+           AND tablename LIKE :prefix`,
+        {
+          replacements: {
+            prefix: `${WORKING_TABLE_PREFIX}%`,
+          },
+          type: QueryTypes.SELECT,
+        }
+      );
+
+      const prefixLen = WORKING_TABLE_PREFIX.length + 1; // +1 for underscore
+
+      for (const { tablename } of tables) {
+        const dateStr = tablename.slice(prefixLen, prefixLen + 8);
+        if (dateStr < todayStr) {
+          Logger.info("task", `Dropping stale working table: ${tablename}`);
+          await sequelize.query(`DROP TABLE IF EXISTS "${tablename}" CASCADE`);
+        }
+      }
+    } catch (error) {
+      Logger.warn("Failed to clean up stale working tables", { error });
+    }
   }
 
   /**
