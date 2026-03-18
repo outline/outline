@@ -83,7 +83,17 @@ function Search() {
   const sort = (params.get("sort") as TSortFilter) ?? "";
   const direction = (params.get("direction") as TDirectionFilter) ?? "";
 
-  const isSearchable = !!(query || collectionId || userId || tagIds.length);
+  // True when tag tokens were typed but none resolved to known tags — no documents can match
+  const hasUnresolvedTags =
+    tagNames.length > 0 && tagIds.length < tagNames.length;
+
+  const isSearchable = !!(
+    cleanQuery ||
+    collectionId ||
+    userId ||
+    tagIds.length ||
+    hasUnresolvedTags
+  );
 
   const document = documentId ? documents.get(documentId) : undefined;
 
@@ -141,6 +151,10 @@ function Search() {
           offset: params?.offset,
           limit: params?.limit,
         };
+        // A tag token was typed but it doesn't match any known tag — return nothing
+        if (hasUnresolvedTags) {
+          return [] as SearchResult[];
+        }
         if (titleFilter && !filters.query) {
           return [] as SearchResult[];
         }
@@ -151,7 +165,7 @@ function Search() {
     }
 
     return () => Promise.resolve([] as SearchResult[]);
-  }, [query, titleFilter, filters, searches, documents, isSearchable]);
+  }, [query, titleFilter, filters, searches, documents, isSearchable, hasUnresolvedTags]);
 
   const { data, next, end, error, loading } = usePaginatedRequest(requestFn, {
     limit: Pagination.defaultLimit,
