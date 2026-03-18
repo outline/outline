@@ -30,10 +30,7 @@ function Tags() {
       ) : (
         <TagGrid>
           {tags.orderedData.map((tag) => (
-            <TagCard
-              key={tag.id}
-              to={searchPath({ query: `#${tag.name}` })}
-            >
+            <TagCard key={tag.id} to={searchPath({ query: `#${tag.name}` })}>
               <TagName size="medium" weight="bold">
                 #{tag.name}
               </TagName>

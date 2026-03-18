@@ -2108,7 +2108,9 @@ describe("#documents.search", () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    const ids = body.data.map((d: { document: { id: string } }) => d.document.id);
+    const ids = body.data.map(
+      (d: { document: { id: string } }) => d.document.id
+    );
     expect(ids).toContain(docWithTag.id);
     expect(ids).not.toContain(docWithout.id);
   });
