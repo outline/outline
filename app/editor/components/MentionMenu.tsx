@@ -1,7 +1,12 @@
 import { isEmail } from "class-validator";
 import { observer } from "mobx-react";
 import { v4 as uuidv4 } from "uuid";
-import { DocumentIcon, PlusIcon, CollectionIcon } from "outline-icons";
+import {
+  DocumentIcon,
+  PlusIcon,
+  NewDocumentIcon,
+  CollectionIcon,
+} from "outline-icons";
 import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
@@ -225,6 +230,24 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
               modelId: uuidv4(),
               actorId,
               label: search,
+            },
+          } as MentionItem,
+          {
+            name: "link",
+            icon: <NewDocumentIcon />,
+            title: search?.trim(),
+            section: DocumentsSection,
+            subtitle: t("Create a nested doc"),
+            visible: !!search && !isEmail(search) && !!documentId,
+            priority: -2,
+            appendSpace: true,
+            attrs: {
+              id: uuidv4(),
+              type: MentionType.Document,
+              modelId: uuidv4(),
+              actorId,
+              label: search,
+              nested: true,
             },
           } as MentionItem,
         ])

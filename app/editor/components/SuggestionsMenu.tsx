@@ -245,10 +245,13 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
             ...item,
             name: "mention",
           });
-          void editorProps.onCreateLink?.({
-            title: item.attrs.label,
-            id: item.attrs.modelId,
-          });
+          void editorProps.onCreateLink?.(
+            {
+              title: item.attrs.label,
+              id: item.attrs.modelId,
+            },
+            !!item.attrs.nested
+          );
           return;
         case "image":
           return triggerFilePick(
