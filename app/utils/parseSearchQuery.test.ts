@@ -35,4 +35,22 @@ describe("parseSearchQuery", () => {
     expect(result.cleanQuery).toBe("");
     expect(result.tagNames).toEqual([]);
   });
+
+  it("ignores a lone # with no following name", () => {
+    const result = parseSearchQuery("docs # react");
+    expect(result.cleanQuery).toBe("docs # react");
+    expect(result.tagNames).toEqual([]);
+  });
+
+  it("handles tags with hyphens and numbers", () => {
+    const result = parseSearchQuery("#tag-1 #v2 docs");
+    expect(result.tagNames).toEqual(["tag-1", "v2"]);
+    expect(result.cleanQuery).toBe("docs");
+  });
+
+  it("deduplicates repeated tags", () => {
+    const result = parseSearchQuery("#a #a #b");
+    expect(result.tagNames).toEqual(["a", "b"]);
+    expect(result.cleanQuery).toBe("");
+  });
 });

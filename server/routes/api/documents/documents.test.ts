@@ -514,6 +514,38 @@ describe("#documents.info", () => {
     expect(res.status).toEqual(400);
     expect(body.message).toEqual("shareId: Invalid input");
   });
+
+  it("should include tags in the response", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const tagRes = await server.post("/api/tags.create", {
+      body: { token: user.getJwtToken(), name: "info-tag" },
+    });
+    const tagBody = await tagRes.json();
+
+    await server.post("/api/tags.add", {
+      body: {
+        token: user.getJwtToken(),
+        tagId: tagBody.data.id,
+        documentId: document.id,
+      },
+    });
+
+    const res = await server.post("/api/documents.info", {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(Array.isArray(body.data.tags)).toBe(true);
+    expect(body.data.tags.map((t: { name: string }) => t.name)).toContain(
+      "info-tag"
+    );
+  });
 });
 
 describe("#documents.export", () => {
