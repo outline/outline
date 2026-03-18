@@ -198,7 +198,7 @@ export type DocumentsSearchReq = z.infer<typeof DocumentsSearchSchema>;
 export const DocumentsSearchTitlesSchema = BaseSchema.extend({
   body: BaseSearchSchema.extend({
     /** Query for search */
-    query: z.string().refine((val) => val.trim() !== ""),
+    query: z.string().optional(),
 
     /** Specifies the attributes by which search results will be sorted */
     sort: z.enum(Object.values(SortFilter) as [string, ...string[]]).optional(),
@@ -207,6 +207,9 @@ export const DocumentsSearchTitlesSchema = BaseSchema.extend({
     direction: z
       .enum(Object.values(DirectionFilter) as [string, ...string[]])
       .optional(),
+
+    /** Filter results to documents with all of these tags */
+    tagIds: z.array(z.uuid()).optional(),
   }),
 });
 
