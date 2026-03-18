@@ -73,6 +73,7 @@ export default function useDictionary() {
       link: t("Link"),
       linkCopied: t("Link copied to clipboard"),
       mark: t("Highlight"),
+      textColor: t("Text color"),
       background: t("Background color"),
       newLineEmpty: `${t("Type '/' to insert")}…`,
       newLineWithSlash: `${t("Keep typing to filter")}…`,

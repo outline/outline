@@ -25,9 +25,12 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import CellBackgroundColorPicker from "../components/CellBackgroundColorPicker";
 import HighlightColorPicker from "../components/HighlightColorPicker";
+import TextColorPicker from "../components/TextColorPicker";
+import FontColorIcon from "~/components/Icons/FontColorIcon";
 import type { EditorState } from "prosemirror-state";
 
 import { getDocumentHighlightColors } from "@shared/editor/queries/getDocumentHighlightColors";
+import { getDocumentTextColors } from "@shared/editor/queries/getDocumentTextColors";
 import { getMarksBetween } from "@shared/editor/queries/getMarksBetween";
 import { isInCode } from "@shared/editor/queries/isInCode";
 import { isInList } from "@shared/editor/queries/isInList";
@@ -52,6 +55,7 @@ import {
 import { CellSelection } from "prosemirror-tables";
 import TableCell from "@shared/editor/nodes/TableCell";
 import Highlight from "@shared/editor/marks/Highlight";
+import TextColor from "@shared/editor/marks/TextColor";
 import { DottedCircleIcon } from "~/components/Icons/DottedCircleIcon";
 
 export default function formattingMenuItems(
@@ -68,11 +72,19 @@ export default function formattingMenuItems(
   const isList = isInList(state);
   const isTableCell = state.selection instanceof CellSelection;
 
-  const highlight = getMarksBetween(
+  const marksInSelection = getMarksBetween(
     state.selection.from,
     state.selection.to,
     state
-  ).find(({ mark }) => mark.type === state.schema.marks.highlight);
+  );
+
+  const highlight = marksInSelection.find(
+    ({ mark }) => mark.type === state.schema.marks.highlight
+  );
+
+  const textColorMark = marksInSelection.find(
+    ({ mark }) => mark.type === state.schema.marks.textColor
+  );
 
   const cellSelectionHasBackground = isTableCell
     ? hasNodeAttrMarkCellSelection(
@@ -294,6 +306,94 @@ export default function formattingMenuItems(
                     activeColor={
                       highlight?.mark.attrs.color ||
                       Highlight.presetColors[0].hex
+                    }
+                  />
+                ),
+                preventCloseCondition: () =>
+                  !!document.activeElement?.matches(
+                    ".ProseMirror.ProseMirror-focused"
+                  ),
+              },
+            ],
+          },
+        ];
+      },
+    },
+    {
+      tooltip: dictionary.textColor,
+      icon: textColorMark ? (
+        <FontColorIcon
+          color={textColorMark.mark.attrs.color || TextColor.presetColors[0].hex}
+        />
+      ) : (
+        <FontColorIcon />
+      ),
+      active: () => !!textColorMark,
+      visible: !isCode && (!isMobile || !isEmpty) && !isTableCell,
+      children: (): MenuItem[] => {
+        const documentTextColors = getDocumentTextColors(state);
+        const currentTextColor = textColorMark?.mark.attrs.color;
+        const nonPresetDocumentColors = documentTextColors.filter(
+          (color: string) =>
+            !TextColor.isPresetColor(color) && color !== currentTextColor
+        );
+
+        return [
+          ...(textColorMark
+            ? [
+                {
+                  name: "textColor",
+                  label: dictionary.none,
+                  icon: <DottedCircleIcon retainColor color="transparent" />,
+                  active: () => false,
+                  attrs: { color: textColorMark.mark.attrs.color },
+                },
+              ]
+            : []),
+          ...TextColor.presetColors.map((preset) => ({
+            name: "textColor",
+            label: preset.name,
+            icon: <CircleIcon retainColor color={preset.hex} />,
+            active: isMarkActive(schema.marks.textColor, { color: preset.hex }),
+            attrs: { color: preset.hex },
+          })),
+          ...(textColorMark &&
+          textColorMark.mark.attrs.color &&
+          !TextColor.isPresetColor(textColorMark.mark.attrs.color)
+            ? [
+                {
+                  name: "textColor",
+                  label: textColorMark.mark.attrs.color,
+                  icon: (
+                    <CircleIcon
+                      retainColor
+                      color={textColorMark.mark.attrs.color}
+                    />
+                  ),
+                  active: isMarkActive(schema.marks.textColor, {
+                    color: textColorMark.mark.attrs.color,
+                  }),
+                  attrs: { color: textColorMark.mark.attrs.color },
+                },
+              ]
+            : []),
+          ...nonPresetDocumentColors.map((color: string) => ({
+            name: "textColor",
+            label: color,
+            icon: <CircleIcon retainColor color={color} />,
+            active: () => currentTextColor === color,
+            attrs: { color },
+          })),
+          {
+            icon: <CircleIcon retainColor color="rainbow" />,
+            label: "Custom",
+            children: [
+              {
+                content: (
+                  <TextColorPicker
+                    activeColor={
+                      textColorMark?.mark.attrs.color ||
+                      TextColor.presetColors[0].hex
                     }
                   />
                 ),
