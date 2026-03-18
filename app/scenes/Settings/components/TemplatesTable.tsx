@@ -56,7 +56,7 @@ const TemplateRowContextMenu = observer(function TemplateRowContextMenu({
 export function TemplatesTable(props: Props) {
   const { t } = useTranslation();
 
-  const handleOpen = (template: Template) => () => {
+  const handleOpen = (template: Template) => {
     history.push(template.path);
   };
 
@@ -122,7 +122,10 @@ export function TemplatesTable(props: Props) {
           type: "action",
           id: "action",
           component: (template) => (
-            <TemplateMenu template={template} onEdit={handleOpen(template)} />
+            <TemplateMenu
+              template={template}
+              onEdit={() => handleOpen(template)}
+            />
           ),
           width: "50px",
         },
