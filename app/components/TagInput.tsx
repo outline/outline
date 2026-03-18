@@ -175,7 +175,10 @@ function TagInput({ documentId, tags, canUpdate }: Props) {
                     setHighlightedIndex(-1);
                     setInputValue(typedValue);
                   }}
-                  onMouseDown={() => void handleAddTag(tag)}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    void handleAddTag(tag);
+                  }}
                 >
                   #{tag.name}
                 </SuggestionItem>
@@ -186,7 +189,10 @@ function TagInput({ documentId, tags, canUpdate }: Props) {
                 ) && (
                   <SuggestionItem
                     highlighted={highlightedIndex === suggestions.length}
-                    onMouseDown={() => void handleAddTag(typedValue)}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      void handleAddTag(typedValue);
+                    }}
                   >
                     {t(`Create "{{name}}"`, {
                       name: typedValue.trim().toLowerCase(),
