@@ -392,6 +392,6 @@
     "cheerio": "1.0.0-rc.12",
     "zod": "^4.2.1"
   },
-  "version": "1.6.0",
+  "version": "1.6.1",
   "packageManager": "yarn@4.11.0"
 }
