@@ -1009,6 +1009,7 @@ router.post(
       userId,
       sort,
       direction,
+      tagIds,
     } = ctx.input.body;
     const { offset, limit } = ctx.state.pagination;
     const { user } = ctx.state.auth;
@@ -1031,6 +1032,7 @@ router.post(
       statusFilter,
       collectionId,
       collaboratorIds,
+      tagIds,
       offset,
       limit,
       sort: sort as SortFilter,
