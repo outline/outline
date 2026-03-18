@@ -54,6 +54,10 @@ function Search() {
   const history = useHistory();
   const routeMatch = useRouteMatch<{ query: string }>();
 
+  React.useEffect(() => {
+    void tagsStore.fetchPage();
+  }, [tagsStore]);
+
   // refs
   const searchInputRef = React.useRef<HTMLInputElement | null>(null);
   const resultListRef = React.useRef<HTMLDivElement | null>(null);

@@ -16,7 +16,7 @@ interface Props {
 }
 
 function TagInput({ documentId, tags, canUpdate }: Props) {
-  const { tags: tagsStore } = useStores();
+  const { tags: tagsStore, documents } = useStores();
   const { t } = useTranslation();
   const [inputValue, setInputValue] = React.useState("");
   const [suggestions, setSuggestions] = React.useState<Tag[]>([]);
@@ -25,6 +25,14 @@ function TagInput({ documentId, tags, canUpdate }: Props) {
   React.useEffect(() => {
     void tagsStore.fetchPage();
   }, [tagsStore]);
+
+  // Hydrate document.tags from the server on mount if not yet populated.
+  React.useEffect(() => {
+    const document = documents.get(documentId);
+    if (document && document.tags.length === 0) {
+      void documents.fetch(documentId, { force: true });
+    }
+  }, [documents, documentId]);
 
   const handleInputChange = React.useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,11 +67,15 @@ function TagInput({ documentId, tags, canUpdate }: Props) {
       }
       const tag = await tagsStore.createTag(name);
       await tagsStore.addToDocument(tag.id, documentId);
+      const document = documents.get(documentId);
+      if (document && !document.tags.find((t) => t.id === tag.id)) {
+        document.tags = [...document.tags, tag];
+      }
       setInputValue("");
       setSuggestions([]);
       setIsOpen(false);
     },
-    [tagsStore, documentId]
+    [tagsStore, documents, documentId]
   );
 
   const handleKeyDown = React.useCallback(
@@ -83,8 +95,12 @@ function TagInput({ documentId, tags, canUpdate }: Props) {
   const handleRemove = React.useCallback(
     (tag: Tag) => {
       void tagsStore.removeFromDocument(tag.id, documentId);
+      const document = documents.get(documentId);
+      if (document) {
+        document.tags = document.tags.filter((t) => t.id !== tag.id);
+      }
     },
-    [tagsStore, documentId]
+    [tagsStore, documents, documentId]
   );
 
   return (
