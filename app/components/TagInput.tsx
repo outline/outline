@@ -19,8 +19,10 @@ function TagInput({ documentId, tags, canUpdate }: Props) {
   const { tags: tagsStore, documents } = useStores();
   const { t } = useTranslation();
   const [inputValue, setInputValue] = React.useState("");
+  const [typedValue, setTypedValue] = React.useState("");
   const [suggestions, setSuggestions] = React.useState<Tag[]>([]);
   const [isOpen, setIsOpen] = React.useState(false);
+  const [highlightedIndex, setHighlightedIndex] = React.useState(-1);
 
   React.useEffect(() => {
     void tagsStore.fetchPage();
@@ -38,6 +40,8 @@ function TagInput({ documentId, tags, canUpdate }: Props) {
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value;
       setInputValue(value);
+      setTypedValue(value);
+      setHighlightedIndex(-1);
 
       if (value.trim()) {
         const normalizedInput = value.trim().toLowerCase();
@@ -72,24 +76,59 @@ function TagInput({ documentId, tags, canUpdate }: Props) {
         document.tags = [...document.tags, tag];
       }
       setInputValue("");
+      setTypedValue("");
       setSuggestions([]);
       setIsOpen(false);
+      setHighlightedIndex(-1);
     },
     [tagsStore, documents, documentId]
   );
 
   const handleKeyDown = React.useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        if (suggestions.length > 0) {
+          const next = Math.min(highlightedIndex + 1, suggestions.length - 1);
+          setHighlightedIndex(next);
+          setInputValue(suggestions[next].name);
+        }
+        return;
+      }
+
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        if (highlightedIndex > 0) {
+          const prev = highlightedIndex - 1;
+          setHighlightedIndex(prev);
+          setInputValue(suggestions[prev].name);
+        } else if (highlightedIndex === 0) {
+          setHighlightedIndex(-1);
+          setInputValue(typedValue);
+        }
+        return;
+      }
+
       if (e.key === "Enter" && inputValue.trim()) {
         e.preventDefault();
-        void handleAddTag(inputValue);
+        const selected =
+          highlightedIndex >= 0
+            ? suggestions[highlightedIndex]
+            : suggestions.length > 0
+              ? suggestions[0]
+              : inputValue;
+        void handleAddTag(selected);
+        return;
       }
+
       if (e.key === "Escape") {
         setIsOpen(false);
         setInputValue("");
+        setTypedValue("");
+        setHighlightedIndex(-1);
       }
     },
-    [inputValue, handleAddTag]
+    [inputValue, typedValue, highlightedIndex, suggestions, handleAddTag]
   );
 
   const handleRemove = React.useCallback(
@@ -114,27 +153,43 @@ function TagInput({ documentId, tags, canUpdate }: Props) {
             onKeyDown={handleKeyDown}
             placeholder={tags.length === 0 ? t("Add a tag…") : undefined}
             aria-label={t("Add tag")}
-            onBlur={() => setTimeout(() => setIsOpen(false), 150)}
+            onBlur={() =>
+              setTimeout(() => {
+                setIsOpen(false);
+                setHighlightedIndex(-1);
+                setInputValue(typedValue);
+              }, 150)
+            }
           />
           {isOpen && (
             <Dropdown>
-              {suggestions.map((tag) => (
+              {suggestions.map((tag, index) => (
                 <SuggestionItem
                   key={tag.id}
+                  highlighted={index === highlightedIndex}
+                  onMouseEnter={() => {
+                    setHighlightedIndex(index);
+                    setInputValue(tag.name);
+                  }}
+                  onMouseLeave={() => {
+                    setHighlightedIndex(-1);
+                    setInputValue(typedValue);
+                  }}
                   onMouseDown={() => void handleAddTag(tag)}
                 >
                   #{tag.name}
                 </SuggestionItem>
               ))}
-              {inputValue.trim() &&
+              {typedValue.trim() &&
                 !suggestions.find(
-                  (s) => s.name === inputValue.trim().toLowerCase()
+                  (s) => s.name === typedValue.trim().toLowerCase()
                 ) && (
                   <SuggestionItem
-                    onMouseDown={() => void handleAddTag(inputValue)}
+                    highlighted={highlightedIndex === suggestions.length}
+                    onMouseDown={() => void handleAddTag(typedValue)}
                   >
                     {t(`Create "{{name}}"`, {
-                      name: inputValue.trim().toLowerCase(),
+                      name: typedValue.trim().toLowerCase(),
                     })}
                   </SuggestionItem>
                 )}
@@ -187,10 +242,12 @@ const Dropdown = styled.ul`
   box-shadow: ${({ theme }) => theme.menuShadow};
 `;
 
-const SuggestionItem = styled.li`
+const SuggestionItem = styled.li<{ highlighted?: boolean }>`
   padding: 6px 12px;
   cursor: pointer;
   font-size: 14px;
+  background: ${({ highlighted, theme }) =>
+    highlighted ? theme.listItemHoverBackground : "transparent"};
 
   &:hover {
     background: ${({ theme }) => theme.listItemHoverBackground};
