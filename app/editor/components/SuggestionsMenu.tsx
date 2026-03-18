@@ -757,7 +757,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
   const fileInput = uploadFile && (
     <VisuallyHidden.Root>
       <label>
-        <Trans>Import document</Trans>
+        <Trans>Upload file</Trans>
         <input
           type="file"
           ref={inputRef}
@@ -977,9 +977,9 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
           ) : (
             <List>{renderItems()}</List>
           )}
-          {fileInput}
         </BouncyPopoverContent>
       </Popover>
+      {fileInput}
       {submenu && itemRefs.current.get(submenu.index) && (
         <Popover open modal={false}>
           <PopoverAnchor
