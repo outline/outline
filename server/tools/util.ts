@@ -4,6 +4,7 @@ import type { Team, User } from "@server/models";
 import { addTags } from "@server/logging/tracer";
 import { traceFunction } from "@server/logging/tracing";
 import { type APIContext, AuthenticationType } from "@server/types";
+import type { NavigationNode } from "@shared/types";
 
 interface McpContext {
   authInfo?: AuthInfo;
@@ -135,6 +136,29 @@ export function withResourceTracing<F extends (...args: any[]) => any>(
     }
     return handler.apply(this, args);
   } as F);
+}
+
+/**
+ * Builds a map from document ID to its zero-based index among siblings,
+ * derived from a collection's document structure.
+ *
+ * @param nodes - the top-level navigation nodes from a collection's documentStructure.
+ * @returns a map of document ID to sibling index.
+ */
+export function buildSiblingIndexMap(
+  nodes: NavigationNode[]
+): Map<string, number> {
+  const map = new Map<string, number>();
+
+  function walk(children: NavigationNode[]) {
+    children.forEach((node, idx) => {
+      map.set(node.id, idx);
+      walk(node.children);
+    });
+  }
+
+  walk(nodes);
+  return map;
 }
 
 /**
