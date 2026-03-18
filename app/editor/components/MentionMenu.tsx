@@ -233,7 +233,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
             },
           } as MentionItem,
           {
-            name: "nested-link",
+            name: "link",
             icon: <NewDocumentIcon />,
             title: search?.trim(),
             section: DocumentsSection,
@@ -247,6 +247,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
               modelId: uuidv4(),
               actorId,
               label: search,
+              nested: true,
             },
           } as MentionItem,
         ])

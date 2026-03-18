@@ -240,7 +240,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       props.onSelect?.(item);
 
       switch (item.name) {
-        case "nested-link":
+        case "link":
           insertNode({
             ...item,
             name: "mention",
@@ -250,18 +250,8 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
               title: item.attrs.label,
               id: item.attrs.modelId,
             },
-            true
+            !!item.attrs.nested
           );
-          return;
-        case "link":
-          insertNode({
-            ...item,
-            name: "mention",
-          });
-          void editorProps.onCreateLink?.({
-            title: item.attrs.label,
-            id: item.attrs.modelId,
-          });
           return;
         case "image":
           return triggerFilePick(

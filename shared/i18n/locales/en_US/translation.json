@@ -553,6 +553,7 @@
   "Height": "Height",
   "Profile picture": "Profile picture",
   "Create a new doc": "Create a new doc",
+  "Create a nested doc": "Create a nested doc",
   "{{ userName }} won't be notified, as they do not have access to this document": "{{ userName }} won't be notified, as they do not have access to this document",
   "Members of \"{{ groupName }}\" that have access to this document will be notified": "Members of \"{{ groupName }}\" that have access to this document will be notified",
   "Keep as link": "Keep as link",
