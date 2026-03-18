@@ -165,7 +165,15 @@ function Search() {
     }
 
     return () => Promise.resolve([] as SearchResult[]);
-  }, [query, titleFilter, filters, searches, documents, isSearchable, hasUnresolvedTags]);
+  }, [
+    query,
+    titleFilter,
+    filters,
+    searches,
+    documents,
+    isSearchable,
+    hasUnresolvedTags,
+  ]);
 
   const { data, next, end, error, loading } = usePaginatedRequest(requestFn, {
     limit: Pagination.defaultLimit,

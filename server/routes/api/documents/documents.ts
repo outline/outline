@@ -612,9 +612,7 @@ router.post(
         where: { documentId: document.id },
         include: [{ model: Tag }],
       });
-      serializedDocument.tags = documentTags.map((dt) =>
-        presentTag(dt.tag)
-      );
+      serializedDocument.tags = documentTags.map((dt) => presentTag(dt.tag));
     }
 
     ctx.body = {

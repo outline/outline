@@ -1,5 +1,6 @@
 import Router from "koa-router";
-import { Sequelize } from "sequelize";
+import { Sequelize, UniqueConstraintError } from "sequelize";
+import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
@@ -66,7 +67,15 @@ router.post(
     });
     authorize(user, "update", tag);
 
-    await tag.update({ name: name.trim().toLowerCase() }, { transaction: t });
+    const normalizedName = name.trim().toLowerCase();
+    try {
+      await tag.update({ name: normalizedName }, { transaction: t });
+    } catch (err) {
+      if (err instanceof UniqueConstraintError) {
+        throw ValidationError(`A tag named "${normalizedName}" already exists`);
+      }
+      throw err;
+    }
 
     await Event.schedule({
       name: "tags.update",
@@ -139,9 +148,11 @@ router.post(
 
     ctx.body = {
       pagination: ctx.state.pagination,
-      data: tags.map((tag) =>
-        presentTag(tag, Number((tag as Tag & { dataValues: { documentCount: string } }).dataValues.documentCount))
-      ),
+      data: tags.map((tag) => {
+        const count = (tag.dataValues as Record<string, unknown>)
+          .documentCount as string | undefined;
+        return presentTag(tag, Number(count ?? 0));
+      }),
       policies: presentPolicies(user, tags),
     };
   }
@@ -158,7 +169,10 @@ router.post(
     const { user } = ctx.state.auth;
 
     const [tag, document] = await Promise.all([
-      Tag.findOne({ where: { id: tagId, teamId: user.teamId }, transaction: t }),
+      Tag.findOne({
+        where: { id: tagId, teamId: user.teamId },
+        transaction: t,
+      }),
       Document.findByPk(documentId, { userId: user.id, transaction: t }),
     ]);
 
@@ -204,16 +218,19 @@ router.post(
       where: { tagId, documentId },
       transaction: t,
     });
-    await DocumentTag.destroy({ where: { tagId, documentId }, transaction: t });
 
-    await Event.schedule({
-      name: "tags.remove",
-      modelId: dt?.id ?? tagId,
-      documentId,
-      data: { tagId },
-      teamId: user.teamId,
-      actorId: user.id,
-    });
+    if (dt) {
+      await dt.destroy({ transaction: t });
+
+      await Event.schedule({
+        name: "tags.remove",
+        modelId: dt.id,
+        documentId,
+        data: { tagId },
+        teamId: user.teamId,
+        actorId: user.id,
+      });
+    }
 
     ctx.body = { success: true };
   }
