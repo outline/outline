@@ -23,6 +23,7 @@ import {
   error,
   success,
   buildAPIContext,
+  buildSiblingIndexMap,
   getActorFromContext,
   pathToUrl,
   withTracing,
@@ -138,11 +139,18 @@ export function documentTools(server: McpServer, scopes: string[]) {
             const effectiveOffset = offset ?? 0;
             const effectiveLimit = limit ?? 25;
 
+            let indexMap: Map<string, number> | undefined;
+
             if (collectionId) {
               const collection = await Collection.findByPk(collectionId, {
                 userId: user.id,
+                includeDocumentStructure: true,
               });
               authorize(user, "readDocument", collection);
+
+              if (collection?.documentStructure) {
+                indexMap = buildSiblingIndexMap(collection.documentStructure);
+              }
             }
 
             if (query) {
@@ -180,7 +188,14 @@ export function documentTools(server: McpServer, scopes: string[]) {
                         includeText: false,
                       })
                     );
-                    return { ...doc, context: result.context };
+                    const siblingIndex = indexMap?.get(result.document.id);
+                    return {
+                      ...doc,
+                      context: result.context,
+                      ...(siblingIndex !== undefined && {
+                        index: siblingIndex,
+                      }),
+                    };
                   })
               );
 
@@ -192,7 +207,12 @@ export function documentTools(server: McpServer, scopes: string[]) {
                     includeText: false,
                   })
                 );
-                presented.unshift({ ...doc, context: undefined });
+                const siblingIndex = indexMap?.get(exactMatch.id);
+                presented.unshift({
+                  ...doc,
+                  context: undefined,
+                  ...(siblingIndex !== undefined && { index: siblingIndex }),
+                });
               }
 
               return success(presented);
@@ -215,15 +235,20 @@ export function documentTools(server: McpServer, scopes: string[]) {
             });
 
             const presented = await Promise.all(
-              documents.map(async (document) =>
-                pathToUrl(
+              documents.map(async (document) => {
+                const result = pathToUrl(
                   user.team,
                   await presentDocument(undefined, document, {
                     includeData: false,
                     includeText: false,
                   })
-                )
-              )
+                );
+                const siblingIndex = indexMap?.get(document.id);
+                if (siblingIndex !== undefined) {
+                  result.index = siblingIndex;
+                }
+                return result;
+              })
             );
             return success(presented);
           } catch (message) {
@@ -349,7 +374,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
       {
         title: "Move document",
         description:
-          "Moves a document to a different collection or parent document. Provide either a collectionId to move to the root of a collection, or a parentDocumentId to nest under another document.",
+          "Moves a document to a different location or reorders it within its current parent. Provide a collectionId to move to the root of a collection, a parentDocumentId to nest under another document, and/or an index to control position among siblings.",
         annotations: {
           idempotentHint: false,
           readOnlyHint: false,
@@ -369,6 +394,14 @@ export function documentTools(server: McpServer, scopes: string[]) {
             .optional()
             .describe(
               "The ID of the document to nest this document under. The document will be moved to the parent's collection."
+            ),
+          index: z
+            .number()
+            .int()
+            .min(0)
+            .optional()
+            .describe(
+              "The zero-based position to insert the document among its siblings. Use this to reorder documents within the same collection and parent. Omit to place at the end."
             ),
         },
       },
@@ -421,22 +454,39 @@ export function documentTools(server: McpServer, scopes: string[]) {
               authorize(user, "updateDocument", collection);
             }
 
-            const { documents } = await documentMover(ctx, {
+            const { documents, collections } = await documentMover(ctx, {
               document,
               collectionId: collectionId ?? null,
               parentDocumentId: input.parentDocumentId ?? null,
+              index: input.index,
             });
 
+            const indexMap = new Map<string, number>();
+            for (const col of collections) {
+              if (col.documentStructure) {
+                for (const [id, idx] of buildSiblingIndexMap(
+                  col.documentStructure
+                )) {
+                  indexMap.set(id, idx);
+                }
+              }
+            }
+
             const presented = await Promise.all(
-              documents.map(async (doc) =>
-                pathToUrl(
+              documents.map(async (doc) => {
+                const result = pathToUrl(
                   user.team,
                   await presentDocument(undefined, doc, {
                     includeData: false,
                     includeText: false,
                   })
-                )
-              )
+                );
+                const siblingIndex = indexMap.get(doc.id);
+                if (siblingIndex !== undefined) {
+                  result.index = siblingIndex;
+                }
+                return result;
+              })
             );
             return success(presented);
           });
