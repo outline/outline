@@ -10,12 +10,12 @@ export function parseSearchQuery(query: string): {
 } {
   const tagNames: string[] = [];
   const cleanQuery = query
-    .replace(/#(\w+)/g, (_, name: string) => {
+    .replace(/#([\w-]+)/g, (_, name: string) => {
       tagNames.push(name.toLowerCase());
       return "";
     })
     .trim()
     .replace(/\s+/g, " ");
 
-  return { cleanQuery, tagNames };
+  return { cleanQuery, tagNames: [...new Set(tagNames)] };
 }

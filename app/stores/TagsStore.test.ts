@@ -27,4 +27,18 @@ describe("TagsStore", () => {
     const names = stores.tags.orderedData.map((t) => t.name);
     expect(names).toEqual(["alpha", "zebra"]);
   });
+
+  it("clear() empties both orderedData and the name cache", () => {
+    stores.tags.add({ id: "1", name: "engineering", teamId: "t1" } as unknown as Tag);
+    stores.tags.clear();
+    expect(stores.tags.orderedData).toHaveLength(0);
+    expect(stores.tags.getByName("engineering")).toBeUndefined();
+  });
+
+  it("adding the same tag twice updates in place and does not duplicate in name cache", () => {
+    stores.tags.add({ id: "1", name: "engineering", teamId: "t1" } as unknown as Tag);
+    stores.tags.add({ id: "1", name: "engineering", teamId: "t1" } as unknown as Tag);
+    expect(stores.tags.orderedData).toHaveLength(1);
+    expect(stores.tags.getByName("engineering")).toBeDefined();
+  });
 });
