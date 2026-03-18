@@ -141,6 +141,9 @@ function Search() {
           offset: params?.offset,
           limit: params?.limit,
         };
+        if (titleFilter && !filters.query) {
+          return [] as SearchResult[];
+        }
         return titleFilter
           ? await documents.searchTitles({ ...filters, ...paginationParams })
           : await documents.search({ ...filters, ...paginationParams });
