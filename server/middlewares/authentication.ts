@@ -239,6 +239,7 @@ async function validateAuthentication(
       throw AuthenticationError("Invalid API key");
     }
 
+    scope = apiKey.scope ?? ["*"];
     await apiKey.updateActiveAt();
   } else {
     type = AuthenticationType.APP;
