@@ -96,6 +96,10 @@ export default class S3Storage extends BaseStorage {
   }
 
   public getUrlForKey(key: string): string {
+    if (env.AWS_CLOUDFRONT_URL) {
+      const base = env.AWS_CLOUDFRONT_URL.replace(/\/$/, "");
+      return `${base}/${key}`;
+    }
     return `${this.getPublicEndpoint()}/${key}`;
   }
 
@@ -161,9 +165,12 @@ export default class S3Storage extends BaseStorage {
       const url = await getSignedUrl(this.client, command, {
         expiresIn: clampedExpiresIn,
       });
-
-      if (env.AWS_S3_ACCELERATE_URL) {
-        return url.replace(
+      // Cloudfront has priority over Accelerate
+      if (env.AWS_CLOUDFRONT_URL) {
+        const cfBase = env.AWS_CLOUDFRONT_URL.replace(/\/$/, "");
+        url = url.replace(env.AWS_S3_UPLOAD_BUCKET_URL, cfBase);
+      } else if (env.AWS_S3_ACCELERATE_URL) {
+        url = url.replace(
           env.AWS_S3_UPLOAD_BUCKET_URL,
           env.AWS_S3_ACCELERATE_URL
         );

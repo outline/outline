@@ -636,6 +636,17 @@ export class Environment {
   public AWS_S3_ACCELERATE_URL = environment.AWS_S3_ACCELERATE_URL ?? "";
 
   /**
+   * Optional CloudFront distribution URL.
+   * When set, ALL signed download URLs will have the S3 domain replaced
+   * with this one. Keeps short-lived presigned URLs (X-Amz-* params)
+   * so security model is unchanged.
+   * Example: https://d1a2b3c4d5e6f.cloudfront.net
+   */
+  @Public
+  @IsOptional()
+  public AWS_CLOUDFRONT_URL = environment.AWS_CLOUDFRONT_URL ?? "";
+
+  /**
    * Optional AWS S3 endpoint URL for file attachments.
    */
   @Public
