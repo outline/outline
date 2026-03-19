@@ -167,7 +167,7 @@ export default class S3Storage extends BaseStorage {
       );
 
       const command = new GetObjectCommand(params);
-      let url = await getSignedUrl(this.client, command, {
+      const url = await getSignedUrl(this.client, command, {
         expiresIn: clampedExpiresIn,
       });
 
