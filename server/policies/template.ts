@@ -37,7 +37,7 @@ allow(User, ["update", "move", "duplicate"], Template, (actor, template) =>
         !!template?.isWorkspaceTemplate,
         can(actor, "updateTemplate", actor.team)
       ),
-      can(actor, "update", template?.collection)
+      can(actor, "manageTemplate", template?.collection)
     )
   )
 );
@@ -61,7 +61,7 @@ allow(User, "restore", Template, (actor, template) =>
         !!template?.isWorkspaceTemplate,
         can(actor, "updateTemplate", actor.team)
       ),
-      can(actor, "update", template?.collection)
+      can(actor, "manageTemplate", template?.collection)
     )
   )
 );
