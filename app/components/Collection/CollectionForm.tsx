@@ -155,6 +155,71 @@ export const CollectionForm = observer(function CollectionForm_({
 
   const initial = values.name.charAt(0).toUpperCase();
 
+  const options = (
+    <>
+      <Controller
+        control={control}
+        name="templateManagement"
+        render={({ field }) => (
+          <>
+            <InputSelect
+              value={field.value}
+              onChange={(value: string) => {
+                field.onChange(value as CollectionPermission);
+              }}
+              options={templateManagementOptions}
+              label={t("Manage templates")}
+            />
+            <Text
+              type="secondary"
+              size="small"
+              as="p"
+              style={{ paddingTop: 4 }}
+            >
+              {t(
+                "Choose who can create and edit templates in this collection."
+              )}
+            </Text>
+          </>
+        )}
+      />
+
+      {team.sharing && (
+        <Controller
+          control={control}
+          name="sharing"
+          render={({ field }) => (
+            <Switch
+              id="sharing"
+              label={t("Public document sharing")}
+              note={t(
+                "Allow documents within this collection to be shared publicly on the internet."
+              )}
+              checked={field.value}
+              onChange={field.onChange}
+            />
+          )}
+        />
+      )}
+
+      {team.getPreference(TeamPreference.Commenting) && (
+        <Controller
+          control={control}
+          name="commenting"
+          render={({ field }) => (
+            <Switch
+              id="commenting"
+              label={t("Commenting")}
+              note={t("Allow commenting on documents within this collection.")}
+              checked={!!field.value}
+              onChange={field.onChange}
+            />
+          )}
+        />
+      )}
+    </>
+  );
+
   return (
     <form onSubmit={formHandleSubmit(handleSubmit)}>
       <Text as="p">
@@ -210,61 +275,11 @@ export const CollectionForm = observer(function CollectionForm_({
         />
       )}
 
-      <Collapsible label={t("Advanced options")}>
-        <Controller
-          control={control}
-          name="templateManagement"
-          render={({ field }) => (
-            <InputSelect
-              value={field.value}
-              onChange={(value: string) => {
-                field.onChange(value as CollectionPermission);
-              }}
-              options={templateManagementOptions}
-              label={t("Template management")}
-              help={t(
-                "Choose who can create and edit templates in this collection."
-              )}
-            />
-          )}
-        />
-
-        {team.sharing && (
-          <Controller
-            control={control}
-            name="sharing"
-            render={({ field }) => (
-              <Switch
-                id="sharing"
-                label={t("Public document sharing")}
-                note={t(
-                  "Allow documents within this collection to be shared publicly on the internet."
-                )}
-                checked={field.value}
-                onChange={field.onChange}
-              />
-            )}
-          />
-        )}
-
-        {team.getPreference(TeamPreference.Commenting) && (
-          <Controller
-            control={control}
-            name="commenting"
-            render={({ field }) => (
-              <Switch
-                id="commenting"
-                label={t("Commenting")}
-                note={t(
-                  "Allow commenting on documents within this collection."
-                )}
-                checked={!!field.value}
-                onChange={field.onChange}
-              />
-            )}
-          />
-        )}
-      </Collapsible>
+      {collection ? (
+        options
+      ) : (
+        <Collapsible label={t("Advanced options")}>{options}</Collapsible>
+      )}
 
       <HStack justify="flex-end">
         <Button
