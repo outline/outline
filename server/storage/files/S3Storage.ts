@@ -162,7 +162,7 @@ export default class S3Storage extends BaseStorage {
       );
 
       const command = new GetObjectCommand(params);
-      const url = await getSignedUrl(this.client, command, {
+      let url = await getSignedUrl(this.client, command, {
         expiresIn: clampedExpiresIn,
       });
       // Cloudfront has priority over Accelerate
