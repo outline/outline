@@ -102,8 +102,8 @@ export const determineMentionType = ({
         return MentionType.PullRequest;
       }
       if (
-        /\/-\/issues\/\d+/.test(pathname) ||
-        (/\/-\/issues\/?$/.test(pathname) && hasShowParam)
+        /\/-\/(issues|work_items)\/\d+/.test(pathname) ||
+        (/\/-\/(issues|work_items)\/?$/.test(pathname) && hasShowParam)
       ) {
         return MentionType.Issue;
       }
