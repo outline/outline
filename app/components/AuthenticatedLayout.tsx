@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
 import * as React from "react";
-import { Switch, Route, Redirect } from "react-router-dom";
+import { Switch, Route } from "react-router-dom";
 import ErrorSuspended from "~/scenes/Errors/ErrorSuspended";
 import Layout from "~/components/Layout";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
@@ -57,13 +57,15 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
     history.push(newDocumentPath(activeCollectionId));
   };
 
+  React.useEffect(() => {
+    const postLoginPath = spendPostLoginPath();
+    if (postLoginPath) {
+      history.replace(postLoginPath);
+    }
+  }, [spendPostLoginPath]);
+
   if (auth.isSuspended) {
     return <ErrorSuspended />;
-  }
-
-  const postLoginPath = spendPostLoginPath();
-  if (postLoginPath) {
-    return <Redirect to={postLoginPath} />;
   }
 
   const sidebar = (
