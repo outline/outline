@@ -172,9 +172,7 @@ export default class S3Storage extends BaseStorage {
             url: cfUrl,
             keyPairId: env.AWS_CLOUDFRONT_KEY_PAIR_ID,
             privateKey,
-            dateLessThan: new Date(
-              Math.floor((Date.now() + expiresIn * 1000) / 1000) * 1000
-            ).toISOString(),
+            dateLessThan: new Date(Date.now() + expiresIn * 1000).toISOString(),
           });
 
           Logger.info("Generated signed CloudFront URL", {
