@@ -148,28 +148,49 @@ export default class S3Storage extends BaseStorage {
     expiresIn = S3Storage.defaultSignedUrlExpires
   ) => {
       if (env.AWS_CLOUDFRONT_URL) {
-      const cfBase = env.AWS_CLOUDFRONT_URL.replace(/\/$/, "");
-      const cfUrl = `${cfBase}/${key}`;
-         let privateKey = env.AWS_CLOUDFRONT_PRIVATE_KEY;
-      if (env.AWS_CLOUDFRONT_PRIVATE_KEY_BASE64) {
-        privateKey = Buffer.from(env.AWS_CLOUDFRONT_PRIVATE_KEY_BASE64, "base64").toString();
-      }
+        const cfBase = env.AWS_CLOUDFRONT_URL.replace(/\/$/, "");
+        const encodedKey = encodeURI(key);
+        const cfUrl = `${cfBase}/${encodedKey}`;
+
+        let privateKey = env.AWS_CLOUDFRONT_PRIVATE_KEY;
+        if (env.AWS_CLOUDFRONT_PRIVATE_KEY_BASE64) {
+          privateKey = Buffer.from(
+            env.AWS_CLOUDFRONT_PRIVATE_KEY_BASE64,
+            "base64"
+          ).toString("utf-8");
+        }
+
         if (!privateKey || !env.AWS_CLOUDFRONT_KEY_PAIR_ID) {
-          Logger.warn("CloudFront signed URLs requested but missing key pair config");
+          Logger.warn(
+            "CloudFront signed URLs requested but missing key pair config"
+          );
           return cfUrl;
-      }
+        }
+
         try {
-          return getCloudFrontSignedUrl({
+          const signedUrl = getCloudFrontSignedUrl({
             url: cfUrl,
             keyPairId: env.AWS_CLOUDFRONT_KEY_PAIR_ID,
             privateKey,
-            dateLessThan: new Date(Date.now() + expiresIn * 1000).toISOString(),
+            dateLessThan: Math.floor((Date.now() + expiresIn * 1000) / 1000),
           });
-      } catch (err) {
-        Logger.error("Failed to sign CloudFront URL", err);
-        return cfUrl; // fallback
+
+          Logger.info("Generated signed CloudFront URL", {
+            originalKey: key,
+            signedUrl,
+            expiresAt: new Date(Date.now() + expiresIn * 1000).toISOString(),
+          });
+
+          return signedUrl;
+        } catch (err) {
+          Logger.error("Failed to sign CloudFront URL", {
+            err: err.message,
+            key,
+            cfUrl,
+          });
+          return cfUrl; // fallback
+        }
       }
-    }
 
     const isDocker = env.AWS_S3_UPLOAD_BUCKET_URL.match(/http:\/\/s3:/);
     const params = {
