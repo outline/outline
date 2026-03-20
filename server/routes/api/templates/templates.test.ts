@@ -680,6 +680,116 @@ describe("templateManagement", () => {
     });
   });
 
+  describe("#templates.duplicate", () => {
+    it("should allow member to duplicate template when memberTemplateManagement is enabled", async () => {
+      const admin = await buildAdmin();
+      const collection = await buildCollection({
+        userId: admin.id,
+        teamId: admin.teamId,
+        templateManagement: CollectionPermission.ReadWrite,
+      });
+
+      const member = await buildUser({ teamId: admin.teamId });
+      const template = await buildTemplate({
+        userId: admin.id,
+        teamId: admin.teamId,
+        collectionId: collection.id,
+      });
+
+      const res = await server.post("/api/templates.duplicate", {
+        body: {
+          token: member.getJwtToken(),
+          id: template.id,
+        },
+      });
+
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.collectionId).toEqual(collection.id);
+    });
+
+    it("should not allow member to duplicate template when memberTemplateManagement is disabled", async () => {
+      const admin = await buildAdmin();
+      const collection = await buildCollection({
+        userId: admin.id,
+        teamId: admin.teamId,
+        templateManagement: CollectionPermission.Admin,
+      });
+
+      const member = await buildUser({ teamId: admin.teamId });
+      const template = await buildTemplate({
+        userId: admin.id,
+        teamId: admin.teamId,
+        collectionId: collection.id,
+      });
+
+      const res = await server.post("/api/templates.duplicate", {
+        body: {
+          token: member.getJwtToken(),
+          id: template.id,
+        },
+      });
+
+      expect(res.status).toEqual(403);
+    });
+  });
+
+  describe("#templates.restore", () => {
+    it("should allow member to restore template when memberTemplateManagement is enabled", async () => {
+      const admin = await buildAdmin();
+      const collection = await buildCollection({
+        userId: admin.id,
+        teamId: admin.teamId,
+        templateManagement: CollectionPermission.ReadWrite,
+      });
+
+      const member = await buildUser({ teamId: admin.teamId });
+      const template = await buildTemplate({
+        userId: admin.id,
+        teamId: admin.teamId,
+        collectionId: collection.id,
+      });
+      await template.destroy();
+
+      const res = await server.post("/api/templates.restore", {
+        body: {
+          token: member.getJwtToken(),
+          id: template.id,
+        },
+      });
+
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.id).toEqual(template.id);
+    });
+
+    it("should not allow member to restore template when memberTemplateManagement is disabled", async () => {
+      const admin = await buildAdmin();
+      const collection = await buildCollection({
+        userId: admin.id,
+        teamId: admin.teamId,
+        templateManagement: CollectionPermission.Admin,
+      });
+
+      const member = await buildUser({ teamId: admin.teamId });
+      const template = await buildTemplate({
+        userId: admin.id,
+        teamId: admin.teamId,
+        collectionId: collection.id,
+      });
+      await template.destroy();
+
+      const res = await server.post("/api/templates.restore", {
+        body: {
+          token: member.getJwtToken(),
+          id: template.id,
+        },
+      });
+
+      expect(res.status).toEqual(403);
+    });
+  });
+
   describe("#templates.delete", () => {
     it("should allow member to delete template when memberTemplateManagement is enabled", async () => {
       const admin = await buildAdmin();
