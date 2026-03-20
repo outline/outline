@@ -13,6 +13,7 @@ import "@aws-sdk/signature-v4-crt"; // https://github.com/aws/aws-sdk-js-v3#func
 import type { PresignedPostOptions } from "@aws-sdk/s3-presigned-post";
 import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { getSignedUrl as getCloudFrontSignedUrl } from "@aws-sdk/cloudfront-signer";
 import fs from "fs-extra";
 import invariant from "invariant";
 import { compact } from "es-toolkit/compat";
@@ -146,16 +147,35 @@ export default class S3Storage extends BaseStorage {
     key: string,
     expiresIn = S3Storage.defaultSignedUrlExpires
   ) => {
+      if (env.AWS_CLOUDFRONT_URL) {
+      const cfBase = env.AWS_CLOUDFRONT_URL.replace(/\/$/, "");
+      const cfUrl = `${cfBase}/${key}`;
+         let privateKey = env.AWS_CLOUDFRONT_PRIVATE_KEY;
+      if (env.AWS_CLOUDFRONT_PRIVATE_KEY_BASE64) {
+        privateKey = Buffer.from(env.AWS_CLOUDFRONT_PRIVATE_KEY_BASE64, "base64").toString();
+      }
+        if (!privateKey || !env.AWS_CLOUDFRONT_KEY_PAIR_ID) {
+          Logger.warn("CloudFront signed URLs requested but missing key pair config");
+          return cfUrl;
+      }
+        try {
+          return getCloudFrontSignedUrl({
+            url: cfUrl,
+            keyPairId: env.AWS_CLOUDFRONT_KEY_PAIR_ID,
+            privateKey,
+            dateLessThan: new Date(Date.now() + expiresIn * 1000).toISOString(),
+          });
+      } catch (err) {
+        Logger.error("Failed to sign CloudFront URL", err);
+        return cfUrl; // fallback
+      }
+    }
+
     const isDocker = env.AWS_S3_UPLOAD_BUCKET_URL.match(/http:\/\/s3:/);
     const params = {
       Bucket: this.getBucket(),
       Key: key,
     };
-
-    if (env.AWS_CLOUDFRONT_URL) {
-      const cfBase = env.AWS_CLOUDFRONT_URL.replace(/\/$/, "");
-      return `${cfBase}/${key}`;
-    }
 
     if (isDocker) {
       return `${this.getPublicEndpoint()}/${key}`;

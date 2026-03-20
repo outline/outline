@@ -646,6 +646,18 @@ export class Environment {
   @IsOptional()
   public AWS_CLOUDFRONT_URL = environment.AWS_CLOUDFRONT_URL ?? "";
 
+  @Public
+  @IsOptional()
+  public AWS_CLOUDFRONT_KEY_PAIR_ID = environment.AWS_CLOUDFRONT_KEY_PAIR_ID ?? "";
+
+  @Public
+  @IsOptional()
+  public AWS_CLOUDFRONT_PRIVATE_KEY = environment.AWS_CLOUDFRONT_PRIVATE_KEY ?? "";
+
+  @Public
+  @IsOptional()
+  public AWS_CLOUDFRONT_PRIVATE_KEY_BASE64 = environment.AWS_CLOUDFRONT_PRIVATE_KEY_BASE64 ?? "";
+
   /**
    * Optional AWS S3 endpoint URL for file attachments.
    */
