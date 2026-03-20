@@ -81,6 +81,15 @@ export const presetColors: PresetColor[] = [
   { hex: "#3CBEFC", name: "Neon" },
 ];
 
+export const presetTextColors: PresetColor[] = [
+  { hex: "#D44C47", name: "Red" },
+  { hex: "#D9730D", name: "Orange" },
+  { hex: "#448361", name: "Green" },
+  { hex: "#337EA9", name: "Blue" },
+  { hex: "#9065B0", name: "Purple" },
+  { hex: "#0F7B6C", name: "Teal" },
+];
+
 export const hexToRgba = (hex: string): RgbaColor => {
   if (hex[0] === "#") {
     hex = hex.substring(1);

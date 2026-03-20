@@ -1,12 +1,12 @@
 import { isHexColor } from "class-validator";
 import { parseToRgb } from "polished";
 import type { MarkSpec } from "prosemirror-model";
-import { presetColors } from "@shared/utils/color";
+import { presetTextColors } from "@shared/utils/color";
 import Mark from "./Mark";
 
 export default class TextColor extends Mark {
   /** Preset colors available for text coloring */
-  static presetColors = presetColors;
+  static presetColors = presetTextColors;
 
   /**
    * Checks if a color is one of the text color preset colors.
