@@ -13,7 +13,6 @@ import {
   mcpRequest,
   parseMcpResponse,
   callMcpTool,
-  readMcpResource,
 } from "@server/test/McpHelper";
 
 const server = getTestServer();
@@ -183,23 +182,22 @@ describe("POST /mcp/", () => {
       expect(data.url).toMatch(/^https?:\/\//);
     });
 
-    it("get_collection resource returns collection details", async () => {
+    it("fetch collection returns collection details", async () => {
       const { user, accessToken } = await buildOAuthUser();
       const collection = await buildCollection({
         teamId: user.teamId,
         userId: user.id,
       });
 
-      const res = await readMcpResource(
-        server,
-        accessToken,
-        `outline://collections/${collection.id}`
-      );
+      const res = await callMcpTool(server, accessToken, "fetch", {
+        resource: "collection",
+        id: collection.id,
+      });
 
-      expect(res?.result?.contents).toBeDefined();
-      expect(res!.result!.contents!.length).toBeGreaterThanOrEqual(1);
+      expect(res?.result?.content).toBeDefined();
+      expect(res!.result!.content!.length).toBeGreaterThanOrEqual(1);
 
-      const data = JSON.parse(res!.result!.contents![0].text ?? "{}");
+      const data = JSON.parse(res!.result!.content![0].text ?? "{}");
       expect(data.id).toEqual(collection.id);
       expect(data.url).toMatch(/^https?:\/\//);
     });
@@ -487,7 +485,7 @@ describe("POST /mcp/", () => {
       expect(res?.result?.isError).toBe(true);
     });
 
-    it("get_document resource returns metadata and markdown", async () => {
+    it("fetch document returns metadata and markdown", async () => {
       const { user, accessToken } = await buildOAuthUser();
       const collection = await buildCollection({
         teamId: user.teamId,
@@ -500,24 +498,22 @@ describe("POST /mcp/", () => {
         text: "# Hello\n\nWorld",
       });
 
-      const res = await readMcpResource(
-        server,
-        accessToken,
-        `outline://documents/${document.id}`
-      );
+      const res = await callMcpTool(server, accessToken, "fetch", {
+        resource: "document",
+        id: document.id,
+      });
 
-      expect(res?.result?.contents).toBeDefined();
-      expect(res!.result!.contents!.length).toEqual(2);
+      expect(res?.result?.content).toBeDefined();
+      expect(res!.result!.content!.length).toEqual(2);
 
       // First content is JSON metadata
-      const metadata = JSON.parse(res!.result!.contents![0].text ?? "{}");
+      const metadata = JSON.parse(res!.result!.content![0].text ?? "{}");
       expect(metadata.id).toEqual(document.id);
       expect(metadata.title).toEqual(document.title);
       expect(metadata.url).toMatch(/^https?:\/\//);
 
       // Second content is markdown text
-      expect(res!.result!.contents![1].mimeType).toEqual("text/markdown");
-      expect(res!.result!.contents![1].text).toContain("Hello");
+      expect(res!.result!.content![1].text).toContain("Hello");
     });
   });
 

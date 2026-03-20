@@ -1,13 +1,6 @@
 import { z } from "zod";
-import {
-  type McpServer,
-  ResourceTemplate,
-} from "@modelcontextprotocol/sdk/server/mcp.js";
-import {
-  type CallToolResult,
-  McpError,
-  ErrorCode,
-} from "@modelcontextprotocol/sdk/types.js";
+import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { type CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import documentCreator from "@server/commands/documentCreator";
 import documentMover from "@server/commands/documentMover";
 import documentUpdater from "@server/commands/documentUpdater";
@@ -27,71 +20,17 @@ import {
   getActorFromContext,
   pathToUrl,
   withTracing,
-  withResourceTracing,
 } from "./util";
 import { TextEditMode } from "@shared/types";
 
 /**
- * Registers document-related MCP tools and resources on the given server,
- * filtered by the OAuth scopes granted to the current token.
+ * Registers document-related MCP tools on the given server, filtered by
+ * the OAuth scopes granted to the current token.
  *
  * @param server - the MCP server instance to register on.
  * @param scopes - the OAuth scopes granted to the access token.
  */
 export function documentTools(server: McpServer, scopes: string[]) {
-  if (AuthenticationHelper.canAccess("documents.info", scopes)) {
-    server.registerResource(
-      "get_document",
-      new ResourceTemplate("outline://documents/{id}", { list: undefined }),
-      {
-        title: "Get document",
-        description: "Fetches the content of a document by its ID.",
-        mimeType: "text/markdown",
-      },
-      withResourceTracing("get_document", async (uri, variables, extra) => {
-        try {
-          const { id } = variables;
-          const user = getActorFromContext(extra);
-          const document = await Document.findByPk(String(id), {
-            userId: user.id,
-            rejectOnEmpty: true,
-          });
-
-          authorize(user, "read", document);
-
-          const { text, ...attributes } = await presentDocument(
-            undefined,
-            document,
-            {
-              includeData: false,
-              includeText: true,
-              includeUpdatedAt: true,
-            }
-          );
-          return {
-            contents: [
-              {
-                uri: uri.href,
-                mimeType: "application/json",
-                text: JSON.stringify(pathToUrl(user.team, attributes)),
-              },
-              {
-                uri: uri.href,
-                mimeType: "text/markdown",
-                text: String(text ?? ""),
-              },
-            ],
-          };
-        } catch (err) {
-          throw new McpError(
-            ErrorCode.InvalidParams,
-            err instanceof Error ? err.message : String(err)
-          );
-        }
-      })
-    );
-  }
-
   if (AuthenticationHelper.canAccess("documents.list", scopes)) {
     server.registerTool(
       "list_documents",
@@ -114,13 +53,13 @@ export function documentTools(server: McpServer, scopes: string[]) {
             .string()
             .optional()
             .describe("An optional collection ID to filter documents by."),
-          offset: z
+          offset: z.coerce
             .number()
             .int()
             .min(0)
             .optional()
             .describe("The pagination offset. Defaults to 0."),
-          limit: z
+          limit: z.coerce
             .number()
             .int()
             .min(1)

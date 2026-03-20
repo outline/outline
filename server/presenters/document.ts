@@ -56,7 +56,12 @@ async function presentDocument(
     url: document.path,
     urlId: document.urlId,
     title: document.title,
-    data: asData || options?.includeData ? data : undefined,
+    data:
+      options?.includeData === false
+        ? undefined
+        : asData || options?.includeData
+          ? data
+          : undefined,
     text,
     icon: document.icon,
     color: document.color,

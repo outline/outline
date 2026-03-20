@@ -1,87 +1,22 @@
 import { z } from "zod";
 import { Op, Sequelize } from "sequelize";
 import type { WhereOptions } from "sequelize";
-import {
-  type McpServer,
-  ResourceTemplate,
-} from "@modelcontextprotocol/sdk/server/mcp.js";
-import { McpError, ErrorCode } from "@modelcontextprotocol/sdk/types.js";
+import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { UserRole } from "@shared/types";
 import { User, Team } from "@server/models";
 import { authorize, can } from "@server/policies";
 import { presentUser } from "@server/presenters";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
-import { error, success, getActorFromContext, withTracing, withResourceTracing } from "./util";
+import { error, success, getActorFromContext, withTracing } from "./util";
 
 /**
- * Resolves a user identifier to a User model instance. Accepts special
- * tokens "self", "me", or "current_user" to return the authenticated user,
- * otherwise looks the user up by primary key.
- *
- * @param id - the user identifier or self-referencing token.
- * @param actor - the currently authenticated user.
- * @returns the resolved User instance.
- */
-async function resolveUser(id: string, actor: User): Promise<User> {
-  if (new Set(["self", "me", "current_user"]).has(id.toLowerCase())) {
-    return actor;
-  }
-
-  return await User.findByPk(id, {
-    rejectOnEmpty: true,
-  });
-}
-
-/**
- * Registers user-related MCP tools and resources on the given server,
- * filtered by the OAuth scopes granted to the current token.
+ * Registers user-related MCP tools on the given server, filtered by the
+ * OAuth scopes granted to the current token.
  *
  * @param server - the MCP server instance to register on.
  * @param scopes - the OAuth scopes granted to the access token.
  */
 export function userTools(server: McpServer, scopes: string[]) {
-  if (AuthenticationHelper.canAccess("users.info", scopes)) {
-    server.registerResource(
-      "get_user",
-      new ResourceTemplate("outline://users/{id}", { list: undefined }),
-      {
-        title: "Get user",
-        description:
-          'Fetches a user by their ID. Use "current_user" as the ID to get the currently authenticated user.',
-        mimeType: "application/json",
-      },
-      withResourceTracing("get_user", async (uri, variables, extra) => {
-        try {
-          const { id } = variables;
-          const actor = getActorFromContext(extra);
-          const user = await resolveUser(String(id), actor);
-
-          authorize(actor, "read", user);
-
-          const presented = presentUser(user, {
-            includeEmail: !!can(actor, "readEmail", user),
-            includeDetails: !!can(actor, "readDetails", user),
-          });
-
-          return {
-            contents: [
-              {
-                uri: uri.href,
-                mimeType: "application/json",
-                text: JSON.stringify(presented),
-              },
-            ],
-          };
-        } catch (err) {
-          throw new McpError(
-            ErrorCode.InvalidParams,
-            err instanceof Error ? err.message : String(err)
-          );
-        }
-      })
-    );
-  }
-
   if (AuthenticationHelper.canAccess("users.list", scopes)) {
     server.registerTool(
       "list_users",
@@ -114,13 +49,13 @@ export function userTools(server: McpServer, scopes: string[]) {
             .describe(
               "Filter users by status. 'suspended' is only available to admins. Defaults to active, non-suspended users."
             ),
-          offset: z
+          offset: z.coerce
             .number()
             .int()
             .min(0)
             .optional()
             .describe("The pagination offset. Defaults to 0."),
-          limit: z
+          limit: z.coerce
             .number()
             .int()
             .min(1)

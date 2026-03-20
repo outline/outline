@@ -15,6 +15,7 @@ import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { collectionTools } from "@server/tools/collections";
 import { commentTools } from "@server/tools/comments";
 import { documentTools } from "@server/tools/documents";
+import { fetchTool } from "@server/tools/fetch";
 import { userTools } from "@server/tools/users";
 import { version } from "../../../package.json";
 
@@ -22,8 +23,8 @@ const app = new Koa();
 const router = new Router();
 
 /**
- * Creates a fresh MCP server instance with tools and resources filtered by
- * the OAuth scopes granted to the current token.
+ * Creates a fresh MCP server instance with tools filtered by the OAuth
+ * scopes granted to the current token.
  *
  * @param scopes - the OAuth scopes granted to the access token.
  * @returns a configured McpServer ready to be connected to a transport.
@@ -36,7 +37,6 @@ function createMcpServer(scopes: string[]): McpServer {
     },
     {
       capabilities: {
-        resources: {},
         tools: {},
       },
     }
@@ -45,6 +45,7 @@ function createMcpServer(scopes: string[]): McpServer {
   collectionTools(server, scopes);
   commentTools(server, scopes);
   documentTools(server, scopes);
+  fetchTool(server, scopes);
   userTools(server, scopes);
 
   return server;

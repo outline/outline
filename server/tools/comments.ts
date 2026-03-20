@@ -71,13 +71,13 @@ export function commentTools(server: McpServer, scopes: string[]) {
             .describe(
               "Filter by resolution status: resolved, unresolved, or both."
             ),
-          offset: z
+          offset: z.coerce
             .number()
             .int()
             .min(0)
             .optional()
             .describe("The pagination offset. Defaults to 0."),
-          limit: z
+          limit: z.coerce
             .number()
             .int()
             .min(1)

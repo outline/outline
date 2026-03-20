@@ -108,37 +108,6 @@ export function withTracing<F extends (...args: any[]) => any>(
 }
 
 /**
- * Wraps an MCP resource handler with Datadog tracing. Each invocation creates
- * a span under the `outline-mcp` service with the resource name, and tags it
- * with the acting user and team IDs.
- *
- * @param resourceName - the name of the MCP resource being traced.
- * @param handler - the handler function to wrap.
- * @returns the wrapped handler with tracing enabled.
- */
-export function withResourceTracing<F extends (...args: any[]) => any>(
-  resourceName: string,
-  handler: F
-): F {
-  return traceFunction({
-    serviceName: "mcp",
-    spanName: "resource",
-    resourceName: resourceName,
-  })(function tracedHandler(this: any, ...args: any[]) {
-    const context = args[args.length - 1];
-    const user = getActorFromContext(context);
-    if (user) {
-      addTags({
-        "mcp.resource": resourceName,
-        "request.userId": user.id,
-        "request.teamId": user.teamId,
-      });
-    }
-    return handler.apply(this, args);
-  } as F);
-}
-
-/**
  * Builds a map from document ID to its zero-based index among siblings,
  * derived from a collection's document structure.
  *
