@@ -357,7 +357,7 @@ class User extends ParanoidModel<
    */
   public setNotificationEventType = (
     type: NotificationEventType,
-    value: boolean | Record<NotificationChannelType, boolean>,
+    value: boolean | Record<NotificationChannelType, boolean> = true,
     channel?: NotificationChannelType
   ) => {
     if (channel !== undefined) {
