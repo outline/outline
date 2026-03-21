@@ -151,6 +151,7 @@ allow(
     and(
       !!collection,
       !!collection?.isActive,
+      isTeamModel(user, collection),
       isTeamMutable(user),
       or(
         isTeamAdmin(user, collection),
