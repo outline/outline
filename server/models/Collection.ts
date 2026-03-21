@@ -304,6 +304,12 @@ class Collection extends ParanoidModel<
   @Column
   archivedAt: Date | null;
 
+  /** The minimum permission level required to manage templates in this collection. */
+  @IsIn([[CollectionPermission.Admin, CollectionPermission.ReadWrite]])
+  @Default(CollectionPermission.Admin)
+  @Column(DataType.STRING)
+  templateManagement: CollectionPermission;
+
   /** Allows the configuration of commenting per collection. */
   @AllowNull(true)
   @Default(null)

@@ -6,8 +6,8 @@ import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Icon from "@shared/components/Icon";
 import { randomElement } from "@shared/random";
-import type { CollectionPermission } from "@shared/types";
-import { TeamPreference } from "@shared/types";
+import { CollectionPermission, TeamPreference } from "@shared/types";
+import type { Option } from "~/components/InputSelect";
 import { IconLibrary } from "@shared/utils/IconLibrary";
 import { colorPalette } from "@shared/utils/collections";
 import { CollectionValidation } from "@shared/validations";
@@ -15,6 +15,7 @@ import type Collection from "~/models/Collection";
 import Button from "~/components/Button";
 import { Collapsible } from "~/components/Collapsible";
 import Input from "~/components/Input";
+import { InputSelect } from "~/components/InputSelect";
 import { InputSelectPermission } from "~/components/InputSelectPermission";
 import { createLazyComponent } from "~/components/LazyLoad";
 import Switch from "~/components/Switch";
@@ -34,6 +35,7 @@ export interface FormData {
   sharing: boolean;
   permission: CollectionPermission | undefined;
   commenting?: boolean | null;
+  templateManagement: CollectionPermission;
 }
 
 const useIconColor = (collection?: Collection) => {
@@ -68,6 +70,22 @@ export const CollectionForm = observer(function CollectionForm_({
 
   const [hasOpenedIconPicker, setHasOpenedIconPicker] = useBoolean(false);
 
+  const templateManagementOptions = useMemo<Option[]>(
+    () => [
+      {
+        type: "item",
+        label: t("Managers"),
+        value: CollectionPermission.Admin,
+      },
+      {
+        type: "item",
+        label: t("Members"),
+        value: CollectionPermission.ReadWrite,
+      },
+    ],
+    [t]
+  );
+
   const iconColor = useIconColor(collection);
   const fallbackIcon = (
     <Icon
@@ -93,6 +111,8 @@ export const CollectionForm = observer(function CollectionForm_({
       sharing: collection?.sharing ?? true,
       permission: collection?.permission,
       commenting: collection?.commenting ?? true,
+      templateManagement:
+        collection?.templateManagement ?? CollectionPermission.Admin,
       color: iconColor,
     },
   });
@@ -134,6 +154,71 @@ export const CollectionForm = observer(function CollectionForm_({
   );
 
   const initial = values.name.charAt(0).toUpperCase();
+
+  const options = (
+    <>
+      <Controller
+        control={control}
+        name="templateManagement"
+        render={({ field }) => (
+          <>
+            <InputSelect
+              value={field.value}
+              onChange={(value: string) => {
+                field.onChange(value as CollectionPermission);
+              }}
+              options={templateManagementOptions}
+              label={t("Manage templates")}
+            />
+            <Text
+              type="secondary"
+              size="small"
+              as="p"
+              style={{ paddingTop: 4 }}
+            >
+              {t(
+                "Choose who can create and edit templates in this collection."
+              )}
+            </Text>
+          </>
+        )}
+      />
+
+      {team.sharing && (
+        <Controller
+          control={control}
+          name="sharing"
+          render={({ field }) => (
+            <Switch
+              id="sharing"
+              label={t("Public document sharing")}
+              note={t(
+                "Allow documents within this collection to be shared publicly on the internet."
+              )}
+              checked={field.value}
+              onChange={field.onChange}
+            />
+          )}
+        />
+      )}
+
+      {team.getPreference(TeamPreference.Commenting) && (
+        <Controller
+          control={control}
+          name="commenting"
+          render={({ field }) => (
+            <Switch
+              id="commenting"
+              label={t("Commenting")}
+              note={t("Allow commenting on documents within this collection.")}
+              checked={!!field.value}
+              onChange={field.onChange}
+            />
+          )}
+        />
+      )}
+    </>
+  );
 
   return (
     <form onSubmit={formHandleSubmit(handleSubmit)}>
@@ -190,44 +275,10 @@ export const CollectionForm = observer(function CollectionForm_({
         />
       )}
 
-      {(team.sharing || team.getPreference(TeamPreference.Commenting)) && (
-        <Collapsible label={t("Advanced options")}>
-          {team.sharing && (
-            <Controller
-              control={control}
-              name="sharing"
-              render={({ field }) => (
-                <Switch
-                  id="sharing"
-                  label={t("Public document sharing")}
-                  note={t(
-                    "Allow documents within this collection to be shared publicly on the internet."
-                  )}
-                  checked={field.value}
-                  onChange={field.onChange}
-                />
-              )}
-            />
-          )}
-
-          {team.getPreference(TeamPreference.Commenting) && (
-            <Controller
-              control={control}
-              name="commenting"
-              render={({ field }) => (
-                <Switch
-                  id="commenting"
-                  label={t("Commenting")}
-                  note={t(
-                    "Allow commenting on documents within this collection."
-                  )}
-                  checked={!!field.value}
-                  onChange={field.onChange}
-                />
-              )}
-            />
-          )}
-        </Collapsible>
+      {collection ? (
+        options
+      ) : (
+        <Collapsible label={t("Advanced options")}>{options}</Collapsible>
       )}
 
       <HStack justify="flex-end">

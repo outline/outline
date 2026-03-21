@@ -67,6 +67,11 @@ export default class Collection extends ParanoidModel {
     direction: "asc" | "desc";
   };
 
+  /** The minimum permission level required to manage templates in this collection. */
+  @Field
+  @observable
+  templateManagement: CollectionPermission;
+
   /**
    * Whether commenting is enabled for the collection.
    */
