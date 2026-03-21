@@ -6,6 +6,7 @@ import env from "@server/env";
 
 type Props = {
   unsubscribeUrl?: string;
+  unsubscribeText?: string;
   children?: React.ReactNode;
 };
 
@@ -30,7 +31,7 @@ export const Link = ({
   );
 };
 
-export default ({ unsubscribeUrl, children }: Props) => {
+export default ({ unsubscribeUrl, unsubscribeText, children }: Props) => {
   const footerStyle = {
     padding: "20px 0",
     borderTop: `1px solid ${theme.smokeDark}`,
@@ -62,7 +63,9 @@ export default ({ unsubscribeUrl, children }: Props) => {
         {unsubscribeUrl && (
           <TR>
             <TD style={footerLinkStyle}>
-              <Link href={unsubscribeUrl}>Unsubscribe from these emails</Link>
+              <Link href={unsubscribeUrl}>
+                {unsubscribeText ?? "Unsubscribe from these emails"}
+              </Link>
             </TD>
           </TR>
         )}

@@ -60,20 +60,24 @@ export default class CollectionCreatedEmail extends BaseEmail<
   }
 
   protected subject({ collection }: Props) {
-    return `“${collection.name}” created`;
+    return this.t("“{{ collectionName }}” created", {
+      collectionName: collection.name,
+    });
   }
 
   protected preview({ collection }: Props) {
-    return `${collection.user.name} created a collection`;
+    return this.t("{{ userName }} created a collection", {
+      userName: collection.user.name,
+    });
   }
 
   protected renderAsText({ teamUrl, collection }: Props) {
     return `
 ${collection.name}
 
-${collection.user.name} created the collection "${collection.name}"
+${this.t("{{ userName }} created the collection “{{ collectionName }}”", { userName: collection.user.name, collectionName: collection.name })}
 
-Open Collection: ${teamUrl}${collection.path}
+${this.t("Open Collection")}: ${teamUrl}${collection.path}
 `;
   }
 
@@ -84,22 +88,34 @@ Open Collection: ${teamUrl}${collection.path}
     return (
       <EmailTemplate
         previewText={this.preview(props)}
-        goToAction={{ url: collectionLink, name: "View Collection" }}
+        goToAction={{
+          url: collectionLink,
+          name: this.t("View Collection"),
+        }}
       >
         <Header />
 
         <Body>
           <Heading>{collection.name}</Heading>
           <p>
-            {collection.user.name} created the collection "{collection.name}".
+            {this.t(
+              "{{ userName }} created the collection “{{ collectionName }}”.",
+              {
+                userName: collection.user.name,
+                collectionName: collection.name,
+              }
+            )}
           </p>
           <EmptySpace height={10} />
           <p>
-            <Button href={collectionLink}>Open Collection</Button>
+            <Button href={collectionLink}>{this.t("Open Collection")}</Button>
           </p>
         </Body>
 
-        <Footer unsubscribeUrl={unsubscribeUrl} />
+        <Footer
+          unsubscribeUrl={unsubscribeUrl}
+          unsubscribeText={this.t("Unsubscribe from these emails")}
+        />
       </EmailTemplate>
     );
   }

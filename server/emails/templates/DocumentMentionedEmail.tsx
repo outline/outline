@@ -93,11 +93,13 @@ export default class DocumentMentionedEmail extends BaseEmail<
   }
 
   protected subject({ document }: Props) {
-    return `Mentioned you in “${document.titleWithDefault}”`;
+    return this.t(`Mentioned you in “{{ documentTitle }}”`, {
+      documentTitle: document.titleWithDefault,
+    });
   }
 
   protected preview({ actorName }: Props): string {
-    return `${actorName} mentioned you`;
+    return this.t("{{ actorName }} mentioned you", { actorName });
   }
 
   protected fromName({ actorName }: Props) {
@@ -115,11 +117,11 @@ export default class DocumentMentionedEmail extends BaseEmail<
 
   protected renderAsText({ actorName, teamUrl, document }: Props): string {
     return `
-You were mentioned
+${this.t("You were mentioned")}
 
-${actorName} mentioned you in the document “${document.titleWithDefault}”.
+${this.t(`{{ actorName }} mentioned you in the document “{{ documentTitle }}”.`, { actorName, documentTitle: document.titleWithDefault })}
 
-Open Document: ${teamUrl}${document.url}
+${this.t("Open Document")}: ${teamUrl}${document.url}
 `;
   }
 
@@ -130,14 +132,16 @@ Open Document: ${teamUrl}${document.url}
     return (
       <EmailTemplate
         previewText={this.preview(props)}
-        goToAction={{ url: documentLink, name: "View Document" }}
+        goToAction={{ url: documentLink, name: this.t("View Document") }}
       >
         <Header />
 
         <Body>
-          <Heading>You were mentioned</Heading>
+          <Heading>{this.t("You were mentioned")}</Heading>
           <p>
-            {actorName} mentioned you in the document{" "}
+            {this.t("{{ actorName }} mentioned you in the document", {
+              actorName,
+            })}{" "}
             <a href={documentLink}>{document.titleWithDefault}</a>.
           </p>
           {body && (
@@ -150,7 +154,7 @@ Open Document: ${teamUrl}${document.url}
             </>
           )}
           <p>
-            <Button href={documentLink}>Open Document</Button>
+            <Button href={documentLink}>{this.t("Open Document")}</Button>
           </p>
         </Body>
       </EmailTemplate>

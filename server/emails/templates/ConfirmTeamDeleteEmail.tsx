@@ -23,18 +23,21 @@ export default class ConfirmTeamDeleteEmail extends BaseEmail<Props> {
   }
 
   protected subject() {
-    return `Your workspace deletion request`;
+    return this.t("Your workspace deletion request");
   }
 
   protected preview() {
-    return `Your requested workspace deletion code`;
+    return this.t("Your requested workspace deletion code");
   }
 
   protected renderAsText({ deleteConfirmationCode }: Props): string {
     return `
-You requested to permanently delete your ${env.APP_NAME} workspace. Please enter the code below to confirm the workspace deletion.
+${this.t(
+  "You requested to permanently delete your {{ appName }} workspace. Please enter the code below to confirm your workspace deletion.",
+  { appName: env.APP_NAME }
+)}
 
-Code: ${deleteConfirmationCode}
+${this.t("Code")}: ${deleteConfirmationCode}
 `;
   }
 
@@ -44,10 +47,12 @@ Code: ${deleteConfirmationCode}
         <Header />
 
         <Body>
-          <Heading>Your workspace deletion request</Heading>
+          <Heading>{this.t("Your workspace deletion request")}</Heading>
           <p>
-            You requested to permanently delete your {env.APP_NAME} workspace.
-            Please enter the code below to confirm your workspace deletion.
+            {this.t(
+              "You requested to permanently delete your {{ appName }} workspace. Please enter the code below to confirm your workspace deletion.",
+              { appName: env.APP_NAME }
+            )}
           </p>
           <EmptySpace height={5} />
           <p>

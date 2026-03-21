@@ -2,10 +2,12 @@ import type { EmailAddress } from "addressparser";
 import addressparser from "addressparser";
 import type Bull from "bull";
 import invariant from "invariant";
+import { t as i18nT } from "i18next";
 import { subMinutes } from "date-fns";
 import type { Node } from "prosemirror-model";
 import { randomString } from "@shared/random";
 import { TeamPreference } from "@shared/types";
+import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
 import { Day } from "@shared/utils/time";
 import mailer from "@server/emails/mailer";
 import env from "@server/env";
@@ -31,6 +33,8 @@ export enum EmailMessageCategory {
 export interface EmailProps {
   /** The email address being sent to. */
   to: string | null;
+  /** The language of the receiving user in CLDR format (e.g. "en_US"). */
+  language?: string | null;
   /** The notification that triggered the email, if any. */
   notification?: Notification;
 }
@@ -151,7 +155,7 @@ export default abstract class BaseEmail<
     let subject = this.subject(data);
     if (notification) {
       if (notification.createdAt < subMinutes(new Date(), 30)) {
-        subject = `Delayed notification: ${subject}`;
+        subject = `${this.t("Delayed notification")}: ${subject}`;
       }
     }
 
@@ -222,6 +226,20 @@ export default abstract class BaseEmail<
 
   private pixel(notification: Notification) {
     return <img src={notification.pixelUrl} alt="" width="1" height="1" />;
+  }
+
+  /**
+   * Translate a string using the receiving user's language preference.
+   *
+   * @param key The translation key (plain English string).
+   * @param options Optional interpolation values.
+   * @returns The translated string.
+   */
+  protected t(key: string, options?: Record<string, unknown>): string {
+    return i18nT(key, {
+      ...options,
+      lng: unicodeCLDRtoBCP47(this.props.language ?? env.DEFAULT_LANGUAGE),
+    }) as string;
   }
 
   /**

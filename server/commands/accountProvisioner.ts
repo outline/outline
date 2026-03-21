@@ -198,6 +198,7 @@ async function accountProvisioner(
   if (isNewUser) {
     await new WelcomeEmail({
       to: user.email,
+      language: user.language,
       role: user.role,
       teamUrl: team.url,
     }).schedule();

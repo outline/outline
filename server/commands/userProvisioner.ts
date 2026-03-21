@@ -185,6 +185,7 @@ export default async function userProvisioner(
       if (inviter) {
         await new InviteAcceptedEmail({
           to: inviter.email,
+          language: inviter.language,
           inviterId: inviter.id,
           invitedName: existingUser.name,
           teamUrl: existingUser.team.url,

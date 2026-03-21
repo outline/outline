@@ -25,19 +25,26 @@ export default class ConfirmUpdateEmail extends BaseEmail<Props> {
   }
 
   protected subject() {
-    return `Your email update request`;
+    return this.t("Your email update request");
   }
 
   protected preview() {
-    return `Here’s your email change confirmation.`;
+    return this.t("Here’s your email change confirmation.");
   }
 
   protected renderAsText({ teamUrl, code, previous, to }: Props): string {
     return `
-You requested to update your ${env.APP_NAME} account email. Please
-follow the link below to confirm the change ${
-      previous ? `from ${previous} ` : ""
-    }to ${to}.
+${
+  previous
+    ? this.t(
+        "You requested to update your {{ appName }} account email. Please follow the link below to confirm the change from {{ previous }} to {{ to }}.",
+        { appName: env.APP_NAME, previous, to }
+      )
+    : this.t(
+        "You requested to update your {{ appName }} account email. Please follow the link below to confirm the change to {{ to }}.",
+        { appName: env.APP_NAME, to }
+      )
+}
 
   ${this.updateLink(teamUrl, code)}
   `;
@@ -49,16 +56,23 @@ follow the link below to confirm the change ${
         <Header />
 
         <Body>
-          <Heading>Your email update request</Heading>
+          <Heading>{this.t("Your email update request")}</Heading>
           <p>
-            You requested to update your {env.APP_NAME} account email. Please
-            click below to confirm the change{" "}
-            {previous ? `from ${previous} ` : ""}to <strong>{to}</strong>.
+            {previous
+              ? this.t(
+                  "You requested to update your {{ appName }} account email. Please click below to confirm the change from {{ previous }} to",
+                  { appName: env.APP_NAME, previous }
+                )
+              : this.t(
+                  "You requested to update your {{ appName }} account email. Please click below to confirm the change to",
+                  { appName: env.APP_NAME }
+                )}{" "}
+            <strong>{to}</strong>.
           </p>
           <EmptySpace height={5} />
           <p>
             <Button href={this.updateLink(teamUrl, code)}>
-              Confirm Change
+              {this.t("Confirm Change")}
             </Button>
           </p>
         </Body>

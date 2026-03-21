@@ -232,6 +232,7 @@ router.post(
 
     await new ConfirmUpdateEmail({
       to: email,
+      language: user.language,
       previous: user.email,
       code: user.getEmailUpdateToken(email),
       teamUrl: team.url,
@@ -581,6 +582,7 @@ router.post(
 
     await new InviteEmail({
       to: user.email,
+      language: user.language,
       name: user.name,
       actorName: actor.name,
       actorEmail: actor.email,
@@ -620,6 +622,7 @@ router.post(
 
     await new ConfirmUserDeleteEmail({
       to: user.email,
+      language: user.language,
       deleteConfirmationCode: user.deleteConfirmationCode,
       teamName: user.team.name,
       teamUrl: user.team.url,

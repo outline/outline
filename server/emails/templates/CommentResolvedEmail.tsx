@@ -94,11 +94,13 @@ export default class CommentResolvedEmail extends BaseEmail<
   }
 
   protected subject({ document }: Props) {
-    return `Resolved a comment thread in “${document.titleWithDefault}”`;
+    return this.t("Resolved a comment thread in “{{ documentTitle }}”", {
+      documentTitle: document.titleWithDefault,
+    });
   }
 
   protected preview({ actorName }: Props): string {
-    return `${actorName} resolved a comment thread`;
+    return this.t("{{ actorName }} resolved a comment thread", { actorName });
   }
 
   protected fromName({ actorName }: Props): string {
@@ -112,10 +114,15 @@ export default class CommentResolvedEmail extends BaseEmail<
     commentId,
     collection,
   }: Props): string {
-    const t1 = `${actorName} resolved a comment thread on "${document.titleWithDefault}"`;
-    const t2 = collection.name ? ` in the ${collection.name} collection` : "";
-    const t3 = `Open Thread: ${teamUrl}${document.url}?commentId=${commentId}`;
-    return `${t1}${t2}.\n\n${t3}`;
+    const action = this.t(
+      "{{ actorName }} resolved a comment thread on “{{ documentTitle }}”",
+      { actorName, documentTitle: document.titleWithDefault }
+    );
+    const inCollection = collection.name
+      ? ` ${this.t("in the {{ collectionName }} collection", { collectionName: collection.name })}`
+      : "";
+    const openThread = `${this.t("Open Thread")}: ${teamUrl}${document.url}?commentId=${commentId}`;
+    return `${action}${inCollection}.\n\n${openThread}`;
   }
 
   protected render(props: Props) {
@@ -133,16 +140,21 @@ export default class CommentResolvedEmail extends BaseEmail<
     return (
       <EmailTemplate
         previewText={this.preview(props)}
-        goToAction={{ url: threadLink, name: "View Thread" }}
+        goToAction={{ url: threadLink, name: this.t("View Thread") }}
       >
         <Header />
 
         <Body>
           <Heading>{document.titleWithDefault}</Heading>
           <p>
-            {actorName} resolved a comment on{" "}
+            {this.t("{{ actorName }} resolved a comment on", { actorName })}{" "}
             <a href={threadLink}>{document.titleWithDefault}</a>{" "}
-            {collection.name ? `in the ${collection.name} collection` : ""}.
+            {collection.name
+              ? this.t("in the {{ collectionName }} collection", {
+                  collectionName: collection.name,
+                })
+              : ""}
+            .
           </p>
           {body && (
             <>
@@ -154,11 +166,14 @@ export default class CommentResolvedEmail extends BaseEmail<
             </>
           )}
           <p>
-            <Button href={threadLink}>Open Thread</Button>
+            <Button href={threadLink}>{this.t("Open Thread")}</Button>
           </p>
         </Body>
 
-        <Footer unsubscribeUrl={unsubscribeUrl} />
+        <Footer
+          unsubscribeUrl={unsubscribeUrl}
+          unsubscribeText={this.t("Unsubscribe from these emails")}
+        />
       </EmailTemplate>
     );
   }

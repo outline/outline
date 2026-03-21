@@ -80,6 +80,7 @@ router.post(
     // send email to users email address with a short-lived token and code
     await new SigninEmail({
       to: user.email,
+      language: user.language,
       token,
       teamUrl: team.url,
       client,
@@ -171,6 +172,7 @@ const emailCallback = async (ctx: APIContext<T.EmailCallbackReq>) => {
   if (user.isInvited) {
     await new WelcomeEmail({
       to: user.email,
+      language: user.language,
       role: user.role,
       teamUrl: user.team.url,
     }).schedule();
@@ -179,6 +181,7 @@ const emailCallback = async (ctx: APIContext<T.EmailCallbackReq>) => {
     if (inviter?.subscribedToEventType(NotificationEventType.InviteAccepted)) {
       await new InviteAcceptedEmail({
         to: inviter.email,
+        language: inviter.language,
         inviterId: inviter.id,
         invitedName: user.name,
         teamUrl: user.team.url,

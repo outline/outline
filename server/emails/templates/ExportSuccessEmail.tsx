@@ -51,21 +51,22 @@ export default class ExportSuccessEmail extends BaseEmail<
   }
 
   protected subject() {
-    return "Your requested export";
+    return this.t("Your requested export");
   }
 
   protected preview() {
-    return `Here's your request data export from ${env.APP_NAME}`;
+    return this.t("Here's your request data export from {{ appName }}", {
+      appName: env.APP_NAME,
+    });
   }
 
   protected renderAsText({ teamUrl, id }: Props) {
     const downloadLink = `${teamUrl}/api/fileOperations.redirect?id=${id}`;
 
     return `
-Your Data Export
+${this.t("Your Data Export")}
 
-Your requested data export is complete - you can download from the link below
-in a browser that is logged into your account:
+${this.t("Your requested data export is complete, you can download from the link below in a browser that is logged into your account.")}
 
 ${downloadLink}
 `;
@@ -77,23 +78,27 @@ ${downloadLink}
     return (
       <EmailTemplate
         previewText={this.preview()}
-        goToAction={{ url: downloadLink, name: "Download export" }}
+        goToAction={{ url: downloadLink, name: this.t("Download export") }}
       >
         <Header />
 
         <Body>
-          <Heading>Your Data Export</Heading>
+          <Heading>{this.t("Your Data Export")}</Heading>
           <p>
-            Your requested data export is complete - you can download from the
-            link below in a browser that is logged into your account.
+            {this.t(
+              "Your requested data export is complete - you can download from the link below in a browser that is logged into your account."
+            )}
           </p>
           <EmptySpace height={10} />
           <p>
-            <Button href={downloadLink}>Download</Button>
+            <Button href={downloadLink}>{this.t("Download")}</Button>
           </p>
         </Body>
 
-        <Footer unsubscribeUrl={unsubscribeUrl} />
+        <Footer
+          unsubscribeUrl={unsubscribeUrl}
+          unsubscribeText={this.t("Unsubscribe from these emails")}
+        />
       </EmailTemplate>
     );
   }
