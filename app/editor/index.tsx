@@ -443,8 +443,8 @@ export class Editor extends React.PureComponent<
       schema: this.schema,
       doc,
       plugins: [
-        ...this.keymaps,
         ...this.plugins,
+        ...this.keymaps,
         anchorPlugin(),
         dropCursor({
           color: this.props.theme.cursor,

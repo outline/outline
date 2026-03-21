@@ -439,6 +439,31 @@ export default function Mermaid({
       decorations(state) {
         return this.getState(state)?.decorationSet;
       },
+      handleKeyDown(view, event) {
+        if (event.key === "Enter" && event.metaKey && !editor.props.readOnly) {
+          const { selection } = view.state;
+          const isNodeSel = selection instanceof NodeSelection;
+          const isMermaidNode =
+            isNodeSel && isMermaid((selection as NodeSelection).node);
+          if (isNodeSel && isMermaidNode) {
+            editor.commands.edit_mermaid();
+            return true;
+          }
+        }
+
+        if (event.key === "Escape") {
+          const mermaidState = pluginKey.getState(view.state) as MermaidState;
+          const codeBlock = findParentNode(isCode)(view.state.selection);
+
+          if (mermaidState?.editingId) {
+            if (codeBlock && isMermaid(codeBlock.node)) {
+              editor.commands.edit_mermaid();
+              return true;
+            }
+          }
+        }
+        return false;
+      },
       handleDOMEvents: {
         click(_view, event: MouseEvent) {
           const target = event.target as HTMLElement;
