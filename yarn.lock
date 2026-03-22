@@ -4842,20 +4842,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@octokit/openapi-types@npm:^25.1.0":
-  version: 25.1.0
-  resolution: "@octokit/openapi-types@npm:25.1.0"
-  checksum: 10c0/b5b1293b11c6ec7112c7a2713f8507c2696d5db8902ce893b594080ab0329f5a6fcda1b5ac6fe6eed9425e897f4d03326c1bdf5c337e35d324e7b925e52a2661
-  languageName: node
-  linkType: hard
-
-"@octokit/openapi-webhooks-types@npm:11.0.0":
-  version: 11.0.0
-  resolution: "@octokit/openapi-webhooks-types@npm:11.0.0"
-  checksum: 10c0/cea59ba6b976a242fa4e6bedfab7e6fc3437381557d2c1876ca3aea5f6d4231559a378f9bc35e09593cb2d466afb4a2415be66b960f3e0a38b65b8b9f22ff90e
-  languageName: node
-  linkType: hard
-
 "@octokit/plugin-paginate-graphql@npm:^4.0.0":
   version: 4.0.1
   resolution: "@octokit/plugin-paginate-graphql@npm:4.0.1"
@@ -4934,15 +4920,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@octokit/request-error@npm:^6.1.7":
-  version: 6.1.8
-  resolution: "@octokit/request-error@npm:6.1.8"
-  dependencies:
-    "@octokit/types": "npm:^14.0.0"
-  checksum: 10c0/02aa5bfebb5b1b9e152558b4a6f4f7dcb149b41538778ffe0fce3395fd0da5c0862311a78e94723435667581b2a58a7cefa458cf7aa19ae2948ae419276f7ee1
-  languageName: node
-  linkType: hard
-
 "@octokit/request@npm:^8.3.1, @octokit/request@npm:^8.4.1":
   version: 8.4.1
   resolution: "@octokit/request@npm:8.4.1"
@@ -4973,26 +4950,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@octokit/types@npm:^14.0.0":
-  version: 14.1.0
-  resolution: "@octokit/types@npm:14.1.0"
-  dependencies:
-    "@octokit/openapi-types": "npm:^25.1.0"
-  checksum: 10c0/4640a6c0a95386be4d015b96c3a906756ea657f7df3c6e706d19fea6bf3ac44fd2991c8c817afe1e670ff9042b85b0e06f7fd373f6bbd47da64208701bb46d5b
-  languageName: node
-  linkType: hard
-
 "@octokit/webhooks-methods@npm:^4.1.0":
   version: 4.1.0
   resolution: "@octokit/webhooks-methods@npm:4.1.0"
   checksum: 10c0/153b344b4b20b48fdf89225f482bd9aa612998c28e43d032756d5a2ec7ebf117922fb6a95ee7c0a985cab6924fa4de3378c60e9ff41e384498b8cb7aad3771f2
-  languageName: node
-  linkType: hard
-
-"@octokit/webhooks-methods@npm:^5.1.1":
-  version: 5.1.1
-  resolution: "@octokit/webhooks-methods@npm:5.1.1"
-  checksum: 10c0/837aa49dbc7f8bc01448f4eaea32cfb0c1cbfa0b4ac570f7bcda385c71f43e4be05e91a3fb63708448410b27e246570fde42056b6b87d755154d84eff5a6500c
   languageName: node
   linkType: hard
 
@@ -5012,17 +4973,6 @@ __metadata:
     "@octokit/webhooks-types": "npm:7.6.1"
     aggregate-error: "npm:^3.1.0"
   checksum: 10c0/4d9f5fe686c0b87781aa6bbac6585d7ea92d99648ddb0fbc491e6dc00e598f1c359c8197f044f7863aea401691967febca9172f3deb422549d629a43309432b0
-  languageName: node
-  linkType: hard
-
-"@octokit/webhooks@npm:^13.9.1":
-  version: 13.9.1
-  resolution: "@octokit/webhooks@npm:13.9.1"
-  dependencies:
-    "@octokit/openapi-webhooks-types": "npm:11.0.0"
-    "@octokit/request-error": "npm:^6.1.7"
-    "@octokit/webhooks-methods": "npm:^5.1.1"
-  checksum: 10c0/feb4a595d5f160908f97be9b68c9c579b5cdf7abc28407998e652759b15f9082b026caa6b41bd4f56132e3c99f0a9e5ebfe4319177818d14bd65ec49cd2b93f3
   languageName: node
   linkType: hard
 
@@ -7641,13 +7591,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/body-scroll-lock@npm:^3.1.2":
-  version: 3.1.2
-  resolution: "@types/body-scroll-lock@npm:3.1.2"
-  checksum: 10c0/e766e44ef16e2b9a50488944eb8310247df7a8acfbbc4ed6d9f19ba83987404080aa02eae0256a57b5dd29bf5b9d39f6fa357abcabc3fbc47b8772dc681a1fac
-  languageName: node
-  linkType: hard
-
 "@types/btoa-lite@npm:^1.0.0":
   version: 1.0.2
   resolution: "@types/btoa-lite@npm:1.0.2"
@@ -9949,13 +9892,6 @@ __metadata:
     raw-body: "npm:^3.0.1"
     type-is: "npm:^2.0.1"
   checksum: 10c0/ce9608cff4114a908c09e8f57c7b358cd6fef66100320d01244d4c141448d7a6710c4051cc9d6191f8c6b3c7fa0f5b040c7aa1b6bbeb5462e27e668e64cb15bd
-  languageName: node
-  linkType: hard
-
-"body-scroll-lock@npm:^4.0.0-beta.0":
-  version: 4.0.0-beta.0
-  resolution: "body-scroll-lock@npm:4.0.0-beta.0"
-  checksum: 10c0/32a9553b83424e69f3784d7bbcef2949c43159ea13b5084c96dc08b1e2585e4eeb1e915f14e37a4ac44110339dfa6fa2ddde4d3d812be88ecbea060aa724a791
   languageName: node
   linkType: hard
 
@@ -17633,7 +17569,6 @@ __metadata:
     "@node-oauth/oauth2-server": "npm:^5.2.0"
     "@notionhq/client": "npm:^2.3.0"
     "@octokit/auth-app": "npm:^6.1.4"
-    "@octokit/webhooks": "npm:^13.9.1"
     "@outlinewiki/koa-passport": "npm:^4.2.1"
     "@outlinewiki/passport-azure-ad-oauth2": "npm:^0.1.0"
     "@radix-ui/react-collapsible": "npm:^1.1.12"
@@ -17656,7 +17591,6 @@ __metadata:
     "@tanstack/react-table": "npm:^8.21.3"
     "@tanstack/react-virtual": "npm:^3.13.12"
     "@types/addressparser": "npm:^1.0.3"
-    "@types/body-scroll-lock": "npm:^3.1.2"
     "@types/cookie": "npm:0.6.0"
     "@types/crypto-js": "npm:^4.2.2"
     "@types/diff": "npm:^5.0.9"
@@ -17732,7 +17666,6 @@ __metadata:
     babel-plugin-transform-inline-environment-variables: "npm:^0.4.4"
     babel-plugin-transform-typescript-metadata: "npm:^0.4.0"
     babel-plugin-tsconfig-paths-module-resolver: "npm:^1.0.4"
-    body-scroll-lock: "npm:^4.0.0-beta.0"
     browserslist-to-esbuild: "npm:^1.2.0"
     bull: "npm:^4.16.5"
     class-validator: "npm:^0.14.3"
