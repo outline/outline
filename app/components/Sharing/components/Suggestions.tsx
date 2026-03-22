@@ -14,6 +14,7 @@ import type User from "~/models/User";
 import ArrowKeyNavigation from "~/components/ArrowKeyNavigation";
 import type { IAvatar } from "~/components/Avatar";
 import { Avatar, GroupAvatar, AvatarSize } from "~/components/Avatar";
+import ButtonLink from "~/components/ButtonLink";
 import Empty from "~/components/Empty";
 import Placeholder from "~/components/List/Placeholder";
 import Scrollable from "~/components/Scrollable";
@@ -21,6 +22,7 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import useMaxHeight from "~/hooks/useMaxHeight";
 import useStores from "~/hooks/useStores";
 import useThrottledCallback from "~/hooks/useThrottledCallback";
+import { GroupMembersPopover } from "./GroupMembersPopover";
 import { InviteIcon, ListItem } from "./ListItem";
 
 type Suggestion = IAvatar & {
@@ -148,9 +150,18 @@ export const Suggestions = observer(
       if (suggestion instanceof Group) {
         return {
           title: suggestion.name,
-          subtitle: t("{{ count }} member", {
-            count: suggestion.memberCount,
-          }),
+          subtitle: (
+            // eslint-disable-next-line jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events
+            <span onClick={(ev) => ev.stopPropagation()}>
+              <GroupMembersPopover group={suggestion}>
+                <StyledButtonLink>
+                  {t("{{ count }} member", {
+                    count: suggestion.memberCount,
+                  })}
+                </StyledButtonLink>
+              </GroupMembersPopover>
+            </span>
+          ),
           image: <GroupAvatar group={suggestion} />,
         };
       }
@@ -266,6 +277,13 @@ const PendingListItem = styled(ListItem)`
 const Separator = styled.div`
   border-top: 1px dashed ${s("divider")};
   margin: 12px 0;
+`;
+
+const StyledButtonLink = styled(ButtonLink)`
+  color: ${s("textTertiary")};
+  &:hover {
+    text-decoration: underline;
+  }
 `;
 
 const ScrollableContainer = styled(Scrollable)`
