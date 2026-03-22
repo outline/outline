@@ -14,6 +14,7 @@ import {
 import { isMermaid } from "@shared/editor/lib/isCode";
 import type { MenuItem } from "@shared/editor/types";
 import type { Dictionary } from "~/hooks/useDictionary";
+import { metaDisplay } from "@shared/utils/keyboard";
 
 export default function codeMenuItems(
   state: EditorState,
@@ -67,6 +68,7 @@ export default function codeMenuItems(
       name: "edit_mermaid",
       icon: <EditIcon />,
       tooltip: dictionary.editDiagram,
+      shortcut: `${metaDisplay} Enter`,
       visible: isMermaid(node) && !isEditingMermaid && !readOnly,
     },
     {

@@ -365,6 +365,9 @@ export default class Image extends SimpleImage {
     ({ getPos, view }: ComponentProps) =>
     () => {
       const { commands } = this.editor;
+      if (!commands.editDiagram) {
+        return;
+      }
       const pos = getPos();
       const $pos = view.state.doc.resolve(pos);
       view.dispatch(view.state.tr.setSelection(new NodeSelection($pos)));

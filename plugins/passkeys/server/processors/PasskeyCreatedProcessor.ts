@@ -19,6 +19,7 @@ export class PasskeyCreatedProcessor extends BaseProcessor {
 
     await new PasskeyCreatedEmail({
       to: user.email,
+      language: user.language,
       userId: user.id,
       passkeyId: userPasskey.id,
       passkeyName: userPasskey.name,

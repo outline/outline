@@ -54,11 +54,14 @@ export default class CollectionSharedEmail extends BaseEmail<
   }
 
   protected subject({ actorName, collection }: Props) {
-    return `${actorName} invited you to the “${collection.name}” collection`;
+    return this.t(
+      "{{ actorName }} invited you to the “{{ collectionName }}” collection",
+      { actorName, collectionName: collection.name }
+    );
   }
 
   protected preview({ actorName }: Props): string {
-    return `${actorName} invited you to a collection`;
+    return this.t("{{ actorName }} invited you to a collection", { actorName });
   }
 
   protected fromName({ actorName }: Props) {
@@ -67,9 +70,9 @@ export default class CollectionSharedEmail extends BaseEmail<
 
   protected renderAsText({ actorName, teamUrl, collection }: Props): string {
     return `
-${actorName} invited you to the “${collection.name}” collection.
+${this.t("{{ actorName }} invited you to the “{{ collectionName }}” collection.", { actorName, collectionName: collection.name })}
 
-View Document: ${teamUrl}${collection.path}
+${this.t("View Collection")}: ${teamUrl}${collection.path}
 `;
   }
 
@@ -79,26 +82,33 @@ View Document: ${teamUrl}${collection.path}
 
     const permission =
       membership.permission === CollectionPermission.ReadWrite
-        ? "view and edit"
+        ? this.t("view and edit")
         : membership.permission === CollectionPermission.Admin
-          ? "manage"
-          : "view";
+          ? this.t("manage")
+          : this.t("view");
 
     return (
       <EmailTemplate
         previewText={this.preview(props)}
-        goToAction={{ url: collectionUrl, name: "View Collection" }}
+        goToAction={{
+          url: collectionUrl,
+          name: this.t("View Collection"),
+        }}
       >
         <Header />
 
         <Body>
           <Heading>{collection.name}</Heading>
           <p>
-            {actorName} invited you to {permission} documents in the{" "}
-            <a href={collectionUrl}>{collection.name}</a> collection.
+            {this.t(
+              "{{ actorName }} invited you to {{ permission }} documents in the",
+              { actorName, permission }
+            )}{" "}
+            <a href={collectionUrl}>{collection.name}</a> {this.t("collection")}
+            .
           </p>
           <p>
-            <Button href={collectionUrl}>View Collection</Button>
+            <Button href={collectionUrl}>{this.t("View Collection")}</Button>
           </p>
         </Body>
       </EmailTemplate>

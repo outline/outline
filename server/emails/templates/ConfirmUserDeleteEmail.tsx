@@ -25,18 +25,21 @@ export default class ConfirmUserDeleteEmail extends BaseEmail<Props> {
   }
 
   protected subject() {
-    return `Your account deletion request`;
+    return this.t("Your account deletion request");
   }
 
   protected preview() {
-    return `Your requested account deletion code`;
+    return this.t("Your requested account deletion code");
   }
 
   protected renderAsText({ teamName, deleteConfirmationCode }: Props): string {
     return `
-You requested to permanently delete your ${env.APP_NAME} user account in the ${teamName} workspace. Please enter the code below to confirm your account deletion.
+${this.t(
+  "You requested to permanently delete your {{ appName }} user account in the {{ teamName }} workspace. Please enter the code below to confirm your account deletion.",
+  { appName: env.APP_NAME, teamName }
+)}
 
-Code: ${deleteConfirmationCode}
+${this.t("Code")}: ${deleteConfirmationCode}
 `;
   }
 
@@ -46,11 +49,16 @@ Code: ${deleteConfirmationCode}
         <Header />
 
         <Body>
-          <Heading>Your account deletion request</Heading>
+          <Heading>{this.t("Your account deletion request")}</Heading>
           <p>
-            You requested to permanently delete your {env.APP_NAME} user account
-            in the <a href={teamUrl}>{teamName}</a> workspace. Please enter the
-            code below to confirm your account deletion.
+            {this.t(
+              "You requested to permanently delete your {{ appName }} user account in the",
+              { appName: env.APP_NAME }
+            )}{" "}
+            <a href={teamUrl}>{teamName}</a>{" "}
+            {this.t(
+              "workspace. Please enter the code below to confirm your account deletion."
+            )}
           </p>
           <EmptySpace height={5} />
           <p>

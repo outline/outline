@@ -66,6 +66,10 @@ class Team extends Model {
 
   @Field
   @observable
+  guidanceMCP: string | null;
+
+  @Field
+  @observable
   preferences: TeamPreferences | null;
 
   @observable

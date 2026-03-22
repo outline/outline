@@ -27,11 +27,15 @@ export default class SigninEmail extends BaseEmail<Props, void> {
   }
 
   protected subject({ token }: Props) {
-    return token ? "Magic signin link" : "Sign in verification code";
+    return token
+      ? this.t("Magic signin link")
+      : this.t("Sign in verification code");
   }
 
   protected preview(): string {
-    return `Here’s your link to signin to ${env.APP_NAME}.`;
+    return this.t("Here’s your link to signin to {{ appName }}.", {
+      appName: env.APP_NAME,
+    });
   }
 
   protected renderAsText({
@@ -42,20 +46,18 @@ export default class SigninEmail extends BaseEmail<Props, void> {
   }: Props): string {
     if (token) {
       return `
-Use the link below to sign in:
+${this.t("Use the link below to sign in")}:
 
 ${this.signinLink(teamUrl, token, client)}
 
-If the link expired you can request a new one from your team's
-signin page at: ${teamUrl}
+${this.t("If the link expired you can request a new one from your team's signin page at")}: ${teamUrl}
 `;
     }
 
     return `
-Enter this verification code: ${verificationCode}
+${this.t("Enter this verification code")}: ${verificationCode}
 
-If the code expired you can request a new one from your team's
-signin page at: ${teamUrl}
+${this.t("If the code expired you can request a new one from your team's signin page at")}: ${teamUrl}
 `;
   }
 
@@ -77,7 +79,10 @@ signin page at: ${teamUrl}
         previewText={this.preview()}
         goToAction={
           token
-            ? { url: this.signinLink(teamUrl, token, client), name: "Sign In" }
+            ? {
+                url: this.signinLink(teamUrl, token, client),
+                name: this.t("Sign In"),
+              }
             : undefined
         }
       >
@@ -85,24 +90,34 @@ signin page at: ${teamUrl}
 
         {token ? (
           <Body>
-            <Heading>Magic Sign-in Link</Heading>
-            <p>Click the button below to sign in to {env.APP_NAME}.</p>
+            <Heading>{this.t("Magic Sign-in Link")}</Heading>
+            <p>
+              {this.t("Click the button below to sign in to {{ appName }}.", {
+                appName: env.APP_NAME,
+              })}
+            </p>
             <EmptySpace height={10} />
             <p>
               <Button href={this.signinLink(teamUrl, token, client)}>
-                Sign In
+                {this.t("Sign In")}
               </Button>
             </p>
             <EmptySpace height={20} />
             <p>
-              If the link expired you can request a new one from your team's
-              sign-in page at: <a href={teamUrl}>{teamUrl}</a>
+              {this.t(
+                "If the link expired you can request a new one from your team's sign-in page at"
+              )}
+              : <a href={teamUrl}>{teamUrl}</a>
             </p>
           </Body>
         ) : (
           <Body>
-            <Heading>Sign-in Code</Heading>
-            <p>Enter this code on your team's sign-in page to continue.</p>
+            <Heading>{this.t("Sign-in Code")}</Heading>
+            <p>
+              {this.t(
+                "Enter this code on your team's sign-in page to continue."
+              )}
+            </p>
             <EmptySpace height={10} />
             <p
               style={{
@@ -118,8 +133,10 @@ signin page at: ${teamUrl}
             </p>
             <EmptySpace height={20} />
             <p>
-              If the code expired you can request a new one from your team's
-              sign-in page at: <a href={teamUrl}>{teamUrl}</a>
+              {this.t(
+                "If the code expired you can request a new one from your team's sign-in page at"
+              )}
+              : <a href={teamUrl}>{teamUrl}</a>
             </p>
           </Body>
         )}

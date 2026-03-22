@@ -99,11 +99,20 @@ export default class GroupDocumentMentionedEmail extends BaseEmail<
   }
 
   protected subject({ document, groupName }: Props) {
-    return `The ${groupName} group was mentioned in “${document.titleWithDefault}”`;
+    return this.t(
+      `The {{ groupName }} group was mentioned in “{{ documentTitle }}”`,
+      {
+        groupName,
+        documentTitle: document.titleWithDefault,
+      }
+    );
   }
 
   protected preview({ actorName, groupName }: Props): string {
-    return `${actorName} mentioned the "${groupName}" group`;
+    return this.t(`{{ actorName }} mentioned the “{{ groupName }}” group`, {
+      actorName,
+      groupName,
+    });
   }
 
   protected fromName({ actorName }: Props) {
@@ -126,9 +135,9 @@ export default class GroupDocumentMentionedEmail extends BaseEmail<
     groupName,
   }: Props): string {
     return `
-${actorName} mentioned the “${groupName}” group in the document “${document.titleWithDefault}”.
+${this.t(`{{ actorName }} mentioned the “{{ groupName }}” group in the document “{{ documentTitle }}”.`, { actorName, groupName, documentTitle: document.titleWithDefault })}
 
-Open Document: ${teamUrl}${document.url}
+${this.t("Open Document")}: ${teamUrl}${document.url}
 `;
   }
 
@@ -139,14 +148,17 @@ Open Document: ${teamUrl}${document.url}
     return (
       <EmailTemplate
         previewText={this.preview(props)}
-        goToAction={{ url: documentLink, name: "View Document" }}
+        goToAction={{ url: documentLink, name: this.t("View Document") }}
       >
         <Header />
 
         <Body>
-          <Heading>Your group was mentioned</Heading>
+          <Heading>{this.t("Your group was mentioned")}</Heading>
           <p>
-            {actorName} mentioned the "{groupName}" group in the document{" "}
+            {this.t(
+              `{{ actorName }} mentioned the "{{ groupName }}" group in the document`,
+              { actorName, groupName }
+            )}{" "}
             <a href={documentLink}>{document.titleWithDefault}</a>.
           </p>
           {body && (
@@ -159,7 +171,7 @@ Open Document: ${teamUrl}${document.url}
             </>
           )}
           <p>
-            <Button href={documentLink}>Open Document</Button>
+            <Button href={documentLink}>{this.t("Open Document")}</Button>
           </p>
         </Body>
       </EmailTemplate>

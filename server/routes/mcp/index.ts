@@ -28,9 +28,10 @@ const router = new Router();
  * scopes granted to the current token.
  *
  * @param scopes - the OAuth scopes granted to the access token.
+ * @param instructions - optional workspace guidance to send to clients.
  * @returns a configured McpServer ready to be connected to a transport.
  */
-function createMcpServer(scopes: string[]): McpServer {
+function createMcpServer(scopes: string[], instructions?: string): McpServer {
   const server = new McpServer(
     {
       name: "outline",
@@ -40,6 +41,7 @@ function createMcpServer(scopes: string[]): McpServer {
       capabilities: {
         tools: {},
       },
+      ...(instructions ? { instructions } : {}),
     }
   );
 
@@ -70,7 +72,10 @@ router.post(
       throw NotFoundError();
     }
 
-    const server = createMcpServer(scope ?? []);
+    const server = createMcpServer(
+      scope ?? [],
+      user.team.guidanceMCP ?? undefined
+    );
     const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: undefined,
     });

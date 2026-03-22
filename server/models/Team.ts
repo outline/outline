@@ -188,6 +188,14 @@ class Team extends ParanoidModel<
   approximateTotalAttachmentsSize: number;
 
   @AllowNull
+  @Length({
+    max: TeamValidation.maxGuidanceMCPLength,
+    msg: `MCP guidance must be ${TeamValidation.maxGuidanceMCPLength} characters or less`,
+  })
+  @Column(DataType.TEXT)
+  guidanceMCP: string | null;
+
+  @AllowNull
   @Column(DataType.JSONB)
   preferences: TeamPreferences | null;
 
