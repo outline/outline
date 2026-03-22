@@ -210,6 +210,19 @@ export class GitHub {
   private static clientId = env.GITHUB_CLIENT_ID;
   private static clientSecret = env.GITHUB_CLIENT_SECRET;
 
+  /** Base URL for the GitHub instance (e.g. "https://github.example.com"). */
+  private static baseUrl = env.GITHUB_URL ?? "https://github.com";
+
+  /** API base URL derived from GITHUB_URL for Octokit. */
+  private static apiBaseUrl = env.GITHUB_URL
+    ? `${env.GITHUB_URL.replace(/\/$/, "")}/api/v3`
+    : "https://api.github.com";
+
+  /** Hostname used to match URLs for link unfurling. */
+  private static hostname = env.GITHUB_URL
+    ? new URL(env.GITHUB_URL).hostname
+    : "github.com";
+
   private static appOctokit: Octokit;
 
   private static supportedResources = [
@@ -226,7 +239,7 @@ export class GitHub {
   public static parseUrl(url: string): GitHubResource | undefined {
     try {
       const { hostname, pathname } = new URL(url);
-      if (hostname !== "github.com") {
+      if (hostname !== GitHub.hostname) {
         return;
       }
 
@@ -281,6 +294,7 @@ export class GitHub {
   private static authenticateAsApp = () => {
     if (!GitHub.appOctokit) {
       GitHub.appOctokit = new CustomOctokit({
+        baseUrl: GitHub.apiBaseUrl,
         authStrategy: createAppAuth,
         auth: {
           appId: GitHub.appId,
@@ -311,6 +325,7 @@ export class GitHub {
       state,
       factory: (options: OAuthWebFlowAuthOptions) =>
         new CustomOctokit({
+          baseUrl: GitHub.apiBaseUrl,
           authStrategy: createOAuthUserAuth,
           auth: options,
         }),
@@ -328,6 +343,7 @@ export class GitHub {
       installationId,
       factory: (options: InstallationAuthOptions) =>
         new CustomOctokit({
+          baseUrl: GitHub.apiBaseUrl,
           authStrategy: createAppAuth,
           auth: options,
         }),

@@ -6,6 +6,14 @@ import { CannotUseWithout } from "@server/utils/validators";
 
 class GitHubPluginEnvironment extends Environment {
   /**
+   * GitHub instance URL. Set to your GitHub Enterprise Server URL
+   * (e.g. https://github.example.com) to use GHES instead of github.com.
+   */
+  @Public
+  @IsOptional()
+  public GITHUB_URL = this.toOptionalString(environment.GITHUB_URL);
+
+  /**
    * GitHub OAuth2 client credentials. To enable integration with GitHub.
    */
   @Public
