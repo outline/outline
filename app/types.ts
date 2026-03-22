@@ -138,6 +138,7 @@ type BaseAction = {
   analyticsName?: string;
   name: ((context: ActionContext) => React.ReactNode) | React.ReactNode;
   section: ((context: ActionContext) => string) | string;
+  description?: ((context: ActionContext) => string) | string;
   shortcut?: string[];
   keywords?: string;
   /** Higher number is higher in results, default is 0. */

@@ -16,15 +16,17 @@ function SharedCommandBar() {
   const { t } = useTranslation();
 
   return (
-    <KBarPortal>
-      <Positioner>
-        <Animator>
-          <SharedSearchActions />
-          <SearchInput defaultPlaceholder={`${t("Search")}…`} />
-          <CommandBarResults />
-        </Animator>
-      </Positioner>
-    </KBarPortal>
+    <>
+      <SharedSearchActions />
+      <KBarPortal>
+        <Positioner>
+          <Animator>
+            <SearchInput defaultPlaceholder={`${t("Search")}…`} />
+            <CommandBarResults />
+          </Animator>
+        </Positioner>
+      </KBarPortal>
+    </>
   );
 }
 

@@ -210,6 +210,7 @@ export function actionToKBar(
   const name = resolve<string>(action.name, context);
   const icon = resolve<React.ReactElement>(action.icon, context);
   const section = resolve<string>(action.section, context);
+  const subtitle = resolve<string>(action.description, context);
 
   const sectionPriority =
     typeof action.section !== "string" && "priority" in action.section
@@ -229,6 +230,7 @@ export function actionToKBar(
           section,
           keywords: action.keywords,
           shortcut: action.shortcut,
+          subtitle,
           icon,
           priority,
           perform: () => performAction(action, context),
@@ -254,6 +256,7 @@ export function actionToKBar(
           keywords: action.keywords,
           shortcut: action.shortcut,
           icon,
+          subtitle,
           priority,
         },
         ...children.map((child) => ({

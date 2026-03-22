@@ -75,14 +75,11 @@ function DocumentListItem(
             dir={document.dir}
           />
         </Heading>
-
-        {
-          <ResultContext
-            text={context}
-            highlight={highlight ? SEARCH_RESULT_REGEX : undefined}
-            processResult={replaceResultMarks}
-          />
-        }
+        <ResultContext
+          text={context}
+          highlight={highlight ? SEARCH_RESULT_REGEX : undefined}
+          processResult={replaceResultMarks}
+        />
       </Content>
     </DocumentLink>
   );
