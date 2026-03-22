@@ -29,6 +29,29 @@ export default class FindAndReplaceExtension extends Extension {
     };
   }
 
+  keys(): Record<string, Command> {
+    return {
+      Escape: (state, dispatch) => {
+        if (!this.searchTerm) {
+          return false;
+        }
+
+        const params = new URLSearchParams(window.location.search);
+        if (params.has("q")) {
+          params.delete("q");
+          const search = params.toString();
+          window.history.replaceState(
+            window.history.state,
+            "",
+            window.location.pathname + (search ? `?${search}` : "")
+          );
+        }
+
+        return this.clear()(state, dispatch);
+      },
+    };
+  }
+
   public commands() {
     return {
       /**
