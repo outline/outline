@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { EmailDisplay, TOCPosition, UserRole } from "@shared/types";
+import { TeamValidation } from "@shared/validations";
 import { BaseSchema } from "@server/routes/api/schema";
 
 export const TeamsUpdateSchema = BaseSchema.extend({
@@ -32,6 +33,8 @@ export const TeamsUpdateSchema = BaseSchema.extend({
     inviteRequired: z.boolean().optional(),
     /** Domains allowed to sign-in with SSO */
     allowedDomains: z.array(z.string()).optional(),
+    /** Workspace guidance provided to MCP clients on connection */
+    guidanceMCP: z.string().max(TeamValidation.maxGuidanceMCPLength).nullish(),
     /** Team preferences */
     preferences: z
       .object({

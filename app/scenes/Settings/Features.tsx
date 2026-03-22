@@ -4,6 +4,7 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
 import { TeamPreference } from "@shared/types";
+import { TeamValidation } from "@shared/validations";
 import Heading from "~/components/Heading";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
@@ -30,6 +31,18 @@ function Features() {
     [team, t]
   );
 
+  const handleGuidanceMCPChange = React.useCallback(
+    async (ev: React.ChangeEvent<HTMLTextAreaElement>) => {
+      team.guidanceMCP = ev.target.value || null;
+    },
+    [team]
+  );
+
+  const handleGuidanceMCPBlur = React.useCallback(async () => {
+    await team.save();
+    toast.success(t("Settings saved"));
+  }, [team, t]);
+
   const handleCopied = React.useCallback(() => {
     toast.success(t("Copied to clipboard"));
   }, [t]);
@@ -46,6 +59,7 @@ function Features() {
       <SettingRow
         name={TeamPreference.MCP}
         label={t("MCP server")}
+        border={!team.getPreference(TeamPreference.MCP)}
         description={
           <>
             <Text type="secondary" as="p">
@@ -96,6 +110,31 @@ function Features() {
           onChange={handleMCPChange}
         />
       </SettingRow>
+
+      {team.getPreference(TeamPreference.MCP) && (
+        <SettingRow
+          name="guidanceMCP"
+          label={t("Additional guidance")}
+          description={
+            <>
+              <div style={{ marginBottom: 8 }}>
+                {t(
+                  "You can use these optional instructions to tell MCP clients how to use your knowledge base."
+                )}
+              </div>
+              <Input
+                id="guidanceMCP"
+                type="textarea"
+                rows={6}
+                value={team.guidanceMCP ?? ""}
+                maxLength={TeamValidation.maxGuidanceMCPLength}
+                onChange={handleGuidanceMCPChange}
+                onBlur={handleGuidanceMCPBlur}
+              />
+            </>
+          }
+        />
+      )}
 
       <SettingRow
         name="answers"

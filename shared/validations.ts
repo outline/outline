@@ -132,6 +132,9 @@ export const TeamValidation = {
 
   /** The maximum length of the team subdomain for self-hosted */
   maxSubdomainSelfHostedLength: 255,
+
+  /** The maximum length of MCP workspace guidance */
+  maxGuidanceMCPLength: 2000,
 };
 
 export const UserValidation = {
