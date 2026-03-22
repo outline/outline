@@ -93,7 +93,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   }, [ref]);
 
   React.useEffect(() => {
-    if (focusedComment) {
+    if (focusedComment && focusedComment.documentId === document.id) {
       const viewingResolved = params.get("resolved") === "";
       if (
         (focusedComment.isResolved && !viewingResolved) ||
