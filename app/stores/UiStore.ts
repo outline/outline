@@ -138,7 +138,6 @@ class UiStore {
     this.sidebarRightWidth =
       data.sidebarRightWidth || defaultTheme.sidebarRightWidth;
     this.tocVisible = data.tocVisible;
-    this.rightSidebar = data.rightSidebar ?? null;
     this.theme = data.theme || Theme.System;
 
     // system theme listeners
