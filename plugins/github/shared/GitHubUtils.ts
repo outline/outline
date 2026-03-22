@@ -33,7 +33,8 @@ export class GitHubUtils {
 
   static authUrl(state: string): string {
     const ghUrl = (env.GITHUB_URL ?? "https://github.com").replace(/\/$/, "");
-    const baseUrl = `${ghUrl}/apps/${env.GITHUB_APP_NAME}/installations/new`;
+    const appsPath = env.GITHUB_URL ? "github-apps" : "apps";
+    const baseUrl = `${ghUrl}/${appsPath}/${env.GITHUB_APP_NAME}/installations/new`;
     const params = {
       client_id: this.clientId,
       redirect_uri: this.callbackUrl(),
