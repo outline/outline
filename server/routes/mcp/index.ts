@@ -12,6 +12,7 @@ import { rateLimiter } from "@server/middlewares/rateLimiter";
 import requestTracer from "@server/middlewares/requestTracer";
 import { AuthenticationType } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
+import { attachmentTools } from "@server/tools/attachments";
 import { collectionTools } from "@server/tools/collections";
 import { commentTools } from "@server/tools/comments";
 import { documentTools } from "@server/tools/documents";
@@ -44,6 +45,7 @@ function createMcpServer(scopes: string[], instructions?: string): McpServer {
     }
   );
 
+  attachmentTools(server, scopes);
   collectionTools(server, scopes);
   commentTools(server, scopes);
   documentTools(server, scopes);
