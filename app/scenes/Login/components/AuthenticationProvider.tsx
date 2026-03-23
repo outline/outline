@@ -89,12 +89,16 @@ function AuthenticationProvider(props: Props) {
 
         // Populate hidden form fields with authentication data
         if (formRef.current) {
-          const createInputs = (obj: any, prefix = "") => {
+          const createInputs = (obj: Record<string, unknown>, prefix = "") => {
             Object.entries(obj).forEach(([key, value]) => {
+              if (value === undefined || value === null) {
+                return;
+              }
+
               const fieldName = prefix ? `${prefix}[${key}]` : key;
 
-              if (value && typeof value === "object" && !Array.isArray(value)) {
-                createInputs(value, fieldName);
+              if (typeof value === "object" && !Array.isArray(value)) {
+                createInputs(value as Record<string, unknown>, fieldName);
               } else {
                 // Create hidden input for primitive values
                 const input = document.createElement("input");
