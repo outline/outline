@@ -57,14 +57,15 @@ export class ProsemirrorHelper {
    */
   static removeMarks(doc: Node | ProsemirrorData, marks: string[]) {
     const json = "toJSON" in doc ? (doc.toJSON() as ProsemirrorData) : doc;
+    const markSet = new Set(marks);
 
     function removeMarksInner(node: ProsemirrorData) {
       if (node.marks) {
-        node.marks = node.marks.filter((mark) => !marks.includes(mark.type));
+        node.marks = node.marks.filter((mark) => !markSet.has(mark.type));
       }
       if (node.attrs?.marks) {
         node.attrs.marks = (node.attrs.marks as { type: string }[])?.filter(
-          (mark) => !marks.includes(mark.type)
+          (mark) => !markSet.has(mark.type)
         );
       }
       if (node.content) {

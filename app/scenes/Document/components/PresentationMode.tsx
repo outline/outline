@@ -7,6 +7,7 @@ import Icon from "@shared/components/Icon";
 import { richExtensions } from "@shared/editor/nodes";
 import { canUseElementFullscreen } from "@shared/utils/browser";
 import { s, depths, hover } from "@shared/styles";
+import cloneDeep from "lodash/cloneDeep";
 import type { ProsemirrorData } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { colorPalette } from "@shared/utils/collections";
@@ -133,7 +134,7 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
 
   const strippedData = React.useMemo(
     () =>
-      ProsemirrorHelper.removeMarks(structuredClone(data), [
+      ProsemirrorHelper.removeMarks(cloneDeep(data), [
         "comment",
       ]) as ProsemirrorData,
     [data]
