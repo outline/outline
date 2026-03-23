@@ -114,7 +114,8 @@ export class TableView extends ProsemirrorTableView {
   private static readonly HEADER_HEIGHT = 60;
 
   /**
-   * Sets up the scroll listener for sticky header behavior.
+   * Sets up the scroll listener for sticky header behavior. Nested tables
+   * (tables within another table) are excluded from sticky header behavior.
    */
   private setupStickyHeader() {
     if (!isBrowser) {
@@ -123,6 +124,11 @@ export class TableView extends ProsemirrorTableView {
 
     // Defer setup to ensure DOM is fully rendered
     setTimeout(() => {
+      // Skip sticky header for nested tables
+      if (this.dom.closest(`table .${EditorStyleHelper.table}`)) {
+        return;
+      }
+
       this.scrollHandler = () => {
         this.updateStickyHeader();
       };
