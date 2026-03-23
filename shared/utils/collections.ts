@@ -1,4 +1,5 @@
 import type { NavigationNode } from "../types";
+import shallowEqual from "./shallowEqual";
 import naturalSort from "./naturalSort";
 
 type Sort = {
@@ -21,12 +22,23 @@ export const sortNavigationNodes = (
     direction: sort.direction,
   });
 
-  return orderedDocs.map((node) => ({
-    ...node,
-    children: sortChildren
-      ? sortNavigationNodes(node.children, sort, sortChildren)
-      : node.children,
-  }));
+  if (!sortChildren) {
+    return orderedDocs;
+  }
+
+  return orderedDocs.map((node) => {
+    const sortedChildren = sortNavigationNodes(
+      node.children,
+      sort,
+      sortChildren
+    );
+    // Preserve the original node reference if children order didn't change.
+    // This allows React.memo to skip re-renders of unchanged tree nodes.
+    if (shallowEqual(sortedChildren, node.children)) {
+      return node;
+    }
+    return { ...node, children: sortedChildren };
+  });
 };
 
 export const colorPalette = [
