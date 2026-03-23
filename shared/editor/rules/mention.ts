@@ -1,35 +1,39 @@
 import type { Token, StateCore } from "markdown-it";
 import type MarkdownIt from "markdown-it";
 import { v4 as uuidv4 } from "uuid";
+import parseMentionUrl from "@shared/utils/parseMentionUrl";
 
-/** Matches mention://instanceId/type/modelId (existing 3-segment format). */
-const hrefRE3 = /^mention:\/\/([a-z0-9-]+)\/([a-z_]+)\/([a-z0-9-]+)$/;
-
-/** Matches mention://type/modelId (new 2-segment format, no instanceId). */
-const hrefRE2 = /^mention:\/\/([a-z_]+)\/([a-z0-9-]+)$/;
-
+/**
+ * Check whether a URL is a valid mention:// href.
+ *
+ * @param href the URL string to test.
+ * @returns true when the href is a recognised mention URL.
+ */
 function isMentionHref(href: string) {
-  return hrefRE3.test(href) || hrefRE2.test(href);
+  const { mentionType, modelId } = parseMentionUrl(href);
+  return mentionType !== undefined && modelId !== undefined;
 }
 
+/**
+ * Parse a mention:// href into the id, type and modelId needed by the editor.
+ * For 2-segment URLs (no instance id) a fresh UUID is generated.
+ *
+ * @param href the mention URL to parse.
+ * @returns the parsed components.
+ * @throws when the href is not a valid mention URL.
+ */
 function parseMentionHref(href: string): {
   id: string;
   type: string;
   modelId: string;
 } {
-  const match3 = href.match(hrefRE3);
-  if (match3) {
-    const [id, type, modelId] = match3.slice(1);
-    return { id, type, modelId };
+  const { id, mentionType, modelId } = parseMentionUrl(href);
+
+  if (!mentionType || !modelId) {
+    throw new Error(`Invalid mention href: ${href}`);
   }
 
-  const match2 = href.match(hrefRE2);
-  if (match2) {
-    const [type, modelId] = match2.slice(1);
-    return { id: uuidv4(), type, modelId };
-  }
-
-  throw new Error(`Invalid mention href: ${href}`);
+  return { id: id ?? uuidv4(), type: mentionType, modelId };
 }
 
 function renderMention(tokens: Token[], idx: number) {

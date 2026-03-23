@@ -23,7 +23,7 @@ import { version } from "../../../package.json";
 const app = new Koa();
 const router = new Router();
 
-const defaultInstructions = `Document and Collection markdown supports @mentions using the syntax: @[Display Name](mention://user/userId). For example: @[John Doe](mention://user/c9a1b2e3-...). Use the list_users tool to find user IDs.`;
+const defaultInstructions = `Document and collection markdown support @mentions using the syntax: @[Display Name](mention://user/userId). For example: @[John Doe](mention://user/c9a1b2e3-...). Use the list_users tool to find user IDs.`;
 
 /**
  * Creates a fresh MCP server instance with tools filtered by the OAuth
