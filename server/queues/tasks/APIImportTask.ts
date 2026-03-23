@@ -13,7 +13,6 @@ import type {
   ProsemirrorDoc,
 } from "@shared/types";
 import { AttachmentPreset, ImportState, ImportTaskState } from "@shared/types";
-import { ProsemirrorHelper as SharedProseMirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { createContext } from "@server/context";
 import { schema } from "@server/editor";
 import Logger from "@server/logging/Logger";
@@ -262,9 +261,9 @@ export default abstract class APIImportTask<
   }): Promise<ProsemirrorDoc> {
     const docNode = ProsemirrorHelper.toProsemirror(doc);
     const nodes = [
-      ...SharedProseMirrorHelper.getImages(docNode),
-      ...SharedProseMirrorHelper.getVideos(docNode),
-      ...SharedProseMirrorHelper.getAttachments(docNode),
+      ...ProsemirrorHelper.getImages(docNode),
+      ...ProsemirrorHelper.getVideos(docNode),
+      ...ProsemirrorHelper.getAttachments(docNode),
     ];
 
     if (!nodes.length) {

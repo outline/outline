@@ -6,7 +6,6 @@ import mammoth from "mammoth";
 import type { Node } from "prosemirror-model";
 import { DOMParser as ProsemirrorDOMParser } from "prosemirror-model";
 import yaml from "js-yaml";
-import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { schema, serializer } from "@server/editor";
 import { FileImportError } from "@server/errors";
 import { trace, traceFunction } from "@server/logging/tracing";
@@ -55,7 +54,7 @@ export class DocumentConverter {
 
     // Extract title from first H1 heading
     let title = "";
-    const headings = SharedProsemirrorHelper.getHeadings(doc);
+    const headings = ProsemirrorHelper.getHeadings(doc);
     if (headings.length > 0 && headings[0].level === 1) {
       title = headings[0].title;
       doc = ProsemirrorHelper.removeFirstHeading(doc);

@@ -1,5 +1,4 @@
 import type { Optional } from "utility-types";
-import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { TextHelper } from "@shared/utils/TextHelper";
 import { Document, type Template } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -94,7 +93,7 @@ export default async function documentCreator(
     : text
       ? ProsemirrorHelper.toProsemirror(text).toJSON()
       : template
-        ? SharedProsemirrorHelper.replaceTemplateVariables(
+        ? ProsemirrorHelper.replaceTemplateVariables(
             await DocumentHelper.toJSON(template),
             user
           )

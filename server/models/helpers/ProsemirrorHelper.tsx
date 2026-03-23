@@ -21,6 +21,7 @@ import {
   attachmentRedirectRegex,
   ProsemirrorHelper as SharedProsemirrorHelper,
 } from "@shared/utils/ProsemirrorHelper";
+
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { isRTL } from "@shared/utils/rtl";
 import { isInternalUrl } from "@shared/utils/urls";
@@ -62,7 +63,7 @@ export type MentionAttrs = {
 };
 
 @trace()
-export class ProsemirrorHelper {
+export class ProsemirrorHelper extends SharedProsemirrorHelper {
   /**
    * Returns the input text as a Y.Doc.
    *
@@ -253,33 +254,6 @@ export class ProsemirrorHelper {
 
     // Return a new top-level "doc" node to maintain structure during serialization.
     return blockNode ? doc.copy(Fragment.fromArray([blockNode])) : undefined;
-  }
-
-  /**
-   * Removes all marks from the node that match the given types.
-   *
-   * @param data The ProsemirrorData object to remove marks from
-   * @param marks The mark types to remove
-   * @returns The content with marks removed
-   */
-  static removeMarks(doc: Node | ProsemirrorData, marks: string[]) {
-    const json = "toJSON" in doc ? (doc.toJSON() as ProsemirrorData) : doc;
-
-    function removeMarksInner(node: ProsemirrorData) {
-      if (node.marks) {
-        node.marks = node.marks.filter((mark) => !marks.includes(mark.type));
-      }
-      if (node.attrs?.marks) {
-        node.attrs.marks = (node.attrs.marks as { type: string }[])?.filter(
-          (mark) => !marks.includes(mark.type)
-        );
-      }
-      if (node.content) {
-        node.content.forEach(removeMarksInner);
-      }
-      return node;
-    }
-    return removeMarksInner(json);
   }
 
   static async replaceInternalUrls(
@@ -875,8 +849,8 @@ export class ProsemirrorHelper {
     doc: Node,
     user: User
   ): Promise<Node> {
-    const images = SharedProsemirrorHelper.getImages(doc);
-    const videos = SharedProsemirrorHelper.getVideos(doc);
+    const images = ProsemirrorHelper.getImages(doc);
+    const videos = ProsemirrorHelper.getVideos(doc);
     const nodes = [...images, ...videos];
 
     if (!nodes.length) {
