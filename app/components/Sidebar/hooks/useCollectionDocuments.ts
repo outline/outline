@@ -7,38 +7,32 @@ export default function useCollectionDocuments(
   collection: Collection | undefined,
   activeDocument: Document | undefined
 ) {
-  const insertDraftDocument = useMemo(
-    () =>
-      activeDocument &&
-      activeDocument.isActive &&
-      activeDocument.isDraft &&
-      activeDocument.collectionId === collection?.id &&
-      !activeDocument.parentDocumentId,
-    [
-      activeDocument?.isActive,
-      activeDocument?.isDraft,
-      activeDocument?.collectionId,
-      activeDocument?.parentDocumentId,
-      collection?.id,
-    ]
+  const insertDraftDocument = !!(
+    activeDocument &&
+    activeDocument.isActive &&
+    activeDocument.isDraft &&
+    activeDocument.collectionId === collection?.id &&
+    !activeDocument.parentDocumentId
   );
+
+  // Only subscribe to asNavigationNode when we actually need to insert a draft
+  // into the sorted list. This avoids every CollectionLinkChildren observer
+  // re-rendering on every title keystroke.
+  const draftNavNode = insertDraftDocument
+    ? activeDocument?.asNavigationNode
+    : undefined;
 
   return useMemo(() => {
     if (!collection?.sortedDocuments) {
       return undefined;
     }
 
-    return insertDraftDocument && activeDocument
+    return draftNavNode
       ? sortNavigationNodes(
-          [activeDocument.asNavigationNode, ...collection.sortedDocuments],
+          [draftNavNode, ...collection.sortedDocuments],
           collection.sort,
           false
         )
       : collection.sortedDocuments;
-  }, [
-    insertDraftDocument,
-    activeDocument?.asNavigationNode,
-    collection?.sortedDocuments,
-    collection?.sort,
-  ]);
+  }, [draftNavNode, collection?.sortedDocuments, collection?.sort]);
 }
