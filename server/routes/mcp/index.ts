@@ -23,15 +23,21 @@ import { version } from "../../../package.json";
 const app = new Koa();
 const router = new Router();
 
+const defaultInstructions = `Document and collection markdown support @mentions using the syntax: @[Display Name](mention://user/userId). For example: @[John Doe](mention://user/c9a1b2e3-...). Use the list_users tool to find user IDs.`;
+
 /**
  * Creates a fresh MCP server instance with tools filtered by the OAuth
  * scopes granted to the current token.
  *
  * @param scopes - the OAuth scopes granted to the access token.
- * @param instructions - optional workspace guidance to send to clients.
+ * @param guidance - optional workspace guidance to append to default instructions.
  * @returns a configured McpServer ready to be connected to a transport.
  */
-function createMcpServer(scopes: string[], instructions?: string): McpServer {
+function createMcpServer(scopes: string[], guidance?: string): McpServer {
+  const instructions = guidance
+    ? `${defaultInstructions}\n\n${guidance}`
+    : defaultInstructions;
+
   const server = new McpServer(
     {
       name: "outline",
@@ -41,7 +47,7 @@ function createMcpServer(scopes: string[], instructions?: string): McpServer {
       capabilities: {
         tools: {},
       },
-      ...(instructions ? { instructions } : {}),
+      instructions,
     }
   );
 
