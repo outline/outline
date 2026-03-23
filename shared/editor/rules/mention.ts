@@ -1,5 +1,36 @@
 import type { Token, StateCore } from "markdown-it";
 import type MarkdownIt from "markdown-it";
+import { v4 as uuidv4 } from "uuid";
+
+/** Matches mention://instanceId/type/modelId (existing 3-segment format). */
+const hrefRE3 = /^mention:\/\/([a-z0-9-]+)\/([a-z_]+)\/([a-z0-9-]+)$/;
+
+/** Matches mention://type/modelId (new 2-segment format, no instanceId). */
+const hrefRE2 = /^mention:\/\/([a-z_]+)\/([a-z0-9-]+)$/;
+
+function isMentionHref(href: string) {
+  return hrefRE3.test(href) || hrefRE2.test(href);
+}
+
+function parseMentionHref(href: string): {
+  id: string;
+  type: string;
+  modelId: string;
+} {
+  const match3 = href.match(hrefRE3);
+  if (match3) {
+    const [id, type, modelId] = match3.slice(1);
+    return { id, type, modelId };
+  }
+
+  const match2 = href.match(hrefRE2);
+  if (match2) {
+    const [type, modelId] = match2.slice(1);
+    return { id: uuidv4(), type, modelId };
+  }
+
+  throw new Error(`Invalid mention href: ${href}`);
+}
 
 function renderMention(tokens: Token[], idx: number) {
   const id = tokens[idx].attrGet("id");
@@ -11,8 +42,6 @@ function renderMention(tokens: Token[], idx: number) {
 }
 
 function parseMentions(state: StateCore) {
-  const hrefRE = /^mention:\/\/([a-z0-9-]+)\/([a-z]+)\/([a-z0-9-]+)$/;
-
   for (let i = 0; i < state.tokens.length; i++) {
     const tok = state.tokens[i];
     if (!(tok.type === "inline" && tok.children)) {
@@ -43,7 +72,7 @@ function parseMentions(state: StateCore) {
 
       // "link_open" token should have valid href
       const attr = openToken.attrs?.[0];
-      if (!(attr && attr[0] === "href" && hrefRE.test(attr[1]))) {
+      if (!(attr && attr[0] === "href" && isMentionHref(attr[1]))) {
         return false;
       }
 
@@ -57,11 +86,10 @@ function parseMentions(state: StateCore) {
       // remove "@" from preceding token
       precToken.content = precToken.content.slice(0, -1);
 
-      // href must be present, otherwise the hrefRE test in canChunkComposeMentionToken would've failed
+      // href must be present, otherwise the isMentionHref test would've failed
       // oxlint-disable-next-line @typescript-eslint/no-non-null-assertion
       const href = openToken.attrs![0][1];
-      const matches = href.match(hrefRE);
-      const [id, mType, mId] = matches!.slice(1);
+      const { id, type: mType, modelId: mId } = parseMentionHref(href);
 
       const mentionToken = new state.Token("mention", "", 0);
       mentionToken.attrSet("id", id);
