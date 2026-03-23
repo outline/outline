@@ -636,27 +636,53 @@ export class Environment {
   public AWS_S3_ACCELERATE_URL = environment.AWS_S3_ACCELERATE_URL ?? "";
 
   /**
-   * Optional CloudFront distribution URL.
-   * When set, ALL signed download URLs will have the S3 domain replaced
-   * with this one. Keeps short-lived presigned URLs (X-Amz-* params)
-   * so security model is unchanged.
-   * Example: https://d1a2b3c4d5e6f.cloudfront.net
+   * Optional CloudFront distribution domain.
+   * When set, all attachment URLs are rewritten to use this domain instead of S3.
+   * - If KEY_PAIR_ID and PRIVATE_KEY are also provided - uses signed URLs (short-lived, @aws-sdk/cloudfront-signer).
+   * - If only this URL is set - uses unsigned (static) CloudFront URLs.
+   * - If empty - falls back to original S3 presigned URLs (no change in security model).
+   * Example: https://d1a2b3c4d5e6f.cloudfront.net (no trailing slash)
    */
   @Public
   @IsOptional()
   public AWS_CLOUDFRONT_URL = environment.AWS_CLOUDFRONT_URL ?? "";
 
+  /**
+   * Optional CloudFront Key Pair ID (used for signed URLs).
+   * Required for generating signed CloudFront URLs with expiration.
+   * Found in CloudFront - Key Management - Public keys.
+   * If not set - falls back to unsigned CloudFront URLs (if AWS_CLOUDFRONT_URL is provided)
+   * or original S3 presigned URLs.
+   * Example: APKA1234567890ABCDEF
+   */
   @Public
   @IsOptional()
-  public AWS_CLOUDFRONT_KEY_PAIR_ID = environment.AWS_CLOUDFRONT_KEY_PAIR_ID ?? "";
+  public AWS_CLOUDFRONT_KEY_PAIR_ID =
+    environment.AWS_CLOUDFRONT_KEY_PAIR_ID ?? "";
 
+  /**
+   * Optional PEM-encoded RSA private key for CloudFront signed URLs.
+   * Multi-line string (-----BEGIN RSA PRIVATE KEY----- ... -----END RSA PRIVATE KEY-----).
+   * Required together with KEY_PAIR_ID to generate signed URLs.
+   * In docker-compose use YAML block scalar | for multi-line.
+   * If not set - unsigned CloudFront URLs or S3 fallback.
+   */
   @Public
   @IsOptional()
-  public AWS_CLOUDFRONT_PRIVATE_KEY = environment.AWS_CLOUDFRONT_PRIVATE_KEY ?? "";
+  public AWS_CLOUDFRONT_PRIVATE_KEY =
+    environment.AWS_CLOUDFRONT_PRIVATE_KEY ?? "";
 
+  /**
+   * Alternative: base64-encoded CloudFront private key.
+   * If set, takes precedence over AWS_CLOUDFRONT_PRIVATE_KEY.
+   * Generate: cat private.pem | base64 -w 0
+   * Useful for secret managers or CI/CD.
+   * Required for signed URLs when using base64 format.
+   */
   @Public
   @IsOptional()
-  public AWS_CLOUDFRONT_PRIVATE_KEY_BASE64 = environment.AWS_CLOUDFRONT_PRIVATE_KEY_BASE64 ?? "";
+  public AWS_CLOUDFRONT_PRIVATE_KEY_BASE64 =
+    environment.AWS_CLOUDFRONT_PRIVATE_KEY_BASE64 ?? "";
 
   /**
    * Optional AWS S3 endpoint URL for file attachments.
