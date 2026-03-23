@@ -959,6 +959,10 @@ img.ProseMirror-separator {
   display: block;
 }
 
+.image-commented .image-wrapper {
+  outline: ${props.theme.commentedImageOutlineLight} solid 2px;
+}
+
 // Removes forced paragraph spaces below images, this is needed to images
 // being inline nodes that are displayed like blocks
 .component-image + img.ProseMirror-separator,
