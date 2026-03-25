@@ -28,6 +28,7 @@ import SidebarAction from "./components/SidebarAction";
 import SidebarButton from "./components/SidebarButton";
 import SidebarLink from "./components/SidebarLink";
 import Starred from "./components/Starred";
+import TagsLink from "./components/TagsLink";
 import ToggleButton from "./components/ToggleButton";
 import TrashLink from "./components/TrashLink";
 
@@ -120,6 +121,9 @@ function AppSidebar() {
             </Section>
             <Section>
               <Collections />
+            </Section>
+            <Section>
+              <TagsLink />
             </Section>
             {can.createDocument && (
               <Section auto>

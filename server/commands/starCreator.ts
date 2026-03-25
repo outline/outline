@@ -12,6 +12,8 @@ type Props = {
   documentId?: string;
   /** The collection to star */
   collectionId?: string;
+  /** The tag to star */
+  tagId?: string;
   /** The sorted index for the star in the sidebar If no index is provided then it will be at the end */
   index?: string;
   /** The request context */
@@ -29,6 +31,7 @@ export default async function starCreator({
   user,
   documentId,
   collectionId,
+  tagId,
   ctx,
   ...rest
 }: Props): Promise<Star> {
@@ -55,16 +58,14 @@ export default async function starCreator({
     index = fractionalIndex(null, stars.length ? stars[0].index : null);
   }
 
+  const starWhere: WhereOptions<Star> = documentId
+    ? { userId: user.id, documentId }
+    : tagId
+    ? { userId: user.id, tagId }
+    : { userId: user.id, collectionId };
+
   const [star] = await Star.findOrCreateWithCtx(ctx, {
-    where: documentId
-      ? {
-          userId: user.id,
-          documentId,
-        }
-      : {
-          userId: user.id,
-          collectionId,
-        },
+    where: starWhere,
     defaults: {
       index,
     },

@@ -30,3 +30,4 @@ import "./webhookSubscription";
 import "./userMembership";
 import "./userPasskey";
 import "./emoji";
+import "./tag";

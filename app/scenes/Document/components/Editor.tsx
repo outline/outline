@@ -33,6 +33,7 @@ import {
 import { decodeURIComponentSafe } from "~/utils/urls";
 import MultiplayerEditor from "./AsyncMultiplayerEditor";
 import DocumentMeta from "./DocumentMeta";
+import DocumentTagsBar from "./DocumentTagsBar";
 import DocumentTitle from "./DocumentTitle";
 import first from "lodash/first";
 import { getLangFor } from "~/utils/language";
@@ -209,27 +210,33 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         placeholder={t("Untitled")}
       />
       {shareId ? (
-        document.updatedAt ? (
-          <SharedMeta type="tertiary">
-            {t("Last updated")} <Time dateTime={document.updatedAt} addSuffix />
-          </SharedMeta>
-        ) : null
+        <>
+          {document.updatedAt ? (
+            <SharedMeta type="tertiary">
+              {t("Last updated")} <Time dateTime={document.updatedAt} addSuffix />
+            </SharedMeta>
+          ) : null}
+          <DocumentTagsBar document={document as Document} editable={false} />
+        </>
       ) : !rest.template ? (
-        <DocumentMeta
-          document={document as Document}
-          to={
-            shareId
-              ? undefined
-              : {
-                  pathname:
-                    match.path === matchDocumentHistory
-                      ? documentPath(document as Document)
-                      : documentHistoryPath(document as Document),
-                  state: { sidebarContext },
-                }
-          }
-          rtl={direction === "rtl"}
-        />
+        <>
+          <DocumentMeta
+            document={document as Document}
+            to={
+              shareId
+                ? undefined
+                : {
+                    pathname:
+                      match.path === matchDocumentHistory
+                        ? documentPath(document as Document)
+                        : documentHistoryPath(document as Document),
+                    state: { sidebarContext },
+                  }
+            }
+            rtl={direction === "rtl"}
+          />
+          <DocumentTagsBar document={document as Document} />
+        </>
       ) : null}
       <EditorComponent
         ref={mergeRefs([ref, handleRefChanged])}

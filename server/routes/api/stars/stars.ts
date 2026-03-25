@@ -4,13 +4,14 @@ import starCreator from "@server/commands/starCreator";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { Document, Star, Collection } from "@server/models";
+import { Document, Star, Collection, Tag } from "@server/models";
 import { authorize } from "@server/policies";
 import {
   presentStar,
   presentDocuments,
   presentPolicies,
 } from "@server/presenters";
+import presentTag from "@server/presenters/tag";
 import type { APIContext } from "@server/types";
 import { starIndexing } from "@server/utils/indexing";
 import pagination from "../middlewares/pagination";
@@ -25,7 +26,7 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.StarsCreateReq>) => {
     const { transaction } = ctx.state;
-    const { documentId, collectionId, index } = ctx.input.body;
+    const { documentId, collectionId, tagId, index } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     if (documentId) {
@@ -44,11 +45,20 @@ router.post(
       authorize(user, "star", collection);
     }
 
+    if (tagId) {
+      const tag = await Tag.findOne({
+        where: { id: tagId, teamId: user.teamId },
+        transaction,
+      });
+      authorize(user, "read", tag);
+    }
+
     const star = await starCreator({
       ctx,
       user,
       documentId,
       collectionId,
+      tagId,
       index,
     });
 
@@ -94,22 +104,32 @@ router.post(
     const documentIds = stars
       .map((star) => star.documentId)
       .filter(Boolean) as string[];
-    const documents = documentIds.length
-      ? await Document.withMembershipScope(user.id).findAll({
-          where: {
-            id: documentIds,
-            collectionId: collectionIds,
-          },
-        })
-      : [];
+    const tagIds = stars
+      .map((star) => star.tagId)
+      .filter(Boolean) as string[];
 
-    const policies = presentPolicies(user, [...documents, ...stars]);
+    const [documents, tags] = await Promise.all([
+      documentIds.length
+        ? Document.withMembershipScope(user.id).findAll({
+            where: {
+              id: documentIds,
+              collectionId: collectionIds,
+            },
+          })
+        : Promise.resolve([] as Document[]),
+      tagIds.length
+        ? Tag.findAll({ where: { id: tagIds, teamId: user.teamId } })
+        : Promise.resolve([] as Tag[]),
+    ]);
+
+    const policies = presentPolicies(user, [...documents, ...stars, ...tags]);
 
     ctx.body = {
       pagination: ctx.state.pagination,
       data: {
         stars: stars.map(presentStar),
         documents: await presentDocuments(ctx, documents),
+        tags: tags.map((tag) => presentTag(tag)),
       },
       policies,
     };

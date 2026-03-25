@@ -57,6 +57,9 @@ const BaseSearchSchema = DateFilterSchema.extend({
   /** Filter results based on content within a document and it's children */
   documentId: z.uuid().optional(),
 
+  /** Filter results to documents with a specific tag */
+  tagId: z.uuid().optional(),
+
   /** Document statuses to include in results */
   statusFilter: z.enum(StatusFilter).array().optional(),
 
@@ -97,6 +100,9 @@ export const DocumentsListSchema = BaseSchema.extend({
 
     /** Document statuses to include in results */
     statusFilter: z.enum(StatusFilter).array().optional(),
+
+    /** Filter documents by tag name */
+    tagName: z.string().optional(),
   }),
   // Maintains backwards compatibility
 }).transform((req) => {
@@ -522,3 +528,25 @@ export const DocumentsSitemapSchema = BaseSchema.extend({
 });
 
 export type DocumentsSitemapReq = z.infer<typeof DocumentsSitemapSchema>;
+
+export const DocumentsAddTagSchema = BaseSchema.extend({
+	body: z.object({
+		id: zodIdType(),
+		tagId: z.uuid().optional(),
+		name: z.string().min(1).max(64).optional(),
+	}).refine(
+		(body) => body.tagId !== undefined || body.name !== undefined,
+		{ message: "One of tagId or name is required" }
+	),
+});
+
+export type DocumentsAddTagReq = z.infer<typeof DocumentsAddTagSchema>;
+
+export const DocumentsRemoveTagSchema = BaseSchema.extend({
+	body: z.object({
+		id: zodIdType(),
+		tagId: z.uuid(),
+	}),
+});
+
+export type DocumentsRemoveTagReq = z.infer<typeof DocumentsRemoveTagSchema>;

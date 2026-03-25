@@ -230,6 +230,12 @@ export default class Document extends ArchivableModel implements Searchable {
   backlinkIds?: string[];
 
   /**
+   * The tags associated with this document.
+   */
+  @observable
+  tags?: Array<{ id: string; name: string; color?: string | null }>;
+
+  /**
    * Returns the notifications associated with this document.
    */
   @computed

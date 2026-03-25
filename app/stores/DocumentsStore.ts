@@ -30,6 +30,7 @@ import { extname, uploadFile } from "~/utils/files";
 type FetchPageParams = PaginationParams & {
   template?: boolean;
   collectionId?: string;
+  tagName?: string;
 };
 
 export type SearchParams = {
@@ -40,6 +41,7 @@ export type SearchParams = {
   statusFilter?: StatusFilter[];
   collectionId?: string;
   userId?: string;
+  tagId?: string;
   shareId?: string;
   sort?: SortFilter;
   direction?: DirectionFilter;
@@ -54,6 +56,7 @@ export default class DocumentsStore extends Store<Document> {
   backlinks: Map<string, string[]> = new Map();
 
   @observable
+  taggedDocumentIds: Map<string, string[]> = new Map();
   similar: Map<string, string[]> = new Map();
 
   @observable
@@ -398,6 +401,37 @@ export default class DocumentsStore extends Store<Document> {
   @action
   fetchOwned = (options?: PaginationParams): Promise<Document[]> =>
     this.fetchNamedPage("list", options);
+
+  @action
+  fetchByTag = async (
+    tagName: string,
+    options?: FetchPageParams
+  ): Promise<Document[]> => {
+    const documents = await this.fetchNamedPage("list", { tagName, ...options });
+
+    runInAction("DocumentsStore#fetchByTag", () => {
+      const newIds = documents.map((document) => document.id);
+      if (!options?.offset) {
+        this.taggedDocumentIds.set(tagName, newIds);
+      } else {
+        const existingIds = this.taggedDocumentIds.get(tagName) ?? [];
+        this.taggedDocumentIds.set(tagName, [
+          ...new Set([...existingIds, ...newIds]),
+        ]);
+      }
+    });
+
+    return documents;
+  };
+
+  byTag = (tagName: string): Document[] =>
+    orderBy(
+      compact(
+        (this.taggedDocumentIds.get(tagName) ?? []).map((id) => this.data.get(id))
+      ),
+      "updatedAt",
+      "desc"
+    );
 
   @action
   searchTitles = async (options?: SearchParams): Promise<SearchResult[]> => {

@@ -7,6 +7,7 @@ import type { Props as EditorProps } from "~/components/Editor";
 import Flex from "~/components/Flex";
 import { documentPath } from "~/utils/routeHelpers";
 import { Meta as DocumentMeta } from "./DocumentMeta";
+import DocumentTagsBar from "./DocumentTagsBar";
 import DocumentTitle from "./DocumentTitle";
 import Editor from "~/components/Editor";
 import { richExtensions, withComments } from "@shared/editor/nodes";
@@ -73,6 +74,7 @@ function RevisionViewer(props: Props, ref: React.Ref<TEditor>) {
         to={documentPath(document)}
         rtl={revision.rtl}
       />
+      <DocumentTagsBar document={document} editable={false} />
       <Editor
         ref={ref}
         defaultValue={revision.data}

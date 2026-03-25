@@ -16,6 +16,7 @@ export default async function loadDocument({
 }: Props): Promise<Document> {
   const document = await Document.findByPk(id, {
     userId: user ? user.id : undefined,
+    includeTags: true,
     paranoid: false,
     includeState,
   });

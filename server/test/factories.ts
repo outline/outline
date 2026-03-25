@@ -50,6 +50,8 @@ import {
   OAuthAuthentication,
   Relationship,
   Template,
+  Tag,
+  DocumentTag,
 } from "@server/models";
 import { RelationshipType } from "@server/models/Relationship";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
@@ -923,6 +925,30 @@ export function buildCommentMark(overrides: {
     type: "comment",
     attrs: overrides,
   };
+}
+
+export async function buildTag(
+  overrides: Partial<Tag> & { userId?: string } = {}
+): Promise<Tag> {
+  if (!overrides.teamId) {
+    const team = await buildTeam();
+    overrides.teamId = team.id;
+  }
+  return Tag.create({
+    name: overrides.name ?? faker.word.noun().toLowerCase(),
+    teamId: overrides.teamId,
+    createdById: overrides.createdById ?? overrides.userId ?? null,
+  });
+}
+
+export async function buildDocumentTag(
+  overrides: { documentId: string; tagId: string; createdById?: string | null } 
+): Promise<DocumentTag> {
+  return DocumentTag.create({
+    documentId: overrides.documentId,
+    tagId: overrides.tagId,
+    createdById: overrides.createdById ?? null,
+  });
 }
 
 export async function buildRelationship(overrides: Partial<Relationship> = {}) {
