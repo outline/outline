@@ -110,6 +110,8 @@ export class EmbedDescriptor {
     this.attrs = options.attrs;
     this.visible = options.visible;
     this.component = options.component;
+    this.settings = options.settings;
+    this.disabled = options.disabled;
   }
 
   matcher(url: string): false | RegExpMatchArray {

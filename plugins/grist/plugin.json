@@ -1,0 +1,6 @@
+{
+  "id": "grist",
+  "name": "Grist",
+  "priority": 46,
+  "description": "Configure a custom Grist installation URL for embedding spreadsheets."
+}
