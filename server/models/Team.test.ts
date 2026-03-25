@@ -1,8 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { buildTeam, buildCollection, buildAttachment } from "@server/test/factories";
 
-jest.mock("@server/storage/files");
-
 describe("Team", () => {
   describe("collectionIds", () => {
     it("should return non-private collection ids", async () => {
@@ -70,7 +68,7 @@ describe("Team", () => {
       });
 
       const result = await team.publicAvatarUrl();
-      expect(result).toEqual("http://s3mock");
+      expect(result).toEqual(await attachment.signedUrl);
     });
 
     it("should return canonical URL for public-bucket attachment redirect", async () => {
@@ -88,7 +86,7 @@ describe("Team", () => {
       });
 
       const result = await team.publicAvatarUrl();
-      expect(result).toEqual("http://mock/get");
+      expect(result).toEqual(attachment.canonicalUrl);
     });
   });
 });
