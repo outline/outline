@@ -150,10 +150,8 @@ class Team extends ParanoidModel<
 
   /**
    * Returns a directly-accessible URL for the team's avatar suitable for use
-   * in contexts where HTTP redirects are not followed, such as link-preview
-   * scrapers. When the stored `avatarUrl` is an attachment redirect URL the
-   * attachment is loaded and a signed (or canonical) URL is returned; any
-   * other URL is returned unchanged.
+   * in contexts without authentication. Attachment is loaded and a signed (or
+   * canonical) URL is returned; any other URL is returned unchanged.
    *
    * @returns A promise resolving to a direct URL, or null when no avatar is set.
    */
