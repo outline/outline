@@ -10,9 +10,10 @@ import {
   TeamPreference,
   type NavigationNode,
 } from "@shared/types";
+import { attachmentRedirectRegex } from "@shared/utils/ProsemirrorHelper";
 import { unicodeCLDRtoISO639 } from "@shared/utils/date";
 import env from "@server/env";
-import { Integration } from "@server/models";
+import { Attachment, Integration } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import presentEnv from "@server/presenters/env";
 import { getTeamFromContext } from "@server/utils/passport";
@@ -23,6 +24,42 @@ import { loadPublicShare } from "@server/commands/shareLoader";
 const readFile = util.promisify(fs.readFile);
 const entry = "app/index.tsx";
 const viteHost = env.URL.replace(`:${env.PORT}`, ":3001");
+const attachmentRedirectPattern = new RegExp(attachmentRedirectRegex.source, "i");
+
+/**
+ * Resolves a team avatar URL to a direct (signed or canonical) URL so that
+ * link-preview scrapers that do not follow redirects can fetch the image.
+ * When the stored value is an attachment redirect URL the corresponding
+ * attachment is loaded and a signed or canonical URL is returned depending on
+ * whether the attachment lives in a public bucket.  Any other URL is returned
+ * unchanged.
+ *
+ * @param avatarUrl The raw avatar URL stored on the team, possibly a redirect.
+ * @param teamId The team that owns the attachment.
+ * @returns A promise resolving to a direct URL, or the original value when
+ *   it cannot be resolved.
+ */
+async function resolveTeamAvatarUrl(
+  avatarUrl: string,
+  teamId: string
+): Promise<string> {
+  const match = attachmentRedirectPattern.exec(avatarUrl);
+  if (!match?.groups?.id) {
+    return avatarUrl;
+  }
+
+  const attachment = await Attachment.findOne({
+    where: { id: match.groups.id, teamId },
+  });
+
+  if (!attachment) {
+    return avatarUrl;
+  }
+
+  return attachment.isStoredInPublicBucket
+    ? attachment.canonicalUrl
+    : await attachment.signedUrl;
+}
 
 let indexHtmlCache: Buffer | undefined;
 
@@ -340,7 +377,9 @@ export const renderShare = async (ctx: Context, next: Next) => {
       (publicBranding && team?.description ? team.description : undefined),
     content,
     shortcutIcon:
-      publicBranding && team?.avatarUrl ? team.avatarUrl : undefined,
+      publicBranding && team?.avatarUrl
+        ? await resolveTeamAvatarUrl(team.avatarUrl, team.id)
+        : undefined,
     analytics,
     isShare: true,
     rootShareId,
