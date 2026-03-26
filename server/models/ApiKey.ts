@@ -176,6 +176,12 @@ class ApiKey extends ParanoidModel<
       return true;
     }
 
+    // MCP endpoint access is allowed if the key has any valid scope.
+    // Fine-grained scope enforcement happens at the tool level.
+    if (path.startsWith("/mcp")) {
+      return this.scope.length > 0;
+    }
+
     return AuthenticationHelper.canAccess(path, this.scope);
   };
 }
