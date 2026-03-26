@@ -7,7 +7,6 @@ import documentUpdater from "@server/commands/documentUpdater";
 import { Op } from "sequelize";
 import { Collection, Document } from "@server/models";
 import { sequelize } from "@server/storage/database";
-import SearchHelper from "@server/models/helpers/SearchHelper";
 import { authorize } from "@server/policies";
 import { presentDocument } from "@server/presenters";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
@@ -22,6 +21,7 @@ import {
   withTracing,
 } from "./util";
 import { TextEditMode } from "@shared/types";
+import SearchProviderManager from "@server/utils/SearchProviderManager";
 
 /**
  * Registers document-related MCP tools on the given server, filtered by
@@ -93,6 +93,8 @@ export function documentTools(server: McpServer, scopes: string[]) {
             }
 
             if (query) {
+              const searchProvider = SearchProviderManager.getProvider();
+
               // If the query looks like a document ID or urlId, try direct
               // lookup first so exact matches appear at the top of results.
               let exactMatch: Document | null = null;
@@ -109,7 +111,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
                 }
               }
 
-              const { results } = await SearchHelper.searchForUser(user, {
+              const { results } = await searchProvider.searchForUser(user, {
                 query,
                 collectionId,
                 offset: effectiveOffset,

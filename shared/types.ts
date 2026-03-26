@@ -32,6 +32,13 @@ export enum DirectionFilter {
   DESC = "DESC",
 }
 
+/** Model types that support search indexing. */
+export enum SearchableModel {
+  Document = "document",
+  Collection = "collection",
+  Comment = "comment",
+}
+
 export enum CollectionStatusFilter {
   Archived = "archived",
 }
