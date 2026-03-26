@@ -104,16 +104,20 @@ class MermaidRenderer {
       return;
     }
 
-    // Create a temporary element that will render the diagram off-screen. This is necessary
-    // as Mermaid will error if the element is not visible or the element is removed while the
-    // diagram is being rendered.
+    // Create a temporary element for rendering. We use visibility:hidden instead of
+    // offscreen positioning so the browser computes correct bounding boxes for SVG
+    // elements — offscreen elements can produce incorrect getBBox() results, leading
+    // to wrong viewBox dimensions (see mermaid-js/mermaid#6146).
     const renderElement = document.createElement("div");
     const tempId =
       "offscreen-mermaid-" + Math.random().toString(36).substr(2, 9);
     renderElement.id = tempId;
-    renderElement.style.position = "absolute";
-    renderElement.style.left = "-9999px";
-    renderElement.style.top = "-9999px";
+    renderElement.style.position = "fixed";
+    renderElement.style.visibility = "hidden";
+    renderElement.style.top = "0";
+    renderElement.style.left = "0";
+    renderElement.style.width = "100%";
+    renderElement.style.zIndex = "-1";
     document.body.appendChild(renderElement);
 
     try {
