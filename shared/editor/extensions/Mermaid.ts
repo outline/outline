@@ -33,37 +33,64 @@ class Cache {
   /** Get a cached SVG by diagram text and theme. */
   static get(key: string): string | undefined {
     try {
-      return (
-        sessionStorage.getItem(STORAGE_PREFIX + hashString(key)) ?? undefined
-      );
+      const hash = hashString(key);
+      const value = sessionStorage.getItem(STORAGE_PREFIX + hash);
+      if (value) {
+        this.touchLru(hash);
+        return value;
+      }
     } catch {
-      return undefined;
+      // sessionStorage unavailable
     }
+    return undefined;
   }
 
   /** Cache a rendered SVG in sessionStorage. */
   static set(key: string, value: string) {
     try {
+      const hash = hashString(key);
+      this.touchLru(hash);
       this.pruneStorage();
-      sessionStorage.setItem(STORAGE_PREFIX + hashString(key), value);
+      sessionStorage.setItem(STORAGE_PREFIX + hash, value);
     } catch {
       // sessionStorage full or unavailable
     }
   }
 
-  /** Remove oldest mermaid entries when over the limit. */
+  /** Move or append a hash to the end (most recent) of the LRU list. */
+  private static touchLru(hash: string) {
+    const lru = this.getLru();
+    const idx = lru.indexOf(hash);
+    if (idx !== -1) {
+      lru.splice(idx, 1);
+    }
+    lru.push(hash);
+    sessionStorage.setItem(STORAGE_PREFIX + "lru", JSON.stringify(lru));
+  }
+
+  /** Evict least-recently-used entries when over the limit. */
   private static pruneStorage() {
-    const keys: string[] = [];
-    for (let i = 0; i < sessionStorage.length; i++) {
-      const k = sessionStorage.key(i);
-      if (k?.startsWith(STORAGE_PREFIX)) {
-        keys.push(k);
-      }
+    const lru = this.getLru();
+
+    while (lru.length > MAX_STORAGE_ENTRIES) {
+      const evict = lru.shift()!;
+      sessionStorage.removeItem(STORAGE_PREFIX + evict);
     }
 
-    while (keys.length >= MAX_STORAGE_ENTRIES) {
-      sessionStorage.removeItem(keys.shift()!);
+    sessionStorage.setItem(STORAGE_PREFIX + "lru", JSON.stringify(lru));
+  }
+
+  /** Read the LRU order list from sessionStorage. */
+  private static getLru(): string[] {
+    try {
+      const raw = sessionStorage.getItem(STORAGE_PREFIX + "lru");
+      if (raw) {
+        return JSON.parse(raw);
+      }
+    } catch {
+      // corrupted or unavailable
     }
+    return [];
   }
 }
 
