@@ -15,6 +15,7 @@ import { findParentNode } from "../queries/findParentNode";
 import type { NodeWithPos } from "../types";
 import type { Editor } from "../../../app/editor";
 import { LightboxImageFactory } from "../lib/Lightbox";
+import { hashString } from "../../utils/string";
 import { sanitizeUrl } from "../../utils/urls";
 
 export const pluginKey = new PluginKey("mermaid");
@@ -25,21 +26,45 @@ export type MermaidState = {
   editingId?: string;
 };
 
+const STORAGE_PREFIX = "mermaid:";
+const MAX_STORAGE_ENTRIES = 20;
+
 class Cache {
-  static get(key: string) {
-    return this.data.get(key);
-  }
-
-  static set(key: string, value: string) {
-    this.data.set(key, value);
-
-    if (this.data.size > this.maxSize) {
-      this.data.delete(this.data.keys().next().value);
+  /** Get a cached SVG by diagram text and theme. */
+  static get(key: string): string | undefined {
+    try {
+      return (
+        sessionStorage.getItem(STORAGE_PREFIX + hashString(key)) ?? undefined
+      );
+    } catch {
+      return undefined;
     }
   }
 
-  private static maxSize = 20;
-  private static data: Map<string, string> = new Map();
+  /** Cache a rendered SVG in sessionStorage. */
+  static set(key: string, value: string) {
+    try {
+      this.pruneStorage();
+      sessionStorage.setItem(STORAGE_PREFIX + hashString(key), value);
+    } catch {
+      // sessionStorage full or unavailable
+    }
+  }
+
+  /** Remove oldest mermaid entries when over the limit. */
+  private static pruneStorage() {
+    const keys: string[] = [];
+    for (let i = 0; i < sessionStorage.length; i++) {
+      const k = sessionStorage.key(i);
+      if (k?.startsWith(STORAGE_PREFIX)) {
+        keys.push(k);
+      }
+    }
+
+    while (keys.length >= MAX_STORAGE_ENTRIES) {
+      sessionStorage.removeItem(keys.shift()!);
+    }
+  }
 }
 
 let mermaid: typeof MermaidUnsafe;
