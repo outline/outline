@@ -305,7 +305,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
     const collections = new Map<string, Collection>();
     const documents = new Map<string, Document>();
     const attachments = new Map<string, Attachment>();
-    const userIdCache = new Map<string, string>();
+    const userIdCache = new Map<string, string | undefined>();
 
     const user = await User.findByPk(fileOperation.userId, {
       rejectOnEmpty: true,
@@ -559,13 +559,12 @@ export default abstract class ImportTask extends BaseTask<Props> {
   private async resolveUserId(
     item: { createdById?: string; createdByEmail?: string | null },
     teamId: string,
-    cache: Map<string, string>
+    cache: Map<string, string | undefined>
   ): Promise<string | undefined> {
     if (item.createdById) {
       const cacheKey = `id:${item.createdById}`;
-      const cached = cache.get(cacheKey);
-      if (cached) {
-        return cached;
+      if (cache.has(cacheKey)) {
+        return cache.get(cacheKey);
       }
 
       const user = await User.findOne({
@@ -575,14 +574,14 @@ export default abstract class ImportTask extends BaseTask<Props> {
         cache.set(cacheKey, user.id);
         return user.id;
       }
+      cache.set(cacheKey, undefined);
     }
 
     if (item.createdByEmail) {
       const email = item.createdByEmail.toLowerCase().trim();
       const cacheKey = `email:${email}`;
-      const cached = cache.get(cacheKey);
-      if (cached) {
-        return cached;
+      if (cache.has(cacheKey)) {
+        return cache.get(cacheKey);
       }
 
       const user = await User.findOne({
@@ -595,6 +594,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
         }
         return user.id;
       }
+      cache.set(cacheKey, undefined);
     }
 
     return undefined;
