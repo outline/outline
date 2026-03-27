@@ -149,13 +149,21 @@ export class DocumentConverter {
       }
 
       // Extract dimensions from data URI images that lack width/height
-      // (e.g. images embedded by mammoth during docx import)
+      // (e.g. images embedded by mammoth during docx import).
+      // Only decode a small prefix of the base64 data — headers for all
+      // supported formats live within the first 64 KB of the file.
       if (!img.getAttribute("width") && !img.getAttribute("height")) {
         const src = img.getAttribute("src") || "";
-        const base64Match = src.match(/^data:[^;]+;base64,(.+)/);
-        if (base64Match) {
+        if (src.startsWith("data:") && src.includes(";base64,")) {
+          const base64Start = src.indexOf(";base64,") + 8;
+          // 4 base64 chars → 3 bytes; decode at most ~64 KB of image data.
+          const maxBase64Chars = Math.ceil(65536 / 3) * 4;
+          const base64Prefix = src.slice(
+            base64Start,
+            base64Start + maxBase64Chars
+          );
           const dimensions = this.getImageDimensionsFromBuffer(
-            Buffer.from(base64Match[1], "base64")
+            Buffer.from(base64Prefix, "base64")
           );
           if (dimensions) {
             img.setAttribute("width", String(dimensions.width));
@@ -497,10 +505,11 @@ export class DocumentConverter {
         };
       }
 
-      // JPEG: scan for SOF marker
+      // JPEG: scan for SOF marker (cap at 64 KB to bound work)
       if (buffer.length >= 2 && buffer[0] === 0xff && buffer[1] === 0xd8) {
+        const scanLimit = Math.min(buffer.length, 65536);
         let offset = 2;
-        while (offset + 1 < buffer.length) {
+        while (offset + 1 < scanLimit) {
           if (buffer[offset] !== 0xff) {
             offset++;
             continue;
@@ -517,12 +526,13 @@ export class DocumentConverter {
             continue;
           }
 
-          if (offset + 2 > buffer.length) {
+          if (offset + 2 > scanLimit) {
             break;
           }
           const segmentLength = buffer.readUInt16BE(offset);
 
-          // SOF markers contain the frame dimensions
+          // SOF markers contain the frame dimensions — check before
+          // the advance guard since this returns immediately.
           if (
             (marker >= 0xc0 && marker <= 0xc3) ||
             (marker >= 0xc5 && marker <= 0xc7) ||
@@ -535,6 +545,12 @@ export class DocumentConverter {
                 width: buffer.readUInt16BE(offset + 5),
               };
             }
+            break;
+          }
+
+          // Length includes itself and must be >= 2; bail on malformed data.
+          if (segmentLength < 2 || offset + segmentLength > buffer.length) {
+            break;
           }
 
           offset += segmentLength;
