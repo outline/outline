@@ -547,9 +547,8 @@ export default abstract class ImportTask extends BaseTask<Props> {
 
   /**
    * Resolves the original document author to an internal user, using a cache
-   * to avoid redundant database queries. The resolution follows a fallback
-   * chain: match by user ID, then by email, then fall back to the importing
-   * user.
+   * to avoid redundant database queries. Attempts to match by user ID first,
+   * then by email. Both hits and misses are cached.
    *
    * @param item the document import item containing createdById and createdByEmail.
    * @param teamId the team ID to scope the lookup to.
