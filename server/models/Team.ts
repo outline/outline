@@ -29,6 +29,7 @@ import { TeamPreferenceDefaults } from "@shared/constants";
 import type { TeamPreferences } from "@shared/types";
 import { TeamPreference, UserRole } from "@shared/types";
 import { getBaseDomain, RESERVED_SUBDOMAINS } from "@shared/utils/domains";
+import { attachmentRedirectRegex } from "@shared/utils/ProsemirrorHelper";
 import { parseEmail } from "@shared/utils/email";
 import { TeamValidation } from "@shared/validations";
 import env from "@server/env";
@@ -56,6 +57,8 @@ import { SkipChangeset } from "./decorators/Changeset";
 export enum TeamFlag {
   MarkedSafe = "markedSafe",
 }
+
+const avatarRedirectPattern = new RegExp(attachmentRedirectRegex.source, "i");
 
 @Scopes(() => ({
   withDomains: {
@@ -143,6 +146,37 @@ class Team extends ParanoidModel<
 
   set avatarUrl(value: string | null) {
     this.setDataValue("avatarUrl", value);
+  }
+
+  /**
+   * Returns a directly-accessible URL for the team's avatar suitable for use
+   * in contexts without authentication. Attachment is loaded and a signed (or
+   * canonical) URL is returned; any other URL is returned unchanged.
+   *
+   * @returns A promise resolving to a direct URL, or null when no avatar is set.
+   */
+  async publicAvatarUrl(): Promise<string | null> {
+    const url = this.avatarUrl;
+    if (!url) {
+      return null;
+    }
+
+    const match = avatarRedirectPattern.exec(url);
+    if (!match?.groups?.id) {
+      return url;
+    }
+
+    const attachment = await Attachment.findOne({
+      where: { id: match.groups.id, teamId: this.id },
+    });
+
+    if (!attachment) {
+      return url;
+    }
+
+    return attachment.isStoredInPublicBucket
+      ? attachment.canonicalUrl
+      : await attachment.signedUrl;
   }
 
   @Default(true)
