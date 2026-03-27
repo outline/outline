@@ -25,6 +25,8 @@ type Props = Optional<
     | "publishedAt"
     | "createdAt"
     | "updatedAt"
+    | "createdById"
+    | "lastModifiedById"
   >
 > & {
   state?: Buffer;
@@ -58,6 +60,8 @@ export default async function documentCreator(
     editorVersion,
     publishedAt,
     sourceMetadata,
+    createdById,
+    lastModifiedById,
   }: Props
 ): Promise<Document> {
   const { user } = ctx.state.auth;
@@ -108,8 +112,8 @@ export default async function documentCreator(
     teamId: user.teamId,
     createdAt,
     updatedAt: updatedAt ?? createdAt,
-    lastModifiedById: user.id,
-    createdById: user.id,
+    lastModifiedById: lastModifiedById ?? createdById ?? user.id,
+    createdById: createdById ?? user.id,
     templateId,
     publishedAt,
     importId,
