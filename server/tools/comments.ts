@@ -26,7 +26,7 @@ import {
  * @returns the presented comment with an additional `text` field.
  */
 function presentCommentWithText(comment: Comment) {
-  const presented = presentComment(comment);
+  const presented = presentComment(comment, { includeAnchorText: true });
   return {
     ...presented,
     text: comment.toPlainText(),
@@ -238,6 +238,7 @@ export function commentTools(server: McpServer, scopes: string[]) {
             });
 
             comment.createdBy = user;
+            comment.document = document!;
 
             const presented = presentCommentWithText(comment);
             return {
@@ -312,6 +313,7 @@ export function commentTools(server: McpServer, scopes: string[]) {
 
           await comment.saveWithCtx(ctx, status ? { silent: true } : undefined);
 
+          comment.document = document!;
           const presented = presentCommentWithText(comment);
           return {
             content: [
