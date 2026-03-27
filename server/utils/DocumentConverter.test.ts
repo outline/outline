@@ -395,5 +395,109 @@ Content`;
       expect(image.attrs.width).toBe(400);
       expect(image.attrs.height).toBe(300);
     });
+
+    it("should extract dimensions from PNG data URI images", () => {
+      // Minimal 2x3 PNG (IHDR: width=2, height=3)
+      const pngBuffer = Buffer.alloc(33);
+      // PNG signature
+      Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]).copy(
+        pngBuffer
+      );
+      // IHDR chunk length (13 bytes)
+      pngBuffer.writeUInt32BE(13, 8);
+      // "IHDR"
+      Buffer.from("IHDR").copy(pngBuffer, 12);
+      // Width = 200
+      pngBuffer.writeUInt32BE(200, 16);
+      // Height = 150
+      pngBuffer.writeUInt32BE(150, 20);
+
+      const base64 = pngBuffer.toString("base64");
+      const html = `<p><img src="data:image/png;base64,${base64}"></p>`;
+
+      const doc = DocumentConverter.htmlToProsemirror(html);
+
+      const paragraph = doc.content.child(0);
+      const image = paragraph.content.child(0);
+      expect(image.type.name).toBe("image");
+      expect(image.attrs.width).toBe(200);
+      expect(image.attrs.height).toBe(150);
+    });
+
+    it("should extract dimensions from JPEG data URI images", () => {
+      // Minimal JPEG with SOF0 marker
+      const jpegBuffer = Buffer.alloc(20);
+      // JPEG SOI marker
+      jpegBuffer[0] = 0xff;
+      jpegBuffer[1] = 0xd8;
+      // SOF0 marker
+      jpegBuffer[2] = 0xff;
+      jpegBuffer[3] = 0xc0;
+      // Segment length
+      jpegBuffer.writeUInt16BE(17, 4);
+      // Precision
+      jpegBuffer[6] = 8;
+      // Height = 300
+      jpegBuffer.writeUInt16BE(300, 7);
+      // Width = 400
+      jpegBuffer.writeUInt16BE(400, 9);
+
+      const base64 = jpegBuffer.toString("base64");
+      const html = `<p><img src="data:image/jpeg;base64,${base64}"></p>`;
+
+      const doc = DocumentConverter.htmlToProsemirror(html);
+
+      const paragraph = doc.content.child(0);
+      const image = paragraph.content.child(0);
+      expect(image.type.name).toBe("image");
+      expect(image.attrs.width).toBe(400);
+      expect(image.attrs.height).toBe(300);
+    });
+
+    it("should extract dimensions from GIF data URI images", () => {
+      // Minimal GIF header
+      const gifBuffer = Buffer.alloc(10);
+      // GIF signature
+      Buffer.from("GIF89a").copy(gifBuffer);
+      // Width = 320 (little-endian)
+      gifBuffer.writeUInt16LE(320, 6);
+      // Height = 240 (little-endian)
+      gifBuffer.writeUInt16LE(240, 8);
+
+      const base64 = gifBuffer.toString("base64");
+      const html = `<p><img src="data:image/gif;base64,${base64}"></p>`;
+
+      const doc = DocumentConverter.htmlToProsemirror(html);
+
+      const paragraph = doc.content.child(0);
+      const image = paragraph.content.child(0);
+      expect(image.type.name).toBe("image");
+      expect(image.attrs.width).toBe(320);
+      expect(image.attrs.height).toBe(240);
+    });
+
+    it("should not override existing width/height on data URI images", () => {
+      // PNG with dimensions 200x150 but HTML attributes say 100x75
+      const pngBuffer = Buffer.alloc(33);
+      Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]).copy(
+        pngBuffer
+      );
+      pngBuffer.writeUInt32BE(13, 8);
+      Buffer.from("IHDR").copy(pngBuffer, 12);
+      pngBuffer.writeUInt32BE(200, 16);
+      pngBuffer.writeUInt32BE(150, 20);
+
+      const base64 = pngBuffer.toString("base64");
+      const html = `<p><img src="data:image/png;base64,${base64}" width="100" height="75"></p>`;
+
+      const doc = DocumentConverter.htmlToProsemirror(html);
+
+      const paragraph = doc.content.child(0);
+      const image = paragraph.content.child(0);
+      expect(image.type.name).toBe("image");
+      // Should use the HTML attributes, not the parsed dimensions
+      expect(image.attrs.width).toBe(100);
+      expect(image.attrs.height).toBe(75);
+    });
   });
 });
