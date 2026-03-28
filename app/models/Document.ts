@@ -235,7 +235,7 @@ export default class Document extends ArchivableModel implements Searchable {
    * document via documents.info; not included in list responses.
    */
   @observable
-  tags: Tag[] = [];
+  tags: Tag[] | undefined = undefined;
 
   /**
    * Returns the notifications associated with this document.

@@ -10,7 +10,7 @@ interface Props {
   /** The document being tagged. */
   documentId: string;
   /** Current tags on the document. */
-  tags: Tag[];
+  tags: Tag[] | undefined;
   /** Whether the current user can edit tags. */
   canUpdate: boolean;
 }
@@ -25,13 +25,26 @@ function TagInput({ documentId, tags, canUpdate }: Props) {
   const [highlightedIndex, setHighlightedIndex] = React.useState(-1);
 
   React.useEffect(() => {
-    void tagsStore.fetchPage();
-  }, [tagsStore]);
+    if (!canUpdate || tagsStore.isLoaded) {
+      return;
+    }
+    void (async () => {
+      let offset = 0;
+      const limit = 100;
+      while (true) {
+        const batch = await tagsStore.fetchPage({ offset, limit });
+        if (batch.length < limit) {
+          break;
+        }
+        offset += limit;
+      }
+    })();
+  }, [tagsStore, canUpdate]);
 
-  // Hydrate document.tags from the server on mount if not yet populated.
+  // Hydrate document.tags from the server on mount if not yet loaded.
   React.useEffect(() => {
     const document = documents.get(documentId);
-    if (document && document.tags.length === 0) {
+    if (document && document.tags == null) {
       void documents.fetch(documentId, { force: true });
     }
   }, [documents, documentId]);
@@ -45,7 +58,7 @@ function TagInput({ documentId, tags, canUpdate }: Props) {
 
       if (value.trim()) {
         const normalizedInput = value.trim().toLowerCase();
-        const existingIds = new Set(tags.map((tag) => tag.id));
+        const existingIds = new Set((tags ?? []).map((tag) => tag.id));
         const matched = tagsStore.orderedData
           .filter(
             (tag) =>
@@ -72,8 +85,8 @@ function TagInput({ documentId, tags, canUpdate }: Props) {
       const tag = await tagsStore.createTag(name);
       await tagsStore.addToDocument(tag.id, documentId);
       const document = documents.get(documentId);
-      if (document && !document.tags.find((t) => t.id === tag.id)) {
-        document.tags = [...document.tags, tag];
+      if (document && !(document.tags ?? []).find((t) => t.id === tag.id)) {
+        document.tags = [...(document.tags ?? []), tag];
       }
       setInputValue("");
       setTypedValue("");
@@ -136,7 +149,7 @@ function TagInput({ documentId, tags, canUpdate }: Props) {
       void tagsStore.removeFromDocument(tag.id, documentId);
       const document = documents.get(documentId);
       if (document) {
-        document.tags = document.tags.filter((t) => t.id !== tag.id);
+        document.tags = (document.tags ?? []).filter((t) => t.id !== tag.id);
       }
     },
     [tagsStore, documents, documentId]
@@ -151,7 +164,7 @@ function TagInput({ documentId, tags, canUpdate }: Props) {
             value={inputValue}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
-            placeholder={tags.length === 0 ? t("Add a tag…") : undefined}
+            placeholder={(tags ?? []).length === 0 ? t("Add a tag…") : undefined}
             aria-label={t("Add tag")}
             onBlur={() =>
               setTimeout(() => {

@@ -13,18 +13,28 @@ import Store from "./base/Store";
 export default class TagsStore extends Store<Tag> {
   constructor(rootStore: RootStore) {
     super(rootStore, Tag);
-    // Capture the parent's arrow-function `add` (set on the instance by the
-    // base class constructor) before we shadow it with our own override below.
+    // Capture the parent's arrow-function `add` (set on the
+    // instance by the base class constructor) before we shadow it with our own override below.
     const parentAdd = this.add;
 
     /**
-     * Override to keep the name cache in sync.
+     * Override to keep the name cache in sync, including evicting stale
+     * entries when a tag is renamed.
      *
      * @param item - partial tag data.
      * @returns the stored Tag model.
      */
     this.add = (item: Parameters<Store<Tag>["add"]>[0]): Tag => {
+      const itemWithId = item as { id?: string };
+      const previousName = itemWithId.id
+        ? this.data.get(itemWithId.id)?.name
+        : undefined;
+
       const tag = parentAdd(item);
+
+      if (previousName && previousName !== tag.name) {
+        this.nameMap.delete(previousName.toLowerCase());
+      }
       if (tag.name) {
         this.nameMap.set(tag.name.toLowerCase(), tag);
       }
@@ -111,6 +121,19 @@ export default class TagsStore extends Store<Tag> {
     return Array.from(this.data.values()).sort((a, b) =>
       a.name.localeCompare(b.name)
     );
+  }
+
+  /**
+   * Override to evict the tag from the name cache when it is removed from the store.
+   *
+   * @param id - the id of the tag to remove.
+   */
+  override remove(id: string): void {
+    const tag = this.data.get(id);
+    if (tag?.name) {
+      this.nameMap.delete(tag.name.toLowerCase());
+    }
+    super.remove(id);
   }
 
   /**

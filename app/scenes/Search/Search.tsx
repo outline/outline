@@ -54,10 +54,6 @@ function Search() {
   const history = useHistory();
   const routeMatch = useRouteMatch<{ query: string }>();
 
-  React.useEffect(() => {
-    void tagsStore.fetchPage();
-  }, [tagsStore]);
-
   // refs
   const searchInputRef = React.useRef<HTMLInputElement | null>(null);
   const resultListRef = React.useRef<HTMLDivElement | null>(null);
@@ -72,6 +68,33 @@ function Search() {
   const tagIds = tagNames
     .map((name) => tagsStore.getByName(name)?.id)
     .filter(Boolean) as string[];
+
+  const allTagsLoadedRef = React.useRef(false);
+  const [allTagsLoaded, setAllTagsLoaded] = React.useState(false);
+
+  React.useEffect(() => {
+    // Only fetch tags when the query contains #tag tokens, to avoid
+    // unnecessary API load on every Search mount.
+    if (tagNames.length === 0) {
+      return;
+    }
+    if (allTagsLoadedRef.current) {
+      return;
+    }
+    void (async () => {
+      let offset = 0;
+      const limit = 100;
+      while (true) {
+        const batch = await tagsStore.fetchPage({ offset, limit });
+        if (batch.length < limit) {
+          break;
+        }
+        offset += limit;
+      }
+      allTagsLoadedRef.current = true;
+      setAllTagsLoaded(true);
+    })();
+  }, [tagsStore, tagNames.length]);
   const collectionId = params.get("collectionId") ?? "";
   const userId = params.get("userId") ?? "";
   const documentId = params.get("documentId") ?? undefined;
@@ -83,9 +106,9 @@ function Search() {
   const sort = (params.get("sort") as TSortFilter) ?? "";
   const direction = (params.get("direction") as TDirectionFilter) ?? "";
 
-  // True when tag tokens were typed but none resolved to known tags — no documents can match
+  // True when tag tokens were typed but, after all tags are loaded, none resolved — no documents can match
   const hasUnresolvedTags =
-    tagNames.length > 0 && tagIds.length < tagNames.length;
+    allTagsLoaded && tagNames.length > 0 && tagIds.length < tagNames.length;
 
   const isSearchable = !!(
     cleanQuery ||

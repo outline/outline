@@ -410,7 +410,7 @@ export type TagEvent =
       name: "tags.create" | "tags.update" | "tags.delete";
       modelId: string;
     })
-  | (BaseEvent<Tag & DocumentTag> & {
+  | (BaseEvent<DocumentTag> & {
       name: "tags.add" | "tags.remove";
       modelId: string;
       documentId: string;

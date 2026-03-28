@@ -5,7 +5,7 @@ import Text from "./Text";
 
 interface Props {
   /** Tags to display. */
-  tags: Tag[];
+  tags: Tag[] | undefined;
   /** Optional handler when a pill's dismiss button is clicked. */
   onRemove?: (tag: Tag) => void;
 }
@@ -20,7 +20,7 @@ interface Props {
 export function TagList({ tags, onRemove }: Props) {
   const { t } = useTranslation();
 
-  if (!tags.length) {
+  if (!tags?.length) {
     return null;
   }
 

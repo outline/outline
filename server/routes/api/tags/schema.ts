@@ -3,7 +3,13 @@ import { BaseSchema } from "../schema";
 
 export const TagsCreateSchema = BaseSchema.extend({
   body: z.object({
-    name: z.string().min(1).max(100),
+    name: z
+      .string()
+      .min(1)
+      .max(100)
+      .refine((v) => /^[\w-]+$/.test(v.trim()), {
+        message: "Tag name may only contain letters, numbers, hyphens, and underscores",
+      }),
   }),
 });
 export type TagsCreateReq = z.infer<typeof TagsCreateSchema>;
@@ -11,7 +17,13 @@ export type TagsCreateReq = z.infer<typeof TagsCreateSchema>;
 export const TagsUpdateSchema = BaseSchema.extend({
   body: z.object({
     id: z.uuid(),
-    name: z.string().min(1).max(100),
+    name: z
+      .string()
+      .min(1)
+      .max(100)
+      .refine((v) => /^[\w-]+$/.test(v.trim()), {
+        message: "Tag name may only contain letters, numbers, hyphens, and underscores",
+      }),
   }),
 });
 export type TagsUpdateReq = z.infer<typeof TagsUpdateSchema>;

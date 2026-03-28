@@ -10,9 +10,9 @@ export function parseSearchQuery(query: string): {
 } {
   const tagNames: string[] = [];
   const cleanQuery = query
-    .replace(/#([\w-]+)/g, (_, name: string) => {
+    .replace(/(^|\s)#([\w-]+)\b/g, (_, prefix: string, name: string) => {
       tagNames.push(name.toLowerCase());
-      return "";
+      return prefix;
     })
     .trim()
     .replace(/\s+/g, " ");

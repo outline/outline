@@ -12,14 +12,24 @@ import useStores from "~/hooks/useStores";
 import { searchPath } from "~/utils/routeHelpers";
 
 /**
- * Workspace tags index page. Lists all tags in the team sorted by usage.
+ * Workspace tags index page. Lists all tags in the team sorted alphabetically by name.
  */
 function Tags() {
   const { t } = useTranslation();
   const { tags } = useStores();
 
   React.useEffect(() => {
-    void tags.fetchPage();
+    void (async () => {
+      let offset = 0;
+      const limit = 100;
+      while (true) {
+        const batch = await tags.fetchPage({ offset, limit });
+        if (batch.length < limit) {
+          break;
+        }
+        offset += limit;
+      }
+    })();
   }, [tags]);
 
   return (

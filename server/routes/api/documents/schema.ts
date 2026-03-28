@@ -178,7 +178,10 @@ export type DocumentsRestoreReq = z.infer<typeof DocumentsRestoreSchema>;
 export const DocumentsSearchSchema = BaseSchema.extend({
   body: BaseSearchSchema.extend({
     /** Query for search */
-    query: z.string().optional(),
+    query: z
+      .string()
+      .refine((v) => v.trim().length > 0, { message: "query must not be blank" })
+      .optional(),
 
     /** Specifies the attributes by which search results will be sorted */
     sort: z.enum(Object.values(SortFilter) as [string, ...string[]]).optional(),
@@ -198,7 +201,7 @@ export type DocumentsSearchReq = z.infer<typeof DocumentsSearchSchema>;
 export const DocumentsSearchTitlesSchema = BaseSchema.extend({
   body: BaseSearchSchema.extend({
     /** Query for search */
-    query: z.string().optional(),
+    query: z.string().refine((v) => v.trim().length > 0, { message: "query must not be blank" }).optional(),
 
     /** Specifies the attributes by which search results will be sorted */
     sort: z.enum(Object.values(SortFilter) as [string, ...string[]]).optional(),
@@ -210,6 +213,8 @@ export const DocumentsSearchTitlesSchema = BaseSchema.extend({
 
     /** Filter results to documents with all of these tags */
     tagIds: z.array(z.uuid()).optional(),
+  }).refine((data) => !!(data.query?.trim()) || (data.tagIds && data.tagIds.length > 0), {
+    message: "query or tagIds is required",
   }),
 });
 
@@ -447,7 +452,7 @@ export type DocumentsCreateReq = z.infer<typeof DocumentsCreateSchema>;
 export const DocumentsUsersSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
     /** Query term to search users by name */
-    query: z.string().optional(),
+    query: z.string().refine((v) => v.trim().length > 0, { message: "query must not be blank" }).optional(),
     /** Id of the user to search within document access */
     userId: z.uuid().optional(),
   }),
@@ -512,7 +517,7 @@ export type DocumentsSharedWithUserReq = z.infer<
 
 export const DocumentsMembershipsSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
-    query: z.string().optional(),
+    query: z.string().refine((v) => v.trim().length > 0, { message: "query must not be blank" }).optional(),
     permission: z.enum(DocumentPermission).optional(),
   }),
 });

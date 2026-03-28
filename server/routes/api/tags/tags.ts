@@ -26,7 +26,7 @@ router.post(
     authorize(user, "createTag", user.team);
 
     const normalizedName = name.trim().toLowerCase();
-    const [tag] = await Tag.findOrCreate({
+    const [tag, created] = await Tag.findOrCreate({
       where: { name: normalizedName, teamId: user.teamId },
       defaults: {
         name: normalizedName,
@@ -36,12 +36,16 @@ router.post(
       transaction: t,
     });
 
-    await Event.schedule({
-      name: "tags.create",
-      modelId: tag.id,
-      teamId: user.teamId,
-      actorId: user.id,
-    });
+    if (created) {
+      t.afterCommit(() =>
+        void Event.schedule({
+          name: "tags.create",
+          modelId: tag.id,
+          teamId: user.teamId,
+          actorId: user.id,
+        })
+      );
+    }
 
     ctx.body = {
       data: presentTag(tag),
@@ -77,12 +81,14 @@ router.post(
       throw err;
     }
 
-    await Event.schedule({
-      name: "tags.update",
-      modelId: tag.id,
-      teamId: user.teamId,
-      actorId: user.id,
-    });
+    t.afterCommit(() =>
+      void Event.schedule({
+        name: "tags.update",
+        modelId: tag.id,
+        teamId: user.teamId,
+        actorId: user.id,
+      })
+    );
 
     ctx.body = {
       data: presentTag(tag),
@@ -110,12 +116,14 @@ router.post(
 
     await tag.destroy({ transaction: t });
 
-    await Event.schedule({
-      name: "tags.delete",
-      modelId: id,
-      teamId: user.teamId,
-      actorId: user.id,
-    });
+    t.afterCommit(() =>
+      void Event.schedule({
+        name: "tags.delete",
+        modelId: id,
+        teamId: user.teamId,
+        actorId: user.id,
+      })
+    );
 
     ctx.body = { success: true };
   }
@@ -135,7 +143,7 @@ router.post(
         include: [
           [
             Sequelize.literal(
-              `(SELECT COUNT(*) FROM document_tags WHERE document_tags."tagId" = "tag"."id")`
+              `(SELECT COUNT(*) FROM document_tags JOIN documents ON documents.id = document_tags."documentId" WHERE document_tags."tagId" = "tag"."id" AND documents."deletedAt" IS NULL)`
             ),
             "documentCount",
           ],
@@ -179,20 +187,24 @@ router.post(
     authorize(user, "read", tag);
     authorize(user, "update", document);
 
-    const [dt] = await DocumentTag.findOrCreate({
+    const [dt, dtCreated] = await DocumentTag.findOrCreate({
       where: { tagId, documentId },
       defaults: { tagId, documentId, createdById: user.id },
       transaction: t,
     });
 
-    await Event.schedule({
-      name: "tags.add",
-      modelId: dt.id,
-      documentId,
-      data: { tagId },
-      teamId: user.teamId,
-      actorId: user.id,
-    });
+    if (dtCreated) {
+      t.afterCommit(() =>
+        void Event.schedule({
+          name: "tags.add",
+          modelId: dt.id,
+          documentId,
+          data: { tagId },
+          teamId: user.teamId,
+          actorId: user.id,
+        })
+      );
+    }
 
     ctx.body = { success: true };
   }
@@ -208,10 +220,12 @@ router.post(
     const { tagId, documentId } = ctx.input.body;
     const { user } = ctx.state.auth;
 
-    const document = await Document.findByPk(documentId, {
-      userId: user.id,
-      transaction: t,
-    });
+    const [tag, document] = await Promise.all([
+      Tag.findOne({ where: { id: tagId, teamId: user.teamId }, transaction: t }),
+      Document.findByPk(documentId, { userId: user.id, transaction: t }),
+    ]);
+
+    authorize(user, "read", tag);
     authorize(user, "update", document);
 
     const dt = await DocumentTag.findOne({
@@ -222,14 +236,16 @@ router.post(
     if (dt) {
       await dt.destroy({ transaction: t });
 
-      await Event.schedule({
-        name: "tags.remove",
-        modelId: dt.id,
-        documentId,
-        data: { tagId },
-        teamId: user.teamId,
-        actorId: user.id,
-      });
+      t.afterCommit(() =>
+        void Event.schedule({
+          name: "tags.remove",
+          modelId: dt.id,
+          documentId,
+          data: { tagId },
+          teamId: user.teamId,
+          actorId: user.id,
+        })
+      );
     }
 
     ctx.body = { success: true };

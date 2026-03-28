@@ -1309,7 +1309,7 @@ describe("#documents.search_titles", () => {
     const body = await res.json();
     expect(res.status).toEqual(400);
     expect(body.message).toEqual(
-      "query: Invalid input: expected string, received undefined"
+      "body: query or tagIds is required"
     );
   });
 
