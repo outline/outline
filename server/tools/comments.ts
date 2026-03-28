@@ -4,7 +4,10 @@ import type { FindOptions, WhereOptions } from "sequelize";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { CommentStatusFilter } from "@shared/types";
+import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
+import type { CommentMark } from "@shared/utils/ProsemirrorHelper";
 import { commentParser } from "@server/editor";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { Comment, Collection, Document } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentComment } from "@server/presenters";
@@ -23,10 +26,17 @@ import {
  * ProseMirror JSON.
  *
  * @param comment - the comment model instance.
+ * @param commentMarks - optional precomputed comment marks to avoid reparsing.
  * @returns the presented comment with an additional `text` field.
  */
-function presentCommentWithText(comment: Comment) {
-  const presented = presentComment(comment, { includeAnchorText: true });
+function presentCommentWithText(
+  comment: Comment,
+  commentMarks?: CommentMark[]
+) {
+  const presented = presentComment(comment, {
+    includeAnchorText: true,
+    commentMarks,
+  });
   return {
     ...presented,
     text: comment.toPlainText(),
@@ -182,7 +192,25 @@ export function commentTools(server: McpServer, scopes: string[]) {
               });
             }
 
-            const presented = comments.map(presentCommentWithText);
+            // Precompute comment marks per document to avoid reparsing
+            // the same document for every comment.
+            const marksCache = new Map<string, CommentMark[]>();
+            const presented = comments.map((comment) => {
+              const doc = comment.document;
+              let marks: CommentMark[] | undefined;
+              if (doc) {
+                if (!marksCache.has(doc.id)) {
+                  marksCache.set(
+                    doc.id,
+                    ProsemirrorHelper.getComments(
+                      DocumentHelper.toProsemirror(doc)
+                    )
+                  );
+                }
+                marks = marksCache.get(doc.id);
+              }
+              return presentCommentWithText(comment, marks);
+            });
             return success(presented);
           } catch (err) {
             return error(err);
@@ -292,6 +320,9 @@ export function commentTools(server: McpServer, scopes: string[]) {
           const document = await Document.findByPk(comment.documentId, {
             userId: user.id,
           });
+
+          authorize(user, "read", comment);
+          authorize(user, "read", document);
 
           if (text !== undefined) {
             authorize(user, "update", comment);
