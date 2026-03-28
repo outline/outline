@@ -1,4 +1,5 @@
 import { Transaction } from "sequelize";
+import type { NavigationNode } from "@shared/types";
 import { traceFunction } from "@server/logging/tracing";
 import { Document, Collection, Pin } from "@server/models";
 import type { APIContext } from "@server/types";
@@ -92,6 +93,38 @@ async function documentMover(
     document.parentDocumentId = parentDocumentId;
     document.lastModifiedById = user.id;
     document.updatedBy = user;
+
+    // Auto-restrict when moving into a restricted parent
+    if (parentDocumentId && !document.isPrivate) {
+      const parentDocument = await Document.unscoped().findOne({
+        attributes: ["id", "isPrivate"],
+        where: { id: parentDocumentId },
+        transaction,
+      });
+
+      if (parentDocument?.isPrivate) {
+        document.isPrivate = true;
+        const childDocIds = await document.findAllChildDocumentIds(undefined, {
+          transaction,
+        });
+        if (childDocIds.length) {
+          await Document.update(
+            { isPrivate: true },
+            { where: { id: childDocIds }, transaction }
+          );
+        }
+
+        // Update the document structure nodes to reflect the restriction
+        if (documentJson) {
+          const markRestricted = (node: NavigationNode): NavigationNode => ({
+            ...node,
+            isPrivate: true,
+            children: node.children.map(markRestricted),
+          });
+          documentJson = markRestricted(documentJson);
+        }
+      }
+    }
 
     if (newCollection) {
       // Add the document and it's tree to the new collection

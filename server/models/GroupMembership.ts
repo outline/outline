@@ -353,6 +353,7 @@ class GroupMembership extends ParanoidModel<
           publishedAt: {
             [Op.ne]: null,
           },
+          isPrivate: false,
         },
         {
           transaction,

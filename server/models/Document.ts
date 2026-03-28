@@ -367,6 +367,11 @@ class Document extends ArchivableModel<
   @SkipChangeset
   state?: Uint8Array | null;
 
+  /** Whether this document has restricted access (does not inherit permissions from parent/collection). */
+  @Default(false)
+  @Column
+  isPrivate: boolean;
+
   /** Whether this document is part of onboarding. */
   @Default(false)
   @Column
@@ -456,7 +461,8 @@ class Document extends ArchivableModel<
       !(
         model.changed("title") ||
         model.changed("icon") ||
-        model.changed("color")
+        model.changed("color") ||
+        model.changed("isPrivate")
       ) ||
       !model.collectionId
     ) {
@@ -848,14 +854,28 @@ class Document extends ArchivableModel<
       return documents;
     }
 
-    return documents.filter(
-      (doc) =>
-        (!doc.collection?.isPrivate && !user?.isGuest) ||
-        (doc.collection?.memberships.length || 0) > 0 ||
-        (doc.collection?.groupMemberships.length || 0) > 0 ||
-        doc.memberships.length > 0 ||
-        doc.groupMemberships.length > 0
-    );
+    return documents.filter((doc) => {
+      const hasDirectAccess =
+        doc.memberships.length > 0 || doc.groupMemberships.length > 0;
+      if (hasDirectAccess) {
+        return true;
+      }
+
+      // Check isPrivate safely (may not be loaded when attributes are restricted)
+      let isPrivate = false;
+      try {
+        isPrivate = doc.isPrivate;
+      } catch {
+        // attribute not loaded, treat as unrestricted
+      }
+
+      return (
+        !isPrivate &&
+        ((!doc.collection?.isPrivate && !user?.isGuest) ||
+          (doc.collection?.memberships.length || 0) > 0 ||
+          (doc.collection?.groupMemberships.length || 0) > 0)
+      );
+    });
   }
 
   // instance methods
@@ -1036,6 +1056,21 @@ class Document extends ArchivableModel<
         if (this.collection) {
           this.collection.documentStructure = collection.documentStructure;
         }
+      }
+    }
+
+    // Auto-restrict when publishing under a restricted parent
+    if (this.parentDocumentId) {
+      const parentDocument = await (this.constructor as typeof Document)
+        .unscoped()
+        .findOne({
+          attributes: ["id", "isPrivate"],
+          where: { id: this.parentDocumentId },
+          transaction,
+        });
+
+      if (parentDocument?.isPrivate) {
+        this.isPrivate = true;
       }
     }
 
@@ -1312,6 +1347,7 @@ class Document extends ArchivableModel<
       url: this.url,
       icon: isNil(this.icon) ? undefined : this.icon,
       color: isNil(this.color) ? undefined : this.color,
+      isPrivate: this.isPrivate || undefined,
       children,
     };
   };

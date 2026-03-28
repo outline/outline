@@ -24,7 +24,11 @@ allow(User, "read", Document, (actor, document) =>
         DocumentPermission.Admin,
       ]),
       and(!!document?.isDraft, actor.id === document?.createdById),
-      can(actor, "readDocument", document?.collection)
+      isTeamAdmin(actor, document),
+      and(
+        !document?.isPrivate,
+        can(actor, "readDocument", document?.collection)
+      )
     )
   )
 );
@@ -89,9 +93,11 @@ allow(User, "update", Document, (actor, document) =>
         DocumentPermission.ReadWrite,
         DocumentPermission.Admin,
       ]),
-      or(
-        can(actor, "updateDocument", document?.collection),
-        and(!!document?.isDraft && actor.id === document?.createdById)
+      and(isTeamAdmin(actor, document), can(actor, "read", document)),
+      and(!!document?.isDraft && actor.id === document?.createdById),
+      and(
+        !document?.isPrivate,
+        can(actor, "updateDocument", document?.collection)
       )
     )
   )
@@ -111,7 +117,10 @@ allow(User, "manageUsers", Document, (actor, document) =>
     or(
       includesMembership(document, [DocumentPermission.Admin]),
       and(isTeamAdmin(actor, document), can(actor, "read", document)),
-      can(actor, "updateDocument", document?.collection),
+      and(
+        !document?.isPrivate,
+        can(actor, "updateDocument", document?.collection)
+      ),
       !!document?.isDraft && actor.id === document?.createdById
     )
   )
@@ -123,7 +132,10 @@ allow(User, "duplicate", Document, (actor, document) =>
     or(
       includesMembership(document, [DocumentPermission.Admin]),
       and(isTeamAdmin(actor, document), can(actor, "read", document)),
-      can(actor, "updateDocument", document?.collection),
+      and(
+        !document?.isPrivate,
+        can(actor, "updateDocument", document?.collection)
+      ),
       !!document?.isDraft && actor.id === document?.createdById
     )
   )
@@ -137,7 +149,10 @@ allow(User, "move", Document, (actor, document) =>
         DocumentPermission.ReadWrite,
         DocumentPermission.Admin,
       ]),
-      can(actor, "updateDocument", document?.collection),
+      and(
+        !document?.isPrivate,
+        can(actor, "updateDocument", document?.collection)
+      ),
       and(!!document?.isDraft && actor.id === document?.createdById),
       and(!!document?.isDraft && !document?.collection)
     )
@@ -194,7 +209,10 @@ allow(User, "restore", Document, (actor, document) =>
         DocumentPermission.ReadWrite,
         DocumentPermission.Admin,
       ]),
-      can(actor, "updateDocument", document?.collection),
+      and(
+        !document?.isPrivate,
+        can(actor, "updateDocument", document?.collection)
+      ),
       and(!!document?.isDraft && actor.id === document?.createdById)
     )
   )
@@ -217,7 +235,10 @@ allow(User, "archive", Document, (actor, document) =>
     or(
       includesMembership(document, [DocumentPermission.Admin]),
       and(isTeamAdmin(actor, document), can(actor, "read", document)),
-      can(actor, "updateDocument", document?.collection)
+      and(
+        !document?.isPrivate,
+        can(actor, "updateDocument", document?.collection)
+      )
     )
   )
 );
@@ -233,7 +254,10 @@ allow(User, "unarchive", Document, (actor, document) =>
         DocumentPermission.ReadWrite,
         DocumentPermission.Admin,
       ]),
-      can(actor, "updateDocument", document?.collection),
+      and(
+        !document?.isPrivate,
+        can(actor, "updateDocument", document?.collection)
+      ),
       and(!!document?.isDraft && actor.id === document?.createdById)
     )
   )
@@ -266,6 +290,24 @@ allow(User, "unpublish", Document, (user, document) => {
   }
   return user.teamId === document.teamId;
 });
+
+allow(User, "restrict", Document, (actor, document) =>
+  and(
+    !!document?.isActive,
+    !document?.isDraft,
+    isTeamMutable(actor),
+    isTeamModel(actor, document),
+    or(
+      includesMembership(document, [DocumentPermission.Admin]),
+      isTeamAdmin(actor, document),
+      and(
+        !document?.isPrivate,
+        can(actor, "updateDocument", document?.collection)
+      ),
+      and(!!document?.isDraft, actor.id === document?.createdById)
+    )
+  )
+);
 
 function includesMembership(
   document: Document | null,

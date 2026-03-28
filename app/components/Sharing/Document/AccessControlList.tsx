@@ -1,5 +1,10 @@
 import { observer } from "mobx-react";
-import { MoreIcon, QuestionMarkIcon, UserIcon } from "outline-icons";
+import {
+  PadlockIcon,
+  MoreIcon,
+  QuestionMarkIcon,
+  UserIcon,
+} from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled, { useTheme } from "styled-components";
@@ -14,6 +19,7 @@ import type Share from "~/models/Share";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
 import Scrollable from "~/components/Scrollable";
+import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -75,6 +81,11 @@ export const AccessControlList = observer(
       margin: 24,
     });
 
+    const handleToggleRestricted = React.useCallback(async () => {
+      const newValue = !document.isPrivate;
+      await document.save({ isPrivate: newValue });
+    }, [document]);
+
     const { loading: userMembershipLoading, request: fetchUserMemberships } =
       useRequest(
         React.useCallback(
@@ -119,6 +130,45 @@ export const AccessControlList = observer(
             maxHeight: maxHeight ? maxHeight - publicAccessHeight : undefined,
           }}
         >
+          {!document.isDraft && can.restrict && (
+            <>
+              <ListItem
+                image={
+                  <Squircle
+                    color={
+                      document.isPrivate ? theme.danger : theme.textTertiary
+                    }
+                    size={AvatarSize.Medium}
+                  >
+                    <PadlockIcon color={theme.white} size={16} />
+                  </Squircle>
+                }
+                title={
+                  document.isPrivate
+                    ? t("Access managed independently")
+                    : t("Inherits access")
+                }
+                subtitle={
+                  document.isPrivate
+                    ? t("Only explicitly added members can access")
+                    : collection
+                      ? t("From {{ collectionName }}", {
+                          collectionName: collection.name,
+                        })
+                      : t("From parent document")
+                }
+                actions={
+                  <Switch
+                    aria-label={t("Restrict access")}
+                    checked={document.isPrivate}
+                    onChange={handleToggleRestricted}
+                    disabled={!can.restrict}
+                  />
+                }
+              />
+              <Separator />
+            </>
+          )}
           {document.isDraft ? (
             <>
               <ListItem
@@ -141,38 +191,40 @@ export const AccessControlList = observer(
             </>
           ) : collection && canCollection.readDocument ? (
             <>
-              {collection.permission ? (
-                <ListItem
-                  image={
-                    <Squircle color={theme.accent} size={AvatarSize.Medium}>
-                      <UserIcon color={theme.accentText} size={16} />
-                    </Squircle>
-                  }
-                  title={t("All members")}
-                  subtitle={t("Everyone in the workspace")}
-                  actions={
-                    <AccessTooltip>
-                      {collection?.permission === CollectionPermission.ReadWrite
-                        ? t("Can edit")
-                        : t("Can view")}
-                    </AccessTooltip>
-                  }
-                />
-              ) : usersInCollection ? (
-                <ListItem
-                  image={<CollectionSquircle collection={collection} />}
-                  title={collection.name}
-                  subtitle={t("Everyone in the collection")}
-                  actions={<AccessTooltip>{t("Can view")}</AccessTooltip>}
-                />
-              ) : (
-                <ListItem
-                  image={<Avatar model={user} />}
-                  title={user.name}
-                  subtitle={t("You have full access")}
-                  actions={<AccessTooltip>{t("Can edit")}</AccessTooltip>}
-                />
-              )}
+              {!document.isPrivate &&
+                (collection.permission ? (
+                  <ListItem
+                    image={
+                      <Squircle color={theme.accent} size={AvatarSize.Medium}>
+                        <UserIcon color={theme.accentText} size={16} />
+                      </Squircle>
+                    }
+                    title={t("All members")}
+                    subtitle={t("Everyone in the workspace")}
+                    actions={
+                      <AccessTooltip>
+                        {collection?.permission ===
+                        CollectionPermission.ReadWrite
+                          ? t("Can edit")
+                          : t("Can view")}
+                      </AccessTooltip>
+                    }
+                  />
+                ) : usersInCollection ? (
+                  <ListItem
+                    image={<CollectionSquircle collection={collection} />}
+                    title={collection.name}
+                    subtitle={t("Everyone in the collection")}
+                    actions={<AccessTooltip>{t("Can view")}</AccessTooltip>}
+                  />
+                ) : (
+                  <ListItem
+                    image={<Avatar model={user} />}
+                    title={user.name}
+                    subtitle={t("You have full access")}
+                    actions={<AccessTooltip>{t("Can edit")}</AccessTooltip>}
+                  />
+                ))}
               {showLoading ? (
                 <Placeholder />
               ) : (

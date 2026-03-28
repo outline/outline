@@ -629,7 +629,9 @@ export default class SearchHelper {
       where[Op.and].push({ collectionId: options.collectionId });
     }
     if (collectionIds.length) {
-      where[Op.or].push({ collectionId: collectionIds });
+      where[Op.or].push({
+        [Op.and]: [{ collectionId: collectionIds }, { isPrivate: false }],
+      });
     }
 
     if (options.dateFilter) {

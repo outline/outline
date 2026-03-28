@@ -16,6 +16,7 @@ import { randomUUID } from "node:crypto";
 import type { DirectionFilter, SortFilter } from "@shared/types";
 import { type NavigationNode } from "@shared/types";
 import {
+  DocumentPermission,
   FileOperationFormat,
   FileOperationState,
   FileOperationType,
@@ -160,12 +161,43 @@ router.post(
           .slice(offset, offset + limit)
           .map((node) => node.id);
         where[Op.and].push({ id: documentIds });
-      } // if it's not a backlink request, filter by all collections the user has access to
+      }
+
+      // Filter restricted documents for non-admin users
+      if (!user.isAdmin) {
+        const restrictedDocIds = await accessibleRestrictedDocIds(user.id);
+        where[Op.and].push({
+          [Op.or]: [
+            { isPrivate: false },
+            ...(restrictedDocIds.length
+              ? [{ [Op.and]: [{ isPrivate: true }, { id: restrictedDocIds }] }]
+              : []),
+          ],
+        });
+      }
     } else if (!backlinkDocumentId) {
+      // if it's not a backlink request, filter by all collections the user has access to
       const collectionIds = await user.collectionIds();
-      where[Op.and].push({
-        collectionId: collectionIds,
-      });
+
+      if (user.isAdmin) {
+        // Admins can see all documents in their accessible collections
+        where[Op.and].push({ collectionId: collectionIds });
+      } else {
+        // Non-admin users: collection access only for non-restricted docs.
+        // Restricted docs with direct membership are included via subquery.
+        const restrictedDocIds = await accessibleRestrictedDocIds(user.id);
+
+        where[Op.and].push({
+          [Op.or]: [
+            {
+              [Op.and]: [{ collectionId: collectionIds }, { isPrivate: false }],
+            },
+            ...(restrictedDocIds.length
+              ? [{ [Op.and]: [{ isPrivate: true }, { id: restrictedDocIds }] }]
+              : []),
+          ],
+        });
+      }
     }
 
     if (parentDocumentId) {
@@ -1257,7 +1289,7 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.DocumentsUpdateReq>) => {
     const { transaction } = ctx.state;
-    const { id, insightsEnabled, publish, collectionId, ...input } =
+    const { id, insightsEnabled, publish, collectionId, isPrivate, ...input } =
       ctx.input.body;
     const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
 
@@ -1274,6 +1306,99 @@ router.post(
 
     if (collection && insightsEnabled !== undefined) {
       authorize(user, "updateInsights", document);
+    }
+
+    // Handle restrict/unrestrict toggle
+    if (isPrivate !== undefined && isPrivate !== document.isPrivate) {
+      authorize(user, "restrict", document);
+
+      const childDocumentIds = await document.findAllChildDocumentIds(
+        undefined,
+        { transaction }
+      );
+
+      if (isPrivate) {
+        // Restrict: set flag on document and all descendants
+        document.isPrivate = true;
+        if (childDocumentIds.length) {
+          await Document.update(
+            { isPrivate: true },
+            { where: { id: childDocumentIds }, transaction }
+          );
+        }
+
+        // Remove all sourced memberships on this document and descendants
+        const allDocIds = [document.id, ...childDocumentIds];
+        await UserMembership.destroy({
+          where: {
+            documentId: { [Op.in]: allDocIds },
+            sourceId: { [Op.ne]: null },
+          },
+          transaction,
+        });
+        await GroupMembership.destroy({
+          where: {
+            documentId: { [Op.in]: allDocIds },
+            sourceId: { [Op.ne]: null },
+          },
+          transaction,
+        });
+
+        // Ensure the acting user has direct admin access
+        const existingMembership = await UserMembership.findOne({
+          where: {
+            documentId: document.id,
+            userId: user.id,
+            sourceId: null,
+          },
+          transaction,
+        });
+        if (!existingMembership) {
+          await UserMembership.create(
+            {
+              documentId: document.id,
+              userId: user.id,
+              permission: DocumentPermission.Admin,
+              createdById: user.id,
+            },
+            { transaction }
+          );
+        }
+      } else {
+        // Unrestrict: clear flag on document and all descendants
+        document.isPrivate = false;
+        if (childDocumentIds.length) {
+          await Document.update(
+            { isPrivate: false },
+            { where: { id: childDocumentIds }, transaction }
+          );
+        }
+
+        // Re-inherit permissions from parent by rebuilding sourced memberships
+        if (document.parentDocumentId) {
+          const parentMemberships = await UserMembership.findAll({
+            where: { documentId: document.parentDocumentId },
+            transaction,
+          });
+          for (const membership of parentMemberships) {
+            await UserMembership.recreateSourcedMemberships(membership, {
+              transaction,
+              documentId: document.id,
+            });
+          }
+
+          const parentGroupMemberships = await GroupMembership.findAll({
+            where: { documentId: document.parentDocumentId },
+            transaction,
+          });
+          for (const membership of parentGroupMemberships) {
+            await GroupMembership.recreateSourcedMemberships(membership, {
+              transaction,
+              documentId: document.id,
+            });
+          }
+        }
+      }
     }
 
     if (publish) {
@@ -2139,6 +2264,47 @@ function getAPIVersion(ctx: APIContext) {
         ctx.input.body.apiVersion) ??
       0
   );
+}
+
+/**
+ * Find IDs of restricted documents the given user can access via direct or group membership.
+ *
+ * @param userId the user to check memberships for.
+ * @return restricted document IDs accessible to the user.
+ */
+async function accessibleRestrictedDocIds(userId: string): Promise<string[]> {
+  const [userMemberships, groupMemberships] = await Promise.all([
+    UserMembership.findAll({
+      attributes: ["documentId"],
+      where: { userId, documentId: { [Op.ne]: null } },
+    }),
+    GroupMembership.findAll({
+      attributes: ["documentId"],
+      where: { documentId: { [Op.ne]: null } },
+      include: [
+        {
+          model: Group,
+          required: true,
+          include: [
+            {
+              model: GroupUser,
+              required: true,
+              where: { userId },
+            },
+          ],
+        },
+      ],
+    }),
+  ]);
+
+  return [
+    ...userMemberships
+      .map((m) => m.documentId)
+      .filter((id): id is string => id !== null),
+    ...groupMemberships
+      .map((m) => m.documentId)
+      .filter((id): id is string => id !== null),
+  ];
 }
 
 export default router;

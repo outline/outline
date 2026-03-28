@@ -282,6 +282,9 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
 
     /** Whether the editing session is complete */
     done: z.boolean().optional(),
+
+    /** Whether the document should have restricted access (independent of parent/collection permissions) */
+    isPrivate: z.boolean().optional(),
   }),
 })
   .refine(
