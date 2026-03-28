@@ -101,35 +101,63 @@ function TagInput({ documentId, tags, canUpdate }: Props) {
     (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === "ArrowDown") {
         e.preventDefault();
-        if (suggestions.length > 0) {
-          const next = Math.min(highlightedIndex + 1, suggestions.length - 1);
+        const hasCreateOption =
+          !!typedValue.trim() &&
+          !suggestions.some((s) => s.name === typedValue.trim().toLowerCase());
+        const maxIndex = hasCreateOption
+          ? suggestions.length
+          : suggestions.length - 1;
+        if (maxIndex >= 0) {
+          const next = Math.min(highlightedIndex + 1, maxIndex);
           setHighlightedIndex(next);
-          setInputValue(suggestions[next].name);
+          if (next < suggestions.length) {
+            setInputValue(suggestions[next].name);
+          } else {
+            setInputValue(typedValue);
+          }
         }
         return;
       }
 
       if (e.key === "ArrowUp") {
         e.preventDefault();
-        if (highlightedIndex > 0) {
+        if (
+          highlightedIndex > 0 &&
+          highlightedIndex <= suggestions.length - 1
+        ) {
           const prev = highlightedIndex - 1;
           setHighlightedIndex(prev);
           setInputValue(suggestions[prev].name);
         } else if (highlightedIndex === 0) {
           setHighlightedIndex(-1);
           setInputValue(typedValue);
+        } else if (highlightedIndex === suggestions.length) {
+          if (suggestions.length > 0) {
+            const prev = suggestions.length - 1;
+            setHighlightedIndex(prev);
+            setInputValue(suggestions[prev].name);
+          } else {
+            setHighlightedIndex(-1);
+            setInputValue(typedValue);
+          }
         }
         return;
       }
 
       if (e.key === "Enter" && inputValue.trim()) {
         e.preventDefault();
-        const selected =
-          highlightedIndex >= 0
-            ? suggestions[highlightedIndex]
-            : suggestions.length > 0
-              ? suggestions[0]
-              : inputValue;
+        const trimmed = inputValue.trim();
+        const exactMatch = suggestions.find(
+          (s) => s.name === trimmed.toLowerCase()
+        );
+        let selected: Tag | string;
+        if (highlightedIndex >= 0 && highlightedIndex < suggestions.length) {
+          selected = suggestions[highlightedIndex];
+        } else if (highlightedIndex === suggestions.length || !exactMatch) {
+          selected = trimmed;
+        } else {
+          selected = exactMatch;
+        }
         void handleAddTag(selected);
         return;
       }
@@ -164,7 +192,9 @@ function TagInput({ documentId, tags, canUpdate }: Props) {
             value={inputValue}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
-            placeholder={(tags ?? []).length === 0 ? t("Add a tag…") : undefined}
+            placeholder={
+              (tags ?? []).length === 0 ? t("Add a tag…") : undefined
+            }
             aria-label={t("Add tag")}
             onBlur={() =>
               setTimeout(() => {
