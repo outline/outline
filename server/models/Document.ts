@@ -1116,7 +1116,9 @@ class Document extends ArchivableModel<
     // We use the direct (root) memberships to ensure correct sourceId chains.
     let currentDocId: string | null | undefined = this.parentDocumentId;
     while (currentDocId) {
-      const ancestor = await (this.constructor as typeof Document)
+      const ancestor: Document | null = await (
+        this.constructor as typeof Document
+      )
         .unscoped()
         .scope("withoutState")
         .findOne({

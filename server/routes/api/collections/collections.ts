@@ -7,7 +7,6 @@ import {
   FileOperationState,
   FileOperationType,
   UserRole,
-  type NavigationNode,
 } from "@shared/types";
 import collectionExporter from "@server/commands/collectionExporter";
 import teamUpdater from "@server/commands/teamUpdater";
@@ -23,7 +22,6 @@ import {
   Team,
   User,
   Group,
-  GroupUser,
   Attachment,
   FileOperation,
   Document,
@@ -163,7 +161,10 @@ router.post(
     // Filter restricted subtrees for non-admin users
     const filteredStructure = user.isAdmin
       ? documentStructure || []
-      : await filterRestrictedNodes(documentStructure || [], user.id);
+      : await Collection.filterRestrictedNodes(
+          documentStructure || [],
+          user.id
+        );
 
     ctx.body = {
       data: filteredStructure,
@@ -984,90 +985,5 @@ router.post(
     };
   }
 );
-
-/**
- * Filter restricted nodes from document structure for a given user.
- * Prunes entire subtrees rooted at restricted nodes the user cannot access.
- *
- * @param nodes the navigation tree to filter.
- * @param userId the user requesting the tree.
- * @return filtered navigation tree.
- */
-async function filterRestrictedNodes(
-  nodes: NavigationNode[],
-  userId: string
-): Promise<NavigationNode[]> {
-  // Collect all restricted document IDs in the tree
-  const restrictedIds: string[] = [];
-  const collectRestricted = (items: NavigationNode[]) => {
-    for (const node of items) {
-      if (node.isPrivate) {
-        restrictedIds.push(node.id);
-      }
-      collectRestricted(node.children);
-    }
-  };
-  collectRestricted(nodes);
-
-  if (restrictedIds.length === 0) {
-    return nodes;
-  }
-
-  // Find which restricted docs this user has direct or group membership to
-  const [userMemberships, groupMemberships] = await Promise.all([
-    UserMembership.findAll({
-      attributes: ["documentId"],
-      where: {
-        userId,
-        documentId: { [Op.in]: restrictedIds },
-      },
-    }),
-    GroupMembership.findAll({
-      attributes: ["documentId"],
-      where: {
-        documentId: { [Op.in]: restrictedIds },
-      },
-      include: [
-        {
-          model: Group,
-          required: true,
-          include: [
-            {
-              model: GroupUser,
-              required: true,
-              where: { userId },
-            },
-          ],
-        },
-      ],
-    }),
-  ]);
-
-  const accessibleRestrictedIds = new Set([
-    ...userMemberships
-      .map((m) => m.documentId)
-      .filter((id): id is string => id !== null),
-    ...groupMemberships
-      .map((m) => m.documentId)
-      .filter((id): id is string => id !== null),
-  ]);
-
-  const filterNodes = (items: NavigationNode[]): NavigationNode[] => {
-    const result: NavigationNode[] = [];
-    for (const node of items) {
-      if (node.isPrivate && !accessibleRestrictedIds.has(node.id)) {
-        // Prune this node and its entire subtree
-        continue;
-      }
-      result.push({
-        ...node,
-        children: filterNodes(node.children),
-      });
-    }
-    return result;
-  };
-
-  return filterNodes(nodes);
-}
 
 export default router;

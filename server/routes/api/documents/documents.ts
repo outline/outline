@@ -756,6 +756,15 @@ router.post(
         includeDocumentStructure: true,
       });
       documentTree = collection?.getDocumentTree(document.id) ?? undefined;
+
+      // Filter restricted subtrees for non-admin users
+      if (documentTree && !user.isAdmin) {
+        const [filtered] = await Collection.filterRestrictedNodes(
+          [documentTree],
+          user.id
+        );
+        documentTree = filtered;
+      }
     }
 
     ctx.body = {
