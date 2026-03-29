@@ -13,10 +13,10 @@ type DialogDefinition = {
 };
 
 export default class DialogsStore {
-  @observable
+  @observable.shallow
   guide: DialogDefinition;
 
-  @observable
+  @observable.shallow
   modalStack = new Map<string, DialogDefinition>();
 
   openGuide = ({

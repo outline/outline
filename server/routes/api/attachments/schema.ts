@@ -6,9 +6,9 @@ import { BaseSchema } from "@server/routes/api/schema";
 export const AttachmentsListSchema = BaseSchema.extend({
   body: z.object({
     /** Id of the document to which the Attachment belongs */
-    documentId: z.string().uuid().optional(),
+    documentId: z.uuid().optional(),
     /** Id of the user that uploaded the Attachment */
-    userId: z.string().uuid().optional(),
+    userId: z.uuid().optional(),
   }),
 });
 
@@ -17,24 +17,24 @@ export type AttachmentsListReq = z.infer<typeof AttachmentsListSchema>;
 export const AttachmentsCreateSchema = BaseSchema.extend({
   body: z.object({
     /** Attachment id */
-    id: z.string().uuid().optional(),
+    id: z.uuid().optional(),
 
     /** Attachment name */
     name: z.string(),
 
     /** Id of the document to which the Attachment belongs */
-    documentId: z.string().uuid().optional(),
+    documentId: z.uuid().optional(),
 
     /** File size of the Attachment */
     size: z.number(),
 
     /** Content-Type of the Attachment */
-    contentType: z.string().optional().default("application/octet-stream"),
+    contentType: z.string().optional().prefault("application/octet-stream"),
 
     /** Attachment type */
     preset: z
-      .nativeEnum(AttachmentPreset)
-      .default(AttachmentPreset.DocumentAttachment),
+      .enum(AttachmentPreset)
+      .prefault(AttachmentPreset.DocumentAttachment),
   }),
 });
 
@@ -43,18 +43,18 @@ export type AttachmentCreateReq = z.infer<typeof AttachmentsCreateSchema>;
 export const AttachmentsCreateFromUrlSchema = BaseSchema.extend({
   body: z.object({
     /** Attachment id */
-    id: z.string().uuid().optional(),
+    id: z.uuid().optional(),
 
     /** Attachment url */
     url: z.string(),
 
     /** Id of the document to which the Attachment belongs */
-    documentId: z.string().uuid().optional(),
+    documentId: z.uuid().optional(),
 
     /** Attachment type */
     preset: z
-      .nativeEnum(AttachmentPreset)
-      .default(AttachmentPreset.DocumentAttachment),
+      .enum(AttachmentPreset)
+      .prefault(AttachmentPreset.DocumentAttachment),
   }),
 });
 
@@ -65,7 +65,7 @@ export type AttachmentCreateFromUrlReq = z.infer<
 export const AttachmentDeleteSchema = BaseSchema.extend({
   body: z.object({
     /** Id of the attachment to be deleted */
-    id: z.string().uuid(),
+    id: z.uuid(),
   }),
 });
 
@@ -74,11 +74,11 @@ export type AttachmentDeleteReq = z.infer<typeof AttachmentDeleteSchema>;
 export const AttachmentsRedirectSchema = BaseSchema.extend({
   body: z.object({
     /** Id of the attachment to be deleted */
-    id: z.string().uuid().optional(),
+    id: z.uuid().optional(),
   }),
   query: z.object({
     /** Id of the attachment to be deleted */
-    id: z.string().uuid().optional(),
+    id: z.uuid().optional(),
   }),
 }).refine((req) => !(isEmpty(req.body.id) && isEmpty(req.query.id)), {
   message: "id is required",

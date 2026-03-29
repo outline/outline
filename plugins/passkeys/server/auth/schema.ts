@@ -5,7 +5,7 @@ import { BaseSchema } from "@server/routes/api/schema";
 export const PasskeysGenerateAuthenticationOptionsSchema = BaseSchema.extend({
   body: z.object({}),
   query: z.object({
-    client: z.nativeEnum(Client).optional(),
+    client: z.enum(Client).optional(),
   }),
 });
 
@@ -16,7 +16,7 @@ export type PasskeysGenerateAuthenticationOptionsReq = z.infer<
 export const PasskeysVerifyAuthenticationSchema = BaseSchema.extend({
   body: z.object({
     challengeId: z.string(),
-    client: z.nativeEnum(Client).optional(),
+    client: z.enum(Client).optional(),
     id: z.string(),
     rawId: z.string(),
     response: z.object({
@@ -32,7 +32,7 @@ export const PasskeysVerifyAuthenticationSchema = BaseSchema.extend({
         appid: z.boolean().optional(),
         hmacCreateSecret: z.boolean().optional(),
       })
-      .default({}),
+      .prefault({}),
   }),
 });
 

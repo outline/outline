@@ -21,6 +21,11 @@ type CodeLanguage = {
  */
 export const codeLanguages: Record<string, CodeLanguage> = {
   none: { lang: "", label: "Plain text" },
+  abap: {
+    lang: "abap",
+    label: "ABAP",
+    loader: () => import("refractor/lang/abap").then((m) => m.default),
+  },
   bash: {
     lang: "bash",
     label: "Bash",
@@ -80,6 +85,11 @@ export const codeLanguages: Record<string, CodeLanguage> = {
     lang: "erlang",
     label: "Erlang",
     loader: () => import("refractor/lang/erlang").then((m) => m.default),
+  },
+  fortran: {
+    lang: "fortran",
+    label: "Fortran",
+    loader: () => import("refractor/lang/fortran").then((m) => m.default),
   },
   go: {
     lang: "go",

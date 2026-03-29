@@ -1,4 +1,5 @@
-import { buildTeam, buildCollection } from "@server/test/factories";
+import { randomUUID } from "node:crypto";
+import { buildTeam, buildCollection, buildAttachment } from "@server/test/factories";
 
 describe("Team", () => {
   describe("collectionIds", () => {
@@ -38,6 +39,54 @@ describe("Team", () => {
       expect(team.previousSubdomains?.length).toEqual(2);
       expect(team.previousSubdomains?.[0]).toEqual("example");
       expect(team.previousSubdomains?.[1]).toEqual(subdomain);
+    });
+  });
+
+  describe("publicAvatarUrl", () => {
+    it("should return null when no avatarUrl is set", async () => {
+      const team = await buildTeam({ avatarUrl: null });
+      const result = await team.publicAvatarUrl();
+      expect(result).toBeNull();
+    });
+
+    it("should return external URL unchanged", async () => {
+      const url = "https://example.com/logo.png";
+      const team = await buildTeam({ avatarUrl: url });
+      const result = await team.publicAvatarUrl();
+      expect(result).toEqual(url);
+    });
+
+    it("should return signed URL for private-bucket attachment redirect", async () => {
+      const team = await buildTeam();
+      const attachment = await buildAttachment({
+        teamId: team.id,
+        acl: "private",
+      });
+
+      await team.update({
+        avatarUrl: `/api/attachments.redirect?id=${attachment.id}`,
+      });
+
+      const result = await team.publicAvatarUrl();
+      expect(result).toEqual(await attachment.signedUrl);
+    });
+
+    it("should return canonical URL for public-bucket attachment redirect", async () => {
+      const team = await buildTeam();
+      const id = randomUUID();
+      const attachment = await buildAttachment({
+        id,
+        teamId: team.id,
+        key: `avatars/${team.id}/${id}/logo.png`,
+        acl: "public-read",
+      });
+
+      await team.update({
+        avatarUrl: `/api/attachments.redirect?id=${attachment.id}`,
+      });
+
+      const result = await team.publicAvatarUrl();
+      expect(result).toEqual(attachment.canonicalUrl);
     });
   });
 });

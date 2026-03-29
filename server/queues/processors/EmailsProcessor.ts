@@ -40,6 +40,7 @@ export default class EmailsProcessor extends BaseProcessor {
         await new DocumentPublishedOrUpdatedEmail(
           {
             to: notification.user.email,
+            language: notification.user.language,
             userId: notification.userId,
             eventType: notification.event,
             revisionId: notification.revisionId,
@@ -56,6 +57,7 @@ export default class EmailsProcessor extends BaseProcessor {
         await new DocumentSharedEmail(
           {
             to: notification.user.email,
+            language: notification.user.language,
             userId: notification.userId,
             documentId: notification.documentId,
             membershipId: notification.membershipId,
@@ -73,6 +75,7 @@ export default class EmailsProcessor extends BaseProcessor {
         await new CollectionSharedEmail(
           {
             to: notification.user.email,
+            language: notification.user.language,
             userId: notification.userId,
             collectionId: notification.collectionId,
             teamUrl: notification.team.url,
@@ -89,6 +92,7 @@ export default class EmailsProcessor extends BaseProcessor {
         await new GroupDocumentMentionedEmail(
           {
             to: notification.user.email,
+            language: notification.user.language,
             documentId: notification.documentId,
             revisionId: notification.revisionId,
             groupId: notification.groupId,
@@ -105,6 +109,7 @@ export default class EmailsProcessor extends BaseProcessor {
         await new DocumentMentionedEmail(
           {
             to: notification.user.email,
+            language: notification.user.language,
             documentId: notification.documentId,
             revisionId: notification.revisionId,
             userId: notification.userId,
@@ -120,6 +125,7 @@ export default class EmailsProcessor extends BaseProcessor {
         await new GroupCommentMentionedEmail(
           {
             to: notification.user.email,
+            language: notification.user.language,
             userId: notification.userId,
             documentId: notification.documentId,
             teamUrl: notification.team.url,
@@ -138,6 +144,7 @@ export default class EmailsProcessor extends BaseProcessor {
         await new CommentMentionedEmail(
           {
             to: notification.user.email,
+            language: notification.user.language,
             userId: notification.userId,
             documentId: notification.documentId,
             teamUrl: notification.team.url,
@@ -155,6 +162,7 @@ export default class EmailsProcessor extends BaseProcessor {
         await new CollectionCreatedEmail(
           {
             to: notification.user.email,
+            language: notification.user.language,
             userId: notification.userId,
             collectionId: notification.collectionId,
             teamUrl: notification.team.url,
@@ -170,6 +178,7 @@ export default class EmailsProcessor extends BaseProcessor {
         await new CommentCreatedEmail(
           {
             to: notification.user.email,
+            language: notification.user.language,
             userId: notification.userId,
             documentId: notification.documentId,
             teamUrl: notification.team.url,
@@ -187,6 +196,7 @@ export default class EmailsProcessor extends BaseProcessor {
         await new CommentResolvedEmail(
           {
             to: notification.user.email,
+            language: notification.user.language,
             userId: notification.userId,
             documentId: notification.documentId,
             teamUrl: notification.team.url,

@@ -49,18 +49,23 @@ export default class InviteAcceptedEmail extends BaseEmail<
   }
 
   protected subject({ invitedName }: Props) {
-    return `${invitedName} has joined your ${env.APP_NAME} team`;
+    return this.t("{{ invitedName }} has joined your {{ appName }} team", {
+      invitedName,
+      appName: env.APP_NAME,
+    });
   }
 
   protected preview({ invitedName }: Props) {
-    return `Great news, ${invitedName}, accepted your invitation`;
+    return this.t("Great news, {{ invitedName }}, accepted your invitation", {
+      invitedName,
+    });
   }
 
   protected renderAsText({ invitedName, teamUrl }: Props): string {
     return `
-Great news, ${invitedName} just accepted your invitation and has created an account. You can now start collaborating on documents.
+${this.t("Great news, {{ invitedName }} just accepted your invitation and has created an account. You can now start collaborating on documents.", { invitedName })}
 
-Open ${env.APP_NAME}: ${teamUrl}
+${this.t("Open {{ appName }}", { appName: env.APP_NAME }) + ":"} ${teamUrl}
 `;
   }
 
@@ -70,18 +75,27 @@ Open ${env.APP_NAME}: ${teamUrl}
         <Header />
 
         <Body>
-          <Heading>{invitedName} has joined your team</Heading>
+          <Heading>
+            {this.t("{{ invitedName }} has joined your team", { invitedName })}
+          </Heading>
           <p>
-            Great news, {invitedName} just accepted your invitation and has
-            created an account. You can now start collaborating on documents.
+            {this.t(
+              "Great news, {{ invitedName }} just accepted your invitation and has created an account. You can now start collaborating on documents.",
+              { invitedName }
+            )}
           </p>
           <EmptySpace height={10} />
           <p>
-            <Button href={teamUrl}>Open {env.APP_NAME}</Button>
+            <Button href={teamUrl}>
+              {this.t("Open {{ appName }}", { appName: env.APP_NAME })}
+            </Button>
           </p>
         </Body>
 
-        <Footer unsubscribeUrl={unsubscribeUrl} />
+        <Footer
+          unsubscribeUrl={unsubscribeUrl}
+          unsubscribeText={this.t("Unsubscribe from these emails")}
+        />
       </EmailTemplate>
     );
   }

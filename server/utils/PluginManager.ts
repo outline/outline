@@ -10,6 +10,8 @@ import type BaseProcessor from "@server/queues/processors/BaseProcessor";
 import type { BaseTask } from "@server/queues/tasks/base/BaseTask";
 import type { UnfurlSignature, UninstallSignature } from "@server/types";
 import type { BaseIssueProvider } from "./BaseIssueProvider";
+import type { GroupSyncProvider } from "./GroupSyncProvider";
+import type { BaseSearchProvider } from "./BaseSearchProvider";
 
 export enum PluginPriority {
   VeryHigh = 0,
@@ -28,9 +30,11 @@ export enum Hook {
   EmailTemplate = "emailTemplate",
   IssueProvider = "issueProvider",
   Processor = "processor",
+  SearchProvider = "searchProvider",
   Task = "task",
   UnfurlProvider = "unfurl",
   Uninstall = "uninstall",
+  GroupSyncProvider = "groupSyncProvider",
 }
 
 /**
@@ -43,9 +47,11 @@ type PluginValueMap = {
   [Hook.EmailTemplate]: typeof BaseEmail<any>;
   [Hook.IssueProvider]: BaseIssueProvider;
   [Hook.Processor]: typeof BaseProcessor;
+  [Hook.SearchProvider]: BaseSearchProvider;
   [Hook.Task]: typeof BaseTask<any>;
   [Hook.Uninstall]: UninstallSignature;
   [Hook.UnfurlProvider]: { unfurl: UnfurlSignature; cacheExpiry: number };
+  [Hook.GroupSyncProvider]: { id: string; provider: GroupSyncProvider };
 };
 
 export type Plugin<T extends Hook> = {
@@ -103,13 +109,27 @@ export class PluginManager {
 
   /**
    * Returns all the plugins of a given type in order of priority.
+   * Triggers loading of all plugins from disk if not already loaded.
    *
-   * @param type The type of plugin to filter by
-   * @returns A list of plugins
+   * @param type - the type of plugin to filter by.
+   * @returns a list of plugins.
    */
   public static getHooks<T extends Hook>(type: T) {
     this.loadPlugins();
     return sortBy(this.plugins.get(type) || [], "priority") as Plugin<T>[];
+  }
+
+  /**
+   * Returns the GroupSyncProvider for the given authentication provider name.
+   *
+   * @param name - the authentication provider name (e.g. "oidc", "google").
+   * @returns the GroupSyncProvider if one is registered, undefined otherwise.
+   */
+  public static getGroupSyncProvider(
+    name: string
+  ): GroupSyncProvider | undefined {
+    const hooks = this.getHooks(Hook.GroupSyncProvider);
+    return hooks.find((h) => h.value.id === name)?.value.provider;
   }
 
   /**
@@ -123,9 +143,9 @@ export class PluginManager {
 
     glob
       .sync(path.join(rootDir, "plugins/*/server/!(*.test|schema).[jt]s"))
-      .forEach((filePath: string) => {
-        require(path.join(process.cwd(), filePath));
-      });
+      .forEach((filePath: string) =>
+        require(path.join(process.cwd(), filePath))
+      );
     this.loaded = true;
   }
 

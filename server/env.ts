@@ -12,7 +12,6 @@ import {
   Length,
   IsNumber,
   IsIn,
-  IsEmail,
   IsBoolean,
 } from "class-validator";
 import uniq from "lodash/uniq";
@@ -24,6 +23,7 @@ import {
   CannotUseWithAny,
   IsInCaseInsensitive,
   IsDatabaseUrl,
+  IsMailboxAddress,
 } from "@server/utils/validators";
 import Deprecated from "./models/decorators/Deprecated";
 import { getArg } from "./utils/args";
@@ -342,6 +342,14 @@ export class Environment {
   public FORCE_HTTPS = this.toBoolean(environment.FORCE_HTTPS ?? "true");
 
   /**
+   * When the app is behind a proxy, sets the HTTP header used for the client IP.
+   * The default value is "X-Forwarded-For", common values are "X-Real-IP"
+   * and "X-Client-IP".
+   */
+  @IsOptional()
+  public PROXY_IP_HEADER = this.toOptionalString(environment.PROXY_IP_HEADER);
+
+  /**
    * Should the installation send anonymized statistics to the maintainers.
    * Defaults to true.
    */
@@ -349,12 +357,6 @@ export class Environment {
   public TELEMETRY = this.toBoolean(
     environment.ENABLE_UPDATES ?? environment.TELEMETRY ?? "true"
   );
-
-  /**
-   * An optional comma separated list of allowed domains.
-   */
-  public ALLOWED_DOMAINS =
-    environment.ALLOWED_DOMAINS ?? environment.GOOGLE_ALLOWED_DOMAINS;
 
   // Third-party services
 
@@ -403,7 +405,7 @@ export class Environment {
   /**
    * The email address from which emails are sent.
    */
-  @IsEmail({ allow_display_name: true, allow_ip_domain: true })
+  @IsMailboxAddress()
   @IsOptional()
   public SMTP_FROM_EMAIL = this.toOptionalString(environment.SMTP_FROM_EMAIL);
 
@@ -411,7 +413,7 @@ export class Environment {
    * The reply-to address for emails sent from Outline. If unset the from
    * address is used by default.
    */
-  @IsEmail({ allow_display_name: true, allow_ip_domain: true })
+  @IsMailboxAddress()
   @IsOptional()
   public SMTP_REPLY_EMAIL = this.toOptionalString(environment.SMTP_REPLY_EMAIL);
 
@@ -522,7 +524,7 @@ export class Environment {
   @IsOptional()
   @IsBoolean()
   public RATE_LIMITER_ENABLED = this.toBoolean(
-    environment.RATE_LIMITER_ENABLED ?? "false"
+    environment.RATE_LIMITER_ENABLED ?? "true"
   );
 
   /**
@@ -724,6 +726,15 @@ export class Environment {
     ) ?? 300;
 
   /**
+   * Whether to disable OAuth Dynamic Client Registration (DCR). When set to
+   * true, the POST /oauth/register endpoint will be unavailable.
+   */
+  @IsBoolean()
+  public OAUTH_DISABLE_DCR = this.toBoolean(
+    environment.OAUTH_DISABLE_DCR ?? "false"
+  );
+
+  /**
    * Enable unsafe-inline in script-src CSP directive
    */
   @IsBoolean()
@@ -760,6 +771,14 @@ export class Environment {
   public ALLOWED_PRIVATE_IP_ADDRESSES = this.toOptionalCommaList(
     environment.ALLOWED_PRIVATE_IP_ADDRESSES
   );
+
+  /**
+   * The search provider to use. Defaults to "postgres" which uses PostgreSQL
+   * full-text search. Alternative providers can be registered via plugins.
+   */
+  @IsOptional()
+  public SEARCH_PROVIDER =
+    this.toOptionalString(environment.SEARCH_PROVIDER) ?? "postgres";
 
   /**
    * The product name

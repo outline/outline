@@ -317,6 +317,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
           defaultValue={props.defaultValue}
           extensions={props.extensions}
           scrollTo={props.scrollTo}
+          cacheOnly
           readOnly
           ref={ref}
         />

@@ -44,6 +44,7 @@ export default function useDictionary() {
       deleteRow: t("Delete"),
       deleteTable: t("Delete table"),
       deleteAttachment: t("Delete file"),
+      previewAttachment: t("Show preview"),
       dimensions: `${t("Width")} × ${t("Height")}`,
       download: t("Download"),
       downloadAttachment: t("Download file"),
@@ -123,6 +124,7 @@ export default function useDictionary() {
       uploadImage: t("Upload an image"),
       formattingControls: t("Formatting controls"),
       distributeColumns: t("Distribute columns"),
+      wrapText: t("Wrap text"),
     }),
     [t]
   );

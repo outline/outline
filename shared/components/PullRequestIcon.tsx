@@ -30,6 +30,7 @@ const Icon = styled.span<{ size?: number }>`
 
 function BaseIcon({ state }: Pick<Props, "state">) {
   switch (state.name) {
+    case "opened":
     case "open":
       return (
         <svg viewBox="0 0 16 16" fill={state.color}>
@@ -44,6 +45,12 @@ function BaseIcon({ state }: Pick<Props, "state">) {
       return (
         <svg viewBox="0 0 16 16" fill={state.color}>
           <path d="M5.45 5.154A4.25 4.25 0 0 0 9.25 7.5h1.378a2.251 2.251 0 1 1 0 1.5H9.25A5.734 5.734 0 0 1 5 7.123v3.505a2.25 2.25 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.95-.218ZM4.25 13.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm8.5-4.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM5 3.25a.75.75 0 1 0 0 .005V3.25Z" />
+        </svg>
+      );
+    case "locked":
+      return (
+        <svg viewBox="0 0 16 16" fill={state.color}>
+          <path d="M4.5 6V4a3.5 3.5 0 1 1 7 0v2h.5A1.5 1.5 0 0 1 13.5 7.5v6A1.5 1.5 0 0 1 12 15H4a1.5 1.5 0 0 1-1.5-1.5v-6A1.5 1.5 0 0 1 4 6h.5Zm1-2v2h5V4a2.5 2.5 0 0 0-5 0ZM4 7.5v6h8v-6H4Zm4 3a.75.75 0 1 0 0 1.5A.75.75 0 0 0 8 10.5Z" />
         </svg>
       );
     case "closed":

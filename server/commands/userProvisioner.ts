@@ -173,11 +173,19 @@ export default async function userProvisioner(
       );
     });
 
+    if (avatarUrl && !existingUser.getFlag(UserFlag.AvatarUpdated)) {
+      await new UploadUserAvatarTask().schedule({
+        userId: existingUser.id,
+        avatarUrl,
+      });
+    }
+
     if (isInvite) {
       const inviter = await existingUser.$get("invitedBy");
       if (inviter) {
         await new InviteAcceptedEmail({
           to: inviter.email,
+          language: inviter.language,
           inviterId: inviter.id,
           invitedName: existingUser.name,
           teamUrl: existingUser.team.url,

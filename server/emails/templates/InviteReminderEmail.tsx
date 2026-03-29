@@ -28,11 +28,23 @@ export default class InviteReminderEmail extends BaseEmail<Props> {
   }
 
   protected subject({ actorName, teamName }: Props) {
-    return `Reminder: ${actorName} invited you to join ${teamName}’s workspace`;
+    return (
+      this.t("Reminder") +
+      ": " +
+      this.t("{{ actorName }} invited you to join {{ teamName }}’s workspace", {
+        actorName,
+        teamName,
+      })
+    );
   }
 
   protected preview() {
-    return `${env.APP_NAME} is a place for your team to build and share knowledge.`;
+    return this.t(
+      "{{ appName }} is a place for your team to build and share knowledge.",
+      {
+        appName: env.APP_NAME,
+      }
+    );
   }
 
   protected renderAsText({
@@ -42,14 +54,10 @@ export default class InviteReminderEmail extends BaseEmail<Props> {
     teamUrl,
   }: Props): string {
     return `
-This is just a quick reminder that ${actorName} ${
-      actorEmail ? `(${actorEmail})` : ""
-    } invited you to join them in the ${teamName} team on ${
-      env.APP_NAME
-    }, a place for your team to build and share knowledge.
-We only send a reminder once.
+${this.t("This is just a quick reminder that {{ actorName }} {{ actorEmail }} invited you to join them in the {{ teamName }} team on {{ appName }}, a place for your team to build and share knowledge.", { actorName, actorEmail: actorEmail ? `(${actorEmail})` : "", teamName, appName: env.APP_NAME })}
+${this.t("We only send a reminder once.")}
 
-If you haven't signed up yet, you can do so here: ${teamUrl}
+${this.t("If you haven't signed up yet, you can do so here")}: ${teamUrl}
 `;
   }
 
@@ -61,18 +69,26 @@ If you haven't signed up yet, you can do so here: ${teamUrl}
 
         <Body>
           <Heading>
-            Join {teamName} on {env.APP_NAME}
+            {this.t("Join {{ teamName }} on {{ appName }}", {
+              teamName,
+              appName: env.APP_NAME,
+            })}
           </Heading>
           <p>
-            This is just a quick reminder that {actorName}{" "}
-            {actorEmail ? `(${actorEmail})` : ""}
-            invited you to join them in the {teamName} team on {env.APP_NAME}, a
-            place for your team to build and share knowledge.
+            {this.t(
+              "This is just a quick reminder that {{ actorName }} {{ actorEmail }} invited you to join them in the {{ teamName }} team on {{ appName }}, a place for your team to build and share knowledge.",
+              {
+                actorName,
+                actorEmail: actorEmail ? `(${actorEmail})` : "",
+                teamName,
+                appName: env.APP_NAME,
+              }
+            )}
           </p>
-          <p>If you haven't signed up yet, you can do so here:</p>
+          <p>{this.t("If you haven't signed up yet, you can do so here")}:</p>
           <EmptySpace height={10} />
           <p>
-            <Button href={inviteLink}>Join now</Button>
+            <Button href={inviteLink}>{this.t("Join now")}</Button>
           </p>
         </Body>
 

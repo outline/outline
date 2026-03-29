@@ -17,6 +17,7 @@ import { useMenuAction } from "~/hooks/useMenuAction";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { newTemplatePath } from "~/utils/routeHelpers";
+import { AvatarSize } from "~/components/Avatar";
 
 function NewTemplateMenu() {
   const { t } = useTranslation();
@@ -32,7 +33,7 @@ function NewTemplateMenu() {
           name: collection.name,
           section: DocumentSection,
           icon: <CollectionIcon collection={collection} />,
-          visible: !!canCollection.createDocument,
+          visible: !!canCollection.createTemplate,
           to: newTemplatePath(collection.id),
         });
       }),
@@ -44,7 +45,7 @@ function NewTemplateMenu() {
       createInternalLinkAction({
         name: t("Save in workspace"),
         section: DocumentSection,
-        icon: <TeamLogo model={team} />,
+        icon: <TeamLogo model={team} size={AvatarSize.Small} />,
         visible: can.createTemplate,
         to: newTemplatePath(),
       }),

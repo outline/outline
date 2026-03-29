@@ -15,5 +15,9 @@ allow(User, "read", OAuthClient, (actor, oauthClient) =>
 );
 
 allow(User, ["update", "delete"], OAuthClient, (actor, oauthClient) =>
-  and(isTeamAdmin(actor, oauthClient), isTeamMutable(actor))
+  and(
+    isTeamAdmin(actor, oauthClient),
+    isTeamMutable(actor),
+    !oauthClient?.isDCR
+  )
 );

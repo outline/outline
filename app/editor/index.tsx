@@ -78,6 +78,11 @@ export type Props = {
   focusedCommentId?: string;
   /** If the editor should not allow editing */
   readOnly?: boolean;
+  /**
+   * Whether we are rendering a cached version of the document while multiplayer loads.
+   * This is used to disable some editor functionality
+   */
+  cacheOnly?: boolean;
   /** If the editor should still allow editing checkboxes when it is readOnly */
   canUpdate?: boolean;
   /** If the editor should still allow commenting when it is readOnly */
@@ -128,7 +133,10 @@ export type Props = {
   /** Callback when file upload progress changes */
   onFileUploadProgress?: (id: string, fractionComplete: number) => void;
   /** Callback when a link is created, should return url to created document */
-  onCreateLink?: (params: Properties<Document>) => Promise<string>;
+  onCreateLink?: (
+    params: Properties<Document>,
+    nested?: boolean
+  ) => Promise<string>;
   /** Callback when user clicks on any link in the document */
   onClickLink: (
     href: string,
@@ -245,17 +253,25 @@ export class Editor extends React.PureComponent<
       this.view.updateState(newState);
     }
 
-    // pass readOnly changes through to underlying editor instance
-    if (prevProps.readOnly !== this.props.readOnly) {
+    // When transitioning from readOnly to editable, reinitialize to create
+    // editing extensions, keymaps, input rules, and commands that were skipped.
+    if (prevProps.readOnly && !this.props.readOnly) {
+      const docJSON = this.view.state.doc.toJSON();
+      this.view.destroy();
+      this.init();
+      const newState = this.createState(docJSON);
+      this.view.updateState(newState);
+    } else if (!prevProps.readOnly && this.props.readOnly) {
+      // pass readOnly changes through to underlying editor instance
       this.view.update({
         ...this.view.props,
-        editable: () => !this.props.readOnly,
+        editable: () => false,
       });
 
       // NodeView will not automatically render when editable changes so we must trigger an update
       // manually, see: https://discuss.prosemirror.net/t/re-render-custom-nodeview-when-view-editable-changes/6441
       Array.from(this.renderers).forEach((view) =>
-        view.setProp("isEditable", !this.props.readOnly)
+        view.setProp("isEditable", false)
       );
     }
 
@@ -296,15 +312,24 @@ export class Editor extends React.PureComponent<
     this.nodes = this.createNodes();
     this.marks = this.createMarks();
     this.schema = this.createSchema();
-    this.widgets = this.createWidgets();
     this.plugins = this.createPlugins();
     this.rulePlugins = this.createRulePlugins();
-    this.keymaps = this.createKeymaps();
     this.serializer = this.createSerializer();
     this.parser = this.createParser();
-    this.pasteParser = this.createPasteParser();
-    this.inputRules = this.createInputRules();
     this.nodeViews = this.createNodeViews();
+
+    this.widgets = this.createWidgets();
+
+    if (this.props.readOnly) {
+      this.keymaps = [];
+      this.inputRules = [];
+      this.pasteParser = this.parser;
+    } else {
+      this.keymaps = this.createKeymaps();
+      this.inputRules = this.createInputRules();
+      this.pasteParser = this.createPasteParser();
+    }
+
     this.view = this.createView();
     this.commands = this.createCommands();
   }
@@ -406,12 +431,20 @@ export class Editor extends React.PureComponent<
   private createState(value?: string | ProsemirrorData | ProsemirrorNode) {
     const doc = this.createDocument(value || this.props.defaultValue);
 
+    if (this.props.readOnly) {
+      return EditorState.create({
+        schema: this.schema,
+        doc,
+        plugins: [...this.plugins, anchorPlugin()],
+      });
+    }
+
     return EditorState.create({
       schema: this.schema,
       doc,
       plugins: [
-        ...this.keymaps,
         ...this.plugins,
+        ...this.keymaps,
         anchorPlugin(),
         dropCursor({
           color: this.props.theme.cursor,
@@ -616,11 +649,24 @@ export class Editor extends React.PureComponent<
   };
 
   /**
+   * Insert content into the editor, replacing the block at the current selection.
+   *
+   * @param content The prosemirror data to insert.
+   */
+  public insertContent = (content: ProsemirrorData) => {
+    const doc = ProsemirrorNode.fromJSON(this.schema, content);
+    const { $from } = this.view.state.selection;
+    const start = $from.before($from.depth);
+    const end = $from.after($from.depth);
+    this.view.dispatch(this.view.state.tr.replaceWith(start, end, doc.content));
+  };
+
+  /**
    * Insert files at the current selection.
-   * =
-   * @param event The source event
-   * @param files The files to insert
-   * @returns True if the files were inserted
+   *
+   * @param event The source event.
+   * @param files The files to insert.
+   * @returns True if the files were inserted.
    */
   public insertFiles = (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -687,19 +733,14 @@ export class Editor extends React.PureComponent<
   public removeComment = (commentId: string) => {
     const { state, dispatch } = this.view;
     const tr = state.tr;
-    let markRemoved = false;
 
     state.doc.descendants((node, pos) => {
-      if (markRemoved) {
-        return false;
-      }
       const mark = node.marks.find(
         (m) => m.type === state.schema.marks.comment && m.attrs.id === commentId
       );
 
       if (mark) {
         tr.removeMark(pos, pos + node.nodeSize, mark);
-        markRemoved = true;
         return;
       }
 
@@ -713,10 +754,7 @@ export class Editor extends React.PureComponent<
           marks: updatedMarks,
         };
         tr.setNodeMarkup(pos, undefined, attrs);
-        markRemoved = true;
       }
-
-      return;
     });
 
     dispatch(tr);
@@ -734,13 +772,8 @@ export class Editor extends React.PureComponent<
   ) => {
     const { state, dispatch } = this.view;
     const tr = state.tr;
-    let markUpdated = false;
 
     state.doc.descendants((node, pos) => {
-      if (markUpdated) {
-        return false;
-      }
-
       const mark = node.marks.find(
         (m) => m.type === state.schema.marks.comment && m.attrs.id === commentId
       );
@@ -753,7 +786,6 @@ export class Editor extends React.PureComponent<
           ...attrs,
         });
         tr.removeMark(from, to, mark).addMark(from, to, newMark);
-        markUpdated = true;
         return;
       }
 
@@ -769,10 +801,7 @@ export class Editor extends React.PureComponent<
           marks: updatedMarks,
         };
         tr.setNodeMarkup(pos, undefined, newAttrs);
-        markUpdated = true;
       }
-
-      return;
     });
 
     dispatch(tr);
@@ -854,7 +883,7 @@ export class Editor extends React.PureComponent<
             column
           >
             <EditorContainer
-              rtl={isRTL}
+              $rtl={isRTL}
               grow={grow}
               readOnly={readOnly}
               readOnlyWriteCheckboxes={canUpdate}
@@ -867,6 +896,7 @@ export class Editor extends React.PureComponent<
             />
 
             {this.widgets &&
+              !this.props.cacheOnly &&
               Object.values(this.widgets).map((Widget, index) => (
                 <Widget
                   key={String(index)}
@@ -905,12 +935,16 @@ const EditorContainer = styled(Styles)<{
     css`
       span#comment-${props.focusedCommentId} {
         background: ${transparentize(0.5, props.theme.brand.marine)};
-        border-bottom: 2px solid ${props.theme.commentMarkBackground};
+        text-decoration: underline 2px ${props.theme.commentMarkBackground};
+
+        * {
+          background: transparent !important;
+        }
       }
       a#comment-${props.focusedCommentId}
         ~ span.component-image
         div.image-wrapper {
-        outline: ${props.theme.commentMarkBackground} solid 2px;
+        outline: ${props.theme.commentedImageOutlineDark} solid 2px;
       }
     `}
 

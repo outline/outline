@@ -13,6 +13,7 @@ import { richExtensions, withComments } from "@shared/editor/nodes";
 import Diff from "@shared/editor/extensions/Diff";
 import useQuery from "~/hooks/useQuery";
 import { type Editor as TEditor } from "~/editor";
+import { ChangesetHelper } from "@shared/editor/lib/ChangesetHelper";
 
 type Props = Omit<EditorProps, "extensions"> & {
   /** The ID of the revision */
@@ -44,15 +45,18 @@ function RevisionViewer(props: Props, ref: React.Ref<TEditor>) {
    * Create editor extensions with the Diff extension configured to render
    * the calculated changes as decorations in the editor.
    */
-  const extensions = React.useMemo(
-    () => [
+  const extensions = React.useMemo(() => {
+    const changeset = ChangesetHelper.getChangeset(
+      revision.data,
+      revision.before?.data
+    );
+    return [
       ...withComments(richExtensions),
-      ...(showChanges && revision.changeset?.changes
-        ? [new Diff({ changes: revision.changeset?.changes })]
+      ...(showChanges && changeset?.changes
+        ? [new Diff({ changes: changeset?.changes })]
         : []),
-    ],
-    [revision.changeset, showChanges]
-  );
+    ];
+  }, [revision.data, showChanges]);
 
   return (
     <Flex auto column>

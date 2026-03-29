@@ -29,6 +29,29 @@ export default class FindAndReplaceExtension extends Extension {
     };
   }
 
+  keys(): Record<string, Command> {
+    return {
+      Escape: (state, dispatch) => {
+        if (!this.searchTerm) {
+          return false;
+        }
+
+        const params = new URLSearchParams(window.location.search);
+        if (params.has("q")) {
+          params.delete("q");
+          const search = params.toString();
+          window.history.replaceState(
+            window.history.state,
+            "",
+            window.location.pathname + (search ? `?${search}` : "")
+          );
+        }
+
+        return this.clear()(state, dispatch);
+      },
+    };
+  }
+
   public commands() {
     return {
       /**
@@ -101,6 +124,10 @@ export default class FindAndReplaceExtension extends Extension {
       // Redo the search to ensure we have the latest results, the document may
       // have changed underneath us since the last search.
       this.search(state.doc);
+
+      if (this.currentResultIndex >= this.results.length) {
+        return false;
+      }
 
       const result = this.results[this.currentResultIndex];
 
@@ -220,6 +247,10 @@ export default class FindAndReplaceExtension extends Extension {
    * Expand any folded toggle blocks that contain the current match.
    */
   private expandFoldedTogglesForCurrentMatch() {
+    if (this.currentResultIndex >= this.results.length) {
+      return;
+    }
+
     const result = this.results[this.currentResultIndex];
     if (!result) {
       return;
@@ -272,7 +303,7 @@ export default class FindAndReplaceExtension extends Extension {
   private rebaseNextResult(replace: string, index: number, lastOffset = 0) {
     const nextIndex = index + 1;
 
-    if (!this.results[nextIndex]) {
+    if (nextIndex >= this.results.length) {
       return undefined;
     }
 

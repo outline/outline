@@ -7,6 +7,9 @@ import Folder from "./Folder";
 import Relative from "./Relative";
 import SharedWithMeLink from "./SharedWithMeLink";
 import SidebarContext, { groupSidebarContext } from "./SidebarContext";
+import SidebarDisclosureContext, {
+  useSidebarDisclosureState,
+} from "./SidebarDisclosureContext";
 import SidebarLink from "./SidebarLink";
 
 type Props = {
@@ -21,10 +24,20 @@ const GroupLink: React.FC<Props> = ({ group }) => {
     locationSidebarContext === sidebarContext
   );
 
-  const handleDisclosureClick = React.useCallback((ev) => {
-    ev?.preventDefault();
-    setExpanded((e) => !e);
-  }, []);
+  const { event: disclosureEvent, onDisclosureClick } =
+    useSidebarDisclosureState();
+
+  const handleDisclosureClick = React.useCallback(
+    (ev) => {
+      ev?.preventDefault();
+      setExpanded((e) => {
+        const willExpand = !e;
+        onDisclosureClick(willExpand, !!ev?.altKey);
+        return willExpand;
+      });
+    },
+    [onDisclosureClick]
+  );
 
   React.useEffect(() => {
     if (locationSidebarContext === sidebarContext) {
@@ -42,15 +55,17 @@ const GroupLink: React.FC<Props> = ({ group }) => {
         depth={0}
       />
       <SidebarContext.Provider value={sidebarContext}>
-        <Folder expanded={expanded}>
-          {group.documentMemberships.map((membership) => (
-            <SharedWithMeLink
-              key={membership.id}
-              membership={membership}
-              depth={1}
-            />
-          ))}
-        </Folder>
+        <SidebarDisclosureContext.Provider value={disclosureEvent}>
+          <Folder expanded={expanded}>
+            {group.documentMemberships.map((membership) => (
+              <SharedWithMeLink
+                key={membership.id}
+                membership={membership}
+                depth={1}
+              />
+            ))}
+          </Folder>
+        </SidebarDisclosureContext.Provider>
       </SidebarContext.Provider>
     </Relative>
   );

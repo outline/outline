@@ -1,11 +1,15 @@
+import { useKBar } from "kbar";
 import { observer } from "mobx-react";
+import { SearchIcon } from "outline-icons";
+import { useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import { hover } from "@shared/styles";
+import { s } from "@shared/styles";
+import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
+import { metaDisplay } from "@shared/utils/keyboard";
 import type Share from "~/models/Share";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
-import SearchPopover from "~/components/SearchPopover";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import history from "~/utils/history";
@@ -18,8 +22,6 @@ import Section from "./components/Section";
 import { SharedCollectionLink } from "./components/SharedCollectionLink";
 import { SharedDocumentLink } from "./components/SharedDocumentLink";
 import SidebarButton from "./components/SidebarButton";
-import { useEffect } from "react";
-import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 
 type Props = {
   share: Share;
@@ -30,6 +32,7 @@ function SharedSidebar({ share }: Props) {
   const user = useCurrentUser({ rejectOnEmpty: false });
   const { ui, documents, collections } = useStores();
   const { t } = useTranslation();
+  const { query } = useKBar();
 
   const teamAvailable = !!team?.name;
   const rootNode = share.tree;
@@ -38,6 +41,10 @@ function SharedSidebar({ share }: Props) {
   const hideRootNode = collection
     ? ProsemirrorHelper.isEmptyData(collection?.data)
     : false;
+
+  const handleOpenSearch = useCallback(() => {
+    query.toggle();
+  }, [query]);
 
   useEffect(() => {
     ui.tocVisible = share.showTOC;
@@ -48,7 +55,7 @@ function SharedSidebar({ share }: Props) {
   }
 
   return (
-    <StyledSidebar $hoverTransition={!teamAvailable} canCollapse={false}>
+    <Sidebar canCollapse={false}>
       {teamAvailable && (
         <SidebarButton
           title={team.name}
@@ -65,9 +72,11 @@ function SharedSidebar({ share }: Props) {
       )}
       <ScrollContainer topShadow flex>
         <TopSection>
-          <SearchWrapper>
-            <StyledSearchPopover shareId={shareId} />
-          </SearchWrapper>
+          <SearchButton onClick={handleOpenSearch}>
+            <SearchIcon size={20} />
+            <SearchLabel>{t("Search")}</SearchLabel>
+            <Shortcut>{metaDisplay}K</Shortcut>
+          </SearchButton>
         </TopSection>
         <Section>
           {share.collectionId ? (
@@ -90,7 +99,7 @@ function SharedSidebar({ share }: Props) {
           )}
         </Section>
       </ScrollContainer>
-    </StyledSidebar>
+    </Sidebar>
   );
 }
 
@@ -103,43 +112,34 @@ const TopSection = styled(Flex)`
   flex-shrink: 0;
 `;
 
-const SearchWrapper = styled.div`
+const SearchButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 8px;
   width: 100%;
-`;
-
-const StyledSearchPopover = styled(SearchPopover)`
-  width: 100%;
-  transition: width 100ms ease-out;
+  padding: 6px 12px;
   margin: 8px 0;
+  border: 1px solid ${s("inputBorder")};
+  border-radius: 16px;
+  background: ${s("background")};
+  color: ${s("textTertiary")};
+  cursor: var(--pointer);
+  font-size: 14px;
+
+  &:hover {
+    border-color: ${s("inputBorderFocused")};
+    color: ${s("textSecondary")};
+  }
 `;
 
-const ToggleWrapper = styled.div`
-  position: absolute;
-  right: 0;
-  opacity: 0;
-  transform: translateX(10px);
-  transition:
-    opacity 100ms ease-out,
-    transform 100ms ease-out;
+const SearchLabel = styled.span`
+  flex-grow: 1;
+  text-align: left;
 `;
 
-const StyledSidebar = styled(Sidebar)<{ $hoverTransition: boolean }>`
-  ${({ $hoverTransition }) =>
-    $hoverTransition &&
-    `
-      @media (hover: hover) {
-        &:${hover} {
-        ${StyledSearchPopover} {
-          width: 85%;
-        }
-
-        ${ToggleWrapper} {
-          opacity: 1;
-          transform: translateX(0);
-          }
-        }
-      }
-    `}
+const Shortcut = styled.span`
+  flex-shrink: 0;
+  font-size: 13px;
 `;
 
 export default observer(SharedSidebar);

@@ -2,7 +2,7 @@ import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { transparentize } from "polished";
 import * as React from "react";
 import styled, { keyframes } from "styled-components";
-import { s } from "@shared/styles";
+import { s, depths } from "@shared/styles";
 import useMobile from "~/hooks/useMobile";
 import { useTooltipContext } from "./TooltipContext";
 
@@ -267,7 +267,7 @@ const StyledContent = styled(TooltipPrimitive.Content)`
   white-space: normal;
   outline: 0;
   padding: 5px 9px;
-  z-index: 9999;
+  z-index: ${depths.tooltip};
   max-width: calc(100vw - 10px);
 
   /* Animation */

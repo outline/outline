@@ -88,7 +88,7 @@ class UserAuthentication extends IdModel<
    * @returns true if the accessToken or refreshToken is still valid
    */
   public async validateAccess(
-    options: SaveOptions,
+    options: SaveOptions = {},
     force = false
   ): Promise<boolean> {
     // Check a maximum of once every 5 minutes

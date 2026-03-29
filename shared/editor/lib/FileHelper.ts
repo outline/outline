@@ -277,6 +277,11 @@ export default class FileHelper {
       const data = bytes.slice(pos + 8, pos + 8 + length);
       pos += 12 + length; // advance to next chunk
 
+      // The IEND chunk marks the end of a valid PNG stream
+      if (type === "IEND") {
+        break;
+      }
+
       // Check for text chunks where Draw.io embeds metadata
       if (type === "tEXt" || type === "zTXt" || type === "iTXt") {
         const nullIndex = data.indexOf(0);
@@ -354,14 +359,20 @@ export default class FileHelper {
   }
 
   /**
-   * Converts an image URL to base64 encoded data.
+   * Converts an image URL to a base64 data URI string.
    *
    * @param url - the URL of the image to convert.
-   * @returns promise resolving to base64 string (without data URI prefix).
+   * @returns promise resolving to a data URI string.
    * @throws Error if the image cannot be fetched or converted.
    */
   static async urlToBase64(url: string): Promise<string> {
-    const response = await fetch(url);
+    // Use "no-store" to skip the HTTP cache entirely. Without this, the
+    // browser may reuse a cached response that was originally fetched by an
+    // <img> tag (which omits the Origin header). S3/CloudFront can cache
+    // that response without Access-Control-Allow-Origin, causing a CORS
+    // error when fetch later tries to read the same URL with an Origin
+    // header.
+    const response = await fetch(url, { cache: "no-store" });
     if (!response.ok) {
       throw new Error(`Failed to fetch image: ${response.statusText}`);
     }

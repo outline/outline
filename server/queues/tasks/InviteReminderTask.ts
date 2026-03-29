@@ -41,6 +41,7 @@ export default class InviteReminderTask extends CronTask {
         ) {
           await new InviteReminderEmail({
             to: user.email,
+            language: user.language,
             name: user.name,
             actorName: invitedBy.name,
             actorEmail: invitedBy.email,

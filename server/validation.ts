@@ -251,9 +251,10 @@ export class ValidateURL {
 
       const { id, mentionType, modelId } = parseMentionUrl(url);
       return (
-        id &&
-        isUUID(id) &&
+        (!id || isUUID(id)) &&
+        !!mentionType &&
         Object.values(MentionType).includes(mentionType as MentionType) &&
+        !!modelId &&
         isUUID(modelId)
       );
     } catch (_err) {

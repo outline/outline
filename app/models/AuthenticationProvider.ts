@@ -1,4 +1,5 @@
 import { computed, observable } from "mobx";
+import type { AuthenticationProviderSettings } from "@shared/types";
 import Model from "./base/Model";
 import Field from "./decorators/Field";
 import { AfterDelete } from "./decorators/Lifecycle";
@@ -13,12 +14,20 @@ class AuthenticationProvider extends Model {
 
   providerId: string;
 
+  groupSyncSupported: boolean;
+
+  groupSyncUsesClaim: boolean;
+
   @observable
   isConnected: boolean;
 
   @Field
   @observable
   isEnabled: boolean;
+
+  @Field
+  @observable
+  settings: AuthenticationProviderSettings | undefined;
 
   @computed
   get isActive() {

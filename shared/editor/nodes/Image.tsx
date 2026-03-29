@@ -20,6 +20,7 @@ import { ImageSource } from "../lib/FileHelper";
 import { DiagramPlaceholder } from "../components/DiagramPlaceholder";
 import { addComment } from "../commands/comment";
 import { addLink } from "../commands/link";
+import { commentedImagePlugin } from "../plugins/CommentedImagePlugin";
 
 const imageSizeRegex = /\s=(\d+)?x(\d+)?$/;
 
@@ -241,6 +242,7 @@ export default class Image extends SimpleImage {
   get plugins() {
     return [
       ...super.plugins,
+      commentedImagePlugin(),
       new Plugin({
         props: {
           handleKeyDown: (view, event) => {
@@ -365,6 +367,9 @@ export default class Image extends SimpleImage {
     ({ getPos, view }: ComponentProps) =>
     () => {
       const { commands } = this.editor;
+      if (!commands.editDiagram) {
+        return;
+      }
       const pos = getPos();
       const $pos = view.state.doc.resolve(pos);
       view.dispatch(view.state.tr.setSelection(new NodeSelection($pos)));

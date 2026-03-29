@@ -29,6 +29,7 @@ import { TeamPreferenceDefaults } from "@shared/constants";
 import type { TeamPreferences } from "@shared/types";
 import { TeamPreference, UserRole } from "@shared/types";
 import { getBaseDomain, RESERVED_SUBDOMAINS } from "@shared/utils/domains";
+import { attachmentRedirectRegex } from "@shared/utils/ProsemirrorHelper";
 import { parseEmail } from "@shared/utils/email";
 import { TeamValidation } from "@shared/validations";
 import env from "@server/env";
@@ -49,6 +50,15 @@ import IsUrlOrRelativePath from "./validators/IsUrlOrRelativePath";
 import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
 import { SkipChangeset } from "./decorators/Changeset";
+
+/**
+ * Flags that are available for setting on the team.
+ */
+export enum TeamFlag {
+  MarkedSafe = "markedSafe",
+}
+
+const avatarRedirectPattern = new RegExp(attachmentRedirectRegex.source, "i");
 
 @Scopes(() => ({
   withDomains: {
@@ -138,6 +148,37 @@ class Team extends ParanoidModel<
     this.setDataValue("avatarUrl", value);
   }
 
+  /**
+   * Returns a directly-accessible URL for the team's avatar suitable for use
+   * in contexts without authentication. Attachment is loaded and a signed (or
+   * canonical) URL is returned; any other URL is returned unchanged.
+   *
+   * @returns A promise resolving to a direct URL, or null when no avatar is set.
+   */
+  async publicAvatarUrl(): Promise<string | null> {
+    const url = this.avatarUrl;
+    if (!url) {
+      return null;
+    }
+
+    const match = avatarRedirectPattern.exec(url);
+    if (!match?.groups?.id) {
+      return url;
+    }
+
+    const attachment = await Attachment.findOne({
+      where: { id: match.groups.id, teamId: this.id },
+    });
+
+    if (!attachment) {
+      return url;
+    }
+
+    return attachment.isStoredInPublicBucket
+      ? attachment.canonicalUrl
+      : await attachment.signedUrl;
+  }
+
   @Default(true)
   @Column
   sharing: boolean;
@@ -181,12 +222,23 @@ class Team extends ParanoidModel<
   approximateTotalAttachmentsSize: number;
 
   @AllowNull
+  @Length({
+    max: TeamValidation.maxGuidanceMCPLength,
+    msg: `MCP guidance must be ${TeamValidation.maxGuidanceMCPLength} characters or less`,
+  })
+  @Column(DataType.TEXT)
+  guidanceMCP: string | null;
+
+  @AllowNull
   @Column(DataType.JSONB)
   preferences: TeamPreferences | null;
 
   @IsDate
   @Column
   suspendedAt: Date | null;
+
+  @Column(DataType.JSONB)
+  flags: { [key in TeamFlag]?: number } | null;
 
   @IsDate
   @Column
@@ -281,6 +333,56 @@ class Team extends ParanoidModel<
     this.preferences?.[preference] ??
     TeamPreferenceDefaults[preference] ??
     false;
+
+  /**
+   * Team flags are for storing information on a team record that is not visible
+   * to the team members.
+   *
+   * @param flag The flag to set
+   * @param value Set the flag to true/false
+   * @returns The current team flags
+   */
+  public setFlag = (flag: TeamFlag, value = true) => {
+    if (!this.flags) {
+      this.flags = {};
+    }
+    const binary = value ? 1 : 0;
+    if (this.flags[flag] !== binary) {
+      this.flags = {
+        ...this.flags,
+        [flag]: binary,
+      };
+    }
+
+    return this.flags;
+  };
+
+  /**
+   * Returns the content of the given team flag.
+   *
+   * @param flag The flag to retrieve
+   * @returns The flag value
+   */
+  public getFlag = (flag: TeamFlag) => this.flags?.[flag] ?? 0;
+
+  /**
+   * Team flags are for storing information on a team record that is not visible
+   * to the team members.
+   *
+   * @param flag The flag to set
+   * @param value The amount to increment by, defaults to 1
+   * @returns The current team flags
+   */
+  public incrementFlag = (flag: TeamFlag, value = 1) => {
+    if (!this.flags) {
+      this.flags = {};
+    }
+    this.flags = {
+      ...this.flags,
+      [flag]: (this.flags[flag] ?? 0) + value,
+    };
+    return this.flags;
+  };
 
   /**
    * Updates the lastActiveAt timestamp to the current time.

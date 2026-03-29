@@ -1,4 +1,5 @@
 import { useKBar } from "kbar";
+import { observer } from "mobx-react";
 import { useEffect, useRef } from "react";
 import { Minute } from "@shared/utils/time";
 import { searchDocumentsForQuery } from "~/actions/definitions/documents";
@@ -14,7 +15,7 @@ interface CacheEntry {
 // Cache configuration
 const cacheTTL = Minute.ms * 5;
 
-export default function SearchActions() {
+function SearchActions() {
   const { searches, documents } = useStores();
 
   // Cache structure: Map of search queries to timestamp of last search
@@ -58,3 +59,5 @@ export default function SearchActions() {
 
   return null;
 }
+
+export default observer(SearchActions);

@@ -25,7 +25,6 @@ function Security() {
 
   const [data, setData] = useState({
     sharing: team.sharing,
-    documentEmbeds: team.documentEmbeds,
     defaultUserRole: team.defaultUserRole,
     memberCollectionCreate: team.memberCollectionCreate,
     memberTeamCreate: team.memberTeamCreate,
@@ -103,13 +102,6 @@ function Security() {
   const handleSharingChange = React.useCallback(
     async (checked: boolean) => {
       await saveData({ sharing: checked });
-    },
-    [saveData]
-  );
-
-  const handleDocumentEmbedsChange = React.useCallback(
-    async (checked: boolean) => {
-      await saveData({ documentEmbeds: checked });
     },
     [saveData]
   );
@@ -325,19 +317,6 @@ function Security() {
           id={TeamPreference.MembersCanDeleteAccount}
           checked={team.getPreference(TeamPreference.MembersCanDeleteAccount)}
           onChange={handleMembersCanDeleteAccountChange}
-        />
-      </SettingRow>
-      <SettingRow
-        label={t("Rich service embeds")}
-        name="documentEmbeds"
-        description={t(
-          "Links to supported services are shown as rich embeds within your documents"
-        )}
-      >
-        <Switch
-          id="documentEmbeds"
-          checked={data.documentEmbeds}
-          onChange={handleDocumentEmbedsChange}
         />
       </SettingRow>
       <SettingRow

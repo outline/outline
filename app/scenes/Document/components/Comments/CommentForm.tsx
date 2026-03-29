@@ -312,25 +312,27 @@ function CommentForm({
           {highlightedText && (
             <HighlightedText>{highlightedText}</HighlightedText>
           )}
-          <CommentEditor
-            key={`${forceRender}`}
-            ref={mergeRefs([editorRef, handleMounted])}
-            defaultValue={draft}
-            onChange={handleChange}
-            onSave={handleSave}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
-            onUpArrowAtStart={handleUpArrowAtStart}
-            maxLength={CommentValidation.maxLength}
-            placeholder={
-              placeholder ||
-              // isNew is only the case for comments that exist in draft state,
-              // they are marks in the document, but not yet saved to the db.
-              (thread?.isNew
-                ? `${t("Add a comment")}…`
-                : `${t("Add a reply")}…`)
-            }
-          />
+          <React.Suspense fallback={<div style={{ height: 24 }} />}>
+            <CommentEditor
+              key={`${forceRender}`}
+              ref={mergeRefs([editorRef, handleMounted])}
+              defaultValue={draft}
+              onChange={handleChange}
+              onSave={handleSave}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
+              onUpArrowAtStart={handleUpArrowAtStart}
+              maxLength={CommentValidation.maxLength}
+              placeholder={
+                placeholder ||
+                // isNew is only the case for comments that exist in draft state,
+                // they are marks in the document, but not yet saved to the db.
+                (thread?.isNew
+                  ? `${t("Add a comment")}…`
+                  : `${t("Add a reply")}…`)
+              }
+            />
+          </React.Suspense>
           {(inputFocused || draft) && (
             <Flex justify="space-between" reverse={dir === "rtl"} gap={8}>
               <HStack>

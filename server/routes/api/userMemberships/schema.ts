@@ -8,7 +8,7 @@ export type UserMembershipsListReq = z.infer<typeof UserMembershipsListSchema>;
 
 export const UserMembershipsUpdateSchema = BaseSchema.extend({
   body: z.object({
-    id: z.string().uuid(),
+    id: z.uuid(),
     index: z.string().regex(ValidateIndex.regex, {
       message: ValidateIndex.message,
     }),

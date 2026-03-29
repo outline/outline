@@ -66,6 +66,7 @@ router.post(
       sort,
       index,
       commenting,
+      templateManagement,
     } = ctx.input.body;
 
     const { user } = ctx.state.auth;
@@ -84,6 +85,7 @@ router.post(
       sort,
       index,
       commenting,
+      templateManagement,
     });
 
     if (data) {
@@ -589,6 +591,7 @@ router.post(
       sort,
       sharing,
       commenting,
+      templateManagement,
     } = ctx.input.body;
 
     const { user } = ctx.state.auth;
@@ -673,6 +676,10 @@ router.post(
 
     if (commenting !== undefined) {
       collection.commenting = commenting;
+    }
+
+    if (templateManagement !== undefined) {
+      collection.templateManagement = templateManagement;
     }
 
     await collection.saveWithCtx(ctx);

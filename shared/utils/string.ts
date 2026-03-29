@@ -1,4 +1,18 @@
 /**
+ * Simple string hash using the djb2 algorithm, returns a hex string.
+ *
+ * @param str the string to hash.
+ * @returns a hex-encoded 32-bit hash.
+ */
+export function hashString(str: string): string {
+  let hash = 5381;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) + hash + str.charCodeAt(i)) | 0;
+  }
+  return (hash >>> 0).toString(16);
+}
+
+/**
  * Returns the index of the first occurrence of a substring in a string that matches a regular expression.
  *
  * @param text The string to search in.

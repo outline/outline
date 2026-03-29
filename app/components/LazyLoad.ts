@@ -9,39 +9,44 @@ export interface LazyComponent<T extends React.ComponentType<any>> {
 interface LazyLoadOptions {
   retries?: number;
   interval?: number;
+  /** If provided, picks this named export from the module instead of `default`. */
+  exportName?: string;
 }
 
 /**
  * Creates a lazy-loaded component with preloading capability and automatic retries on failure.
+ * Supports both default and named exports.
  *
- * @param factory A function that returns a promise of a component (eg: () => import('./MyComponent'))
- * @param options Optional configuration for retry behavior
- * @returns An object containing the lazy Component and a preload function
+ * @param factory A function that returns a promise of a module.
+ * @param options Optional configuration for retry behavior and export name.
+ * @returns An object containing the lazy Component and a preload function.
  *
  * @example
  * ```typescript
+ * // Default export
  * const MyComponent = createLazyComponent(() => import('./MyComponent'));
  *
- * function App() {
- *   return (
- *     <Suspense fallback={<div>Loading...</div>}>
- *       <MyComponent.Component />
- *     </Suspense>
- *   );
- * }
- *
- * // Preload when needed:
- * MyComponent.preload();
+ * // Named export
+ * const MyComponent = createLazyComponent(() => import('./MyComponent'), {
+ *   exportName: 'MyComponent',
+ * });
  * ```
  */
 export function createLazyComponent<T extends React.ComponentType<any>>(
-  factory: () => Promise<{ default: T }>,
+  factory: () => Promise<Record<string, T>>,
   options: LazyLoadOptions = {}
 ): LazyComponent<T> {
-  const { retries, interval } = options;
+  const { retries, interval, exportName } = options;
+
+  const wrappedFactory = exportName
+    ? () =>
+        factory().then((m) => ({
+          default: m[exportName],
+        }))
+    : (factory as () => Promise<{ default: T }>);
 
   return {
-    Component: lazyWithRetry(factory, retries, interval),
-    preload: factory,
+    Component: lazyWithRetry(wrappedFactory, retries, interval),
+    preload: wrappedFactory,
   };
 }

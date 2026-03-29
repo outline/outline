@@ -1,6 +1,5 @@
 import debounce from "lodash/debounce";
 import { observer } from "mobx-react";
-import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -32,6 +31,8 @@ import type { Permission } from "~/types";
 import { EmptySelectValue } from "~/types";
 import type GroupUser from "~/models/GroupUser";
 import Switch from "~/components/Switch";
+import history from "~/utils/history";
+import { settingsPath } from "~/utils/routeHelpers";
 
 type Props = {
   group: Group;
@@ -61,17 +62,14 @@ export function CreateGroupDialog() {
       try {
         await group.save();
         dialogs.closeAllModals();
-        dialogs.openModal({
-          title: t("Group members"),
-          content: <ViewGroupMembersDialog group={group} />,
-        });
+        history.push(settingsPath("groups", group.id, "members"));
       } catch (err) {
         toast.error(err.message);
       } finally {
         setIsSaving(false);
       }
     },
-    [t, dialogs, groups, name, description]
+    [dialogs, groups, name, description]
   );
 
   return (
@@ -153,10 +151,17 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
   return (
     <form onSubmit={handleSubmit}>
       <Text as="p" type="secondary">
-        <Trans>
-          You can edit the name of this group at any time, however doing so too
-          often might confuse your team mates.
-        </Trans>
+        {group.isExternallyManaged ? (
+          <Trans>
+            This group is managed by an external authentication provider. The
+            name is synced automatically and cannot be changed.
+          </Trans>
+        ) : (
+          <Trans>
+            You can edit the name of this group at any time, however doing so
+            too often might confuse your team mates.
+          </Trans>
+        )}
       </Text>
       <Flex column>
         <Input
@@ -164,6 +169,7 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
           label={t("Name")}
           onChange={handleNameChange}
           value={name}
+          disabled={group.isExternallyManaged}
           required
           autoFocus
           flex
@@ -179,7 +185,7 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
         />
         <Switch
           id="mentions"
-          label={t("Disable mentions")}
+          label={t("Hidden")}
           note={t(
             "Prevent this group from being mentionable in documents or comments"
           )}
@@ -223,111 +229,7 @@ export function DeleteGroupDialog({ group, onSubmit }: Props) {
   );
 }
 
-export const ViewGroupMembersDialog = observer(function ({
-  group,
-}: Pick<Props, "group">) {
-  const { dialogs, users, groupUsers } = useStores();
-  const { t } = useTranslation();
-  const can = usePolicy(group);
-
-  const handleAddPeople = React.useCallback(() => {
-    dialogs.openModal({
-      title: t(`Add people to {{groupName}}`, {
-        groupName: group.name,
-      }),
-      content: <AddPeopleToGroupDialog group={group} />,
-      replace: true,
-    });
-  }, [t, group, dialogs]);
-
-  const handleRemoveUser = React.useCallback(
-    async (user: User) => {
-      try {
-        await groupUsers.delete({
-          groupId: group.id,
-          userId: user.id,
-        });
-        toast.success(
-          t(`{{userName}} was removed from the group`, {
-            userName: user.name,
-          }),
-          {
-            icon: <Avatar model={user} size={AvatarSize.Toast} />,
-          }
-        );
-      } catch (_err) {
-        toast.error(t("Could not remove user"));
-      }
-    },
-    [t, groupUsers, group.id]
-  );
-
-  return (
-    <Flex column>
-      {can.update ? (
-        <>
-          <Text as="p" type="secondary">
-            <Trans
-              defaults="Add and remove members to the <em>{{groupName}}</em> group. Members of the group will have access to any collections this group has been added to."
-              values={{
-                groupName: group.name,
-              }}
-              components={{
-                em: <strong />,
-              }}
-            />
-          </Text>
-          {can.update && (
-            <span>
-              <Button
-                type="button"
-                onClick={handleAddPeople}
-                icon={<PlusIcon />}
-                neutral
-              >
-                {t("Add people")}…
-              </Button>
-            </span>
-          )}
-          <br />
-        </>
-      ) : (
-        <Text as="p" type="secondary">
-          <Trans
-            defaults="Listing members of the <em>{{groupName}}</em> group."
-            values={{
-              groupName: group.name,
-            }}
-            components={{
-              em: <strong />,
-            }}
-          />
-        </Text>
-      )}
-      <PaginatedList<User>
-        items={users.inGroup(group.id)}
-        fetch={groupUsers.fetchPage}
-        options={{
-          id: group.id,
-        }}
-        empty={<Empty>{t("This group has no members.")}</Empty>}
-        renderItem={(user) => (
-          <GroupMemberListItem
-            key={user.id}
-            user={user}
-            group={group}
-            groupUser={groupUsers.orderedData.find(
-              (gu) => gu.userId === user.id && gu.groupId === group.id
-            )}
-            onRemove={can.update ? () => handleRemoveUser(user) : undefined}
-          />
-        )}
-      />
-    </Flex>
-  );
-});
-
-const AddPeopleToGroupDialog = observer(function ({
+export const AddPeopleToGroupDialog = observer(function ({
   group,
 }: Pick<Props, "group">) {
   const { dialogs, users, groupUsers } = useStores();
@@ -495,7 +397,7 @@ const GroupMemberListItem = observer(function ({
             </Trans>
           ) : (
             t("Never signed in")
-          )}
+          )}{" "}
           {user.isInvited && <Badge>{t("Invited")}</Badge>}
           {user.isAdmin && <Badge primary={user.isAdmin}>{t("Admin")}</Badge>}
         </>
@@ -533,7 +435,7 @@ const GroupMemberListItem = observer(function ({
                   }
                   return true;
                 }}
-                disabled={!can.update}
+                disabled={!can.update || group.isExternallyManaged}
                 value={groupUser?.permission}
               />
             </div>

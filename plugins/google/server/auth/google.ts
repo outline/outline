@@ -12,7 +12,7 @@ import {
   TeamDomainRequiredError,
 } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
-import { User } from "@server/models";
+import { AuthenticationProvider, User } from "@server/models";
 import type { AuthenticationResult } from "@server/types";
 import {
   StateStore,
@@ -56,7 +56,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
         context: Context,
         accessToken: string,
         refreshToken: string,
-        params: { expires_in: number },
+        params: { expires_in: number; scope?: string },
         profile: GoogleProfile,
         done: (
           err: Error | null,
@@ -139,7 +139,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
               accessToken,
               refreshToken,
               expiresIn: params.expires_in,
-              scopes,
+              scopes: params.scope ? params.scope.split(" ") : scopes,
             },
           });
 
@@ -151,13 +151,30 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
     )
   );
 
-  router.get(
-    config.id,
-    passport.authenticate(config.id, {
+  router.get(config.id, async (ctx, next) => {
+    const team = await getTeamFromContext(ctx, {
+      includeHostQueryParam: true,
+    });
+    let extraScopes: string[] = [];
+
+    if (team) {
+      const authProvider = await AuthenticationProvider.findOne({
+        where: { name: config.id, teamId: team.id },
+      });
+
+      if (authProvider?.settings?.groupSyncEnabled) {
+        extraScopes = authProvider.settings.groupSyncScopes ?? [
+          "https://www.googleapis.com/auth/admin.directory.group.readonly",
+        ];
+      }
+    }
+
+    return passport.authenticate(config.id, {
       accessType: "offline",
       prompt: "select_account consent",
-    })
-  );
+      scope: [...scopes, ...extraScopes],
+    })(ctx, next);
+  });
   router.get(`${config.id}.callback`, passportMiddleware(config.id));
 }
 

@@ -1,4 +1,5 @@
 import compact from "lodash/compact";
+import { observer } from "mobx-react";
 import * as React from "react";
 import { useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -25,7 +26,7 @@ type Props = Omit<TableProps<Share>, "columns" | "rowHeight"> & {
   canManage: boolean;
 };
 
-function ShareRowContextMenu({
+const ShareRowContextMenu = observer(function ShareRowContextMenu({
   share,
   menuLabel,
   children,
@@ -40,7 +41,7 @@ function ShareRowContextMenu({
       {children}
     </ContextMenu>
   );
-}
+});
 
 export function SharesTable({ data, canManage, ...rest }: Props) {
   const { t } = useTranslation();

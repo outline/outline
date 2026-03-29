@@ -49,9 +49,37 @@ export const attachmentPublicRegex =
 
 export class ProsemirrorHelper {
   /**
+   * Remove specific mark types from all nodes in the document.
+   *
+   * @param doc the prosemirror document or JSON data.
+   * @param marks the mark type names to remove.
+   * @returns the document data with specified marks removed.
+   */
+  static removeMarks(doc: Node | ProsemirrorData, marks: string[]) {
+    const json = "toJSON" in doc ? (doc.toJSON() as ProsemirrorData) : doc;
+    const markSet = new Set(marks);
+
+    function removeMarksInner(node: ProsemirrorData) {
+      if (node.marks) {
+        node.marks = node.marks.filter((mark) => !markSet.has(mark.type));
+      }
+      if (node.attrs?.marks) {
+        node.attrs.marks = (node.attrs.marks as { type: string }[])?.filter(
+          (mark) => !markSet.has(mark.type)
+        );
+      }
+      if (node.content) {
+        node.content.forEach(removeMarksInner);
+      }
+      return node;
+    }
+    return removeMarksInner(json);
+  }
+
+  /**
    * Get a new empty document.
    *
-   * @returns A new empty document as JSON.
+   * @returns a new empty document as JSON.
    */
   static getEmptyDocument(): ProsemirrorData {
     return {
@@ -396,12 +424,27 @@ export class ProsemirrorHelper {
    * @returns Object with completed and total keys
    */
   static getTasksSummary(doc: Node): { completed: number; total: number } {
-    const tasks = ProsemirrorHelper.getTasks(doc);
+    let completed = 0;
+    let total = 0;
 
-    return {
-      completed: tasks.filter((t) => t.completed).length,
-      total: tasks.length,
-    };
+    doc.descendants((node) => {
+      if (!node.isBlock) {
+        return false;
+      }
+
+      if (node.type.name === "checkbox_list") {
+        node.content.forEach((listItem) => {
+          total++;
+          if (listItem.attrs.checked) {
+            completed++;
+          }
+        });
+      }
+
+      return true;
+    });
+
+    return { completed, total };
   }
 
   /**
@@ -450,35 +493,31 @@ export class ProsemirrorHelper {
    * @returns The ProsemirrorData with absolute URLs for attachments
    */
   static attachmentsToAbsoluteUrls(data: ProsemirrorData): ProsemirrorData {
+    const regex = new RegExp("^" + attachmentRedirectRegex.source);
+
     function replace(node: ProsemirrorData) {
       if (
         node.type === "image" &&
         node.attrs?.src &&
-        String(node.attrs.src).match(
-          new RegExp("^" + attachmentRedirectRegex.source)
-        )
+        regex.test(String(node.attrs.src))
       ) {
         node.attrs.src = env.URL + node.attrs.src;
-      }
-      if (
+      } else if (
         node.type === "video" &&
         node.attrs?.src &&
-        String(node.attrs.src).match(
-          new RegExp("^" + attachmentRedirectRegex.source)
-        )
+        regex.test(String(node.attrs.src))
       ) {
         node.attrs.src = env.URL + node.attrs.src;
-      }
-      if (
+      } else if (
         node.type === "attachment" &&
         node.attrs?.href &&
-        String(node.attrs.src).match(
-          new RegExp("^" + attachmentRedirectRegex.source)
-        )
+        regex.test(String(node.attrs.href))
       ) {
         node.attrs.href = env.URL + node.attrs.href;
       }
+
       if (node.content) {
+        node.content = node.content.filter(Boolean);
         node.content.forEach(replace);
       }
 
@@ -502,6 +541,7 @@ export class ProsemirrorHelper {
       }
 
       if (node.content) {
+        node.content = node.content.filter(Boolean);
         node.content.forEach(replace);
       }
 

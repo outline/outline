@@ -77,8 +77,12 @@ export default class Highlight extends Mark {
           },
         },
         {
-          style: "background-color",
-          getAttrs: (style: string) => {
+          tag: "span[style]",
+          getAttrs: (dom) => {
+            const style = dom.style.backgroundColor;
+            if (!style) {
+              return false;
+            }
             const matchedColor = Highlight.findMatchingPresetColor(style);
             // Only apply highlight if we found a matching preset color
             // or if the color is clearly a highlight (not white/transparent)

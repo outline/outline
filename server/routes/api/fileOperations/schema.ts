@@ -23,7 +23,7 @@ const CollectionsSortParamsSchema = z.object({
 export const FileOperationsInfoSchema = BaseSchema.extend({
   body: z.object({
     /** Id of the file operation to be retrieved */
-    id: z.string().uuid(),
+    id: z.uuid(),
   }),
 });
 
@@ -41,11 +41,11 @@ export type FileOperationsListReq = z.infer<typeof FileOperationsListSchema>;
 export const FileOperationsRedirectSchema = BaseSchema.extend({
   body: z.object({
     /** Id of the file operation to access */
-    id: z.string().uuid().optional(),
+    id: z.uuid().optional(),
   }),
   query: z.object({
     /** Id of the file operation to access */
-    id: z.string().uuid().optional(),
+    id: z.uuid().optional(),
   }),
 }).refine((req) => !(isEmpty(req.body.id) && isEmpty(req.query.id)), {
   message: "id is required",
@@ -58,7 +58,7 @@ export type FileOperationsRedirectReq = z.infer<
 export const FileOperationsDeleteSchema = BaseSchema.extend({
   body: z.object({
     /** Id of the file operation to delete */
-    id: z.string().uuid(),
+    id: z.uuid(),
   }),
 });
 

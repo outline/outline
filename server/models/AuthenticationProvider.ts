@@ -18,6 +18,8 @@ import {
   PrimaryKey,
   Scopes,
 } from "sequelize-typescript";
+import type { AuthenticationProviderSettings } from "@shared/types";
+import AuthenticationHelper from "@server/models/helpers/AuthenticationHelper";
 import Model from "@server/models/base/Model";
 import { ValidationError } from "../errors";
 import Team from "./Team";
@@ -80,6 +82,10 @@ class AuthenticationProvider extends Model<
   @Column
   providerId: string;
 
+  /** Provider-specific settings such as group sync configuration. */
+  @Column(DataType.JSONB)
+  settings: AuthenticationProviderSettings | null;
+
   @CreatedAt
   createdAt: Date;
 
@@ -96,6 +102,17 @@ class AuthenticationProvider extends Model<
   userAuthentications: UserAuthentication[];
 
   // instance methods
+
+  /**
+   * The human-readable display name for this provider, resolved from the
+   * plugin registry. Falls back to the raw provider name.
+   */
+  get displayName(): string {
+    return (
+      AuthenticationHelper.providers.find((p) => p.value.id === this.name)
+        ?.name ?? this.name
+    );
+  }
 
   /**
    * Create an OAuthClient for this provider, if possible.

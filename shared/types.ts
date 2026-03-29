@@ -32,6 +32,13 @@ export enum DirectionFilter {
   DESC = "DESC",
 }
 
+/** Model types that support search indexing. */
+export enum SearchableModel {
+  Document = "document",
+  Collection = "collection",
+  Comment = "comment",
+}
+
 export enum CollectionStatusFilter {
   Archived = "archived",
 }
@@ -97,6 +104,7 @@ export enum MentionType {
   Group = "group",
   Issue = "issue",
   PullRequest = "pull_request",
+  Project = "project",
   URL = "url",
 }
 
@@ -139,6 +147,7 @@ export enum IntegrationService {
   Matomo = "matomo",
   Umami = "umami",
   GitHub = "github",
+  GitLab = "gitlab",
   Linear = "linear",
   Figma = "figma",
   Notion = "notion",
@@ -155,11 +164,14 @@ export const ImportableIntegrationService = {
 
 export type IssueTrackerIntegrationService = Extract<
   IntegrationService,
-  IntegrationService.GitHub | IntegrationService.Linear
+  | IntegrationService.GitHub
+  | IntegrationService.GitLab
+  | IntegrationService.Linear
 >;
 
 export const IssueTrackerIntegrationService = {
   GitHub: IntegrationService.GitHub,
+  GitLab: IntegrationService.GitLab,
   Linear: IntegrationService.Linear,
 } as const;
 
@@ -170,6 +182,7 @@ export type UserCreatableIntegrationService = Extract<
   | IntegrationService.GoogleAnalytics
   | IntegrationService.Matomo
   | IntegrationService.Umami
+  | IntegrationService.GitLab
 >;
 
 export const UserCreatableIntegrationService = {
@@ -178,6 +191,7 @@ export const UserCreatableIntegrationService = {
   GoogleAnalytics: IntegrationService.GoogleAnalytics,
   Matomo: IntegrationService.Matomo,
   Umami: IntegrationService.Umami,
+  GitLab: IntegrationService.GitLab,
 } as const;
 
 export enum CollectionPermission {
@@ -197,11 +211,34 @@ export enum GroupPermission {
   Admin = "admin",
 }
 
+/** Settings stored on an AuthenticationProvider for group synchronization. */
+export interface AuthenticationProviderSettings {
+  /** Whether group sync from this provider is enabled. */
+  groupSyncEnabled?: boolean;
+  /**
+   * The claim path in the OIDC userinfo/id_token response that contains
+   * group data (e.g. "groups", "roles", "custom.groups").
+   */
+  groupClaim?: string;
+  /**
+   * Additional scopes to request when group sync is enabled
+   * (e.g. "groups" for OIDC).
+   */
+  groupSyncScopes?: string[];
+}
+
 export type IntegrationSettings<T> = T extends IntegrationType.Embed
   ? {
       url?: string;
       github?: {
         installation: {
+          id: number;
+          account: { id: number; name: string; avatarUrl: string };
+        };
+      };
+      gitlab?: {
+        url?: string;
+        installation?: {
           id: number;
           account: { id: number; name: string; avatarUrl: string };
         };
@@ -248,6 +285,17 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
                         };
                       };
                     };
+                    gitlab?: {
+                      url?: string;
+                      installation?: {
+                        id: number;
+                        account: {
+                          id?: number;
+                          name: string;
+                          avatarUrl?: string;
+                        };
+                      };
+                    };
                     diagrams?: {
                       url: string;
                     };
@@ -271,9 +319,29 @@ export enum UserPreference {
   SortCommentsByOrderInDocument = "sortCommentsByOrderInDocument",
   /** Whether smart text replacements should be enabled. */
   EnableSmartText = "enableSmartText",
+  /** The style of notification badge to display. */
+  NotificationBadge = "notificationBadge",
 }
 
-export type UserPreferences = { [key in UserPreference]?: boolean };
+export enum NotificationBadgeType {
+  /** Do not show a notification badge. */
+  Disabled = "disabled",
+  /** Show the unread notification count. */
+  Count = "count",
+  /** Show an unread indicator dot. */
+  Indicator = "indicator",
+}
+
+export type UserPreferences = {
+  [UserPreference.RememberLastPath]?: boolean;
+  [UserPreference.UseCursorPointer]?: boolean;
+  [UserPreference.CodeBlockLineNumers]?: boolean;
+  [UserPreference.SeamlessEdit]?: boolean;
+  [UserPreference.FullWidthDocuments]?: boolean;
+  [UserPreference.SortCommentsByOrderInDocument]?: boolean;
+  [UserPreference.EnableSmartText]?: boolean;
+  [UserPreference.NotificationBadge]?: NotificationBadgeType;
+};
 
 export type SourceMetadata = {
   /** The original source file name. */
@@ -340,6 +408,10 @@ export enum TeamPreference {
   PreventDocumentEmbedding = "preventDocumentEmbedding",
   /** Who can see user email addresses. */
   EmailDisplay = "emailDisplay",
+  /** Whether external MCP clients can connect to the workspace. */
+  MCP = "mcp",
+  /** List of disabled embed provider titles. */
+  DisabledEmbeds = "disabledEmbeds",
 }
 
 export type TeamPreferences = {
@@ -355,6 +427,8 @@ export type TeamPreferences = {
   [TeamPreference.TocPosition]?: TOCPosition;
   [TeamPreference.PreventDocumentEmbedding]?: boolean;
   [TeamPreference.EmailDisplay]?: EmailDisplay;
+  [TeamPreference.MCP]?: boolean;
+  [TeamPreference.DisabledEmbeds]?: string[];
 };
 
 export enum NavigationNodeType {
@@ -454,6 +528,7 @@ export enum UnfurlResourceType {
   Document = "document",
   Issue = "issue",
   PR = "pull",
+  Project = "project",
 }
 
 export type UnfurlResponse = {
@@ -464,6 +539,8 @@ export type UnfurlResponse = {
     url: string;
     /** A text title, describing the resource */
     title: string;
+    /** A color representing the resource */
+    color?: string;
     /** A brief description about the resource */
     description: string;
     /** A URL to a thumbnail image representing the resource */
@@ -558,6 +635,38 @@ export type UnfurlResponse = {
     state: { name: string; color: string; draft?: boolean };
     /** Pull Request creation time */
     createdAt: string;
+  };
+  [UnfurlResourceType.Project]: {
+    /** The resource type */
+    type: UnfurlResourceType.Project;
+    /** Project link */
+    url: string;
+    /** Project identifier */
+    id: string;
+    /** Project name */
+    name: string;
+    /** Project color */
+    color: string;
+    /** Project avatar URL */
+    avatarUrl?: string;
+    /** Project description */
+    description: string | null;
+    /** Project lead */
+    lead: { name: string; avatarUrl: string } | null;
+    /** Project state */
+    state: {
+      name: string;
+      color: string;
+      type: string;
+    };
+    /** Project labels */
+    labels: Array<{ name: string; color: string }>;
+    /** Project progress (0-1) */
+    progress?: number;
+    /** Project creation time */
+    createdAt: string;
+    /** Project target date */
+    targetDate: string | null;
   };
 };
 

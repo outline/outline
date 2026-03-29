@@ -18,6 +18,8 @@ export { default as Document } from "./Document";
 
 export { default as Event } from "./Event";
 
+export { default as ExternalGroup } from "./ExternalGroup";
+
 export { default as FileOperation } from "./FileOperation";
 
 export { default as Group } from "./Group";
@@ -55,6 +57,8 @@ export { default as Star } from "./Star";
 export { default as Team } from "./Team";
 
 export { default as TeamDomain } from "./TeamDomain";
+
+export { default as Template } from "./Template";
 
 export { default as User } from "./User";
 

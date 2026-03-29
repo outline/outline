@@ -8,7 +8,6 @@ import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Flex from "~/components/Flex";
 import Switch from "~/components/Switch";
 import useStores from "~/hooks/useStores";
-import { documentPath } from "~/utils/routeHelpers";
 import SelectLocation from "./SelectLocation";
 
 type Props = {
@@ -18,7 +17,7 @@ type Props = {
 function DocumentTemplatizeDialog({ documentId }: Props) {
   const history = useHistory();
   const { t } = useTranslation();
-  const { documents } = useStores();
+  const { documents, templates } = useStores();
   const document = documents.get(documentId);
   invariant(document, "Document must exist");
 
@@ -28,15 +27,17 @@ function DocumentTemplatizeDialog({ documentId }: Props) {
   );
 
   const handleSubmit = React.useCallback(async () => {
-    const template = await document?.templatize({
+    const template = await templates.templatize({
+      id: documentId,
       collectionId,
       publish,
     });
+
     if (template) {
-      history.push(documentPath(template));
+      history.push(template.path);
       toast.success(t("Template created, go ahead and customize it"));
     }
-  }, [t, document, history, collectionId, publish]);
+  }, [t, templates, documentId, history, collectionId, publish]);
 
   return (
     <ConfirmationDialog

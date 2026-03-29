@@ -45,6 +45,10 @@ export class OAuthScopeHelper {
       const [namespace, method] = scope.replace("/api/", "").split(/[:\.]/g);
       const readableMethod =
         methodToReadable[method as keyof typeof methodToReadable] ?? method;
+      if (!readableMethod) {
+        return scope;
+      }
+
       const translatedNamespace =
         translatedNamespaces[namespace as keyof typeof translatedNamespaces] ??
         namespace;

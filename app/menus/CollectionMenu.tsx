@@ -53,7 +53,7 @@ function CollectionMenu({
   });
 
   return (
-    <ActionContextProvider value={{ activeCollectionId: collection.id }}>
+    <ActionContextProvider value={{ activeModels: [collection] }}>
       <DropdownMenu
         action={rootAction}
         align={align}

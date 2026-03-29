@@ -34,6 +34,11 @@ export default class AuthenticationHelper {
    * @returns True if the path can be accessed
    */
   public static canAccess = (path: string, scopes: string[]) => {
+    // A wildcard scope grants full access (e.g. API key with no restrictions)
+    if (scopes.includes("*")) {
+      return true;
+    }
+
     // strip any query string, this is never used as part of scope matching
     path = path.split("?")[0];
 

@@ -128,6 +128,24 @@ export function newNestedDocumentPath(parentDocumentId?: string): string {
   return `/doc/new${search}`;
 }
 
+export function newSiblingDocumentPath(params: {
+  collectionId?: string | null;
+  parentDocumentId?: string;
+  index: number;
+}): string {
+  const query: Record<string, string> = {
+    index: String(params.index),
+  };
+  if (params.parentDocumentId) {
+    query.parentDocumentId = params.parentDocumentId;
+  }
+  if (params.collectionId) {
+    query.collectionId = params.collectionId;
+  }
+
+  return `/doc/new?${queryString.stringify(query)}`;
+}
+
 export function searchPath({
   query,
   collectionId,
@@ -159,6 +177,16 @@ export function sharedModelPath(shareId: string, modelPath?: string) {
 
 export function urlify(path: string): string {
   return `${window.location.origin}${path}`;
+}
+
+/**
+ * Converts a path to a desktop app URL using the outline:// protocol.
+ *
+ * @param path The path to convert.
+ * @returns The desktop app URL.
+ */
+export function desktopify(path: string): string {
+  return urlify(path).replace(/^https?:\/\//, "outline://");
 }
 
 export const matchCollectionSlug =

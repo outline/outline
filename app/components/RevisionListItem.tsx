@@ -125,7 +125,7 @@ const RevisionListItem = ({ item, document, ...rest }: Props) => {
   }
 
   return (
-    <ActionContextProvider value={{ activeDocumentId: document.id }}>
+    <ActionContextProvider value={{ activeModels: [document] }}>
       <ContextMenu
         action={contextMenuAction}
         ariaLabel={t("Revision options")}

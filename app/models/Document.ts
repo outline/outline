@@ -21,7 +21,6 @@ import type DocumentsStore from "~/stores/DocumentsStore";
 import User from "~/models/User";
 import type { Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
-import { settingsPath } from "~/utils/routeHelpers";
 import Collection from "./Collection";
 import type Notification from "./Notification";
 import type View from "./View";
@@ -151,12 +150,6 @@ export default class Document extends ArchivableModel implements Searchable {
   color?: string | null;
 
   /**
-   * Whether this is a template.
-   */
-  @observable
-  template: boolean;
-
-  /**
    * Whether the document layout is displayed full page width.
    */
   @Field
@@ -280,8 +273,7 @@ export default class Document extends ArchivableModel implements Searchable {
 
   @computed
   get path(): string {
-    const prefix =
-      this.template && !this.isDeleted ? settingsPath("templates") : "/doc";
+    const prefix = "/doc";
 
     if (!this.title) {
       return `${prefix}/untitled-${this.urlId}`;
@@ -293,7 +285,7 @@ export default class Document extends ArchivableModel implements Searchable {
 
   @computed
   get noun(): string {
-    return this.template ? t("template") : t("document");
+    return t("document");
   }
 
   @computed
@@ -393,11 +385,6 @@ export default class Document extends ArchivableModel implements Searchable {
   }
 
   @computed
-  get isTemplate(): boolean {
-    return !!this.template;
-  }
-
-  @computed
   get isDraft(): boolean {
     return !this.publishedAt;
   }
@@ -460,11 +447,6 @@ export default class Document extends ArchivableModel implements Searchable {
     }
 
     return path.map((item) => item.asNavigationNode);
-  }
-
-  @computed
-  get isWorkspaceTemplate() {
-    return this.template && !this.collectionId;
   }
 
   get titleWithDefault(): string {
@@ -581,15 +563,6 @@ export default class Document extends ArchivableModel implements Searchable {
   };
 
   @action
-  templatize = ({
-    collectionId,
-    publish,
-  }: {
-    collectionId: string | null;
-    publish: boolean;
-  }) => this.store.templatize({ id: this.id, collectionId, publish });
-
-  @action
   save = async (
     fields?: Properties<typeof this>,
     options?: SaveOptions
@@ -655,7 +628,7 @@ export default class Document extends ArchivableModel implements Searchable {
 
   @computed
   get isActive(): boolean {
-    return !this.isDeleted && !this.isTemplate && !this.isArchived;
+    return !this.isDeleted && !this.isArchived;
   }
 
   @computed

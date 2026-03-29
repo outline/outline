@@ -4,6 +4,7 @@ import {
   TeamPreference,
   UserPreference,
   EmailDisplay,
+  NotificationBadgeType,
 } from "./types";
 
 export const MAX_AVATAR_DISPLAY = 6;
@@ -34,6 +35,8 @@ export const TeamPreferenceDefaults: TeamPreferences = {
   [TeamPreference.TocPosition]: TOCPosition.Left,
   [TeamPreference.PreventDocumentEmbedding]: false,
   [TeamPreference.EmailDisplay]: EmailDisplay.Members,
+  [TeamPreference.MCP]: true,
+  [TeamPreference.DisabledEmbeds]: [],
 };
 
 export const UserPreferenceDefaults: UserPreferences = {
@@ -42,4 +45,5 @@ export const UserPreferenceDefaults: UserPreferences = {
   [UserPreference.CodeBlockLineNumers]: true,
   [UserPreference.SortCommentsByOrderInDocument]: true,
   [UserPreference.EnableSmartText]: true,
+  [UserPreference.NotificationBadge]: NotificationBadgeType.Count,
 };

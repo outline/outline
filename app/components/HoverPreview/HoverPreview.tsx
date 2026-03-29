@@ -17,6 +17,7 @@ import HoverPreviewGroup from "./HoverPreviewGroup";
 import HoverPreviewIssue from "./HoverPreviewIssue";
 import HoverPreviewLink from "./HoverPreviewLink";
 import HoverPreviewMention from "./HoverPreviewMention";
+import HoverPreviewProject from "./HoverPreviewProject";
 import HoverPreviewPullRequest from "./HoverPreviewPullRequest";
 
 const DELAY_CLOSE = 500;
@@ -191,6 +192,18 @@ const HoverPreviewDesktop = observer(
                   author={data.author}
                   createdAt={data.createdAt}
                   state={data.state}
+                />
+              ) : data.type === UnfurlResourceType.Project ? (
+                <HoverPreviewProject
+                  ref={cardRef}
+                  url={data.url}
+                  name={data.name}
+                  color={data.color}
+                  lead={data.lead}
+                  labels={data.labels}
+                  description={data.description}
+                  state={data.state}
+                  targetDate={data.targetDate}
                 />
               ) : (
                 <HoverPreviewLink

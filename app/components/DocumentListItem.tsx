@@ -22,6 +22,7 @@ import StarButton, { AnimatedStar } from "~/components/Star";
 import Tooltip from "~/components/Tooltip";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import useMobile from "~/hooks/useMobile";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import DocumentMenu from "~/menus/DocumentMenu";
 import { documentPath } from "~/utils/routeHelpers";
@@ -39,7 +40,6 @@ type Props = {
   showCollection?: boolean;
   showPublished?: boolean;
   showDraft?: boolean;
-  showTemplate?: boolean;
 };
 
 const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
@@ -59,6 +59,7 @@ function DocumentListItem(
   const { userMemberships, groupMemberships } = useStores();
   const locationSidebarContext = useLocationSidebarContext();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
+  const isMobile = useMobile();
 
   let itemRef: React.Ref<HTMLAnchorElement> =
     React.useRef<HTMLAnchorElement>(null);
@@ -75,7 +76,6 @@ function DocumentListItem(
     showCollection,
     showPublished,
     showDraft = true,
-    showTemplate,
     highlight,
     context,
     ...rest
@@ -83,7 +83,7 @@ function DocumentListItem(
   const queryIsInTitle =
     !!highlight &&
     !!document.title.toLowerCase().includes(highlight.toLowerCase());
-  const canStar = !document.isArchived && !document.isTemplate;
+  const canStar = !document.isArchived;
 
   const isShared = !!(
     userMemberships.getByDocumentId(document.id) ||
@@ -101,11 +101,10 @@ function DocumentListItem(
   return (
     <ActionContextProvider
       value={{
-        activeDocumentId: document.id,
-        activeCollectionId:
-          !isShared && document.collectionId
-            ? document.collectionId
-            : undefined,
+        activeModels: [
+          document,
+          ...(!isShared && document.collection ? [document.collection] : []),
+        ],
       }}
     >
       <ContextMenu
@@ -162,10 +161,7 @@ function DocumentListItem(
                     <Badge>{t("Draft")}</Badge>
                   </Tooltip>
                 )}
-                {canStar && <StarButton document={document} />}
-                {document.isTemplate && showTemplate && (
-                  <Badge primary>{t("Template")}</Badge>
-                )}
+                {canStar && !isMobile && <StarButton document={document} />}
               </Heading>
 
               {!queryIsInTitle && (

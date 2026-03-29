@@ -40,7 +40,7 @@ export default class UploadTeamAvatarTask extends BaseTask<Props> {
     });
 
     if (attachment) {
-      await team.update({ avatarUrl: attachment.url });
+      await team.update({ avatarUrl: attachment.redirectUrl });
     }
   }
 

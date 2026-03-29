@@ -41,7 +41,7 @@ router.post("auth.config", async (ctx: APIContext<T.AuthConfigReq>) => {
           logo: team.getPreference(TeamPreference.PublicBranding)
             ? team.avatarUrl
             : undefined,
-          providers: AuthenticationHelper.providersForTeam(team).map(
+          providers: (await AuthenticationHelper.providersForTeam(team)).map(
             presentProviderConfig
           ),
         },
@@ -68,7 +68,7 @@ router.post("auth.config", async (ctx: APIContext<T.AuthConfigReq>) => {
             ? team.avatarUrl
             : undefined,
           hostname: ctx.request.hostname,
-          providers: AuthenticationHelper.providersForTeam(team).map(
+          providers: (await AuthenticationHelper.providersForTeam(team)).map(
             presentProviderConfig
           ),
         },
@@ -95,7 +95,7 @@ router.post("auth.config", async (ctx: APIContext<T.AuthConfigReq>) => {
             ? team.avatarUrl
             : undefined,
           hostname: ctx.request.hostname,
-          providers: AuthenticationHelper.providersForTeam(team).map(
+          providers: (await AuthenticationHelper.providersForTeam(team)).map(
             presentProviderConfig
           ),
         },
@@ -107,7 +107,7 @@ router.post("auth.config", async (ctx: APIContext<T.AuthConfigReq>) => {
   // Otherwise, we're requesting from the standard root signin page
   ctx.body = {
     data: {
-      providers: AuthenticationHelper.providersForTeam().map(
+      providers: (await AuthenticationHelper.providersForTeam()).map(
         presentProviderConfig
       ),
     },
@@ -145,7 +145,18 @@ router.post("auth.info", auth(), async (ctx: APIContext<T.AuthInfoReq>) => {
     user.lastSignedInAt &&
     user.lastSignedInAt < subHours(new Date(), 1)
   ) {
-    await new ValidateSSOAccessTask().schedule({ userId: user.id });
+    await new ValidateSSOAccessTask()
+      .schedule(
+        {
+          userId: user.id,
+        },
+        {
+          jobId: `validate-sso:${user.id}`,
+        }
+      )
+      .catch(() => {
+        // Ignore errors from duplicate jobId when a validation is already queued
+      });
   }
 
   ctx.body = {

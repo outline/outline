@@ -8,7 +8,6 @@ import Notification, { type NotificationFilter } from "~/models/Notification";
 import { markNotificationsAsRead } from "~/actions/definitions/notifications";
 import useStores from "~/hooks/useStores";
 import NotificationMenu from "~/menus/NotificationMenu";
-import Desktop from "~/utils/Desktop";
 import Empty from "../Empty";
 import ErrorBoundary from "../ErrorBoundary";
 import Flex from "../Flex";
@@ -20,6 +19,55 @@ import Text from "../Text";
 import Tooltip from "../Tooltip";
 import NotificationListItem from "./NotificationListItem";
 import { HStack } from "../primitives/HStack";
+
+/**
+ * Hook that returns filtered notifications in a stable order. The order is
+ * snapshotted on first call (when the popover mounts) so that toggling
+ * read/unread does not cause items to jump positions. Notifications that
+ * arrive after the snapshot are prepended at the top.
+ *
+ * @param active - the current list of active notifications.
+ * @param filter - the selected notification filter category.
+ * @returns filtered notifications in snapshot order.
+ */
+function useStableOrderedNotifications(
+  active: Notification[],
+  filter: NotificationFilter
+) {
+  const orderSnapshotRef = React.useRef<string[] | null>(null);
+
+  return React.useMemo(() => {
+    if (orderSnapshotRef.current === null) {
+      orderSnapshotRef.current = active.map((n) => n.id);
+    }
+
+    const filtered =
+      filter === "all"
+        ? active
+        : active.filter((notification) =>
+            Notification.filterCategories[filter].includes(notification.event)
+          );
+
+    const snapshot = orderSnapshotRef.current;
+    const orderMap = new Map(snapshot.map((id, index) => [id, index]));
+    const inSnapshot: Notification[] = [];
+    const newItems: Notification[] = [];
+
+    for (const notification of filtered) {
+      if (orderMap.has(notification.id)) {
+        inSnapshot.push(notification);
+      } else {
+        newItems.push(notification);
+      }
+    }
+
+    inSnapshot.sort(
+      (a, b) => (orderMap.get(a.id) ?? 0) - (orderMap.get(b.id) ?? 0)
+    );
+
+    return [...newItems, ...inSnapshot];
+  }, [active, filter]);
+}
 
 type Props = {
   /** Callback when the notification panel wants to close. */
@@ -50,36 +98,12 @@ function Notifications(
     [t]
   );
 
-  const filteredNotifications = React.useMemo(() => {
-    if (filter === "all") {
-      return notifications.active;
-    }
+  const filteredNotifications = useStableOrderedNotifications(
+    notifications.active,
+    filter
+  );
 
-    const eventTypes = Notification.filterCategories[filter];
-    return notifications.active.filter((notification) =>
-      eventTypes.includes(notification.event)
-    );
-  }, [notifications.active, filter]);
-
-  // Update the notification count in the dock icon, if possible.
-  React.useEffect(() => {
-    // Account for old versions of the desktop app that don't have the
-    // setNotificationCount method on the bridge.
-    if (Desktop.bridge && "setNotificationCount" in Desktop.bridge) {
-      void Desktop.bridge.setNotificationCount(
-        notifications.approximateUnreadCount
-      );
-    }
-
-    // PWA badging
-    if ("setAppBadge" in navigator) {
-      if (notifications.approximateUnreadCount) {
-        void navigator.setAppBadge(notifications.approximateUnreadCount);
-      } else {
-        void navigator.clearAppBadge();
-      }
-    }
-  }, [notifications.approximateUnreadCount]);
+  const unreadCount = notifications.approximateUnreadCount;
 
   return (
     <ErrorBoundary>
@@ -105,7 +129,7 @@ function Notifications(
               short
               nude
             />
-            {notifications.approximateUnreadCount > 0 && (
+            {unreadCount > 0 && (
               <Tooltip content={t("Mark all as read")}>
                 <Button
                   action={markNotificationsAsRead}

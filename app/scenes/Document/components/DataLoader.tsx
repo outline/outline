@@ -16,6 +16,7 @@ import { useDocumentContext } from "~/components/DocumentContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
+import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import type { Properties } from "~/types";
 import Logger from "~/utils/Logger";
@@ -27,6 +28,7 @@ import {
 } from "~/utils/errors";
 import history from "~/utils/history";
 import { matchDocumentEdit, settingsPath } from "~/utils/routeHelpers";
+import useDocumentSidebar from "../hooks/useDocumentSidebar";
 import Loading from "./Loading";
 import MarkAsViewed from "./MarkAsViewed";
 
@@ -87,7 +89,10 @@ function DataLoader({ match, children }: Props) {
   const isEditing = isEditRoute || !user?.separateEditMode;
   const can = usePolicy(document);
   const location = useLocation<LocationState>();
+  const query = useQuery();
   const missingPolicy = !can || Object.keys(can).length === 0;
+
+  useDocumentSidebar();
 
   React.useEffect(() => {
     async function fetchDocument() {
@@ -104,18 +109,23 @@ function DataLoader({ match, children }: Props) {
 
   React.useEffect(() => {
     async function fetchRevision() {
-      if (revisionId) {
-        try {
-          await revisions[revisionId === "latest" ? "fetchLatest" : "fetch"](
-            revisionId
-          );
-        } catch (err) {
-          setError(err);
+      if (!revisionId) {
+        return;
+      }
+      try {
+        if (revisionId === "latest") {
+          if (document?.id) {
+            await revisions.fetchLatest(document.id);
+          }
+        } else {
+          await revisions.fetch(revisionId);
         }
+      } catch (err) {
+        setError(err);
       }
     }
     void fetchRevision();
-  }, [revisions, revisionId]);
+  }, [revisions, revisionId, document?.id]);
 
   React.useEffect(() => {
     async function fetchViews() {
@@ -162,7 +172,7 @@ function DataLoader({ match, children }: Props) {
 
       // If we're attempting to update an archived, deleted, or otherwise
       // uneditable document then forward to the canonical read url.
-      if (!can.update && isEditRoute && !document.template) {
+      if (!missingPolicy && !can.update && isEditRoute) {
         history.push(document.url);
         return;
       }
@@ -196,6 +206,13 @@ function DataLoader({ match, children }: Props) {
     ui,
     revisionId,
   ]);
+
+  // Auto-enter presentation mode when ?present=true query param is set
+  React.useEffect(() => {
+    if (document && query.has("present") && !ui.presentationData) {
+      ui.setPresentingDocument(document);
+    }
+  }, [document, query, ui]);
 
   if (error) {
     return error instanceof OfflineError ? (
