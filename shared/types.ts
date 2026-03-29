@@ -1,3 +1,6 @@
+/** Allowed retention period in days. 0 means infinite (never delete). */
+export type RetentionPeriodPreset = 0 | 7 | 14 | 30 | 90 | 180 | 365;
+
 /** Available user roles. */
 export enum UserRole {
   Admin = "admin",
@@ -430,8 +433,8 @@ export type TeamPreferences = {
   [TeamPreference.CustomTheme]?: Partial<CustomTheme>;
   [TeamPreference.TocPosition]?: TOCPosition;
   [TeamPreference.PreventDocumentEmbedding]?: boolean;
-  [TeamPreference.TrashRetentionDays]?: number;
-  [TeamPreference.DataRetentionDays]?: number;
+  [TeamPreference.TrashRetentionDays]?: RetentionPeriodPreset;
+  [TeamPreference.DataRetentionDays]?: RetentionPeriodPreset;
   [TeamPreference.EmailDisplay]?: EmailDisplay;
   [TeamPreference.MCP]?: boolean;
   [TeamPreference.DisabledEmbeds]?: string[];

@@ -3,6 +3,18 @@ import { EmailDisplay, TOCPosition, UserRole } from "@shared/types";
 import { TeamValidation } from "@shared/validations";
 import { BaseSchema } from "@server/routes/api/schema";
 
+const retentionDaysSchema = z
+  .union([
+    z.literal(0),
+    z.literal(7),
+    z.literal(14),
+    z.literal(30),
+    z.literal(90),
+    z.literal(180),
+    z.literal(365),
+  ])
+  .optional();
+
 export const TeamsUpdateSchema = BaseSchema.extend({
   body: z.object({
     /** Team name */
@@ -66,6 +78,10 @@ export const TeamsUpdateSchema = BaseSchema.extend({
         emailDisplay: z.enum(EmailDisplay).optional(),
         /** Whether to prevent shared documents from being embedded in iframes on external websites. */
         preventDocumentEmbedding: z.boolean().optional(),
+        /** Days to keep documents in trash before retention phase. 0 = infinite. */
+        trashRetentionDays: retentionDaysSchema,
+        /** Days to keep documents in retention phase before permanent deletion. 0 = infinite. */
+        dataRetentionDays: retentionDaysSchema,
         /** Whether external MCP clients can connect to the workspace. */
         mcp: z.boolean().optional(),
         /** List of disabled embed provider titles. */

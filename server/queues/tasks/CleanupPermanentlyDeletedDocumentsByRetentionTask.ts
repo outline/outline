@@ -22,6 +22,11 @@ export type Props = {
  */
 export default class CleanupPermanentlyDeletedDocumentsByRetentionTask extends BaseTask<Props> {
   public async perform({ limit, partition, retentionDays }: Props) {
+    // Infinite retention means documents are never permanently deleted.
+    if (retentionDays === 0) {
+      return;
+    }
+
     const defaultRetentionDays = TeamPreferenceDefaults[
       TeamPreference.DataRetentionDays
     ] as number;
@@ -43,11 +48,13 @@ export default class CleanupPermanentlyDeletedDocumentsByRetentionTask extends B
         [Op.and]: [
           Sequelize.literal(
             isDefault
-              ? `NOT EXISTS (
+              ? `EXISTS (
                   SELECT 1 FROM teams
                   WHERE teams.id = "document"."teamId"
-                  AND preferences->> :preference IS NOT NULL
-                  AND (preferences->> :preference)::int != :retentionDays
+                  AND (
+                    preferences->> :preference IS NULL
+                    OR (preferences->> :preference)::int = :retentionDays
+                  )
                 )`
               : `EXISTS (
                   SELECT 1 FROM teams

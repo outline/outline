@@ -1,7 +1,5 @@
 import Logger from "@server/logging/Logger";
-import { Team } from "@server/models";
-import { TeamPreferenceDefaults } from "@shared/constants";
-import { TeamPreference } from "@shared/types";
+import { RetentionPeriodPresets } from "@shared/constants";
 import { Minute } from "@shared/utils/time";
 import { TaskPriority } from "./base/BaseTask";
 import { CronTask, TaskInterval } from "./base/CronTask";
@@ -10,24 +8,17 @@ import CleanupPermanentlyDeletedDocumentsByRetentionTask from "./CleanupPermanen
 
 export default class CleanupPermanentlyDeletedDocumentsTask extends CronTask {
   /**
-   * Identifies all unique retention periods and schedules a worker task for each.
+   * Schedules a worker task for each retention period preset.
    *
-   * @param props Properties to be used by the task
+   * @param props Properties to be used by the task.
    */
   public async perform(props: Props) {
-    const defaultRetentionDays = TeamPreferenceDefaults[
-      TeamPreference.DataRetentionDays
-    ] as number;
-
-    // Find all unique custom retention periods currently in use by teams.
-    const customRetentionPeriods = await Team.findUniquePreferenceValues(
-      TeamPreference.DataRetentionDays
-    );
-
     const task = new CleanupPermanentlyDeletedDocumentsByRetentionTask();
 
-    // Schedule a task for each unique custom retention period.
-    for (const days of customRetentionPeriods) {
+    for (const days of RetentionPeriodPresets) {
+      if (days === 0) {
+        continue;
+      }
       await task.schedule({
         limit: props.limit,
         retentionDays: days,
@@ -35,16 +26,9 @@ export default class CleanupPermanentlyDeletedDocumentsTask extends CronTask {
       });
     }
 
-    // Schedule a task for the default retention period.
-    await task.schedule({
-      limit: props.limit,
-      retentionDays: defaultRetentionDays,
-      partition: props.partition,
-    });
-
     Logger.debug(
       "task",
-      `Scheduled ${customRetentionPeriods.length + 1} tranches for document cleanup`
+      `Scheduled ${RetentionPeriodPresets.length - 1} tranches for document cleanup`
     );
   }
 

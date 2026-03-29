@@ -20,6 +20,12 @@ export type Props = {
 export default class ExpireDocumentsInTrashByRetentionTask extends BaseTask<Props> {
   public async perform(props: Props) {
     const { partition, retentionDays } = props;
+
+    // Infinite retention means documents are never expired from trash.
+    if (retentionDays === 0) {
+      return;
+    }
+
     const defaultTrashRetentionDays = TeamPreferenceDefaults[
       TeamPreference.TrashRetentionDays
     ] as number;
@@ -47,11 +53,13 @@ export default class ExpireDocumentsInTrashByRetentionTask extends BaseTask<Prop
           [Op.and]: [
             Sequelize.literal(
               isDefault
-                ? `NOT EXISTS (
+                ? `EXISTS (
                     SELECT 1 FROM teams
                     WHERE teams.id = "documents"."teamId"
-                    AND preferences->>'${TeamPreference.TrashRetentionDays}' IS NOT NULL
-                    AND (preferences->>'${TeamPreference.TrashRetentionDays}')::int != ${defaultTrashRetentionDays}
+                    AND (
+                      preferences->>'${TeamPreference.TrashRetentionDays}' IS NULL
+                      OR (preferences->>'${TeamPreference.TrashRetentionDays}')::int = ${defaultTrashRetentionDays}
+                    )
                   )`
                 : `EXISTS (
                     SELECT 1 FROM teams

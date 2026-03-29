@@ -1,4 +1,8 @@
-import type { TeamPreferences, UserPreferences } from "./types";
+import type {
+  RetentionPeriodPreset,
+  TeamPreferences,
+  UserPreferences,
+} from "./types";
 import {
   TOCPosition,
   TeamPreference,
@@ -6,6 +10,11 @@ import {
   EmailDisplay,
   NotificationBadgeType,
 } from "./types";
+
+/** Allowed retention period values in days. 0 means infinite (never delete). */
+export const RetentionPeriodPresets: readonly RetentionPeriodPreset[] = [
+  0, 7, 14, 30, 90, 180, 365,
+];
 
 export const MAX_AVATAR_DISPLAY = 6;
 

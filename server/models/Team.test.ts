@@ -1,5 +1,3 @@
-import { TeamPreference } from "@shared/types";
-import { Team } from "@server/models";
 import { randomUUID } from "node:crypto";
 import {
   buildTeam,
@@ -47,48 +45,6 @@ describe("Team", () => {
       expect(team.previousSubdomains?.length).toEqual(2);
       expect(team.previousSubdomains?.[0]).toEqual(s1);
       expect(team.previousSubdomains?.[1]).toEqual(s2);
-    });
-  });
-
-  describe("findUniquePreferenceValues", () => {
-    it("should return unique custom preference values", async () => {
-      const val1 = Math.floor(Math.random() * 10000) + 1000;
-      const val2 = Math.floor(Math.random() * 10000) + 11000;
-
-      const team1 = await buildTeam();
-      team1.setPreference(TeamPreference.TrashRetentionDays, val1);
-      await team1.save();
-
-      const team2 = await buildTeam();
-      team2.setPreference(TeamPreference.TrashRetentionDays, val2);
-      await team2.save();
-
-      const team3 = await buildTeam();
-      team3.setPreference(TeamPreference.TrashRetentionDays, val1);
-      await team3.save();
-
-      const results = await Team.findUniquePreferenceValues(
-        TeamPreference.TrashRetentionDays,
-        { useCache: false }
-      );
-      expect(results).toContain(val1);
-      expect(results).toContain(val2);
-    });
-
-    it("should not return default preference values", async () => {
-      const results = await Team.findUniquePreferenceValues(
-        TeamPreference.TrashRetentionDays,
-        { useCache: false }
-      );
-      const countBefore = results.length;
-
-      await buildTeam();
-
-      const resultsAfter = await Team.findUniquePreferenceValues(
-        TeamPreference.TrashRetentionDays,
-        { useCache: false }
-      );
-      expect(resultsAfter.length).toEqual(countBefore);
     });
   });
 
