@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { addHours, addMinutes, subMinutes } from "date-fns";
 import JWT from "jsonwebtoken";
 import type { Context } from "koa";
@@ -53,6 +53,8 @@ import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
 import type { APIContext } from "@server/types";
 import { VerificationCode } from "@server/utils/VerificationCode";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
+import { CacheHelper } from "@server/utils/CacheHelper";
+import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import { ValidationError } from "../errors";
 import Attachment from "./Attachment";
 import AuthenticationProvider from "./AuthenticationProvider";
@@ -61,6 +63,7 @@ import Group from "./Group";
 import Team from "./Team";
 import UserAuthentication from "./UserAuthentication";
 import UserMembership from "./UserMembership";
+import UserPasskey from "./UserPasskey";
 import ParanoidModel from "./base/ParanoidModel";
 import Encrypted from "./decorators/Encrypted";
 import Fix from "./decorators/Fix";
@@ -249,6 +252,9 @@ class User extends ParanoidModel<
   @HasMany(() => UserAuthentication)
   authentications: UserAuthentication[];
 
+  @HasMany(() => UserPasskey)
+  passkeys: UserPasskey[];
+
   // getters
 
   get isSuspended(): boolean {
@@ -407,7 +413,10 @@ class User extends ParanoidModel<
    * @param value Sets the preference value
    * @returns The current user preferences
    */
-  public setPreference = (preference: UserPreference, value: boolean) => {
+  public setPreference = <K extends UserPreference>(
+    preference: K,
+    value: NonNullable<UserPreferences[K]>
+  ) => {
     if (!this.preferences) {
       this.preferences = {};
     }
@@ -424,10 +433,12 @@ class User extends ParanoidModel<
    * @param preference The user preference to retrieve
    * @returns The preference value if set, else the default value.
    */
-  public getPreference = (preference: UserPreference) =>
-    this.preferences?.[preference] ??
-    UserPreferenceDefaults[preference] ??
-    false;
+  public getPreference = <K extends UserPreference>(
+    preference: K
+  ): NonNullable<UserPreferences[K]> =>
+    (this.preferences?.[preference] ??
+      UserPreferenceDefaults[preference] ??
+      false) as NonNullable<UserPreferences[K]>;
 
   /**
    * Returns the user's active groups.
@@ -462,28 +473,82 @@ class User extends ParanoidModel<
    * @returns An array of collection ids
    */
   public collectionIds = async (options: FindOptions<Collection> = {}) => {
-    const collectionStubs = await Collection.scope({
-      method: ["withMembership", this.id],
-    }).findAll({
-      attributes: ["id", "permission"],
-      where: {
-        teamId: this.teamId,
-      },
-      paranoid: true,
-      ...options,
-    });
+    const hasOptions =
+      options.transaction || options.paranoid === false || options.lock;
 
-    return collectionStubs
-      .filter(
-        (c) =>
-          (Object.values(CollectionPermission).includes(
-            c.permission as CollectionPermission
-          ) &&
-            !this.isGuest) ||
-          c.memberships.length > 0 ||
-          c.groupMemberships.length > 0
-      )
-      .map((c) => c.id);
+    const fetchCollectionIds = async () => {
+      const collectionStubs = await Collection.findAll({
+        attributes: ["id"],
+        where: {
+          teamId: this.teamId,
+          [Op.or]: [
+            ...(this.isGuest
+              ? []
+              : [
+                  {
+                    permission: {
+                      [Op.in]: Object.values(CollectionPermission),
+                    },
+                  },
+                ]),
+            {
+              "$memberships.id$": { [Op.ne]: null },
+            },
+            {
+              "$groupMemberships.id$": { [Op.ne]: null },
+            },
+          ],
+        },
+        include: [
+          {
+            association: "memberships",
+            attributes: [],
+            required: false,
+            where: {
+              userId: this.id,
+            },
+          },
+          {
+            association: "groupMemberships",
+            attributes: [],
+            required: false,
+            include: [
+              {
+                association: "group",
+                attributes: [],
+                required: true,
+                include: [
+                  {
+                    association: "groupUsers",
+                    attributes: [],
+                    required: true,
+                    where: {
+                      userId: this.id,
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+        paranoid: true,
+        ...options,
+      });
+
+      return Array.from(new Set(collectionStubs.map((c) => c.id)));
+    };
+
+    if (hasOptions) {
+      return fetchCollectionIds();
+    }
+
+    return (
+      (await CacheHelper.getDataOrSet<string[]>(
+        RedisPrefixHelper.getUserCollectionIdsKey(this.id),
+        fetchCollectionIds,
+        10
+      )) ?? []
+    );
   };
 
   updateActiveAt = async (ctx: Context, force = false) => {
@@ -538,14 +603,16 @@ class User extends ParanoidModel<
    * in the client browser cookies to remain logged in.
    *
    * @param expiresAt The time the token will expire at
+   * @param service The authentication service used to generate the token, if applicable
    * @returns The session token
    */
-  getJwtToken = (expiresAt?: Date) =>
+  getJwtToken = (expiresAt?: Date, service?: string) =>
     JWT.sign(
       {
         id: this.id,
         expiresAt: expiresAt ? expiresAt.toISOString() : undefined,
         type: "session",
+        service,
       },
       this.jwtSecret
     );
@@ -571,15 +638,17 @@ class User extends ParanoidModel<
    * between subdomains or domains. It has a short expiry and can only be used
    * once.
    *
+   * @param The authentication service used to generate the token, if applicable
    * @returns The transfer token
    */
-  getTransferToken = () =>
+  getTransferToken = (service?: string) =>
     JWT.sign(
       {
         id: this.id,
         createdAt: new Date().toISOString(),
         expiresAt: addMinutes(new Date(), 1).toISOString(),
         type: "transfer",
+        service,
       },
       this.jwtSecret
     );
@@ -588,6 +657,7 @@ class User extends ParanoidModel<
    * Returns a temporary token that is only used for logging in from an email
    * It can only be used to sign in once and has a medium length expiry
    *
+   * @param ctx The request context, used to get the IP address of the request
    * @returns The email signin token
    */
   getEmailSigninToken = (ctx: Context) =>

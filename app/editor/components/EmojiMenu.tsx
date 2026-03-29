@@ -1,4 +1,5 @@
 import capitalize from "lodash/capitalize";
+import { observer } from "mobx-react";
 import { useCallback, useMemo, useEffect } from "react";
 import { emojiMartToGemoji, snakeCase } from "@shared/editor/lib/emoji";
 import { search as emojiSearch } from "@shared/utils/emoji";
@@ -38,7 +39,6 @@ const EmojiMenu = (props: Props) => {
         .map((item) => {
           // We snake_case the shortcode for backwards compatability with gemoji to
           // avoid multiple formats being written into documents.
-          // @ts-expect-error emojiMartToGemoji key
           const id = emojiMartToGemoji[item.id] || item.id;
           const type = determineIconType(id);
           const value = type === IconType.Custom ? id : snakeCase(id);
@@ -76,4 +76,4 @@ const EmojiMenu = (props: Props) => {
   );
 };
 
-export default EmojiMenu;
+export default observer(EmojiMenu);

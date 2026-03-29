@@ -17,7 +17,17 @@ import { Feature, FeatureFlags } from "~/utils/FeatureFlags";
 import Logger from "~/utils/Logger";
 import { deleteAllDatabases } from "~/utils/developer";
 import history from "~/utils/history";
-import { homePath } from "~/utils/routeHelpers";
+import { homePath, debugPath } from "~/utils/routeHelpers";
+
+export const goToDebug = createAction({
+  name: "Go to debug screen",
+  icon: <BeakerIcon />,
+  section: DeveloperSection,
+  visible: () => env.ENVIRONMENT === "development",
+  perform: () => {
+    history.push(debugPath());
+  },
+});
 
 export const copyId = createActionWithChildren({
   name: ({ t }) => t("Copy ID"),
@@ -222,6 +232,7 @@ export const developer = createActionWithChildren({
   iconInContextMenu: false,
   section: DeveloperSection,
   children: [
+    goToDebug,
     copyId,
     toggleDebugLogging,
     toggleDebugSafeArea,

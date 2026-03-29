@@ -41,7 +41,7 @@ router.post("auth.config", async (ctx: APIContext<T.AuthConfigReq>) => {
           logo: team.getPreference(TeamPreference.PublicBranding)
             ? team.avatarUrl
             : undefined,
-          providers: AuthenticationHelper.providersForTeam(team).map(
+          providers: (await AuthenticationHelper.providersForTeam(team)).map(
             presentProviderConfig
           ),
         },
@@ -68,7 +68,7 @@ router.post("auth.config", async (ctx: APIContext<T.AuthConfigReq>) => {
             ? team.avatarUrl
             : undefined,
           hostname: ctx.request.hostname,
-          providers: AuthenticationHelper.providersForTeam(team).map(
+          providers: (await AuthenticationHelper.providersForTeam(team)).map(
             presentProviderConfig
           ),
         },
@@ -95,7 +95,7 @@ router.post("auth.config", async (ctx: APIContext<T.AuthConfigReq>) => {
             ? team.avatarUrl
             : undefined,
           hostname: ctx.request.hostname,
-          providers: AuthenticationHelper.providersForTeam(team).map(
+          providers: (await AuthenticationHelper.providersForTeam(team)).map(
             presentProviderConfig
           ),
         },
@@ -107,15 +107,18 @@ router.post("auth.config", async (ctx: APIContext<T.AuthConfigReq>) => {
   // Otherwise, we're requesting from the standard root signin page
   ctx.body = {
     data: {
-      providers: AuthenticationHelper.providersForTeam().map(
+      providers: (await AuthenticationHelper.providersForTeam()).map(
         presentProviderConfig
       ),
     },
   };
 });
 
+/** Authentication services that don't require SSO validation. */
+const NON_SSO_SERVICES = ["email", "passkeys"];
+
 router.post("auth.info", auth(), async (ctx: APIContext<T.AuthInfoReq>) => {
-  const { user } = ctx.state.auth;
+  const { user, service } = ctx.state.auth;
   const sessions = getSessionsInCookie(ctx);
   const signedInTeamIds = Object.keys(sessions);
 
@@ -133,9 +136,27 @@ router.post("auth.info", auth(), async (ctx: APIContext<T.AuthInfoReq>) => {
   ]);
 
   // If the user did not _just_ sign in then we need to check if they continue
-  // to have access to the workspace they are signed into.
-  if (user.lastSignedInAt && user.lastSignedInAt < subHours(new Date(), 1)) {
-    await new ValidateSSOAccessTask().schedule({ userId: user.id });
+  // to have access to the workspace they are signed into. This only applies
+  // to SSO sessions - email and passkey logins don't have associated
+  // UserAuthentication records that need validation.
+  const isOAuthSession = !service || !NON_SSO_SERVICES.includes(service);
+  if (
+    isOAuthSession &&
+    user.lastSignedInAt &&
+    user.lastSignedInAt < subHours(new Date(), 1)
+  ) {
+    await new ValidateSSOAccessTask()
+      .schedule(
+        {
+          userId: user.id,
+        },
+        {
+          jobId: `validate-sso:${user.id}`,
+        }
+      )
+      .catch(() => {
+        // Ignore errors from duplicate jobId when a validation is already queued
+      });
   }
 
   ctx.body = {

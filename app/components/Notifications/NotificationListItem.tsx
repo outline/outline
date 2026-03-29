@@ -87,7 +87,7 @@ function NotificationListItem({ notification, onNavigate }: Props) {
               />
             )}
           </Flex>
-          {notification.viewedAt ? null : <UnreadBadge style={{ right: 12 }} />}
+          {notification.viewedAt ? null : <UnreadBadge />}
         </Container>
       </StyledLink>
     </ContextMenu>
@@ -103,6 +103,7 @@ const StyledLink = styled(Link)`
 const StyledCommentEditor = styled(CommentEditor)`
   font-size: 0.9em;
   margin-top: 4px;
+  pointer-events: none;
 
   ${truncateMultiline(3)}
 `;

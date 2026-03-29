@@ -9,7 +9,7 @@ type Domain = {
 };
 
 /**
- * Removes the the top level domain from the argument and slugifies it
+ * Removes the top level domain from the argument and slugifies it
  *
  * @param domain Domain string to slugify
  * @returns String with only non top-level domains

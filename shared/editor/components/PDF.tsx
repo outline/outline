@@ -53,7 +53,7 @@ export default function PdfViewer(props: Props) {
   useEffect(() => {
     // firefox handles resizing on its own
     // and forced reload causes the parent to collapse while resizing
-    if (isFirefox() || !ref.current) {
+    if (isFirefox || !ref.current) {
       return;
     }
 
@@ -111,8 +111,10 @@ export default function PdfViewer(props: Props) {
         title={name}
         src={href}
         ref={embedRef}
-        type="application/pdf"
-        width={width}
+        width={
+          // subtract padding and borders from width
+          width - 24
+        }
         height={height}
         style={{
           pointerEvents:

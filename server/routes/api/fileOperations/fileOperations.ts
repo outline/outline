@@ -17,7 +17,7 @@ const router = new Router();
 
 router.post(
   "fileOperations.info",
-  auth({ role: UserRole.Admin }),
+  auth(),
   validate(T.FileOperationsInfoSchema),
   async (ctx: APIContext<T.FileOperationsInfoReq>) => {
     const { id } = ctx.input.body;
@@ -92,13 +92,13 @@ const handleFileOperationsRedirect = async (
 
 router.get(
   "fileOperations.redirect",
-  auth({ role: UserRole.Admin }),
+  auth(),
   validate(T.FileOperationsRedirectSchema),
   handleFileOperationsRedirect
 );
 router.post(
   "fileOperations.redirect",
-  auth({ role: UserRole.Admin }),
+  auth(),
   validate(T.FileOperationsRedirectSchema),
   handleFileOperationsRedirect
 );

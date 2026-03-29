@@ -62,7 +62,9 @@ describe("#relationships.info", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("id: Required");
+    expect(body.message).toEqual(
+      "id: Invalid input: expected string, received undefined"
+    );
   });
 
   it("should fail with status 400 bad request when id is not a valid UUID", async () => {
@@ -74,7 +76,7 @@ describe("#relationships.info", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("id: Invalid uuid");
+    expect(body.message).toEqual("id: Invalid UUID");
   });
 
   it("should fail with status 404 not found when relationship does not exist", async () => {
@@ -412,7 +414,7 @@ describe("#relationships.list", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
 
-    expect(body.data.relationships).toHaveLength(1);
+    expect(body.data.relationships).toHaveLength(0);
     expect(body.data.documents).toHaveLength(0);
   });
 });

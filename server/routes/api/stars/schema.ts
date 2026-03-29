@@ -12,7 +12,7 @@ export const StarsCreateSchema = BaseSchema.extend({
           message: ValidateDocumentId.message,
         })
         .optional(),
-      collectionId: z.string().uuid().optional(),
+      collectionId: z.uuid().optional(),
       index: z
         .string()
         .regex(ValidateIndex.regex, {
@@ -23,7 +23,7 @@ export const StarsCreateSchema = BaseSchema.extend({
     .refine(
       (body) => !(isEmpty(body.documentId) && isEmpty(body.collectionId)),
       {
-        message: "One of documentId or collectionId is required",
+        error: "One of documentId or collectionId is required",
       }
     ),
 });
@@ -36,7 +36,7 @@ export type StarsListReq = z.infer<typeof StarsListSchema>;
 
 export const StarsUpdateSchema = BaseSchema.extend({
   body: z.object({
-    id: z.string().uuid(),
+    id: z.uuid(),
     index: z.string().regex(ValidateIndex.regex, {
       message: ValidateIndex.message,
     }),
@@ -47,7 +47,7 @@ export type StarsUpdateReq = z.infer<typeof StarsUpdateSchema>;
 
 export const StarsDeleteSchema = BaseSchema.extend({
   body: z.object({
-    id: z.string().uuid(),
+    id: z.uuid(),
   }),
 });
 

@@ -6,6 +6,7 @@ import validate from "@server/middlewares/validate";
 import { AuthenticationProvider } from "@server/models";
 import AuthenticationHelper from "@server/models/helpers/AuthenticationHelper";
 import { authorize } from "@server/policies";
+import { PluginManager } from "@server/utils/PluginManager";
 import {
   presentAuthenticationProvider,
   presentPolicies,
@@ -40,7 +41,7 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.AuthenticationProvidersUpdateReq>) => {
     const { transaction } = ctx.state;
-    const { id, isEnabled } = ctx.input.body;
+    const { id, isEnabled, settings } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     const authenticationProvider = await AuthenticationProvider.findByPk(id, {
@@ -49,17 +50,58 @@ router.post(
     });
 
     authorize(user, "update", authenticationProvider);
-    const enabled = !!isEnabled;
 
-    if (enabled) {
-      await authenticationProvider.enable(ctx);
-    } else {
-      await authenticationProvider.disable(ctx);
+    if (isEnabled !== undefined) {
+      const enabled = !!isEnabled;
+
+      if (enabled) {
+        await authenticationProvider.enable(ctx);
+      } else {
+        await authenticationProvider.disable(ctx);
+      }
+    }
+
+    if (settings !== undefined) {
+      await authenticationProvider.updateWithCtx(ctx, {
+        settings: {
+          ...(authenticationProvider.settings ?? {}),
+          ...settings,
+        },
+      });
     }
 
     ctx.body = {
       data: presentAuthenticationProvider(authenticationProvider),
       policies: presentPolicies(user, [authenticationProvider]),
+    };
+  }
+);
+
+router.post(
+  "authenticationProviders.delete",
+  auth({ role: UserRole.Admin }),
+  validate(T.AuthenticationProvidersDeleteSchema),
+  transaction(),
+  async (ctx: APIContext<T.AuthenticationProvidersDeleteReq>) => {
+    const { transaction } = ctx.state;
+    const { id } = ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    const authenticationProvider = await AuthenticationProvider.findByPk(id, {
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
+
+    authorize(user, "delete", authenticationProvider);
+
+    if (authenticationProvider.enabled) {
+      await authenticationProvider.disable(ctx);
+    }
+
+    await authenticationProvider.destroy({ transaction });
+
+    ctx.body = {
+      success: true,
     };
   }
 );
@@ -76,10 +118,13 @@ router.post(
     )) as AuthenticationProvider[];
 
     const data = AuthenticationHelper.providers
-      .filter((p) => p.value.id !== "email")
+      .filter((p) => p.value.id !== "email" && p.value.id !== "passkeys")
       .map((p) => {
         const row = teamAuthenticationProviders.find(
           (t) => t.name === p.value.id
+        );
+        const groupSyncProvider = PluginManager.getGroupSyncProvider(
+          p.value.id
         );
 
         return {
@@ -88,10 +133,12 @@ router.post(
           displayName: p.name,
           isEnabled: false,
           isConnected: false,
+          groupSyncSupported: !!groupSyncProvider,
+          groupSyncUsesClaim: groupSyncProvider?.useGroupClaim ?? false,
           ...(row ? presentAuthenticationProvider(row) : {}),
         };
       })
-      .sort((a) => (a.isEnabled ? -1 : 1));
+      .sort((a, b) => (a.isEnabled === b.isEnabled ? 0 : a.isEnabled ? -1 : 1));
 
     ctx.body = {
       data,

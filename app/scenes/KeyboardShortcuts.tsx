@@ -8,7 +8,12 @@ import Flex from "~/components/Flex";
 import InputSearch from "~/components/InputSearch";
 import Key from "~/components/Key";
 
-function KeyboardShortcuts() {
+type Props = {
+  /** Initial search query to filter shortcuts */
+  defaultQuery?: string;
+};
+
+function KeyboardShortcuts({ defaultQuery = "" }: Props) {
   const { t } = useTranslation();
   const categories = useMemo(
     () => [
@@ -106,6 +111,15 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
+                <Key symbol>{metaDisplay}</Key> + <Key symbol>{altDisplay}</Key>{" "}
+                + <Key>p</Key>
+              </>
+            ),
+            label: t("Present document"),
+          },
+          {
+            shortcut: (
+              <>
                 <Key symbol>{metaDisplay}</Key> + <Key symbol>⇧</Key> +{" "}
                 <Key>p</Key>
               </>
@@ -115,15 +129,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key symbol>{metaDisplay}</Key> + <Key>s</Key>
-              </>
-            ),
-            label: t("Save document"),
-          },
-          {
-            shortcut: (
-              <>
-                <Key symbol>{isMac() ? metaDisplay : "⇧"}</Key> + <Key>Esc</Key>
+                <Key symbol>{isMac ? metaDisplay : "⇧"}</Key> + <Key>Esc</Key>
               </>
             ),
             label: t("Cancel editing"),
@@ -347,6 +353,31 @@ function KeyboardShortcuts() {
         ],
       },
       {
+        title: t("Toggle blocks"),
+        items: [
+          {
+            shortcut: (
+              <>
+                <Key symbol>{metaDisplay}</Key> + <Key>Enter</Key>
+              </>
+            ),
+            label: t("Open / close"),
+          },
+          {
+            shortcut: <Key>{t("Tab")}</Key>,
+            label: t("Indent item"),
+          },
+          {
+            shortcut: (
+              <>
+                <Key symbol>⇧</Key> + <Key>{t("Tab")}</Key>
+              </>
+            ),
+            label: t("Outdent item"),
+          },
+        ],
+      },
+      {
         title: t("Tables"),
         items: [
           {
@@ -451,6 +482,14 @@ function KeyboardShortcuts() {
             label: t("LaTeX block"),
           },
           {
+            shortcut: (
+              <>
+                <Key>+++</Key> <Key>{t("Space")}</Key>
+              </>
+            ),
+            label: t("Toggle block"),
+          },
+          {
             shortcut: <Key>{":::"}</Key>,
             label: t("Info notice"),
           },
@@ -500,7 +539,7 @@ function KeyboardShortcuts() {
     ],
     [t]
   );
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(defaultQuery);
   const normalizedSearchTerm = searchTerm.toLocaleLowerCase();
   const handleChange = useCallback((event) => {
     setSearchTerm(event.target.value);
@@ -524,10 +563,15 @@ function KeyboardShortcuts() {
         />
       </StickySearch>
       {categories.map((category, x) => {
+        const titleMatches = category.title
+          .toLocaleLowerCase()
+          .includes(normalizedSearchTerm);
         const filtered = searchTerm
-          ? category.items.filter((item) =>
-              item.label.toLocaleLowerCase().includes(normalizedSearchTerm)
-            )
+          ? titleMatches
+            ? category.items
+            : category.items.filter((item) =>
+                item.label.toLocaleLowerCase().includes(normalizedSearchTerm)
+              )
           : category.items;
 
         if (!filtered.length) {

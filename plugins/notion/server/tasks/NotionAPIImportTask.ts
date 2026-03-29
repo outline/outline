@@ -24,7 +24,8 @@ type ParsePageOutput = ImportTaskOutput[number] & {
 export default class NotionAPIImportTask extends APIImportTask<IntegrationService.Notion> {
   private skippableErrorMessages = [
     "Database retrievals do not support linked databases",
-    "does not contain any data sources accessible by this API bot", // error msg for linked database views
+    "does not contain any data sources accessible by this API bot", // error msg for linked database views,
+    "Databases with multiple data sources are not supported in this API version", // https://github.com/outline/outline/issues/11573#issuecomment-3993691460
   ];
 
   /**
@@ -44,9 +45,10 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
 
     const client = new NotionClient(integration.authentication.token);
 
-    const parsedPages = await Promise.all(
-      importTask.input.map(async (item) => this.processPage({ item, client }))
-    );
+    const parsedPages: (ParsePageOutput | null)[] = [];
+    for (const item of importTask.input) {
+      parsedPages.push(await this.processPage({ item, client }));
+    }
 
     // Filter out any null results (from pages/databases that couldn't be accessed)
     const validParsedPages = parsedPages.filter(Boolean) as ParsePageOutput[];

@@ -7,7 +7,6 @@ import { s } from "@shared/styles";
 import { AttachmentPreset } from "@shared/types";
 import { getDataTransferFiles } from "@shared/utils/files";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
-import Flex from "~/components/Flex";
 import Input, { LabelText } from "~/components/Input";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
@@ -16,6 +15,7 @@ import { compressImage } from "~/utils/compressImage";
 import { generateEmojiNameFromFilename } from "~/utils/emoji";
 import { AttachmentValidation, EmojiValidation } from "@shared/validations";
 import { bytesToHumanReadable } from "@shared/utils/files";
+import { VStack } from "./primitives/VStack";
 
 type Props = {
   onSubmit: () => void;
@@ -158,7 +158,7 @@ export function EmojiCreateDialog({ onSubmit }: Props) {
       <LabelText as="label">{t("Upload an image")}</LabelText>
       <DropZone {...getRootProps()}>
         <input {...getInputProps()} />
-        <Flex column align="center" gap={8}>
+        <VStack>
           {file ? (
             <>
               <PreviewImage src={URL.createObjectURL(file)} alt="Preview" />
@@ -183,7 +183,7 @@ export function EmojiCreateDialog({ onSubmit }: Props) {
               </Text>
             </>
           )}
-        </Flex>
+        </VStack>
       </DropZone>
 
       <Input

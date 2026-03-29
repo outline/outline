@@ -1,5 +1,11 @@
 import type { TeamPreferences, UserPreferences } from "./types";
-import { TOCPosition, TeamPreference, UserPreference } from "./types";
+import {
+  TOCPosition,
+  TeamPreference,
+  UserPreference,
+  EmailDisplay,
+  NotificationBadgeType,
+} from "./types";
 
 export const MAX_AVATAR_DISPLAY = 6;
 
@@ -30,6 +36,9 @@ export const TeamPreferenceDefaults: TeamPreferences = {
   [TeamPreference.PreventDocumentEmbedding]: false,
   [TeamPreference.TrashRetentionDays]: 30,
   [TeamPreference.DataRetentionDays]: 30,
+  [TeamPreference.EmailDisplay]: EmailDisplay.Members,
+  [TeamPreference.MCP]: true,
+  [TeamPreference.DisabledEmbeds]: [],
 };
 
 export const UserPreferenceDefaults: UserPreferences = {
@@ -38,4 +47,5 @@ export const UserPreferenceDefaults: UserPreferences = {
   [UserPreference.CodeBlockLineNumers]: true,
   [UserPreference.SortCommentsByOrderInDocument]: true,
   [UserPreference.EnableSmartText]: true,
+  [UserPreference.NotificationBadge]: NotificationBadgeType.Count,
 };

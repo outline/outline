@@ -1,5 +1,5 @@
-import crypto from "crypto";
-import path from "path";
+import crypto from "node:crypto";
+import path from "node:path";
 import { formatRFC7231 } from "date-fns";
 import Koa from "koa";
 import Router from "koa-router";
@@ -105,10 +105,72 @@ router.get("/locales/:lng.json", async (ctx) => {
         "ETag",
         crypto.createHash("md5").update(stats.mtime.toISOString()).digest("hex")
       );
+      res.setHeader("Access-Control-Allow-Origin", "*");
     },
     root: path.join(__dirname, "../../shared/i18n/locales"),
   });
 });
+
+router.get(
+  [
+    "/.well-known/oauth-authorization-server",
+    "/.well-known/oauth-authorization-server/mcp",
+  ],
+  async (ctx) => {
+    // Use the configured URL for self-hosted deployments to preserve the port when behind
+    // a reverse proxy that may strip the port from the Host header.
+    const origin = env.isCloudHosted
+      ? ctx.request.URL.origin
+      : new URL(env.URL).origin;
+    const team = await getTeamFromContext(ctx, { includeStateCookie: false });
+    const mcpEnabled = team?.getPreference(TeamPreference.MCP) ?? true;
+
+    ctx.body = {
+      issuer: origin,
+      authorization_endpoint: `${origin}/oauth/authorize`,
+      token_endpoint: `${origin}/oauth/token`,
+      revocation_endpoint: `${origin}/oauth/revoke`,
+      ...(!env.OAUTH_DISABLE_DCR &&
+        mcpEnabled && {
+          registration_endpoint: `${origin}/oauth/register`,
+        }),
+      response_types_supported: ["code"],
+      grant_types_supported: ["authorization_code", "refresh_token"],
+      token_endpoint_auth_methods_supported: ["client_secret_post", "none"],
+      code_challenge_methods_supported: ["S256"],
+      scopes_supported: ["read", "write"],
+    };
+  }
+);
+
+router.get(
+  [
+    "/.well-known/oauth-protected-resource",
+    "/.well-known/oauth-protected-resource/mcp",
+  ],
+  async (ctx) => {
+    const team = await getTeamFromContext(ctx, { includeStateCookie: false });
+    const mcpEnabled = team?.getPreference(TeamPreference.MCP) ?? true;
+
+    if (!mcpEnabled) {
+      ctx.status = 404;
+      return;
+    }
+
+    // Use the configured URL for self-hosted deployments to preserve the port when behind
+    // a reverse proxy that may strip the port from the Host header.
+    const origin = env.isCloudHosted
+      ? ctx.request.URL.origin
+      : new URL(env.URL).origin;
+
+    ctx.body = {
+      resource: `${origin}/mcp`,
+      authorization_servers: [origin],
+      scopes_supported: ["read", "write"],
+      bearer_methods_supported: ["header"],
+    };
+  }
+);
 
 router.get("/robots.txt", (ctx) => {
   ctx.body = robotsResponse();
@@ -120,7 +182,13 @@ router.get("/opensearch.xml", (ctx) => {
   ctx.body = opensearchResponse(ctx.request.URL.origin);
 });
 
+router.get("/s/:shareId.:format", shareDomains(), renderShare);
 router.get("/s/:shareId", shareDomains(), renderShare);
+router.get(
+  "/s/:shareId/doc/:documentSlug.:format",
+  shareDomains(),
+  renderShare
+);
 router.get("/s/:shareId/doc/:documentSlug", shareDomains(), renderShare);
 router.get("/s/:shareId/*", shareDomains(), renderShare);
 
@@ -149,14 +217,28 @@ router.get("/sitemap.xml", async (ctx) => {
 // catch all for application
 router.get("*", async (ctx, next) => {
   if (ctx.state?.rootShare) {
+    // Only allow root path for root share domains, return 404 for other paths.
+    // Valid paths like /doc/:documentSlug and /sitemap.xml are handled above.
+    if (ctx.path !== "/") {
+      ctx.status = 404;
+      return;
+    }
     return renderShare(ctx, next);
   }
 
   const team = await getTeamFromContext(ctx);
 
   if (env.isCloudHosted) {
+    // Redirect to main domain if no team is found
+    if (!team || team.isSuspended) {
+      if (env.isProduction && ctx.hostname !== parseDomain(env.URL).host) {
+        ctx.redirect(env.URL);
+        return;
+      }
+    }
+
     // Redirect all requests to custom domain if one is set
-    if (team?.domain) {
+    else if (team?.domain) {
       if (team.domain !== ctx.hostname) {
         ctx.redirect(ctx.href.replace(ctx.hostname, team.domain));
         return;

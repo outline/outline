@@ -43,9 +43,9 @@ export const Info = styled(StyledText).attrs(() => ({
   white-space: nowrap;
 `;
 
-export const Description = styled(StyledText)`
+export const Description = styled(StyledText)<{ $margin?: string }>`
   ${sharedVars}
-  margin-top: 0.5em;
+  margin-top: ${(props) => props.$margin ?? "0.5em"};
   line-height: var(--line-height);
   max-height: calc(var(--line-height) * ${NUMBER_OF_LINES});
   overflow: hidden;
@@ -64,8 +64,6 @@ export const Label = styled(Text).attrs({ size: "xsmall", weight: "bold" })<{
   width: fit-content;
   border-radius: 2em;
   padding: 1px 8px 1px 20px;
-  margin-right: 0.5em;
-  margin-top: 0.5em;
   position: relative;
   flex-shrink: 0;
 
@@ -75,8 +73,8 @@ export const Label = styled(Text).attrs({ size: "xsmall", weight: "bold" })<{
     left: 8px;
     top: 50%;
     transform: translateY(-50%);
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
     background-color: ${(props) =>
       props.color || props.theme.backgroundSecondary};

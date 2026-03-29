@@ -1,11 +1,12 @@
 import { Trans, useTranslation } from "react-i18next";
-import Flex from "@shared/components/Flex";
 import Button from "~/components/Button";
 import CenteredContent from "~/components/CenteredContent";
 import Empty from "~/components/Empty";
 import Heading from "~/components/Heading";
 import PageTitle from "~/components/PageTitle";
 import { navigateToHome } from "~/actions/definitions/navigation";
+import { HStack } from "~/components/primitives/HStack";
+import { VStack } from "~/components/primitives/VStack";
 
 const ErrorUnknown = () => {
   const { t } = useTranslation();
@@ -14,19 +15,19 @@ const ErrorUnknown = () => {
     <CenteredContent>
       <PageTitle title={t("Something went wrong")} />
       <Heading>{t("Something went wrong")}</Heading>
-      <Flex gap={20} style={{ maxWidth: 500 }} column>
+      <VStack spacing={20} style={{ maxWidth: 500 }} align="initial">
         <Empty size="large">
           <Trans>
             Sorry, an unknown error occurred loading the page. Please try again
             or contact support if the issue persists.
           </Trans>
         </Empty>
-        <Flex gap={8}>
+        <HStack>
           <Button action={navigateToHome} neutral hideIcon>
             {t("Home")}
           </Button>
-        </Flex>
-      </Flex>
+        </HStack>
+      </VStack>
     </CenteredContent>
   );
 };

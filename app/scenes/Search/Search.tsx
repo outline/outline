@@ -8,8 +8,11 @@ import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { Pagination } from "@shared/constants";
-import { hideScrollbars } from "@shared/styles";
-import type { DateFilter as TDateFilter } from "@shared/types";
+import type {
+  SortFilter as TSortFilter,
+  DirectionFilter as TDirectionFilter,
+  DateFilter as TDateFilter,
+} from "@shared/types";
 import { StatusFilter as TStatusFilter } from "@shared/types";
 import ArrowKeyNavigation from "~/components/ArrowKeyNavigation";
 import DocumentListItem from "~/components/DocumentListItem";
@@ -24,7 +27,8 @@ import env from "~/env";
 import usePaginatedRequest from "~/hooks/usePaginatedRequest";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
-import type { SearchResult } from "~/types";
+import type { PaginationParams, SearchResult } from "~/types";
+import { preventDefault } from "~/utils/events";
 import { searchPath } from "~/utils/routeHelpers";
 import { decodeURIComponentSafe } from "~/utils/urls";
 import CollectionFilter from "./components/CollectionFilter";
@@ -33,11 +37,15 @@ import { DocumentFilter } from "./components/DocumentFilter";
 import DocumentTypeFilter from "./components/DocumentTypeFilter";
 import RecentSearches from "./components/RecentSearches";
 import SearchInput from "./components/SearchInput";
+import { SortInput } from "./components/SortInput";
 import UserFilter from "./components/UserFilter";
+import { HStack } from "~/components/primitives/HStack";
+import useMobile from "~/hooks/useMobile";
 
 function Search() {
   const { t } = useTranslation();
   const { documents, searches } = useStores();
+  const isMobile = useMobile();
 
   // routing
   const params = useQuery();
@@ -63,6 +71,8 @@ function Search() {
     ? (params.getAll("statusFilter") as TStatusFilter[])
     : [TStatusFilter.Published, TStatusFilter.Draft];
   const titleFilter = params.get("titleFilter") === "true";
+  const sort = (params.get("sort") as TSortFilter) ?? "";
+  const direction = (params.get("direction") as TDirectionFilter) ?? "";
 
   const isSearchable = !!(query || collectionId || userId);
 
@@ -75,6 +85,7 @@ function Search() {
     documentType: isSearchable,
     date: isSearchable,
     title: !!query && !document,
+    sort: isSearchable,
   };
 
   const filters = React.useMemo(
@@ -86,6 +97,8 @@ function Search() {
       dateFilter,
       titleFilter,
       documentId,
+      sort,
+      direction,
     }),
     [
       query,
@@ -95,6 +108,8 @@ function Search() {
       dateFilter,
       titleFilter,
       documentId,
+      sort,
+      direction,
     ]
   );
 
@@ -110,10 +125,15 @@ function Search() {
     }
 
     if (isSearchable) {
-      return async () =>
-        titleFilter
-          ? await documents.searchTitles(filters)
-          : await documents.search(filters);
+      return async (params?: PaginationParams) => {
+        const paginationParams = {
+          offset: params?.offset,
+          limit: params?.limit,
+        };
+        return titleFilter
+          ? await documents.searchTitles({ ...filters, ...paginationParams })
+          : await documents.search({ ...filters, ...paginationParams });
+      };
     }
 
     return () => Promise.resolve([] as SearchResult[]);
@@ -147,7 +167,14 @@ function Search() {
     dateFilter?: TDateFilter;
     statusFilter?: TStatusFilter[];
     titleFilter?: boolean | undefined;
+    sort?: string | undefined;
+    direction?: string | undefined;
   }) => {
+    if (search.sort === "relevance") {
+      search.sort = undefined;
+      search.direction = undefined;
+    }
+
     history.replace({
       pathname: location.pathname,
       search: queryString.stringify(
@@ -160,6 +187,10 @@ function Search() {
   };
 
   const handleKeyDown = (ev: React.KeyboardEvent<HTMLInputElement>) => {
+    if (ev.nativeEvent.isComposing) {
+      return;
+    }
+
     if (ev.key === "Enter") {
       updateLocation(ev.currentTarget.value);
       return;
@@ -205,16 +236,23 @@ function Search() {
   const handleEscape = () => searchInputRef.current?.focus();
   const showEmpty = !loading && query && data?.length === 0;
 
+  const sortInput = filterVisibility.sort ? (
+    <SortInput
+      sort={sort}
+      direction={direction}
+      onSelect={(sort, direction) => handleFilterChange({ sort, direction })}
+    />
+  ) : null;
+
   return (
-    <Scene textTitle={query ? `${query} – ${t("Search")}` : t("Search")}>
+    <Scene
+      textTitle={query ? `${query} – ${t("Search")}` : t("Search")}
+      actions={isMobile ? sortInput : null}
+    >
       <RegisterKeyDown trigger="Escape" handler={history.goBack} />
       {loading && <LoadingIndicator />}
       <ResultsWrapper column auto>
-        <form
-          method="GET"
-          action={searchPath()}
-          onSubmit={(ev) => ev.preventDefault()}
-        >
+        <form method="GET" action={searchPath()} onSubmit={preventDefault}>
           <SearchInput
             name="query"
             key={query ? "search" : "recent"}
@@ -229,55 +267,58 @@ function Search() {
             onKeyDown={handleKeyDown}
             defaultValue={query ?? ""}
           />
-
           <Filters>
-            {filterVisibility.document && (
-              <DocumentFilter
-                document={document!}
-                onClick={() => {
-                  handleFilterChange({ documentId: undefined });
-                }}
-              />
-            )}
-            {filterVisibility.collection && (
-              <CollectionFilter
-                collectionId={collectionId}
-                onSelect={(collectionId) =>
-                  handleFilterChange({ collectionId })
-                }
-              />
-            )}
-            {filterVisibility.user && (
-              <UserFilter
-                userId={userId}
-                onSelect={(userId) => handleFilterChange({ userId })}
-              />
-            )}
-            {filterVisibility.documentType && (
-              <DocumentTypeFilter
-                statusFilter={statusFilter}
-                onSelect={({ statusFilter }) =>
-                  handleFilterChange({ statusFilter })
-                }
-              />
-            )}
-            {filterVisibility.date && (
-              <DateFilter
-                dateFilter={dateFilter}
-                onSelect={(dateFilter) => handleFilterChange({ dateFilter })}
-              />
-            )}
-            {filterVisibility.title && (
-              <SearchTitlesFilter
-                width={26}
-                height={14}
-                label={t("Search titles only")}
-                onChange={(checked: boolean) => {
-                  handleFilterChange({ titleFilter: checked });
-                }}
-                checked={titleFilter}
-              />
-            )}
+            <Flex align="center" gap={4} wrap>
+              {filterVisibility.document && (
+                <DocumentFilter
+                  document={document!}
+                  onClick={() => {
+                    handleFilterChange({ documentId: undefined });
+                  }}
+                />
+              )}
+              {filterVisibility.collection && (
+                <CollectionFilter
+                  collectionId={collectionId}
+                  onSelect={(collectionId) =>
+                    handleFilterChange({ collectionId })
+                  }
+                />
+              )}
+              {filterVisibility.user && (
+                <UserFilter
+                  userId={userId}
+                  onSelect={(userId) => handleFilterChange({ userId })}
+                />
+              )}
+              {filterVisibility.documentType && (
+                <DocumentTypeFilter
+                  statusFilter={statusFilter}
+                  onSelect={({ statusFilter }) =>
+                    handleFilterChange({ statusFilter })
+                  }
+                />
+              )}
+              {filterVisibility.date && (
+                <DateFilter
+                  dateFilter={dateFilter}
+                  onSelect={(dateFilter) => handleFilterChange({ dateFilter })}
+                />
+              )}
+              {filterVisibility.title && (
+                <SearchTitlesFilter
+                  width={26}
+                  height={14}
+                  label={t("Search titles only")}
+                  onChange={(checked: boolean) => {
+                    handleFilterChange({ titleFilter: checked });
+                  }}
+                  checked={titleFilter}
+                  inForm={false}
+                />
+              )}
+            </Flex>
+            {isMobile ? null : sortInput}
           </Filters>
         </form>
         {isSearchable ? (
@@ -319,7 +360,6 @@ function Search() {
                           highlight={query}
                           context={result.context}
                           showCollection
-                          showTemplate
                         />
                       ))
                     : null
@@ -363,16 +403,12 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
   flex: 1;
 `;
 
-const Filters = styled(Flex)`
+const Filters = styled(HStack)`
+  flex-wrap: wrap;
+  justify-content: space-between;
   margin-bottom: 12px;
   transition: opacity 100ms ease-in-out;
-  overflow-y: hidden;
-  overflow-x: auto;
   padding: 8px 0;
-  height: 28px;
-  gap: 8px;
-
-  ${hideScrollbars()}
 
   ${breakpoint("tablet")`
     padding: 0;
@@ -382,9 +418,9 @@ const Filters = styled(Flex)`
 const SearchTitlesFilter = styled(Switch)`
   white-space: nowrap;
   margin-left: 8px;
-  margin-top: 4px;
   font-size: 14px;
   font-weight: 400;
+  height: 28px;
 `;
 
 export default observer(Search);

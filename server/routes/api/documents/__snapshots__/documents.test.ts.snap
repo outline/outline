@@ -93,7 +93,7 @@ exports[`#documents.update should require authentication 1`] = `
 exports[`#documents.update should require text while appending 1`] = `
 {
   "error": "validation_error",
-  "message": "text is required while appending",
+  "message": "text is required when using append, prepend, or editMode",
   "ok": false,
   "status": 400,
 }

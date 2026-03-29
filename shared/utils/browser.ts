@@ -1,7 +1,16 @@
 /**
- * Is true if we're running in the browser.
+ * Is true if we're running in the browser. Note that this will return true when rendering on the server
+ * with a tool like JSDOM as we patch the global window object.
  */
 export const isBrowser = typeof window !== "undefined";
+
+/**
+ * Is true when running on the server, always.
+ */
+export const isNode =
+  typeof process !== "undefined" &&
+  process.versions !== null &&
+  process.versions.node !== null;
 
 /**
  * Is true if the browser is running as an installed PWA on mobile or desktop
@@ -11,18 +20,19 @@ export const isPWA =
   window.matchMedia?.("(display-mode: standalone)").matches;
 
 /**
- * Returns true if the client is a touch device. Note that laptops with touch screens are
- * considered touch devices.
+ * Returns true if the client only supports touch input.
+ * Note that this will return false for hybrid devices which support both touch and mouse input.
  */
 export function isTouchDevice(): boolean {
   if (!isBrowser) {
     return false;
   }
-  return window.matchMedia?.("(hover: none) and (pointer: coarse)")?.matches;
+  return window.matchMedia?.("(any-hover: none) and (pointer: coarse)")
+    ?.matches;
 }
 
 /**
- * Returns true if the client is a mobile device.
+ * Returns true if the client is the size of a mobile device.
  */
 export function isMobile(): boolean {
   if (!isBrowser) {
@@ -60,42 +70,53 @@ export function getSafeAreaInsets(): {
 }
 
 /**
- * Returns true if the client is running on a Mac.
+ * Is true if the client is running on a Mac.
  */
-export function isMac(): boolean {
-  if (!isBrowser) {
-    return false;
-  }
-  return window.navigator.platform === "MacIntel";
-}
+export const isMac = isBrowser && window.navigator.platform === "MacIntel";
 
 /**
- * Returns true if the client is running on Windows.
+ * Is true if the client is running on Windows.
  */
-export function isWindows(): boolean {
-  if (!isBrowser) {
-    return false;
-  }
-  return window.navigator.platform === "Win32";
-}
+export const isWindows = isBrowser && window.navigator.platform === "Win32";
 
-export function isSafari(): boolean {
-  if (!isBrowser) {
-    return false;
-  }
-  const userAgent = window.navigator.userAgent;
-  return (
-    userAgent.includes("Safari") &&
-    !userAgent.includes("Chrome") &&
-    !userAgent.includes("Chromium")
-  );
-}
+/**
+ * Is true if the client is running Safari.
+ */
+export const isSafari =
+  isBrowser &&
+  window.navigator.userAgent.includes("Safari") &&
+  !window.navigator.userAgent.includes("Chrome") &&
+  !window.navigator.userAgent.includes("Chromium");
 
-export function isFirefox(): boolean {
+/**
+ * Is true if the client is running Firefox.
+ */
+export const isFirefox =
+  isBrowser && window.navigator.userAgent.includes("Firefox");
+
+/**
+ * Returns true if the browser supports the Element Fullscreen API. This is
+ * false on iOS Safari which does not implement it.
+ *
+ * @returns whether element fullscreen is available.
+ */
+export function canUseElementFullscreen(): boolean {
   if (!isBrowser) {
     return false;
   }
-  return window.navigator.userAgent.includes("Firefox");
+
+  const doc = document as Document & {
+    webkitFullscreenEnabled?: boolean;
+    msFullscreenEnabled?: boolean;
+  };
+  const fullscreenAPI =
+    doc.fullscreenEnabled ??
+    doc.webkitFullscreenEnabled ??
+    doc.msFullscreenEnabled;
+
+  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+
+  return !!fullscreenAPI && !isIOS;
 }
 
 let supportsPassive = false;

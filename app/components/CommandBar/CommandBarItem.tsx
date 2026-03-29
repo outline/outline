@@ -4,15 +4,25 @@ import * as React from "react";
 import styled, { css, useTheme } from "styled-components";
 import { s, ellipsis } from "@shared/styles";
 import { normalizeKeyDisplay } from "@shared/utils/keyboard";
+import Highlight from "~/components/Highlight";
 import Flex from "~/components/Flex";
 import Key from "~/components/Key";
 import Text from "~/components/Text";
+import { HStack } from "../primitives/HStack";
 
 type Props = {
   action: ActionImpl;
   active: boolean;
   currentRootActionId: string | null | undefined;
 };
+
+const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
+
+function replaceResultMarks(tag: string) {
+  // don't use SEARCH_RESULT_REGEX here as it causes
+  // an infinite loop to trigger a regex inside it's own callback
+  return tag.replace(/<b\b[^>]*>(.*?)<\/b>/gi, "$1");
+}
 
 function CommandBarItem(
   { action, active, currentRootActionId }: Props,
@@ -35,7 +45,7 @@ function CommandBarItem(
 
   return (
     <Item active={active} ref={ref}>
-      <Content align="center" gap={8}>
+      <Content>
         <Icon>
           {action.icon ? (
             // @ts-expect-error no icon on ActionImpl
@@ -55,6 +65,16 @@ function CommandBarItem(
         ))}
         {action.name}
         {action.children?.length ? "…" : ""}
+        {action.subtitle && (
+          <Text type="secondary" ellipsis>
+            &nbsp;&nbsp;
+            <Highlight
+              text={action.subtitle}
+              highlight={SEARCH_RESULT_REGEX}
+              processResult={replaceResultMarks}
+            />
+          </Text>
+        )}
       </Content>
       {action.shortcut?.length ? (
         <Shortcut>
@@ -100,7 +120,7 @@ const Ancestor = styled.span`
   color: ${s("textSecondary")};
 `;
 
-const Content = styled(Flex)`
+const Content = styled(HStack)`
   ${ellipsis()}
   flex-shrink: 1;
 `;

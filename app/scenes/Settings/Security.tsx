@@ -1,49 +1,36 @@
 import debounce from "lodash/debounce";
 import { observer } from "mobx-react";
-import { CheckboxIcon, EmailIcon, PadlockIcon } from "outline-icons";
+import { ShieldIcon } from "outline-icons";
 import { useState } from "react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
-import { useTheme } from "styled-components";
-import { TeamPreference } from "@shared/types";
+import { TeamPreference, EmailDisplay } from "@shared/types";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
-import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import type { Option } from "~/components/InputSelect";
 import { InputSelect } from "~/components/InputSelect";
-import PluginIcon from "~/components/PluginIcon";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
-import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
-import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import isCloudHosted from "~/utils/isCloudHosted";
-import DomainManagement from "./components/DomainManagement";
 import SettingRow from "./components/SettingRow";
 
 function Security() {
-  const { authenticationProviders, dialogs } = useStores();
+  const { dialogs } = useStores();
   const team = useCurrentTeam();
   const { t } = useTranslation();
-  const theme = useTheme();
+
   const [data, setData] = useState({
     sharing: team.sharing,
-    documentEmbeds: team.documentEmbeds,
-    guestSignin: team.guestSignin,
     defaultUserRole: team.defaultUserRole,
     memberCollectionCreate: team.memberCollectionCreate,
     memberTeamCreate: team.memberTeamCreate,
     inviteRequired: team.inviteRequired,
+    passkeysEnabled: team.passkeysEnabled,
   });
-
-  const {
-    data: providers,
-    loading,
-    request,
-  } = useRequest(authenticationProviders.fetchPage);
 
   const userRoleOptions: Option[] = React.useMemo(
     () =>
@@ -62,11 +49,27 @@ function Security() {
     [t]
   );
 
-  React.useEffect(() => {
-    if (!providers && !loading) {
-      void request();
-    }
-  }, [loading, providers, request]);
+  const emailDisplayOptions: Option[] = React.useMemo(
+    () =>
+      [
+        {
+          type: "item",
+          label: t("Members"),
+          value: EmailDisplay.Members,
+        },
+        {
+          type: "item",
+          label: t("Members and guests"),
+          value: EmailDisplay.Everyone,
+        },
+        {
+          type: "item",
+          label: t("No one"),
+          value: EmailDisplay.None,
+        },
+      ] satisfies Option[],
+    [t]
+  );
 
   const showSuccessMessage = React.useMemo(
     () =>
@@ -96,13 +99,6 @@ function Security() {
     [saveData]
   );
 
-  const handleGuestSigninChange = React.useCallback(
-    async (checked: boolean) => {
-      await saveData({ guestSignin: checked });
-    },
-    [saveData]
-  );
-
   const handleSharingChange = React.useCallback(
     async (checked: boolean) => {
       await saveData({ sharing: checked });
@@ -110,9 +106,9 @@ function Security() {
     [saveData]
   );
 
-  const handleDocumentEmbedsChange = React.useCallback(
+  const handlePasskeysEnabledChange = React.useCallback(
     async (checked: boolean) => {
-      await saveData({ documentEmbeds: checked });
+      await saveData({ passkeysEnabled: checked });
     },
     [saveData]
   );
@@ -164,6 +160,17 @@ function Security() {
     [saveData, team.preferences]
   );
 
+  const handleEmailDisplayChange = React.useCallback(
+    async (emailDisplay: string) => {
+      const preferences = {
+        ...team.preferences,
+        [TeamPreference.EmailDisplay]: emailDisplay,
+      };
+      await saveData({ preferences });
+    },
+    [saveData, team.preferences]
+  );
+
   const handleInviteRequiredChange = React.useCallback(
     async (checked: boolean) => {
       const inviteRequired = checked;
@@ -200,7 +207,7 @@ function Security() {
   );
 
   return (
-    <Scene title={t("Security")} icon={<PadlockIcon />}>
+    <Scene title={t("Security")} icon={<ShieldIcon />}>
       <Heading>{t("Security")}</Heading>
       <Text as="p" type="secondary">
         <Trans>
@@ -209,57 +216,7 @@ function Security() {
         </Trans>
       </Text>
 
-      <h2>{t("Sign In")}</h2>
-      {authenticationProviders.orderedData
-        // filtering unconnected, until we have ability to connect from this screen
-        .filter((provider) => provider.isConnected)
-        .map((provider) => (
-          <SettingRow
-            key={provider.name}
-            label={
-              <Flex gap={8} align="center">
-                <PluginIcon id={provider.name} /> {provider.displayName}
-              </Flex>
-            }
-            name={provider.name}
-            description={t("Allow members to sign-in with {{ authProvider }}", {
-              authProvider: provider.displayName,
-            })}
-          >
-            <Flex align="center">
-              <CheckboxIcon
-                color={provider.isActive ? theme.accent : undefined}
-                checked={provider.isActive}
-              />{" "}
-              <Text as="p" type="secondary">
-                {provider.isActive ? t("Connected") : t("Disabled")}
-              </Text>
-            </Flex>
-          </SettingRow>
-        ))}
-      <SettingRow
-        label={
-          <Flex gap={8} align="center">
-            <EmailIcon /> {t("Email")}
-          </Flex>
-        }
-        name="guestSignin"
-        description={
-          env.EMAIL_ENABLED
-            ? t("Allow members to sign-in using their email address")
-            : t("The server must have SMTP configured to enable this setting")
-        }
-        border={false}
-      >
-        <Switch
-          id="guestSignin"
-          checked={data.guestSignin}
-          onChange={handleGuestSigninChange}
-          disabled={!env.EMAIL_ENABLED}
-        />
-      </SettingRow>
-
-      <h2>{t("Access")}</h2>
+      <Heading as="h2">{t("Invites")}</Heading>
       <SettingRow
         label={t("Allow users to send invites")}
         name={TeamPreference.MembersCanInvite}
@@ -307,9 +264,22 @@ function Security() {
         </SettingRow>
       )}
 
-      <DomainManagement onSuccess={showSuccessMessage} />
+      <Heading as="h2">{t("Authentication")}</Heading>
+      <SettingRow
+        label={t("Passkeys")}
+        name="passkeysEnabled"
+        description={t(
+          "Allow users to sign in with passkeys for passwordless authentication"
+        )}
+      >
+        <Switch
+          id="passkeysEnabled"
+          checked={data.passkeysEnabled}
+          onChange={handlePasskeysEnabledChange}
+        />
+      </SettingRow>
 
-      <h2>{t("Behavior")}</h2>
+      <Heading as="h2">{t("Behavior")}</Heading>
       <SettingRow
         label={t("Public document sharing")}
         name="sharing"
@@ -350,16 +320,19 @@ function Security() {
         />
       </SettingRow>
       <SettingRow
-        label={t("Rich service embeds")}
-        name="documentEmbeds"
+        label={t("Email address visibility")}
+        name={TeamPreference.EmailDisplay}
         description={t(
-          "Links to supported services are shown as rich embeds within your documents"
+          "Controls who can see user email addresses in the workspace"
         )}
       >
-        <Switch
-          id="documentEmbeds"
-          checked={data.documentEmbeds}
-          onChange={handleDocumentEmbedsChange}
+        <InputSelect
+          value={team.getPreference(TeamPreference.EmailDisplay) as string}
+          options={emailDisplayOptions}
+          onChange={handleEmailDisplayChange}
+          label={t("Email address visibility")}
+          hideLabel
+          short
         />
       </SettingRow>
       <SettingRow

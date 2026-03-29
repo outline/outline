@@ -20,7 +20,7 @@ function DomainManagement({ onSuccess }: Props) {
   const team = useCurrentTeam();
   const { t } = useTranslation();
 
-  const [allowedDomains, setAllowedDomains] = React.useState([
+  const [allowedDomains, setAllowedDomains] = React.useState(() => [
     ...(team.allowedDomains ?? []),
   ]);
   const [lastKnownDomainCount, updateLastKnownDomainCount] = React.useState(

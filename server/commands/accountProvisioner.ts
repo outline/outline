@@ -1,4 +1,4 @@
-import path from "path";
+import path from "node:path";
 import { readFile } from "fs-extra";
 import invariant from "invariant";
 import { CollectionPermission, UserRole } from "@shared/types";
@@ -8,6 +8,7 @@ import {
   InvalidAuthenticationError,
   AuthenticationProviderDisabledError,
 } from "@server/errors";
+import Logger from "@server/logging/Logger";
 import { traceFunction } from "@server/logging/tracing";
 import type { User } from "@server/models";
 import {
@@ -18,6 +19,8 @@ import {
 } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { sequelize } from "@server/storage/database";
+import { PluginManager } from "@server/utils/PluginManager";
+import groupsSyncer from "./groupsSyncer";
 import teamProvisioner from "./teamProvisioner";
 import userProvisioner from "./userProvisioner";
 import type { APIContext } from "@server/types";
@@ -93,6 +96,34 @@ async function accountProvisioner(
   let result;
   let emailMatchOnly;
 
+  const actor = ctx.state.auth?.user;
+
+  // If the user is already logged in and is an admin of the team then we
+  // allow them to connect a new authentication provider
+  if (actor && actor.teamId === teamParams.teamId && actor.isAdmin) {
+    const team = actor.team;
+    let authenticationProvider = await AuthenticationProvider.findOne({
+      where: {
+        ...authenticationProviderParams,
+        teamId: team.id,
+      },
+    });
+
+    if (!authenticationProvider) {
+      authenticationProvider = await team.$create<AuthenticationProvider>(
+        "authenticationProvider",
+        authenticationProviderParams
+      );
+    }
+
+    return {
+      user: actor,
+      team,
+      isNewUser: false,
+      isNewTeam: false,
+    };
+  }
+
   try {
     result = await teamProvisioner(ctx, {
       ...teamParams,
@@ -167,6 +198,7 @@ async function accountProvisioner(
   if (isNewUser) {
     await new WelcomeEmail({
       to: user.email,
+      language: user.language,
       role: user.role,
       teamUrl: team.url,
     }).schedule();
@@ -189,6 +221,47 @@ async function accountProvisioner(
 
     if (provision) {
       await provisionFirstCollection(ctx, team, user);
+    }
+  }
+
+  // Sync group memberships from the authentication provider if enabled
+  if (authenticationParams.accessToken) {
+    const settings = authenticationProvider.settings;
+
+    if (settings?.groupSyncEnabled) {
+      const syncProvider = PluginManager.getGroupSyncProvider(
+        authenticationProviderParams.name
+      );
+
+      if (syncProvider) {
+        try {
+          const externalGroups = await syncProvider.fetchUserGroups(
+            authenticationParams.accessToken,
+            settings
+          );
+
+          await sequelize.transaction(async (transaction) => {
+            const groupSyncCtx = createContext({
+              user,
+              ip: ctx.context?.ip,
+              transaction,
+            });
+
+            await groupsSyncer(groupSyncCtx, {
+              user,
+              team,
+              authenticationProvider,
+              externalGroups,
+            });
+          });
+        } catch (err) {
+          // Group sync failure should never block login
+          Logger.error("Group sync failed during login", err, {
+            userId: user.id,
+            provider: authenticationProviderParams.name,
+          });
+        }
+      }
     }
   }
 

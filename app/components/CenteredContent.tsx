@@ -1,6 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 
 type Props = {
   children?: React.ReactNode;
@@ -22,12 +23,9 @@ const Container = styled.div<Props>`
 type ContentProps = { $maxWidth?: string };
 
 const Content = styled.div<ContentProps>`
-  max-width: ${(props) => props.$maxWidth ?? "46em"};
+  max-width: ${(props: ContentProps) =>
+    props.$maxWidth ?? EditorStyleHelper.documentWidth};
   margin: 0 auto;
-
-  ${breakpoint("desktopLarge")`
-    max-width: ${(props: ContentProps) => props.$maxWidth ?? "52em"};
-  `};
 `;
 
 const CenteredContent: React.FC<Props> = ({

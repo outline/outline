@@ -12,6 +12,7 @@ export default function presentTeam(team: Team) {
     defaultCollectionId: team.defaultCollectionId,
     documentEmbeds: team.documentEmbeds,
     guestSignin: team.emailSigninEnabled,
+    passkeysEnabled: team.passkeysEnabled,
     subdomain: team.subdomain,
     domain: team.domain,
     url: team.url,
@@ -19,5 +20,6 @@ export default function presentTeam(team: Team) {
     inviteRequired: team.inviteRequired,
     allowedDomains: team.allowedDomains?.map((d) => d.name),
     preferences: team.preferences,
+    guidanceMCP: team.guidanceMCP,
   };
 }

@@ -1,11 +1,15 @@
-import fs from "fs";
-import path from "path";
-import util from "util";
+import fs from "node:fs";
+import path from "node:path";
+import util from "node:util";
 import type { Context, Next } from "koa";
 import escape from "lodash/escape";
 import { Sequelize } from "sequelize";
 import isUUID from "validator/lib/isUUID";
-import { IntegrationType, TeamPreference } from "@shared/types";
+import {
+  IntegrationType,
+  TeamPreference,
+  type NavigationNode,
+} from "@shared/types";
 import { unicodeCLDRtoISO639 } from "@shared/utils/date";
 import env from "@server/env";
 import { Integration } from "@server/models";
@@ -21,6 +25,29 @@ const entry = "app/index.tsx";
 const viteHost = env.URL.replace(`:${env.PORT}`, ":3001");
 
 let indexHtmlCache: Buffer | undefined;
+
+/**
+ * Formats navigation tree children as markdown list items.
+ *
+ * @param children Array of navigation nodes
+ * @param baseUrl Base URL for generating links
+ * @returns Formatted markdown string
+ */
+function formatChildDocumentsAsMarkdown(
+  children: NavigationNode[],
+  baseUrl: string
+): string {
+  if (!children || children.length === 0) {
+    return "";
+  }
+
+  const lines = children.map((child) => {
+    const url = baseUrl + child.url;
+    return `- [${child.title}](${url})`;
+  });
+
+  return `\n\n---\n\n**Documents**\n\n${lines.join("\n")}`;
+}
 
 const readIndexFile = async (): Promise<Buffer> => {
   if (env.isProduction || env.isTest) {
@@ -133,8 +160,20 @@ export const renderApp = async (
     <link
       rel="apple-touch-icon"
       type="image/png"
-      href="${env.CDN_URL ?? ""}/images/apple-touch-icon.png"
+      href="${env.CDN_URL ?? ""}/images/icon-maskable-192.png"
       sizes="192x192"
+    />
+    <link
+      rel="apple-touch-icon"
+      type="image/png"
+      href="${env.CDN_URL ?? ""}/images/icon-maskable-512.png"
+      sizes="512x512"
+    />
+    <link
+      rel="apple-touch-icon"
+      type="image/png"
+      href="${env.CDN_URL ?? ""}/images/icon-maskable-1024.png"
+      sizes="1024x1024"
     />
     <link
       rel="search"
@@ -174,6 +213,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
   let share, collection, document, team;
   let analytics: Integration<IntegrationType.Analytics>[] = [];
 
+  let sharedTree;
   try {
     team = await getTeamFromContext(ctx, { includeStateCookie: false });
     const result = await loadPublicShare({
@@ -185,6 +225,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
     share = result.share;
     collection = result.collection;
     document = result.document;
+    sharedTree = result.sharedTree;
 
     if (isUUID(shareId) && share?.urlId) {
       // Redirect temporarily because the url slug
@@ -215,6 +256,41 @@ export const renderShare = async (ctx: Context, next: Next) => {
   } catch (_err) {
     // If the share or document does not exist, return a 404.
     ctx.status = 404;
+  }
+
+  // If the client explicitly requests markdown and prefers it over HTML,
+  // or the URL path ends with .md, return the document as markdown. This is
+  // useful for LLMs and API clients.
+  const acceptHeader = ctx.request.headers.accept || "";
+  const prefersMarkdown =
+    ctx.params.format === "md" ||
+    (acceptHeader.includes("text/markdown") &&
+      ctx.accepts("text/markdown", "text/html") === "text/markdown");
+
+  if (prefersMarkdown && (document || collection)) {
+    let markdown = await DocumentHelper.toMarkdown(document || collection!, {
+      includeTitle: true,
+      signedUrls: 86400, // 24 hours
+      teamId: team?.id,
+    });
+
+    // Append child documents list if the share includes them
+    if (share?.includeChildDocuments && sharedTree) {
+      const node = document
+        ? (collection?.getDocumentTree(document.id) ?? sharedTree)
+        : sharedTree;
+
+      if (node?.children?.length) {
+        markdown += formatChildDocumentsAsMarkdown(
+          node.children,
+          share.canonicalUrl
+        );
+      }
+    }
+
+    ctx.type = "text/markdown";
+    ctx.body = markdown;
+    return;
   }
 
   // Allow shares to be embedded in iframes on other websites unless prevented by team preference
@@ -264,7 +340,9 @@ export const renderShare = async (ctx: Context, next: Next) => {
       (publicBranding && team?.description ? team.description : undefined),
     content,
     shortcutIcon:
-      publicBranding && team?.avatarUrl ? team.avatarUrl : undefined,
+      publicBranding && team?.avatarUrl
+        ? (await team.publicAvatarUrl()) ?? undefined
+        : undefined,
     analytics,
     isShare: true,
     rootShareId,

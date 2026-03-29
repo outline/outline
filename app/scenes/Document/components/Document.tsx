@@ -23,9 +23,10 @@ import { TextHelper } from "@shared/utils/TextHelper";
 import { determineIconType } from "@shared/utils/icon";
 import { isModKey } from "@shared/utils/keyboard";
 import type RootStore from "~/stores/RootStore";
-import Document from "~/models/Document";
+import type Document from "~/models/Document";
+import Template from "~/models/Template";
 import type Revision from "~/models/Revision";
-import DocumentMove from "~/scenes/DocumentMove";
+import DocumentMove from "~/components/DocumentExplorer/DocumentMove";
 import DocumentPublish from "~/scenes/DocumentPublish";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import LoadingIndicator from "~/components/LoadingIndicator";
@@ -49,7 +50,6 @@ import Contents from "./Contents";
 import Editor from "./Editor";
 import Header from "./Header";
 import Notices from "./Notices";
-import PublicReferences from "./PublicReferences";
 import References from "./References";
 import RevisionViewer from "./RevisionViewer";
 
@@ -141,7 +141,7 @@ class DocumentScene extends React.Component<Props> {
    * @param template The template to use
    * @param selection The selection to replace, if any
    */
-  replaceSelection = (template: Document | Revision, selection?: Selection) => {
+  replaceSelection = (template: Template | Revision, selection?: Selection) => {
     const editorRef = this.editor.current;
 
     if (!editorRef) {
@@ -164,7 +164,7 @@ class DocumentScene extends React.Component<Props> {
 
     this.isEditorDirty = true;
 
-    if (template instanceof Document) {
+    if (template instanceof Template) {
       this.props.document.templateId = template.id;
       this.props.document.fullWidth = template.fullWidth;
     }
@@ -200,7 +200,18 @@ class DocumentScene extends React.Component<Props> {
     const revisionId = location.state?.revisionId;
     const editorRef = this.editor.current;
 
-    if (!editorRef || !restore) {
+    if (!editorRef) {
+      return;
+    }
+
+    // Highlight search term when navigating from search results
+    const params = new URLSearchParams(location.search);
+    const searchTerm = params.get("q");
+    if (searchTerm) {
+      editorRef.commands.find({ text: searchTerm });
+    }
+
+    if (!restore) {
       return;
     }
 
@@ -407,7 +418,7 @@ class DocumentScene extends React.Component<Props> {
     void this.onSave();
   });
 
-  handleSelectTemplate = async (template: Document | Revision) => {
+  handleSelectTemplate = async (template: Template | Revision) => {
     const editorRef = this.editor.current;
     if (!editorRef) {
       return;
@@ -456,10 +467,7 @@ class DocumentScene extends React.Component<Props> {
       ((team?.getPreference(TeamPreference.TocPosition) as TOCPosition) ||
         TOCPosition.Left);
     const showContents =
-      tocPos &&
-      (isShare
-        ? ui.tocVisible !== false
-        : !document.isTemplate && ui.tocVisible === true);
+      tocPos && (isShare ? ui.tocVisible !== false : ui.tocVisible === true);
     const tocOffset =
       tocPos === TOCPosition.Left
         ? EditorStyleHelper.tocWidth / -2
@@ -528,6 +536,7 @@ class DocumentScene extends React.Component<Props> {
               />
             )}
             <Header
+              editorRef={this.editor}
               document={document}
               revision={revision}
               isDraft={document.isDraft}
@@ -557,23 +566,22 @@ class DocumentScene extends React.Component<Props> {
                   </EditorContainer>
                 }
               >
-                {revision ? (
-                  <RevisionContainer docFullWidth={document.fullWidth}>
+                <MeasuredContainer
+                  name="document"
+                  as={EditorContainer}
+                  docFullWidth={document.fullWidth}
+                  showContents={showContents}
+                  tocPosition={tocPos}
+                >
+                  {revision ? (
                     <RevisionViewer
+                      ref={this.editor}
                       document={document}
                       revision={revision}
                       id={revision.id}
                     />
-                  </RevisionContainer>
-                ) : (
-                  <>
-                    <MeasuredContainer
-                      name="document"
-                      as={EditorContainer}
-                      docFullWidth={document.fullWidth}
-                      showContents={showContents}
-                      tocPosition={tocPos}
-                    >
+                  ) : (
+                    <>
                       <Notices document={document} readOnly={readOnly} />
 
                       {showContents && (
@@ -587,7 +595,6 @@ class DocumentScene extends React.Component<Props> {
                         ref={this.editor}
                         multiplayer={multiplayerEditor}
                         isDraft={document.isDraft}
-                        template={document.isTemplate}
                         document={document}
                         value={readOnly ? document.data : undefined}
                         defaultValue={document.data}
@@ -606,26 +613,22 @@ class DocumentScene extends React.Component<Props> {
                         canComment={abilities.comment}
                         autoFocus={document.createdAt === document.updatedAt}
                       >
-                        {shareId ? (
-                          <ReferencesWrapper>
-                            <PublicReferences documentId={document.id} />
-                          </ReferencesWrapper>
-                        ) : !revision ? (
+                        {!revision && (
                           <ReferencesWrapper>
                             <References document={document} />
                           </ReferencesWrapper>
-                        ) : null}
+                        )}
                       </Editor>
-                    </MeasuredContainer>
-                    {showContents && (
-                      <ContentsContainer
-                        docFullWidth={document.fullWidth}
-                        position={tocPos}
-                      >
-                        <Contents />
-                      </ContentsContainer>
-                    )}
-                  </>
+                    </>
+                  )}
+                </MeasuredContainer>
+                {showContents && (
+                  <ContentsContainer
+                    docFullWidth={document.fullWidth}
+                    position={tocPos}
+                  >
+                    <Contents />
+                  </ContentsContainer>
                 )}
               </React.Suspense>
             </Main>
@@ -652,7 +655,7 @@ const Main = styled.div<MainProps>`
         ? tocPosition === TOCPosition.Left
           ? `${EditorStyleHelper.tocWidth}px minmax(0, 1fr)`
           : `minmax(0, 1fr) ${EditorStyleHelper.tocWidth}px`
-        : `1fr minmax(0, ${`calc(46em + 88px)`}) 1fr`};
+        : `1fr minmax(0, ${`calc(46em + ${EditorStyleHelper.documentGutter})`}) 1fr`};
   `};
 
   ${breakpoint("desktopLarge")`
@@ -661,8 +664,17 @@ const Main = styled.div<MainProps>`
         ? tocPosition === TOCPosition.Left
           ? `${EditorStyleHelper.tocWidth}px minmax(0, 1fr)`
           : `minmax(0, 1fr) ${EditorStyleHelper.tocWidth}px`
-        : `1fr minmax(0, ${`calc(52em + 88px)`}) 1fr`};
+        : `1fr minmax(0, ${`calc(${EditorStyleHelper.documentWidth} + ${EditorStyleHelper.documentGutter})`}) 1fr`};
   `};
+
+  @media print {
+    display: block;
+    max-width: ${({ fullWidth }: MainProps) =>
+    fullWidth
+      ? `100%`
+      : `calc(${EditorStyleHelper.documentWidth} + ${EditorStyleHelper.documentGutter})`
+    };
+  }
 `;
 
 type ContentsContainerProps = {
@@ -710,10 +722,10 @@ const EditorContainer = styled.div<EditorContainerProps>`
 
     // Decides the editor column position & span
     grid-column: ${({
-      docFullWidth,
-      showContents,
-      tocPosition,
-    }: EditorContainerProps) =>
+  docFullWidth,
+  showContents,
+  tocPosition,
+}: EditorContainerProps) =>
       docFullWidth
         ? showContents
           ? tocPosition === TOCPosition.Left
@@ -724,28 +736,17 @@ const EditorContainer = styled.div<EditorContainerProps>`
   `};
 `;
 
-type RevisionContainerProps = {
-  docFullWidth: boolean;
-};
-
-const RevisionContainer = styled.div<RevisionContainerProps>`
-  // Adds space to the gutter to make room for icon
-  padding: 0 40px;
-
-  ${breakpoint("tablet")`
-    grid-row: 1;
-    grid-column: ${({ docFullWidth }: RevisionContainerProps) =>
-      docFullWidth ? "1 / -1" : 2};
-  `}
-`;
-
 const Background = styled(Container)`
   position: relative;
   background: ${s("background")};
 `;
 
 const ReferencesWrapper = styled.div`
-  margin: 12px 0;
+  margin: 12px 0 60px;
+
+  ${breakpoint("tablet")`
+    margin-bottom: 12px;
+  `}
 
   @media print {
     display: none;

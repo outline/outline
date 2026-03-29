@@ -104,6 +104,11 @@ export const RevisionValidation = {
   maxNameLength: 255,
 };
 
+export const UserPasskeyValidation = {
+  minNameLength: 1,
+  maxNameLength: 255,
+};
+
 export const PinValidation = {
   /** The maximum number of pinned documents on an individual collection or home screen */
   max: 8,
@@ -127,6 +132,9 @@ export const TeamValidation = {
 
   /** The maximum length of the team subdomain for self-hosted */
   maxSubdomainSelfHostedLength: 255,
+
+  /** The maximum length of MCP workspace guidance */
+  maxGuidanceMCPLength: 2000,
 };
 
 export const UserValidation = {

@@ -70,30 +70,37 @@ export default class Comment extends Mark {
   }
 
   keys({ type }: { type: MarkType }): Record<string, Command> {
-    return this.options.onCreateCommentMark
-      ? {
-          "Mod-Alt-m": (state, dispatch) => {
-            if (
-              isMarkActive(state.schema.marks.comment, {
-                resolved: false,
-              })(state)
-            ) {
-              return false;
-            }
-
-            chainTransactions(
-              toggleMark(type, {
-                id: uuidv4(),
-                userId: this.options.userId,
-                draft: true,
-              }),
-              collapseSelection()
-            )(state, dispatch);
-
-            return true;
-          },
+    return {
+      "Mod-Alt-m": (state, dispatch) => {
+        if (state.selection.empty && this.options.onOpenCommentsSidebar) {
+          this.options.onOpenCommentsSidebar();
+          return true;
         }
-      : {};
+
+        if (!this.options.onCreateCommentMark) {
+          return false;
+        }
+
+        if (
+          isMarkActive(state.schema.marks.comment, {
+            resolved: false,
+          })(state)
+        ) {
+          return false;
+        }
+
+        chainTransactions(
+          toggleMark(type, {
+            id: uuidv4(),
+            userId: this.options.userId,
+            draft: true,
+          }),
+          collapseSelection()
+        )(state, dispatch);
+
+        return true;
+      },
+    };
   }
 
   commands() {

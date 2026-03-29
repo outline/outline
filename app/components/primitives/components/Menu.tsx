@@ -67,6 +67,7 @@ const BaseMenuItemCSS = css<BaseMenuItemProps>`
     !props.disabled &&
     `
       &[data-highlighted],
+      &[data-state="open"],
       &:focus-visible {
         color: ${props.theme.accentText};
         background: ${props.$dangerous ? props.theme.danger : props.theme.accent};
@@ -118,7 +119,7 @@ export const MenuLabel = styled.div`
   flex-grow: 1;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
 `;
 
 export const MenuHeader = styled.h3`

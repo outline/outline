@@ -30,11 +30,12 @@ You're an expert in the following areas:
 
 ## General Guidelines
 
+- Critical – Do not create new markdown (.md) files.
 - Use early returns for readability.
 - Emphasize type safety and static analysis.
 - Follow consistent Prettier formatting.
 - Do not replace smart quotes ("") or ('') with simple quotes ("").
-- Do not create new MD files.
+- Do not add translation strings manually; they will be extracted automatically from the codebase.
 
 ## Dependencies and Upgrading
 
@@ -69,7 +70,7 @@ yarn install
 ### Exports
 
 - Exported members must appear at the top of the file.
-- Prefer named exports for components & classes.
+- Always use named exports for new components & classes.
 - Document ALL public/exported functions with JSDoc.
 
 ## React Usage
@@ -78,7 +79,7 @@ yarn install
 - Event handlers should be prefixed with "handle", like "handleClick" for onClick.
 - Avoid unnecessary re-renders by using React.memo, useMemo, and useCallback appropriately.
 - Use descriptive prop types with TypeScript interfaces.
-- You do not need to import React unless it is used directly.
+- Do not import React unless it is used directly.
 - Use styled-components for component styling.
 - Ensure high accessibility (a11y) standards using ARIA roles and semantic HTML.
 
@@ -142,16 +143,16 @@ yarn sequelize migration:create --name=add-field-to-table
 - Run tests with Jest:
 
 ```bash
-# Run all tests
+# Run a specific test file (preferred)
+yarn test path/to/test.spec.ts
+
+# Run every test (avoid)
 yarn test
 
-# Run specific test suites
-yarn test:app      # Frontend tests
-yarn test:server   # Backend tests
-yarn test:shared   # Shared code tests
-
-# Run specific test file
-yarn test path/to/test.spec.ts
+# Run test suites (avoid)
+yarn test:app      # All frontend tests
+yarn test:server   # All backend tests
+yarn test:shared   # All shared code tests
 ```
 
 - Write unit tests for utilities and business logic in a collocated .test.ts file.

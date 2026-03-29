@@ -30,7 +30,7 @@ describe("POST /api/cron.daily", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toBe("limit: Number must be greater than 0");
+    expect(body.message).toBe("limit: Too small: expected number to be >0");
   });
 });
 
@@ -53,7 +53,7 @@ describe("GET /api/cron.daily", () => {
     const res = await server.get("/api/cron.daily?limit=-1");
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toBe("limit: Number must be greater than 0");
+    expect(body.message).toBe("limit: Too small: expected number to be >0");
   });
 });
 
@@ -84,7 +84,7 @@ describe("POST /api/utils.gc", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toBe("limit: Number must be greater than 0");
+    expect(body.message).toBe("limit: Too small: expected number to be >0");
   });
 });
 
@@ -107,7 +107,7 @@ describe("GET /api/utils.gc", () => {
     const res = await server.get("/api/utils.gc?limit=-1");
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toBe("limit: Number must be greater than 0");
+    expect(body.message).toBe("limit: Too small: expected number to be >0");
   });
 });
 

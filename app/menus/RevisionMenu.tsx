@@ -6,6 +6,7 @@ import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
 import { ActionSeparator } from "~/actions";
 import {
   copyLinkToRevision,
+  downloadRevision,
   restoreRevision,
 } from "~/actions/definitions/revisions";
 import { useMemo } from "react";
@@ -20,14 +21,19 @@ type Props = {
 function RevisionMenu({ document, revisionId }: Props) {
   const { t } = useTranslation();
   const actions = useMemo(
-    () => [restoreRevision, ActionSeparator, copyLinkToRevision(revisionId)],
+    () => [
+      restoreRevision,
+      ActionSeparator,
+      copyLinkToRevision(revisionId),
+      downloadRevision(revisionId),
+    ],
     [revisionId]
   );
 
   const rootAction = useMenuAction(actions);
 
   return (
-    <ActionContextProvider value={{ activeDocumentId: document.id }}>
+    <ActionContextProvider value={{ activeModels: [document] }}>
       <DropdownMenu
         action={rootAction}
         align="end"

@@ -74,6 +74,7 @@ router.post(
 
     await new ConfirmTeamDeleteEmail({
       to: user.email,
+      language: user.language,
       deleteConfirmationCode: team.getDeleteConfirmationCode(user),
     }).schedule();
 

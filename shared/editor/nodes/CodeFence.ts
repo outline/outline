@@ -8,7 +8,12 @@ import type {
   Node as ProsemirrorNode,
 } from "prosemirror-model";
 import type { Command, EditorState } from "prosemirror-state";
-import { Plugin, PluginKey, TextSelection } from "prosemirror-state";
+import {
+  NodeSelection,
+  Plugin,
+  PluginKey,
+  TextSelection,
+} from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { toast } from "sonner";
 import type { Primitive } from "utility-types";
@@ -28,12 +33,15 @@ import {
 import { selectAll } from "../commands/selectAll";
 import toggleBlockType from "../commands/toggleBlockType";
 import { CodeHighlighting } from "../extensions/CodeHighlighting";
-import Mermaid from "../extensions/Mermaid";
+import Mermaid, {
+  pluginKey as mermaidPluginKey,
+  type MermaidState,
+} from "../extensions/Mermaid";
 import {
   getRecentlyUsedCodeLanguage,
   setRecentlyUsedCodeLanguage,
 } from "../lib/code";
-import { isCode } from "../lib/isCode";
+import { isCode, isMermaid } from "../lib/isCode";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { findNextNewline, findPreviousNewline } from "../queries/findNewlines";
 import { findParentNode } from "../queries/findParentNode";
@@ -66,6 +74,10 @@ export default class CodeFence extends Node {
           default: DEFAULT_LANGUAGE,
           validate: "string",
         },
+        wrap: {
+          default: false,
+          validate: "boolean",
+        },
       },
       content: "text*",
       marks: "comment",
@@ -81,6 +93,7 @@ export default class CodeFence extends Node {
             node.querySelector("code") || node,
           getAttrs: (dom: HTMLDivElement) => ({
             language: dom.dataset.language,
+            wrap: dom.classList.contains("with-line-wrap"),
           }),
         },
         {
@@ -100,7 +113,11 @@ export default class CodeFence extends Node {
         "div",
         {
           class: `code-block ${
-            this.showLineNumbers ? "with-line-numbers" : ""
+            node.attrs.wrap
+              ? "with-line-wrap"
+              : this.showLineNumbers
+                ? "with-line-numbers"
+                : ""
           }`,
           "data-language": node.attrs.language,
         },
@@ -119,6 +136,55 @@ export default class CodeFence extends Node {
           language: getRecentlyUsedCodeLanguage() ?? DEFAULT_LANGUAGE,
           ...attrs,
         });
+      },
+      toggleCodeBlockWrap: (): Command => (state, dispatch) => {
+        const codeBlock = findParentNode(isCode)(state.selection);
+        if (!codeBlock) {
+          return false;
+        }
+
+        if (dispatch) {
+          dispatch(
+            state.tr.setNodeMarkup(codeBlock.pos, undefined, {
+              ...codeBlock.node.attrs,
+              wrap: !codeBlock.node.attrs.wrap,
+            })
+          );
+        }
+        return true;
+      },
+      edit_mermaid: (): Command => (state, dispatch) => {
+        const codeBlock =
+          state.selection instanceof NodeSelection &&
+          isCode(state.selection.node)
+            ? { pos: state.selection.from, node: state.selection.node }
+            : findParentNode(isCode)(state.selection);
+        if (!codeBlock || !isMermaid(codeBlock.node)) {
+          return false;
+        }
+
+        const mermaidState = mermaidPluginKey.getState(state) as MermaidState;
+        const decorations = mermaidState?.decorationSet.find(
+          codeBlock.pos,
+          codeBlock.pos + codeBlock.node.nodeSize
+        );
+        const nodeDecoration = decorations?.find(
+          (d) => d.spec.diagramId && d.from === codeBlock.pos
+        );
+        const diagramId = nodeDecoration?.spec.diagramId;
+
+        if (dispatch && diagramId) {
+          dispatch(
+            state.tr
+              .setMeta(mermaidPluginKey, {
+                editingId:
+                  mermaidState?.editingId === diagramId ? undefined : diagramId,
+              })
+              .setSelection(TextSelection.create(state.doc, codeBlock.pos + 1))
+              .scrollIntoView()
+          );
+        }
+        return true;
       },
       copyToClipboard: (): Command => (state, dispatch) => {
         const codeBlock = findParentNode(isCode)(state.selection);
@@ -174,7 +240,7 @@ export default class CodeFence extends Node {
       "Mod-[": outdentInCode,
     };
 
-    if (isMac()) {
+    if (isMac) {
       return {
         ...output,
         "Ctrl-a": moveToPreviousNewline,
@@ -191,6 +257,23 @@ export default class CodeFence extends Node {
       if (!codeBlock) {
         return DecorationSet.empty;
       }
+
+      if (isMermaid(codeBlock.node)) {
+        const mermaidState = mermaidPluginKey.getState(state) as MermaidState;
+        const decorations = mermaidState?.decorationSet.find(
+          codeBlock.pos,
+          codeBlock.pos + codeBlock.node.nodeSize
+        );
+        const nodeDecoration = decorations?.find(
+          (d) => d.spec.diagramId && d.from === codeBlock.pos
+        );
+        const diagramId = nodeDecoration?.spec.diagramId;
+
+        if (!diagramId || mermaidState?.editingId !== diagramId) {
+          return DecorationSet.empty;
+        }
+      }
+
       const decoration = Decoration.node(
         codeBlock.pos,
         codeBlock.pos + codeBlock.node.nodeSize,
@@ -204,11 +287,12 @@ export default class CodeFence extends Node {
         name: this.name,
         lineNumbers: this.showLineNumbers,
       }),
-      Mermaid({
-        name: this.name,
-        isDark: this.editor.props.theme.isDark,
-        editor: this.editor,
-      }),
+      this.name === "code_fence"
+        ? Mermaid({
+            isDark: this.editor.props.theme.isDark,
+            editor: this.editor,
+          })
+        : undefined,
       new Plugin({
         key: new PluginKey("code-fence-split"),
         props: {
@@ -262,7 +346,11 @@ export default class CodeFence extends Node {
           init: (_, state) => createActiveCodeBlockDecoration(state),
           apply: (tr, pluginState, oldState, newState) => {
             // Only recompute if selection or document changed
-            if (!tr.selectionSet && !tr.docChanged) {
+            if (
+              !tr.selectionSet &&
+              !tr.docChanged &&
+              !tr.getMeta(mermaidPluginKey)
+            ) {
               return pluginState;
             }
 
@@ -275,7 +363,7 @@ export default class CodeFence extends Node {
           },
         },
       }),
-    ];
+    ].filter(Boolean) as Plugin[];
   }
 
   inputRules({ type }: { type: NodeType }) {

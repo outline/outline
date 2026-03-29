@@ -4,7 +4,7 @@ import type { NodeType, MarkType, Schema } from "prosemirror-model";
 import type { Command, Plugin, Selection } from "prosemirror-state";
 import type { Editor } from "../../../app/editor";
 
-export type CommandFactory = (attrs?: unknown) => Command;
+export type CommandFactory = (attrs?: unknown, options?: unknown) => Command;
 
 export type WidgetProps = {
   rtl: boolean;
@@ -47,6 +47,11 @@ export default class Extension {
     return {};
   }
 
+  /**
+   * Whether this extension is needed in read-only mode. When false (default), pure Extension types
+   * are not instantiated and their commands are blocked. Node and Mark extensions are always
+   * instantiated for the schema regardless of this setting.
+   */
   get allowInReadOnly(): boolean {
     return false;
   }

@@ -18,7 +18,9 @@ import type { Permission } from "~/types";
 import { EmptySelectValue } from "~/types";
 import { homePath } from "~/utils/routeHelpers";
 import { ListItem } from "../components/ListItem";
+import { GroupMembersPopover } from "../components";
 import DocumentMemberListItem from "./DocumentMemberListItem";
+import ButtonLink from "~/components/ButtonLink";
 
 type Props = {
   /** Document to which team members are supposed to be invited */
@@ -29,7 +31,7 @@ type Props = {
   invitedInSession: string[];
 };
 
-function DocumentMembersList({ document, invitedInSession }: Props) {
+function DocumentMemberList({ document, invitedInSession }: Props) {
   const { userMemberships, groupMemberships } = useStores();
 
   const user = useCurrentUser();
@@ -87,7 +89,11 @@ function DocumentMembersList({ document, invitedInSession }: Props) {
   const members = React.useMemo(
     () =>
       orderBy(
-        document.members,
+        Array.from(
+          new Map(
+            document.members.map((memberUser) => [memberUser.id, memberUser])
+          ).values()
+        ),
         (memberUser) =>
           (invitedInSession.includes(memberUser.id) ? "_" : "") +
           memberUser.name.toLocaleLowerCase(),
@@ -122,12 +128,19 @@ function DocumentMembersList({ document, invitedInSession }: Props) {
 
   return (
     <>
-      {groupMemberships
-        .inDocument(document.id)
+      {Array.from(
+        new Map(
+          groupMemberships
+            .inDocument(document.id)
+            .map((membership) => [membership.group.id, membership])
+        ).values()
+      )
         .sort((a, b) =>
           (
             (invitedInSession.includes(a.group.id) ? "_" : "") + a.group.name
-          ).localeCompare(b.group.name)
+          ).localeCompare(
+            (invitedInSession.includes(b.group.id) ? "_" : "") + b.group.name
+          )
         )
         .map((membership) => {
           const MaybeLink = membership?.source ? StyledLink : React.Fragment;
@@ -153,9 +166,13 @@ function DocumentMembersList({ document, invitedInSession }: Props) {
                     </MaybeLink>
                   </Trans>
                 ) : (
-                  t("{{ count }} member", {
-                    count: membership.group.memberCount,
-                  })
+                  <GroupMembersPopover group={membership.group}>
+                    <StyledButtonLink>
+                      {t("{{ count }} member", {
+                        count: membership.group.memberCount,
+                      })}
+                    </StyledButtonLink>
+                  </GroupMembersPopover>
                 )
               }
               actions={
@@ -206,9 +223,16 @@ function DocumentMembersList({ document, invitedInSession }: Props) {
   );
 }
 
+const StyledButtonLink = styled(ButtonLink)`
+  color: ${s("textTertiary")};
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
 const StyledLink = styled(Link)`
   color: ${s("textTertiary")};
   text-decoration: underline;
 `;
 
-export default observer(DocumentMembersList);
+export default observer(DocumentMemberList);

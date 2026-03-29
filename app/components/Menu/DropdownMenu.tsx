@@ -13,6 +13,7 @@ import { MenuProvider } from "~/components/primitives/Menu/MenuContext";
 import { actionToMenuItem } from "~/actions";
 import useActionContext from "~/hooks/useActionContext";
 import useMobile from "~/hooks/useMobile";
+import { preventDefault } from "~/utils/events";
 import type {
   ActionVariant,
   ActionWithChildren,
@@ -98,11 +99,6 @@ export const DropdownMenu = observer(
         }
       }, []);
 
-      const handleCloseAutoFocus = React.useCallback(
-        (e: Event) => e.preventDefault(),
-        []
-      );
-
       if (isMobile) {
         return (
           <MobileDropdown
@@ -129,7 +125,7 @@ export const DropdownMenu = observer(
               aria-label={ariaLabel}
               onAnimationStart={disablePointerEvents}
               onAnimationEnd={enablePointerEvents}
-              onCloseAutoFocus={handleCloseAutoFocus}
+              onCloseAutoFocus={preventDefault}
             >
               {content}
               {append}

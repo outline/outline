@@ -21,6 +21,24 @@ export enum StatusFilter {
   Draft = "draft",
 }
 
+export enum SortFilter {
+  CreatedAt = "createdAt",
+  UpdatedAt = "updatedAt",
+  Title = "title",
+}
+
+export enum DirectionFilter {
+  ASC = "ASC",
+  DESC = "DESC",
+}
+
+/** Model types that support search indexing. */
+export enum SearchableModel {
+  Document = "document",
+  Collection = "collection",
+  Comment = "comment",
+}
+
 export enum CollectionStatusFilter {
   Archived = "archived",
 }
@@ -86,6 +104,7 @@ export enum MentionType {
   Group = "group",
   Issue = "issue",
   PullRequest = "pull_request",
+  Project = "project",
   URL = "url",
 }
 
@@ -128,7 +147,9 @@ export enum IntegrationService {
   Matomo = "matomo",
   Umami = "umami",
   GitHub = "github",
+  GitLab = "gitlab",
   Linear = "linear",
+  Figma = "figma",
   Notion = "notion",
 }
 
@@ -143,11 +164,14 @@ export const ImportableIntegrationService = {
 
 export type IssueTrackerIntegrationService = Extract<
   IntegrationService,
-  IntegrationService.GitHub | IntegrationService.Linear
+  | IntegrationService.GitHub
+  | IntegrationService.GitLab
+  | IntegrationService.Linear
 >;
 
 export const IssueTrackerIntegrationService = {
   GitHub: IntegrationService.GitHub,
+  GitLab: IntegrationService.GitLab,
   Linear: IntegrationService.Linear,
 } as const;
 
@@ -158,6 +182,7 @@ export type UserCreatableIntegrationService = Extract<
   | IntegrationService.GoogleAnalytics
   | IntegrationService.Matomo
   | IntegrationService.Umami
+  | IntegrationService.GitLab
 >;
 
 export const UserCreatableIntegrationService = {
@@ -166,6 +191,7 @@ export const UserCreatableIntegrationService = {
   GoogleAnalytics: IntegrationService.GoogleAnalytics,
   Matomo: IntegrationService.Matomo,
   Umami: IntegrationService.Umami,
+  GitLab: IntegrationService.GitLab,
 } as const;
 
 export enum CollectionPermission {
@@ -185,11 +211,34 @@ export enum GroupPermission {
   Admin = "admin",
 }
 
+/** Settings stored on an AuthenticationProvider for group synchronization. */
+export interface AuthenticationProviderSettings {
+  /** Whether group sync from this provider is enabled. */
+  groupSyncEnabled?: boolean;
+  /**
+   * The claim path in the OIDC userinfo/id_token response that contains
+   * group data (e.g. "groups", "roles", "custom.groups").
+   */
+  groupClaim?: string;
+  /**
+   * Additional scopes to request when group sync is enabled
+   * (e.g. "groups" for OIDC).
+   */
+  groupSyncScopes?: string[];
+}
+
 export type IntegrationSettings<T> = T extends IntegrationType.Embed
   ? {
       url?: string;
       github?: {
         installation: {
+          id: number;
+          account: { id: number; name: string; avatarUrl: string };
+        };
+      };
+      gitlab?: {
+        url?: string;
+        installation?: {
           id: number;
           account: { id: number; name: string; avatarUrl: string };
         };
@@ -211,28 +260,49 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
           ? {
               externalWorkspace: { id: string; name: string; iconUrl?: string };
             }
-          :
-              | { url: string }
-              | {
-                  github?: {
-                    installation: {
-                      id: number;
-                      account: {
-                        id?: number;
-                        name: string;
-                        avatarUrl?: string;
+          : T extends IntegrationType.LinkedAccount
+            ? {
+                slack?: { serviceTeamId: string; serviceUserId: string };
+                figma?: {
+                  account: {
+                    id: string;
+                    name: string;
+                    email: string;
+                    avatarUrl: string;
+                  };
+                };
+              }
+            :
+                | { url: string }
+                | {
+                    github?: {
+                      installation: {
+                        id: number;
+                        account: {
+                          id?: number;
+                          name: string;
+                          avatarUrl?: string;
+                        };
                       };
                     };
-                  };
-                  diagrams?: {
-                    url: string;
-                  };
-                }
-              | { url: string; channel: string; channelId: string }
-              | { serviceTeamId: string }
-              | { measurementId: string }
-              | { slack: { serviceTeamId: string; serviceUserId: string } }
-              | undefined;
+                    gitlab?: {
+                      url?: string;
+                      installation?: {
+                        id: number;
+                        account: {
+                          id?: number;
+                          name: string;
+                          avatarUrl?: string;
+                        };
+                      };
+                    };
+                    diagrams?: {
+                      url: string;
+                    };
+                  }
+                | { serviceTeamId: string }
+                | { measurementId: string }
+                | undefined;
 
 export enum UserPreference {
   /** Whether reopening the app should redirect to the last viewed document. */
@@ -249,9 +319,29 @@ export enum UserPreference {
   SortCommentsByOrderInDocument = "sortCommentsByOrderInDocument",
   /** Whether smart text replacements should be enabled. */
   EnableSmartText = "enableSmartText",
+  /** The style of notification badge to display. */
+  NotificationBadge = "notificationBadge",
 }
 
-export type UserPreferences = { [key in UserPreference]?: boolean };
+export enum NotificationBadgeType {
+  /** Do not show a notification badge. */
+  Disabled = "disabled",
+  /** Show the unread notification count. */
+  Count = "count",
+  /** Show an unread indicator dot. */
+  Indicator = "indicator",
+}
+
+export type UserPreferences = {
+  [UserPreference.RememberLastPath]?: boolean;
+  [UserPreference.UseCursorPointer]?: boolean;
+  [UserPreference.CodeBlockLineNumers]?: boolean;
+  [UserPreference.SeamlessEdit]?: boolean;
+  [UserPreference.FullWidthDocuments]?: boolean;
+  [UserPreference.SortCommentsByOrderInDocument]?: boolean;
+  [UserPreference.EnableSmartText]?: boolean;
+  [UserPreference.NotificationBadge]?: NotificationBadgeType;
+};
 
 export type SourceMetadata = {
   /** The original source file name. */
@@ -287,6 +377,12 @@ export enum TOCPosition {
   Right = "right",
 }
 
+export enum EmailDisplay {
+  None = "none",
+  Members = "members",
+  Everyone = "everyone",
+}
+
 export enum TeamPreference {
   /** Whether documents have a separate edit mode instead of always editing. */
   SeamlessEdit = "seamlessEdit",
@@ -314,6 +410,12 @@ export enum TeamPreference {
   TrashRetentionDays = "trashRetentionDays",
   /** The number of days to keep documents in the retention phase before permanent deletion. */
   DataRetentionDays = "dataRetentionDays",
+  /** Who can see user email addresses. */
+  EmailDisplay = "emailDisplay",
+  /** Whether external MCP clients can connect to the workspace. */
+  MCP = "mcp",
+  /** List of disabled embed provider titles. */
+  DisabledEmbeds = "disabledEmbeds",
 }
 
 export type TeamPreferences = {
@@ -330,6 +432,9 @@ export type TeamPreferences = {
   [TeamPreference.PreventDocumentEmbedding]?: boolean;
   [TeamPreference.TrashRetentionDays]?: number;
   [TeamPreference.DataRetentionDays]?: number;
+  [TeamPreference.EmailDisplay]?: EmailDisplay;
+  [TeamPreference.MCP]?: boolean;
+  [TeamPreference.DisabledEmbeds]?: string[];
 };
 
 export enum NavigationNodeType {
@@ -429,6 +534,7 @@ export enum UnfurlResourceType {
   Document = "document",
   Issue = "issue",
   PR = "pull",
+  Project = "project",
 }
 
 export type UnfurlResponse = {
@@ -439,6 +545,8 @@ export type UnfurlResponse = {
     url: string;
     /** A text title, describing the resource */
     title: string;
+    /** A color representing the resource */
+    color?: string;
     /** A brief description about the resource */
     description: string;
     /** A URL to a thumbnail image representing the resource */
@@ -534,6 +642,38 @@ export type UnfurlResponse = {
     /** Pull Request creation time */
     createdAt: string;
   };
+  [UnfurlResourceType.Project]: {
+    /** The resource type */
+    type: UnfurlResourceType.Project;
+    /** Project link */
+    url: string;
+    /** Project identifier */
+    id: string;
+    /** Project name */
+    name: string;
+    /** Project color */
+    color: string;
+    /** Project avatar URL */
+    avatarUrl?: string;
+    /** Project description */
+    description: string | null;
+    /** Project lead */
+    lead: { name: string; avatarUrl: string } | null;
+    /** Project state */
+    state: {
+      name: string;
+      color: string;
+      type: string;
+    };
+    /** Project labels */
+    labels: Array<{ name: string; color: string }>;
+    /** Project progress (0-1) */
+    progress?: number;
+    /** Project creation time */
+    createdAt: string;
+    /** Project target date */
+    targetDate: string | null;
+  };
 };
 
 export enum QueryNotices {
@@ -559,7 +699,7 @@ export type ProsemirrorData = {
   attrs?: JSONObject;
   marks?: {
     type: string;
-    attrs: JSONObject;
+    attrs?: JSONObject;
   }[];
 };
 
@@ -572,6 +712,16 @@ export enum IconType {
   SVG = "svg",
   Emoji = "emoji",
   Custom = "custom",
+}
+
+/** Edit modes for document text updates. */
+export enum TextEditMode {
+  /** Replace existing content with new content (default). */
+  Replace = "replace",
+  /** Append new content to the end of the document. */
+  Append = "append",
+  /** Prepend new content to the beginning of the document. */
+  Prepend = "prepend",
 }
 
 export enum EmojiCategory {

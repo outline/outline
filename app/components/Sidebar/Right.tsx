@@ -8,19 +8,23 @@ import ErrorBoundary from "~/components/ErrorBoundary";
 import Flex from "~/components/Flex";
 import ResizeBorder from "~/components/Sidebar/components/ResizeBorder";
 import useStores from "~/hooks/useStores";
+import useWindowScrollbarWidth from "~/hooks/useWindowScrollbarWidth";
 import { sidebarAppearDuration } from "~/styles/animations";
 
 interface Props extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
   border?: boolean;
+  /** When true, skip the entrance animation and render at full width immediately. */
+  skipInitialAnimation?: boolean;
 }
 
-function Right({ children, border, className }: Props) {
+function Right({ children, border, className, skipInitialAnimation }: Props) {
   const theme = useTheme();
   const { ui } = useStores();
   const [isResizing, setResizing] = React.useState(false);
   const maxWidth = theme.sidebarMaxWidth;
   const minWidth = theme.sidebarMinWidth + 16; // padding
+  const windowScrollbarWidth = useWindowScrollbarWidth();
 
   const handleDrag = React.useCallback(
     (event: MouseEvent) => {
@@ -67,16 +71,20 @@ function Right({ children, border, className }: Props) {
 
   const style = React.useMemo(
     () => ({
-      width: `${ui.sidebarRightWidth}px`,
+      width: windowScrollbarWidth
+        ? `${ui.sidebarRightWidth - windowScrollbarWidth}px`
+        : `${ui.sidebarRightWidth}px`,
     }),
-    [ui.sidebarRightWidth]
+    [ui.sidebarRightWidth, windowScrollbarWidth]
   );
 
   const animationProps = {
-    initial: {
-      width: 0,
-      opacity: 0.9,
-    },
+    initial: skipInitialAnimation
+      ? false
+      : {
+          width: 0,
+          opacity: 0.9,
+        },
     animate: {
       transition: isResizing
         ? { duration: 0 }

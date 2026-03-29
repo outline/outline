@@ -1,4 +1,8 @@
-import { getNameFromEmoji, getEmojiFromName } from "./emoji";
+import { getNameFromEmoji, getEmojiFromName, loadEmojiData } from "./emoji";
+
+beforeAll(async () => {
+  await loadEmojiData();
+});
 
 describe("getNameFromEmoji", () => {
   it("returns the correct shortcode", () => {

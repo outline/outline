@@ -4,14 +4,14 @@ import env from "./env";
 
 import "./logging/tracer"; // must come before importing any instrumented module
 
-import http from "http";
-import https from "https";
+import http from "node:http";
+import https from "node:https";
 import type { Context } from "koa";
 import Koa from "koa";
 import helmet from "koa-helmet";
 import logger from "koa-logger";
 import Router from "koa-router";
-import type { AddressInfo } from "net";
+import type { AddressInfo } from "node:net";
 import stoppable from "stoppable";
 import throng from "throng";
 import escape from "lodash/escape";
@@ -27,6 +27,8 @@ import ShutdownHelper, { ShutdownOrder } from "./utils/ShutdownHelper";
 import { checkConnection, sequelize } from "./storage/database";
 import Redis from "@server/storage/redis";
 import Metrics from "@server/logging/Metrics";
+import { CacheHelper } from "./utils/CacheHelper";
+import { RedisPrefixHelper } from "./utils/RedisPrefixHelper";
 import { PluginManager } from "./utils/PluginManager";
 
 // The number of processes to run, defaults to the number of CPU's available
@@ -60,6 +62,11 @@ async function master() {
 async function start(_id: number, disconnect: () => void) {
   // Ensure plugins are loaded
   PluginManager.loadPlugins();
+
+  // Clear unfurl cache in development so code changes take effect immediately
+  if (env.isDevelopment) {
+    void CacheHelper.clearData(RedisPrefixHelper.getUnfurlKey(""));
+  }
 
   // Find if SSL certs are available
   const ssl = getSSLOptions();

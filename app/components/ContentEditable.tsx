@@ -128,7 +128,14 @@ const ContentEditable = React.forwardRef(function ContentEditable_(
 
   React.useEffect(() => {
     if (contentRef.current && value !== contentRef.current.textContent) {
-      setInnerValue(value);
+      if (document.activeElement === contentRef.current) {
+        // Don't reset content while the user is actively editing. Update
+        // lastValue so that the next input or blur event will push the
+        // current DOM text back to the model via onChange.
+        lastValue.current = value;
+      } else {
+        setInnerValue(value);
+      }
     }
   }, [value, contentRef]);
 

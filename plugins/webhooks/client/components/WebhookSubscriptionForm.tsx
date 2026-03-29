@@ -18,6 +18,11 @@ import useMobile from "~/hooks/useMobile";
 import Flex from "@shared/components/Flex";
 
 const WEBHOOK_EVENTS = {
+  attachments: [
+    "attachments.create",
+    "attachments.update",
+    "attachments.delete",
+  ],
   users: [
     "users.create",
     "users.signin",
@@ -99,6 +104,35 @@ function generateSigningSecret() {
   return `ol_whs_${randomString(32)}`;
 }
 
+type EventCheckboxProps = {
+  label: string;
+  value: string;
+  style?: React.CSSProperties;
+  register: ReturnType<typeof useForm<FormData>>["register"];
+};
+
+function EventCheckbox({
+  label,
+  value,
+  register,
+  ...rest
+}: EventCheckboxProps) {
+  const checkbox = (
+    <>
+      <input type="checkbox" defaultValue={value} {...register("events", {})} />
+      <Text>{label}</Text>
+    </>
+  );
+
+  if (value === "*") {
+    return (
+      <GroupEventCheckboxLabel {...rest}>{checkbox}</GroupEventCheckboxLabel>
+    );
+  }
+
+  return <EventCheckboxLabel {...rest}>{checkbox}</EventCheckboxLabel>;
+}
+
 function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
   const { t } = useTranslation();
   const team = useCurrentTeam();
@@ -170,35 +204,6 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
   const verb = webhookSubscription ? t("Update") : t("Create");
   const inProgressVerb = webhookSubscription ? t("Updating") : t("Creating");
 
-  function EventCheckbox({
-    label,
-    value,
-    ...rest
-  }: {
-    label: string;
-    value: string;
-    style?: React.CSSProperties;
-  }) {
-    const checkbox = (
-      <>
-        <input
-          type="checkbox"
-          defaultValue={value}
-          {...register("events", {})}
-        />
-        <Text>{label}</Text>
-      </>
-    );
-
-    if (value === "*") {
-      return (
-        <GroupEventCheckboxLabel {...rest}>{checkbox}</GroupEventCheckboxLabel>
-      );
-    }
-
-    return <EventCheckboxLabel {...rest}>{checkbox}</EventCheckboxLabel>;
-  }
-
   return (
     <form onSubmit={formHandleSubmit(handleSubmit)}>
       <Text as="p" type="secondary">
@@ -246,6 +251,7 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
         label={t("All events")}
         value="*"
         style={{ marginLeft: 24 }}
+        register={register}
       />
       <FieldSet disabled={isAllEventSelected}>
         <Flex column>
@@ -290,6 +296,7 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
                             label={event}
                             value={event}
                             key={event}
+                            register={register}
                           />
                         ))}
                       </FieldSet>

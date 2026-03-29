@@ -92,6 +92,14 @@ export default function usePaginatedRequest<T = unknown>(
     setData(undefined);
     setPage(0);
     setOffset(0);
+    setPaginatedReq(
+      () => () =>
+        requestFn({
+          ...params,
+          offset: 0,
+          limit: fetchLimit,
+        })
+    );
   }, [requestFn]);
 
   return { data, next, loading, error, page, offset, end };

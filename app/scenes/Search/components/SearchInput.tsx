@@ -58,9 +58,8 @@ const StyledInput = styled.input`
   font-weight: 400;
   outline: none;
   border: 0;
-  background: ${s("sidebarBackground")};
+  background: ${s("inputBackground")};
   border-radius: 4px;
-
   color: ${s("text")};
 
   ::-webkit-search-cancel-button {

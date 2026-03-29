@@ -9,7 +9,7 @@ import type { Command } from "prosemirror-state";
 import { Plugin, TextSelection } from "prosemirror-state";
 import type { Primitive } from "utility-types";
 import Extension from "../lib/Extension";
-import { getEmojiFromName } from "../lib/emoji";
+import { getEmojiFromName, loadEmojiData } from "../lib/emoji";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import emojiRule from "../rules/emoji";
 import { isUUID } from "validator";
@@ -17,6 +17,13 @@ import type { ComponentProps } from "../types";
 import { CustomEmoji } from "../../components/CustomEmoji";
 
 export default class Emoji extends Extension {
+  constructor() {
+    super();
+    // Begin loading emoji data as soon as this extension is instantiated so
+    // it is available by the time the editor renders emoji nodes.
+    void loadEmojiData();
+  }
+
   get type() {
     return "node";
   }
@@ -63,7 +70,15 @@ export default class Emoji extends Extension {
           getEmojiFromName(name),
         ];
       },
-      leafText: (node) => getEmojiFromName(node.attrs["data-name"]),
+      leafText: (node) => {
+        const name = node.attrs["data-name"];
+        // Custom emojis are stored as UUIDs, preserve the shortcode format
+        // so they can be rendered by EmojiText component
+        if (isUUID(name)) {
+          return `:${name}:`;
+        }
+        return getEmojiFromName(name);
+      },
     };
   }
 

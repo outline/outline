@@ -63,7 +63,7 @@ declare global {
       /**
        * Set the badge on the app icon.
        */
-      setNotificationCount: (count: number) => Promise<void>;
+      setNotificationCount: (count: number | string) => Promise<void>;
 
       /**
        * Registers a callback to be called when the window is focused.

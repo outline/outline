@@ -1,7 +1,12 @@
 import { isEmail } from "class-validator";
 import { observer } from "mobx-react";
 import { v4 as uuidv4 } from "uuid";
-import { DocumentIcon, PlusIcon, CollectionIcon } from "outline-icons";
+import {
+  DocumentIcon,
+  PlusIcon,
+  NewDocumentIcon,
+  CollectionIcon,
+} from "outline-icons";
 import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
@@ -44,7 +49,6 @@ type Props = Omit<
 
 function MentionMenu({ search, isActive, ...rest }: Props) {
   const [loaded, setLoaded] = useState(false);
-  const [items, setItems] = useState<MentionItem[]>([]);
   const { t } = useTranslation();
   const { auth, documents, users, collections, groups } = useStores();
   const actorId = auth.currentUserId;
@@ -76,7 +80,15 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
 
   useEffect(() => {
     if (actorId && !loading) {
-      const items: MentionItem[] = users
+      setLoaded(true);
+    }
+  }, [actorId, loading]);
+
+  // Computed in the render body so MobX observer can track store access
+  // (e.g. searchSuppressed). Previously this lived inside a useEffect which
+  // runs outside the reactive context and triggered MobX warnings.
+  const items: MentionItem[] = actorId
+    ? users
         .findByQuery(search, { maxResults: maxResultsInSection })
         .map(
           (user) =>
@@ -122,7 +134,9 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
                 </Flex>
               ),
               title: group.name,
-              subtitle: t("{{ count }} members", { count: group.memberCount }),
+              subtitle: t("{{ count }} members", {
+                count: group.memberCount,
+              }),
               section: GroupSection,
               appendSpace: true,
               attrs: {
@@ -151,14 +165,14 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
                     <DocumentIcon />
                   ),
                   title: doc.title,
-                  subtitle: (
+                  subtitle: doc.collectionId ? (
                     <DocumentBreadcrumb
                       document={doc}
                       onlyText
                       reverse
                       maxDepth={2}
                     />
-                  ),
+                  ) : undefined,
                   section: DocumentsSection,
                   appendSpace: true,
                   attrs: {
@@ -218,22 +232,26 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
               label: search,
             },
           } as MentionItem,
-        ]);
-
-      setItems(items);
-      setLoaded(true);
-    }
-  }, [
-    t,
-    actorId,
-    loading,
-    search,
-    users,
-    documents,
-    maxResultsInSection,
-    groups,
-    collections,
-  ]);
+          {
+            name: "link",
+            icon: <NewDocumentIcon />,
+            title: search?.trim(),
+            section: DocumentsSection,
+            subtitle: t("Create a nested doc"),
+            visible: !!search && !isEmail(search) && !!documentId,
+            priority: -2,
+            appendSpace: true,
+            attrs: {
+              id: uuidv4(),
+              type: MentionType.Document,
+              modelId: uuidv4(),
+              actorId,
+              label: search,
+              nested: true,
+            },
+          } as MentionItem,
+        ])
+    : [];
 
   const handleSelect = useCallback(
     async (item: MentionItem) => {

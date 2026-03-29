@@ -26,24 +26,33 @@ export default class BacklinksProcessor extends BaseProcessor {
         await Promise.all(
           linkIds.map(async (linkId) => {
             const linkedDocument = await Document.findByPk(linkId, {
-              attributes: ["id"],
+              attributes: ["id", "teamId"],
             });
 
-            if (!linkedDocument || linkedDocument.id === event.documentId) {
+            if (
+              !linkedDocument ||
+              linkedDocument.id === event.documentId ||
+              linkedDocument.teamId !== document.teamId
+            ) {
               return;
             }
 
-            await Relationship.findOrCreate({
+            const existing = await Relationship.findOne({
               where: {
                 documentId: linkedDocument.id,
                 reverseDocumentId: event.documentId,
                 type: RelationshipType.Backlink,
               },
-              defaults: {
+            });
+
+            if (!existing) {
+              await Relationship.create({
+                documentId: linkedDocument.id,
+                reverseDocumentId: event.documentId,
                 userId: document.lastModifiedById,
                 type: RelationshipType.Backlink,
-              },
-            });
+              });
+            }
           })
         );
         break;
@@ -67,24 +76,33 @@ export default class BacklinksProcessor extends BaseProcessor {
         await Promise.all(
           linkIds.map(async (linkId) => {
             const linkedDocument = await Document.findByPk(linkId, {
-              attributes: ["id"],
+              attributes: ["id", "teamId"],
             });
 
-            if (!linkedDocument || linkedDocument.id === event.documentId) {
+            if (
+              !linkedDocument ||
+              linkedDocument.id === event.documentId ||
+              linkedDocument.teamId !== document.teamId
+            ) {
               return;
             }
 
-            await Relationship.findOrCreate({
+            const existing = await Relationship.findOne({
               where: {
                 documentId: linkedDocument.id,
                 reverseDocumentId: event.documentId,
                 type: RelationshipType.Backlink,
               },
-              defaults: {
+            });
+
+            if (!existing) {
+              await Relationship.create({
+                documentId: linkedDocument.id,
+                reverseDocumentId: event.documentId,
                 userId: document.lastModifiedById,
                 type: RelationshipType.Backlink,
-              },
-            });
+              });
+            }
             linkedDocumentIds.push(linkedDocument.id);
           })
         );

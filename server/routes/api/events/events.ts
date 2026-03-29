@@ -58,6 +58,11 @@ router.post(
       where = { ...where, actorId };
     }
 
+    // Non-admins must specify either documentId or collectionId to use the read policy
+    if (!user.isAdmin && !documentId && !collectionId) {
+      authorize(user, "listAllEvents", user.team);
+    }
+
     if (documentId) {
       const document = await Document.findByPk(documentId, {
         userId: user.id,
@@ -72,23 +77,6 @@ router.post(
       });
       authorize(user, "read", collection);
       where = { ...where, collectionId };
-    } else {
-      const collectionIds = await user.collectionIds({
-        paranoid: false,
-      });
-      where = {
-        ...where,
-        [Op.or]: [
-          {
-            collectionId: collectionIds,
-          },
-          {
-            collectionId: {
-              [Op.is]: null,
-            },
-          },
-        ],
-      };
     }
 
     const loadedEvents = await Event.findAll({

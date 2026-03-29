@@ -19,7 +19,8 @@ import type { AuthenticationResult } from "@server/types";
 import {
   StateStore,
   getTeamFromContext,
-  getClientFromContext,
+  getClientFromOAuthState,
+  getUserFromOAuthState,
   request,
 } from "@server/utils/passport";
 import config from "../../plugin.json";
@@ -70,7 +71,7 @@ export function createOIDCRouter(
         context: Context,
         accessToken: string,
         refreshToken: string,
-        params: { expires_in: number; id_token: string },
+        params: { expires_in: number; id_token: string; scope?: string },
         _profile: unknown,
         done: (
           err: Error | null,
@@ -121,7 +122,9 @@ export function createOIDCRouter(
           }
 
           const team = await getTeamFromContext(context);
-          const client = getClientFromContext(context);
+          const client = getClientFromOAuthState(context);
+          const user =
+            context.state?.auth?.user ?? (await getUserFromOAuthState(context));
           const { domain } = parseEmail(email);
 
           // Only a single OIDC provider is supported – find the existing, if any.
@@ -187,7 +190,11 @@ export function createOIDCRouter(
             avatarUrl = null;
           }
 
-          const ctx = createContext({ ip: context.ip });
+          const ctx = createContext({
+            ip: context.ip,
+            user,
+            authType: context.state?.auth?.type,
+          });
           const result = await accountProvisioner(ctx, {
             team: {
               teamId: team?.id,
@@ -209,7 +216,7 @@ export function createOIDCRouter(
               accessToken,
               refreshToken,
               expiresIn: params.expires_in,
-              scopes,
+              scopes: params.scope ? params.scope.split(" ") : scopes,
             },
           });
           return done(null, result.user, { ...result, client });

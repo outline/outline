@@ -15,15 +15,27 @@ import packageJson from "../../../package.json";
 import ExportTask from "./ExportTask";
 
 export default class ExportJSONTask extends ExportTask {
-  public async export(collections: Collection[], fileOperation: FileOperation) {
+  public async exportCollections(
+    collections: Collection[],
+    fileOperation: FileOperation
+  ) {
     const zip = new JSZip();
+    const usedFilenames = new Set<string>();
 
     // serial to avoid overloading, slow and steady wins the race
     for (const collection of collections) {
+      let filename = serializeFilename(collection.name);
+      let i = 0;
+      while (usedFilenames.has(filename)) {
+        filename = `${serializeFilename(collection.name)} (${++i})`;
+      }
+      usedFilenames.add(filename);
+
       await this.addCollectionToArchive(
         zip,
         collection,
-        fileOperation.options?.includeAttachments ?? true
+        fileOperation.options?.includeAttachments ?? true,
+        filename
       );
     }
 
@@ -54,7 +66,8 @@ export default class ExportJSONTask extends ExportTask {
   private async addCollectionToArchive(
     zip: JSZip,
     collection: Collection,
-    includeAttachments: boolean
+    includeAttachments: boolean,
+    filename: string
   ) {
     const output: CollectionJSONExport = {
       collection: {
@@ -136,7 +149,6 @@ export default class ExportJSONTask extends ExportTask {
             ? document.publishedAt.toISOString()
             : null,
           fullWidth: document.fullWidth,
-          template: document.template,
           parentDocumentId: document.parentDocumentId,
         };
 
@@ -164,10 +176,14 @@ export default class ExportJSONTask extends ExportTask {
     }
 
     zip.file(
-      `${serializeFilename(collection.name)}.json`,
+      `${filename}.json`,
       env.isDevelopment
         ? JSON.stringify(output, null, 2)
         : JSON.stringify(output)
     );
+  }
+
+  public async exportDocument(): Promise<string> {
+    throw new Error("JSON export unsupported for individual document.");
   }
 }

@@ -9,23 +9,20 @@ import { BaseSchema } from "../schema";
 export const UrlsUnfurlSchema = BaseSchema.extend({
   body: z
     .object({
-      url: z
-        .string()
-        .url()
-        .refine(
-          (val) => {
-            try {
-              const url = new URL(val);
-              if (url.protocol === "mention:") {
-                return ValidateURL.isValidMentionUrl(val);
-              }
-              return isUrl(val);
-            } catch (_err) {
-              return false;
+      url: z.url().refine(
+        (val) => {
+          try {
+            const url = new URL(val);
+            if (url.protocol === "mention:") {
+              return ValidateURL.isValidMentionUrl(val);
             }
-          },
-          { message: ValidateURL.message }
-        ),
+            return isUrl(val);
+          } catch (_err) {
+            return false;
+          }
+        },
+        { message: ValidateURL.message }
+      ),
       documentId: z
         .string()
         .optional()
@@ -33,14 +30,16 @@ export const UrlsUnfurlSchema = BaseSchema.extend({
           (val) =>
             val ? isUUID(val) || UrlHelper.SLUG_URL_REGEX.test(val) : true,
           {
-            message: "must be uuid or url slug",
+            error: "must be uuid or url slug",
           }
         ),
     })
     .refine(
       (val) =>
         !(ValidateURL.isValidMentionUrl(val.url) && isNil(val.documentId)),
-      { message: "documentId required" }
+      {
+        error: "documentId required",
+      }
     ),
 });
 
@@ -53,3 +52,11 @@ export const UrlsCheckCnameSchema = BaseSchema.extend({
 });
 
 export type UrlsCheckCnameReq = z.infer<typeof UrlsCheckCnameSchema>;
+
+export const UrlsCheckEmbedSchema = BaseSchema.extend({
+  body: z.object({
+    url: z.url().refine((val) => isUrl(val), { message: ValidateURL.message }),
+  }),
+});
+
+export type UrlsCheckEmbedReq = z.infer<typeof UrlsCheckEmbedSchema>;

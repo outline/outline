@@ -1,4 +1,4 @@
-import { TeamPreference } from "@shared/types";
+import { TeamPreference, EmailDisplay } from "@shared/types";
 import { User, Team } from "@server/models";
 import { allow } from "./cancan";
 import {
@@ -38,14 +38,30 @@ allow(User, ["update", "readDetails", "listApiKeys"], User, (actor, user) =>
   )
 );
 
-allow(User, "readEmail", User, (actor, user) =>
-  or(
+allow(User, "readEmail", User, (actor, user) => {
+  const emailDisplay =
+    actor.team?.getPreference(TeamPreference.EmailDisplay) ??
+    EmailDisplay.Members;
+
+  if (emailDisplay === EmailDisplay.None) {
+    return or(isTeamAdmin(actor, user), actor.id === user?.id);
+  }
+
+  if (emailDisplay === EmailDisplay.Members) {
+    return or(
+      isTeamAdmin(actor, user),
+      isTeamMember(actor, user),
+      actor.id === user?.id
+    );
+  }
+
+  // EmailDisplay.Everyone
+  return or(
     //
-    isTeamAdmin(actor, user),
-    isTeamMember(actor, user),
+    isTeamModel(actor, user),
     actor.id === user?.id
-  )
-);
+  );
+});
 
 allow(User, "delete", User, (actor, user) =>
   or(

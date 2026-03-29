@@ -29,6 +29,7 @@ import {
 import { cn } from "../styles/utils";
 import type { ComponentProps } from "../types";
 import { toDisplayUrl, cdnPath } from "../../utils/urls";
+import Squircle from "../../components/Squircle";
 
 type Attrs = {
   className: string;
@@ -193,7 +194,7 @@ export const MentionURL = (props: IssueUrlProps) => {
   } = getAttributesFromNode(node);
 
   const url = String(attrs.href);
-  const unfurl = unfurls.get(attrs.href)?.data ?? unfurlAttr;
+  const unfurl = unfurls.get(url)?.data ?? unfurlAttr;
 
   React.useEffect(() => {
     const fetchUnfurl = async () => {
@@ -204,31 +205,39 @@ export const MentionURL = (props: IssueUrlProps) => {
           return;
         }
 
+        // We got a result back from the server, so update the unfurl in the node attributes.
         if (unfurlModel) {
           onChangeUnfurl(
             unfurlModel.data satisfies UnfurlResponse[UnfurlResourceType.URL]
           );
-        } else {
-          // If we didn't get a result back, we still want to add a basic unfurl
-          // to avoid refetching again in future. This will just show the URL
-          // with a generic link icon.
-          unfurls.add({
-            id: url,
-            type: UnfurlResourceType.URL,
-            fetchedAt: new Date().toISOString(),
-            data: {
+          return;
+        }
+
+        const attrs = getAttributesFromNode(node);
+        // If we have a unfurl attribute, use that.
+        // Otherwise, set a basic unfurl to avoid refetching again in future.
+        // This will just show the URL with a generic link icon.
+        const data = attrs.unfurl
+          ? attrs.unfurl
+          : {
               title: toDisplayUrl(url),
               faviconUrl: cdnPath("/images/link.png"),
-            },
-          });
-        }
+            };
+        unfurls.add({
+          id: url,
+          type: UnfurlResourceType.URL,
+          fetchedAt: new Date().toISOString(),
+          data,
+        });
       } finally {
-        setLoaded(true);
+        if (isMounted()) {
+          setLoaded(true);
+        }
       }
     };
 
     void fetchUnfurl();
-  }, [unfurls, attrs.href, isMounted]);
+  }, [unfurls, url, node, isMounted]);
 
   if (!unfurl) {
     return !loaded ? (
@@ -244,7 +253,7 @@ export const MentionURL = (props: IssueUrlProps) => {
       className={cn(className, {
         "ProseMirror-selectednode": isSelected,
       })}
-      href={attrs.href as string}
+      href={url}
       target="_blank"
       rel="noopener noreferrer nofollow"
     >
@@ -304,11 +313,18 @@ export const MentionIssue = observer((props: IssuePrProps) => {
 
   const issue = unfurl as UnfurlResponse[UnfurlResourceType.Issue];
 
-  const url = new URL(issue.url);
-  const service =
-    url.hostname === "github.com"
-      ? IntegrationService.GitHub
-      : IntegrationService.Linear;
+  let service = IntegrationService.GitLab;
+  try {
+    const parsedUrl = new URL(issue.url);
+    service =
+      parsedUrl.hostname === "github.com"
+        ? IntegrationService.GitHub
+        : parsedUrl.hostname === "linear.app"
+          ? IntegrationService.Linear
+          : IntegrationService.GitLab;
+  } catch {
+    // Invalid URL in unfurl data, default to GitLab
+  }
 
   return (
     <a
@@ -327,6 +343,87 @@ export const MentionIssue = observer((props: IssuePrProps) => {
             <Backticks content={issue.title} />
           </Text>
           <Text type="tertiary">{issue.id}</Text>
+        </Flex>
+      </Flex>
+    </a>
+  );
+});
+
+type ProjectProps = ComponentProps & {
+  onChangeUnfurl: (unfurl: UnfurlResponse[UnfurlResourceType.Project]) => void;
+};
+
+export const MentionProject = observer((props: ProjectProps) => {
+  const { unfurls } = useStores();
+  const isMounted = useIsMounted();
+  const [loaded, setLoaded] = React.useState(false);
+  const onChangeUnfurl = React.useRef(props.onChangeUnfurl).current;
+
+  const { isSelected, node } = props;
+  const {
+    className,
+    unfurl: unfurlAttr,
+    ...attrs
+  } = getAttributesFromNode(node);
+
+  const unfurl = unfurls.get(attrs.href)?.data ?? unfurlAttr;
+
+  React.useEffect(() => {
+    const fetchProject = async () => {
+      const unfurlModel = await unfurls.fetchUnfurl({ url: attrs.href });
+
+      if (!isMounted()) {
+        return;
+      }
+
+      if (unfurlModel) {
+        onChangeUnfurl({
+          ...unfurlModel.data,
+          description: null,
+        } satisfies UnfurlResponse[UnfurlResourceType.Project]);
+      }
+
+      setLoaded(true);
+    };
+
+    void fetchProject();
+  }, [unfurls, attrs.href, isMounted, onChangeUnfurl]);
+
+  if (!unfurl) {
+    return !loaded ? (
+      <MentionLoading className={className} />
+    ) : (
+      <MentionError className={className} />
+    );
+  }
+
+  const project = unfurl as UnfurlResponse[UnfurlResourceType.Project];
+
+  return (
+    <a
+      {...attrs}
+      className={cn(className, {
+        "ProseMirror-selectednode": isSelected,
+      })}
+      href={attrs.href as string}
+      target="_blank"
+      rel="noopener noreferrer nofollow"
+    >
+      <Flex align="center" gap={6}>
+        {project.avatarUrl ? (
+          <ProjectAvatar src={project.avatarUrl} alt="" />
+        ) : (
+          <Squircle color={project.color} size={12} />
+        )}
+        <Flex align="center" gap={4}>
+          <Text>
+            <Backticks content={project.name} />
+          </Text>
+          <Text type="tertiary">
+            {project.progress !== undefined
+              ? `${Math.round(project.progress * 100)}%`
+              : project.id}
+          </Text>
         </Flex>
       </Flex>
     </a>
@@ -435,4 +532,10 @@ const StyledWarningIcon = styled(WarningIcon)`
 const Logo = styled.img`
   width: 16px;
   height: 16px;
+`;
+
+const ProjectAvatar = styled.img`
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
 `;

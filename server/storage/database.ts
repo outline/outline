@@ -1,4 +1,4 @@
-import path from "path";
+import path from "node:path";
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import sequelizeStrictAttributes from "sequelize-strict-attributes";
 import type { SequelizeOptions } from "sequelize-typescript";
@@ -6,9 +6,12 @@ import { Sequelize } from "sequelize-typescript";
 import type { MigrationError } from "umzug";
 import { Umzug, SequelizeStorage } from "umzug";
 import env from "@server/env";
+import { ClientClosedRequestError } from "@server/errors";
 import type Model from "@server/models/base/Model";
 import Logger from "../logging/Logger";
 import * as models from "../models";
+import { requestContext } from "./requestContext";
+import { getConnectionName } from "./utils";
 
 /**
  * Returns database configuration for Sequelize constructor.
@@ -64,6 +67,7 @@ export function createDatabaseInstance(
       typeValidation: true,
       logQueryParameters: env.isDevelopment,
       dialectOptions: {
+        application_name: getConnectionName(),
         ssl:
           env.isProduction && !isSSLDisabled
             ? {
@@ -100,6 +104,22 @@ export function createDatabaseInstance(
     }
 
     sequelizeStrictAttributes(instance);
+
+    if (env.isTest) {
+      instance = monkeyPatchSequelizeErrorsForJest(instance);
+    }
+
+    // Skip queries when the originating HTTP request socket has been destroyed
+    // (e.g. client disconnected or server timeout). This avoids wasting database
+    // resources on work whose response can never be delivered.
+    const assertConnectionOpen = () => {
+      const store = requestContext.getStore();
+      if (store?.req.socket.destroyed) {
+        throw ClientClosedRequestError();
+      }
+    };
+    instance.addHook("beforeFind", assertConnectionOpen);
+    instance.addHook("beforeCount", assertConnectionOpen);
 
     // Add hooks to warn about write operations on read-only connections
     if (isReadOnly) {
@@ -208,15 +228,52 @@ export function createMigrationRunner(
   });
 }
 
+/**
+ * Fixed in Sequelize v7, but hasn't been back-ported to Sequelize v6.
+ * See https://github.com/sequelize/sequelize/issues/14807#issuecomment-1854398131
+ */
+export function monkeyPatchSequelizeErrorsForJest(instance: Sequelize) {
+  if (typeof jest === "undefined") {
+    return instance;
+  }
+
+  const sequelizeVersion = (Sequelize as any).version;
+  const major = sequelizeVersion.split(".").map(Number)[0];
+
+  if (major >= 7) {
+    Logger.fatal(
+      "Redundant patch",
+      new Error(
+        "This patch was made redundant in Sequelize v7, you should check!"
+      )
+    );
+  }
+
+  const origQueryFunc = instance.query;
+  instance.query = async function query(this: Sequelize, ...args: any[]) {
+    let result;
+    try {
+      result = await origQueryFunc.apply(this, args as any);
+    } catch (err: any) {
+      // Ensure error appears in Jest output, not swallowed by Sequelize internals
+      Logger.error(err.message, err.parent);
+      throw err;
+    }
+    return result;
+  } as typeof origQueryFunc;
+
+  return instance;
+}
+
 export const sequelize = createDatabaseInstance(databaseConfig, models);
 
 /**
  * Read-only database connection for read replicas.
- * Falls back to the main connection if DATABASE_URL_READ_ONLY is not set.
+ * Falls back to the main connection if DATABASE_READ_ONLY_URL is not set.
  */
-export const sequelizeReadOnly = env.DATABASE_URL_READ_ONLY
+export const sequelizeReadOnly = env.DATABASE_READ_ONLY_URL
   ? createDatabaseInstance(
-      env.DATABASE_URL_READ_ONLY,
+      env.DATABASE_READ_ONLY_URL,
       {},
       {
         readOnly: true,

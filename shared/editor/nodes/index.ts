@@ -42,25 +42,27 @@ import TableCell from "./TableCell";
 import TableHeader from "./TableHeader";
 import TableRow from "./TableRow";
 import Text from "./Text";
+import ToggleBlock from "./ToggleBlock";
+
 import Video from "./Video";
 
 type Nodes = (typeof Node | typeof Mark | typeof Extension)[];
 
 /**
- * The basic set of nodes that are used in the editor. This is used for simple
+ * A set of inline nodes that are used in the editor. This is used for simple
  * editors that need basic formatting.
  */
-export const basicExtensions: Nodes = [
+export const inlineExtensions: Nodes = [
   Doc,
   Paragraph,
   Emoji,
   Text,
   SimpleImage,
+  Link,
   Code,
   Bold,
   Italic,
   Underline,
-  Link,
   Strikethrough,
   History,
   TrailingNode,
@@ -88,11 +90,17 @@ export const tableExtensions: Nodes = [
 ];
 
 /**
+ * The basic set of nodes that are used in the editor. This is used for simple
+ * editors that need basic formatting and lists.
+ */
+export const basicExtensions: Nodes = [...inlineExtensions, ...listExtensions];
+
+/**
  * The full set of nodes that are used in the editor. This is used for rich
  * editors that need advanced formatting.
  */
 export const richExtensions: Nodes = [
-  ...basicExtensions.filter((n) => n !== SimpleImage),
+  ...inlineExtensions.filter((n) => n !== SimpleImage),
   Image,
   CodeBlock,
   CodeFence,
@@ -108,6 +116,7 @@ export const richExtensions: Nodes = [
   Math,
   MathBlock,
   Mention,
+  ToggleBlock,
   // Container type nodes should be last so that key handlers are registered for content inside
   // the container nodes first.
   ...listExtensions,
@@ -118,7 +127,7 @@ export const richExtensions: Nodes = [
  * Add commenting and mentions to a set of nodes
  */
 export const withComments = (nodes: Nodes) => [
-  ...nodes.filter((node) => node !== Mention),
   Mention,
   Comment,
+  ...nodes.filter((node) => node !== Mention),
 ];

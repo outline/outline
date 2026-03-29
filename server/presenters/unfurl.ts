@@ -22,6 +22,8 @@ async function presentUnfurl(
       return presentPR(data);
     case UnfurlResourceType.Issue:
       return presentIssue(data);
+    case UnfurlResourceType.Project:
+      return presentProject(data);
     default:
       return presentURL(data);
   }
@@ -29,14 +31,22 @@ async function presentUnfurl(
 
 const presentURL = (
   data: Record<string, any>
-): UnfurlResponse[UnfurlResourceType.URL] => ({
-  type: UnfurlResourceType.URL,
-  url: data.url,
-  title: data.meta.title,
-  description: data.meta.description,
-  thumbnailUrl: (data.links.thumbnail ?? [])[0]?.href ?? "",
-  faviconUrl: (data.links.icon ?? [])[0]?.href ?? "",
-});
+): UnfurlResponse[UnfurlResourceType.URL] => {
+  // TODO: For backwards compatibility, remove once cache has expired in next release.
+  if (data.transformedUnfurl) {
+    delete data.transformedUnfurl;
+    return data as UnfurlResponse[UnfurlResourceType.URL]; // this would have been transformed by the unfurl plugin.
+  }
+
+  return {
+    type: UnfurlResourceType.URL,
+    url: data.url,
+    title: data.meta.title,
+    description: data.meta.description,
+    thumbnailUrl: (data.links.thumbnail ?? [])[0]?.href ?? "",
+    faviconUrl: (data.links.icon ?? [])[0]?.href ?? "",
+  };
+};
 
 const presentMention = async (
   data: Record<string, any>,
@@ -102,6 +112,11 @@ const presentIssue = (
   data: Record<string, any>
 ): UnfurlResponse[UnfurlResourceType.Issue] =>
   data as UnfurlResponse[UnfurlResourceType.Issue]; // this would have been transformed by the unfurl plugin.
+
+const presentProject = (
+  data: Record<string, any>
+): UnfurlResponse[UnfurlResourceType.Project] =>
+  data as UnfurlResponse[UnfurlResourceType.Project]; // this would have been transformed by the unfurl plugin.
 
 const presentLastOnlineInfoFor = (user: User) => {
   const locale = dateLocale(user.language);

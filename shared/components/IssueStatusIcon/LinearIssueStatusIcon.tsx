@@ -28,7 +28,7 @@ export function LinearIssueStatusIcon(props: BaseIconProps) {
   const isCompleted = state.type === StateType.Completed;
   // Due to some rendering issues and differences between browsers, the logical constant 4 in the rendering below
   // needs to be a bit less to make 50% look like half a circle.
-  const magicFour = isSafari() ? 3.895 : 3.98;
+  const magicFour = isSafari ? 3.895 : 3.98;
 
   return (
     <svg width={size} height={size} viewBox="0 0 14 14" fill="none">

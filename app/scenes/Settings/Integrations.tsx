@@ -10,7 +10,7 @@ import Text from "~/components/Text";
 import useSettingsConfig from "~/hooks/useSettingsConfig";
 import useStores from "~/hooks/useStores";
 import { settingsPath } from "~/utils/routeHelpers";
-import IntegrationCard from "./components/IntegrationCard";
+import IntegrationCard, { Card } from "./components/IntegrationCard";
 import { StickyFilters } from "./components/StickyFilters";
 import { observer } from "mobx-react";
 
@@ -46,7 +46,7 @@ function Integrations() {
           Configure a variety of integrations with third-party services.
         </Trans>
       </Text>
-      <StickyFilters gap={8}>
+      <StickyFilters>
         <InputSearch
           short
           value={query}
@@ -62,6 +62,9 @@ function Integrations() {
         {groupedItems.available?.map((item) => (
           <IntegrationCard key={item.path} integration={item} />
         ))}
+        {groupedItems.available?.length % 2 === 1 && (
+          <Card style={{ visibility: "hidden" }} />
+        )}
       </Cards>
     </Scene>
   );

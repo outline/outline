@@ -4,6 +4,8 @@ import queryString from "query-string";
 import EDITOR_VERSION from "@shared/editor/version";
 import type { JSONObject } from "@shared/types";
 import { Scope } from "@shared/types";
+import { version } from "../../package.json";
+import env from "~/env";
 import stores from "~/stores";
 import Logger from "./Logger";
 import download from "./download";
@@ -34,6 +36,7 @@ interface FetchOptions {
   retry?: boolean;
   credentials?: "omit" | "same-origin" | "include";
   headers?: Record<string, string>;
+  baseUrl?: string;
 }
 
 const fetchWithRetry = retry(fetch);
@@ -42,6 +45,9 @@ class ApiClient {
   baseUrl: string;
 
   shareId?: string;
+
+  /** Map of in-flight POST requests for deduplication, keyed by path + body. */
+  private inflightRequests = new Map<string, Promise<any>>();
 
   constructor(options: Options = {}) {
     this.baseUrl = options.baseUrl || "/api";
@@ -97,14 +103,15 @@ class ApiClient {
     if (path.match(/^http/)) {
       urlToFetch = modifiedPath || path;
     } else {
-      urlToFetch = this.baseUrl + (modifiedPath || path);
+      urlToFetch = (options.baseUrl ?? this.baseUrl) + (modifiedPath || path);
     }
 
     const headerOptions: Record<string, string> = {
       Accept: "application/json",
       "cache-control": "no-cache",
       "x-editor-version": EDITOR_VERSION,
-      "x-api-version": "3",
+      "x-api-version": "4",
+      "x-client-version": env.VERSION ? `${version}-${env.VERSION}` : version,
       pragma: "no-cache",
       ...options?.headers,
     };
@@ -175,6 +182,7 @@ class ApiClient {
       if (!this.shareId) {
         await stores.auth.logout({
           savePath: true,
+          clearCache: false,
           revokeToken: false,
         });
       }
@@ -278,7 +286,23 @@ class ApiClient {
     path: string,
     data?: JSONObject | FormData | undefined,
     options?: FetchOptions
-  ) => this.fetch<T>(path, "POST", data, options);
+  ): Promise<T> => {
+    if (data instanceof FormData) {
+      return this.fetch<T>(path, "POST", data, options);
+    }
+
+    const key = `${path}:${JSON.stringify(data)}:${JSON.stringify(options)}`;
+    const inflight = this.inflightRequests.get(key);
+    if (inflight) {
+      return inflight;
+    }
+
+    const promise = this.fetch<T>(path, "POST", data, options).finally(() => {
+      this.inflightRequests.delete(key);
+    });
+    this.inflightRequests.set(key, promise);
+    return promise;
+  };
 }
 
 export const client = new ApiClient();

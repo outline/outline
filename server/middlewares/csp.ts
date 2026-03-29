@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import crypto from "node:crypto";
 import type { Context, Next } from "koa";
 import { contentSecurityPolicy } from "koa-helmet";
 import uniq from "lodash/uniq";

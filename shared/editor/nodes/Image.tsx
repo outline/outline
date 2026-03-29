@@ -20,6 +20,7 @@ import { ImageSource } from "../lib/FileHelper";
 import { DiagramPlaceholder } from "../components/DiagramPlaceholder";
 import { addComment } from "../commands/comment";
 import { addLink } from "../commands/link";
+import { commentedImagePlugin } from "../plugins/CommentedImagePlugin";
 
 const imageSizeRegex = /\s=(\d+)?x(\d+)?$/;
 
@@ -153,6 +154,7 @@ export default class Image extends SimpleImage {
               src: img?.getAttribute("src"),
               alt: img?.getAttribute("alt"),
               title: img?.getAttribute("title"),
+              source: img?.getAttribute("source"),
               width: width ? parseInt(width, 10) : undefined,
               height: height ? parseInt(height, 10) : undefined,
               layoutClass,
@@ -240,6 +242,7 @@ export default class Image extends SimpleImage {
   get plugins() {
     return [
       ...super.plugins,
+      commentedImagePlugin(),
       new Plugin({
         props: {
           handleKeyDown: (view, event) => {
@@ -303,7 +306,7 @@ export default class Image extends SimpleImage {
         return;
       }
 
-      // Pressing Backspace in an an empty caption field focused the image.
+      // Pressing Backspace in an empty caption field focused the image.
       if (event.key === "Backspace" && event.currentTarget.innerText === "") {
         event.preventDefault();
         event.stopPropagation();
@@ -364,6 +367,9 @@ export default class Image extends SimpleImage {
     ({ getPos, view }: ComponentProps) =>
     () => {
       const { commands } = this.editor;
+      if (!commands.editDiagram) {
+        return;
+      }
       const pos = getPos();
       const $pos = view.state.doc.resolve(pos);
       view.dispatch(view.state.tr.setSelection(new NodeSelection($pos)));

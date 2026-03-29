@@ -26,6 +26,7 @@ import { Bubble } from "./CommentThreadItem";
 import { HighlightedText } from "./HighlightText";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 import { mergeRefs } from "react-merge-refs";
+import { HStack } from "~/components/primitives/HStack";
 
 const CommentEditor = lazyWithRetry(() => import("./CommentEditor"));
 
@@ -101,6 +102,11 @@ function CommentForm({
   }, [editor, thread]);
 
   useOnClickOutside(formRef, reset);
+
+  React.useEffect(() => {
+    window.addEventListener("beforeunload", reset);
+    return () => window.removeEventListener("beforeunload", reset);
+  }, [reset]);
 
   const handleCreateComment = action(async (event: React.FormEvent) => {
     event.preventDefault();
@@ -253,11 +259,13 @@ function CommentForm({
   const handleMounted = React.useCallback(
     (ref) => {
       if (autoFocus && ref && !hasFocusedOnMount.current) {
-        ref.focusAtStart();
+        if (!draft) {
+          ref.focusAtStart();
+        }
         hasFocusedOnMount.current = true;
       }
     },
-    [autoFocus]
+    [autoFocus, draft]
   );
 
   const presence = animatePresence
@@ -311,35 +319,37 @@ function CommentForm({
           {highlightedText && (
             <HighlightedText>{highlightedText}</HighlightedText>
           )}
-          <CommentEditor
-            key={`${forceRender}`}
-            ref={mergeRefs([editorRef, handleMounted])}
-            defaultValue={draft}
-            onChange={handleChange}
-            onSave={handleSave}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
-            onUpArrowAtStart={handleUpArrowAtStart}
-            maxLength={CommentValidation.maxLength}
-            placeholder={
-              placeholder ||
-              // isNew is only the case for comments that exist in draft state,
-              // they are marks in the document, but not yet saved to the db.
-              (thread?.isNew
-                ? `${t("Add a comment")}…`
-                : `${t("Add a reply")}…`)
-            }
-          />
+          <React.Suspense fallback={<div style={{ height: 24 }} />}>
+            <CommentEditor
+              key={`${forceRender}`}
+              ref={mergeRefs([editorRef, handleMounted])}
+              defaultValue={draft}
+              onChange={handleChange}
+              onSave={handleSave}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
+              onUpArrowAtStart={handleUpArrowAtStart}
+              maxLength={CommentValidation.maxLength}
+              placeholder={
+                placeholder ||
+                // isNew is only the case for comments that exist in draft state,
+                // they are marks in the document, but not yet saved to the db.
+                (thread?.isNew
+                  ? `${t("Add a comment")}…`
+                  : `${t("Add a reply")}…`)
+              }
+            />
+          </React.Suspense>
           {(inputFocused || draft) && (
             <Flex justify="space-between" reverse={dir === "rtl"} gap={8}>
-              <Flex gap={8}>
+              <HStack>
                 <ButtonSmall type="submit" borderOnHover>
                   {thread && !thread.isNew ? t("Reply") : t("Post")}
                 </ButtonSmall>
                 <ButtonSmall onClick={handleCancel} neutral borderOnHover>
                   {t("Cancel")}
                 </ButtonSmall>
-              </Flex>
+              </HStack>
               <Tooltip content={t("Upload image")} placement="top">
                 <NudeButton onClick={handleImageUpload}>
                   <ImageIcon color={theme.textTertiary} />

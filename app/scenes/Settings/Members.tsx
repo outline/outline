@@ -11,7 +11,6 @@ import { queriedUsers } from "~/stores/UsersStore";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
 import { ConditionalFade } from "~/components/Fade";
-import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import InputSearch from "~/components/InputSearch";
 import Scene from "~/components/Scene";
@@ -28,6 +27,7 @@ import { MembersTable } from "./components/MembersTable";
 import { StickyFilters } from "./components/StickyFilters";
 import UserRoleFilter from "./components/UserRoleFilter";
 import UserStatusFilter from "./components/UserStatusFilter";
+import { HStack } from "~/components/primitives/HStack";
 
 function Members() {
   const appName = env.APP_NAME;
@@ -147,8 +147,8 @@ function Members() {
           {{ signinMethods: team.signinMethods }} but haven’t signed in yet.
         </Trans>
       </Text>
-      <StickyFilters gap={8} justify="space-between">
-        <Flex gap={8}>
+      <StickyFilters justify="space-between">
+        <HStack>
           <InputSearch
             short
             value={query}
@@ -163,7 +163,7 @@ function Members() {
             activeKey={reqParams.role ?? ""}
             onSelect={handleRoleFilter}
           />
-        </Flex>
+        </HStack>
         <ExportCSV reqParams={reqParams} />
       </StickyFilters>
       <ConditionalFade animate={!data}>

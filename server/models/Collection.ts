@@ -61,6 +61,7 @@ import { CollectionValidation } from "@shared/validations";
 import { ValidationError } from "@server/errors";
 import type { APIContext } from "@server/types";
 import { CacheHelper } from "@server/utils/CacheHelper";
+import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import removeIndexCollision from "@server/utils/removeIndexCollision";
 import { generateUrlId } from "@server/utils/url";
 import { ValidateIndex } from "@server/validation";
@@ -303,6 +304,12 @@ class Collection extends ParanoidModel<
   @Column
   archivedAt: Date | null;
 
+  /** The minimum permission level required to manage templates in this collection. */
+  @IsIn([[CollectionPermission.Admin, CollectionPermission.ReadWrite]])
+  @Default(CollectionPermission.Admin)
+  @Column(DataType.STRING)
+  templateManagement: CollectionPermission;
+
   /** Allows the configuration of commenting per collection. */
   @AllowNull(true)
   @Default(null)
@@ -314,15 +321,6 @@ class Collection extends ParanoidModel<
   sourceMetadata: SourceMetadata | null;
 
   // getters
-
-  /**
-   * The frontend path to this collection.
-   *
-   * @deprecated Use `path` instead.
-   */
-  get url(): string {
-    return this.path;
-  }
 
   /** The frontend path to this collection. */
   get path(): string {
@@ -356,7 +354,7 @@ class Collection extends ParanoidModel<
     }
     if (model.changed("documentStructure")) {
       await CacheHelper.clearData(
-        CacheHelper.getCollectionDocumentsKey(model.id)
+        RedisPrefixHelper.getCollectionDocumentsKey(model.id)
       );
     }
   }
@@ -369,7 +367,7 @@ class Collection extends ParanoidModel<
     if (model.changed("documentStructure")) {
       const setData = () =>
         CacheHelper.setData(
-          CacheHelper.getCollectionDocumentsKey(model.id),
+          RedisPrefixHelper.getCollectionDocumentsKey(model.id),
           model.documentStructure,
           60
         );
@@ -445,18 +443,30 @@ class Collection extends ParanoidModel<
     model: Collection,
     options: { transaction: Transaction }
   ) {
-    return UserMembership.findOrCreate({
+    const existing = await UserMembership.findOne({
       where: {
         collectionId: model.id,
         userId: model.createdById,
       },
-      defaults: {
-        permission: CollectionPermission.Admin,
-        createdById: model.createdById,
-      },
       transaction: options.transaction,
-      hooks: false,
     });
+
+    if (!existing) {
+      return UserMembership.create(
+        {
+          collectionId: model.id,
+          userId: model.createdById,
+          permission: CollectionPermission.Admin,
+          createdById: model.createdById,
+        },
+        {
+          transaction: options.transaction,
+          hooks: false,
+        }
+      );
+    }
+
+    return existing;
   }
 
   @BeforeUpdate

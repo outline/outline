@@ -6,15 +6,16 @@ import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Icon from "@shared/components/Icon";
 import { randomElement } from "@shared/random";
-import type { CollectionPermission } from "@shared/types";
-import { TeamPreference } from "@shared/types";
+import { CollectionPermission, TeamPreference } from "@shared/types";
+import type { Option } from "~/components/InputSelect";
 import { IconLibrary } from "@shared/utils/IconLibrary";
 import { colorPalette } from "@shared/utils/collections";
 import { CollectionValidation } from "@shared/validations";
 import type Collection from "~/models/Collection";
 import Button from "~/components/Button";
-import Flex from "~/components/Flex";
+import { Collapsible } from "~/components/Collapsible";
 import Input from "~/components/Input";
+import { InputSelect } from "~/components/InputSelect";
 import { InputSelectPermission } from "~/components/InputSelectPermission";
 import { createLazyComponent } from "~/components/LazyLoad";
 import Switch from "~/components/Switch";
@@ -23,6 +24,7 @@ import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import { EmptySelectValue } from "~/types";
+import { HStack } from "../primitives/HStack";
 
 const IconPicker = createLazyComponent(() => import("~/components/IconPicker"));
 
@@ -33,6 +35,7 @@ export interface FormData {
   sharing: boolean;
   permission: CollectionPermission | undefined;
   commenting?: boolean | null;
+  templateManagement: CollectionPermission;
 }
 
 const useIconColor = (collection?: Collection) => {
@@ -67,6 +70,22 @@ export const CollectionForm = observer(function CollectionForm_({
 
   const [hasOpenedIconPicker, setHasOpenedIconPicker] = useBoolean(false);
 
+  const templateManagementOptions = useMemo<Option[]>(
+    () => [
+      {
+        type: "item",
+        label: t("Managers"),
+        value: CollectionPermission.Admin,
+      },
+      {
+        type: "item",
+        label: t("Members"),
+        value: CollectionPermission.ReadWrite,
+      },
+    ],
+    [t]
+  );
+
   const iconColor = useIconColor(collection);
   const fallbackIcon = (
     <Icon
@@ -92,6 +111,8 @@ export const CollectionForm = observer(function CollectionForm_({
       sharing: collection?.sharing ?? true,
       permission: collection?.permission,
       commenting: collection?.commenting ?? true,
+      templateManagement:
+        collection?.templateManagement ?? CollectionPermission.Admin,
       color: iconColor,
     },
   });
@@ -134,60 +155,34 @@ export const CollectionForm = observer(function CollectionForm_({
 
   const initial = values.name.charAt(0).toUpperCase();
 
-  return (
-    <form onSubmit={formHandleSubmit(handleSubmit)}>
-      <Text as="p">
-        <Trans>
-          Collections are used to group documents and choose permissions
-        </Trans>
-      </Text>
-      <Flex gap={8}>
-        <Input
-          type="text"
-          placeholder={t("Name")}
-          {...register("name", {
-            required: true,
-            maxLength: CollectionValidation.maxNameLength,
-          })}
-          prefix={
-            <Suspense fallback={fallbackIcon}>
-              <StyledIconPicker
-                icon={values.icon}
-                color={values.color ?? iconColor}
-                initial={initial}
-                popoverPosition="right"
-                onOpen={setHasOpenedIconPicker}
-                onChange={handleIconChange}
-              />
-            </Suspense>
-          }
-          autoComplete="off"
-          autoFocus
-          flex
-        />
-      </Flex>
-
-      {/* Following controls are available in create flow, but moved elsewhere for edit */}
-      {!collection && (
-        <Controller
-          control={control}
-          name="permission"
-          render={({ field }) => (
-            <InputSelectPermission
-              ref={field.ref}
+  const options = (
+    <>
+      <Controller
+        control={control}
+        name="templateManagement"
+        render={({ field }) => (
+          <>
+            <InputSelect
               value={field.value}
-              onChange={(
-                value: CollectionPermission | typeof EmptySelectValue
-              ) => {
-                field.onChange(value === EmptySelectValue ? null : value);
+              onChange={(value: string) => {
+                field.onChange(value as CollectionPermission);
               }}
-              help={t(
-                "The default access for workspace members, you can share with more users or groups later."
-              )}
+              options={templateManagementOptions}
+              label={t("Manage templates")}
             />
-          )}
-        />
-      )}
+            <Text
+              type="secondary"
+              size="small"
+              as="p"
+              style={{ paddingTop: 4 }}
+            >
+              {t(
+                "Choose who can create and edit templates in this collection."
+              )}
+            </Text>
+          </>
+        )}
+      />
 
       {team.sharing && (
         <Controller
@@ -222,8 +217,71 @@ export const CollectionForm = observer(function CollectionForm_({
           )}
         />
       )}
+    </>
+  );
 
-      <Flex justify="flex-end">
+  return (
+    <form onSubmit={formHandleSubmit(handleSubmit)}>
+      <Text as="p">
+        <Trans>
+          Collections are used to group documents and choose permissions
+        </Trans>
+      </Text>
+      <HStack>
+        <Input
+          type="text"
+          label={t("Name")}
+          {...register("name", {
+            required: true,
+            maxLength: CollectionValidation.maxNameLength,
+          })}
+          prefix={
+            <Suspense fallback={fallbackIcon}>
+              <StyledIconPicker
+                icon={values.icon}
+                color={values.color ?? iconColor}
+                initial={initial}
+                popoverPosition="right"
+                onOpen={setHasOpenedIconPicker}
+                onChange={handleIconChange}
+              />
+            </Suspense>
+          }
+          autoComplete="off"
+          autoFocus
+          flex
+        />
+      </HStack>
+
+      {/* Following controls are available in create flow, but moved elsewhere for edit */}
+      {!collection && (
+        <Controller
+          control={control}
+          name="permission"
+          render={({ field }) => (
+            <InputSelectPermission
+              ref={field.ref}
+              value={field.value}
+              onChange={(
+                value: CollectionPermission | typeof EmptySelectValue
+              ) => {
+                field.onChange(value === EmptySelectValue ? null : value);
+              }}
+              help={t(
+                "The default access for workspace members, you can share with more users or groups later."
+              )}
+            />
+          )}
+        />
+      )}
+
+      {collection ? (
+        options
+      ) : (
+        <Collapsible label={t("Advanced options")}>{options}</Collapsible>
+      )}
+
+      <HStack justify="flex-end">
         <Button
           type="submit"
           disabled={formState.isSubmitting || !formState.isValid}
@@ -236,7 +294,7 @@ export const CollectionForm = observer(function CollectionForm_({
               ? `${t("Creating")}…`
               : t("Create")}
         </Button>
-      </Flex>
+      </HStack>
     </form>
   );
 });

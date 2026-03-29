@@ -1,11 +1,13 @@
 import { computed, observable } from "mobx";
-import { type ProsemirrorData } from "@shared/types";
+import { type ExportContentType, type ProsemirrorData } from "@shared/types";
 import { isRTL } from "@shared/utils/rtl";
 import Document from "./Document";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import Field from "./decorators/Field";
 import Relation from "./decorators/Relation";
+import type RevisionsStore from "~/stores/RevisionsStore";
+import { client } from "~/utils/ApiClient";
 
 class Revision extends ParanoidModel {
   static modelName = "Revision";
@@ -71,6 +73,48 @@ class Revision extends ParanoidModel {
   get rtl() {
     return isRTL(this.title);
   }
+
+  /**
+   * Returns the previous revision (chronologically earlier) for comparison.
+   *
+   * Revisions are sorted by creation date (newest first), so the "previous" revision
+   * is the one that comes after the current revision in the sorted list.
+   *
+   * @returns The previous revision or null if this is the first revision.
+   */
+  @computed
+  get before(): Revision | null {
+    const allRevisions = (this.store as RevisionsStore).getByDocumentId(
+      this.documentId
+    );
+
+    const currentIndex = allRevisions.findIndex(
+      (r: Revision) => r.id === this.id
+    );
+    return currentIndex >= 0 && currentIndex < allRevisions.length - 1
+      ? allRevisions[currentIndex + 1]
+      : null;
+  }
+
+  /**
+   * Triggers a download of the revision in the specified format.
+   *
+   * @param contentType The format to download the revision in.
+   * @returns A promise that resolves when the download is triggered.
+   */
+  download = (contentType: ExportContentType) =>
+    client.post(
+      `/revisions.export`,
+      {
+        id: this.id,
+      },
+      {
+        download: true,
+        headers: {
+          accept: contentType,
+        },
+      }
+    );
 }
 
 export default Revision;

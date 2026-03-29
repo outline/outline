@@ -231,10 +231,14 @@ class User extends ParanoidModel implements Searchable {
    * @param key The UserPreference key to retrieve
    * @returns The value
    */
-  getPreference(key: UserPreference, defaultValue = false): boolean {
-    return (
-      this.preferences?.[key] ?? UserPreferenceDefaults[key] ?? defaultValue
-    );
+  getPreference<K extends UserPreference>(
+    key: K,
+    defaultValue?: UserPreferences[K]
+  ): NonNullable<UserPreferences[K]> {
+    return (this.preferences?.[key] ??
+      UserPreferenceDefaults[key] ??
+      defaultValue ??
+      false) as NonNullable<UserPreferences[K]>;
   }
 
   /**
@@ -243,7 +247,11 @@ class User extends ParanoidModel implements Searchable {
    * @param key The UserPreference key to retrieve
    * @param value The value to set
    */
-  setPreference(key: UserPreference, value: boolean) {
+  @action
+  setPreference<K extends UserPreference>(
+    key: K,
+    value: NonNullable<UserPreferences[K]>
+  ) {
     this.preferences = {
       ...this.preferences,
       [key]: value,

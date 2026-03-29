@@ -4,6 +4,16 @@ describe("AuthenticationHelper", () => {
   const canAccess = AuthenticationHelper.canAccess;
 
   describe("canAccess", () => {
+    it("should grant full access with wildcard scope", async () => {
+      const scopes = ["*"];
+
+      expect(canAccess("/api/documents.info", scopes)).toBe(true);
+      expect(canAccess("/api/documents.create", scopes)).toBe(true);
+      expect(canAccess("/api/collections.list", scopes)).toBe(true);
+      expect(canAccess("/api/users.update", scopes)).toBe(true);
+      expect(canAccess("documents.info", scopes)).toBe(true);
+    });
+
     describe("api scopes", () => {
       it("should account for query string", async () => {
         const scopes = ["/api/documents.info"];

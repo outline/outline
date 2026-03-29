@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import crypto from "node:crypto";
 import queryString from "query-string";
 import env from "@server/env";
 

@@ -17,7 +17,7 @@ function HistoryNavigation(props: React.ComponentProps<typeof Flex>) {
 
   useKeyDown(
     (event) =>
-      isMac()
+      isMac
         ? event.metaKey && event.key === "["
         : event.altKey && event.key === "ArrowLeft",
     () => {
@@ -28,7 +28,7 @@ function HistoryNavigation(props: React.ComponentProps<typeof Flex>) {
 
   useKeyDown(
     (event) =>
-      isMac()
+      isMac
         ? event.metaKey && event.key === "]"
         : event.altKey && event.key === "ArrowRight",
     () => {

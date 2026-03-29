@@ -174,8 +174,12 @@ export default class Attachment extends Node {
         }
         const { view } = this.editor;
         const { node } = state.selection;
-        const { uploadFile, onFileUploadStart, onFileUploadStop } =
-          this.editor.props;
+        const {
+          uploadFile,
+          onFileUploadStart,
+          onFileUploadStop,
+          onFileUploadProgress,
+        } = this.editor.props;
 
         if (!uploadFile) {
           throw new Error("uploadFile prop is required to replace attachments");
@@ -202,8 +206,12 @@ export default class Attachment extends Node {
             uploadFile,
             onFileUploadStart,
             onFileUploadStop,
+            onFileUploadProgress,
             dictionary: this.options.dictionary,
             replaceExisting: true,
+            attrs: {
+              preview: node.attrs.preview,
+            },
           });
         };
         inputElement.click();
@@ -224,6 +232,27 @@ export default class Attachment extends Node {
 
         // cleanup
         document.body.removeChild(link);
+        return true;
+      },
+      toggleAttachmentPreview: (): Command => (state, dispatch) => {
+        if (!(state.selection instanceof NodeSelection)) {
+          return false;
+        }
+        const { node } = state.selection;
+
+        if (node.attrs.contentType !== "application/pdf") {
+          return false;
+        }
+
+        const { attrs } = state.selection.node;
+        const transaction = state.tr
+          .setNodeMarkup(state.selection.from, undefined, {
+            ...attrs,
+            preview: !attrs.preview,
+          })
+          .setMeta("addToHistory", true);
+        const $pos = transaction.doc.resolve(state.selection.from);
+        dispatch?.(transaction.setSelection(new NodeSelection($pos)));
         return true;
       },
       resizeAttachment:

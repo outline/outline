@@ -12,6 +12,7 @@ import {
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
+import { preventDefault } from "~/utils/events";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 
 const SharePopover = lazyWithRetry(
@@ -37,6 +38,10 @@ function ShareButton({ collection }: Props) {
     setOpen(false);
   }, []);
 
+  const handleMouseEnter = useCallback(() => {
+    void collection.share();
+  }, [collection]);
+
   if (isMobile) {
     return null;
   }
@@ -50,15 +55,17 @@ function ShareButton({ collection }: Props) {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger>
-        <Button icon={icon} neutral>
+        <Button icon={icon} neutral onMouseEnter={handleMouseEnter}>
           {t("Share")}
         </Button>
       </PopoverTrigger>
       <PopoverContent
         aria-label={t("Share")}
         width={400}
+        minHeight={175}
         side="bottom"
         align="end"
+        onEscapeKeyDown={preventDefault}
       >
         <Suspense fallback={null}>
           <SharePopover

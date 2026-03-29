@@ -188,7 +188,7 @@ function Invite({ onSubmit }: Props) {
             {can.update && (
               <Trans>
                 As an admin you can also{" "}
-                <Link to="/settings/security">enable email sign-in</Link>.
+                <Link to="/settings/authentication">enable email sign-in</Link>.
               </Trans>
             )}
           </Text>

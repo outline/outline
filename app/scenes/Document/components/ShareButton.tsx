@@ -11,6 +11,7 @@ import {
 } from "~/components/primitives/Popover";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
+import { preventDefault } from "~/utils/events";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 
 const SharePopover = lazyWithRetry(
@@ -35,6 +36,10 @@ function ShareButton({ document }: Props) {
     setOpen(false);
   }, []);
 
+  const handleMouseEnter = useCallback(() => {
+    void document.share();
+  }, [document]);
+
   if (isMobile) {
     return null;
   }
@@ -44,15 +49,17 @@ function ShareButton({ document }: Props) {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger>
-        <Button icon={icon} neutral>
+        <Button icon={icon} neutral onMouseEnter={handleMouseEnter}>
           {t("Share")} {domain && <>&middot; {domain}</>}
         </Button>
       </PopoverTrigger>
       <PopoverContent
         aria-label={t("Share")}
         width={400}
+        minHeight={175}
         side="bottom"
         align="end"
+        onEscapeKeyDown={preventDefault}
       >
         <Suspense fallback={null}>
           <SharePopover

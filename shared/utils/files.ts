@@ -1,5 +1,5 @@
 import { isMac } from "./browser";
-import { isUrl } from "./urls";
+import { isBase64Url, isUrl } from "./urls";
 
 /**
  * Converts bytes to human readable string for display
@@ -14,7 +14,7 @@ export function bytesToHumanReadable(bytes: number | undefined) {
   }
 
   // Use decimal units (base 1000) on macOS, binary units (base 1024) on other platforms
-  const useMacUnits = isMac();
+  const useMacUnits = isMac;
   const base = useMacUnits ? 1000 : 1024;
   const threshold = useMacUnits ? 1000 : 1024;
 
@@ -162,3 +162,39 @@ export function getFileNameFromUrl(url: string) {
     return null;
   }
 }
+
+/**
+ * Convert a data URL to a Blob
+ *
+ * @param dataURL The data URL to convert
+ * @returns The Blob
+ */
+export const dataUrlToBlob = (dataURL: string): Blob => {
+  const parts = dataURL.split(",");
+  const match = dataURL.match(/:(.*?);/);
+  const mime = match ? match[1] : "image/png";
+  const blobBin = atob(parts[1]);
+  const array = [];
+
+  for (let i = 0; i < blobBin.length; i++) {
+    array.push(blobBin.charCodeAt(i));
+  }
+
+  return new Blob([new Uint8Array(array)], {
+    type: mime,
+  });
+};
+
+/**
+ * Convert a data URL to a File
+ *
+ * @param dataURL The data URL to convert
+ * @param filename The filename to use
+ * @returns The File
+ */
+export const dataUrlToFile = (dataURL: string, filename: string): File => {
+  const match = isBase64Url(dataURL);
+  const mime = match ? match[1] : "image/png";
+  const blob = dataUrlToBlob(dataURL);
+  return new File([blob], filename, { type: mime });
+};

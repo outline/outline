@@ -83,6 +83,20 @@ describe("oauthAuthentications.delete", () => {
     expect(body).toMatchSnapshot();
   });
 
+  it("should return 400 if oauthClientId is not a valid uuid", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+
+    const res = await server.post("/api/oauthAuthentications.delete", {
+      body: {
+        token: user.getJwtToken(),
+        oauthClientId: "",
+      },
+    });
+
+    expect(res.status).toEqual(400);
+  });
+
   it("should delete all authentications for a client without scope", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });

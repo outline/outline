@@ -27,6 +27,14 @@ export function trashPath(): string {
   return "/trash";
 }
 
+export function debugPath(): string {
+  return "/debug";
+}
+
+export function debugChangesetsPath(): string {
+  return "/debug/changesets";
+}
+
 export function settingsPath(...args: string[]): string {
   return "/settings" + (args.length > 0 ? `/${args.join("/")}` : "");
 }
@@ -105,13 +113,37 @@ export function newDocumentPath(
     templateId?: string;
   } = {}
 ): string {
+  const search = queryString.stringify(params);
+
   return collectionId
-    ? `/collection/${collectionId}/new?${queryString.stringify(params)}`
-    : `/doc/new?${queryString.stringify(params)}`;
+    ? `/collection/${collectionId}/new${search ? `?${search}` : ""}`
+    : `/doc/new${search ? `?${search}` : ""}`;
 }
 
 export function newNestedDocumentPath(parentDocumentId?: string): string {
-  return `/doc/new?${queryString.stringify({ parentDocumentId })}`;
+  const search = parentDocumentId
+    ? `?${queryString.stringify({ parentDocumentId })}`
+    : "";
+
+  return `/doc/new${search}`;
+}
+
+export function newSiblingDocumentPath(params: {
+  collectionId?: string | null;
+  parentDocumentId?: string;
+  index: number;
+}): string {
+  const query: Record<string, string> = {
+    index: String(params.index),
+  };
+  if (params.parentDocumentId) {
+    query.parentDocumentId = params.parentDocumentId;
+  }
+  if (params.collectionId) {
+    query.collectionId = params.collectionId;
+  }
+
+  return `/doc/new?${queryString.stringify(query)}`;
 }
 
 export function searchPath({
@@ -125,15 +157,14 @@ export function searchPath({
   documentId?: string;
   ref?: string;
 } = {}): string {
-  let search = queryString.stringify({
+  const search = queryString.stringify({
     q: query,
     collectionId,
     documentId,
     ref,
   });
 
-  search = search ? `?${search}` : "";
-  return `/search${search}`;
+  return `/search${search ? `?${search}` : ""}`;
 }
 
 export function sharedModelPath(shareId: string, modelPath?: string) {
@@ -146,6 +177,16 @@ export function sharedModelPath(shareId: string, modelPath?: string) {
 
 export function urlify(path: string): string {
   return `${window.location.origin}${path}`;
+}
+
+/**
+ * Converts a path to a desktop app URL using the outline:// protocol.
+ *
+ * @param path The path to convert.
+ * @returns The desktop app URL.
+ */
+export function desktopify(path: string): string {
+  return urlify(path).replace(/^https?:\/\//, "outline://");
 }
 
 export const matchCollectionSlug =

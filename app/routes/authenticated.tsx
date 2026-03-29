@@ -21,7 +21,9 @@ import {
   matchDocumentSlug as documentSlug,
   matchCollectionSlug as collectionSlug,
   trashPath,
+  debugPath,
 } from "~/utils/routeHelpers";
+import env from "~/env";
 
 const SettingsRoutes = lazy(() => import("./settings"));
 const Archive = lazy(() => import("~/scenes/Archive"));
@@ -31,6 +33,8 @@ const Drafts = lazy(() => import("~/scenes/Drafts"));
 const Home = lazy(() => import("~/scenes/Home"));
 const Search = lazy(() => import("~/scenes/Search"));
 const Trash = lazy(() => import("~/scenes/Trash"));
+const Debug = lazy(() => import("~/scenes/Developer/Debug"));
+const Changesets = lazy(() => import("~/scenes/Developer/Changesets"));
 
 const RedirectDocument = ({
   match,
@@ -53,81 +57,81 @@ function AuthenticatedRoutes() {
   const can = usePolicy(team);
 
   return (
-    <Switch>
-      <WebsocketProvider>
-        <AuthenticatedLayout>
-          <Suspense
-            fallback={
-              <CenteredContent>
-                <PlaceholderDocument />
-              </CenteredContent>
-            }
-          >
-            <Switch>
-              {can.createDocument && (
-                <Route exact path={draftsPath()} component={Drafts} />
-              )}
-              {can.createDocument && (
-                <Route exact path={archivePath()} component={Archive} />
-              )}
-              {can.createDocument && (
-                <Route exact path={trashPath()} component={Trash} />
-              )}
-              <Route path={`${homePath()}/:tab?`} component={Home} />
-              <Redirect from="/dashboard" to={homePath()} />
-              <Redirect exact from="/starred" to={homePath()} />
-              <Redirect
-                exact
-                from="/templates"
-                to={settingsPath("templates")}
-              />
-              <Redirect exact from="/collections/*" to="/collection/*" />
-              <Route
-                exact
-                path={`/collection/${collectionSlug}/new`}
-                component={DocumentNew}
-              />
-              <Route
-                exact
-                path={`/collection/${collectionSlug}/overview/edit`}
-                component={Collection}
-              />
-              <Route
-                exact
-                path={`/collection/${collectionSlug}/:tab?`}
-                component={Collection}
-              />
-              <Route exact path="/doc/new" component={DocumentNew} />
-              <Route
-                exact
-                path={`/d/${documentSlug}`}
-                component={RedirectDocument}
-              />
-              <Route
-                exact
-                path={`/doc/${documentSlug}/history/:revisionId?`}
-                component={Document}
-              />
+    <WebsocketProvider>
+      <AuthenticatedLayout>
+        <Suspense
+          fallback={
+            <CenteredContent>
+              <PlaceholderDocument />
+            </CenteredContent>
+          }
+        >
+          <Switch>
+            {can.createDocument && (
+              <Route exact path={draftsPath()} component={Drafts} />
+            )}
+            {can.createDocument && (
+              <Route exact path={archivePath()} component={Archive} />
+            )}
+            {can.createDocument && (
+              <Route exact path={trashPath()} component={Trash} />
+            )}
+            <Route path={`${homePath()}/:tab?`} component={Home} />
+            <Redirect from="/dashboard" to={homePath()} />
+            <Redirect exact from="/starred" to={homePath()} />
+            <Redirect exact from="/templates" to={settingsPath("templates")} />
+            <Redirect exact from="/collections/*" to="/collection/*" />
+            <Route
+              exact
+              path={`/collection/${collectionSlug}/new`}
+              component={DocumentNew}
+            />
+            <Route
+              exact
+              path={`/collection/${collectionSlug}/overview/edit`}
+              component={Collection}
+            />
+            <Route
+              exact
+              path={`/collection/${collectionSlug}/:tab?`}
+              component={Collection}
+            />
+            <Route exact path="/doc/new" component={DocumentNew} />
+            <Route
+              exact
+              path={`/d/${documentSlug}`}
+              component={RedirectDocument}
+            />
+            <Route
+              exact
+              path={`/doc/${documentSlug}/history/:revisionId?`}
+              component={Document}
+            />
 
+            <Route
+              exact
+              path={`/doc/${documentSlug}/edit`}
+              component={Document}
+            />
+            <Route path={`/doc/${documentSlug}`} component={Document} />
+            <Route exact path={`${searchPath()}/:query?`} component={Search} />
+            {env.isDevelopment && (
+              <Route exact path={debugPath()} component={Debug} />
+            )}
+            {env.isDevelopment && (
               <Route
                 exact
-                path={`/doc/${documentSlug}/edit`}
-                component={Document}
+                path={`${debugPath()}/changesets`}
+                component={Changesets}
               />
-              <Route path={`/doc/${documentSlug}`} component={Document} />
-              <Route
-                exact
-                path={`${searchPath()}/:query?`}
-                component={Search}
-              />
-              <Route path="/404" component={Error404} />
-              <SettingsRoutes />
-              <Route component={Error404} />
-            </Switch>
-          </Suspense>
-        </AuthenticatedLayout>
-      </WebsocketProvider>
-    </Switch>
+            )}
+            <Route exact path="/404" component={Error404} />
+            <SettingsRoutes />
+            <Route component={Error404} />
+          </Switch>
+        </Suspense>
+      </AuthenticatedLayout>
+    </WebsocketProvider>
   );
 }
 

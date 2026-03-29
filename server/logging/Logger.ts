@@ -1,5 +1,5 @@
 /* oxlint-disable no-console */
-import type { IncomingMessage } from "http";
+import type { IncomingMessage } from "node:http";
 import { styleText } from "node:util";
 import isArray from "lodash/isArray";
 import isEmpty from "lodash/isEmpty";
@@ -117,26 +117,7 @@ class Logger {
    */
   public warn(message: string, extra?: Extra) {
     Metrics.increment("logger.warning");
-
-    if (env.SENTRY_DSN) {
-      Sentry.withScope((scope) => {
-        scope.setLevel("warning");
-
-        for (const key in extra) {
-          scope.setExtra(key, this.sanitize(extra[key]));
-        }
-
-        Sentry.captureException(new Error(message));
-      });
-    }
-
-    if (env.isProduction) {
-      this.output.warn(message, this.sanitize(extra));
-    } else if (extra) {
-      console.warn(message, extra);
-    } else {
-      console.warn(message);
-    }
+    this.output.warn(message, this.sanitize(extra));
   }
 
   /**

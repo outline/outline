@@ -4,7 +4,9 @@ import filter from "lodash/filter";
 import omitBy from "lodash/omitBy";
 import orderBy from "lodash/orderBy";
 import { observable, action, computed, runInAction } from "mobx";
+import type { DirectionFilter, SortFilter } from "@shared/types";
 import {
+  AttachmentPreset,
   SubscriptionType,
   type DateFilter,
   type StatusFilter,
@@ -23,7 +25,7 @@ import type {
   SearchResult,
 } from "~/types";
 import { client } from "~/utils/ApiClient";
-import { extname } from "~/utils/files";
+import { extname, uploadFile } from "~/utils/files";
 
 type FetchPageParams = PaginationParams & {
   template?: boolean;
@@ -39,6 +41,8 @@ export type SearchParams = {
   collectionId?: string;
   userId?: string;
   shareId?: string;
+  sort?: SortFilter;
+  direction?: DirectionFilter;
 };
 
 type ImportOptions = {
@@ -48,6 +52,9 @@ type ImportOptions = {
 export default class DocumentsStore extends Store<Document> {
   @observable
   backlinks: Map<string, string[]> = new Map();
+
+  @observable
+  similar: Map<string, string[]> = new Map();
 
   @observable
   movingDocumentId: string | null | undefined;
@@ -76,10 +83,7 @@ export default class DocumentsStore extends Store<Document> {
 
   @computed
   get all(): Document[] {
-    return filter(
-      this.orderedData,
-      (d) => !d.archivedAt && !d.deletedAt && !d.template
-    );
+    return filter(this.orderedData, (d) => !d.archivedAt && !d.deletedAt);
   }
 
   @computed
@@ -99,18 +103,6 @@ export default class DocumentsStore extends Store<Document> {
   @computed
   get popular(): Document[] {
     return orderBy(this.all, "popularityScore", "desc");
-  }
-
-  @computed
-  get templates(): Document[] {
-    return orderBy(
-      filter(
-        this.orderedData,
-        (d) => !d.archivedAt && !d.deletedAt && d.template
-      ),
-      "updatedAt",
-      "desc"
-    );
   }
 
   createdByUser(userId: string): Document[] {
@@ -152,21 +144,6 @@ export default class DocumentsStore extends Store<Document> {
         document.collectionId === collectionId &&
         !document.isArchived &&
         !document.isDeleted
-    );
-  }
-
-  templatesInCollection(collectionId: string): Document[] {
-    return orderBy(
-      filter(
-        this.orderedData,
-        (d) =>
-          !d.archivedAt &&
-          !d.deletedAt &&
-          d.template === true &&
-          d.collectionId === collectionId
-      ),
-      "updatedAt",
-      "desc"
     );
   }
 
@@ -239,11 +216,6 @@ export default class DocumentsStore extends Store<Document> {
   }
 
   @computed
-  get templatesAlphabetical(): Document[] {
-    return naturalSort(this.templates, "title");
-  }
-
-  @computed
   get totalDrafts(): number {
     return this.drafts().length;
   }
@@ -285,21 +257,41 @@ export default class DocumentsStore extends Store<Document> {
   }
 
   @action
-  fetchBacklinks = async (documentId: string): Promise<void> => {
-    const documents = await this.fetchAll({
-      backlinkDocumentId: documentId,
-    });
+  fetchRelationships = async (documentId: string): Promise<void> => {
+    const res = await client.post("/relationships.list", { documentId });
+    invariant(res?.data, "Relationships not available");
 
-    runInAction("DocumentsStore#fetchBacklinks", () => {
-      this.backlinks.set(
-        documentId,
-        documents.map((doc) => doc.id)
-      );
+    runInAction("DocumentsStore#fetchRelationships", () => {
+      res.data.documents.forEach(this.add);
+      this.addPolicies(res.policies);
+
+      const backlinkIds: string[] = [];
+      const similarIds: string[] = [];
+
+      for (const relationship of res.data.relationships) {
+        if (relationship.type === "backlink") {
+          backlinkIds.push(relationship.reverseDocumentId);
+        } else if (relationship.type === "similar") {
+          similarIds.push(relationship.reverseDocumentId);
+        }
+      }
+
+      this.backlinks.set(documentId, backlinkIds);
+      this.similar.set(documentId, similarIds);
     });
   };
 
   getBacklinkedDocuments(documentId: string): Document[] {
     const documentIds = this.backlinks.get(documentId) || [];
+    return orderBy(
+      compact(documentIds.map((id) => this.data.get(id))),
+      "title",
+      "asc"
+    );
+  }
+
+  getSimilarDocuments(documentId: string): Document[] {
+    const documentIds = this.similar.get(documentId) || [];
     return orderBy(
       compact(documentIds.map((id) => this.data.get(id))),
       "title",
@@ -353,14 +345,6 @@ export default class DocumentsStore extends Store<Document> {
   fetchRecentlyUpdated = async (
     options?: PaginationParams
   ): Promise<Document[]> => this.fetchNamedPage("list", options);
-
-  @action
-  fetchTemplates = async (options?: PaginationParams): Promise<Document[]> =>
-    this.fetchNamedPage("list", { ...options, template: true });
-
-  @action
-  fetchAllTemplates = async (options?: PaginationParams): Promise<Document[]> =>
-    this.fetchAll({ ...options, template: true });
 
   @action
   fetchAlphabetical = async (options?: PaginationParams): Promise<Document[]> =>
@@ -490,34 +474,6 @@ export default class DocumentsStore extends Store<Document> {
     return;
   };
 
-  @action
-  templatize = async ({
-    id,
-    collectionId,
-    publish,
-  }: {
-    id: string;
-    collectionId: string | null;
-    publish: boolean;
-  }): Promise<Document | null | undefined> => {
-    const doc: Document | null | undefined = this.data.get(id);
-    invariant(doc, "Document should exist");
-
-    if (doc.template) {
-      return;
-    }
-
-    const res = await client.post("/documents.templatize", {
-      id,
-      collectionId,
-      publish,
-    });
-    invariant(res?.data, "Document not available");
-    this.addPolicies(res.policies);
-    this.add(res.data);
-    return this.data.get(res.data.id);
-  };
-
   override fetch = (id: string, options: FetchOptions = {}) =>
     super.fetch(
       id,
@@ -598,45 +554,23 @@ export default class DocumentsStore extends Store<Document> {
       );
     }
 
-    const title = file.name.replace(/\.[^/.]+$/, "");
-    const formData = new FormData();
-    [
-      {
-        key: "parentDocumentId",
-        value: parentDocumentId,
-      },
-      {
-        key: "collectionId",
-        value: collectionId,
-      },
-      {
-        key: "title",
-        value: title,
-      },
-      {
-        key: "publish",
-        value: options.publish,
-      },
-      {
-        key: "file",
-        value: file,
-      },
-    ].forEach((info) => {
-      if (typeof info.value === "string" && info.value) {
-        formData.append(info.key, info.value);
-      }
-
-      if (typeof info.value === "boolean") {
-        formData.append(info.key, info.value.toString());
-      }
-
-      if (info.value instanceof File) {
-        formData.append(info.key, info.value);
-      }
+    const attachment = await uploadFile(file, {
+      name: file.name,
+      preset: AttachmentPreset.Import,
     });
-    const res = await client.post("/documents.import", formData, {
-      retry: false,
-    });
+
+    const res = await client.post(
+      "/documents.import",
+      {
+        attachmentId: attachment.id,
+        parentDocumentId,
+        collectionId,
+        publish: options.publish,
+      },
+      {
+        retry: false,
+      }
+    );
     invariant(res?.data, "Data should be available");
     this.addPolicies(res.policies);
     return this.add(res.data);
@@ -650,6 +584,14 @@ export default class DocumentsStore extends Store<Document> {
     }
   ) {
     await super.delete(document, options);
+
+    // For permanent deletion, we need to actually remove the document from the
+    // local store data Map, as the base Store's remove() method only soft-deletes
+    // ParanoidModel instances by setting deletedAt.
+    if (options?.permanent) {
+      this.data.delete(document.id);
+    }
+
     // check to see if we have any shares related to this document already
     // loaded in local state. If so we can go ahead and remove those too.
     const share = this.rootStore.shares.getByDocumentId(document.id);
@@ -676,7 +618,7 @@ export default class DocumentsStore extends Store<Document> {
     });
     const collection = this.getCollectionForDocument(document);
     if (collection) {
-      await collection.refresh();
+      collection.removeDocument(document.id);
     }
   };
 
@@ -737,7 +679,11 @@ export default class DocumentsStore extends Store<Document> {
     await client.post("/documents.empty_trash");
 
     const documentIdsSet = new Set(this.deleted.map((doc) => doc.id));
+    // Call removeAll to handle inverse relations, policies, and lifecycle hooks
     this.removeAll((doc: Document) => documentIdsSet.has(doc.id));
+    // For permanent deletion (empty trash), we need to hard delete from the store
+    // after the cleanup is done, as removeAll only soft-deletes ParanoidModel instances
+    documentIdsSet.forEach((id) => this.data.delete(id));
   };
 
   star = (document: Document, index?: string) =>

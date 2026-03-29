@@ -1,14 +1,14 @@
 /* oxlint-disable no-restricted-imports, react/rules-of-hooks */
-import type http from "http";
-import type https from "https";
+import type http from "node:http";
+import type https from "node:https";
 import nodeFetch, { type RequestInit, type Response } from "node-fetch";
 import { getProxyForUrl } from "proxy-from-env";
 import tunnelAgent, { type TunnelAgent } from "tunnel-agent";
 import { useAgent as useFilteringAgent } from "request-filtering-agent";
 import env from "@server/env";
-import Logger from "@server/logging/Logger";
-import { capitalize, defaults } from "lodash";
 import { InternalError } from "@server/errors";
+import Logger from "@server/logging/Logger";
+import { capitalize } from "lodash";
 
 interface UrlWithTunnel extends URL {
   tunnelMethod?: string;
@@ -52,11 +52,25 @@ export default async function fetch(
   url: string,
   init?: RequestInit & {
     allowPrivateIPAddress?: boolean;
+    timeout?: number;
   }
 ): Promise<Response> {
   Logger.silly("http", `Network request to ${url}`, init);
 
-  const { allowPrivateIPAddress, ...rest } = init || {};
+  const { allowPrivateIPAddress, timeout, ...rest } = init || {};
+
+  // Create AbortController for timeout if specified
+  let abortController: AbortController | undefined;
+  let timeoutId: NodeJS.Timeout | undefined;
+
+  if (timeout && !rest.signal) {
+    abortController = new AbortController();
+    timeoutId = setTimeout(() => {
+      abortController?.abort();
+    }, timeout);
+  }
+
+  const signal = abortController?.signal || rest.signal;
 
   try {
     const response = await nodeFetch(url, {
@@ -65,7 +79,8 @@ export default async function fetch(
         "User-Agent": outlineUserAgent,
         ...rest?.headers,
       },
-      agent: buildAgent(url, init),
+      signal,
+      agent: buildAgent(url, { signal, allowPrivateIPAddress }),
     });
 
     if (!response.ok) {
@@ -79,12 +94,19 @@ export default async function fetch(
 
     return response;
   } catch (err) {
+    if (err.name === "AbortError") {
+      throw new Error(`Request timeout after ${timeout}ms`);
+    }
     if (!env.isCloudHosted && err.message?.startsWith("DNS lookup")) {
       throw InternalError(
         `${err.message}\n\nTo allow this request, add the IP address or CIDR range to the ALLOWED_PRIVATE_IP_ADDRESSES environment variable.`
       );
     }
     throw err;
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
   }
 }
 
@@ -146,17 +168,20 @@ const buildTunnel = (proxy: UrlWithTunnel, options: RequestInit) => {
  * if necessary. If a proxy is detected in the environment, it will use that
  * proxy agent to tunnel the request.
  *
- * @param url The URL to fetch
- * @param options The fetch options
- * @returns An http or https agent configured for the URL
+ * @param url The URL to fetch.
+ * @param options Options controlling agent behavior.
+ * @param options.signal An abort signal used to destroy the agent on cancellation or timeout.
+ * @param options.allowPrivateIPAddress Whether to allow requests to private IP addresses.
+ * @returns An http or https agent configured for the URL.
  */
 function buildAgent(
   url: string,
-  options: RequestInit & {
+  options: {
+    signal?: AbortSignal | null;
     allowPrivateIPAddress?: boolean;
   } = {}
 ) {
-  const agentOptions = defaults(options, DefaultOptions);
+  const agentOptions = { ...DefaultOptions };
   const parsedURL = new URL(url);
   const proxyURL = getProxyForUrl(parsedURL.href);
   let agent: https.Agent | http.Agent | undefined;
@@ -164,6 +189,7 @@ function buildAgent(
   // Add allowIPAddressList from environment configuration
   const filteringOptions = {
     ...agentOptions,
+    allowPrivateIPAddress: options.allowPrivateIPAddress,
     allowIPAddressList: env.ALLOWED_PRIVATE_IP_ADDRESSES,
   };
 

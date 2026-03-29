@@ -29,6 +29,13 @@ class IntegrationsStore extends Store<Integration> {
   }
 
   @computed
+  get gitlab(): Integration<IntegrationType.Embed>[] {
+    return this.orderedData.filter(
+      (integration) => integration.service === IntegrationService.GitLab
+    );
+  }
+
+  @computed
   get linear(): Integration<IntegrationType.Embed>[] {
     return this.orderedData.filter(
       (integration) => integration.service === IntegrationService.Linear

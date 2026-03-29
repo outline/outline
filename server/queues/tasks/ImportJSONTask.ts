@@ -1,9 +1,9 @@
-import path from "path";
+import path from "node:path";
 import fs from "fs-extra";
 import find from "lodash/find";
 import mime from "mime-types";
 import { Fragment, Node } from "prosemirror-model";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import type { ProsemirrorData } from "@shared/types";
 import { schema, serializer } from "@server/editor";
 import Logger from "@server/logging/Logger";
@@ -100,17 +100,28 @@ export default class ImportJSONTask extends ImportTask {
       });
     }
 
-    async function mapAttachments(attachments: {
+    function mapAttachments(attachments: {
       [id: string]: AttachmentJSONExport;
     }) {
       Object.values(attachments).forEach((node) => {
         const id = randomUUID();
         const mimeType = mime.lookup(node.key) || "application/octet-stream";
+        const filePath = path.join(rootPath, node.key);
+
+        // Block path traversal attempts
+        if (node.key.includes("..")) {
+          throw new Error(`Invalid attachment path: ${node.key}`);
+        }
+
+        const resolvedPath = path.resolve(filePath);
+        if (!resolvedPath.startsWith(path.resolve(rootPath) + path.sep)) {
+          throw new Error(`Invalid attachment path: ${node.key}`);
+        }
 
         output.attachments.push({
           id,
           name: node.name,
-          buffer: () => fs.readFile(path.join(rootPath, node.key)),
+          buffer: () => fs.readFile(filePath),
           mimeType,
           path: node.key,
           externalId: node.id,

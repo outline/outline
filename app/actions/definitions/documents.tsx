@@ -32,20 +32,24 @@ import {
   CaseSensitiveIcon,
   RestoreIcon,
   EditIcon,
+  EmbedIcon,
+  OpenIcon,
 } from "outline-icons";
 import { toast } from "sonner";
 import Icon from "@shared/components/Icon";
 import type { NavigationNode } from "@shared/types";
 import { ExportContentType, TeamPreference } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
+import { Week } from "@shared/utils/time";
 import type UserMembership from "~/models/UserMembership";
+import { client } from "~/utils/ApiClient";
 import DocumentDelete from "~/scenes/DocumentDelete";
-import DocumentMove from "~/scenes/DocumentMove";
 import DocumentPermanentDelete from "~/scenes/DocumentPermanentDelete";
 import DocumentPublish from "~/scenes/DocumentPublish";
 import DeleteDocumentsInTrash from "~/scenes/Trash/components/DeleteDocumentsInTrash";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
-import DocumentCopy from "~/components/DocumentCopy";
+import DocumentCopy from "~/components/DocumentExplorer/DocumentCopy";
+import { DocumentDownload } from "~/components/DocumentDownload";
 import MarkdownIcon from "~/components/Icons/MarkdownIcon";
 import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
 import DocumentTemplatizeDialog from "~/components/TemplatizeDialog";
@@ -60,7 +64,6 @@ import {
   DocumentSection,
   TrashSection,
 } from "~/actions/sections";
-import env from "~/env";
 import { setPersistedState } from "~/hooks/usePersistedState";
 import history from "~/utils/history";
 import {
@@ -68,16 +71,27 @@ import {
   homePath,
   newDocumentPath,
   newNestedDocumentPath,
+  newSiblingDocumentPath,
   searchPath,
   documentPath,
   urlify,
+  desktopify,
   trashPath,
   documentEditPath,
 } from "~/utils/routeHelpers";
 import capitalize from "lodash/capitalize";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
-import type { Action, ActionGroup, ActionSeparator } from "~/types";
+import type {
+  Action,
+  ActionContext,
+  ActionGroup,
+  ActionSeparator,
+} from "~/types";
 import lazyWithRetry from "~/utils/lazyWithRetry";
+import env from "~/env";
+import { isMac, isWindows } from "@shared/utils/browser";
+import isCloudHosted from "~/utils/isCloudHosted";
+import DocumentMove from "~/components/DocumentExplorer/DocumentMove";
 
 const Insights = lazyWithRetry(
   () => import("~/scenes/Document/components/Insights")
@@ -129,18 +143,13 @@ export const editDocument = createInternalLinkAction({
   keywords: "edit",
   icon: <EditIcon />,
   visible: ({ activeDocumentId, stores }) => {
-    const { auth, documents, policies } = stores;
+    const { auth, policies } = stores;
 
-    const document = activeDocumentId
-      ? documents.get(activeDocumentId)
-      : undefined;
     const can = activeDocumentId
       ? policies.abilities(activeDocumentId)
       : undefined;
 
-    return (
-      !!can?.update && !!auth.user?.separateEditMode && !document?.template
-    );
+    return !!can?.update && !!auth.user?.separateEditMode;
   },
   to: ({ activeDocumentId, stores }) => {
     const document = activeDocumentId
@@ -197,59 +206,41 @@ export const createDraftDocument = createInternalLinkAction({
   }),
 });
 
-export const createDocumentFromTemplate = createInternalLinkAction({
-  name: ({ t }) => t("New from template"),
-  analyticsName: "New document",
-  section: DocumentSection,
-  icon: <NewDocumentIcon />,
-  keywords: "create",
-  visible: ({
-    currentTeamId,
-    activeCollectionId,
-    activeDocumentId,
-    stores,
-  }) => {
-    const document = activeDocumentId
-      ? stores.documents.get(activeDocumentId)
-      : undefined;
+/**
+ * Finds the index of a document among its siblings in the collection tree.
+ *
+ * @param stores - the root stores.
+ * @param document - the document to find the index of.
+ * @returns the index of the document among its siblings, or -1 if not found.
+ */
+function findDocumentSiblingIndex(
+  stores: ActionContext["stores"],
+  document: {
+    id: string;
+    collectionId?: string | null;
+    parentDocumentId?: string;
+  }
+): number {
+  if (!document.collectionId) {
+    return -1;
+  }
+  const collection = stores.collections.get(document.collectionId);
+  if (!collection) {
+    return -1;
+  }
 
-    if (
-      !currentTeamId ||
-      !document?.isTemplate ||
-      !!document?.isDraft ||
-      !!document?.isDeleted
-    ) {
-      return false;
-    }
+  const siblings = document.parentDocumentId
+    ? collection.getChildrenForDocument(document.parentDocumentId)
+    : collection.sortedDocuments;
 
-    if (activeCollectionId) {
-      return stores.policies.abilities(activeCollectionId).createDocument;
-    }
-    return stores.policies.abilities(currentTeamId).createDocument;
-  },
-  to: ({ activeDocumentId, activeCollectionId, sidebarContext }) => {
-    if (!activeDocumentId || !activeCollectionId) {
-      return "";
-    }
-
-    const [pathname, search] = newDocumentPath(activeCollectionId, {
-      templateId: activeDocumentId,
-    }).split("?");
-
-    return {
-      pathname,
-      search,
-      state: { sidebarContext },
-    };
-  },
-});
+  return siblings?.findIndex((node) => node.id === document.id) ?? -1;
+}
 
 export const createNestedDocument = createInternalLinkAction({
-  name: ({ t }) => t("New nested document"),
+  name: ({ t }) => t("Nested document"),
   analyticsName: "New document",
   section: ActiveDocumentSection,
-  icon: <NewDocumentIcon />,
-  keywords: "create",
+  keywords: "create nested",
   visible: ({ currentTeamId, activeDocumentId, stores }) =>
     !!currentTeamId &&
     !!activeDocumentId &&
@@ -265,6 +256,100 @@ export const createNestedDocument = createInternalLinkAction({
       state: { sidebarContext },
     };
   },
+});
+
+const createDocumentBefore = createInternalLinkAction({
+  name: ({ t }) => t("Before"),
+  analyticsName: "New document before",
+  section: ActiveDocumentSection,
+  keywords: "create before",
+  visible: ({ currentTeamId, activeDocumentId, stores }) => {
+    if (!currentTeamId || !activeDocumentId) {
+      return false;
+    }
+    const document = stores.documents.get(activeDocumentId);
+    return (
+      !!document?.collectionId &&
+      stores.policies.abilities(currentTeamId).createDocument
+    );
+  },
+  to: ({ activeDocumentId, stores, sidebarContext }) => {
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+    if (!document) {
+      return "";
+    }
+
+    const index = findDocumentSiblingIndex(stores, document);
+    const [pathname, search] = newSiblingDocumentPath({
+      collectionId: document.collectionId,
+      parentDocumentId: document.parentDocumentId,
+      index: Math.max(0, index),
+    }).split("?");
+
+    return {
+      pathname,
+      search,
+      state: { sidebarContext },
+    };
+  },
+});
+
+const createDocumentAfter = createInternalLinkAction({
+  name: ({ t }) => t("After"),
+  analyticsName: "New document after",
+  section: ActiveDocumentSection,
+  keywords: "create after",
+  visible: ({ currentTeamId, activeDocumentId, stores }) => {
+    if (!currentTeamId || !activeDocumentId) {
+      return false;
+    }
+    const document = stores.documents.get(activeDocumentId);
+    return (
+      !!document?.collectionId &&
+      stores.policies.abilities(currentTeamId).createDocument
+    );
+  },
+  to: ({ activeDocumentId, stores, sidebarContext }) => {
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+    if (!document) {
+      return "";
+    }
+
+    const index = findDocumentSiblingIndex(stores, document);
+    const [pathname, search] = newSiblingDocumentPath({
+      collectionId: document.collectionId,
+      parentDocumentId: document.parentDocumentId,
+      index: index + 1,
+    }).split("?");
+
+    return {
+      pathname,
+      search,
+      state: { sidebarContext },
+    };
+  },
+});
+
+export const createNewDocument = createActionWithChildren({
+  name: ({ t }) => t("New document"),
+  analyticsName: "New document",
+  section: ActiveDocumentSection,
+  icon: <NewDocumentIcon />,
+  keywords: "create",
+  visible: ({ currentTeamId, activeDocumentId, stores }) => {
+    if (!activeDocumentId) {
+      return false;
+    }
+
+    return (
+      !!currentTeamId && stores.policies.abilities(currentTeamId).createDocument
+    );
+  },
+  children: [createDocumentBefore, createDocumentAfter, createNestedDocument],
 });
 
 export const starDocument = createAction({
@@ -343,7 +428,7 @@ export const publishDocument = createAction({
       return;
     }
 
-    if (document?.collectionId || document?.template) {
+    if (document?.collectionId) {
       await document.save(undefined, {
         publish: true,
       });
@@ -492,7 +577,10 @@ export const shareDocument = createAction({
   section: ActiveDocumentSection,
   icon: <PadlockIcon />,
   visible: ({ stores, activeDocumentId }) => {
-    const can = stores.policies.abilities(activeDocumentId!);
+    if (!activeDocumentId) {
+      return false;
+    }
+    const can = stores.policies.abilities(activeDocumentId);
     return can.manageUsers || can.share;
   },
   perform: async ({ activeDocumentId, stores, currentUserId, t }) => {
@@ -506,7 +594,6 @@ export const shareDocument = createAction({
     }
 
     stores.dialogs.openModal({
-      style: { marginBottom: -12 },
       title: t("Share this document"),
       content: (
         <SharePopover
@@ -519,13 +606,40 @@ export const shareDocument = createAction({
   },
 });
 
-export const downloadDocumentAsHTML = createAction({
-  name: ({ t }) => t("HTML"),
-  analyticsName: "Download document as HTML",
+export const downloadDocument = createAction({
+  name: ({ t, isMenu }) => (isMenu ? t("Download") : t("Download document")),
+  analyticsName: "Download document",
   section: ActiveDocumentSection,
-  keywords: "html export",
   icon: <DownloadIcon />,
-  iconInContextMenu: false,
+  keywords: "export md markdown html",
+  visible: ({ activeDocumentId, stores }) =>
+    !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
+  perform: ({ activeDocumentId, t, stores }) => {
+    if (!activeDocumentId) {
+      return;
+    }
+
+    const document = stores.documents.get(activeDocumentId);
+    invariant(document, "Document must exist");
+
+    stores.dialogs.openModal({
+      title: t("Download document"),
+      content: (
+        <DocumentDownload
+          document={document}
+          onSubmit={stores.dialogs.closeAllModals}
+        />
+      ),
+    });
+  },
+});
+
+export const downloadDocumentAsMarkdown = createAction({
+  name: ({ t }) => t("Download as Markdown"),
+  analyticsName: "Download document as Markdown",
+  section: ActiveDocumentSection,
+  keywords: "md markdown export",
+  icon: <DownloadIcon />,
   visible: ({ activeDocumentId, stores }) =>
     !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
   perform: async ({ activeDocumentId, stores }) => {
@@ -534,68 +648,57 @@ export const downloadDocumentAsHTML = createAction({
     }
 
     const document = stores.documents.get(activeDocumentId);
-    await document?.download(ExportContentType.Html);
+    await document?.download({
+      contentType: ExportContentType.Markdown,
+      includeChildDocuments: false,
+    });
+  },
+});
+
+export const downloadDocumentAsHTML = createAction({
+  name: ({ t }) => t("Download as HTML"),
+  analyticsName: "Download document as HTML",
+  section: ActiveDocumentSection,
+  keywords: "xml html export",
+  icon: <DownloadIcon />,
+  visible: ({ activeDocumentId, stores }) =>
+    !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
+  perform: async ({ activeDocumentId, stores }) => {
+    if (!activeDocumentId) {
+      return;
+    }
+
+    const document = stores.documents.get(activeDocumentId);
+    await document?.download({
+      contentType: ExportContentType.Html,
+      includeChildDocuments: false,
+    });
   },
 });
 
 export const downloadDocumentAsPDF = createAction({
-  name: ({ t }) => t("PDF"),
+  name: ({ t }) => t("Download as PDF"),
   analyticsName: "Download document as PDF",
   section: ActiveDocumentSection,
-  keywords: "export",
+  keywords: "pdf export",
   icon: <DownloadIcon />,
-  iconInContextMenu: false,
   visible: ({ activeDocumentId, stores }) =>
     !!(
       activeDocumentId &&
       stores.policies.abilities(activeDocumentId).download &&
       env.PDF_EXPORT_ENABLED
     ),
-  perform: ({ activeDocumentId, t, stores }) => {
-    if (!activeDocumentId) {
-      return;
-    }
-
-    const id = toast.loading(`${t("Exporting")}…`);
-    const document = stores.documents.get(activeDocumentId);
-    return document
-      ?.download(ExportContentType.Pdf)
-      .finally(() => id && toast.dismiss(id));
-  },
-});
-
-export const downloadDocumentAsMarkdown = createAction({
-  name: ({ t }) => t("Markdown"),
-  analyticsName: "Download document as Markdown",
-  section: ActiveDocumentSection,
-  keywords: "md markdown export",
-  icon: <DownloadIcon />,
-  iconInContextMenu: false,
-  visible: ({ activeDocumentId, stores }) =>
-    !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
   perform: async ({ activeDocumentId, stores }) => {
     if (!activeDocumentId) {
       return;
     }
 
     const document = stores.documents.get(activeDocumentId);
-    await document?.download(ExportContentType.Markdown);
+    await document?.download({
+      contentType: ExportContentType.Pdf,
+      includeChildDocuments: false,
+    });
   },
-});
-
-export const downloadDocument = createActionWithChildren({
-  name: ({ t, isMenu }) => (isMenu ? t("Download") : t("Download document")),
-  analyticsName: "Download document",
-  section: ActiveDocumentSection,
-  icon: <DownloadIcon />,
-  keywords: "export",
-  visible: ({ activeDocumentId, stores }) =>
-    !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
-  children: [
-    downloadDocumentAsHTML,
-    downloadDocumentAsPDF,
-    downloadDocumentAsMarkdown,
-  ],
 });
 
 export const copyDocumentAsMarkdown = createAction({
@@ -611,10 +714,11 @@ export const copyDocumentAsMarkdown = createAction({
       ? stores.documents.get(activeDocumentId)
       : undefined;
     if (document) {
-      const { ProsemirrorHelper } = await import(
-        "~/models/helpers/ProsemirrorHelper"
-      );
-      copy(ProsemirrorHelper.toMarkdown(document));
+      const res = await client.post("/documents.export", {
+        id: document.id,
+        signedUrls: Week.seconds, // 7 days (AWS S3 max for presigned URLs)
+      });
+      copy(res.data);
       toast.success(t("Markdown copied to clipboard"));
     }
   },
@@ -633,9 +737,8 @@ export const copyDocumentAsPlainText = createAction({
       ? stores.documents.get(activeDocumentId)
       : undefined;
     if (document) {
-      const { ProsemirrorHelper } = await import(
-        "~/models/helpers/ProsemirrorHelper"
-      );
+      const { ProsemirrorHelper } =
+        await import("~/models/helpers/ProsemirrorHelper");
       copy(ProsemirrorHelper.toPlainText(document));
       toast.success(t("Text copied to clipboard"));
     }
@@ -852,7 +955,50 @@ export const printDocument = createAction({
   icon: <PrintIcon />,
   visible: ({ activeDocumentId }) => !!(activeDocumentId && window.print),
   perform: () => {
-    queueMicrotask(window.print);
+    setTimeout(window.print, 0);
+  },
+});
+
+export const openDocumentInDesktop = createAction({
+  name: ({ t }) => t("Open in desktop app"),
+  analyticsName: "Open in desktop",
+  section: ActiveDocumentSection,
+  icon: <OpenIcon />,
+  visible: ({ activeDocumentId, stores }) => {
+    if (!activeDocumentId) {
+      return false;
+    }
+    const document = stores.documents.get(activeDocumentId);
+    return (
+      isCloudHosted && (isMac || isWindows) && !!document && !document.isDeleted
+    );
+  },
+  perform: ({ activeDocumentId, stores }) => {
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+    if (document) {
+      window.location.href = desktopify(documentPath(document));
+    }
+  },
+});
+
+export const presentDocument = createAction({
+  name: ({ t, isMenu }) => (isMenu ? t("Present") : t("Present document")),
+  analyticsName: "Present document",
+  section: ActiveDocumentSection,
+  icon: <EmbedIcon />,
+  shortcut: ["Meta+Alt+p"],
+  visible: ({ activeDocumentId }) => !!activeDocumentId,
+  perform: ({ activeDocumentId, stores }) => {
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+    if (!document) {
+      return;
+    }
+
+    stores.ui.setPresentingDocument(document);
   },
 });
 
@@ -873,7 +1019,7 @@ export const importDocument = createAction({
 
     return false;
   },
-  perform: ({ activeDocumentId, activeCollectionId, stores }) => {
+  perform: ({ t, activeDocumentId, activeCollectionId, stores }) => {
     const { documents } = stores;
     const input = document.createElement("input");
     input.type = "file";
@@ -882,6 +1028,7 @@ export const importDocument = createAction({
     input.onchange = async (ev) => {
       const files = getEventFiles(ev);
       const file = files[0];
+      const toastId = toast.loading(`${t("Uploading")}…`);
 
       try {
         const document = await documents.import(
@@ -895,6 +1042,8 @@ export const importDocument = createAction({
         history.push(document.url);
       } catch (err) {
         toast.error(err.message);
+      } finally {
+        toast.dismiss(toastId);
       }
     };
 
@@ -912,12 +1061,12 @@ export const createTemplateFromDocument = createAction({
     const document = activeDocumentId
       ? stores.documents.get(activeDocumentId)
       : undefined;
-    if (document?.isTemplate || !document?.isActive) {
+    if (!document?.isActive) {
       return false;
     }
     return !!(
       !!activeCollectionId &&
-      stores.policies.abilities(activeCollectionId).updateDocument
+      stores.policies.abilities(activeCollectionId).createTemplate
     );
   },
   perform: ({ activeDocumentId, stores, t, event }) => {
@@ -964,46 +1113,8 @@ export const searchDocumentsForQuery = (query: string) =>
     visible: ({ location }) => location.pathname !== searchPath(),
   });
 
-export const moveTemplateToWorkspace = createAction({
-  name: ({ t }) => t("Move to workspace"),
-  analyticsName: "Move template to workspace",
-  section: DocumentSection,
-  icon: <MoveIcon />,
-  iconInContextMenu: false,
-  visible: ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) {
-      return false;
-    }
-    const document = stores.documents.get(activeDocumentId);
-    if (!document || !document.template || document.isWorkspaceTemplate) {
-      return false;
-    }
-    return !!stores.policies.abilities(activeDocumentId).move;
-  },
-  perform: async ({ activeDocumentId, stores }) => {
-    if (activeDocumentId) {
-      const document = stores.documents.get(activeDocumentId);
-      if (!document) {
-        return;
-      }
-
-      await document.move({
-        collectionId: null,
-      });
-    }
-  },
-});
-
 export const moveDocumentToCollection = createAction({
-  name: ({ activeDocumentId, stores, t }) => {
-    if (!activeDocumentId) {
-      return t("Move");
-    }
-    const document = stores.documents.get(activeDocumentId);
-    return document?.template && document?.collectionId
-      ? t("Move to collection")
-      : t("Move");
-  },
+  name: ({ t }) => t("Move"),
   analyticsName: "Move document",
   section: ActiveDocumentSection,
   icon: <MoveIcon />,
@@ -1041,32 +1152,12 @@ export const moveDocument = createAction({
       return false;
     }
     const document = stores.documents.get(activeDocumentId);
-    // Don't show the button if this is a non-workspace template.
-    if (!document || (document.template && !document.isWorkspaceTemplate)) {
+    if (!document) {
       return false;
     }
     return !!stores.policies.abilities(activeDocumentId).move;
   },
   perform: moveDocumentToCollection.perform,
-});
-
-export const moveTemplate = createActionWithChildren({
-  name: ({ t }) => t("Move"),
-  analyticsName: "Move document",
-  section: ActiveDocumentSection,
-  icon: <MoveIcon />,
-  visible: ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) {
-      return false;
-    }
-    const document = stores.documents.get(activeDocumentId);
-    // Don't show the menu if this is not a template (or) a workspace template.
-    if (!document || !document.template || document.isWorkspaceTemplate) {
-      return false;
-    }
-    return !!stores.policies.abilities(activeDocumentId).move;
-  },
-  children: [moveTemplateToWorkspace, moveDocumentToCollection],
 });
 
 export const archiveDocument = createAction({
@@ -1127,10 +1218,7 @@ export const restoreDocument = createAction({
       : undefined;
     const can = stores.policies.abilities(document.id);
 
-    return (
-      !!(document.isWorkspaceTemplate || collection?.isActive) &&
-      !!(can.restore || can.unarchive)
-    );
+    return !!collection?.isActive && !!(can.restore || can.unarchive);
   },
   perform: async ({ t, stores, activeDocumentId }) => {
     const document = activeDocumentId
@@ -1167,10 +1255,7 @@ export const restoreDocumentToCollection = createActionWithChildren({
       ? stores.collections.get(document.collectionId)
       : undefined;
 
-    return (
-      !(document.isWorkspaceTemplate || collection?.isActive) &&
-      !!(can.restore || can.unarchive)
-    );
+    return !collection?.isActive && !!(can.restore || can.unarchive);
   },
   children: ({ t, activeDocumentId, stores }) => {
     const { collections, documents, policies } = stores;
@@ -1312,7 +1397,7 @@ export const openDocumentComments = createAction({
       return;
     }
 
-    stores.ui.toggleComments();
+    stores.ui.set({ rightSidebar: "comments" });
   },
 });
 
@@ -1347,6 +1432,7 @@ export const openDocumentInsights = createAction({
   name: ({ t }) => t("Insights"),
   analyticsName: "Open document insights",
   section: ActiveDocumentSection,
+  shortcut: [`Meta+Shift+I`],
   icon: <GraphIcon />,
   visible: ({ activeDocumentId, stores }) => {
     const can = stores.policies.abilities(activeDocumentId ?? "");
@@ -1354,12 +1440,7 @@ export const openDocumentInsights = createAction({
       ? stores.documents.get(activeDocumentId)
       : undefined;
 
-    return (
-      !!activeDocumentId &&
-      can.listViews &&
-      !document?.isTemplate &&
-      !document?.isDeleted
-    );
+    return !!activeDocumentId && can.listViews && !document?.isDeleted;
   },
   perform: ({ activeDocumentId, stores, t }) => {
     const document = activeDocumentId
@@ -1438,11 +1519,15 @@ export const rootDocumentActions = [
   archiveDocument,
   createDocument,
   createDraftDocument,
+  createNewDocument,
   createNestedDocument,
   createTemplateFromDocument,
   deleteDocument,
   importDocument,
   downloadDocument,
+  downloadDocumentAsMarkdown,
+  downloadDocumentAsHTML,
+  downloadDocumentAsPDF,
   copyDocumentLink,
   copyDocumentShareLink,
   copyDocumentAsMarkdown,
@@ -1456,16 +1541,17 @@ export const rootDocumentActions = [
   searchInDocument,
   duplicateDocument,
   leaveDocument,
-  moveTemplateToWorkspace,
   moveDocumentToCollection,
   openRandomDocument,
   permanentlyDeleteDocument,
   permanentlyDeleteDocumentsInTrash,
+  presentDocument,
   printDocument,
   pinDocumentToCollection,
   pinDocumentToHome,
   openDocumentComments,
   openDocumentHistory,
   openDocumentInsights,
+  openDocumentInDesktop,
   shareDocument,
 ];

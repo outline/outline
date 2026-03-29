@@ -7,7 +7,6 @@ import {
   NavigationNodeType,
   type ProsemirrorData,
 } from "@shared/types";
-import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { sortNavigationNodes } from "@shared/utils/collections";
 import type CollectionsStore from "~/stores/CollectionsStore";
 import type Document from "~/models/Document";
@@ -68,6 +67,11 @@ export default class Collection extends ParanoidModel {
     direction: "asc" | "desc";
   };
 
+  /** The minimum permission level required to manage templates in this collection. */
+  @Field
+  @observable
+  templateManagement: CollectionPermission;
+
   /**
    * Whether commenting is enabled for the collection.
    */
@@ -125,13 +129,7 @@ export default class Collection extends ParanoidModel {
    * @returns boolean
    */
   get isPrivate(): boolean {
-    return !this.permission;
-  }
-
-  /** Returns whether the collection description is not empty. */
-  @computed
-  get hasDescription(): boolean {
-    return this.data ? !ProsemirrorHelper.isEmptyData(this.data) : false;
+    return this.permission === null;
   }
 
   @computed

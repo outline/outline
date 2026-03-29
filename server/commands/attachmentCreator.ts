@@ -1,4 +1,4 @@
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import type { AttachmentPreset } from "@shared/types";
 import type { User } from "@server/models";
 import { Attachment } from "@server/models";
@@ -47,7 +47,6 @@ export default async function attachmentCreator({
 }: Props): Promise<Attachment | undefined> {
   const acl = AttachmentHelper.presetToAcl(preset);
   const key = AttachmentHelper.getKey({
-    acl,
     id: randomUUID(),
     name,
     userId: user.id,

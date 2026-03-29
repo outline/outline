@@ -9,7 +9,16 @@ import {
   or,
 } from "./utils";
 
-allow(User, ["read", "readTemplate"], Team, isTeamModel);
+allow(User, "read", Team, isTeamModel);
+
+allow(User, "readTemplate", Team, (actor, team) =>
+  and(
+    //
+    !actor.isGuest,
+    !actor.isViewer,
+    isTeamModel(actor, team)
+  )
+);
 
 allow(User, "share", Team, (actor, team) =>
   and(
@@ -40,17 +49,7 @@ allow(User, ["delete", "audit"], Team, (actor, team) =>
   )
 );
 
-allow(User, "createTemplate", Team, (actor, team) =>
-  and(
-    //
-    !actor.isGuest,
-    !actor.isViewer,
-    isTeamModel(actor, team),
-    isTeamMutable(actor)
-  )
-);
-
-allow(User, "updateTemplate", Team, (actor, team) =>
+allow(User, ["createTemplate", "updateTemplate"], Team, (actor, team) =>
   and(
     //
     actor.isAdmin,

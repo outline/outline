@@ -19,7 +19,7 @@ export default class AuthenticationExtension implements Extension {
       throw AuthenticationError("Authentication required");
     }
 
-    const user = await getUserForJWT(token, ["session", "collaboration"]);
+    const { user } = await getUserForJWT(token, ["session", "collaboration"]);
     const document = await Document.findByPk(documentId, {
       userId: user.id,
     });

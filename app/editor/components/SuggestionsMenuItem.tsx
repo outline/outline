@@ -5,6 +5,7 @@ import styled from "styled-components";
 import { usePortalContext } from "~/components/Portal";
 import {
   MenuButton,
+  MenuDisclosure,
   MenuIconWrapper,
   MenuLabel,
 } from "~/components/primitives/components/Menu";
@@ -15,7 +16,7 @@ export type Props = {
   /** Whether the item is disabled */
   disabled?: boolean;
   /** Callback when the item is clicked */
-  onPointerDown: (event: React.SyntheticEvent) => void;
+  onClick: (event: React.SyntheticEvent) => void;
   /** Callback when the item is hovered */
   onPointerMove?: (event: React.SyntheticEvent) => void;
   /** An optional icon for the item */
@@ -26,17 +27,20 @@ export type Props = {
   subtitle?: React.ReactNode;
   /** A string representing the keyboard shortcut for the item */
   shortcut?: string;
+  /** Whether to show a disclosure arrow indicating a submenu */
+  disclosure?: boolean;
 };
 
 function SuggestionsMenuItem({
   selected,
   disabled,
-  onPointerDown,
+  onClick,
   onPointerMove,
   title,
   subtitle,
   shortcut,
   icon,
+  disclosure,
 }: Props) {
   const portal = usePortalContext();
   const ref = React.useCallback(
@@ -60,7 +64,7 @@ function SuggestionsMenuItem({
     <MenuButton
       ref={ref}
       disabled={disabled}
-      onPointerDown={onPointerDown}
+      onClick={onClick}
       onPointerMove={disabled ? undefined : onPointerMove}
       $active={selected}
     >
@@ -68,10 +72,14 @@ function SuggestionsMenuItem({
       <MenuLabel>
         {title}
         {subtitle && (
-          <Subtitle $active={selected}>&middot; {subtitle}</Subtitle>
+          <>
+            <Subtitle $active={selected}>&middot;</Subtitle>
+            <Subtitle $active={selected}>{subtitle}</Subtitle>
+          </>
         )}
         {shortcut && <Shortcut $active={selected}>{shortcut}</Shortcut>}
       </MenuLabel>
+      {disclosure && <MenuDisclosure />}
     </MenuButton>
   );
 }

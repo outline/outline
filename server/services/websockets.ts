@@ -1,6 +1,6 @@
-import type { IncomingMessage } from "http";
-import type http from "http";
-import type { Duplex } from "stream";
+import type { IncomingMessage } from "node:http";
+import type http from "node:http";
+import type { Duplex } from "node:stream";
 import cookie from "cookie";
 import type Koa from "koa";
 import IO from "socket.io";
@@ -240,7 +240,7 @@ async function authenticate(socket: SocketWithAuth) {
     throw AuthenticationError("No access token");
   }
 
-  const user = await getUserForJWT(accessToken);
+  const { user } = await getUserForJWT(accessToken);
   socket.client.user = user;
   return user;
 }

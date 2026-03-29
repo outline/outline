@@ -1,9 +1,20 @@
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
 import { richExtensions, withComments } from "@shared/editor/nodes";
+import type { ProsemirrorData } from "@shared/types";
 import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
-import type Document from "../Document";
 import { Schema } from "prosemirror-model";
 import { Node } from "prosemirror-model";
+
+interface HasData {
+  data: ProsemirrorData;
+}
+
+const extensionManager = new ExtensionManager(withComments(richExtensions));
+const schema = new Schema({
+  nodes: extensionManager.nodes,
+  marks: extensionManager.marks,
+});
+const serializer = extensionManager.serializer();
 
 export class ProsemirrorHelper {
   /**
@@ -11,14 +22,7 @@ export class ProsemirrorHelper {
    *
    * @returns The markdown representation of the document as a string.
    */
-  static toMarkdown = (document: Document) => {
-    const extensionManager = new ExtensionManager(withComments(richExtensions));
-    const serializer = extensionManager.serializer();
-    const schema = new Schema({
-      nodes: extensionManager.nodes,
-      marks: extensionManager.marks,
-    });
-
+  static toMarkdown = (document: HasData) => {
     const doc = Node.fromJSON(
       schema,
       SharedProsemirrorHelper.attachmentsToAbsoluteUrls(document.data)
@@ -35,12 +39,7 @@ export class ProsemirrorHelper {
    *
    * @returns The plain text representation of the document as a string.
    */
-  static toPlainText = (document: Document) => {
-    const extensionManager = new ExtensionManager(withComments(richExtensions));
-    const schema = new Schema({
-      nodes: extensionManager.nodes,
-      marks: extensionManager.marks,
-    });
+  static toPlainText = (document: HasData) => {
     const text = SharedProsemirrorHelper.toPlainText(
       Node.fromJSON(schema, document.data)
     );

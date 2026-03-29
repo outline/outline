@@ -1,4 +1,5 @@
 import { MoreIcon } from "outline-icons";
+import { observer } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
 import { extraArea, hover, s } from "@shared/styles";
@@ -7,6 +8,7 @@ import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import { draggableOnDesktop, undraggableOnDesktop } from "~/styles";
 import Desktop from "~/utils/Desktop";
+import { HStack } from "~/components/primitives/HStack";
 
 export type SidebarButtonProps = React.ComponentProps<typeof Button> & {
   position: "top" | "bottom";
@@ -17,44 +19,46 @@ export type SidebarButtonProps = React.ComponentProps<typeof Button> & {
   children?: React.ReactNode;
 };
 
-const SidebarButton = React.forwardRef<HTMLButtonElement, SidebarButtonProps>(
-  function SidebarButton_(
-    {
-      position = "top",
-      showMoreMenu,
-      image,
-      title,
-      children,
-      onClick,
-      ...rest
-    }: SidebarButtonProps,
-    ref
-  ) {
-    return (
-      <Container
-        justify="space-between"
-        align="center"
-        shrink={false}
-        $position={position}
-      >
-        <Button
-          {...rest}
-          onClick={onClick}
+const SidebarButton = observer(
+  React.forwardRef<HTMLButtonElement, SidebarButtonProps>(
+    function SidebarButton_(
+      {
+        position = "top",
+        showMoreMenu,
+        image,
+        title,
+        children,
+        onClick,
+        ...rest
+      }: SidebarButtonProps,
+      ref
+    ) {
+      return (
+        <Container
+          justify="space-between"
+          align="center"
+          shrink={false}
           $position={position}
-          as="button"
-          ref={ref}
-          role="button"
         >
-          <Content gap={8} align="center">
-            {image}
-            {title && <Title>{title}</Title>}
-          </Content>
-          {showMoreMenu && <StyledMoreIcon />}
-        </Button>
-        {children}
-      </Container>
-    );
-  }
+          <Button
+            {...rest}
+            onClick={onClick}
+            $position={position}
+            as="button"
+            ref={ref}
+            role="button"
+          >
+            <Content>
+              {image}
+              {title && <Title>{title}</Title>}
+            </Content>
+            {showMoreMenu && <StyledMoreIcon />}
+          </Button>
+          {children}
+        </Container>
+      );
+    }
+  )
 );
 
 const StyledMoreIcon = styled(MoreIcon)`
@@ -74,7 +78,7 @@ const Title = styled(Text)`
   text-overflow: ellipsis;
 `;
 
-const Content = styled(Flex)`
+const Content = styled(HStack)`
   flex-shrink: 1;
   flex-grow: 1;
 `;

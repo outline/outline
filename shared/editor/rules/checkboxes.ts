@@ -16,10 +16,10 @@ function isParagraph(token: Token | void): boolean {
 }
 
 function isListItem(token: Token | void): boolean {
-  return (
-    !!token &&
-    (token.type === "list_item_open" || token.type === "checkbox_item_open")
-  );
+  // Only match list_item_open, not checkbox_item_open - items that are already
+  // checkbox_item_open have been processed (e.g., by the tables rule for
+  // checkboxes in table cells) and should not be processed again.
+  return !!token && token.type === "list_item_open";
 }
 
 function looksLikeChecklist(tokens: Token[], index: number) {
@@ -93,10 +93,16 @@ export default function markdownItCheckbox(md: MarkdownIt): void {
 
         // close the list item
         let j = i;
-        while (tokens[j].type !== "list_item_close") {
+        while (
+          tokens[j] &&
+          tokens[j].type !== "list_item_close" &&
+          tokens[j].type !== "checkbox_item_close"
+        ) {
           j++;
         }
-        tokens[j].type = "checkbox_item_close";
+        if (tokens[j]) {
+          tokens[j].type = "checkbox_item_close";
+        }
       }
     }
 

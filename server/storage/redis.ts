@@ -3,6 +3,7 @@ import Redis from "ioredis";
 import defaults from "lodash/defaults";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
+import { getConnectionName } from "./utils";
 
 type RedisAdapterOptions = RedisOptions & {
   /** Suffix to append to the connection name that will be displayed in Redis */
@@ -13,9 +14,14 @@ const defaultOptions: RedisOptions = {
   maxRetriesPerRequest: 20,
   enableReadyCheck: false,
   showFriendlyErrorStack: env.isDevelopment,
+  keepAlive: 10000,
 
   retryStrategy(times: number) {
-    Logger.warn(`Retrying redis connection: attempt ${times}`);
+    if (times === 1) {
+      Logger.info("lifecycle", `Retrying redis connection: attempt ${times}`);
+    } else {
+      Logger.warn(`Retrying redis connection: attempt ${times}`);
+    }
     return Math.min(times * 500, 3000);
   },
 
@@ -37,14 +43,7 @@ export default class RedisAdapter extends Redis {
     url: string | undefined,
     { connectionNameSuffix, ...options }: RedisAdapterOptions = {}
   ) {
-    /**
-     * For debugging. The connection name is based on the services running in
-     * this process. Note that this does not need to be unique.
-     */
-    const connectionNamePrefix = env.isDevelopment ? process.pid : "outline";
-    const connectionName =
-      `${connectionNamePrefix}:${env.SERVICES.join("-")}` +
-      (connectionNameSuffix ? `:${connectionNameSuffix}` : "");
+    const connectionName = getConnectionName(connectionNameSuffix);
 
     if (!url || !url.startsWith("ioredis://")) {
       super(

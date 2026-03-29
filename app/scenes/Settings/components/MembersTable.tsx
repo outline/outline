@@ -1,35 +1,70 @@
 import compact from "lodash/compact";
-import { useMemo } from "react";
+import { observer } from "mobx-react";
+import { useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import styled from "styled-components";
 import Text from "@shared/components/Text";
 import type User from "~/models/User";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import Badge from "~/components/Badge";
-import Flex from "~/components/Flex";
 import { HEADER_HEIGHT } from "~/components/Header";
 import {
   type Props as TableProps,
   SortableTable,
 } from "~/components/SortableTable";
 import { type Column as TableColumn } from "~/components/Table";
+import { ContextMenu } from "~/components/Menu/ContextMenu";
+import { useUserMenuActions } from "~/hooks/useUserMenuActions";
 import Time from "~/components/Time";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useMobile from "~/hooks/useMobile";
 import UserMenu from "~/menus/UserMenu";
 import { FILTER_HEIGHT } from "./StickyFilters";
+import { HStack } from "~/components/primitives/HStack";
+import { VStack } from "~/components/primitives/VStack";
 
-const ROW_HEIGHT = 60;
+const ROW_HEIGHT = 50;
 const STICKY_OFFSET = HEADER_HEIGHT + FILTER_HEIGHT;
 
 type Props = Omit<TableProps<User>, "columns" | "rowHeight"> & {
   canManage: boolean;
 };
 
+const UserRowContextMenu = observer(function UserRowContextMenu({
+  user,
+  menuLabel,
+  children,
+}: {
+  user: User;
+  menuLabel: string;
+  children: React.ReactNode;
+}) {
+  const action = useUserMenuActions(user);
+  return (
+    <ContextMenu action={action} ariaLabel={menuLabel}>
+      {children}
+    </ContextMenu>
+  );
+});
+
 export function MembersTable({ canManage, ...rest }: Props) {
   const { t } = useTranslation();
   const currentUser = useCurrentUser();
   const isMobile = useMobile();
+
+  const applyContextMenu = useCallback(
+    (user: User, rowElement: React.ReactNode) => {
+      if (currentUser.id === user.id) {
+        return rowElement;
+      }
+
+      return (
+        <UserRowContextMenu user={user} menuLabel={t("User options")}>
+          {rowElement}
+        </UserRowContextMenu>
+      );
+    },
+    [currentUser.id, t]
+  );
 
   const columns = useMemo<TableColumn<User>[]>(
     () =>
@@ -40,9 +75,9 @@ export function MembersTable({ canManage, ...rest }: Props) {
           header: t("Name"),
           accessor: (user) => user.name,
           component: (user) => (
-            <Flex align="center" gap={8}>
-              <Avatar model={user} size={AvatarSize.Large} />{" "}
-              <Flex column>
+            <HStack>
+              <Avatar model={user} size={AvatarSize.Large} />
+              <VStack align="flex-start" spacing={0}>
                 <Text selectable>
                   {user.name} {currentUser.id === user.id && `(${t("You")})`}
                 </Text>
@@ -51,8 +86,8 @@ export function MembersTable({ canManage, ...rest }: Props) {
                     {user.email}
                   </Text>
                 )}
-              </Flex>
-            </Flex>
+              </VStack>
+            </HStack>
           ),
           width: "4fr",
         },
@@ -85,7 +120,7 @@ export function MembersTable({ canManage, ...rest }: Props) {
           header: t("Role"),
           accessor: (user) => user.role,
           component: (user) => (
-            <Badges wrap>
+            <HStack spacing={4} wrap>
               {!user.lastActiveAt && <Badge>{t("Invited")}</Badge>}
               {user.isAdmin ? (
                 <Badge primary>{t("Admin")}</Badge>
@@ -97,7 +132,7 @@ export function MembersTable({ canManage, ...rest }: Props) {
                 <Badge>{t("Editor")}</Badge>
               )}
               {user.isSuspended && <Badge>{t("Suspended")}</Badge>}
-            </Badges>
+            </HStack>
           ),
           width: "2fr",
         },
@@ -119,12 +154,8 @@ export function MembersTable({ canManage, ...rest }: Props) {
       columns={columns}
       rowHeight={ROW_HEIGHT}
       stickyOffset={STICKY_OFFSET}
+      decorateRow={canManage ? applyContextMenu : undefined}
       {...rest}
     />
   );
 }
-
-const Badges = styled(Flex)`
-  margin-left: -10px;
-  row-gap: 4px;
-`;
