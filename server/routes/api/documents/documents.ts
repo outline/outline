@@ -2215,11 +2215,25 @@ async function accessibleRestrictedDocIds(userId: string): Promise<string[]> {
     UserMembership.findAll({
       attributes: ["documentId"],
       where: { userId, documentId: { [Op.ne]: null } },
+      include: [
+        {
+          model: Document.unscoped(),
+          required: true,
+          attributes: [],
+          where: { isPrivate: true },
+        },
+      ],
     }),
     GroupMembership.findAll({
       attributes: ["documentId"],
       where: { documentId: { [Op.ne]: null } },
       include: [
+        {
+          model: Document.unscoped(),
+          required: true,
+          attributes: [],
+          where: { isPrivate: true },
+        },
         {
           model: Group,
           required: true,
@@ -2235,14 +2249,18 @@ async function accessibleRestrictedDocIds(userId: string): Promise<string[]> {
     }),
   ]);
 
-  return [
-    ...userMemberships
-      .map((m) => m.documentId)
-      .filter((id): id is string => id !== null),
-    ...groupMemberships
-      .map((m) => m.documentId)
-      .filter((id): id is string => id !== null),
-  ];
+  const ids = new Set<string>();
+  for (const m of userMemberships) {
+    if (m.documentId) {
+      ids.add(m.documentId);
+    }
+  }
+  for (const m of groupMemberships) {
+    if (m.documentId) {
+      ids.add(m.documentId);
+    }
+  }
+  return [...ids];
 }
 
 export default router;

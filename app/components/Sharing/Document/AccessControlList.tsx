@@ -99,7 +99,7 @@ export const AccessControlList = observer(
           value: "inherited",
         },
       ],
-      [t]
+      [t, collection?.isPrivate]
     );
 
     const { loading: userMembershipLoading, request: fetchUserMemberships } =

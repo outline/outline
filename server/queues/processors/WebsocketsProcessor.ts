@@ -234,22 +234,22 @@ export default class WebsocketsProcessor {
           },
           paranoid: false,
         });
-        documents
-          .filter((document) => !document.isPrivate)
-          .forEach((document) => {
-            socketio
-              .to(`collection-${document.collectionId}`)
-              .emit("entities", {
-                event: event.name,
-                invalidatedPolicies: [document.id],
-                documentIds: [
-                  {
-                    id: document.id,
-                    updatedAt: document.updatedAt,
-                  },
-                ],
-              });
+        // Emit to collection channels for all moved documents, including
+        // those that became private during the move. Clients subscribed to
+        // the collection need the event to remove newly-private documents
+        // from their view and invalidate policies.
+        documents.forEach((document) => {
+          socketio.to(`collection-${document.collectionId}`).emit("entities", {
+            event: event.name,
+            invalidatedPolicies: [document.id],
+            documentIds: [
+              {
+                id: document.id,
+                updatedAt: document.updatedAt,
+              },
+            ],
           });
+        });
         const moveCollections = await Collection.findAll({
           where: { id: event.data.collectionIds },
           attributes: ["id", "updatedAt"],
