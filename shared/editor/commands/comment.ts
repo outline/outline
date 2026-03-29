@@ -1,4 +1,3 @@
-import type { Attrs } from "prosemirror-model";
 import type { Command } from "prosemirror-state";
 import { NodeSelection, TextSelection } from "prosemirror-state";
 import { v4 as uuidv4 } from "uuid";
@@ -8,21 +7,27 @@ import { addMark } from "./addMark";
 import { collapseSelection } from "./collapseSelection";
 import { chainCommands } from "prosemirror-commands";
 
-export const addComment = (attrs: Attrs): Command =>
+interface CommentAttrs {
+  userId: string;
+  onCreateCommentMark?: (commentId: string, userId: string) => void;
+}
+
+export const addComment = (attrs: CommentAttrs): Command =>
   chainCommands(addCommentTextSelection(attrs), addCommentNodeSelection(attrs));
 
 const addCommentNodeSelection =
-  (attrs: Attrs): Command =>
+  (attrs: CommentAttrs): Command =>
   (state, dispatch) => {
     if (!(state.selection instanceof NodeSelection)) {
       return false;
     }
     const { selection } = state;
     const existingMarks = selection.node.attrs.marks ?? [];
+    const id = uuidv4();
     const newMark = {
       type: "comment",
       attrs: {
-        id: uuidv4(),
+        id,
         userId: attrs.userId,
         draft: true,
       },
@@ -31,12 +36,14 @@ const addCommentNodeSelection =
       ...selection.node.attrs,
       marks: [...existingMarks, newMark],
     };
+
+    attrs.onCreateCommentMark?.(id, attrs.userId);
     dispatch?.(state.tr.setNodeMarkup(selection.from, undefined, newAttrs));
     return true;
   };
 
 const addCommentTextSelection =
-  (attrs: Attrs): Command =>
+  (attrs: CommentAttrs): Command =>
   (state, dispatch) => {
     if (!(state.selection instanceof TextSelection)) {
       return false;
@@ -57,9 +64,13 @@ const addCommentTextSelection =
       return false;
     }
 
+    const id = uuidv4();
+
+    attrs.onCreateCommentMark?.(id, attrs.userId);
+
     chainTransactions(
       addMark(state.schema.marks.comment, {
-        id: uuidv4(),
+        id,
         userId: attrs.userId,
         draft: true,
       }),

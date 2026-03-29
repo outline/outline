@@ -89,9 +89,13 @@ export default class Comment extends Mark {
           return false;
         }
 
+        const id = uuidv4();
+
+        this.options.onCreateCommentMark?.(id, this.options.userId);
+
         chainTransactions(
           toggleMark(type, {
-            id: uuidv4(),
+            id,
             userId: this.options.userId,
             draft: true,
           }),
@@ -105,7 +109,11 @@ export default class Comment extends Mark {
 
   commands() {
     return this.options.onCreateCommentMark
-      ? (): Command => addComment({ userId: this.options.userId })
+      ? (): Command =>
+          addComment({
+            userId: this.options.userId,
+            onCreateCommentMark: this.options.onCreateCommentMark,
+          })
       : undefined;
   }
 

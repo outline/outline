@@ -10,6 +10,7 @@ import insertFiles from "@shared/editor/commands/insertFiles";
 import EditorContainer from "@shared/editor/components/Styles";
 import { AttachmentPreset } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
+import Storage from "@shared/utils/Storage";
 import { getDataTransferFiles } from "@shared/utils/files";
 import { AttachmentValidation } from "@shared/validations";
 import ClickablePadding from "~/components/ClickablePadding";
@@ -45,7 +46,6 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   const {
     id,
     onChange,
-    onCreateCommentMark,
     onDeleteCommentMark,
     onFileUploadStart,
     onFileUploadStop,
@@ -207,23 +207,34 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   );
 
   const updateComments = React.useCallback(() => {
-    if (onCreateCommentMark && onDeleteCommentMark && localRef.current) {
-      const commentMarks = localRef.current.getComments();
-      const commentIds = comments.orderedData.map((c) => c.id);
-      const commentMarkIds = commentMarks?.map((c) => c.id);
-      const newCommentIds = difference(
-        commentMarkIds,
-        previousCommentIds.current ?? [],
-        commentIds
-      );
+    if (!localRef.current) {
+      return;
+    }
 
-      newCommentIds.forEach((commentId) => {
-        const mark = commentMarks.find((c) => c.id === commentId);
-        if (mark) {
-          onCreateCommentMark(mark.id, mark.userId);
-        }
-      });
+    const commentMarks = localRef.current.getComments();
+    const commentIds = comments.orderedData.map((c) => c.id);
+    const commentMarkIds = commentMarks?.map((c) => c.id);
+    const newCommentIds = difference(
+      commentMarkIds,
+      previousCommentIds.current ?? [],
+      commentIds
+    );
 
+    // Clean up empty draft comment marks that arrived via sync from a
+    // previous session.
+    for (const commentId of newCommentIds) {
+      const mark = commentMarks.find((c) => c.id === commentId);
+      if (
+        mark &&
+        (mark as { draft?: boolean }).draft &&
+        mark.userId === props.userId &&
+        !Storage.get(`draft-${id}-${mark.id}`)
+      ) {
+        setTimeout(() => localRef.current?.removeComment(mark.id), 0);
+      }
+    }
+
+    if (onDeleteCommentMark) {
       const removedCommentIds = difference(
         previousCommentIds.current ?? [],
         commentMarkIds ?? []
@@ -232,10 +243,10 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
       removedCommentIds.forEach((commentId) => {
         onDeleteCommentMark(commentId);
       });
-
-      previousCommentIds.current = commentMarkIds;
     }
-  }, [onCreateCommentMark, onDeleteCommentMark, comments.orderedData]);
+
+    previousCommentIds.current = commentMarkIds;
+  }, [onDeleteCommentMark, comments.orderedData, id, props.userId]);
 
   const handleChange = React.useCallback(
     (event) => {
