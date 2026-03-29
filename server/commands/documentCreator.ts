@@ -63,8 +63,7 @@ export default async function documentCreator(
 ): Promise<Document> {
   const { user } = ctx.state.auth;
   const { transaction } = ctx.state;
-  const templateId = templateDocument ? templateDocument.id : undefined;
-
+  const templateId = template ? template.id : undefined;
   const eventData = importId || apiImportId || createdAt ? { source: "import" } : undefined;
 
   if (state && templateDocument) {
