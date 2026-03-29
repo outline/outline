@@ -8,6 +8,7 @@ import Squircle from "@shared/components/Squircle";
 import { Pagination } from "@shared/constants";
 import { s } from "@shared/styles";
 import { CollectionPermission } from "@shared/types";
+import type { Option } from "~/components/InputSelect";
 import type Document from "~/models/Document";
 import type Share from "~/models/Share";
 import Flex from "~/components/Flex";
@@ -92,7 +93,7 @@ export const AccessControlList = observer(
         },
         {
           type: "item" as const,
-          label: collection.isPrivate
+          label: collection?.isPrivate
             ? t("Collection members")
             : t("Everyone in workspace"),
           value: "inherited",
@@ -150,7 +151,7 @@ export const AccessControlList = observer(
               <SectionHeading>General access</SectionHeading>
               <ListItem
                 image={
-                  document.isPrivate || collection.isPrivate ? (
+                  document.isPrivate || collection?.isPrivate ? (
                     <Squircle
                       color={theme.textTertiary}
                       size={AvatarSize.Medium}
@@ -179,13 +180,13 @@ export const AccessControlList = observer(
                   ) : parentIsPrivate ? (
                     <Trans>
                       Required by{" "}
-                      <StyledLink to={parentDoxcument?.path ?? ""}>
+                      <StyledLink to={parentDocument?.path ?? ""}>
                         parent
                       </StyledLink>
                     </Trans>
-                  ) : collection.isPrivate ? (
+                  ) : collection?.isPrivate ? (
                     t("Members of {{ itemName }} can access", {
-                      itemName: collection.name,
+                      itemName: collection?.name,
                     })
                   ) : (
                     t("All members of {{ itemName }}", {
@@ -194,9 +195,9 @@ export const AccessControlList = observer(
                   )
                 }
                 actions={
-                  document.isPrivate || collection.isPrivate ? null : (
+                  document.isPrivate || collection?.isPrivate ? null : (
                     <AccessTooltip content={t("Inherited from collection")}>
-                      {collection.permission === CollectionPermission.Read
+                      {collection?.permission === CollectionPermission.Read
                         ? t("View only")
                         : t("Can edit")}
                     </AccessTooltip>
@@ -228,7 +229,9 @@ export const AccessControlList = observer(
             </>
           ) : collection && canCollection.readDocument ? (
             <>
-              <SectionHeading>People with access</SectionHeading>{" "}
+              {(showLoading || hasMemberships) && (
+                <SectionHeading>People with access</SectionHeading>
+              )}
               {showLoading ? (
                 <Placeholder />
               ) : (

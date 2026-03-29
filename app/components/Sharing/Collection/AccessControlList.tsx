@@ -222,7 +222,9 @@ export const AccessControlList = observer(
                 </div>
               }
             />
-            <SectionHeading>People with access</SectionHeading>
+            {(showLoading || hasMemberships) && (
+              <SectionHeading>People with access</SectionHeading>
+            )}
             {showLoading ? (
               <Placeholder />
             ) : (
