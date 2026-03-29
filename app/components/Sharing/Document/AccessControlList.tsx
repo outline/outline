@@ -146,7 +146,7 @@ export const AccessControlList = observer(
             maxHeight: maxHeight ? maxHeight - publicAccessHeight : undefined,
           }}
         >
-          {!document.isDraft && can.restrict && (
+          {!document.isDraft && can.manageUsers && (
             <>
               <SectionHeading>General access</SectionHeading>
               <ListItem
@@ -170,7 +170,7 @@ export const AccessControlList = observer(
                     label={t("Access")}
                     hideLabel
                     short
-                    disabled={!can.restrict || parentIsPrivate}
+                    disabled={!can.manageUsers || parentIsPrivate}
                     nude
                   />
                 }

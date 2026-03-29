@@ -536,7 +536,7 @@ describe("restricted document", () => {
     expect(abilities.read).toBeTruthy();
   });
 
-  it("should allow restrict permission for document admin members", async () => {
+  it("should allow manageUsers permission for document admin members", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
     const collection = await buildCollection({
@@ -555,10 +555,10 @@ describe("restricted document", () => {
     });
     const document = await Document.findByPk(doc.id, { userId: user.id });
     const abilities = serialize(user, document);
-    expect(abilities.restrict).toBeTruthy();
+    expect(abilities.manageUsers).toBeTruthy();
   });
 
-  it("should allow restrict permission for team admins", async () => {
+  it("should allow manageUsers permission for team admins", async () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });
     const collection = await buildCollection({
@@ -571,10 +571,10 @@ describe("restricted document", () => {
     });
     const document = await Document.findByPk(doc.id, { userId: admin.id });
     const abilities = serialize(admin, document);
-    expect(abilities.restrict).toBeTruthy();
+    expect(abilities.manageUsers).toBeTruthy();
   });
 
-  it("should not allow restrict permission for regular members via collection", async () => {
+  it("should not allow manageUsers permission for regular members via collection", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
     const collection = await buildCollection({
@@ -587,6 +587,6 @@ describe("restricted document", () => {
     });
     const document = await Document.findByPk(doc.id, { userId: user.id });
     const abilities = serialize(user, document);
-    expect(abilities.restrict).toEqual(false);
+    expect(abilities.manageUsers).toEqual(false);
   });
 });

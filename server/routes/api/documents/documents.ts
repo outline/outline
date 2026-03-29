@@ -1309,14 +1309,13 @@ router.post(
       authorize(user, "updateInsights", document);
     }
 
-    // Handle restrict/unrestrict toggle
+    // Handle restrict/unrestrict toggle — validation and descendant cascade
+    // are enforced by Document model hooks (@BeforeUpdate and @AfterUpdate)
     if (isPrivate !== undefined && isPrivate !== document.isPrivate) {
-      authorize(user, "restrict", document);
+      authorize(user, "manageUsers", document);
+      document.isPrivate = isPrivate;
 
       if (isPrivate) {
-        document.isPrivate = true;
-        await document.cascadeRestrict({ transaction });
-
         // Ensure the acting user has direct admin access
         const existingMembership = await UserMembership.findOne({
           where: {
@@ -1337,11 +1336,6 @@ router.post(
             { transaction }
           );
         }
-      } else {
-        // Validation (cannot unrestrict child of restricted parent) is
-        // enforced by the @BeforeUpdate hook on Document
-        document.isPrivate = false;
-        await document.cascadeUnrestrict({ transaction });
       }
     }
 

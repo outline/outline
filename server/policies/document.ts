@@ -291,24 +291,6 @@ allow(User, "unpublish", Document, (user, document) => {
   return user.teamId === document.teamId;
 });
 
-allow(User, "restrict", Document, (actor, document) =>
-  and(
-    !!document?.isActive,
-    !document?.isDraft,
-    isTeamMutable(actor),
-    isTeamModel(actor, document),
-    or(
-      includesMembership(document, [DocumentPermission.Admin]),
-      isTeamAdmin(actor, document),
-      and(
-        !document?.isPrivate,
-        can(actor, "updateDocument", document?.collection)
-      ),
-      and(!!document?.isDraft, actor.id === document?.createdById)
-    )
-  )
-);
-
 function includesMembership(
   document: Document | null,
   permissions: DocumentPermission[]

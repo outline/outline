@@ -94,7 +94,8 @@ async function documentMover(
     document.lastModifiedById = user.id;
     document.updatedBy = user;
 
-    // Auto-restrict when moving into a restricted parent
+    // Auto-restrict when moving into a restricted parent — descendant
+    // cascade is handled by the @AfterUpdate hook on Document.save()
     if (parentDocumentId && !document.isPrivate) {
       const parentDocument = await Document.unscoped().findOne({
         attributes: ["id", "isPrivate"],
@@ -104,7 +105,6 @@ async function documentMover(
 
       if (parentDocument?.isPrivate) {
         document.isPrivate = true;
-        await document.cascadeRestrict({ transaction });
 
         // Update the document structure nodes to reflect the restriction
         if (documentJson) {

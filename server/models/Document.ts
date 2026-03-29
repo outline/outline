@@ -601,6 +601,25 @@ class Document extends ArchivableModel<
   }
 
   @AfterUpdate
+  static async cascadeIsPrivateChange(model: Document, ctx: HookContext) {
+    if (!model.changed("isPrivate")) {
+      return;
+    }
+
+    // Skip cascade during publish — publish handles its own membership setup
+    if (model.changed("publishedAt")) {
+      return;
+    }
+
+    const transaction = ctx.transaction;
+    if (model.isPrivate) {
+      await model.cascadeRestrict({ transaction });
+    } else {
+      await model.cascadeUnrestrict({ transaction });
+    }
+  }
+
+  @AfterUpdate
   static async publishTitleChangeEvent(
     model: Document,
     ctx: APIContext["context"]
