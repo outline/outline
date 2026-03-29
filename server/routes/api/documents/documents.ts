@@ -1313,37 +1313,9 @@ router.post(
     if (isPrivate !== undefined && isPrivate !== document.isPrivate) {
       authorize(user, "restrict", document);
 
-      const childDocumentIds = await document.findAllChildDocumentIds(
-        undefined,
-        { transaction }
-      );
-
       if (isPrivate) {
-        // Restrict: set flag on document and all descendants
         document.isPrivate = true;
-        if (childDocumentIds.length) {
-          await Document.update(
-            { isPrivate: true },
-            { where: { id: childDocumentIds }, transaction }
-          );
-        }
-
-        // Remove all sourced memberships on this document and descendants
-        const allDocIds = [document.id, ...childDocumentIds];
-        await UserMembership.destroy({
-          where: {
-            documentId: { [Op.in]: allDocIds },
-            sourceId: { [Op.ne]: null },
-          },
-          transaction,
-        });
-        await GroupMembership.destroy({
-          where: {
-            documentId: { [Op.in]: allDocIds },
-            sourceId: { [Op.ne]: null },
-          },
-          transaction,
-        });
+        await document.cascadeRestrict({ transaction });
 
         // Ensure the acting user has direct admin access
         const existingMembership = await UserMembership.findOne({
@@ -1366,53 +1338,10 @@ router.post(
           );
         }
       } else {
-        // Cannot unrestrict a child of a restricted parent
-        if (document.parentDocumentId) {
-          const parentDocument = await Document.unscoped().findOne({
-            attributes: ["id", "isPrivate"],
-            where: { id: document.parentDocumentId },
-            transaction,
-          });
-          if (parentDocument?.isPrivate) {
-            throw ValidationError(
-              "Cannot remove restriction from a document whose parent is restricted"
-            );
-          }
-        }
-
-        // Unrestrict: clear flag on document and all descendants
+        // Validation (cannot unrestrict child of restricted parent) is
+        // enforced by the @BeforeUpdate hook on Document
         document.isPrivate = false;
-        if (childDocumentIds.length) {
-          await Document.update(
-            { isPrivate: false },
-            { where: { id: childDocumentIds }, transaction }
-          );
-        }
-
-        // Re-inherit permissions from parent by rebuilding sourced memberships
-        if (document.parentDocumentId) {
-          const parentMemberships = await UserMembership.findAll({
-            where: { documentId: document.parentDocumentId },
-            transaction,
-          });
-          for (const membership of parentMemberships) {
-            await UserMembership.recreateSourcedMemberships(membership, {
-              transaction,
-              documentId: document.id,
-            });
-          }
-
-          const parentGroupMemberships = await GroupMembership.findAll({
-            where: { documentId: document.parentDocumentId },
-            transaction,
-          });
-          for (const membership of parentGroupMemberships) {
-            await GroupMembership.recreateSourcedMemberships(membership, {
-              transaction,
-              documentId: document.id,
-            });
-          }
-        }
+        await document.cascadeUnrestrict({ transaction });
       }
     }
 

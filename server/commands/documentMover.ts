@@ -104,15 +104,7 @@ async function documentMover(
 
       if (parentDocument?.isPrivate) {
         document.isPrivate = true;
-        const childDocIds = await document.findAllChildDocumentIds(undefined, {
-          transaction,
-        });
-        if (childDocIds.length) {
-          await Document.update(
-            { isPrivate: true },
-            { where: { id: childDocIds }, transaction }
-          );
-        }
+        await document.cascadeRestrict({ transaction });
 
         // Update the document structure nodes to reflect the restriction
         if (documentJson) {

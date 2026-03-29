@@ -576,6 +576,30 @@ class Document extends ArchivableModel<
     }
   }
 
+  @BeforeUpdate
+  static async validateIsPrivateChange(
+    model: Document,
+    options: SaveOptions<InferAttributes<Document>>
+  ) {
+    if (!model.changed("isPrivate") || model.isPrivate) {
+      return;
+    }
+
+    // Cannot unrestrict a child of a restricted parent
+    if (model.parentDocumentId) {
+      const parentDocument = await this.unscoped().findOne({
+        attributes: ["id", "isPrivate"],
+        where: { id: model.parentDocumentId },
+        transaction: options.transaction,
+      });
+      if (parentDocument?.isPrivate) {
+        throw ValidationError(
+          "Cannot remove restriction from a document whose parent is restricted"
+        );
+      }
+    }
+  }
+
   @AfterUpdate
   static async publishTitleChangeEvent(
     model: Document,
@@ -1009,6 +1033,88 @@ class Document extends ArchivableModel<
     };
 
     return findAllChildDocumentIds(this.id);
+  };
+
+  /**
+   * Cascade restriction to all descendant documents, destroying inherited
+   * (sourced) memberships on this document and its descendants.
+   *
+   * @param options - options including transaction.
+   */
+  cascadeRestrict = async (options: { transaction?: Transaction }) => {
+    const { transaction } = options;
+    const childDocumentIds = await this.findAllChildDocumentIds(undefined, {
+      transaction,
+    });
+
+    if (childDocumentIds.length) {
+      // Note: bulk update intentionally does not fire instance hooks
+      await (this.constructor as typeof Document).update(
+        { isPrivate: true },
+        { where: { id: childDocumentIds }, transaction }
+      );
+    }
+
+    const allDocIds = [this.id, ...childDocumentIds];
+    await UserMembership.destroy({
+      where: {
+        documentId: { [Op.in]: allDocIds },
+        sourceId: { [Op.ne]: null },
+      },
+      transaction,
+    });
+    await GroupMembership.destroy({
+      where: {
+        documentId: { [Op.in]: allDocIds },
+        sourceId: { [Op.ne]: null },
+      },
+      transaction,
+    });
+  };
+
+  /**
+   * Cascade unrestriction to all descendant documents, re-inheriting
+   * memberships from the parent document.
+   *
+   * @param options - options including transaction.
+   */
+  cascadeUnrestrict = async (options: { transaction?: Transaction }) => {
+    const { transaction } = options;
+    const childDocumentIds = await this.findAllChildDocumentIds(undefined, {
+      transaction,
+    });
+
+    if (childDocumentIds.length) {
+      // Note: bulk update intentionally does not fire instance hooks
+      await (this.constructor as typeof Document).update(
+        { isPrivate: false },
+        { where: { id: childDocumentIds }, transaction }
+      );
+    }
+
+    if (this.parentDocumentId) {
+      const parentUserMemberships = await UserMembership.findAll({
+        where: { documentId: this.parentDocumentId },
+        transaction,
+      });
+      for (const membership of parentUserMemberships) {
+        await UserMembership.recreateSourcedMemberships(membership, {
+          transaction,
+          documentId: this.id,
+        });
+      }
+
+      const parentGroupMemberships = await GroupMembership.findAll({
+        where: { documentId: this.parentDocumentId },
+        transaction,
+      });
+      for (const membership of parentGroupMemberships) {
+        await GroupMembership.recreateSourcedMemberships(membership, {
+          transaction,
+          documentId: this.id,
+        });
+      }
+    }
   };
 
   publish = async (
