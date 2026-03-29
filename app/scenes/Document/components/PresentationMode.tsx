@@ -256,7 +256,7 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
       }
 
       const availableWidth = container.clientWidth - 160;
-      const availableHeight = container.clientHeight - 48 - 160;
+      const availableHeight = container.clientHeight - 160;
       const scaleX = availableWidth / width;
       const scaleY = availableHeight / height;
       const newScale = Math.min(scaleX, scaleY, 1.5);
@@ -454,8 +454,13 @@ const TopBar = styled.div<{ $idle: boolean }>`
   align-items: center;
   justify-content: center;
   padding: 16px;
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1;
   opacity: ${(props) => (props.$idle ? 0 : 1)};
+  pointer-events: ${(props) => (props.$idle ? "none" : "auto")};
   transition: opacity 300ms ease;
 `;
 
