@@ -94,6 +94,10 @@ export const SectionHeading = styled(Text).attrs({
     margin-top: 16px;
   }
 
+  &:first-child {
+    display: none;
+  }
+
   margin-bottom: 2px;
 `;
 

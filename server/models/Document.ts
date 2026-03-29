@@ -1093,7 +1093,7 @@ class Document extends ArchivableModel<
 
   /**
    * Cascade unrestriction to all descendant documents, re-inheriting
-   * memberships from the parent document.
+   * memberships from ancestor documents and the subtree.
    *
    * @param options - options including transaction.
    */
@@ -1111,26 +1111,74 @@ class Document extends ArchivableModel<
       );
     }
 
-    if (this.parentDocumentId) {
-      const parentUserMemberships = await UserMembership.findAll({
-        where: { documentId: this.parentDocumentId },
+    // Walk up the ancestor chain and find all direct memberships on shared
+    // parent documents, then cascade them into this document and its children.
+    // We use the direct (root) memberships to ensure correct sourceId chains.
+    let currentDocId: string | null | undefined = this.parentDocumentId;
+    while (currentDocId) {
+      const ancestor = await (this.constructor as typeof Document)
+        .unscoped()
+        .scope("withoutState")
+        .findOne({
+          attributes: ["id", "parentDocumentId", "isPrivate"],
+          where: { id: currentDocId },
+          transaction,
+        });
+      if (!ancestor) {
+        break;
+      }
+
+      const directUserMemberships = await UserMembership.findAll({
+        where: { documentId: ancestor.id, sourceId: null },
         transaction,
       });
-      for (const membership of parentUserMemberships) {
+      for (const membership of directUserMemberships) {
         await UserMembership.recreateSourcedMemberships(membership, {
           transaction,
           documentId: this.id,
         });
       }
 
-      const parentGroupMemberships = await GroupMembership.findAll({
-        where: { documentId: this.parentDocumentId },
+      const directGroupMemberships = await GroupMembership.findAll({
+        where: { documentId: ancestor.id, sourceId: null },
         transaction,
       });
-      for (const membership of parentGroupMemberships) {
+      for (const membership of directGroupMemberships) {
         await GroupMembership.recreateSourcedMemberships(membership, {
           transaction,
           documentId: this.id,
+        });
+      }
+
+      // Stop at private boundaries — memberships don't cascade through them
+      if (ancestor.isPrivate) {
+        break;
+      }
+      currentDocId = ancestor.parentDocumentId;
+    }
+
+    // Recreate sourced memberships from direct memberships within the subtree.
+    // These may have been added while the document was private and couldn't
+    // cascade to children that were also marked private.
+    const allDocIds = [this.id, ...childDocumentIds];
+    for (const docId of allDocIds) {
+      const directUserMemberships = await UserMembership.findAll({
+        where: { documentId: docId, sourceId: null },
+        transaction,
+      });
+      for (const membership of directUserMemberships) {
+        await UserMembership.recreateSourcedMemberships(membership, {
+          transaction,
+        });
+      }
+
+      const directGroupMemberships = await GroupMembership.findAll({
+        where: { documentId: docId, sourceId: null },
+        transaction,
+      });
+      for (const membership of directGroupMemberships) {
+        await GroupMembership.recreateSourcedMemberships(membership, {
+          transaction,
         });
       }
     }
