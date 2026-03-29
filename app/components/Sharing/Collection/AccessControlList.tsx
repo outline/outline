@@ -164,7 +164,7 @@ export const AccessControlList = observer(
           }}
         >
           <>
-            <SectionHeading>General access</SectionHeading>
+            <SectionHeading>{t("General access")}</SectionHeading>
             <ListItem
               image={
                 collection.isPrivate ? (
@@ -223,7 +223,7 @@ export const AccessControlList = observer(
               }
             />
             {(showLoading || hasMemberships) && (
-              <SectionHeading>People with access</SectionHeading>
+              <SectionHeading>{t("People with access")}</SectionHeading>
             )}
             {showLoading ? (
               <Placeholder />

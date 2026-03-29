@@ -148,7 +148,7 @@ export const AccessControlList = observer(
         >
           {!document.isDraft && can.manageUsers && (
             <>
-              <SectionHeading>General access</SectionHeading>
+              <SectionHeading>{t("General access")}</SectionHeading>
               <ListItem
                 image={
                   document.isPrivate || collection?.isPrivate ? (
@@ -208,7 +208,7 @@ export const AccessControlList = observer(
           )}
           {document.isDraft ? (
             <>
-              <SectionHeading>People with access</SectionHeading>
+              <SectionHeading>{t("People with access")}</SectionHeading>
               <ListItem
                 image={<Avatar model={document.createdBy} />}
                 title={document.createdBy?.name}
@@ -230,7 +230,7 @@ export const AccessControlList = observer(
           ) : collection && canCollection.readDocument ? (
             <>
               {(showLoading || hasMemberships) && (
-                <SectionHeading>People with access</SectionHeading>
+                <SectionHeading>{t("People with access")}</SectionHeading>
               )}
               {showLoading ? (
                 <Placeholder />
