@@ -460,6 +460,7 @@ const TopBar = styled.div<{ $idle: boolean }>`
   right: 0;
   z-index: 1;
   opacity: ${(props) => (props.$idle ? 0 : 1)};
+  pointer-events: ${(props) => (props.$idle ? "none" : "auto")};
   transition: opacity 300ms ease;
 `;
 
