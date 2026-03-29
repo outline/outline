@@ -16,7 +16,7 @@ describe("DocumentArchivedProcessor", () => {
       userId: user.id,
       documentId: document.id,
     });
-    
+
     // Verify the star exists
     expect(
       await Star.count({
@@ -56,7 +56,7 @@ describe("DocumentArchivedProcessor", () => {
       teamId: actor.teamId,
       userId: actor.id,
     });
-    
+
     // Create stars for both users
     await buildStar({
       userId: actor.id,
@@ -95,7 +95,7 @@ describe("DocumentArchivedProcessor", () => {
         },
       })
     ).toBe(0);
-    
+
     // Verify the other user's star still exists
     expect(
       await Star.count({

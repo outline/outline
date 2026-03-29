@@ -234,4 +234,148 @@ describe("ProsemirrorHelper", () => {
       ]);
     });
   });
+
+  describe("removeMarks", () => {
+    it("should remove specified mark types from text nodes", () => {
+      const doc: ProsemirrorData = {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              {
+                type: "text",
+                text: "hello",
+                marks: [
+                  { type: "comment", attrs: { id: "c1" } },
+                  { type: "bold" },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+
+      const result = ProsemirrorHelper.removeMarks(doc, ["comment"]);
+      expect(result.content![0].content![0].marks).toEqual([{ type: "bold" }]);
+    });
+
+    it("should remove marks from nested content", () => {
+      const doc: ProsemirrorData = {
+        type: "doc",
+        content: [
+          {
+            type: "blockquote",
+            content: [
+              {
+                type: "paragraph",
+                content: [
+                  {
+                    type: "text",
+                    text: "nested",
+                    marks: [{ type: "comment", attrs: { id: "c1" } }],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+
+      const result = ProsemirrorHelper.removeMarks(doc, ["comment"]);
+      expect(result.content![0].content![0].content![0].marks).toEqual([]);
+    });
+
+    it("should remove marks from node attrs.marks", () => {
+      const doc: ProsemirrorData = {
+        type: "doc",
+        content: [
+          {
+            type: "image",
+            attrs: {
+              src: "test.png",
+              marks: [
+                { type: "comment", attrs: { id: "c1" } },
+                { type: "link", attrs: { href: "url" } },
+              ],
+            },
+          },
+        ],
+      };
+
+      const result = ProsemirrorHelper.removeMarks(doc, ["comment"]);
+      expect(result.content![0].attrs!.marks).toEqual([
+        { type: "link", attrs: { href: "url" } },
+      ]);
+    });
+
+    it("should remove multiple mark types at once", () => {
+      const doc: ProsemirrorData = {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              {
+                type: "text",
+                text: "hello",
+                marks: [
+                  { type: "comment", attrs: { id: "c1" } },
+                  { type: "bold" },
+                  { type: "highlight" },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+
+      const result = ProsemirrorHelper.removeMarks(doc, [
+        "comment",
+        "highlight",
+      ]);
+      expect(result.content![0].content![0].marks).toEqual([{ type: "bold" }]);
+    });
+
+    it("should leave nodes unchanged when no marks match", () => {
+      const doc: ProsemirrorData = {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              {
+                type: "text",
+                text: "hello",
+                marks: [{ type: "bold" }],
+              },
+            ],
+          },
+        ],
+      };
+
+      const result = ProsemirrorHelper.removeMarks(doc, ["comment"]);
+      expect(result.content![0].content![0].marks).toEqual([{ type: "bold" }]);
+    });
+
+    it("should handle nodes with no marks", () => {
+      const doc: ProsemirrorData = {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              {
+                type: "text",
+                text: "plain",
+              },
+            ],
+          },
+        ],
+      };
+
+      const result = ProsemirrorHelper.removeMarks(doc, ["comment"]);
+      expect(result.content![0].content![0].marks).toBeUndefined();
+    });
+  });
 });

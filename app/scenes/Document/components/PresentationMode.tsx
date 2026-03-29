@@ -7,7 +7,9 @@ import Icon from "@shared/components/Icon";
 import { richExtensions } from "@shared/editor/nodes";
 import { canUseElementFullscreen } from "@shared/utils/browser";
 import { s, depths, hover } from "@shared/styles";
+import cloneDeep from "lodash/cloneDeep";
 import type { ProsemirrorData } from "@shared/types";
+import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { colorPalette } from "@shared/utils/collections";
 import Editor from "~/components/Editor";
 import NudeButton from "~/components/NudeButton";
@@ -130,8 +132,16 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
   const supportsFullscreen = React.useMemo(() => canUseElementFullscreen(), []);
   const isIdle = useIdle(3000, idleEvents);
 
+  const strippedData = React.useMemo(
+    () =>
+      ProsemirrorHelper.removeMarks(cloneDeep(data), [
+        "comment",
+      ]) as ProsemirrorData,
+    [data]
+  );
+
   const slides = React.useMemo(() => {
-    const result = splitIntoSlides(data, title, icon, iconColor);
+    const result = splitIntoSlides(strippedData, title, icon, iconColor);
     const contentSlides = result.filter((s) => s.type === "content");
     const hasContent =
       contentSlides.length > 0 &&
@@ -144,7 +154,7 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
     }
 
     return result;
-  }, [data, title, icon, iconColor]);
+  }, [strippedData, title, icon, iconColor]);
 
   const totalSlides = slides.length;
 

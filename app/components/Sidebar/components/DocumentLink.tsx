@@ -265,27 +265,30 @@ function InnerDocumentLink(
       };
     });
 
-  const nodeChildren = React.useMemo(() => {
-    const insertDraftDocument =
-      activeDocument?.isDraft &&
-      activeDocument?.isActive &&
-      activeDocument?.parentDocumentId === node.id;
+  const insertDraftChild = !!(
+    activeDocument?.isDraft &&
+    activeDocument?.isActive &&
+    activeDocument?.parentDocumentId === node.id
+  );
 
-    return collection && insertDraftDocument
-      ? sortNavigationNodes(
-          [activeDocument?.asNavigationNode, ...node.children],
-          collection.sort,
-          false
-        )
-      : node.children;
-  }, [
-    activeDocument?.isActive,
-    activeDocument?.isDraft,
-    activeDocument?.parentDocumentId,
-    activeDocument?.asNavigationNode,
-    collection,
-    node,
-  ]);
+  // Only subscribe to asNavigationNode when this node is the parent of an
+  // active draft. This avoids every DocumentLink observer re-rendering on
+  // every title keystroke.
+  const draftNavNode = insertDraftChild
+    ? activeDocument?.asNavigationNode
+    : undefined;
+
+  const nodeChildren = React.useMemo(
+    () =>
+      collection && draftNavNode
+        ? sortNavigationNodes(
+            [draftNavNode, ...node.children],
+            collection.sort,
+            false
+          )
+        : node.children,
+    [draftNavNode, collection, node]
+  );
 
   const doc = documents.get(node.id);
   const title = doc?.title || node.title || t("Untitled");

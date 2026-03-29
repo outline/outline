@@ -1,5 +1,4 @@
 import type { Optional } from "utility-types";
-import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { TextHelper } from "@shared/utils/TextHelper";
 import { Document, type Template } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -26,6 +25,8 @@ type Props = Optional<
     | "publishedAt"
     | "createdAt"
     | "updatedAt"
+    | "createdById"
+    | "lastModifiedById"
   >
 > & {
   state?: Buffer;
@@ -59,6 +60,8 @@ export default async function documentCreator(
     editorVersion,
     publishedAt,
     sourceMetadata,
+    createdById,
+    lastModifiedById,
   }: Props
 ): Promise<Document> {
   const { user } = ctx.state.auth;
@@ -94,7 +97,7 @@ export default async function documentCreator(
     : text
       ? ProsemirrorHelper.toProsemirror(text).toJSON()
       : template
-        ? SharedProsemirrorHelper.replaceTemplateVariables(
+        ? ProsemirrorHelper.replaceTemplateVariables(
             await DocumentHelper.toJSON(template),
             user
           )
@@ -109,8 +112,8 @@ export default async function documentCreator(
     teamId: user.teamId,
     createdAt,
     updatedAt: updatedAt ?? createdAt,
-    lastModifiedById: user.id,
-    createdById: user.id,
+    lastModifiedById: lastModifiedById ?? createdById ?? user.id,
+    createdById: createdById ?? user.id,
     templateId,
     publishedAt,
     importId,

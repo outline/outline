@@ -15,6 +15,7 @@ import { findParentNode } from "../queries/findParentNode";
 import type { NodeWithPos } from "../types";
 import type { Editor } from "../../../app/editor";
 import { LightboxImageFactory } from "../lib/Lightbox";
+import { hashString } from "../../utils/string";
 import { sanitizeUrl } from "../../utils/urls";
 
 export const pluginKey = new PluginKey("mermaid");
@@ -25,21 +26,72 @@ export type MermaidState = {
   editingId?: string;
 };
 
+const STORAGE_PREFIX = "mermaid:";
+const MAX_STORAGE_ENTRIES = 20;
+
 class Cache {
-  static get(key: string) {
-    return this.data.get(key);
+  /** Get a cached SVG by diagram text and theme. */
+  static get(key: string): string | undefined {
+    try {
+      const hash = hashString(key);
+      const value = sessionStorage.getItem(STORAGE_PREFIX + hash);
+      if (value) {
+        this.touchLru(hash);
+        return value;
+      }
+    } catch {
+      // sessionStorage unavailable
+    }
+    return undefined;
   }
 
+  /** Cache a rendered SVG in sessionStorage. */
   static set(key: string, value: string) {
-    this.data.set(key, value);
-
-    if (this.data.size > this.maxSize) {
-      this.data.delete(this.data.keys().next().value);
+    try {
+      const hash = hashString(key);
+      this.touchLru(hash);
+      this.pruneStorage();
+      sessionStorage.setItem(STORAGE_PREFIX + hash, value);
+    } catch {
+      // sessionStorage full or unavailable
     }
   }
 
-  private static maxSize = 20;
-  private static data: Map<string, string> = new Map();
+  /** Move or append a hash to the end (most recent) of the LRU list. */
+  private static touchLru(hash: string) {
+    const lru = this.getLru();
+    const idx = lru.indexOf(hash);
+    if (idx !== -1) {
+      lru.splice(idx, 1);
+    }
+    lru.push(hash);
+    sessionStorage.setItem(STORAGE_PREFIX + "lru", JSON.stringify(lru));
+  }
+
+  /** Evict least-recently-used entries when over the limit. */
+  private static pruneStorage() {
+    const lru = this.getLru();
+
+    while (lru.length > MAX_STORAGE_ENTRIES) {
+      const evict = lru.shift()!;
+      sessionStorage.removeItem(STORAGE_PREFIX + evict);
+    }
+
+    sessionStorage.setItem(STORAGE_PREFIX + "lru", JSON.stringify(lru));
+  }
+
+  /** Read the LRU order list from sessionStorage. */
+  private static getLru(): string[] {
+    try {
+      const raw = sessionStorage.getItem(STORAGE_PREFIX + "lru");
+      if (raw) {
+        return JSON.parse(raw);
+      }
+    } catch {
+      // corrupted or unavailable
+    }
+    return [];
+  }
 }
 
 let mermaid: typeof MermaidUnsafe;
@@ -104,16 +156,20 @@ class MermaidRenderer {
       return;
     }
 
-    // Create a temporary element that will render the diagram off-screen. This is necessary
-    // as Mermaid will error if the element is not visible or the element is removed while the
-    // diagram is being rendered.
+    // Create a temporary element for rendering. We use visibility:hidden instead of
+    // offscreen positioning so the browser computes correct bounding boxes for SVG
+    // elements — offscreen elements can produce incorrect getBBox() results, leading
+    // to wrong viewBox dimensions (see mermaid-js/mermaid#6146).
     const renderElement = document.createElement("div");
     const tempId =
       "offscreen-mermaid-" + Math.random().toString(36).substr(2, 9);
     renderElement.id = tempId;
-    renderElement.style.position = "absolute";
-    renderElement.style.left = "-9999px";
-    renderElement.style.top = "-9999px";
+    renderElement.style.position = "fixed";
+    renderElement.style.visibility = "hidden";
+    renderElement.style.top = "0";
+    renderElement.style.left = "0";
+    renderElement.style.width = "100%";
+    renderElement.style.zIndex = "-1";
     document.body.appendChild(renderElement);
 
     try {

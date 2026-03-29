@@ -959,6 +959,10 @@ img.ProseMirror-separator {
   display: block;
 }
 
+.image-commented .image-wrapper {
+  outline: ${props.theme.commentedImageOutlineLight} solid 2px;
+}
+
 // Removes forced paragraph spaces below images, this is needed to images
 // being inline nodes that are displayed like blocks
 .component-image + img.ProseMirror-separator,
@@ -1949,11 +1953,6 @@ table {
     font-weight: 500;
   }
 
-  tr:first-child {
-    position: relative;
-    z-index: 2;
-  }
-
   tr:first-child th,
   tr:first-child td {
     border-top: 0;
@@ -2310,7 +2309,12 @@ table {
 }
 
 .${EditorStyleHelper.tableStickyHeader} {
-  tr:first-child th {
+  > .${EditorStyleHelper.tableScrollable} > table > tbody > tr:first-child {
+    position: relative;
+    z-index: 2;
+  }
+
+  > .${EditorStyleHelper.tableScrollable} > table > tbody > tr:first-child > th {
     transform: translateY(calc(var(--header-offset, 64px) + var(--sticky-scroll-offset, 0px)));
     border-bottom: 1px solid ${props.theme.divider};
 
@@ -2326,7 +2330,7 @@ table {
     }
   }
 
-  .${EditorStyleHelper.tableGrip} {
+  > .${EditorStyleHelper.tableGrip} {
     display: none;
   }
 }
