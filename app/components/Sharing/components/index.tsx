@@ -2,10 +2,13 @@ import { darken } from "polished";
 import styled from "styled-components";
 import Flex from "@shared/components/Flex";
 import { s, hover } from "@shared/styles";
+import { InputSelect } from "~/components/InputSelect";
 import NudeButton from "~/components/NudeButton";
 import Input, { NativeInput } from "~/components/Input";
+import Text from "~/components/Text";
 import { InfoIcon } from "outline-icons";
 import { Link } from "react-router-dom";
+import { transparentize } from "polished";
 
 export { GroupMembersPopover } from "./GroupMembersPopover";
 
@@ -60,7 +63,8 @@ export const HeaderInput = styled(Flex)`
   top: 0;
   background: ${s("menuBackground")};
   color: ${s("textTertiary")};
-  border-bottom: 1px solid ${s("inputBorder")};
+  border-bottom: 1px solid
+    ${(props) => transparentize(0.4, props.theme.inputBorder)};
   padding: 0 24px 12px;
   margin-top: 0;
   margin-left: -24px;
@@ -76,6 +80,41 @@ export const HeaderInput = styled(Flex)`
     top: -20px;
     height: 20px;
     background: ${s("menuBackground")};
+  }
+`;
+
+/** Section heading used in share popovers. */
+export const SectionHeading = styled(Text).attrs({
+  as: "div",
+  type: "secondary",
+  size: "small",
+  weight: "bold",
+})`
+  &:not(:first-child) {
+    margin-top: 16px;
+  }
+
+  margin-bottom: 2px;
+`;
+
+/** Compact InputSelect for use inline in share popover rows. */
+export const SmallInputSelect = styled(InputSelect)`
+  width: fit-content;
+  height: 24px;
+  margin: -4px -4px 0;
+
+  &:hover:not(:disabled),
+  &:focus-visible,
+  &[aria-expanded="true"] {
+    box-shadow: none;
+    background: none;
+  }
+
+  & > * {
+    min-height: 0;
+    font-weight: 500;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
   }
 `;
 

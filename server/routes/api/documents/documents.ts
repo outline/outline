@@ -1365,6 +1365,20 @@ router.post(
           );
         }
       } else {
+        // Cannot unrestrict a child of a restricted parent
+        if (document.parentDocumentId) {
+          const parentDocument = await Document.unscoped().findOne({
+            attributes: ["id", "isPrivate"],
+            where: { id: document.parentDocumentId },
+            transaction,
+          });
+          if (parentDocument?.isPrivate) {
+            throw ValidationError(
+              "Cannot remove restriction from a document whose parent is restricted"
+            );
+          }
+        }
+
         // Unrestrict: clear flag on document and all descendants
         document.isPrivate = false;
         if (childDocumentIds.length) {

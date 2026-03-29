@@ -131,7 +131,7 @@ export const editCollectionPermissions = createAction({
     }
 
     stores.dialogs.openModal({
-      title: t("Share this collection"),
+      title: t(`Share "{{ itemName }}"`, { itemName: collection.name }),
       content: (
         <SharePopover
           collection={collection}

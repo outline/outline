@@ -162,7 +162,7 @@ function PublicAccess(
   return (
     <div ref={ref}>
       <ListItem
-        title={t("Web")}
+        title={t("Publish to web")}
         subtitle={
           <>
             {sharedParent && !document.isDraft ? (

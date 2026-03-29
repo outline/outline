@@ -147,7 +147,7 @@ function InnerPublicAccess(
   return (
     <div ref={ref}>
       <ListItem
-        title={t("Web")}
+        title={t("Publish to web")}
         subtitle={<>{t("Allow anyone with the link to access")}</>}
         image={
           <Squircle color={theme.text} size={AvatarSize.Medium}>

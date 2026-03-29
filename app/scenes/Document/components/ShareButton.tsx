@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { GlobeIcon } from "outline-icons";
+import { GlobeIcon, PadlockIcon } from "outline-icons";
 import { Suspense, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type Document from "~/models/Document";
@@ -44,7 +44,11 @@ function ShareButton({ document }: Props) {
     return null;
   }
 
-  const icon = document.isPubliclyShared ? <GlobeIcon /> : undefined;
+  const icon = document.isPrivate ? (
+    <PadlockIcon />
+  ) : document.isPubliclyShared ? (
+    <GlobeIcon />
+  ) : undefined;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

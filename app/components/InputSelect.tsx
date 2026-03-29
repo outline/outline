@@ -342,7 +342,7 @@ function Option({
         <>
           &nbsp;
           <Text type="tertiary" size="small" ellipsis>
-            – {option.description}
+            &middot; {option.description}
           </Text>
         </>
       )}

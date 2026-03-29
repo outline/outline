@@ -1,36 +1,28 @@
 import { observer } from "mobx-react";
-import {
-  PadlockIcon,
-  MoreIcon,
-  QuestionMarkIcon,
-  UserIcon,
-} from "outline-icons";
+import { PadlockIcon, MoreIcon, QuestionMarkIcon } from "outline-icons";
 import * as React from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
+import { Link } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
 import Squircle from "@shared/components/Squircle";
 import { Pagination } from "@shared/constants";
 import { s } from "@shared/styles";
-import { CollectionPermission, IconType } from "@shared/types";
-import { determineIconType } from "@shared/utils/icon";
-import type Collection from "~/models/Collection";
+import { CollectionPermission } from "@shared/types";
 import type Document from "~/models/Document";
 import type Share from "~/models/Share";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
+import TeamLogo from "~/components/TeamLogo";
 import Scrollable from "~/components/Scrollable";
-import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
-import useCurrentUser from "~/hooks/useCurrentUser";
 import useMaxHeight from "~/hooks/useMaxHeight";
 import usePolicy from "~/hooks/usePolicy";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import { Avatar, AvatarSize } from "../../Avatar";
-import CollectionIcon from "../../Icons/CollectionIcon";
 import Tooltip from "../../Tooltip";
-import { Separator } from "../components";
+import { SectionHeading, Separator, SmallInputSelect } from "../components";
 import { ListItem } from "../components/ListItem";
 import { Placeholder } from "../components/Placeholder";
 import DocumentMemberList from "./DocumentMemberList";
@@ -63,9 +55,7 @@ export const AccessControlList = observer(
     const { t } = useTranslation();
     const theme = useTheme();
     const collection = document.collection;
-    const usersInCollection = useUsersInCollection(collection);
-    const user = useCurrentUser();
-    const { userMemberships, groupMemberships } = useStores();
+    const { documents, userMemberships, groupMemberships } = useStores();
     const collectionSharingDisabled = document.collection?.sharing === false;
     const team = useCurrentTeam();
     const can = usePolicy(document);
@@ -81,10 +71,35 @@ export const AccessControlList = observer(
       margin: 24,
     });
 
-    const handleToggleRestricted = React.useCallback(async () => {
-      const newValue = !document.isPrivate;
-      await document.save({ isPrivate: newValue });
-    }, [document]);
+    const parentDocument = document.parentDocumentId
+      ? documents.get(document.parentDocumentId)
+      : undefined;
+    const parentIsPrivate = parentDocument?.isPrivate ?? false;
+
+    const handleAccessChange = React.useCallback(
+      async (value: string) => {
+        await document.save({ isPrivate: value === "private" });
+      },
+      [document]
+    );
+
+    const accessOptions: Option[] = React.useMemo(
+      () => [
+        {
+          type: "item" as const,
+          label: t("Restricted"),
+          value: "private",
+        },
+        {
+          type: "item" as const,
+          label: collection.isPrivate
+            ? t("Collection members")
+            : t("Everyone in workspace"),
+          value: "inherited",
+        },
+      ],
+      [t]
+    );
 
     const { loading: userMembershipLoading, request: fetchUserMemberships } =
       useRequest(
@@ -132,45 +147,67 @@ export const AccessControlList = observer(
         >
           {!document.isDraft && can.restrict && (
             <>
+              <SectionHeading>General access</SectionHeading>
               <ListItem
                 image={
-                  <Squircle
-                    color={
-                      document.isPrivate ? theme.danger : theme.textTertiary
-                    }
-                    size={AvatarSize.Medium}
-                  >
-                    <PadlockIcon color={theme.white} size={16} />
-                  </Squircle>
+                  document.isPrivate || collection.isPrivate ? (
+                    <Squircle
+                      color={theme.textTertiary}
+                      size={AvatarSize.Medium}
+                    >
+                      <PadlockIcon color={theme.white} size={16} />
+                    </Squircle>
+                  ) : (
+                    <TeamLogo model={team} size={AvatarSize.Medium} />
+                  )
                 }
                 title={
-                  document.isPrivate
-                    ? t("Access managed independently")
-                    : t("Inherits access")
-                }
-                subtitle={
-                  document.isPrivate
-                    ? t("Only explicitly added members can access")
-                    : collection
-                      ? t("From {{ collectionName }}", {
-                          collectionName: collection.name,
-                        })
-                      : t("From parent document")
-                }
-                actions={
-                  <Switch
-                    aria-label={t("Restrict access")}
-                    checked={document.isPrivate}
-                    onChange={handleToggleRestricted}
-                    disabled={!can.restrict}
+                  <SmallInputSelect
+                    options={accessOptions}
+                    value={document.isPrivate ? "private" : "inherited"}
+                    onChange={handleAccessChange}
+                    label={t("Access")}
+                    hideLabel
+                    short
+                    disabled={!can.restrict || parentIsPrivate}
+                    nude
                   />
                 }
+                subtitle={
+                  document.isPrivate ? (
+                    t("Only invited users can access")
+                  ) : parentIsPrivate ? (
+                    <Trans>
+                      Required by{" "}
+                      <StyledLink to={parentDoxcument?.path ?? ""}>
+                        parent
+                      </StyledLink>
+                    </Trans>
+                  ) : collection.isPrivate ? (
+                    t("Members of {{ itemName }} can access", {
+                      itemName: collection.name,
+                    })
+                  ) : (
+                    t("All members of {{ itemName }}", {
+                      itemName: team.name,
+                    })
+                  )
+                }
+                actions={
+                  document.isPrivate || collection.isPrivate ? null : (
+                    <AccessTooltip content={t("Inherited from collection")}>
+                      {collection.permission === CollectionPermission.Read
+                        ? t("View only")
+                        : t("Can edit")}
+                    </AccessTooltip>
+                  )
+                }
               />
-              <Separator />
             </>
           )}
           {document.isDraft ? (
             <>
+              <SectionHeading>People with access</SectionHeading>
               <ListItem
                 image={<Avatar model={document.createdBy} />}
                 title={document.createdBy?.name}
@@ -191,40 +228,7 @@ export const AccessControlList = observer(
             </>
           ) : collection && canCollection.readDocument ? (
             <>
-              {!document.isPrivate &&
-                (collection.permission ? (
-                  <ListItem
-                    image={
-                      <Squircle color={theme.accent} size={AvatarSize.Medium}>
-                        <UserIcon color={theme.accentText} size={16} />
-                      </Squircle>
-                    }
-                    title={t("All members")}
-                    subtitle={t("Everyone in the workspace")}
-                    actions={
-                      <AccessTooltip>
-                        {collection?.permission ===
-                        CollectionPermission.ReadWrite
-                          ? t("Can edit")
-                          : t("Can view")}
-                      </AccessTooltip>
-                    }
-                  />
-                ) : usersInCollection ? (
-                  <ListItem
-                    image={<CollectionSquircle collection={collection} />}
-                    title={collection.name}
-                    subtitle={t("Everyone in the collection")}
-                    actions={<AccessTooltip>{t("Can view")}</AccessTooltip>}
-                  />
-                ) : (
-                  <ListItem
-                    image={<Avatar model={user} />}
-                    title={user.name}
-                    subtitle={t("You have full access")}
-                    actions={<AccessTooltip>{t("Can edit")}</AccessTooltip>}
-                  />
-                ))}
+              <SectionHeading>People with access</SectionHeading>{" "}
               {showLoading ? (
                 <Placeholder />
               ) : (
@@ -303,43 +307,6 @@ const AccessTooltip = ({
   );
 };
 
-const CollectionSquircle = ({ collection }: { collection: Collection }) => {
-  const theme = useTheme();
-  const iconType = determineIconType(collection.icon)!;
-  const squircleColor =
-    iconType === IconType.SVG ? collection.color! : theme.slateLight;
-  const iconSize = iconType === IconType.SVG ? 16 : 22;
-
-  return (
-    <Squircle color={squircleColor} size={AvatarSize.Medium}>
-      <CollectionIcon
-        collection={collection}
-        color={theme.white}
-        size={iconSize}
-      />
-    </Squircle>
-  );
-};
-
-function useUsersInCollection(collection?: Collection) {
-  const { users, memberships } = useStores();
-  const { request } = useRequest(() =>
-    memberships.fetchPage({ limit: 1, id: collection!.id })
-  );
-
-  React.useEffect(() => {
-    if (collection && !collection.permission) {
-      void request();
-    }
-  }, [collection]);
-
-  return collection
-    ? collection.permission
-      ? true
-      : users.inCollection(collection.id).length > 1
-    : false;
-}
-
 const Wrapper = styled(Flex)`
   flex-direction: column;
 `;
@@ -348,6 +315,11 @@ const Sticky = styled.div`
   background: ${s("menuBackground")};
   position: sticky;
   bottom: 0;
+`;
+
+const StyledLink = styled(Link)`
+  color: ${s("textTertiary")};
+  text-decoration: underline;
 `;
 
 const ScrollableContainer = styled(Scrollable)`
