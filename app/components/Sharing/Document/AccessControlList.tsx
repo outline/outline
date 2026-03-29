@@ -148,7 +148,6 @@ export const AccessControlList = observer(
         >
           {!document.isDraft && can.manageUsers && (
             <>
-              <SectionHeading>{t("General access")}</SectionHeading>
               <ListItem
                 image={
                   document.isPrivate || collection?.isPrivate ? (

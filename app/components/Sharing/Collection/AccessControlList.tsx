@@ -164,7 +164,6 @@ export const AccessControlList = observer(
           }}
         >
           <>
-            <SectionHeading>{t("General access")}</SectionHeading>
             <ListItem
               image={
                 collection.isPrivate ? (

@@ -429,7 +429,6 @@
   "Everyone in workspace": "Everyone in workspace",
   "Restricted": "Restricted",
   "Manage": "Manage",
-  "General access": "General access",
   "Access": "Access",
   "Only invited users can access": "Only invited users can access",
   "All members of {{ itemName }}": "All members of {{ itemName }}",
