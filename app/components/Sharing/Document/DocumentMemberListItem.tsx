@@ -114,7 +114,7 @@ const DocumentMemberListItem = ({
             }
             value={membership?.permission}
             onChange={handleChange}
-            disabled={(!onUpdate && !onLeave) || !!membership.source}
+            disabled={(!onUpdate && !onLeave) || !!membership?.source}
           />
         </div>
       }

@@ -152,7 +152,10 @@ export const AccessControlList = observer(
               <ListItem
                 image={
                   collection?.isPrivate ? (
-                    <Squircle color={collection.color} size={AvatarSize.Medium}>
+                    <Squircle
+                      color={collection.color ?? theme.textTertiary}
+                      size={AvatarSize.Medium}
+                    >
                       <CollectionIcon
                         collection={collection}
                         color="white"
