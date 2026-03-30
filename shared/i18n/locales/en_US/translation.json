@@ -463,7 +463,7 @@
   "Suggestions for invitation": "Suggestions for invitation",
   "No matches": "No matches",
   "Collection members": "Collection members",
-  "Required by <2>parent</2>": "Required by <2>parent</2>",
+  "Access managed by <2>parent</2>": "Access managed by <2>parent</2>",
   "Members of {{ itemName }} can access": "Members of {{ itemName }} can access",
   "Inherited from collection": "Inherited from collection",
   "Created the document": "Created the document",

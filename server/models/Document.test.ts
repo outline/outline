@@ -433,6 +433,95 @@ describe("isPrivate", () => {
       ).toBe(1);
     });
 
+    test("should recreate sourced memberships from direct memberships after restrict", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const viewer = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+
+      // A -> B -> C
+      const docA = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+      const docB = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docA.id,
+      });
+      const docC = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docB.id,
+      });
+
+      // Add direct membership on A for viewer — cascades to B and C
+      const directMembership = await UserMembership.create({
+        userId: viewer.id,
+        documentId: docA.id,
+        permission: DocumentPermission.ReadWrite,
+        createdById: user.id,
+      });
+
+      // Verify sourced memberships exist on B and C
+      expect(
+        await UserMembership.count({
+          where: {
+            documentId: docB.id,
+            userId: viewer.id,
+            sourceId: directMembership.id,
+          },
+        })
+      ).toBe(1);
+      expect(
+        await UserMembership.count({
+          where: {
+            documentId: docC.id,
+            userId: viewer.id,
+            sourceId: directMembership.id,
+          },
+        })
+      ).toBe(1);
+
+      // Make A private — B and C become private, sourced memberships are
+      // destroyed but should be immediately recreated from A's direct membership
+      docA.isPrivate = true;
+      await docA.save();
+
+      // Direct membership on A should remain
+      expect(
+        await UserMembership.count({
+          where: { documentId: docA.id, userId: viewer.id, sourceId: null },
+        })
+      ).toBe(1);
+
+      // Sourced memberships on B and C should be recreated
+      expect(
+        await UserMembership.count({
+          where: {
+            documentId: docB.id,
+            userId: viewer.id,
+            sourceId: directMembership.id,
+          },
+        })
+      ).toBe(1);
+      expect(
+        await UserMembership.count({
+          where: {
+            documentId: docC.id,
+            userId: viewer.id,
+            sourceId: directMembership.id,
+          },
+        })
+      ).toBe(1);
+    });
+
     test("should set children to private", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
@@ -732,7 +821,8 @@ describe("isPrivate", () => {
       docB.isPrivate = true;
       await docB.save();
 
-      // Add direct membership to B for Bob — doesn't cascade to C since C is private
+      // Add direct membership to B for Bob — should cascade to C
+      // even though C is private (it's within B's private subtree)
       await UserMembership.create({
         userId: bob.id,
         documentId: docB.id,
@@ -742,15 +832,19 @@ describe("isPrivate", () => {
 
       expect(
         await UserMembership.count({
-          where: { documentId: docC.id, userId: bob.id },
+          where: {
+            documentId: docC.id,
+            userId: bob.id,
+            sourceId: { [Op.ne]: null },
+          },
         })
-      ).toBe(0);
+      ).toBe(1);
 
       // Make B non-private
       docB.isPrivate = false;
       await docB.save();
 
-      // Bob's membership should now cascade to C
+      // Bob's membership should still be on C
       expect(
         await UserMembership.count({
           where: {
@@ -764,6 +858,71 @@ describe("isPrivate", () => {
       // Children should no longer be private
       await docC.reload();
       expect(docC.isPrivate).toBe(false);
+    });
+
+    test("should cascade memberships to private children when added to private doc", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const viewer = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+
+      // A -> B -> C
+      const docA = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+      const docB = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docA.id,
+      });
+      const docC = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        parentDocumentId: docB.id,
+      });
+
+      // Make A private — B and C become private too
+      docA.isPrivate = true;
+      await docA.save();
+
+      await docB.reload();
+      await docC.reload();
+      expect(docB.isPrivate).toBe(true);
+      expect(docC.isPrivate).toBe(true);
+
+      // Add membership on A — should cascade to private children B and C
+      const directMembership = await UserMembership.create({
+        userId: viewer.id,
+        documentId: docA.id,
+        permission: DocumentPermission.ReadWrite,
+        createdById: user.id,
+      });
+
+      // Sourced memberships should exist on both B and C
+      const bMembership = await UserMembership.findOne({
+        where: {
+          documentId: docB.id,
+          userId: viewer.id,
+          sourceId: directMembership.id,
+        },
+      });
+      expect(bMembership).not.toBeNull();
+
+      const cMembership = await UserMembership.findOne({
+        where: {
+          documentId: docC.id,
+          userId: viewer.id,
+          sourceId: directMembership.id,
+        },
+      });
+      expect(cMembership).not.toBeNull();
     });
 
     test("should set children to non-private", async () => {

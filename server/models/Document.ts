@@ -1055,8 +1055,10 @@ class Document extends ArchivableModel<
   };
 
   /**
-   * Cascade restriction to all descendant documents, destroying inherited
-   * (sourced) memberships on this document and its descendants.
+   * Cascade restriction to all descendant documents. Destroys sourced
+   * memberships inherited from outside the subtree, then rebuilds sourced
+   * memberships from direct memberships within the subtree so that users
+   * explicitly shared on this document (or its children) retain access.
    *
    * @param options - options including transaction.
    */
@@ -1075,6 +1077,8 @@ class Document extends ArchivableModel<
     }
 
     const allDocIds = [this.id, ...childDocumentIds];
+
+    // Destroy all sourced memberships in the subtree
     await UserMembership.destroy({
       where: {
         documentId: { [Op.in]: allDocIds },
@@ -1089,6 +1093,33 @@ class Document extends ArchivableModel<
       },
       transaction,
     });
+
+    // Rebuild sourced memberships from direct memberships within the subtree
+    const directUserMemberships = await UserMembership.findAll({
+      where: {
+        documentId: { [Op.in]: allDocIds },
+        sourceId: null,
+      },
+      transaction,
+    });
+    for (const membership of directUserMemberships) {
+      await UserMembership.recreateSourcedMemberships(membership, {
+        transaction,
+      });
+    }
+
+    const directGroupMemberships = await GroupMembership.findAll({
+      where: {
+        documentId: { [Op.in]: allDocIds },
+        sourceId: null,
+      },
+      transaction,
+    });
+    for (const membership of directGroupMemberships) {
+      await GroupMembership.recreateSourcedMemberships(membership, {
+        transaction,
+      });
+    }
   };
 
   /**

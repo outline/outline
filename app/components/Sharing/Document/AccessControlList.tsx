@@ -12,6 +12,7 @@ import type { Option } from "~/components/InputSelect";
 import type Document from "~/models/Document";
 import type Share from "~/models/Share";
 import Flex from "~/components/Flex";
+import CollectionIcon from "~/components/Icons/CollectionIcon";
 import NudeButton from "~/components/NudeButton";
 import TeamLogo from "~/components/TeamLogo";
 import Scrollable from "~/components/Scrollable";
@@ -150,7 +151,15 @@ export const AccessControlList = observer(
             <>
               <ListItem
                 image={
-                  document.isPrivate || collection?.isPrivate ? (
+                  collection?.isPrivate ? (
+                    <Squircle color={collection.color} size={AvatarSize.Medium}>
+                      <CollectionIcon
+                        collection={collection}
+                        color="white"
+                        size={16}
+                      />
+                    </Squircle>
+                  ) : document.isPrivate ? (
                     <Squircle
                       color={theme.textTertiary}
                       size={AvatarSize.Medium}
@@ -174,15 +183,15 @@ export const AccessControlList = observer(
                   />
                 }
                 subtitle={
-                  document.isPrivate ? (
-                    t("Only invited users can access")
-                  ) : parentIsPrivate ? (
+                  parentIsPrivate ? (
                     <Trans>
-                      Required by{" "}
+                      Access managed by{" "}
                       <StyledLink to={parentDocument?.path ?? ""}>
                         parent
                       </StyledLink>
                     </Trans>
+                  ) : document.isPrivate ? (
+                    t("Only invited users can access")
                   ) : collection?.isPrivate ? (
                     t("Members of {{ itemName }} can access", {
                       itemName: collection?.name,
