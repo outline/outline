@@ -4,7 +4,6 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled, { useTheme } from "styled-components";
 import Squircle from "@shared/components/Squircle";
-import { Pagination } from "@shared/constants";
 import { s } from "@shared/styles";
 import { CollectionPermission, IconType } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
@@ -43,6 +42,8 @@ type Props = {
   onRequestClose: () => void;
   /** Whether the popover is visible. */
   visible: boolean;
+  /** Whether the share data is currently loading. */
+  loading: boolean;
 };
 
 export const AccessControlList = observer(
@@ -53,13 +54,14 @@ export const AccessControlList = observer(
     sharedParent,
     onRequestClose,
     visible,
+    loading,
   }: Props) => {
     const { t } = useTranslation();
     const theme = useTheme();
     const collection = document.collection;
     const usersInCollection = useUsersInCollection(collection);
     const user = useCurrentUser();
-    const { userMemberships, groupMemberships } = useStores();
+    const { groupMemberships } = useStores();
     const collectionSharingDisabled = document.collection?.sharing === false;
     const team = useCurrentTeam();
     const can = usePolicy(document);
@@ -75,36 +77,10 @@ export const AccessControlList = observer(
       margin: 24,
     });
 
-    const { loading: userMembershipLoading, request: fetchUserMemberships } =
-      useRequest(
-        React.useCallback(
-          () =>
-            userMemberships.fetchDocumentMemberships({
-              id: documentId,
-              limit: Pagination.defaultLimit,
-            }),
-          [userMemberships, documentId]
-        )
-      );
-
-    const { loading: groupMembershipLoading, request: fetchGroupMemberships } =
-      useRequest(
-        React.useCallback(
-          () => groupMemberships.fetchAll({ documentId }),
-          [groupMemberships, documentId]
-        )
-      );
-
     const hasMemberships =
       groupMemberships.inDocument(documentId)?.length > 0 ||
       document.members.length > 0;
-    const showLoading =
-      !hasMemberships && (groupMembershipLoading || userMembershipLoading);
-
-    React.useEffect(() => {
-      void fetchUserMemberships();
-      void fetchGroupMemberships();
-    }, [fetchUserMemberships, fetchGroupMemberships]);
+    const showLoading = !hasMemberships && loading;
 
     React.useEffect(() => {
       calcMaxHeight();
