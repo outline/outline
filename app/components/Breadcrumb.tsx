@@ -55,6 +55,15 @@ function Breadcrumb(
     });
   }
 
+  const handleClick = React.useCallback(
+    (event: React.MouseEvent<HTMLAnchorElement>) => {
+      if (event.currentTarget.querySelector('[data-state="open"]')) {
+        event.preventDefault();
+      }
+    },
+    []
+  );
+
   const toBreadcrumb = React.useCallback(
     (action: TopLevelAction, index: number) => {
       if (action.type === "menu") {
@@ -68,6 +77,7 @@ function Breadcrumb(
           {item.icon}
           <Item
             to={item.to}
+            onClick={handleClick}
             $withIcon={!!item.icon}
             $highlight={!!highlightFirstItem && index === 0}
           >
@@ -76,7 +86,7 @@ function Breadcrumb(
         </>
       );
     },
-    [actionContext, highlightFirstItem]
+    [actionContext, handleClick, highlightFirstItem]
   );
 
   return (
