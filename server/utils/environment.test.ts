@@ -54,6 +54,33 @@ describe("resolveFileSecrets", () => {
     expect(env.TEST_OVERRIDE).toBe("direct-value");
   });
 
+  it("should not override empty-string env value with _FILE", () => {
+    const secretFile = path.join(tmpDir, "secret");
+    fs.writeFileSync(secretFile, "file-value");
+
+    const env: Record<string, string | undefined> = {
+      TEST_OVERRIDE_EMPTY: "",
+      TEST_OVERRIDE_EMPTY_FILE: secretFile,
+    };
+
+    resolveFileSecrets(env);
+
+    expect(env.TEST_OVERRIDE_EMPTY).toBe("");
+  });
+
+  it("should skip a bare _FILE key with no base name", () => {
+    const secretFile = path.join(tmpDir, "secret");
+    fs.writeFileSync(secretFile, "value");
+
+    const env: Record<string, string | undefined> = {
+      _FILE: secretFile,
+    };
+
+    resolveFileSecrets(env);
+
+    expect(env[""]).toBeUndefined();
+  });
+
   it("should handle missing file gracefully", () => {
     const env: Record<string, string | undefined> = {
       TEST_MISSING_FILE: path.join(tmpDir, "nonexistent"),

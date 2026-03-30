@@ -49,13 +49,17 @@ export function resolveFileSecrets(
   for (const key of Object.keys(env)) {
     if (key.endsWith("_FILE")) {
       const baseKey = key.slice(0, -5);
+      if (!baseKey.length) {
+        continue;
+      }
+
       const filePath = env[key];
 
       if (!filePath) {
         continue;
       }
 
-      if (env[baseKey]) {
+      if (env[baseKey] !== undefined) {
         continue;
       }
 
