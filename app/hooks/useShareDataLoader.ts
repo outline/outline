@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Pagination } from "@shared/constants";
 import type Collection from "~/models/Collection";
 import type Document from "~/models/Document";
@@ -19,6 +19,15 @@ export default function useShareDataLoader(params: Params) {
   const { userMemberships, groupMemberships, memberships } = useStores();
   const [loading, setLoading] = useState(false);
   const requestedRef = useRef(false);
+  const requestCountRef = useRef(0);
+
+  const entityId = params.document?.id ?? params.collection?.id;
+
+  // Reset when the entity changes so preload fires for the new target.
+  useEffect(() => {
+    requestedRef.current = false;
+    setLoading(false);
+  }, [entityId]);
 
   const preload = useCallback(() => {
     if (requestedRef.current) {
@@ -27,6 +36,7 @@ export default function useShareDataLoader(params: Params) {
     requestedRef.current = true;
     setLoading(true);
 
+    const thisRequest = ++requestCountRef.current;
     const promises: Promise<unknown>[] = [];
 
     if (params.document) {
@@ -49,7 +59,9 @@ export default function useShareDataLoader(params: Params) {
     }
 
     void Promise.all(promises).finally(() => {
-      setLoading(false);
+      if (requestCountRef.current === thisRequest) {
+        setLoading(false);
+      }
     });
   }, [
     params.document,

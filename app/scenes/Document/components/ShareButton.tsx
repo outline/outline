@@ -34,10 +34,6 @@ function ShareButton({ document }: Props) {
   const domain = share?.domain || sharedParent?.domain;
   const { preload, loading, reset } = useShareDataLoader({ document });
 
-  const closePopover = useCallback(() => {
-    setOpen(false);
-  }, []);
-
   const handleOpenChange = useCallback(
     (isOpen: boolean) => {
       setOpen(isOpen);
@@ -49,6 +45,10 @@ function ShareButton({ document }: Props) {
     },
     [preload, reset]
   );
+
+  const closePopover = useCallback(() => {
+    handleOpenChange(false);
+  }, [handleOpenChange]);
 
   if (isMobile) {
     return null;
