@@ -67,10 +67,18 @@ describe("ShareSubscription", () => {
       ).toBe(ShareSubscription.normalizeEmailFingerprint("user@example.com"));
     });
 
-    it("should remove dots from local part", () => {
+    it("should remove dots from Gmail local part", () => {
+      expect(
+        ShareSubscription.normalizeEmailFingerprint("first.last@gmail.com")
+      ).toBe(
+        ShareSubscription.normalizeEmailFingerprint("firstlast@gmail.com")
+      );
+    });
+
+    it("should preserve dots for non-Gmail domains", () => {
       expect(
         ShareSubscription.normalizeEmailFingerprint("first.last@example.com")
-      ).toBe(
+      ).not.toBe(
         ShareSubscription.normalizeEmailFingerprint("firstlast@example.com")
       );
     });
@@ -81,13 +89,13 @@ describe("ShareSubscription", () => {
       ).toBe(ShareSubscription.normalizeEmailFingerprint("user@example.com"));
     });
 
-    it("should handle dots and +alias together", () => {
+    it("should handle dots and +alias together for Gmail", () => {
       expect(
         ShareSubscription.normalizeEmailFingerprint(
-          "first.last+newsletter@example.com"
+          "first.last+newsletter@gmail.com"
         )
       ).toBe(
-        ShareSubscription.normalizeEmailFingerprint("firstlast@example.com")
+        ShareSubscription.normalizeEmailFingerprint("firstlast@gmail.com")
       );
     });
 

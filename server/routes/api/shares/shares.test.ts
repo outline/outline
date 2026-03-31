@@ -1199,13 +1199,13 @@ describe("#shares.subscribe", () => {
     await server.post("/api/shares.subscribe", {
       body: {
         shareId: share.id,
-        email: "user@example.com",
+        email: "user@gmail.com",
       },
     });
     await server.post("/api/shares.subscribe", {
       body: {
         shareId: share.id,
-        email: "u.s.e.r@example.com",
+        email: "u.s.e.r@gmail.com",
       },
     });
 

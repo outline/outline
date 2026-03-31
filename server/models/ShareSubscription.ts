@@ -117,12 +117,17 @@ class ShareSubscription extends IdModel<
     }
 
     const withoutPlus = localPart.split("+")[0];
-    const withoutDots = withoutPlus.replace(/\./g, "");
 
     // Normalize googlemail.com to gmail.com as they are the same service
     const normalizedDomain = domain === "googlemail.com" ? "gmail.com" : domain;
 
-    const normalized = `${withoutDots}@${normalizedDomain}`;
+    // Gmail ignores dots in the local part; other providers treat them as significant
+    const normalizedLocal =
+      normalizedDomain === "gmail.com"
+        ? withoutPlus.replace(/\./g, "")
+        : withoutPlus;
+
+    const normalized = `${normalizedLocal}@${normalizedDomain}`;
     return crypto.createHash("sha256").update(normalized).digest("hex");
   }
 
