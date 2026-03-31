@@ -94,10 +94,10 @@ class ShareSubscription extends IdModel<
   }
 
   /**
-   * Whether the confirmation token has expired (24-hour window from creation).
+   * Whether the confirmation token has expired (24-hour window from last update).
    */
   get isTokenExpired(): boolean {
-    return this.createdAt < subHours(new Date(), 24);
+    return this.updatedAt < subHours(new Date(), 24);
   }
 
   /**

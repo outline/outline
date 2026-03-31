@@ -1339,9 +1339,13 @@ describe("#shares.confirmSubscription", () => {
       emailFingerprint: "user@example.com",
       secret: randomString(32),
     });
-    // Force createdAt to 25 hours ago
-    subscription.createdAt = new Date(Date.now() - 25 * 60 * 60 * 1000);
-    await subscription.save();
+    // Force updatedAt to 25 hours ago so the token is expired
+    const expiredDate = new Date(Date.now() - 25 * 60 * 60 * 1000);
+    await ShareSubscription.update(
+      { createdAt: expiredDate, updatedAt: expiredDate },
+      { where: { id: subscription.id }, silent: true }
+    );
+    await subscription.reload();
 
     const token = ShareSubscription.generateConfirmToken(subscription);
     const res = await server.get(

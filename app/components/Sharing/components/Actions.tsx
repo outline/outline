@@ -10,7 +10,7 @@ import {
   PopoverContent,
 } from "~/components/primitives/Popover";
 import Tooltip from "~/components/Tooltip";
-import { ShareSubscribeForm } from "~/scenes/Shared/Document";
+import { ShareSubscribeForm } from "./ShareSubscribeForm";
 import useStores from "~/hooks/useStores";
 import { Theme } from "~/stores/UiStore";
 

@@ -54,11 +54,17 @@ export default class ShareSubscriptionNotificationsTask extends BaseTask<Revisio
           continue;
         }
 
+        const baseShareUrl = share.canonicalUrl;
+        const shareUrl =
+          share.collectionId && document.path
+            ? `${baseShareUrl.replace(/\/$/, "")}${document.path}`
+            : baseShareUrl;
+
         new ShareDocumentUpdatedEmail({
           to: subscription.email,
           shareSubscriptionId: subscription.id,
           documentTitle: document.titleWithDefault,
-          shareUrl: share.canonicalUrl,
+          shareUrl,
         }).schedule();
 
         subscription.lastNotifiedAt = new Date();

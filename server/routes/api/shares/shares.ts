@@ -40,6 +40,7 @@ import {
 } from "@server/commands/shareLoader";
 import shareDomains from "@server/middlewares/shareDomains";
 import env from "@server/env";
+import { safeEqual } from "@server/utils/crypto";
 
 const router = new Router();
 
@@ -453,6 +454,7 @@ router.post(
       if (existing.isUnsubscribed) {
         existing.unsubscribedAt = null;
         existing.confirmedAt = null;
+        existing.lastNotifiedAt = null;
         existing.secret = randomString(32);
         existing.email = email;
         await existing.save();
@@ -514,7 +516,7 @@ router.get(
 
     const expectedToken = ShareSubscription.generateConfirmToken(subscription);
 
-    if (token !== expectedToken) {
+    if (!safeEqual(token, expectedToken)) {
       ctx.redirect(`${env.URL}?notice=invalid-auth`);
       return;
     }
@@ -555,7 +557,7 @@ router.get(
     const expectedToken =
       ShareSubscription.generateUnsubscribeToken(subscription);
 
-    if (token !== expectedToken) {
+    if (!safeEqual(token, expectedToken)) {
       ctx.redirect(`${env.URL}?notice=invalid-auth`);
       return;
     }
