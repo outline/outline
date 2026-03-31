@@ -113,7 +113,7 @@ class ShareSubscription extends IdModel<
     const lower = email.replace(/\0/g, "").toLowerCase().trim();
     const [localPart, domain] = lower.split("@");
     if (!localPart || !domain) {
-      return lower;
+      return crypto.createHash("sha256").update(lower).digest("hex");
     }
 
     const withoutPlus = localPart.split("+")[0];
@@ -122,7 +122,8 @@ class ShareSubscription extends IdModel<
     // Normalize googlemail.com to gmail.com as they are the same service
     const normalizedDomain = domain === "googlemail.com" ? "gmail.com" : domain;
 
-    return `${withoutDots}@${normalizedDomain}`;
+    const normalized = `${withoutDots}@${normalizedDomain}`;
+    return crypto.createHash("sha256").update(normalized).digest("hex");
   }
 
   /**

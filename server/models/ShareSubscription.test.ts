@@ -55,22 +55,30 @@ describe("ShareSubscription", () => {
   });
 
   describe("normalizeEmailFingerprint", () => {
-    it("should lowercase the email", () => {
+    it("should return a hex hash string", () => {
+      const fp =
+        ShareSubscription.normalizeEmailFingerprint("user@example.com");
+      expect(fp).toMatch(/^[0-9a-f]{64}$/);
+    });
+
+    it("should treat different cases as equivalent", () => {
       expect(
         ShareSubscription.normalizeEmailFingerprint("User@Example.COM")
-      ).toBe("user@example.com");
+      ).toBe(ShareSubscription.normalizeEmailFingerprint("user@example.com"));
     });
 
     it("should remove dots from local part", () => {
       expect(
         ShareSubscription.normalizeEmailFingerprint("first.last@example.com")
-      ).toBe("firstlast@example.com");
+      ).toBe(
+        ShareSubscription.normalizeEmailFingerprint("firstlast@example.com")
+      );
     });
 
     it("should strip +alias from local part", () => {
       expect(
         ShareSubscription.normalizeEmailFingerprint("user+tag@example.com")
-      ).toBe("user@example.com");
+      ).toBe(ShareSubscription.normalizeEmailFingerprint("user@example.com"));
     });
 
     it("should handle dots and +alias together", () => {
@@ -78,25 +86,23 @@ describe("ShareSubscription", () => {
         ShareSubscription.normalizeEmailFingerprint(
           "first.last+newsletter@example.com"
         )
-      ).toBe("firstlast@example.com");
+      ).toBe(
+        ShareSubscription.normalizeEmailFingerprint("firstlast@example.com")
+      );
     });
 
     it("should not remove dots from domain", () => {
       expect(
         ShareSubscription.normalizeEmailFingerprint("user@sub.example.com")
-      ).toBe("user@sub.example.com");
+      ).not.toBe(
+        ShareSubscription.normalizeEmailFingerprint("user@subexample.com")
+      );
     });
 
     it("should trim whitespace", () => {
       expect(
         ShareSubscription.normalizeEmailFingerprint("  user@example.com  ")
-      ).toBe("user@example.com");
-    });
-
-    it("should normalize googlemail.com to gmail.com", () => {
-      expect(
-        ShareSubscription.normalizeEmailFingerprint("user@googlemail.com")
-      ).toBe("user@gmail.com");
+      ).toBe(ShareSubscription.normalizeEmailFingerprint("user@example.com"));
     });
 
     it("should treat gmail.com and googlemail.com as equivalent", () => {
@@ -107,19 +113,17 @@ describe("ShareSubscription", () => {
         "first.last+tag@googlemail.com"
       );
       expect(gmail).toBe(googlemail);
-      expect(gmail).toBe("firstlast@gmail.com");
     });
 
     it("should not alter other domains ending in googlemail.com", () => {
       expect(
         ShareSubscription.normalizeEmailFingerprint("user@notgooglemail.com")
-      ).toBe("user@notgooglemail.com");
+      ).not.toBe(ShareSubscription.normalizeEmailFingerprint("user@gmail.com"));
     });
 
     it("should handle email without @ gracefully", () => {
-      expect(ShareSubscription.normalizeEmailFingerprint("invalid")).toBe(
-        "invalid"
-      );
+      const fp = ShareSubscription.normalizeEmailFingerprint("invalid");
+      expect(fp).toMatch(/^[0-9a-f]{64}$/);
     });
 
     it("should strip null bytes to prevent injection bypasses", () => {

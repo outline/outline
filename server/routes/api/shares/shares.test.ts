@@ -1189,7 +1189,9 @@ describe("#shares.subscribe", () => {
     const subscription = await ShareSubscription.findOne({
       where: { shareId: share.id },
     });
-    expect(subscription!.emailFingerprint).toBe("firstlast@example.com");
+    expect(subscription!.emailFingerprint).toBe(
+      ShareSubscription.normalizeEmailFingerprint("First.Last+tag@Example.com")
+    );
   });
 
   it("should not create duplicate subscriptions for same fingerprint", async () => {
@@ -1218,7 +1220,8 @@ describe("#shares.subscribe", () => {
     await ShareSubscription.create({
       shareId: share.id,
       email: "user@example.com",
-      emailFingerprint: "user@example.com",
+      emailFingerprint:
+        ShareSubscription.normalizeEmailFingerprint("user@example.com"),
       secret: randomString(32),
       confirmedAt: new Date(),
     });
@@ -1239,7 +1242,8 @@ describe("#shares.subscribe", () => {
     const subscription = await ShareSubscription.create({
       shareId: share.id,
       email: "user@example.com",
-      emailFingerprint: "user@example.com",
+      emailFingerprint:
+        ShareSubscription.normalizeEmailFingerprint("user@example.com"),
       secret: randomString(32),
       confirmedAt: new Date(),
       unsubscribedAt: new Date(),
