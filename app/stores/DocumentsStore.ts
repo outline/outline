@@ -618,7 +618,7 @@ export default class DocumentsStore extends Store<Document> {
     });
     const collection = this.getCollectionForDocument(document);
     if (collection) {
-      await collection.refresh();
+      collection.removeDocument(document.id);
     }
   };
 

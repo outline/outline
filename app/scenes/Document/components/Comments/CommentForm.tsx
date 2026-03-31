@@ -103,6 +103,11 @@ function CommentForm({
 
   useOnClickOutside(formRef, reset);
 
+  React.useEffect(() => {
+    window.addEventListener("beforeunload", reset);
+    return () => window.removeEventListener("beforeunload", reset);
+  }, [reset]);
+
   const handleCreateComment = action(async (event: React.FormEvent) => {
     event.preventDefault();
 
@@ -254,11 +259,13 @@ function CommentForm({
   const handleMounted = React.useCallback(
     (ref) => {
       if (autoFocus && ref && !hasFocusedOnMount.current) {
-        ref.focusAtStart();
+        if (!draft) {
+          ref.focusAtStart();
+        }
         hasFocusedOnMount.current = true;
       }
     },
-    [autoFocus]
+    [autoFocus, draft]
   );
 
   const presence = animatePresence

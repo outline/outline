@@ -18,6 +18,7 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useKeyDown from "~/hooks/useKeyDown";
 import usePolicy from "~/hooks/usePolicy";
 import usePrevious from "~/hooks/usePrevious";
+import useShareDataLoader from "~/hooks/useShareDataLoader";
 import useStores from "~/hooks/useStores";
 import type { Permission } from "~/types";
 import { documentPath, urlify } from "~/utils/routeHelpers";
@@ -35,9 +36,16 @@ type Props = {
   onRequestClose: () => void;
   /** Whether the popover is visible. */
   visible: boolean;
+  /** Whether the share data is currently loading, managed externally. */
+  loading?: boolean;
 };
 
-function SharePopover({ document, onRequestClose, visible }: Props) {
+function SharePopover({
+  document,
+  onRequestClose,
+  visible,
+  loading: externalLoading,
+}: Props) {
   const team = useCurrentTeam();
   const { t } = useTranslation();
   const can = usePolicy(document);
@@ -46,6 +54,10 @@ function SharePopover({ document, onRequestClose, visible }: Props) {
   const sharedParent = shares.getByDocumentParents(document);
   const [hasRendered, setHasRendered] = React.useState(visible);
   const { users, userMemberships, groups, groupMemberships } = useStores();
+  const { preload, loading: internalLoading } = useShareDataLoader({
+    document,
+  });
+  const loading = externalLoading ?? internalLoading;
   const [query, setQuery] = React.useState("");
   const [picker, showPicker, hidePicker] = useBoolean();
   const [invitedInSession, setInvitedInSession] = React.useState<string[]>([]);
@@ -79,13 +91,14 @@ function SharePopover({ document, onRequestClose, visible }: Props) {
     }
   );
 
-  // Fetch sharefocus the link button when the popover is opened
   React.useEffect(() => {
     if (visible) {
-      void document.share();
+      if (externalLoading === undefined) {
+        preload();
+      }
       setHasRendered(true);
     }
-  }, [document, hidePicker, visible]);
+  }, [visible, externalLoading, preload]);
 
   // Hide the picker when the popover is closed
   React.useEffect(() => {
@@ -377,6 +390,7 @@ function SharePopover({ document, onRequestClose, visible }: Props) {
           share={share}
           sharedParent={sharedParent}
           visible={visible}
+          loading={loading}
           onRequestClose={onRequestClose}
         />
       </div>

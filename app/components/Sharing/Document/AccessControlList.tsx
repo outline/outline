@@ -5,7 +5,6 @@ import { useTranslation, Trans } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
 import Squircle from "@shared/components/Squircle";
-import { Pagination } from "@shared/constants";
 import { s } from "@shared/styles";
 import { CollectionPermission } from "@shared/types";
 import type { Option } from "~/components/InputSelect";
@@ -20,7 +19,6 @@ import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useMaxHeight from "~/hooks/useMaxHeight";
 import usePolicy from "~/hooks/usePolicy";
-import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import { Avatar, AvatarSize } from "../../Avatar";
 import Tooltip from "../../Tooltip";
@@ -43,6 +41,8 @@ type Props = {
   onRequestClose: () => void;
   /** Whether the popover is visible. */
   visible: boolean;
+  /** Whether the share data is currently loading. */
+  loading: boolean;
 };
 
 export const AccessControlList = observer(
@@ -53,11 +53,12 @@ export const AccessControlList = observer(
     sharedParent,
     onRequestClose,
     visible,
+    loading,
   }: Props) => {
     const { t } = useTranslation();
     const theme = useTheme();
     const collection = document.collection;
-    const { documents, userMemberships, groupMemberships } = useStores();
+    const { documents, groupMemberships } = useStores();
     const collectionSharingDisabled = document.collection?.sharing === false;
     const team = useCurrentTeam();
     const can = usePolicy(document);
@@ -103,36 +104,10 @@ export const AccessControlList = observer(
       [t, collection?.isPrivate]
     );
 
-    const { loading: userMembershipLoading, request: fetchUserMemberships } =
-      useRequest(
-        React.useCallback(
-          () =>
-            userMemberships.fetchDocumentMemberships({
-              id: documentId,
-              limit: Pagination.defaultLimit,
-            }),
-          [userMemberships, documentId]
-        )
-      );
-
-    const { loading: groupMembershipLoading, request: fetchGroupMemberships } =
-      useRequest(
-        React.useCallback(
-          () => groupMemberships.fetchAll({ documentId }),
-          [groupMemberships, documentId]
-        )
-      );
-
     const hasMemberships =
       groupMemberships.inDocument(documentId)?.length > 0 ||
       document.members.length > 0;
-    const showLoading =
-      !hasMemberships && (groupMembershipLoading || userMembershipLoading);
-
-    React.useEffect(() => {
-      void fetchUserMemberships();
-      void fetchGroupMemberships();
-    }, [fetchUserMemberships, fetchGroupMemberships]);
+    const showLoading = !hasMemberships && loading;
 
     React.useEffect(() => {
       calcMaxHeight();
