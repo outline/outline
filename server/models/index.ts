@@ -52,6 +52,8 @@ export { default as SearchQuery } from "./SearchQuery";
 
 export { default as Share } from "./Share";
 
+export { default as ShareSubscription } from "./ShareSubscription";
+
 export { default as Star } from "./Star";
 
 export { default as Team } from "./Team";

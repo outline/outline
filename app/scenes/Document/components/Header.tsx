@@ -38,7 +38,10 @@ import { documentEditPath } from "~/utils/routeHelpers";
 import ObservingBanner from "./ObservingBanner";
 import PublicBreadcrumb from "./PublicBreadcrumb";
 import ShareButton from "./ShareButton";
-import { AppearanceAction } from "~/components/Sharing/components/Actions";
+import {
+  AppearanceAction,
+  SubscribeAction,
+} from "~/components/Sharing/components/Actions";
 import useShare from "@shared/hooks/useShare";
 import { type Editor } from "~/editor";
 import { ChangesNavigation } from "./ChangesNavigation";
@@ -210,6 +213,7 @@ function DocumentHeader({
         }
         actions={
           <>
+            {shareId && <SubscribeAction shareId={shareId} />}
             <AppearanceAction />
             {can.update && !isEditing ? editAction : <div />}
           </>
