@@ -1,4 +1,5 @@
 import { useKBar } from "kbar";
+import escapeRegExp from "lodash/escapeRegExp";
 import { observer } from "mobx-react";
 import { DocumentIcon } from "outline-icons";
 import * as React from "react";
@@ -26,6 +27,41 @@ const cacheTTL = Minute.ms * 5;
 const maxRecentDocs = 5;
 
 /**
+ * Strip server-generated `<b>` highlight tags from context and re-apply them
+ * using the current search query. This prevents stale highlights when the
+ * displayed results are from a previous (in-flight) query.
+ *
+ * @param context the server-generated context string with `<b>` tags.
+ * @param query the current search query to highlight.
+ * @returns the context string with highlights matching the current query.
+ */
+function rehighlightContext(
+  context: string | undefined,
+  query: string
+): string | undefined {
+  if (!context) {
+    return context;
+  }
+
+  const plain = context.replace(/<b\b[^>]*>(.*?)<\/b>/gi, "$1");
+  const trimmed = query.trim();
+
+  if (!trimmed) {
+    return plain;
+  }
+
+  const terms = trimmed.split(/\s+/).filter(Boolean);
+  const patterns = [escapeRegExp(trimmed)];
+
+  if (terms.length > 1) {
+    patterns.push(...terms.map((t) => `\\b${escapeRegExp(t)}\\b`));
+  }
+
+  const regex = new RegExp(patterns.join("|"), "gi");
+  return plain.replace(regex, "<b>$&</b>");
+}
+
+/**
  * Registers search result actions in the command bar scoped to a public share.
  */
 function SharedSearchActions() {
@@ -39,6 +75,9 @@ function SharedSearchActions() {
   const { searchQuery } = useKBar((state) => ({
     searchQuery: state.searchQuery,
   }));
+
+  const searchQueryRef = React.useRef(searchQuery);
+  searchQueryRef.current = searchQuery;
 
   React.useEffect(() => {
     if (!searchQuery || !shareId) {
@@ -60,7 +99,9 @@ function SharedSearchActions() {
     const currentQuery = searchQuery;
     void documents.search({ query: searchQuery, shareId }).then((res) => {
       searchCache.current.set(currentQuery, { timestamp: now, results: res });
-      setResults(res);
+      if (searchQueryRef.current === currentQuery) {
+        setResults(res);
+      }
     });
   }, [documents, searchQuery, shareId]);
 
@@ -92,18 +133,19 @@ function SharedSearchActions() {
         createAction({
           id: `shared-search-${result.document.id}`,
           name: result.document.titleWithDefault,
-          description: result.context,
+          description: rehighlightContext(result.context, searchQuery),
           keywords: searchQuery,
           analyticsName: "Open shared search result",
           section: SearchResultsSection,
           icon: documentIcon(result.document),
           perform: () => {
             if (shareId) {
+              const currentQuery = searchQueryRef.current;
               addRecentDoc(result.document);
               history.push({
                 pathname: sharedModelPath(shareId, result.document.url),
-                search: searchQuery
-                  ? `?q=${encodeURIComponent(searchQuery)}`
+                search: currentQuery
+                  ? `?q=${encodeURIComponent(currentQuery)}`
                   : undefined,
               });
             }
