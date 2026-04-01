@@ -19,7 +19,7 @@ export default class Suggestion extends Extension {
     super(options);
 
     this.openRegex = new RegExp(
-      `(?:^|\\s|\\()${escapeRegExp(
+      `(?:^|\\s|\\(|[\\u3040-\\u30ff\\u4e00-\\u9fff\\uac00-\\ud7af])${escapeRegExp(
         this.options.trigger
       )}(${`[\\p{L}\/\\p{M}\\d${
         this.options.allowSpaces ? "\\s{1}" : ""
