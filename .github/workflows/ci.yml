@@ -34,7 +34,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('yarn.lock') }}
+          key: ${{ runner.os }}-node-modules-24.x-${{ hashFiles('yarn.lock') }}
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: yarn install --immutable
@@ -54,7 +54,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('yarn.lock') }}
+          key: ${{ runner.os }}-node-modules-24.x-${{ hashFiles('yarn.lock') }}
       - run: yarn lint --quiet
 
   types:
@@ -72,7 +72,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('yarn.lock') }}
+          key: ${{ runner.os }}-node-modules-24.x-${{ hashFiles('yarn.lock') }}
       - run: yarn tsc
 
   changes:
@@ -120,7 +120,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('yarn.lock') }}
+          key: ${{ runner.os }}-node-modules-24.x-${{ hashFiles('yarn.lock') }}
       - run: yarn test:${{ matrix.test-group }}
 
   test-server:
@@ -158,7 +158,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('yarn.lock') }}
+          key: ${{ runner.os }}-node-modules-24.x-${{ hashFiles('yarn.lock') }}
       - run: yarn sequelize db:migrate
       - name: Run server tests
         run: |
@@ -181,7 +181,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('yarn.lock') }}
+          key: ${{ runner.os }}-node-modules-24.x-${{ hashFiles('yarn.lock') }}
       - name: Set environment to production
         run: echo "NODE_ENV=production" >> $GITHUB_ENV
       - run: yarn vite:build
