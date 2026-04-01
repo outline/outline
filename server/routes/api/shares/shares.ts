@@ -521,16 +521,16 @@ router.get(
       return ctx.redirectOnClient(ctx.request.href + "&follow=true");
     }
 
-    const subscription = await ShareSubscription.findByPk(id, {
-      include: [{ model: Share, as: "share" }],
-    });
+    const subscription = await ShareSubscription.findByPk(id);
 
     if (!subscription || subscription.isUnsubscribed) {
       ctx.redirect(`${env.URL}?notice=invalid-auth`);
       return;
     }
 
-    if (!subscription.share?.allowSubscriptions) {
+    const share = await Share.findByPk(subscription.shareId);
+
+    if (!share?.allowSubscriptions) {
       ctx.redirect(`${env.URL}?notice=invalid-auth`);
       return;
     }
@@ -550,7 +550,7 @@ router.get(
     subscription.confirmedAt = new Date();
     await subscription.save();
 
-    const shareUrl = subscription.share?.canonicalUrl ?? env.URL;
+    const shareUrl = share?.canonicalUrl ?? env.URL;
     ctx.redirect(`${shareUrl}?notice=subscribed`);
   }
 );
