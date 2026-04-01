@@ -5,7 +5,11 @@ import { Op } from "sequelize";
 import { subMinutes } from "date-fns";
 import { randomString } from "@shared/random";
 import { TeamPreference } from "@shared/types";
-import { AuthenticationError, NotFoundError } from "@server/errors";
+import {
+  AuthenticationError,
+  InvalidRequestError,
+  NotFoundError,
+} from "@server/errors";
 import ShareSubscriptionConfirmEmail from "@server/emails/templates/ShareSubscriptionConfirmEmail";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -442,8 +446,7 @@ router.post(
     const { share, document } = await loadPublicShare({ id: shareId });
 
     if (!share.allowSubscriptions) {
-      ctx.body = { success: true };
-      return;
+      throw InvalidRequestError("Subscriptions are not enabled for this share");
     }
 
     const emailFingerprint = ShareSubscription.normalizeEmailFingerprint(email);
@@ -518,9 +521,16 @@ router.get(
       return ctx.redirectOnClient(ctx.request.href + "&follow=true");
     }
 
-    const subscription = await ShareSubscription.findByPk(id);
+    const subscription = await ShareSubscription.findByPk(id, {
+      include: [{ model: Share, as: "share" }],
+    });
 
     if (!subscription || subscription.isUnsubscribed) {
+      ctx.redirect(`${env.URL}?notice=invalid-auth`);
+      return;
+    }
+
+    if (!subscription.share?.allowSubscriptions) {
       ctx.redirect(`${env.URL}?notice=invalid-auth`);
       return;
     }
@@ -540,8 +550,7 @@ router.get(
     subscription.confirmedAt = new Date();
     await subscription.save();
 
-    const share = await Share.findByPk(subscription.shareId);
-    const shareUrl = share?.canonicalUrl ?? env.URL;
+    const shareUrl = subscription.share?.canonicalUrl ?? env.URL;
     ctx.redirect(`${shareUrl}?notice=subscribed`);
   }
 );
