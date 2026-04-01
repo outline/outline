@@ -1,0 +1,43 @@
+name: Docker Build Check
+
+on:
+  push:
+    paths:
+      - "Dockerfile"
+      - "Dockerfile.base"
+  pull_request:
+    paths:
+      - "Dockerfile"
+      - "Dockerfile.base"
+
+env:
+  BASE_IMAGE_NAME: outline-base
+
+jobs:
+  build:
+    runs-on: ubicloud-standard-8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker
+
+      - name: Build base image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.base
+          tags: ${{ env.BASE_IMAGE_NAME }}:latest
+          push: false
+
+      - name: Build main image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          push: false
+          build-args: |
+            BASE_IMAGE=${{ env.BASE_IMAGE_NAME }}:latest
