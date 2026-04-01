@@ -22,6 +22,8 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker
 
       - name: Build base image
         uses: docker/build-push-action@v6
@@ -30,9 +32,6 @@ jobs:
           file: Dockerfile.base
           tags: ${{ env.BASE_IMAGE_NAME }}:latest
           push: false
-          load: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
       - name: Build main image
         uses: docker/build-push-action@v6
@@ -40,8 +39,5 @@ jobs:
           context: .
           file: Dockerfile
           push: false
-          load: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
           build-args: |
             BASE_IMAGE=${{ env.BASE_IMAGE_NAME }}:latest
