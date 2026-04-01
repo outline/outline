@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import type { RouteComponentProps, StaticContext } from "react-router";
-import { useLocation } from "react-router";
+import { Redirect, useLocation } from "react-router";
 import { TeamPreference } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
@@ -248,12 +248,15 @@ function DataLoader({ match, children }: Props) {
   // after a rename, so the browser address bar stays in sync.
   const canonicalUrl = updateDocumentPath(match.url, document);
   if (location.pathname !== canonicalUrl) {
-    history.replace({
-      pathname: canonicalUrl,
-      state: location.state,
-      hash: location.hash,
-    });
-    return null;
+    return (
+      <Redirect
+        to={{
+          pathname: canonicalUrl,
+          state: location.state,
+          hash: location.hash,
+        }}
+      />
+    );
   }
 
   const canEdit = can.update && !document.isArchived && !revisionId;
