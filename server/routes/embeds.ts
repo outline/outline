@@ -5,15 +5,7 @@ import { InvalidRequestError } from "@server/errors";
 
 const gitlabHosts = new Set([
   "gitlab.com",
-  ...(env.GITLAB_SNIPPET_URLS ?? [])
-    .map((url) => {
-      try {
-        return new URL(url.includes("://") ? url : `https://${url}`).host;
-      } catch (_err) {
-        return undefined;
-      }
-    })
-    .filter((host): host is string => !!host),
+  ...(env.GITLAB_SNIPPET_HOSTS ?? []).map((host) => host.trim()).filter(Boolean),
 ]);
 
 /**

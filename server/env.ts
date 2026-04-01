@@ -450,13 +450,13 @@ export class Environment {
   public DROPBOX_APP_KEY = this.toOptionalString(environment.DROPBOX_APP_KEY);
 
   /**
-   * Comma-separated list of additional GitLab base URLs that are allowed for
-   * snippet embeds. Example: "https://gitlab.example.com,https://gitlab2.example.com"
+   * Comma-separated list of allowed GitLab hosts for snippet embeds.
+   * Example: "gitlab.example.com,gitlab2.example.com"
    */
   @Public
   @IsOptional()
-  public GITLAB_SNIPPET_URLS = this.toOptionalCommaList(
-    environment.GITLAB_SNIPPET_URLS
+  public GITLAB_SNIPPET_HOSTS = this.toOptionalCommaList(
+    environment.GITLAB_SNIPPET_HOSTS
   );
 
   /**

@@ -139,20 +139,12 @@ const escapeRegex = (value: string) =>
 const gitLabSnippetRegexMatches = Array.from(
   new Set([
     "https://gitlab.com",
-    ...(Array.isArray(env.GITLAB_SNIPPET_URLS)
-      ? env.GITLAB_SNIPPET_URLS
-      : `${env.GITLAB_SNIPPET_URLS ?? ""}`.split(","))
+    ...(Array.isArray(env.GITLAB_SNIPPET_HOSTS)
+      ? env.GITLAB_SNIPPET_HOSTS
+      : `${env.GITLAB_SNIPPET_HOSTS ?? ""}`.split(","))
       .map((item) => item.trim())
       .filter(Boolean)
-      .map((item) => {
-        try {
-          return new URL(item.includes("://") ? item : `https://${item}`)
-            .origin;
-        } catch (_err) {
-          return undefined;
-        }
-      })
-      .filter((origin): origin is string => !!origin),
+      .map((host) => `https://${host}`),
   ])
 ).map(
   (origin) =>
