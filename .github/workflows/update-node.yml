@@ -30,6 +30,11 @@ jobs:
             jq -r '[.[] | select(.lts != false)][0].version' | \
             sed 's/^v//')
 
+          if ! [[ "$LATEST_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Failed to fetch a valid LTS version (got '$LATEST_VERSION')"
+            exit 1
+          fi
+
           echo "latest=$LATEST_VERSION" >> "$GITHUB_OUTPUT"
           echo "Latest Node.js LTS version: $LATEST_VERSION"
 
@@ -59,7 +64,8 @@ jobs:
             # .nvmrc
             echo "$LATEST_MAJOR" > .nvmrc
 
-            # CI workflow: node-version and cache keys
+            # CI workflow: step name, node-version, and cache keys
+            sed -i "s/Use Node.js ${CURRENT_MAJOR}.x/Use Node.js ${LATEST_MAJOR}.x/g" .github/workflows/ci.yml
             sed -i "s/node-version: ${CURRENT_MAJOR}.x/node-version: ${LATEST_MAJOR}.x/g" .github/workflows/ci.yml
             # Update cache keys: replace node-modules-[optional old version] with new version
             sed -i -E "s/node-modules-([0-9]+\.x-)?/node-modules-${LATEST_MAJOR}.x-/g" .github/workflows/ci.yml
