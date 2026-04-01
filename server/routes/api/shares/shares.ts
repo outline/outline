@@ -258,6 +258,7 @@ router.post(
       urlId,
       includeChildDocuments,
       allowIndexing,
+      allowSubscriptions,
       showLastUpdated,
       showTOC,
     } = ctx.input.body;
@@ -295,6 +296,7 @@ router.post(
         published,
         includeChildDocuments,
         allowIndexing,
+        allowSubscriptions,
         showLastUpdated,
         showTOC,
         urlId,
@@ -325,6 +327,7 @@ router.post(
       published,
       urlId,
       allowIndexing,
+      allowSubscriptions,
       showLastUpdated,
       showTOC,
     } = ctx.input.body;
@@ -356,6 +359,9 @@ router.post(
 
     if (allowIndexing !== undefined) {
       share.allowIndexing = allowIndexing;
+    }
+    if (allowSubscriptions !== undefined) {
+      share.allowSubscriptions = allowSubscriptions;
     }
     if (showLastUpdated !== undefined) {
       share.showLastUpdated = showLastUpdated;
@@ -434,6 +440,11 @@ router.post(
 
     // Validate the share exists and is published
     const { share, document } = await loadPublicShare({ id: shareId });
+
+    if (!share.allowSubscriptions) {
+      ctx.body = { success: true };
+      return;
+    }
 
     const emailFingerprint = ShareSubscription.normalizeEmailFingerprint(email);
 

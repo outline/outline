@@ -37,6 +37,10 @@ export default class ShareSubscriptionNotificationsTask extends BaseTask<Revisio
     }
 
     for (const share of shares) {
+      if (!share.allowSubscriptions) {
+        continue;
+      }
+
       const subscriptions = await ShareSubscription.scope("active").findAll({
         where: { shareId: share.id },
       });

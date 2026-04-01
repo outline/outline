@@ -70,6 +70,19 @@ function PublicAccess(
     [share]
   );
 
+  const handleSubscriptionsChanged = React.useCallback(
+    async (checked: boolean) => {
+      try {
+        await share?.save({
+          allowSubscriptions: checked,
+        });
+      } catch (err) {
+        toast.error(err.message);
+      }
+    },
+    [share]
+  );
+
   const handleShowLastModifiedChanged = React.useCallback(
     async (checked: boolean) => {
       try {
@@ -233,6 +246,31 @@ function PublicAccess(
                   aria-label={t("Search engine indexing")}
                   checked={share?.allowIndexing ?? false}
                   onChange={handleIndexingChanged}
+                  width={26}
+                  height={14}
+                />
+              }
+            />
+            <ListItem
+              title={
+                <Text type="tertiary" as={Flex}>
+                  {t("Email subscriptions")}&nbsp;
+                  <Tooltip
+                    content={t(
+                      "Allow viewers to subscribe and receive email notifications when this document is updated"
+                    )}
+                  >
+                    <NudeButton size={18}>
+                      <QuestionMarkIcon size={18} />
+                    </NudeButton>
+                  </Tooltip>
+                </Text>
+              }
+              actions={
+                <Switch
+                  aria-label={t("Email subscriptions")}
+                  checked={share?.allowSubscriptions ?? true}
+                  onChange={handleSubscriptionsChanged}
                   width={26}
                   height={14}
                 />
