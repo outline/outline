@@ -3,6 +3,19 @@ import type { Context, Next } from "koa";
 import env from "@server/env";
 import { InvalidRequestError } from "@server/errors";
 
+const gitlabHosts = new Set([
+  "gitlab.com",
+  ...(env.GITLAB_SNIPPET_URLS ?? [])
+    .map((url) => {
+      try {
+        return new URL(url.includes("://") ? url : `https://${url}`).host;
+      } catch (_err) {
+        return undefined;
+      }
+    })
+    .filter((host): host is string => !!host),
+]);
+
 /**
  * Resize observer script that sends a message to the parent window when content is resized. Inject
  * this script into the iframe to receive resize events.
@@ -53,19 +66,19 @@ export const renderEmbed = async (ctx: Context, next: Next) => {
   }
 
   if (
-    parsed.host === "gitlab.com" &&
+    gitlabHosts.has(parsed.host) &&
     parsed.protocol === "https:" &&
     ctx.path === "/embeds/gitlab"
   ) {
     const snippetLink = `${url}.js`;
     const csp = ctx.response.get("Content-Security-Policy");
 
-    // Inject gitlab.com into the script-src and style-src directives
+    // Inject allowed GitLab host into script-src and style-src directives.
     ctx.set(
       "Content-Security-Policy",
       csp
-        .replace("script-src", "script-src gitlab.com")
-        .replace("style-src", "style-src gitlab.com")
+        .replace("script-src", `script-src ${parsed.host}`)
+        .replace("style-src", `style-src ${parsed.host}`)
     );
     ctx.set("X-Frame-Options", "sameorigin");
 

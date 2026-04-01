@@ -133,6 +133,34 @@ export class EmbedDescriptor {
   }
 }
 
+const escapeRegex = (value: string) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const gitLabSnippetRegexMatches = Array.from(
+  new Set([
+    "https://gitlab.com",
+    ...(Array.isArray(env.GITLAB_SNIPPET_URLS)
+      ? env.GITLAB_SNIPPET_URLS
+      : `${env.GITLAB_SNIPPET_URLS ?? ""}`.split(","))
+      .map((item) => item.trim())
+      .filter(Boolean)
+      .map((item) => {
+        try {
+          return new URL(item.includes("://") ? item : `https://${item}`)
+            .origin;
+        } catch (_err) {
+          return undefined;
+        }
+      })
+      .filter((origin): origin is string => !!origin),
+  ])
+).map(
+  (origin) =>
+    new RegExp(
+      `^${escapeRegex(origin)}/(([a-zA-Z\\d-]+)/)*-/snippets/\\d+$`
+    )
+);
+
 const embeds: EmbedDescriptor[] = [
   new EmbedDescriptor({
     id: "airtable",
@@ -320,9 +348,7 @@ const embeds: EmbedDescriptor[] = [
     id: "gitlab-snippet",
     title: "GitLab Snippet",
     keywords: "code",
-    regexMatch: [
-      new RegExp(`^https://gitlab\\.com/(([a-zA-Z\\d-]+)/)*-/snippets/\\d+$`),
-    ],
+    regexMatch: gitLabSnippetRegexMatches,
     icon: <Img src="/images/gitlab.png" alt="GitLab" />,
     component: GitLabSnippet,
   }),
