@@ -27,7 +27,11 @@ import {
   PaymentRequiredError,
 } from "~/utils/errors";
 import history from "~/utils/history";
-import { matchDocumentEdit, settingsPath } from "~/utils/routeHelpers";
+import {
+  matchDocumentEdit,
+  settingsPath,
+  updateDocumentPath,
+} from "~/utils/routeHelpers";
 import useDocumentSidebar from "../hooks/useDocumentSidebar";
 import Loading from "./Loading";
 import MarkAsViewed from "./MarkAsViewed";
@@ -238,6 +242,18 @@ function DataLoader({ match, children }: Props) {
         <Loading location={location} />
       </>
     );
+  }
+
+  // Redirect to the canonical URL if the document slug has changed, e.g.
+  // after a rename, so the browser address bar stays in sync.
+  const canonicalUrl = updateDocumentPath(match.url, document);
+  if (location.pathname !== canonicalUrl) {
+    history.replace({
+      pathname: canonicalUrl,
+      state: location.state,
+      hash: location.hash,
+    });
+    return null;
   }
 
   const canEdit = can.update && !document.isArchived && !revisionId;

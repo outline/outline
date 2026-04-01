@@ -10,7 +10,7 @@ import * as React from "react";
 import type { WithTranslation } from "react-i18next";
 import { withTranslation } from "react-i18next";
 import type { RouteComponentProps, StaticContext } from "react-router";
-import { Prompt, withRouter, Redirect } from "react-router";
+import { Prompt, withRouter } from "react-router";
 import { toast } from "sonner";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -40,11 +40,7 @@ import type { Editor as TEditor } from "~/editor";
 import type { Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
 import { emojiToUrl } from "~/utils/emoji";
-import {
-  documentHistoryPath,
-  documentEditPath,
-  updateDocumentPath,
-} from "~/utils/routeHelpers";
+import { documentHistoryPath, documentEditPath } from "~/utils/routeHelpers";
 import Container from "./Container";
 import Contents from "./Contents";
 import Editor from "./Editor";
@@ -476,10 +472,6 @@ class DocumentScene extends React.Component<Props> {
     const multiplayerEditor =
       !document.isArchived && !document.isDeleted && !revision && !isShare;
 
-    const canonicalUrl = shareId
-      ? this.props.match.url
-      : updateDocumentPath(this.props.match.url, document);
-
     const hasEmojiInTitle = determineIconType(document.icon) === IconType.Emoji;
     const title = hasEmojiInTitle
       ? document.titleWithDefault.replace(document.icon!, "")
@@ -492,15 +484,6 @@ class DocumentScene extends React.Component<Props> {
 
     return (
       <ErrorBoundary showTitle>
-        {this.props.location.pathname !== canonicalUrl && (
-          <Redirect
-            to={{
-              pathname: canonicalUrl,
-              state: this.props.location.state,
-              hash: this.props.location.hash,
-            }}
-          />
-        )}
         <RegisterKeyDown trigger="m" handler={this.onMove} />
         <RegisterKeyDown trigger="z" handler={this.onUndoRedo} />
         <RegisterKeyDown trigger="e" handler={this.goToEdit} />
@@ -670,10 +653,9 @@ const Main = styled.div<MainProps>`
   @media print {
     display: block;
     max-width: ${({ fullWidth }: MainProps) =>
-    fullWidth
-      ? `100%`
-      : `calc(${EditorStyleHelper.documentWidth} + ${EditorStyleHelper.documentGutter})`
-    };
+      fullWidth
+        ? `100%`
+        : `calc(${EditorStyleHelper.documentWidth} + ${EditorStyleHelper.documentGutter})`};
   }
 `;
 
@@ -722,10 +704,10 @@ const EditorContainer = styled.div<EditorContainerProps>`
 
     // Decides the editor column position & span
     grid-column: ${({
-  docFullWidth,
-  showContents,
-  tocPosition,
-}: EditorContainerProps) =>
+      docFullWidth,
+      showContents,
+      tocPosition,
+    }: EditorContainerProps) =>
       docFullWidth
         ? showContents
           ? tocPosition === TOCPosition.Left
