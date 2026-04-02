@@ -13,6 +13,7 @@ import Heading from "./components/Heading";
 type Props = EmailProps & {
   documentTitle: string;
   confirmUrl: string;
+  teamName?: string;
 };
 
 /**
@@ -34,13 +35,18 @@ export default class ShareSubscriptionConfirmEmail extends BaseEmail<Props> {
     );
   }
 
-  protected renderAsText({ documentTitle, confirmUrl }: Props): string {
+  protected renderAsText({
+    documentTitle,
+    confirmUrl,
+    teamName,
+  }: Props): string {
+    const brandName = teamName ?? env.APP_NAME;
     return `
 ${this.t("Confirm your subscription")}
 
 ${this.t(
   'You requested to receive email notifications when "{{ documentTitle }}" is updated on {{ appName }}. Please confirm your subscription by following the link below.',
-  { documentTitle, appName: env.APP_NAME }
+  { documentTitle, appName: brandName }
 )}
 
 ${this.t("Confirm Subscription")}: ${confirmUrl}
@@ -49,7 +55,8 @@ ${this.t("This link will expire in 24 hours.")}
 `;
   }
 
-  protected render({ documentTitle, confirmUrl }: Props) {
+  protected render({ documentTitle, confirmUrl, teamName }: Props) {
+    const brandName = teamName ?? env.APP_NAME;
     return (
       <EmailTemplate previewText={this.preview({ documentTitle } as Props)}>
         <Header />
@@ -59,7 +66,7 @@ ${this.t("This link will expire in 24 hours.")}
           <p>
             {this.t(
               'You requested to receive email notifications when "{{ documentTitle }}" is updated on {{ appName }}.',
-              { documentTitle, appName: env.APP_NAME }
+              { documentTitle, appName: brandName }
             )}
           </p>
           <p>

@@ -495,6 +495,8 @@ router.post(
     }
 
     const confirmUrl = ShareSubscriptionHelper.confirmUrl(subscription);
+    const usePublicBranding =
+      share.team?.getPreference(TeamPreference.PublicBranding) ?? false;
     new ShareSubscriptionConfirmEmail({
       to: email,
       documentTitle:
@@ -503,6 +505,7 @@ router.post(
         share.collection?.name ??
         "",
       confirmUrl,
+      teamName: usePublicBranding ? share.team?.name : undefined,
     }).schedule();
 
     ctx.body = { success: true };
