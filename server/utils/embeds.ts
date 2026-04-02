@@ -1,6 +1,7 @@
 import type { EmbedDescriptor } from "@shared/editor/embeds";
 import { getMatchingEmbed } from "@shared/editor/lib/embeds";
 import embeds from "@shared/editor/embeds";
+import env from "@server/env";
 import fetch, { chromeUserAgent } from "./fetch";
 import { Second } from "@shared/utils/time";
 
@@ -50,7 +51,7 @@ function isBlockedByXFrameOptions(value: string | null): boolean {
  * @param value The Content-Security-Policy header value.
  * @returns true if embedding is blocked, false otherwise.
  */
-function isBlockedByCSP(value: string | null): boolean {
+function isBlockedByCSP(value: string | null, embedderOrigin: string): boolean {
   if (!value) {
     return false;
   }
@@ -63,29 +64,35 @@ function isBlockedByCSP(value: string | null): boolean {
     if (parts[0]?.toLowerCase() === "frame-ancestors") {
       const sources = parts.slice(1);
 
-      // 'none' - Cannot be embedded anywhere
-      if (sources.length === 1 && sources[0] === "'none'") {
-        return true;
+      // Check if any source explicitly allows the embedder origin
+      for (const source of sources) {
+        if (source === "*") {
+          return false;
+        }
+        if (source === "'none'" || source === "'self'") {
+          continue;
+        }
+        try {
+          const embedder = new URL(embedderOrigin);
+          const allowed = new URL(source);
+          if (allowed.protocol !== embedder.protocol) {
+            continue;
+          }
+          // Support wildcard hosts like https://*.example.com
+          if (allowed.hostname.startsWith("*.")) {
+            const suffix = allowed.hostname.slice(2);
+            if (embedder.hostname !== suffix && embedder.hostname.endsWith(`.${suffix}`)) {
+              return false;
+            }
+          } else if (allowed.origin === embedder.origin) {
+            return false;
+          }
+        } catch {
+          // ignore unparseable source
+        }
       }
 
-      // 'self' only - Same origin only (blocks us)
-      if (sources.length === 1 && sources[0] === "'self'") {
-        return true;
-      }
-
-      // If there are specific origins listed (not * or 'self'), we're probably not in the list
-      // Allow if * is present anywhere in the list
-      if (sources.includes("*")) {
-        return false;
-      }
-
-      // If specific origins are listed without *, treat as blocked (we're probably not in the list)
-      if (
-        sources.length > 0 &&
-        !sources.every((s) => s === "'self'" || s === "'none'")
-      ) {
-        return true;
-      }
+      return true;
     }
   }
 
@@ -158,13 +165,14 @@ export async function checkEmbeddability(
       return { embeddable: false, reason: "http-error" };
     }
 
-    // Check X-Frame-Options header
-    if (isBlockedByXFrameOptions(xFrameOptions)) {
+    // Check X-Frame-Options header.
+    // Per spec, X-Frame-Options is ignored when CSP frame-ancestors is present.
+    if (!csp?.toLowerCase().includes("frame-ancestors") && isBlockedByXFrameOptions(xFrameOptions)) {
       return { embeddable: false, reason: "x-frame-options" };
     }
 
     // Check Content-Security-Policy for frame-ancestors
-    if (isBlockedByCSP(csp)) {
+    if (isBlockedByCSP(csp, env.URL)) {
       return { embeddable: false, reason: "csp-frame-ancestors" };
     }
 
