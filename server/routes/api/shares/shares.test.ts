@@ -1162,7 +1162,7 @@ describe("#shares.subscribe", () => {
     const res = await server.post("/api/shares.subscribe", {
       body: {
         shareId: share.id,
-        documentId: share.documentId,
+        documentId: share.documentId!,
         email: "subscriber@example.com",
       },
     });
@@ -1183,7 +1183,7 @@ describe("#shares.subscribe", () => {
     await server.post("/api/shares.subscribe", {
       body: {
         shareId: share.id,
-        documentId: share.documentId,
+        documentId: share.documentId!,
         email: "First.Last+tag@Example.com",
       },
     });
@@ -1201,14 +1201,14 @@ describe("#shares.subscribe", () => {
     await server.post("/api/shares.subscribe", {
       body: {
         shareId: share.id,
-        documentId: share.documentId,
+        documentId: share.documentId!,
         email: "user@gmail.com",
       },
     });
     await server.post("/api/shares.subscribe", {
       body: {
         shareId: share.id,
-        documentId: share.documentId,
+        documentId: share.documentId!,
         email: "u.s.e.r@gmail.com",
       },
     });
@@ -1223,7 +1223,7 @@ describe("#shares.subscribe", () => {
     const share = await buildShare();
     await ShareSubscription.create({
       shareId: share.id,
-      documentId: share.documentId,
+      documentId: share.documentId!,
       email: "user@example.com",
       emailFingerprint:
         ShareSubscription.normalizeEmailFingerprint("user@example.com"),
@@ -1234,7 +1234,7 @@ describe("#shares.subscribe", () => {
     const res = await server.post("/api/shares.subscribe", {
       body: {
         shareId: share.id,
-        documentId: share.documentId,
+        documentId: share.documentId!,
         email: "user@example.com",
       },
     });
@@ -1247,7 +1247,7 @@ describe("#shares.subscribe", () => {
     const share = await buildShare();
     const subscription = await ShareSubscription.create({
       shareId: share.id,
-      documentId: share.documentId,
+      documentId: share.documentId!,
       email: "user@example.com",
       emailFingerprint:
         ShareSubscription.normalizeEmailFingerprint("user@example.com"),
@@ -1259,7 +1259,7 @@ describe("#shares.subscribe", () => {
     const res = await server.post("/api/shares.subscribe", {
       body: {
         shareId: share.id,
-        documentId: share.documentId,
+        documentId: share.documentId!,
         email: "user@example.com",
       },
     });
@@ -1275,7 +1275,7 @@ describe("#shares.subscribe", () => {
     const res = await server.post("/api/shares.subscribe", {
       body: {
         shareId: share.id,
-        documentId: share.documentId,
+        documentId: share.documentId!,
         email: "user@example.com",
       },
     });
@@ -1287,7 +1287,7 @@ describe("#shares.subscribe", () => {
     const res = await server.post("/api/shares.subscribe", {
       body: {
         shareId: share.id,
-        documentId: share.documentId,
+        documentId: share.documentId!,
         email: "not-an-email",
       },
     });
@@ -1300,7 +1300,7 @@ describe("#shares.confirmSubscription", () => {
     const share = await buildShare();
     const subscription = await ShareSubscription.create({
       shareId: share.id,
-      documentId: share.documentId,
+      documentId: share.documentId!,
       email: "user@example.com",
       emailFingerprint: "user@example.com",
       secret: randomString(32),
@@ -1326,7 +1326,7 @@ describe("#shares.confirmSubscription", () => {
     const share = await buildShare();
     const subscription = await ShareSubscription.create({
       shareId: share.id,
-      documentId: share.documentId,
+      documentId: share.documentId!,
       email: "user@example.com",
       emailFingerprint: "user@example.com",
       secret: randomString(32),
@@ -1351,7 +1351,7 @@ describe("#shares.confirmSubscription", () => {
     const share = await buildShare();
     const subscription = await ShareSubscription.create({
       shareId: share.id,
-      documentId: share.documentId,
+      documentId: share.documentId!,
       email: "user@example.com",
       emailFingerprint: "user@example.com",
       secret: randomString(32),
@@ -1383,7 +1383,7 @@ describe("#shares.unsubscribe", () => {
     const share = await buildShare();
     const subscription = await ShareSubscription.create({
       shareId: share.id,
-      documentId: share.documentId,
+      documentId: share.documentId!,
       email: "user@example.com",
       emailFingerprint: "user@example.com",
       secret: randomString(32),
@@ -1410,7 +1410,7 @@ describe("#shares.unsubscribe", () => {
     const share = await buildShare();
     const subscription = await ShareSubscription.create({
       shareId: share.id,
-      documentId: share.documentId,
+      documentId: share.documentId!,
       email: "user@example.com",
       emailFingerprint: "user@example.com",
       secret: randomString(32),
