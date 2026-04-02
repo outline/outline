@@ -40,13 +40,13 @@ export default class ShareSubscriptionConfirmEmail extends BaseEmail<Props> {
     confirmUrl,
     teamName,
   }: Props): string {
-    const brandName = teamName ?? env.APP_NAME;
+    const appName = teamName ?? env.APP_NAME;
     return `
 ${this.t("Confirm your subscription")}
 
 ${this.t(
   'You requested to receive email notifications when "{{ documentTitle }}" is updated on {{ appName }}. Please confirm your subscription by following the link below.',
-  { documentTitle, appName: brandName }
+  { documentTitle, appName }
 )}
 
 ${this.t("Confirm Subscription")}: ${confirmUrl}
@@ -56,7 +56,7 @@ ${this.t("This link will expire in 24 hours.")}
   }
 
   protected render({ documentTitle, confirmUrl, teamName }: Props) {
-    const brandName = teamName ?? env.APP_NAME;
+    const appName = teamName ?? env.APP_NAME;
     return (
       <EmailTemplate previewText={this.preview({ documentTitle } as Props)}>
         <Header />
@@ -66,7 +66,7 @@ ${this.t("This link will expire in 24 hours.")}
           <p>
             {this.t(
               'You requested to receive email notifications when "{{ documentTitle }}" is updated on {{ appName }}.',
-              { documentTitle, appName: brandName }
+              { documentTitle, appName }
             )}
           </p>
           <p>

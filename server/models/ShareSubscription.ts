@@ -62,7 +62,7 @@ class ShareSubscription extends IdModel<
   static maxSubscriptionsPerIP = 3;
 
   @BeforeCreate
-  static async checkIPLimit(model: ShareSubscription) {
+  static async checkIPLimit(model: ShareSubscription, options) {
     if (!model.ipAddress) {
       return;
     }
@@ -71,6 +71,7 @@ class ShareSubscription extends IdModel<
       attributes: ["emailFingerprint"],
       where: { ipAddress: model.ipAddress },
       group: ["emailFingerprint"],
+      transaction: options.transaction,
     });
     const count = results.length;
 

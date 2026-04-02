@@ -442,6 +442,7 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.SharesSubscribeReq>) => {
     const { shareId, email } = ctx.input.body;
+    const { transaction } = ctx.state;
 
     // Validate the share exists and is published
     const { share, document } = await loadPublicShare({ id: shareId });
@@ -454,6 +455,8 @@ router.post(
 
     const existing = await ShareSubscription.findOne({
       where: { shareId: share.id, emailFingerprint },
+      transaction,
+      lock: transaction.LOCK.UPDATE,
     });
 
     let subscription: ShareSubscription;
@@ -472,7 +475,7 @@ router.post(
         existing.lastNotifiedAt = null;
         existing.secret = randomString(32);
         existing.email = email;
-        await existing.save();
+        await existing.save({ transaction });
       } else if (existing.createdAt > subMinutes(new Date(), 60)) {
         // Recently created, not yet confirmed — don't spam
         ctx.body = { success: true };
@@ -481,7 +484,7 @@ router.post(
         // Expired or stale unconfirmed — regenerate
         existing.secret = randomString(32);
         existing.email = email;
-        await existing.save();
+        await existing.save({ transaction });
       }
 
       subscription = existing;
@@ -520,13 +523,17 @@ router.get(
   transaction(),
   async (ctx: APIContext<T.SharesConfirmSubscriptionReq>) => {
     const { id, token, follow } = ctx.input.query;
+    const { transaction } = ctx.state;
 
     // Anti-prefetch: prevent email clients from pre-fetching the link
     if (!follow) {
       return ctx.redirectOnClient(ctx.request.href + "&follow=true");
     }
 
-    const subscription = await ShareSubscription.findByPk(id);
+    const subscription = await ShareSubscription.findByPk(id, {
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
 
     if (!subscription || subscription.isUnsubscribed) {
       ctx.redirect(`${env.URL}?notice=invalid-auth`);
@@ -553,7 +560,7 @@ router.get(
     }
 
     subscription.confirmedAt = new Date();
-    await subscription.save();
+    await subscription.save({ transaction });
 
     const shareUrl = share?.canonicalUrl ?? env.URL;
     ctx.redirect(`${shareUrl}?notice=subscribed`);
@@ -564,15 +571,20 @@ router.get(
   "shares.unsubscribe",
   rateLimiter(RateLimiterStrategy.TenPerMinute),
   validate(T.SharesUnsubscribeSchema),
+  transaction(),
   async (ctx: APIContext<T.SharesUnsubscribeReq>) => {
     const { id, token, follow } = ctx.input.query;
+    const { transaction } = ctx.state;
 
     // Anti-prefetch: prevent email clients from pre-fetching the link
     if (!follow) {
       return ctx.redirectOnClient(ctx.request.href + "&follow=true");
     }
 
-    const subscription = await ShareSubscription.findByPk(id);
+    const subscription = await ShareSubscription.findByPk(id, {
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
 
     if (!subscription) {
       ctx.redirect(`${env.URL}?notice=invalid-auth`);
@@ -588,7 +600,7 @@ router.get(
     }
 
     subscription.unsubscribedAt = new Date();
-    await subscription.save();
+    await subscription.save({ transaction });
 
     const share = await Share.findByPk(subscription.shareId);
     const shareUrl = share?.canonicalUrl ?? env.URL;
