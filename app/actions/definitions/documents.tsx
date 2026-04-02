@@ -44,6 +44,7 @@ import { Week } from "@shared/utils/time";
 import type UserMembership from "~/models/UserMembership";
 import { client } from "~/utils/ApiClient";
 import DocumentDelete from "~/scenes/DocumentDelete";
+import { ProsemirrorHelper } from "~/models/helpers/ProsemirrorHelper";
 import DocumentPermanentDelete from "~/scenes/DocumentPermanentDelete";
 import DocumentPublish from "~/scenes/DocumentPublish";
 import DeleteDocumentsInTrash from "~/scenes/Trash/components/DeleteDocumentsInTrash";
@@ -737,8 +738,6 @@ export const copyDocumentAsPlainText = createAction({
       ? stores.documents.get(activeDocumentId)
       : undefined;
     if (document) {
-      const { ProsemirrorHelper } =
-        await import("~/models/helpers/ProsemirrorHelper");
       copy(ProsemirrorHelper.toPlainText(document));
       toast.success(t("Text copied to clipboard"));
     }
