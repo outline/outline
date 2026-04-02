@@ -278,6 +278,52 @@ export class GitLabUtils {
   }
 
   /**
+   * Sanitizes GitLab-flavored markdown to standard markdown compatible with
+   * our editor. Strips or converts GitLab-specific syntax that would otherwise
+   * render as raw text in previews.
+   *
+   * @param text - the markdown text to sanitize.
+   * @returns the sanitized text, or null if input is null/undefined.
+   */
+  public static sanitizeGitLabMarkdown(
+    text: string | null | undefined
+  ): string | null {
+    if (!text) {
+      return null;
+    }
+
+    return (
+      text
+        // YAML front matter
+        .replace(/^---\n[\s\S]*?\n---\n?/, "")
+        // HTML comments
+        .replace(/<!--[\s\S]*?-->/g, "")
+        // Collapsible sections: extract inner content
+        .replace(
+          /<details>\s*<summary>([\s\S]*?)<\/summary>([\s\S]*?)<\/details>/gi,
+          "**$1**\n$2"
+        )
+        // TOC markers
+        .replace(/\[\[_TOC_\]\]/g, "")
+        .replace(/^\[TOC\]$/gm, "")
+        // Inline diffs
+        .replace(/\{\+([^+]*)\+\}/g, "$1")
+        .replace(/\[-([^\]]*)-\]/g, "~~$1~~")
+        // Multiline blockquotes
+        .replace(/^>>>\s*$/gm, "")
+        // Footnote definitions
+        .replace(/^\[\^[^\]]+\]:\s+.*$/gm, "")
+        // Footnote references
+        .replace(/\[\^([^\]]+)\]/g, "")
+        // Include directives
+        .replace(/^::include\{[^}]*\}$/gm, "")
+        // Clean up excessive blank lines left by removals
+        .replace(/\n{3,}/g, "\n\n")
+        .trim() || null
+    );
+  }
+
+  /**
    * Returns the color associated with a given visibility level.
    *
    * @param visibility - The visibility level of the resource.
