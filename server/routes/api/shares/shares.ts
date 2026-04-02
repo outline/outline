@@ -441,6 +441,10 @@ router.post(
   validate(T.SharesSubscribeSchema),
   transaction(),
   async (ctx: APIContext<T.SharesSubscribeReq>) => {
+    if (!env.EMAIL_ENABLED) {
+      throw InvalidRequestError("Email is not configured");
+    }
+
     const { shareId, documentId, email } = ctx.input.body;
     const { transaction } = ctx.state;
     const team = await getTeamFromContext(ctx, { includeStateCookie: false });
