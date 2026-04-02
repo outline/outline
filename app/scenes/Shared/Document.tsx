@@ -1,16 +1,16 @@
 import { observer } from "mobx-react";
+import { useEffect, useMemo, useRef } from "react";
 import type { PublicTeam } from "@shared/types";
 import { TOCPosition } from "@shared/types";
 import type DocumentModel from "~/models/Document";
 import DocumentComponent from "~/scenes/Document/components/Document";
+import Branding from "~/components/Branding";
 import { useDocumentContext } from "~/components/DocumentContext";
 import { useTeamContext } from "~/components/TeamContext";
-import { useEffect, useMemo, useRef } from "react";
-import { parseDomain } from "@shared/utils/domains";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import Branding from "~/components/Branding";
-import useShare from "@shared/hooks/useShare";
 import useQuery from "~/hooks/useQuery";
+import useShare from "@shared/hooks/useShare";
+import { parseDomain } from "@shared/utils/domains";
 
 type Props = {
   document: DocumentModel;

@@ -250,6 +250,7 @@ function SharedScene() {
       value={{
         shareId,
         sharedTree: share.tree,
+        allowSubscriptions: share.allowSubscriptions,
       }}
     >
       <Helmet>

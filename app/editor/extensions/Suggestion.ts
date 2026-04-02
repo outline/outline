@@ -19,7 +19,7 @@ export default class Suggestion extends Extension {
     super(options);
 
     this.openRegex = new RegExp(
-      `(?:^|\\s|\\()${escapeRegExp(
+      `(?:^|\\s|\\(|[\\p{Script=Han}\\p{Script=Hiragana}\\p{Script=Katakana}\\p{Script=Hangul}])${escapeRegExp(
         this.options.trigger
       )}(${`[\\p{L}\/\\p{M}\\d${
         this.options.allowSpaces ? "\\s{1}" : ""

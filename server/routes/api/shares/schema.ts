@@ -53,6 +53,7 @@ export const SharesUpdateSchema = BaseSchema.extend({
     includeChildDocuments: z.boolean().optional(),
     published: z.boolean().optional(),
     allowIndexing: z.boolean().optional(),
+    allowSubscriptions: z.boolean().optional(),
     showLastUpdated: z.boolean().optional(),
     showTOC: z.boolean().optional(),
     urlId: z
@@ -73,6 +74,7 @@ export const SharesCreateSchema = BaseSchema.extend({
       documentId: zodIdType().optional(),
       published: z.boolean().prefault(false),
       allowIndexing: z.boolean().optional(),
+      allowSubscriptions: z.boolean().optional(),
       showLastUpdated: z.boolean().optional(),
       showTOC: z.boolean().optional(),
       urlId: z
@@ -105,3 +107,34 @@ export const SharesSitemapSchema = BaseSchema.extend({
 });
 
 export type SharesSitemapReq = z.infer<typeof SharesSitemapSchema>;
+
+export const SharesSubscribeSchema = BaseSchema.extend({
+  body: z.object({
+    shareId: z.string(),
+    email: z.string().email(),
+  }),
+});
+
+export type SharesSubscribeReq = z.infer<typeof SharesSubscribeSchema>;
+
+export const SharesConfirmSubscriptionSchema = BaseSchema.extend({
+  query: z.object({
+    id: z.uuid(),
+    token: z.string(),
+    follow: z.string().optional(),
+  }),
+});
+
+export type SharesConfirmSubscriptionReq = z.infer<
+  typeof SharesConfirmSubscriptionSchema
+>;
+
+export const SharesUnsubscribeSchema = BaseSchema.extend({
+  query: z.object({
+    id: z.uuid(),
+    token: z.string(),
+    follow: z.string().optional(),
+  }),
+});
+
+export type SharesUnsubscribeReq = z.infer<typeof SharesUnsubscribeSchema>;

@@ -14,6 +14,8 @@ import { ancestors } from "@shared/editor/utils";
 import FindAndReplace from "../components/FindAndReplace";
 
 const pluginKey = new PluginKey("find-and-replace");
+const supportsHighlightAPI =
+  typeof CSS !== "undefined" && CSS.highlights !== undefined;
 
 export default class FindAndReplaceExtension extends Extension {
   public get name() {
@@ -22,8 +24,6 @@ export default class FindAndReplaceExtension extends Extension {
 
   public get defaultOptions() {
     return {
-      resultClassName: "find-result",
-      resultCurrentClassName: "current-result",
       caseSensitive: false,
       regexEnabled: false,
     };
@@ -103,20 +103,6 @@ export default class FindAndReplaceExtension extends Extension {
        */
       openFindAndReplace: () => this.openFindAndReplace(),
     };
-  }
-
-  private get decorations() {
-    return this.results.map((deco, index) => {
-      const decorationType =
-        deco.type === "node" ? Decoration.node : Decoration.inline;
-      return decorationType(deco.from, deco.to, {
-        class:
-          this.options.resultClassName +
-          (this.currentResultIndex === index
-            ? ` ${this.options.resultCurrentClassName}`
-            : ""),
-      });
-    });
   }
 
   public replace(replace: string): Command {
@@ -232,14 +218,25 @@ export default class FindAndReplaceExtension extends Extension {
   }
 
   private scrollToCurrentMatch() {
-    const element = window.document.querySelector(
-      `.${this.options.resultCurrentClassName}`
-    );
-    if (element) {
-      scrollIntoView(element, {
-        scrollMode: "if-needed",
-        block: "center",
-      });
+    if (supportsHighlightAPI) {
+      if (this.currentHighlightRange) {
+        const node = this.currentHighlightRange.startContainer;
+        const element = node instanceof Element ? node : node.parentElement;
+        if (element) {
+          scrollIntoView(element, {
+            scrollMode: "if-needed",
+            block: "center",
+          });
+        }
+      }
+    } else {
+      const element = window.document.querySelector(".current-result");
+      if (element) {
+        scrollIntoView(element, {
+          scrollMode: "if-needed",
+          block: "center",
+        });
+      }
     }
   }
 
@@ -407,12 +404,83 @@ export default class FindAndReplaceExtension extends Extension {
     });
   }
 
-  private createDeco(doc: Node) {
+  /**
+   * Build ProseMirror decorations from search results (fallback for browsers
+   * without CSS Custom Highlight API support).
+   */
+  private get decorations() {
+    return this.results.map((deco, index) => {
+      const decorationType =
+        deco.type === "node" ? Decoration.node : Decoration.inline;
+      return decorationType(deco.from, deco.to, {
+        class:
+          "find-result" +
+          (this.currentResultIndex === index ? " current-result" : ""),
+      });
+    });
+  }
+
+  /**
+   * Create a DecorationSet from the current search results.
+   */
+  private createDecorationSet(doc: Node) {
     this.search(doc);
-    return this.decorations
-      ? DecorationSet.create(doc, this.decorations)
+    const decos = this.decorations;
+    return decos.length
+      ? DecorationSet.create(doc, decos)
       : DecorationSet.empty;
   }
+
+  /**
+   * Update CSS Custom Highlight API highlights based on current search results.
+   */
+  private updateHighlights() {
+    const view = this.editor?.view;
+    if (!view || !this.results.length || !this.searchTerm) {
+      CSS.highlights.delete("search-results");
+      CSS.highlights.delete("search-results-current");
+      this.currentHighlightRange = undefined;
+      return;
+    }
+
+    const allRanges: StaticRange[] = [];
+    const currentRanges: StaticRange[] = [];
+    this.currentHighlightRange = undefined;
+
+    for (let i = 0; i < this.results.length; i++) {
+      const result = this.results[i];
+      try {
+        const from = view.domAtPos(result.from);
+        const to = view.domAtPos(result.to);
+        const range = new StaticRange({
+          startContainer: from.node,
+          startOffset: from.offset,
+          endContainer: to.node,
+          endOffset: to.offset,
+        });
+        allRanges.push(range);
+
+        if (i === this.currentResultIndex) {
+          currentRanges.push(range);
+          this.currentHighlightRange = range;
+        }
+      } catch {
+        // Position may not be in the visible DOM (e.g. inside folded toggle)
+      }
+    }
+
+    CSS.highlights.set("search-results", new Highlight(...allRanges));
+    if (currentRanges.length) {
+      CSS.highlights.set(
+        "search-results-current",
+        new Highlight(...currentRanges)
+      );
+    } else {
+      CSS.highlights.delete("search-results-current");
+    }
+  }
+
+  private currentHighlightRange?: StaticRange;
 
   get allowInReadOnly() {
     return true;
@@ -423,35 +491,91 @@ export default class FindAndReplaceExtension extends Extension {
   }
 
   get plugins() {
-    return [
-      new Plugin({
-        key: pluginKey,
-        state: {
-          init: () => DecorationSet.empty,
-          apply: (tr, decorationSet) => {
-            const action = tr.getMeta(pluginKey);
+    if (supportsHighlightAPI) {
+      return [this.highlightAPIPlugin];
+    }
+    return [this.decorationPlugin];
+  }
 
-            if (action) {
-              if (action.open) {
-                this.open = true;
-              }
-              return this.createDeco(tr.doc);
+  /** Plugin using the CSS Custom Highlight API (no DOM modifications). */
+  private get highlightAPIPlugin() {
+    return new Plugin({
+      key: pluginKey,
+      state: {
+        init: () => 0,
+        apply: (tr, generation) => {
+          const action = tr.getMeta(pluginKey);
+
+          if (action) {
+            if (action.open) {
+              this.open = true;
             }
+            this.search(tr.doc);
+            return generation + 1;
+          }
 
-            if (tr.docChanged) {
-              return decorationSet.map(tr.mapping, tr.doc);
+          if (tr.docChanged && this.searchTerm) {
+            this.search(tr.doc);
+            return generation + 1;
+          }
+
+          // Toggle fold/unfold changes DOM visibility without changing the doc,
+          // so we need to rebuild highlight ranges for newly visible matches.
+          if (tr.getMeta(toggleFoldPluginKey) && this.searchTerm) {
+            return generation + 1;
+          }
+
+          return generation;
+        },
+      },
+      view: () => {
+        let lastGeneration = 0;
+        return {
+          update: (view) => {
+            const generation = pluginKey.getState(view.state) as number;
+            if (generation !== lastGeneration) {
+              lastGeneration = generation;
+              this.updateHighlights();
             }
+          },
+          destroy: () => {
+            CSS.highlights?.delete("search-results");
+            CSS.highlights?.delete("search-results-current");
+          },
+        };
+      },
+    });
+  }
 
-            return decorationSet;
-          },
+  /** Fallback plugin using ProseMirror decorations. */
+  private get decorationPlugin() {
+    return new Plugin({
+      key: pluginKey,
+      state: {
+        init: () => DecorationSet.empty,
+        apply: (tr, decorationSet) => {
+          const action = tr.getMeta(pluginKey);
+
+          if (action) {
+            if (action.open) {
+              this.open = true;
+            }
+            return this.createDecorationSet(tr.doc);
+          }
+
+          if (tr.docChanged) {
+            return decorationSet.map(tr.mapping, tr.doc);
+          }
+
+          return decorationSet;
         },
-        props: {
-          decorations(state) {
-            return this.getState(state);
-          },
+      },
+      props: {
+        decorations(state) {
+          return this.getState(state);
         },
-      }),
-    ];
+      },
+    });
   }
 
   public widget = ({ readOnly }: WidgetProps) => (

@@ -443,7 +443,7 @@ export default function FindAndReplace({
           </Flex>
           <ResizingHeightContainer>
             {showReplace && !readOnly && (
-              <HStack>
+              <HStack align="flex-start">
                 <StyledInput
                   maxLength={255}
                   value={replaceTerm}

@@ -4,6 +4,7 @@ import * as React from "react";
 type ShareContextType = {
   shareId?: string;
   sharedTree?: NavigationNode;
+  allowSubscriptions?: boolean;
 };
 
 export const ShareContext = React.createContext<ShareContextType>({});
