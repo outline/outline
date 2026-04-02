@@ -12,6 +12,7 @@ import {
 } from "sequelize-typescript";
 import { subHours } from "date-fns";
 import { ValidationError } from "@server/errors";
+import Document from "./Document";
 import Share from "./Share";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
@@ -36,6 +37,14 @@ class ShareSubscription extends IdModel<
   @ForeignKey(() => Share)
   @Column(DataType.UUID)
   shareId: string;
+
+  /** The document to scope notifications to (the document and its descendants). */
+  @BelongsTo(() => Document, "documentId")
+  document: Document;
+
+  @ForeignKey(() => Document)
+  @Column(DataType.UUID)
+  documentId: string;
 
   @Column(DataType.STRING)
   email: string;

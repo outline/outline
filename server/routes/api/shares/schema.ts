@@ -111,6 +111,7 @@ export type SharesSitemapReq = z.infer<typeof SharesSitemapSchema>;
 export const SharesSubscribeSchema = BaseSchema.extend({
   body: z.object({
     shareId: z.string(),
+    documentId: z.uuid(),
     email: z.string().email(),
   }),
 });

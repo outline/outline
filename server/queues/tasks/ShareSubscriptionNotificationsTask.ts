@@ -1,5 +1,4 @@
 import { subHours } from "date-fns";
-import { Op } from "sequelize";
 import ShareDocumentUpdatedEmail from "@server/emails/templates/ShareDocumentUpdatedEmail";
 import Logger from "@server/logging/Logger";
 import { Document, Share, ShareSubscription } from "@server/models";
@@ -13,67 +12,67 @@ export default class ShareSubscriptionNotificationsTask extends BaseTask<Revisio
       return;
     }
 
-    // Find all published, non-revoked shares for this document
-    const shares = await Share.findAll({
-      where: {
-        published: true,
-        revokedAt: null,
-        [Op.or]: [
-          { documentId: document.id },
-          ...(document.collectionId
-            ? [
-                {
-                  collectionId: document.collectionId,
-                  includeChildDocuments: true,
-                },
-              ]
-            : []),
-        ],
-      },
-    });
-
-    if (!shares.length) {
-      return;
+    // Collect the document's ID and all ancestor IDs by walking up the tree.
+    // A subscription scoped to any of these documents covers the updated one.
+    const scopeIds: string[] = [document.id];
+    let parentId = document.parentDocumentId;
+    while (parentId) {
+      scopeIds.push(parentId);
+      const parent = await Document.findByPk(parentId, {
+        attributes: ["id", "parentDocumentId"],
+      });
+      if (!parent) {
+        break;
+      }
+      parentId = parent.parentDocumentId;
     }
 
-    for (const share of shares) {
-      if (!share.allowSubscriptions) {
+    // Find all active subscriptions scoped to this document or any ancestor,
+    // joined to a published share that allows subscriptions.
+    const subscriptions = await ShareSubscription.scope("active").findAll({
+      where: { documentId: scopeIds },
+      include: [
+        {
+          model: Share.unscoped(),
+          required: true,
+          where: {
+            published: true,
+            revokedAt: null,
+            allowSubscriptions: true,
+          },
+          include: [{ association: "team", required: true }],
+        },
+      ],
+    });
+
+    for (const subscription of subscriptions) {
+      // Throttle: only one notification per 6 hours
+      if (
+        subscription.lastNotifiedAt &&
+        subscription.lastNotifiedAt > subHours(new Date(), 6)
+      ) {
+        Logger.info(
+          "processor",
+          `suppressing share subscription notification to ${subscription.id} as recently notified`
+        );
         continue;
       }
 
-      const subscriptions = await ShareSubscription.scope("active").findAll({
-        where: { shareId: share.id },
-      });
+      const baseShareUrl = subscription.share.canonicalUrl;
+      const shareUrl =
+        document.id !== subscription.share.documentId && document.path
+          ? `${baseShareUrl.replace(/\/$/, "")}${document.path}`
+          : baseShareUrl;
 
-      for (const subscription of subscriptions) {
-        // Throttle: only one notification per 6 hours
-        if (
-          subscription.lastNotifiedAt &&
-          subscription.lastNotifiedAt > subHours(new Date(), 6)
-        ) {
-          Logger.info(
-            "processor",
-            `suppressing share subscription notification to ${subscription.id} as recently notified`
-          );
-          continue;
-        }
+      new ShareDocumentUpdatedEmail({
+        to: subscription.email,
+        shareSubscriptionId: subscription.id,
+        documentTitle: document.titleWithDefault,
+        shareUrl,
+      }).schedule();
 
-        const baseShareUrl = share.canonicalUrl;
-        const shareUrl =
-          share.collectionId && document.path
-            ? `${baseShareUrl.replace(/\/$/, "")}${document.path}`
-            : baseShareUrl;
-
-        new ShareDocumentUpdatedEmail({
-          to: subscription.email,
-          shareSubscriptionId: subscription.id,
-          documentTitle: document.titleWithDefault,
-          shareUrl,
-        }).schedule();
-
-        subscription.lastNotifiedAt = new Date();
-        await subscription.save();
-      }
+      subscription.lastNotifiedAt = new Date();
+      await subscription.save();
     }
   }
 

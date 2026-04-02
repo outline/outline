@@ -214,7 +214,7 @@ function DocumentHeader({
         actions={
           <>
             {allowSubscriptions !== false && (
-              <SubscribeAction shareId={shareId} />
+              <SubscribeAction shareId={shareId} documentId={document.id} />
             )}
             <AppearanceAction />
             {can.update && !isEditing ? editAction : <div />}
