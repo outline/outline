@@ -143,6 +143,10 @@ class Share extends IdModel<
   @Column
   allowIndexing: boolean;
 
+  @Default(true)
+  @Column
+  allowSubscriptions: boolean;
+
   @Default(false)
   @Column
   showLastUpdated: boolean;

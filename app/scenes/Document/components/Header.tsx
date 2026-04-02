@@ -38,7 +38,10 @@ import { documentEditPath } from "~/utils/routeHelpers";
 import ObservingBanner from "./ObservingBanner";
 import PublicBreadcrumb from "./PublicBreadcrumb";
 import ShareButton from "./ShareButton";
-import { AppearanceAction } from "~/components/Sharing/components/Actions";
+import {
+  AppearanceAction,
+  SubscribeAction,
+} from "~/components/Sharing/components/Actions";
 import useShare from "@shared/hooks/useShare";
 import { type Editor } from "~/editor";
 import { ChangesNavigation } from "./ChangesNavigation";
@@ -92,7 +95,7 @@ function DocumentHeader({
   const { hasHeadings, editor } = useDocumentContext();
   const sidebarContext = useLocationSidebarContext();
   const [measureRef, size] = useMeasure();
-  const { isShare, shareId, sharedTree } = useShare();
+  const { isShare, shareId, sharedTree, allowSubscriptions } = useShare();
   const isMobile = isMobileMedia || size.width < 700;
 
   // We cache this value for as long as the component is mounted so that if you
@@ -210,6 +213,9 @@ function DocumentHeader({
         }
         actions={
           <>
+            {allowSubscriptions !== false && (
+              <SubscribeAction shareId={shareId} />
+            )}
             <AppearanceAction />
             {can.update && !isEditing ? editAction : <div />}
           </>

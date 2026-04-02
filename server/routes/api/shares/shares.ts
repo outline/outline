@@ -2,13 +2,28 @@ import Router from "koa-router";
 import isUndefined from "lodash/isUndefined";
 import type { FindOptions, WhereAttributeHash, WhereOptions } from "sequelize";
 import { Op } from "sequelize";
+import { subMinutes } from "date-fns";
+import { randomString } from "@shared/random";
 import { TeamPreference } from "@shared/types";
-import { AuthenticationError, NotFoundError } from "@server/errors";
+import {
+  AuthenticationError,
+  InvalidRequestError,
+  NotFoundError,
+} from "@server/errors";
+import ShareSubscriptionConfirmEmail from "@server/emails/templates/ShareSubscriptionConfirmEmail";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { Document, User, Share, Team, Collection } from "@server/models";
+import {
+  Document,
+  User,
+  Share,
+  Team,
+  Collection,
+  ShareSubscription,
+} from "@server/models";
+import ShareSubscriptionHelper from "@server/models/helpers/ShareSubscriptionHelper";
 import { authorize, cannot } from "@server/policies";
 import {
   presentShare,
@@ -28,6 +43,8 @@ import {
   loadShareWithParent,
 } from "@server/commands/shareLoader";
 import shareDomains from "@server/middlewares/shareDomains";
+import env from "@server/env";
+import { safeEqual } from "@server/utils/crypto";
 
 const router = new Router();
 
@@ -245,6 +262,7 @@ router.post(
       urlId,
       includeChildDocuments,
       allowIndexing,
+      allowSubscriptions,
       showLastUpdated,
       showTOC,
     } = ctx.input.body;
@@ -282,6 +300,7 @@ router.post(
         published,
         includeChildDocuments,
         allowIndexing,
+        allowSubscriptions,
         showLastUpdated,
         showTOC,
         urlId,
@@ -312,6 +331,7 @@ router.post(
       published,
       urlId,
       allowIndexing,
+      allowSubscriptions,
       showLastUpdated,
       showTOC,
     } = ctx.input.body;
@@ -343,6 +363,9 @@ router.post(
 
     if (allowIndexing !== undefined) {
       share.allowIndexing = allowIndexing;
+    }
+    if (allowSubscriptions !== undefined) {
+      share.allowSubscriptions = allowSubscriptions;
     }
     if (showLastUpdated !== undefined) {
       share.showLastUpdated = showLastUpdated;
@@ -409,6 +432,179 @@ router.get(
 
     ctx.set("Content-Type", "application/xml");
     ctx.body = navigationNodeToSitemap(sharedTree, baseUrl);
+  }
+);
+
+router.post(
+  "shares.subscribe",
+  rateLimiter(RateLimiterStrategy.TenPerHour),
+  validate(T.SharesSubscribeSchema),
+  transaction(),
+  async (ctx: APIContext<T.SharesSubscribeReq>) => {
+    const { shareId, email } = ctx.input.body;
+    const { transaction } = ctx.state;
+
+    // Validate the share exists and is published
+    const { share, document } = await loadPublicShare({ id: shareId });
+
+    if (!share.allowSubscriptions) {
+      throw InvalidRequestError("Subscriptions are not enabled for this share");
+    }
+
+    const emailFingerprint = ShareSubscription.normalizeEmailFingerprint(email);
+
+    const existing = await ShareSubscription.findOne({
+      where: { shareId: share.id, emailFingerprint },
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
+
+    let subscription: ShareSubscription;
+
+    if (existing) {
+      // Already confirmed and active — return success silently
+      if (existing.isConfirmed && !existing.isUnsubscribed) {
+        ctx.body = { success: true };
+        return;
+      }
+
+      // Unsubscribed — allow re-subscribe with new confirmation
+      if (existing.isUnsubscribed) {
+        existing.unsubscribedAt = null;
+        existing.confirmedAt = null;
+        existing.lastNotifiedAt = null;
+        existing.secret = randomString(32);
+        existing.email = email;
+        await existing.save({ transaction });
+      } else if (existing.createdAt > subMinutes(new Date(), 60)) {
+        // Recently created, not yet confirmed — don't spam
+        ctx.body = { success: true };
+        return;
+      } else {
+        // Expired or stale unconfirmed — regenerate
+        existing.secret = randomString(32);
+        existing.email = email;
+        await existing.save({ transaction });
+      }
+
+      subscription = existing;
+    } else {
+      subscription = await ShareSubscription.create({
+        shareId: share.id,
+        email,
+        emailFingerprint,
+        secret: randomString(32),
+        ipAddress: ctx.request.ip,
+      });
+    }
+
+    const confirmUrl = ShareSubscriptionHelper.confirmUrl(subscription);
+    const usePublicBranding =
+      share.team?.getPreference(TeamPreference.PublicBranding) ?? false;
+    new ShareSubscriptionConfirmEmail({
+      to: email,
+      documentTitle:
+        document?.titleWithDefault ??
+        share.document?.title ??
+        share.collection?.name ??
+        "",
+      confirmUrl,
+      teamName: usePublicBranding ? share.team?.name : undefined,
+    }).schedule();
+
+    ctx.body = { success: true };
+  }
+);
+
+router.get(
+  "shares.confirmSubscription",
+  rateLimiter(RateLimiterStrategy.TenPerMinute),
+  validate(T.SharesConfirmSubscriptionSchema),
+  transaction(),
+  async (ctx: APIContext<T.SharesConfirmSubscriptionReq>) => {
+    const { id, token, follow } = ctx.input.query;
+    const { transaction } = ctx.state;
+
+    // Anti-prefetch: prevent email clients from pre-fetching the link
+    if (!follow) {
+      return ctx.redirectOnClient(ctx.request.href + "&follow=true");
+    }
+
+    const subscription = await ShareSubscription.findByPk(id, {
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
+
+    if (!subscription || subscription.isUnsubscribed) {
+      ctx.redirect(`${env.URL}?notice=invalid-auth`);
+      return;
+    }
+
+    const share = await Share.findByPk(subscription.shareId);
+
+    if (!share?.allowSubscriptions) {
+      ctx.redirect(`${env.URL}?notice=invalid-auth`);
+      return;
+    }
+
+    const expectedToken = ShareSubscription.generateConfirmToken(subscription);
+
+    if (!safeEqual(token, expectedToken)) {
+      ctx.redirect(`${env.URL}?notice=invalid-auth`);
+      return;
+    }
+
+    if (subscription.isTokenExpired && !subscription.isConfirmed) {
+      ctx.redirect(`${env.URL}?notice=expired-token`);
+      return;
+    }
+
+    subscription.confirmedAt = new Date();
+    await subscription.save({ transaction });
+
+    const shareUrl = share?.canonicalUrl ?? env.URL;
+    ctx.redirect(`${shareUrl}?notice=subscribed`);
+  }
+);
+
+router.get(
+  "shares.unsubscribe",
+  rateLimiter(RateLimiterStrategy.TenPerMinute),
+  validate(T.SharesUnsubscribeSchema),
+  transaction(),
+  async (ctx: APIContext<T.SharesUnsubscribeReq>) => {
+    const { id, token, follow } = ctx.input.query;
+    const { transaction } = ctx.state;
+
+    // Anti-prefetch: prevent email clients from pre-fetching the link
+    if (!follow) {
+      return ctx.redirectOnClient(ctx.request.href + "&follow=true");
+    }
+
+    const subscription = await ShareSubscription.findByPk(id, {
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
+
+    if (!subscription) {
+      ctx.redirect(`${env.URL}?notice=invalid-auth`);
+      return;
+    }
+
+    const expectedToken =
+      ShareSubscription.generateUnsubscribeToken(subscription);
+
+    if (!safeEqual(token, expectedToken)) {
+      ctx.redirect(`${env.URL}?notice=invalid-auth`);
+      return;
+    }
+
+    subscription.unsubscribedAt = new Date();
+    await subscription.save({ transaction });
+
+    const share = await Share.findByPk(subscription.shareId);
+    const shareUrl = share?.canonicalUrl ?? env.URL;
+    ctx.redirect(`${shareUrl}?notice=unsubscribed`);
   }
 );
 
