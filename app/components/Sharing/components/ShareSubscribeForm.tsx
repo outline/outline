@@ -18,6 +18,7 @@ export function ShareSubscribeForm({ shareId }: { shareId: string }) {
   const [status, setStatus] = useState<
     "idle" | "loading" | "success" | "error"
   >("idle");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleSubmit = useCallback(
     async (ev: FormEvent) => {
@@ -26,7 +27,10 @@ export function ShareSubscribeForm({ shareId }: { shareId: string }) {
       try {
         await client.post("/shares.subscribe", { shareId, email });
         setStatus("success");
-      } catch {
+      } catch (err) {
+        setErrorMessage(
+          err instanceof Error ? err.message : t("Something went wrong.")
+        );
         setStatus("error");
       }
     },
@@ -37,6 +41,7 @@ export function ShareSubscribeForm({ shareId }: { shareId: string }) {
     (ev: ChangeEvent<HTMLInputElement>) => {
       setEmail(ev.target.value);
       if (status === "error") {
+        setErrorMessage("");
         setStatus("idle");
       }
     },
@@ -73,9 +78,7 @@ export function ShareSubscribeForm({ shareId }: { shareId: string }) {
             {t("Subscribe")}
           </Button>
         </Flex>
-        {status === "error" && (
-          <ErrorText>{t("Something went wrong. Please try again.")}</ErrorText>
-        )}
+        {status === "error" && <ErrorText>{errorMessage}</ErrorText>}
       </StyledForm>
     </FormContainer>
   );
