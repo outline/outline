@@ -17,6 +17,10 @@ import Share from "./Share";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
 
+/**
+ * A subscription to email notifications for updates to a publicly shared
+ * document and its descendants.
+ */
 @Scopes(() => ({
   active: {
     where: {
@@ -46,15 +50,19 @@ class ShareSubscription extends IdModel<
   @Column(DataType.UUID)
   documentId: string;
 
+  /** The subscribed email */
   @Column(DataType.STRING)
   email: string;
 
+  /** Normalized email fingerprint helps to improve spam detection through removal of common bypasses */
   @Column(DataType.STRING)
   emailFingerprint: string;
 
+  /** Signing secret for subscribe/unsubscribe links */
   @Column(DataType.STRING)
   secret: string;
 
+  /** IP address of the user that subscribed */
   @Column(DataType.STRING(45))
   ipAddress: string | null;
 
@@ -70,6 +78,13 @@ class ShareSubscription extends IdModel<
   /** Maximum number of unique email subscriptions allowed per IP address. */
   static maxSubscriptionsPerIP = 3;
 
+  /**
+   * Enforce a per-IP rate limit on subscription creation to prevent abuse.
+   *
+   * @param model The subscription being created.
+   * @param options The save options including the current transaction.
+   * @throws when the IP has reached the maximum number of subscriptions.
+   */
   @BeforeCreate
   static async checkIPLimit(
     model: ShareSubscription,
