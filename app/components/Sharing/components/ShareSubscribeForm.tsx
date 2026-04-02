@@ -5,6 +5,8 @@ import styled from "styled-components";
 import { s } from "@shared/styles";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
+import Input from "~/components/Input";
+import Text from "~/components/Text";
 import { client } from "~/utils/ApiClient";
 
 /**
@@ -44,9 +46,9 @@ export function ShareSubscribeForm({ shareId }: { shareId: string }) {
   if (status === "success") {
     return (
       <FormContainer>
-        <SuccessText>
+        <Text type="tertiary" size="small">
           {t("Check your email to confirm your subscription.")}
-        </SuccessText>
+        </Text>
       </FormContainer>
     );
   }
@@ -54,19 +56,23 @@ export function ShareSubscribeForm({ shareId }: { shareId: string }) {
   return (
     <FormContainer>
       <StyledForm onSubmit={handleSubmit}>
-        <Label>{t("Get notified when this document is updated")}</Label>
-        <InputRow align="center" gap={8}>
-          <EmailInput
+        <Text as="label" type="tertiary" size="small">
+          {t("Get notified when this document is updated")}
+        </Text>
+        <Flex align="center" gap={8}>
+          <Input
             type="email"
             value={email}
             onChange={handleChange}
             placeholder={t("Email address")}
             required
+            margin={0}
+            flex
           />
           <Button type="submit" disabled={status === "loading"} neutral>
             {t("Subscribe")}
           </Button>
-        </InputRow>
+        </Flex>
         {status === "error" && (
           <ErrorText>{t("Something went wrong. Please try again.")}</ErrorText>
         )}
@@ -83,38 +89,6 @@ const StyledForm = styled.form`
   display: flex;
   flex-direction: column;
   gap: 8px;
-`;
-
-const Label = styled.label`
-  font-size: 14px;
-  color: ${s("textTertiary")};
-`;
-
-const InputRow = styled(Flex)``;
-
-const EmailInput = styled.input`
-  flex: 1;
-  padding: 6px 12px;
-  border: 1px solid ${s("inputBorder")};
-  border-radius: 4px;
-  background: ${s("background")};
-  color: ${s("text")};
-  font-size: 14px;
-  outline: none;
-
-  &:focus {
-    border-color: ${s("accent")};
-  }
-
-  &::placeholder {
-    color: ${s("placeholder")};
-  }
-`;
-
-const SuccessText = styled.p`
-  font-size: 14px;
-  color: ${s("textTertiary")};
-  margin: 0;
 `;
 
 const ErrorText = styled.p`
