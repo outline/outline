@@ -494,14 +494,17 @@ router.post(
 
       subscription = existing;
     } else {
-      subscription = await ShareSubscription.create({
-        shareId: share.id,
-        documentId,
-        email,
-        emailFingerprint,
-        secret: randomString(32),
-        ipAddress: ctx.request.ip,
-      });
+      subscription = await ShareSubscription.create(
+        {
+          shareId: share.id,
+          documentId,
+          email,
+          emailFingerprint,
+          secret: randomString(32),
+          ipAddress: ctx.request.ip,
+        },
+        { transaction }
+      );
     }
 
     const confirmUrl = ShareSubscriptionHelper.confirmUrl(subscription);

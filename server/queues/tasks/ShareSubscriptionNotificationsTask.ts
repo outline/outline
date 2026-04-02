@@ -46,6 +46,15 @@ export default class ShareSubscriptionNotificationsTask extends BaseTask<Revisio
     });
 
     for (const subscription of subscriptions) {
+      // Skip ancestor-scoped subscriptions when the share doesn't include
+      // child documents — the updated document wouldn't be accessible.
+      if (
+        subscription.documentId !== document.id &&
+        !subscription.share.includeChildDocuments
+      ) {
+        continue;
+      }
+
       // Throttle: only one notification per 6 hours
       if (
         subscription.lastNotifiedAt &&
