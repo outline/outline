@@ -1,5 +1,6 @@
 import * as React from "react";
 import { ShareSubscription } from "@server/models";
+import ShareSubscriptionHelper from "@server/models/helpers/ShareSubscriptionHelper";
 import type { EmailProps } from "./BaseEmail";
 import BaseEmail, { EmailMessageCategory } from "./BaseEmail";
 import Body from "./components/Body";
@@ -45,10 +46,6 @@ export default class ShareDocumentUpdatedEmail extends BaseEmail<
     ) {
       return false;
     }
-
-    const ShareSubscriptionHelper = (
-      await import("@server/models/helpers/ShareSubscriptionHelper")
-    ).default;
 
     return {
       unsubscribeUrl: ShareSubscriptionHelper.unsubscribeUrl(subscription),
