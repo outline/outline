@@ -22,6 +22,11 @@ import Vimeo from "./Vimeo";
 import YouTube from "./YouTube";
 import PlantUmlDiagrams from "./PlantUml";
 
+export function createGitLabSnippetRegex(origin: string) {
+  const escapedOrigin = origin.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`^${escapedOrigin}/(([a-zA-Z\\d-]+)/)*-/snippets/\\d+$`);
+}
+
 export type EmbedProps = {
   isSelected: boolean;
   isEditable: boolean;
@@ -132,26 +137,6 @@ export class EmbedDescriptor {
     return false;
   }
 }
-
-const escapeRegex = (value: string) =>
-  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-const gitLabSnippetRegexMatches = Array.from(
-  new Set([
-    "https://gitlab.com",
-    ...(Array.isArray(env.GITLAB_SNIPPET_HOSTS)
-      ? env.GITLAB_SNIPPET_HOSTS
-      : `${env.GITLAB_SNIPPET_HOSTS ?? ""}`.split(","))
-      .map((item) => item.trim())
-      .filter(Boolean)
-      .map((host) => `https://${host}`),
-  ])
-).map(
-  (origin) =>
-    new RegExp(
-      `^${escapeRegex(origin)}/(([a-zA-Z\\d-]+)/)*-/snippets/\\d+$`
-    )
-);
 
 const embeds: EmbedDescriptor[] = [
   new EmbedDescriptor({
@@ -338,9 +323,10 @@ const embeds: EmbedDescriptor[] = [
   }),
   new EmbedDescriptor({
     id: "gitlab-snippet",
+    name: IntegrationService.GitLab,
     title: "GitLab Snippet",
     keywords: "code",
-    regexMatch: gitLabSnippetRegexMatches,
+    regexMatch: [createGitLabSnippetRegex("https://gitlab.com")],
     icon: <Img src="/images/gitlab.png" alt="GitLab" />,
     component: GitLabSnippet,
   }),

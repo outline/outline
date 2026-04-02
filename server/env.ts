@@ -450,16 +450,6 @@ export class Environment {
   public DROPBOX_APP_KEY = this.toOptionalString(environment.DROPBOX_APP_KEY);
 
   /**
-   * Comma-separated list of allowed GitLab hosts for snippet embeds.
-   * Example: "gitlab.example.com,gitlab2.example.com"
-   */
-  @Public
-  @IsOptional()
-  public GITLAB_SNIPPET_HOSTS = this.toOptionalCommaList(
-    environment.GITLAB_SNIPPET_HOSTS
-  );
-
-  /**
    * Sentry DSN for capturing errors and frontend performance.
    */
   @Public

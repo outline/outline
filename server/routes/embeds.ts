@@ -1,12 +1,43 @@
 import escape from "escape-html";
 import type { Context, Next } from "koa";
+import { IntegrationService } from "@shared/types";
 import env from "@server/env";
 import { InvalidRequestError } from "@server/errors";
+import { Integration } from "@server/models";
+import { getTeamFromContext } from "@server/utils/passport";
 
-const gitlabHosts = new Set([
-  "gitlab.com",
-  ...(env.GITLAB_SNIPPET_HOSTS ?? []).map((host) => host.trim()).filter(Boolean),
-]);
+async function getGitLabHosts(ctx: Context) {
+  const hosts = new Set(["gitlab.com"]);
+  const team = await getTeamFromContext(ctx, { includeStateCookie: false });
+
+  if (!team) {
+    return hosts;
+  }
+
+  const integrations = await Integration.findAll({
+    where: {
+      service: IntegrationService.GitLab,
+      teamId: team.id,
+    },
+  });
+
+  integrations.forEach((integration) => {
+    const gitlabUrl = (integration.settings as { gitlab?: { url?: string } })
+      ?.gitlab?.url;
+
+    if (!gitlabUrl) {
+      return;
+    }
+
+    try {
+      hosts.add(new URL(gitlabUrl).hostname);
+    } catch (_err) {
+      // Ignore invalid stored GitLab URL.
+    }
+  });
+
+  return hosts;
+}
 
 /**
  * Resize observer script that sends a message to the parent window when content is resized. Inject
@@ -50,15 +81,19 @@ export const renderEmbed = async (ctx: Context, next: Next) => {
     ctx.throw(InvalidRequestError("url is required"));
   }
 
-  let parsed;
+  let parsed: URL;
   try {
     parsed = new URL(url);
   } catch (_err) {
     ctx.throw(InvalidRequestError("Invalid URL provided"));
+    return;
   }
 
+  const gitlabHosts =
+    ctx.path === "/embeds/gitlab" ? await getGitLabHosts(ctx) : undefined;
+
   if (
-    gitlabHosts.has(parsed.host) &&
+    gitlabHosts?.has(parsed.host) &&
     parsed.protocol === "https:" &&
     ctx.path === "/embeds/gitlab"
   ) {
