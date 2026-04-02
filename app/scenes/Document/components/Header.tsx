@@ -213,7 +213,7 @@ function DocumentHeader({
         }
         actions={
           <>
-            {allowSubscriptions !== false && (
+            {allowSubscriptions !== false && !user && (
               <SubscribeAction shareId={shareId} documentId={document.id} />
             )}
             <AppearanceAction />
