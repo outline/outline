@@ -221,7 +221,7 @@ export default class FindAndReplaceExtension extends Extension {
     if (supportsHighlightAPI) {
       if (this.currentHighlightRange) {
         const node = this.currentHighlightRange.startContainer;
-        const element = node instanceof HTMLElement ? node : node.parentElement;
+        const element = node instanceof Element ? node : node.parentElement;
         if (element) {
           scrollIntoView(element, {
             scrollMode: "if-needed",
@@ -516,6 +516,12 @@ export default class FindAndReplaceExtension extends Extension {
 
           if (tr.docChanged && this.searchTerm) {
             this.search(tr.doc);
+            return generation + 1;
+          }
+
+          // Toggle fold/unfold changes DOM visibility without changing the doc,
+          // so we need to rebuild highlight ranges for newly visible matches.
+          if (tr.getMeta(toggleFoldPluginKey) && this.searchTerm) {
             return generation + 1;
           }
 
