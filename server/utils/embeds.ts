@@ -46,9 +46,85 @@ function isBlockedByXFrameOptions(value: string | null): boolean {
 }
 
 /**
+ * Parses a CSP frame-ancestors source expression (which may include wildcards
+ * that aren't valid in the URL API) and checks if it matches the given origin.
+ *
+ * @param source The source expression (e.g., "https://example.com" or "https://*.example.com")
+ * @param embedderUrl Parsed embedder URL to match against
+ * @returns true if the source matches the embedder, false otherwise
+ */
+function matchesFrameAncestorsSource(
+  source: string,
+  embedderUrl: URL
+): boolean {
+  if (source === "*") {
+    return true;
+  }
+  if (source === "'none'" || source === "'self'") {
+    return false;
+  }
+
+  try {
+    // Try parsing as URL first (works for concrete origins like https://example.com)
+    const allowed = new URL(source);
+    return allowed.protocol === embedderUrl.protocol && allowed.origin === embedderUrl.origin;
+  } catch {
+    // source parsing as URL failed, try parsing as wildcard pattern
+    // CSP allows patterns like https://*.example.com or *.example.com
+    const match = source.match(/^(https?:\/\/)?(\*\.)?([^:]+)(?::(\d+))?$/);
+    if (!match) {
+      return false;
+    }
+
+    const [, protocol, hasWildcard, host, port] = match;
+    const sourceProtocol = protocol ? protocol.slice(0, -3) : "https"; // remove //
+    const sourceHost = host.toLowerCase();
+    const sourcePort = port ? `:${port}` : "";
+
+    // Check protocol match
+    if (sourceProtocol !== embedderUrl.protocol.slice(0, -1)) {
+      return false;
+    }
+
+    // Check port match (if specified in source, for simplicity compare full authority)
+    const embedderAuthority = embedderUrl.host;
+    const sourceAuthority = `${sourceHost}${sourcePort}`;
+
+    if (hasWildcard) {
+      // Wildcard match: *.example.com matches www.example.com and subdomain.example.com
+      return (
+        embedderUrl.hostname !== sourceHost &&
+        embedderUrl.hostname.toLowerCase().endsWith(`.${sourceHost}`)
+      );
+    } else {
+      // Exact host match
+      return embedderAuthority === sourceAuthority;
+    }
+  }
+}
+
+/**
+ * Checks if CSP header has a frame-ancestors directive.
+ *
+ * @param value The Content-Security-Policy header value.
+ * @returns true if frame-ancestors directive is present, false otherwise.
+ */
+function hasFrameAncestorsDirective(value: string | null): boolean {
+  if (!value) {
+    return false;
+  }
+  const directives = value.split(";").map((d) => d.trim());
+  return directives.some((directive) => {
+    const parts = directive.split(/\s+/);
+    return parts[0]?.toLowerCase() === "frame-ancestors";
+  });
+}
+
+/**
  * Parses Content-Security-Policy header and checks if frame-ancestors blocks embedding.
  *
  * @param value The Content-Security-Policy header value.
+ * @param embedderOrigin The origin of the embedder (e.g., https://example.com).
  * @returns true if embedding is blocked, false otherwise.
  */
 function isBlockedByCSP(value: string | null, embedderOrigin: string): boolean {
@@ -64,31 +140,25 @@ function isBlockedByCSP(value: string | null, embedderOrigin: string): boolean {
     if (parts[0]?.toLowerCase() === "frame-ancestors") {
       const sources = parts.slice(1);
 
+      // If frame-ancestors has no sources, treat as non-blocking
+      // (matches browser behavior of ignoring invalid/empty directives)
+      if (sources.length === 0) {
+        return false;
+      }
+
+      // Parse embedder origin once (not in loop)
+      let embedderUrl: URL;
+      try {
+        embedderUrl = new URL(embedderOrigin);
+      } catch {
+        // If embedder origin is malformed, be optimistic and allow
+        return false;
+      }
+
       // Check if any source explicitly allows the embedder origin
       for (const source of sources) {
-        if (source === "*") {
+        if (matchesFrameAncestorsSource(source, embedderUrl)) {
           return false;
-        }
-        if (source === "'none'" || source === "'self'") {
-          continue;
-        }
-        try {
-          const embedder = new URL(embedderOrigin);
-          const allowed = new URL(source);
-          if (allowed.protocol !== embedder.protocol) {
-            continue;
-          }
-          // Support wildcard hosts like https://*.example.com
-          if (allowed.hostname.startsWith("*.")) {
-            const suffix = allowed.hostname.slice(2);
-            if (embedder.hostname !== suffix && embedder.hostname.endsWith(`.${suffix}`)) {
-              return false;
-            }
-          } else if (allowed.origin === embedder.origin) {
-            return false;
-          }
-        } catch {
-          // ignore unparseable source
         }
       }
 
@@ -167,7 +237,7 @@ export async function checkEmbeddability(
 
     // Check X-Frame-Options header.
     // Per spec, X-Frame-Options is ignored when CSP frame-ancestors is present.
-    if (!csp?.toLowerCase().includes("frame-ancestors") && isBlockedByXFrameOptions(xFrameOptions)) {
+    if (!hasFrameAncestorsDirective(csp) && isBlockedByXFrameOptions(xFrameOptions)) {
       return { embeddable: false, reason: "x-frame-options" };
     }
 

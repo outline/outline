@@ -1,6 +1,14 @@
 import fetchMock from "jest-fetch-mock";
 import { checkEmbeddability, convertBareUrlsToEmbedMarkdown } from "./embeds";
 
+// Mock the env module to provide controlled env.URL for testing
+jest.mock("@server/env", () => ({
+  __esModule: true,
+  default: {
+    URL: "https://outline.example.com",
+  },
+}));
+
 beforeEach(() => {
   fetchMock.resetMocks();
 });
@@ -116,6 +124,55 @@ describe("checkEmbeddability", () => {
         embeddable: false,
         reason: "csp-frame-ancestors",
       });
+    });
+
+    it("should return embeddable: true when CSP frame-ancestors explicitly allows current origin", async () => {
+      fetchMock.mockResponseOnce("", {
+        status: 200,
+        headers: {
+          "Content-Security-Policy": "frame-ancestors https://outline.example.com",
+        },
+      });
+
+      const result = await checkEmbeddability("https://www.example.com/embed");
+      expect(result).toEqual({ embeddable: true });
+    });
+
+    it("should return embeddable: true when CSP frame-ancestors allows wildcard subdomain of current origin", async () => {
+      fetchMock.mockResponseOnce("", {
+        status: 200,
+        headers: {
+          "Content-Security-Policy": "frame-ancestors https://*.example.com",
+        },
+      });
+
+      const result = await checkEmbeddability("https://www.example.com/embed");
+      expect(result).toEqual({ embeddable: true });
+    });
+
+    it("should ignore X-Frame-Options when CSP frame-ancestors is present", async () => {
+      fetchMock.mockResponseOnce("", {
+        status: 200,
+        headers: {
+          "X-Frame-Options": "SAMEORIGIN",
+          "Content-Security-Policy": "frame-ancestors https://outline.example.com",
+        },
+      });
+
+      const result = await checkEmbeddability("https://www.example.com/embed");
+      expect(result).toEqual({ embeddable: true });
+    });
+
+    it("should return embeddable: false when empty CSP frame-ancestors directive", async () => {
+      fetchMock.mockResponseOnce("", {
+        status: 200,
+        headers: {
+          "Content-Security-Policy": "frame-ancestors; default-src 'self'",
+        },
+      });
+
+      const result = await checkEmbeddability("https://www.example.com/embed");
+      expect(result).toEqual({ embeddable: true });
     });
 
     it("should return embeddable: false when COEP is require-corp", async () => {
