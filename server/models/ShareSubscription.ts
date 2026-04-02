@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
-import { Op } from "sequelize";
+import { type SaveOptions, Op } from "sequelize";
 import {
   BeforeCreate,
   Column,
@@ -62,7 +62,10 @@ class ShareSubscription extends IdModel<
   static maxSubscriptionsPerIP = 3;
 
   @BeforeCreate
-  static async checkIPLimit(model: ShareSubscription, options) {
+  static async checkIPLimit(
+    model: ShareSubscription,
+    options: SaveOptions<ShareSubscription>
+  ) {
     if (!model.ipAddress) {
       return;
     }
