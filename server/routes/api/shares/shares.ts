@@ -443,9 +443,13 @@ router.post(
   async (ctx: APIContext<T.SharesSubscribeReq>) => {
     const { shareId, email } = ctx.input.body;
     const { transaction } = ctx.state;
+    const team = await getTeamFromContext(ctx, { includeStateCookie: false });
 
     // Validate the share exists and is published
-    const { share, document } = await loadPublicShare({ id: shareId });
+    const { share, document } = await loadPublicShare({
+      id: shareId,
+      teamId: team?.id,
+    });
 
     if (!share.allowSubscriptions) {
       throw InvalidRequestError("Subscriptions are not enabled for this share");
