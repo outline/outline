@@ -59,7 +59,7 @@ class ShareSubscription extends IdModel<
   lastNotifiedAt: Date | null;
 
   /** Maximum number of unique email subscriptions allowed per IP address. */
-  static maxSubscriptionsPerIP = 5;
+  static maxSubscriptionsPerIP = 3;
 
   @BeforeCreate
   static async checkIPLimit(model: ShareSubscription) {

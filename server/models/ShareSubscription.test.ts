@@ -148,11 +148,11 @@ describe("ShareSubscription", () => {
       await ShareSubscription.destroy({ where: {}, force: true });
     });
 
-    it("should allow up to 5 unique emails from the same IP", async () => {
+    it("should allow up to 3 unique emails from the same IP", async () => {
       const share = await buildShare();
       const ip = "192.168.1.1";
 
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 3; i++) {
         await ShareSubscription.create({
           shareId: share.id,
           email: `user${i}@example.com`,
@@ -165,8 +165,8 @@ describe("ShareSubscription", () => {
       await expect(
         ShareSubscription.create({
           shareId: share.id,
-          email: "user5@example.com",
-          emailFingerprint: "user5@example.com",
+          email: "user3@example.com",
+          emailFingerprint: "user3@example.com",
           secret: randomString(32),
           ipAddress: ip,
         })
@@ -176,7 +176,7 @@ describe("ShareSubscription", () => {
     it("should not count subscriptions from different IPs", async () => {
       const share = await buildShare();
 
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 3; i++) {
         await ShareSubscription.create({
           shareId: share.id,
           email: `user${i}@example.com`,
@@ -189,10 +189,10 @@ describe("ShareSubscription", () => {
       await expect(
         ShareSubscription.create({
           shareId: share.id,
-          email: "user5@example.com",
-          emailFingerprint: "user5@example.com",
+          email: "user3@example.com",
+          emailFingerprint: "user3@example.com",
           secret: randomString(32),
-          ipAddress: "10.0.0.5",
+          ipAddress: "10.0.0.3",
         })
       ).resolves.toBeDefined();
     });
@@ -214,8 +214,8 @@ describe("ShareSubscription", () => {
         });
       }
 
-      // 4 more unique fingerprints — total distinct = 5
-      for (let i = 0; i < 4; i++) {
+      // 2 more unique fingerprints — total distinct = 3
+      for (let i = 0; i < 2; i++) {
         await ShareSubscription.create({
           shareId: share1.id,
           email: `other${i}@example.com`,
@@ -225,7 +225,7 @@ describe("ShareSubscription", () => {
         });
       }
 
-      // 6th unique fingerprint should be blocked
+      // 4th unique fingerprint should be blocked
       await expect(
         ShareSubscription.create({
           shareId: share2.id,

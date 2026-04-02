@@ -439,6 +439,7 @@ router.post(
   "shares.subscribe",
   rateLimiter(RateLimiterStrategy.TenPerHour),
   validate(T.SharesSubscribeSchema),
+  transaction(),
   async (ctx: APIContext<T.SharesSubscribeReq>) => {
     const { shareId, email } = ctx.input.body;
 
@@ -516,6 +517,7 @@ router.get(
   "shares.confirmSubscription",
   rateLimiter(RateLimiterStrategy.TenPerMinute),
   validate(T.SharesConfirmSubscriptionSchema),
+  transaction(),
   async (ctx: APIContext<T.SharesConfirmSubscriptionReq>) => {
     const { id, token, follow } = ctx.input.query;
 
