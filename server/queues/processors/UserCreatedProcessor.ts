@@ -4,17 +4,22 @@ import type { Event, UserEvent } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
 
 export default class UserCreatedProcessor extends BaseProcessor {
-  static applicableEvents: Event["name"][] = ["users.create"];
+  static applicableEvents: Event["name"][] = [
+    "users.create",
+    "users.invite_accepted",
+  ];
 
   async perform(event: UserEvent) {
-    const user = await User.findByPk(event.userId, { rejectOnEmpty: true });
+    const [user, team] = await Promise.all([
+      User.findByPk(event.userId, { rejectOnEmpty: true }),
+      Team.findByPk(event.teamId, { rejectOnEmpty: true }),
+    ]);
 
-    // Invited users receive an InviteEmail instead.
-    if (user.isInvited) {
+    // Invited users receive an InviteEmail at invite time, and a WelcomeEmail
+    // when they accept the invite and sign in for the first time.
+    if (event.name === "users.create" && user.isInvited) {
       return;
     }
-
-    const team = await Team.findByPk(event.teamId, { rejectOnEmpty: true });
 
     await new WelcomeEmail({
       to: user.email,

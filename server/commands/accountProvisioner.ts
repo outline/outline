@@ -14,6 +14,7 @@ import {
   AuthenticationProvider,
   Collection,
   Document,
+  Event,
   Team,
 } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -192,6 +193,13 @@ async function accountProvisioner(
         },
   });
   const { isNewUser, user } = result;
+
+  if (isNewUser && user.isInvited) {
+    await Event.createFromContext(ctx, {
+      name: "users.invite_accepted",
+      userId: user.id,
+    });
+  }
 
   if (isNewUser || isNewTeam) {
     let provision = isNewTeam;

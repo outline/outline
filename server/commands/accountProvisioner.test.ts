@@ -56,7 +56,7 @@ describe("accountProvisioner", () => {
       expect(collectionCount).toEqual(1);
     });
 
-    it("should update exising user and authentication", async () => {
+    it("should update existing user and authentication", async () => {
       const existingTeam = await buildTeam();
       const providers = await existingTeam.$get("authenticationProviders");
       const authenticationProvider = providers[0];
