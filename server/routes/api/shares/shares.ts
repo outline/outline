@@ -441,13 +441,14 @@ router.post(
   validate(T.SharesSubscribeSchema),
   transaction(),
   async (ctx: APIContext<T.SharesSubscribeReq>) => {
-    const { shareId, email } = ctx.input.body;
+    const { shareId, documentId, email } = ctx.input.body;
     const { transaction } = ctx.state;
     const team = await getTeamFromContext(ctx, { includeStateCookie: false });
 
     // Validate the share exists and is published
     const { share, document } = await loadPublicShare({
       id: shareId,
+      documentId,
       teamId: team?.id,
     });
 
@@ -458,7 +459,7 @@ router.post(
     const emailFingerprint = ShareSubscription.normalizeEmailFingerprint(email);
 
     const existing = await ShareSubscription.findOne({
-      where: { shareId: share.id, emailFingerprint },
+      where: { shareId: share.id, documentId, emailFingerprint },
       transaction,
       lock: transaction.LOCK.UPDATE,
     });
@@ -493,13 +494,17 @@ router.post(
 
       subscription = existing;
     } else {
-      subscription = await ShareSubscription.create({
-        shareId: share.id,
-        email,
-        emailFingerprint,
-        secret: randomString(32),
-        ipAddress: ctx.request.ip,
-      });
+      subscription = await ShareSubscription.create(
+        {
+          shareId: share.id,
+          documentId,
+          email,
+          emailFingerprint,
+          secret: randomString(32),
+          ipAddress: ctx.request.ip,
+        },
+        { transaction }
+      );
     }
 
     const confirmUrl = ShareSubscriptionHelper.confirmUrl(subscription);
@@ -507,11 +512,7 @@ router.post(
       share.team?.getPreference(TeamPreference.PublicBranding) ?? false;
     new ShareSubscriptionConfirmEmail({
       to: email,
-      documentTitle:
-        document?.titleWithDefault ??
-        share.document?.title ??
-        share.collection?.name ??
-        "",
+      documentTitle: document?.titleWithDefault ?? "",
       confirmUrl,
       teamName: usePublicBranding ? share.team?.name : undefined,
     }).schedule();
@@ -566,8 +567,19 @@ router.get(
     subscription.confirmedAt = new Date();
     await subscription.save({ transaction });
 
-    const shareUrl = share?.canonicalUrl ?? env.URL;
-    ctx.redirect(`${shareUrl}?notice=subscribed`);
+    let redirectUrl = share?.canonicalUrl ?? env.URL;
+
+    if (
+      subscription.documentId &&
+      subscription.documentId !== share.documentId
+    ) {
+      const doc = await Document.findByPk(subscription.documentId);
+      if (doc?.path) {
+        redirectUrl = `${redirectUrl.replace(/\/$/, "")}${doc.path}`;
+      }
+    }
+
+    ctx.redirect(`${redirectUrl}?notice=subscribed`);
   }
 );
 
