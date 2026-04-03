@@ -105,7 +105,7 @@ function DocumentBreadcrumb(
             />
           ),
           icon: node.icon ? (
-            <StyledIcon
+            <Icon
               value={node.icon}
               color={node.color}
               initial={title.charAt(0).toUpperCase()}
@@ -229,10 +229,6 @@ const DocumentName = observer(function DocumentName_({
     </ActionContextProvider>
   );
 });
-
-const StyledIcon = styled(Icon)`
-  margin-right: 2px;
-`;
 
 const SmallSlash = styled(GoToIcon)`
   width: 12px;

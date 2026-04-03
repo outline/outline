@@ -122,6 +122,7 @@ const Item = styled(Link)<{ $highlight: boolean; $withIcon: boolean }>`
   line-height: 24px;
   font-weight: ${(props) => (props.$highlight ? "500" : "inherit")};
   margin-left: ${(props) => (props.$withIcon ? "4px" : "0")};
+  max-width: 460px;
 
   &:hover {
     text-decoration: underline;
