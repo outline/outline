@@ -251,31 +251,33 @@ function PublicAccess(
                 />
               }
             />
-            <ListItem
-              title={
-                <Text type="tertiary" as={Flex}>
-                  {t("Email subscriptions")}&nbsp;
-                  <Tooltip
-                    content={t(
-                      "Allow viewers to subscribe and receive email notifications when this document is updated"
-                    )}
-                  >
-                    <NudeButton size={18}>
-                      <QuestionMarkIcon size={18} />
-                    </NudeButton>
-                  </Tooltip>
-                </Text>
-              }
-              actions={
-                <Switch
-                  aria-label={t("Email subscriptions")}
-                  checked={share?.allowSubscriptions ?? true}
-                  onChange={handleSubscriptionsChanged}
-                  width={26}
-                  height={14}
-                />
-              }
-            />
+            {env.EMAIL_ENABLED && (
+              <ListItem
+                title={
+                  <Text type="tertiary" as={Flex}>
+                    {t("Email subscriptions")}&nbsp;
+                    <Tooltip
+                      content={t(
+                        "Allow viewers to subscribe and receive email notifications when this document is updated"
+                      )}
+                    >
+                      <NudeButton size={18}>
+                        <QuestionMarkIcon size={18} />
+                      </NudeButton>
+                    </Tooltip>
+                  </Text>
+                }
+                actions={
+                  <Switch
+                    aria-label={t("Email subscriptions")}
+                    checked={share?.allowSubscriptions ?? true}
+                    onChange={handleSubscriptionsChanged}
+                    width={26}
+                    height={14}
+                  />
+                }
+              />
+            )}
             <ListItem
               title={
                 <Text type="tertiary" as={Flex}>

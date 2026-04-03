@@ -34,6 +34,7 @@ import DocumentMenu from "~/menus/DocumentMenu";
 import NewChildDocumentMenu from "~/menus/NewChildDocumentMenu";
 import TableOfContentsMenu from "~/menus/TableOfContentsMenu";
 import TemplatesMenu from "~/menus/TemplatesMenu";
+import env from "~/env";
 import { documentEditPath } from "~/utils/routeHelpers";
 import ObservingBanner from "./ObservingBanner";
 import PublicBreadcrumb from "./PublicBreadcrumb";
@@ -213,7 +214,7 @@ function DocumentHeader({
         }
         actions={
           <>
-            {allowSubscriptions !== false && !user && (
+            {allowSubscriptions !== false && !user && env.EMAIL_ENABLED && (
               <SubscribeAction shareId={shareId} documentId={document.id} />
             )}
             <AppearanceAction />
