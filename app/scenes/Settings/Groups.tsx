@@ -26,7 +26,6 @@ import { CreateGroupDialog } from "./components/GroupDialogs";
 import GroupSourceFilter from "./components/GroupSourceFilter";
 import { GroupsTable } from "./components/GroupsTable";
 import { StickyFilters } from "./components/StickyFilters";
-import { HStack } from "~/components/primitives/HStack";
 
 function getFilteredGroups(groups: Group[], query?: string, source?: string) {
   let filtered = groups;
@@ -171,18 +170,16 @@ function Groups() {
       ) : (
         <>
           <StickyFilters>
-            <HStack>
-              <InputSearch
-                short
-                value={query}
-                placeholder={`${t("Filter")}…`}
-                onChange={handleSearch}
-              />
-              <LargeGroupSourceFilter
-                activeKey={reqParams.source ?? ""}
-                onSelect={handleSourceFilter}
-              />
-            </HStack>
+            <InputSearch
+              short
+              value={query}
+              placeholder={`${t("Filter")}…`}
+              onChange={handleSearch}
+            />
+            <LargeGroupSourceFilter
+              activeKey={reqParams.source ?? ""}
+              onSelect={handleSourceFilter}
+            />
           </StickyFilters>
           <ConditionalFade animate={!data}>
             <GroupsTable
