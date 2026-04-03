@@ -12,7 +12,13 @@ import { client } from "~/utils/ApiClient";
 /**
  * Subscribe form content displayed inside the popover.
  */
-export function ShareSubscribeForm({ shareId }: { shareId: string }) {
+export function ShareSubscribeForm({
+  shareId,
+  documentId,
+}: {
+  shareId: string;
+  documentId?: string;
+}) {
   const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<
@@ -25,16 +31,16 @@ export function ShareSubscribeForm({ shareId }: { shareId: string }) {
       ev.preventDefault();
       setStatus("loading");
       try {
-        await client.post("/shares.subscribe", { shareId, email });
+        await client.post("/shares.subscribe", { shareId, documentId, email });
         setStatus("success");
       } catch (err) {
         setErrorMessage(
-          err instanceof Error ? err.message : t("Something went wrong.")
+          err instanceof Error ? err.message : t("Something went wrong")
         );
         setStatus("error");
       }
     },
-    [shareId, email]
+    [shareId, documentId, email]
   );
 
   const handleChange = useCallback(
@@ -52,7 +58,7 @@ export function ShareSubscribeForm({ shareId }: { shareId: string }) {
     return (
       <FormContainer>
         <Text type="tertiary" size="small">
-          {t("Check your email to confirm your subscription.")}
+          {t("Check your email to confirm your subscription")}.
         </Text>
       </FormContainer>
     );

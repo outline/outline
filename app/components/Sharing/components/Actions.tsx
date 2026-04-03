@@ -50,7 +50,13 @@ export const AppearanceAction = observer(() => {
   );
 });
 
-export function SubscribeAction({ shareId }: { shareId: string }) {
+export function SubscribeAction({
+  shareId,
+  documentId,
+}: {
+  shareId: string;
+  documentId?: string;
+}) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
@@ -68,7 +74,7 @@ export function SubscribeAction({ shareId }: { shareId: string }) {
           </PopoverTrigger>
         </Tooltip>
         <PopoverContent side="bottom" align="end" width={340}>
-          <ShareSubscribeForm shareId={shareId} />
+          <ShareSubscribeForm shareId={shareId} documentId={documentId} />
         </PopoverContent>
       </Popover>
     </Action>

@@ -1,13 +1,18 @@
 import { randomString } from "@shared/random";
-import { buildShare } from "@server/test/factories";
+import { buildDocument, buildShare } from "@server/test/factories";
 import ShareSubscription from "./ShareSubscription";
 
 describe("ShareSubscription", () => {
   describe("generateConfirmToken / generateUnsubscribeToken", () => {
     it("should produce deterministic tokens", async () => {
-      const share = await buildShare();
+      const document = await buildDocument();
+      const share = await buildShare({
+        documentId: document.id,
+        teamId: document.teamId,
+      });
       const subscription = await ShareSubscription.create({
         shareId: share.id,
+        documentId: document.id,
         email: "test@example.com",
         emailFingerprint: "test@example.com",
         secret: randomString(32),
@@ -19,9 +24,14 @@ describe("ShareSubscription", () => {
     });
 
     it("should produce different tokens for confirm vs unsubscribe", async () => {
-      const share = await buildShare();
+      const document = await buildDocument();
+      const share = await buildShare({
+        documentId: document.id,
+        teamId: document.teamId,
+      });
       const subscription = await ShareSubscription.create({
         shareId: share.id,
+        documentId: document.id,
         email: "test@example.com",
         emailFingerprint: "test@example.com",
         secret: randomString(32),
@@ -34,15 +44,22 @@ describe("ShareSubscription", () => {
     });
 
     it("should produce different tokens for different secrets", async () => {
-      const share = await buildShare();
+      const document = await buildDocument();
+      const share = await buildShare({
+        documentId: document.id,
+        teamId: document.teamId,
+      });
       const sub1 = await ShareSubscription.create({
         shareId: share.id,
+        documentId: document.id,
         email: "test@example.com",
         emailFingerprint: "test@example.com",
         secret: randomString(32),
       });
+      const document2 = await buildDocument({ teamId: document.teamId });
       const sub2 = await ShareSubscription.create({
         shareId: share.id,
+        documentId: document2.id,
         email: "test2@example.com",
         emailFingerprint: "test2@example.com",
         secret: randomString(32),
@@ -149,12 +166,17 @@ describe("ShareSubscription", () => {
     });
 
     it("should allow up to 3 unique emails from the same IP", async () => {
-      const share = await buildShare();
       const ip = "192.168.1.1";
 
       for (let i = 0; i < 3; i++) {
+        const document = await buildDocument();
+        const share = await buildShare({
+          documentId: document.id,
+          teamId: document.teamId,
+        });
         await ShareSubscription.create({
           shareId: share.id,
+          documentId: document.id,
           email: `user${i}@example.com`,
           emailFingerprint: `user${i}@example.com`,
           secret: randomString(32),
@@ -162,9 +184,15 @@ describe("ShareSubscription", () => {
         });
       }
 
+      const document = await buildDocument();
+      const share = await buildShare({
+        documentId: document.id,
+        teamId: document.teamId,
+      });
       await expect(
         ShareSubscription.create({
           shareId: share.id,
+          documentId: document.id,
           email: "user3@example.com",
           emailFingerprint: "user3@example.com",
           secret: randomString(32),
@@ -174,11 +202,15 @@ describe("ShareSubscription", () => {
     });
 
     it("should not count subscriptions from different IPs", async () => {
-      const share = await buildShare();
-
       for (let i = 0; i < 3; i++) {
+        const document = await buildDocument();
+        const share = await buildShare({
+          documentId: document.id,
+          teamId: document.teamId,
+        });
         await ShareSubscription.create({
           shareId: share.id,
+          documentId: document.id,
           email: `user${i}@example.com`,
           emailFingerprint: `user${i}@example.com`,
           secret: randomString(32),
@@ -186,9 +218,15 @@ describe("ShareSubscription", () => {
         });
       }
 
+      const document = await buildDocument();
+      const share = await buildShare({
+        documentId: document.id,
+        teamId: document.teamId,
+      });
       await expect(
         ShareSubscription.create({
           shareId: share.id,
+          documentId: document.id,
           email: "user3@example.com",
           emailFingerprint: "user3@example.com",
           secret: randomString(32),
@@ -198,15 +236,28 @@ describe("ShareSubscription", () => {
     });
 
     it("should not count duplicate fingerprints from the same IP", async () => {
-      const share1 = await buildShare();
-      const share2 = await buildShare();
+      const document1 = await buildDocument();
+      const share1 = await buildShare({
+        documentId: document1.id,
+        teamId: document1.teamId,
+      });
+      const document2 = await buildDocument();
+      const share2 = await buildShare({
+        documentId: document2.id,
+        teamId: document2.teamId,
+      });
       const ip = "192.168.2.1";
 
       // Same fingerprint across different shares — should count as 1
       for (let i = 0; i < 3; i++) {
-        const share = await buildShare();
+        const doc = await buildDocument();
+        const share = await buildShare({
+          documentId: doc.id,
+          teamId: doc.teamId,
+        });
         await ShareSubscription.create({
           shareId: share.id,
+          documentId: doc.id,
           email: "same@example.com",
           emailFingerprint: "same@example.com",
           secret: randomString(32),
@@ -216,8 +267,10 @@ describe("ShareSubscription", () => {
 
       // 2 more unique fingerprints — total distinct = 3
       for (let i = 0; i < 2; i++) {
+        const doc = await buildDocument();
         await ShareSubscription.create({
           shareId: share1.id,
+          documentId: doc.id,
           email: `other${i}@example.com`,
           emailFingerprint: `other${i}@example.com`,
           secret: randomString(32),
@@ -229,6 +282,7 @@ describe("ShareSubscription", () => {
       await expect(
         ShareSubscription.create({
           shareId: share2.id,
+          documentId: document2.id,
           email: "blocked@example.com",
           emailFingerprint: "blocked@example.com",
           secret: randomString(32),
@@ -238,11 +292,15 @@ describe("ShareSubscription", () => {
     });
 
     it("should skip the check if ipAddress is null", async () => {
-      const share = await buildShare();
-
       for (let i = 0; i < 6; i++) {
+        const document = await buildDocument();
+        const share = await buildShare({
+          documentId: document.id,
+          teamId: document.teamId,
+        });
         await ShareSubscription.create({
           shareId: share.id,
+          documentId: document.id,
           email: `user${i}@example.com`,
           emailFingerprint: `user${i}@example.com`,
           secret: randomString(32),

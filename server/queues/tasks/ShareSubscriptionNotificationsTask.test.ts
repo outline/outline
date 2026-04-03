@@ -22,6 +22,7 @@ describe("ShareSubscriptionNotificationsTask", () => {
     });
     await ShareSubscription.create({
       shareId: share.id,
+      documentId: document.id,
       email: "subscriber@example.com",
       emailFingerprint: "subscriber@example.com",
       secret: randomString(32),
@@ -51,6 +52,7 @@ describe("ShareSubscriptionNotificationsTask", () => {
     });
     await ShareSubscription.create({
       shareId: share.id,
+      documentId: document.id,
       email: "subscriber@example.com",
       emailFingerprint: "subscriber@example.com",
       secret: randomString(32),
@@ -79,6 +81,7 @@ describe("ShareSubscriptionNotificationsTask", () => {
     });
     await ShareSubscription.create({
       shareId: share.id,
+      documentId: document.id,
       email: "subscriber@example.com",
       emailFingerprint: "subscriber@example.com",
       secret: randomString(32),
@@ -109,6 +112,7 @@ describe("ShareSubscriptionNotificationsTask", () => {
     });
     await ShareSubscription.create({
       shareId: share.id,
+      documentId: document.id,
       email: "subscriber@example.com",
       emailFingerprint: "subscriber@example.com",
       secret: randomString(32),
@@ -139,6 +143,7 @@ describe("ShareSubscriptionNotificationsTask", () => {
     });
     await ShareSubscription.create({
       shareId: share.id,
+      documentId: document.id,
       email: "subscriber@example.com",
       emailFingerprint: "subscriber@example.com",
       secret: randomString(32),
@@ -170,6 +175,7 @@ describe("ShareSubscriptionNotificationsTask", () => {
     });
     await ShareSubscription.create({
       shareId: share.id,
+      documentId: document.id,
       email: "subscriber@example.com",
       emailFingerprint: "subscriber@example.com",
       secret: randomString(32),
@@ -199,6 +205,7 @@ describe("ShareSubscriptionNotificationsTask", () => {
     });
     const subscription = await ShareSubscription.create({
       shareId: share.id,
+      documentId: document.id,
       email: "subscriber@example.com",
       emailFingerprint: "subscriber@example.com",
       secret: randomString(32),
@@ -232,6 +239,7 @@ describe("ShareSubscriptionNotificationsTask", () => {
 
     await ShareSubscription.create({
       shareId: share.id,
+      documentId: document.id,
       email: "sub1@example.com",
       emailFingerprint: "sub1@example.com",
       secret: randomString(32),
@@ -239,6 +247,7 @@ describe("ShareSubscriptionNotificationsTask", () => {
     });
     await ShareSubscription.create({
       shareId: share.id,
+      documentId: document.id,
       email: "sub2@example.com",
       emailFingerprint: "sub2@example.com",
       secret: randomString(32),
@@ -268,6 +277,77 @@ describe("ShareSubscriptionNotificationsTask", () => {
       documentId: document.id,
       teamId: document.teamId,
       actorId: document.createdById,
+      modelId: "revision-id",
+      ip,
+    });
+
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it("should send when child document is updated and subscription is scoped to parent", async () => {
+    const spy = jest.spyOn(ShareDocumentUpdatedEmail.prototype, "schedule");
+
+    const parent = await buildDocument();
+    const child = await buildDocument({
+      parentDocumentId: parent.id,
+      collectionId: parent.collectionId,
+      teamId: parent.teamId,
+    });
+    const share = await buildShare({
+      documentId: parent.id,
+      teamId: parent.teamId,
+      includeChildDocuments: true,
+    });
+    await ShareSubscription.create({
+      shareId: share.id,
+      documentId: parent.id,
+      email: "subscriber@example.com",
+      emailFingerprint: "subscriber@example.com",
+      secret: randomString(32),
+      confirmedAt: new Date(),
+    });
+
+    const task = new ShareSubscriptionNotificationsTask();
+    await task.perform({
+      name: "revisions.create",
+      documentId: child.id,
+      teamId: child.teamId,
+      actorId: child.createdById,
+      modelId: "revision-id",
+      ip,
+    });
+
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
+
+  it("should not send when updated document is outside subscription scope", async () => {
+    const spy = jest.spyOn(ShareDocumentUpdatedEmail.prototype, "schedule");
+
+    const parent = await buildDocument();
+    const sibling = await buildDocument({
+      collectionId: parent.collectionId,
+      teamId: parent.teamId,
+    });
+    const share = await buildShare({
+      documentId: parent.id,
+      teamId: parent.teamId,
+      includeChildDocuments: true,
+    });
+    await ShareSubscription.create({
+      shareId: share.id,
+      documentId: parent.id,
+      email: "subscriber@example.com",
+      emailFingerprint: "subscriber@example.com",
+      secret: randomString(32),
+      confirmedAt: new Date(),
+    });
+
+    const task = new ShareSubscriptionNotificationsTask();
+    await task.perform({
+      name: "revisions.create",
+      documentId: sibling.id,
+      teamId: sibling.teamId,
+      actorId: sibling.createdById,
       modelId: "revision-id",
       ip,
     });

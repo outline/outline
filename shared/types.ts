@@ -673,6 +673,7 @@ export type UnfurlResponse = {
 export enum QueryNotices {
   UnsubscribeDocument = "unsubscribe-document",
   UnsubscribeCollection = "unsubscribe-collection",
+  Subscribed = "subscribed",
 }
 
 export type JSONValue =
