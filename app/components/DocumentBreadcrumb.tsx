@@ -101,11 +101,16 @@ function DocumentBreadcrumb(
             <DocumentName
               documentId={node.id}
               collection={collection}
-              icon={node.icon}
-              color={node.color}
               title={title}
             />
           ),
+          icon: node.icon ? (
+            <StyledIcon
+              value={node.icon}
+              color={node.color}
+              initial={title.charAt(0).toUpperCase()}
+            />
+          ) : undefined,
           section: ActiveDocumentSection,
           to: {
             pathname: node.url,
@@ -197,14 +202,10 @@ const CollectionName = observer(function CollectionName_({
 const DocumentName = observer(function DocumentName_({
   documentId,
   collection,
-  icon,
-  color,
   title,
 }: {
   documentId: string;
   collection: Collection | undefined;
-  icon: string | undefined;
-  color: string | undefined;
   title: string;
 }) {
   const { t } = useTranslation();
@@ -212,21 +213,8 @@ const DocumentName = observer(function DocumentName_({
   const doc = documents.get(documentId);
   const menuAction = useDocumentMenuAction({ documentId });
 
-  const content = icon ? (
-    <>
-      <StyledIcon
-        value={icon}
-        color={color}
-        initial={title.charAt(0).toUpperCase()}
-      />{" "}
-      {title}
-    </>
-  ) : (
-    title
-  );
-
   if (!doc) {
-    return <>{content}</>;
+    return <>{title}</>;
   }
 
   return (
@@ -236,7 +224,7 @@ const DocumentName = observer(function DocumentName_({
       }}
     >
       <ContextMenu action={menuAction} ariaLabel={t("Document options")}>
-        <span>{content}</span>
+        <span>{title}</span>
       </ContextMenu>
     </ActionContextProvider>
   );

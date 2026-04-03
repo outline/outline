@@ -113,19 +113,15 @@ const Item = styled(Link)<{ $highlight: boolean; $withIcon: boolean }>`
   ${ellipsis()}
   ${undraggableOnDesktop()}
 
-  display: flex;
   flex-shrink: 1;
   min-width: 0;
   cursor: var(--pointer);
   color: ${s("text")};
   font-size: 15px;
   height: 24px;
+  line-height: 24px;
   font-weight: ${(props) => (props.$highlight ? "500" : "inherit")};
   margin-left: ${(props) => (props.$withIcon ? "4px" : "0")};
-
-  svg {
-    flex-shrink: 0;
-  }
 
   &:hover {
     text-decoration: underline;
