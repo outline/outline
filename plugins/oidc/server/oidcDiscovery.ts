@@ -13,6 +13,7 @@ export interface OIDCConfiguration {
   response_types_supported?: string[];
   grant_types_supported?: string[];
   code_challenge_methods_supported?: string[];
+  token_endpoint_auth_methods_supported?: string[];
 }
 
 /**

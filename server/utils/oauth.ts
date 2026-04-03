@@ -5,6 +5,7 @@ import fetch from "./fetch";
 export default abstract class OAuthClient {
   private clientId: string;
   private clientSecret: string;
+  protected authMethod?: "client_secret_basic" | "client_secret_post";
 
   protected endpoints = {
     authorize: "",
@@ -63,18 +64,35 @@ export default abstract class OAuthClient {
     try {
       Logger.debug("utils", "Rotating token", { endpoint });
 
+      const body = new URLSearchParams({
+        refresh_token: refreshToken,
+        grant_type: "refresh_token",
+      });
+
+      // Determine authentication method
+      const useBasicAuth = this.authMethod === "client_secret_basic";
+
+      const headers: Record<string, string> = {
+        "Content-Type": "application/x-www-form-urlencoded",
+      };
+
+      if (useBasicAuth) {
+        // Use HTTP Basic Auth
+        const credentials = Buffer.from(
+          `${this.clientId}:${this.clientSecret}`
+        ).toString("base64");
+        headers["Authorization"] = `Basic ${credentials}`;
+      } else {
+        // Use client_secret_post (default)
+        body.append("client_id", this.clientId);
+        body.append("client_secret", this.clientSecret);
+      }
+
       response = await fetch(endpoint, {
         method: "POST",
         allowPrivateIPAddress: true,
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({
-          client_id: this.clientId,
-          client_secret: this.clientSecret,
-          refresh_token: refreshToken,
-          grant_type: "refresh_token",
-        }),
+        headers,
+        body: body,
       });
       data = await response.json();
     } catch (err) {

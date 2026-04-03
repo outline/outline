@@ -105,6 +105,17 @@ class OIDCPluginEnvironment extends Environment {
     allow_underscores: true,
   })
   public OIDC_LOGOUT_URI = this.toOptionalString(environment.OIDC_LOGOUT_URI);
+
+  /**
+   * The authentication method to use when making requests to the token endpoint.
+   * Supported values: "client_secret_basic" or "client_secret_post".
+   * If not set, will be automatically determined from OIDC discovery response,
+   * or default to "client_secret_post".
+   */
+  @IsOptional()
+  public OIDC_TOKEN_ENDPOINT_AUTH_METHOD = this.toOptionalString(
+    environment.OIDC_TOKEN_ENDPOINT_AUTH_METHOD
+  );
 }
 
 export default new OIDCPluginEnvironment();

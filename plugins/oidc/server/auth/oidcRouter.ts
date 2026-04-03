@@ -34,6 +34,7 @@ export interface OIDCEndpoints {
   userInfoURL: string;
   logoutURL?: string;
   pkce?: boolean;
+  authMethod?: "client_secret_basic" | "client_secret_post";
 }
 
 /**
@@ -60,6 +61,7 @@ export function createOIDCRouter(
         store: new StateStore(endpoints.pkce),
         state: true,
         pkce: endpoints.pkce ?? false,
+        authMethod: endpoints.authMethod,
       },
       // OpenID Connect standard profile claims can be found in the official
       // specification.
