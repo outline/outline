@@ -22,9 +22,7 @@ const Circle = ({
   if (percentage) {
     // because the circle is so small, anything greater than 85% appears like 100%
     percentage = percentage > 85 && percentage < 100 ? 85 : percentage;
-    strokePercentage = percentage
-      ? ((100 - percentage) * circumference) / 100
-      : 0;
+    strokePercentage = ((100 - percentage) * circumference) / 100;
   }
 
   return (

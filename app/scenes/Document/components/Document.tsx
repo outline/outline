@@ -596,11 +596,9 @@ class DocumentScene extends React.Component<Props> {
                         canComment={abilities.comment}
                         autoFocus={document.createdAt === document.updatedAt}
                       >
-                        {!revision && (
-                          <ReferencesWrapper>
-                            <References document={document} />
-                          </ReferencesWrapper>
-                        )}
+                        <ReferencesWrapper>
+                          <References document={document} />
+                        </ReferencesWrapper>
                       </Editor>
                     </>
                   )}

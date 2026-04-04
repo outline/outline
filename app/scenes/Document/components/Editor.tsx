@@ -217,17 +217,13 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
       ) : !rest.template ? (
         <DocumentMeta
           document={document as Document}
-          to={
-            shareId
-              ? undefined
-              : {
-                  pathname:
-                    match.path === matchDocumentHistory
-                      ? documentPath(document as Document)
-                      : documentHistoryPath(document as Document),
-                  state: { sidebarContext },
-                }
-          }
+          to={{
+            pathname:
+              match.path === matchDocumentHistory
+                ? documentPath(document as Document)
+                : documentHistoryPath(document as Document),
+            state: { sidebarContext },
+          }}
           rtl={direction === "rtl"}
         />
       ) : null}

@@ -183,14 +183,12 @@ type AdditionalFindOptions = {
     return {
       include: [
         {
-          model: userId
-            ? Collection.scope([
-                "defaultScope",
-                {
-                  method: ["withMembership", userId],
-                },
-              ])
-            : Collection,
+          model: Collection.scope([
+            "defaultScope",
+            {
+              method: ["withMembership", userId],
+            },
+          ]),
           as: "collection",
           paranoid,
         },
@@ -1239,7 +1237,6 @@ class Document extends ArchivableModel<
         await this.destroy({
           transaction,
         });
-        deleted = true;
       }
 
       this.lastModifiedById = user.id;

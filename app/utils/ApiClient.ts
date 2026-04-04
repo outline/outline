@@ -78,7 +78,7 @@ class ApiClient {
 
     if (method === "GET") {
       if (data) {
-        modifiedPath = `${path}?${data && queryString.stringify(data)}`;
+        modifiedPath = `${path}?${queryString.stringify(data)}`;
       } else {
         modifiedPath = path;
       }

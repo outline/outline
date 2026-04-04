@@ -102,7 +102,7 @@ async function accountProvisioner(
   // allow them to connect a new authentication provider
   if (actor && actor.teamId === teamParams.teamId && actor.isAdmin) {
     const team = actor.team;
-    let authenticationProvider = await AuthenticationProvider.findOne({
+    const authenticationProvider = await AuthenticationProvider.findOne({
       where: {
         ...authenticationProviderParams,
         teamId: team.id,
@@ -110,7 +110,7 @@ async function accountProvisioner(
     });
 
     if (!authenticationProvider) {
-      authenticationProvider = await team.$create<AuthenticationProvider>(
+      await team.$create<AuthenticationProvider>(
         "authenticationProvider",
         authenticationProviderParams
       );

@@ -153,14 +153,21 @@ class UiStore {
 
       setSystemTheme(colorSchemeQueryList);
 
-      if (colorSchemeQueryList.addListener) {
+      if (typeof colorSchemeQueryList.addEventListener === "function") {
+        colorSchemeQueryList.addEventListener("change", setSystemTheme);
+      } else if (typeof colorSchemeQueryList.addListener === "function") {
         colorSchemeQueryList.addListener(setSystemTheme);
       }
     }
 
     window.addEventListener("storage", (event) => {
       if (event.key === UI_STORE && event.newValue) {
-        const newData: PersistedData | null = JSON.parse(event.newValue);
+        let newData: PersistedData | null;
+        try {
+          newData = JSON.parse(event.newValue);
+        } catch {
+          return;
+        }
 
         // data may be null if key is deleted in localStorage
         if (!newData) {
