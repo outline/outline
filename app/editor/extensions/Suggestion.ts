@@ -9,7 +9,7 @@ import { isInCode } from "@shared/editor/queries/isInCode";
 
 type Options = {
   enabledInCode: boolean;
-  trigger: string;
+  trigger: string | string[];
   allowSpaces: boolean;
   requireSearchTerm: boolean;
 };
@@ -18,10 +18,16 @@ export default class Suggestion extends Extension {
   constructor(options: Options) {
     super(options);
 
+    const triggers = Array.isArray(this.options.trigger)
+      ? this.options.trigger
+      : [this.options.trigger];
+    const triggerPattern =
+      triggers.length === 1
+        ? escapeRegExp(triggers[0])
+        : `(?:${triggers.map(escapeRegExp).join("|")})`;
+
     this.openRegex = new RegExp(
-      `(?:^|\\s|\\(|[\\p{Script=Han}\\p{Script=Hiragana}\\p{Script=Katakana}\\p{Script=Hangul}])${escapeRegExp(
-        this.options.trigger
-      )}(${`[\\p{L}\/\\p{M}\\d${
+      `(?:^|\\s|\\(|[\\p{Script=Han}\\p{Script=Hiragana}\\p{Script=Katakana}\\p{Script=Hangul}])${triggerPattern}(${`[\\p{L}\/\\p{M}\\d${
         this.options.allowSpaces ? "\\s{1}" : ""
       }\\.\\-–_]+`})${this.options.requireSearchTerm ? "" : "?"}$`,
       "u"
