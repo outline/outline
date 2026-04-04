@@ -148,7 +148,7 @@ function DocumentBreadcrumb(
     }
 
     const slicedPath = reverse
-      ? path.slice(depth && -depth)
+      ? path.slice(depth ? -depth : undefined)
       : path.slice(0, depth);
 
     const showCollection =
