@@ -158,15 +158,16 @@ function DocumentBreadcrumb(
     return (
       <>
         {showCollection && collection.name}
-        {slicedPath.map((node: NavigationNode, index: number) => (
-          <React.Fragment key={node.id}>
-            {showCollection && <SmallSlash />}
-            {node.title || t("Untitled")}
-            {!showCollection && index !== slicedPath.length - 1 && (
-              <SmallSlash />
-            )}
-          </React.Fragment>
-        ))}
+        {slicedPath.map((node: NavigationNode, index: number) => {
+          const showSlashBeforeNode = showCollection ? index === 0 : index !== 0;
+
+          return (
+            <React.Fragment key={node.id}>
+              {showSlashBeforeNode && <SmallSlash />}
+              {node.title || t("Untitled")}
+            </React.Fragment>
+          );
+        })}
       </>
     );
   }
