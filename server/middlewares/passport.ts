@@ -20,25 +20,31 @@ import { parseState } from "@server/utils/passport";
  * @returns the host if trusted, otherwise falls back to the base domain from env.URL.
  */
 async function getValidatedHost(host: string): Promise<string> {
+  const fallback = new URL(env.URL).host;
+
   if (!env.isCloudHosted) {
     return host;
+  }
+
+  if (!host) {
+    return fallback;
   }
 
   const domain = parseDomain(host);
 
   // Subdomains of the base domain are trusted
   if (!domain.custom) {
-    return host;
+    return domain.host;
   }
 
   // Custom domains must be registered to a team
-  const team = await Team.findOne({ where: { domain: host } });
+  const team = await Team.findByDomain(domain.host);
   if (team) {
-    return host;
+    return domain.host;
   }
 
   // Unrecognized host, fall back to the base app URL
-  return parseDomain(env.URL).host;
+  return fallback;
 }
 
 export default function createMiddleware(providerName: string) {

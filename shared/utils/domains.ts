@@ -18,10 +18,17 @@ export function slugifyDomain(domain: string) {
   return domain.split(".").slice(0, -1).join("-");
 }
 
-// strips protocol and whitespace from input
-// then strips the path and query string
+// strips protocol, userinfo, port, path, query, and whitespace from input
+// to extract a clean hostname
 function normalizeUrl(url: string) {
-  return trim(url.replace(/(https?:)?\/\//, "")).split(/[/:?]/)[0];
+  const stripped = trim(url.replace(/(https?:)?\/\//, ""));
+  // Extract authority (everything before the first slash)
+  const authority = stripped.split("/")[0];
+  // Strip userinfo if present (e.g. "user:pass@host" → "host")
+  const atIndex = authority.lastIndexOf("@");
+  const hostWithPort =
+    atIndex !== -1 ? authority.substring(atIndex + 1) : authority;
+  return hostWithPort.split(/[:?]/)[0];
 }
 
 // The base domain is where root cookies are set in hosted mode

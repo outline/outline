@@ -97,6 +97,24 @@ describe("#parseDomain", () => {
     });
   });
 
+  it("should strip userinfo before the hostname", () => {
+    expect(parseDomain("user:pass@example.com")).toMatchObject({
+      teamSubdomain: "",
+      host: "example.com",
+      custom: false,
+    });
+    expect(parseDomain("myteam.example.com@evil.com")).toMatchObject({
+      teamSubdomain: "",
+      host: "evil.com",
+      custom: true,
+    });
+    expect(parseDomain("https://myteam.example.com@evil.com")).toMatchObject({
+      teamSubdomain: "",
+      host: "evil.com",
+      custom: true,
+    });
+  });
+
   it("should recognize include private domains like blogspot.com as custom", () => {
     expect(parseDomain("foo.blogspot.com")).toMatchObject({
       teamSubdomain: "",

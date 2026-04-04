@@ -207,11 +207,7 @@ router.post(
     const { hostname } = ctx.input.body;
 
     const [team, share] = await Promise.all([
-      Team.findOne({
-        where: {
-          domain: hostname,
-        },
-      }),
+      Team.findByDomain(hostname),
       Share.findOne({
         where: {
           domain: hostname,

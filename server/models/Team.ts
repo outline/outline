@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import { URL } from "node:url";
 import { subMinutes } from "date-fns";
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
-import { type SaveOptions } from "sequelize";
+import { type FindOptions, type SaveOptions } from "sequelize";
 import { Op } from "sequelize";
 import {
   Column,
@@ -540,6 +540,26 @@ class Team extends ParanoidModel<
       }
     }
   };
+
+  /**
+   * Find a team by its custom domain. The input is normalized by stripping
+   * protocol, port, path, and lowercasing to match the stored format.
+   *
+   * @param domain the domain to search for.
+   * @param options additional find options to pass to the query.
+   * @returns the team with the given domain, or null if not found.
+   */
+  static async findByDomain(domain: string, options?: FindOptions<Team>) {
+    const normalized = domain
+      .replace(/(https?:)?\/\//, "")
+      .split(/[/:?]/)[0]
+      .toLowerCase();
+
+    return this.findOne({
+      ...options,
+      where: { ...options?.where, domain: normalized },
+    });
+  }
 
   /**
    * Find a team by its current or previous subdomain.
