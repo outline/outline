@@ -67,7 +67,6 @@ export class CacheHelper {
         // Check if result is a CacheResult with dynamic expiry
         const isCacheResult =
           typeof result === "object" &&
-          result !== null &&
           "data" in result &&
           Object.keys(result).every((k) => k === "data" || k === "expiry");
 

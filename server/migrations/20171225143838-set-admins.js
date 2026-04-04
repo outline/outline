@@ -1,7 +1,6 @@
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    const [teams, metaData] =
-      await queryInterface.sequelize.query(`SELECT * FROM teams`);
+    const [teams] = await queryInterface.sequelize.query(`SELECT * FROM teams`);
 
     const teamIds = teams.map((team) => team.id);
     await Promise.all(

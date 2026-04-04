@@ -351,7 +351,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         inputRef.current.accept = accept;
       }
       if (attrs) {
-        inputRef.current.dataset.attrs = attrs ? JSON.stringify(attrs) : "";
+        inputRef.current.dataset.attrs = JSON.stringify(attrs);
       }
       inputRef.current.click();
     }
