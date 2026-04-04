@@ -17,12 +17,19 @@ export enum TableLayout {
   fullWidth = "full-width",
 }
 
+export enum MenuType {
+  inline = "inline",
+  toolbar = "toolbar",
+}
+
 type Section = ({ t }: { t: TFunction }) => string;
 
 export type MenuItem = {
+  id?: string;
   icon?: React.ReactNode;
   name?: string;
   title?: string;
+  type?: MenuType;
   section?: Section;
   subtitle?: React.ReactNode;
   shortcut?: string;

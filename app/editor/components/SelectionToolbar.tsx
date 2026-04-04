@@ -15,7 +15,7 @@ import {
   getRowIndex,
   isTableSelected,
 } from "@shared/editor/queries/table";
-import type { MenuItem } from "@shared/editor/types";
+import { MenuType, type MenuItem } from "@shared/editor/types";
 import useBoolean from "~/hooks/useBoolean";
 import useDictionary from "~/hooks/useDictionary";
 import useEventListener from "~/hooks/useEventListener";
@@ -40,6 +40,9 @@ import FloatingToolbar from "./FloatingToolbar";
 import LinkEditor from "./LinkEditor";
 import ToolbarMenu from "./ToolbarMenu";
 import { isModKey } from "@shared/utils/keyboard";
+import InlineMenu from "./InlineMenu";
+import styled from "styled-components";
+import { depths } from "@shared/styles";
 
 type Props = {
   /** Whether the text direction is right-to-left */
@@ -272,6 +275,8 @@ export function SelectionToolbar(props: Props) {
     items = getFormattingMenuItems(state, isTemplate, dictionary);
   }
 
+  const isInline = items[0].type === MenuType.inline;
+
   // Some extensions may be disabled, remove corresponding items
   items = items.filter((item) => {
     if (item.name === "separator") {
@@ -318,6 +323,14 @@ export function SelectionToolbar(props: Props) {
     setActiveToolbar(null);
   };
 
+  if (isInline && items.length) {
+    return (
+      <InlineMenuWrapper ref={menuRef}>
+        <InlineMenu items={items} containerRef={menuRef} />
+      </InlineMenuWrapper>
+    );
+  }
+
   return (
     <FloatingToolbar
       align={align}
@@ -362,3 +375,20 @@ export function SelectionToolbar(props: Props) {
     </FloatingToolbar>
   );
 }
+
+const InlineMenuWrapper = styled.div`
+  position: absolute;
+  z-index: ${depths.editorToolbar};
+  line-height: 0;
+  box-sizing: border-box;
+  pointer-events: none;
+  white-space: nowrap;
+
+  * {
+    box-sizing: border-box;
+  }
+
+  @media print {
+    display: none;
+  }
+`;
