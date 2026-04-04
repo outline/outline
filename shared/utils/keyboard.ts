@@ -11,6 +11,11 @@ export const altDisplay = isMac ? "⌥" : "Alt";
 export const metaDisplay = isMac ? "⌘" : "Ctrl";
 
 /**
+ * Returns the display string for the control key
+ */
+export const ctrlDisplay = isMac ? "^" : "Ctrl";
+
+/**
  * Returns the name of the modifier key
  */
 export const meta = isMac ? "cmd" : "ctrl";
@@ -30,13 +35,21 @@ export function isModKey(
  * Returns a string with the appropriate display strings for the given key
  *
  * @param key The key to display
+ * @param toUpperCase Whether to render single letters as uppercase
  * @returns The display string for the key
  */
-export function normalizeKeyDisplay(key: string) {
+export function normalizeKeyDisplay(key: string, toUpperCase?: boolean) {
+  if (key.length === 1 && toUpperCase) {
+    return key.toUpperCase();
+  }
+
   return key
+    .replace(/^Key([A-Z])$/i, (_, letter: string) =>
+      toUpperCase ? letter.toUpperCase() : letter
+    )
     .replace(/Meta/i, metaDisplay)
     .replace(/Cmd/i, metaDisplay)
     .replace(/Alt/i, altDisplay)
-    .replace(/Control/i, metaDisplay)
+    .replace(/Control/i, ctrlDisplay)
     .replace(/Shift/i, "⇧");
 }

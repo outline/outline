@@ -5,6 +5,7 @@ import type { LocationDescriptor } from "history";
 import * as React from "react";
 import Tooltip from "~/components/Tooltip";
 import { CheckmarkIcon } from "outline-icons";
+import { normalizeKeyDisplay } from "@shared/utils/keyboard";
 import { useMenuContext } from "./MenuContext";
 
 type MenuProps = React.ComponentPropsWithoutRef<
@@ -227,7 +228,34 @@ type BaseItemProps = {
   label: string;
   icon?: React.ReactElement;
   disabled?: boolean;
+  shortcut?: string[];
 };
+
+/**
+ * Renders a keyboard shortcut as formatted key symbols.
+ *
+ * @param shortcut - array of key strings (e.g. ["Meta+Shift+l"]).
+ * @returns rendered shortcut element or null.
+ */
+function MenuItemShortcut({ shortcut }: { shortcut?: string[] }) {
+  if (!shortcut?.length) {
+    return null;
+  }
+
+  return (
+    <Components.MenuShortcut>
+      {shortcut.map((sc, scIndex) =>
+        sc
+          .split("+")
+          .map((key, keyIndex) => (
+            <span key={`${scIndex}-${keyIndex}`}>
+              {normalizeKeyDisplay(key, true)}
+            </span>
+          ))
+      )}
+    </Components.MenuShortcut>
+  );
+}
 
 type MenuButtonProps = BaseItemProps & {
   onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
@@ -256,6 +284,7 @@ const MenuButton = React.forwardRef<
     disabled,
     selected,
     dangerous,
+    shortcut,
     onClick,
     ...rest
   } = props;
@@ -279,6 +308,7 @@ const MenuButton = React.forwardRef<
             {selected ? <CheckmarkIcon size={18} /> : null}
           </Components.SelectedIconWrapper>
         )}
+        <MenuItemShortcut shortcut={shortcut} />
       </Components.MenuButton>
     </Item>
   );
@@ -310,7 +340,7 @@ const MenuInternalLink = React.forwardRef<
   MenuInternalLinkProps
 >((props, ref) => {
   const { variant } = useMenuContext();
-  const { label, icon, disabled, to, ...rest } = props;
+  const { label, icon, disabled, shortcut, to, ...rest } = props;
 
   const Item =
     variant === "dropdown"
@@ -322,6 +352,7 @@ const MenuInternalLink = React.forwardRef<
       <Components.MenuInternalLink to={to} disabled={disabled}>
         {icon}
         <Components.MenuLabel>{label}</Components.MenuLabel>
+        <MenuItemShortcut shortcut={shortcut} />
       </Components.MenuInternalLink>
     </Item>
   );
@@ -346,7 +377,7 @@ const MenuExternalLink = React.forwardRef<
   MenuExternalLinkProps
 >((props, ref) => {
   const { variant } = useMenuContext();
-  const { label, icon, disabled, href, target, ...rest } = props;
+  const { label, icon, disabled, shortcut, href, target, ...rest } = props;
 
   const Item =
     variant === "dropdown"
@@ -362,6 +393,7 @@ const MenuExternalLink = React.forwardRef<
       >
         {icon}
         <Components.MenuLabel>{label}</Components.MenuLabel>
+        <MenuItemShortcut shortcut={shortcut} />
       </Components.MenuExternalLink>
     </Item>
   );
