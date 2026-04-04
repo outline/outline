@@ -5,26 +5,13 @@ import type { EditorView } from "prosemirror-view";
 
 const MAX_MATCH = 500;
 
-type Options = {
-  openRegex: RegExp;
-  closeRegex: RegExp;
-  enabledInCode: boolean;
-  trigger: string | string[];
-  allowSpaces: boolean;
-  requireSearchTerm: boolean;
-};
-
 type ExtensionState = {
   open: boolean;
   query: string;
 };
 
 export class SuggestionsMenuPlugin extends Plugin {
-  constructor(
-    options: Options,
-    extensionState: ExtensionState,
-    openRegex: RegExp
-  ) {
+  constructor(extensionState: ExtensionState, openRegex: RegExp) {
     super({
       props: {
         handleDOMEvents: {
@@ -67,7 +54,7 @@ export class SuggestionsMenuPlugin extends Plugin {
             // and any characters removed, before we evaluate the rule.
             setTimeout(() => {
               const { pos: fromPos } = view.state.selection.$from;
-              return this.execute(
+              this.execute(
                 view,
                 fromPos,
                 fromPos,
@@ -163,8 +150,13 @@ export class SuggestionsMenuPlugin extends Plugin {
     );
 
     const match = regex.exec(textBefore);
-    const tr = handler(state, match, match ? from - match[0].length : from, to);
-    if (!tr) {
+    const result = handler(
+      state,
+      match,
+      match ? from - match[0].length : from,
+      to
+    );
+    if (!result) {
       return false;
     }
     return true;

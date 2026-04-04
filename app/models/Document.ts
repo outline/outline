@@ -515,7 +515,7 @@ export default class Document extends ArchivableModel implements Searchable {
   subscribe = () => this.store.subscribe(this);
 
   /**
-   * Unsubscribes the current user to this document.
+   * Unsubscribes the current user from this document.
    *
    * @returns A promise that resolves when the subscription is destroyed.
    */

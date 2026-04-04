@@ -21,7 +21,7 @@ export const ctrlDisplay = isMac ? "^" : "Ctrl";
 export const meta = isMac ? "cmd" : "ctrl";
 
 /**
- * Returns true if the given event is a modifier key (Cmd or Ctrl on Mac, Alt on
+ * Returns true if the given event is a modifier key (Cmd on Mac, Ctrl on other platforms).
  * @param event The event to check
  * @returns True if the event is a modifier key
  */

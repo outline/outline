@@ -35,9 +35,7 @@ export default class Suggestion extends Extension {
   }
 
   get plugins(): Plugin[] {
-    return [
-      new SuggestionsMenuPlugin(this.options, this.state, this.openRegex),
-    ];
+    return [new SuggestionsMenuPlugin(this.state, this.openRegex)];
   }
 
   keys() {
