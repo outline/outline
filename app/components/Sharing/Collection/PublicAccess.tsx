@@ -41,7 +41,7 @@ function InnerPublicAccess(
   const inputRef = React.useRef<HTMLInputElement>(null);
   const can = usePolicy(share);
   const collectionAbilities = usePolicy(collection);
-  const canPublish = can.update && collectionAbilities.share;
+  const canPublish = share ? can.update : collectionAbilities.share;
 
   React.useEffect(() => {
     setUrlId(share?.urlId);
@@ -102,14 +102,17 @@ function InnerPublicAccess(
   const handlePublishedChange = React.useCallback(
     async (checked: boolean) => {
       try {
-        await share?.save({
-          published: checked,
-        });
+        if (checked) {
+          const activeShare = share ?? (await collection.share());
+          await activeShare.save({ published: true });
+        } else if (share) {
+          await share.save({ published: false });
+        }
       } catch (err) {
         toast.error(err.message);
       }
     },
-    [share]
+    [share, collection]
   );
 
   const handleUrlChange = React.useMemo(
