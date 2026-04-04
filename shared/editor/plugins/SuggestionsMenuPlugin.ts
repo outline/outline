@@ -81,7 +81,7 @@ export class SuggestionsMenuPlugin extends Plugin {
                   return null;
                 })
               );
-            });
+            }, 0);
           }
 
           // Another plugin (e.g. the Placeholder mark) may consume the
@@ -112,7 +112,7 @@ export class SuggestionsMenuPlugin extends Plugin {
                   return null;
                 })
               );
-            });
+            }, 0);
           }
 
           // If the menu is open then just ignore the key events in the editor
