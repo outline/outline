@@ -153,7 +153,11 @@ class UiStore {
 
       setSystemTheme(colorSchemeQueryList);
 
-      colorSchemeQueryList.addEventListener("change", setSystemTheme);
+      if (typeof colorSchemeQueryList.addEventListener === "function") {
+        colorSchemeQueryList.addEventListener("change", setSystemTheme);
+      } else if (typeof colorSchemeQueryList.addListener === "function") {
+        colorSchemeQueryList.addListener(setSystemTheme);
+      }
     }
 
     window.addEventListener("storage", (event) => {
