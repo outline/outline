@@ -9,7 +9,7 @@ type Options = {
   openRegex: RegExp;
   closeRegex: RegExp;
   enabledInCode: boolean;
-  trigger: string;
+  trigger: string | string[];
   allowSpaces: boolean;
   requireSearchTerm: boolean;
 };
