@@ -60,7 +60,7 @@ export class SuggestionsMenuPlugin extends Plugin {
         },
         handleKeyDown: (view, event) => {
           // Prosemirror input rules are not triggered on backspace, however
-          // we need them to be evaluted for the filter trigger to work
+          // we need them to be evaluated for the filter trigger to work
           // correctly. This additional handler adds inputrules-like handling.
           if (event.key === "Backspace") {
             // timeout ensures that the delete has been handled by prosemirror
