@@ -211,6 +211,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
       const commentMarks = localRef.current.getComments();
       const commentIds = comments.orderedData.map((c) => c.id);
       const commentMarkIds = commentMarks?.map((c) => c.id);
+      const focus = previousCommentIds.current !== undefined;
       const newCommentIds = difference(
         commentMarkIds,
         previousCommentIds.current ?? [],
@@ -220,7 +221,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
       newCommentIds.forEach((commentId) => {
         const mark = commentMarks.find((c) => c.id === commentId);
         if (mark) {
-          onCreateCommentMark(mark.id, mark.userId);
+          onCreateCommentMark(mark.id, mark.userId, { focus });
         }
       });
 

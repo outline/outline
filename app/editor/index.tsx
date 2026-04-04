@@ -120,8 +120,18 @@ export type Props = {
   onChange?: (value: () => any) => void;
   /** Callback when a comment mark is clicked */
   onClickCommentMark?: (commentId: string) => void;
-  /** Callback when a comment mark is created */
-  onCreateCommentMark?: (commentId: string, userId: string) => void;
+  /**
+   * Callback when a comment mark is created.
+   *
+   * @param commentId - the id of the comment mark.
+   * @param userId - the id of the user who created the mark.
+   * @param options - options for the comment mark creation.
+   */
+  onCreateCommentMark?: (
+    commentId: string,
+    userId: string,
+    options?: { focus: boolean }
+  ) => void;
   /** Callback when a comment mark is removed */
   onDeleteCommentMark?: (commentId: string) => void;
   /** Callback when comments sidebar should be opened */

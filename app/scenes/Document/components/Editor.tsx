@@ -127,7 +127,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   // Create a Comment model in local store when a comment mark is created, this
   // acts as a local draft before submission.
   const handleDraftComment = React.useCallback(
-    (commentId: string, createdById: string) => {
+    (commentId: string, createdById: string, options?: { focus: boolean }) => {
       if (comments.get(commentId) || createdById !== user?.id) {
         return;
       }
@@ -143,7 +143,10 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
       );
       comment.id = commentId;
       comments.add(comment);
-      setFocusedCommentId(commentId);
+
+      if (options?.focus) {
+        setFocusedCommentId(commentId);
+      }
     },
     [comments, user?.id, props.id]
   );
