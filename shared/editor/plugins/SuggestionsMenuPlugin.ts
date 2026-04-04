@@ -54,13 +54,13 @@ export class SuggestionsMenuPlugin extends Plugin {
                   extensionState.query = match[1];
                 }
               })();
-            });
+            }, 0);
             return false;
           },
         },
         handleKeyDown: (view, event) => {
           // Prosemirror input rules are not triggered on backspace, however
-          // we need them to be evaluted for the filter trigger to work
+          // we need them to be evaluated for the filter trigger to work
           // correctly. This additional handler adds inputrules-like handling.
           if (event.key === "Backspace") {
             // timeout ensures that the delete has been handled by prosemirror
@@ -81,7 +81,7 @@ export class SuggestionsMenuPlugin extends Plugin {
                   return null;
                 })
               );
-            });
+            }, 0);
           }
 
           // Another plugin (e.g. the Placeholder mark) may consume the
@@ -112,7 +112,7 @@ export class SuggestionsMenuPlugin extends Plugin {
                   return null;
                 })
               );
-            });
+            }, 0);
           }
 
           // If the menu is open then just ignore the key events in the editor
