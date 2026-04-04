@@ -20,6 +20,7 @@ import Text from "~/components/Text";
 import Tooltip from "~/components/Tooltip";
 import env from "~/env";
 import usePolicy from "~/hooks/usePolicy";
+import useStores from "~/hooks/useStores";
 import { ListItem } from "../components/ListItem";
 import { DomainPrefix, ShareLinkInput, StyledInfoIcon } from "../components";
 
@@ -35,13 +36,15 @@ function InnerPublicAccess(
   ref: React.RefObject<HTMLDivElement>
 ) {
   const { t } = useTranslation();
+  const { shares } = useStores();
   const theme = useTheme();
   const [validationError, setValidationError] = React.useState("");
   const [urlId, setUrlId] = React.useState(share?.urlId);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const can = usePolicy(share);
   const collectionAbilities = usePolicy(collection);
-  const canPublish = can.update && collectionAbilities.share;
+  const canPublish = share ? can.update : collectionAbilities.share;
+  const [creating, setCreating] = React.useState(false);
 
   React.useEffect(() => {
     setUrlId(share?.urlId);
@@ -102,14 +105,23 @@ function InnerPublicAccess(
   const handlePublishedChange = React.useCallback(
     async (checked: boolean) => {
       try {
-        await share?.save({
-          published: checked,
-        });
+        if (checked && !share) {
+          setCreating(true);
+          await shares.create({
+            type: "collection",
+            collectionId: collection.id,
+            published: true,
+          });
+        } else if (share) {
+          await share.save({ published: checked });
+        }
       } catch (err) {
         toast.error(err.message);
+      } finally {
+        setCreating(false);
       }
     },
-    [share]
+    [share, shares, collection]
   );
 
   const handleUrlChange = React.useMemo(
@@ -172,7 +184,7 @@ function InnerPublicAccess(
             aria-label={t("Publish to internet")}
             checked={share?.published ?? false}
             onChange={handlePublishedChange}
-            disabled={!canPublish}
+            disabled={!canPublish || creating}
             width={26}
             height={14}
           />

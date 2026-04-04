@@ -14,6 +14,7 @@ import type Share from "~/models/Share";
 import Switch from "~/components/Switch";
 import env from "~/env";
 import usePolicy from "~/hooks/usePolicy";
+import useStores from "~/hooks/useStores";
 import { AvatarSize } from "../../Avatar";
 import CopyToClipboard from "../../CopyToClipboard";
 import NudeButton from "../../NudeButton";
@@ -45,13 +46,15 @@ function PublicAccess(
   ref: React.RefObject<HTMLDivElement>
 ) {
   const { t } = useTranslation();
+  const { shares } = useStores();
   const theme = useTheme();
   const [validationError, setValidationError] = React.useState("");
   const [urlId, setUrlId] = React.useState(share?.urlId);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const can = usePolicy(share);
   const documentAbilities = usePolicy(document);
-  const canPublish = can.update && documentAbilities.share;
+  const canPublish = share ? can.update : documentAbilities.share;
+  const [creating, setCreating] = React.useState(false);
 
   React.useEffect(() => {
     setUrlId(share?.urlId);
@@ -112,14 +115,23 @@ function PublicAccess(
   const handlePublishedChange = React.useCallback(
     async (checked: boolean) => {
       try {
-        await share?.save({
-          published: checked,
-        });
+        if (checked && !share) {
+          setCreating(true);
+          await shares.create({
+            type: "document",
+            documentId: document.id,
+            published: true,
+          });
+        } else if (share) {
+          await share.save({ published: checked });
+        }
       } catch (err) {
         toast.error(err.message);
+      } finally {
+        setCreating(false);
       }
     },
-    [share]
+    [share, shares, document]
   );
 
   const handleUrlChange = React.useMemo(
@@ -215,7 +227,7 @@ function PublicAccess(
               aria-label={t("Publish to internet")}
               checked={share?.published ?? false}
               onChange={handlePublishedChange}
-              disabled={!canPublish}
+              disabled={!canPublish || creating}
               width={26}
               height={14}
             />
