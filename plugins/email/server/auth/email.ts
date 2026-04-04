@@ -34,7 +34,7 @@ router.post(
       team = await Team.scope("withAuthenticationProviders").findOne();
     } else if (domain.custom) {
       team = await Team.scope("withAuthenticationProviders").findOne({
-        where: { domain: domain.host },
+        where: { domain: domain.host.toLowerCase() },
       });
     } else if (domain.teamSubdomain) {
       team = await Team.scope("withAuthenticationProviders").findOne({

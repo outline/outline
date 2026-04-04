@@ -1,7 +1,54 @@
 import { randomUUID } from "node:crypto";
-import { buildTeam, buildCollection, buildAttachment } from "@server/test/factories";
+import { Team } from "@server/models";
+import {
+  buildTeam,
+  buildCollection,
+  buildAttachment,
+} from "@server/test/factories";
 
 describe("Team", () => {
+  describe("findByDomain", () => {
+    it("should find a team by its domain", async () => {
+      const domain = `${randomUUID()}.example.com`;
+      const team = await buildTeam({ domain });
+      const result = await Team.findByDomain(domain);
+      expect(result?.id).toEqual(team.id);
+    });
+
+    it("should normalize domain to lowercase", async () => {
+      const id = randomUUID();
+      const team = await buildTeam({ domain: `${id}.example.com` });
+      const result = await Team.findByDomain(`${id}.Example.COM`);
+      expect(result?.id).toEqual(team.id);
+    });
+
+    it("should strip protocol from input", async () => {
+      const domain = `${randomUUID()}.example.com`;
+      const team = await buildTeam({ domain });
+      const result = await Team.findByDomain(`https://${domain}`);
+      expect(result?.id).toEqual(team.id);
+    });
+
+    it("should strip port from input", async () => {
+      const domain = `${randomUUID()}.example.com`;
+      const team = await buildTeam({ domain });
+      const result = await Team.findByDomain(`${domain}:3000`);
+      expect(result?.id).toEqual(team.id);
+    });
+
+    it("should strip path from input", async () => {
+      const domain = `${randomUUID()}.example.com`;
+      const team = await buildTeam({ domain });
+      const result = await Team.findByDomain(`${domain}/some/path`);
+      expect(result?.id).toEqual(team.id);
+    });
+
+    it("should return null for unregistered domain", async () => {
+      const result = await Team.findByDomain("unknown.example.com");
+      expect(result).toBeNull();
+    });
+  });
+
   describe("collectionIds", () => {
     it("should return non-private collection ids", async () => {
       const team = await buildTeam();

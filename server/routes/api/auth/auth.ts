@@ -55,7 +55,7 @@ router.post("auth.config", async (ctx: APIContext<T.AuthConfigReq>) => {
   if (domain.custom) {
     const team = await Team.scope("withAuthenticationProviders").findOne({
       where: {
-        domain: ctx.request.hostname,
+        domain: ctx.request.hostname.toLowerCase(),
       },
     });
 
