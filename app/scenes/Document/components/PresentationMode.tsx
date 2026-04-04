@@ -426,6 +426,12 @@ const SlideContent = styled.div`
     font-size: 1.4em;
   }
 
+  .image-wrapper,
+  .image-wrapper img,
+  .mermaid-diagram-wrapper {
+    pointer-events: none !important;
+  }
+
   h1 {
     font-size: 2.4em;
   }
