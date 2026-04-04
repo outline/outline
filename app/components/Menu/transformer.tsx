@@ -49,6 +49,7 @@ export function toMenuItems(items: MenuItem[]) {
             tooltip={item.tooltip}
             selected={item.selected}
             dangerous={item.dangerous}
+            shortcut={item.shortcut}
             onClick={item.onClick}
           />
         );
@@ -60,6 +61,7 @@ export function toMenuItems(items: MenuItem[]) {
             label={item.title as string}
             icon={icon}
             disabled={item.disabled}
+            shortcut={item.shortcut}
             to={item.to}
           />
         );
@@ -71,6 +73,7 @@ export function toMenuItems(items: MenuItem[]) {
             label={item.title as string}
             icon={icon}
             disabled={item.disabled}
+            shortcut={item.shortcut}
             href={typeof item.href === "string" ? item.href : item.href.url}
             target={
               typeof item.href === "string" ? undefined : item.href.target

@@ -132,6 +132,7 @@ export function actionToMenuItem(
             tooltip: resolve<React.ReactChild>(action.tooltip, context),
             selected: resolve<boolean>(action.selected, context),
             dangerous: action.dangerous,
+            shortcut: action.shortcut,
             onClick: () => performAction(action, context),
           };
 
@@ -143,6 +144,7 @@ export function actionToMenuItem(
             icon,
             visible,
             disabled,
+            shortcut: action.shortcut,
             to,
           };
         }
@@ -154,6 +156,7 @@ export function actionToMenuItem(
             icon,
             visible,
             disabled,
+            shortcut: action.shortcut,
             href: action.target
               ? { url: action.url, target: action.target }
               : action.url,
