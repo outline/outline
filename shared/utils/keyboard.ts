@@ -44,6 +44,9 @@ export function normalizeKeyDisplay(key: string, toUpperCase?: boolean) {
   }
 
   return key
+    .replace(/^Key([A-Z])$/i, (_, letter: string) =>
+      toUpperCase ? letter.toUpperCase() : letter
+    )
     .replace(/Meta/i, metaDisplay)
     .replace(/Cmd/i, metaDisplay)
     .replace(/Alt/i, altDisplay)
