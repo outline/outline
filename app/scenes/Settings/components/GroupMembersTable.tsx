@@ -23,7 +23,6 @@ import type { Permission } from "~/types";
 import { EmptySelectValue } from "~/types";
 import { FILTER_HEIGHT } from "./StickyFilters";
 import { HStack } from "~/components/primitives/HStack";
-import { VStack } from "~/components/primitives/VStack";
 
 const ROW_HEIGHT = 50;
 const STICKY_OFFSET = HEADER_HEIGHT + FILTER_HEIGHT;
@@ -106,18 +105,22 @@ export const GroupMembersTable = observer(function GroupMembersTable({
           id: "name",
           header: t("Name"),
           accessor: (user) => user.name,
-          component: (user) => (
-            <HStack>
-              <Avatar model={user} size={AvatarSize.Large} />
-              <VStack align="flex-start" spacing={0}>
+          component: (user) => {
+            const gu = groupUsers.orderedData.find(
+              (m) => m.userId === user.id && m.groupId === group.id
+            );
+            return (
+              <HStack>
+                <Avatar model={user} size={AvatarSize.Large} />
                 <Text selectable>{user.name}</Text>
-                <Text type="tertiary" size="small">
-                  {user.email}
-                </Text>
-              </VStack>
-              {user.isAdmin && <Badge primary>{t("Admin")}</Badge>}
-            </HStack>
-          ),
+                {user.isAdmin ? (
+                  <Badge primary>{t("Admin")}</Badge>
+                ) : gu?.permission === GroupPermission.Admin ? (
+                  <Badge>{t("Group admin")}</Badge>
+                ) : null}
+              </HStack>
+            );
+          },
           width: "3fr",
         },
         {
@@ -142,6 +145,7 @@ export const GroupMembersTable = observer(function GroupMembersTable({
               type: "data",
               id: "permission",
               header: t("Permission"),
+              sortable: false,
               accessor: (user) => {
                 const gu = groupUsers.orderedData.find(
                   (m) => m.userId === user.id && m.groupId === group.id
