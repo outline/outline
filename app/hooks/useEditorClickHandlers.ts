@@ -14,7 +14,7 @@ type Params = {
 
 export default function useEditorClickHandlers({ shareId }: Params) {
   const history = useHistory();
-  const { documents } = useStores();
+  const { documents, ui } = useStores();
   const handleClickLink = useCallback(
     (href: string, event?: MouseEvent) => {
       // on page hash
@@ -81,6 +81,7 @@ export default function useEditorClickHandlers({ shareId }: Params) {
           !event ||
           (!isModKey(event) && !event.shiftKey && event.button !== 1)
         ) {
+          ui.setPresentingDocument(null);
           history.push(navigateTo, { sidebarContext: "collections" }); // optimistic preference of "collections"
         } else {
           window.open(navigateTo, "_blank");
@@ -89,7 +90,7 @@ export default function useEditorClickHandlers({ shareId }: Params) {
         window.open(href, "_blank");
       }
     },
-    [history, shareId]
+    [history, shareId, documents, ui]
   );
 
   return { handleClickLink };
