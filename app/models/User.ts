@@ -58,7 +58,23 @@ class User extends ParanoidModel implements Searchable {
   role: UserRole;
 
   @observable
-  lastActiveAt: string;
+  protected _lastActiveAt: string;
+
+  /**
+   * The last time the user was active. For the currently signed-in user, this
+   * always returns the current date so they always appear as recently active.
+   */
+  @computed
+  get lastActiveAt(): string {
+    if (this.store.rootStore.auth?.currentUserId === this.id) {
+      return new Date(now(60000)).toISOString();
+    }
+    return this._lastActiveAt;
+  }
+
+  set lastActiveAt(value: string) {
+    this._lastActiveAt = value;
+  }
 
   @observable
   isSuspended: boolean;
