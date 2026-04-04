@@ -110,7 +110,7 @@ export function MembersTable({ canManage, ...rest }: Props) {
               accessor: (user) => user.lastActiveAt,
               component: (user) =>
                 user.lastActiveAt ? (
-                  <Time dateTime={user.lastActiveAt} addSuffix />
+                  <Time dateTime={user.lastActiveAt} addSuffix shorten />
                 ) : null,
               width: "2fr",
             },
