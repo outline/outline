@@ -987,7 +987,7 @@ export const presentDocument = createAction({
   analyticsName: "Present document",
   section: ActiveDocumentSection,
   icon: <EmbedIcon />,
-  shortcut: ["Meta+Alt+p"],
+  shortcut: ["Control+Alt+p"],
   visible: ({ activeDocumentId }) => !!activeDocumentId,
   perform: ({ activeDocumentId, stores }) => {
     const document = activeDocumentId

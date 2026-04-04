@@ -162,6 +162,9 @@ export const SelectedIconWrapper = styled.span`
 `;
 
 export const MenuShortcut = styled.span`
+  display: flex;
+  align-items: center;
+  gap: 2px;
   font-size: 12px;
   color: currentColor;
   opacity: 0.5;

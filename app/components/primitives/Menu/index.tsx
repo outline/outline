@@ -244,15 +244,15 @@ function MenuItemShortcut({ shortcut }: { shortcut?: string[] }) {
 
   return (
     <Components.MenuShortcut>
-      {shortcut.map((sc, index) => (
-        <React.Fragment key={sc}>
-          {index > 0 ? " " : ""}
-          {sc
-            .split("+")
-            .map((key) => normalizeKeyDisplay(key))
-            .join("")}
-        </React.Fragment>
-      ))}
+      {shortcut.map((sc, scIndex) =>
+        sc
+          .split("+")
+          .map((key, keyIndex) => (
+            <span key={`${scIndex}-${keyIndex}`}>
+              {normalizeKeyDisplay(key, true)}
+            </span>
+          ))
+      )}
     </Components.MenuShortcut>
   );
 }
