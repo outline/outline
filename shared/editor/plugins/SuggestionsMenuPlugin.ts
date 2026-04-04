@@ -27,6 +27,37 @@ export class SuggestionsMenuPlugin extends Plugin {
   ) {
     super({
       props: {
+        handleDOMEvents: {
+          // IME composition (e.g. Korean, Japanese, Chinese) fires compositionupdate
+          // as each character is being built up. ProseMirror's view.composing flag
+          // blocks the normal handleKeyDown path, so we handle it separately here.
+          compositionupdate: (view) => {
+            setTimeout(() => {
+              const { pos: fromPos } = view.state.selection.$from;
+              const state = view.state;
+              const $from = state.doc.resolve(fromPos);
+              if ($from.parent.type.spec.code) {
+                return;
+              }
+              const textBefore = $from.parent.textBetween(
+                Math.max(0, $from.parentOffset - MAX_MATCH),
+                $from.parentOffset,
+                undefined,
+                "\ufffc"
+              );
+              const match = openRegex.exec(textBefore);
+              action(() => {
+                if (match) {
+                  if (match[0].length <= 2) {
+                    extensionState.open = true;
+                  }
+                  extensionState.query = match[1];
+                }
+              })();
+            });
+            return false;
+          },
+        },
         handleKeyDown: (view, event) => {
           // Prosemirror input rules are not triggered on backspace, however
           // we need them to be evaluted for the filter trigger to work
