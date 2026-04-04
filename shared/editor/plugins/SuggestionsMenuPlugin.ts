@@ -54,7 +54,7 @@ export class SuggestionsMenuPlugin extends Plugin {
                   extensionState.query = match[1];
                 }
               })();
-            });
+            }, 0);
             return false;
           },
         },
