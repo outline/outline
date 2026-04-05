@@ -106,13 +106,11 @@ function buildCollapseState(
     const isCollapsed = collapsedBlocks.has(pos);
 
     if (isCollapsed) {
-      const totalLines =
-        (node.textContent.match(/\n/g)?.length ?? 0) + 1;
+      const totalLines = (node.textContent.match(/\n/g)?.length ?? 0) + 1;
       const cappedLines = Math.min(totalLines, COLLAPSE_LINE_THRESHOLD);
       const gutterWidth = String(totalLines).length;
-      const lineNumberText = Array.from(
-        { length: cappedLines },
-        (_, i) => String(i + 1).padStart(gutterWidth, " ")
+      const lineNumberText = Array.from({ length: cappedLines }, (_, i) =>
+        String(i + 1).padStart(gutterWidth, " ")
       ).join("\n");
 
       decorations.push(
@@ -253,9 +251,11 @@ export default class CodeFence extends Node {
 
         if (dispatch) {
           dispatch(
-            state.tr.setMeta(CodeFence.collapseKey, {
-              toggle: codeBlock.pos,
-            })
+            state.tr
+              .setMeta(CodeFence.collapseKey, {
+                toggle: codeBlock.pos,
+              })
+              .setMeta("addToHistory", false)
           );
         }
         return true;
@@ -387,8 +387,8 @@ export default class CodeFence extends Node {
         doc,
         tall,
         collapsed,
-        options.dictionary.expandCode,
-        options.dictionary.collapseCode
+        options.dictionary?.expandCode ?? "",
+        options.dictionary?.collapseCode ?? ""
       );
 
     return [
