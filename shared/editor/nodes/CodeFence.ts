@@ -42,7 +42,6 @@ import {
   setRecentlyUsedCodeLanguage,
 } from "../lib/code";
 import { isCode, isMermaid } from "../lib/isCode";
-import { mapDecorations } from "../lib/multiplayer";
 import { findBlockNodes } from "../queries/findChildren";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { findNextNewline, findPreviousNewline } from "../queries/findNewlines";
@@ -56,15 +55,34 @@ import { isInCode } from "../queries/isInCode";
 import Node from "./Node";
 
 const DEFAULT_LANGUAGE = "javascript";
-const TALL_HEIGHT = 350;
+const COLLAPSE_LINE_THRESHOLD = 12;
 
 interface CollapseState {
-  /** Positions of code blocks measured as taller than TALL_HEIGHT. */
+  /** Positions of code blocks with more than COLLAPSE_LINE_THRESHOLD lines. */
   tallBlocks: Set<number>;
   /** Positions of code blocks currently collapsed by the user or auto-collapse. */
   collapsedBlocks: Set<number>;
   /** Node decorations that add the `collapsed` CSS class. */
   decorations: DecorationSet;
+}
+
+/**
+ * Find all code block positions in the document that exceed the line threshold.
+ *
+ * @param doc - the document to scan.
+ * @returns set of positions of tall code blocks.
+ */
+function findTallBlocks(doc: ProsemirrorNode): Set<number> {
+  const tall = new Set<number>();
+  for (const block of findBlockNodes(doc, true)) {
+    if (isCode(block.node)) {
+      const lines = (block.node.textContent.match(/\n/g)?.length ?? 0) + 1;
+      if (lines > COLLAPSE_LINE_THRESHOLD) {
+        tall.add(block.pos);
+      }
+    }
+  }
+  return tall;
 }
 
 /**
@@ -88,8 +106,22 @@ function buildCollapseState(
     const isCollapsed = collapsedBlocks.has(pos);
 
     if (isCollapsed) {
+      const totalLines =
+        (node.textContent.match(/\n/g)?.length ?? 0) + 1;
+      const cappedLines = Math.min(totalLines, COLLAPSE_LINE_THRESHOLD);
+      const gutterWidth = String(totalLines).length;
+      const lineNumberText = Array.from(
+        { length: cappedLines },
+        (_, i) => String(i + 1).padStart(gutterWidth, " ")
+      ).join("\n");
+
       decorations.push(
-        Decoration.node(pos, pos + node.nodeSize, { class: "collapsed" }, { collapsed: true })
+        Decoration.node(
+          pos,
+          pos + node.nodeSize,
+          { class: "collapsed", "data-line-numbers": lineNumberText },
+          { collapsed: true }
+        )
       );
     }
 
@@ -345,33 +377,31 @@ export default class CodeFence extends Node {
   /** Plugins for collapsible code block behavior. */
   private collapsePlugins(): Plugin[] {
     const collapseKey = CodeFence.collapseKey;
-    const { expandCode, collapseCode } = this.options.dictionary;
-    const emptyState: CollapseState = {
-      tallBlocks: new Set(),
-      collapsedBlocks: new Set(),
-      decorations: DecorationSet.empty,
-    };
-
+    const options = this.options;
     const build = (
       doc: ProsemirrorNode,
       tall: Set<number>,
       collapsed: Set<number>
-    ) => buildCollapseState(doc, tall, collapsed, expandCode, collapseCode);
+    ) =>
+      buildCollapseState(
+        doc,
+        tall,
+        collapsed,
+        options.dictionary.expandCode,
+        options.dictionary.collapseCode
+      );
 
     return [
       // Main collapse plugin: manages state and decorations
       new Plugin<CollapseState>({
         key: collapseKey,
         state: {
-          init: () => emptyState,
+          init: (_config, state) => {
+            const tallBlocks = findTallBlocks(state.doc);
+            return build(state.doc, tallBlocks, new Set(tallBlocks));
+          },
           apply: (tr, prev, _oldState, newState) => {
             const meta = tr.getMeta(collapseKey);
-
-            // Initial measurement from rAF
-            if (meta?.measured) {
-              const tallBlocks = new Set<number>(meta.measured);
-              return build(newState.doc, tallBlocks, new Set(tallBlocks));
-            }
 
             // Toggle collapsed state
             if (meta?.toggle !== undefined) {
@@ -394,34 +424,21 @@ export default class CodeFence extends Node {
               return prev;
             }
 
-            // Remap decorations on doc changes, using mapDecorations
-            // which handles remote Y.js transactions correctly.
+            // Recompute tall blocks on doc changes, preserving
+            // user collapse/expand choices where possible.
             if (tr.docChanged) {
-              const mapped = mapDecorations(prev.decorations, tr);
-              const tallBlocks = new Set<number>();
+              const tallBlocks = findTallBlocks(newState.doc);
               const collapsedBlocks = new Set<number>();
 
-              for (const deco of mapped.find()) {
-                if (deco.from === deco.to) {
-                  // Widget decoration — the node starts before it
-                  continue;
-                }
-                const node = newState.doc.nodeAt(deco.from);
-                if (node && isCode(node)) {
-                  tallBlocks.add(deco.from);
-                  if (deco.spec?.collapsed) {
-                    collapsedBlocks.add(deco.from);
-                  }
-                }
-              }
-
-              // Also re-add tall blocks that were expanded (only had
-              // widget decorations, no node decoration to detect).
-              for (const pos of prev.tallBlocks) {
-                const newPos = tr.mapping.map(pos);
-                const node = newState.doc.nodeAt(newPos);
-                if (node && isCode(node)) {
-                  tallBlocks.add(newPos);
+              const inverse = tr.mapping.invert();
+              for (const pos of tallBlocks) {
+                const oldPos = inverse.map(pos);
+                if (!prev.tallBlocks.has(oldPos)) {
+                  // Newly tall blocks start collapsed
+                  collapsedBlocks.add(pos);
+                } else if (prev.collapsedBlocks.has(oldPos)) {
+                  // Preserve previous collapsed state
+                  collapsedBlocks.add(pos);
                 }
               }
 
@@ -430,39 +447,6 @@ export default class CodeFence extends Node {
 
             return prev;
           },
-        },
-        view: (view: EditorView) => {
-          // Measure code block heights after initial render
-          requestAnimationFrame(() => {
-            if (view.isDestroyed) {
-              return;
-            }
-
-            const blocks = findBlockNodes(view.state.doc, true).filter((item) =>
-              isCode(item.node)
-            );
-
-            const tallPositions: number[] = [];
-            for (const block of blocks) {
-              const dom = view.nodeDOM(block.pos);
-              if (!(dom instanceof HTMLElement)) {
-                continue;
-              }
-              const pre = dom.querySelector("pre");
-              if (pre && pre.scrollHeight > TALL_HEIGHT) {
-                tallPositions.push(block.pos);
-              }
-            }
-
-            if (tallPositions.length > 0) {
-              view.dispatch(
-                view.state.tr
-                  .setMeta(collapseKey, { measured: tallPositions })
-                  .setMeta("addToHistory", false)
-              );
-            }
-          });
-          return {};
         },
         props: {
           decorations(state) {

@@ -1750,6 +1750,13 @@ mark {
 .code-block {
   position: relative;
   font-size: 90%;
+
+  &:hover + .${EditorStyleHelper.codeBlockToggle},
+  &:focus-within + .${EditorStyleHelper.codeBlockToggle},
+  & + .${EditorStyleHelper.codeBlockToggle}:hover,
+  & + .${EditorStyleHelper.codeBlockToggle}:focus {
+    opacity: 1;
+  }
 }
 
 .code-block[data-language=none],
@@ -1855,19 +1862,26 @@ mark {
 }
 
 .code-block.collapsed {
-  max-height: 350px;
-  clip-path: inset(0 -1px 0 0);
-  pointer-events: none;
+  pre {
+    pointer-events: none;
+    max-height: calc(10 * 1.4em + 0.75em);
+    overflow: hidden;
+  }
+
+  &::after {
+    clip-path: inset(0 0 calc(100% - 10 * 1.4em - 0.75em) 0);
+  }
 
   &::before {
     content: "";
     position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    bottom: 1px;
+    left: 1px;
+    right: 1px;
     height: 120px;
     z-index: 1;
     pointer-events: none;
+    border-radius: 0 0 4px 4px;
     background: linear-gradient(
       to bottom,
       ${transparentize(1, props.theme.codeBackground)} 0%,
@@ -1896,6 +1910,8 @@ mark {
   padding: 6px 12px;
   cursor: var(--pointer);
   user-select: none;
+  opacity: 0;
+  transition: opacity 150ms ease;
   pointer-events: auto;
 
   @media print {
