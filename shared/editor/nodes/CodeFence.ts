@@ -186,7 +186,7 @@ export default class CodeFence extends Node {
       draggable: false,
       parseDOM: [
         {
-          tag: ".code-block",
+          tag: `.${EditorStyleHelper.codeBlock}`,
           preserveWhitespace: "full",
           contentElement: (node: HTMLElement) =>
             node.querySelector("code") || node,
@@ -210,7 +210,7 @@ export default class CodeFence extends Node {
       ],
       toDOM: (node) => {
         const classes = [
-          "code-block",
+          EditorStyleHelper.codeBlock,
           node.attrs.wrap
             ? "with-line-wrap"
             : this.showLineNumbers
@@ -491,7 +491,9 @@ export default class CodeFence extends Node {
               }
 
               const codeBlockEl =
-                button.previousElementSibling?.classList.contains("code-block")
+                button.previousElementSibling?.classList.contains(
+                  EditorStyleHelper.codeBlock
+                )
                   ? button.previousElementSibling
                   : null;
               if (!codeBlockEl) {

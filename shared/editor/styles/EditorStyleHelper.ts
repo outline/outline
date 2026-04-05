@@ -24,6 +24,8 @@ export class EditorStyleHelper {
 
   // Code
 
+  static readonly codeBlock = "code-block";
+
   static readonly codeWord = "code-word";
 
   /** Toggle button for collapsible code blocks */

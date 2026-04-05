@@ -1747,7 +1747,7 @@ mark {
   height: 16px;
 }
 
-.code-block {
+.${EditorStyleHelper.codeBlock} {
   position: relative;
   font-size: 90%;
 
@@ -1759,15 +1759,15 @@ mark {
   }
 }
 
-.code-block[data-language=none],
-.code-block[data-language=markdown] {
+.${EditorStyleHelper.codeBlock}[data-language=none],
+.${EditorStyleHelper.codeBlock}[data-language=markdown] {
   pre code {
     color: ${props.theme.text};
   }
 }
 
-.code-block[data-language=mermaid],
-.code-block[data-language=mermaidjs] {
+.${EditorStyleHelper.codeBlock}[data-language=mermaid],
+.${EditorStyleHelper.codeBlock}[data-language=mermaidjs] {
   ${
     !props.staticHTML &&
     css`
@@ -1804,8 +1804,8 @@ mark {
   }
 }
 
-.ProseMirror[contenteditable="false"] .code-block[data-language=mermaid],
-.ProseMirror[contenteditable="false"] .code-block[data-language=mermaidjs] {
+.ProseMirror[contenteditable="false"] .${EditorStyleHelper.codeBlock}[data-language=mermaid],
+.ProseMirror[contenteditable="false"] .${EditorStyleHelper.codeBlock}[data-language=mermaidjs] {
     height: 0;
     overflow: hidden;
 
@@ -1815,8 +1815,8 @@ mark {
 }
 
 .ProseMirror.exported {
-    .code-block[data-language=mermaid],
-    .code-block[data-language=mermaidjs] {
+    .${EditorStyleHelper.codeBlock}[data-language=mermaid],
+    .${EditorStyleHelper.codeBlock}[data-language=mermaidjs] {
         height: auto;
         overflow: visible;
 
@@ -1830,14 +1830,14 @@ mark {
     }
 }
 
-.code-block.with-line-wrap {
+.${EditorStyleHelper.codeBlock}.with-line-wrap {
   pre {
     white-space: pre-wrap;
     word-break: break-all;
   }
 }
 
-.code-block.with-line-numbers {
+.${EditorStyleHelper.codeBlock}.with-line-numbers {
   pre {
     padding-left: calc(var(--line-number-gutter-width, 0) * 1em + 1.5em);
   }
@@ -1861,7 +1861,7 @@ mark {
   }
 }
 
-.code-block.collapsed {
+.${EditorStyleHelper.codeBlock}.collapsed {
   pre {
     pointer-events: none;
     max-height: calc(10 * 1.4em + 0.75em);
