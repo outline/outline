@@ -1854,6 +1854,58 @@ mark {
   }
 }
 
+.code-block.collapsed {
+  max-height: 350px;
+  overflow: hidden;
+  pointer-events: none;
+  border-bottom: 1px solid ${props.theme.codeBorder};
+  border-bottom-left-radius: ${EditorStyleHelper.blockRadius};
+  border-bottom-right-radius: ${EditorStyleHelper.blockRadius};
+
+  &::before {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 120px;
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      ${transparentize(1, props.theme.codeBackground)} 0%,
+      ${transparentize(0.2, props.theme.codeBackground)} 70%,
+      ${props.theme.codeBackground} 100%
+    );
+  }
+}
+
+.${EditorStyleHelper.codeBlockToggle} {
+  display: inline-flex;
+  position: relative;
+  z-index: 2;
+  left: 50%;
+  transform: translate3d(-50%, -50px, 0)
+  align-items: center;
+  gap: 4px;
+  border: none;
+  border-radius: 100px;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  color: white;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  padding: 6px 12px;
+  cursor: var(--pointer);
+  user-select: none;
+  pointer-events: auto;
+
+  @media print {
+    display: none !important;
+  }
+}
+
 .mermaid-diagram-wrapper {
   display: flex;
   align-items: center;

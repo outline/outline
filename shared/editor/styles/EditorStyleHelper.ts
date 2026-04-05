@@ -26,6 +26,9 @@ export class EditorStyleHelper {
 
   static readonly codeWord = "code-word";
 
+  /** Toggle button for collapsible code blocks */
+  static readonly codeBlockToggle = "code-block-toggle";
+
   // Diffs
 
   static readonly diffInsertion = "diff-insertion";

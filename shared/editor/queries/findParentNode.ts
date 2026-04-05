@@ -28,11 +28,11 @@ export const findParentNodeClosestToPos = (
   $pos: ResolvedPos,
   predicate: Predicate
 ): ContentNodeWithPos | undefined => {
-  for (let i = $pos.depth; i > 0; i--) {
+  for (let i = $pos.depth; i >= 0; i--) {
     const node = $pos.node(i);
     if (predicate(node)) {
       return {
-        pos: $pos.before(i),
+        pos: i > 0 ? $pos.before(i) : 0,
         start: $pos.start(i),
         depth: i,
         node,
