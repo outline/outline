@@ -1893,26 +1893,31 @@ mark {
 
 .${EditorStyleHelper.codeBlockToggle} {
   display: inline-flex;
+  align-items: center;
   position: absolute;
   z-index: 2;
   left: 50%;
   transform: translate3d(-50%, -50px, 0);
-  align-items: center;
-  gap: 4px;
-  border: none;
+  margin: 0;
+  padding: 0 8px;
+  border: 0;
   border-radius: 100px;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
-  color: white;
+  background: ${props.theme.background};
+  color: ${props.theme.buttonNeutralText};
+  box-shadow: rgba(0, 0, 0, 0.07) 0px 1px 2px, ${props.theme.buttonNeutralBorder} 0 0 0 1px inset;
   font-size: 13px;
   font-weight: 500;
-  line-height: 1;
-  padding: 6px 12px;
+  height: 24px;
   cursor: var(--pointer);
   user-select: none;
+  appearance: none !important;
   opacity: 0;
   transition: opacity 150ms ease;
   pointer-events: auto;
+
+  &:hover {
+    background: ${props.theme.backgroundSecondary};
+  }
 
   @media print {
     display: none !important;
