@@ -1856,11 +1856,8 @@ mark {
 
 .code-block.collapsed {
   max-height: 350px;
-  overflow: hidden;
+  clip-path: inset(0 -1px 0 0);
   pointer-events: none;
-  border-bottom: 1px solid ${props.theme.codeBorder};
-  border-bottom-left-radius: ${EditorStyleHelper.blockRadius};
-  border-bottom-right-radius: ${EditorStyleHelper.blockRadius};
 
   &::before {
     content: "";
@@ -1882,10 +1879,10 @@ mark {
 
 .${EditorStyleHelper.codeBlockToggle} {
   display: inline-flex;
-  position: relative;
+  position: absolute;
   z-index: 2;
   left: 50%;
-  transform: translate3d(-50%, -50px, 0)
+  transform: translate3d(-50%, -50px, 0);
   align-items: center;
   gap: 4px;
   border: none;

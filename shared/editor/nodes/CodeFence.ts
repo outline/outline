@@ -42,6 +42,7 @@ import {
   setRecentlyUsedCodeLanguage,
 } from "../lib/code";
 import { isCode, isMermaid } from "../lib/isCode";
+import { mapDecorations } from "../lib/multiplayer";
 import { findBlockNodes } from "../queries/findChildren";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { findNextNewline, findPreviousNewline } from "../queries/findNewlines";
@@ -67,33 +68,6 @@ interface CollapseState {
 }
 
 /**
- * Remap a set of document positions through a transaction mapping,
- * dropping any that no longer point to a code block.
- *
- * @param positions set of positions to remap.
- * @param mapping the mapping to remap through.
- * @param doc the new document to validate against.
- * @returns a new set with remapped positions.
- */
-function remapCodePositions(
-  positions: Set<number>,
-  mapping: { map: (pos: number) => number },
-  doc: ProsemirrorNode
-): Set<number> {
-  const result = new Set<number>();
-  for (const pos of positions) {
-    const newPos = mapping.map(pos);
-    if (newPos < doc.content.size) {
-      const node = doc.nodeAt(newPos);
-      if (node && isCode(node)) {
-        result.add(newPos);
-      }
-    }
-  }
-  return result;
-}
-
-/**
  * Build a CollapseState with node decorations for the collapsed class and
  * widget decorations for toggle buttons on all tall blocks.
  */
@@ -115,7 +89,7 @@ function buildCollapseState(
 
     if (isCollapsed) {
       decorations.push(
-        Decoration.node(pos, pos + node.nodeSize, { class: "collapsed" })
+        Decoration.node(pos, pos + node.nodeSize, { class: "collapsed" }, { collapsed: true })
       );
     }
 
@@ -420,17 +394,38 @@ export default class CodeFence extends Node {
               return prev;
             }
 
-            // Remap positions on doc changes
+            // Remap decorations on doc changes, using mapDecorations
+            // which handles remote Y.js transactions correctly.
             if (tr.docChanged) {
-              return build(
-                newState.doc,
-                remapCodePositions(prev.tallBlocks, tr.mapping, newState.doc),
-                remapCodePositions(
-                  prev.collapsedBlocks,
-                  tr.mapping,
-                  newState.doc
-                )
-              );
+              const mapped = mapDecorations(prev.decorations, tr);
+              const tallBlocks = new Set<number>();
+              const collapsedBlocks = new Set<number>();
+
+              for (const deco of mapped.find()) {
+                if (deco.from === deco.to) {
+                  // Widget decoration — the node starts before it
+                  continue;
+                }
+                const node = newState.doc.nodeAt(deco.from);
+                if (node && isCode(node)) {
+                  tallBlocks.add(deco.from);
+                  if (deco.spec?.collapsed) {
+                    collapsedBlocks.add(deco.from);
+                  }
+                }
+              }
+
+              // Also re-add tall blocks that were expanded (only had
+              // widget decorations, no node decoration to detect).
+              for (const pos of prev.tallBlocks) {
+                const newPos = tr.mapping.map(pos);
+                const node = newState.doc.nodeAt(newPos);
+                if (node && isCode(node)) {
+                  tallBlocks.add(newPos);
+                }
+              }
+
+              return build(newState.doc, tallBlocks, collapsedBlocks);
             }
 
             return prev;
@@ -531,11 +526,20 @@ export default class CodeFence extends Node {
                 return false;
               }
 
+              const collapseState = collapseKey.getState(view.state);
+              const isCollapsing = !collapseState?.collapsedBlocks.has(
+                parent.pos
+              );
+
               view.dispatch(
                 view.state.tr
                   .setMeta(collapseKey, { toggle: parent.pos })
                   .setMeta("addToHistory", false)
               );
+
+              if (isCollapsing) {
+                codeBlockEl.scrollIntoView({ block: "nearest" });
+              }
 
               event.preventDefault();
               event.stopPropagation();
