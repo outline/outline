@@ -273,6 +273,8 @@ const Link = styled(NavLink)<{
   font-size: 16px;
   cursor: var(--pointer);
   overflow: hidden;
+  border: 0;
+  width: 100%;
   ${undraggableOnDesktop()}
 
   ${(props) =>
@@ -352,6 +354,8 @@ const Label = styled.div<{ $ellipsis: boolean }>`
   line-height: 24px;
   margin-left: 2px;
   min-width: 0;
+  text-align: left;
+
   ${(props) => props.$ellipsis && ellipsis()}
 
   * {
