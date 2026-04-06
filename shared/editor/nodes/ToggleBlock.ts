@@ -95,7 +95,7 @@ export default class ToggleBlock extends Node {
     const userId = this.editor.props.userId;
 
     // Assign IDs and auto-fold empty
-    const fixToggleBlocksPlugin = new Plugin({
+    const plugin = new Plugin({
       appendTransaction: (transactions, _oldState, newState) => {
         if (!transactions.some((tr) => tr.docChanged)) {
           return null;
@@ -331,7 +331,7 @@ export default class ToggleBlock extends Node {
     });
 
     return [
-      fixToggleBlocksPlugin,
+      plugin,
       foldPlugin,
       eventPlugin,
       new PlaceholderPlugin([

@@ -2597,6 +2597,8 @@ del {
 
 li > .${EditorStyleHelper.toggleBlock} {
   position: relative;
+  /* Nudge the toggle to visually align with the first line of list-item text.
+     Keep this in em so it scales with the current font size. */
   top: 0.4em;
 }
 
