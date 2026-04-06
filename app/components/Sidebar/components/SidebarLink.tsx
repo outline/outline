@@ -147,27 +147,8 @@ function SidebarLink(
 
   const DisclosureComponent = icon ? HiddenDisclosure : Disclosure;
 
-  return (
-    <Link
-      $isActiveDrop={isActiveDrop}
-      $isDraft={isDraft}
-      $disabled={disabled}
-      style={active ? activeStyle : style}
-      activeStyle={isActiveDrop ? activeDropStyle : activeStyle}
-      onClick={handleClick}
-      onActiveClick={handleDisclosureClick}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      onDragEnter={handleMouseEnter}
-      // @ts-expect-error exact does not exist on button
-      exact={exact !== false}
-      to={to}
-      as={to ? undefined : href ? "a" : "button"}
-      href={href}
-      className={className}
-      ref={ref}
-      {...rest}
-    >
+  const innerContent = (
+    <>
       <ContextMenu action={contextAction} ariaLabel={t("Link options")}>
         <Content>
           {hasDisclosure && (
@@ -184,6 +165,51 @@ function SidebarLink(
         </Content>
       </ContextMenu>
       {menu && <Actions $showActions={$showActions}>{menu}</Actions>}
+    </>
+  );
+
+  if (!to) {
+    return (
+      <Link
+        as={href ? "a" : "button"}
+        $isActiveDrop={isActiveDrop}
+        $isDraft={isDraft}
+        $disabled={disabled}
+        style={active ? activeStyle : style}
+        onClick={handleClick}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onDragEnter={handleMouseEnter}
+        href={href}
+        className={className}
+        ref={ref}
+        {...rest}
+      >
+        {innerContent}
+      </Link>
+    );
+  }
+
+  return (
+    <Link
+      $isActiveDrop={isActiveDrop}
+      $isDraft={isDraft}
+      $disabled={disabled}
+      style={active ? activeStyle : style}
+      activeStyle={isActiveDrop ? activeDropStyle : activeStyle}
+      onClick={handleClick}
+      onActiveClick={handleDisclosureClick}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onDragEnter={handleMouseEnter}
+      exact={exact !== false}
+      to={to!}
+      href={href}
+      className={className}
+      ref={ref}
+      {...rest}
+    >
+      {innerContent}
     </Link>
   );
 }

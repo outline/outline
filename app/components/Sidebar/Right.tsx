@@ -107,7 +107,8 @@ function Right({ children, border, className, skipInitialAnimation }: Props) {
       {...animationProps}
       $border={border}
       className={className}
-      role="contentinfo"
+      role="complementary"
+      aria-label="Right sidebar"
     >
       <Position style={style} column>
         <ErrorBoundary>{children}</ErrorBoundary>
