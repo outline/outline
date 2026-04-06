@@ -275,7 +275,9 @@ const DocumentTitle = React.forwardRef(function DocumentTitle_(
           </React.Suspense>
         </IconTitleWrapper>
       ) : icon ? (
-        <IconTitleWrapper dir={dir}>{fallbackIcon}</IconTitleWrapper>
+        <IconTitleWrapper dir={dir} aria-hidden>
+          {fallbackIcon}
+        </IconTitleWrapper>
       ) : null}
     </Title>
   );

@@ -147,6 +147,49 @@ function SidebarLink(
 
   const DisclosureComponent = icon ? HiddenDisclosure : Disclosure;
 
+  const innerContent = (
+    <>
+      <ContextMenu action={contextAction} ariaLabel={t("Link options")}>
+        <Content>
+          {hasDisclosure && (
+            <DisclosureComponent
+              expanded={expanded}
+              onClick={preventDefault}
+              onPointerDown={handleDisclosureClick}
+              tabIndex={-1}
+            />
+          )}
+          {icon && <IconWrapper aria-hidden>{icon}</IconWrapper>}
+          <Label $ellipsis={ellipsis}>{label}</Label>
+          {unreadBadge && <UnreadBadge style={unreadStyle} />}
+        </Content>
+      </ContextMenu>
+      {menu && <Actions $showActions={$showActions}>{menu}</Actions>}
+    </>
+  );
+
+  if (!to) {
+    return (
+      <Link
+        as={href ? "a" : "button"}
+        $isActiveDrop={isActiveDrop}
+        $isDraft={isDraft}
+        $disabled={disabled}
+        style={active ? activeStyle : style}
+        onClick={handleClick}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onDragEnter={handleMouseEnter}
+        href={href}
+        className={className}
+        ref={ref}
+        {...rest}
+      >
+        {innerContent}
+      </Link>
+    );
+  }
+
   return (
     <Link
       $isActiveDrop={isActiveDrop}
@@ -159,31 +202,15 @@ function SidebarLink(
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onDragEnter={handleMouseEnter}
-      // @ts-expect-error exact does not exist on div
       exact={exact !== false}
-      to={to}
-      as={to ? undefined : href ? "a" : "div"}
+      to={to!}
       href={href}
       className={className}
+      // @ts-expect-error spread props cause overload mismatch with styled NavLink
       ref={ref}
       {...rest}
     >
-      <ContextMenu action={contextAction} ariaLabel={t("Link options")}>
-        <Content>
-          {hasDisclosure && (
-            <DisclosureComponent
-              expanded={expanded}
-              onClick={preventDefault}
-              onPointerDown={handleDisclosureClick}
-              tabIndex={-1}
-            />
-          )}
-          {icon && <IconWrapper>{icon}</IconWrapper>}
-          <Label $ellipsis={ellipsis}>{label}</Label>
-          {unreadBadge && <UnreadBadge style={unreadStyle} />}
-        </Content>
-      </ContextMenu>
-      {menu && <Actions $showActions={$showActions}>{menu}</Actions>}
+      {innerContent}
     </Link>
   );
 }
@@ -273,6 +300,8 @@ const Link = styled(NavLink)<{
   font-size: 16px;
   cursor: var(--pointer);
   overflow: hidden;
+  border: 0;
+  width: 100%;
   ${undraggableOnDesktop()}
 
   ${(props) =>
@@ -352,6 +381,8 @@ const Label = styled.div<{ $ellipsis: boolean }>`
   line-height: 24px;
   margin-left: 2px;
   min-width: 0;
+  text-align: left;
+
   ${(props) => props.$ellipsis && ellipsis()}
 
   * {

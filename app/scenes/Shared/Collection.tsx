@@ -42,6 +42,7 @@ function SharedCollection({ collection }: Props) {
           to={{
             pathname: collectionPath(collection, "overview"),
           }}
+          aria-label={t("Edit collection")}
           neutral
         >
           {isMobile ? null : t("Edit")}

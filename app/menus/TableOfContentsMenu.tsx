@@ -72,7 +72,12 @@ function TableOfContentsMenu() {
 
   return (
     <DropdownMenu action={rootAction} ariaLabel={t("Table of contents")}>
-      <Button icon={<TableOfContentsIcon />} borderOnHover neutral />
+      <Button
+        icon={<TableOfContentsIcon />}
+        aria-label={t("Table of contents")}
+        borderOnHover
+        neutral
+      />
     </DropdownMenu>
   );
 }

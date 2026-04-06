@@ -367,7 +367,11 @@ export default function FindAndReplace({
   return (
     <Popover open={localOpen} onOpenChange={setLocalOpen}>
       <PopoverTrigger>
-        <span style={style} />
+        <button
+          type="button"
+          aria-label={t("Find and replace")}
+          style={{ ...style, background: "none", border: 0, padding: 0 }}
+        />
       </PopoverTrigger>
       <PopoverContent
         aria-label={t("Find and replace")}
