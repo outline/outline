@@ -18,7 +18,7 @@ import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Tooltip from "~/components/Tooltip";
 import {
   Popover,
-  PopoverTrigger,
+  PopoverAnchor,
   PopoverContent,
 } from "~/components/primitives/Popover";
 import useKeyDown from "~/hooks/useKeyDown";
@@ -366,9 +366,9 @@ export default function FindAndReplace({
 
   return (
     <Popover open={localOpen} onOpenChange={setLocalOpen}>
-      <PopoverTrigger>
+      <PopoverAnchor>
         <span style={style} />
-      </PopoverTrigger>
+      </PopoverAnchor>
       <PopoverContent
         aria-label={t("Find and replace")}
         width={0}

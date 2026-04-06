@@ -130,7 +130,7 @@ async function start(_id: number, disconnect: () => void) {
       }
 
       this.body = `
-<html>
+<html lang="en">
 <head>
   <title>Redirecting…</title>
 </head>
@@ -146,7 +146,7 @@ async function start(_id: number, disconnect: () => void) {
     } else {
       // Default GET method using meta refresh
       this.body = `
-<html>
+<html lang="en">
 <head>
 <meta http-equiv="refresh" content="0;URL='${escape(url)}'" />
 </head>

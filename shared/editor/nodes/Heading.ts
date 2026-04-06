@@ -200,6 +200,7 @@ export default class Heading extends Node {
           anchor.innerText = "#";
           anchor.type = "button";
           anchor.className = "heading-anchor";
+          anchor.setAttribute("aria-label", "Copy link to heading");
           anchor.addEventListener("mousedown", (event) =>
             this.handleCopyLink(event)
           );
@@ -213,6 +214,10 @@ export default class Heading extends Node {
           fold.className = `heading-fold ${
             node.attrs.collapsed ? "collapsed" : ""
           }`;
+          fold.setAttribute(
+            "aria-label",
+            node.attrs.collapsed ? "Expand section" : "Collapse section"
+          );
           fold.addEventListener("mousedown", (event) =>
             this.handleFoldContent(event)
           );
