@@ -2595,27 +2595,34 @@ del {
   }
 }
 
-.toggle-block {
+li > .${EditorStyleHelper.toggleBlock} {
+  position: relative;
+  /* Nudge the toggle to visually align with the first line of list-item text.
+     Keep this in em so it scales with the current font size. */
+  top: 0.4em;
+}
+
+.${EditorStyleHelper.toggleBlock} {
   display: flex;
 
   &:focus-within {
     transition-delay: 0.1s;
   }
 
-  &.folded {
+  &.${EditorStyleHelper.toggleBlockFolded} {
     &:dir(rtl) {
       --rotate-by: 90deg;
     }
     &:dir(ltr) {
       --rotate-by: -90deg;
     }
-    > .toggle-block-content > :is(:not(.toggle-block-head)) {
+    > .${EditorStyleHelper.toggleBlockContent} > :is(:not(.${EditorStyleHelper.toggleBlockHead})) {
       display: none;
     }
-    > .toggle-block-content > :is(a.heading-name) {
+    > .${EditorStyleHelper.toggleBlockContent} > :is(a.heading-name) {
       display: unset;
     }
-    > .toggle-block-button {
+    > .${EditorStyleHelper.toggleBlockButton} {
       svg {
         transform: rotate(var(--rotate-by));
         pointer-events: none;
@@ -2624,7 +2631,7 @@ del {
     }
   }
 
-  > .toggle-block-button {
+  > .${EditorStyleHelper.toggleBlockButton} {
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
@@ -2634,22 +2641,22 @@ del {
     --line-height: var(--line-height-p);
     --font-size: var(--font-size-p);
 
-    &:has(+ .toggle-block-content > .toggle-block-head > h1) {
+    &:has(+ .${EditorStyleHelper.toggleBlockContent} > .${EditorStyleHelper.toggleBlockHead} > h1) {
       --line-height: calc(var(--line-height-h) + 0.2);
       --font-size: var(--font-size-h1);
     }
 
-    &:has(+ .toggle-block-content > .toggle-block-head > h2) {
+    &:has(+ .${EditorStyleHelper.toggleBlockContent} > .${EditorStyleHelper.toggleBlockHead} > h2) {
       --line-height: calc(var(--line-height-h) + 0.2);
       --font-size: var(--font-size-h2);
     }
 
-    &:has(+ .toggle-block-content > .toggle-block-head > h3) {
+    &:has(+ .${EditorStyleHelper.toggleBlockContent} > .${EditorStyleHelper.toggleBlockHead} > h3) {
       --line-height: calc(var(--line-height-h) + 0.2);
       --font-size: var(--font-size-h3);
     }
 
-    &:has(+ .toggle-block-content > .toggle-block-head > h4) {
+    &:has(+ .${EditorStyleHelper.toggleBlockContent} > .${EditorStyleHelper.toggleBlockHead} > h4) {
       --line-height: calc(var(--line-height-h) + 0.2);
       --font-size: var(--font-size-h4);
     }
@@ -2677,14 +2684,14 @@ del {
     }
   }
 
-  > .toggle-block-content {
-    > :is(:not(.toggle-block-head)) {
+  > .${EditorStyleHelper.toggleBlockContent} {
+    > :is(:not(.${EditorStyleHelper.toggleBlockHead})) {
       margin-top: 0.5em;
     }
     > :is(:first-child) {
       margin-top: 0;
     }
-    > .toggle-block-head {
+    > .${EditorStyleHelper.toggleBlockHead} {
       > * {
         margin-top: 0;
       }
