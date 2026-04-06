@@ -674,6 +674,7 @@ export enum QueryNotices {
   UnsubscribeDocument = "unsubscribe-document",
   UnsubscribeCollection = "unsubscribe-collection",
   Subscribed = "subscribed",
+  Unsubscribed = "unsubscribed",
 }
 
 export type JSONValue =

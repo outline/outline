@@ -32,6 +32,10 @@ export default function useQueryNotices() {
         message = t("Subscription successful");
         break;
       }
+      case QueryNotices.Unsubscribed: {
+        message = t("Unsubscribed");
+        break;
+      }
       default:
     }
 

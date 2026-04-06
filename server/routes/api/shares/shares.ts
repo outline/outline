@@ -4,7 +4,7 @@ import type { FindOptions, WhereAttributeHash, WhereOptions } from "sequelize";
 import { Op } from "sequelize";
 import { subMinutes } from "date-fns";
 import { randomString } from "@shared/random";
-import { TeamPreference } from "@shared/types";
+import { QueryNotices, TeamPreference } from "@shared/types";
 import {
   AuthenticationError,
   InvalidRequestError,
@@ -583,7 +583,7 @@ router.get(
       }
     }
 
-    ctx.redirect(`${redirectUrl}?notice=subscribed`);
+    ctx.redirect(`${redirectUrl}?notice=${QueryNotices.Subscribed}`);
   }
 );
 
@@ -624,7 +624,7 @@ router.get(
 
     const share = await Share.findByPk(subscription.shareId);
     const shareUrl = share?.canonicalUrl ?? env.URL;
-    ctx.redirect(`${shareUrl}?notice=unsubscribed`);
+    ctx.redirect(`${shareUrl}?notice=${QueryNotices.Unsubscribed}`);
   }
 );
 
