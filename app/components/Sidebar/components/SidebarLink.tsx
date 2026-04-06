@@ -159,10 +159,10 @@ function SidebarLink(
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onDragEnter={handleMouseEnter}
-      // @ts-expect-error exact does not exist on div
+      // @ts-expect-error exact does not exist on button
       exact={exact !== false}
       to={to}
-      as={to ? undefined : href ? "a" : "div"}
+      as={to ? undefined : href ? "a" : "button"}
       href={href}
       className={className}
       ref={ref}
@@ -178,7 +178,7 @@ function SidebarLink(
               tabIndex={-1}
             />
           )}
-          {icon && <IconWrapper>{icon}</IconWrapper>}
+          {icon && <IconWrapper aria-hidden>{icon}</IconWrapper>}
           <Label $ellipsis={ellipsis}>{label}</Label>
           {unreadBadge && <UnreadBadge style={unreadStyle} />}
         </Content>

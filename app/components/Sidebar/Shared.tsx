@@ -78,7 +78,7 @@ function SharedSidebar({ share }: Props) {
             <Shortcut>{metaDisplay}K</Shortcut>
           </SearchButton>
         </TopSection>
-        <Section>
+        <Section as="nav" aria-label={t("Documents")}>
           {share.collectionId ? (
             <SharedCollectionLink
               node={rootNode}
