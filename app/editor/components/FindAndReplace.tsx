@@ -369,7 +369,7 @@ export default function FindAndReplace({
       <PopoverTrigger>
         <button
           type="button"
-          aria-label="Find and replace"
+          aria-label={t("Find and replace")}
           style={{ ...style, background: "none", border: 0, padding: 0 }}
         />
       </PopoverTrigger>

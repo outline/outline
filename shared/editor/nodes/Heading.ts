@@ -201,7 +201,7 @@ export default class Heading extends Node {
           anchor.type = "button";
           anchor.className = "heading-anchor";
           anchor.setAttribute("aria-label", "Copy link to heading");
-          anchor.addEventListener("click", (event) =>
+          anchor.addEventListener("mousedown", (event) =>
             this.handleCopyLink(event)
           );
 
