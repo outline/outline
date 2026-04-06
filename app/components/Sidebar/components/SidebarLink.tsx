@@ -206,6 +206,7 @@ function SidebarLink(
       to={to!}
       href={href}
       className={className}
+      // @ts-expect-error spread props cause overload mismatch with styled NavLink
       ref={ref}
       {...rest}
     >
