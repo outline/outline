@@ -110,8 +110,9 @@ function Notifications(
       <Flex
         style={{
           width: "100%",
-          height:
-            "min(300px, calc(var(--radix-popover-content-available-height) - 44px))",
+          minHeight: "300px",
+          maxHeight:
+            "min(75vh, calc(var(--radix-popover-content-available-height) - 44px))",
         }}
         column
       >

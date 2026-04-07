@@ -57,11 +57,14 @@ export default class DocumentSharedEmail extends BaseEmail<
   }
 
   protected subject({ actorName, document }: Props) {
-    return `${actorName} shared “${document.titleWithDefault}” with you`;
+    return this.t(`{{ actorName }} shared “{{ documentTitle }}” with you`, {
+      actorName,
+      documentTitle: document.titleWithDefault,
+    });
   }
 
   protected preview({ actorName }: Props): string {
-    return `${actorName} shared a document`;
+    return this.t("{{ actorName }} shared a document", { actorName });
   }
 
   protected fromName({ actorName }: Props) {
@@ -70,9 +73,9 @@ export default class DocumentSharedEmail extends BaseEmail<
 
   protected renderAsText({ actorName, teamUrl, document }: Props): string {
     return `
-${actorName} shared “${document.titleWithDefault}” with you.
+${this.t(`{{ actorName }} shared “{{ documentTitle }}” with you.`, { actorName, documentTitle: document.titleWithDefault })}
 
-View Document: ${teamUrl}${document.path}
+${this.t("View Document")}: ${teamUrl}${document.path}
 `;
   }
 
@@ -81,23 +84,29 @@ View Document: ${teamUrl}${document.path}
     const documentUrl = `${teamUrl}${document.path}?ref=notification-email`;
 
     const permission =
-      membership.permission === DocumentPermission.Read ? "view" : "edit";
+      membership.permission === DocumentPermission.Read
+        ? this.t("view")
+        : this.t("edit");
 
     return (
       <EmailTemplate
         previewText={this.preview(props)}
-        goToAction={{ url: documentUrl, name: "View Document" }}
+        goToAction={{ url: documentUrl, name: this.t("View Document") }}
       >
         <Header />
 
         <Body>
           <Heading>{document.titleWithDefault}</Heading>
           <p>
-            {actorName} invited you to {permission} the{" "}
-            <a href={documentUrl}>{document.titleWithDefault}</a> document.
+            {this.t("{{ actorName }} invited you to {{ permission }} the", {
+              actorName,
+              permission,
+            })}{" "}
+            <a href={documentUrl}>{document.titleWithDefault}</a>{" "}
+            {this.t("document")}.
           </p>
           <p>
-            <Button href={documentUrl}>View Document</Button>
+            <Button href={documentUrl}>{this.t("View Document")}</Button>
           </p>
         </Body>
       </EmailTemplate>

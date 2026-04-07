@@ -20,5 +20,6 @@ export default function presentTeam(team: Team) {
     inviteRequired: team.inviteRequired,
     allowedDomains: team.allowedDomains?.map((d) => d.name),
     preferences: team.preferences,
+    guidanceMCP: team.guidanceMCP,
   };
 }

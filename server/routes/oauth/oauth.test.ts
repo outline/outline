@@ -1,5 +1,7 @@
 import { faker } from "@faker-js/faker";
+import sharedEnv from "@shared/env";
 import { TeamPreference } from "@shared/types";
+import env from "@server/env";
 import { OAuthClient } from "@server/models";
 import { buildTeam } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
@@ -444,6 +446,24 @@ describe("GET /.well-known/oauth-authorization-server", () => {
     expect(body.authorization_endpoint).toContain("/oauth/authorize");
     expect(body.token_endpoint).toContain("/oauth/token");
   });
+
+  it("should include port in URLs when configured with a custom port (self-hosted)", async () => {
+    const originalUrl = env.URL;
+    env.URL = sharedEnv.URL = "https://example.com:444";
+
+    try {
+      const res = await server.get("/.well-known/oauth-authorization-server");
+
+      expect(res.status).toEqual(200);
+      const body = await res.json();
+      expect(body.issuer).toContain(":444");
+      expect(body.authorization_endpoint).toContain(":444");
+      expect(body.token_endpoint).toContain(":444");
+      expect(body.revocation_endpoint).toContain(":444");
+    } finally {
+      env.URL = sharedEnv.URL = originalUrl;
+    }
+  });
 });
 
 describe("GET /.well-known/oauth-protected-resource", () => {
@@ -478,5 +498,21 @@ describe("GET /.well-known/oauth-protected-resource", () => {
     });
 
     expect(res.status).toEqual(404);
+  });
+
+  it("should include port in URLs when configured with a custom port (self-hosted)", async () => {
+    const originalUrl = env.URL;
+    env.URL = sharedEnv.URL = "https://example.com:444";
+
+    try {
+      const res = await server.get("/.well-known/oauth-protected-resource");
+
+      expect(res.status).toEqual(200);
+      const body = await res.json();
+      expect(body.resource).toContain(":444");
+      expect(body.authorization_servers[0]).toContain(":444");
+    } finally {
+      env.URL = sharedEnv.URL = originalUrl;
+    }
   });
 });

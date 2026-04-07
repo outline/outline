@@ -55,6 +55,15 @@ function Breadcrumb(
     });
   }
 
+  const handleClick = React.useCallback(
+    (event: React.MouseEvent<HTMLAnchorElement>) => {
+      if (event.currentTarget.querySelector('[data-state="open"]')) {
+        event.preventDefault();
+      }
+    },
+    []
+  );
+
   const toBreadcrumb = React.useCallback(
     (action: TopLevelAction, index: number) => {
       if (action.type === "menu") {
@@ -68,6 +77,7 @@ function Breadcrumb(
           {item.icon}
           <Item
             to={item.to}
+            onClick={handleClick}
             $withIcon={!!item.icon}
             $highlight={!!highlightFirstItem && index === 0}
           >
@@ -76,7 +86,7 @@ function Breadcrumb(
         </>
       );
     },
-    [actionContext, highlightFirstItem]
+    [actionContext, handleClick, highlightFirstItem]
   );
 
   return (
@@ -103,19 +113,16 @@ const Item = styled(Link)<{ $highlight: boolean; $withIcon: boolean }>`
   ${ellipsis()}
   ${undraggableOnDesktop()}
 
-  display: flex;
   flex-shrink: 1;
   min-width: 0;
   cursor: var(--pointer);
   color: ${s("text")};
   font-size: 15px;
   height: 24px;
+  line-height: 24px;
   font-weight: ${(props) => (props.$highlight ? "500" : "inherit")};
   margin-left: ${(props) => (props.$withIcon ? "4px" : "0")};
-
-  svg {
-    flex-shrink: 0;
-  }
+  max-width: 460px;
 
   &:hover {
     text-decoration: underline;

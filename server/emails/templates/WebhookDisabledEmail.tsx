@@ -24,19 +24,20 @@ export default class WebhookDisabledEmail extends BaseEmail<Props> {
   }
 
   protected subject() {
-    return `Warning: Webhook disabled`;
+    return this.t("Warning") + ": " + this.t("Webhook disabled");
   }
 
   protected preview({ webhookName }: Props) {
-    return `Your webhook (${webhookName}) has been disabled`;
+    return this.t("Your webhook ({{ webhookName }}) has been disabled", {
+      webhookName,
+    });
   }
 
   protected renderAsText({ webhookName, teamUrl }: Props): string {
     return `
-Your webhook (${webhookName}) has been automatically disabled due to a high failure rate
-in recent delivery attempts. You can re-enable by editing the webhook.
+${this.t("Your webhook ({{ webhookName }}) has been automatically disabled due to a high failure rate in recent delivery attempts. You can re-enable by editing the webhook.", { webhookName })}
 
-Webhook settings: ${teamUrl}/settings/webhooks
+${this.t("Webhook settings")}: ${teamUrl}/settings/webhooks
 `;
   }
 
@@ -49,15 +50,18 @@ Webhook settings: ${teamUrl}/settings/webhooks
         <Header />
 
         <Body>
-          <Heading>Webhook disabled</Heading>
+          <Heading>{this.t("Webhook disabled")}</Heading>
           <p>
-            Your webhook ({webhookName}) has been automatically disabled due to
-            a high failure rate in recent delivery attempts. You can re-enable
-            by editing the webhook.
+            {this.t(
+              "Your webhook ({{ webhookName }}) has been automatically disabled due to a high failure rate in recent delivery attempts. You can re-enable by editing the webhook.",
+              { webhookName }
+            )}
           </p>
           <EmptySpace height={10} />
           <p>
-            <Button href={webhookSettingsLink}>Webhook settings</Button>
+            <Button href={webhookSettingsLink}>
+              {this.t("Webhook settings")}
+            </Button>
           </p>
         </Body>
 

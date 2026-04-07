@@ -4,6 +4,7 @@ import type { Team, User } from "@server/models";
 import { addTags } from "@server/logging/tracer";
 import { traceFunction } from "@server/logging/tracing";
 import { type APIContext, AuthenticationType } from "@server/types";
+import type { NavigationNode } from "@shared/types";
 
 interface McpContext {
   authInfo?: AuthInfo;
@@ -107,34 +108,26 @@ export function withTracing<F extends (...args: any[]) => any>(
 }
 
 /**
- * Wraps an MCP resource handler with Datadog tracing. Each invocation creates
- * a span under the `outline-mcp` service with the resource name, and tags it
- * with the acting user and team IDs.
+ * Builds a map from document ID to its zero-based index among siblings,
+ * derived from a collection's document structure.
  *
- * @param resourceName - the name of the MCP resource being traced.
- * @param handler - the handler function to wrap.
- * @returns the wrapped handler with tracing enabled.
+ * @param nodes - the top-level navigation nodes from a collection's documentStructure.
+ * @returns a map of document ID to sibling index.
  */
-export function withResourceTracing<F extends (...args: any[]) => any>(
-  resourceName: string,
-  handler: F
-): F {
-  return traceFunction({
-    serviceName: "mcp",
-    spanName: "resource",
-    resourceName: resourceName,
-  })(function tracedHandler(this: any, ...args: any[]) {
-    const context = args[args.length - 1];
-    const user = getActorFromContext(context);
-    if (user) {
-      addTags({
-        "mcp.resource": resourceName,
-        "request.userId": user.id,
-        "request.teamId": user.teamId,
-      });
-    }
-    return handler.apply(this, args);
-  } as F);
+export function buildSiblingIndexMap(
+  nodes: NavigationNode[]
+): Map<string, number> {
+  const map = new Map<string, number>();
+
+  function walk(children: NavigationNode[]) {
+    children.forEach((node, idx) => {
+      map.set(node.id, idx);
+      walk(node.children);
+    });
+  }
+
+  walk(nodes);
+  return map;
 }
 
 /**

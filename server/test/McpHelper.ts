@@ -97,32 +97,3 @@ export async function callMcpTool(
       }
     | undefined;
 }
-
-/**
- * Shorthand to read an MCP resource via the test server.
- *
- * @param server - the TestServer instance.
- * @param accessToken - the OAuth access token.
- * @param uri - the resource URI to read.
- * @returns the parsed resource read result.
- */
-export async function readMcpResource(
-  server: { post: (path: string, opts: unknown) => Promise<Response> },
-  accessToken: string,
-  uri: string
-) {
-  const { body } = mcpRequest("resources/read", { uri });
-
-  const res = await server.post("/mcp/", {
-    headers: mcpHeaders(accessToken),
-    body,
-  });
-
-  const parsed = await parseMcpResponse(res);
-  return parsed as
-    | {
-        result?: { contents?: { text?: string; mimeType?: string }[] };
-        error?: unknown;
-      }
-    | undefined;
-}

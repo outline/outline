@@ -24,17 +24,17 @@ jobs:
       - uses: actions/checkout@v5
       - name: Enable Corepack
         run: corepack enable
-      - name: Use Node.js 22.x
+      - name: Use Node.js 24.x
         uses: actions/setup-node@v5
         with:
-          node-version: 22.x
+          node-version: 24.x
           cache: "yarn"
       - name: Cache node_modules
         id: cache-node-modules
         uses: actions/cache@v4
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('yarn.lock') }}
+          key: ${{ runner.os }}-node-modules-24.x-${{ hashFiles('yarn.lock') }}
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: yarn install --immutable
@@ -48,13 +48,13 @@ jobs:
         run: corepack enable
       - uses: actions/setup-node@v5
         with:
-          node-version: 22.x
+          node-version: 24.x
           cache: "yarn"
       - name: Restore node_modules
         uses: actions/cache@v4
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('yarn.lock') }}
+          key: ${{ runner.os }}-node-modules-24.x-${{ hashFiles('yarn.lock') }}
       - run: yarn lint --quiet
 
   types:
@@ -66,13 +66,13 @@ jobs:
         run: corepack enable
       - uses: actions/setup-node@v5
         with:
-          node-version: 22.x
+          node-version: 24.x
           cache: "yarn"
       - name: Restore node_modules
         uses: actions/cache@v4
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('yarn.lock') }}
+          key: ${{ runner.os }}-node-modules-24.x-${{ hashFiles('yarn.lock') }}
       - run: yarn tsc
 
   changes:
@@ -114,13 +114,13 @@ jobs:
         run: corepack enable
       - uses: actions/setup-node@v5
         with:
-          node-version: 22.x
+          node-version: 24.x
           cache: "yarn"
       - name: Restore node_modules
         uses: actions/cache@v4
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('yarn.lock') }}
+          key: ${{ runner.os }}-node-modules-24.x-${{ hashFiles('yarn.lock') }}
       - run: yarn test:${{ matrix.test-group }}
 
   test-server:
@@ -152,13 +152,13 @@ jobs:
         run: corepack enable
       - uses: actions/setup-node@v5
         with:
-          node-version: 22.x
+          node-version: 24.x
           cache: "yarn"
       - name: Restore node_modules
         uses: actions/cache@v4
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('yarn.lock') }}
+          key: ${{ runner.os }}-node-modules-24.x-${{ hashFiles('yarn.lock') }}
       - run: yarn sequelize db:migrate
       - name: Run server tests
         run: |
@@ -175,13 +175,13 @@ jobs:
         run: corepack enable
       - uses: actions/setup-node@v5
         with:
-          node-version: 22.x
+          node-version: 24.x
           cache: "yarn"
       - name: Restore node_modules
         uses: actions/cache@v4
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('yarn.lock') }}
+          key: ${{ runner.os }}-node-modules-24.x-${{ hashFiles('yarn.lock') }}
       - name: Set environment to production
         run: echo "NODE_ENV=production" >> $GITHUB_ENV
       - run: yarn vite:build

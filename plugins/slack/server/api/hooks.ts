@@ -23,7 +23,7 @@ import {
   AuthenticationProvider,
   Comment,
 } from "@server/models";
-import SearchHelper from "@server/models/helpers/SearchHelper";
+import SearchProviderManager from "@server/utils/SearchProviderManager";
 import { can } from "@server/policies";
 import type { APIContext } from "@server/types";
 import { safeEqual } from "@server/utils/crypto";
@@ -238,7 +238,7 @@ router.post(
       return;
     }
 
-    const { results, total } = await SearchHelper.searchForUser(user, options);
+    const { results, total } = await SearchProviderManager.getProvider().searchForUser(user, options);
 
     await SearchQuery.create({
       userId: user ? user.id : null,

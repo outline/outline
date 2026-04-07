@@ -95,12 +95,20 @@ router.post(
     const { user } = ctx.state.auth;
     authorize(user, "createUserPasskey", user.team);
 
+    // Fetch existing passkeys to exclude them from registration
+    const existingPasskeys = await UserPasskey.findAll({
+      where: { userId: user.id },
+    });
+
     const options = await generateRegistrationOptions({
       rpName,
       rpID: getRpID(ctx),
       userID: isoBase64URL.toBuffer(user.id),
       userName: user.email || user.name,
-      // Don't exclude credentials, so we can detect if one is already registered (optional)
+      excludeCredentials: existingPasskeys.map((pk) => ({
+        id: pk.credentialId,
+        transports: pk.transports as AuthenticatorTransportFuture[],
+      })),
       authenticatorSelection: {
         residentKey: "preferred",
         userVerification: "preferred",
@@ -154,6 +162,7 @@ router.post(
     }
 
     const { verified, registrationInfo } = verification;
+    const ZERO_AAGUID = "00000000-0000-0000-0000-000000000000";
 
     if (verified && registrationInfo) {
       const { credential, aaguid } = registrationInfo;
@@ -166,7 +175,7 @@ router.post(
       const userAgent = ctx.request.get("user-agent");
       const transports = body.response.transports || [];
 
-      // Check if already exists
+      // Check if already exists by credential ID
       const existing = await UserPasskey.findOne({
         where: { credentialId: credentialIdBase64 },
       });
@@ -183,6 +192,17 @@ router.post(
           aaguid,
         });
       } else {
+        // Check if user already has a passkey from the same authenticator
+        if (aaguid && aaguid !== ZERO_AAGUID) {
+          const duplicateDevice = await UserPasskey.findOne({
+            where: { userId: user.id, aaguid },
+          });
+
+          if (duplicateDevice) {
+            throw ValidationError("You already have a passkey on this device");
+          }
+        }
+
         await UserPasskey.createWithCtx(ctx, {
           userId: user.id,
           credentialId: credentialIdBase64,

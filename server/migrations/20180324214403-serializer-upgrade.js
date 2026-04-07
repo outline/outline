@@ -3,7 +3,7 @@ module.exports = {
     // upgrade to slate-md-serializer 3.0 means that newlines saved in Markdown are now
     // accurately reflected in the editor. To prevent a change in appearance in current docs
     // we need to collapse existing multiple newlines in the db.
-    const [documents, metaData] = await queryInterface.sequelize.query(
+    const [documents] = await queryInterface.sequelize.query(
       `SELECT * FROM documents`
     );
 

@@ -161,13 +161,24 @@ export const SelectedIconWrapper = styled.span`
   justify-content: center;
 `;
 
+export const MenuShortcut = styled.span`
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 12px;
+  color: currentColor;
+  opacity: 0.5;
+  margin-left: 16px;
+  flex-shrink: 0;
+`;
+
 export const MenuContent = styled(Scrollable)<{
   maxHeightVar: string;
   transformOriginVar: string;
 }>`
   z-index: ${depths.menu};
   min-width: 180px;
-  max-width: 276px;
+  max-width: 320px;
   min-height: 44px;
   max-height: ${({ maxHeightVar }) => `min(85vh, var(${maxHeightVar}))`};
   font-weight: normal;

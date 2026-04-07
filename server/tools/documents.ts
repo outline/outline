@@ -1,20 +1,12 @@
 import { z } from "zod";
-import {
-  type McpServer,
-  ResourceTemplate,
-} from "@modelcontextprotocol/sdk/server/mcp.js";
-import {
-  type CallToolResult,
-  McpError,
-  ErrorCode,
-} from "@modelcontextprotocol/sdk/types.js";
+import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { type CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import documentCreator from "@server/commands/documentCreator";
 import documentMover from "@server/commands/documentMover";
 import documentUpdater from "@server/commands/documentUpdater";
 import { Op } from "sequelize";
 import { Collection, Document } from "@server/models";
 import { sequelize } from "@server/storage/database";
-import SearchHelper from "@server/models/helpers/SearchHelper";
 import { authorize } from "@server/policies";
 import { presentDocument } from "@server/presenters";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
@@ -23,74 +15,22 @@ import {
   error,
   success,
   buildAPIContext,
+  buildSiblingIndexMap,
   getActorFromContext,
   pathToUrl,
   withTracing,
-  withResourceTracing,
 } from "./util";
 import { TextEditMode } from "@shared/types";
+import SearchProviderManager from "@server/utils/SearchProviderManager";
 
 /**
- * Registers document-related MCP tools and resources on the given server,
- * filtered by the OAuth scopes granted to the current token.
+ * Registers document-related MCP tools on the given server, filtered by
+ * the OAuth scopes granted to the current token.
  *
  * @param server - the MCP server instance to register on.
  * @param scopes - the OAuth scopes granted to the access token.
  */
 export function documentTools(server: McpServer, scopes: string[]) {
-  if (AuthenticationHelper.canAccess("documents.info", scopes)) {
-    server.registerResource(
-      "get_document",
-      new ResourceTemplate("outline://documents/{id}", { list: undefined }),
-      {
-        title: "Get document",
-        description: "Fetches the content of a document by its ID.",
-        mimeType: "text/markdown",
-      },
-      withResourceTracing("get_document", async (uri, variables, extra) => {
-        try {
-          const { id } = variables;
-          const user = getActorFromContext(extra);
-          const document = await Document.findByPk(String(id), {
-            userId: user.id,
-            rejectOnEmpty: true,
-          });
-
-          authorize(user, "read", document);
-
-          const { text, ...attributes } = await presentDocument(
-            undefined,
-            document,
-            {
-              includeData: false,
-              includeText: true,
-              includeUpdatedAt: true,
-            }
-          );
-          return {
-            contents: [
-              {
-                uri: uri.href,
-                mimeType: "application/json",
-                text: JSON.stringify(pathToUrl(user.team, attributes)),
-              },
-              {
-                uri: uri.href,
-                mimeType: "text/markdown",
-                text: String(text ?? ""),
-              },
-            ],
-          };
-        } catch (err) {
-          throw new McpError(
-            ErrorCode.InvalidParams,
-            err instanceof Error ? err.message : String(err)
-          );
-        }
-      })
-    );
-  }
-
   if (AuthenticationHelper.canAccess("documents.list", scopes)) {
     server.registerTool(
       "list_documents",
@@ -113,13 +53,13 @@ export function documentTools(server: McpServer, scopes: string[]) {
             .string()
             .optional()
             .describe("An optional collection ID to filter documents by."),
-          offset: z
+          offset: z.coerce
             .number()
             .int()
             .min(0)
             .optional()
             .describe("The pagination offset. Defaults to 0."),
-          limit: z
+          limit: z.coerce
             .number()
             .int()
             .min(1)
@@ -138,14 +78,23 @@ export function documentTools(server: McpServer, scopes: string[]) {
             const effectiveOffset = offset ?? 0;
             const effectiveLimit = limit ?? 25;
 
+            let indexMap: Map<string, number> | undefined;
+
             if (collectionId) {
               const collection = await Collection.findByPk(collectionId, {
                 userId: user.id,
+                includeDocumentStructure: true,
               });
               authorize(user, "readDocument", collection);
+
+              if (collection?.documentStructure) {
+                indexMap = buildSiblingIndexMap(collection.documentStructure);
+              }
             }
 
             if (query) {
+              const searchProvider = SearchProviderManager.getProvider();
+
               // If the query looks like a document ID or urlId, try direct
               // lookup first so exact matches appear at the top of results.
               let exactMatch: Document | null = null;
@@ -162,7 +111,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
                 }
               }
 
-              const { results } = await SearchHelper.searchForUser(user, {
+              const { results } = await searchProvider.searchForUser(user, {
                 query,
                 collectionId,
                 offset: effectiveOffset,
@@ -180,7 +129,14 @@ export function documentTools(server: McpServer, scopes: string[]) {
                         includeText: false,
                       })
                     );
-                    return { ...doc, context: result.context };
+                    const siblingIndex = indexMap?.get(result.document.id);
+                    return {
+                      ...doc,
+                      context: result.context,
+                      ...(siblingIndex !== undefined && {
+                        index: siblingIndex,
+                      }),
+                    };
                   })
               );
 
@@ -192,7 +148,12 @@ export function documentTools(server: McpServer, scopes: string[]) {
                     includeText: false,
                   })
                 );
-                presented.unshift({ ...doc, context: undefined });
+                const siblingIndex = indexMap?.get(exactMatch.id);
+                presented.unshift({
+                  ...doc,
+                  context: undefined,
+                  ...(siblingIndex !== undefined && { index: siblingIndex }),
+                });
               }
 
               return success(presented);
@@ -215,15 +176,20 @@ export function documentTools(server: McpServer, scopes: string[]) {
             });
 
             const presented = await Promise.all(
-              documents.map(async (document) =>
-                pathToUrl(
+              documents.map(async (document) => {
+                const result = pathToUrl(
                   user.team,
                   await presentDocument(undefined, document, {
                     includeData: false,
                     includeText: false,
                   })
-                )
-              )
+                );
+                const siblingIndex = indexMap?.get(document.id);
+                if (siblingIndex !== undefined) {
+                  result.index = siblingIndex;
+                }
+                return result;
+              })
             );
             return success(presented);
           } catch (message) {
@@ -349,7 +315,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
       {
         title: "Move document",
         description:
-          "Moves a document to a different collection or parent document. Provide either a collectionId to move to the root of a collection, or a parentDocumentId to nest under another document.",
+          "Moves a document to a different location or reorders it within its current parent. Provide a collectionId to move to the root of a collection, a parentDocumentId to nest under another document, and/or an index to control position among siblings.",
         annotations: {
           idempotentHint: false,
           readOnlyHint: false,
@@ -369,6 +335,14 @@ export function documentTools(server: McpServer, scopes: string[]) {
             .optional()
             .describe(
               "The ID of the document to nest this document under. The document will be moved to the parent's collection."
+            ),
+          index: z
+            .number()
+            .int()
+            .min(0)
+            .optional()
+            .describe(
+              "The zero-based position to insert the document among its siblings. Use this to reorder documents within the same collection and parent. Omit to place at the end."
             ),
         },
       },
@@ -421,22 +395,39 @@ export function documentTools(server: McpServer, scopes: string[]) {
               authorize(user, "updateDocument", collection);
             }
 
-            const { documents } = await documentMover(ctx, {
+            const { documents, collections } = await documentMover(ctx, {
               document,
               collectionId: collectionId ?? null,
               parentDocumentId: input.parentDocumentId ?? null,
+              index: input.index,
             });
 
+            const indexMap = new Map<string, number>();
+            for (const col of collections) {
+              if (col.documentStructure) {
+                for (const [id, idx] of buildSiblingIndexMap(
+                  col.documentStructure
+                )) {
+                  indexMap.set(id, idx);
+                }
+              }
+            }
+
             const presented = await Promise.all(
-              documents.map(async (doc) =>
-                pathToUrl(
+              documents.map(async (doc) => {
+                const result = pathToUrl(
                   user.team,
                   await presentDocument(undefined, doc, {
                     includeData: false,
                     includeText: false,
                   })
-                )
-              )
+                );
+                const siblingIndex = indexMap.get(doc.id);
+                if (siblingIndex !== undefined) {
+                  result.index = siblingIndex;
+                }
+                return result;
+              })
             );
             return success(presented);
           });

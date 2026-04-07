@@ -5,9 +5,14 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Icon from "@shared/components/Icon";
 import type { NavigationNode } from "@shared/types";
+import type Collection from "~/models/Collection";
 import type Document from "~/models/Document";
 import Breadcrumb from "~/components/Breadcrumb";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
+import { ContextMenu } from "~/components/Menu/ContextMenu";
+import { ActionContextProvider } from "~/hooks/useActionContext";
+import { useCollectionMenuAction } from "~/hooks/useCollectionMenuAction";
+import { useDocumentMenuAction } from "~/hooks/useDocumentMenuAction";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -68,7 +73,9 @@ function DocumentBreadcrumb(
         to: archivePath(),
       }),
       createInternalLinkAction({
-        name: collection?.name,
+        name: collection ? (
+          <CollectionName collection={collection} />
+        ) : undefined,
         section: ActiveDocumentSection,
         icon: collection ? (
           <CollectionIcon collection={collection} expanded />
@@ -90,18 +97,20 @@ function DocumentBreadcrumb(
       ...path.map((node) => {
         const title = node.title || t("Untitled");
         return createInternalLinkAction({
-          name: node.icon ? (
-            <>
-              <StyledIcon
-                value={node.icon}
-                color={node.color}
-                initial={node.title.charAt(0).toUpperCase()}
-              />{" "}
-              {title}
-            </>
-          ) : (
-            title
+          name: (
+            <DocumentName
+              documentId={node.id}
+              collection={collection}
+              title={title}
+            />
           ),
+          icon: node.icon ? (
+            <Icon
+              value={node.icon}
+              color={node.color}
+              initial={title.charAt(0).toUpperCase()}
+            />
+          ) : undefined,
           section: ActiveDocumentSection,
           to: {
             pathname: node.url,
@@ -169,9 +178,57 @@ function DocumentBreadcrumb(
   );
 }
 
-const StyledIcon = styled(Icon)`
-  margin-right: 2px;
-`;
+/** Renders a collection name wrapped in a context menu. */
+const CollectionName = observer(function CollectionName_({
+  collection,
+}: {
+  collection: Collection;
+}) {
+  const { t } = useTranslation();
+  const menuAction = useCollectionMenuAction({
+    collectionId: collection.id,
+  });
+
+  return (
+    <ActionContextProvider value={{ activeModels: [collection] }}>
+      <ContextMenu action={menuAction} ariaLabel={t("Collection options")}>
+        <span>{collection.name}</span>
+      </ContextMenu>
+    </ActionContextProvider>
+  );
+});
+
+/** Renders a document name wrapped in a context menu. */
+const DocumentName = observer(function DocumentName_({
+  documentId,
+  collection,
+  title,
+}: {
+  documentId: string;
+  collection: Collection | undefined;
+  title: string;
+}) {
+  const { t } = useTranslation();
+  const { documents } = useStores();
+  const doc = documents.get(documentId);
+  const menuAction = useDocumentMenuAction({ documentId });
+
+  if (!doc) {
+    return <>{title}</>;
+  }
+
+  return (
+    <ActionContextProvider
+      value={{
+        activeModels: [doc, ...(collection ? [collection] : [])],
+      }}
+    >
+      <ContextMenu action={menuAction} ariaLabel={t("Document options")}>
+        <span>{title}</span>
+      </ContextMenu>
+    </ActionContextProvider>
+  );
+});
 
 const SmallSlash = styled(GoToIcon)`
   width: 12px;

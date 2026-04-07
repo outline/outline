@@ -12,23 +12,32 @@ import { rateLimiter } from "@server/middlewares/rateLimiter";
 import requestTracer from "@server/middlewares/requestTracer";
 import { AuthenticationType } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
+import { attachmentTools } from "@server/tools/attachments";
 import { collectionTools } from "@server/tools/collections";
 import { commentTools } from "@server/tools/comments";
 import { documentTools } from "@server/tools/documents";
+import { fetchTool } from "@server/tools/fetch";
 import { userTools } from "@server/tools/users";
 import { version } from "../../../package.json";
 
 const app = new Koa();
 const router = new Router();
 
+const defaultInstructions = `Document and collection markdown support @mentions using the syntax: @[Display Name](mention://user/userId). For example: @[John Doe](mention://user/c9a1b2e3-...). Use the list_users tool to find user IDs.`;
+
 /**
- * Creates a fresh MCP server instance with tools and resources filtered by
- * the OAuth scopes granted to the current token.
+ * Creates a fresh MCP server instance with tools filtered by the OAuth
+ * scopes granted to the current token.
  *
  * @param scopes - the OAuth scopes granted to the access token.
+ * @param guidance - optional workspace guidance to append to default instructions.
  * @returns a configured McpServer ready to be connected to a transport.
  */
-function createMcpServer(scopes: string[]): McpServer {
+function createMcpServer(scopes: string[], guidance?: string): McpServer {
+  const instructions = guidance
+    ? `${defaultInstructions}\n\n${guidance}`
+    : defaultInstructions;
+
   const server = new McpServer(
     {
       name: "outline",
@@ -36,15 +45,17 @@ function createMcpServer(scopes: string[]): McpServer {
     },
     {
       capabilities: {
-        resources: {},
         tools: {},
       },
+      instructions,
     }
   );
 
+  attachmentTools(server, scopes);
   collectionTools(server, scopes);
   commentTools(server, scopes);
   documentTools(server, scopes);
+  fetchTool(server, scopes);
   userTools(server, scopes);
 
   return server;
@@ -53,7 +64,13 @@ function createMcpServer(scopes: string[]): McpServer {
 router.post(
   "/",
   rateLimiter(RateLimiterStrategy.OneThousandPerHour),
-  auth({ type: [AuthenticationType.MCP, AuthenticationType.OAUTH] }),
+  auth({
+    type: [
+      AuthenticationType.MCP,
+      AuthenticationType.OAUTH,
+      AuthenticationType.API,
+    ],
+  }),
   async (ctx) => {
     const { user, token, scope } = ctx.state.auth;
 
@@ -61,7 +78,10 @@ router.post(
       throw NotFoundError();
     }
 
-    const server = createMcpServer(scope ?? []);
+    const server = createMcpServer(
+      scope ?? [],
+      user.team.guidanceMCP ?? undefined
+    );
     const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: undefined,
     });

@@ -11,6 +11,7 @@ import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import type Share from "~/models/Share";
 import Error404 from "~/scenes/Errors/Error404";
+import SharedCommandBar from "~/components/CommandBar/SharedCommandBar";
 import { DocumentContextProvider } from "~/components/DocumentContext";
 import Layout from "~/components/Layout";
 import Sidebar from "~/components/Sidebar/Shared";
@@ -249,6 +250,7 @@ function SharedScene() {
       value={{
         shareId,
         sharedTree: share.tree,
+        allowSubscriptions: share.allowSubscriptions,
       }}
     >
       <Helmet>
@@ -270,6 +272,7 @@ function SharedScene() {
                 <CollectionScene collection={model} />
               ) : null}
             </Layout>
+            <SharedCommandBar />
             <ClickablePadding minHeight="20vh" />
           </DocumentContextProvider>
         </ThemeProvider>

@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import type { RouteComponentProps, StaticContext } from "react-router";
-import { useLocation } from "react-router";
+import { Redirect, useLocation } from "react-router";
 import { TeamPreference } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
@@ -27,7 +27,11 @@ import {
   PaymentRequiredError,
 } from "~/utils/errors";
 import history from "~/utils/history";
-import { matchDocumentEdit, settingsPath } from "~/utils/routeHelpers";
+import {
+  matchDocumentEdit,
+  settingsPath,
+  updateDocumentPath,
+} from "~/utils/routeHelpers";
 import useDocumentSidebar from "../hooks/useDocumentSidebar";
 import Loading from "./Loading";
 import MarkAsViewed from "./MarkAsViewed";
@@ -237,6 +241,21 @@ function DataLoader({ match, children }: Props) {
       <>
         <Loading location={location} />
       </>
+    );
+  }
+
+  // Redirect to the canonical URL if the document slug has changed, e.g.
+  // after a rename, so the browser address bar stays in sync.
+  const canonicalUrl = updateDocumentPath(match.url, document);
+  if (location.pathname !== canonicalUrl) {
+    return (
+      <Redirect
+        to={{
+          pathname: canonicalUrl,
+          state: location.state,
+          hash: location.hash,
+        }}
+      />
     );
   }
 

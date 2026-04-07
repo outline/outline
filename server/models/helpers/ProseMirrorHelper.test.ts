@@ -2,7 +2,6 @@ import { faker } from "@faker-js/faker";
 import type { DeepPartial } from "utility-types";
 import type { ProsemirrorData } from "@shared/types";
 import { MentionType } from "@shared/types";
-import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { createContext } from "@server/context";
 import { buildProseMirrorDoc, buildUser } from "@server/test/factories";
 import type { MentionAttrs } from "./ProsemirrorHelper";
@@ -973,7 +972,7 @@ describe("ProsemirrorHelper", () => {
         },
       ]);
 
-      const images = SharedProsemirrorHelper.getImages(doc);
+      const images = ProsemirrorHelper.getImages(doc);
       expect(images.length).toBe(1);
       expect(images[0].attrs.src).toBe("https://example.com/image.png");
       expect(images[0].attrs.alt).toBe("Test image");

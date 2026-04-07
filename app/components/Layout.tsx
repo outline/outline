@@ -48,6 +48,7 @@ const Layout = React.forwardRef(function Layout_(
         <Content
           auto
           justify="center"
+          role="main"
           $isResizing={ui.sidebarIsResizing}
           $sidebarCollapsed={sidebarCollapsed}
           $hasSidebar={!!sidebar}

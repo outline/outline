@@ -18,6 +18,7 @@ function Disclosure({ onClick, expanded, ...rest }: Props) {
       size={20}
       onClick={onClick}
       aria-label={expanded ? t("Collapse") : t("Expand")}
+      aria-expanded={expanded}
       {...rest}
     >
       <StyledCollapsedIcon $expanded={expanded} size={20} />

@@ -96,6 +96,7 @@ export default async function userInviter(
 
     await new InviteEmail({
       to: invite.email,
+      language: newUser.language,
       name: invite.name,
       actorName: user.name,
       actorEmail: user.email,

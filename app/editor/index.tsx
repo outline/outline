@@ -120,8 +120,18 @@ export type Props = {
   onChange?: (value: () => any) => void;
   /** Callback when a comment mark is clicked */
   onClickCommentMark?: (commentId: string) => void;
-  /** Callback when a comment mark is created */
-  onCreateCommentMark?: (commentId: string, userId: string) => void;
+  /**
+   * Callback when a comment mark is created.
+   *
+   * @param commentId - the id of the comment mark.
+   * @param userId - the id of the user who created the mark.
+   * @param options - options for the comment mark creation.
+   */
+  onCreateCommentMark?: (
+    commentId: string,
+    userId: string,
+    options?: { focus: boolean }
+  ) => void;
   /** Callback when a comment mark is removed */
   onDeleteCommentMark?: (commentId: string) => void;
   /** Callback when comments sidebar should be opened */
@@ -133,7 +143,10 @@ export type Props = {
   /** Callback when file upload progress changes */
   onFileUploadProgress?: (id: string, fractionComplete: number) => void;
   /** Callback when a link is created, should return url to created document */
-  onCreateLink?: (params: Properties<Document>) => Promise<string>;
+  onCreateLink?: (
+    params: Properties<Document>,
+    nested?: boolean
+  ) => Promise<string>;
   /** Callback when user clicks on any link in the document */
   onClickLink: (
     href: string,
@@ -440,8 +453,8 @@ export class Editor extends React.PureComponent<
       schema: this.schema,
       doc,
       plugins: [
-        ...this.keymaps,
         ...this.plugins,
+        ...this.keymaps,
         anchorPlugin(),
         dropCursor({
           color: this.props.theme.cursor,
@@ -941,7 +954,7 @@ const EditorContainer = styled(Styles)<{
       a#comment-${props.focusedCommentId}
         ~ span.component-image
         div.image-wrapper {
-        outline: ${props.theme.commentMarkBackground} solid 2px;
+        outline: ${props.theme.commentedImageOutlineDark} solid 2px;
       }
     `}
 

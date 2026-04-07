@@ -1,10 +1,12 @@
 import { Scope, TeamPreference } from "@shared/types";
+import type { ProsemirrorData } from "@shared/types";
 import {
   buildUser,
   buildAdmin,
   buildCollection,
   buildDocument,
   buildComment,
+  buildCommentMark,
   buildOAuthAuthentication,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
@@ -13,7 +15,6 @@ import {
   mcpRequest,
   parseMcpResponse,
   callMcpTool,
-  readMcpResource,
 } from "@server/test/McpHelper";
 
 const server = getTestServer();
@@ -183,23 +184,22 @@ describe("POST /mcp/", () => {
       expect(data.url).toMatch(/^https?:\/\//);
     });
 
-    it("get_collection resource returns collection details", async () => {
+    it("fetch collection returns collection details", async () => {
       const { user, accessToken } = await buildOAuthUser();
       const collection = await buildCollection({
         teamId: user.teamId,
         userId: user.id,
       });
 
-      const res = await readMcpResource(
-        server,
-        accessToken,
-        `outline://collections/${collection.id}`
-      );
+      const res = await callMcpTool(server, accessToken, "fetch", {
+        resource: "collection",
+        id: collection.id,
+      });
 
-      expect(res?.result?.contents).toBeDefined();
-      expect(res!.result!.contents!.length).toBeGreaterThanOrEqual(1);
+      expect(res?.result?.content).toBeDefined();
+      expect(res!.result!.content!.length).toBeGreaterThanOrEqual(1);
 
-      const data = JSON.parse(res!.result!.contents![0].text ?? "{}");
+      const data = JSON.parse(res!.result!.content![0].text ?? "{}");
       expect(data.id).toEqual(collection.id);
       expect(data.url).toMatch(/^https?:\/\//);
     });
@@ -487,7 +487,7 @@ describe("POST /mcp/", () => {
       expect(res?.result?.isError).toBe(true);
     });
 
-    it("get_document resource returns metadata and markdown", async () => {
+    it("fetch document returns metadata and markdown", async () => {
       const { user, accessToken } = await buildOAuthUser();
       const collection = await buildCollection({
         teamId: user.teamId,
@@ -500,24 +500,22 @@ describe("POST /mcp/", () => {
         text: "# Hello\n\nWorld",
       });
 
-      const res = await readMcpResource(
-        server,
-        accessToken,
-        `outline://documents/${document.id}`
-      );
+      const res = await callMcpTool(server, accessToken, "fetch", {
+        resource: "document",
+        id: document.id,
+      });
 
-      expect(res?.result?.contents).toBeDefined();
-      expect(res!.result!.contents!.length).toEqual(2);
+      expect(res?.result?.content).toBeDefined();
+      expect(res!.result!.content!.length).toEqual(2);
 
       // First content is JSON metadata
-      const metadata = JSON.parse(res!.result!.contents![0].text ?? "{}");
+      const metadata = JSON.parse(res!.result!.content![0].text ?? "{}");
       expect(metadata.id).toEqual(document.id);
       expect(metadata.title).toEqual(document.title);
       expect(metadata.url).toMatch(/^https?:\/\//);
 
       // Second content is markdown text
-      expect(res!.result!.contents![1].mimeType).toEqual("text/markdown");
-      expect(res!.result!.contents![1].text).toContain("Hello");
+      expect(res!.result!.content![1].text).toContain("Hello");
     });
   });
 
@@ -622,6 +620,148 @@ describe("POST /mcp/", () => {
 
       expect(data.id).toEqual(comment.id);
       expect(data.text).toContain("Updated comment text");
+    });
+
+    it("list_comments includes anchorText when comment is anchored", async () => {
+      const { user, accessToken } = await buildOAuthUser();
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const document = await buildDocument({
+        teamId: user.teamId,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+      const comment = await buildComment({
+        userId: user.id,
+        documentId: document.id,
+      });
+
+      const anchorText = "highlighted text";
+      const content = {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              {
+                type: "text",
+                text: anchorText,
+                marks: [buildCommentMark({ id: comment.id, userId: user.id })],
+              },
+            ],
+          },
+        ],
+      } as ProsemirrorData;
+      await document.update({ content });
+
+      const res = await callMcpTool(server, accessToken, "list_comments", {
+        documentId: document.id,
+      });
+      const data = (res?.result?.content ?? []).map((c: { text: string }) =>
+        JSON.parse(c.text)
+      );
+
+      const match = data.find((c: { id: string }) => c.id === comment.id) as {
+        anchorText: string;
+      };
+      expect(match).toBeDefined();
+      expect(match.anchorText).toEqual(anchorText);
+    });
+
+    it("list_comments returns undefined anchorText for non-anchored comment", async () => {
+      const { user, accessToken } = await buildOAuthUser();
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const document = await buildDocument({
+        teamId: user.teamId,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+      await buildComment({
+        userId: user.id,
+        documentId: document.id,
+      });
+
+      const res = await callMcpTool(server, accessToken, "list_comments", {
+        documentId: document.id,
+      });
+      const data = (res?.result?.content ?? []).map((c: { text: string }) =>
+        JSON.parse(c.text)
+      );
+
+      expect(data.length).toBeGreaterThanOrEqual(1);
+      expect(data[0].anchorText).toBeUndefined();
+    });
+
+    it("create_comment includes anchorText in response", async () => {
+      const { user, accessToken } = await buildOAuthUser();
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const document = await buildDocument({
+        teamId: user.teamId,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+
+      const res = await callMcpTool(server, accessToken, "create_comment", {
+        documentId: document.id,
+        text: "A new comment",
+      });
+      const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+
+      // New comments have no anchor mark in the document, so anchorText is undefined
+      expect(data.id).toBeDefined();
+      expect(data.anchorText).toBeUndefined();
+    });
+
+    it("update_comment includes anchorText in response", async () => {
+      const { user, accessToken } = await buildOAuthUser();
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const document = await buildDocument({
+        teamId: user.teamId,
+        userId: user.id,
+        collectionId: collection.id,
+      });
+      const comment = await buildComment({
+        userId: user.id,
+        documentId: document.id,
+      });
+
+      const anchorText = "anchored content";
+      const content = {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              {
+                type: "text",
+                text: anchorText,
+                marks: [buildCommentMark({ id: comment.id, userId: user.id })],
+              },
+            ],
+          },
+        ],
+      } as ProsemirrorData;
+      await document.update({ content });
+
+      const res = await callMcpTool(server, accessToken, "update_comment", {
+        id: comment.id,
+        text: "Updated text",
+      });
+      const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+
+      expect(data.id).toEqual(comment.id);
+      expect(data.anchorText).toEqual(anchorText);
     });
 
     it("delete_comment deletes own comment", async () => {

@@ -142,7 +142,7 @@ export class GitLabUtils {
         const owner = parts.join("/");
 
         const type =
-          resourceType === "issues"
+          resourceType === "issues" || resourceType === "work_items"
             ? UnfurlResourceType.Issue
             : resourceType === "merge_requests"
               ? UnfurlResourceType.PR
@@ -192,7 +192,7 @@ export class GitLabUtils {
       const owner = parts.join("/");
 
       const type =
-        resourceType === "issues"
+        resourceType === "issues" || resourceType === "work_items"
           ? UnfurlResourceType.Issue
           : resourceType === "merge_requests"
             ? UnfurlResourceType.PR

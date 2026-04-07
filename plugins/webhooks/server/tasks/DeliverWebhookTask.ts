@@ -130,6 +130,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       case "users.invite":
       case "users.promote":
       case "users.demote":
+      case "users.invite_accepted":
         await this.handleUserEvent(subscription, event);
         return;
       case "documents.create":
@@ -886,6 +887,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       if (createdBy && team) {
         await new WebhookDisabledEmail({
           to: createdBy.email,
+          language: createdBy.language,
           teamUrl: team.url,
           webhookName: subscription.name,
         }).schedule();

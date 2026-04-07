@@ -277,6 +277,11 @@ export default class FileHelper {
       const data = bytes.slice(pos + 8, pos + 8 + length);
       pos += 12 + length; // advance to next chunk
 
+      // The IEND chunk marks the end of a valid PNG stream
+      if (type === "IEND") {
+        break;
+      }
+
       // Check for text chunks where Draw.io embeds metadata
       if (type === "tEXt" || type === "zTXt" || type === "iTXt") {
         const nullIndex = data.indexOf(0);

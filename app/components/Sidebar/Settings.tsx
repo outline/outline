@@ -31,7 +31,7 @@ function SettingsSidebar() {
 
   const groupedConfig = groupBy(
     configs.filter((item) =>
-      item.group === "Integrations" && item.pluginId
+      item.group === t("Integrations") && item.pluginId
         ? integrations.findByService(item.pluginId)
         : true
     ),

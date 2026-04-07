@@ -103,7 +103,13 @@ function Right({ children, border, className, skipInitialAnimation }: Props) {
   };
 
   return (
-    <Sidebar {...animationProps} $border={border} className={className}>
+    <Sidebar
+      {...animationProps}
+      $border={border}
+      className={className}
+      role="complementary"
+      aria-label="Right sidebar"
+    >
       <Position style={style} column>
         <ErrorBoundary>{children}</ErrorBoundary>
         <ResizeBorder

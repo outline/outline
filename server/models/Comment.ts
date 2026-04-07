@@ -13,7 +13,7 @@ import {
 import type { ProsemirrorData, ReactionSummary } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { CommentValidation } from "@shared/validations";
-import { basicSchema } from "@server/editor";
+import { commentSchema } from "@server/editor";
 import { ValidationError } from "@server/errors";
 import Document from "./Document";
 import User from "./User";
@@ -137,7 +137,7 @@ class Comment extends ParanoidModel<
    * @returns The plain text representation of the comment data
    */
   public toPlainText() {
-    const node = Node.fromJSON(basicSchema, this.data);
+    const node = Node.fromJSON(commentSchema, this.data);
     return ProsemirrorHelper.toPlainText(node);
   }
 

@@ -44,6 +44,9 @@ export const CollectionsCreateSchema = BaseSchema.extend({
       })
       .optional(),
     commenting: z.boolean().nullish(),
+    templateManagement: z
+      .enum([CollectionPermission.Admin, CollectionPermission.ReadWrite])
+      .prefault(CollectionPermission.Admin),
   }),
 });
 
@@ -176,6 +179,9 @@ export const CollectionsUpdateSchema = BaseSchema.extend({
       .optional(),
     sharing: z.boolean().optional(),
     commenting: z.boolean().nullish(),
+    templateManagement: z
+      .enum([CollectionPermission.Admin, CollectionPermission.ReadWrite])
+      .optional(),
   }),
 });
 

@@ -16,6 +16,7 @@ export default function presentShare(share: Share, isAdmin = false) {
     createdBy: presentUser(share.user),
     includeChildDocuments: share.includeChildDocuments,
     allowIndexing: share.allowIndexing,
+    allowSubscriptions: share.allowSubscriptions,
     showLastUpdated: share.showLastUpdated,
     showTOC: share.showTOC,
     lastAccessedAt: share.lastAccessedAt || undefined,

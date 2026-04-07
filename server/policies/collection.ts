@@ -143,16 +143,33 @@ allow(
   }
 );
 
-allow(User, "createTemplate", Collection, (user, collection) =>
-  and(
-    !!collection,
-    !!collection?.isActive,
-    isTeamMutable(user),
-    or(
-      isTeamAdmin(user, collection),
-      includesMembership(collection, [CollectionPermission.Admin])
+allow(
+  User,
+  ["createTemplate", "manageTemplate"],
+  Collection,
+  (user, collection) =>
+    and(
+      !!collection,
+      !!collection?.isActive,
+      isTeamModel(user, collection),
+      isTeamMutable(user),
+      or(
+        isTeamAdmin(user, collection),
+        includesMembership(collection, [CollectionPermission.Admin]),
+        and(
+          collection?.templateManagement === CollectionPermission.ReadWrite,
+          !user.isViewer,
+          !user.isGuest,
+          or(
+            collection?.permission === CollectionPermission.ReadWrite,
+            includesMembership(collection, [
+              CollectionPermission.ReadWrite,
+              CollectionPermission.Admin,
+            ])
+          )
+        )
+      )
     )
-  )
 );
 
 allow(User, ["update", "export", "archive"], Collection, (user, collection) =>

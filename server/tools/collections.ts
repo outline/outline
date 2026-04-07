@@ -1,10 +1,6 @@
 import { z } from "zod";
 import { Sequelize, Op, type WhereOptions } from "sequelize";
-import {
-  type McpServer,
-  ResourceTemplate,
-} from "@modelcontextprotocol/sdk/server/mcp.js";
-import { McpError, ErrorCode } from "@modelcontextprotocol/sdk/types.js";
+import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { CollectionPermission } from "@shared/types";
 import { Collection, Team } from "@server/models";
 import { authorize } from "@server/policies";
@@ -18,12 +14,11 @@ import {
   buildAPIContext,
   pathToUrl,
   withTracing,
-  withResourceTracing,
 } from "./util";
 
 /**
- * Registers collection-related MCP tools and resources on the given server,
- * filtered by the OAuth scopes granted to the current token.
+ * Registers collection-related MCP tools on the given server, filtered by
+ * the OAuth scopes granted to the current token.
  *
  * @param server - the MCP server instance to register on.
  * @param scopes - the OAuth scopes granted to the access token.
@@ -47,13 +42,13 @@ export function collectionTools(server: McpServer, scopes: string[]) {
             .describe(
               "An optional search query to filter collections by name."
             ),
-          offset: z
+          offset: z.coerce
             .number()
             .int()
             .min(0)
             .optional()
             .describe("The pagination offset. Defaults to 0."),
-          limit: z
+          limit: z.coerce
             .number()
             .int()
             .min(1)
@@ -141,52 +136,6 @@ export function collectionTools(server: McpServer, scopes: string[]) {
           }
         }
       )
-    );
-  }
-
-  if (AuthenticationHelper.canAccess("collections.info", scopes)) {
-    server.registerResource(
-      "get_collection",
-      new ResourceTemplate("outline://collections/{id}", { list: undefined }),
-      {
-        title: "Get collection",
-        description:
-          "Fetches the details of a collection by its ID, including its document structure.",
-        mimeType: "application/json",
-      },
-      withResourceTracing("get_collection", async (uri, variables, extra) => {
-        try {
-          const { id } = variables;
-          const user = getActorFromContext(extra);
-          const collection = await Collection.findByPk(String(id), {
-            includeDocumentStructure: true,
-            rejectOnEmpty: true,
-          });
-
-          authorize(user, "read", collection);
-
-          const presented = await presentCollection(undefined, collection);
-          return {
-            contents: [
-              {
-                uri: uri.href,
-                mimeType: "application/json",
-                text: JSON.stringify(pathToUrl(user.team, presented)),
-              },
-              {
-                uri: uri.href,
-                mimeType: "application/json",
-                text: JSON.stringify(collection.documentStructure ?? []),
-              },
-            ],
-          };
-        } catch (err) {
-          throw new McpError(
-            ErrorCode.InvalidParams,
-            err instanceof Error ? err.message : String(err)
-          );
-        }
-      })
     );
   }
 

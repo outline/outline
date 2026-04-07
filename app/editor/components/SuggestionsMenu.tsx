@@ -38,7 +38,7 @@ export type Props<T extends MenuItem = MenuItem> = {
   rtl: boolean;
   isActive: boolean;
   search: string;
-  trigger: string;
+  trigger: string | string[];
   uploadFile?: (file: File) => Promise<string>;
   onFileUploadStart?: () => void;
   onFileUploadStop?: () => void;
@@ -160,11 +160,15 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     const { state, dispatch } = view;
     const selection =
       isMobile && selectionRef.current ? selectionRef.current : state.selection;
+    const triggers = Array.isArray(props.trigger)
+      ? props.trigger
+      : [props.trigger];
+    const triggerLength = triggers[0].length;
     const poss = state.doc.cut(
-      selection.from - (props.search ?? "").length - props.trigger.length,
+      selection.from - (props.search ?? "").length - triggerLength,
       selection.from
     );
-    const trimTrigger = poss.textContent.startsWith(props.trigger);
+    const trimTrigger = triggers.some((t) => poss.textContent.startsWith(t));
 
     if (!props.search && !trimTrigger) {
       return;
@@ -178,7 +182,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
           0,
           selection.from -
             (props.search ?? "").length -
-            (trimTrigger ? props.trigger.length : 0)
+            (trimTrigger ? triggerLength : 0)
         ),
         selection.to
       )
@@ -245,10 +249,13 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
             ...item,
             name: "mention",
           });
-          void editorProps.onCreateLink?.({
-            title: item.attrs.label,
-            id: item.attrs.modelId,
-          });
+          void editorProps.onCreateLink?.(
+            {
+              title: item.attrs.label,
+              id: item.attrs.modelId,
+            },
+            !!item.attrs.nested
+          );
           return;
         case "image":
           return triggerFilePick(
@@ -344,7 +351,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         inputRef.current.accept = accept;
       }
       if (attrs) {
-        inputRef.current.dataset.attrs = attrs ? JSON.stringify(attrs) : "";
+        inputRef.current.dataset.attrs = JSON.stringify(attrs);
       }
       inputRef.current.click();
     }
@@ -757,7 +764,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
   const fileInput = uploadFile && (
     <VisuallyHidden.Root>
       <label>
-        <Trans>Import document</Trans>
+        <Trans>Upload file</Trans>
         <input
           type="file"
           ref={inputRef}
@@ -906,7 +913,9 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       <>
         <Drawer open={isActive} onOpenChange={handleOpenChange}>
           <DrawerContent aria-describedby={undefined}>
-            <DrawerTitle hidden>{props.trigger}</DrawerTitle>
+            <DrawerTitle hidden>
+              {Array.isArray(props.trigger) ? props.trigger[0] : props.trigger}
+            </DrawerTitle>
             <MobileScrollable hiddenScrollbars>
               {insertItem ? (
                 <LinkInputWrapper>
@@ -977,9 +986,9 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
           ) : (
             <List>{renderItems()}</List>
           )}
-          {fileInput}
         </BouncyPopoverContent>
       </Popover>
+      {fileInput}
       {submenu && itemRefs.current.get(submenu.index) && (
         <Popover open modal={false}>
           <PopoverAnchor

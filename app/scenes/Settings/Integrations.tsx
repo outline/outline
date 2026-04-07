@@ -27,7 +27,7 @@ function Integrations() {
   const groupedItems = groupBy(
     items.filter(
       (item) =>
-        item.group === "Integrations" &&
+        item.group === t("Integrations") &&
         item.enabled &&
         item.path !== settingsPath("integrations") &&
         item.name.toLowerCase().includes(query.toLowerCase())

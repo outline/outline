@@ -30,6 +30,7 @@ export type MenuItemButton = {
   disabled?: boolean;
   icon?: React.ReactNode;
   tooltip?: React.ReactChild;
+  shortcut?: string[];
 };
 
 export type MenuItemWithChildren = {
@@ -64,6 +65,7 @@ export type MenuInternalLink = {
   selected?: boolean;
   disabled?: boolean;
   icon?: React.ReactNode;
+  shortcut?: string[];
 };
 
 export type MenuExternalLink = {
@@ -75,6 +77,7 @@ export type MenuExternalLink = {
   disabled?: boolean;
   level?: number;
   icon?: React.ReactNode;
+  shortcut?: string[];
 };
 
 export type MenuGroup = {
@@ -138,6 +141,7 @@ type BaseAction = {
   analyticsName?: string;
   name: ((context: ActionContext) => React.ReactNode) | React.ReactNode;
   section: ((context: ActionContext) => string) | string;
+  description?: ((context: ActionContext) => string) | string;
   shortcut?: string[];
   keywords?: string;
   /** Higher number is higher in results, default is 0. */

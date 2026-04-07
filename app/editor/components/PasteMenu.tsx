@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import type { EmbedDescriptor } from "@shared/editor/embeds";
 import type { MenuItem } from "@shared/editor/types";
 import { MentionType } from "@shared/types";
-import { isUrl } from "@shared/utils/urls";
+import { isInternalUrl, isUrl } from "@shared/utils/urls";
 import type Integration from "~/models/Integration";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
@@ -67,6 +67,7 @@ function useItems({
 
   const singleUrl =
     typeof pastedText === "string" && isUrl(pastedText) ? pastedText : null;
+  const isInternal = singleUrl ? isInternalUrl(singleUrl) : false;
   const matchedEmbed = singleUrl
     ? getMatchingEmbed(embeds, singleUrl)?.embed
     : null;
@@ -74,7 +75,7 @@ function useItems({
 
   // Check embeddability for single URL
   useEffect(() => {
-    if (!singleUrl || !embed) {
+    if (!singleUrl || !embed || isInternal) {
       setEmbedCheck({ loading: false });
       return;
     }
@@ -101,7 +102,7 @@ function useItems({
     return () => {
       cancelled = true;
     };
-  }, [singleUrl, embed]);
+  }, [singleUrl, embed, isInternal]);
 
   // single item is pasted.
   if (typeof pastedText === "string") {
@@ -143,8 +144,10 @@ function useItems({
         name: "embed",
         title: t("Embed"),
         subtitle:
-          embedCheck.embeddable === false ? t("Not supported") : undefined,
-        disabled: embedCheck.loading || !embedCheck.embeddable,
+          embedCheck.embeddable === false || isInternal
+            ? t("Not supported")
+            : undefined,
+        disabled: isInternal || embedCheck.loading || !embedCheck.embeddable,
         icon: embed?.icon,
         keywords: embed?.keywords,
       },

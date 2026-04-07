@@ -32,6 +32,13 @@ export enum DirectionFilter {
   DESC = "DESC",
 }
 
+/** Model types that support search indexing. */
+export enum SearchableModel {
+  Document = "document",
+  Collection = "collection",
+  Comment = "comment",
+}
+
 export enum CollectionStatusFilter {
   Archived = "archived",
 }
@@ -666,6 +673,8 @@ export type UnfurlResponse = {
 export enum QueryNotices {
   UnsubscribeDocument = "unsubscribe-document",
   UnsubscribeCollection = "unsubscribe-collection",
+  Subscribed = "subscribed",
+  Unsubscribed = "unsubscribed",
 }
 
 export type JSONValue =

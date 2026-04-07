@@ -111,6 +111,33 @@ describe("documentPermanentDeleter", () => {
     ).toEqual(0);
   });
 
+  it("should not destroy a document restored between query and destroy", async () => {
+    const document = await buildDocument({
+      publishedAt: subDays(new Date(), 90),
+      deletedAt: subDays(new Date(), 60),
+    });
+
+    // Simulate the race: caller queried this document while it was soft-deleted,
+    // but the user restored it before documentPermanentDeleter runs the destroy.
+    await Document.unscoped().update(
+      { deletedAt: null },
+      { where: { id: document.id }, paranoid: false }
+    );
+
+    // The stale in-memory object still has deletedAt set (as it would in the
+    // real cleanup task flow), but the DB row is now active.
+    const countDeletedDoc = await documentPermanentDeleter([document]);
+    expect(countDeletedDoc).toEqual(0);
+
+    // Document must survive — it was restored.
+    expect(
+      await Document.unscoped().count({
+        where: { id: document.id },
+        paranoid: false,
+      })
+    ).toEqual(1);
+  });
+
   it("should not destroy attachments referenced in other documents", async () => {
     const document1 = await buildDocument();
     const document = await buildDocument({

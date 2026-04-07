@@ -7,7 +7,9 @@ import Icon from "@shared/components/Icon";
 import { richExtensions } from "@shared/editor/nodes";
 import { canUseElementFullscreen } from "@shared/utils/browser";
 import { s, depths, hover } from "@shared/styles";
+import cloneDeep from "lodash/cloneDeep";
 import type { ProsemirrorData } from "@shared/types";
+import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { colorPalette } from "@shared/utils/collections";
 import Editor from "~/components/Editor";
 import NudeButton from "~/components/NudeButton";
@@ -130,8 +132,16 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
   const supportsFullscreen = React.useMemo(() => canUseElementFullscreen(), []);
   const isIdle = useIdle(3000, idleEvents);
 
+  const strippedData = React.useMemo(
+    () =>
+      ProsemirrorHelper.removeMarks(cloneDeep(data), [
+        "comment",
+      ]) as ProsemirrorData,
+    [data]
+  );
+
   const slides = React.useMemo(() => {
-    const result = splitIntoSlides(data, title, icon, iconColor);
+    const result = splitIntoSlides(strippedData, title, icon, iconColor);
     const contentSlides = result.filter((s) => s.type === "content");
     const hasContent =
       contentSlides.length > 0 &&
@@ -144,7 +154,7 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
     }
 
     return result;
-  }, [data, title, icon, iconColor]);
+  }, [strippedData, title, icon, iconColor]);
 
   const totalSlides = slides.length;
 
@@ -246,7 +256,7 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
       }
 
       const availableWidth = container.clientWidth - 160;
-      const availableHeight = container.clientHeight - 48 - 160;
+      const availableHeight = container.clientHeight - 160;
       const scaleX = availableWidth / width;
       const scaleY = availableHeight / height;
       const newScale = Math.min(scaleX, scaleY, 1.5);
@@ -321,7 +331,13 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
           </Tooltip>
         </RightButtons>
       </TopBar>
-      <SlideArea onClick={goNext}>
+      <SlideArea
+        onClick={(event: React.MouseEvent) => {
+          if (!(event.target as HTMLElement).closest("a")) {
+            goNext();
+          }
+        }}
+      >
         <SlideContent ref={slideContentRef}>
           {slide.type === "title" ? (
             <TitleSlide>
@@ -385,6 +401,10 @@ const Container = styled.div<{ $background: string; $idle: boolean }>`
   * {
     cursor: inherit;
   }
+
+  a[href] {
+    cursor: ${(props) => (props.$idle ? "none" : "pointer")};
+  }
 `;
 
 const SlideArea = styled.div`
@@ -404,6 +424,12 @@ const SlideContent = styled.div`
   .ProseMirror {
     padding: 0;
     font-size: 1.4em;
+  }
+
+  .image-wrapper,
+  .image-wrapper img,
+  .mermaid-diagram-wrapper {
+    pointer-events: none !important;
   }
 
   h1 {
@@ -444,8 +470,13 @@ const TopBar = styled.div<{ $idle: boolean }>`
   align-items: center;
   justify-content: center;
   padding: 16px;
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1;
   opacity: ${(props) => (props.$idle ? 0 : 1)};
+  pointer-events: ${(props) => (props.$idle ? "none" : "auto")};
   transition: opacity 300ms ease;
 `;
 

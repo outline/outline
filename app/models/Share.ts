@@ -72,6 +72,10 @@ class Share extends Model implements Searchable {
 
   @Field
   @observable
+  allowSubscriptions: boolean;
+
+  @Field
+  @observable
   showLastUpdated: boolean;
 
   @Field

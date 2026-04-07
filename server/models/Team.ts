@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import { URL } from "node:url";
 import { subMinutes } from "date-fns";
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
-import { type SaveOptions } from "sequelize";
+import { type FindOptions, type SaveOptions } from "sequelize";
 import { Op } from "sequelize";
 import {
   Column,
@@ -29,6 +29,7 @@ import { TeamPreferenceDefaults } from "@shared/constants";
 import type { TeamPreferences } from "@shared/types";
 import { TeamPreference, UserRole } from "@shared/types";
 import { getBaseDomain, RESERVED_SUBDOMAINS } from "@shared/utils/domains";
+import { attachmentRedirectRegex } from "@shared/utils/ProsemirrorHelper";
 import { parseEmail } from "@shared/utils/email";
 import { TeamValidation } from "@shared/validations";
 import env from "@server/env";
@@ -56,6 +57,8 @@ import { SkipChangeset } from "./decorators/Changeset";
 export enum TeamFlag {
   MarkedSafe = "markedSafe",
 }
+
+const avatarRedirectPattern = new RegExp(attachmentRedirectRegex.source, "i");
 
 @Scopes(() => ({
   withDomains: {
@@ -145,6 +148,37 @@ class Team extends ParanoidModel<
     this.setDataValue("avatarUrl", value);
   }
 
+  /**
+   * Returns a directly-accessible URL for the team's avatar suitable for use
+   * in contexts without authentication. Attachment is loaded and a signed (or
+   * canonical) URL is returned; any other URL is returned unchanged.
+   *
+   * @returns A promise resolving to a direct URL, or null when no avatar is set.
+   */
+  async publicAvatarUrl(): Promise<string | null> {
+    const url = this.avatarUrl;
+    if (!url) {
+      return null;
+    }
+
+    const match = avatarRedirectPattern.exec(url);
+    if (!match?.groups?.id) {
+      return url;
+    }
+
+    const attachment = await Attachment.findOne({
+      where: { id: match.groups.id, teamId: this.id },
+    });
+
+    if (!attachment) {
+      return url;
+    }
+
+    return attachment.isStoredInPublicBucket
+      ? attachment.canonicalUrl
+      : await attachment.signedUrl;
+  }
+
   @Default(true)
   @Column
   sharing: boolean;
@@ -186,6 +220,14 @@ class Team extends ParanoidModel<
   @Column(DataType.BIGINT)
   @SkipChangeset
   approximateTotalAttachmentsSize: number;
+
+  @AllowNull
+  @Length({
+    max: TeamValidation.maxGuidanceMCPLength,
+    msg: `MCP guidance must be ${TeamValidation.maxGuidanceMCPLength} characters or less`,
+  })
+  @Column(DataType.TEXT)
+  guidanceMCP: string | null;
 
   @AllowNull
   @Column(DataType.JSONB)
@@ -498,6 +540,26 @@ class Team extends ParanoidModel<
       }
     }
   };
+
+  /**
+   * Find a team by its custom domain. The input is normalized by stripping
+   * protocol, port, path, and lowercasing to match the stored format.
+   *
+   * @param domain the domain to search for.
+   * @param options additional find options to pass to the query.
+   * @returns the team with the given domain, or null if not found.
+   */
+  static async findByDomain(domain: string, options?: FindOptions<Team>) {
+    const normalized = domain
+      .replace(/(https?:)?\/\//, "")
+      .split(/[/:?]/)[0]
+      .toLowerCase();
+
+    return this.findOne({
+      ...options,
+      where: { ...options?.where, domain: normalized },
+    });
+  }
 
   /**
    * Find a team by its current or previous subdomain.
