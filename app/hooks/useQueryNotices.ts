@@ -40,8 +40,6 @@ export default function useQueryNotices() {
     }
 
     if (message) {
-      toast.success(message);
-
       // Remove the notice param from the URL to prevent duplicate toasts
       const params = new URLSearchParams(window.location.search);
       params.delete("notice");
@@ -50,6 +48,8 @@ export default function useQueryNotices() {
         pathname: window.location.pathname,
         search: search ? `?${search}` : "",
       });
+
+      setTimeout(() => toast.success(message), 0);
     }
   }, [t, notice, history]);
 }
