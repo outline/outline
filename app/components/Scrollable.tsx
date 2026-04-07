@@ -2,7 +2,6 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import styled, { css } from "styled-components";
 import { hideScrollbars } from "@shared/styles";
-import useWindowSize from "~/hooks/useWindowSize";
 
 type Props = React.HTMLAttributes<HTMLDivElement> & {
   /** Whether to show shadows at top and bottom when scrolled */
@@ -45,41 +44,37 @@ function Scrollable(
   const fallbackRef = React.useRef<HTMLDivElement>();
   const [topShadowVisible, setTopShadow] = React.useState(false);
   const [bottomShadowVisible, setBottomShadow] = React.useState(false);
-  const { height } = useWindowSize();
   const updateShadows = React.useCallback(() => {
     const c = (ref || fallbackRef).current;
     if (!c) {
       return;
     }
     const scrollTop = c.scrollTop;
-    const tsv = !!((shadow || topShadow || fadeTo) && scrollTop > 0);
-
-    if (tsv !== topShadowVisible) {
-      setTopShadow(tsv);
-    }
+    setTopShadow(!!((shadow || topShadow || fadeTo) && scrollTop > 0));
 
     const wrapperHeight = c.scrollHeight - c.clientHeight;
-    const bsv = !!(
-      (shadow || bottomShadow || fadeTo) &&
-      wrapperHeight - scrollTop !== 0
+    setBottomShadow(
+      !!((shadow || bottomShadow || fadeTo) && wrapperHeight - scrollTop > 1)
     );
-
-    if (bsv !== bottomShadowVisible) {
-      setBottomShadow(bsv);
-    }
-  }, [
-    shadow,
-    topShadow,
-    bottomShadow,
-    fadeTo,
-    ref,
-    topShadowVisible,
-    bottomShadowVisible,
-  ]);
+  }, [shadow, topShadow, bottomShadow, fadeTo, ref]);
 
   React.useEffect(() => {
+    const c = (ref || fallbackRef).current;
+    if (!c) {
+      return;
+    }
+
     updateShadows();
-  }, [height, updateShadows]);
+
+    const observer = new ResizeObserver(updateShadows);
+    observer.observe(c);
+
+    for (const child of Array.from(c.children)) {
+      observer.observe(child);
+    }
+
+    return () => observer.disconnect();
+  }, [ref, updateShadows]);
 
   return (
     <Wrapper
