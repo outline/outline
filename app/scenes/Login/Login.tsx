@@ -14,6 +14,7 @@ import type { Config } from "~/stores/AuthStore";
 import { AvatarSize } from "~/components/Avatar";
 import ButtonLarge from "~/components/ButtonLarge";
 import ChangeLanguage from "~/components/ChangeLanguage";
+import ThemeToggle from "~/components/ThemeToggle";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import OutlineIcon from "~/components/Icons/OutlineIcon";
@@ -121,6 +122,7 @@ function Login({ children, onBack }: Props) {
       <Background>
         <BackButton onBack={onBack} />
         <ChangeLanguage locale={detectLanguage()} />
+        <ThemeToggle />
         <Centered>
           <PageTitle title={t("Login")} />
           <Heading centered>{t("Error")}</Heading>
@@ -153,6 +155,7 @@ function Login({ children, onBack }: Props) {
       <Background>
         <BackButton onBack={onBack} config={config} />
         <ChangeLanguage locale={detectLanguage()} />
+        <ThemeToggle />
         <Centered>
           <PageTitle title={t("Custom domain setup")} />
           <Heading centered>{t("Almost there")}…</Heading>
@@ -171,6 +174,7 @@ function Login({ children, onBack }: Props) {
       <Background>
         <BackButton onBack={onBack} config={config} />
         <ChangeLanguage locale={detectLanguage()} />
+        <ThemeToggle />
 
         <Centered as="form" onSubmit={handleGoSubdomain}>
           <Heading centered>{t("Choose workspace")}</Heading>
@@ -221,6 +225,7 @@ function Login({ children, onBack }: Props) {
     return (
       <Background>
         <BackButton onBack={onBack} config={config} />
+        <ThemeToggle />
         <Centered>
           <PageTitle title={t("Check your email")} />
           <CheckEmailIcon size={38} />
@@ -286,6 +291,7 @@ function Login({ children, onBack }: Props) {
     <Background>
       <BackButton onBack={onBack} config={config} />
       <ChangeLanguage locale={detectLanguage()} />
+      <ThemeToggle />
 
       <Centered gap={12}>
         <PageTitle
