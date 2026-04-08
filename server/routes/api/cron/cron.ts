@@ -48,13 +48,18 @@ const cronHandler = async (ctx: APIContext<T.CronSchemaReq>) => {
         period === TaskInterval.Day);
 
     if (shouldSchedule) {
+      // Stagger different tasks so they don't all hit the database at once
+      const taskDelay = CronTask.getStaggerDelay(name, cronConfig.interval);
+
       if (partitionWindow && partitionWindow > 0) {
         // Split the task into partitions to spread work across time window
         // by dividing the partitionWindow into minutes and scheduling a delayed
-        // task for each minute.
+        // task for each minute. The taskDelay offsets the entire partition
+        // window so different tasks don't overlap.
         const partitions = Math.ceil(partitionWindow / Minute.ms);
         for (let i = 0; i < partitions; i++) {
-          const delay = Math.floor((partitionWindow / partitions) * i);
+          const delay =
+            taskDelay + Math.floor((partitionWindow / partitions) * i);
           const partition = {
             partitionIndex: i,
             partitionCount: partitions,
@@ -70,13 +75,16 @@ const cronHandler = async (ctx: APIContext<T.CronSchemaReq>) => {
           await taskInstance.schedule({ limit, partition }, { delay });
         }
       } else {
-        await taskInstance.schedule({
-          limit,
-          partition: {
-            partitionIndex: 0,
-            partitionCount: 1,
+        await taskInstance.schedule(
+          {
+            limit,
+            partition: {
+              partitionIndex: 0,
+              partitionCount: 1,
+            },
           },
-        });
+          { delay: taskDelay }
+        );
       }
     }
   }
