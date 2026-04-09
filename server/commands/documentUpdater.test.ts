@@ -344,6 +344,28 @@ describe("documentUpdater", () => {
     notifyUpdateSpy.mockRestore();
   });
 
+  it("should handle dollar signs in replacement text literally", async () => {
+    const user = await buildUser();
+    let document = await buildDocument({
+      teamId: user.teamId,
+      text: "The price is TBD",
+    });
+
+    const result = DocumentHelper.applyMarkdownToDocument(
+      document,
+      "$100 & $200",
+      TextEditMode.Patch,
+      "TBD"
+    );
+    const content = result.content!.content!;
+
+    expect(content).toHaveLength(1);
+    expect(content[0]).toMatchObject({
+      type: "paragraph",
+      content: [{ type: "text", text: "The price is $100 & $200" }],
+    });
+  });
+
   it("should delete matched text when replacement is empty string", async () => {
     const user = await buildUser();
     let document = await buildDocument({

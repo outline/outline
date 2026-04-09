@@ -553,7 +553,12 @@ export class DocumentHelper {
         const regionMdFrom = affected[0].mdFrom;
         const regionMdTo = affected[affected.length - 1].mdTo;
         const regionMarkdown = markdown.slice(regionMdFrom, regionMdTo);
-        const modifiedRegion = regionMarkdown.replace(findText, text);
+        const localMatchStart = matchIndex - regionMdFrom;
+        const localMatchEnd = matchEnd - regionMdFrom;
+        const modifiedRegion =
+          regionMarkdown.slice(0, localMatchStart) +
+          text +
+          regionMarkdown.slice(localMatchEnd);
         const newContent = parser.parse(modifiedRegion);
 
         const before = existingDoc.content.cut(0, pmFrom);
