@@ -1,4 +1,5 @@
 import isMatch from "lodash/isMatch";
+import { sanitizeUrl } from "../../utils/urls";
 import type { Token } from "markdown-it";
 import type {
   NodeSpec,
@@ -105,7 +106,7 @@ export default class Mention extends Node {
                 ? `${env.URL}/doc/${node.attrs.modelId}`
                 : node.attrs.type === MentionType.Collection
                   ? `${env.URL}/collection/${node.attrs.modelId}`
-                  : node.attrs.href,
+                  : sanitizeUrl(node.attrs.href),
           "data-type": node.attrs.type,
           "data-id": node.attrs.modelId,
           "data-actorid": node.attrs.actorId,
@@ -113,7 +114,7 @@ export default class Mention extends Node {
             node.attrs.type === MentionType.PullRequest ||
             node.attrs.type === MentionType.Issue ||
             node.attrs.type === MentionType.Project
-              ? node.attrs.href
+              ? sanitizeUrl(node.attrs.href)
               : `mention://${node.attrs.id}/${node.attrs.type}/${node.attrs.modelId}`,
           "data-unfurl": JSON.stringify(node.attrs.unfurl),
         },
