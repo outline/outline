@@ -1,5 +1,5 @@
 import { JSDOM } from "jsdom";
-import { Node, Fragment } from "prosemirror-model";
+import { Node, Fragment, Slice } from "prosemirror-model";
 import ukkonen from "ukkonen";
 import { updateYFragment, yDocToProsemirrorJSON } from "y-prosemirror";
 import * as Y from "yjs";
@@ -13,6 +13,7 @@ import type { NavigationNode, ProsemirrorData } from "@shared/types";
 import { IconType, TextEditMode } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
 import { parser, serializer, schema } from "@server/editor";
+import { ValidationError } from "@server/errors";
 import { addTags } from "@server/logging/tracer";
 import { trace } from "@server/logging/tracing";
 import type { Template } from "@server/models";
@@ -473,17 +474,69 @@ export class DocumentHelper {
    *
    * @param document The document to apply the changes to
    * @param text The markdown to apply
-   * @param editMode The edit mode to use: "replace" (default), "append", or "prepend"
+   * @param editMode The edit mode to use: "replace" (default), "append", "prepend", or "patch"
+   * @param findText The markdown text to find when using "patch" edit mode
    * @returns The document
    */
   static applyMarkdownToDocument(
     document: Document,
     text: string,
-    editMode: TextEditMode = TextEditMode.Replace
+    editMode: TextEditMode = TextEditMode.Replace,
+    findText?: string
   ) {
     let doc: Node;
 
-    if (editMode === TextEditMode.Append) {
+    if (editMode === TextEditMode.Patch) {
+      if (!findText) {
+        throw ValidationError(
+          "findText is required when using patch edit mode"
+        );
+      }
+
+      const existingDoc = DocumentHelper.toProsemirror(document);
+      const { markdown, blockMap } =
+        serializer.serializeWithPositions(existingDoc);
+
+      const matchIndex = markdown.indexOf(findText);
+      if (matchIndex === -1) {
+        throw ValidationError(
+          "The specified text was not found in the document"
+        );
+      }
+      const matchEnd = matchIndex + findText.length;
+
+      // Find which top-level blocks overlap the matched range
+      const affected = blockMap.filter(
+        (b) => b.mdTo > matchIndex && b.mdFrom < matchEnd
+      );
+
+      if (affected.length === 0) {
+        throw ValidationError(
+          "Could not map the matched text to document content"
+        );
+      }
+
+      const pmFrom = affected[0].pmFrom;
+      const pmTo = affected[affected.length - 1].pmTo;
+
+      // Get the full markdown for the affected block range
+      const regionMdFrom = affected[0].mdFrom;
+      const regionMdTo = affected[affected.length - 1].mdTo;
+      const regionMarkdown = markdown.slice(regionMdFrom, regionMdTo);
+
+      // Apply find/replace within the affected region's markdown
+      const modifiedRegion = regionMarkdown.replace(findText, text);
+
+      // Parse the modified region into new ProseMirror blocks
+      const newContent = parser.parse(modifiedRegion);
+
+      // Surgically replace only the affected blocks in the original document
+      doc = existingDoc.replace(
+        pmFrom,
+        pmTo,
+        new Slice(newContent.content, 0, 0)
+      );
+    } else if (editMode === TextEditMode.Append) {
       const existingDoc = DocumentHelper.toProsemirror(document);
       const newDoc = parser.parse(text);
       const lastChild = existingDoc.lastChild;

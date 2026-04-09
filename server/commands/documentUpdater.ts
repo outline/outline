@@ -25,8 +25,10 @@ type Props = {
   fullWidth?: boolean;
   /** Whether insights should be visible on the document */
   insightsEnabled?: boolean;
-  /** The edit mode: "replace", "append", or "prepend" */
+  /** The edit mode: "replace", "append", "prepend", or "patch" */
   editMode?: TextEditMode;
+  /** The markdown text to find when using "patch" edit mode */
+  findText?: string;
   /** Whether the document should be published to the collection */
   publish?: boolean;
   /** The ID of the collection to publish the document to */
@@ -53,6 +55,7 @@ export default async function documentUpdater(
     fullWidth,
     insightsEnabled,
     editMode,
+    findText,
     publish,
     collectionId,
     done,
@@ -89,7 +92,8 @@ export default async function documentUpdater(
       await TextHelper.replaceImagesWithAttachments(ctx, text, user, {
         base64Only: true,
       }),
-      editMode
+      editMode,
+      findText
     );
   }
 

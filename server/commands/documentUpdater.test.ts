@@ -343,6 +343,171 @@ describe("documentUpdater", () => {
     notifyUpdateSpy.mockRestore();
   });
 
+  it("should patch specific text in document content", async () => {
+    const user = await buildUser();
+    let document = await buildDocument({
+      teamId: user.teamId,
+      text: "Hello world\n\nThis is a test",
+    });
+
+    document = await withAPIContext(user, (ctx) =>
+      documentUpdater(ctx, {
+        text: "Hello earth",
+        findText: "Hello world",
+        document,
+        editMode: TextEditMode.Patch,
+      })
+    );
+
+    expect(document.text).toContain("Hello earth");
+    expect(document.text).toContain("This is a test");
+    expect(document.text).not.toContain("Hello world");
+  });
+
+  it("should preserve untouched blocks when patching", async () => {
+    const user = await buildUser();
+    let document = await buildDocument({
+      teamId: user.teamId,
+    });
+    const id = randomUUID();
+    // Set up content with a comment mark on the second paragraph
+    document.content = {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "First paragraph" }],
+        },
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              marks: [{ type: "comment", attrs: { id, userId: id } }],
+              text: "Commented text",
+            },
+          ],
+        },
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "Third paragraph" }],
+        },
+      ],
+    };
+    await document.save();
+
+    document = await withAPIContext(user, (ctx) =>
+      documentUpdater(ctx, {
+        text: "Updated first",
+        findText: "First paragraph",
+        document,
+        editMode: TextEditMode.Patch,
+      })
+    );
+
+    // The comment mark on the second paragraph should be preserved
+    expect(document.content).toMatchObject({
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "Updated first" }],
+        },
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              marks: [{ type: "comment", attrs: { id, userId: id } }],
+              text: "Commented text",
+            },
+          ],
+        },
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "Third paragraph" }],
+        },
+      ],
+    });
+  });
+
+  it("should throw when findText is not found in document", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      teamId: user.teamId,
+      text: "Hello world",
+    });
+
+    await expect(
+      withAPIContext(user, (ctx) =>
+        documentUpdater(ctx, {
+          text: "replacement",
+          findText: "nonexistent text",
+          document,
+          editMode: TextEditMode.Patch,
+        })
+      )
+    ).rejects.toThrow("The specified text was not found in the document");
+  });
+
+  it("should patch multi-block content", async () => {
+    const user = await buildUser();
+    let document = await buildDocument({
+      teamId: user.teamId,
+      text: "# Heading\n\nOld content\n\nKeep this",
+    });
+
+    document = await withAPIContext(user, (ctx) =>
+      documentUpdater(ctx, {
+        text: "# New Heading\n\nNew content",
+        findText: "# Heading\n\nOld content",
+        document,
+        editMode: TextEditMode.Patch,
+      })
+    );
+
+    expect(document.text).toContain("New Heading");
+    expect(document.text).toContain("New content");
+    expect(document.text).toContain("Keep this");
+    expect(document.text).not.toContain("Old content");
+  });
+
+  it("should patch the middle item in a list", async () => {
+    const user = await buildUser();
+    let document = await buildDocument({
+      teamId: user.teamId,
+      text: "- First item\n- Second item\n- Third item",
+    });
+
+    document = await withAPIContext(user, (ctx) =>
+      documentUpdater(ctx, {
+        text: "* Updated item",
+        findText: "* Second item",
+        document,
+        editMode: TextEditMode.Patch,
+      })
+    );
+
+    const listItem = (text: string) => ({
+      type: "list_item",
+      content: [{ type: "paragraph", content: [{ type: "text", text }] }],
+    });
+
+    expect(document.content).toMatchObject({
+      type: "doc",
+      content: [
+        {
+          type: "bullet_list",
+          content: [
+            listItem("First item"),
+            listItem("Updated item"),
+            listItem("Third item"),
+          ],
+        },
+      ],
+    });
+  });
+
   it("should not notify collaboration server when only title changes", async () => {
     const notifyUpdateSpy = jest
       .spyOn(APIUpdateExtension, "notifyUpdate")

@@ -718,6 +718,8 @@ export enum TextEditMode {
   Append = "append",
   /** Prepend new content to the beginning of the document. */
   Prepend = "prepend",
+  /** Patch specific content within the document by finding and replacing text. */
+  Patch = "patch",
 }
 
 export enum EmojiCategory {

@@ -444,7 +444,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
       {
         title: "Update document",
         description:
-          "Updates an existing document by its ID. Only the fields provided will be updated.",
+          'Updates an existing document by its ID. Only the fields provided will be updated. IMPORTANT: When editing an existing document\'s content, always prefer editMode "patch" with findText and text — this surgically replaces only the matched section and preserves all rich formatting (highlights, comments, table widths, etc) in the rest of the document. Using "replace" will overwrite the entire document and lose any formatting that cannot be represented in markdown.',
         annotations: {
           idempotentHint: true,
           readOnlyHint: false,
@@ -460,11 +460,21 @@ export function documentTools(server: McpServer, scopes: string[]) {
           text: z
             .string()
             .optional()
-            .describe("The new markdown content for the document."),
+            .describe(
+              'The markdown content to apply. In "replace" mode this becomes the entire document. In "append"/"prepend" mode it is added to the end/beginning. In "patch" mode this is the replacement text for the matched findText.'
+            ),
           editMode: z
             .enum(TextEditMode)
             .optional()
-            .describe("How to apply the text update. Defaults to replace."),
+            .describe(
+              'How to apply the text update. "replace" (default) replaces the entire document content. "append" adds text to the end. "prepend" adds text to the beginning. "patch" finds the exact markdown specified in findText and replaces only that portion, preserving the rest of the document including any rich formatting that cannot be represented in markdown.'
+            ),
+          findText: z
+            .string()
+            .optional()
+            .describe(
+              'Required when editMode is "patch". The exact markdown substring to find in the document. This should be copied verbatim from the document\'s existing markdown content. The first occurrence will be replaced with the text parameter. Can span multiple blocks (paragraphs, headings, etc).'
+            ),
           collectionId: z
             .string()
             .optional()
