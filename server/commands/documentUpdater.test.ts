@@ -351,18 +351,23 @@ describe("documentUpdater", () => {
       text: "Hello world\n\nThis is a test",
     });
 
-    document = await withAPIContext(user, (ctx) =>
-      documentUpdater(ctx, {
-        text: "Hello earth",
-        findText: "Hello world",
-        document,
-        editMode: TextEditMode.Patch,
-      })
+    const result = DocumentHelper.applyMarkdownToDocument(
+      document,
+      "Hello earth",
+      TextEditMode.Patch,
+      "Hello world"
     );
+    const content = result.content!.content!;
 
-    expect(document.text).toContain("Hello earth");
-    expect(document.text).toContain("This is a test");
-    expect(document.text).not.toContain("Hello world");
+    expect(content).toHaveLength(2);
+    expect(content[0]).toMatchObject({
+      type: "paragraph",
+      content: [{ type: "text", text: "Hello earth" }],
+    });
+    expect(content[1]).toMatchObject({
+      type: "paragraph",
+      content: [{ type: "text", text: "This is a test" }],
+    });
   });
 
   it("should preserve comment marks on untouched blocks when patching", async () => {
@@ -808,6 +813,200 @@ describe("documentUpdater", () => {
     expect(list.content![1]).toEqual(secondItem);
   });
 
+  it("should preserve mention node when patching adjacent text in the same paragraph", async () => {
+    const user = await buildUser();
+    let document = await buildDocument({
+      teamId: user.teamId,
+    });
+    const mentionId = randomUUID();
+
+    // Paragraph: "Hello " + @mention + " please review this"
+    document.content = {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [
+            { type: "text", text: "Hello " },
+            {
+              type: "mention",
+              attrs: {
+                type: "user",
+                label: "Tom",
+                modelId: mentionId,
+                actorId: null,
+                id: mentionId,
+              },
+            },
+            { type: "text", text: " please review this" },
+          ],
+        },
+      ],
+    };
+    await document.save();
+
+    const beforeDoc = DocumentHelper.toProsemirror(document).toJSON();
+    const mentionNode = beforeDoc.content[0].content[1];
+
+    const result = DocumentHelper.applyMarkdownToDocument(
+      document,
+      "please approve this",
+      TextEditMode.Patch,
+      "please review this"
+    );
+    const content = result.content!.content!;
+
+    expect(content).toHaveLength(1);
+    expect(content[0].type).toEqual("paragraph");
+    // The mention node must be preserved
+    expect(content[0].content![1]).toEqual(mentionNode);
+  });
+
+  it("should handle multi-block replacement in a single paragraph", async () => {
+    const user = await buildUser();
+    let document = await buildDocument({
+      teamId: user.teamId,
+    });
+
+    document.content = {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "Replace this text here" }],
+        },
+      ],
+    };
+    await document.save();
+
+    // Replace with content that parses to multiple blocks
+    const result = DocumentHelper.applyMarkdownToDocument(
+      document,
+      "First paragraph\n\nSecond paragraph",
+      TextEditMode.Patch,
+      "Replace this text here"
+    );
+    const content = result.content!.content!;
+
+    // Should produce two paragraphs, not silently drop the second
+    expect(content.length).toBeGreaterThanOrEqual(2);
+    expect(content[0]).toMatchObject({
+      type: "paragraph",
+      content: [{ type: "text", text: "First paragraph" }],
+    });
+    expect(content[1]).toMatchObject({
+      type: "paragraph",
+      content: [{ type: "text", text: "Second paragraph" }],
+    });
+  });
+
+  it("should preserve table colwidth when patching a different cell", async () => {
+    const user = await buildUser();
+    let document = await buildDocument({
+      teamId: user.teamId,
+    });
+
+    // Table with colwidth set on cells (not representable in markdown)
+    document.content = {
+      type: "doc",
+      content: [
+        {
+          type: "table",
+          content: [
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "th",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                    colwidth: [150],
+                    alignment: null,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Header A" }],
+                    },
+                  ],
+                },
+                {
+                  type: "th",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                    colwidth: [250],
+                    alignment: null,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Header B" }],
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              type: "tr",
+              content: [
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                    colwidth: [150],
+                    alignment: null,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Cell to edit" }],
+                    },
+                  ],
+                },
+                {
+                  type: "td",
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                    colwidth: [250],
+                    alignment: null,
+                  },
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "Keep this" }],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    await document.save();
+
+    const beforeDoc = DocumentHelper.toProsemirror(document).toJSON();
+    // Second cell in second row should retain colwidth
+    const unchangedCell = beforeDoc.content[0].content[1].content[1];
+
+    const result = DocumentHelper.applyMarkdownToDocument(
+      document,
+      "Updated cell",
+      TextEditMode.Patch,
+      "Cell to edit"
+    );
+    const table = result.content!.content![0];
+    const secondRow = table.content![1];
+
+    // The unchanged cell must preserve its colwidth attr
+    expect(secondRow.content![1]).toEqual(unchangedCell);
+    expect(secondRow.content![1].attrs!.colwidth).toEqual([250]);
+  });
+
   it("should patch multi-block content", async () => {
     const user = await buildUser();
     let document = await buildDocument({
@@ -815,19 +1014,27 @@ describe("documentUpdater", () => {
       text: "# Heading\n\nOld content\n\nKeep this",
     });
 
-    document = await withAPIContext(user, (ctx) =>
-      documentUpdater(ctx, {
-        text: "# New Heading\n\nNew content",
-        findText: "# Heading\n\nOld content",
-        document,
-        editMode: TextEditMode.Patch,
-      })
+    const result = DocumentHelper.applyMarkdownToDocument(
+      document,
+      "# New Heading\n\nNew content",
+      TextEditMode.Patch,
+      "# Heading\n\nOld content"
     );
+    const content = result.content!.content!;
 
-    expect(document.text).toContain("New Heading");
-    expect(document.text).toContain("New content");
-    expect(document.text).toContain("Keep this");
-    expect(document.text).not.toContain("Old content");
+    expect(content).toHaveLength(3);
+    expect(content[0]).toMatchObject({
+      type: "heading",
+      content: [{ type: "text", text: "New Heading" }],
+    });
+    expect(content[1]).toMatchObject({
+      type: "paragraph",
+      content: [{ type: "text", text: "New content" }],
+    });
+    expect(content[2]).toMatchObject({
+      type: "paragraph",
+      content: [{ type: "text", text: "Keep this" }],
+    });
   });
 
   it("should patch the middle item in a list", async () => {

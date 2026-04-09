@@ -28,6 +28,8 @@ interface InlineSegment {
   textTo: number;
   pmFrom: number;
   pmTo: number;
+  /** Whether this segment is an atom node whose text length differs from nodeSize. */
+  isAtom?: boolean;
 }
 
 type HTMLOptions = {
@@ -798,10 +800,13 @@ export class DocumentHelper {
         // Fully unchanged — keep original with its rich content
         merged.push(oldChild);
       } else if (textSame) {
-        // Attrs changed (e.g. checked state) but content same — apply new
-        // attrs while preserving original content with its rich marks.
+        // Attrs changed (e.g. checked state) but content same — merge attrs
+        // so that non-markdown-representable values (colwidth, highlight
+        // colors, etc.) are preserved from the original while intentional
+        // changes from the re-parsed version are applied.
+        const mergedAttrs = DocumentHelper.mergeAttrs(oldChild, newChild);
         merged.push(
-          oldChild.type.create(newChild.attrs, oldChild.content, oldChild.marks)
+          oldChild.type.create(mergedAttrs, oldChild.content, oldChild.marks)
         );
       } else if (!oldChild.isTextblock && !oldChild.isLeaf) {
         // Both are containers — recurse to preserve rich content deeper
@@ -812,6 +817,48 @@ export class DocumentHelper {
     }
 
     return original.copy(Fragment.from(merged));
+  }
+
+  /**
+   * Merge attrs from an original and re-parsed node. For each attr, if the
+   * re-parsed value equals the schema default it was likely lost in the
+   * markdown round-trip, so the original value is preserved. Otherwise the
+   * re-parsed value is used (it represents an intentional change).
+   *
+   * @param original The original node with potentially rich attrs.
+   * @param updated The re-parsed node.
+   * @returns The merged attrs object.
+   */
+  private static mergeAttrs(
+    original: Node,
+    updated: Node
+  ): Record<string, unknown> {
+    const spec = original.type.spec.attrs;
+    if (!spec) {
+      return updated.attrs;
+    }
+
+    const result: Record<string, unknown> = {};
+    for (const key of Object.keys(original.attrs)) {
+      const defaultVal = (spec as Record<string, { default?: unknown }>)[key]
+        ?.default;
+      const newVal = updated.attrs[key];
+      const oldVal = original.attrs[key];
+
+      // If the re-parsed value matches the schema default (or is falsy when
+      // the default is also falsy) and the original had a richer value, the
+      // attr was lost in the markdown round-trip — preserve the original.
+      const newMatchesDefault =
+        JSON.stringify(newVal) === JSON.stringify(defaultVal) ||
+        (!newVal && !defaultVal);
+
+      if (newVal !== oldVal && newMatchesDefault) {
+        result[key] = oldVal;
+      } else {
+        result[key] = newVal;
+      }
+    }
+    return result;
   }
 
   /**
@@ -872,49 +919,75 @@ export class DocumentHelper {
         textTo: textOffset + childTextLen,
         pmFrom: offset,
         pmTo: offset + child.nodeSize,
+        isAtom: !child.isText && childTextLen !== child.nodeSize,
       });
       textOffset += childTextLen;
     });
 
-    // For inline patching the block's markdown content must equal its plain
-    // text (no visible mark syntax like ** or []()). If they differ, inline
-    // position mapping is unreliable so fall back to block-level.
+    // Map the match to text-content positions. When the block's markdown
+    // equals its plain text, markdown offsets map 1:1. When they differ
+    // (atoms like mentions, or formatting marks), locate the match in the
+    // block's textContent directly.
+    let localTextFrom = localMdFrom;
+    let localTextTo = localMdTo;
+
     const contentMd = markdown.slice(
       contentMdStart,
       contentMdStart + blockText.length
     );
     if (contentMd !== blockText) {
+      const findStr = markdown.slice(matchIndex, matchEnd);
+      const textIdx = blockText.indexOf(findStr);
+      if (textIdx < 0) {
+        return undefined;
+      }
+      localTextFrom = textIdx;
+      localTextTo = textIdx + findStr.length;
+    }
+
+    // Atom inline nodes (mentions, images) have text representations that
+    // don't map 1:1 to PM offsets. Only bail when atoms overlap the match
+    // range — atoms outside the range are safely preserved by the splice.
+    const hasOverlappingAtom = segments.some(
+      (seg) =>
+        seg.isAtom && seg.textTo > localTextFrom && seg.textFrom < localTextTo
+    );
+    if (hasOverlappingAtom) {
       return undefined;
     }
 
-    // localMdFrom/To now equal text-content offsets. Resolve to PM positions.
-    const pmInlineFrom = DocumentHelper.textToPmOffset(segments, localMdFrom);
-    const pmInlineTo = DocumentHelper.textToPmOffset(segments, localMdTo);
+    // Resolve text-content positions to PM Fragment positions.
+    const pmInlineFrom = DocumentHelper.textToPmOffset(segments, localTextFrom);
+    const pmInlineTo = DocumentHelper.textToPmOffset(segments, localTextTo);
 
     if (pmInlineFrom < 0 || pmInlineTo < 0) {
       return undefined;
     }
 
-    // Parse the replacement markdown and extract inline content from the
-    // first textblock. Markdown parsing can trim whitespace, so when the
-    // parsed result is plain text we use the raw replacement string to
-    // preserve exact whitespace.
+    // Parse the replacement markdown and extract inline content only when it
+    // resolves to a single textblock. Multi-block or non-textblock content
+    // should fall back to block-level replacement rather than being silently
+    // truncated during inline patching. Markdown parsing can trim whitespace,
+    // so when the parsed result is plain text we use the raw replacement
+    // string to preserve exact whitespace.
     const parsed = parser.parse(replacementText);
     const firstBlock = parsed.firstChild;
+
+    if (parsed.childCount !== 1 || !firstBlock?.isTextblock) {
+      return undefined;
+    }
+
     let replacementContent: Fragment;
 
     if (
-      firstBlock?.isTextblock &&
       firstBlock.content.childCount === 1 &&
       firstBlock.firstChild?.isText &&
       !firstBlock.firstChild.marks.length
     ) {
       // Plain text replacement — use the raw string to avoid whitespace trimming
       replacementContent = Fragment.from(schema.text(replacementText));
-    } else if (firstBlock?.isTextblock) {
-      replacementContent = firstBlock.content;
     } else {
-      replacementContent = parsed.content;
+      replacementContent = firstBlock.content;
     }
 
     // Splice: keep inline content before match + replacement + after match.
