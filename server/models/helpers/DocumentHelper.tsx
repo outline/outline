@@ -821,7 +821,15 @@ export class DocumentHelper {
       }
     }
 
-    return original.copy(Fragment.from(merged));
+    // Merge container attrs so markdown-driven changes (e.g. ordered list
+    // order/listStyle) are applied while preserving non-markdown attrs.
+    const mergedAttrs = DocumentHelper.mergeAttrs(original, updated);
+
+    return original.type.create(
+      mergedAttrs,
+      Fragment.from(merged),
+      original.marks
+    );
   }
 
   /**
