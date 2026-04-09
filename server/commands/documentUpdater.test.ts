@@ -1051,6 +1051,67 @@ describe("documentUpdater", () => {
     expect(secondRow.content![1].attrs!.colwidth).toEqual([250]);
   });
 
+  it("should preserve ordered list container attrs when patching an item", async () => {
+    const user = await buildUser();
+    let document = await buildDocument({
+      teamId: user.teamId,
+    });
+
+    // Ordered list starting at 3 with lower-alpha style
+    document.content = {
+      type: "doc",
+      content: [
+        {
+          type: "ordered_list",
+          attrs: { order: 3, listStyle: "lower-alpha" },
+          content: [
+            {
+              type: "list_item",
+              content: [
+                {
+                  type: "paragraph",
+                  content: [{ type: "text", text: "First item" }],
+                },
+              ],
+            },
+            {
+              type: "list_item",
+              content: [
+                {
+                  type: "paragraph",
+                  content: [{ type: "text", text: "Second item" }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    await document.save();
+
+    const result = DocumentHelper.applyMarkdownToDocument(
+      document,
+      "Updated item",
+      TextEditMode.Patch,
+      "First item"
+    );
+    const list = result.content!.content![0];
+
+    // Container attrs must be preserved
+    expect(list.attrs!.order).toEqual(3);
+    expect(list.attrs!.listStyle).toEqual("lower-alpha");
+
+    // Patched item updated
+    expect(list.content![0].content![0].content![0].text).toEqual(
+      "Updated item"
+    );
+
+    // Unchanged item preserved
+    expect(list.content![1].content![0].content![0].text).toEqual(
+      "Second item"
+    );
+  });
+
   it("should patch multi-block content", async () => {
     const user = await buildUser();
     let document = await buildDocument({
