@@ -1,4 +1,5 @@
 import { Op } from "sequelize";
+import { Minute } from "@shared/utils/time";
 import type { PartitionInfo } from "./CronTask";
 import { CronTask, TaskInterval } from "./CronTask";
 
@@ -27,6 +28,71 @@ describe("CronTask", () => {
 
   beforeEach(() => {
     task = new TestTask();
+  });
+
+  describe("getStaggerDelay", () => {
+    it("should return a deterministic delay for the same task name", () => {
+      const delay1 = CronTask.getStaggerDelay("TaskA", TaskInterval.Hour);
+      const delay2 = CronTask.getStaggerDelay("TaskA", TaskInterval.Hour);
+      expect(delay1).toBe(delay2);
+    });
+
+    it("should return different delays for different task names", () => {
+      const delayA = CronTask.getStaggerDelay(
+        "CleanupDeletedDocumentsTask",
+        TaskInterval.Hour
+      );
+      const delayB = CronTask.getStaggerDelay(
+        "CleanupOldEventsTask",
+        TaskInterval.Hour
+      );
+      expect(delayA).not.toBe(delayB);
+    });
+
+    it("should stay within the hourly stagger window (10 minutes)", () => {
+      const names = [
+        "CleanupDeletedDocumentsTask",
+        "CleanupOldEventsTask",
+        "CleanupOldNotificationsTask",
+        "CleanupDeletedTeamsTask",
+        "CleanupExpiredAttachmentsTask",
+        "CleanupExpiredFileOperationsTask",
+      ];
+      for (const name of names) {
+        const delay = CronTask.getStaggerDelay(name, TaskInterval.Hour);
+        expect(delay).toBeGreaterThanOrEqual(0);
+        expect(delay).toBeLessThan(10 * Minute.ms);
+      }
+    });
+
+    it("should stay within the daily stagger window (30 minutes)", () => {
+      const names = [
+        "CleanupOAuthAuthorizationCodeTask",
+        "CleanupDynamicOAuthClientsTask",
+        "CleanupOldImportsTask",
+      ];
+      for (const name of names) {
+        const delay = CronTask.getStaggerDelay(name, TaskInterval.Day);
+        expect(delay).toBeGreaterThanOrEqual(0);
+        expect(delay).toBeLessThan(30 * Minute.ms);
+      }
+    });
+
+    it("should distribute delays across the window for real task names", () => {
+      const names = [
+        "CleanupDeletedDocumentsTask",
+        "CleanupOldEventsTask",
+        "CleanupOldNotificationsTask",
+        "CleanupDeletedTeamsTask",
+        "CleanupExpiredAttachmentsTask",
+        "CleanupExpiredFileOperationsTask",
+      ];
+      const delays = names.map((name) =>
+        CronTask.getStaggerDelay(name, TaskInterval.Hour)
+      );
+      const unique = new Set(delays);
+      expect(unique.size).toBe(delays.length);
+    });
   });
 
   describe("getPartitionWhereClause", () => {

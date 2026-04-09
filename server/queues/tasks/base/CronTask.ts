@@ -1,11 +1,21 @@
 import type { WhereOptions } from "sequelize";
 import { Op } from "sequelize";
+import { Minute } from "@shared/utils/time";
 import { BaseTask } from "./BaseTask";
 
 export enum TaskInterval {
   Day = "daily",
   Hour = "hourly",
 }
+
+/**
+ * Stagger windows per interval to spread task start times and prevent
+ * concurrent heavy database operations from saturating PostgreSQL.
+ */
+const staggerWindows: Record<TaskInterval, number> = {
+  [TaskInterval.Hour]: 10 * Minute.ms,
+  [TaskInterval.Day]: 30 * Minute.ms,
+};
 
 export type TaskSchedule = {
   /** The interval at which to run this task */
@@ -60,6 +70,27 @@ export type Props = {
 export abstract class CronTask extends BaseTask<Props> {
   /** The schedule configuration for this cron task */
   public abstract get cron(): TaskSchedule;
+
+  /**
+   * Compute a deterministic delay for a task based on its name and interval.
+   * Different tasks are likely to get different offsets within the stagger
+   * window for their interval, reducing concurrent heavy database operations.
+   *
+   * @param taskName the name of the task class.
+   * @param interval the task interval used to select the stagger window.
+   * @returns a delay in milliseconds.
+   */
+  public static getStaggerDelay(
+    taskName: string,
+    interval: TaskInterval
+  ): number {
+    const windowMs = staggerWindows[interval];
+    let hash = 0;
+    for (let i = 0; i < taskName.length; i++) {
+      hash = ((hash << 5) - hash + taskName.charCodeAt(i)) | 0;
+    }
+    return Math.abs(hash) % windowMs;
+  }
 
   /**
    * Optimized partitioning method for UUID primary keys using range-based distribution.
