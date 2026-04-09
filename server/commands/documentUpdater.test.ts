@@ -344,6 +344,28 @@ describe("documentUpdater", () => {
     notifyUpdateSpy.mockRestore();
   });
 
+  it("should delete matched text when replacement is empty string", async () => {
+    const user = await buildUser();
+    let document = await buildDocument({
+      teamId: user.teamId,
+      text: "Hello beautiful world",
+    });
+
+    const result = DocumentHelper.applyMarkdownToDocument(
+      document,
+      "",
+      TextEditMode.Patch,
+      "beautiful "
+    );
+    const content = result.content!.content!;
+
+    expect(content).toHaveLength(1);
+    expect(content[0]).toMatchObject({
+      type: "paragraph",
+      content: [{ type: "text", text: "Hello world" }],
+    });
+  });
+
   it("should patch specific text in document content", async () => {
     const user = await buildUser();
     let document = await buildDocument({
