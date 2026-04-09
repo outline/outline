@@ -300,7 +300,10 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
     }
   )
   .refine(
-    (req) => !(req.body.editMode === TextEditMode.Patch && !req.body.text),
+    (req) =>
+      !(
+        req.body.editMode === TextEditMode.Patch && req.body.text === undefined
+      ),
     {
       message: "text is required when using patch editMode",
     }
