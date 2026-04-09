@@ -1,5 +1,5 @@
 import { JSDOM } from "jsdom";
-import { Node, Fragment, Slice } from "prosemirror-model";
+import { Node, Fragment } from "prosemirror-model";
 import ukkonen from "ukkonen";
 import { updateYFragment, yDocToProsemirrorJSON } from "y-prosemirror";
 import * as Y from "yjs";
@@ -519,23 +519,37 @@ export class DocumentHelper {
       const pmFrom = affected[0].pmFrom;
       const pmTo = affected[affected.length - 1].pmTo;
 
-      // Get the full markdown for the affected block range
-      const regionMdFrom = affected[0].mdFrom;
-      const regionMdTo = affected[affected.length - 1].mdTo;
-      const regionMarkdown = markdown.slice(regionMdFrom, regionMdTo);
+      // Try a surgical patch that preserves sibling nodes and their rich
+      // content. Falls back to a full markdown re-parse of the affected
+      // blocks when a surgical patch is not possible.
+      const surgicalResult =
+        affected.length === 1
+          ? DocumentHelper.trySurgicalPatch(
+              existingDoc,
+              pmFrom,
+              pmTo,
+              markdown,
+              matchIndex,
+              matchEnd,
+              affected[0].mdFrom,
+              affected[0].mdTo,
+              text
+            )
+          : undefined;
 
-      // Apply find/replace within the affected region's markdown
-      const modifiedRegion = regionMarkdown.replace(findText, text);
+      if (surgicalResult) {
+        doc = surgicalResult;
+      } else {
+        const regionMdFrom = affected[0].mdFrom;
+        const regionMdTo = affected[affected.length - 1].mdTo;
+        const regionMarkdown = markdown.slice(regionMdFrom, regionMdTo);
+        const modifiedRegion = regionMarkdown.replace(findText, text);
+        const newContent = parser.parse(modifiedRegion);
 
-      // Parse the modified region into new ProseMirror blocks
-      const newContent = parser.parse(modifiedRegion);
-
-      // Surgically replace only the affected blocks in the original document
-      doc = existingDoc.replace(
-        pmFrom,
-        pmTo,
-        new Slice(newContent.content, 0, 0)
-      );
+        const before = existingDoc.content.cut(0, pmFrom);
+        const after = existingDoc.content.cut(pmTo);
+        doc = existingDoc.copy(before.append(newContent.content).append(after));
+      }
     } else if (editMode === TextEditMode.Append) {
       const existingDoc = DocumentHelper.toProsemirror(document);
       const newDoc = parser.parse(text);
@@ -615,6 +629,313 @@ export class DocumentHelper {
     }
 
     return document;
+  }
+
+  /**
+   * Attempt a surgical patch on a single affected top-level block. For
+   * textblocks this does an inline replacement. For container nodes (lists,
+   * blockquotes, etc.) it re-parses the container markdown with the
+   * modification and merges with the original to preserve rich content in
+   * unchanged children.
+   *
+   * @param existingDoc The full ProseMirror document.
+   * @param pmFrom Start of the affected block in the document content.
+   * @param pmTo End of the affected block in the document content.
+   * @param markdown The full serialized markdown string.
+   * @param matchIndex Start of the findText match in the markdown.
+   * @param matchEnd End of the findText match in the markdown.
+   * @param blockMdFrom Start of this block's markdown in the full string.
+   * @param blockMdTo End of this block's markdown in the full string.
+   * @param replacementText The markdown replacement text.
+   * @returns A new document Node on success, or undefined.
+   */
+  private static trySurgicalPatch(
+    existingDoc: Node,
+    pmFrom: number,
+    pmTo: number,
+    markdown: string,
+    matchIndex: number,
+    matchEnd: number,
+    blockMdFrom: number,
+    blockMdTo: number,
+    replacementText: string
+  ): Node | undefined {
+    const blockNode = existingDoc.nodeAt(pmFrom);
+    if (!blockNode) {
+      return undefined;
+    }
+
+    const patchedBlock = DocumentHelper.patchNode(
+      blockNode,
+      markdown,
+      matchIndex,
+      matchEnd,
+      blockMdFrom,
+      blockMdTo,
+      replacementText
+    );
+
+    if (!patchedBlock) {
+      return undefined;
+    }
+
+    const before = existingDoc.content.cut(0, pmFrom);
+    const after = existingDoc.content.cut(pmTo);
+    return existingDoc.copy(
+      before.append(Fragment.from(patchedBlock)).append(after)
+    );
+  }
+
+  /**
+   * Recursively patch a single node. For textblocks, performs an inline
+   * replacement. For container nodes, serializes children to find which
+   * child contains the match, patches that child, and preserves siblings.
+   *
+   * @param node The node to patch.
+   * @param markdown The full document markdown string.
+   * @param matchIndex Start of the findText match in the full markdown.
+   * @param matchEnd End of the findText match in the full markdown.
+   * @param nodeMdFrom Start of this node's markdown in the full string.
+   * @param replacementText The markdown replacement text.
+   * @returns The patched node, or undefined to fall back.
+   */
+  private static patchNode(
+    node: Node,
+    markdown: string,
+    matchIndex: number,
+    matchEnd: number,
+    nodeMdFrom: number,
+    nodeMdTo: number,
+    replacementText: string
+  ): Node | undefined {
+    if (node.isTextblock) {
+      return DocumentHelper.tryInlinePatch(
+        node,
+        markdown,
+        matchIndex,
+        matchEnd,
+        nodeMdFrom,
+        replacementText
+      );
+    }
+
+    // Container node (list, blockquote, etc.): re-parse the container's
+    // markdown with the modification applied, then merge with the original
+    // to preserve rich content (comment marks, highlight colors, etc.) in
+    // children whose text content did not change.
+    const containerMd = markdown.slice(nodeMdFrom, nodeMdTo);
+    const localStart = matchIndex - nodeMdFrom;
+    const localEnd = matchEnd - nodeMdFrom;
+    const modifiedMd =
+      containerMd.slice(0, localStart) +
+      replacementText +
+      containerMd.slice(localEnd);
+
+    const parsed = parser.parse(modifiedMd.trim());
+
+    // Find the container node in the parsed result matching the original type.
+    let newContainer: Node | undefined;
+    parsed.forEach((child: Node) => {
+      if (child.type === node.type && !newContainer) {
+        newContainer = child;
+      }
+    });
+
+    if (!newContainer) {
+      return undefined;
+    }
+
+    return DocumentHelper.mergeNodes(node, newContainer);
+  }
+
+  /**
+   * Recursively merge two structurally similar nodes. Children whose text
+   * content is unchanged are kept from the original (preserving attributes
+   * that cannot be represented in markdown, such as comment marks or
+   * highlight colors). Children whose content changed use the updated version.
+   *
+   * @param original The original node with rich content to preserve.
+   * @param updated The re-parsed node with the modification applied.
+   * @returns The merged node.
+   */
+  private static mergeNodes(original: Node, updated: Node): Node {
+    if (original.isTextblock || original.isLeaf) {
+      return updated;
+    }
+
+    const oldChildren: Node[] = [];
+    const newChildren: Node[] = [];
+    original.forEach((child: Node) => oldChildren.push(child));
+    updated.forEach((child: Node) => newChildren.push(child));
+
+    // If structure changed significantly, use the fully re-parsed version.
+    if (oldChildren.length !== newChildren.length) {
+      return updated;
+    }
+
+    const merged: Node[] = [];
+    for (let i = 0; i < oldChildren.length; i++) {
+      const oldChild = oldChildren[i];
+      const newChild = newChildren[i];
+
+      if (oldChild.type !== newChild.type) {
+        return updated;
+      }
+
+      const textSame = oldChild.textContent === newChild.textContent;
+      const attrsSame =
+        JSON.stringify(oldChild.attrs) === JSON.stringify(newChild.attrs);
+
+      if (textSame && attrsSame) {
+        // Fully unchanged — keep original with its rich content
+        merged.push(oldChild);
+      } else if (textSame) {
+        // Attrs changed (e.g. checked state) but content same — apply new
+        // attrs while preserving original content with its rich marks.
+        merged.push(
+          oldChild.type.create(newChild.attrs, oldChild.content, oldChild.marks)
+        );
+      } else if (!oldChild.isTextblock && !oldChild.isLeaf) {
+        // Both are containers — recurse to preserve rich content deeper
+        merged.push(DocumentHelper.mergeNodes(oldChild, newChild));
+      } else {
+        merged.push(newChild);
+      }
+    }
+
+    return original.copy(Fragment.from(merged));
+  }
+
+  private static tryInlinePatch(
+    blockNode: Node,
+    markdown: string,
+    matchIndex: number,
+    matchEnd: number,
+    blockMdFrom: number,
+    replacementText: string
+  ): Node | undefined {
+    // Strip the leading block separator (newlines) to get the block's own
+    // markdown content and the offset of that content within the full string.
+    const blockMdRaw = markdown.slice(blockMdFrom, matchEnd + 1024);
+    const separatorLen =
+      blockMdRaw.length - blockMdRaw.replace(/^\n+/, "").length;
+    const contentMdStart = blockMdFrom + separatorLen;
+
+    // Positions of the match relative to the block's content markdown.
+    const localMdFrom = matchIndex - contentMdStart;
+    const localMdTo = matchEnd - contentMdStart;
+
+    if (localMdFrom < 0) {
+      return undefined;
+    }
+
+    // Build a map from text-content offset to PM Fragment offset by walking
+    // the block's inline children. For text nodes each character maps 1:1;
+    // for atom inline nodes (images, mentions) the nodeSize may differ from
+    // the text they contribute.
+    const blockText = blockNode.textContent;
+    const segments: Array<{
+      textFrom: number;
+      textTo: number;
+      pmFrom: number;
+      pmTo: number;
+    }> = [];
+    let textOffset = 0;
+
+    blockNode.forEach((child: Node, offset: number) => {
+      const childTextLen = child.isText
+        ? child.text!.length
+        : child.type.spec.leafText
+          ? (child.type.spec.leafText as (n: Node) => string)(child).length
+          : 0;
+
+      segments.push({
+        textFrom: textOffset,
+        textTo: textOffset + childTextLen,
+        pmFrom: offset,
+        pmTo: offset + child.nodeSize,
+      });
+      textOffset += childTextLen;
+    });
+
+    // For inline patching the block's markdown content must equal its plain
+    // text (no visible mark syntax like ** or []()). If they differ, inline
+    // position mapping is unreliable so fall back to block-level.
+    const contentMd = markdown.slice(
+      contentMdStart,
+      contentMdStart + blockText.length
+    );
+    if (contentMd !== blockText) {
+      return undefined;
+    }
+
+    // localMdFrom/To now equal text-content offsets. Resolve to PM positions.
+    const pmInlineFrom = DocumentHelper.textToPmOffset(segments, localMdFrom);
+    const pmInlineTo = DocumentHelper.textToPmOffset(segments, localMdTo);
+
+    if (pmInlineFrom < 0 || pmInlineTo < 0) {
+      return undefined;
+    }
+
+    // Parse the replacement markdown and extract inline content from the
+    // first textblock. Markdown parsing can trim whitespace, so when the
+    // parsed result is plain text we use the raw replacement string to
+    // preserve exact whitespace.
+    const parsed = parser.parse(replacementText);
+    const firstBlock = parsed.firstChild;
+    let replacementContent: Fragment;
+
+    if (
+      firstBlock?.isTextblock &&
+      firstBlock.content.childCount === 1 &&
+      firstBlock.firstChild?.isText &&
+      !firstBlock.firstChild.marks.length
+    ) {
+      // Plain text replacement — use the raw string to avoid whitespace trimming
+      replacementContent = Fragment.from(schema.text(replacementText));
+    } else if (firstBlock?.isTextblock) {
+      replacementContent = firstBlock.content;
+    } else {
+      replacementContent = parsed.content;
+    }
+
+    // Splice: keep inline content before match + replacement + after match.
+    const inlineBefore = blockNode.content.cut(0, pmInlineFrom);
+    const inlineAfter = blockNode.content.cut(pmInlineTo);
+    return blockNode.copy(
+      inlineBefore.append(replacementContent).append(inlineAfter)
+    );
+  }
+
+  /**
+   * Convert a text-content offset to a ProseMirror Fragment offset using a
+   * pre-built segment map.
+   *
+   * @param segments The segment map from text offsets to PM offsets.
+   * @param textPos The text-content offset to convert.
+   * @returns The corresponding PM Fragment offset, or -1.
+   */
+  private static textToPmOffset(
+    segments: Array<{
+      textFrom: number;
+      textTo: number;
+      pmFrom: number;
+      pmTo: number;
+    }>,
+    textPos: number
+  ): number {
+    for (const seg of segments) {
+      if (textPos >= seg.textFrom && textPos <= seg.textTo) {
+        return seg.pmFrom + (textPos - seg.textFrom);
+      }
+    }
+    if (segments.length > 0) {
+      const last = segments[segments.length - 1];
+      if (textPos >= last.textTo) {
+        return last.pmTo;
+      }
+    }
+    return -1;
   }
 
   /**

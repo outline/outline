@@ -3,6 +3,7 @@ import * as Y from "yjs";
 import { TextEditMode } from "@shared/types";
 import { APIUpdateExtension } from "@server/collaboration/APIUpdateExtension";
 import { Event } from "@server/models";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { buildDocument, buildUser } from "@server/test/factories";
 import { withAPIContext } from "@server/test/support";
@@ -364,13 +365,15 @@ describe("documentUpdater", () => {
     expect(document.text).not.toContain("Hello world");
   });
 
-  it("should preserve untouched blocks when patching", async () => {
+  it("should preserve comment marks on untouched blocks when patching", async () => {
     const user = await buildUser();
     let document = await buildDocument({
       teamId: user.teamId,
     });
-    const id = randomUUID();
-    // Set up content with a comment mark on the second paragraph
+    const commentId = randomUUID();
+
+    // Build content with a comment mark (not representable in markdown)
+    // on the LAST paragraph, then patch the FIRST paragraph.
     document.content = {
       type: "doc",
       content: [
@@ -383,7 +386,12 @@ describe("documentUpdater", () => {
           content: [
             {
               type: "text",
-              marks: [{ type: "comment", attrs: { id, userId: id } }],
+              marks: [
+                {
+                  type: "comment",
+                  attrs: { id: commentId, userId: commentId },
+                },
+              ],
               text: "Commented text",
             },
           ],
@@ -396,38 +404,227 @@ describe("documentUpdater", () => {
     };
     await document.save();
 
-    document = await withAPIContext(user, (ctx) =>
-      documentUpdater(ctx, {
-        text: "Updated first",
-        findText: "First paragraph",
-        document,
-        editMode: TextEditMode.Patch,
-      })
+    // Capture the ProseMirror JSON of untouched blocks BEFORE patching
+    // (with schema defaults already applied via toProsemirror → toJSON)
+    const beforeDoc = DocumentHelper.toProsemirror(document).toJSON();
+    const secondParaBefore = beforeDoc.content[1];
+    const thirdParaBefore = beforeDoc.content[2];
+
+    // Call DocumentHelper directly to inspect the ProseMirror result
+    const result = DocumentHelper.applyMarkdownToDocument(
+      document,
+      "Updated first",
+      TextEditMode.Patch,
+      "First paragraph"
     );
 
-    // The comment mark on the second paragraph should be preserved
-    expect(document.content).toMatchObject({
+    // Verify untouched blocks are byte-for-byte identical
+    expect(result.content.content[1]).toEqual(secondParaBefore);
+    expect(result.content.content[2]).toEqual(thirdParaBefore);
+
+    // Verify the patched block was actually updated
+    expect(result.content.content[0]).toMatchObject({
+      type: "paragraph",
+      content: [{ type: "text", text: "Updated first" }],
+    });
+
+    // Verify we still have exactly 3 blocks
+    expect(result.content.content).toHaveLength(3);
+  });
+
+  it("should preserve comment marks when patching a later block", async () => {
+    const user = await buildUser();
+    let document = await buildDocument({
+      teamId: user.teamId,
+    });
+    const commentId = randomUUID();
+
+    // Comment mark on the FIRST paragraph, patch the THIRD.
+    document.content = {
       type: "doc",
       content: [
-        {
-          type: "paragraph",
-          content: [{ type: "text", text: "Updated first" }],
-        },
         {
           type: "paragraph",
           content: [
             {
               type: "text",
-              marks: [{ type: "comment", attrs: { id, userId: id } }],
+              marks: [
+                {
+                  type: "comment",
+                  attrs: { id: commentId, userId: commentId },
+                },
+              ],
               text: "Commented text",
             },
           ],
         },
         {
           type: "paragraph",
-          content: [{ type: "text", text: "Third paragraph" }],
+          content: [{ type: "text", text: "Middle paragraph" }],
+        },
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "Last paragraph" }],
         },
       ],
+    };
+    await document.save();
+
+    const beforeDoc = DocumentHelper.toProsemirror(document).toJSON();
+    const firstParaBefore = beforeDoc.content[0];
+    const secondParaBefore = beforeDoc.content[1];
+
+    const result = DocumentHelper.applyMarkdownToDocument(
+      document,
+      "Updated last",
+      TextEditMode.Patch,
+      "Last paragraph"
+    );
+
+    // Both untouched blocks must be identical
+    expect(result.content.content[0]).toEqual(firstParaBefore);
+    expect(result.content.content[1]).toEqual(secondParaBefore);
+
+    // Patched block updated
+    expect(result.content.content[2]).toMatchObject({
+      type: "paragraph",
+      content: [{ type: "text", text: "Updated last" }],
+    });
+    expect(result.content.content).toHaveLength(3);
+  });
+
+  it("should preserve comment marks in complex document when patching middle content", async () => {
+    const user = await buildUser();
+    let document = await buildDocument({
+      teamId: user.teamId,
+    });
+    const commentId = randomUUID();
+
+    // Complex document: heading, paragraph with comment, bullet list, paragraph to patch
+    document.content = {
+      type: "doc",
+      content: [
+        {
+          type: "heading",
+          attrs: { level: 2 },
+          content: [{ type: "text", text: "Section Title" }],
+        },
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              marks: [
+                {
+                  type: "comment",
+                  attrs: { id: commentId, userId: commentId },
+                },
+              ],
+              text: "This has a comment",
+            },
+          ],
+        },
+        {
+          type: "bullet_list",
+          content: [
+            {
+              type: "list_item",
+              content: [
+                {
+                  type: "paragraph",
+                  content: [{ type: "text", text: "Item one" }],
+                },
+              ],
+            },
+            {
+              type: "list_item",
+              content: [
+                {
+                  type: "paragraph",
+                  content: [{ type: "text", text: "Item two" }],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "Final paragraph to edit" }],
+        },
+      ],
+    };
+    await document.save();
+
+    const beforeDoc = DocumentHelper.toProsemirror(document).toJSON();
+
+    const result = DocumentHelper.applyMarkdownToDocument(
+      document,
+      "Edited final paragraph",
+      TextEditMode.Patch,
+      "Final paragraph to edit"
+    );
+
+    // All three untouched blocks must be byte-for-byte identical
+    expect(result.content.content[0]).toEqual(beforeDoc.content[0]);
+    expect(result.content.content[1]).toEqual(beforeDoc.content[1]);
+    expect(result.content.content[2]).toEqual(beforeDoc.content[2]);
+
+    // Patched block updated
+    expect(result.content.content[3]).toMatchObject({
+      type: "paragraph",
+      content: [{ type: "text", text: "Edited final paragraph" }],
+    });
+    expect(result.content.content).toHaveLength(4);
+  });
+
+  it("should preserve comment mark when patching adjacent text in the same paragraph", async () => {
+    const user = await buildUser();
+    let document = await buildDocument({
+      teamId: user.teamId,
+    });
+    const commentId = randomUUID();
+
+    // Paragraph: "Hello world " + "commented"(with comment mark) + " end"
+    document.content = {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [
+            { type: "text", text: "Hello world " },
+            {
+              type: "text",
+              marks: [
+                {
+                  type: "comment",
+                  attrs: { id: commentId, userId: commentId },
+                },
+              ],
+              text: "commented",
+            },
+            { type: "text", text: " end" },
+          ],
+        },
+      ],
+    };
+    await document.save();
+
+    const beforeDoc = DocumentHelper.toProsemirror(document).toJSON();
+    const commentNode = beforeDoc.content[0].content[1];
+    const endNode = beforeDoc.content[0].content[2];
+
+    const result = DocumentHelper.applyMarkdownToDocument(
+      document,
+      "Goodbye world ",
+      TextEditMode.Patch,
+      "Hello world "
+    );
+
+    expect(result.content.content).toHaveLength(1);
+    // Comment mark and trailing text must be preserved exactly
+    expect(result.content.content[0]).toMatchObject({
+      type: "paragraph",
+      content: [{ type: "text", text: "Goodbye world " }, commentNode, endNode],
     });
   });
 
@@ -448,6 +645,161 @@ describe("documentUpdater", () => {
         })
       )
     ).rejects.toThrow("The specified text was not found in the document");
+  });
+
+  it("should preserve rich content in other checklist items when patching one item", async () => {
+    const user = await buildUser();
+    let document = await buildDocument({
+      teamId: user.teamId,
+    });
+    const commentId = randomUUID();
+
+    // Checklist with 3 items; second item has a comment mark
+    document.content = {
+      type: "doc",
+      content: [
+        {
+          type: "checkbox_list",
+          content: [
+            {
+              type: "checkbox_item",
+              attrs: { checked: false },
+              content: [
+                {
+                  type: "paragraph",
+                  content: [{ type: "text", text: "First task" }],
+                },
+              ],
+            },
+            {
+              type: "checkbox_item",
+              attrs: { checked: true },
+              content: [
+                {
+                  type: "paragraph",
+                  content: [
+                    {
+                      type: "text",
+                      marks: [
+                        {
+                          type: "comment",
+                          attrs: { id: commentId, userId: commentId },
+                        },
+                      ],
+                      text: "Commented task",
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              type: "checkbox_item",
+              attrs: { checked: false },
+              content: [
+                {
+                  type: "paragraph",
+                  content: [{ type: "text", text: "Third task" }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    await document.save();
+
+    const beforeDoc = DocumentHelper.toProsemirror(document).toJSON();
+    const secondItem = beforeDoc.content[0].content[1];
+
+    const result = DocumentHelper.applyMarkdownToDocument(
+      document,
+      "Updated task",
+      TextEditMode.Patch,
+      "First task"
+    );
+
+    // The second checklist item with its comment mark must be preserved
+    expect(result.content.content[0].content[1]).toEqual(secondItem);
+
+    // The first item should be updated
+    expect(
+      result.content.content[0].content[0].content[0].content[0].text
+    ).toEqual("Updated task");
+
+    // All three items should still exist
+    expect(result.content.content[0].content).toHaveLength(3);
+  });
+
+  it("should patch checklist item checked state while preserving rich content in siblings", async () => {
+    const user = await buildUser();
+    let document = await buildDocument({
+      teamId: user.teamId,
+    });
+    const commentId = randomUUID();
+
+    document.content = {
+      type: "doc",
+      content: [
+        {
+          type: "checkbox_list",
+          content: [
+            {
+              type: "checkbox_item",
+              attrs: { checked: false },
+              content: [
+                {
+                  type: "paragraph",
+                  content: [{ type: "text", text: "Buy groceries" }],
+                },
+              ],
+            },
+            {
+              type: "checkbox_item",
+              attrs: { checked: false },
+              content: [
+                {
+                  type: "paragraph",
+                  content: [
+                    {
+                      type: "text",
+                      marks: [
+                        {
+                          type: "comment",
+                          attrs: { id: commentId, userId: commentId },
+                        },
+                      ],
+                      text: "Review PR",
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    await document.save();
+
+    const beforeDoc = DocumentHelper.toProsemirror(document).toJSON();
+    const secondItem = beforeDoc.content[0].content[1];
+
+    const result = DocumentHelper.applyMarkdownToDocument(
+      document,
+      "- [x] Buy groceries",
+      TextEditMode.Patch,
+      "- [ ] Buy groceries"
+    );
+
+    // Checked state should be updated
+    expect(result.content.content[0].content[0].attrs.checked).toBe(true);
+
+    // Text should remain the same
+    expect(
+      result.content.content[0].content[0].content[0].content[0].text
+    ).toEqual("Buy groceries");
+
+    // Second item with comment mark must be preserved exactly
+    expect(result.content.content[0].content[1]).toEqual(secondItem);
   });
 
   it("should patch multi-block content", async () => {
