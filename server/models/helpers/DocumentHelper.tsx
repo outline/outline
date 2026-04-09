@@ -22,6 +22,14 @@ import type { MentionAttrs } from "./ProsemirrorHelper";
 import { ProsemirrorHelper } from "./ProsemirrorHelper";
 import { TextHelper } from "./TextHelper";
 
+/** Maps a range of text-content offsets to ProseMirror Fragment offsets. */
+interface InlineSegment {
+  textFrom: number;
+  textTo: number;
+  pmFrom: number;
+  pmTo: number;
+}
+
 type HTMLOptions = {
   /** Whether to include the document title in the generated HTML (defaults to true) */
   includeTitle?: boolean;
@@ -696,6 +704,7 @@ export class DocumentHelper {
    * @param matchIndex Start of the findText match in the full markdown.
    * @param matchEnd End of the findText match in the full markdown.
    * @param nodeMdFrom Start of this node's markdown in the full string.
+   * @param nodeMdTo End of this node's markdown in the full string.
    * @param replacementText The markdown replacement text.
    * @returns The patched node, or undefined to fall back.
    */
@@ -715,6 +724,7 @@ export class DocumentHelper {
         matchIndex,
         matchEnd,
         nodeMdFrom,
+        nodeMdTo,
         replacementText
       );
     }
@@ -783,10 +793,8 @@ export class DocumentHelper {
       }
 
       const textSame = oldChild.textContent === newChild.textContent;
-      const attrsSame =
-        JSON.stringify(oldChild.attrs) === JSON.stringify(newChild.attrs);
 
-      if (textSame && attrsSame) {
+      if (textSame && oldChild.sameMarkup(newChild)) {
         // Fully unchanged — keep original with its rich content
         merged.push(oldChild);
       } else if (textSame) {
@@ -806,20 +814,35 @@ export class DocumentHelper {
     return original.copy(Fragment.from(merged));
   }
 
+  /**
+   * Attempt an inline-level patch within a single textblock node. Returns the
+   * patched block node on success, or undefined if an inline patch is not
+   * possible and the caller should fall back to block-level replacement.
+   *
+   * @param blockNode The textblock node containing the match.
+   * @param markdown The full document markdown string.
+   * @param matchIndex Start of the findText match in the full markdown.
+   * @param matchEnd End of the findText match in the full markdown.
+   * @param nodeMdFrom Start of this block's markdown in the full string.
+   * @param nodeMdTo End of this block's markdown in the full string.
+   * @param replacementText The markdown replacement text.
+   * @returns The patched block node, or undefined.
+   */
   private static tryInlinePatch(
     blockNode: Node,
     markdown: string,
     matchIndex: number,
     matchEnd: number,
-    blockMdFrom: number,
+    nodeMdFrom: number,
+    nodeMdTo: number,
     replacementText: string
   ): Node | undefined {
     // Strip the leading block separator (newlines) to get the block's own
     // markdown content and the offset of that content within the full string.
-    const blockMdRaw = markdown.slice(blockMdFrom, matchEnd + 1024);
+    const blockMdRaw = markdown.slice(nodeMdFrom, nodeMdTo);
     const separatorLen =
       blockMdRaw.length - blockMdRaw.replace(/^\n+/, "").length;
-    const contentMdStart = blockMdFrom + separatorLen;
+    const contentMdStart = nodeMdFrom + separatorLen;
 
     // Positions of the match relative to the block's content markdown.
     const localMdFrom = matchIndex - contentMdStart;
@@ -834,12 +857,7 @@ export class DocumentHelper {
     // for atom inline nodes (images, mentions) the nodeSize may differ from
     // the text they contribute.
     const blockText = blockNode.textContent;
-    const segments: Array<{
-      textFrom: number;
-      textTo: number;
-      pmFrom: number;
-      pmTo: number;
-    }> = [];
+    const segments: InlineSegment[] = [];
     let textOffset = 0;
 
     blockNode.forEach((child: Node, offset: number) => {
@@ -916,12 +934,7 @@ export class DocumentHelper {
    * @returns The corresponding PM Fragment offset, or -1.
    */
   private static textToPmOffset(
-    segments: Array<{
-      textFrom: number;
-      textTo: number;
-      pmFrom: number;
-      pmTo: number;
-    }>,
+    segments: InlineSegment[],
     textPos: number
   ): number {
     for (const seg of segments) {
