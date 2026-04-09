@@ -417,19 +417,20 @@ describe("documentUpdater", () => {
       TextEditMode.Patch,
       "First paragraph"
     );
+    const content = result.content!.content!;
 
     // Verify untouched blocks are byte-for-byte identical
-    expect(result.content.content[1]).toEqual(secondParaBefore);
-    expect(result.content.content[2]).toEqual(thirdParaBefore);
+    expect(content[1]).toEqual(secondParaBefore);
+    expect(content[2]).toEqual(thirdParaBefore);
 
     // Verify the patched block was actually updated
-    expect(result.content.content[0]).toMatchObject({
+    expect(content[0]).toMatchObject({
       type: "paragraph",
       content: [{ type: "text", text: "Updated first" }],
     });
 
     // Verify we still have exactly 3 blocks
-    expect(result.content.content).toHaveLength(3);
+    expect(content).toHaveLength(3);
   });
 
   it("should preserve comment marks when patching a later block", async () => {
@@ -480,17 +481,18 @@ describe("documentUpdater", () => {
       TextEditMode.Patch,
       "Last paragraph"
     );
+    const content = result.content!.content!;
 
     // Both untouched blocks must be identical
-    expect(result.content.content[0]).toEqual(firstParaBefore);
-    expect(result.content.content[1]).toEqual(secondParaBefore);
+    expect(content[0]).toEqual(firstParaBefore);
+    expect(content[1]).toEqual(secondParaBefore);
 
     // Patched block updated
-    expect(result.content.content[2]).toMatchObject({
+    expect(content[2]).toMatchObject({
       type: "paragraph",
       content: [{ type: "text", text: "Updated last" }],
     });
-    expect(result.content.content).toHaveLength(3);
+    expect(content).toHaveLength(3);
   });
 
   it("should preserve comment marks in complex document when patching middle content", async () => {
@@ -563,18 +565,19 @@ describe("documentUpdater", () => {
       TextEditMode.Patch,
       "Final paragraph to edit"
     );
+    const content = result.content!.content!;
 
     // All three untouched blocks must be byte-for-byte identical
-    expect(result.content.content[0]).toEqual(beforeDoc.content[0]);
-    expect(result.content.content[1]).toEqual(beforeDoc.content[1]);
-    expect(result.content.content[2]).toEqual(beforeDoc.content[2]);
+    expect(content[0]).toEqual(beforeDoc.content[0]);
+    expect(content[1]).toEqual(beforeDoc.content[1]);
+    expect(content[2]).toEqual(beforeDoc.content[2]);
 
     // Patched block updated
-    expect(result.content.content[3]).toMatchObject({
+    expect(content[3]).toMatchObject({
       type: "paragraph",
       content: [{ type: "text", text: "Edited final paragraph" }],
     });
-    expect(result.content.content).toHaveLength(4);
+    expect(content).toHaveLength(4);
   });
 
   it("should preserve comment mark when patching adjacent text in the same paragraph", async () => {
@@ -619,10 +622,11 @@ describe("documentUpdater", () => {
       TextEditMode.Patch,
       "Hello world "
     );
+    const content = result.content!.content!;
 
-    expect(result.content.content).toHaveLength(1);
+    expect(content).toHaveLength(1);
     // Comment mark and trailing text must be preserved exactly
-    expect(result.content.content[0]).toMatchObject({
+    expect(content[0]).toMatchObject({
       type: "paragraph",
       content: [{ type: "text", text: "Goodbye world " }, commentNode, endNode],
     });
@@ -717,17 +721,18 @@ describe("documentUpdater", () => {
       TextEditMode.Patch,
       "First task"
     );
+    const list = result.content!.content![0];
 
     // The second checklist item with its comment mark must be preserved
-    expect(result.content.content[0].content[1]).toEqual(secondItem);
+    expect(list.content![1]).toEqual(secondItem);
 
     // The first item should be updated
-    expect(
-      result.content.content[0].content[0].content[0].content[0].text
-    ).toEqual("Updated task");
+    expect(list.content![0].content![0].content![0].text).toEqual(
+      "Updated task"
+    );
 
     // All three items should still exist
-    expect(result.content.content[0].content).toHaveLength(3);
+    expect(list.content).toHaveLength(3);
   });
 
   it("should patch checklist item checked state while preserving rich content in siblings", async () => {
@@ -789,17 +794,18 @@ describe("documentUpdater", () => {
       TextEditMode.Patch,
       "- [ ] Buy groceries"
     );
+    const list = result.content!.content![0];
 
     // Checked state should be updated
-    expect(result.content.content[0].content[0].attrs.checked).toBe(true);
+    expect(list.content![0].attrs!.checked).toBe(true);
 
     // Text should remain the same
-    expect(
-      result.content.content[0].content[0].content[0].content[0].text
-    ).toEqual("Buy groceries");
+    expect(list.content![0].content![0].content![0].text).toEqual(
+      "Buy groceries"
+    );
 
     // Second item with comment mark must be preserved exactly
-    expect(result.content.content[0].content[1]).toEqual(secondItem);
+    expect(list.content![1]).toEqual(secondItem);
   });
 
   it("should patch multi-block content", async () => {
