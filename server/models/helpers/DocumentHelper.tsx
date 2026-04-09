@@ -748,7 +748,7 @@ export class DocumentHelper {
       replacementText +
       containerMd.slice(localEnd);
 
-    const parsed = parser.parse(modifiedMd.trim());
+    const parsed = parser.parse(modifiedMd.replace(/^\n+/, ""));
 
     // Find the container node in the parsed result matching the original type.
     let newContainer: Node | undefined;
