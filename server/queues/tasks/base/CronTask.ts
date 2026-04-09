@@ -73,8 +73,8 @@ export abstract class CronTask extends BaseTask<Props> {
 
   /**
    * Compute a deterministic delay for a task based on its name and interval.
-   * Different tasks get different offsets within the stagger window for their
-   * interval, preventing concurrent heavy database operations.
+   * Different tasks are likely to get different offsets within the stagger
+   * window for their interval, reducing concurrent heavy database operations.
    *
    * @param taskName the name of the task class.
    * @param interval the task interval used to select the stagger window.
