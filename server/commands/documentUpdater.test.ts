@@ -1051,6 +1051,64 @@ describe("documentUpdater", () => {
     expect(secondRow.content![1].attrs!.colwidth).toEqual([250]);
   });
 
+  it("should preserve trailing whitespace in checklist items when patching", async () => {
+    const user = await buildUser();
+    let document = await buildDocument({
+      teamId: user.teamId,
+    });
+
+    // Checklist where an item ends with a hard break (trailing spaces matter)
+    document.content = {
+      type: "doc",
+      content: [
+        {
+          type: "checkbox_list",
+          content: [
+            {
+              type: "checkbox_item",
+              attrs: { checked: false },
+              content: [
+                {
+                  type: "paragraph",
+                  content: [{ type: "text", text: "Edit me" }],
+                },
+              ],
+            },
+            {
+              type: "checkbox_item",
+              attrs: { checked: false },
+              content: [
+                {
+                  type: "paragraph",
+                  content: [
+                    { type: "text", text: "Line one" },
+                    { type: "br" },
+                    { type: "text", text: "Line two" },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    await document.save();
+
+    const beforeDoc = DocumentHelper.toProsemirror(document).toJSON();
+    const secondItem = beforeDoc.content[0].content[1];
+
+    const result = DocumentHelper.applyMarkdownToDocument(
+      document,
+      "Edited",
+      TextEditMode.Patch,
+      "Edit me"
+    );
+    const list = result.content!.content![0];
+
+    // The second item with its hard break must be preserved exactly
+    expect(list.content![1]).toEqual(secondItem);
+  });
+
   it("should preserve ordered list container attrs when patching an item", async () => {
     const user = await buildUser();
     let document = await buildDocument({
