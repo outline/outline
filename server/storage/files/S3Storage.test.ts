@@ -1,7 +1,75 @@
+import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { Week, Day } from "@shared/utils/time";
+import env from "@server/env";
 import BaseStorage from "./BaseStorage";
+import S3Storage from "./S3Storage";
 
 describe("S3Storage", () => {
+  describe("getPresignedPost upload method", () => {
+    const mockedCreatePresignedPost = jest.mocked(createPresignedPost);
+    const mockedGetSignedUrl = jest.mocked(getSignedUrl);
+    const defaultUploadMethod = env.AWS_S3_UPLOAD_METHOD;
+
+    beforeEach(() => {
+      jest.resetAllMocks();
+      env.AWS_S3_UPLOAD_BUCKET_NAME = "test-bucket";
+      env.AWS_S3_UPLOAD_BUCKET_URL = "https://s3.eu-west-1.amazonaws.com";
+      env.AWS_S3_ACL = "private";
+    });
+
+    afterEach(() => {
+      env.AWS_S3_UPLOAD_METHOD = defaultUploadMethod;
+    });
+
+    it("should default to post upload method", async () => {
+      mockedCreatePresignedPost.mockResolvedValue({
+        url: "https://upload.example.com",
+        fields: {
+          key: "test-key",
+        },
+      });
+      delete process.env.AWS_S3_UPLOAD_METHOD;
+      env.AWS_S3_UPLOAD_METHOD = "post";
+
+      const storage = new S3Storage();
+      const result = await storage.getPresignedPost(
+        {} as never,
+        "test-key",
+        "private",
+        1024,
+        "image/png"
+      );
+
+      expect(result.method).toBe("POST");
+      expect(mockedCreatePresignedPost).toHaveBeenCalledTimes(1);
+      expect(mockedGetSignedUrl).not.toHaveBeenCalled();
+    });
+
+    it("should use put upload method when configured", async () => {
+      mockedGetSignedUrl.mockResolvedValue("https://signed-put.example.com");
+      env.AWS_S3_UPLOAD_METHOD = "put";
+
+      const storage = new S3Storage();
+      const result = await storage.getPresignedPost(
+        {} as never,
+        "test-key",
+        "private",
+        1024,
+        "image/png"
+      );
+
+      expect(result.method).toBe("PUT");
+      expect(result.url).toBe("https://signed-put.example.com");
+      expect(result.fields).toMatchObject({
+        "Content-Type": "image/png",
+        "Cache-Control": "max-age=31557600",
+      });
+      expect(mockedGetSignedUrl).toHaveBeenCalledTimes(1);
+      expect(mockedCreatePresignedPost).not.toHaveBeenCalled();
+    });
+  });
+
   describe("getSignedUrl expiration limits", () => {
     it("should define maximum expiration as 7 days for AWS S3 Signature V4", () => {
       // AWS S3 Signature V4 presigned URLs have a maximum expiration of 7 days

@@ -7,6 +7,7 @@ import {
   GetObjectCommand,
   HeadObjectCommand,
   CopyObjectCommand,
+  PutObjectCommand,
 } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
 import "@aws-sdk/signature-v4-crt"; // https://github.com/aws/aws-sdk-js-v3#functionality-requiring-aws-common-runtime-crt
@@ -20,6 +21,7 @@ import tmp from "tmp";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import BaseStorage from "./BaseStorage";
+import type { PresignedUpload } from "./BaseStorage";
 import type { AppContext } from "@server/types";
 
 export default class S3Storage extends BaseStorage {
@@ -27,7 +29,7 @@ export default class S3Storage extends BaseStorage {
     super();
 
     this.client = new S3Client({
-      bucketEndpoint: env.AWS_S3_ACCELERATE_URL ? true : false,
+      bucketEndpoint: this.shouldUseBucketEndpoint(),
       forcePathStyle: env.AWS_S3_FORCE_PATH_STYLE,
       region: env.AWS_REGION,
       endpoint: this.getEndpoint(),
@@ -40,24 +42,65 @@ export default class S3Storage extends BaseStorage {
     _acl: string,
     maxUploadSize: number,
     contentType = "image"
-  ) {
-    const params: PresignedPostOptions = {
-      Bucket: env.AWS_S3_UPLOAD_BUCKET_NAME as string,
-      Key: key,
-      Conditions: compact([
-        ["content-length-range", 0, maxUploadSize],
-        ["starts-with", "$Content-Type", contentType],
-        ["starts-with", "$Cache-Control", ""],
-      ]),
-      Fields: {
-        "Content-Disposition": this.getContentDisposition(contentType),
-        key,
-        ...(env.AWS_S3_ACL && { ACL: env.AWS_S3_ACL as ObjectCannedACL }),
-      },
-      Expires: 3600,
+  ): Promise<PresignedUpload> {
+    if (maxUploadSize <= 0) {
+      throw new Error("maxUploadSize must be greater than 0");
+    }
+
+    if (env.AWS_S3_UPLOAD_METHOD === "post") {
+      const params: PresignedPostOptions = {
+        Bucket: this.getBucket(),
+        Key: key,
+        Conditions: compact([
+          ["content-length-range", 0, maxUploadSize],
+          ["starts-with", "$Content-Type", contentType],
+          ["starts-with", "$Cache-Control", ""],
+        ]),
+        Fields: {
+          "Content-Disposition": this.getContentDisposition(contentType),
+          key,
+          ...(env.AWS_S3_ACL && { ACL: env.AWS_S3_ACL as ObjectCannedACL }),
+        },
+        Expires: 3600,
+      };
+      const result = await createPresignedPost(this.client, params);
+
+      return {
+        method: "POST",
+        url: result.url,
+        fields: result.fields,
+      };
+    }
+
+    const contentDisposition = this.getContentDisposition(contentType);
+    const headers: Record<string, string> = {
+      "Cache-Control": "max-age=31557600",
+      "Content-Disposition": contentDisposition,
+      "Content-Type": contentType,
     };
 
-    return createPresignedPost(this.client, params);
+    if (env.AWS_S3_ACL) {
+      headers["x-amz-acl"] = env.AWS_S3_ACL;
+    }
+
+    const putObjectCommand = new PutObjectCommand({
+      ...(env.AWS_S3_ACL && { ACL: env.AWS_S3_ACL as ObjectCannedACL }),
+      Bucket: this.getBucket(),
+      Key: key,
+      ContentType: contentType,
+      CacheControl: headers["Cache-Control"],
+      ContentDisposition: contentDisposition,
+    });
+
+    const url = await getSignedUrl(this.client, putObjectCommand, {
+      expiresIn: 3600,
+    });
+
+    return {
+      method: "PUT",
+      url,
+      fields: headers,
+    };
   }
 
   private getPublicEndpoint(isServerUpload?: boolean) {
@@ -266,7 +309,11 @@ export default class S3Storage extends BaseStorage {
     // checking for the bucket name in the endpoint url.
     if (env.AWS_S3_UPLOAD_BUCKET_NAME) {
       const url = new URL(env.AWS_S3_UPLOAD_BUCKET_URL);
-      if (url.hostname.startsWith(env.AWS_S3_UPLOAD_BUCKET_NAME + ".")) {
+      const isVirtualHost =
+        url.hostname.startsWith(env.AWS_S3_UPLOAD_BUCKET_NAME + ".") &&
+        this.isAwsHostname(url.hostname);
+
+      if (isVirtualHost) {
         Logger.warn(
           "AWS_S3_UPLOAD_BUCKET_URL contains the bucket name, this configuration combination will always point to AWS.\nRename your bucket or hostname if not using AWS S3.\nSee: https://github.com/outline/outline/issues/8025"
         );
@@ -278,6 +325,23 @@ export default class S3Storage extends BaseStorage {
   }
 
   private getBucket() {
-    return env.AWS_S3_ACCELERATE_URL || env.AWS_S3_UPLOAD_BUCKET_NAME || "";
+    return env.AWS_S3_UPLOAD_BUCKET_NAME || "";
+  }
+
+  private shouldUseBucketEndpoint() {
+    if (env.AWS_S3_ACCELERATE_URL) {
+      return true;
+    }
+
+    if (!env.AWS_S3_UPLOAD_BUCKET_NAME || !env.AWS_S3_UPLOAD_BUCKET_URL) {
+      return false;
+    }
+
+    const url = new URL(env.AWS_S3_UPLOAD_BUCKET_URL);
+    return url.hostname.startsWith(`${env.AWS_S3_UPLOAD_BUCKET_NAME}.`);
+  }
+
+  private isAwsHostname(hostname: string) {
+    return hostname === "amazonaws.com" || hostname.endsWith(".amazonaws.com");
   }
 }

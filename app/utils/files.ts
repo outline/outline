@@ -62,19 +62,13 @@ export const uploadFile = async (
   invariant(response, "Response should be available");
   const data = response.data;
   const attachment = data.attachment;
-  const formData = new FormData();
-
-  for (const key in data.form) {
-    formData.append(key, data.form[key]);
-  }
-
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'blob' does not exist on type 'File | Blo... Remove this comment to see the full error message
-  if (file.blob) {
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'file' does not exist on type 'File | Blo... Remove this comment to see the full error message
-    formData.append("file", file.file);
-  } else {
-    formData.append("file", file);
-  }
+  const uploadMethod = data.uploadMethod ?? "POST";
+  const uploadBody =
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'blob' does not exist on type 'File | Blo... Remove this comment to see the full error message
+    file.blob
+      ? // @ts-expect-error ts-migrate(2339) FIXME: Property 'file' does not exist on type 'File | Blo... Remove this comment to see the full error message
+        file.file
+      : file;
 
   // Using XMLHttpRequest instead of fetch because fetch doesn't support progress
   const xhr = new XMLHttpRequest();
@@ -105,7 +99,23 @@ export const uploadFile = async (
       xhr.withCredentials = !requiresPreflightRequest;
     }
 
-    xhr.open("POST", data.uploadUrl, true);
+    xhr.open(uploadMethod, data.uploadUrl, true);
+
+    if (uploadMethod === "PUT") {
+      for (const [key, value] of Object.entries(
+        (data.headers ?? {}) as Record<string, string>
+      )) {
+        xhr.setRequestHeader(key, value);
+      }
+      xhr.send(uploadBody);
+      return;
+    }
+
+    const formData = new FormData();
+    for (const key in data.form) {
+      formData.append(key, data.form[key]);
+    }
+    formData.append("file", uploadBody);
     xhr.send(formData);
   });
 

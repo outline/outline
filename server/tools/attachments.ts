@@ -24,7 +24,7 @@ export function attachmentTools(server: McpServer, scopes: string[]) {
       {
         title: "Create attachment upload",
         description:
-          "Requests a pre-signed upload URL. Use the returned uploadUrl and form fields to upload a file directly via a multipart POST request (e.g. with curl). The returned attachment URL is returned for use in documents.",
+          "Requests a pre-signed upload URL. Depending on storage, upload using either multipart POST form fields or PUT with request headers. The returned attachment URL is returned for use in documents.",
         annotations: {
           idempotentHint: false,
           readOnlyHint: false,
@@ -79,22 +79,27 @@ export function attachmentTools(server: McpServer, scopes: string[]) {
               contentType
             );
 
-            const uploadUrl = FileStorage.getUploadUrl();
-            const form = {
-              "Cache-Control": "max-age=31557600",
-              "Content-Type": contentType,
-              ...presignedPost.fields,
-            };
+            const uploadMethod = presignedPost.method ?? "POST";
+            const uploadUrl = presignedPost.url || FileStorage.getUploadUrl();
+            const form = uploadMethod === "POST" ? presignedPost.fields : {};
+            const headers =
+              uploadMethod === "PUT" ? presignedPost.fields : {};
 
             // Build a ready-to-use curl command for the MCP client
-            const formArgs = Object.entries(form)
-              .map(([k, v]) => `-F '${k}=${v}'`)
-              .join(" ");
-            const curlCommand = `curl -X POST ${formArgs} -F 'file=@/path/to/file' '${uploadUrl}'`;
+            const curlCommand =
+              uploadMethod === "PUT"
+                ? `curl -X PUT ${Object.entries(headers)
+                    .map(([k, v]) => `-H '${k}: ${v}'`)
+                    .join(" ")} --upload-file '/path/to/file' '${uploadUrl}'`
+                : `curl -X POST ${Object.entries(form)
+                    .map(([k, v]) => `-F '${k}=${v}'`)
+                    .join(" ")} -F 'file=@/path/to/file' '${uploadUrl}'`;
 
             return success({
+              uploadMethod,
               uploadUrl,
               form,
+              headers,
               maxUploadSize,
               curlCommand,
               attachment: {

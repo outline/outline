@@ -145,15 +145,17 @@ router.post(
       maxUploadSize,
       contentType
     );
+    const uploadMethod = presignedPost.method ?? "POST";
+    const uploadUrl = presignedPost.url || FileStorage.getUploadUrl();
+    const form = uploadMethod === "POST" ? presignedPost.fields : {};
+    const headers = uploadMethod === "PUT" ? presignedPost.fields : {};
 
     ctx.body = {
       data: {
-        uploadUrl: FileStorage.getUploadUrl(),
-        form: {
-          "Cache-Control": "max-age=31557600",
-          "Content-Type": contentType,
-          ...presignedPost.fields,
-        },
+        uploadMethod,
+        uploadUrl,
+        form,
+        headers,
         attachment: {
           ...presentAttachment(attachment),
           url: attachment.redirectUrl,

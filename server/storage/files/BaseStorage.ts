@@ -1,6 +1,5 @@
 import type { Blob } from "node:buffer";
 import type { Readable } from "node:stream";
-import type { PresignedPost } from "@aws-sdk/s3-presigned-post";
 import omit from "lodash/omit";
 import FileHelper from "@shared/editor/lib/FileHelper";
 import { isBase64Url, isInternalUrl } from "@shared/utils/urls";
@@ -10,6 +9,12 @@ import Logger from "@server/logging/Logger";
 import type { RequestInit } from "@server/utils/fetch";
 import fetch, { chromeUserAgent } from "@server/utils/fetch";
 import type { AppContext } from "@server/types";
+
+export interface PresignedUpload {
+  method: "POST" | "PUT";
+  url: string;
+  fields: Record<string, string>;
+}
 
 export default abstract class BaseStorage {
   /** The default number of seconds until a signed URL expires. */
@@ -22,14 +27,14 @@ export default abstract class BaseStorage {
   public static maxSignedUrlExpires = Week.seconds;
 
   /**
-   * Returns a presigned post for uploading files to the storage provider.
+   * Returns a presigned upload for uploading files to the storage provider.
    *
    * @param ctx The request context
    * @param key The path to store the file at
    * @param acl The ACL to use
    * @param maxUploadSize The maximum upload size in bytes
    * @param contentType The content type of the file
-   * @returns The presigned post object to use on the client (TODO: Abstract away from S3)
+   * @returns The presigned upload object to use on the client.
    */
   public abstract getPresignedPost(
     ctx: AppContext,
@@ -37,7 +42,7 @@ export default abstract class BaseStorage {
     acl: string,
     maxUploadSize: number,
     contentType: string
-  ): Promise<Partial<PresignedPost>>;
+  ): Promise<PresignedUpload>;
 
   /**
    * Returns a promise that resolves with a stream for reading a file from the storage provider.

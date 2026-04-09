@@ -629,6 +629,14 @@ export class Environment {
   public AWS_S3_ACL = environment.AWS_S3_ACL ?? "private";
 
   /**
+   * Upload method for S3-compatible storage providers.
+   * Defaults to POST for compatibility with existing S3 setups.
+   */
+  @IsOptional()
+  @IsIn(["post", "put"])
+  public AWS_S3_UPLOAD_METHOD = environment.AWS_S3_UPLOAD_METHOD ?? "post";
+
+  /**
    * Which file storage system to use
    */
   @IsIn(["local", "s3"])

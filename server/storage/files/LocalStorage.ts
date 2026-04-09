@@ -2,7 +2,6 @@ import { Blob } from "node:buffer";
 import { mkdir, unlink, rmdir } from "node:fs/promises";
 import path from "node:path";
 import { Readable } from "node:stream";
-import type { PresignedPost } from "@aws-sdk/s3-presigned-post";
 import fs from "fs-extra";
 import invariant from "invariant";
 import JWT from "jsonwebtoken";
@@ -11,6 +10,7 @@ import env from "@server/env";
 import { InternalError, ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import BaseStorage from "./BaseStorage";
+import type { PresignedUpload } from "./BaseStorage";
 import { CSRF } from "@shared/constants";
 import type { AppContext } from "@server/types";
 
@@ -21,8 +21,9 @@ export default class LocalStorage extends BaseStorage {
     acl: string,
     maxUploadSize: number,
     contentType = "image"
-  ): Promise<Partial<PresignedPost>> {
+  ): Promise<PresignedUpload> {
     return Promise.resolve({
+      method: "POST",
       url: this.getUrlForKey(key),
       fields: {
         key,
