@@ -548,7 +548,7 @@ export class DocumentHelper {
       // Try a surgical patch that preserves sibling nodes and their rich
       // content. Falls back to a full markdown re-parse of the affected
       // blocks when a surgical patch is not possible.
-      const ctx: PatchContext = {
+      const patch: PatchContext = {
         markdown,
         matchIndex,
         matchEnd,
@@ -559,7 +559,7 @@ export class DocumentHelper {
 
       const surgicalResult =
         affected.length === 1
-          ? DocumentHelper.trySurgicalPatch(existingDoc, pmFrom, pmTo, ctx)
+          ? DocumentHelper.trySurgicalPatch(existingDoc, pmFrom, pmTo, patch)
           : undefined;
 
       if (surgicalResult) {
@@ -671,21 +671,21 @@ export class DocumentHelper {
    * @param existingDoc The full ProseMirror document.
    * @param pmFrom Start of the affected block in the document content.
    * @param pmTo End of the affected block in the document content.
-   * @param ctx The patch context.
+   * @param patch The patch context.
    * @returns A new document Node on success, or undefined.
    */
   private static trySurgicalPatch(
     existingDoc: Node,
     pmFrom: number,
     pmTo: number,
-    ctx: PatchContext
+    patch: PatchContext
   ): Node | undefined {
     const blockNode = existingDoc.nodeAt(pmFrom);
     if (!blockNode) {
       return undefined;
     }
 
-    const patchedBlock = DocumentHelper.patchNode(blockNode, ctx);
+    const patchedBlock = DocumentHelper.patchNode(blockNode, patch);
 
     if (!patchedBlock) {
       return undefined;
@@ -704,12 +704,12 @@ export class DocumentHelper {
    * child contains the match, patches that child, and preserves siblings.
    *
    * @param node The node to patch.
-   * @param ctx The patch context.
+   * @param patch The patch context.
    * @returns The patched node, or undefined to fall back.
    */
-  private static patchNode(node: Node, ctx: PatchContext): Node | undefined {
+  private static patchNode(node: Node, patch: PatchContext): Node | undefined {
     if (node.isTextblock) {
-      return DocumentHelper.tryInlinePatch(node, ctx);
+      return DocumentHelper.tryInlinePatch(node, patch);
     }
 
     const {
@@ -719,7 +719,7 @@ export class DocumentHelper {
       nodeMdFrom,
       nodeMdTo,
       replacementText,
-    } = ctx;
+    } = patch;
 
     // Container node (list, blockquote, etc.): re-parse the container's
     // markdown with the modification applied, then merge with the original
@@ -898,12 +898,12 @@ export class DocumentHelper {
    * possible and the caller should fall back to block-level replacement.
    *
    * @param blockNode The textblock node containing the match.
-   * @param ctx The patch context.
+   * @param patch The patch context.
    * @returns The patched block node, or undefined.
    */
   private static tryInlinePatch(
     blockNode: Node,
-    ctx: PatchContext
+    patch: PatchContext
   ): Node | undefined {
     const {
       markdown,
@@ -912,7 +912,7 @@ export class DocumentHelper {
       nodeMdFrom,
       nodeMdTo,
       replacementText,
-    } = ctx;
+    } = patch;
     // Strip the leading block separator (newlines) to get the block's own
     // markdown content and the offset of that content within the full string.
     const blockMdRaw = markdown.slice(nodeMdFrom, nodeMdTo);
