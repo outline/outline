@@ -106,6 +106,22 @@ export default function markdownItCheckbox(md: MarkdownIt): void {
       }
     }
 
+    // Second pass: convert any remaining list_item tokens inside a
+    // checkbox_list to checkbox_item so they aren't silently dropped by the
+    // Prosemirror schema which requires checkbox_item+ children.
+    let inCheckboxList = false;
+    for (let i = 0; i < tokens.length; i++) {
+      if (tokens[i].type === "checkbox_list_open") {
+        inCheckboxList = true;
+      } else if (tokens[i].type === "checkbox_list_close") {
+        inCheckboxList = false;
+      } else if (inCheckboxList && tokens[i].type === "list_item_open") {
+        tokens[i].type = "checkbox_item_open";
+      } else if (inCheckboxList && tokens[i].type === "list_item_close") {
+        tokens[i].type = "checkbox_item_close";
+      }
+    }
+
     return false;
   });
 }

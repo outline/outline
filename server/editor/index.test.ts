@@ -18,11 +18,21 @@ test("parses lowercase alpha lists", () => {
         attrs: { listStyle: "lower-alpha", order: 1 },
         content: [
           {
-            content: [{ content: [{ text: "First item", type: "text" }], type: "paragraph" }],
+            content: [
+              {
+                content: [{ text: "First item", type: "text" }],
+                type: "paragraph",
+              },
+            ],
             type: "list_item",
           },
           {
-            content: [{ content: [{ text: "Second item", type: "text" }], type: "paragraph" }],
+            content: [
+              {
+                content: [{ text: "Second item", type: "text" }],
+                type: "paragraph",
+              },
+            ],
             type: "list_item",
           },
         ],
@@ -42,11 +52,21 @@ test("parses uppercase alpha lists", () => {
         attrs: { listStyle: "upper-alpha", order: 1 },
         content: [
           {
-            content: [{ content: [{ text: "First item", type: "text" }], type: "paragraph" }],
+            content: [
+              {
+                content: [{ text: "First item", type: "text" }],
+                type: "paragraph",
+              },
+            ],
             type: "list_item",
           },
           {
-            content: [{ content: [{ text: "Second item", type: "text" }], type: "paragraph" }],
+            content: [
+              {
+                content: [{ text: "Second item", type: "text" }],
+                type: "paragraph",
+              },
+            ],
             type: "list_item",
           },
         ],
@@ -68,7 +88,9 @@ b. Do that.`;
   const json = ast?.toJSON();
 
   // Find the ordered_list in the result
-  const orderedList = json?.content?.find((node: any) => node.type === "ordered_list");
+  const orderedList = json?.content?.find(
+    (node: any) => node.type === "ordered_list"
+  );
 
   expect(orderedList).toBeDefined();
   expect(orderedList?.attrs.listStyle).toBe("lower-alpha");
@@ -85,11 +107,21 @@ test("preserves numeric lists", () => {
         attrs: { listStyle: "number", order: 1 },
         content: [
           {
-            content: [{ content: [{ text: "First item", type: "text" }], type: "paragraph" }],
+            content: [
+              {
+                content: [{ text: "First item", type: "text" }],
+                type: "paragraph",
+              },
+            ],
             type: "list_item",
           },
           {
-            content: [{ content: [{ text: "Second item", type: "text" }], type: "paragraph" }],
+            content: [
+              {
+                content: [{ text: "Second item", type: "text" }],
+                type: "paragraph",
+              },
+            ],
             type: "list_item",
           },
         ],
@@ -112,4 +144,37 @@ test("serializes uppercase alpha lists back to markdown", () => {
   const output = serializer.serialize(ast);
 
   expect(output.trim()).toBe("A. First item\nB. Second item");
+});
+
+test("preserves mixed checkbox and regular items in a list", () => {
+  const markdown = `- [x] Checked item
+- Regular item
+- [ ] Unchecked item`;
+
+  const ast = parser.parse(markdown);
+  const json = ast?.toJSON();
+
+  const checkboxList = json?.content?.find(
+    (node: any) => node.type === "checkbox_list"
+  );
+
+  expect(checkboxList).toBeDefined();
+  expect(checkboxList?.content).toHaveLength(3);
+  expect(checkboxList?.content[0].type).toBe("checkbox_item");
+  expect(checkboxList?.content[1].type).toBe("checkbox_item");
+  expect(checkboxList?.content[2].type).toBe("checkbox_item");
+});
+
+test("round-trips mixed checkbox lists through serializer", () => {
+  const markdown = `- [x] Checked
+- Plain text
+- [ ] Unchecked`;
+
+  const ast = parser.parse(markdown);
+  const output = serializer.serialize(ast);
+
+  // All items should survive the round-trip
+  expect(output).toContain("Checked");
+  expect(output).toContain("Plain text");
+  expect(output).toContain("Unchecked");
 });
