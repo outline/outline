@@ -18,11 +18,21 @@ test("parses lowercase alpha lists", () => {
         attrs: { listStyle: "lower-alpha", order: 1 },
         content: [
           {
-            content: [{ content: [{ text: "First item", type: "text" }], type: "paragraph" }],
+            content: [
+              {
+                content: [{ text: "First item", type: "text" }],
+                type: "paragraph",
+              },
+            ],
             type: "list_item",
           },
           {
-            content: [{ content: [{ text: "Second item", type: "text" }], type: "paragraph" }],
+            content: [
+              {
+                content: [{ text: "Second item", type: "text" }],
+                type: "paragraph",
+              },
+            ],
             type: "list_item",
           },
         ],
@@ -42,11 +52,21 @@ test("parses uppercase alpha lists", () => {
         attrs: { listStyle: "upper-alpha", order: 1 },
         content: [
           {
-            content: [{ content: [{ text: "First item", type: "text" }], type: "paragraph" }],
+            content: [
+              {
+                content: [{ text: "First item", type: "text" }],
+                type: "paragraph",
+              },
+            ],
             type: "list_item",
           },
           {
-            content: [{ content: [{ text: "Second item", type: "text" }], type: "paragraph" }],
+            content: [
+              {
+                content: [{ text: "Second item", type: "text" }],
+                type: "paragraph",
+              },
+            ],
             type: "list_item",
           },
         ],
@@ -68,7 +88,9 @@ b. Do that.`;
   const json = ast?.toJSON();
 
   // Find the ordered_list in the result
-  const orderedList = json?.content?.find((node: any) => node.type === "ordered_list");
+  const orderedList = json?.content?.find(
+    (node: { type: string }) => node.type === "ordered_list"
+  );
 
   expect(orderedList).toBeDefined();
   expect(orderedList?.attrs.listStyle).toBe("lower-alpha");
@@ -85,11 +107,21 @@ test("preserves numeric lists", () => {
         attrs: { listStyle: "number", order: 1 },
         content: [
           {
-            content: [{ content: [{ text: "First item", type: "text" }], type: "paragraph" }],
+            content: [
+              {
+                content: [{ text: "First item", type: "text" }],
+                type: "paragraph",
+              },
+            ],
             type: "list_item",
           },
           {
-            content: [{ content: [{ text: "Second item", type: "text" }], type: "paragraph" }],
+            content: [
+              {
+                content: [{ text: "Second item", type: "text" }],
+                type: "paragraph",
+              },
+            ],
             type: "list_item",
           },
         ],
