@@ -6,6 +6,6 @@ allow(User, "createEmoji", Team, isTeamModel);
 
 allow(User, "read", Emoji, isTeamModel);
 
-allow(User, "delete", Emoji, (actor, emoji) =>
+allow(User, ["update", "delete"], Emoji, (actor, emoji) =>
   or(isOwner(actor, emoji), isTeamAdmin(actor, emoji))
 );

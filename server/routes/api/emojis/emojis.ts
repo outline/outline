@@ -199,6 +199,56 @@ router.post(
 );
 
 router.post(
+  "emojis.update",
+  auth(),
+  validate(T.EmojisUpdateSchema),
+  transaction(),
+  async (ctx: APIContext<T.EmojisUpdateReq>) => {
+    const { id, attachmentId } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
+
+    const emoji = await Emoji.findByPk(id, {
+      transaction,
+      rejectOnEmpty: true,
+      lock: transaction.LOCK.UPDATE,
+    });
+    authorize(user, "update", emoji);
+
+    const attachment = await Attachment.findByPk(attachmentId, {
+      transaction,
+      rejectOnEmpty: true,
+    });
+    authorize(user, "read", attachment);
+
+    // Capture old attachment before reassigning so we can clean it up.
+    const oldAttachmentId = emoji.attachmentId;
+
+    emoji.attachmentId = attachmentId;
+    emoji.createdById = user.id;
+    await emoji.save({ transaction });
+
+    if (oldAttachmentId !== attachmentId) {
+      const oldAttachment = await Attachment.findByPk(oldAttachmentId, {
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
+      if (oldAttachment) {
+        await oldAttachment.destroy({ transaction });
+      }
+    }
+
+    emoji.attachment = attachment;
+    emoji.createdBy = user;
+
+    ctx.body = {
+      data: presentEmoji(emoji),
+      policies: presentPolicies(user, [emoji]),
+    };
+  }
+);
+
+router.post(
   "emojis.delete",
   auth(),
   validate(T.EmojisDeleteSchema),

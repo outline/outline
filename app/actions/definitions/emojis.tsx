@@ -2,7 +2,7 @@ import { PlusIcon } from "outline-icons";
 import { createAction } from "~/actions";
 import { TeamSection } from "../sections";
 import stores from "~/stores";
-import { EmojiCreateDialog } from "~/components/EmojiCreateDialog";
+import { EmojiCreateDialog } from "~/components/EmojiDialog/EmojiCreateDialog";
 
 export const createEmoji = createAction({
   name: ({ t }) => `${t("New emoji")}…`,

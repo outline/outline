@@ -31,6 +31,15 @@ export const EmojisCreateSchema = BaseSchema.extend({
   }),
 });
 
+export const EmojisUpdateSchema = BaseSchema.extend({
+  body: z.object({
+    /** ID of the emoji to update */
+    id: z.uuid(),
+    /** ID of the new attachment to use as the emoji image */
+    attachmentId: z.uuid(),
+  }),
+});
+
 export const EmojisDeleteSchema = BaseSchema.extend({
   body: z.object({
     /** ID of the emoji to delete */
@@ -54,5 +63,7 @@ export type EmojisInfoReq = z.infer<typeof EmojisInfoSchema>;
 export type EmojisListReq = z.infer<typeof EmojisListSchema>;
 
 export type EmojisCreateReq = z.infer<typeof EmojisCreateSchema>;
+
+export type EmojisUpdateReq = z.infer<typeof EmojisUpdateSchema>;
 
 export type EmojisDeleteReq = z.infer<typeof EmojisDeleteSchema>;
