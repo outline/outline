@@ -1,9 +1,10 @@
 import * as React from "react";
-import { TrashIcon } from "outline-icons";
+import { ReplaceIcon, TrashIcon } from "outline-icons";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type Emoji from "~/models/Emoji";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
+import { EmojiReplaceDialog } from "~/components/EmojiDialog/EmojiReplaceDialog";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { createAction } from "~/actions";
@@ -12,7 +13,7 @@ import { useMenuAction } from "~/hooks/useMenuAction";
 
 /**
  * Hook that constructs the action menu for emoji management operations.
- * 
+ *
  * @param targetEmoji - the emoji to build actions for, or null to skip.
  * @returns action with children for use in menus, or undefined if emoji is null.
  */
@@ -21,6 +22,21 @@ export function useEmojiMenuActions(targetEmoji: Emoji | null) {
   const { dialogs } = useStores();
   const can = usePolicy(targetEmoji ?? ({} as Emoji));
 
+  const openReplaceDialog = React.useCallback(() => {
+    if (!targetEmoji) {
+      return;
+    }
+    dialogs.openModal({
+      title: t("Replace image"),
+      content: (
+        <EmojiReplaceDialog
+          emoji={targetEmoji}
+          onSubmit={dialogs.closeAllModals}
+        />
+      ),
+    });
+  }, [t, targetEmoji, dialogs]);
+
   const openDeleteDialog = React.useCallback(() => {
     if (!targetEmoji) {
       return;
@@ -28,27 +44,55 @@ export function useEmojiMenuActions(targetEmoji: Emoji | null) {
     dialogs.openModal({
       title: t("Delete Emoji"),
       content: (
-        <DeleteEmojiDialog emoji={targetEmoji} onSubmit={dialogs.closeAllModals} />
+        <DeleteEmojiDialog
+          emoji={targetEmoji}
+          onSubmit={dialogs.closeAllModals}
+        />
       ),
     });
   }, [t, targetEmoji, dialogs]);
 
-  const actionList = React.useMemo(
-    () =>
-      !targetEmoji || !can.delete
-        ? []
-        : [
-            createAction({
-              name: `${t("Delete")}…`,
-              icon: <TrashIcon />,
-              section: EmojiSecion,
-              visible: true,
-              dangerous: true,
-              perform: openDeleteDialog,
-            }),
-          ],
-    [t, targetEmoji, can.delete, openDeleteDialog]
-  );
+  const actionList = React.useMemo(() => {
+    if (!targetEmoji) {
+      return [];
+    }
+
+    const actions = [];
+
+    if (can.update) {
+      actions.push(
+        createAction({
+          name: `${t("Replace")}…`,
+          icon: <ReplaceIcon />,
+          section: EmojiSecion,
+          visible: true,
+          perform: openReplaceDialog,
+        })
+      );
+    }
+
+    if (can.delete) {
+      actions.push(
+        createAction({
+          name: `${t("Delete")}…`,
+          icon: <TrashIcon />,
+          section: EmojiSecion,
+          visible: true,
+          dangerous: true,
+          perform: openDeleteDialog,
+        })
+      );
+    }
+
+    return actions;
+  }, [
+    t,
+    targetEmoji,
+    can.update,
+    can.delete,
+    openReplaceDialog,
+    openDeleteDialog,
+  ]);
 
   return useMenuAction(actionList);
 }

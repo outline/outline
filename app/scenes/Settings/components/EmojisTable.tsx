@@ -70,7 +70,12 @@ const EmojisTable = observer(function EmojisTable({
           accessor: (emoji) => emoji.url,
           component: (emoji) => (
             <EmojiPreview>
-              <CustomEmoji value={emoji.id} alt={emoji.name} size={28} />
+              <CustomEmoji
+                value={emoji.id}
+                alt={emoji.name}
+                size={28}
+                cacheKey={emoji.updatedAt}
+              />
               <span>:{emoji.name}:</span>
             </EmojiPreview>
           ),
