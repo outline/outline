@@ -106,19 +106,26 @@ export default function markdownItCheckbox(md: MarkdownIt): void {
       }
     }
 
-    // Second pass: convert any remaining list_item tokens inside a
-    // checkbox_list to checkbox_item so they aren't silently dropped by the
+    // Second pass: convert any remaining direct child list_item tokens inside
+    // a checkbox_list to checkbox_item so they aren't silently dropped by the
     // Prosemirror schema which requires checkbox_item+ children.
-    let inCheckboxList = false;
+    const checkboxListOpenLevels: number[] = [];
     for (let i = 0; i < tokens.length; i++) {
-      if (tokens[i].type === "checkbox_list_open") {
-        inCheckboxList = true;
-      } else if (tokens[i].type === "checkbox_list_close") {
-        inCheckboxList = false;
-      } else if (inCheckboxList && tokens[i].type === "list_item_open") {
-        tokens[i].type = "checkbox_item_open";
-      } else if (inCheckboxList && tokens[i].type === "list_item_close") {
-        tokens[i].type = "checkbox_item_close";
+      const token = tokens[i];
+      if (token.type === "checkbox_list_open") {
+        checkboxListOpenLevels.push(token.level);
+      } else if (token.type === "checkbox_list_close") {
+        checkboxListOpenLevels.pop();
+      } else if (checkboxListOpenLevels.length > 0) {
+        const checkboxListOpenLevel =
+          checkboxListOpenLevels[checkboxListOpenLevels.length - 1];
+        const isDirectChild = token.level === checkboxListOpenLevel + 1;
+
+        if (isDirectChild && token.type === "list_item_open") {
+          token.type = "checkbox_item_open";
+        } else if (isDirectChild && token.type === "list_item_close") {
+          token.type = "checkbox_item_close";
+        }
       }
     }
 

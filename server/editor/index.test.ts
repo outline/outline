@@ -178,3 +178,30 @@ test("round-trips mixed checkbox lists through serializer", () => {
   expect(output).toContain("Plain text");
   expect(output).toContain("Unchecked");
 });
+
+test("does not convert nested bullet list items inside checkbox lists", () => {
+  const markdown = `- [x] Parent checkbox
+    - Nested bullet item
+    - Another nested item
+- [ ] Second checkbox`;
+
+  const ast = parser.parse(markdown);
+  const json = ast?.toJSON();
+
+  const checkboxList = json?.content?.find(
+    (node: any) => node.type === "checkbox_list"
+  );
+
+  expect(checkboxList).toBeDefined();
+  expect(checkboxList?.content).toHaveLength(2);
+  expect(checkboxList?.content[0].type).toBe("checkbox_item");
+  expect(checkboxList?.content[1].type).toBe("checkbox_item");
+
+  // Nested list should remain a bullet_list, not a checkbox_list
+  const nestedContent = checkboxList?.content[0].content;
+  const nestedList = nestedContent?.find(
+    (node: any) => node.type === "bullet_list"
+  );
+  expect(nestedList).toBeDefined();
+  expect(nestedList?.content[0].type).toBe("list_item");
+});
