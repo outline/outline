@@ -1,5 +1,5 @@
 import { JSDOM } from "jsdom";
-import { Node, Fragment } from "prosemirror-model";
+import { Node, Fragment, type NodeType } from "prosemirror-model";
 import ukkonen from "ukkonen";
 import { updateYFragment, yDocToProsemirrorJSON } from "y-prosemirror";
 import * as Y from "yjs";
@@ -734,14 +734,7 @@ export class DocumentHelper {
       containerMd.slice(localEnd);
 
     const parsed = parser.parse(modifiedMd.replace(/^\n+/, ""));
-
-    // Find the container node in the parsed result matching the original type.
-    let newContainer: Node | undefined;
-    parsed.forEach((child: Node) => {
-      if (child.type === node.type && !newContainer) {
-        newContainer = child;
-      }
-    });
+    const newContainer = DocumentHelper.findChildOfType(parsed, node.type);
 
     if (!newContainer) {
       return undefined;
@@ -751,14 +744,29 @@ export class DocumentHelper {
     // baseline. This lets mergeNodes distinguish attrs that were intentionally
     // changed by the modification from attrs lost during markdown round-trip.
     const originalParsed = parser.parse(containerMd.replace(/^\n+/, ""));
-    let roundTripped: Node | undefined;
-    originalParsed.forEach((child: Node) => {
-      if (child.type === node.type && !roundTripped) {
-        roundTripped = child;
-      }
-    });
+    const roundTripped = DocumentHelper.findChildOfType(
+      originalParsed,
+      node.type
+    );
 
     return DocumentHelper.mergeNodes(node, newContainer, roundTripped);
+  }
+
+  /**
+   * Find the first child of a parsed document that matches the given type.
+   *
+   * @param doc The parsed document to search.
+   * @param type The node type to find.
+   * @returns The first matching child, or undefined.
+   */
+  private static findChildOfType(doc: Node, type: NodeType): Node | undefined {
+    let result: Node | undefined;
+    doc.forEach((child: Node) => {
+      if (child.type === type && !result) {
+        result = child;
+      }
+    });
+    return result;
   }
 
   /**
