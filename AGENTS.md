@@ -188,6 +188,7 @@ yarn test:shared   # All shared code tests
 ## Security
 
 - Sanitize all user input.
+- Always use `sanitizeUrl()` when setting `href` or `src` from user-controlled data in ProseMirror `toDOM` methods, regardless of whether it is imported via an alias or a relative path. Unlike React components, `toDOM` writes raw DOM and does not sanitize attribute values.
 - Use CSRF protection.
 - Use rateLimiter middleware for sensitive endpoints.
 - Follow OWASP guidelines.
