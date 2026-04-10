@@ -30,6 +30,8 @@ type SwatchButtonProps = {
   className?: string;
   /** Whether to render the color picker in a modal popover. Defaults to true */
   pickerInModal?: boolean;
+  /** Whether to show the alpha channel slider. Defaults to false */
+  alpha?: boolean;
 };
 
 export const SwatchButton: React.FC<SwatchButtonProps> = ({
@@ -39,6 +41,7 @@ export const SwatchButton: React.FC<SwatchButtonProps> = ({
   onChange,
   className,
   pickerInModal = true,
+  alpha = false,
 }) => {
   const { t } = useTranslation();
   const isMobile = useMobile();
@@ -55,7 +58,7 @@ export const SwatchButton: React.FC<SwatchButtonProps> = ({
 
   const pickerContent = (
     <StyledColorPicker
-      alpha={false}
+      alpha={alpha}
       activeColor={color}
       onSelect={(c) => onChange(c)}
     />

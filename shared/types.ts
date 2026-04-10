@@ -321,6 +321,8 @@ export enum UserPreference {
   EnableSmartText = "enableSmartText",
   /** The style of notification badge to display. */
   NotificationBadge = "notificationBadge",
+  /** Per-user theme property overrides merged on top of the built theme. */
+  CustomThemeOverrides = "customThemeOverrides",
 }
 
 export enum NotificationBadgeType {
@@ -341,6 +343,7 @@ export type UserPreferences = {
   [UserPreference.SortCommentsByOrderInDocument]?: boolean;
   [UserPreference.EnableSmartText]?: boolean;
   [UserPreference.NotificationBadge]?: NotificationBadgeType;
+  [UserPreference.CustomThemeOverrides]?: Record<string, string>;
 };
 
 export type SourceMetadata = {

@@ -93,7 +93,7 @@ export const UsersUpdateSchema = BaseSchema.extend({
     preferences: z
       .partialRecord(
         z.enum(UserPreference),
-        z.union([z.boolean(), z.enum(NotificationBadgeType)])
+        z.union([z.boolean(), z.enum(NotificationBadgeType), z.record(z.string(), z.string().max(100))])
       )
       .optional(),
     timezone: zodTimezone().optional(),

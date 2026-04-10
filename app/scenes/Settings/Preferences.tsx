@@ -23,6 +23,7 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import UserDelete from "../UserDelete";
 import SettingRow from "./components/SettingRow";
+import ThemeOverrideEditor from "./components/ThemeOverrideEditor";
 
 function Preferences() {
   const { t } = useTranslation();
@@ -231,6 +232,8 @@ function Preferences() {
           onChange={handleCodeBlockLineNumbersChange}
         />
       </SettingRow>
+
+      <ThemeOverrideEditor />
 
       <Heading as="h2">{t("Behavior")}</Heading>
       <SettingRow

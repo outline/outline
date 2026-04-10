@@ -15,7 +15,9 @@ const Theme: React.FC = ({ children }: Props) => {
   const theme = useBuildTheme(
     auth.team?.getPreference(TeamPreference.CustomTheme) ||
       auth.config?.customTheme ||
-      undefined
+      undefined,
+    undefined,
+    auth.user?.getPreference(UserPreference.CustomThemeOverrides) || undefined
   );
 
   React.useEffect(() => {

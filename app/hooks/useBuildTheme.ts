@@ -17,11 +17,13 @@ import useQuery from "./useQuery";
  *
  * @param customTheme Custom theme to merge with the default theme
  * @param overrideTheme Optional override the theme to use
+ * @param userThemeOverrides Optional per-user theme property overrides merged last
  * @returns The theme to use
  */
 export default function useBuildTheme(
   customTheme: Partial<CustomTheme> = {},
-  overrideTheme?: Theme
+  overrideTheme?: Theme,
+  userThemeOverrides?: Record<string, string>
 ) {
   const { ui } = useStores();
   const params = useQuery();
@@ -41,19 +43,22 @@ export default function useBuildTheme(
 
   const resolvedTheme = overrideTheme ?? ui.resolvedTheme;
 
-  const theme = useMemo(
-    () =>
-      isPrinting
-        ? buildLightTheme(customTheme)
-        : isMobile
-          ? resolvedTheme === "dark"
-            ? buildPitchBlackTheme(customTheme)
-            : buildLightTheme(customTheme)
-          : resolvedTheme === "dark"
-            ? buildDarkTheme(customTheme)
-            : buildLightTheme(customTheme),
-    [customTheme, isMobile, isPrinting, resolvedTheme]
-  );
+  const theme = useMemo(() => {
+    const base = isPrinting
+      ? buildLightTheme(customTheme)
+      : isMobile
+        ? resolvedTheme === "dark"
+          ? buildPitchBlackTheme(customTheme)
+          : buildLightTheme(customTheme)
+        : resolvedTheme === "dark"
+          ? buildDarkTheme(customTheme)
+          : buildLightTheme(customTheme);
+
+    if (userThemeOverrides) {
+      return { ...base, ...userThemeOverrides };
+    }
+    return base;
+  }, [customTheme, isMobile, isPrinting, resolvedTheme, userThemeOverrides]);
 
   return theme;
 }
