@@ -228,12 +228,14 @@ router.post(
     emoji.createdById = user.id;
     await emoji.save({ transaction });
 
-    const oldAttachment = await Attachment.findByPk(oldAttachmentId, {
-      transaction,
-      lock: transaction.LOCK.UPDATE,
-    });
-    if (oldAttachment) {
-      await oldAttachment.destroy({ transaction });
+    if (oldAttachmentId !== attachmentId) {
+      const oldAttachment = await Attachment.findByPk(oldAttachmentId, {
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
+      if (oldAttachment) {
+        await oldAttachment.destroy({ transaction });
+      }
     }
 
     emoji.attachment = attachment;
