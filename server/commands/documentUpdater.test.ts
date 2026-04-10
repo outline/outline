@@ -1281,6 +1281,126 @@ describe("documentUpdater", () => {
       expect(list.content![1]).toEqual(secondItem);
     });
 
+    it("should preserve rich content in blockquote when patching", async () => {
+      const user = await buildUser();
+      let document = await buildDocument({
+        teamId: user.teamId,
+      });
+      const commentId = randomUUID();
+
+      // Blockquote with two paragraphs; second has a comment mark
+      document.content = {
+        type: "doc",
+        content: [
+          {
+            type: "blockquote",
+            content: [
+              {
+                type: "paragraph",
+                content: [{ type: "text", text: "Edit this line" }],
+              },
+              {
+                type: "paragraph",
+                content: [
+                  {
+                    type: "text",
+                    marks: [
+                      {
+                        type: "comment",
+                        attrs: { id: commentId, userId: commentId },
+                      },
+                    ],
+                    text: "Keep this comment",
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+      await document.save();
+
+      const beforeDoc = DocumentHelper.toProsemirror(document).toJSON();
+      const secondPara = beforeDoc.content[0].content[1];
+
+      const result = DocumentHelper.applyMarkdownToDocument(
+        document,
+        "Edited line",
+        TextEditMode.Patch,
+        "Edit this line"
+      );
+      const blockquote = result.content!.content![0];
+
+      // Patched paragraph updated
+      expect(blockquote.content![0].content![0].text).toEqual("Edited line");
+
+      // Second paragraph with comment mark preserved exactly
+      expect(blockquote.content![1]).toEqual(secondPara);
+    });
+
+    it("should always patch the first occurrence when findText appears multiple times", async () => {
+      const user = await buildUser();
+      let document = await buildDocument({
+        teamId: user.teamId,
+        text: "TODO item\n\nSome details\n\nTODO item",
+      });
+
+      const result = DocumentHelper.applyMarkdownToDocument(
+        document,
+        "DONE item",
+        TextEditMode.Patch,
+        "TODO item"
+      );
+      const content = result.content!.content!;
+
+      expect(content).toHaveLength(3);
+      // First occurrence replaced
+      expect(content[0]).toMatchObject({
+        type: "paragraph",
+        content: [{ type: "text", text: "DONE item" }],
+      });
+      // Middle paragraph unchanged
+      expect(content[1]).toMatchObject({
+        type: "paragraph",
+        content: [{ type: "text", text: "Some details" }],
+      });
+      // Second occurrence untouched
+      expect(content[2]).toMatchObject({
+        type: "paragraph",
+        content: [{ type: "text", text: "TODO item" }],
+      });
+    });
+
+    it("should patch text containing inline formatting", async () => {
+      const user = await buildUser();
+      let document = await buildDocument({
+        teamId: user.teamId,
+        text: "This is **bold** text",
+      });
+
+      const result = DocumentHelper.applyMarkdownToDocument(
+        document,
+        "This is **strong** text",
+        TextEditMode.Patch,
+        "This is **bold** text"
+      );
+      const content = result.content!.content!;
+
+      expect(content).toHaveLength(1);
+      expect(content[0]).toMatchObject({
+        type: "paragraph",
+        content: [
+          { type: "text", text: "This is " },
+          {
+            type: "text",
+            marks: [{ type: "strong" }],
+            text: "strong",
+          },
+          { type: "text", text: " text" },
+        ],
+      });
+    });
+
     it("should preserve ordered list container attrs when patching an item", async () => {
       const user = await buildUser();
       let document = await buildDocument({
