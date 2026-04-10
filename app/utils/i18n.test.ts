@@ -2,12 +2,10 @@ import i18n from "i18next";
 import de_DE from "../../shared/i18n/locales/de_DE/translation.json";
 import en_US from "../../shared/i18n/locales/en_US/translation.json";
 import pt_PT from "../../shared/i18n/locales/pt_PT/translation.json";
-import { initI18n } from "./i18n";
 
-// Initialize i18n once to avoid race conditions from repeated re-init of the
-// singleton instance with the async HTTP backend plugin.
+// i18n is already initialized globally via app/test/setup.ts — only add
+// test resources here, without re-initializing the singleton.
 beforeAll(() => {
-  initI18n();
   i18n
     .addResources("en-US", "translation", en_US)
     .addResources("de-DE", "translation", de_DE)
