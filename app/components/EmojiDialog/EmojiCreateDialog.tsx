@@ -12,14 +12,13 @@ import { compressImage } from "~/utils/compressImage";
 import { generateEmojiNameFromFilename } from "~/utils/emoji";
 import { useEmojiFileUpload, EmojiImageDropZone } from "./Components";
 
-type Props = {
+interface Props {
+  /** Callback invoked after successful creation. */
   onSubmit: () => void;
-};
+}
 
 /**
  * Dialog for creating a new custom emoji with image upload and name input.
- *
- * @param onSubmit - callback invoked after successful creation.
  */
 export function EmojiCreateDialog({ onSubmit }: Props) {
   const { t } = useTranslation();

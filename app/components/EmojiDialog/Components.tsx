@@ -18,9 +18,6 @@ interface UseEmojiFileUploadOptions {
 /**
  * Hook that manages emoji image file selection with validation, drag-and-drop,
  * and paste support.
- *
- * @param options - optional callbacks.
- * @returns file state and dropzone props.
  */
 export function useEmojiFileUpload(options?: UseEmojiFileUploadOptions) {
   const { t } = useTranslation();
@@ -87,20 +84,19 @@ export function useEmojiFileUpload(options?: UseEmojiFileUploadOptions) {
 }
 
 interface EmojiImageDropZoneProps {
+  /** The currently selected file, if any. */
   file: File | null;
+  /** Dropzone root props. */
   getRootProps: ReturnType<typeof useDropzone>["getRootProps"];
+  /** Dropzone input props. */
   getInputProps: ReturnType<typeof useDropzone>["getInputProps"];
+  /** Whether a drag is currently active. */
   isDragActive: boolean;
 }
 
 /**
  * Shared drop zone component for emoji image upload, showing either a file
  * preview or placeholder text.
- *
- * @param file - the currently selected file, if any.
- * @param getRootProps - dropzone root props.
- * @param getInputProps - dropzone input props.
- * @param isDragActive - whether a drag is currently active.
  */
 export function EmojiImageDropZone({
   file,

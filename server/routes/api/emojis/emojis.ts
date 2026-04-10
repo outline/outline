@@ -224,8 +224,6 @@ router.post(
     // Capture old attachment before reassigning so we can clean it up.
     const oldAttachmentId = emoji.attachmentId;
 
-    // Update the emoji first so the FK no longer references the old
-    // attachment – destroying it would otherwise cascade-delete the emoji.
     emoji.attachmentId = attachmentId;
     emoji.createdById = user.id;
     await emoji.save({ transaction });
