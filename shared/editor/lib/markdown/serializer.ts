@@ -57,6 +57,30 @@ export class MarkdownSerializer {
     state.renderContent(content);
     return state.out;
   }
+
+  // Serialize the content and return both the markdown string and a
+  // block-level position map that records the ProseMirror position range
+  // and markdown character range for each top-level child node.
+  serializeWithPositions(
+    content,
+    options?: Options
+  ): { markdown: string; blockMap: BlockMapEntry[] } {
+    const state = new MarkdownSerializerState(this.nodes, this.marks, options);
+    state.blockMap = [];
+    state.renderContent(content);
+    return { markdown: state.out, blockMap: state.blockMap };
+  }
+}
+
+export interface BlockMapEntry {
+  /** Start position in the ProseMirror document (offset within parent content). */
+  pmFrom: number;
+  /** End position in the ProseMirror document. */
+  pmTo: number;
+  /** Start character offset in the serialized markdown string. */
+  mdFrom: number;
+  /** End character offset in the serialized markdown string. */
+  mdTo: number;
 }
 
 // ::- This is an object used to track state and expose
@@ -70,6 +94,7 @@ export class MarkdownSerializerState {
   delim = "";
   out = "";
   options: Options;
+  blockMap = null;
 
   constructor(nodes, marks, options) {
     this.nodes = nodes;
@@ -185,7 +210,26 @@ export class MarkdownSerializerState {
   // :: (Node)
   // Render the contents of `parent` as block nodes.
   renderContent(parent) {
-    parent.forEach((node, _, i) => this.render(node, parent, i));
+    parent.forEach((node, offset, i) => {
+      const trackingMap = this.blockMap;
+      const mdFrom = trackingMap ? this.out.length : 0;
+      // Suppress tracking during render so that nested renderContent calls
+      // (e.g. inside list items, blockquotes) don't push entries with
+      // parent-relative positions into the top-level map.
+      if (trackingMap) {
+        this.blockMap = null;
+      }
+      this.render(node, parent, i);
+      if (trackingMap) {
+        this.blockMap = trackingMap;
+        trackingMap.push({
+          pmFrom: offset,
+          pmTo: offset + node.nodeSize,
+          mdFrom,
+          mdTo: this.out.length,
+        });
+      }
+    });
   }
 
   // :: (Node)
