@@ -124,12 +124,12 @@ export function EmojiImageDropZone({
           </>
         ) : (
           <>
-            <Text size="medium">
+            <Text size="small">
               {isDragActive
                 ? t("Drop the image here")
                 : t("Click, drop, or paste an image here")}
             </Text>
-            <Text size="medium" type="secondary">
+            <Text size="small" type="secondary">
               {t("PNG, JPG, GIF, or WebP up to {{ size }}", {
                 size: bytesToHumanReadable(
                   AttachmentValidation.emojiMaxFileSize

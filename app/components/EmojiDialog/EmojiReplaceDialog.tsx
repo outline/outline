@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { AttachmentPreset } from "@shared/types";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
@@ -65,13 +65,14 @@ export function EmojiReplaceDialog({ emoji, onSubmit }: Props) {
       onSubmit={handleSubmit}
       disabled={!file || isUploading}
       savingText={isUploading ? `${t("Uploading")}…` : undefined}
-      submitText={t("Replace image")}
+      submitText={t("Save")}
     >
       <Text as="p" type="secondary">
-        {t(
-          "Upload a new image to replace the current one for :{{emojiName}}:. All existing uses of this emoji will be updated automatically.",
-          { emojiName: emoji.name }
-        )}
+        <Trans
+          defaults="Upload a new image to replace the current one for <em>{{emojiName}}</em>. All existing uses of this emoji will be updated automatically."
+          values={{ emojiName: `:${emoji.name}:` }}
+          components={{ em: <code /> }}
+        />
       </Text>
 
       <EmojiImageDropZone
