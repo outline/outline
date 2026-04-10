@@ -31,6 +31,12 @@ jobs:
 
               if (prAge < TWO_WEEKS) continue;
 
+              const hasSkipLabel = pr.labels.some(label =>
+                label.name === 'pinned'
+              );
+
+              if (hasSkipLabel) continue;
+
               const comments = await github.rest.issues.listComments({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
