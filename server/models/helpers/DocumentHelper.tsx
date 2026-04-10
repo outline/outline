@@ -32,6 +32,22 @@ interface InlineSegment {
   isAtom?: boolean;
 }
 
+/** Context for a patch operation, shared across surgical patch methods. */
+interface PatchContext {
+  /** The full document markdown string. */
+  markdown: string;
+  /** Start of the findText match in the markdown. */
+  matchIndex: number;
+  /** End of the findText match in the markdown. */
+  matchEnd: number;
+  /** Start of the target node's markdown in the full string. */
+  nodeMdFrom: number;
+  /** End of the target node's markdown in the full string. */
+  nodeMdTo: number;
+  /** The markdown replacement text. */
+  replacementText: string;
+}
+
 type HTMLOptions = {
   /** Whether to include the document title in the generated HTML (defaults to true) */
   includeTitle?: boolean;
@@ -532,19 +548,18 @@ export class DocumentHelper {
       // Try a surgical patch that preserves sibling nodes and their rich
       // content. Falls back to a full markdown re-parse of the affected
       // blocks when a surgical patch is not possible.
+      const ctx: PatchContext = {
+        markdown,
+        matchIndex,
+        matchEnd,
+        nodeMdFrom: affected[0].mdFrom,
+        nodeMdTo: affected[0].mdTo,
+        replacementText: text,
+      };
+
       const surgicalResult =
         affected.length === 1
-          ? DocumentHelper.trySurgicalPatch(
-              existingDoc,
-              pmFrom,
-              pmTo,
-              markdown,
-              matchIndex,
-              matchEnd,
-              affected[0].mdFrom,
-              affected[0].mdTo,
-              text
-            )
+          ? DocumentHelper.trySurgicalPatch(existingDoc, pmFrom, pmTo, ctx)
           : undefined;
 
       if (surgicalResult) {
@@ -656,39 +671,21 @@ export class DocumentHelper {
    * @param existingDoc The full ProseMirror document.
    * @param pmFrom Start of the affected block in the document content.
    * @param pmTo End of the affected block in the document content.
-   * @param markdown The full serialized markdown string.
-   * @param matchIndex Start of the findText match in the markdown.
-   * @param matchEnd End of the findText match in the markdown.
-   * @param blockMdFrom Start of this block's markdown in the full string.
-   * @param blockMdTo End of this block's markdown in the full string.
-   * @param replacementText The markdown replacement text.
+   * @param ctx The patch context.
    * @returns A new document Node on success, or undefined.
    */
   private static trySurgicalPatch(
     existingDoc: Node,
     pmFrom: number,
     pmTo: number,
-    markdown: string,
-    matchIndex: number,
-    matchEnd: number,
-    blockMdFrom: number,
-    blockMdTo: number,
-    replacementText: string
+    ctx: PatchContext
   ): Node | undefined {
     const blockNode = existingDoc.nodeAt(pmFrom);
     if (!blockNode) {
       return undefined;
     }
 
-    const patchedBlock = DocumentHelper.patchNode(
-      blockNode,
-      markdown,
-      matchIndex,
-      matchEnd,
-      blockMdFrom,
-      blockMdTo,
-      replacementText
-    );
+    const patchedBlock = DocumentHelper.patchNode(blockNode, ctx);
 
     if (!patchedBlock) {
       return undefined;
@@ -707,34 +704,22 @@ export class DocumentHelper {
    * child contains the match, patches that child, and preserves siblings.
    *
    * @param node The node to patch.
-   * @param markdown The full document markdown string.
-   * @param matchIndex Start of the findText match in the full markdown.
-   * @param matchEnd End of the findText match in the full markdown.
-   * @param nodeMdFrom Start of this node's markdown in the full string.
-   * @param nodeMdTo End of this node's markdown in the full string.
-   * @param replacementText The markdown replacement text.
+   * @param ctx The patch context.
    * @returns The patched node, or undefined to fall back.
    */
-  private static patchNode(
-    node: Node,
-    markdown: string,
-    matchIndex: number,
-    matchEnd: number,
-    nodeMdFrom: number,
-    nodeMdTo: number,
-    replacementText: string
-  ): Node | undefined {
+  private static patchNode(node: Node, ctx: PatchContext): Node | undefined {
     if (node.isTextblock) {
-      return DocumentHelper.tryInlinePatch(
-        node,
-        markdown,
-        matchIndex,
-        matchEnd,
-        nodeMdFrom,
-        nodeMdTo,
-        replacementText
-      );
+      return DocumentHelper.tryInlinePatch(node, ctx);
     }
+
+    const {
+      markdown,
+      matchIndex,
+      matchEnd,
+      nodeMdFrom,
+      nodeMdTo,
+      replacementText,
+    } = ctx;
 
     // Container node (list, blockquote, etc.): re-parse the container's
     // markdown with the modification applied, then merge with the original
@@ -905,23 +890,21 @@ export class DocumentHelper {
    * possible and the caller should fall back to block-level replacement.
    *
    * @param blockNode The textblock node containing the match.
-   * @param markdown The full document markdown string.
-   * @param matchIndex Start of the findText match in the full markdown.
-   * @param matchEnd End of the findText match in the full markdown.
-   * @param nodeMdFrom Start of this block's markdown in the full string.
-   * @param nodeMdTo End of this block's markdown in the full string.
-   * @param replacementText The markdown replacement text.
+   * @param ctx The patch context.
    * @returns The patched block node, or undefined.
    */
   private static tryInlinePatch(
     blockNode: Node,
-    markdown: string,
-    matchIndex: number,
-    matchEnd: number,
-    nodeMdFrom: number,
-    nodeMdTo: number,
-    replacementText: string
+    ctx: PatchContext
   ): Node | undefined {
+    const {
+      markdown,
+      matchIndex,
+      matchEnd,
+      nodeMdFrom,
+      nodeMdTo,
+      replacementText,
+    } = ctx;
     // Strip the leading block separator (newlines) to get the block's own
     // markdown content and the offset of that content within the full string.
     const blockMdRaw = markdown.slice(nodeMdFrom, nodeMdTo);
