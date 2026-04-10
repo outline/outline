@@ -762,7 +762,18 @@ export class DocumentHelper {
       return undefined;
     }
 
-    return DocumentHelper.mergeNodes(node, newContainer);
+    // Parse the original (unmodified) container markdown to get a round-trip
+    // baseline. This lets mergeNodes distinguish attrs that were intentionally
+    // changed by the modification from attrs lost during markdown round-trip.
+    const originalParsed = parser.parse(containerMd.replace(/^\n+/, ""));
+    let roundTripped: Node | undefined;
+    originalParsed.forEach((child: Node) => {
+      if (child.type === node.type && !roundTripped) {
+        roundTripped = child;
+      }
+    });
+
+    return DocumentHelper.mergeNodes(node, newContainer, roundTripped);
   }
 
   /**
@@ -773,17 +784,25 @@ export class DocumentHelper {
    *
    * @param original The original node with rich content to preserve.
    * @param updated The re-parsed node with the modification applied.
+   * @param roundTripped The original node after a markdown round-trip, used
+   *   to distinguish intentional attr changes from round-trip losses.
    * @returns The merged node.
    */
-  private static mergeNodes(original: Node, updated: Node): Node {
+  private static mergeNodes(
+    original: Node,
+    updated: Node,
+    roundTripped?: Node
+  ): Node {
     if (original.isTextblock || original.isLeaf) {
       return updated;
     }
 
     const oldChildren: Node[] = [];
     const newChildren: Node[] = [];
+    const rtChildren: Node[] = [];
     original.forEach((child: Node) => oldChildren.push(child));
     updated.forEach((child: Node) => newChildren.push(child));
+    roundTripped?.forEach((child: Node) => rtChildren.push(child));
 
     // If structure changed significantly, use the fully re-parsed version.
     if (oldChildren.length !== newChildren.length) {
@@ -794,6 +813,7 @@ export class DocumentHelper {
     for (let i = 0; i < oldChildren.length; i++) {
       const oldChild = oldChildren[i];
       const newChild = newChildren[i];
+      const rtChild = rtChildren[i];
 
       if (oldChild.type !== newChild.type) {
         return updated;
@@ -809,13 +829,17 @@ export class DocumentHelper {
         // so that non-markdown-representable values (colwidth, highlight
         // colors, etc.) are preserved from the original while intentional
         // changes from the re-parsed version are applied.
-        const mergedAttrs = DocumentHelper.mergeAttrs(oldChild, newChild);
+        const mergedAttrs = DocumentHelper.mergeAttrs(
+          oldChild,
+          newChild,
+          rtChild
+        );
         merged.push(
           oldChild.type.create(mergedAttrs, oldChild.content, oldChild.marks)
         );
       } else if (!oldChild.isTextblock && !oldChild.isLeaf) {
         // Both are containers — recurse to preserve rich content deeper
-        merged.push(DocumentHelper.mergeNodes(oldChild, newChild));
+        merged.push(DocumentHelper.mergeNodes(oldChild, newChild, rtChild));
       } else {
         merged.push(newChild);
       }
@@ -823,7 +847,11 @@ export class DocumentHelper {
 
     // Merge container attrs so markdown-driven changes (e.g. ordered list
     // order/listStyle) are applied while preserving non-markdown attrs.
-    const mergedAttrs = DocumentHelper.mergeAttrs(original, updated);
+    const mergedAttrs = DocumentHelper.mergeAttrs(
+      original,
+      updated,
+      roundTripped
+    );
 
     return original.type.create(
       mergedAttrs,
@@ -833,39 +861,36 @@ export class DocumentHelper {
   }
 
   /**
-   * Merge attrs from an original and re-parsed node. For each attr, if the
-   * re-parsed value equals the schema default it was likely lost in the
-   * markdown round-trip, so the original value is preserved. Otherwise the
-   * re-parsed value is used (it represents an intentional change).
+   * Merge attrs from an original and re-parsed node. When a round-tripped
+   * baseline is available, attrs whose updated value matches the round-trip
+   * value are considered unchanged (possibly lost in the round-trip) and the
+   * original is preserved. Attrs that differ from the round-trip baseline
+   * were intentionally changed and the updated value is used.
    *
    * @param original The original node with potentially rich attrs.
-   * @param updated The re-parsed node.
+   * @param updated The re-parsed node with the modification applied.
+   * @param roundTripped The original node after a markdown round-trip.
    * @returns The merged attrs object.
    */
   private static mergeAttrs(
     original: Node,
-    updated: Node
+    updated: Node,
+    roundTripped?: Node
   ): Record<string, unknown> {
-    const spec = original.type.spec.attrs;
-    if (!spec) {
+    if (!roundTripped) {
       return updated.attrs;
     }
 
     const result: Record<string, unknown> = {};
     for (const key of Object.keys(original.attrs)) {
-      const defaultVal = (spec as Record<string, { default?: unknown }>)[key]
-        ?.default;
       const newVal = updated.attrs[key];
       const oldVal = original.attrs[key];
+      const rtVal = roundTripped.attrs[key];
 
-      // If the re-parsed value matches the schema default (or is falsy when
-      // the default is also falsy) and the original had a richer value, the
-      // attr was lost in the markdown round-trip — preserve the original.
-      const newMatchesDefault =
-        JSON.stringify(newVal) === JSON.stringify(defaultVal) ||
-        (!newVal && !defaultVal);
-
-      if (newVal !== oldVal && newMatchesDefault) {
+      // If the updated value matches what a round-trip of the original
+      // produces, the modification did not change this attr — preserve the
+      // original (which may have richer data lost in markdown round-trip).
+      if (JSON.stringify(newVal) === JSON.stringify(rtVal)) {
         result[key] = oldVal;
       } else {
         result[key] = newVal;

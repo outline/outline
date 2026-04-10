@@ -857,6 +857,80 @@ describe("documentUpdater", () => {
     expect(list.content![1]).toEqual(secondItem);
   });
 
+  it("should uncheck a checkbox item while preserving rich content in siblings", async () => {
+    const user = await buildUser();
+    let document = await buildDocument({
+      teamId: user.teamId,
+    });
+    const commentId = randomUUID();
+
+    // First item is checked, second has a comment mark
+    document.content = {
+      type: "doc",
+      content: [
+        {
+          type: "checkbox_list",
+          content: [
+            {
+              type: "checkbox_item",
+              attrs: { checked: true },
+              content: [
+                {
+                  type: "paragraph",
+                  content: [{ type: "text", text: "Buy groceries" }],
+                },
+              ],
+            },
+            {
+              type: "checkbox_item",
+              attrs: { checked: false },
+              content: [
+                {
+                  type: "paragraph",
+                  content: [
+                    {
+                      type: "text",
+                      marks: [
+                        {
+                          type: "comment",
+                          attrs: { id: commentId, userId: commentId },
+                        },
+                      ],
+                      text: "Review PR",
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    await document.save();
+
+    const beforeDoc = DocumentHelper.toProsemirror(document).toJSON();
+    const secondItem = beforeDoc.content[0].content[1];
+
+    const result = DocumentHelper.applyMarkdownToDocument(
+      document,
+      "- [ ] Buy groceries",
+      TextEditMode.Patch,
+      "- [x] Buy groceries"
+    );
+    const list = result.content!.content![0];
+
+    // Checked state should be updated to false
+    expect(list.content![0].attrs!.checked).toBe(false);
+
+    // Text should remain the same
+    expect(list.content![0].content![0].content![0].text).toEqual(
+      "Buy groceries"
+    );
+
+    // Second item with comment mark must be preserved exactly
+    expect(list.content![1]).toEqual(secondItem);
+  });
+
   it("should preserve mention node when patching adjacent text in the same paragraph", async () => {
     const user = await buildUser();
     let document = await buildDocument({
