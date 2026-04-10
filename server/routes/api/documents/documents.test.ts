@@ -5634,6 +5634,69 @@ describe("#documents.memberships", () => {
   });
 });
 
+describe("#documents.duplicate", () => {
+  it("should require authentication", async () => {
+    const res = await server.post("/api/documents.duplicate");
+    expect(res.status).toEqual(401);
+  });
+
+  it("should duplicate a document with fullWidth property", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      fullWidth: true,
+    });
+
+    const res = await server.post("/api/documents.duplicate", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.documents).toHaveLength(1);
+    expect(body.data.documents[0].fullWidth).toBe(true);
+  });
+
+  it("should duplicate child documents with fullWidth property when recursive=true", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const parent = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      fullWidth: true,
+    });
+    await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      parentDocumentId: parent.id,
+      fullWidth: true,
+    });
+
+    const res = await server.post("/api/documents.duplicate", {
+      body: {
+        token: user.getJwtToken(),
+        id: parent.id,
+        recursive: true,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.documents).toHaveLength(2);
+    expect(body.data.documents[0].fullWidth).toBe(true);
+    expect(body.data.documents[1].fullWidth).toBe(true);
+  });
+});
+
 describe("#documents.empty_trash", () => {
   it("should require authentication", async () => {
     const res = await server.post("/api/documents.empty_trash");

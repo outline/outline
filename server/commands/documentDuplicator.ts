@@ -35,6 +35,7 @@ export default async function documentDuplicator(
     parentDocumentId,
     icon: document.icon,
     color: document.color,
+    fullWidth: document.fullWidth,
     title: title ?? document.title,
     content: ProsemirrorHelper.removeMarks(
       DocumentHelper.toProsemirror(document),
@@ -85,6 +86,7 @@ export default async function documentDuplicator(
         parentDocumentId: duplicatedDocument.id,
         icon: childDocument.icon,
         color: childDocument.color,
+        fullWidth: childDocument.fullWidth,
         title: childDocument.title,
         content: ProsemirrorHelper.removeMarks(
           DocumentHelper.toProsemirror(childDocument),
