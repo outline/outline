@@ -17,7 +17,7 @@ const Theme: React.FC = ({ children }: Props) => {
       auth.config?.customTheme ||
       undefined,
     undefined,
-    auth.user?.getPreference(UserPreference.CustomThemeOverrides) || undefined
+    auth.user?.getPreference(UserPreference.CustomThemeOverrides, {})
   );
 
   React.useEffect(() => {

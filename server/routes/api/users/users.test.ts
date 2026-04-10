@@ -742,6 +742,49 @@ describe("#users.update", () => {
     expect(body.data.preferences.rememberLastPath).toBe(true);
   });
 
+  it("should update customThemeOverrides preference", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/users.update", {
+      body: {
+        token: user.getJwtToken(),
+        preferences: {
+          customThemeOverrides: { sidebarText: "#a0aec0" },
+        },
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.preferences.customThemeOverrides).toEqual({
+      sidebarText: "#a0aec0",
+    });
+  });
+
+  it("should reject object values for boolean preferences", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/users.update", {
+      body: {
+        token: user.getJwtToken(),
+        preferences: {
+          rememberLastPath: { sidebarText: "#a0aec0" },
+        },
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should reject non-record values for customThemeOverrides", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/users.update", {
+      body: {
+        token: user.getJwtToken(),
+        preferences: {
+          customThemeOverrides: true,
+        },
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
   it("should update user timezone", async () => {
     const user = await buildUser();
     const res = await server.post("/api/users.update", {

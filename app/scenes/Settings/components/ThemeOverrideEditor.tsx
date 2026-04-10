@@ -151,18 +151,32 @@ function ThemeOverrideEditor() {
   const [filter, setFilter] = React.useState("");
   const [showOverridesOnly, setShowOverridesOnly] = React.useState(false);
   const [overrides, setOverrides] = React.useState<Record<string, string>>(
-    () => {
-      const pref = user.getPreference(UserPreference.CustomThemeOverrides);
-      return pref && typeof pref === "object" ? pref : {};
-    }
+    () => user.getPreference(UserPreference.CustomThemeOverrides, {})
   );
 
-  const saveOverrides = React.useCallback(
-    async (updated: Record<string, string>) => {
+  const saveTimeoutRef = React.useRef<number | undefined>(undefined);
+
+  React.useEffect(
+    () => () => {
+      if (saveTimeoutRef.current !== undefined) {
+        window.clearTimeout(saveTimeoutRef.current);
+      }
+    },
+    []
+  );
+
+  const applyOverrides = React.useCallback(
+    (updated: Record<string, string>) => {
       setOverrides(updated);
       if (Object.keys(updated).length === 0) {
         setShowOverridesOnly(false);
       }
+    },
+    []
+  );
+
+  const persistOverrides = React.useCallback(
+    async (updated: Record<string, string>) => {
       user.setPreference(UserPreference.CustomThemeOverrides, updated);
       try {
         await user.save();
@@ -176,18 +190,30 @@ function ThemeOverrideEditor() {
 
   const handleColorPick = React.useCallback(
     (key: string, color: string) => {
-      void saveOverrides({ ...overrides, [key]: color });
+      const updated = { ...overrides, [key]: color };
+      applyOverrides(updated);
+      if (saveTimeoutRef.current !== undefined) {
+        window.clearTimeout(saveTimeoutRef.current);
+      }
+      saveTimeoutRef.current = window.setTimeout(() => {
+        void persistOverrides(updated);
+      }, 300);
     },
-    [overrides, saveOverrides]
+    [overrides, applyOverrides, persistOverrides]
   );
 
   const handleColorRemove = React.useCallback(
     (key: string) => {
       const updated = { ...overrides };
       delete updated[key];
-      void saveOverrides(updated);
+      applyOverrides(updated);
+      if (saveTimeoutRef.current !== undefined) {
+        window.clearTimeout(saveTimeoutRef.current);
+        saveTimeoutRef.current = undefined;
+      }
+      void persistOverrides(updated);
     },
-    [overrides, saveOverrides]
+    [overrides, applyOverrides, persistOverrides]
   );
 
   const hasOverrides = Object.keys(overrides).length > 0;
@@ -215,6 +241,8 @@ function ThemeOverrideEditor() {
         />
         {hasOverrides && (
           <FilterToggle
+            type="button"
+            aria-pressed={showOverridesOnly}
             onClick={() => setShowOverridesOnly((v) => !v)}
             $active={showOverridesOnly}
           >
@@ -282,8 +310,9 @@ function ThemeOverrideEditor() {
                               pickerInModal={false}
                             />
                             <RemoveButton
+                              type="button"
                               onClick={() => handleColorRemove(key)}
-                              title={t("Remove override")}
+                              aria-label={t("Remove override")}
                             >
                               &times;
                             </RemoveButton>

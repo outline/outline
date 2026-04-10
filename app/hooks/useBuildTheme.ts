@@ -55,7 +55,13 @@ export default function useBuildTheme(
           : buildLightTheme(customTheme);
 
     if (userThemeOverrides) {
-      return { ...base, ...userThemeOverrides };
+      const filtered: Record<string, string> = {};
+      for (const [key, value] of Object.entries(userThemeOverrides)) {
+        if (key in base && typeof base[key as keyof typeof base] === "string") {
+          filtered[key] = value;
+        }
+      }
+      return { ...base, ...filtered };
     }
     return base;
   }, [customTheme, isMobile, isPrinting, resolvedTheme, userThemeOverrides]);
