@@ -551,6 +551,46 @@ describe("#shares.create", () => {
     });
     expect(res.status).toEqual(403);
   });
+
+  it("should not allow creating a share for a document in another team", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    // document belongs to a completely different team
+    const otherDocument = await buildDocument();
+
+    const res = await server.post("/api/shares.create", {
+      body: {
+        token: user.getJwtToken(),
+        collectionId: collection.id,
+        documentId: otherDocument.id,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should not allow creating a published share for a document in another team", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const otherDocument = await buildDocument();
+
+    const res = await server.post("/api/shares.create", {
+      body: {
+        token: user.getJwtToken(),
+        collectionId: collection.id,
+        documentId: otherDocument.id,
+        published: true,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
 });
 
 describe("#shares.info", () => {
