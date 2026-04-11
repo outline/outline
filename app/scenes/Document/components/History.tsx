@@ -236,6 +236,8 @@ function History() {
       { type: "item", label: t("Previous revision"), value: COMPARE_TO_PREVIOUS },
     ];
 
+    const latestId = document ? RevisionHelper.latestId(document.id) : undefined;
+
     for (const rev of revisionItems) {
       if (rev.id === resolvedSelectedId) {
         continue;
@@ -252,9 +254,9 @@ function History() {
       options.push({
         type: "item",
         label: dateLabel,
-        value: rev.id,
+        value: rev.id === latestId ? "latest" : rev.id,
         description: collaboratorName
-          ? t("{{ userName }} edited", { userName: collaboratorName })
+          ? t("{{userName}} edited", { userName: collaboratorName })
           : undefined,
       });
     }

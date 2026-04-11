@@ -45,16 +45,18 @@ function RevisionViewer(props: Props, ref: React.Ref<TEditor>) {
   const showChanges = props.showChanges ?? query.has("changes");
   const compareToParam = query.get("compareTo");
 
-  const compareToRevision = React.useMemo(() => {
+  const compareToRevisionId = React.useMemo(() => {
     if (!compareToParam) {
       return undefined;
     }
-    const resolvedId =
-      compareToParam === "latest"
-        ? RevisionHelper.latestId(revision.documentId)
-        : compareToParam;
-    return revisions.get(resolvedId);
-  }, [compareToParam, revision.documentId, revisions]);
+    return compareToParam === "latest"
+      ? RevisionHelper.latestId(revision.documentId)
+      : compareToParam;
+  }, [compareToParam, revision.documentId]);
+
+  const compareToRevision = compareToRevisionId
+    ? revisions.get(compareToRevisionId)
+    : undefined;
 
   const comparisonData = (compareToRevision ?? revision.before)?.data;
 
