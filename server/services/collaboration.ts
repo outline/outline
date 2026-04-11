@@ -34,6 +34,10 @@ export default function init(
 
   // Handle WebSocket server errors to prevent crashes when maxPayload is exceeded
   wss.on("error", (error) => {
+    if (error?.message?.includes("Max payload size exceeded")) {
+      Logger.warn("WebSocket server error", { message: error.message });
+      return;
+    }
     Logger.error("WebSocket server error", error);
   });
 
@@ -97,6 +101,13 @@ export default function init(
           wss.handleUpgrade(req, socket, head, (client) => {
             // Handle websocket connection errors as soon as the client is upgraded
             client.on("error", (error) => {
+              if (error?.message?.includes("Max payload size exceeded")) {
+                Logger.warn("Websocket error", {
+                  message: error.message,
+                  documentId,
+                });
+                return;
+              }
               Logger.error(
                 `Websocket error`,
                 error,
