@@ -58,7 +58,9 @@ function RevisionViewer(props: Props, ref: React.Ref<TEditor>) {
     ? revisions.get(compareToRevisionId)
     : undefined;
 
-  const comparisonData = (compareToRevision ?? revision.before)?.data;
+  const comparisonData = compareToRevisionId
+    ? compareToRevision?.data
+    : revision.before?.data;
 
   /**
    * Create editor extensions with the Diff extension configured to render
