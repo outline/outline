@@ -56,6 +56,8 @@ export const SharesUpdateSchema = BaseSchema.extend({
     allowSubscriptions: z.boolean().optional(),
     showLastUpdated: z.boolean().optional(),
     showTOC: z.boolean().optional(),
+    title: z.string().max(255).nullish(),
+    logoUrl: z.string().url().max(4096).nullish(),
     urlId: z
       .string()
       .regex(UrlHelper.SHARE_URL_SLUG_REGEX, {

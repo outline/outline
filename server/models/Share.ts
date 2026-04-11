@@ -155,6 +155,16 @@ class Share extends IdModel<
   @Column
   showTOC: boolean;
 
+  @AllowNull
+  @Length({ max: 255, msg: "title must be 255 characters or less" })
+  @Column
+  title: string | null;
+
+  @AllowNull
+  @Length({ max: 4096, msg: "logoUrl must be 4096 characters or less" })
+  @Column
+  logoUrl: string | null;
+
   // hooks
 
   @BeforeUpdate
