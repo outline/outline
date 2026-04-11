@@ -7,7 +7,7 @@ module.exports = {
       allowNull: true,
     });
     await queryInterface.addColumn("shares", "logoUrl", {
-      type: Sequelize.STRING,
+      type: Sequelize.STRING(4096),
       allowNull: true,
     });
   },
