@@ -11,7 +11,9 @@ import DocumentTitle from "./DocumentTitle";
 import Editor from "~/components/Editor";
 import { richExtensions, withComments } from "@shared/editor/nodes";
 import Diff from "@shared/editor/extensions/Diff";
+import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import useQuery from "~/hooks/useQuery";
+import useStores from "~/hooks/useStores";
 import { type Editor as TEditor } from "~/editor";
 import { ChangesetHelper } from "@shared/editor/lib/ChangesetHelper";
 
@@ -38,8 +40,23 @@ type Props = Omit<EditorProps, "extensions"> & {
  */
 function RevisionViewer(props: Props, ref: React.Ref<TEditor>) {
   const { document, children, revision } = props;
+  const { revisions } = useStores();
   const query = useQuery();
   const showChanges = props.showChanges ?? query.has("changes");
+  const compareToParam = query.get("compareTo");
+
+  const compareToRevision = React.useMemo(() => {
+    if (!compareToParam) {
+      return undefined;
+    }
+    const resolvedId =
+      compareToParam === "latest"
+        ? RevisionHelper.latestId(revision.documentId)
+        : compareToParam;
+    return revisions.get(resolvedId);
+  }, [compareToParam, revision.documentId, revisions]);
+
+  const comparisonData = (compareToRevision ?? revision.before)?.data;
 
   /**
    * Create editor extensions with the Diff extension configured to render
@@ -48,7 +65,7 @@ function RevisionViewer(props: Props, ref: React.Ref<TEditor>) {
   const extensions = React.useMemo(() => {
     const changeset = ChangesetHelper.getChangeset(
       revision.data,
-      revision.before?.data
+      comparisonData
     );
     return [
       ...withComments(richExtensions),
@@ -56,7 +73,7 @@ function RevisionViewer(props: Props, ref: React.Ref<TEditor>) {
         ? [new Diff({ changes: changeset?.changes })]
         : []),
     ];
-  }, [revision.data, showChanges]);
+  }, [revision.data, comparisonData, showChanges]);
 
   return (
     <Flex auto column>

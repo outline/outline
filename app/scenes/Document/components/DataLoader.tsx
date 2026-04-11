@@ -111,25 +111,38 @@ function DataLoader({ match, children }: Props) {
     void fetchDocument();
   }, [ui, documents, missingPolicy, documentSlug]);
 
-  React.useEffect(() => {
-    async function fetchRevision() {
-      if (!revisionId) {
-        return;
-      }
+  const fetchRevisionById = React.useCallback(
+    async (id: string, onError: (err: Error) => void) => {
       try {
-        if (revisionId === "latest") {
+        if (id === "latest") {
           if (document?.id) {
             await revisions.fetchLatest(document.id);
           }
         } else {
-          await revisions.fetch(revisionId);
+          await revisions.fetch(id);
         }
       } catch (err) {
-        setError(err);
+        onError(err as Error);
       }
+    },
+    [revisions, document?.id]
+  );
+
+  React.useEffect(() => {
+    if (revisionId) {
+      void fetchRevisionById(revisionId, setError);
     }
-    void fetchRevision();
-  }, [revisions, revisionId, document?.id]);
+  }, [fetchRevisionById, revisionId]);
+
+  const compareTo = query.get("compareTo");
+
+  React.useEffect(() => {
+    if (compareTo) {
+      void fetchRevisionById(compareTo, (err) =>
+        Logger.error("Failed to fetch compareTo revision", err)
+      );
+    }
+  }, [fetchRevisionById, compareTo]);
 
   React.useEffect(() => {
     async function fetchViews() {
