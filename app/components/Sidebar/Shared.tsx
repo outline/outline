@@ -34,7 +34,10 @@ function SharedSidebar({ share }: Props) {
   const { t } = useTranslation();
   const { query } = useKBar();
 
-  const teamAvailable = !!team?.name;
+  const displayName = share.title ?? team?.name ?? null;
+  const displayLogoUrl = share.logoUrl ?? team?.avatarUrl ?? null;
+  const displayLogoModel = displayLogoUrl ? undefined : team;
+  const brandingAvailable = !!(displayName || displayLogoUrl);
   const rootNode = share.tree;
   const shareId = share.urlId || share.id;
   const collection = collections.get(rootNode?.id);
@@ -56,11 +59,16 @@ function SharedSidebar({ share }: Props) {
 
   return (
     <Sidebar canCollapse={false}>
-      {teamAvailable && (
+      {brandingAvailable && (
         <SidebarButton
-          title={team.name}
+          title={displayName}
           image={
-            <TeamLogo model={team} size={AvatarSize.XLarge} alt={t("Logo")} />
+            <TeamLogo
+              model={displayLogoModel}
+              src={displayLogoUrl ?? undefined}
+              size={AvatarSize.XLarge}
+              alt={t("Logo")}
+            />
           }
           disabled={hideRootNode}
           onClick={
