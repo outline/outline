@@ -280,12 +280,28 @@ router.post(
         })
       : null;
 
-    // user could be creating the share link to share with team members
-    authorize(user, "read", collectionId ? collection : document);
+    if (documentId && !document) {
+      throw NotFoundError();
+    }
+    if (collectionId && !collection) {
+      throw NotFoundError();
+    }
+
+    if (document) {
+      authorize(user, "read", document);
+    }
+    if (collection) {
+      authorize(user, "read", collection);
+    }
 
     if (published) {
       authorize(user, "share", user.team);
-      authorize(user, "share", collectionId ? collection : document);
+      if (document) {
+        authorize(user, "share", document);
+      }
+      if (collection) {
+        authorize(user, "share", collection);
+      }
     }
 
     const [share] = await Share.findOrCreateWithCtx(ctx, {
