@@ -93,6 +93,7 @@ function RevisionViewer(props: Props, ref: React.Ref<TEditor>) {
         rtl={revision.rtl}
       />
       <Editor
+        key={compareToRevisionId}
         ref={ref}
         defaultValue={revision.data}
         extensions={extensions}
