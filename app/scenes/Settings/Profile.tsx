@@ -12,6 +12,7 @@ import { UserChangeEmailDialog } from "~/components/UserDialogs";
 import env from "~/env";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
+import { UserValidation } from "@shared/validations";
 import ImageInput from "./components/ImageInput";
 import SettingRow from "./components/SettingRow";
 
@@ -91,6 +92,8 @@ const Profile = () => {
             autoComplete="name"
             value={name}
             onChange={handleNameChange}
+            maxLength={UserValidation.maxNameLength}
+            showCharacterCount
             required
           />
         </SettingRow>

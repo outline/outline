@@ -121,7 +121,10 @@ class Team extends ParanoidModel<
   subdomain: string | null;
 
   @Unique
-  @Length({ max: 255, msg: "domain must be 255 characters or less" })
+  @Length({
+    max: TeamValidation.maxDomainLength,
+    msg: `domain must be ${TeamValidation.maxDomainLength} characters or less`,
+  })
   @IsFQDN
   @Column
   domain: string | null;
