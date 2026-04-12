@@ -15,6 +15,7 @@ import {
   BeforeUpdate,
 } from "sequelize-typescript";
 import { UrlHelper } from "@shared/utils/UrlHelper";
+import { ShareValidation } from "@shared/validations";
 import env from "@server/env";
 import { ValidationError } from "@server/errors";
 import type { APIContext } from "@server/types";
@@ -156,12 +157,12 @@ class Share extends IdModel<
   showTOC: boolean;
 
   @AllowNull
-  @Length({ max: 255, msg: "title must be 255 characters or less" })
+  @Length({ max: ShareValidation.maxTitleLength, msg: "title must be 255 characters or less" })
   @Column
   title: string | null;
 
   @AllowNull
-  @Length({ max: 4096, msg: "logoUrl must be 4096 characters or less" })
+  @Length({ max: ShareValidation.maxLogoUrlLength, msg: "logoUrl must be 4096 characters or less" })
   @Column
   logoUrl: string | null;
 

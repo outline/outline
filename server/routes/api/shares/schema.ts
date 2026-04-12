@@ -1,6 +1,7 @@
 import isEmpty from "lodash/isEmpty";
 import { z } from "zod";
 import { UrlHelper } from "@shared/utils/UrlHelper";
+import { ShareValidation } from "@shared/validations";
 import { Share } from "@server/models";
 import { zodIdType } from "@server/utils/zod";
 import { BaseSchema } from "../schema";
@@ -56,8 +57,8 @@ export const SharesUpdateSchema = BaseSchema.extend({
     allowSubscriptions: z.boolean().optional(),
     showLastUpdated: z.boolean().optional(),
     showTOC: z.boolean().optional(),
-    title: z.string().max(255).nullish(),
-    logoUrl: z.string().url().max(4096).nullish(),
+    title: z.string().max(ShareValidation.maxTitleLength).nullish(),
+    logoUrl: z.string().url().max(ShareValidation.maxLogoUrlLength).nullish(),
     urlId: z
       .string()
       .regex(UrlHelper.SHARE_URL_SLUG_REGEX, {

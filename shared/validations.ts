@@ -101,6 +101,14 @@ export const OAuthClientValidation = {
   clientTypes: ["confidential", "public"] as const,
 };
 
+export const ShareValidation = {
+  /** The maximum length of the share title */
+  maxTitleLength: 255,
+
+  /** The maximum length of the share logoUrl */
+  maxLogoUrlLength: 4096,
+};
+
 export const RevisionValidation = {
   minNameLength: 1,
   maxNameLength: 255,
