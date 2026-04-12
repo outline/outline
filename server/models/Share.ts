@@ -157,12 +157,12 @@ class Share extends IdModel<
   showTOC: boolean;
 
   @AllowNull
-  @Length({ max: ShareValidation.maxTitleLength, msg: "title must be 255 characters or less" })
+  @Length({ max: ShareValidation.maxTitleLength, msg: `title must be ${ShareValidation.maxTitleLength} characters or less` })
   @Column
   title: string | null;
 
   @AllowNull
-  @Length({ max: ShareValidation.maxLogoUrlLength, msg: "logoUrl must be 4096 characters or less" })
+  @Length({ max: ShareValidation.maxLogoUrlLength, msg: `logoUrl must be ${ShareValidation.maxLogoUrlLength} characters or less` })
   @Column
   logoUrl: string | null;
 
