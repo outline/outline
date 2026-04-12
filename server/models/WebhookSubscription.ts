@@ -48,13 +48,19 @@ class WebhookSubscription extends ParanoidModel<
   static eventNamespace = "webhookSubscriptions";
 
   @NotEmpty
-  @Length({ max: 255, msg: "Webhook name be less than 255 characters" })
+  @Length({
+    max: WebhookSubscriptionValidation.maxNameLength,
+    msg: `Webhook name must be ${WebhookSubscriptionValidation.maxNameLength} characters or less`,
+  })
   @Column
   name: string;
 
   @IsUrl
   @NotEmpty
-  @Length({ max: 255, msg: "Webhook url be less than 255 characters" })
+  @Length({
+    max: WebhookSubscriptionValidation.maxUrlLength,
+    msg: `Webhook url must be ${WebhookSubscriptionValidation.maxUrlLength} characters or less`,
+  })
   @Column
   url: string;
 

@@ -87,6 +87,8 @@ export function CreateGroupDialog() {
           label="Name"
           onChange={(e) => setName(e.target.value)}
           value={name}
+          maxLength={GroupValidation.maxNameLength}
+          showCharacterCount
           required
           autoFocus
           flex
@@ -169,6 +171,8 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
           label={t("Name")}
           onChange={handleNameChange}
           value={name}
+          maxLength={GroupValidation.maxNameLength}
+          showCharacterCount
           disabled={group.isExternallyManaged}
           required
           autoFocus

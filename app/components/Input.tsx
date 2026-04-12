@@ -6,6 +6,7 @@ import breakpoint from "styled-components-breakpoint";
 import { s, ellipsis } from "@shared/styles";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
+import Fade from "~/components/Fade";
 import { undraggableOnDesktop } from "~/styles";
 
 export const NativeTextarea = styled.textarea<{
@@ -97,6 +98,7 @@ export const Outline = styled(Flex)<{
   hasError?: boolean;
   $focused?: boolean;
 }>`
+  position: relative;
   flex: 1;
   margin: ${(props) =>
     props.margin !== undefined ? props.margin : "0 0 16px"};
@@ -117,6 +119,19 @@ export const Outline = styled(Flex)<{
 
   /* Prevents an issue where input placeholder appears in a selected style when double clicking title bar */
   user-select: none;
+`;
+
+const CharacterCount = styled.span`
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-size: 11px;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 0 0 0 2px;
+  background: ${s("inputBorder")};
+  color: ${s("textTertiary")};
+  pointer-events: none;
 `;
 
 export const LabelText = styled.div`
@@ -141,6 +156,8 @@ export interface Props extends Omit<
   prefix?: React.ReactNode;
   /** Optional icon that appears inside the input before the textarea */
   icon?: React.ReactNode;
+  /** Show a character count near the maxLength limit. Always shown for textareas, opt-in for other types. */
+  showCharacterCount?: boolean;
   /** Like autoFocus, but also select any text in the input */
   autoSelect?: boolean;
   /** Callback is triggered with the CMD+Enter keyboard combo */
@@ -157,6 +174,21 @@ function Input(
 ) {
   const internalRef = React.useRef<HTMLInputElement | HTMLTextAreaElement>();
   const [focused, setFocused] = React.useState(false);
+  const [charCount, setCharCount] = React.useState(() => {
+    if (typeof props.value === "string") {
+      return props.value.length;
+    }
+    if (typeof props.defaultValue === "string") {
+      return props.defaultValue.length;
+    }
+    return 0;
+  });
+
+  React.useEffect(() => {
+    if (typeof props.value === "string") {
+      setCharCount(props.value.length);
+    }
+  }, [props.value]);
 
   const handleBlur = (ev: React.SyntheticEvent) => {
     setFocused(false);
@@ -171,6 +203,15 @@ function Input(
 
     if (props.onFocus) {
       props.onFocus(ev);
+    }
+  };
+
+  const handleChange = (
+    ev: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setCharCount(ev.target.value.length);
+    if (props.onChange) {
+      props.onChange(ev);
     }
   };
 
@@ -206,12 +247,20 @@ function Input(
     flex,
     prefix,
     labelHidden,
+    maxLength,
+    showCharacterCount,
     onFocus,
     onBlur,
+    onChange,
     onRequestSubmit,
     children,
     ...rest
   } = props;
+
+  const showCharCount =
+    (type === "textarea" || showCharacterCount) &&
+    maxLength !== undefined &&
+    charCount >= maxLength * 0.9;
 
   const wrappedLabel = <LabelText>{label}</LabelText>;
 
@@ -238,8 +287,10 @@ function Input(
               hasIcon={!!icon}
               hasPrefix={!!prefix}
               {...rest}
-              // set it after "rest" to override "onKeyDown" from prop.
+              // set it after "rest" to override props from spread.
+              maxLength={maxLength}
               onKeyDown={handleKeyDown}
+              onChange={handleChange}
             />
           ) : (
             <NativeInput
@@ -253,9 +304,18 @@ function Input(
               hasPrefix={!!prefix}
               type={type}
               {...rest}
-              // set it after "rest" to override "onKeyDown" from prop.
+              // set it after "rest" to override "onKeyDown" and "onChange" from prop.
+              maxLength={maxLength}
               onKeyDown={handleKeyDown}
+              onChange={handleChange}
             />
+          )}
+          {showCharCount && (
+            <Fade>
+              <CharacterCount>
+                {charCount}/{maxLength}
+              </CharacterCount>
+            </Fade>
           )}
           {children}
         </Outline>

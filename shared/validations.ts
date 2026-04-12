@@ -67,6 +67,8 @@ export const DocumentValidation = {
 };
 
 export const GroupValidation = {
+  /** The maximum length of the group name */
+  maxNameLength: 255,
   /** The maximum length of the group description */
   maxDescriptionLength: 2000,
 };
@@ -133,6 +135,9 @@ export const TeamValidation = {
   /** The maximum length of the team subdomain for self-hosted */
   maxSubdomainSelfHostedLength: 255,
 
+  /** The maximum length of a team domain */
+  maxDomainLength: 255,
+
   /** The maximum length of MCP workspace guidance */
   maxGuidanceMCPLength: 2000,
 };
@@ -151,6 +156,10 @@ export const UserValidation = {
 export const WebhookSubscriptionValidation = {
   /** The maximum number of webhooks per team */
   maxSubscriptions: 10,
+  /** The maximum length of the webhook name */
+  maxNameLength: 255,
+  /** The maximum length of the webhook url */
+  maxUrlLength: 255,
 };
 
 export const EmojiValidation = {

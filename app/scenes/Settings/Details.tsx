@@ -232,6 +232,8 @@ function Details() {
               autoComplete="organization"
               value={name}
               onChange={handleNameChange}
+              maxLength={TeamValidation.maxNameLength}
+              showCharacterCount
               required
             />
           </SettingRow>
@@ -246,6 +248,8 @@ function Details() {
               onChange={(ev: React.ChangeEvent<HTMLInputElement>) => {
                 setDescription(ev.target.value);
               }}
+              maxLength={TeamValidation.maxDescriptionLength}
+              showCharacterCount
             />
           </SettingRow>
           <SettingRow

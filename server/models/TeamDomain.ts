@@ -31,7 +31,10 @@ class TeamDomain extends IdModel<
     msg: "You chose a restricted domain, please try another.",
   })
   @NotEmpty
-  @Length({ max: 255, msg: "name must be 255 characters or less" })
+  @Length({
+    max: TeamValidation.maxDomainLength,
+    msg: `name must be ${TeamValidation.maxDomainLength} characters or less`,
+  })
   @IsFQDN
   @Column
   name: string;
