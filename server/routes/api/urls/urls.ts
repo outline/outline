@@ -1,6 +1,7 @@
 import dns from "node:dns";
 import Router from "koa-router";
 import { traceFunction } from "@server/logging/tracing";
+import isUUID from "validator/lib/isUUID";
 import { MentionType, UnfurlResourceType } from "@shared/types";
 import { getBaseDomain, parseDomain } from "@shared/utils/domains";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
@@ -50,10 +51,14 @@ router.post(
 
       if (shareId) {
         const actor = ctx.state.auth.user;
-        const teamFromCtx = await getTeamFromContext(ctx, {
-          includeStateCookie: false,
-        });
-        const teamId = actor?.teamId ?? teamFromCtx?.id;
+        // teamId is only needed when the share identifier is a slug, not a UUID
+        let teamId: string | undefined = actor?.teamId;
+        if (!teamId && !isUUID(shareId)) {
+          const teamFromCtx = await getTeamFromContext(ctx, {
+            includeStateCookie: false,
+          });
+          teamId = teamFromCtx?.id;
+        }
         const previewDocumentId = parseDocumentSlug(url);
         const { share, document } = await loadPublicShare({
           id: shareId,
