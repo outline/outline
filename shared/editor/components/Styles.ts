@@ -1544,6 +1544,11 @@ ol li {
   opacity: 1;
 }
 
+td .${EditorStyleHelper.checklistCompletedToggle},
+th .${EditorStyleHelper.checklistCompletedToggle} {
+  top: -32px;
+}
+
 .${EditorStyleHelper.checklistWrapper}.${EditorStyleHelper.checklistCompletedHidden} ul.checkbox_list > li.checked {
   display: none;
 }
