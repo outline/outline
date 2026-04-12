@@ -591,7 +591,7 @@ export type UnfurlResponse = {
     /** Document summary */
     summary: string;
     /** Viewer's last activity on this document */
-    lastActivityByViewer: string;
+    lastActivityByViewer?: string;
   };
   [UnfurlResourceType.Issue]: {
     /** The resource type */

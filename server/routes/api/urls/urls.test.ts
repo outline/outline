@@ -1,7 +1,7 @@
 import { UnfurlResourceType } from "@shared/types";
 import env from "@server/env";
 import type { User } from "@server/models";
-import { buildDocument, buildUser } from "@server/test/factories";
+import { buildDocument, buildShare, buildUser } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 import Iframely from "plugins/iframely/server/iframely";
 
@@ -148,6 +148,55 @@ describe("#urls.unfurl", () => {
         token: user.getJwtToken(),
         url: `${env.URL}/${document.url}`,
         documentId: document.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.type).toEqual(UnfurlResourceType.Document);
+    expect(body.title).toEqual(document.titleWithDefault);
+    expect(body.id).toEqual(document.id);
+  });
+
+  it("should succeed with status 200 ok when valid share url is supplied", async () => {
+    const document = await buildDocument({
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      teamId: user.teamId,
+      userId: user.id,
+      documentId: document.id,
+      published: true,
+    });
+
+    const res = await server.post("/api/urls.unfurl", {
+      body: {
+        token: user.getJwtToken(),
+        url: `${env.URL}/s/${share.id}/doc/${document.urlId}`,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.type).toEqual(UnfurlResourceType.Document);
+    expect(body.title).toEqual(document.titleWithDefault);
+    expect(body.id).toEqual(document.id);
+  });
+
+  it("should succeed with status 200 ok when share url with urlId is supplied", async () => {
+    const document = await buildDocument({
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      teamId: user.teamId,
+      userId: user.id,
+      documentId: document.id,
+      urlId: "test-share",
+      published: true,
+    });
+
+    const res = await server.post("/api/urls.unfurl", {
+      body: {
+        token: user.getJwtToken(),
+        url: `${env.URL}/s/${share.urlId}/doc/${document.urlId}`,
       },
     });
     const body = await res.json();

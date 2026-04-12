@@ -190,6 +190,40 @@ describe("sanitizeUrl", () => {
   });
 });
 
+describe("parseShareIdFromUrl", () => {
+  it("should return share id from url with doc path", () => {
+    expect(
+      urlsUtils.parseShareIdFromUrl(
+        "https://app.example.com/s/my-share/doc/test-abc123"
+      )
+    ).toBe("my-share");
+  });
+
+  it("should return share uuid from url", () => {
+    expect(
+      urlsUtils.parseShareIdFromUrl(
+        "https://app.example.com/s/2767ba0e-ac5c-4533-b9cf-4f5fc456600e/doc/test-abc123"
+      )
+    ).toBe("2767ba0e-ac5c-4533-b9cf-4f5fc456600e");
+  });
+
+  it("should return share id when no doc path is present", () => {
+    expect(
+      urlsUtils.parseShareIdFromUrl("https://app.example.com/s/my-share")
+    ).toBe("my-share");
+  });
+
+  it("should return undefined for non-share urls", () => {
+    expect(
+      urlsUtils.parseShareIdFromUrl("https://app.example.com/doc/test-abc123")
+    ).toBeUndefined();
+  });
+
+  it("should return undefined for invalid urls", () => {
+    expect(urlsUtils.parseShareIdFromUrl("not a url")).toBeUndefined();
+  });
+});
+
 describe("#urlRegex", () => {
   it("should return undefined for invalid urls", () => {
     expect(urlRegex(undefined)).toBeUndefined();

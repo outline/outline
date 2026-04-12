@@ -26,7 +26,7 @@ const HoverPreviewDocument = React.forwardRef(function HoverPreviewDocument_(
           <ErrorBoundary showTitle={false} reloadOnChunkMissing={false}>
             <Flex column gap={2}>
               <Title>{title}</Title>
-              <Info>{lastActivityByViewer}</Info>
+              {lastActivityByViewer && <Info>{lastActivityByViewer}</Info>}
               <Description as="div">
                 <React.Suspense fallback={<div />}>
                   <Editor
