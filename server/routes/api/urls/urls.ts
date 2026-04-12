@@ -55,20 +55,22 @@ router.post(
         });
         const teamId = actor?.teamId ?? teamFromCtx?.id;
         const previewDocumentId = parseDocumentSlug(url);
-        const { document } = await loadPublicShare({
+        const { share, document } = await loadPublicShare({
           id: shareId,
           documentId: previewDocumentId,
           teamId,
         });
 
         if (!document) {
-          throw NotFoundError("Document does not exist");
+          ctx.response.status = 204;
+          return;
         }
 
         ctx.body = await presentUnfurl({
           type: UnfurlResourceType.Document,
           document,
           viewer: actor,
+          url: `${share.canonicalUrl}/doc/${document.url.replace("/doc/", "")}`,
         });
         return;
       }

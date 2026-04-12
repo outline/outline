@@ -93,8 +93,9 @@ const presentDocument = (
 ): UnfurlResponse[UnfurlResourceType.Document] => {
   const document: Document = data.document;
   const viewer: User | undefined = data.viewer;
+  const url: string | undefined = data.url;
   return {
-    url: document.url,
+    url: url ?? document.url,
     type: UnfurlResourceType.Document,
     id: document.id,
     title: document.titleWithDefault,
