@@ -76,7 +76,15 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   useLayoutEffect(() => {
     const debug = env.ENVIRONMENT === "development";
     const name = `document.${documentId}`;
-    const localProvider = new IndexeddbPersistence(name, ydoc);
+    const localProvider =
+      typeof indexedDB !== "undefined"
+        ? new IndexeddbPersistence(name, ydoc)
+        : undefined;
+
+    if (!localProvider) {
+      setLocalSynced(true);
+    }
+
     const provider = new HocuspocusProvider({
       parameters: {
         editorVersion: EDITOR_VERSION,
@@ -156,7 +164,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     };
 
     provider.on("awarenessChange", showCursorNames);
-    localProvider.on("synced", () =>
+    localProvider?.on("synced", () =>
       // only set local storage to "synced" if it's loaded a non-empty doc
       setLocalSynced(!!ydoc.get("default")._start)
     );
@@ -195,7 +203,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
           message: ev.message,
         })
       );
-      localProvider.on("synced", () =>
+      localProvider?.on("synced", () =>
         Logger.debug("collaboration", "local synced")
       );
     }
