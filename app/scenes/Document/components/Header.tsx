@@ -125,6 +125,12 @@ function DocumentHeader({
   const showContents =
     ui.tocVisible === true || (isShare && ui.tocVisible !== false);
 
+  useEffect(() => {
+    if (isMobile && showContents) {
+      ui.set({ tocVisible: false });
+    }
+  }, [isMobile, showContents, ui]);
+
   const toc = (
     <Tooltip
       content={
