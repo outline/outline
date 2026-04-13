@@ -95,6 +95,9 @@ export class UploadPlugin extends Plugin {
                     ],
                     options
                   );
+                })
+                .catch(() => {
+                  // Silently handle fetch failures (e.g. CORS, network errors)
                 });
             }
 
