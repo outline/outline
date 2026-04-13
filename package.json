@@ -73,7 +73,7 @@
     "@getoutline/react-roving-tabindex": "^3.2.4",
     "@gitbeaker/rest": "^43.8.0",
     "@hocuspocus/extension-redis": "1.1.2",
-    "@hocuspocus/extension-throttle": "1.1.2",
+    "@hocuspocus/extension-throttle": "1.1.3",
     "@hocuspocus/provider": "1.1.2",
     "@hocuspocus/server": "1.1.2",
     "@juggle/resize-observer": "^3.4.0",
