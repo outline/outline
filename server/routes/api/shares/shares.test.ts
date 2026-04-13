@@ -324,6 +324,25 @@ describe("#shares.create", () => {
     expect(body.data.documentTitle).toBe(document.title);
   });
 
+  it("should set includeChildDocuments when creating a published share", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/shares.create", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: document.id,
+        published: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.published).toBe(true);
+    expect(body.data.includeChildDocuments).toBe(true);
+  });
+
   it("should accept allowIndexing and showLastUpdated parameters", async () => {
     const user = await buildUser();
     const document = await buildDocument({

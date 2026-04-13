@@ -314,7 +314,7 @@ router.post(
       defaults: {
         userId: user.id,
         published,
-        includeChildDocuments,
+        includeChildDocuments: published || includeChildDocuments,
         allowIndexing,
         allowSubscriptions,
         showLastUpdated,
