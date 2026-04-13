@@ -40,6 +40,7 @@ import type {
   WebsocketEntityDeletedEvent,
 } from "~/types";
 import { AuthorizationError, NotFoundError } from "~/utils/errors";
+import Logger from "~/utils/Logger";
 import { getVisibilityListener, getPageVisible } from "~/utils/pageVisibility";
 
 type SocketWithAuthentication = Socket & {
@@ -135,7 +136,15 @@ class WebsocketProvider extends Component<Props> {
         this.socket.authenticated = false;
       }
       toast.error(err.message);
-      throw err;
+      Sentry.captureException(
+        err instanceof Error
+          ? err
+          : new Error(
+              typeof err === "object" && err !== null && "message" in err
+                ? (err as { message: string }).message
+                : "Socket unauthorized"
+            )
+      );
     });
 
     // add a listener for all events that logs a sentry breadcrumb
@@ -336,9 +345,13 @@ class WebsocketProvider extends Component<Props> {
           }
         }
 
-        await documents.fetch(event.documentId!, {
-          force: event.userId === currentUserId,
-        });
+        try {
+          await documents.fetch(event.documentId!, {
+            force: event.userId === currentUserId,
+          });
+        } catch (err) {
+          Logger.error("Failed to fetch document after add_user", err);
+        }
       }
     );
 
@@ -502,7 +515,11 @@ class WebsocketProvider extends Component<Props> {
         const collectionId = event.id;
 
         // Fetch collection to update policies
-        await collections.fetch(collectionId, { force: true });
+        try {
+          await collections.fetch(collectionId, { force: true });
+        } catch (err) {
+          Logger.error("Failed to fetch collection after archive", err);
+        }
 
         documents.unarchivedInCollection(collectionId).forEach(
           action((doc) => {
@@ -534,7 +551,11 @@ class WebsocketProvider extends Component<Props> {
           );
 
         // Fetch collection to update policies
-        await collections.fetch(collectionId, { force: true });
+        try {
+          await collections.fetch(collectionId, { force: true });
+        } catch (err) {
+          Logger.error("Failed to fetch collection after restore", err);
+        }
       }
     );
 
@@ -588,9 +609,13 @@ class WebsocketProvider extends Component<Props> {
 
     this.socket.on("collections.add_user", async (event: Membership) => {
       memberships.add(event);
-      await collections.fetch(event.collectionId, {
-        force: event.userId === currentUserId,
-      });
+      try {
+        await collections.fetch(event.collectionId, {
+          force: event.userId === currentUserId,
+        });
+      } catch (err) {
+        Logger.error("Failed to fetch collection after add_user", err);
+      }
     });
 
     this.socket.on("collections.remove_user", (event: Membership) => {
@@ -604,7 +629,11 @@ class WebsocketProvider extends Component<Props> {
 
     this.socket.on("collections.add_group", async (event: GroupMembership) => {
       groupMemberships.add(event);
-      await collections.fetch(event.collectionId!);
+      try {
+        await collections.fetch(event.collectionId!);
+      } catch (err) {
+        Logger.error("Failed to fetch collection after add_group", err);
+      }
     });
 
     this.socket.on(
@@ -689,7 +718,11 @@ class WebsocketProvider extends Component<Props> {
     this.socket.on("users.demote", async (event: PartialExcept<User, "id">) => {
       if (event.id === auth.user?.id) {
         documents.all.forEach((document) => policies.remove(document.id));
-        await collections.fetchAll();
+        try {
+          await collections.fetchAll();
+        } catch (err) {
+          Logger.error("Failed to fetch collections after demote", err);
+        }
       }
     });
 
