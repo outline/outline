@@ -222,6 +222,39 @@ export function urlRegex(url: string | null | undefined): RegExp | undefined {
 }
 
 /**
+ * Parse the share identifier from a given url.
+ *
+ * @param url The url to parse.
+ * @returns A share identifier or undefined if not found.
+ */
+export function parseShareIdFromUrl(url: string): string | undefined {
+  if (url[0] === "/") {
+    url = `${env.URL}${url}`;
+  }
+
+  let pathname;
+  try {
+    pathname = new URL(url).pathname;
+  } catch (_err) {
+    return;
+  }
+
+  const split = pathname.split("/");
+  const indexOfS = split.indexOf("s");
+
+  if (indexOfS >= 0) {
+    const shareId = split[indexOfS + 1];
+    if (shareId) {
+      // Remove trailing format like .md
+      const dotIndex = shareId.indexOf(".");
+      return dotIndex >= 0 ? shareId.substring(0, dotIndex) : shareId;
+    }
+  }
+
+  return undefined;
+}
+
+/**
  * Extracts LIKELY urls from the given text, note this does not validate the urls.
  *
  * @param text The text to extract urls from.

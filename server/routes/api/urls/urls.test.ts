@@ -1,7 +1,12 @@
 import { UnfurlResourceType } from "@shared/types";
 import env from "@server/env";
 import type { User } from "@server/models";
-import { buildDocument, buildUser } from "@server/test/factories";
+import {
+  buildCollection,
+  buildDocument,
+  buildShare,
+  buildUser,
+} from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 import Iframely from "plugins/iframely/server/iframely";
 
@@ -155,6 +160,120 @@ describe("#urls.unfurl", () => {
     expect(body.type).toEqual(UnfurlResourceType.Document);
     expect(body.title).toEqual(document.titleWithDefault);
     expect(body.id).toEqual(document.id);
+  });
+
+  it("should succeed with status 200 ok when valid share url is supplied", async () => {
+    const document = await buildDocument({
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      teamId: user.teamId,
+      userId: user.id,
+      documentId: document.id,
+      published: true,
+    });
+
+    const res = await server.post("/api/urls.unfurl", {
+      body: {
+        token: user.getJwtToken(),
+        url: `${env.URL}/s/${share.id}/doc/${document.urlId}`,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.type).toEqual(UnfurlResourceType.Document);
+    expect(body.title).toEqual(document.titleWithDefault);
+    expect(body.id).toEqual(document.id);
+  });
+
+  it("should succeed with status 200 ok when share url with urlId is supplied", async () => {
+    const document = await buildDocument({
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      teamId: user.teamId,
+      userId: user.id,
+      documentId: document.id,
+      urlId: "test-share",
+      published: true,
+    });
+
+    const res = await server.post("/api/urls.unfurl", {
+      body: {
+        token: user.getJwtToken(),
+        url: `${env.URL}/s/${share.urlId}/doc/${document.urlId}`,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.type).toEqual(UnfurlResourceType.Document);
+    expect(body.title).toEqual(document.titleWithDefault);
+    expect(body.id).toEqual(document.id);
+  });
+
+  it("should succeed with status 200 ok for share url without authentication", async () => {
+    const document = await buildDocument({
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      teamId: user.teamId,
+      userId: user.id,
+      documentId: document.id,
+      published: true,
+    });
+
+    const res = await server.post("/api/urls.unfurl", {
+      body: {
+        url: `${env.URL}/s/${share.id}/doc/${document.urlId}`,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.type).toEqual(UnfurlResourceType.Document);
+    expect(body.title).toEqual(document.titleWithDefault);
+    expect(body.id).toEqual(document.id);
+  });
+
+  it("should return share-scoped url in unfurl response", async () => {
+    const document = await buildDocument({
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      teamId: user.teamId,
+      userId: user.id,
+      documentId: document.id,
+      published: true,
+    });
+
+    const res = await server.post("/api/urls.unfurl", {
+      body: {
+        token: user.getJwtToken(),
+        url: `${env.URL}/s/${share.id}/doc/${document.urlId}`,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.url).toContain(`/s/${share.id}/doc/`);
+  });
+
+  it("should return 204 for collection share url without document", async () => {
+    const collection = await buildCollection({
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+      published: true,
+    });
+
+    const res = await server.post("/api/urls.unfurl", {
+      body: {
+        token: user.getJwtToken(),
+        url: `${env.URL}/s/${share.id}`,
+      },
+    });
+    expect(res.status).toEqual(204);
   });
 
   it("should succeed with status 200 ok for a valid external url", async () => {

@@ -92,14 +92,17 @@ const presentDocument = (
   data: Record<string, any>
 ): UnfurlResponse[UnfurlResourceType.Document] => {
   const document: Document = data.document;
-  const viewer: User = data.viewer;
+  const viewer: User | undefined = data.viewer;
+  const url: string | undefined = data.url;
   return {
-    url: document.url,
+    url: url ?? document.url,
     type: UnfurlResourceType.Document,
     id: document.id,
     title: document.titleWithDefault,
     summary: document.getSummary(),
-    lastActivityByViewer: presentLastActivityInfoFor(document, viewer),
+    lastActivityByViewer: viewer
+      ? presentLastActivityInfoFor(document, viewer)
+      : undefined,
   };
 };
 
