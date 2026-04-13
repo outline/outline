@@ -12,13 +12,10 @@ export function getCurrentBlock(
   const { $head } = state.selection;
 
   // Walk up the tree to find the first block node
-  for (let d = $head.depth; d >= 0; d--) {
+  for (let d = $head.depth; d > 0; d--) {
     const node = $head.node(d);
-    const pos = $head.before(d);
-
-    if (node.isBlock && d > 0) {
-      // Don't return the document itself
-      return [node, pos];
+    if (node.isBlock) {
+      return [node, $head.before(d)];
     }
   }
 
