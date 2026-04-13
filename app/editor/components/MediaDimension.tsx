@@ -68,7 +68,10 @@ export function MediaDimension() {
 
   const isOutsideBounds = useCallback(
     (type: "width" | "height", value: number) => {
-      const bounds = boundsRef.current!;
+      const bounds = boundsRef.current;
+      if (!bounds) {
+        return false;
+      }
       return value < bounds[type].min || value > bounds[type].max;
     },
     []
@@ -128,12 +131,12 @@ export function MediaDimension() {
         localWidthAsNumber &&
         isOutsideBounds("width", localWidthAsNumber)); // check width bounds here since 'onChange' error checker is debounced.
 
-    if (isUnchanged || isError) {
+    if (isUnchanged || isError || !boundsRef.current) {
       reset();
       return;
     }
 
-    const maxWidth = boundsRef.current!.width.max;
+    const maxWidth = boundsRef.current.width.max;
     // For images resized to the full width of the editor, natural width will be shown in the toolbar.
     // So, we constrain it here for computing aspect ratio.
     const constrainedWidth = Math.min(width, maxWidth);
