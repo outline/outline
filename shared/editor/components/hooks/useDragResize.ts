@@ -38,6 +38,10 @@ type Params = {
   naturalHeight: number;
   /** The percentage of the grid to snap the element to. */
   gridSnap: 5;
+  /** The pixel increment to snap vertical resizing to. */
+  gridHeightSnap?: number;
+  /** The minimum height in pixels when resizing vertically. */
+  minHeight?: number;
   /** A reference to the element being resized. */
   ref: React.RefObject<HTMLDivElement>;
 };
@@ -91,13 +95,13 @@ export default function useDragResize(props: Params): ReturnValue {
     }
 
     if (diffY && sizeAtDragStart.height) {
-      const gridHeight = 10;
+      const gridHeight = props.gridHeightSnap ?? 10;
       const newHeight = sizeAtDragStart.height + diffY;
       const heightOnGrid = Math.round(newHeight / gridHeight) * gridHeight;
 
       setSize((state) => ({
         ...state,
-        height: Math.max(heightOnGrid, 50),
+        height: Math.max(heightOnGrid, props.minHeight ?? 50),
       }));
     }
   };
