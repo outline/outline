@@ -16,6 +16,11 @@ export const metaDisplay = isMac ? "⌘" : "Ctrl";
 export const ctrlDisplay = isMac ? "^" : "Ctrl";
 
 /**
+ * Separator displayed between shortcut keys — "+" on Windows, empty on Mac.
+ */
+export const shortcutSeparator = isMac ? "" : "+";
+
+/**
  * Returns the name of the modifier key
  */
 export const meta = isMac ? "cmd" : "ctrl";

@@ -3,6 +3,7 @@ import { transparentize } from "polished";
 import * as React from "react";
 import styled, { keyframes } from "styled-components";
 import { s, depths } from "@shared/styles";
+import { shortcutSeparator } from "@shared/utils/keyboard";
 import useMobile from "~/hooks/useMobile";
 import { useTooltipContext } from "./TooltipContext";
 
@@ -141,13 +142,16 @@ function Tooltip({
         {tooltip}
         {shortcutOnNewline ? <br /> : " "}
         {typeof shortcut === "string" ? (
-          shortcut
-            .split("+")
-            .map((key, i) => (
+          shortcut.split("+").flatMap((key, i, arr) => {
+            const el = (
               <Shortcut key={`${key}${i}`}>
                 {key.length === 1 ? key.toUpperCase() : key}
               </Shortcut>
-            ))
+            );
+            return i < arr.length - 1 && shortcutSeparator
+              ? [el, shortcutSeparator]
+              : [el];
+          })
         ) : (
           <Shortcut>{shortcut}</Shortcut>
         )}

@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
-import { metaDisplay } from "@shared/utils/keyboard";
+import { metaDisplay, shortcutSeparator } from "@shared/utils/keyboard";
 import type Share from "~/models/Share";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
@@ -75,7 +75,10 @@ function SharedSidebar({ share }: Props) {
           <SearchButton onClick={handleOpenSearch}>
             <SearchIcon size={20} />
             <SearchLabel>{t("Search")}</SearchLabel>
-            <Shortcut>{metaDisplay}K</Shortcut>
+            <Shortcut>
+              {metaDisplay}
+              {shortcutSeparator}K
+            </Shortcut>
           </SearchButton>
         </TopSection>
         <Section as="nav" aria-label={t("Documents")}>
