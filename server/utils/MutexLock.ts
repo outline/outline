@@ -1,5 +1,10 @@
-import Redlock, { type Lock, type RedlockAbortSignal } from "redlock";
+import Redlock, {
+  ExecutionError,
+  type Lock,
+  type RedlockAbortSignal,
+} from "redlock";
 import Redis from "@server/storage/redis";
+import Logger from "@server/logging/Logger";
 import ShutdownHelper, { ShutdownOrder } from "./ShutdownHelper";
 
 type AcquireOptions = {
@@ -15,11 +20,22 @@ export class MutexLock {
    * Returns the redlock instance
    */
   public static get lock(): Redlock {
-    this.redlock ??= new Redlock([Redis.defaultClient], {
-      retryJitter: 100,
-      retryCount: 120,
-      retryDelay: 1000,
-    });
+    if (!this.redlock) {
+      this.redlock = new Redlock([Redis.defaultClient], {
+        retryJitter: 100,
+        retryCount: 120,
+        retryDelay: 1000,
+      });
+      this.redlock.on("error", (err) => {
+        if (err instanceof ExecutionError) {
+          Logger.warn("Failed to extend Redlock lock", {
+            message: err.message,
+          });
+        } else {
+          Logger.error("Unexpected Redlock error", err);
+        }
+      });
+    }
 
     return this.redlock;
   }
