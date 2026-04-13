@@ -28,9 +28,11 @@ export class MutexLock {
       });
       this.redlock.on("error", (err) => {
         if (err instanceof ExecutionError) {
-          Logger.warn("Failed to extend Redlock lock", err);
+          Logger.warn("Failed to extend Redlock lock", {
+            message: err.message,
+          });
         } else {
-          throw err;
+          Logger.error("Unexpected Redlock error", err);
         }
       });
     }
