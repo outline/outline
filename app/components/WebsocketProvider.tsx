@@ -131,20 +131,29 @@ class WebsocketProvider extends Component<Props> {
       }
     });
 
-    this.socket.on("unauthorized", (err: Error) => {
+    this.socket.on("unauthorized", (err: unknown) => {
       if (this.socket) {
         this.socket.authenticated = false;
       }
-      toast.error(err.message);
-      Sentry.captureException(
+
+      const message =
         err instanceof Error
-          ? err
-          : new Error(
-              typeof err === "object" && err !== null && "message" in err
-                ? (err as { message: string }).message
-                : "Socket unauthorized"
-            )
-      );
+          ? err.message
+          : typeof err === "object" && err !== null && "message" in err
+            ? String((err as { message: unknown }).message)
+            : "Socket unauthorized";
+
+      toast.error(message);
+
+      if (err instanceof Error) {
+        Sentry.captureException(err);
+      } else {
+        Sentry.captureException(new Error(message), {
+          extra: {
+            unauthorizedPayload: err,
+          },
+        });
+      }
     });
 
     // add a listener for all events that logs a sentry breadcrumb
