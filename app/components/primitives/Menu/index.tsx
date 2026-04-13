@@ -5,7 +5,7 @@ import type { LocationDescriptor } from "history";
 import * as React from "react";
 import Tooltip from "~/components/Tooltip";
 import { CheckmarkIcon } from "outline-icons";
-import { normalizeKeyDisplay } from "@shared/utils/keyboard";
+import { normalizeKeyDisplay, shortcutSeparator } from "@shared/utils/keyboard";
 import { useMenuContext } from "./MenuContext";
 
 type MenuProps = React.ComponentPropsWithoutRef<
@@ -245,13 +245,16 @@ function MenuItemShortcut({ shortcut }: { shortcut?: string[] }) {
   return (
     <Components.MenuShortcut>
       {shortcut.map((sc, scIndex) =>
-        sc
-          .split("+")
-          .map((key, keyIndex) => (
+        sc.split("+").flatMap((key, keyIndex, arr) => {
+          const el = (
             <span key={`${scIndex}-${keyIndex}`}>
               {normalizeKeyDisplay(key, true)}
             </span>
-          ))
+          );
+          return keyIndex < arr.length - 1 && shortcutSeparator
+            ? [el, shortcutSeparator]
+            : [el];
+        })
       )}
     </Components.MenuShortcut>
   );
