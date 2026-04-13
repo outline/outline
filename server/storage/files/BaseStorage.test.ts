@@ -1,5 +1,7 @@
 import BaseStorage from "./BaseStorage";
+import type { PresignedUpload } from "./BaseStorage";
 import env from "@server/env";
+import type { AppContext } from "@server/types";
 
 /**
  * Mock implementation of BaseStorage for testing purposes.
@@ -12,8 +14,18 @@ class MockStorage extends BaseStorage {
     acl?: string;
   }> = [];
 
-  async getPresignedPost() {
-    return {};
+  public async getPresignedPost(
+    _ctx: AppContext,
+    key: string,
+    _acl: string,
+    _maxUploadSize: number,
+    _contentType: string
+  ): Promise<PresignedUpload> {
+    return {
+      method: "PUT",
+      url: this.getUrlForKey(key),
+      fields: {},
+    };
   }
 
   async getFileStream() {
