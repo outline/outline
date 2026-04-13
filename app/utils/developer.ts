@@ -8,7 +8,7 @@ import { flattenTree } from "@shared/utils/tree";
  * @returns A promise that resolves when all databases have been deleted.
  */
 export async function deleteAllDatabases() {
-  if ("databases" in window.indexedDB) {
+  if (window.indexedDB && "databases" in window.indexedDB) {
     const databases = await window.indexedDB.databases();
 
     for (const database of databases) {
