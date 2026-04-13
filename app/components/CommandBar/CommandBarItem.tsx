@@ -30,8 +30,8 @@ function CommandBarItem(
 ) {
   const theme = useTheme();
   const ancestors = React.useMemo(() => {
-    if (!currentRootActionId) {
-      return action.ancestors;
+    if (!currentRootActionId || !action.ancestors) {
+      return action.ancestors ?? [];
     }
     const index = action.ancestors.findIndex(
       (ancestor) => ancestor.id === currentRootActionId
