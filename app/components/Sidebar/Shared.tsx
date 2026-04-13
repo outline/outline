@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
+import { isMac } from "@shared/utils/browser";
 import { metaDisplay } from "@shared/utils/keyboard";
 import type Share from "~/models/Share";
 import Flex from "~/components/Flex";
@@ -75,7 +76,10 @@ function SharedSidebar({ share }: Props) {
           <SearchButton onClick={handleOpenSearch}>
             <SearchIcon size={20} />
             <SearchLabel>{t("Search")}</SearchLabel>
-            <Shortcut>{metaDisplay}K</Shortcut>
+            <Shortcut>
+              {metaDisplay}
+              {isMac ? "" : "+"}K
+            </Shortcut>
           </SearchButton>
         </TopSection>
         <Section as="nav" aria-label={t("Documents")}>
