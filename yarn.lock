@@ -17272,10 +17272,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nodemailer@npm:7.0.11, nodemailer@npm:^7.0.11":
+"nodemailer@npm:7.0.11":
   version: 7.0.11
   resolution: "nodemailer@npm:7.0.11"
   checksum: 10c0/208f108fdb4c5dd0e3a2f013578d53dad505cf1b9c7a084f6d22fc9d6f3912daafb4a23793ca568ff848afc35f15f4eb24382d3f6f9fb8ede4a8410d4ca63618
+  languageName: node
+  linkType: hard
+
+"nodemailer@npm:^7.0.13":
+  version: 7.0.13
+  resolution: "nodemailer@npm:7.0.13"
+  checksum: 10c0/b26aa5b9fa4a033bbc1e1c16ef75ee2a9c8641fd290c00a8361d6a251b3c1b8bad545a23efa627f59cb266340a448891ea8aa49d8a9307c767b8505219d95079
   languageName: node
   linkType: hard
 
@@ -17757,7 +17764,7 @@ __metadata:
     mobx-utils: "npm:^4.0.1"
     natural-sort: "npm:^1.0.0"
     node-fetch: "npm:2.7.0"
-    nodemailer: "npm:^7.0.11"
+    nodemailer: "npm:^7.0.13"
     nodemon: "npm:^3.1.11"
     octokit: "npm:^3.2.2"
     outline-icons: "npm:^4.3.0"
