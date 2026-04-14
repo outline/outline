@@ -4,7 +4,13 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
-import { isModKey } from "@shared/utils/keyboard";
+import breakpoint from "styled-components-breakpoint";
+import { s } from "@shared/styles";
+import {
+  isModKey,
+  metaDisplay,
+  shortcutSeparator,
+} from "@shared/utils/keyboard";
 import useBoolean from "~/hooks/useBoolean";
 import useKeyDown from "~/hooks/useKeyDown";
 import { searchPath } from "~/utils/routeHelpers";
@@ -97,16 +103,36 @@ function InputSearchPage({
       onBlur={setUnfocused}
       margin={0}
       labelHidden
-    />
+    >
+      <Shortcut $visible={!isFocused && !value && !collectionId}>
+        {metaDisplay}
+        {shortcutSeparator}K
+      </Shortcut>
+    </InputMaxWidth>
   );
 }
 
 const InputMaxWidth = styled(Input)`
-  max-width: 30vw;
+  max-width: min(calc(30vw + 20px), 100%);
 
   ${Outline} {
     border-radius: 16px;
   }
+`;
+
+const Shortcut = styled.span<{ $visible: boolean }>`
+  display: none;
+  flex-shrink: 0;
+  font-size: 13px;
+  color: ${s("textTertiary")};
+  padding-right: 10px;
+  pointer-events: none;
+  opacity: ${(props) => (props.$visible ? 1 : 0)};
+  transition: opacity 100ms ease-in-out;
+
+  ${breakpoint("tablet")`
+    display: inline;
+  `};
 `;
 
 export default observer(InputSearchPage);
