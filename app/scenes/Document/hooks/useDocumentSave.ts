@@ -99,11 +99,6 @@ export function useDocumentSave({
     updateIsDirtyRef.current = updateIsDirty;
   });
 
-  const updateIsDirtyDebounced = useMemo(
-    () => debounce(() => updateIsDirtyRef.current(), 500),
-    []
-  );
-
   const onSave = useCallback(
     async (
       options: {
@@ -320,7 +315,6 @@ export function useDocumentSave({
   useEffect(
     () => () => {
       autosave.cancel();
-      updateIsDirtyDebounced.cancel();
 
       if (
         isEmptyRef.current &&
