@@ -73,11 +73,19 @@ export function setResource(name: string) {
 
 /**
  * Mark the current active span as an error. This method wraps addTags to allow
- * safe use in environments where APM is disabled.
+ * safe use in environments where APM is disabled. Errors with isReportable set
+ * to false are skipped.
  *
- * @param error The error to add to the current span
+ * @param error The error to add to the current span.
  */
 export function setError(error: Error, span?: Span) {
+  if (
+    "isReportable" in error &&
+    !(error as { isReportable: boolean }).isReportable
+  ) {
+    return;
+  }
+
   if (tracer) {
     addTags(
       {
