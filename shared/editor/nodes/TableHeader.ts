@@ -4,7 +4,7 @@ import type { EditorState } from "prosemirror-state";
 import { Plugin, PluginKey } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
 import { DecorationSet, Decoration } from "prosemirror-view";
-import { moveTableColumn, TableMap } from "prosemirror-tables";
+import { isInTable, moveTableColumn, TableMap } from "prosemirror-tables";
 import { addColumnBefore, selectColumn } from "../commands/table";
 import { getCellAttrs, setCellAttrs } from "../lib/table";
 import {
@@ -125,16 +125,19 @@ function setupColumnDragTracking(
     document.removeEventListener("mouseup", handleMouseUp);
 
     document.body.classList.remove(EditorStyleHelper.tableDragging);
-    clearDragState();
 
-    if (isDragging && currentToIndex !== fromIndex) {
-      moveTableColumn({ from: fromIndex, to: currentToIndex })(
+    if (isDragging && currentToIndex !== fromIndex && isInTable(view.state)) {
+      const moved = moveTableColumn({ from: fromIndex, to: currentToIndex })(
         view.state,
         view.dispatch
       );
-      // Select the column at its new position
-      selectColumn(currentToIndex)(view.state, view.dispatch);
+      if (moved) {
+        // Select the column at its new position
+        selectColumn(currentToIndex)(view.state, view.dispatch);
+      }
     }
+
+    clearDragState();
   };
 
   document.addEventListener("mousemove", handleMouseMove);

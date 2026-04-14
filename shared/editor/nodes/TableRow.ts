@@ -120,12 +120,14 @@ function setupRowDragTracking(
     document.body.classList.remove(EditorStyleHelper.tableDragging);
 
     if (isDragging && currentToIndex !== fromIndex && isInTable(view.state)) {
-      moveTableRow({ from: fromIndex, to: currentToIndex })(
+      const moved = moveTableRow({ from: fromIndex, to: currentToIndex })(
         view.state,
         view.dispatch
       );
-      // Select the row at its new position
-      selectRow(currentToIndex)(view.state, view.dispatch);
+      if (moved) {
+        // Select the row at its new position
+        selectRow(currentToIndex)(view.state, view.dispatch);
+      }
     }
 
     clearDragState();
