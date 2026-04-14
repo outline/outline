@@ -57,7 +57,6 @@ function AppSidebar() {
 
   return (
     <Sidebar hidden={!ui.readyToShow} ref={handleSidebarRef}>
-      <HistoryNavigation />
       {dndArea && (
         <DndProvider backend={HTML5Backend} options={html5Options}>
           <DragPlaceholder />
@@ -133,6 +132,7 @@ function AppSidebar() {
           </Scrollable>
         </DndProvider>
       )}
+      <HistoryNavigation />
     </Sidebar>
   );
 }
