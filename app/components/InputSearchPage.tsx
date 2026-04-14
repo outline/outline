@@ -4,10 +4,16 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
-import { isModKey } from "@shared/utils/keyboard";
+import { s } from "@shared/styles";
+import {
+  isModKey,
+  metaDisplay,
+  shortcutSeparator,
+} from "@shared/utils/keyboard";
 import useBoolean from "~/hooks/useBoolean";
 import useKeyDown from "~/hooks/useKeyDown";
 import { searchPath } from "~/utils/routeHelpers";
+import Fade from "~/components/Fade";
 import Input, { Outline } from "./Input";
 
 type Props = {
@@ -97,16 +103,33 @@ function InputSearchPage({
       onBlur={setUnfocused}
       margin={0}
       labelHidden
-    />
+    >
+      {!isFocused && !value && !collectionId && (
+        <Fade>
+          <Shortcut>
+            {metaDisplay}
+            {shortcutSeparator}K
+          </Shortcut>
+        </Fade>
+      )}
+    </InputMaxWidth>
   );
 }
 
 const InputMaxWidth = styled(Input)`
-  max-width: 30vw;
+  max-width: calc(30vw + 20px);
+  min-width: 0;
 
   ${Outline} {
     border-radius: 16px;
   }
+`;
+
+const Shortcut = styled.span`
+  flex-shrink: 0;
+  font-size: 13px;
+  color: ${s("textTertiary")};
+  padding-right: 8px;
 `;
 
 export default observer(InputSearchPage);
