@@ -1,16 +1,14 @@
 import cloneDeep from "lodash/cloneDeep";
 import debounce from "lodash/debounce";
 import isEqual from "lodash/isEqual";
-import { action, observable } from "mobx";
 import { observer } from "mobx-react";
 import { Node } from "prosemirror-model";
 import type { Selection } from "prosemirror-state";
 import { AllSelection, TextSelection } from "prosemirror-state";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import * as React from "react";
-import type { WithTranslation } from "react-i18next";
-import { withTranslation } from "react-i18next";
-import type { RouteComponentProps, StaticContext } from "react-router";
-import { Prompt, withRouter } from "react-router";
+import { useTranslation } from "react-i18next";
+import { Prompt, useHistory, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -22,7 +20,6 @@ import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { TextHelper } from "@shared/utils/TextHelper";
 import { determineIconType } from "@shared/utils/icon";
 import { isModKey } from "@shared/utils/keyboard";
-import type RootStore from "~/stores/RootStore";
 import type Document from "~/models/Document";
 import Template from "~/models/Template";
 import type Revision from "~/models/Revision";
@@ -33,11 +30,11 @@ import LoadingIndicator from "~/components/LoadingIndicator";
 import PageTitle from "~/components/PageTitle";
 import PlaceholderDocument from "~/components/PlaceholderDocument";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
-import type { SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
-import withStores from "~/components/withStores";
 import { MeasuredContainer } from "~/components/MeasuredContainer";
 import type { Editor as TEditor } from "~/editor";
 import type { Properties } from "~/types";
+import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
+import useStores from "~/hooks/useStores";
 import { client } from "~/utils/ApiClient";
 import { emojiToUrl } from "~/utils/emoji";
 import { documentHistoryPath, documentEditPath } from "~/utils/routeHelpers";
@@ -51,84 +48,167 @@ import RevisionViewer from "./RevisionViewer";
 
 const AUTOSAVE_DELAY = 3000;
 
-type Params = {
-  documentSlug: string;
-  revisionId?: string;
-  shareId?: string;
-};
-
 type LocationState = {
   title?: string;
   restore?: boolean;
   revisionId?: string;
-  sidebarContext?: SidebarContextType;
 };
 
-type Props = WithTranslation &
-  RootStore &
-  RouteComponentProps<Params, StaticContext, LocationState> & {
-    sharedTree?: NavigationNode;
-    abilities: Record<string, boolean>;
-    document: Document;
-    revision?: Revision;
-    readOnly: boolean;
-    shareId?: string;
-    tocPosition?: TOCPosition | false;
-    onCreateLink?: (
-      params: Properties<Document>,
-      nested?: boolean
-    ) => Promise<string>;
-  };
+interface Props {
+  sharedTree?: NavigationNode;
+  abilities: Record<string, boolean>;
+  document: Document;
+  revision?: Revision;
+  readOnly: boolean;
+  shareId?: string;
+  tocPosition?: TOCPosition | false;
+  onCreateLink?: (
+    params: Properties<Document>,
+    nested?: boolean
+  ) => Promise<string>;
+  children?: React.ReactNode;
+}
 
-@observer
-class DocumentScene extends React.Component<Props> {
-  @observable
-  editor = React.createRef<TEditor>();
+function DocumentScene({
+  document,
+  revision,
+  readOnly,
+  abilities,
+  shareId,
+  tocPosition,
+  onCreateLink,
+  children,
+}: Props) {
+  const { auth, ui, dialogs } = useStores();
+  const { t } = useTranslation();
+  const history = useHistory();
+  const location = useLocation<LocationState>();
+  const sidebarContext = useLocationSidebarContext();
+  const { team, user } = auth;
 
-  @observable
-  isUploading = false;
+  // Refs
+  const editorRef = useRef<TEditor>(null);
 
-  @observable
-  isSaving = false;
+  // State
+  const [isUploading, setIsUploading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [isEditorDirty, setIsEditorDirty] = useState(false);
+  const [isEmpty, setIsEmpty] = useState(true);
+  const [title, setTitle] = useState(document.title);
 
-  @observable
-  isPublishing = false;
+  // Companion refs for stale closure avoidance
+  const isEditorDirtyRef = useRef(isEditorDirty);
+  isEditorDirtyRef.current = isEditorDirty;
+  const isEmptyRef = useRef(isEmpty);
+  isEmptyRef.current = isEmpty;
+  const titleRef = useRef(title);
+  titleRef.current = title;
 
-  @observable
-  isEditorDirty = false;
+  const updateIsDirty = useCallback(() => {
+    const doc = editorRef.current?.view.state.doc;
+    const dirty = !isEqual(doc?.toJSON(), document.data);
+    setIsEditorDirty(dirty);
+    isEditorDirtyRef.current = dirty;
+    const empty = (!doc || ProsemirrorHelper.isEmpty(doc)) && !titleRef.current;
+    setIsEmpty(empty);
+    isEmptyRef.current = empty;
+  }, [document]);
 
-  @observable
-  isEmpty = true;
+  const updateIsDirtyRef = useRef(updateIsDirty);
+  useEffect(() => {
+    updateIsDirtyRef.current = updateIsDirty;
+  });
 
-  @observable
-  title: string = this.props.document.title;
+  const updateIsDirtyDebounced = useMemo(
+    () => debounce(() => updateIsDirtyRef.current(), 500),
+    []
+  );
 
-  componentDidMount() {
-    this.updateIsDirty();
-  }
+  const onSave = useCallback(
+    async (
+      options: {
+        done?: boolean;
+        publish?: boolean;
+        autosave?: boolean;
+      } = {}
+    ) => {
+      // prevent saves when we are already saving
+      if (document.isSaving) {
+        return;
+      }
 
-  componentDidUpdate(prevProps: Props) {
-    if (prevProps.readOnly && !this.props.readOnly) {
-      this.updateIsDirty();
-    }
-  }
+      // get the latest version of the editor text value
+      const doc = editorRef.current?.view.state.doc;
+      if (!doc) {
+        return;
+      }
 
-  componentWillUnmount() {
-    if (
-      this.isEmpty &&
-      this.props.document.createdBy?.id === this.props.auth.user?.id &&
-      this.props.document.isDraft &&
-      this.props.document.isActive &&
-      this.props.document.hasEmptyTitle &&
-      this.props.document.isPersistedOnce
-    ) {
-      void this.props.document.delete();
-    } else if (this.props.document.isDirty()) {
-      void this.props.document.save(undefined, {
-        autosave: true,
-      });
-    }
-  }
+      // prevent save before anything has been written (single hash is empty doc)
+      if (ProsemirrorHelper.isEmpty(doc) && document.title.trim() === "") {
+        return;
+      }
+
+      document.data = doc.toJSON();
+      document.tasks = ProsemirrorHelper.getTasksSummary(doc);
+
+      // prevent autosave if nothing has changed
+      if (
+        options.autosave &&
+        !isEditorDirtyRef.current &&
+        !document.isDirty()
+      ) {
+        return;
+      }
+
+      setIsSaving(true);
+      setIsPublishing(!!options.publish);
+
+      try {
+        const savedDocument = await document.save(undefined, options);
+        setIsEditorDirty(false);
+        isEditorDirtyRef.current = false;
+
+        if (options.done) {
+          history.push({
+            pathname: savedDocument.url,
+            state: { sidebarContext },
+          });
+          ui.setActiveDocument(savedDocument);
+        } else if (document.isNew) {
+          history.push({
+            pathname: documentEditPath(savedDocument),
+            state: { sidebarContext },
+          });
+          ui.setActiveDocument(savedDocument);
+        }
+      } catch (err) {
+        toast.error(err.message);
+      } finally {
+        setIsSaving(false);
+        setIsPublishing(false);
+      }
+    },
+    [document, history, sidebarContext, ui]
+  );
+
+  const onSaveRef = useRef(onSave);
+  useEffect(() => {
+    onSaveRef.current = onSave;
+  });
+
+  const autosave = useMemo(
+    () =>
+      debounce(
+        () =>
+          void onSaveRef.current({
+            done: false,
+            autosave: true,
+          }),
+        AUTOSAVE_DELAY
+      ),
+    []
+  );
 
   /**
    * Replaces the given selection with a template, if no selection is provided
@@ -137,66 +217,69 @@ class DocumentScene extends React.Component<Props> {
    * @param template The template to use
    * @param selection The selection to replace, if any
    */
-  replaceSelection = (template: Template | Revision, selection?: Selection) => {
-    const editorRef = this.editor.current;
+  const replaceSelection = useCallback(
+    (template: Template | Revision, selection?: Selection) => {
+      const editor = editorRef.current;
 
-    if (!editorRef) {
-      return;
-    }
+      if (!editor) {
+        return;
+      }
 
-    const { view, schema } = editorRef;
-    const sel = selection ?? TextSelection.near(view.state.doc.resolve(0));
-    const doc = Node.fromJSON(
-      schema,
-      ProsemirrorHelper.replaceTemplateVariables(
-        template.data,
-        this.props.auth.user!
-      )
-    );
-
-    if (doc) {
-      view.dispatch(view.state.tr.setSelection(sel).replaceSelectionWith(doc));
-    }
-
-    this.isEditorDirty = true;
-
-    if (template instanceof Template) {
-      this.props.document.templateId = template.id;
-      this.props.document.fullWidth = template.fullWidth;
-    }
-
-    if (!this.title) {
-      const title = TextHelper.replaceTemplateVariables(
-        template.title,
-        this.props.auth.user!
+      const { view, schema } = editor;
+      const sel = selection ?? TextSelection.near(view.state.doc.resolve(0));
+      const doc = Node.fromJSON(
+        schema,
+        ProsemirrorHelper.replaceTemplateVariables(template.data, auth.user!)
       );
-      this.title = title;
-      this.props.document.title = title;
-    }
-    if (template.icon) {
-      this.props.document.icon = template.icon;
-    }
-    if (template.color) {
-      this.props.document.color = template.color;
-    }
 
-    this.props.document.data = cloneDeep(template.data);
-    this.updateIsDirty();
+      if (doc) {
+        view.dispatch(
+          view.state.tr.setSelection(sel).replaceSelectionWith(doc)
+        );
+      }
 
-    return this.onSave({
-      autosave: true,
-      publish: false,
-      done: false,
-    });
-  };
+      setIsEditorDirty(true);
+      isEditorDirtyRef.current = true;
 
-  onSynced = async () => {
-    const { history, location, t } = this.props;
+      if (template instanceof Template) {
+        document.templateId = template.id;
+        document.fullWidth = template.fullWidth;
+      }
+
+      if (!titleRef.current) {
+        const newTitle = TextHelper.replaceTemplateVariables(
+          template.title,
+          auth.user!
+        );
+        setTitle(newTitle);
+        titleRef.current = newTitle;
+        document.title = newTitle;
+      }
+      if (template.icon) {
+        document.icon = template.icon;
+      }
+      if (template.color) {
+        document.color = template.color;
+      }
+
+      document.data = cloneDeep(template.data);
+      updateIsDirtyRef.current();
+
+      return onSaveRef.current({
+        autosave: true,
+        publish: false,
+        done: false,
+      });
+    },
+    [auth, document]
+  );
+
+  const onSynced = useCallback(async () => {
     const restore = location.state?.restore;
     const revisionId = location.state?.revisionId;
-    const editorRef = this.editor.current;
+    const editor = editorRef.current;
 
-    if (!editorRef) {
+    if (!editor) {
       return;
     }
 
@@ -204,7 +287,7 @@ class DocumentScene extends React.Component<Props> {
     const params = new URLSearchParams(location.search);
     const searchTerm = params.get("q");
     if (searchTerm) {
-      editorRef.commands.find({ text: searchTerm });
+      editor.commands.find({ text: searchTerm });
     }
 
     if (!restore) {
@@ -216,409 +299,379 @@ class DocumentScene extends React.Component<Props> {
     });
 
     if (response) {
-      await this.replaceSelection(
+      await replaceSelection(
         response.data,
-        new AllSelection(editorRef.view.state.doc)
+        new AllSelection(editor.view.state.doc)
       );
       toast.success(t("Document restored"));
-      history.replace(this.props.document.url, history.location.state);
+      history.replace(document.url, history.location.state);
     }
-  };
+  }, [location, replaceSelection, t, history, document.url]);
 
-  onUndoRedo = (event: KeyboardEvent) => {
-    if (isModKey(event)) {
-      event.preventDefault();
+  const onUndoRedo = useCallback(
+    (event: KeyboardEvent) => {
+      if (isModKey(event)) {
+        event.preventDefault();
 
-      if (event.shiftKey) {
-        if (!this.props.readOnly) {
-          this.editor.current?.commands.redo();
+        if (event.shiftKey) {
+          if (!readOnly) {
+            editorRef.current?.commands.redo();
+          }
+        } else {
+          if (!readOnly) {
+            editorRef.current?.commands.undo();
+          }
         }
-      } else {
-        if (!this.props.readOnly) {
-          this.editor.current?.commands.undo();
-        }
       }
-    }
-  };
-
-  onMove = (ev: React.MouseEvent | KeyboardEvent) => {
-    ev.preventDefault();
-    const { document, dialogs, t, abilities } = this.props;
-    if (abilities.move) {
-      dialogs.openModal({
-        title: t("Move document"),
-        content: <DocumentMove document={document} />,
-      });
-    }
-  };
-
-  goToEdit = (ev: KeyboardEvent) => {
-    if (this.props.readOnly) {
-      ev.preventDefault();
-      const { document, abilities } = this.props;
-
-      if (abilities.update) {
-        this.props.history.push({
-          pathname: documentEditPath(document),
-          state: { sidebarContext: this.props.location.state?.sidebarContext },
-        });
-      }
-    } else if (this.editor.current?.isBlurred) {
-      ev.preventDefault();
-      this.editor.current?.focus();
-    }
-  };
-
-  goToHistory = (ev: KeyboardEvent) => {
-    if (!this.props.readOnly) {
-      return;
-    }
-    if (ev.ctrlKey) {
-      return;
-    }
-    ev.preventDefault();
-    const { document, location } = this.props;
-
-    if (location.pathname.endsWith("history")) {
-      this.props.history.push({
-        pathname: document.path,
-        state: { sidebarContext: this.props.location.state?.sidebarContext },
-      });
-    } else {
-      this.props.history.push({
-        pathname: documentHistoryPath(document),
-        state: { sidebarContext: this.props.location.state?.sidebarContext },
-      });
-    }
-  };
-
-  onPublish = (ev: React.MouseEvent | KeyboardEvent) => {
-    ev.preventDefault();
-    ev.stopPropagation();
-
-    const { document, dialogs, t } = this.props;
-    if (document.publishedAt) {
-      return;
-    }
-
-    if (document?.collectionId) {
-      void this.onSave({
-        publish: true,
-        done: true,
-      });
-    } else {
-      dialogs.openModal({
-        title: t("Publish document"),
-        content: <DocumentPublish document={document} />,
-      });
-    }
-  };
-
-  onSave = async (
-    options: {
-      done?: boolean;
-      publish?: boolean;
-      autosave?: boolean;
-    } = {}
-  ) => {
-    const { document } = this.props;
-    // prevent saves when we are already saving
-    if (document.isSaving) {
-      return;
-    }
-
-    // get the latest version of the editor text value
-    const doc = this.editor.current?.view.state.doc;
-    if (!doc) {
-      return;
-    }
-
-    // prevent save before anything has been written (single hash is empty doc)
-    if (ProsemirrorHelper.isEmpty(doc) && document.title.trim() === "") {
-      return;
-    }
-
-    document.data = doc.toJSON();
-    document.tasks = ProsemirrorHelper.getTasksSummary(doc);
-
-    // prevent autosave if nothing has changed
-    if (options.autosave && !this.isEditorDirty && !document.isDirty()) {
-      return;
-    }
-
-    this.isSaving = true;
-    this.isPublishing = !!options.publish;
-
-    try {
-      const savedDocument = await document.save(undefined, options);
-      this.isEditorDirty = false;
-
-      if (options.done) {
-        this.props.history.push({
-          pathname: savedDocument.url,
-          state: { sidebarContext: this.props.location.state?.sidebarContext },
-        });
-        this.props.ui.setActiveDocument(savedDocument);
-      } else if (document.isNew) {
-        this.props.history.push({
-          pathname: documentEditPath(savedDocument),
-          state: { sidebarContext: this.props.location.state?.sidebarContext },
-        });
-        this.props.ui.setActiveDocument(savedDocument);
-      }
-    } catch (err) {
-      toast.error(err.message);
-    } finally {
-      this.isSaving = false;
-      this.isPublishing = false;
-    }
-  };
-
-  autosave = debounce(
-    () =>
-      this.onSave({
-        done: false,
-        autosave: true,
-      }),
-    AUTOSAVE_DELAY
+    },
+    [readOnly]
   );
 
-  updateIsDirty = action(() => {
-    const { document } = this.props;
-    const doc = this.editor.current?.view.state.doc;
+  const onMove = useCallback(
+    (ev: React.MouseEvent | KeyboardEvent) => {
+      ev.preventDefault();
+      if (abilities.move) {
+        dialogs.openModal({
+          title: t("Move document"),
+          content: <DocumentMove document={document} />,
+        });
+      }
+    },
+    [document, dialogs, t, abilities.move]
+  );
 
-    this.isEditorDirty = !isEqual(doc?.toJSON(), document.data);
-    this.isEmpty = (!doc || ProsemirrorHelper.isEmpty(doc)) && !this.title;
-  });
+  const goToEdit = useCallback(
+    (ev: KeyboardEvent) => {
+      if (readOnly) {
+        ev.preventDefault();
+        if (abilities.update) {
+          history.push({
+            pathname: documentEditPath(document),
+            state: { sidebarContext },
+          });
+        }
+      } else if (editorRef.current?.isBlurred) {
+        ev.preventDefault();
+        editorRef.current?.focus();
+      }
+    },
+    [readOnly, abilities.update, history, document, sidebarContext]
+  );
 
-  updateIsDirtyDebounced = debounce(this.updateIsDirty, 500);
+  const goToHistory = useCallback(
+    (ev: KeyboardEvent) => {
+      if (!readOnly) {
+        return;
+      }
+      if (ev.ctrlKey) {
+        return;
+      }
+      ev.preventDefault();
 
-  onFileUploadStart = action(() => {
-    this.isUploading = true;
-  });
+      if (location.pathname.endsWith("history")) {
+        history.push({
+          pathname: document.path,
+          state: { sidebarContext },
+        });
+      } else {
+        history.push({
+          pathname: documentHistoryPath(document),
+          state: { sidebarContext },
+        });
+      }
+    },
+    [readOnly, location.pathname, history, document, sidebarContext]
+  );
 
-  onFileUploadStop = action(() => {
-    this.isUploading = false;
-  });
+  const onPublish = useCallback(
+    (ev: React.MouseEvent | KeyboardEvent) => {
+      ev.preventDefault();
+      ev.stopPropagation();
 
-  handleChangeTitle = action((value: string) => {
-    this.title = value;
-    this.props.document.title = value;
-    this.updateIsDirty();
-    void this.autosave();
-  });
+      if (document.publishedAt) {
+        return;
+      }
 
-  handleChangeIcon = action((icon: string | null, color: string | null) => {
-    this.props.document.icon = icon;
-    this.props.document.color = color;
-    void this.onSave();
-  });
+      if (document?.collectionId) {
+        void onSaveRef.current({
+          publish: true,
+          done: true,
+        });
+      } else {
+        dialogs.openModal({
+          title: t("Publish document"),
+          content: <DocumentPublish document={document} />,
+        });
+      }
+    },
+    [document, dialogs, t]
+  );
 
-  handleSelectTemplate = async (template: Template | Revision) => {
-    const editorRef = this.editor.current;
-    if (!editorRef) {
-      return;
-    }
+  const handlePublishShortcut = useCallback(
+    (event: KeyboardEvent) => {
+      if (isModKey(event) && event.shiftKey) {
+        onPublish(event);
+      }
+    },
+    [onPublish]
+  );
 
-    const { view } = editorRef;
-    const doc = view.state.doc;
-
-    return this.replaceSelection(
-      template,
-      ProsemirrorHelper.isEmpty(doc)
-        ? new AllSelection(doc)
-        : view.state.selection
-    );
-  };
-
-  goBack = () => {
-    if (!this.props.readOnly) {
-      this.props.history.push({
-        pathname: this.props.document.url,
-        state: { sidebarContext: this.props.location.state?.sidebarContext },
+  const goBack = useCallback(() => {
+    if (!readOnly) {
+      history.push({
+        pathname: document.url,
+        state: { sidebarContext },
       });
     }
-  };
+  }, [readOnly, history, document, sidebarContext]);
 
-  render() {
-    const {
-      children,
-      document,
-      revision,
-      readOnly,
-      abilities,
-      auth,
-      ui,
-      shareId,
-      tocPosition,
-      t,
-    } = this.props;
-    const { team, user } = auth;
-    const isShare = !!shareId;
-    const embedsDisabled =
-      (team && team.documentEmbeds === false) || document.embedsDisabled;
+  const onFileUploadStart = useCallback(() => {
+    setIsUploading(true);
+  }, []);
 
-    const tocPos =
-      tocPosition ??
-      ((team?.getPreference(TeamPreference.TocPosition) as TOCPosition) ||
-        TOCPosition.Left);
-    const showContents =
-      tocPos && (isShare ? ui.tocVisible !== false : ui.tocVisible === true);
-    const tocOffset =
-      tocPos === TOCPosition.Left
-        ? EditorStyleHelper.tocWidth / -2
-        : EditorStyleHelper.tocWidth / 2;
+  const onFileUploadStop = useCallback(() => {
+    setIsUploading(false);
+  }, []);
 
-    const multiplayerEditor =
-      !document.isArchived && !document.isDeleted && !revision && !isShare;
+  const handleChangeTitle = useCallback(
+    (value: string) => {
+      setTitle(value);
+      titleRef.current = value;
+      document.title = value;
+      updateIsDirtyRef.current();
+      void autosave();
+    },
+    [document, autosave]
+  );
 
-    const hasEmojiInTitle = determineIconType(document.icon) === IconType.Emoji;
-    const title = hasEmojiInTitle
-      ? document.titleWithDefault.replace(document.icon!, "")
-      : document.titleWithDefault;
-    const favicon = hasEmojiInTitle ? emojiToUrl(document.icon!) : undefined;
+  const handleChangeIcon = useCallback(
+    (icon: string | null, color: string | null) => {
+      document.icon = icon;
+      document.color = color;
+      void onSaveRef.current();
+    },
+    [document]
+  );
 
-    const fullWidthTransformOffsetStyle = {
-      ["--full-width-transform-offset"]: `${document.fullWidth && showContents ? tocOffset : 0}px`,
-    } as React.CSSProperties;
+  const handleSelectTemplate = useCallback(
+    async (template: Template | Revision) => {
+      const editor = editorRef.current;
+      if (!editor) {
+        return;
+      }
 
-    return (
-      <ErrorBoundary showTitle>
-        <RegisterKeyDown trigger="m" handler={this.onMove} />
-        <RegisterKeyDown trigger="z" handler={this.onUndoRedo} />
-        <RegisterKeyDown trigger="e" handler={this.goToEdit} />
-        <RegisterKeyDown trigger="Escape" handler={this.goBack} />
-        <RegisterKeyDown trigger="h" handler={this.goToHistory} />
-        <RegisterKeyDown
-          trigger="p"
-          options={{
-            allowInInput: true,
-          }}
-          handler={(event) => {
-            if (isModKey(event) && event.shiftKey) {
-              this.onPublish(event);
-            }
-          }}
-        />
-        <MeasuredContainer
-          as={Background}
-          name="container"
-          key={revision ? revision.id : document.id}
-          column
-          auto
-        >
-          <PageTitle title={title} favicon={favicon} />
-          {(this.isUploading || this.isSaving) && <LoadingIndicator />}
-          <Container column>
-            {!readOnly && (
-              <Prompt
-                when={this.isUploading && !this.isEditorDirty}
-                message={t(
-                  `Images are still uploading.\nAre you sure you want to discard them?`
-                )}
-              />
-            )}
-            <Header
-              editorRef={this.editor}
-              document={document}
-              revision={revision}
-              isDraft={document.isDraft}
-              isEditing={!readOnly && !!user?.separateEditMode}
-              isSaving={this.isSaving}
-              isPublishing={this.isPublishing}
-              publishingIsDisabled={
-                document.isSaving || this.isPublishing || this.isEmpty
-              }
-              savingIsDisabled={document.isSaving || this.isEmpty}
-              onSelectTemplate={this.handleSelectTemplate}
-              onSave={this.onSave}
+      const { view } = editor;
+      const doc = view.state.doc;
+
+      return replaceSelection(
+        template,
+        ProsemirrorHelper.isEmpty(doc)
+          ? new AllSelection(doc)
+          : view.state.selection
+      );
+    },
+    [replaceSelection]
+  );
+
+  // componentDidMount: initial dirty check
+  useEffect(() => {
+    updateIsDirty();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // componentDidUpdate: when readOnly changes from true to false
+  const prevReadOnlyRef = useRef(readOnly);
+  useEffect(() => {
+    if (prevReadOnlyRef.current && !readOnly) {
+      updateIsDirty();
+    }
+    prevReadOnlyRef.current = readOnly;
+  }, [readOnly, updateIsDirty]);
+
+  // componentWillUnmount: auto-delete/auto-save + debounce cleanup
+  useEffect(
+    () => () => {
+      autosave.cancel();
+      updateIsDirtyDebounced.cancel();
+
+      if (
+        isEmptyRef.current &&
+        document.createdBy?.id === auth.user?.id &&
+        document.isDraft &&
+        document.isActive &&
+        document.hasEmptyTitle &&
+        document.isPersistedOnce
+      ) {
+        void document.delete();
+      } else if (document.isDirty()) {
+        void document.save(undefined, {
+          autosave: true,
+        });
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
+
+  // Render
+  const isShare = !!shareId;
+  const embedsDisabled =
+    (team && team.documentEmbeds === false) || document.embedsDisabled;
+
+  const tocPos =
+    tocPosition ??
+    ((team?.getPreference(TeamPreference.TocPosition) as TOCPosition) ||
+      TOCPosition.Left);
+  const showContents =
+    tocPos && (isShare ? ui.tocVisible !== false : ui.tocVisible === true);
+  const tocOffset =
+    tocPos === TOCPosition.Left
+      ? EditorStyleHelper.tocWidth / -2
+      : EditorStyleHelper.tocWidth / 2;
+
+  const multiplayerEditor =
+    !document.isArchived && !document.isDeleted && !revision && !isShare;
+
+  const hasEmojiInTitle = determineIconType(document.icon) === IconType.Emoji;
+  const pageTitle = hasEmojiInTitle
+    ? document.titleWithDefault.replace(document.icon!, "")
+    : document.titleWithDefault;
+  const favicon = hasEmojiInTitle ? emojiToUrl(document.icon!) : undefined;
+
+  const fullWidthTransformOffsetStyle = {
+    ["--full-width-transform-offset"]: `${document.fullWidth && showContents ? tocOffset : 0}px`,
+  } as React.CSSProperties;
+
+  return (
+    <ErrorBoundary showTitle>
+      <RegisterKeyDown trigger="m" handler={onMove} />
+      <RegisterKeyDown trigger="z" handler={onUndoRedo} />
+      <RegisterKeyDown trigger="e" handler={goToEdit} />
+      <RegisterKeyDown trigger="Escape" handler={goBack} />
+      <RegisterKeyDown trigger="h" handler={goToHistory} />
+      <RegisterKeyDown
+        trigger="p"
+        options={{
+          allowInInput: true,
+        }}
+        handler={handlePublishShortcut}
+      />
+      <MeasuredContainer
+        as={Background}
+        name="container"
+        key={revision ? revision.id : document.id}
+        column
+        auto
+      >
+        <PageTitle title={pageTitle} favicon={favicon} />
+        {(isUploading || isSaving) && <LoadingIndicator />}
+        <Container column>
+          {!readOnly && (
+            <Prompt
+              when={isUploading && !isEditorDirty}
+              message={t(
+                `Images are still uploading.\nAre you sure you want to discard them?`
+              )}
             />
-            <Main
-              fullWidth={document.fullWidth}
-              tocPosition={tocPos}
-              style={fullWidthTransformOffsetStyle}
-            >
-              <React.Suspense
-                fallback={
-                  <EditorContainer
-                    docFullWidth={document.fullWidth}
-                    showContents={showContents}
-                    tocPosition={tocPos}
-                  >
-                    <PlaceholderDocument />
-                  </EditorContainer>
-                }
-              >
-                <MeasuredContainer
-                  name="document"
-                  as={EditorContainer}
+          )}
+          <Header
+            editorRef={editorRef}
+            document={document}
+            revision={revision}
+            isDraft={document.isDraft}
+            isEditing={!readOnly && !!user?.separateEditMode}
+            isSaving={isSaving}
+            isPublishing={isPublishing}
+            publishingIsDisabled={document.isSaving || isPublishing || isEmpty}
+            savingIsDisabled={document.isSaving || isEmpty}
+            onSelectTemplate={handleSelectTemplate}
+            onSave={onSave}
+          />
+          <Main
+            fullWidth={document.fullWidth}
+            tocPosition={tocPos}
+            style={fullWidthTransformOffsetStyle}
+          >
+            <React.Suspense
+              fallback={
+                <EditorContainer
                   docFullWidth={document.fullWidth}
                   showContents={showContents}
                   tocPosition={tocPos}
                 >
-                  {revision ? (
-                    <RevisionViewer
-                      ref={this.editor}
-                      document={document}
-                      revision={revision}
-                      id={revision.id}
-                    />
-                  ) : (
-                    <>
-                      <Notices document={document} readOnly={readOnly} />
+                  <PlaceholderDocument />
+                </EditorContainer>
+              }
+            >
+              <MeasuredContainer
+                name="document"
+                as={EditorContainer}
+                docFullWidth={document.fullWidth}
+                showContents={showContents}
+                tocPosition={tocPos}
+              >
+                {revision ? (
+                  <RevisionViewer
+                    ref={editorRef}
+                    document={document}
+                    revision={revision}
+                    id={revision.id}
+                  />
+                ) : (
+                  <>
+                    <Notices document={document} readOnly={readOnly} />
 
-                      {showContents && (
-                        <PrintContentsContainer>
-                          <Contents />
-                        </PrintContentsContainer>
-                      )}
-                      <Editor
-                        id={document.id}
-                        key={embedsDisabled ? "disabled" : "enabled"}
-                        ref={this.editor}
-                        multiplayer={multiplayerEditor}
-                        isDraft={document.isDraft}
-                        document={document}
-                        value={readOnly ? document.data : undefined}
-                        defaultValue={document.data}
-                        embedsDisabled={embedsDisabled}
-                        onSynced={this.onSynced}
-                        onFileUploadStart={this.onFileUploadStart}
-                        onFileUploadStop={this.onFileUploadStop}
-                        onCreateLink={this.props.onCreateLink}
-                        onChangeTitle={this.handleChangeTitle}
-                        onChangeIcon={this.handleChangeIcon}
-                        onSave={this.onSave}
-                        onPublish={this.onPublish}
-                        onCancel={this.goBack}
-                        readOnly={readOnly}
-                        canUpdate={abilities.update}
-                        canComment={abilities.comment}
-                        autoFocus={document.createdAt === document.updatedAt}
-                      >
-                        <ReferencesWrapper>
-                          <References document={document} />
-                        </ReferencesWrapper>
-                      </Editor>
-                    </>
-                  )}
-                </MeasuredContainer>
-                {showContents && (
-                  <ContentsContainer
-                    docFullWidth={document.fullWidth}
-                    position={tocPos}
-                  >
-                    <Contents />
-                  </ContentsContainer>
+                    {showContents && (
+                      <PrintContentsContainer>
+                        <Contents />
+                      </PrintContentsContainer>
+                    )}
+                    <Editor
+                      id={document.id}
+                      key={embedsDisabled ? "disabled" : "enabled"}
+                      ref={editorRef}
+                      multiplayer={multiplayerEditor}
+                      isDraft={document.isDraft}
+                      document={document}
+                      value={readOnly ? document.data : undefined}
+                      defaultValue={document.data}
+                      embedsDisabled={embedsDisabled}
+                      onSynced={onSynced}
+                      onFileUploadStart={onFileUploadStart}
+                      onFileUploadStop={onFileUploadStop}
+                      onCreateLink={onCreateLink}
+                      onChangeTitle={handleChangeTitle}
+                      onChangeIcon={handleChangeIcon}
+                      onSave={onSave}
+                      onPublish={onPublish}
+                      onCancel={goBack}
+                      readOnly={readOnly}
+                      canUpdate={abilities.update}
+                      canComment={abilities.comment}
+                      autoFocus={document.createdAt === document.updatedAt}
+                    >
+                      <ReferencesWrapper>
+                        <References document={document} />
+                      </ReferencesWrapper>
+                    </Editor>
+                  </>
                 )}
-              </React.Suspense>
-            </Main>
-            {children}
-          </Container>
-        </MeasuredContainer>
-      </ErrorBoundary>
-    );
-  }
+              </MeasuredContainer>
+              {showContents && (
+                <ContentsContainer
+                  docFullWidth={document.fullWidth}
+                  position={tocPos}
+                >
+                  <Contents />
+                </ContentsContainer>
+              )}
+            </React.Suspense>
+          </Main>
+          {children}
+        </Container>
+      </MeasuredContainer>
+    </ErrorBoundary>
+  );
 }
 
 type MainProps = {
@@ -733,4 +786,4 @@ const ReferencesWrapper = styled.div`
   }
 `;
 
-export default withTranslation()(withStores(withRouter(DocumentScene)));
+export default observer(DocumentScene);
