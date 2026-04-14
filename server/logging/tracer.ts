@@ -2,6 +2,17 @@ import type { Span } from "dd-trace";
 import tracer from "dd-trace";
 import env from "@server/env";
 
+interface ReportableError extends Error {
+  isReportable?: boolean;
+}
+
+/** Whether the error has been explicitly marked as non-reportable. */
+function isExplicitlyNonReportable(error: Error): error is ReportableError {
+  return (
+    "isReportable" in error && (error as ReportableError).isReportable === false
+  );
+}
+
 type PrivateDatadogContext = {
   req: Record<string, any> & {
     _datadog?: {
@@ -73,11 +84,16 @@ export function setResource(name: string) {
 
 /**
  * Mark the current active span as an error. This method wraps addTags to allow
- * safe use in environments where APM is disabled.
+ * safe use in environments where APM is disabled. Errors with isReportable set
+ * to false are skipped.
  *
- * @param error The error to add to the current span
+ * @param error The error to add to the current span.
  */
 export function setError(error: Error, span?: Span) {
+  if (isExplicitlyNonReportable(error)) {
+    return;
+  }
+
   if (tracer) {
     addTags(
       {
