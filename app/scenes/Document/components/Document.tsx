@@ -46,20 +46,30 @@ type LocationState = {
 };
 
 interface Props {
+  /** Tree of navigation nodes for shared documents. */
   sharedTree?: NavigationNode;
+  /** Map of ability names to booleans representing current user permissions. */
   abilities: Record<string, boolean>;
+  /** The document model being viewed or edited. */
   document: Document;
+  /** An optional revision to display instead of the live document. */
   revision?: Revision;
+  /** Whether the document is in read-only mode. */
   readOnly: boolean;
+  /** The share ID when viewing a publicly shared document. */
   shareId?: string;
+  /** Override for the table of contents position, or false to hide it. */
   tocPosition?: TOCPosition | false;
+  /** Callback to create a linked document from the editor. */
   onCreateLink?: (
     params: Properties<Document>,
     nested?: boolean
   ) => Promise<string>;
+  /** Optional children rendered after the main document content. */
   children?: React.ReactNode;
 }
 
+/** Scene component responsible for rendering and interacting with a document. */
 function DocumentScene({
   document,
   revision,
