@@ -18,6 +18,8 @@ export { default as Document } from "./Document";
 
 export { default as Event } from "./Event";
 
+export { default as FeatureFlag } from "./FeatureFlag";
+
 export { default as ExternalGroup } from "./ExternalGroup";
 
 export { default as FileOperation } from "./FileOperation";

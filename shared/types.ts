@@ -431,6 +431,15 @@ export type TeamPreferences = {
   [TeamPreference.DisabledEmbeds]?: string[];
 };
 
+export enum FeatureFlag {
+  /** Whether group sync from external providers is enabled. */
+  GroupSync = "groupSync",
+}
+
+export type FeatureFlags = {
+  [K in FeatureFlag]?: boolean;
+};
+
 export enum NavigationNodeType {
   Collection = "collection",
   Document = "document",

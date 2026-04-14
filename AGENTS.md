@@ -94,6 +94,7 @@ yarn install
 ## Database & ORM
 
 - Use Sequelize models in `server/models/`.
+- Add class-level validations on model columns wherever possible (e.g. `@IsIn` for enum fields, `validate: { min, max }` for numeric ranges, `@Length` for string bounds). Prefer model validations over relying solely on route-level or migration-level constraints.
 - Generate migrations with Sequelize CLI:
 
 ```bash

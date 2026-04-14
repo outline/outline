@@ -6,7 +6,7 @@ import { parseDomain } from "@shared/utils/domains";
 import env from "@server/env";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
-import { Event, Team } from "@server/models";
+import { Event, FeatureFlag, Team } from "@server/models";
 import AuthenticationHelper from "@server/models/helpers/AuthenticationHelper";
 import {
   presentUser,
@@ -122,18 +122,20 @@ router.post("auth.info", auth(), async (ctx: APIContext<T.AuthInfoReq>) => {
   const sessions = getSessionsInCookie(ctx);
   const signedInTeamIds = Object.keys(sessions);
 
-  const [team, groups, signedInTeams, availableTeams] = await Promise.all([
-    Team.scope("withDomains").findByPk(user.teamId, {
-      rejectOnEmpty: true,
-    }),
-    user.groups(),
-    Team.findAll({
-      where: {
-        id: signedInTeamIds,
-      },
-    }),
-    user.availableTeams(),
-  ]);
+  const [team, groups, featureFlags, signedInTeams, availableTeams] =
+    await Promise.all([
+      Team.scope("withDomains").findByPk(user.teamId, {
+        rejectOnEmpty: true,
+      }),
+      user.groups(),
+      FeatureFlag.resolveAll(user.teamId),
+      Team.findAll({
+        where: {
+          id: signedInTeamIds,
+        },
+      }),
+      user.availableTeams(),
+    ]);
 
   // If the user did not _just_ sign in then we need to check if they continue
   // to have access to the workspace they are signed into. This only applies
@@ -165,6 +167,7 @@ router.post("auth.info", auth(), async (ctx: APIContext<T.AuthInfoReq>) => {
         includeDetails: true,
       }),
       team: presentTeam(team),
+      featureFlags,
       groups: await Promise.all(groups.map(presentGroup)),
       groupUsers: groups.map((group) => presentGroupUser(group.groupUsers[0])),
       collaborationToken: user.getCollaborationToken(),

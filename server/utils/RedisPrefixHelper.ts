@@ -42,4 +42,13 @@ export class RedisPrefixHelper {
   public static getUserCollectionIdsKey(userId: string) {
     return `uc:${userId}`;
   }
+
+  /**
+   * Gets key for caching all feature flag rows.
+   *
+   * @returns the cache key string.
+   */
+  public static getFeatureFlagsKey() {
+    return "ff";
+  }
 }

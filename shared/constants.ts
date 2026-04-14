@@ -1,5 +1,6 @@
-import type { TeamPreferences, UserPreferences } from "./types";
+import type { FeatureFlags, TeamPreferences, UserPreferences } from "./types";
 import {
+  FeatureFlag,
   TOCPosition,
   TeamPreference,
   UserPreference,
@@ -20,6 +21,10 @@ export const CSRF = {
   cookieName: "csrfToken",
   headerName: "x-csrf-token",
   fieldName: "_csrf",
+};
+
+export const FeatureFlagDefaults: Required<FeatureFlags> = {
+  [FeatureFlag.GroupSync]: false,
 };
 
 export const TeamPreferenceDefaults: TeamPreferences = {

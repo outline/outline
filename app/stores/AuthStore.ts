@@ -3,7 +3,8 @@ import invariant from "invariant";
 import isNil from "lodash/isNil";
 import { observable, action, computed, autorun, runInAction } from "mobx";
 import { getCookie, setCookie } from "tiny-cookie";
-import type { CustomTheme } from "@shared/types";
+import { FeatureFlagDefaults } from "@shared/constants";
+import type { CustomTheme, FeatureFlag, FeatureFlags } from "@shared/types";
 import Storage from "@shared/utils/Storage";
 import { getCookieDomain, parseDomain } from "@shared/utils/domains";
 import type RootStore from "~/stores/RootStore";
@@ -19,7 +20,12 @@ import Store from "./base/Store";
 
 type PersistedData = Pick<
   AuthStore,
-  "user" | "team" | "collaborationToken" | "availableTeams" | "policies"
+  | "user"
+  | "team"
+  | "collaborationToken"
+  | "availableTeams"
+  | "policies"
+  | "featureFlags"
 >;
 
 type Provider = {
@@ -54,6 +60,14 @@ export default class AuthStore extends Store<Team> {
   /* When set, the user will be redirected to this URL after logging out. */
   @observable
   public logoutRedirectUri?: string;
+
+  /* The resolved feature flags for the current team. */
+  @observable
+  public featureFlags: Required<FeatureFlags> = { ...FeatureFlagDefaults };
+
+  /* Local overrides for feature flags, used for development testing. */
+  @observable
+  private featureFlagOverrides: Partial<FeatureFlags> = {};
 
   /* A list of teams that the current user has access to. */
   @observable
@@ -143,6 +157,7 @@ export default class AuthStore extends Store<Team> {
     this.currentTeamId = data.team?.id;
     this.currentUserId = data.user?.id;
     this.collaborationToken = data.collaborationToken;
+    this.featureFlags = data.featureFlags ?? { ...FeatureFlagDefaults };
     this.lastSignedIn = getCookie("lastSignedIn");
   }
 
@@ -169,6 +184,44 @@ export default class AuthStore extends Store<Team> {
     return policy ? [policy] : [];
   }
 
+  /**
+   * Returns whether a feature flag is enabled for the current team.
+   * Local overrides take precedence over server-resolved values.
+   *
+   * @param flag The feature flag to check.
+   * @returns Whether the flag is enabled.
+   */
+  getFeatureFlag(flag: FeatureFlag): boolean {
+    const overrides = this.featureFlagOverrides as Record<string, boolean>;
+    if (flag in overrides) {
+      return overrides[flag];
+    }
+    const flags = this.featureFlags as Record<string, boolean>;
+    const defaults = FeatureFlagDefaults as Record<string, boolean>;
+    return flags[flag] ?? defaults[flag] ?? false;
+  }
+
+  /**
+   * Toggle a local override for a feature flag. Used for development testing.
+   *
+   * @param flag The feature flag to toggle.
+   */
+  @action
+  toggleFeatureFlagOverride(flag: FeatureFlag) {
+    const current = this.getFeatureFlag(flag);
+    (this.featureFlagOverrides as Record<string, boolean>)[flag] = !current;
+  }
+
+  /**
+   * Returns whether a feature flag has a local override set.
+   *
+   * @param flag The feature flag to check.
+   * @returns Whether a local override exists.
+   */
+  hasFeatureFlagOverride(flag: FeatureFlag): boolean {
+    return flag in (this.featureFlagOverrides as Record<string, boolean>);
+  }
+
   /** Whether the user is signed in */
   @computed
   get authenticated(): boolean {
@@ -182,6 +235,7 @@ export default class AuthStore extends Store<Team> {
       team: this.team,
       collaborationToken: this.collaborationToken,
       availableTeams: this.availableTeams,
+      featureFlags: this.featureFlags,
       policies: this.policies,
     };
   }
@@ -215,6 +269,7 @@ export default class AuthStore extends Store<Team> {
 
         this.availableTeams = res.data.availableTeams;
         this.collaborationToken = res.data.collaborationToken;
+        this.featureFlags = data.featureFlags ?? { ...FeatureFlagDefaults };
 
         if (env.SENTRY_DSN) {
           Sentry.configureScope((scope) => {

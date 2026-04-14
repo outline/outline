@@ -8,12 +8,12 @@ import {
   TrashIcon,
   UserIcon,
 } from "outline-icons";
+import { FeatureFlag } from "@shared/types";
 import { toast } from "sonner";
 import { createAction, createActionWithChildren } from "~/actions";
 import { DeveloperSection } from "~/actions/sections";
 import env from "~/env";
 import { client } from "~/utils/ApiClient";
-import { Feature, FeatureFlags } from "~/utils/FeatureFlags";
 import Logger from "~/utils/Logger";
 import { deleteAllDatabases } from "~/utils/developer";
 import history from "~/utils/history";
@@ -206,23 +206,24 @@ export const toggleFeatureFlag = createActionWithChildren({
   icon: <BeakerIcon />,
   section: DeveloperSection,
   visible: () => env.ENVIRONMENT === "development",
-  children: Object.values(Feature).map((flag) =>
-    createAction({
-      id: `flag-${flag}`,
-      name: flag,
-      selected: () => FeatureFlags.isEnabled(flag),
-      section: DeveloperSection,
-      perform: () => {
-        if (FeatureFlags.isEnabled(flag)) {
-          FeatureFlags.disable(flag);
-          toast.success(`Disabled feature flag: ${flag}`);
-        } else {
-          FeatureFlags.enable(flag);
-          toast.success(`Enabled feature flag: ${flag}`);
-        }
-      },
-    })
-  ),
+  children: ({ stores }) =>
+    (Object.values(FeatureFlag) as unknown as FeatureFlag[]).map((flag) =>
+      createAction({
+        id: `flag-${flag}`,
+        name: flag,
+        selected: () => stores.auth.getFeatureFlag(flag),
+        section: DeveloperSection,
+        perform: () => {
+          stores.auth.toggleFeatureFlagOverride(flag);
+          const enabled = stores.auth.getFeatureFlag(flag);
+          toast.success(
+            enabled
+              ? `Enabled feature flag: ${flag}`
+              : `Disabled feature flag: ${flag}`
+          );
+        },
+      })
+    ),
 });
 
 export const developer = createActionWithChildren({
