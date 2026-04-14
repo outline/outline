@@ -70,7 +70,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   const team = useCurrentTeam({ rejectOnEmpty: false });
   const sidebarContext = useLocationSidebarContext();
   const params = useQuery();
-  const { shareId } = useShare();
+  const { shareId, showLastUpdated } = useShare();
   const {
     document,
     onChangeTitle,
@@ -212,7 +212,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         placeholder={t("Untitled")}
       />
       {shareId ? (
-        document.updatedAt ? (
+        showLastUpdated && document.updatedAt ? (
           <SharedMeta type="tertiary">
             {t("Last updated")} <Time dateTime={document.updatedAt} addSuffix />
           </SharedMeta>
