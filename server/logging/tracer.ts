@@ -2,6 +2,17 @@ import type { Span } from "dd-trace";
 import tracer from "dd-trace";
 import env from "@server/env";
 
+interface ReportableError extends Error {
+  isReportable?: boolean;
+}
+
+/** Whether the error has been explicitly marked as non-reportable. */
+function isExplicitlyNonReportable(error: Error): error is ReportableError {
+  return (
+    "isReportable" in error && (error as ReportableError).isReportable === false
+  );
+}
+
 type PrivateDatadogContext = {
   req: Record<string, any> & {
     _datadog?: {
@@ -79,10 +90,7 @@ export function setResource(name: string) {
  * @param error The error to add to the current span.
  */
 export function setError(error: Error, span?: Span) {
-  if (
-    "isReportable" in error &&
-    !(error as { isReportable: boolean }).isReportable
-  ) {
+  if (isExplicitlyNonReportable(error)) {
     return;
   }
 
