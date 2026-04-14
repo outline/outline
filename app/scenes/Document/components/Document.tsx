@@ -1,11 +1,6 @@
-import cloneDeep from "lodash/cloneDeep";
-import debounce from "lodash/debounce";
-import isEqual from "lodash/isEqual";
 import { observer } from "mobx-react";
-import { Node } from "prosemirror-model";
-import type { Selection } from "prosemirror-state";
-import { AllSelection, TextSelection } from "prosemirror-state";
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { AllSelection } from "prosemirror-state";
+import { useRef, useCallback } from "react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Prompt, useHistory, useLocation } from "react-router-dom";
@@ -16,12 +11,9 @@ import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { s } from "@shared/styles";
 import type { NavigationNode } from "@shared/types";
 import { IconType, TOCPosition, TeamPreference } from "@shared/types";
-import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
-import { TextHelper } from "@shared/utils/TextHelper";
 import { determineIconType } from "@shared/utils/icon";
 import { isModKey } from "@shared/utils/keyboard";
 import type Document from "~/models/Document";
-import Template from "~/models/Template";
 import type Revision from "~/models/Revision";
 import DocumentMove from "~/components/DocumentExplorer/DocumentMove";
 import DocumentPublish from "~/scenes/DocumentPublish";
@@ -38,6 +30,7 @@ import useStores from "~/hooks/useStores";
 import { client } from "~/utils/ApiClient";
 import { emojiToUrl } from "~/utils/emoji";
 import { documentHistoryPath, documentEditPath } from "~/utils/routeHelpers";
+import { useDocumentSave } from "../hooks/useDocumentSave";
 import Container from "./Container";
 import Contents from "./Contents";
 import Editor from "./Editor";
@@ -45,8 +38,6 @@ import Header from "./Header";
 import Notices from "./Notices";
 import References from "./References";
 import RevisionViewer from "./RevisionViewer";
-
-const AUTOSAVE_DELAY = 3000;
 
 type LocationState = {
   title?: string;
@@ -86,193 +77,22 @@ function DocumentScene({
   const sidebarContext = useLocationSidebarContext();
   const { team, user } = auth;
 
-  // Refs
   const editorRef = useRef<TEditor>(null);
 
-  // State
-  const [isUploading, setIsUploading] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isPublishing, setIsPublishing] = useState(false);
-  const [isEditorDirty, setIsEditorDirty] = useState(false);
-  const [isEmpty, setIsEmpty] = useState(true);
-  const [title, setTitle] = useState(document.title);
-
-  // Companion refs for stale closure avoidance
-  const isEditorDirtyRef = useRef(isEditorDirty);
-  isEditorDirtyRef.current = isEditorDirty;
-  const isEmptyRef = useRef(isEmpty);
-  isEmptyRef.current = isEmpty;
-  const titleRef = useRef(title);
-  titleRef.current = title;
-
-  const updateIsDirty = useCallback(() => {
-    const doc = editorRef.current?.view.state.doc;
-    const dirty = !isEqual(doc?.toJSON(), document.data);
-    setIsEditorDirty(dirty);
-    isEditorDirtyRef.current = dirty;
-    const empty = (!doc || ProsemirrorHelper.isEmpty(doc)) && !titleRef.current;
-    setIsEmpty(empty);
-    isEmptyRef.current = empty;
-  }, [document]);
-
-  const updateIsDirtyRef = useRef(updateIsDirty);
-  useEffect(() => {
-    updateIsDirtyRef.current = updateIsDirty;
-  });
-
-  const updateIsDirtyDebounced = useMemo(
-    () => debounce(() => updateIsDirtyRef.current(), 500),
-    []
-  );
-
-  const onSave = useCallback(
-    async (
-      options: {
-        done?: boolean;
-        publish?: boolean;
-        autosave?: boolean;
-      } = {}
-    ) => {
-      // prevent saves when we are already saving
-      if (document.isSaving) {
-        return;
-      }
-
-      // get the latest version of the editor text value
-      const doc = editorRef.current?.view.state.doc;
-      if (!doc) {
-        return;
-      }
-
-      // prevent save before anything has been written (single hash is empty doc)
-      if (ProsemirrorHelper.isEmpty(doc) && document.title.trim() === "") {
-        return;
-      }
-
-      document.data = doc.toJSON();
-      document.tasks = ProsemirrorHelper.getTasksSummary(doc);
-
-      // prevent autosave if nothing has changed
-      if (
-        options.autosave &&
-        !isEditorDirtyRef.current &&
-        !document.isDirty()
-      ) {
-        return;
-      }
-
-      setIsSaving(true);
-      setIsPublishing(!!options.publish);
-
-      try {
-        const savedDocument = await document.save(undefined, options);
-        setIsEditorDirty(false);
-        isEditorDirtyRef.current = false;
-
-        if (options.done) {
-          history.push({
-            pathname: savedDocument.url,
-            state: { sidebarContext },
-          });
-          ui.setActiveDocument(savedDocument);
-        } else if (document.isNew) {
-          history.push({
-            pathname: documentEditPath(savedDocument),
-            state: { sidebarContext },
-          });
-          ui.setActiveDocument(savedDocument);
-        }
-      } catch (err) {
-        toast.error(err.message);
-      } finally {
-        setIsSaving(false);
-        setIsPublishing(false);
-      }
-    },
-    [document, history, sidebarContext, ui]
-  );
-
-  const onSaveRef = useRef(onSave);
-  useEffect(() => {
-    onSaveRef.current = onSave;
-  });
-
-  const autosave = useMemo(
-    () =>
-      debounce(
-        () =>
-          void onSaveRef.current({
-            done: false,
-            autosave: true,
-          }),
-        AUTOSAVE_DELAY
-      ),
-    []
-  );
-
-  /**
-   * Replaces the given selection with a template, if no selection is provided
-   * then the template is inserted at the beginning of the document.
-   *
-   * @param template The template to use
-   * @param selection The selection to replace, if any
-   */
-  const replaceSelection = useCallback(
-    (template: Template | Revision, selection?: Selection) => {
-      const editor = editorRef.current;
-
-      if (!editor) {
-        return;
-      }
-
-      const { view, schema } = editor;
-      const sel = selection ?? TextSelection.near(view.state.doc.resolve(0));
-      const doc = Node.fromJSON(
-        schema,
-        ProsemirrorHelper.replaceTemplateVariables(template.data, auth.user!)
-      );
-
-      if (doc) {
-        view.dispatch(
-          view.state.tr.setSelection(sel).replaceSelectionWith(doc)
-        );
-      }
-
-      setIsEditorDirty(true);
-      isEditorDirtyRef.current = true;
-
-      if (template instanceof Template) {
-        document.templateId = template.id;
-        document.fullWidth = template.fullWidth;
-      }
-
-      if (!titleRef.current) {
-        const newTitle = TextHelper.replaceTemplateVariables(
-          template.title,
-          auth.user!
-        );
-        setTitle(newTitle);
-        titleRef.current = newTitle;
-        document.title = newTitle;
-      }
-      if (template.icon) {
-        document.icon = template.icon;
-      }
-      if (template.color) {
-        document.color = template.color;
-      }
-
-      document.data = cloneDeep(template.data);
-      updateIsDirtyRef.current();
-
-      return onSaveRef.current({
-        autosave: true,
-        publish: false,
-        done: false,
-      });
-    },
-    [auth, document]
-  );
+  const {
+    isUploading,
+    isSaving,
+    isPublishing,
+    isEditorDirty,
+    isEmpty,
+    onSave,
+    replaceSelection,
+    handleSelectTemplate,
+    handleChangeTitle,
+    handleChangeIcon,
+    onFileUploadStart,
+    onFileUploadStop,
+  } = useDocumentSave({ document, editorRef, readOnly });
 
   const onSynced = useCallback(async () => {
     const restore = location.state?.restore;
@@ -393,7 +213,7 @@ function DocumentScene({
       }
 
       if (document?.collectionId) {
-        void onSaveRef.current({
+        void onSave({
           publish: true,
           done: true,
         });
@@ -404,7 +224,7 @@ function DocumentScene({
         });
       }
     },
-    [document, dialogs, t]
+    [document, dialogs, t, onSave]
   );
 
   const handlePublishShortcut = useCallback(
@@ -424,94 +244,6 @@ function DocumentScene({
       });
     }
   }, [readOnly, history, document, sidebarContext]);
-
-  const onFileUploadStart = useCallback(() => {
-    setIsUploading(true);
-  }, []);
-
-  const onFileUploadStop = useCallback(() => {
-    setIsUploading(false);
-  }, []);
-
-  const handleChangeTitle = useCallback(
-    (value: string) => {
-      setTitle(value);
-      titleRef.current = value;
-      document.title = value;
-      updateIsDirtyRef.current();
-      void autosave();
-    },
-    [document, autosave]
-  );
-
-  const handleChangeIcon = useCallback(
-    (icon: string | null, color: string | null) => {
-      document.icon = icon;
-      document.color = color;
-      void onSaveRef.current();
-    },
-    [document]
-  );
-
-  const handleSelectTemplate = useCallback(
-    async (template: Template | Revision) => {
-      const editor = editorRef.current;
-      if (!editor) {
-        return;
-      }
-
-      const { view } = editor;
-      const doc = view.state.doc;
-
-      return replaceSelection(
-        template,
-        ProsemirrorHelper.isEmpty(doc)
-          ? new AllSelection(doc)
-          : view.state.selection
-      );
-    },
-    [replaceSelection]
-  );
-
-  // componentDidMount: initial dirty check
-  useEffect(() => {
-    updateIsDirty();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // componentDidUpdate: when readOnly changes from true to false
-  const prevReadOnlyRef = useRef(readOnly);
-  useEffect(() => {
-    if (prevReadOnlyRef.current && !readOnly) {
-      updateIsDirty();
-    }
-    prevReadOnlyRef.current = readOnly;
-  }, [readOnly, updateIsDirty]);
-
-  // componentWillUnmount: auto-delete/auto-save + debounce cleanup
-  useEffect(
-    () => () => {
-      autosave.cancel();
-      updateIsDirtyDebounced.cancel();
-
-      if (
-        isEmptyRef.current &&
-        document.createdBy?.id === auth.user?.id &&
-        document.isDraft &&
-        document.isActive &&
-        document.hasEmptyTitle &&
-        document.isPersistedOnce
-      ) {
-        void document.delete();
-      } else if (document.isDirty()) {
-        void document.save(undefined, {
-          autosave: true,
-        });
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
-  );
 
   // Render
   const isShare = !!shareId;
