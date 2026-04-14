@@ -118,9 +118,8 @@ function setupRowDragTracking(
     document.removeEventListener("mouseup", handleMouseUp);
 
     document.body.classList.remove(EditorStyleHelper.tableDragging);
-    clearDragState();
 
-    if (isDragging && currentToIndex !== fromIndex) {
+    if (isDragging && currentToIndex !== fromIndex && isInTable(view.state)) {
       moveTableRow({ from: fromIndex, to: currentToIndex })(
         view.state,
         view.dispatch
@@ -128,6 +127,8 @@ function setupRowDragTracking(
       // Select the row at its new position
       selectRow(currentToIndex)(view.state, view.dispatch);
     }
+
+    clearDragState();
   };
 
   document.addEventListener("mousemove", handleMouseMove);
