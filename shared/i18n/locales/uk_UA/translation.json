@@ -846,7 +846,7 @@
   "No text selected": "Не вибрано жодного тексту",
   "{{ number }} words selected": "{{ number }} word selected",
   "{{ number }} words selected_plural": "{{ number }} words selected",
-  "{{ number }} characters selected": "{{ number }} character selected",
+  "{{ number }} characters selected": "вибрано {{ number }} символ",
   "{{ number }} characters selected_plural": "{{ number }} characters selected",
   "Contributors": "Співавтори",
   "Creator": "Автор",
