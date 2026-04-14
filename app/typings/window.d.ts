@@ -102,6 +102,14 @@ declare global {
       goForward: () => void;
 
       /**
+       * Registers a callback to be called when the navigation state changes (e.g. after
+       * navigating to a new page). Receives whether back/forward navigation is possible.
+       */
+      onNavigationStateChanged: (
+        callback: (state: { canGoBack: boolean; canGoForward: boolean }) => void
+      ) => () => void;
+
+      /**
        * Registers a callback to be called when the application wants to open the find in page dialog.
        */
       onFindInPage: (callback: () => void) => void;

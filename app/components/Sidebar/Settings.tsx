@@ -44,7 +44,6 @@ function SettingsSidebar() {
 
   return (
     <Sidebar>
-      <HistoryNavigation />
       <SidebarButton
         title={t("Return to App")}
         image={<StyledBackIcon />}
@@ -96,6 +95,7 @@ function SettingsSidebar() {
           )}
         </Scrollable>
       </Flex>
+      <HistoryNavigation />
     </Sidebar>
   );
 }
