@@ -11,6 +11,9 @@ import {
   AfterCreate,
   AfterUpdate,
   AfterDestroy,
+  AfterBulkCreate,
+  AfterBulkUpdate,
+  AfterBulkDestroy,
 } from "sequelize-typescript";
 import { FeatureFlagDefaults } from "@shared/constants";
 import {
@@ -56,6 +59,9 @@ class FeatureFlag extends IdModel<
   @AfterCreate
   @AfterUpdate
   @AfterDestroy
+  @AfterBulkCreate
+  @AfterBulkUpdate
+  @AfterBulkDestroy
   static async invalidateCache() {
     await CacheHelper.clearData(RedisPrefixHelper.getFeatureFlagsKey());
   }

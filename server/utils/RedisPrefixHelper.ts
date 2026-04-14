@@ -49,6 +49,6 @@ export class RedisPrefixHelper {
    * @returns the cache key string.
    */
   public static getFeatureFlagsKey() {
-    return "ff";
+    return "featureFlags:all";
   }
 }

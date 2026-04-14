@@ -7,6 +7,7 @@ import { buildTeam } from "@server/test/factories";
 describe("FeatureFlag", () => {
   afterEach(async () => {
     await FeatureFlag.destroy({ where: {}, force: true });
+    await FeatureFlag.invalidateCache();
   });
 
   describe("isInPercentage", () => {
