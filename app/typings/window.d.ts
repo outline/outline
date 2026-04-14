@@ -107,7 +107,7 @@ declare global {
        */
       onNavigationStateChanged: (
         callback: (state: { canGoBack: boolean; canGoForward: boolean }) => void
-      ) => void;
+      ) => () => void;
 
       /**
        * Registers a callback to be called when the application wants to open the find in page dialog.

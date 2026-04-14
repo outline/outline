@@ -19,7 +19,7 @@ function HistoryNavigation(props: React.ComponentProps<typeof Flex>) {
       return;
     }
     setSupported(true);
-    Desktop.bridge.onNavigationStateChanged((state) => {
+    return Desktop.bridge.onNavigationStateChanged((state) => {
       setCanGoBack(state.canGoBack);
       setCanGoForward(state.canGoForward);
     });
@@ -33,6 +33,7 @@ function HistoryNavigation(props: React.ComponentProps<typeof Flex>) {
     <Navigation gap={4} {...props}>
       <Tooltip content={t("Go back")}>
         <NudeButton
+          aria-label={t("Go back")}
           disabled={!canGoBack}
           onClick={() => Desktop.bridge?.goBack()}
         >
@@ -41,6 +42,7 @@ function HistoryNavigation(props: React.ComponentProps<typeof Flex>) {
       </Tooltip>
       <Tooltip content={t("Go forward")}>
         <NudeButton
+          aria-label={t("Go forward")}
           disabled={!canGoForward}
           onClick={() => Desktop.bridge?.goForward()}
         >
