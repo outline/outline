@@ -19,7 +19,7 @@ import { toast } from "sonner";
 import type { Primitive } from "utility-types";
 import type { Dictionary } from "~/hooks/useDictionary";
 import type { UserPreferences } from "../../types";
-import { isMac } from "../../utils/browser";
+import { isBrowser, isMac } from "../../utils/browser";
 import backspaceToParagraph from "../commands/backspaceToParagraph";
 import {
   newlineInCode,
@@ -397,6 +397,13 @@ export default class CodeFence extends Node {
         key: collapseKey,
         state: {
           init: (_config, state) => {
+            if (!isBrowser) {
+              return {
+                tallBlocks: new Set<number>(),
+                collapsedBlocks: new Set<number>(),
+                decorations: DecorationSet.empty,
+              };
+            }
             const tallBlocks = findTallBlocks(state.doc);
             return build(state.doc, tallBlocks, new Set(tallBlocks));
           },
