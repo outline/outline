@@ -45,31 +45,48 @@ async function teamProvisioner(
   ctx: APIContext,
   { teamId, name, domain, subdomain, avatarUrl, authenticationProvider }: Props
 ): Promise<TeamProvisionerResult> {
+  const where = teamId
+    ? { ...authenticationProvider, teamId }
+    : authenticationProvider;
+
+  // First try to find an authentication provider associated with a non-deleted
+  // team. This ensures active workspaces are always preferred over deleted ones
+  // when multiple workspaces share the same authentication provider.
   let authP = await AuthenticationProvider.findOne({
-    where: teamId
-      ? { ...authenticationProvider, teamId }
-      : authenticationProvider,
+    where,
     include: [
       {
         model: Team,
         as: "team",
         required: true,
-        paranoid: false,
       },
     ],
-    order: [
-      [Team, "deletedAt", "DESC"],
-      ["enabled", "DESC"],
-    ],
+    order: [["enabled", "DESC"]],
   });
+
+  if (!authP) {
+    // Check if there is a matching authentication provider for a deleted team.
+    // If so, throw an appropriate error rather than creating a new team.
+    authP = await AuthenticationProvider.findOne({
+      where,
+      include: [
+        {
+          model: Team,
+          as: "team",
+          required: true,
+          paranoid: false,
+        },
+      ],
+    });
+
+    if (authP?.team.deletedAt) {
+      throw TeamPendingDeletionError();
+    }
+  }
 
   // This authentication provider already exists which means we have a team and
   // there is nothing left to do but return the existing credentials
   if (authP) {
-    if (authP.team.deletedAt) {
-      throw TeamPendingDeletionError();
-    }
-
     return {
       authenticationProvider: authP,
       team: authP.team,
