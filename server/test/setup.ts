@@ -7,9 +7,22 @@ import { EventEmitter } from "node:events";
 // This needs to be done before any modules that use EventEmitter are loaded
 EventEmitter.defaultMaxListeners = 100;
 
+// Save native Response/Request before jest-fetch-mock replaces them with
+// cross-fetch polyfills that don't support Web Streams (e.g. ReadableStream
+// bodies lose their getReader method). The MCP SDK's @hono/node-server adapter
+// depends on proper Web Streams support.
+const NativeResponse = globalThis.Response;
+const NativeRequest = globalThis.Request;
+const NativeHeaders = globalThis.Headers;
+
 // Enable fetch mocks for testing
 require("jest-fetch-mock").enableMocks();
 fetchMock.dontMock();
+
+// Restore native Web API classes
+globalThis.Response = NativeResponse;
+globalThis.Request = NativeRequest;
+globalThis.Headers = NativeHeaders;
 
 // Mock AWS SDK S3 client and related commands
 jest.mock("@aws-sdk/client-s3", () => ({
