@@ -97,6 +97,7 @@ export const Outline = styled(Flex)<{
   margin?: string | number;
   hasError?: boolean;
   $focused?: boolean;
+  $round?: boolean;
 }>`
   position: relative;
   flex: 1;
@@ -111,7 +112,7 @@ export const Outline = styled(Flex)<{
       : props.$focused
         ? props.theme.inputBorderFocused
         : props.theme.inputBorder};
-  border-radius: 4px;
+  border-radius: ${(props) => (props.$round ? "16px" : "4px")};
   font-weight: normal;
   align-items: center;
   overflow: hidden;
@@ -158,6 +159,8 @@ export interface Props extends Omit<
   icon?: React.ReactNode;
   /** Show a character count near the maxLength limit. Always shown for textareas, opt-in for other types. */
   showCharacterCount?: boolean;
+  /** Whether to use a round border-radius (16px) instead of the default (4px). */
+  round?: boolean;
   /** Like autoFocus, but also select any text in the input */
   autoSelect?: boolean;
   /** Callback is triggered with the CMD+Enter keyboard combo */
@@ -246,6 +249,7 @@ function Input(
     short,
     flex,
     prefix,
+    round,
     labelHidden,
     maxLength,
     showCharacterCount,
@@ -273,7 +277,7 @@ function Input(
           ) : (
             wrappedLabel
           ))}
-        <Outline $focused={focused} margin={margin}>
+        <Outline $focused={focused} $round={round} margin={margin}>
           {prefix}
           {icon && <IconWrapper>{icon}</IconWrapper>}
           {type === "textarea" ? (
