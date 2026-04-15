@@ -261,6 +261,7 @@ function DocumentHeader({
             )}
             {document.title}
             {document.isArchived && <Badge>{t("Archived")}</Badge>}
+            {document.isDraft && <Badge>{t("Draft")}</Badge>}
           </Flex>
         }
         actions={({ isCompact }) => (
