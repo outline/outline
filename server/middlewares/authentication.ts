@@ -1,12 +1,21 @@
+import { addMonths } from "date-fns";
 import type { Next } from "koa";
 import capitalize from "lodash/capitalize";
-import type { UserRole } from "@shared/types";
+import { Op } from "sequelize";
+import { UserRole } from "@shared/types";
+import { slugifyDomain } from "@shared/utils/domains";
+import { parseEmail } from "@shared/utils/email";
 import { UserRoleHelper } from "@shared/utils/UserRoleHelper";
 import tracer, {
   addTags,
   getRootSpanFromRequestContext,
 } from "@server/logging/tracer";
+import teamCreator from "@server/commands/teamCreator";
+import { createContext } from "@server/context";
+import env from "@server/env";
+import Logger from "@server/logging/Logger";
 import { User, Team, ApiKey, OAuthAuthentication } from "@server/models";
+import { sequelize } from "@server/storage/database";
 import type { AppContext } from "@server/types";
 import { AuthenticationType } from "@server/types";
 import { getUserForJWT } from "@server/utils/jwt";
@@ -15,6 +24,9 @@ import {
   AuthorizationError,
   UserSuspendedError,
 } from "../errors";
+
+/** Service identifier used by the ForwardAuth authentication flow. */
+export const FORWARDAUTH_SERVICE = "forwardauth";
 
 type AuthenticationOptions = {
   /** Role required to access the route. */
@@ -39,6 +51,22 @@ export default function auth(options: AuthenticationOptions = {}) {
     try {
       const { type, token, user, service, scope } =
         await validateAuthentication(ctx, options);
+
+      // On the first ForwardAuth-authenticated request, issue a JWT cookie so
+      // that subsequent requests and cookie-dependent services (WebSocket,
+      // collaboration) use the fast JWT path instead of the header DB path.
+      if (service === FORWARDAUTH_SERVICE && !ctx.cookies.get("accessToken")) {
+        const expires = addMonths(new Date(), 3);
+        ctx.cookies.set("accessToken", user.getJwtToken(expires, service), {
+          sameSite: "lax",
+          expires,
+        });
+        ctx.cookies.set("lastSignedIn", FORWARDAUTH_SERVICE, {
+          httpOnly: false,
+          sameSite: "lax",
+          expires: new Date("2100"),
+        });
+      }
 
       await Promise.all([
         user.updateActiveAt(ctx),
@@ -122,6 +150,20 @@ export function parseAuthentication(ctx: AppContext): AuthInput {
       return {
         token: accessToken,
         transport: "cookie",
+      };
+    }
+  }
+
+  // Check proxy-injected identity headers last — after all conventional
+  // credentials — so an existing session cookie (or Bearer token) is always
+  // preferred. This means once the JWT cookie has been issued the header path
+  // is bypassed entirely, avoiding a DB round-trip on every request.
+  if (env.AUTH_TYPE === "SSO") {
+    const authRequestEmail = ctx.request.get("x-auth-request-email");
+    if (authRequestEmail) {
+      return {
+        token: `fwd:${authRequestEmail}`,
+        transport: "header",
       };
     }
   }
@@ -241,6 +283,77 @@ async function validateAuthentication(
 
     scope = apiKey.scope ?? ["*"];
     await apiKey.updateActiveAt();
+  } else if (token.startsWith("fwd:") && env.AUTH_TYPE === "SSO") {
+    type = AuthenticationType.APP;
+    service = FORWARDAUTH_SERVICE;
+
+    const emailClaim = token.slice(4).toLowerCase().trim();
+    const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailClaim);
+    const email = isValidEmail
+      ? emailClaim
+      : (() => {
+          if (!env.SMB_NAME) {
+            throw AuthenticationError(
+              "SMB_NAME environment variable is not set, cannot construct email for ForwardAuth user"
+            );
+          }
+          return `${emailClaim.split("@")[0]}@${env.SMB_NAME}.com`;
+        })();
+    const localPart = emailClaim.split("@")[0];
+    const displayName =
+      ctx.request.get("x-auth-request-user") || localPart;
+    const { domain } = parseEmail(email);
+
+    // Find an existing user by email across all teams (self-hosted deployments
+    // have a single team, but we don't restrict by team here so that the lookup
+    // is reliable even in test environments with multiple teams).
+    user = await User.scope("withTeam").findOne({
+      where: {
+        email: { [Op.iLike]: email },
+      },
+    });
+
+    if (!user) {
+      // Self-hosted deployments have a single team. When none exists yet the
+      // first arriving user bootstraps the installation.
+      let team = await Team.findOne();
+      let isNewTeam = false;
+
+      if (!team) {
+        Logger.info("authentication", "Provisioning new team via ForwardAuth", {
+          domain,
+        });
+        const subdomain = slugifyDomain(domain ?? "team");
+        team = await sequelize.transaction((transaction) =>
+          teamCreator(createContext({ ip: ctx.ip, transaction }), {
+            name: env.APP_NAME,
+            subdomain,
+            authenticationProviders: [
+              { name: FORWARDAUTH_SERVICE, providerId: domain ?? FORWARDAUTH_SERVICE },
+            ],
+          })
+        );
+        isNewTeam = true;
+      }
+
+      Logger.info("authentication", "Provisioning new user via ForwardAuth", {
+        email,
+      });
+      const created = await User.create({
+        name: displayName,
+        email,
+        teamId: team.id,
+        // First user into a brand-new team becomes admin.
+        role: isNewTeam ? UserRole.Admin : team.defaultUserRole,
+        lastActiveAt: new Date(),
+        lastActiveIp: ctx.ip,
+      });
+      // Reload with associations so downstream middleware sees a full User.
+      user = await User.scope("withTeam").findByPk(created.id);
+      if (!user) {
+        throw AuthenticationError("Failed to provision ForwardAuth user");
+      }
+    }
   } else {
     type = AuthenticationType.APP;
     const result = await getUserForJWT(token);

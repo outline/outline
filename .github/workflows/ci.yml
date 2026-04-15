@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [foss-main]
   pull_request:
-    branches: [main]
+    branches: [foss-main]
 
 env:
   NODE_ENV: test
