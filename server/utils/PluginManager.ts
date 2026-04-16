@@ -9,6 +9,7 @@ import Logger from "@server/logging/Logger";
 import type BaseProcessor from "@server/queues/processors/BaseProcessor";
 import type { BaseTask } from "@server/queues/tasks/base/BaseTask";
 import type { UnfurlSignature, UninstallSignature } from "@server/types";
+import type { User } from "@server/models";
 import type { BaseIssueProvider } from "./BaseIssueProvider";
 import type { GroupSyncProvider } from "./GroupSyncProvider";
 import type { BaseSearchProvider } from "./BaseSearchProvider";
@@ -32,10 +33,20 @@ export enum Hook {
   Processor = "processor",
   SearchProvider = "searchProvider",
   Task = "task",
+  TokenValidator = "tokenValidator",
   UnfurlProvider = "unfurl",
   Uninstall = "uninstall",
   GroupSyncProvider = "groupSyncProvider",
 }
+
+/**
+ * A function that validates a bearer token and returns the authenticated user,
+ * or null if the token is not recognized by this validator.
+ */
+export type TokenValidatorFn = (token: string) => Promise<{
+  user: User;
+  scope: string[];
+} | null>;
 
 /**
  * A map of plugin types to their values, for example an API plugin would have a value of type
@@ -49,6 +60,7 @@ type PluginValueMap = {
   [Hook.Processor]: typeof BaseProcessor;
   [Hook.SearchProvider]: BaseSearchProvider;
   [Hook.Task]: typeof BaseTask<any>;
+  [Hook.TokenValidator]: TokenValidatorFn;
   [Hook.Uninstall]: UninstallSignature;
   [Hook.UnfurlProvider]: { unfurl: UnfurlSignature; cacheExpiry: number };
   [Hook.GroupSyncProvider]: { id: string; provider: GroupSyncProvider };

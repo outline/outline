@@ -22,6 +22,21 @@ class AzurePluginEnvironment extends Environment {
     this.toOptionalString(environment.AZURE_RESOURCE_APP_ID) ??
     "00000003-0000-0000-c000-000000000000";
 
+  /**
+   * Comma-separated list of valid audiences for Entra bearer tokens used to
+   * authenticate API requests. When set, the API accepts Azure AD access
+   * tokens as an alternative to Outline API keys, enabling SSO-based API
+   * access for tools like MCP servers and AI agents.
+   *
+   * If omitted, the Azure client ID and `api://<client-id>` are accepted
+   * by default when AZURE_CLIENT_ID and AZURE_TENANT_ID are configured.
+   */
+  @IsOptional()
+  @CannotUseWithout("AZURE_CLIENT_ID")
+  public AZURE_API_AUDIENCES = this.toOptionalString(
+    environment.AZURE_API_AUDIENCES
+  );
+
   @IsOptional()
   @CannotUseWithout("AZURE_CLIENT_ID")
   public AZURE_TENANT_ID = this.toOptionalString(environment.AZURE_TENANT_ID);
