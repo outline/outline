@@ -18,11 +18,12 @@ export type Invite = {
 
 type Props = {
   invites: Invite[];
+  suppressEmail?: boolean;
 };
 
 export default async function userInviter(
   ctx: APIContext,
-  { invites }: Props
+  { invites, suppressEmail }: Props
 ): Promise<{
   sent: Invite[];
   unsent: Invite[];
@@ -94,15 +95,17 @@ export default async function userInviter(
     );
     users.push(newUser);
 
-    await new InviteEmail({
-      to: invite.email,
-      language: newUser.language,
-      name: invite.name,
-      actorName: user.name,
-      actorEmail: user.email,
-      teamName: team.name,
-      teamUrl: team.url,
-    }).schedule();
+    if (!suppressEmail) {
+      await new InviteEmail({
+        to: invite.email,
+        language: newUser.language,
+        name: invite.name,
+        actorName: user.name,
+        actorEmail: user.email,
+        teamName: team.name,
+        teamUrl: team.url,
+      }).schedule();
+    }
 
     if (env.isDevelopment) {
       Logger.info(
