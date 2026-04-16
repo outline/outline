@@ -221,6 +221,72 @@ describe("OAuthInterface", () => {
     });
   });
 
+  describe("#saveAuthorizationCode", () => {
+    it("should trim trailing whitespace from codeChallengeMethod", async () => {
+      const user = await buildUser();
+      const oAuthClient = await buildOAuthClient({ teamId: user.teamId });
+
+      const code = {
+        authorizationCode: randomUUID(),
+        expiresAt: new Date(Date.now() + 60_000),
+        redirectUri: oAuthClient.redirectUris[0],
+        scope: [Scope.Read],
+        codeChallenge: "abc123",
+        codeChallengeMethod: "S256  ",
+      };
+
+      await OAuthInterface.saveAuthorizationCode(
+        code,
+        {
+          id: oAuthClient.clientId,
+          databaseId: oAuthClient.id,
+          grants: OAuthInterface.grants,
+        },
+        user
+      );
+
+      const result = await OAuthInterface.getAuthorizationCode(
+        code.authorizationCode
+      );
+      expect(result).not.toBe(false);
+      if (result) {
+        expect(result.codeChallengeMethod).toBe("S256");
+      }
+    });
+
+    it("should treat whitespace-only codeChallengeMethod as absent", async () => {
+      const user = await buildUser();
+      const oAuthClient = await buildOAuthClient({ teamId: user.teamId });
+
+      const code = {
+        authorizationCode: randomUUID(),
+        expiresAt: new Date(Date.now() + 60_000),
+        redirectUri: oAuthClient.redirectUris[0],
+        scope: [Scope.Read],
+        codeChallenge: undefined,
+        codeChallengeMethod: "   ",
+      };
+
+      await OAuthInterface.saveAuthorizationCode(
+        code,
+        {
+          id: oAuthClient.clientId,
+          databaseId: oAuthClient.id,
+          grants: OAuthInterface.grants,
+        },
+        user
+      );
+
+      const result = await OAuthInterface.getAuthorizationCode(
+        code.authorizationCode
+      );
+      expect(result).not.toBe(false);
+      if (result) {
+        expect(result.codeChallengeMethod).toBeNull();
+      }
+    });
+  });
+
   describe("#validateScope", () => {
     it("should return empty array for empty scope", async () => {
       const result = await OAuthInterface.validateScope(user, client, []);

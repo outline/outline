@@ -288,7 +288,7 @@ export const OAuthInterface: RefreshTokenModel &
       scope,
       redirectUri,
       codeChallenge,
-      codeChallengeMethod,
+      codeChallengeMethod: codeChallengeMethod?.trim() || undefined,
       oauthClientId: client.databaseId,
       userId: user.id,
       grantId: (user as GrantUser).grantId || crypto.randomUUID(),
