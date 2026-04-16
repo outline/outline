@@ -93,6 +93,14 @@ export function getCookieDomain(domain: string, isCloudHosted: boolean) {
     }
   }
 
+  // When behind a reverse proxy, the request hostname may differ from the
+  // configured public URL. Use the configured URL's domain so cookies are
+  // set for the domain the browser actually sees.
+  const baseDomain = getBaseDomain();
+  if (domain !== baseDomain) {
+    return baseDomain;
+  }
+
   return domain;
 }
 
