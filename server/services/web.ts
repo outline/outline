@@ -52,6 +52,34 @@ export default function init(app: Koa = new Koa(), server?: Server) {
     }
   }
 
+  // Some reverse proxies (e.g. Azure App Gateway) append the client port to
+  // X-Forwarded-For producing values like "1.2.3.4:56789". Koa exposes this
+  // as ctx.ip which then fails Sequelize isIP validation when the IP is
+  // persisted. Strip the trailing port so only the IP address remains.
+  const normalizeForwardedIp = (ip: string) => {
+    const match = ip.match(
+      /^(?<ipv4>(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(?:\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}):(?<port>\d+)$/
+    );
+    return match?.groups?.ipv4 ?? ip;
+  };
+
+  app.use(async (ctx, next) => {
+    const raw = ctx.ip;
+    if (raw) {
+      const normalized = normalizeForwardedIp(raw);
+      if (normalized !== raw) {
+        const descriptor = {
+          value: normalized,
+          configurable: true,
+          enumerable: true,
+        };
+        Object.defineProperty(ctx.request, "ip", descriptor);
+        Object.defineProperty(ctx, "ip", descriptor);
+      }
+    }
+    return next();
+  });
+
   // Make `ctx.userAgent` available
   app.use<BaseContext, UserAgentContext>(userAgent);
 
