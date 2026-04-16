@@ -110,7 +110,6 @@
     "@vitejs/plugin-react-oxc": "^0.2.3",
     "addressparser": "^1.0.1",
     "async-sema": "^3.1.1",
-    "autotrack": "^2.4.1",
     "bull": "^4.16.5",
     "class-validator": "^0.14.4",
     "command-score": "^0.1.2",
