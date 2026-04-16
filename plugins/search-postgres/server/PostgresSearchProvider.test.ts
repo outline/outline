@@ -391,6 +391,23 @@ describe("PostgresSearchProvider", () => {
       expect(results.length).toBe(1);
     });
 
+    it("should include drafts with no collection created by user", async () => {
+      const user = await buildUser();
+      const draft = await buildDraftDocument({
+        teamId: user.teamId,
+        userId: user.id,
+        createdById: user.id,
+        collectionId: null,
+        title: "test",
+      });
+      const { results } = await provider.searchForUser(user, {
+        query: "test",
+        statusFilter: [StatusFilter.Draft],
+      });
+      expect(results.length).toBe(1);
+      expect(results[0].document?.id).toBe(draft.id);
+    });
+
     it("should not include drafts with user read permission", async () => {
       const user = await buildUser();
       await buildDraftDocument({

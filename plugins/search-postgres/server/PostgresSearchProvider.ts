@@ -628,6 +628,16 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
         { "$memberships.id$": { [Op.ne]: null } },
         { "$groupMemberships.id$": { [Op.ne]: null } }
       );
+
+      // Allow users to see their own drafts, including those without a
+      // collection where no membership or collection access applies.
+      if (options.statusFilter?.includes(StatusFilter.Draft)) {
+        where[Op.or].push({
+          createdById: model.id,
+          publishedAt: { [Op.eq]: null },
+          archivedAt: { [Op.eq]: null },
+        });
+      }
     }
 
     // Ensure we're filtering by the users accessible collections. If
