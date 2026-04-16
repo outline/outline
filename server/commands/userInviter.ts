@@ -85,9 +85,11 @@ export default async function userInviter(
               ? UserRole.Viewer
               : UserRole.Member,
         invitedById: user.id,
-        flags: {
-          [UserFlag.InviteSent]: 1,
-        },
+        flags: suppressEmail
+          ? undefined
+          : {
+              [UserFlag.InviteSent]: 1,
+            },
       },
       {
         name: "invite",
