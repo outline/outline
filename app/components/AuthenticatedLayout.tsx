@@ -1,16 +1,18 @@
 import { observer } from "mobx-react";
 import * as React from "react";
-import { Switch, Route } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import ErrorSuspended from "~/scenes/Errors/ErrorSuspended";
 import Layout from "~/components/Layout";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
 import { RightSidebarProvider } from "~/components/RightSidebarContext";
 import Sidebar from "~/components/Sidebar";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useKeyDown from "~/hooks/useKeyDown";
 import { usePostLoginPath } from "~/hooks/useLastVisitedPath";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import history from "~/utils/history";
+import { isModKey } from "@shared/utils/keyboard";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 import {
   searchPath,
@@ -33,10 +35,17 @@ type Props = {
 
 const AuthenticatedLayout: React.FC = ({ children }: Props) => {
   const { ui, auth } = useStores();
+  const location = useLocation();
   const layoutRef = React.useRef<HTMLDivElement>(null);
   const canCollection = usePolicy(ui.activeCollectionId);
   const team = useCurrentTeam();
   const [spendPostLoginPath] = usePostLoginPath();
+
+  useKeyDown(".", (event) => {
+    if (isModKey(event)) {
+      ui.toggleCollapsedSidebar();
+    }
+  });
 
   const goToSearch = (ev: KeyboardEvent) => {
     if (!ev.metaKey && !ev.ctrlKey) {
@@ -68,12 +77,16 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
     return <ErrorSuspended />;
   }
 
+  const isSettings = location.pathname.startsWith(settingsPath());
+
   const sidebar = (
     <Fade>
-      <Switch>
-        <Route path={settingsPath()} component={SettingsSidebar} />
-        <Route component={Sidebar} />
-      </Switch>
+      <React.Suspense fallback={null}>
+        {isSettings && <SettingsSidebar />}
+      </React.Suspense>
+      <div style={isSettings ? { display: "none" } : undefined}>
+        <Sidebar />
+      </div>
     </Fade>
   );
 

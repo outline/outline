@@ -22,8 +22,6 @@ import ResizeBorder from "./components/ResizeBorder";
 import SidebarButton from "./components/SidebarButton";
 import ToggleButton from "./components/ToggleButton";
 import { useTranslation } from "react-i18next";
-import useKeyDown from "~/hooks/useKeyDown";
-import { isModKey } from "@shared/utils/keyboard";
 
 const ANIMATION_MS = 250;
 
@@ -63,12 +61,6 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
   const [hasPointerMoved, setPointerMoved] = React.useState(false);
   const isSmallerThanMinimum = width < minWidth;
   const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
-
-  useKeyDown(".", (event) => {
-    if (isModKey(event)) {
-      ui.toggleCollapsedSidebar();
-    }
-  });
 
   const handleDrag = React.useCallback(
     (event: MouseEvent) => {
