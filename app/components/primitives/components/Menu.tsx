@@ -129,6 +129,7 @@ export const MenuHeader = styled.h3`
   color: ${s("sidebarText")};
   letter-spacing: 0.04em;
   margin: 1em 12px 0.5em;
+  user-select: none;
 `;
 
 export const MenuDisclosure = styled(ExpandedIcon)`
