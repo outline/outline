@@ -21,7 +21,7 @@ export const languageOptions: LanguageOption[] = [
     value: "cs_CZ",
   },
   {
-    label: "Nederland (Dutch, Netherlands)",
+    label: "Nederlands (Dutch, Netherlands)",
     value: "nl_NL",
   },
   {
@@ -69,7 +69,7 @@ export const languageOptions: LanguageOption[] = [
     value: "fa_IR",
   },
   {
-    label: "Polskie (Polish)",
+    label: "Polski (Polish)",
     value: "pl_PL",
   },
   {
