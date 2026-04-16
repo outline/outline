@@ -4039,14 +4039,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@node-oauth/oauth2-server@npm:^5.2.1":
-  version: 5.2.1
-  resolution: "@node-oauth/oauth2-server@npm:5.2.1"
+"@node-oauth/oauth2-server@npm:^5.3.0":
+  version: 5.3.0
+  resolution: "@node-oauth/oauth2-server@npm:5.3.0"
   dependencies:
     "@node-oauth/formats": "npm:1.0.0"
     basic-auth: "npm:2.0.1"
     type-is: "npm:2.0.1"
-  checksum: 10c0/59dc19845171974007f7af8c7d358f8c5f7212d0916da9af7622096afcc53ff758ffb221323f585f1b5a9d2fd72321033d3620a2244ea07434a315b9b24d7335
+  checksum: 10c0/bb136a5569f71b2086686972680849f8fde90d861c20775ea59966a54a7473d2d61b1b9531a3585399e6a028c7078e7e32eaf1c0c475b4f6c7766db65a6a78b6
   languageName: node
   linkType: hard
 
@@ -16932,7 +16932,7 @@ __metadata:
     "@linear/sdk": "npm:^58.1.0"
     "@mermaid-js/layout-elk": "npm:^0.2.1"
     "@modelcontextprotocol/sdk": "npm:^1.25.3"
-    "@node-oauth/oauth2-server": "npm:^5.2.1"
+    "@node-oauth/oauth2-server": "npm:^5.3.0"
     "@notionhq/client": "npm:^2.3.0"
     "@octokit/auth-app": "npm:^6.1.4"
     "@outlinewiki/koa-passport": "npm:^4.2.1"
