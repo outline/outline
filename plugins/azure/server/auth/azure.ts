@@ -22,14 +22,30 @@ import config from "../../plugin.json";
 import env from "../env";
 import { createContext } from "@server/context";
 
+import {
+  getClientAssertion,
+  initializeManagedIdentityAuth,
+} from "./managedIdentityAuth";
+
 const router = new Router();
 const scopes: string[] = [];
 
-if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
+const hasCredentials =
+  env.AZURE_CLIENT_ID &&
+  (env.AZURE_CLIENT_SECRET || env.AZURE_USE_MANAGED_IDENTITY);
+
+if (hasCredentials) {
+  void initializeManagedIdentityAuth();
+
+  // When using managed identity, provide a placeholder secret. The actual
+  // authentication is handled via client_assertion in the token exchange,
+  // injected by the custom tokenParams override below.
+  const effectiveSecret = env.AZURE_CLIENT_SECRET ?? "managed-identity";
+
   const strategy = new AzureStrategy(
     {
-      clientID: env.AZURE_CLIENT_ID,
-      clientSecret: env.AZURE_CLIENT_SECRET,
+      clientID: env.AZURE_CLIENT_ID!,
+      clientSecret: effectiveSecret,
       callbackURL: `${env.URL}/auth/azure.callback`,
       useCommonEndpoint: env.AZURE_TENANT_ID ? false : true,
       tenant: env.AZURE_TENANT_ID ? env.AZURE_TENANT_ID : undefined,
@@ -140,6 +156,42 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
       }
     }
   );
+
+  // When using managed identity, override tokenParams to inject
+  // client_assertion instead of client_secret for the token exchange.
+  if (env.AZURE_USE_MANAGED_IDENTITY) {
+    const originalTokenParams = strategy.tokenParams.bind(strategy);
+    strategy.tokenParams = function (options: Record<string, string>) {
+      const assertion = getClientAssertion();
+      if (!assertion) {
+        throw new Error(
+          "Azure managed identity authentication is enabled, but no client " +
+            "assertion is available for the token exchange. Check that the " +
+            "managed identity endpoint is reachable."
+        );
+      }
+
+      const params = originalTokenParams(options);
+      params.client_assertion = assertion;
+      params.client_assertion_type =
+        "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
+      return params;
+    };
+
+    // passport-oauth2 sends client_secret in the token request by default.
+    // When using managed identity we authenticate via client_assertion
+    // instead, so we must clear the placeholder secret to prevent it from
+    // being sent alongside the assertion. The _oauth2 property is an
+    // internal detail of passport-oauth2@1.x (oauth2 npm package); if the
+    // library changes its internals this will need updating.
+    // @ts-expect-error accessing private _oauth2 property
+    const oauth2 = strategy._oauth2;
+    if (oauth2) {
+      // @ts-expect-error clearing protected _clientSecret
+      oauth2._clientSecret = "";
+    }
+  }
+
   passport.use(strategy);
   router.get(
     config.id,
