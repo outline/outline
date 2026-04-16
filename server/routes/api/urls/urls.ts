@@ -164,10 +164,10 @@ router.post(
         const document = await Document.findByPk(previewDocumentId, {
           userId: actor.id,
         });
-        if (!document) {
-          throw NotFoundError("Document does not exist");
+        if (!document || !can(actor, "read", document)) {
+          ctx.response.status = 204;
+          return;
         }
-        authorize(actor, "read", document);
 
         ctx.body = await presentUnfurl({
           type: UnfurlResourceType.Document,

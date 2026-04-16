@@ -143,6 +143,16 @@ describe("#urls.unfurl", () => {
     expect(body.name).toEqual(mentionedUser.name);
   });
 
+  it("should return 204 when internal document url points to non-existent document", async () => {
+    const res = await server.post("/api/urls.unfurl", {
+      body: {
+        token: user.getJwtToken(),
+        url: `${env.URL}/doc/non-existent-doc-abc123`,
+      },
+    });
+    expect(res.status).toEqual(204);
+  });
+
   it("should succeed with status 200 ok when valid document url is supplied", async () => {
     const document = await buildDocument({
       teamId: user.teamId,
