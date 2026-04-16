@@ -77,7 +77,7 @@ function HistoryNavigation(props: React.ComponentProps<typeof Flex>) {
       <Tooltip content={t("History")}>
         <DropdownMenu
           action={menuAction}
-          ariaLabel={t("Recently viewed")}
+          ariaLabel={t("History")}
           onOpen={handleOpen}
         >
           <NudeButton aria-label={t("History")}>
