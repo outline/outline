@@ -100,6 +100,32 @@ describe("DocumentHelper", () => {
       expect(result).toContain('<p dir="auto">This is a test paragraph</p>');
     });
 
+    it("should apply the cspNonce to the injected mermaid script", async () => {
+      const document = await buildDocument({
+        text: "```mermaid\ngraph TD;\nA-->B;\n```",
+      });
+      const result = await DocumentHelper.toHTML(document, {
+        includeTitle: false,
+        includeStyles: false,
+        includeMermaid: true,
+        cspNonce: "test-nonce-123",
+      });
+      expect(result).toMatch(/<script[^>]*nonce="test-nonce-123"/);
+      expect(result).toContain('window.status = "ready"');
+    });
+
+    it("should not set a nonce attribute when cspNonce is not provided", async () => {
+      const document = await buildDocument({
+        text: "```mermaid\ngraph TD;\nA-->B;\n```",
+      });
+      const result = await DocumentHelper.toHTML(document, {
+        includeTitle: false,
+        includeStyles: false,
+        includeMermaid: true,
+      });
+      expect(result).not.toMatch(/<script[^>]*nonce="/);
+    });
+
     it("should render diff classes when changes provided", async () => {
       const doc1 = await buildDocument({ text: "Hello world" });
       const doc2 = await buildDocument({ text: "Hello modified world" });
