@@ -352,7 +352,10 @@ export default class AuthStore extends Store<Team> {
     }
 
     if (userInitiated) {
-      this.logoutRedirectUri = env.OIDC_LOGOUT_URI;
+      // Rewrite "foss-<app>.<domain>" → "foss.<domain>" so we land on the portal
+      // (outside ForwardAuth) instead of Outline's own root, which would silently re-auth.
+      const portalHost = window.location.hostname.replace(/^[^.]*\./, "foss.");
+      this.logoutRedirectUri = `${window.location.protocol}//${portalHost}`;
     }
 
     if (clearCache) {
