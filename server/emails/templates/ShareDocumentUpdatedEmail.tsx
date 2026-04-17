@@ -1,7 +1,7 @@
 import * as React from "react";
 import { TeamPreference } from "@shared/types";
 import { Day } from "@shared/utils/time";
-import { Revision, ShareSubscription } from "@server/models";
+import { Revision, Share, ShareSubscription } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import HTMLHelper from "@server/models/helpers/HTMLHelper";
 import ShareSubscriptionHelper from "@server/models/helpers/ShareSubscriptionHelper";
@@ -46,7 +46,12 @@ export default class ShareDocumentUpdatedEmail extends BaseEmail<
     const subscription = await ShareSubscription.findByPk(
       props.shareSubscriptionId,
       {
-        include: [{ association: "share", include: [{ association: "team" }] }],
+        include: [
+          {
+            model: Share.unscoped(),
+            include: [{ association: "team" }],
+          },
+        ],
       }
     );
 
