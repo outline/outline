@@ -26,6 +26,7 @@ import presentSearchQuery from "./searchQuery";
 import presentShare from "./share";
 import presentStar from "./star";
 import presentSubscription from "./subscription";
+import presentTag from "./tag";
 import presentTeam from "./team";
 import presentTemplate from "./template";
 import presentUser from "./user";
@@ -63,6 +64,7 @@ export {
   presentShare,
   presentStar,
   presentSubscription,
+  presentTag,
   presentTeam,
   presentTemplate,
   presentUser,

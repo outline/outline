@@ -680,6 +680,16 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
       });
     }
 
+    if (options.tagIds?.length) {
+      for (const tagId of options.tagIds) {
+        where[Op.and].push(
+          Sequelize.literal(
+            `EXISTS (SELECT 1 FROM document_tags dt WHERE dt."documentId" = "document"."id" AND dt."tagId" = ${sequelize.escape(tagId)})`
+          ) as unknown as WhereOptions<Document>
+        );
+      }
+    }
+
     const statusQuery = [];
     if (options.statusFilter?.includes(StatusFilter.Published)) {
       statusQuery.push({

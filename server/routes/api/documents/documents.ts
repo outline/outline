@@ -49,9 +49,11 @@ import {
   Relationship,
   Collection,
   Document,
+  DocumentTag,
   Event,
   Revision,
   SearchQuery,
+  Tag,
   Template,
   User,
   View,
@@ -71,6 +73,7 @@ import {
   presentDocument,
   presentDocuments,
   presentPolicies,
+  presentTag,
   presentTemplate,
   presentMembership,
   presentUser,
@@ -605,6 +608,11 @@ router.post(
         user,
       });
       serializedDocument = await presentDocument(ctx, document);
+      const documentTags = await DocumentTag.findAll({
+        where: { documentId: document.id },
+        include: [{ model: Tag }],
+      });
+      serializedDocument.tags = documentTags.map((dt) => presentTag(dt.tag));
     }
 
     ctx.body = {
@@ -999,6 +1007,7 @@ router.post(
       userId,
       sort,
       direction,
+      tagIds,
     } = ctx.input.body;
     const { offset, limit } = ctx.state.pagination;
     const { user } = ctx.state.auth;
@@ -1022,6 +1031,7 @@ router.post(
         statusFilter,
         collectionId,
         collaboratorIds,
+        tagIds,
         offset,
         limit,
         sort: sort as SortFilter,
@@ -1047,6 +1057,7 @@ router.post(
   async (ctx: APIContext<T.DocumentsSearchReq>) => {
     const {
       query,
+      tagIds,
       collectionId,
       documentId,
       userId,
@@ -1148,6 +1159,7 @@ router.post(
 
       response = await SearchProviderManager.getProvider().searchForUser(user, {
         query,
+        tagIds,
         collaboratorIds,
         collectionId,
         documentIds,

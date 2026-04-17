@@ -18,6 +18,7 @@ import Storage from "@shared/utils/Storage";
 import { isRTL } from "@shared/utils/rtl";
 import slugify from "@shared/utils/slugify";
 import type DocumentsStore from "~/stores/DocumentsStore";
+import Tag from "~/models/Tag";
 import User from "~/models/User";
 import type { Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -228,6 +229,13 @@ export default class Document extends ArchivableModel implements Searchable {
    */
   @observable
   backlinkIds?: string[];
+
+  /**
+   * Tags applied to this document. Populated only when fetching a single
+   * document via documents.info; not included in list responses.
+   */
+  @observable
+  tags: Tag[] | undefined = undefined;
 
   /**
    * Returns the notifications associated with this document.

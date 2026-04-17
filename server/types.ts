@@ -21,6 +21,8 @@ import type {
   FileOperation,
   Revision,
   Team,
+  Tag,
+  DocumentTag,
   User,
   UserMembership,
   UserPasskey,
@@ -404,6 +406,18 @@ export type StarEvent = BaseEvent<Star> & {
   userId: string;
 };
 
+export type TagEvent =
+  | (BaseEvent<Tag> & {
+      name: "tags.create" | "tags.update" | "tags.delete";
+      modelId: string;
+    })
+  | (BaseEvent<DocumentTag> & {
+      name: "tags.add" | "tags.remove";
+      modelId: string;
+      documentId: string;
+      data: { tagId: string };
+    });
+
 export type ShareEvent = BaseEvent<Share> & {
   name: "shares.create" | "shares.update" | "shares.revoke";
   modelId: string;
@@ -488,6 +502,7 @@ export type Event =
   | PinEvent
   | CommentEvent
   | StarEvent
+  | TagEvent
   | CollectionEvent
   | CollectionUserEvent
   | CollectionGroupEvent

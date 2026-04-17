@@ -41,6 +41,7 @@ export type SearchParams = {
   collectionId?: string;
   userId?: string;
   shareId?: string;
+  tagIds?: string[];
   sort?: SortFilter;
   direction?: DirectionFilter;
 };
@@ -74,6 +75,20 @@ export default class DocumentsStore extends Store<Document> {
 
   constructor(rootStore: RootStore) {
     super(rootStore, Document);
+    const parentAdd = this.add;
+
+    this.add = (item: Parameters<Store<Document>["add"]>[0]): Document => {
+      const document = parentAdd(item);
+      const rawTags = (item as Record<string, unknown>).tags;
+      if (Array.isArray(rawTags)) {
+        document.tags = rawTags.map((t) =>
+          this.rootStore.tags.add(
+            t as Parameters<typeof this.rootStore.tags.add>[0]
+          )
+        );
+      }
+      return document;
+    };
   }
 
   @computed

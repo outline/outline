@@ -29,6 +29,7 @@ import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import type { PaginationParams, SearchResult } from "~/types";
 import { preventDefault } from "~/utils/events";
+import { parseSearchQuery } from "~/utils/parseSearchQuery";
 import { searchPath } from "~/utils/routeHelpers";
 import { decodeURIComponentSafe } from "~/utils/urls";
 import CollectionFilter from "./components/CollectionFilter";
@@ -44,7 +45,7 @@ import useMobile from "~/hooks/useMobile";
 
 function Search() {
   const { t } = useTranslation();
-  const { documents, searches } = useStores();
+  const { documents, searches, tags: tagsStore } = useStores();
   const isMobile = useMobile();
 
   // routing
@@ -63,6 +64,37 @@ function Search() {
     routeMatch.params.query ?? params.get("q") ?? params.get("query") ?? ""
   ).trim();
   const query = decodedQuery !== "" ? decodedQuery : undefined;
+  const { cleanQuery, tagNames } = parseSearchQuery(query ?? "");
+  const tagIds = tagNames
+    .map((name) => tagsStore.getByName(name)?.id)
+    .filter(Boolean) as string[];
+
+  const allTagsLoadedRef = React.useRef(false);
+  const [allTagsLoaded, setAllTagsLoaded] = React.useState(false);
+
+  React.useEffect(() => {
+    // Only fetch tags when the query contains #tag tokens, to avoid
+    // unnecessary API load on every Search mount.
+    if (tagNames.length === 0) {
+      return;
+    }
+    if (allTagsLoadedRef.current) {
+      return;
+    }
+    void (async () => {
+      let offset = 0;
+      const limit = 100;
+      while (true) {
+        const batch = await tagsStore.fetchPage({ offset, limit });
+        if (batch.length < limit) {
+          break;
+        }
+        offset += limit;
+      }
+      allTagsLoadedRef.current = true;
+      setAllTagsLoaded(true);
+    })();
+  }, [tagsStore, tagNames.length]);
   const collectionId = params.get("collectionId") ?? "";
   const userId = params.get("userId") ?? "";
   const documentId = params.get("documentId") ?? undefined;
@@ -74,7 +106,17 @@ function Search() {
   const sort = (params.get("sort") as TSortFilter) ?? "";
   const direction = (params.get("direction") as TDirectionFilter) ?? "";
 
-  const isSearchable = !!(query || collectionId || userId);
+  // True when tag tokens were typed but, after all tags are loaded, none resolved — no documents can match
+  const hasUnresolvedTags =
+    allTagsLoaded && tagNames.length > 0 && tagIds.length < tagNames.length;
+
+  const isSearchable = !!(
+    cleanQuery ||
+    collectionId ||
+    userId ||
+    tagIds.length ||
+    hasUnresolvedTags
+  );
 
   const document = documentId ? documents.get(documentId) : undefined;
 
@@ -90,7 +132,8 @@ function Search() {
 
   const filters = React.useMemo(
     () => ({
-      query,
+      query: cleanQuery || undefined,
+      tagIds: tagIds.length ? tagIds : undefined,
       statusFilter,
       collectionId,
       userId,
@@ -101,7 +144,8 @@ function Search() {
       direction,
     }),
     [
-      query,
+      cleanQuery,
+      JSON.stringify(tagIds),
       JSON.stringify(statusFilter),
       collectionId,
       userId,
@@ -130,6 +174,13 @@ function Search() {
           offset: params?.offset,
           limit: params?.limit,
         };
+        // A tag token was typed but it doesn't match any known tag — return nothing
+        if (hasUnresolvedTags) {
+          return [] as SearchResult[];
+        }
+        if (titleFilter && !filters.query) {
+          return [] as SearchResult[];
+        }
         return titleFilter
           ? await documents.searchTitles({ ...filters, ...paginationParams })
           : await documents.search({ ...filters, ...paginationParams });
@@ -137,7 +188,15 @@ function Search() {
     }
 
     return () => Promise.resolve([] as SearchResult[]);
-  }, [query, titleFilter, filters, searches, documents, isSearchable]);
+  }, [
+    query,
+    titleFilter,
+    filters,
+    searches,
+    documents,
+    isSearchable,
+    hasUnresolvedTags,
+  ]);
 
   const { data, next, end, error, loading } = usePaginatedRequest(requestFn, {
     limit: Pagination.defaultLimit,

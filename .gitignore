@@ -22,3 +22,4 @@ data/*
 !.yarn/releases
 .yarn/releases
 !.yarn/sdks
+.worktrees/

@@ -514,6 +514,38 @@ describe("#documents.info", () => {
     expect(res.status).toEqual(400);
     expect(body.message).toEqual("shareId: Invalid input");
   });
+
+  it("should include tags in the response", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const tagRes = await server.post("/api/tags.create", {
+      body: { token: user.getJwtToken(), name: "info-tag" },
+    });
+    const tagBody = await tagRes.json();
+
+    await server.post("/api/tags.add", {
+      body: {
+        token: user.getJwtToken(),
+        tagId: tagBody.data.id,
+        documentId: document.id,
+      },
+    });
+
+    const res = await server.post("/api/documents.info", {
+      body: { token: user.getJwtToken(), id: document.id },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(Array.isArray(body.data.tags)).toBe(true);
+    expect(body.data.tags.map((t: { name: string }) => t.name)).toContain(
+      "info-tag"
+    );
+  });
 });
 
 describe("#documents.export", () => {
@@ -1277,7 +1309,7 @@ describe("#documents.search_titles", () => {
     const body = await res.json();
     expect(res.status).toEqual(400);
     expect(body.message).toEqual(
-      "query: Invalid input: expected string, received undefined"
+      "body: query or tagIds is required"
     );
   });
 
@@ -2036,6 +2068,51 @@ describe("#documents.search", () => {
     const returnedIds = body.data.map((d: any) => d.document.id).sort();
     const expectedIds = docsInCollection1.map((d) => d.id).sort();
     expect(returnedIds).toEqual(expectedIds);
+  });
+
+  it("should filter documents by tagIds", async () => {
+    const user = await buildUser();
+    const docWithTag = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      title: "tagged document",
+    });
+    const docWithout = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      title: "untagged document",
+    });
+
+    const tagRes = await server.post("/api/tags.create", {
+      body: {
+        token: user.getJwtToken(),
+        name: "searchable",
+      },
+    });
+    const tagBody = await tagRes.json();
+
+    await server.post("/api/tags.add", {
+      body: {
+        token: user.getJwtToken(),
+        tagId: tagBody.data.id,
+        documentId: docWithTag.id,
+      },
+    });
+
+    const res = await server.post("/api/documents.search", {
+      body: {
+        token: user.getJwtToken(),
+        tagIds: [tagBody.data.id],
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    const ids = body.data.map(
+      (d: { document: { id: string } }) => d.document.id
+    );
+    expect(ids).toContain(docWithTag.id);
+    expect(ids).not.toContain(docWithout.id);
   });
 });
 

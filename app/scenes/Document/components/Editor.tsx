@@ -31,6 +31,7 @@ import {
   matchDocumentHistory,
 } from "~/utils/routeHelpers";
 import { decodeURIComponentSafe } from "~/utils/urls";
+import TagInput from "~/components/TagInput";
 import MultiplayerEditor from "./AsyncMultiplayerEditor";
 import DocumentMeta from "./DocumentMeta";
 import DocumentTitle from "./DocumentTitle";
@@ -230,6 +231,13 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
           rtl={direction === "rtl"}
         />
       ) : null}
+      {!shareId && !rest.template && (
+        <TagInput
+          documentId={document.id}
+          tags={(document as Document).tags}
+          canUpdate={can.update}
+        />
+      )}
       <EditorComponent
         ref={mergeRefs([ref, handleRefChanged])}
         lang={getLangFor(document.language)}

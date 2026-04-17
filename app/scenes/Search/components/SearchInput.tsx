@@ -40,6 +40,7 @@ function SearchInput(
         ref={ref}
         spellCheck="false"
         type="search"
+        autoComplete="off"
         autoFocus
       />
     </Wrapper>

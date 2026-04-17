@@ -38,6 +38,8 @@ export interface SearchOptions {
   statusFilter?: StatusFilter[];
   /** Limit results to a list of documents. */
   documentIds?: string[];
+  /** Limit results to documents with all of these tag IDs (AND semantics). */
+  tagIds?: string[];
   /** Limit results to a list of users that collaborated on the document. */
   collaboratorIds?: string[];
   /** The minimum number of words to be returned in the contextual snippet. */
