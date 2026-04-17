@@ -265,7 +265,6 @@ export class DocumentHelper {
     addTags({
       collectionId: model instanceof Collection ? model.id : undefined,
       documentId: !(model instanceof Collection) ? model.id : undefined,
-      options,
     });
 
     if (options?.signedUrls) {
