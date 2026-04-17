@@ -31,41 +31,52 @@ export default class RollupDocumentInsightsTask extends CronTask {
   ): Promise<void> {
     const [{ upserted }] = await sequelize.query<{ upserted: string }>(
       `
-      WITH view_counts AS (
+      WITH partitioned_documents AS (
+        SELECT id, "teamId"
+        FROM documents
+        WHERE "deletedAt" IS NULL
+          AND id >= :startUuid::uuid
+          AND id <= :endUuid::uuid
+      ),
+      view_counts AS (
         SELECT
-          "documentId",
+          e."documentId",
           COUNT(*) AS view_count,
-          COUNT(DISTINCT "userId") AS viewer_count
-        FROM events
-        WHERE name = 'views.create'
-          AND "createdAt" >= :dayStart::date
-          AND "createdAt" < (:dayStart::date + INTERVAL '1 day')
-        GROUP BY "documentId"
+          COUNT(DISTINCT e."userId") AS viewer_count
+        FROM events e
+        INNER JOIN partitioned_documents pd ON pd.id = e."documentId"
+        WHERE e.name = 'views.create'
+          AND e."createdAt" >= :dayStart::date
+          AND e."createdAt" < (:dayStart::date + INTERVAL '1 day')
+        GROUP BY e."documentId"
       ),
       comment_counts AS (
-        SELECT "documentId", COUNT(*) AS comment_count
-        FROM comments
-        WHERE "createdAt" >= :dayStart::date
-          AND "createdAt" < (:dayStart::date + INTERVAL '1 day')
-        GROUP BY "documentId"
+        SELECT c."documentId", COUNT(*) AS comment_count
+        FROM comments c
+        INNER JOIN partitioned_documents pd ON pd.id = c."documentId"
+        WHERE c."createdAt" >= :dayStart::date
+          AND c."createdAt" < (:dayStart::date + INTERVAL '1 day')
+        GROUP BY c."documentId"
       ),
       reaction_counts AS (
         SELECT c."documentId", COUNT(rx.id) AS reaction_count
         FROM reactions rx
         INNER JOIN comments c ON c.id = rx."commentId"
+        INNER JOIN partitioned_documents pd ON pd.id = c."documentId"
         WHERE rx."createdAt" >= :dayStart::date
           AND rx."createdAt" < (:dayStart::date + INTERVAL '1 day')
         GROUP BY c."documentId"
       ),
       revision_counts AS (
         SELECT
-          "documentId",
+          r."documentId",
           COUNT(*) AS revision_count,
-          COUNT(DISTINCT "userId") AS editor_count
-        FROM revisions
-        WHERE "createdAt" >= :dayStart::date
-          AND "createdAt" < (:dayStart::date + INTERVAL '1 day')
-        GROUP BY "documentId"
+          COUNT(DISTINCT r."userId") AS editor_count
+        FROM revisions r
+        INNER JOIN partitioned_documents pd ON pd.id = r."documentId"
+        WHERE r."createdAt" >= :dayStart::date
+          AND r."createdAt" < (:dayStart::date + INTERVAL '1 day')
+        GROUP BY r."documentId"
       ),
       active AS (
         SELECT "documentId" FROM view_counts
@@ -83,8 +94,8 @@ export default class RollupDocumentInsightsTask extends CronTask {
         )
         SELECT
           uuid_generate_v4(),
-          d.id,
-          d."teamId",
+          pd.id,
+          pd."teamId",
           :dayStart::date,
           COALESCE(v.view_count, 0),
           COALESCE(v.viewer_count, 0),
@@ -94,14 +105,11 @@ export default class RollupDocumentInsightsTask extends CronTask {
           COALESCE(r.editor_count, 0),
           NOW(), NOW()
         FROM active a
-        INNER JOIN documents d ON d.id = a."documentId"
-        LEFT JOIN view_counts v ON v."documentId" = d.id
-        LEFT JOIN comment_counts c ON c."documentId" = d.id
-        LEFT JOIN reaction_counts rx ON rx."documentId" = d.id
-        LEFT JOIN revision_counts r ON r."documentId" = d.id
-        WHERE d."deletedAt" IS NULL
-          AND d.id >= :startUuid::uuid
-          AND d.id <= :endUuid::uuid
+        INNER JOIN partitioned_documents pd ON pd.id = a."documentId"
+        LEFT JOIN view_counts v ON v."documentId" = pd.id
+        LEFT JOIN comment_counts c ON c."documentId" = pd.id
+        LEFT JOIN reaction_counts rx ON rx."documentId" = pd.id
+        LEFT JOIN revision_counts r ON r."documentId" = pd.id
         ON CONFLICT ("documentId", date) DO UPDATE SET
           "viewCount" = EXCLUDED."viewCount",
           "viewerCount" = EXCLUDED."viewerCount",

@@ -1,5 +1,4 @@
-import { subDays, format } from "date-fns";
-import { Op } from "sequelize";
+import { Op, literal } from "sequelize";
 import { Minute } from "@shared/utils/time";
 import Logger from "@server/logging/Logger";
 import { DocumentInsight } from "@server/models";
@@ -13,7 +12,11 @@ const RETENTION_DAYS = 365;
 
 export default class CleanupExpiredDocumentInsightsTask extends CronTask {
   public async perform() {
-    const cutoff = format(subDays(new Date(), RETENTION_DAYS), "yyyy-MM-dd");
+    // Derive the cutoff in UTC from the database so retention isn't affected
+    // by the worker's local timezone. `date` is stored as a UTC DATE.
+    const cutoff = literal(
+      `(NOW() AT TIME ZONE 'UTC')::date - INTERVAL '${RETENTION_DAYS} days'`
+    );
     const deleted = await DocumentInsight.destroy({
       where: { date: { [Op.lt]: cutoff } },
     });
