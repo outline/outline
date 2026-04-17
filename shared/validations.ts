@@ -83,19 +83,19 @@ export const OAuthClientValidation = {
   maxNameLength: 100,
 
   /** The maximum length of the OAuth client description */
-  maxDescriptionLength: 1000,
+  maxDescriptionLength: 255,
 
   /** The maximum length of the OAuth client developer name */
   maxDeveloperNameLength: 100,
 
   /** The maximum length of the OAuth client developer URL */
-  maxDeveloperUrlLength: 1000,
+  maxDeveloperUrlLength: 255,
 
   /** The maximum length of the OAuth client avatar URL */
-  maxAvatarUrlLength: 1000,
+  maxAvatarUrlLength: 255,
 
   /** The maximum length of an OAuth client redirect URI */
-  maxRedirectUriLength: 1000,
+  maxRedirectUriLength: 255,
 
   /** The allowed OAuth client types */
   clientTypes: ["confidential", "public"] as const,
