@@ -76,7 +76,7 @@ function inputScopes(scope?: string): string[] {
  * and allows the user to either authorize or cancel the request.
  */
 function Authorize() {
-  const team = useCurrentTeam();
+  const team = useCurrentTeam({ rejectOnEmpty: false });
   const params = useQuery();
   const { t } = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -177,7 +177,7 @@ function Authorize() {
     );
   }
 
-  if (!response) {
+  if (!response || !team) {
     return <LoadingIndicator />;
   }
 
