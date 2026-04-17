@@ -65,7 +65,7 @@ export default class ShareDocumentUpdatedEmail extends BaseEmail<
       team?.getPreference(TeamPreference.PreviewsInEmails)
     ) {
       body = await CacheHelper.getDataOrSet<string>(
-        `diff:${props.revisionId}`,
+        `diff:share:${props.revisionId}`,
         async () => {
           // generate the diff html for the email
           const revision = await Revision.findByPk(props.revisionId!);
