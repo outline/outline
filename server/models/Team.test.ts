@@ -104,18 +104,23 @@ describe("Team", () => {
     });
 
     it("should return signed URL for private-bucket attachment redirect", async () => {
-      const team = await buildTeam();
-      const attachment = await buildAttachment({
-        teamId: team.id,
-        acl: "private",
-      });
+      jest.useFakeTimers().setSystemTime(new Date("2026-04-16T00:00:00.000Z"));
+      try {
+        const team = await buildTeam();
+        const attachment = await buildAttachment({
+          teamId: team.id,
+          acl: "private",
+        });
 
-      await team.update({
-        avatarUrl: `/api/attachments.redirect?id=${attachment.id}`,
-      });
+        await team.update({
+          avatarUrl: `/api/attachments.redirect?id=${attachment.id}`,
+        });
 
-      const result = await team.publicAvatarUrl();
-      expect(result).toEqual(await attachment.signedUrl);
+        const result = await team.publicAvatarUrl();
+        expect(result).toEqual(await attachment.signedUrl);
+      } finally {
+        jest.useRealTimers();
+      }
     });
 
     it("should return canonical URL for public-bucket attachment redirect", async () => {
