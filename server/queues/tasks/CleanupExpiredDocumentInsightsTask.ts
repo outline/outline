@@ -9,7 +9,7 @@ import { CronTask, TaskInterval } from "./base/CronTask";
 /**
  * Number of days of rollup history to retain.
  */
-const RETENTION_DAYS = 30;
+const RETENTION_DAYS = 365;
 
 export default class CleanupExpiredDocumentInsightsTask extends CronTask {
   public async perform() {

@@ -3,7 +3,6 @@ import { QueryTypes } from "sequelize";
 import { Minute } from "@shared/utils/time";
 import Logger from "@server/logging/Logger";
 import { sequelize } from "@server/storage/database";
-import UpdateDocumentsPopularityScoreTask from "./UpdateDocumentsPopularityScoreTask";
 import { TaskPriority } from "./base/BaseTask";
 import type { Props } from "./base/CronTask";
 import { CronTask, TaskInterval } from "./base/CronTask";
@@ -23,12 +22,6 @@ export default class RollupDocumentInsightsTask extends CronTask {
       const date = format(subDays(new Date(), offset), "yyyy-MM-dd");
       await this.rollupDay(date, startUuid, endUuid);
     }
-
-    // Kick off popularity recompute now that fresh rollup data is in place.
-    await new UpdateDocumentsPopularityScoreTask().schedule({
-      limit: 10000,
-      partition,
-    });
   }
 
   private async rollupDay(

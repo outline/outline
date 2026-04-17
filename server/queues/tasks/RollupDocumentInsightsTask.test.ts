@@ -7,7 +7,6 @@ import {
   buildUser,
 } from "@server/test/factories";
 import RollupDocumentInsightsTask from "./RollupDocumentInsightsTask";
-import UpdateDocumentsPopularityScoreTask from "./UpdateDocumentsPopularityScoreTask";
 
 const props = {
   limit: 10000,
@@ -29,14 +28,6 @@ describe("RollupDocumentInsightsTask", () => {
 
   beforeEach(() => {
     task = new RollupDocumentInsightsTask();
-    // Avoid queuing a follow-up popularity task (needs Redis).
-    jest
-      .spyOn(UpdateDocumentsPopularityScoreTask.prototype, "schedule")
-      .mockResolvedValue({} as never);
-  });
-
-  afterEach(() => {
-    jest.restoreAllMocks();
   });
 
   it("writes nothing when no source activity exists", async () => {
@@ -252,16 +243,5 @@ describe("RollupDocumentInsightsTask", () => {
     });
     expect(insight).toBeTruthy();
     expect(insight!.revisionCount).toBe(1);
-  });
-
-  it("enqueues the popularity recompute after rolling up", async () => {
-    const team = await buildTeam();
-    await buildDocument({ teamId: team.id });
-
-    await task.perform(props);
-
-    expect(
-      UpdateDocumentsPopularityScoreTask.prototype.schedule
-    ).toHaveBeenCalled();
   });
 });

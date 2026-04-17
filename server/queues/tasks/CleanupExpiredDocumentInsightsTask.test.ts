@@ -17,7 +17,7 @@ describe("CleanupExpiredDocumentInsightsTask", () => {
     await DocumentInsight.create({
       documentId: document.id,
       teamId: team.id,
-      date: dayStr(daysAgo(45)),
+      date: dayStr(daysAgo(400)),
       viewCount: 1,
     });
     await DocumentInsight.create({
@@ -36,7 +36,7 @@ describe("CleanupExpiredDocumentInsightsTask", () => {
       })
     ).map((i) => i.date);
 
-    expect(dates).not.toContain(dayStr(daysAgo(45)));
+    expect(dates).not.toContain(dayStr(daysAgo(400)));
     expect(dates).toContain(dayStr(daysAgo(5)));
   });
 });
