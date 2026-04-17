@@ -803,7 +803,7 @@ export async function buildOAuthClient(overrides: Partial<OAuthClient> = {}) {
   return OAuthClient.create(
     {
       name: faker.company.name(),
-      description: faker.lorem.paragraph(),
+      description: faker.lorem.sentence(),
       redirectUris: ["https://example.com/oauth/callback"],
       published: true,
       ...(overrides.createdAt && !overrides.updatedAt
