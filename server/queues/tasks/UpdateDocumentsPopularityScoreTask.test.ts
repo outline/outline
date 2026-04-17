@@ -1,12 +1,7 @@
-import { subDays } from "date-fns";
-import { Document, Revision, View } from "@server/models";
+import { format, subDays } from "date-fns";
+import { Document, DocumentInsight } from "@server/models";
 import { sequelize, sequelizeReadOnly } from "@server/storage/database";
-import {
-  buildDocument,
-  buildTeam,
-  buildUser,
-  buildComment,
-} from "@server/test/factories";
+import { buildDocument, buildTeam } from "@server/test/factories";
 import UpdateDocumentsPopularityScoreTask from "./UpdateDocumentsPopularityScoreTask";
 
 const props = {
@@ -17,6 +12,9 @@ const props = {
   },
 };
 
+const today = () => format(new Date(), "yyyy-MM-dd");
+const daysAgo = (n: number) => format(subDays(new Date(), n), "yyyy-MM-dd");
+
 describe("UpdateDocumentsPopularityScoreTask", () => {
   let task: UpdateDocumentsPopularityScoreTask;
 
@@ -24,12 +22,15 @@ describe("UpdateDocumentsPopularityScoreTask", () => {
     jest.setTimeout(30000);
   });
 
-  beforeEach(() => {
+  beforeEach(async () => {
     task = new UpdateDocumentsPopularityScoreTask();
-    jest.spyOn(Date.prototype, "getHours").mockReturnValue(0);
 
-    // Ensure calculation query sees data created in tests by redirecting to main sequelize instance.
-    // We only mock if the instances are different to avoid infinite recursion.
+    // Clear leftover rollup rows from prior tests so the staleness guard
+    // reflects only the data each test sets up.
+    await DocumentInsight.destroy({ where: {}, force: true });
+
+    // Ensure score query sees data created in tests by redirecting read
+    // replica queries to the primary connection.
     if (sequelizeReadOnly !== sequelize) {
       jest
         .spyOn(sequelizeReadOnly, "query")
@@ -41,160 +42,179 @@ describe("UpdateDocumentsPopularityScoreTask", () => {
     jest.restoreAllMocks();
   });
 
-  it("should skip execution if not at a 6-hour interval", async () => {
-    jest.spyOn(Date.prototype, "getHours").mockReturnValue(1);
+  it("should skip when no fresh rollup data exists", async () => {
     const team = await buildTeam();
     const document = await buildDocument({
       teamId: team.id,
       publishedAt: new Date(),
     });
-
-    await task.perform(props);
-
-    const updatedDocument = await Document.findByPk(document.id);
-    expect(updatedDocument?.popularityScore).toBe(0);
-  });
-
-  it("should update popularity score based on revisions", async () => {
-    const team = await buildTeam();
-    const user = await buildUser({ teamId: team.id });
-    const document = await buildDocument({
-      teamId: team.id,
-      publishedAt: new Date(),
-    });
-
-    await Revision.create({
+    // Only stale rollup data (8 days old).
+    await DocumentInsight.create({
       documentId: document.id,
-      userId: user.id,
-      title: document.title,
-      text: "Content",
-      createdAt: subDays(new Date(), 1),
+      teamId: team.id,
+      date: daysAgo(8),
+      viewCount: 100,
     });
 
     await task.perform(props);
 
-    const updatedDocument = await Document.findByPk(document.id);
-    expect(updatedDocument?.popularityScore).toBeGreaterThan(0);
+    const updated = await Document.findByPk(document.id);
+    expect(updated?.popularityScore).toBe(0);
   });
 
-  it("should update popularity score based on views", async () => {
+  it("should update score from rollup view counts", async () => {
     const team = await buildTeam();
-    const user = await buildUser({ teamId: team.id });
     const document = await buildDocument({
       teamId: team.id,
       publishedAt: new Date(),
     });
-
-    await View.create({
+    await DocumentInsight.create({
       documentId: document.id,
-      userId: user.id,
+      teamId: team.id,
+      date: daysAgo(1),
+      viewCount: 10,
+      viewerCount: 5,
     });
 
     await task.perform(props);
 
-    const updatedDocument = await Document.findByPk(document.id);
-    expect(updatedDocument?.popularityScore).toBeGreaterThan(0);
+    const updated = await Document.findByPk(document.id);
+    expect(updated?.popularityScore).toBeGreaterThan(0);
   });
 
-  it("should update popularity score based on comments", async () => {
+  it("should update score from rollup revision counts", async () => {
     const team = await buildTeam();
-    const user = await buildUser({ teamId: team.id });
     const document = await buildDocument({
       teamId: team.id,
       publishedAt: new Date(),
     });
-
-    await buildComment({
+    await DocumentInsight.create({
       documentId: document.id,
-      userId: user.id,
+      teamId: team.id,
+      date: daysAgo(1),
+      revisionCount: 2,
+      editorCount: 1,
     });
 
     await task.perform(props);
 
-    const updatedDocument = await Document.findByPk(document.id);
-    expect(updatedDocument?.popularityScore).toBeGreaterThan(0);
+    const updated = await Document.findByPk(document.id);
+    expect(updated?.popularityScore).toBeGreaterThan(0);
   });
 
-  it("should handle multiple documents and give higher score to more recent activity", async () => {
+  it("should weight comments and reactions above views", async () => {
     const team = await buildTeam();
-    const user = await buildUser({ teamId: team.id });
-
-    const doc1 = await buildDocument({
+    const viewDoc = await buildDocument({
       teamId: team.id,
       publishedAt: new Date(),
     });
-    const doc2 = await buildDocument({
+    const commentDoc = await buildDocument({
       teamId: team.id,
       publishedAt: new Date(),
     });
 
-    // Recent activity for doc1
-    await Revision.create({
-      documentId: doc1.id,
-      userId: user.id,
-      title: doc1.title,
-      text: "Content",
-      createdAt: subDays(new Date(), 1),
+    await DocumentInsight.create({
+      documentId: viewDoc.id,
+      teamId: team.id,
+      date: today(),
+      viewCount: 1,
     });
-
-    // Older activity for doc2
-    await Revision.create({
-      documentId: doc2.id,
-      userId: user.id,
-      title: doc2.title,
-      text: "Content",
-      createdAt: subDays(new Date(), 5),
+    await DocumentInsight.create({
+      documentId: commentDoc.id,
+      teamId: team.id,
+      date: today(),
+      commentCount: 1,
     });
 
     await task.perform(props);
 
-    const updatedDoc1 = await Document.findByPk(doc1.id);
-    const updatedDoc2 = await Document.findByPk(doc2.id);
+    const updatedView = await Document.findByPk(viewDoc.id);
+    const updatedComment = await Document.findByPk(commentDoc.id);
 
-    expect(updatedDoc1?.popularityScore).toBeGreaterThan(
-      updatedDoc2?.popularityScore || 0
+    expect(updatedComment?.popularityScore).toBeGreaterThan(
+      updatedView?.popularityScore || 0
     );
   });
 
-  it("should only process published and non-deleted documents", async () => {
+  it("should give higher score to more recent activity", async () => {
     const team = await buildTeam();
-    const user = await buildUser({ teamId: team.id });
-
-    // Unpublished document (draft)
-    const draft = await buildDocument({
+    const recent = await buildDocument({
       teamId: team.id,
-      publishedAt: undefined,
+      publishedAt: new Date(),
     });
-    await Revision.create({
-      documentId: draft.id,
-      userId: user.id,
-      title: draft.title,
-      text: "Content",
-      createdAt: new Date(),
+    const older = await buildDocument({
+      teamId: team.id,
+      publishedAt: new Date(),
     });
 
-    // Deleted document
+    await DocumentInsight.create({
+      documentId: recent.id,
+      teamId: team.id,
+      date: daysAgo(1),
+      revisionCount: 1,
+    });
+    await DocumentInsight.create({
+      documentId: older.id,
+      teamId: team.id,
+      date: daysAgo(7),
+      revisionCount: 1,
+    });
+    // Include a fresh rollup row so the staleness guard passes.
+    await DocumentInsight.create({
+      documentId: recent.id,
+      teamId: team.id,
+      date: today(),
+      viewCount: 0,
+    });
+
+    await task.perform(props);
+
+    const updatedRecent = await Document.findByPk(recent.id);
+    const updatedOlder = await Document.findByPk(older.id);
+
+    expect(updatedRecent?.popularityScore).toBeGreaterThan(
+      updatedOlder?.popularityScore || 0
+    );
+  });
+
+  it("should exclude deleted documents", async () => {
+    const team = await buildTeam();
     const deleted = await buildDocument({
       teamId: team.id,
       publishedAt: new Date(),
       deletedAt: new Date(),
     });
-    await Revision.create({
+    await DocumentInsight.create({
       documentId: deleted.id,
-      userId: user.id,
-      title: deleted.title,
-      text: "Content",
-      createdAt: new Date(),
+      teamId: team.id,
+      date: today(),
+      revisionCount: 5,
     });
 
     await task.perform(props);
 
-    const updatedDraft = await Document.unscoped().findByPk(draft.id);
-    const updatedDeleted = await Document.unscoped().findByPk(deleted.id, {
+    const updated = await Document.unscoped().findByPk(deleted.id, {
       paranoid: false,
     });
+    expect(Number(updated?.popularityScore)).toBe(0);
+  });
 
-    expect(Number(updatedDraft?.popularityScore)).toEqual(0);
-    expect(Number(updatedDeleted?.popularityScore)).toEqual(0);
+  it("should include unpublished documents", async () => {
+    const team = await buildTeam();
+    const draft = await buildDocument({
+      teamId: team.id,
+      publishedAt: undefined,
+    });
+    await DocumentInsight.create({
+      documentId: draft.id,
+      teamId: team.id,
+      date: today(),
+      revisionCount: 3,
+    });
+
+    await task.perform(props);
+
+    const updated = await Document.unscoped().findByPk(draft.id);
+    expect(Number(updated?.popularityScore)).toBeGreaterThan(0);
   });
 });

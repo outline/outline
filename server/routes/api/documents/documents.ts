@@ -1,4 +1,5 @@
 import path from "node:path";
+import { format, subDays } from "date-fns";
 import fractionalIndex from "fractional-index";
 import fs from "fs-extra";
 import invariant from "invariant";
@@ -49,6 +50,7 @@ import {
   Relationship,
   Collection,
   Document,
+  DocumentInsight,
   Event,
   Revision,
   SearchQuery,
@@ -69,6 +71,7 @@ import { TextHelper } from "@server/models/helpers/TextHelper";
 import { authorize, cannot } from "@server/policies";
 import {
   presentDocument,
+  presentDocumentInsight,
   presentDocuments,
   presentPolicies,
   presentTemplate,
@@ -617,6 +620,41 @@ router.post(
             }
           : serializedDocument,
       policies: isPublic ? undefined : presentPolicies(user, [document]),
+    };
+  }
+);
+
+router.post(
+  "documents.insights",
+  auth(),
+  validate(T.DocumentsInsightsSchema),
+  async (ctx: APIContext<T.DocumentsInsightsReq>) => {
+    const { id, startDate, endDate } = ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    const document = await Document.findByPk(id, { userId: user.id });
+    authorize(user, "listViews", document);
+
+    if (!document.insightsEnabled) {
+      throw ValidationError("Insights are not enabled for this document");
+    }
+
+    const end = endDate ?? new Date();
+    const start = startDate ?? subDays(end, 30);
+
+    const insights = await DocumentInsight.findAll({
+      where: {
+        documentId: document.id,
+        date: {
+          [Op.gte]: format(start, "yyyy-MM-dd"),
+          [Op.lte]: format(end, "yyyy-MM-dd"),
+        },
+      },
+      order: [["date", "ASC"]],
+    });
+
+    ctx.body = {
+      data: insights.map(presentDocumentInsight),
     };
   }
 );
