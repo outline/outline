@@ -50,6 +50,8 @@ export type HTMLOptions = {
   baseUrl?: string;
   /** Changes to highlight in the document */
   changes?: readonly ExtendedChange[];
+  /** CSP nonce to apply to injected inline scripts */
+  cspNonce?: string;
 };
 
 export type MentionAttrs = {
@@ -557,6 +559,10 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
 
         const element = dom.window.document.createElement("script");
         element.setAttribute("type", "module");
+
+        if (options?.cspNonce) {
+          element.setAttribute("nonce", options.cspNonce);
+        }
 
         // Inject Mermaid script
         if (mermaidElements.length) {

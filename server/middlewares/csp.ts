@@ -33,10 +33,18 @@ const getBucketOrigin = () => {
   }
 };
 
+interface CSPOptions {
+  /** Additional origins to allow as script sources. */
+  extraScriptSrc?: string[];
+}
+
 /**
  * Create a Content Security Policy middleware for the application.
+ *
+ * @param options Optional configuration for the CSP middleware.
+ * @returns A Koa middleware function that applies the CSP headers.
  */
-export default function createCSPMiddleware() {
+export default function createCSPMiddleware(options?: CSPOptions) {
   // Construct scripts CSP based on options in use
   const defaultSrc: string[] = ["'self'"];
   const scriptSrc: string[] = [];
@@ -83,6 +91,7 @@ export default function createCSPMiddleware() {
         styleSrc,
         scriptSrc: [
           ...uniq(scriptSrc),
+          ...(options?.extraScriptSrc ?? []),
           env.DEVELOPMENT_UNSAFE_INLINE_CSP
             ? "'unsafe-inline'"
             : `'nonce-${ctx.state.cspNonce}'`,
