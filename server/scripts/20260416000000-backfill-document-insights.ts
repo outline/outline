@@ -1,6 +1,6 @@
 import "./bootstrap";
-import { format, subDays } from "date-fns";
 import { QueryTypes } from "sequelize";
+import { Day } from "@shared/utils/time";
 import { sequelize } from "@server/storage/database";
 
 const DEFAULT_DAYS = 14;
@@ -12,7 +12,7 @@ const backfillDays = Number.isNaN(days) ? DEFAULT_DAYS : days;
  * Populates document_insights with one row per (document, day) for each day
  * within the backfill window that has source activity. Safe to re-run — the
  * upsert keys on (documentId, date). Source ranges are half-open
- * [dayStart, dayStart + 1) so events land in exactly one day.
+ * [dayStart, dayStart + 1) in UTC so events land in exactly one day.
  */
 async function backfillDay(date: string): Promise<number> {
   const [{ upserted }] = await sequelize.query<{ upserted: string }>(
@@ -24,23 +24,23 @@ async function backfillDay(date: string): Promise<number> {
         COUNT(DISTINCT "userId") AS viewer_count
       FROM events
       WHERE name = 'views.create'
-        AND "createdAt" >= :dayStart::date
-        AND "createdAt" < (:dayStart::date + INTERVAL '1 day')
+        AND "createdAt" >= :dayStart::timestamp AT TIME ZONE 'UTC'
+        AND "createdAt" < (:dayStart::timestamp + INTERVAL '1 day') AT TIME ZONE 'UTC'
       GROUP BY "documentId"
     ),
     comment_counts AS (
       SELECT "documentId", COUNT(*) AS comment_count
       FROM comments
-      WHERE "createdAt" >= :dayStart::date
-        AND "createdAt" < (:dayStart::date + INTERVAL '1 day')
+      WHERE "createdAt" >= :dayStart::timestamp AT TIME ZONE 'UTC'
+        AND "createdAt" < (:dayStart::timestamp + INTERVAL '1 day') AT TIME ZONE 'UTC'
       GROUP BY "documentId"
     ),
     reaction_counts AS (
       SELECT c."documentId", COUNT(rx.id) AS reaction_count
       FROM reactions rx
       INNER JOIN comments c ON c.id = rx."commentId"
-      WHERE rx."createdAt" >= :dayStart::date
-        AND rx."createdAt" < (:dayStart::date + INTERVAL '1 day')
+      WHERE rx."createdAt" >= :dayStart::timestamp AT TIME ZONE 'UTC'
+        AND rx."createdAt" < (:dayStart::timestamp + INTERVAL '1 day') AT TIME ZONE 'UTC'
       GROUP BY c."documentId"
     ),
     revision_counts AS (
@@ -49,8 +49,8 @@ async function backfillDay(date: string): Promise<number> {
         COUNT(*) AS revision_count,
         COUNT(DISTINCT "userId") AS editor_count
       FROM revisions
-      WHERE "createdAt" >= :dayStart::date
-        AND "createdAt" < (:dayStart::date + INTERVAL '1 day')
+      WHERE "createdAt" >= :dayStart::timestamp AT TIME ZONE 'UTC'
+        AND "createdAt" < (:dayStart::timestamp + INTERVAL '1 day') AT TIME ZONE 'UTC'
       GROUP BY "documentId"
     ),
     active AS (
@@ -111,7 +111,9 @@ async function main() {
   console.log(`Backfilling ${backfillDays} days of document insights…`);
 
   for (let offset = backfillDays; offset >= 1; offset--) {
-    const date = format(subDays(new Date(), offset), "yyyy-MM-dd");
+    const date = new Date(Date.now() - offset * Day.ms)
+      .toISOString()
+      .slice(0, 10);
     const upserted = await backfillDay(date);
     console.log(`  ${date}: ${upserted} rows`);
   }

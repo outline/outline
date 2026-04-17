@@ -1,5 +1,4 @@
 import path from "node:path";
-import { format, subDays } from "date-fns";
 import fractionalIndex from "fractional-index";
 import fs from "fs-extra";
 import invariant from "invariant";
@@ -25,6 +24,7 @@ import {
 } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import slugify from "@shared/utils/slugify";
+import { Day } from "@shared/utils/time";
 import documentCreator from "@server/commands/documentCreator";
 import documentDuplicator from "@server/commands/documentDuplicator";
 import documentLoader from "@server/commands/documentLoader";
@@ -640,14 +640,14 @@ router.post(
     }
 
     const end = endDate ?? new Date();
-    const start = startDate ?? subDays(end, 30);
+    const start = startDate ?? new Date(end.getTime() - 30 * Day.ms);
 
     const insights = await DocumentInsight.findAll({
       where: {
         documentId: document.id,
         date: {
-          [Op.gte]: format(start, "yyyy-MM-dd"),
-          [Op.lte]: format(end, "yyyy-MM-dd"),
+          [Op.gte]: start.toISOString().slice(0, 10),
+          [Op.lte]: end.toISOString().slice(0, 10),
         },
       },
       order: [["date", "ASC"]],

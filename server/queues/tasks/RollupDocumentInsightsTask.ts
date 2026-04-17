@@ -1,6 +1,5 @@
-import { subDays, format } from "date-fns";
 import { QueryTypes } from "sequelize";
-import { Minute } from "@shared/utils/time";
+import { Day, Minute } from "@shared/utils/time";
 import Logger from "@server/logging/Logger";
 import { sequelize } from "@server/storage/database";
 import { TaskPriority } from "./base/BaseTask";
@@ -8,9 +7,10 @@ import type { Props } from "./base/CronTask";
 import { CronTask, TaskInterval } from "./base/CronTask";
 
 /**
- * Number of recent days to (re)compute on each run. Reprocessing the two
- * most recent days lets late-arriving writes (slow workers, out-of-order
- * event emission) settle into the rollup. The upsert is idempotent.
+ * Number of recent days to (re)compute on each run, in addition to the current
+ * day. Reprocessing the most recent days lets late-arriving writes (slow
+ * workers, out-of-order event emission) settle into the rollup. The upsert is
+ * idempotent.
  */
 const RECOMPUTE_DAYS = 2;
 
@@ -18,8 +18,10 @@ export default class RollupDocumentInsightsTask extends CronTask {
   public async perform({ partition }: Props) {
     const [startUuid, endUuid] = this.getPartitionBounds(partition);
 
-    for (let offset = RECOMPUTE_DAYS; offset >= 1; offset--) {
-      const date = format(subDays(new Date(), offset), "yyyy-MM-dd");
+    for (let offset = RECOMPUTE_DAYS; offset >= 0; offset--) {
+      const date = new Date(Date.now() - offset * Day.ms)
+        .toISOString()
+        .slice(0, 10);
       await this.rollupDay(date, startUuid, endUuid);
     }
   }
@@ -46,16 +48,16 @@ export default class RollupDocumentInsightsTask extends CronTask {
         FROM events e
         INNER JOIN partitioned_documents pd ON pd.id = e."documentId"
         WHERE e.name = 'views.create'
-          AND e."createdAt" >= :dayStart::date
-          AND e."createdAt" < (:dayStart::date + INTERVAL '1 day')
+          AND e."createdAt" >= :dayStart::timestamp AT TIME ZONE 'UTC'
+          AND e."createdAt" < (:dayStart::timestamp + INTERVAL '1 day') AT TIME ZONE 'UTC'
         GROUP BY e."documentId"
       ),
       comment_counts AS (
         SELECT c."documentId", COUNT(*) AS comment_count
         FROM comments c
         INNER JOIN partitioned_documents pd ON pd.id = c."documentId"
-        WHERE c."createdAt" >= :dayStart::date
-          AND c."createdAt" < (:dayStart::date + INTERVAL '1 day')
+        WHERE c."createdAt" >= :dayStart::timestamp AT TIME ZONE 'UTC'
+          AND c."createdAt" < (:dayStart::timestamp + INTERVAL '1 day') AT TIME ZONE 'UTC'
         GROUP BY c."documentId"
       ),
       reaction_counts AS (
@@ -63,8 +65,8 @@ export default class RollupDocumentInsightsTask extends CronTask {
         FROM reactions rx
         INNER JOIN comments c ON c.id = rx."commentId"
         INNER JOIN partitioned_documents pd ON pd.id = c."documentId"
-        WHERE rx."createdAt" >= :dayStart::date
-          AND rx."createdAt" < (:dayStart::date + INTERVAL '1 day')
+        WHERE rx."createdAt" >= :dayStart::timestamp AT TIME ZONE 'UTC'
+          AND rx."createdAt" < (:dayStart::timestamp + INTERVAL '1 day') AT TIME ZONE 'UTC'
         GROUP BY c."documentId"
       ),
       revision_counts AS (
@@ -74,8 +76,8 @@ export default class RollupDocumentInsightsTask extends CronTask {
           COUNT(DISTINCT r."userId") AS editor_count
         FROM revisions r
         INNER JOIN partitioned_documents pd ON pd.id = r."documentId"
-        WHERE r."createdAt" >= :dayStart::date
-          AND r."createdAt" < (:dayStart::date + INTERVAL '1 day')
+        WHERE r."createdAt" >= :dayStart::timestamp AT TIME ZONE 'UTC'
+          AND r."createdAt" < (:dayStart::timestamp + INTERVAL '1 day') AT TIME ZONE 'UTC'
         GROUP BY r."documentId"
       ),
       active AS (
