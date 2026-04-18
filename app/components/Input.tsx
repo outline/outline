@@ -284,7 +284,8 @@ function Input(
 
   const showCharCount =
     (type === "textarea" || showCharacterCount) &&
-    ((maxLength !== undefined && charCount >= maxLength * 0.9) ||
+    maxLength !== undefined &&
+    (charCount >= maxLength * 0.9 ||
       (warningLimit !== undefined && charCount >= warningLimit));
 
   const overWarningLimit =
