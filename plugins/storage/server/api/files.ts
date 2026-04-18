@@ -53,10 +53,12 @@ router.post(
       throw AuthorizationError("Invalid key");
     }
 
-    if (file.size > attachment.size) {
+    const declaredSize = Number(attachment.size);
+
+    if (file.size > declaredSize) {
       throw ValidationError(
         `The uploaded file exceeds the declared size of ${bytesToHumanReadable(
-          attachment.size
+          declaredSize
         )}`
       );
     }
@@ -72,7 +74,7 @@ router.post(
       throw err;
     }
 
-    if (attachment.size !== file.size) {
+    if (declaredSize !== file.size) {
       await attachment.update({ size: file.size }, { silent: true });
     }
 
