@@ -6,6 +6,7 @@ import {
   Action,
   toggleEventPluginKey,
   toggleFoldPluginKey,
+  toggleStorageKey,
 } from "./ToggleBlock";
 
 /**
@@ -121,7 +122,7 @@ export class ToggleBlockView implements NodeView {
 
   private broadcastFoldState(event: StorageEvent) {
     if (
-      event.key !== this.node.attrs.id ||
+      event.key !== toggleStorageKey(this.node.attrs.id) ||
       !event.newValue ||
       !event.oldValue
     ) {
