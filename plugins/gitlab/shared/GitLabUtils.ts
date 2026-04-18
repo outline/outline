@@ -282,6 +282,9 @@ export class GitLabUtils {
    * our editor. Strips or converts GitLab-specific syntax that would otherwise
    * render as raw text in previews.
    *
+   * Note: This is for display purposes only and is not a security boundary.
+   * Do not rely on this to sanitize untrusted HTML.
+   *
    * @param text - the markdown text to sanitize.
    * @returns the sanitized text, or null if input is null/undefined.
    */
@@ -295,7 +298,7 @@ export class GitLabUtils {
     return (
       text
         // YAML front matter
-        .replace(/^---\n[\s\S]*?\n---\n?/, "")
+        .replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, "")
         // HTML comments
         .replace(/<!--[\s\S]*?-->/g, "")
         // Collapsible sections: extract inner content
@@ -307,8 +310,8 @@ export class GitLabUtils {
         .replace(/\[\[_TOC_\]\]/g, "")
         .replace(/^\[TOC\]$/gm, "")
         // Inline diffs
-        .replace(/\{\+([^+]*)\+\}/g, "$1")
-        .replace(/\[-([^\]]*)-\]/g, "~~$1~~")
+        .replace(/\{\+([\s\S]*?)\+\}/g, "$1")
+        .replace(/\[-([\s\S]*?)-\]/g, "~~$1~~")
         // Multiline blockquotes
         .replace(/^>>>\s*$/gm, "")
         // Footnote definitions

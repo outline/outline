@@ -24,6 +24,11 @@ describe("GitLabUtils.sanitizeGitLabMarkdown", () => {
     expect(GitLabUtils.sanitizeGitLabMarkdown(md)).toBe("# Real content");
   });
 
+  it("should strip YAML front matter with CRLF line endings", () => {
+    const md = "---\r\ntitle: Test\r\nauthor: Name\r\n---\r\n# Real content";
+    expect(GitLabUtils.sanitizeGitLabMarkdown(md)).toBe("# Real content");
+  });
+
   it("should not strip --- that is not front matter", () => {
     const md = "Some text\n---\nMore text";
     expect(GitLabUtils.sanitizeGitLabMarkdown(md)).toBe(md);
@@ -60,6 +65,12 @@ describe("GitLabUtils.sanitizeGitLabMarkdown", () => {
   it("should convert inline diff additions to plain text", () => {
     expect(GitLabUtils.sanitizeGitLabMarkdown("This is {+added+} text")).toBe(
       "This is added text"
+    );
+  });
+
+  it("should convert inline diff additions containing + characters", () => {
+    expect(GitLabUtils.sanitizeGitLabMarkdown("Formula: {+a+b+c+}")).toBe(
+      "Formula: a+b+c"
     );
   });
 
