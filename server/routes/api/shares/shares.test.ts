@@ -571,6 +571,46 @@ describe("#shares.create", () => {
     expect(res.status).toEqual(403);
   });
 
+  it("should not allow creating a share for a document in another team", async () => {
+    const user = await buildUser();
+    const otherDocument = await buildDocument();
+
+    const res = await server.post("/api/shares.create", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: otherDocument.id,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should not allow creating a published share for a document in another team", async () => {
+    const user = await buildUser();
+    const otherDocument = await buildDocument();
+
+    const res = await server.post("/api/shares.create", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: otherDocument.id,
+        published: true,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should not allow creating a share for a collection in another team", async () => {
+    const user = await buildUser();
+    const otherCollection = await buildCollection();
+
+    const res = await server.post("/api/shares.create", {
+      body: {
+        token: user.getJwtToken(),
+        collectionId: otherCollection.id,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
   it("should not allow creating a share with both a collectionId and documentId", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
