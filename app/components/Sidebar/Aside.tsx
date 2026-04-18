@@ -10,6 +10,7 @@ import ResizeBorder from "~/components/Sidebar/components/ResizeBorder";
 import useStores from "~/hooks/useStores";
 import useWindowScrollbarWidth from "~/hooks/useWindowScrollbarWidth";
 import { sidebarAppearDuration } from "~/styles/animations";
+import { useDirection } from "@radix-ui/react-direction";
 
 interface Props extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
@@ -25,17 +26,18 @@ function Aside({ children, border, className, skipInitialAnimation }: Props) {
   const maxWidth = theme.sidebarMaxWidth;
   const minWidth = theme.sidebarMinWidth + 16; // padding
   const windowScrollbarWidth = useWindowScrollbarWidth();
+  const direction = useDirection();
 
   const handleDrag = React.useCallback(
     (event: MouseEvent) => {
       // suppresses text selection
       event.preventDefault();
-      const isRTL = document.documentElement.dir === "rtl";
-      const distance = isRTL ? event.pageX : window.innerWidth - event.pageX;
+      const distance =
+        direction === "rtl" ? event.pageX : window.innerWidth - event.pageX;
       const width = Math.max(Math.min(distance, maxWidth), minWidth);
       ui.set({ sidebarRightWidth: width });
     },
-    [minWidth, maxWidth, ui]
+    [minWidth, maxWidth, direction, ui]
   );
 
   const handleReset = React.useCallback(() => {

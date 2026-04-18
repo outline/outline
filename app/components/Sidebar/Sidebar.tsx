@@ -22,6 +22,7 @@ import ResizeBorder from "./components/ResizeBorder";
 import SidebarButton from "./components/SidebarButton";
 import ToggleButton from "./components/ToggleButton";
 import { useTranslation } from "react-i18next";
+import { useDirection } from "@radix-ui/react-direction";
 
 const ANIMATION_MS = 250;
 
@@ -53,6 +54,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
   const maxWidth = theme.sidebarMaxWidth;
   const minWidth = theme.sidebarMinWidth + 16; // padding
   const { trigger } = useWebHaptics();
+  const direction = useDirection();
 
   const [offset, setOffset] = React.useState(0);
   const [isHovering, setHovering] = React.useState(false);
@@ -66,8 +68,8 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
     (event: MouseEvent) => {
       // suppresses text selection
       event.preventDefault();
-      const isRTL = document.documentElement.dir === "rtl";
-      const rawWidth = isRTL ? offset - event.pageX : event.pageX - offset;
+      const rawWidth =
+        direction === "rtl" ? offset - event.pageX : event.pageX - offset;
       const newWidth = Math.min(rawWidth, maxWidth);
       const isSmallerThanCollapsePoint = newWidth < minWidth / 2;
 
@@ -81,7 +83,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
         ui.set({ sidebarWidth: Math.max(newWidth, minWidth) });
       }
     },
-    [ui, theme, offset, minWidth, maxWidth]
+    [ui, theme, offset, minWidth, maxWidth, direction]
   );
 
   const handleStopDrag = React.useCallback(() => {
@@ -118,12 +120,13 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
         return;
       }
 
-      const isRTL = document.documentElement.dir === "rtl";
-      setOffset(isRTL ? event.pageX + width : event.pageX - width);
+      setOffset(
+        direction === "rtl" ? event.pageX + width : event.pageX - width
+      );
       setResizing(true);
       setAnimating(false);
     },
-    [width]
+    [width, direction]
   );
 
   const handlePointerActivity = React.useCallback(() => {
@@ -147,10 +150,11 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
 
         // add a short delay when mouse exits the sidebar before closing
         hoverTimeoutRef.current = setTimeout(() => {
-          const isRTL = document.documentElement.dir === "rtl";
-          const withinSidebar = isRTL
-            ? ev.pageX > window.innerWidth - width
-            : ev.pageX < width;
+          const withinSidebar =
+            direction === "rtl"
+              ? ev.pageX > window.innerWidth - width
+              : ev.pageX < width;
+
           setHovering(
             document.hasFocus() &&
               withinSidebar &&
@@ -160,7 +164,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
         }, 500);
       }
     },
-    [width, hasPointerMoved]
+    [width, direction, hasPointerMoved]
   );
 
   React.useEffect(() => {
@@ -308,7 +312,7 @@ type ContainerProps = {
 };
 
 const hoverStyles = (props: ContainerProps) => `
-  transform: none;
+  transform: none !important;
   box-shadow: ${
     props.$collapsed
       ? "rgba(0, 0, 0, 0.2) 1px 0 4px"
@@ -331,9 +335,9 @@ const Container = styled(Flex)<ContainerProps>`
   background: ${s("sidebarBackground")};
   transition:
     box-shadow 150ms ease-in-out,
-    transform 150ms ease-out,
-    ${(props: ContainerProps) =>
-      props.$isAnimating ? `,width ${ANIMATION_MS}ms ease-out` : ""};
+    transform 150ms
+      ease-out${(props: ContainerProps) =>
+        props.$isAnimating ? `, width ${ANIMATION_MS}ms ease-out` : ""};
   transform: translateX(
     ${(props) => (props.$mobileSidebarVisible ? 0 : "-100%")}
   );
@@ -382,11 +386,7 @@ const Container = styled(Flex)<ContainerProps>`
 
     [dir="rtl"] & {
       transform: translateX(${(props: ContainerProps) =>
-        props.$isHovering
-          ? 0
-          : props.$collapsed
-            ? `calc(100% - ${Desktop.hasInsetTitlebar() ? 8 : 16}px)`
-            : 0});
+        props.$collapsed ? `calc(100% - 8px)` : 0});
     }
 
     ${(props: ContainerProps) => props.$isHovering && css(hoverStyles)}
@@ -395,18 +395,10 @@ const Container = styled(Flex)<ContainerProps>`
       ${ToggleButton} {
         opacity: 1;
       }
-
-      [dir="rtl"] & {
-        transform: translateX(0);
-      }
     }
 
     &:focus-within {
       ${hoverStyles}
-
-      [dir="rtl"] & {
-        transform: translateX(0);
-      }
 
       & > div {
         opacity: 1;

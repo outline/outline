@@ -365,8 +365,8 @@ const IconWrapper = styled.span`
   align-items: center;
   width: 24px;
   height: 24px;
-  margin-left: -4px;
-  margin-right: 4px;
+  margin-inline-start: -4px;
+  margin-inline-end: 4px;
   overflow: hidden;
   flex-shrink: 0;
 `;
