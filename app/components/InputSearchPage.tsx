@@ -121,7 +121,7 @@ const Shortcut = styled.span<{ $visible: boolean }>`
   flex-shrink: 0;
   font-size: 13px;
   color: ${s("textTertiary")};
-  padding-right: 10px;
+  padding-inline: 0 10px;
   pointer-events: none;
   opacity: ${(props) => (props.$visible ? 1 : 0)};
   transition: opacity 100ms ease-in-out;

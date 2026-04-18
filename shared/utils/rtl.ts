@@ -4,6 +4,8 @@ const rtlChars = "\u0591-\u07FF\uFB1D-\uFDFD\uFE70-\uFEFC";
 // oxlint-disable-next-line no-misleading-character-class
 const rtlDirCheck = new RegExp("^[^" + ltrChars + "]*[" + rtlChars + "]");
 
+const rtlLanguageCodes = new Set(["ar", "fa", "he", "ps", "ur", "yi"]);
+
 /**
  * Returns true if the text is likely written in an RTL language.
  *
@@ -12,4 +14,19 @@ const rtlDirCheck = new RegExp("^[^" + ltrChars + "]*[" + rtlChars + "]");
  */
 export function isRTL(text: string) {
   return rtlDirCheck.test(text);
+}
+
+/**
+ * Returns true if the given locale is an RTL language. Accepts both CLDR
+ * (`he_IL`) and BCP47 (`he-IL`, `he`) formats.
+ *
+ * @param locale The locale to check
+ * @returns True if the locale is RTL
+ */
+export function isRTLLanguage(locale: string | null | undefined) {
+  if (!locale) {
+    return false;
+  }
+  const code = locale.toLowerCase().split(/[-_]/)[0];
+  return rtlLanguageCodes.has(code);
 }

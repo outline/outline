@@ -54,7 +54,6 @@ const tabStyles = `
   font-size: 14px;
   cursor: var(--pointer);
   user-select: none;
-  margin-right: 24px;
   padding: 6px 0;
 `;
 

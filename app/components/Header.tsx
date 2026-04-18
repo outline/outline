@@ -117,7 +117,7 @@ const Breadcrumbs = styled("div")`
   flex-grow: 1;
   flex-basis: 0;
   align-items: center;
-  padding-right: 8px;
+  padding-inline: 0 8px;
   display: flex;
 `;
 
@@ -125,7 +125,7 @@ const Actions = styled(Flex)`
   flex-grow: 1;
   flex-basis: 0;
   min-width: auto;
-  padding-left: 8px;
+  padding-inline: 8px 0;
   gap: 12px;
 
   ${breakpoint("tablet")`

@@ -4965,7 +4965,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@radix-ui/react-direction@npm:1.1.1":
+"@radix-ui/react-direction@npm:1.1.1, @radix-ui/react-direction@npm:^1.1.1":
   version: 1.1.1
   resolution: "@radix-ui/react-direction@npm:1.1.1"
   peerDependencies:
@@ -16940,6 +16940,7 @@ __metadata:
     "@radix-ui/react-collapsible": "npm:^1.1.12"
     "@radix-ui/react-context-menu": "npm:^2.2.16"
     "@radix-ui/react-dialog": "npm:^1.1.15"
+    "@radix-ui/react-direction": "npm:^1.1.1"
     "@radix-ui/react-dropdown-menu": "npm:^2.1.16"
     "@radix-ui/react-one-time-password-field": "npm:^0.1.8"
     "@radix-ui/react-popover": "npm:^1.1.15"

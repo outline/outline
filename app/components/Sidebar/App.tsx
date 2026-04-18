@@ -69,7 +69,7 @@ function AppSidebar() {
                   model={team}
                   size={24}
                   alt={t("Logo")}
-                  style={{ marginLeft: 4 }}
+                  style={{ insetInlineStart: 4 }}
                 />
               }
             >

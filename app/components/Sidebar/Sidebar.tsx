@@ -66,8 +66,9 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
     (event: MouseEvent) => {
       // suppresses text selection
       event.preventDefault();
-      // this is simple because the sidebar is always against the left edge
-      const newWidth = Math.min(event.pageX - offset, maxWidth);
+      const isRTL = document.documentElement.dir === "rtl";
+      const rawWidth = isRTL ? offset - event.pageX : event.pageX - offset;
+      const newWidth = Math.min(rawWidth, maxWidth);
       const isSmallerThanCollapsePoint = newWidth < minWidth / 2;
 
       if (canCollapse) {
@@ -117,7 +118,8 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
         return;
       }
 
-      setOffset(event.pageX - width);
+      const isRTL = document.documentElement.dir === "rtl";
+      setOffset(isRTL ? event.pageX + width : event.pageX - width);
       setResizing(true);
       setAnimating(false);
     },
@@ -145,9 +147,13 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
 
         // add a short delay when mouse exits the sidebar before closing
         hoverTimeoutRef.current = setTimeout(() => {
+          const isRTL = document.documentElement.dir === "rtl";
+          const withinSidebar = isRTL
+            ? ev.pageX > window.innerWidth - width
+            : ev.pageX < width;
           setHovering(
             document.hasFocus() &&
-              ev.pageX < width &&
+              withinSidebar &&
               ev.pageY < window.innerHeight &&
               ev.pageY > 0
           );
@@ -255,7 +261,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
                   alt={t("Avatar of {{ name }}", { name: user.name })}
                   model={user}
                   size={24}
-                  style={{ marginLeft: 4 }}
+                  style={{ marginInlineStart: 4 }}
                 />
               }
             >
@@ -320,6 +326,7 @@ const Container = styled(Flex)<ContainerProps>`
   position: fixed;
   top: 0;
   bottom: 0;
+  inset-inline-start: 0;
   width: 100%;
   background: ${s("sidebarBackground")};
   transition:
@@ -333,8 +340,14 @@ const Container = styled(Flex)<ContainerProps>`
   z-index: ${depths.mobileSidebar};
   max-width: 80%;
   min-width: 280px;
-  padding-left: var(--sal);
+  padding-inline-start: var(--sal);
   ${fadeOnDesktopBackgrounded()}
+
+  [dir="rtl"] & {
+    transform: translateX(
+      ${(props) => (props.$mobileSidebarVisible ? 0 : "100%")}
+    );
+  }
 
   @media print {
     display: none;
@@ -367,16 +380,33 @@ const Container = styled(Flex)<ContainerProps>`
         ? `calc(-100% + ${Desktop.hasInsetTitlebar() ? 8 : 16}px)`
         : 0});
 
+    [dir="rtl"] & {
+      transform: translateX(${(props: ContainerProps) =>
+        props.$isHovering
+          ? 0
+          : props.$collapsed
+            ? `calc(100% - ${Desktop.hasInsetTitlebar() ? 8 : 16}px)`
+            : 0});
+    }
+
     ${(props: ContainerProps) => props.$isHovering && css(hoverStyles)}
 
     &:hover {
       ${ToggleButton} {
         opacity: 1;
       }
+
+      [dir="rtl"] & {
+        transform: translateX(0);
+      }
     }
 
     &:focus-within {
       ${hoverStyles}
+
+      [dir="rtl"] & {
+        transform: translateX(0);
+      }
 
       & > div {
         opacity: 1;

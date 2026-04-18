@@ -1,6 +1,7 @@
 import type { i18n } from "i18next";
 import type { locales } from "@shared/utils/date";
 import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
+import { isRTLLanguage } from "@shared/utils/rtl";
 import Desktop from "./Desktop";
 
 /**
@@ -48,6 +49,10 @@ export async function changeLanguage(
   if (localeBCP && instance.languages?.[0] !== localeBCP) {
     await instance.changeLanguage(localeBCP);
     await Desktop.bridge?.setSpellCheckerLanguages(["en-US", localeBCP]);
+  }
+
+  if (typeof document !== "undefined") {
+    document.documentElement.dir = isRTLLanguage(locale) ? "rtl" : "ltr";
   }
 }
 

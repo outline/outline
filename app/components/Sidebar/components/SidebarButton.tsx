@@ -100,7 +100,7 @@ const Button = styled(Flex)<{
 
   -webkit-appearance: none;
   text-decoration: none;
-  text-align: left;
+  text-align: start;
   user-select: none;
   position: relative;
 
@@ -118,11 +118,11 @@ const Button = styled(Flex)<{
   }
 
   &:last-child {
-    margin-right: 8px;
+    margin-inline-end: 8px;
   }
 
   &:first-child {
-    margin-left: 8px;
+    margin-inline-start: 8px;
   }
 `;
 

@@ -14,6 +14,10 @@ const Nav = styled.nav<{ $shadowVisible?: boolean }>`
   -ms-overflow-style: none;
   scrollbar-width: none;
 
+  & > * + * {
+    margin-inline-start: 24px;
+  }
+
   &::-webkit-scrollbar {
     display: none;
   }
@@ -52,7 +56,6 @@ export const Separator = styled.span`
   border-left: 1px solid ${s("divider")};
   position: relative;
   top: 2px;
-  margin-right: 24px;
   margin-top: 6px;
 `;
 

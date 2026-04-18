@@ -75,7 +75,8 @@ const Button = styled.button`
   position: relative;
   letter-spacing: 0.03em;
   margin: 0;
-  padding: 4px 2px 4px 12px;
+  padding-block: 4px;
+  padding-inline: 12px 2px;
   border: 0;
   background: none;
   border-radius: 4px;
@@ -98,6 +99,10 @@ const Disclosure = styled(CollapsedIcon)<{ $expanded?: boolean }>`
     fill 50ms !important;
   ${(props) => !props.$expanded && "transform: rotate(-90deg);"};
   opacity: 0;
+
+  [dir="rtl"] & {
+    ${(props) => !props.$expanded && "transform: rotate(90deg);"};
+  }
 `;
 
 const H3 = styled.h3`

@@ -118,7 +118,7 @@ const DynamicDropCursor = observer(
 );
 
 const Loading = styled(PlaceholderCollections)`
-  margin-left: 44px;
+  margin-inline-start: 44px;
   min-height: 90px;
 `;
 

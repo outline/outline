@@ -18,7 +18,7 @@ interface Props extends React.HTMLAttributes<HTMLDivElement> {
   skipInitialAnimation?: boolean;
 }
 
-function Right({ children, border, className, skipInitialAnimation }: Props) {
+function Aside({ children, border, className, skipInitialAnimation }: Props) {
   const theme = useTheme();
   const { ui } = useStores();
   const [isResizing, setResizing] = React.useState(false);
@@ -30,10 +30,9 @@ function Right({ children, border, className, skipInitialAnimation }: Props) {
     (event: MouseEvent) => {
       // suppresses text selection
       event.preventDefault();
-      const width = Math.max(
-        Math.min(window.innerWidth - event.pageX, maxWidth),
-        minWidth
-      );
+      const isRTL = document.documentElement.dir === "rtl";
+      const distance = isRTL ? event.pageX : window.innerWidth - event.pageX;
+      const width = Math.max(Math.min(distance, maxWidth), minWidth);
       ui.set({ sidebarRightWidth: width });
     },
     [minWidth, maxWidth, ui]
@@ -108,7 +107,7 @@ function Right({ children, border, className, skipInitialAnimation }: Props) {
       $border={border}
       className={className}
       role="complementary"
-      aria-label="Right sidebar"
+      aria-label="Aside"
     >
       <Position style={style} column>
         <ErrorBoundary>{children}</ErrorBoundary>
@@ -136,15 +135,15 @@ const Sidebar = styled(m.div)<{
   flex-shrink: 0;
   background: ${s("background")};
   max-width: 80%;
-  border-left: 1px solid ${s("divider")};
-  transition: border-left 100ms ease-in-out;
+  border-inline-start: 1px solid ${s("divider")};
+  transition: border-inline-start 100ms ease-in-out;
   z-index: ${depths.sidebar};
 
   ${breakpoint("mobile", "tablet")`
     display: flex;
     position: absolute;
     top: 0;
-    right: 0;
+    inset-inline-end: 0;
     bottom: 0;
     z-index: ${depths.mobileSidebar};
   `}
@@ -154,4 +153,4 @@ const Sidebar = styled(m.div)<{
   `}
 `;
 
-export default observer(Right);
+export default observer(Aside);
