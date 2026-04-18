@@ -300,7 +300,11 @@ function DocumentRow({
           $isMoving={isMoving}
           onKeyDown={handleKeyDown}
         >
-          <div ref={dropToReparentRef}>{withImport}</div>
+          {dropToReparentRef ? (
+            <div ref={dropToReparentRef}>{withImport}</div>
+          ) : (
+            withImport
+          )}
         </Draggable>
         {cursorAfter}
       </Relative>

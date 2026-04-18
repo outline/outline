@@ -9,6 +9,7 @@ import styled, { useTheme } from "styled-components";
 import { UserPreference } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import type Collection from "~/models/Collection";
+import type Document from "~/models/Document";
 import type Star from "~/models/Star";
 import type { RefHandle } from "~/components/EditableTitle";
 import useBoolean from "~/hooks/useBoolean";
@@ -47,7 +48,7 @@ type Props = {
 };
 
 type StarredDocumentLinkProps = {
-  documentId: string;
+  document: Document;
   expanded: boolean;
   sidebarContext: SidebarContextType;
   isDragging: boolean;
@@ -76,7 +77,7 @@ type StarredCollectionLinkProps = {
 };
 
 const StarredDocumentLink = observer(function StarredDocumentLink({
-  documentId,
+  document,
   expanded,
   sidebarContext,
   isDragging,
@@ -94,16 +95,14 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
   const history = useHistory();
   const user = useCurrentUser();
   const { collections, documents } = useStores();
-  const can = usePolicy(documentId);
+  const can = usePolicy(document);
   const editableTitleRef = React.useRef<RefHandle>(null);
 
-  const document = documents.get(documentId);
-
-  const documentCollection = document?.collectionId
+  const documentCollection = document.collectionId
     ? collections.get(document.collectionId)
     : undefined;
   const childDocuments = documentCollection
-    ? documentCollection.getChildrenForDocument(documentId)
+    ? documentCollection.getChildrenForDocument(document.id)
     : [];
   const hasChildDocuments = childDocuments.length > 0;
   const displayChildDocuments = expanded && !isDragging;
@@ -133,7 +132,7 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
       const newDocument = await documents.create(
         {
           collectionId: documentCollection?.id,
-          parentDocumentId: documentId,
+          parentDocumentId: document.id,
           fullWidth:
             document.fullWidth ??
             user.getPreference(UserPreference.FullWidthDocuments),
@@ -142,25 +141,17 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
         },
         { publish: true }
       );
-      documentCollection?.addDocument(newDocument, documentId);
+      documentCollection?.addDocument(newDocument, document.id);
       history.push({
         pathname: documentEditPath(newDocument),
         state: { sidebarContext },
       });
     },
-    [
-      documents,
-      document,
-      documentCollection,
-      documentId,
-      sidebarContext,
-      user,
-      history,
-    ]
+    [documents, document, documentCollection, sidebarContext, user, history]
   );
 
   const contextMenuAction = useDocumentMenuAction({
-    documentId,
+    documentId: document.id,
     onRename: handleRename,
   });
 
@@ -185,9 +176,9 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
 
   return (
     <DocumentRow
-      documentId={documentId}
+      documentId={document.id}
       document={document}
-      to={{ pathname: document.url, state: { sidebarContext } }}
+      to={{ pathname: document.path, state: { sidebarContext } }}
       depth={0}
       icon={icon}
       canEdit={can.update}
@@ -354,6 +345,7 @@ function StarredLink({ star }: Props) {
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const { documentId, collectionId } = star;
   const collection = collectionId ? collections.get(collectionId) : undefined;
+  const document = documentId ? documents.get(documentId) : undefined;
   const locationSidebarContext = useLocationSidebarContext();
   const sidebarContext = starredSidebarContext(
     star.documentId ?? star.collectionId ?? ""
@@ -458,11 +450,11 @@ function StarredLink({ star }: Props) {
     </>
   );
 
-  if (documentId) {
+  if (document) {
     return (
       <SidebarDisclosureContext.Provider value={disclosureEvent}>
         <StarredDocumentLink
-          documentId={documentId}
+          document={document}
           expanded={expanded}
           sidebarContext={sidebarContext}
           isDragging={isDragging}
