@@ -295,12 +295,19 @@ export class GitLabUtils {
       return null;
     }
 
+    // Strip HTML comments repeatedly in case of overlapping patterns like
+    // `<!<!-- x -->-- -->` that would leave `<!--` after a single pass.
+    let result = text;
+    let prev: string;
+    do {
+      prev = result;
+      result = result.replace(/<!--[\s\S]*?-->/g, "");
+    } while (result !== prev);
+
     return (
-      text
+      result
         // YAML front matter
         .replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, "")
-        // HTML comments
-        .replace(/<!--[\s\S]*?-->/g, "")
         // Collapsible sections: extract inner content
         .replace(
           /<details>\s*<summary>([\s\S]*?)<\/summary>([\s\S]*?)<\/details>/gi,

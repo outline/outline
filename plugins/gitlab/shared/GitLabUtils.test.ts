@@ -44,6 +44,11 @@ describe("GitLabUtils.sanitizeGitLabMarkdown", () => {
     expect(GitLabUtils.sanitizeGitLabMarkdown(md)).toBe("Before\n\nAfter");
   });
 
+  it("should strip overlapping HTML comment patterns", () => {
+    const md = "Before <!<!-- inner -->-- outer --> After";
+    expect(GitLabUtils.sanitizeGitLabMarkdown(md)).toBe("Before  After");
+  });
+
   it("should convert collapsible sections to bold heading + content", () => {
     const md =
       "<details>\n<summary>Click me</summary>\nHidden content\n</details>";
