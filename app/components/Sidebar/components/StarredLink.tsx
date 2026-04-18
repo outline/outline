@@ -156,9 +156,15 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
   });
 
   const isActive = React.useCallback(
-    (match, location: Location<{ sidebarContext?: SidebarContextType }>) =>
-      !!match && location.state?.sidebarContext === sidebarContext,
-    [sidebarContext]
+    (match, location: Location<{ sidebarContext?: SidebarContextType }>) => {
+      if (location.state?.sidebarContext !== sidebarContext) {
+        return false;
+      }
+      return (
+        !!match || (!!document && location.pathname.endsWith(document.urlId))
+      );
+    },
+    [sidebarContext, document]
   );
 
   if (!document) {
