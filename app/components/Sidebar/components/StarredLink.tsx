@@ -1,16 +1,27 @@
 import fractionalIndex from "fractional-index";
 import type { Location } from "history";
 import { observer } from "mobx-react";
-import { StarredIcon } from "outline-icons";
+import { PlusIcon, StarredIcon } from "outline-icons";
 import * as React from "react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useHistory } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
+import { UserPreference } from "@shared/types";
+import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
+import { DocumentValidation } from "@shared/validations";
 import type Star from "~/models/Star";
+import EditableTitle, { type RefHandle } from "~/components/EditableTitle";
 import Fade from "~/components/Fade";
+import NudeButton from "~/components/NudeButton";
+import Tooltip from "~/components/Tooltip";
 import useBoolean from "~/hooks/useBoolean";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
+import { documentEditPath } from "~/utils/routeHelpers";
 import {
   useDragStar,
   useDropToCreateStar,
@@ -44,8 +55,8 @@ type StarredDocumentLinkProps = {
   isDragging: boolean;
   handleDisclosureClick: React.MouseEventHandler<HTMLElement>;
   handlePrefetch: () => void;
+  onExpand: () => void;
   icon: React.ReactNode;
-  label: React.ReactNode;
   menuOpen: boolean;
   handleMenuOpen: () => void;
   handleMenuClose: () => void;
@@ -74,15 +85,19 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
   isDragging,
   handleDisclosureClick,
   handlePrefetch,
+  onExpand,
   icon,
-  label,
   menuOpen,
   handleMenuOpen,
   handleMenuClose,
   draggableRef,
   cursor,
 }: StarredDocumentLinkProps) {
+  const { t } = useTranslation();
+  const history = useHistory();
+  const user = useCurrentUser();
   const { collections, documents } = useStores();
+  const can = usePolicy(documentId);
 
   const document = documents.get(documentId);
 
@@ -94,11 +109,118 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
     : [];
   const hasChildDocuments = childDocuments.length > 0;
   const displayChildDocuments = expanded && !isDragging;
-  const contextMenuAction = useDocumentMenuAction({ documentId });
+
+  const [isEditing, setIsEditing] = React.useState(false);
+  const editableTitleRef = React.useRef<RefHandle>(null);
+  const [isAddingNewChild, setIsAddingNewChild, closeAddingNewChild] =
+    useBoolean();
+  const newChildTitleRef = React.useRef<RefHandle>(null);
+
+  const handleRename = React.useCallback(() => {
+    editableTitleRef.current?.setIsEditing(true);
+  }, []);
+
+  const handleTitleChange = React.useCallback(
+    async (value: string) => {
+      if (!document) {
+        return;
+      }
+      await documents.update({
+        id: document.id,
+        title: value,
+      });
+    },
+    [documents, document]
+  );
+
+  const handleNewDoc = React.useCallback(
+    async (input: string) => {
+      if (!document) {
+        return;
+      }
+      try {
+        newChildTitleRef.current?.setIsEditing(false);
+        const newDocument = await documents.create(
+          {
+            collectionId: documentCollection?.id,
+            parentDocumentId: documentId,
+            fullWidth:
+              document.fullWidth ??
+              user.getPreference(UserPreference.FullWidthDocuments),
+            title: input,
+            data: ProsemirrorHelper.getEmptyDocument(),
+          },
+          { publish: true }
+        );
+        documentCollection?.addDocument(newDocument, documentId);
+
+        closeAddingNewChild();
+        history.push({
+          pathname: documentEditPath(newDocument),
+          state: { sidebarContext },
+        });
+      } catch (_err) {
+        newChildTitleRef.current?.setIsEditing(true);
+      }
+    },
+    [
+      documents,
+      document,
+      documentCollection,
+      documentId,
+      sidebarContext,
+      user,
+      history,
+      closeAddingNewChild,
+    ]
+  );
+
+  const contextMenuAction = useDocumentMenuAction({
+    documentId,
+    onRename: handleRename,
+  });
 
   if (!document) {
     return null;
   }
+
+  const labelElement = (
+    <EditableTitle
+      title={document.titleWithDefault}
+      onSubmit={handleTitleChange}
+      isEditing={isEditing}
+      onEditing={setIsEditing}
+      canUpdate={can.update}
+      maxLength={DocumentValidation.maxTitleLength}
+      ref={editableTitleRef}
+    />
+  );
+
+  const menuElement =
+    !isDragging && !isEditing ? (
+      <Fade>
+        {can.createChildDocument && (
+          <Tooltip content={t("New doc")}>
+            <NudeButton
+              aria-label={t("New nested document")}
+              onClick={(ev) => {
+                ev.preventDefault();
+                setIsAddingNewChild();
+                onExpand();
+              }}
+            >
+              <PlusIcon />
+            </NudeButton>
+          </Tooltip>
+        )}
+        <DocumentMenu
+          document={document}
+          onRename={handleRename}
+          onOpen={handleMenuOpen}
+          onClose={handleMenuClose}
+        />
+      </Fade>
+    ) : undefined;
 
   return (
     <ActionContextProvider
@@ -108,6 +230,8 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
     >
       <Draggable key={star.id} ref={draggableRef} $isDragging={isDragging}>
         <SidebarLink
+          // @ts-expect-error react-router type is wrong, string component is fine.
+          component={isEditing ? "div" : undefined}
           depth={0}
           to={{
             pathname: document.url,
@@ -122,22 +246,32 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
             match,
             location: Location<{ sidebarContext?: SidebarContextType }>
           ) => !!match && location.state?.sidebarContext === sidebarContext}
-          label={label}
+          label={labelElement}
+          ellipsis={!isEditing}
           exact={false}
           $showActions={menuOpen}
-          menu={
-            document && !isDragging ? (
-              <Fade>
-                <DocumentMenu
-                  document={document}
-                  onOpen={handleMenuOpen}
-                  onClose={handleMenuClose}
-                />
-              </Fade>
-            ) : undefined
-          }
+          menu={menuElement}
         />
       </Draggable>
+      {isAddingNewChild && (
+        <SidebarLink
+          isActive={() => true}
+          depth={2}
+          ellipsis={false}
+          label={
+            <EditableTitle
+              title=""
+              canUpdate
+              isEditing
+              placeholder={`${t("New doc")}…`}
+              onCancel={closeAddingNewChild}
+              onSubmit={handleNewDoc}
+              maxLength={DocumentValidation.maxTitleLength}
+              ref={newChildTitleRef}
+            />
+          }
+        />
+      )}
       <SidebarContext.Provider value={sidebarContext}>
         <Relative>
           <Folder expanded={displayChildDocuments}>
@@ -250,6 +384,10 @@ function StarredLink({ star }: Props) {
     [onDisclosureClick]
   );
 
+  const handleExpand = React.useCallback(() => {
+    setExpanded(true);
+  }, []);
+
   const handlePrefetch = React.useCallback(() => {
     if (documentId) {
       void documents.prefetchDocument(documentId);
@@ -265,7 +403,7 @@ function StarredLink({ star }: Props) {
     const next = star?.next();
     return fractionalIndex(star?.index || null, next?.index || null);
   };
-  const { label, icon } = useSidebarLabelAndIcon(
+  const { icon } = useSidebarLabelAndIcon(
     star,
     <StarredIcon color={theme.yellow} />
   );
@@ -303,8 +441,8 @@ function StarredLink({ star }: Props) {
           isDragging={isDragging}
           handleDisclosureClick={handleDisclosureClick}
           handlePrefetch={handlePrefetch}
+          onExpand={handleExpand}
           icon={icon}
-          label={label}
           menuOpen={menuOpen}
           handleMenuOpen={handleMenuOpen}
           handleMenuClose={handleMenuClose}
