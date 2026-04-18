@@ -221,6 +221,7 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
                 isDraft={node.isDraft}
                 depth={2}
                 index={index}
+                parentId={document.id}
               />
             ))}
           </Folder>
