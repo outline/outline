@@ -6,6 +6,7 @@ import { authorize, can } from "@server/policies";
 import {
   presentCollection,
   presentDocument,
+  presentNavigationNode,
   presentUser,
 } from "@server/presenters";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
@@ -73,7 +74,7 @@ export function fetchTool(server: McpServer, scopes: string[]) {
     {
       title: "Fetch",
       description:
-        'Fetches a document, collection, or user by type and ID. For users, "current_user" can be used as the ID to get the authenticated user.',
+        'Fetches a document, collection, or user by type and ID. When fetching a collection the response includes the full hierarchical document tree. For users, "current_user" can be used as the ID to get the authenticated user.',
       annotations: {
         idempotentHint: true,
         readOnlyHint: true,
@@ -126,6 +127,7 @@ export function fetchTool(server: McpServer, scopes: string[]) {
 
           case "collection": {
             const collection = await Collection.findByPk(id, {
+              userId: actor.id,
               includeDocumentStructure: true,
               rejectOnEmpty: true,
             });
@@ -135,7 +137,9 @@ export function fetchTool(server: McpServer, scopes: string[]) {
             const presented = await presentCollection(undefined, collection);
             return success([
               pathToUrl(actor.team, presented),
-              collection.documentStructure ?? [],
+              (collection.documentStructure ?? []).map((node) =>
+                presentNavigationNode(actor.team, node)
+              ),
             ]);
           }
 
