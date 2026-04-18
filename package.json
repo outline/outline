@@ -386,6 +386,7 @@
     "prismjs": "1.30.0",
     "cheerio": "1.0.0-rc.12",
     "zod": "^4.2.1",
+    "@xmldom/xmldom": "0.8.12",
     "fast-xml-parser": "5.5.7",
     "@types/markdown-it": "14.1.1"
   },
