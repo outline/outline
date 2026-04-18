@@ -139,7 +139,10 @@ export const TeamValidation = {
   maxDomainLength: 255,
 
   /** The maximum length of MCP workspace guidance */
-  maxGuidanceMCPLength: 2000,
+  maxGuidanceMCPLength: 10000,
+
+  /** The recommended length of MCP workspace guidance, beyond which a warning is shown */
+  warnGuidanceMCPLength: 2000,
 };
 
 export const UserValidation = {
