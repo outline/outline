@@ -41,17 +41,16 @@ import SidebarContext, { starredSidebarContext } from "./SidebarContext";
 import SidebarDisclosureContext, {
   useSidebarDisclosureState,
 } from "./SidebarDisclosureContext";
-import { type ConnectDragSource } from "react-dnd";
 
 type Props = {
   star: Star;
 };
 
 type StarredDocumentLinkProps = {
+  star: Star;
   document: Document;
   expanded: boolean;
   sidebarContext: SidebarContextType;
-  isDragging: boolean;
   handleDisclosureClick: (ev?: React.MouseEvent<HTMLElement>) => void;
   handlePrefetch: () => void;
   onExpand: () => void;
@@ -60,27 +59,24 @@ type StarredDocumentLinkProps = {
   menuOpen: boolean;
   handleMenuOpen: () => void;
   handleMenuClose: () => void;
-  draggableRef: ConnectDragSource;
   cursor: React.ReactNode;
 };
 
 type StarredCollectionLinkProps = {
+  star: Star;
   collection: Collection;
   expanded: boolean;
   sidebarContext: SidebarContextType;
-  isDragging: boolean;
   handleDisclosureClick: (ev?: React.MouseEvent<HTMLElement>) => void;
-  draggableRef: ConnectDragSource;
   cursor: React.ReactNode;
-  displayChildDocuments: boolean;
   isDraggingAnyStar: boolean;
 };
 
 const StarredDocumentLink = observer(function StarredDocumentLink({
+  star,
   document,
   expanded,
   sidebarContext,
-  isDragging,
   handleDisclosureClick,
   handlePrefetch,
   onExpand,
@@ -89,7 +85,6 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
   menuOpen,
   handleMenuOpen,
   handleMenuClose,
-  draggableRef,
   cursor,
 }: StarredDocumentLinkProps) {
   const history = useHistory();
@@ -97,6 +92,7 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
   const { collections, documents } = useStores();
   const can = usePolicy(document);
   const editableTitleRef = React.useRef<RefHandle>(null);
+  const [{ isDragging }, draggableRef] = useDragStar(star);
 
   const documentCollection = document.collectionId
     ? collections.get(document.collectionId)
@@ -234,13 +230,12 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
 });
 
 const StarredCollectionLink = observer(function StarredCollectionLink({
+  star,
   collection,
+  expanded,
   sidebarContext,
-  isDragging,
   handleDisclosureClick,
-  draggableRef,
   cursor,
-  displayChildDocuments,
   isDraggingAnyStar,
 }: StarredCollectionLinkProps) {
   const { documents } = useStores();
@@ -249,6 +244,8 @@ const StarredCollectionLink = observer(function StarredCollectionLink({
   const can = usePolicy(collection.id);
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const editableTitleRef = React.useRef<RefHandle>(null);
+  const [{ isDragging }, draggableRef] = useDragStar(star);
+  const displayChildDocuments = expanded && !isDragging;
 
   const handleTitleChange = React.useCallback(
     async (name: string) => {
@@ -435,11 +432,8 @@ function StarredLink({ star }: Props) {
     star,
     <StarredIcon color={theme.yellow} />
   );
-  const [{ isDragging }, draggableRef] = useDragStar(star);
   const [reorderStarProps, dropToReorderRef] = useDropToReorderStar(getIndex);
   const [createStarProps, dropToStarRef] = useDropToCreateStar(getIndex);
-
-  const displayChildDocuments = expanded && !isDragging;
 
   const cursor = (
     <>
@@ -462,10 +456,10 @@ function StarredLink({ star }: Props) {
     return (
       <SidebarDisclosureContext.Provider value={disclosureEvent}>
         <StarredDocumentLink
+          star={star}
           document={document}
           expanded={expanded}
           sidebarContext={sidebarContext}
-          isDragging={isDragging}
           handleDisclosureClick={handleDisclosureClick}
           handlePrefetch={handlePrefetch}
           onExpand={handleExpand}
@@ -474,7 +468,6 @@ function StarredLink({ star }: Props) {
           menuOpen={menuOpen}
           handleMenuOpen={handleMenuOpen}
           handleMenuClose={handleMenuClose}
-          draggableRef={draggableRef}
           cursor={cursor}
         />
       </SidebarDisclosureContext.Provider>
@@ -485,14 +478,12 @@ function StarredLink({ star }: Props) {
     return (
       <SidebarDisclosureContext.Provider value={disclosureEvent}>
         <StarredCollectionLink
+          star={star}
           collection={collection}
           expanded={expanded}
           sidebarContext={sidebarContext}
-          isDragging={isDragging}
           handleDisclosureClick={handleDisclosureClick}
-          draggableRef={draggableRef}
           cursor={cursor}
-          displayChildDocuments={displayChildDocuments}
           isDraggingAnyStar={reorderStarProps.isDragging}
         />
       </SidebarDisclosureContext.Provider>
