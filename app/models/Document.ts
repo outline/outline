@@ -183,7 +183,7 @@ export default class Document extends ArchivableModel implements Searchable {
   parentDocument?: Document;
 
   @observable
-  collaboratorIds: string[];
+  collaboratorIds: string[] = [];
 
   @Relation(() => User)
   createdBy: User | undefined;

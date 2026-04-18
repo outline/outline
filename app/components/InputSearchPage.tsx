@@ -14,7 +14,7 @@ import {
 import useBoolean from "~/hooks/useBoolean";
 import useKeyDown from "~/hooks/useKeyDown";
 import { searchPath } from "~/utils/routeHelpers";
-import Input, { Outline } from "./Input";
+import Input from "./Input";
 
 type Props = {
   /** A string representing where the search started, for tracking. */
@@ -112,12 +112,8 @@ function InputSearchPage({
   );
 }
 
-const InputMaxWidth = styled(Input)`
+const InputMaxWidth = styled(Input).attrs({ round: true })`
   max-width: min(calc(30vw + 20px), 100%);
-
-  ${Outline} {
-    border-radius: 16px;
-  }
 `;
 
 const Shortcut = styled.span<{ $visible: boolean }>`

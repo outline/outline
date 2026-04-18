@@ -1,12 +1,10 @@
 import fractionalIndex from "fractional-index";
-import { StarredIcon } from "outline-icons";
 import * as React from "react";
 import type { ConnectDragSource } from "react-dnd";
 import { useDrag, useDrop } from "react-dnd";
 import { getEmptyImage } from "react-dnd-html5-backend";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { useTheme } from "styled-components";
 import Icon from "@shared/components/Icon";
 import type { NavigationNode } from "@shared/types";
 import type Collection from "~/models/Collection";
@@ -68,11 +66,8 @@ export function useDragStar(
   star: Star
 ): [{ isDragging: boolean }, ConnectDragSource] {
   const id = star.id;
-  const theme = useTheme();
-  const { label: title, icon } = useSidebarLabelAndIcon(
-    star,
-    <StarredIcon color={theme.yellow} />
-  );
+  const { label: title, icon } = useSidebarLabelAndIcon(star);
+
   const [{ isDragging }, draggableRef, preview] = useDrag({
     type: "star",
     item: () => ({ id, title, icon }),
@@ -495,21 +490,12 @@ export function useDragMembership(
   const id = membership.id;
   const { label: title, icon } = useSidebarLabelAndIcon(membership);
 
-  const [{ isDragging }, draggableRef, preview] = useDrag<
-    DragObject,
-    Promise<void>,
-    { isDragging: boolean }
-  >({
+  const [{ isDragging }, draggableRef, preview] = useDrag({
     type:
       membership instanceof UserMembership
         ? "userMembership"
         : "groupMembership",
-    item: () =>
-      ({
-        id,
-        title,
-        icon,
-      }) as DragObject,
+    item: () => ({ id, title, icon }),
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
     }),

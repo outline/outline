@@ -1,4 +1,4 @@
-declare module "autotrack/autotrack.js";
+declare module "~/utils/autotrack";
 
 declare module "emoji-mart";
 

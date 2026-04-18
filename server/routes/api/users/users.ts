@@ -536,7 +536,7 @@ router.post(
   validate(T.UsersInviteSchema),
   transaction(),
   async (ctx: APIContext<T.UsersInviteReq>) => {
-    const { invites } = ctx.input.body;
+    const { invites, suppressEmail } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     if (invites.length > UserValidation.maxInvitesPerRequest) {
@@ -546,7 +546,7 @@ router.post(
     }
     authorize(user, "inviteUser", user.team);
 
-    const response = await userInviter(ctx, { invites });
+    const response = await userInviter(ctx, { invites, suppressEmail });
 
     ctx.body = {
       data: {

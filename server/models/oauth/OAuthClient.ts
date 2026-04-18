@@ -12,7 +12,6 @@ import {
   BelongsTo,
   ForeignKey,
   Table,
-  Length,
   BeforeCreate,
   AllowNull,
   IsDate,
@@ -29,6 +28,7 @@ import Encrypted from "@server/models/decorators/Encrypted";
 import Fix from "@server/models/decorators/Fix";
 import { hash } from "@server/utils/crypto";
 import IsUrlOrRelativePath from "@server/models/validators/IsUrlOrRelativePath";
+import Length from "@server/models/validators/Length";
 import NotContainsUrl from "@server/models/validators/NotContainsUrl";
 import type { FindOptions } from "sequelize";
 
@@ -48,31 +48,46 @@ class OAuthClient extends ParanoidModel<
   public static registrationAccessTokenPrefix = "ol_rat_";
 
   @NotContainsUrl
-  @Length({ max: OAuthClientValidation.maxNameLength })
+  @Length({
+    max: OAuthClientValidation.maxNameLength,
+    msg: `name must be ${OAuthClientValidation.maxNameLength} characters or less`,
+  })
   @Column
   name: string;
 
   @AllowNull
   @NotContainsUrl
-  @Length({ max: OAuthClientValidation.maxDescriptionLength })
+  @Length({
+    max: OAuthClientValidation.maxDescriptionLength,
+    msg: `description must be ${OAuthClientValidation.maxDescriptionLength} characters or less`,
+  })
   @Column
   description: string | null;
 
   @AllowNull
   @NotContainsUrl
-  @Length({ max: OAuthClientValidation.maxDeveloperNameLength })
+  @Length({
+    max: OAuthClientValidation.maxDeveloperNameLength,
+    msg: `developerName must be ${OAuthClientValidation.maxDeveloperNameLength} characters or less`,
+  })
   @Column
   developerName: string | null;
 
   @AllowNull
   @IsUrlOrRelativePath
-  @Length({ max: OAuthClientValidation.maxDeveloperUrlLength })
+  @Length({
+    max: OAuthClientValidation.maxDeveloperUrlLength,
+    msg: `developerUrl must be ${OAuthClientValidation.maxDeveloperUrlLength} characters or less`,
+  })
   @Column
   developerUrl: string | null;
 
   @AllowNull
   @IsUrlOrRelativePath
-  @Length({ max: OAuthClientValidation.maxAvatarUrlLength })
+  @Length({
+    max: OAuthClientValidation.maxAvatarUrlLength,
+    msg: `avatarUrl must be ${OAuthClientValidation.maxAvatarUrlLength} characters or less`,
+  })
   @Column
   avatarUrl: string | null;
 

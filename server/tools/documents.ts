@@ -8,7 +8,7 @@ import { Op } from "sequelize";
 import { Collection, Document } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import { authorize } from "@server/policies";
-import { presentDocument } from "@server/presenters";
+import { presentDocument, presentNavigationNode } from "@server/presenters";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import {
@@ -21,6 +21,8 @@ import {
   withTracing,
 } from "./util";
 import { TextEditMode } from "@shared/types";
+import { CacheHelper } from "@server/utils/CacheHelper";
+import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import SearchProviderManager from "@server/utils/SearchProviderManager";
 
 /**
@@ -37,7 +39,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
       {
         title: "Search documents",
         description:
-          "Searches documents the user has access to. Performs full-text search across document content when a query is provided, or lists recent documents when no query is given. Optionally filter by collection.",
+          "Searches documents the user has access to. Performs full-text search across document content when a query is provided, or lists recent documents when no query is given. Optionally filter by collection. To retrieve the full contents or hierarchy of a specific collection, use list_collection_documents instead.",
         annotations: {
           idempotentHint: true,
           readOnlyHint: true,
@@ -192,6 +194,62 @@ export function documentTools(server: McpServer, scopes: string[]) {
               })
             );
             return success(presented);
+          } catch (message) {
+            return error(message);
+          }
+        }
+      )
+    );
+  }
+
+  if (AuthenticationHelper.canAccess("collections.documents", scopes)) {
+    server.registerTool(
+      "list_collection_documents",
+      {
+        title: "List all documents in a collection",
+        description:
+          "Returns the complete hierarchical tree of published documents in a collection, including nested sub-documents. Use this to enumerate every document in a collection or to understand parent/child relationships. Drafts and archived documents are not included.",
+        annotations: {
+          idempotentHint: true,
+          readOnlyHint: true,
+        },
+        inputSchema: {
+          collectionId: z
+            .string()
+            .describe(
+              "The ID of the collection whose document tree to return."
+            ),
+        },
+      },
+      withTracing(
+        "list_collection_documents",
+        async ({ collectionId }, extra) => {
+          try {
+            const user = getActorFromContext(extra);
+
+            const collection = await Collection.findByPk(collectionId, {
+              userId: user.id,
+              rejectOnEmpty: true,
+            });
+            authorize(user, "readDocument", collection);
+
+            const documentStructure = await CacheHelper.getDataOrSet(
+              RedisPrefixHelper.getCollectionDocumentsKey(collection.id),
+              async () =>
+                (
+                  await Collection.findByPk(collection.id, {
+                    attributes: ["documentStructure"],
+                    includeDocumentStructure: true,
+                    rejectOnEmpty: true,
+                  })
+                ).documentStructure,
+              60
+            );
+
+            const tree = (documentStructure ?? []).map((node) =>
+              presentNavigationNode(user.team, node)
+            );
+            return success(tree);
           } catch (message) {
             return error(message);
           }

@@ -188,6 +188,7 @@ export const UsersInviteSchema = z.object({
         role: z.enum(UserRole),
       })
     ),
+    suppressEmail: z.boolean().optional(),
   }),
 });
 

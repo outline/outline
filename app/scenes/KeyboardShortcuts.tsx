@@ -557,6 +557,7 @@ function KeyboardShortcuts({ defaultQuery = "" }: Props) {
     <Flex column>
       <StickySearch>
         <InputSearch
+          round
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           value={searchTerm}

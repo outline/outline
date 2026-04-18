@@ -1,5 +1,6 @@
 import Redlock, {
   ExecutionError,
+  ResourceLockedError,
   type Lock,
   type RedlockAbortSignal,
 } from "redlock";
@@ -27,7 +28,10 @@ export class MutexLock {
         retryDelay: 1000,
       });
       this.redlock.on("error", (err) => {
-        if (err instanceof ExecutionError) {
+        if (err instanceof ResourceLockedError) {
+          // Expected during lock contention retries, not an error.
+          return;
+        } else if (err instanceof ExecutionError) {
           Logger.warn("Failed to extend Redlock lock", {
             message: err.message,
           });

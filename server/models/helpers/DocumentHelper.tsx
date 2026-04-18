@@ -68,6 +68,8 @@ type HTMLOptions = {
   baseUrl?: string;
   /** Changes to highlight in the document */
   changes?: readonly ExtendedChange[];
+  /** CSP nonce to apply to injected inline scripts */
+  cspNonce?: string;
 };
 
 @trace()
@@ -257,12 +259,12 @@ export class DocumentHelper {
       centered: options?.centered,
       baseUrl: options?.baseUrl,
       changes: options?.changes,
+      cspNonce: options?.cspNonce,
     });
 
     addTags({
       collectionId: model instanceof Collection ? model.id : undefined,
       documentId: !(model instanceof Collection) ? model.id : undefined,
-      options,
     });
 
     if (options?.signedUrls) {
