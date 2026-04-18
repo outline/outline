@@ -490,21 +490,12 @@ export function useDragMembership(
   const id = membership.id;
   const { label: title, icon } = useSidebarLabelAndIcon(membership);
 
-  const [{ isDragging }, draggableRef, preview] = useDrag<
-    DragObject,
-    Promise<void>,
-    { isDragging: boolean }
-  >({
+  const [{ isDragging }, draggableRef, preview] = useDrag({
     type:
       membership instanceof UserMembership
         ? "userMembership"
         : "groupMembership",
-    item: () =>
-      ({
-        id,
-        title,
-        icon,
-      }) as DragObject,
+    item: () => ({ id, title, icon }),
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
     }),
