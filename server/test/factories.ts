@@ -615,7 +615,7 @@ export async function buildAttachment(
     id,
     key: AttachmentHelper.getKey({ id, name, userId: overrides.userId }),
     contentType: "image/png",
-    size: 100,
+    size: 1_000_000,
     acl,
     name,
     createdAt: new Date("2018-01-02T00:00:00.000Z"),
