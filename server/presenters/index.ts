@@ -14,6 +14,7 @@ import presentGroupUser from "./groupUser";
 import presentImport from "./import";
 import presentIntegration from "./integration";
 import presentMembership from "./membership";
+import presentNavigationNode from "./navigationNode";
 import presentOAuthClient, { presentPublishedOAuthClient } from "./oauthClient";
 import presentPin from "./pin";
 import presentPolicies from "./policy";
@@ -50,6 +51,7 @@ export {
   presentImport,
   presentIntegration,
   presentMembership,
+  presentNavigationNode,
   presentOAuthClient,
   presentPublishedOAuthClient,
   presentPublicTeam,
