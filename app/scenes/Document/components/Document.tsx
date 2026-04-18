@@ -281,7 +281,7 @@ class DocumentScene extends React.Component<Props> {
 
     if (location.pathname.endsWith("history")) {
       this.props.history.push({
-        pathname: document.url,
+        pathname: document.path,
         state: { sidebarContext: this.props.location.state?.sidebarContext },
       });
     } else {
