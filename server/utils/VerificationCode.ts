@@ -68,7 +68,7 @@ export class VerificationCode {
    *
    * @param teamId The team the code was issued for
    * @param email The email address associated with the code
-   * @returns Promise resolving to the code or null if not found
+   * @returns Promise resolving to the code or undefined if not found
    */
   public static async retrieve(
     teamId: string,
@@ -134,7 +134,7 @@ export class VerificationCode {
    * @returns The Redis key
    */
   private static getKey(teamId: string, email: string): string {
-    return `${this.KEY_PREFIX}${teamId}:${email.toLowerCase()}`;
+    return `${this.KEY_PREFIX}${teamId}:${email.trim().toLowerCase()}`;
   }
 
   /**
@@ -145,6 +145,6 @@ export class VerificationCode {
    * @returns the Redis key for attempts.
    */
   private static getAttemptsKey(teamId: string, email: string): string {
-    return `${this.ATTEMPTS_PREFIX}${teamId}:${email.toLowerCase()}`;
+    return `${this.ATTEMPTS_PREFIX}${teamId}:${email.trim().toLowerCase()}`;
   }
 }

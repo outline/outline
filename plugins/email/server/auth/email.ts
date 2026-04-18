@@ -129,7 +129,7 @@ const emailCallback = async (ctx: APIContext<T.EmailCallbackReq>) => {
     return ctx.redirectOnClient(url.toString(), "POST");
   }
 
-  let user!: User;
+  let user: User | null = null;
 
   try {
     if (token) {
@@ -143,16 +143,13 @@ const emailCallback = async (ctx: APIContext<T.EmailCallbackReq>) => {
       }
 
       user = await User.scope("withTeam").findOne({
-        rejectOnEmpty: true,
         where: {
           teamId: team.id,
           email: email.trim().toLowerCase(),
         },
       });
 
-      const isValid = await VerificationCode.verify(team.id, email, code);
-
-      if (!isValid) {
+      if (!user || !(await VerificationCode.verify(team.id, email, code))) {
         ctx.redirect(`/?notice=invalid-code`);
         return;
       }
@@ -166,6 +163,10 @@ const emailCallback = async (ctx: APIContext<T.EmailCallbackReq>) => {
   } catch (err) {
     Logger.debug("authentication", err);
     return ctx.redirect(`/?notice=auth-error&description=${err.message}`);
+  }
+
+  if (!user) {
+    return ctx.redirect(`/?notice=invalid-code`);
   }
 
   if (!user.team.emailSigninEnabled) {
