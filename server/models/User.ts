@@ -683,7 +683,7 @@ class User extends ParanoidModel<
     }
 
     const code = VerificationCode.generate();
-    await VerificationCode.store(this.email, code);
+    await VerificationCode.store(this.teamId, this.email, code);
     return code;
   };
 
