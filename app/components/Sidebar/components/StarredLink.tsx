@@ -1,11 +1,10 @@
 import fractionalIndex from "fractional-index";
 import type { Location } from "history";
 import { observer } from "mobx-react";
-import { StarredIcon } from "outline-icons";
 import * as React from "react";
 import { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
-import styled, { useTheme } from "styled-components";
+import styled from "styled-components";
 import { UserPreference } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import type Collection from "~/models/Collection";
@@ -162,10 +161,6 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
     },
     [sidebarContext, document]
   );
-
-  if (!document) {
-    return null;
-  }
 
   const menu = (
     <DocumentMenu
@@ -345,7 +340,6 @@ const StarredCollectionLink = observer(function StarredCollectionLink({
 });
 
 function StarredLink({ star }: Props) {
-  const theme = useTheme();
   const { ui, collections, documents } = useStores();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const { documentId, collectionId } = star;
@@ -428,10 +422,7 @@ function StarredLink({ star }: Props) {
     const next = star?.next();
     return fractionalIndex(star?.index || null, next?.index || null);
   };
-  const { icon } = useSidebarLabelAndIcon(
-    star,
-    <StarredIcon color={theme.yellow} />
-  );
+  const { icon } = useSidebarLabelAndIcon(star);
   const [reorderStarProps, dropToReorderRef] = useDropToReorderStar(getIndex);
   const [createStarProps, dropToStarRef] = useDropToCreateStar(getIndex);
 

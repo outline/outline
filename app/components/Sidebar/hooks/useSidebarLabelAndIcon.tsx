@@ -1,4 +1,4 @@
-import { DocumentIcon } from "outline-icons";
+import { DocumentIcon, QuestionMarkIcon } from "outline-icons";
 import * as React from "react";
 import Icon from "@shared/components/Icon";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
@@ -9,12 +9,12 @@ interface SidebarItem {
   collectionId?: string;
 }
 
-export function useSidebarLabelAndIcon(
-  { documentId, collectionId }: SidebarItem,
-  defaultIcon?: React.ReactNode
-) {
+export function useSidebarLabelAndIcon({
+  documentId,
+  collectionId,
+}: SidebarItem) {
   const { collections, documents } = useStores();
-  const icon = defaultIcon ?? <DocumentIcon />;
+  const icon = <QuestionMarkIcon />;
 
   if (documentId) {
     const document = documents.get(documentId);
@@ -28,7 +28,7 @@ export function useSidebarLabelAndIcon(
             color={document.color ?? undefined}
           />
         ) : (
-          icon
+          <DocumentIcon outline={document.isDraft} />
         ),
       };
     }
