@@ -92,8 +92,6 @@ export default class ToggleBlock extends Node {
   }
 
   get plugins() {
-    const userId = this.editor.props.userId;
-
     // Assign IDs and auto-fold empty
     const plugin = new Plugin({
       appendTransaction: (transactions, _oldState, newState) => {
@@ -120,7 +118,7 @@ export default class ToggleBlock extends Node {
             const id = v4();
             tr!.setNodeAttribute(block.pos, "id", id);
             // Set unfolded for the user who created the toggle
-            Storage.set(`${id}:${userId}`, { fold: false });
+            Storage.set(id, { fold: false });
           });
         }
 
@@ -190,7 +188,7 @@ export default class ToggleBlock extends Node {
             currentBlocks.forEach((block) => {
               const id = block.node.attrs.id as string;
               if (!pluginState.foldedIds.has(id)) {
-                const stored = Storage.get(`${id}:${userId}`);
+                const stored = Storage.get(id);
                 // Default to folded if no stored state (new block from sync)
                 if (stored?.fold !== false) {
                   newFoldedIds.add(id);
@@ -214,7 +212,7 @@ export default class ToggleBlock extends Node {
               const node = newState.doc.nodeAt(action.at);
               if (node?.attrs.id) {
                 newFoldedIds.add(node.attrs.id);
-                Storage.set(`${node.attrs.id}:${userId}`, { fold: true });
+                Storage.set(node.attrs.id, { fold: true });
               }
               break;
             }
@@ -223,7 +221,7 @@ export default class ToggleBlock extends Node {
               const node = newState.doc.nodeAt(action.at);
               if (node?.attrs.id) {
                 newFoldedIds.delete(node.attrs.id);
-                Storage.set(`${node.attrs.id}:${userId}`, { fold: false });
+                Storage.set(node.attrs.id, { fold: false });
               }
               break;
             }
@@ -246,8 +244,7 @@ export default class ToggleBlock extends Node {
               view,
               getPos,
               decorations,
-              innerDecorations,
-              this.editor.props
+              innerDecorations
             ),
         },
       },
@@ -432,7 +429,7 @@ export default class ToggleBlock extends Node {
         if (!wrapping) {
           return false;
         }
-        Storage.set(`${id}:${this.editor.props.userId}`, { fold: false });
+        Storage.set(id, { fold: false });
         const tr = state.tr.wrap(range!, wrapping);
         dispatch?.(tr);
         return true;
@@ -446,7 +443,7 @@ export default class ToggleBlock extends Node {
           return false;
         }
 
-        Storage.set(`${id}:${this.editor.props.userId}`, { fold: false });
+        Storage.set(id, { fold: false });
         const tr = state.tr.wrap(range!, wrapping);
         dispatch?.(
           tr.insert(
@@ -476,19 +473,18 @@ export default class ToggleBlock extends Node {
   private initFoldedIds(state: EditorState) {
     const pluginState = toggleFoldPluginKey.getState(state);
     const foldedIds = new Set<string>(pluginState?.foldedIds);
-    const userId = this.editor.props.userId;
     findBlockNodes(state.doc, true)
       .filter((b) => b.node.type.name === this.name && b.node.attrs.id)
       .forEach((block) => {
         const id = block.node.attrs.id as string;
-        const stored = Storage.get(`${id}:${userId}`);
+        const stored = Storage.get(id);
         // Default to folded if no stored state
         if (stored?.fold !== false) {
           foldedIds.add(id);
         }
         // Ensure storage has a value
         if (stored === null || stored === undefined) {
-          Storage.set(`${id}:${userId}`, { fold: true });
+          Storage.set(id, { fold: true });
         }
       });
 
