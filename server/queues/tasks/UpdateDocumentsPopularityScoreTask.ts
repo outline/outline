@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { setTimeout } from "node:timers/promises";
-import { format, subDays } from "date-fns";
+import { subDays } from "date-fns";
 import { QueryTypes } from "sequelize";
 import { Minute } from "@shared/utils/time";
 import env from "@server/env";
@@ -65,11 +65,16 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
     }
 
     const now = new Date();
-    const thresholdDate = format(
-      subDays(now, env.POPULARITY_ACTIVITY_THRESHOLD_WEEKS * 7),
-      "yyyy-MM-dd"
-    );
-    const today = format(now, "yyyy-MM-dd");
+    // Use UTC day boundaries to match how document_insights.date is written by
+    // RollupDocumentInsightsTask (which derives dates via toISOString). Local
+    // timezone could shift the window by a day in some deployments.
+    const today = now.toISOString().slice(0, 10);
+    const thresholdDate = subDays(
+      now,
+      env.POPULARITY_ACTIVITY_THRESHOLD_WEEKS * 7
+    )
+      .toISOString()
+      .slice(0, 10);
 
     // Generate unique table name for this run to prevent conflicts
     const dateStr = now.toISOString().slice(0, 19).replace(/[-:T]/g, "");
@@ -81,7 +86,7 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
       await this.cleanupStaleWorkingTables();
 
       // Setup: Create working table and populate with active document IDs
-      await this.setupWorkingTable(thresholdDate, partition);
+      await this.setupWorkingTable(thresholdDate, today, partition);
 
       const activeCount = await this.getWorkingTableCount();
 
@@ -150,6 +155,7 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
    */
   private async setupWorkingTable(
     thresholdDate: string,
+    today: string,
     partition: PartitionInfo
   ): Promise<void> {
     // Drop any existing table first to avoid type conflicts from previous crashed runs
@@ -189,6 +195,7 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
               SELECT 1 FROM document_insights di
               WHERE di."documentId" = d.id
                 AND di.date >= :thresholdDate::date
+                AND di.date <= :today::date
             )
           )
         ORDER BY d.id
@@ -197,6 +204,7 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
         {
           replacements: {
             thresholdDate,
+            today,
             lastId,
             endUuid,
             limit: chunkSize,
@@ -334,6 +342,7 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
       LEFT JOIN document_insights di
         ON di."documentId" = bd.id
         AND di.date >= :thresholdDate::date
+        AND di.date <= :today::date
       GROUP BY bd.id
       `,
       {

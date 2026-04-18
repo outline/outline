@@ -1,4 +1,4 @@
-import { format, subDays } from "date-fns";
+import { subDays } from "date-fns";
 import { Document, DocumentInsight } from "@server/models";
 import { sequelize, sequelizeReadOnly } from "@server/storage/database";
 import { buildDocument, buildTeam } from "@server/test/factories";
@@ -12,7 +12,7 @@ const props = {
   },
 };
 
-const dayStr = (d: Date) => format(d, "yyyy-MM-dd");
+const dayStr = (d: Date) => d.toISOString().slice(0, 10);
 
 describe("UpdateDocumentsPopularityScoreTask", () => {
   let task: UpdateDocumentsPopularityScoreTask;
