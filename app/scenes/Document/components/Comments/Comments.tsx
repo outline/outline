@@ -180,7 +180,6 @@ function Comments() {
               documentId={document.id}
               placeholder={`${t("Add a comment")}…`}
               autoFocus={false}
-              dir={document.dir}
               animatePresence
               standalone
             />
@@ -245,10 +244,10 @@ const JumpToRecent = styled(ButtonSmall)`
   }
 `;
 
-const NewCommentForm = styled(CommentForm)<{ dir?: "ltr" | "rtl" }>`
+const NewCommentForm = styled(CommentForm)`
   padding: 12px;
-  padding-right: ${(props) => (props.dir !== "rtl" ? "18px" : "12px")};
-  padding-left: ${(props) => (props.dir === "rtl" ? "18px" : "12px")};
+  padding-inline-end: 18px;
+  padding-inline-start: 12px;
 `;
 
 export default observer(Comments);

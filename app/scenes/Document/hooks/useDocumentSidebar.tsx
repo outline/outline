@@ -5,7 +5,7 @@ import {
   RightSidebarWrappedContext,
   useSetRightSidebar,
 } from "~/components/RightSidebarContext";
-import RightSidebar from "~/components/Sidebar/Right";
+import Aside from "~/components/Sidebar/Aside";
 import PlaceholderText from "~/components/PlaceholderText";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
@@ -31,7 +31,7 @@ interface DocumentSidebarContentProps {
 
 /**
  * Stable component that reads `ui.rightSidebar` and renders the appropriate
- * sidebar content. On desktop, wraps content in a single Right sidebar that
+ * sidebar content. On desktop, wraps content in a single Aside sidebar that
  * stays mounted across panel switches to avoid re-triggering the open/close
  * animation.
  */
@@ -61,11 +61,11 @@ const DocumentSidebarContent = observer(function DocumentSidebarContent({
   }
 
   return (
-    <RightSidebar skipInitialAnimation={skipInitialAnimation}>
+    <Aside skipInitialAnimation={skipInitialAnimation}>
       <RightSidebarWrappedContext.Provider value={true}>
         {inner}
       </RightSidebarWrappedContext.Provider>
-    </RightSidebar>
+    </Aside>
   );
 });
 

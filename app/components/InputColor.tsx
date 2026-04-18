@@ -36,7 +36,7 @@ const PositionedSwatchButton = styled(SwatchButton)`
   border: 1px solid ${(props) => props.theme.inputBorder};
   position: absolute;
   bottom: 21px;
-  right: 6px;
+  inset-inline-end: 6px;
 `;
 
 export default InputColor;

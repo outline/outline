@@ -22,6 +22,7 @@ import ResizeBorder from "./components/ResizeBorder";
 import SidebarButton from "./components/SidebarButton";
 import ToggleButton from "./components/ToggleButton";
 import { useTranslation } from "react-i18next";
+import { useDirection } from "@radix-ui/react-direction";
 
 const ANIMATION_MS = 250;
 
@@ -53,6 +54,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
   const maxWidth = theme.sidebarMaxWidth;
   const minWidth = theme.sidebarMinWidth + 16; // padding
   const { trigger } = useWebHaptics();
+  const direction = useDirection();
 
   const [offset, setOffset] = React.useState(0);
   const [isHovering, setHovering] = React.useState(false);
@@ -66,8 +68,9 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
     (event: MouseEvent) => {
       // suppresses text selection
       event.preventDefault();
-      // this is simple because the sidebar is always against the left edge
-      const newWidth = Math.min(event.pageX - offset, maxWidth);
+      const rawWidth =
+        direction === "rtl" ? offset - event.pageX : event.pageX - offset;
+      const newWidth = Math.min(rawWidth, maxWidth);
       const isSmallerThanCollapsePoint = newWidth < minWidth / 2;
 
       if (canCollapse) {
@@ -80,7 +83,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
         ui.set({ sidebarWidth: Math.max(newWidth, minWidth) });
       }
     },
-    [ui, theme, offset, minWidth, maxWidth]
+    [ui, theme, offset, minWidth, maxWidth, direction]
   );
 
   const handleStopDrag = React.useCallback(() => {
@@ -117,11 +120,13 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
         return;
       }
 
-      setOffset(event.pageX - width);
+      setOffset(
+        direction === "rtl" ? event.pageX + width : event.pageX - width
+      );
       setResizing(true);
       setAnimating(false);
     },
-    [width]
+    [width, direction]
   );
 
   const handlePointerActivity = React.useCallback(() => {
@@ -145,16 +150,21 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
 
         // add a short delay when mouse exits the sidebar before closing
         hoverTimeoutRef.current = setTimeout(() => {
+          const withinSidebar =
+            direction === "rtl"
+              ? ev.pageX > window.innerWidth - width
+              : ev.pageX < width;
+
           setHovering(
             document.hasFocus() &&
-              ev.pageX < width &&
+              withinSidebar &&
               ev.pageY < window.innerHeight &&
               ev.pageY > 0
           );
         }, 500);
       }
     },
-    [width, hasPointerMoved]
+    [width, direction, hasPointerMoved]
   );
 
   React.useEffect(() => {
@@ -255,7 +265,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
                   alt={t("Avatar of {{ name }}", { name: user.name })}
                   model={user}
                   size={24}
-                  style={{ marginLeft: 4 }}
+                  style={{ marginInlineStart: 4 }}
                 />
               }
             >
@@ -302,7 +312,7 @@ type ContainerProps = {
 };
 
 const hoverStyles = (props: ContainerProps) => `
-  transform: none;
+  transform: none !important;
   box-shadow: ${
     props.$collapsed
       ? "rgba(0, 0, 0, 0.2) 1px 0 4px"
@@ -320,21 +330,28 @@ const Container = styled(Flex)<ContainerProps>`
   position: fixed;
   top: 0;
   bottom: 0;
+  inset-inline-start: 0;
   width: 100%;
   background: ${s("sidebarBackground")};
   transition:
     box-shadow 150ms ease-in-out,
-    transform 150ms ease-out,
-    ${(props: ContainerProps) =>
-      props.$isAnimating ? `,width ${ANIMATION_MS}ms ease-out` : ""};
+    transform 150ms
+      ease-out${(props: ContainerProps) =>
+        props.$isAnimating ? `, width ${ANIMATION_MS}ms ease-out` : ""};
   transform: translateX(
     ${(props) => (props.$mobileSidebarVisible ? 0 : "-100%")}
   );
   z-index: ${depths.mobileSidebar};
   max-width: 80%;
   min-width: 280px;
-  padding-left: var(--sal);
+  padding-inline-start: var(--sal);
   ${fadeOnDesktopBackgrounded()}
+
+  [dir="rtl"] & {
+    transform: translateX(
+      ${(props) => (props.$mobileSidebarVisible ? 0 : "100%")}
+    );
+  }
 
   @media print {
     display: none;
@@ -366,6 +383,11 @@ const Container = styled(Flex)<ContainerProps>`
       props.$collapsed
         ? `calc(-100% + ${Desktop.hasInsetTitlebar() ? 8 : 16}px)`
         : 0});
+
+    [dir="rtl"] & {
+      transform: translateX(${(props: ContainerProps) =>
+        props.$collapsed ? `calc(100% - 8px)` : 0});
+    }
 
     ${(props: ContainerProps) => props.$isHovering && css(hoverStyles)}
 

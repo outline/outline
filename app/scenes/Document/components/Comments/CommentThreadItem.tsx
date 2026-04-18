@@ -70,8 +70,6 @@ function useShowTime(
 type Props = {
   /** The comment to render */
   comment: Comment;
-  /** The text direction of the editor */
-  dir?: "rtl" | "ltr";
   /** Whether this is the first comment in the thread */
   firstOfThread?: boolean;
   /** Whether this is the last comment in the thread */
@@ -103,7 +101,6 @@ function CommentThreadItem({
   firstOfAuthor,
   firstOfThread,
   lastOfThread,
-  dir,
   previousCommentCreatedAt,
   canReply,
   onDelete,
@@ -200,7 +197,7 @@ function CommentThreadItem({
   };
 
   return (
-    <Flex gap={8} align="flex-start" reverse={dir === "rtl"}>
+    <Flex gap={8} align="flex-start">
       {firstOfAuthor && (
         <AvatarSpacer>
           <Avatar model={comment.createdBy} size={24} />
@@ -210,12 +207,11 @@ function CommentThreadItem({
         $firstOfThread={firstOfThread}
         $firstOfAuthor={firstOfAuthor}
         $lastOfThread={lastOfThread}
-        $dir={dir}
         $canReply={canReply}
         column
       >
         {(showAuthor || showTime) && (
-          <Meta size="xsmall" type="secondary" dir={dir}>
+          <Meta size="xsmall" type="secondary">
             {showAuthor && <em>{comment.createdBy.name}</em>}
             {showAuthor && showTime && <> &middot; </>}
             {showTime && (
@@ -277,7 +273,7 @@ function CommentThreadItem({
         </Body>
         <EventBoundary>
           {!isEditing && (
-            <Actions gap={4} dir={dir}>
+            <Actions gap={4}>
               {!comment.isResolved && (
                 <>
                   {firstOfThread && (
@@ -386,14 +382,13 @@ const Action = styled.span<{ $rounded?: boolean }>`
   }
 `;
 
-const Actions = styled(Flex)<{ dir?: "rtl" | "ltr" }>`
+const Actions = styled(Flex)`
   position: absolute;
-  left: ${(props) => (props.dir !== "rtl" ? "auto" : "4px")};
-  right: ${(props) => (props.dir === "rtl" ? "auto" : "4px")};
+  inset-inline-end: 4px;
   top: 4px;
   transition: opacity 100ms ease-in-out;
   background: ${s("backgroundSecondary")};
-  padding-left: 4px;
+  padding-inline-start: 4px;
 
   ${breakpoint("tablet")`
     opacity: 0;
@@ -423,7 +418,6 @@ export const Bubble = styled(Flex)<{
   $lastOfThread?: boolean;
   $canReply?: boolean;
   $focused?: boolean;
-  $dir?: "rtl" | "ltr";
 }>`
   position: relative;
   flex-grow: 1;
@@ -440,16 +434,13 @@ export const Bubble = styled(Flex)<{
   ${({ $lastOfThread, $canReply }) =>
     $lastOfThread &&
     !$canReply &&
-    "border-bottom-left-radius: 8px; border-bottom-right-radius: 8px"};
+    "border-end-start-radius: 8px; border-end-end-radius: 8px"};
 
   ${({ $firstOfThread }) =>
     $firstOfThread &&
-    "border-top-left-radius: 8px; border-top-right-radius: 8px"};
+    "border-start-start-radius: 8px; border-start-end-radius: 8px"};
 
-  margin-left: ${(props) =>
-    props.$firstOfAuthor || props.$dir === "rtl" ? 0 : 32}px;
-  margin-right: ${(props) =>
-    props.$firstOfAuthor || props.$dir !== "rtl" ? 0 : 32}px;
+  margin-inline-start: ${(props) => (props.$firstOfAuthor ? 0 : 32)}px;
 
   p:last-child {
     margin-bottom: 0;

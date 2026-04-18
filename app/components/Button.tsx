@@ -125,7 +125,7 @@ const Label = styled.span<{ hasIcon?: boolean }>`
   white-space: nowrap;
   text-overflow: ellipsis;
 
-  ${(props) => props.hasIcon && "padding-left: 4px;"};
+  ${(props) => props.hasIcon && "padding-inline-start: 4px;"};
 `;
 
 export const Inner = styled.span<{
@@ -135,13 +135,13 @@ export const Inner = styled.span<{
 }>`
   display: flex;
   padding: 0 8px;
-  padding-right: ${(props) => (props.disclosure ? 2 : 8)}px;
+  padding-inline-end: ${(props) => (props.disclosure ? 2 : 8)}px;
   line-height: ${(props) => (props.hasIcon ? 24 : 32)}px;
   justify-content: center;
   align-items: center;
   min-height: 32px;
 
-  ${(props) => props.hasIcon && props.hasText && "padding-left: 4px;"};
+  ${(props) => props.hasIcon && props.hasText && "padding-inline-start: 4px;"};
   ${(props) => props.hasIcon && !props.hasText && "padding: 0 4px;"};
 `;
 

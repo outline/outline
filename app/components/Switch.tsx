@@ -172,6 +172,10 @@ const StyledSwitchThumb = styled(RadixSwitch.Thumb)<{
   &[data-state="checked"] {
     transform: translateX(${(props) => props.width - props.height}px);
   }
+
+  [dir="rtl"] &[data-state="checked"] {
+    transform: translateX(${(props) => -(props.width - props.height)}px);
+  }
 `;
 
 export default React.forwardRef(Switch);

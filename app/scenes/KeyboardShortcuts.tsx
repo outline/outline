@@ -625,11 +625,11 @@ const List = styled.dl`
 `;
 
 const Keys = styled.dt`
-  float: right;
+  float: inline-end;
   width: 45%;
   margin: 0 0 10px;
-  clear: left;
-  text-align: right;
+  clear: inline-start;
+  text-align: end;
   font-size: 12px;
   color: ${s("textSecondary")};
   display: flex;
@@ -638,7 +638,7 @@ const Keys = styled.dt`
 `;
 
 const Label = styled.dd`
-  float: left;
+  float: inline-start;
   width: 55%;
   margin: 0 0 10px;
   display: flex;

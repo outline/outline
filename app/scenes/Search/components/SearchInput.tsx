@@ -53,7 +53,8 @@ const Wrapper = styled(Flex)`
 
 const StyledInput = styled.input`
   width: 100%;
-  padding: 10px 10px 10px 60px;
+  padding-block: 10px 10px;
+  padding-inline: 60px 10px;
   font-size: 30px;
   font-weight: 400;
   outline: none;
@@ -81,7 +82,7 @@ const StyledInput = styled.input`
 
 const StyledIcon = styled(SearchIcon)`
   position: absolute;
-  left: 8px;
+  inset-inline-start: 8px;
   opacity: 0.7;
 `;
 

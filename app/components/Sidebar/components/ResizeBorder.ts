@@ -6,8 +6,8 @@ const ResizeBorder = styled.div<{ dir?: "left" | "right" }>`
   position: absolute;
   top: 0;
   bottom: 0;
-  right: ${(props) => (props.dir !== "right" ? "-1px" : "auto")};
-  left: ${(props) => (props.dir === "right" ? "-1px" : "auto")};
+  inset-inline-end: ${(props) => (props.dir !== "right" ? "-1px" : "auto")};
+  inset-inline-start: ${(props) => (props.dir === "right" ? "-1px" : "auto")};
   width: 2px;
   cursor: col-resize;
   ${undraggableOnDesktop()}
@@ -23,7 +23,7 @@ const ResizeBorder = styled.div<{ dir?: "left" | "right" }>`
     position: absolute;
     top: 0;
     bottom: 0;
-    right: -4px;
+    inset-inline-end: -4px;
     width: 10px;
     ${undraggableOnDesktop()}
   }

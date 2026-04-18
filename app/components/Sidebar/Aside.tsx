@@ -10,6 +10,7 @@ import ResizeBorder from "~/components/Sidebar/components/ResizeBorder";
 import useStores from "~/hooks/useStores";
 import useWindowScrollbarWidth from "~/hooks/useWindowScrollbarWidth";
 import { sidebarAppearDuration } from "~/styles/animations";
+import { useDirection } from "@radix-ui/react-direction";
 
 interface Props extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
@@ -18,25 +19,25 @@ interface Props extends React.HTMLAttributes<HTMLDivElement> {
   skipInitialAnimation?: boolean;
 }
 
-function Right({ children, border, className, skipInitialAnimation }: Props) {
+function Aside({ children, border, className, skipInitialAnimation }: Props) {
   const theme = useTheme();
   const { ui } = useStores();
   const [isResizing, setResizing] = React.useState(false);
   const maxWidth = theme.sidebarMaxWidth;
   const minWidth = theme.sidebarMinWidth + 16; // padding
   const windowScrollbarWidth = useWindowScrollbarWidth();
+  const direction = useDirection();
 
   const handleDrag = React.useCallback(
     (event: MouseEvent) => {
       // suppresses text selection
       event.preventDefault();
-      const width = Math.max(
-        Math.min(window.innerWidth - event.pageX, maxWidth),
-        minWidth
-      );
+      const distance =
+        direction === "rtl" ? event.pageX : window.innerWidth - event.pageX;
+      const width = Math.max(Math.min(distance, maxWidth), minWidth);
       ui.set({ sidebarRightWidth: width });
     },
-    [minWidth, maxWidth, ui]
+    [minWidth, maxWidth, direction, ui]
   );
 
   const handleReset = React.useCallback(() => {
@@ -108,7 +109,7 @@ function Right({ children, border, className, skipInitialAnimation }: Props) {
       $border={border}
       className={className}
       role="complementary"
-      aria-label="Right sidebar"
+      aria-label="Aside"
     >
       <Position style={style} column>
         <ErrorBoundary>{children}</ErrorBoundary>
@@ -136,15 +137,15 @@ const Sidebar = styled(m.div)<{
   flex-shrink: 0;
   background: ${s("background")};
   max-width: 80%;
-  border-left: 1px solid ${s("divider")};
-  transition: border-left 100ms ease-in-out;
+  border-inline-start: 1px solid ${s("divider")};
+  transition: border-inline-start 100ms ease-in-out;
   z-index: ${depths.sidebar};
 
   ${breakpoint("mobile", "tablet")`
     display: flex;
     position: absolute;
     top: 0;
-    right: 0;
+    inset-inline-end: 0;
     bottom: 0;
     z-index: ${depths.mobileSidebar};
   `}
@@ -154,4 +155,4 @@ const Sidebar = styled(m.div)<{
   `}
 `;
 
-export default observer(Right);
+export default observer(Aside);
