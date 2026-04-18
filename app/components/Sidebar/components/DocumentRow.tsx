@@ -42,10 +42,10 @@ export type DocumentRowProps = {
   /** Displays a small unread badge to the right of the label. */
   unreadBadge?: boolean;
 
-  /** Static label content; when provided, it is rendered in preference to `labelText`. */
-  label?: React.ReactNode;
   /** Whether inline title updates are allowed. */
   canEdit?: boolean;
+  /** Static label content; when provided, it is rendered in preference to `labelText`. */
+  label?: React.ReactNode;
   /** Label as a text string, for editing. */
   labelText?: string;
   /** Submit handler when title updates are allowed. */
@@ -80,12 +80,12 @@ export type DocumentRowProps = {
   /** Whether the row is an active drop target (visual highlight). */
   isActiveDropTarget?: boolean;
 
-  /** Cursor element rendered above the row, inside the Relative. */
+  /** Cursor element rendered above the row. */
   cursorBefore?: React.ReactNode;
-  /** Cursor element rendered below the row, inside the Relative. */
+  /** Cursor element rendered below the row. */
   cursorAfter?: React.ReactNode;
 
-  /** Menu content rendered by the container; the row wraps it in Fade. */
+  /** Menu content rendered by the container. */
   menu?: React.ReactNode;
   /** Whether the menu's action slot is visible (e.g. while the menu is open). */
   menuOpen?: boolean;
@@ -111,9 +111,6 @@ export type DocumentRowProps = {
 
   /** Called on click intent for prefetching. */
   onClickIntent?: () => void;
-
-  /** When false, the row does not accept file drops. Defaults to true. */
-  canImport?: boolean;
 };
 
 function DocumentRow({
@@ -153,7 +150,6 @@ function DocumentRow({
   isActiveOverride,
   children,
   onClickIntent,
-  canImport = true,
 }: DocumentRowProps) {
   const { t } = useTranslation();
   const sidebarContext = useSidebarContext();
@@ -278,12 +274,11 @@ function DocumentRow({
     />
   );
 
-  const withImport =
-    canImport && documentId ? (
-      <DropToImport documentId={documentId}>{sidebarLinkElement}</DropToImport>
-    ) : (
-      sidebarLinkElement
-    );
+  const withImport = documentId ? (
+    <DropToImport documentId={documentId}>{sidebarLinkElement}</DropToImport>
+  ) : (
+    sidebarLinkElement
+  );
 
   return (
     <ActionContextProvider

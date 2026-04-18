@@ -175,7 +175,6 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
       menu={menu}
       menuOpen={menuOpen}
       isActiveOverride={isActive}
-      canImport={false}
     >
       <SidebarDisclosureContext.Provider value={disclosureEvent}>
         <Folder expanded={displayChildDocuments}>

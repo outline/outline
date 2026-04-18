@@ -197,7 +197,6 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
         contextAction={contextMenuAction}
         isActiveOverride={isActive}
         onClickIntent={handlePrefetch}
-        canImport={false}
       >
         <SidebarContext.Provider value={sidebarContext}>
           <Relative>

@@ -82,9 +82,6 @@ export type CollectionRowProps = {
   /** Whether the row is an active drop target (visual highlight). */
   isActiveDropTarget?: boolean;
 
-  /** When false, the row does not accept file drops. Defaults to true. */
-  canImport?: boolean;
-
   /** Content rendered after the row (e.g. CollectionLinkChildren). */
   children?: React.ReactNode;
 };
@@ -114,7 +111,6 @@ function CollectionRow({
   parentRef,
   dropRef,
   isActiveDropTarget,
-  canImport = true,
   children,
 }: CollectionRowProps) {
   const { t } = useTranslation();
@@ -230,17 +226,13 @@ function CollectionRow({
     />
   );
 
-  const withImport = canImport ? (
-    <DropToImport collectionId={collection.id}>
-      {sidebarLinkElement}
-    </DropToImport>
-  ) : (
-    sidebarLinkElement
-  );
-
   return (
     <ActionContextProvider value={{ activeModels: [collection] }}>
-      <Relative ref={mergedRef}>{withImport}</Relative>
+      <Relative ref={mergedRef}>
+        <DropToImport collectionId={collection.id}>
+          {sidebarLinkElement}
+        </DropToImport>
+      </Relative>
       {isAddingNewChild && onCreateChild && (
         <SidebarLink
           isActive={() => true}
