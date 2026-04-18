@@ -484,29 +484,35 @@ export async function buildComment(overrides: {
   parentCommentId?: string;
   resolvedById?: string;
   reactions?: ReactionSummary[];
+  createdAt?: Date;
 }) {
-  const comment = await Comment.create({
-    resolvedById: overrides.resolvedById,
-    parentCommentId: overrides.parentCommentId,
-    documentId: overrides.documentId,
-    data: {
-      type: "doc",
-      content: [
-        {
-          type: "paragraph",
-          content: [
-            {
-              content: [],
-              type: "text",
-              text: "test",
-            },
-          ],
-        },
-      ],
+  const comment = await Comment.create(
+    {
+      resolvedById: overrides.resolvedById,
+      parentCommentId: overrides.parentCommentId,
+      documentId: overrides.documentId,
+      data: {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              {
+                content: [],
+                type: "text",
+                text: "test",
+              },
+            ],
+          },
+        ],
+      },
+      createdById: overrides.userId,
+      reactions: overrides.reactions,
+      createdAt: overrides.createdAt,
+      updatedAt: overrides.createdAt,
     },
-    createdById: overrides.userId,
-    reactions: overrides.reactions,
-  });
+    { silent: overrides.createdAt ? true : false }
+  );
 
   return comment;
 }

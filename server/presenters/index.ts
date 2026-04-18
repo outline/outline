@@ -5,6 +5,7 @@ import presentAvailableTeam from "./availableTeam";
 import presentCollection from "./collection";
 import presentComment from "./comment";
 import presentDocument, { presentDocuments } from "./document";
+import presentDocumentInsight from "./documentInsight";
 import presentEvent from "./event";
 import presentExternalGroup from "./externalGroup";
 import presentFileOperation from "./fileOperation";
@@ -42,6 +43,7 @@ export {
   presentComment,
   presentDocument,
   presentDocuments,
+  presentDocumentInsight,
   presentEvent,
   presentExternalGroup,
   presentFileOperation,
