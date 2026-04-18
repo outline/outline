@@ -395,7 +395,7 @@ export const OAuthInterface: RefreshTokenModel &
     const scopes = Array.isArray(scope) ? scope : [scope];
     const validAccessScopes = Object.values(Scope);
 
-    return scopes.some((s: string) => {
+    return scopes.every((s: string) => {
       if (validAccessScopes.includes(s as Scope)) {
         return true;
       }

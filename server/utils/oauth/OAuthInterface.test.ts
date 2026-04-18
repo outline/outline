@@ -347,5 +347,11 @@ describe("OAuthInterface", () => {
       const result = await OAuthInterface.validateScope(user, client, scope);
       expect(result).toBe(false);
     });
+
+    it("should reject if any requested scope is invalid", async () => {
+      const scope = [Scope.Read, "*"];
+      const result = await OAuthInterface.validateScope(user, client, scope);
+      expect(result).toBe(false);
+    });
   });
 });
