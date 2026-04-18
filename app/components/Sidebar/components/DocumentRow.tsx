@@ -42,17 +42,17 @@ export type DocumentRowProps = {
   /** Displays a small unread badge to the right of the label. */
   unreadBadge?: boolean;
 
-  /** Label rendered when canEdit is false. */
+  /** Static label content; when provided, it is rendered in preference to `labelText`. */
   label?: React.ReactNode;
-  /** When true, an EditableTitle replaces `label`. */
+  /** Whether inline title updates are allowed. */
   canEdit?: boolean;
-  /** Title displayed and edited when canEdit is true. */
-  editTitle?: string;
-  /** Submit handler for the edited title. */
+  /** Label as a text string, for editing. */
+  labelText?: string;
+  /** Submit handler when title updates are allowed. */
   onTitleChange?: (value: string) => Promise<void>;
-  /** Forwarded ref to the EditableTitle so the container can trigger rename. */
+  /** Forwarded ref to the `EditableTitle` instance when it is rendered. */
   editableTitleRef?: React.Ref<RefHandle>;
-  /** Notifies the container when the inline title's editing state changes. */
+  /** Notifies the container when the rendered inline title enters or exits editing mode. */
   onEditingChange?: (editing: boolean) => void;
 
   /** Whether the row is expanded. */
@@ -127,7 +127,7 @@ function DocumentRow({
   unreadBadge,
   label,
   canEdit,
-  editTitle,
+  labelText,
   onTitleChange,
   editableTitleRef,
   onEditingChange,
@@ -211,9 +211,9 @@ function DocumentRow({
 
   const labelElement =
     label ??
-    (editTitle !== undefined ? (
+    (labelText !== undefined ? (
       <EditableTitle
-        title={editTitle}
+        title={labelText}
         onSubmit={onTitleChange ?? (async () => undefined)}
         isEditing={isEditing}
         onEditing={setIsEditing}

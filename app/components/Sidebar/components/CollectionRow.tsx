@@ -53,7 +53,7 @@ export type CollectionRowProps = {
   /** When true, the name renders as an EditableTitle. */
   canEdit?: boolean;
   /** Title displayed and edited when canEdit is true. */
-  editTitle?: string;
+  labelText?: string;
   /** Submit handler for the edited title. */
   onTitleChange?: (value: string) => Promise<void>;
   /** Forwarded ref to the EditableTitle so the container can trigger rename. */
@@ -101,7 +101,7 @@ function CollectionRow({
   onDisclosureClick,
   onExpand,
   canEdit,
-  editTitle,
+  labelText,
   onTitleChange,
   editableTitleRef,
   onEditingChange,
@@ -166,8 +166,8 @@ function CollectionRow({
 
   const labelElement = canEdit ? (
     <EditableTitle
-      title={editTitle ?? collection.name}
-      onSubmit={onTitleChange!}
+      title={labelText ?? collection.name}
+      onSubmit={onTitleChange ?? (async () => undefined)}
       isEditing={isEditing}
       onEditing={setIsEditing}
       canUpdate={canEdit}

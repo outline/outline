@@ -346,7 +346,7 @@ const DocumentLink = observer(function DocumentLinkInner({
       scrollIntoViewIfNeeded={sidebarContext === "collections"}
       icon={iconElement}
       canEdit={canUpdate}
-      editTitle={title}
+      labelText={title}
       onTitleChange={handleTitleChange}
       editableTitleRef={editableTitleRef}
       onEditingChange={setIsEditing}
