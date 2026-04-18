@@ -1,46 +1,45 @@
 import fractionalIndex from "fractional-index";
 import type { Location } from "history";
 import { observer } from "mobx-react";
-import { PlusIcon, StarredIcon } from "outline-icons";
+import { StarredIcon } from "outline-icons";
 import * as React from "react";
 import { useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
 import { UserPreference } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
-import { DocumentValidation } from "@shared/validations";
+import type Collection from "~/models/Collection";
 import type Star from "~/models/Star";
-import EditableTitle, { type RefHandle } from "~/components/EditableTitle";
-import Fade from "~/components/Fade";
-import NudeButton from "~/components/NudeButton";
-import Tooltip from "~/components/Tooltip";
+import type { RefHandle } from "~/components/EditableTitle";
 import useBoolean from "~/hooks/useBoolean";
+import { useCollectionMenuAction } from "~/hooks/useCollectionMenuAction";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import { useDocumentMenuAction } from "~/hooks/useDocumentMenuAction";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
+import CollectionMenu from "~/menus/CollectionMenu";
 import DocumentMenu from "~/menus/DocumentMenu";
 import { documentEditPath } from "~/utils/routeHelpers";
 import {
   useDragStar,
+  useDropToChangeCollection,
   useDropToCreateStar,
   useDropToReorderStar,
 } from "../hooks/useDragAndDrop";
 import { useSidebarLabelAndIcon } from "../hooks/useSidebarLabelAndIcon";
-import CollectionLink from "./CollectionLink";
+import CollectionLinkChildren from "./CollectionLinkChildren";
+import CollectionRow from "./CollectionRow";
 import DocumentLink from "./DocumentLink";
-import SidebarDisclosureContext, {
-  useSidebarDisclosureState,
-} from "./SidebarDisclosureContext";
+import DocumentRow from "./DocumentRow";
 import DropCursor from "./DropCursor";
 import Folder from "./Folder";
 import Relative from "./Relative";
 import type { SidebarContextType } from "./SidebarContext";
 import SidebarContext, { starredSidebarContext } from "./SidebarContext";
-import SidebarLink from "./SidebarLink";
-import { ActionContextProvider } from "~/hooks/useActionContext";
-import { useDocumentMenuAction } from "~/hooks/useDocumentMenuAction";
+import SidebarDisclosureContext, {
+  useSidebarDisclosureState,
+} from "./SidebarDisclosureContext";
 import { type ConnectDragSource } from "react-dnd";
 
 type Props = {
@@ -48,14 +47,14 @@ type Props = {
 };
 
 type StarredDocumentLinkProps = {
-  star: Star;
   documentId: string;
   expanded: boolean;
   sidebarContext: SidebarContextType;
   isDragging: boolean;
-  handleDisclosureClick: React.MouseEventHandler<HTMLElement>;
+  handleDisclosureClick: (ev?: React.MouseEvent<HTMLElement>) => void;
   handlePrefetch: () => void;
   onExpand: () => void;
+  onCollapse: () => void;
   icon: React.ReactNode;
   menuOpen: boolean;
   handleMenuOpen: () => void;
@@ -65,20 +64,18 @@ type StarredDocumentLinkProps = {
 };
 
 type StarredCollectionLinkProps = {
-  star: Star;
-  collection: any;
+  collection: Collection;
   expanded: boolean;
   sidebarContext: SidebarContextType;
   isDragging: boolean;
-  handleDisclosureClick: (ev?: React.MouseEvent<HTMLButtonElement>) => void;
+  handleDisclosureClick: (ev?: React.MouseEvent<HTMLElement>) => void;
   draggableRef: ConnectDragSource;
   cursor: React.ReactNode;
   displayChildDocuments: boolean;
-  reorderStarProps: any;
+  isDraggingAnyStar: boolean;
 };
 
 const StarredDocumentLink = observer(function StarredDocumentLink({
-  star,
   documentId,
   expanded,
   sidebarContext,
@@ -86,6 +83,7 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
   handleDisclosureClick,
   handlePrefetch,
   onExpand,
+  onCollapse,
   icon,
   menuOpen,
   handleMenuOpen,
@@ -93,11 +91,11 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
   draggableRef,
   cursor,
 }: StarredDocumentLinkProps) {
-  const { t } = useTranslation();
   const history = useHistory();
   const user = useCurrentUser();
   const { collections, documents } = useStores();
   const can = usePolicy(documentId);
+  const editableTitleRef = React.useRef<RefHandle>(null);
 
   const document = documents.get(documentId);
 
@@ -109,12 +107,6 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
     : [];
   const hasChildDocuments = childDocuments.length > 0;
   const displayChildDocuments = expanded && !isDragging;
-
-  const [isEditing, setIsEditing] = React.useState(false);
-  const editableTitleRef = React.useRef<RefHandle>(null);
-  const [isAddingNewChild, setIsAddingNewChild, closeAddingNewChild] =
-    useBoolean();
-  const newChildTitleRef = React.useRef<RefHandle>(null);
 
   const handleRename = React.useCallback(() => {
     editableTitleRef.current?.setIsEditing(true);
@@ -138,30 +130,23 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
       if (!document) {
         return;
       }
-      try {
-        newChildTitleRef.current?.setIsEditing(false);
-        const newDocument = await documents.create(
-          {
-            collectionId: documentCollection?.id,
-            parentDocumentId: documentId,
-            fullWidth:
-              document.fullWidth ??
-              user.getPreference(UserPreference.FullWidthDocuments),
-            title: input,
-            data: ProsemirrorHelper.getEmptyDocument(),
-          },
-          { publish: true }
-        );
-        documentCollection?.addDocument(newDocument, documentId);
-
-        closeAddingNewChild();
-        history.push({
-          pathname: documentEditPath(newDocument),
-          state: { sidebarContext },
-        });
-      } catch (_err) {
-        newChildTitleRef.current?.setIsEditing(true);
-      }
+      const newDocument = await documents.create(
+        {
+          collectionId: documentCollection?.id,
+          parentDocumentId: documentId,
+          fullWidth:
+            document.fullWidth ??
+            user.getPreference(UserPreference.FullWidthDocuments),
+          title: input,
+          data: ProsemirrorHelper.getEmptyDocument(),
+        },
+        { publish: true }
+      );
+      documentCollection?.addDocument(newDocument, documentId);
+      history.push({
+        pathname: documentEditPath(newDocument),
+        state: { sidebarContext },
+      });
     },
     [
       documents,
@@ -171,7 +156,6 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
       sidebarContext,
       user,
       history,
-      closeAddingNewChild,
     ]
   );
 
@@ -180,98 +164,53 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
     onRename: handleRename,
   });
 
+  const isActive = React.useCallback(
+    (match, location: Location<{ sidebarContext?: SidebarContextType }>) =>
+      !!match && location.state?.sidebarContext === sidebarContext,
+    [sidebarContext]
+  );
+
   if (!document) {
     return null;
   }
 
-  const labelElement = (
-    <EditableTitle
-      title={document.titleWithDefault}
-      onSubmit={handleTitleChange}
-      isEditing={isEditing}
-      onEditing={setIsEditing}
-      canUpdate={can.update}
-      maxLength={DocumentValidation.maxTitleLength}
-      ref={editableTitleRef}
+  const menu = (
+    <DocumentMenu
+      document={document}
+      onRename={handleRename}
+      onOpen={handleMenuOpen}
+      onClose={handleMenuClose}
     />
   );
 
-  const menuElement =
-    !isDragging && !isEditing ? (
-      <Fade>
-        {can.createChildDocument && (
-          <Tooltip content={t("New doc")}>
-            <NudeButton
-              aria-label={t("New nested document")}
-              onClick={(ev) => {
-                ev.preventDefault();
-                setIsAddingNewChild();
-                onExpand();
-              }}
-            >
-              <PlusIcon />
-            </NudeButton>
-          </Tooltip>
-        )}
-        <DocumentMenu
-          document={document}
-          onRename={handleRename}
-          onOpen={handleMenuOpen}
-          onClose={handleMenuClose}
-        />
-      </Fade>
-    ) : undefined;
-
   return (
-    <ActionContextProvider
-      value={{
-        activeModels: [document],
-      }}
+    <DocumentRow
+      documentId={documentId}
+      document={document}
+      to={{ pathname: document.url, state: { sidebarContext } }}
+      depth={0}
+      icon={icon}
+      canEdit={can.update}
+      editTitle={document.titleWithDefault}
+      onTitleChange={handleTitleChange}
+      editableTitleRef={editableTitleRef}
+      expanded={expanded}
+      hasChildren={hasChildDocuments}
+      onDisclosureClick={handleDisclosureClick}
+      onExpand={onExpand}
+      onCollapse={onCollapse}
+      dragRef={draggableRef}
+      isDragging={isDragging}
+      menu={menu}
+      menuOpen={menuOpen}
+      canCreateChild={can.createChildDocument}
+      onCreateChild={handleNewDoc}
+      newChildDepth={2}
+      contextAction={contextMenuAction}
+      isActiveOverride={isActive}
+      onClickIntent={handlePrefetch}
+      canImport={false}
     >
-      <Draggable key={star.id} ref={draggableRef} $isDragging={isDragging}>
-        <SidebarLink
-          // @ts-expect-error react-router type is wrong, string component is fine.
-          component={isEditing ? "div" : undefined}
-          depth={0}
-          to={{
-            pathname: document.url,
-            state: { sidebarContext },
-          }}
-          expanded={hasChildDocuments && !isDragging ? expanded : undefined}
-          onDisclosureClick={handleDisclosureClick}
-          onClickIntent={handlePrefetch}
-          contextAction={contextMenuAction}
-          icon={icon}
-          isActive={(
-            match,
-            location: Location<{ sidebarContext?: SidebarContextType }>
-          ) => !!match && location.state?.sidebarContext === sidebarContext}
-          label={labelElement}
-          ellipsis={!isEditing}
-          exact={false}
-          $showActions={menuOpen}
-          menu={menuElement}
-        />
-      </Draggable>
-      {isAddingNewChild && (
-        <SidebarLink
-          isActive={() => true}
-          depth={2}
-          ellipsis={false}
-          label={
-            <EditableTitle
-              title=""
-              canUpdate
-              isEditing
-              placeholder={`${t("New doc")}…`}
-              onCancel={closeAddingNewChild}
-              onSubmit={handleNewDoc}
-              maxLength={DocumentValidation.maxTitleLength}
-              ref={newChildTitleRef}
-            />
-          }
-        />
-      )}
       <SidebarContext.Provider value={sidebarContext}>
         <Relative>
           <Folder expanded={displayChildDocuments}>
@@ -291,12 +230,11 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
           {cursor}
         </Relative>
       </SidebarContext.Provider>
-    </ActionContextProvider>
+    </DocumentRow>
   );
 });
 
 const StarredCollectionLink = observer(function StarredCollectionLink({
-  star,
   collection,
   sidebarContext,
   isDragging,
@@ -304,20 +242,106 @@ const StarredCollectionLink = observer(function StarredCollectionLink({
   draggableRef,
   cursor,
   displayChildDocuments,
-  reorderStarProps,
+  isDraggingAnyStar,
 }: StarredCollectionLinkProps) {
   const { documents } = useStores();
+  const history = useHistory();
+  const user = useCurrentUser();
+  const can = usePolicy(collection.id);
+  const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
+  const editableTitleRef = React.useRef<RefHandle>(null);
+
+  const handleTitleChange = React.useCallback(
+    async (name: string) => {
+      await collection.save({ name });
+    },
+    [collection]
+  );
+
+  const handleExpand = React.useCallback(() => {
+    if (!displayChildDocuments) {
+      handleDisclosureClick();
+    }
+  }, [displayChildDocuments, handleDisclosureClick]);
+
+  const parentRef = React.useRef<HTMLDivElement>(null);
+  const [{ isOver, canDrop }, dropRef] = useDropToChangeCollection(
+    collection,
+    handleExpand,
+    parentRef
+  );
+
+  const handleRename = React.useCallback(() => {
+    editableTitleRef.current?.setIsEditing(true);
+  }, []);
+
+  const handlePrefetch = React.useCallback(() => {
+    void collection.fetchDocuments();
+  }, [collection]);
+
+  const handleNewDoc = React.useCallback(
+    async (input: string) => {
+      const newDocument = await documents.create(
+        {
+          collectionId: collection.id,
+          title: input,
+          fullWidth: user.getPreference(UserPreference.FullWidthDocuments),
+          data: ProsemirrorHelper.getEmptyDocument(),
+        },
+        { publish: true }
+      );
+      collection?.addDocument(newDocument);
+      history.push({
+        pathname: documentEditPath(newDocument),
+        state: { sidebarContext },
+      });
+    },
+    [user, sidebarContext, history, collection, documents]
+  );
+
+  const contextMenuAction = useCollectionMenuAction({
+    collectionId: collection.id,
+    onRename: handleRename,
+  });
+
+  const menu = !isDraggingAnyStar ? (
+    <CollectionMenu
+      collection={collection}
+      onRename={handleRename}
+      onOpen={handleMenuOpen}
+      onClose={handleMenuClose}
+    />
+  ) : undefined;
 
   return (
     <SidebarContext.Provider value={sidebarContext}>
-      <Draggable key={star?.id} ref={draggableRef} $isDragging={isDragging}>
-        <CollectionLink
+      <Draggable ref={draggableRef} $isDragging={isDragging}>
+        <CollectionRow
           collection={collection}
+          to={{ pathname: collection.path, state: { sidebarContext } }}
           expanded={isDragging ? undefined : displayChildDocuments}
-          activeDocument={documents.active}
           onDisclosureClick={handleDisclosureClick}
-          isDraggingAnyCollection={reorderStarProps.isDragging}
-        />
+          onExpand={handleExpand}
+          onClickIntent={handlePrefetch}
+          canEdit={can.update}
+          editTitle={collection.name}
+          onTitleChange={handleTitleChange}
+          editableTitleRef={editableTitleRef}
+          contextAction={contextMenuAction}
+          menu={menu}
+          menuOpen={menuOpen}
+          canCreateChild={!isDraggingAnyStar && can.createDocument}
+          onCreateChild={handleNewDoc}
+          parentRef={parentRef}
+          dropRef={dropRef}
+          isActiveDropTarget={isOver && canDrop}
+        >
+          <CollectionLinkChildren
+            collection={collection}
+            expanded={displayChildDocuments}
+            prefetchDocument={documents.prefetchDocument}
+          />
+        </CollectionRow>
       </Draggable>
       <Relative>{cursor}</Relative>
     </SidebarContext.Provider>
@@ -388,6 +412,10 @@ function StarredLink({ star }: Props) {
     setExpanded(true);
   }, []);
 
+  const handleCollapse = React.useCallback(() => {
+    setExpanded(false);
+  }, []);
+
   const handlePrefetch = React.useCallback(() => {
     if (documentId) {
       void documents.prefetchDocument(documentId);
@@ -434,7 +462,6 @@ function StarredLink({ star }: Props) {
     return (
       <SidebarDisclosureContext.Provider value={disclosureEvent}>
         <StarredDocumentLink
-          star={star}
           documentId={documentId}
           expanded={expanded}
           sidebarContext={sidebarContext}
@@ -442,6 +469,7 @@ function StarredLink({ star }: Props) {
           handleDisclosureClick={handleDisclosureClick}
           handlePrefetch={handlePrefetch}
           onExpand={handleExpand}
+          onCollapse={handleCollapse}
           icon={icon}
           menuOpen={menuOpen}
           handleMenuOpen={handleMenuOpen}
@@ -457,7 +485,6 @@ function StarredLink({ star }: Props) {
     return (
       <SidebarDisclosureContext.Provider value={disclosureEvent}>
         <StarredCollectionLink
-          star={star}
           collection={collection}
           expanded={expanded}
           sidebarContext={sidebarContext}
@@ -466,7 +493,7 @@ function StarredLink({ star }: Props) {
           draggableRef={draggableRef}
           cursor={cursor}
           displayChildDocuments={displayChildDocuments}
-          reorderStarProps={reorderStarProps}
+          isDraggingAnyStar={reorderStarProps.isDragging}
         />
       </SidebarDisclosureContext.Provider>
     );
