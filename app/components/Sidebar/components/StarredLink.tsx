@@ -181,54 +181,55 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
   );
 
   return (
-    <DocumentRow
-      documentId={document.id}
-      document={document}
-      to={{ pathname: document.path, state: { sidebarContext } }}
-      depth={0}
-      icon={icon}
-      canEdit={can.update}
-      labelText={document.titleWithDefault}
-      onTitleChange={handleTitleChange}
-      editableTitleRef={editableTitleRef}
-      expanded={expanded}
-      hasChildren={hasChildDocuments}
-      onDisclosureClick={handleDisclosureClick}
-      onExpand={onExpand}
-      onCollapse={onCollapse}
-      dragRef={draggableRef}
-      isDragging={isDragging}
-      menu={menu}
-      menuOpen={menuOpen}
-      canCreateChild={can.createChildDocument}
-      onCreateChild={handleNewDoc}
-      newChildDepth={2}
-      contextAction={contextMenuAction}
-      isActiveOverride={isActive}
-      onClickIntent={handlePrefetch}
-      canImport={false}
-    >
-      <SidebarContext.Provider value={sidebarContext}>
-        <Relative>
-          <Folder expanded={displayChildDocuments}>
-            {childDocuments.map((node, index) => (
-              <DocumentLink
-                key={node.id}
-                node={node}
-                collection={documentCollection}
-                activeDocument={documents.active}
-                prefetchDocument={documents.prefetchDocument}
-                isDraft={node.isDraft}
-                depth={2}
-                index={index}
-                parentId={document.id}
-              />
-            ))}
-          </Folder>
-          {cursor}
-        </Relative>
-      </SidebarContext.Provider>
-    </DocumentRow>
+    <Draggable ref={draggableRef} $isDragging={isDragging}>
+      <DocumentRow
+        documentId={document.id}
+        document={document}
+        to={{ pathname: document.path, state: { sidebarContext } }}
+        depth={0}
+        icon={icon}
+        canEdit={can.update}
+        labelText={document.titleWithDefault}
+        onTitleChange={handleTitleChange}
+        editableTitleRef={editableTitleRef}
+        expanded={expanded}
+        hasChildren={hasChildDocuments}
+        onDisclosureClick={handleDisclosureClick}
+        onExpand={onExpand}
+        onCollapse={onCollapse}
+        isDragging={isDragging}
+        menu={menu}
+        menuOpen={menuOpen}
+        canCreateChild={can.createChildDocument}
+        onCreateChild={handleNewDoc}
+        newChildDepth={2}
+        contextAction={contextMenuAction}
+        isActiveOverride={isActive}
+        onClickIntent={handlePrefetch}
+        canImport={false}
+      >
+        <SidebarContext.Provider value={sidebarContext}>
+          <Relative>
+            <Folder expanded={displayChildDocuments}>
+              {childDocuments.map((node, index) => (
+                <DocumentLink
+                  key={node.id}
+                  node={node}
+                  collection={documentCollection}
+                  activeDocument={documents.active}
+                  prefetchDocument={documents.prefetchDocument}
+                  isDraft={node.isDraft}
+                  depth={2}
+                  index={index}
+                  parentId={document.id}
+                />
+              ))}
+            </Folder>
+            {cursor}
+          </Relative>
+        </SidebarContext.Provider>
+      </DocumentRow>
+    </Draggable>
   );
 });
 
