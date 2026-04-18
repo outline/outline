@@ -1,4 +1,6 @@
+import { format as formatDate } from "date-fns";
 import isEqual from "fast-deep-equal";
+import { dateLocale } from "@shared/utils/date";
 import orderBy from "lodash/orderBy";
 import { observer } from "mobx-react";
 import * as React from "react";
@@ -9,11 +11,14 @@ import { Pagination } from "@shared/constants";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import Revision from "~/models/Revision";
 import Empty from "~/components/Empty";
+import { InputSelect, type Option } from "~/components/InputSelect";
 import PaginatedEventList from "~/components/PaginatedEventList";
 import useKeyDown from "~/hooks/useKeyDown";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
+import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
-import { documentPath } from "~/utils/routeHelpers";
+import useUserLocale from "~/hooks/useUserLocale";
+import { documentPath, matchDocumentHistory } from "~/utils/routeHelpers";
 import Sidebar from "./SidebarLayout";
 import useMobile from "~/hooks/useMobile";
 import Switch from "~/components/Switch";
@@ -21,6 +26,8 @@ import Text from "@shared/components/Text";
 import usePersistedState from "~/hooks/usePersistedState";
 import Scrollable from "~/components/Scrollable";
 import Flex from "@shared/components/Flex";
+
+const COMPARE_TO_PREVIOUS = "previous";
 
 const DocumentEvents = [
   "documents.publish",
@@ -38,12 +45,20 @@ function History() {
   const { events, documents, revisions } = useStores();
   const { t } = useTranslation();
   const match = useRouteMatch<{ documentSlug: string }>();
+  const historyMatch = useRouteMatch<{ revisionId?: string }>({
+    path: matchDocumentHistory,
+  });
   const history = useHistory();
+  const query = useQuery();
   const sidebarContext = useLocationSidebarContext();
   const document = documents.get(match.params.documentSlug);
   const [revisionsOffset, setRevisionsOffset] = React.useState(0);
   const [eventsOffset, setEventsOffset] = React.useState(0);
   const isMobile = useMobile();
+  const userLocale = useUserLocale();
+  const [compareTo, setCompareTo] = React.useState(
+    () => query.get("compareTo") ?? COMPARE_TO_PREVIOUS
+  );
 
   const [defaultShowChanges, setDefaultShowChanges] =
     usePersistedState<boolean>("history-show-changes", true);
@@ -80,9 +95,37 @@ function History() {
     (checked: boolean) => {
       setShowChanges(checked);
       setDefaultShowChanges(checked);
-      updateLocation({ changes: checked ? "true" : null });
+      if (checked) {
+        updateLocation({ changes: "true" });
+      } else {
+        setCompareTo(COMPARE_TO_PREVIOUS);
+        updateLocation({ changes: null, compareTo: null });
+      }
     },
-    [history]
+    [updateLocation]
+  );
+
+  const selectedRevisionId = historyMatch?.params.revisionId;
+
+  // Reset "Compare to" when the user clicks a different revision in the list,
+  // but not on initial mount (which would break deep links with ?compareTo=…)
+  const prevSelectedRef = React.useRef(selectedRevisionId);
+  React.useEffect(() => {
+    if (prevSelectedRef.current !== selectedRevisionId) {
+      prevSelectedRef.current = selectedRevisionId;
+      setCompareTo(COMPARE_TO_PREVIOUS);
+      updateLocation({ compareTo: null });
+    }
+  }, [selectedRevisionId, updateLocation]);
+
+  const handleCompareToChange = React.useCallback(
+    (value: string) => {
+      setCompareTo(value);
+      updateLocation({
+        compareTo: value === COMPARE_TO_PREVIOUS ? null : value,
+      });
+    },
+    [updateLocation]
   );
 
   // Ensure that the URL parameter is in sync with the persisted state on mount
@@ -178,6 +221,49 @@ function History() {
     return merged;
   }, [revisions, document, revisionEvents, nonRevisionEvents]);
 
+  const compareOptions = React.useMemo((): Option[] => {
+    const revisionItems = items.filter(
+      (item): item is Revision => item instanceof Revision
+    );
+
+    const locale = dateLocale(userLocale);
+    const resolvedSelectedId =
+      selectedRevisionId === "latest" && document
+        ? RevisionHelper.latestId(document.id)
+        : selectedRevisionId;
+
+    const options: Option[] = [
+      { type: "item", label: t("Previous revision"), value: COMPARE_TO_PREVIOUS },
+    ];
+
+    const latestId = document ? RevisionHelper.latestId(document.id) : undefined;
+
+    for (const rev of revisionItems) {
+      if (rev.id === resolvedSelectedId) {
+        continue;
+      }
+
+      const dateLabel = formatDate(
+        new Date(rev.createdAt),
+        "MMM do, h:mm a",
+        { locale }
+      );
+      const collaboratorName =
+        rev.collaborators?.[0]?.name ?? rev.createdBy?.name;
+
+      options.push({
+        type: "item",
+        label: dateLabel,
+        value: rev.id === latestId ? "latest" : rev.id,
+        description: collaboratorName
+          ? t("{{userName}} edited", { userName: collaboratorName })
+          : undefined,
+      });
+    }
+
+    return options;
+  }, [items, selectedRevisionId, document, userLocale, t]);
+
   const onCloseHistory = React.useCallback(() => {
     if (isMobile) {
       // Allow closing the history drawer on mobile to view revision content
@@ -205,6 +291,17 @@ function History() {
             onChange={handleShowChangesToggle}
           />
         </Text>
+        {showChanges && (
+          <CompareToWrapper>
+            <InputSelect
+              options={compareOptions}
+              value={compareTo}
+              onChange={handleCompareToChange}
+              label={t("Compare to")}
+              short
+            />
+          </CompareToWrapper>
+        )}
       </Content>
       <Scrollable hiddenScrollbars topShadow>
         {document ? (
@@ -242,6 +339,10 @@ const Content = styled.div`
   border-radius: 8px;
   padding: 8px 8px 0;
   flex-shrink: 0;
+`;
+
+const CompareToWrapper = styled.div`
+  padding: 4px 0 8px;
 `;
 
 export default observer(History);
