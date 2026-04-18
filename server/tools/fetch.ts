@@ -127,6 +127,7 @@ export function fetchTool(server: McpServer, scopes: string[]) {
 
           case "collection": {
             const collection = await Collection.findByPk(id, {
+              userId: actor.id,
               includeDocumentStructure: true,
               rejectOnEmpty: true,
             });
