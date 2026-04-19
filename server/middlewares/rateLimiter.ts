@@ -23,18 +23,25 @@ import { parseAuthentication } from "./authentication";
 async function getRateLimiterIdentifier(ctx: AppContext): Promise<string> {
   try {
     const { token } = parseAuthentication(ctx);
-    if (token && !ApiKey.match(token) && !OAuthAuthentication.match(token)) {
-      let userId = await RateLimiter.getCachedUserIdForToken(token);
-      if (!userId) {
-        const { user } = await getUserForJWT(token);
-        userId = user.id;
-        void RateLimiter.cacheUserForToken(token, userId);
-      }
-      return userId;
+    if (!token) {
+      return ctx.ip;
     }
+
+    if (ApiKey.match(token) || OAuthAuthentication.match(token)) {
+      return ctx.ip;
+    }
+
+    let userId = await RateLimiter.getCachedUserIdForToken(token);
+    if (!userId) {
+      const { user } = await getUserForJWT(token);
+      userId = user.id;
+      void RateLimiter.cacheUserForToken(token, userId);
+    }
+    return userId;
   } catch {
     // Fall through to IP-based rate limiting
   }
+
   return ctx.ip;
 }
 
