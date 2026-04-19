@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { WebhooksIcon } from "outline-icons";
+import { PlusIcon, WebhooksIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import type WebhookSubscription from "~/models/WebhookSubscription";
@@ -35,10 +35,12 @@ function Webhooks() {
           {can.createWebhookSubscription && (
             <Action>
               <Button
-                type="submit"
-                value={`${t("New webhook")}…`}
+                type="button"
                 onClick={handleNewModalOpen}
-              />
+                icon={<PlusIcon />}
+              >
+                {`${t("New webhook")}…`}
+              </Button>
             </Action>
           )}
         </>
