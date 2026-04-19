@@ -125,7 +125,7 @@ export const AccessControlList = observer(
                     }}
                     disabled={!can.update}
                     value={collection?.permission}
-                    hideLabel
+                    labelHidden
                     nude
                     shrink
                   />

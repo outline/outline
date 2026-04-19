@@ -1,33 +1,28 @@
-import { format as formatDate } from "date-fns";
 import isEqual from "fast-deep-equal";
-import { dateLocale } from "@shared/utils/date";
 import orderBy from "lodash/orderBy";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useRouteMatch } from "react-router-dom";
-import styled from "styled-components";
 import { Pagination } from "@shared/constants";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import Revision from "~/models/Revision";
 import Empty from "~/components/Empty";
-import { InputSelect, type Option } from "~/components/InputSelect";
-import PaginatedEventList from "~/components/PaginatedEventList";
+import PaginatedEventList from "./PaginatedEventList";
+import {
+  COMPARE_TO_PREVIOUS,
+  HighlightChangesControl,
+} from "./HighlightChangesControl";
 import useKeyDown from "~/hooks/useKeyDown";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
-import useUserLocale from "~/hooks/useUserLocale";
 import { documentPath, matchDocumentHistory } from "~/utils/routeHelpers";
-import Sidebar from "./SidebarLayout";
+import Sidebar from "../SidebarLayout";
 import useMobile from "~/hooks/useMobile";
-import Switch from "~/components/Switch";
-import Text from "@shared/components/Text";
 import usePersistedState from "~/hooks/usePersistedState";
 import Scrollable from "~/components/Scrollable";
 import Flex from "@shared/components/Flex";
-
-const COMPARE_TO_PREVIOUS = "previous";
 
 const DocumentEvents = [
   "documents.publish",
@@ -55,7 +50,6 @@ function History() {
   const [revisionsOffset, setRevisionsOffset] = React.useState(0);
   const [eventsOffset, setEventsOffset] = React.useState(0);
   const isMobile = useMobile();
-  const userLocale = useUserLocale();
   const [compareTo, setCompareTo] = React.useState(
     () => query.get("compareTo") ?? COMPARE_TO_PREVIOUS
   );
@@ -221,49 +215,6 @@ function History() {
     return merged;
   }, [revisions, document, revisionEvents, nonRevisionEvents]);
 
-  const compareOptions = React.useMemo((): Option[] => {
-    const revisionItems = items.filter(
-      (item): item is Revision => item instanceof Revision
-    );
-
-    const locale = dateLocale(userLocale);
-    const resolvedSelectedId =
-      selectedRevisionId === "latest" && document
-        ? RevisionHelper.latestId(document.id)
-        : selectedRevisionId;
-
-    const options: Option[] = [
-      { type: "item", label: t("Previous revision"), value: COMPARE_TO_PREVIOUS },
-    ];
-
-    const latestId = document ? RevisionHelper.latestId(document.id) : undefined;
-
-    for (const rev of revisionItems) {
-      if (rev.id === resolvedSelectedId) {
-        continue;
-      }
-
-      const dateLabel = formatDate(
-        new Date(rev.createdAt),
-        "MMM do, h:mm a",
-        { locale }
-      );
-      const collaboratorName =
-        rev.collaborators?.[0]?.name ?? rev.createdBy?.name;
-
-      options.push({
-        type: "item",
-        label: dateLabel,
-        value: rev.id === latestId ? "latest" : rev.id,
-        description: collaboratorName
-          ? t("{{userName}} edited", { userName: collaboratorName })
-          : undefined,
-      });
-    }
-
-    return options;
-  }, [items, selectedRevisionId, document, userLocale, t]);
-
   const onCloseHistory = React.useCallback(() => {
     if (isMobile) {
       // Allow closing the history drawer on mobile to view revision content
@@ -283,26 +234,15 @@ function History() {
 
   return (
     <Sidebar title={t("History")} onClose={onCloseHistory} scrollable={false}>
-      <Content>
-        <Text type="secondary" size="small" as="span">
-          <Switch
-            label={t("Highlight changes")}
-            checked={showChanges}
-            onChange={handleShowChangesToggle}
-          />
-        </Text>
-        {showChanges && (
-          <CompareToWrapper>
-            <InputSelect
-              options={compareOptions}
-              value={compareTo}
-              onChange={handleCompareToChange}
-              label={t("Compare to")}
-              short
-            />
-          </CompareToWrapper>
-        )}
-      </Content>
+      <HighlightChangesControl
+        showChanges={showChanges}
+        onShowChangesToggle={handleShowChangesToggle}
+        items={items}
+        document={document}
+        selectedRevisionId={selectedRevisionId}
+        compareTo={compareTo}
+        onCompareToChange={handleCompareToChange}
+      />
       <Scrollable hiddenScrollbars topShadow>
         {document ? (
           <PaginatedEventList
@@ -332,17 +272,5 @@ function History() {
     </Sidebar>
   );
 }
-
-const Content = styled.div`
-  margin: 0 16px 8px;
-  border: 1px solid ${(props) => props.theme.inputBorder};
-  border-radius: 8px;
-  padding: 8px 8px 0;
-  flex-shrink: 0;
-`;
-
-const CompareToWrapper = styled.div`
-  padding: 4px 0 8px;
-`;
 
 export default observer(History);
