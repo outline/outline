@@ -6,13 +6,13 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useRouteMatch } from "react-router-dom";
-import styled from "styled-components";
 import { Pagination } from "@shared/constants";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import Revision from "~/models/Revision";
 import Empty from "~/components/Empty";
-import { InputSelect, type Option } from "~/components/InputSelect";
+import { type Option } from "~/components/InputSelect";
 import PaginatedEventList from "./PaginatedEventList";
+import { HighlightChangesControl } from "./HighlightChangesControl";
 import useKeyDown from "~/hooks/useKeyDown";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useQuery from "~/hooks/useQuery";
@@ -21,8 +21,6 @@ import useUserLocale from "~/hooks/useUserLocale";
 import { documentPath, matchDocumentHistory } from "~/utils/routeHelpers";
 import Sidebar from "../SidebarLayout";
 import useMobile from "~/hooks/useMobile";
-import Switch from "~/components/Switch";
-import Text from "@shared/components/Text";
 import usePersistedState from "~/hooks/usePersistedState";
 import Scrollable from "~/components/Scrollable";
 import Flex from "@shared/components/Flex";
@@ -287,28 +285,13 @@ function History() {
 
   return (
     <Sidebar title={t("History")} onClose={onCloseHistory} scrollable={false}>
-      <Content>
-        <Text type="secondary" size="small" as="span">
-          <Switch
-            label={t("Highlight changes")}
-            checked={showChanges}
-            onChange={handleShowChangesToggle}
-          />
-        </Text>
-        {showChanges && (
-          <CompareToWrapper>
-            <InputSelect
-              options={compareOptions}
-              value={compareTo}
-              onChange={handleCompareToChange}
-              label={t("Compare to")}
-              labelHidden
-              nude
-              short
-            />
-          </CompareToWrapper>
-        )}
-      </Content>
+      <HighlightChangesControl
+        showChanges={showChanges}
+        onShowChangesToggle={handleShowChangesToggle}
+        compareOptions={compareOptions}
+        compareTo={compareTo}
+        onCompareToChange={handleCompareToChange}
+      />
       <Scrollable hiddenScrollbars topShadow>
         {document ? (
           <PaginatedEventList
@@ -338,17 +321,5 @@ function History() {
     </Sidebar>
   );
 }
-
-const Content = styled.div`
-  margin: 0 16px 8px;
-  border: 1px solid ${(props) => props.theme.inputBorder};
-  border-radius: 8px;
-  padding: 8px 8px 0;
-  flex-shrink: 0;
-`;
-
-const CompareToWrapper = styled.div`
-  padding: 4px 0 8px;
-`;
 
 export default observer(History);

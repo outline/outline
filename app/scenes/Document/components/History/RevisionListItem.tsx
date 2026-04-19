@@ -4,9 +4,9 @@ import { EditIcon, TrashIcon } from "outline-icons";
 import { useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import EventBoundary from "@shared/components/EventBoundary";
-import { ellipsis, hover } from "@shared/styles";
+import { ellipsis, hover, s } from "@shared/styles";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import type Document from "~/models/Document";
 import type Revision from "~/models/Revision";
@@ -101,11 +101,6 @@ const RevisionListItem = ({ item, document, ...rest }: Props) => {
     };
   }
 
-  const isActive =
-    typeof to === "string"
-      ? location.pathname === to
-      : location.pathname === to?.pathname;
-
   if (document.isDeleted) {
     to = undefined;
   }
@@ -157,11 +152,9 @@ const RevisionListItem = ({ item, document, ...rest }: Props) => {
           }
           subtitle={<Meta>{meta}</Meta>}
           actions={
-            isActive ? (
-              <StyledEventBoundary>
-                <RevisionMenu document={document} revisionId={item.id} />
-              </StyledEventBoundary>
-            ) : undefined
+            <StyledEventBoundary>
+              <RevisionMenu document={document} revisionId={item.id} />
+            </StyledEventBoundary>
           }
           ref={ref}
           $menuOpen={menuOpen}
@@ -192,15 +185,33 @@ const RevisionItem = styled(Item)<{ $menuOpen?: boolean }>`
   padding: 8px;
   border-radius: 8px;
 
-  ${lineStyle}
-
   ${Actions} {
-    opacity: ${(props) => (props.$menuOpen ? 1 : 0.5)};
+    opacity: 0;
+  }
 
-    &: ${hover} {
+  &:${hover},
+  &:active,
+  &:focus,
+  &:focus-within,
+  &:has([data-state="open"]) {
+    background: ${s("listItemHoverBackground")};
+
+    ${Actions} {
       opacity: 1;
     }
   }
+
+  ${(props) =>
+    props.$menuOpen &&
+    css`
+      background: ${s("listItemHoverBackground")};
+
+      ${Actions} {
+        opacity: 1;
+      }
+    `}
+
+  ${lineStyle}
 `;
 
 export default observer(RevisionListItem);
