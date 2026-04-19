@@ -1,5 +1,7 @@
 {
   "New API key": "New API key",
+  "Copy": "Copy",
+  "API key copied": "API key copied",
   "Delete": "Delete",
   "Revoke": "Revoke",
   "Revoke API key": "Revoke API key",
@@ -76,7 +78,6 @@
   "Copy public link": "Copy public link",
   "Link copied to clipboard": "Link copied to clipboard",
   "Copy link": "Copy link",
-  "Copy": "Copy",
   "Duplicate": "Duplicate",
   "Duplicate document": "Duplicate document",
   "Copy document": "Copy document",
