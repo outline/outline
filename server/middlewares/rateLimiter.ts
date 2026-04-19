@@ -4,6 +4,7 @@ import env from "@server/env";
 import { RateLimitExceededError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/Metrics";
+import { ApiKey, OAuthAuthentication } from "@server/models";
 import Redis from "@server/storage/redis";
 import type { AppContext } from "@server/types";
 import { getUserForJWT } from "@server/utils/jwt";
@@ -22,25 +23,19 @@ import { parseAuthentication } from "./authentication";
 async function getRateLimiterIdentifier(ctx: AppContext): Promise<string> {
   try {
     const { token } = parseAuthentication(ctx);
-    if (!token) {
-      return ctx.ip;
-    }
-
-    let userId = await RateLimiter.getCachedUserIdForToken(token);
-    if (!userId) {
-      try {
+    if (token && !ApiKey.match(token) && !OAuthAuthentication.match(token)) {
+      let userId = await RateLimiter.getCachedUserIdForToken(token);
+      if (!userId) {
         const { user } = await getUserForJWT(token);
         userId = user.id;
         void RateLimiter.cacheUserForToken(token, userId);
-      } catch {
-        return ctx.ip;
       }
+      return userId;
     }
-
-    return userId;
   } catch {
-    return ctx.ip;
+    // Fall through to IP-based rate limiting
   }
+  return ctx.ip;
 }
 
 /**

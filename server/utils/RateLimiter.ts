@@ -1,3 +1,4 @@
+import { createHash } from "crypto";
 import type { IRateLimiterStoreOptions } from "rate-limiter-flexible";
 import { RateLimiterRedis, RateLimiterMemory } from "rate-limiter-flexible";
 import env from "@server/env";
@@ -62,7 +63,7 @@ export default class RateLimiter {
   static async cacheUserForToken(token: string, userId: string): Promise<void> {
     try {
       await Redis.defaultClient.set(
-        `${this.TOKEN_CACHE_KEY_PREFIX}${token}`,
+        this.tokenCacheKey(token),
         userId,
         "EX",
         this.TOKEN_CACHE_TTL_SECONDS
@@ -81,9 +82,7 @@ export default class RateLimiter {
    */
   static async getCachedUserIdForToken(token: string): Promise<string | null> {
     try {
-      return await Redis.defaultClient.get(
-        `${this.TOKEN_CACHE_KEY_PREFIX}${token}`
-      );
+      return await Redis.defaultClient.get(this.tokenCacheKey(token));
     } catch (err) {
       Logger.warn("Failed to read cached user for rate limiter token", err);
       return null;
@@ -98,10 +97,15 @@ export default class RateLimiter {
    */
   static async clearCachedToken(token: string): Promise<void> {
     try {
-      await Redis.defaultClient.del(`${this.TOKEN_CACHE_KEY_PREFIX}${token}`);
+      await Redis.defaultClient.del(this.tokenCacheKey(token));
     } catch (err) {
       Logger.warn("Failed to clear cached rate limiter token", err);
     }
+  }
+
+  private static tokenCacheKey(token: string): string {
+    const hash = createHash("sha256").update(token).digest("hex");
+    return `${this.TOKEN_CACHE_KEY_PREFIX}${hash}`;
   }
 }
 

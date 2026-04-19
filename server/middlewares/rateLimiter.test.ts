@@ -1,5 +1,6 @@
 import type { Context } from "koa";
 import env from "@server/env";
+import { ApiKey } from "@server/models";
 import * as jwtUtils from "@server/utils/jwt";
 import RateLimiter from "@server/utils/RateLimiter";
 import { defaultRateLimiter, rateLimiter } from "./rateLimiter";
@@ -93,6 +94,31 @@ describe("rateLimiter middleware", () => {
       await middleware(mockCtx, jest.fn());
 
       expect(cacheSpy).not.toHaveBeenCalled();
+      expect(consumeSpy).toHaveBeenCalledWith("192.168.1.1");
+    });
+
+    it("short-circuits to IP for API key tokens without hitting Redis or JWT verify", async () => {
+      const apiKeyToken = `${ApiKey.prefix}${"a".repeat(38)}`;
+      const middleware = defaultRateLimiter();
+      const consumeSpy = jest
+        .spyOn(RateLimiter.defaultRateLimiter, "consume")
+        .mockResolvedValue({} as never);
+      const cacheReadSpy = jest.spyOn(RateLimiter, "getCachedUserIdForToken");
+      const verifySpy = jest.spyOn(jwtUtils, "getUserForJWT");
+
+      const mockCtx = {
+        path: "/some/path",
+        mountPath: undefined,
+        ip: "192.168.1.1",
+        set: jest.fn(),
+        request: { get: () => `Bearer ${apiKeyToken}` },
+        cookies: { get: () => undefined },
+      } as unknown as Context;
+
+      await middleware(mockCtx, jest.fn());
+
+      expect(cacheReadSpy).not.toHaveBeenCalled();
+      expect(verifySpy).not.toHaveBeenCalled();
       expect(consumeSpy).toHaveBeenCalledWith("192.168.1.1");
     });
 
