@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ApiKey } from "@server/models";
 import { BaseSchema } from "@server/routes/api/schema";
 import { ApiKeyValidation } from "@shared/validations";
 
@@ -23,6 +24,20 @@ export const APIKeysListSchema = BaseSchema.extend({
   body: z.object({
     /** The owner of the API key */
     userId: z.uuid().optional(),
+
+    /** API keys sorting direction */
+    direction: z
+      .string()
+      .optional()
+      .transform((val) => (val !== "ASC" ? "DESC" : val)),
+
+    /** API keys sorting column */
+    sort: z
+      .string()
+      .refine((val) => Object.keys(ApiKey.getAttributes()).includes(val), {
+        error: "Invalid sort parameter",
+      })
+      .prefault("createdAt"),
   }),
 });
 

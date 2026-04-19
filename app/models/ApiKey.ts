@@ -4,8 +4,9 @@ import Model from "./base/Model";
 import Field from "./decorators/Field";
 import User from "./User";
 import Relation from "./decorators/Relation";
+import type { Searchable } from "./interfaces/Searchable";
 
-class ApiKey extends Model {
+class ApiKey extends Model implements Searchable {
   static modelName = "ApiKey";
 
   /** The human-readable name of this API key */
@@ -52,6 +53,16 @@ class ApiKey extends Model {
       return `...${this.last4}`;
     }
     return `ol...${this.last4}`;
+  }
+
+  @computed
+  get searchContent(): string[] {
+    return [this.name, this.obfuscatedValue].filter(Boolean);
+  }
+
+  @computed
+  get searchSuppressed(): boolean {
+    return false;
   }
 }
 
