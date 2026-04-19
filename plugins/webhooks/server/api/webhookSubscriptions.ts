@@ -36,9 +36,11 @@ router.post(
     if (query) {
       where = {
         ...where,
-        [Op.and]: Sequelize.literal(
-          `unaccent(LOWER("webhook_subscription"."name")) like unaccent(LOWER(:query))`
-        ),
+        [Op.and]: [
+          Sequelize.literal(
+            `unaccent(LOWER("webhook_subscription"."name")) like unaccent(LOWER(:query))`
+          ),
+        ],
       };
     }
 

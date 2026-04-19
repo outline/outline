@@ -83,9 +83,11 @@ router.post(
     if (query) {
       where = {
         ...where,
-        [Op.and]: Sequelize.literal(
-          `unaccent(LOWER("apiKey"."name")) like unaccent(LOWER(:query))`
-        ),
+        [Op.and]: [
+          Sequelize.literal(
+            `unaccent(LOWER("apiKey"."name")) like unaccent(LOWER(:query))`
+          ),
+        ],
       };
     }
 
