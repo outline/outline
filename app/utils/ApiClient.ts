@@ -236,6 +236,7 @@ class ApiClient {
         await stores.auth.logout({
           savePath: false,
           revokeToken: false,
+          clearCache: true,
         });
       }
 
