@@ -1,12 +1,12 @@
 import { format, subDays } from "date-fns";
 import { DocumentInsight } from "@server/models";
 import { buildDocument, buildTeam } from "@server/test/factories";
-import CleanupExpiredDocumentInsightsTask from "./CleanupExpiredDocumentInsightsTask";
+import CleanupDocumentInsightsTask from "./CleanupDocumentInsightsTask";
 
 const daysAgo = (n: number) => subDays(new Date(), n);
 const dayStr = (d: Date) => format(d, "yyyy-MM-dd");
 
-describe("CleanupExpiredDocumentInsightsTask", () => {
+describe("CleanupDocumentInsightsTask", () => {
   it("deletes rows older than the retention window", async () => {
     const team = await buildTeam();
     const document = await buildDocument({
@@ -27,7 +27,7 @@ describe("CleanupExpiredDocumentInsightsTask", () => {
       viewCount: 1,
     });
 
-    await new CleanupExpiredDocumentInsightsTask().perform();
+    await new CleanupDocumentInsightsTask().perform();
 
     const dates = (
       await DocumentInsight.findAll({

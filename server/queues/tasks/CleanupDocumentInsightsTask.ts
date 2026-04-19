@@ -10,7 +10,7 @@ import { CronTask, TaskInterval } from "./base/CronTask";
  */
 const RETENTION_DAYS = 365;
 
-export default class CleanupExpiredDocumentInsightsTask extends CronTask {
+export default class CleanupDocumentInsightsTask extends CronTask {
   public async perform() {
     // Derive the cutoff in UTC from the database so retention isn't affected
     // by the worker's local timezone. `date` is stored as a UTC DATE.
