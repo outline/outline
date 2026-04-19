@@ -136,18 +136,27 @@ export function replace(
  *
  * > The "from" location MUST NOT be a proper prefix of the "path"
  * > location; i.e., a location cannot be moved into one of its children.
- *
- * TODO: throw if the check described in the previous paragraph fails.
  */
 export function move(
   object: unknown,
   operation: MoveOperation
-): MissingError | null {
-  const from_endpoint = Pointer.fromJSON(operation.from).evaluate(object);
+): MissingError | InvalidOperationError | null {
+  const from_pointer = Pointer.fromJSON(operation.from);
+  const path_pointer = Pointer.fromJSON(operation.path);
+
+  // The "from" location MUST NOT be a proper prefix of the "path" location
+  if (
+    from_pointer.tokens.length < path_pointer.tokens.length &&
+    from_pointer.tokens.every((token, i) => token === path_pointer.tokens[i])
+  ) {
+    return new InvalidOperationError(operation);
+  }
+
+  const from_endpoint = from_pointer.evaluate(object);
   if (from_endpoint.value === undefined) {
     return new MissingError(operation.from);
   }
-  const endpoint = Pointer.fromJSON(operation.path).evaluate(object);
+  const endpoint = path_pointer.evaluate(object);
   if (endpoint.parent === undefined) {
     return new MissingError(operation.path);
   }
