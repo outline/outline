@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { useTranslation } from "react-i18next";
+import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import { metaDisplay } from "@shared/utils/keyboard";
 import Scrollable from "~/components/Scrollable";
@@ -37,6 +38,17 @@ function AppSidebar() {
   const team = useCurrentTeam();
   const user = useCurrentUser();
   const can = usePolicy(team);
+  const history = useHistory();
+  const location = useLocation();
+
+  const handleSearchClick = useCallback(() => {
+    if (
+      location.pathname.startsWith("/search") &&
+      (location.search || location.pathname !== "/search")
+    ) {
+      history.push(searchPath());
+    }
+  }, [history, location.pathname, location.search]);
 
   useEffect(() => {
     void collections.fetchAll();
@@ -106,6 +118,7 @@ function AppSidebar() {
                 icon={<SearchIcon />}
                 label={t("Search")}
                 exact={false}
+                onClick={handleSearchClick}
               />
               {can.createDocument && <DraftsLink />}
             </Section>
