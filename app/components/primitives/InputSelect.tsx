@@ -22,19 +22,27 @@ export type TriggerButtonProps = {
   className?: string;
 } & Pick<ButtonProps<unknown>, "borderOnHover">;
 
-type InputSelectTriggerProps = { placeholder: string } & TriggerButtonProps &
+type InputSelectTriggerProps = {
+  placeholder: string;
+  /** When provided, overrides the selected value rendered inside the trigger. */
+  displayValue?: React.ReactNode;
+} & TriggerButtonProps &
   React.ComponentPropsWithoutRef<typeof InputSelectPrimitive.Trigger>;
 
 const InputSelectTrigger = React.forwardRef<
   React.ElementRef<typeof InputSelectPrimitive.Trigger>,
   InputSelectTriggerProps
 >((props, ref) => {
-  const { placeholder, children, nude, ...buttonProps } = props;
+  const { placeholder, children, nude, displayValue, ...buttonProps } = props;
 
   return (
     <InputSelectPrimitive.Trigger ref={ref} asChild>
       <SelectButton neutral disclosure $nude={nude} {...buttonProps}>
-        <InputSelectPrimitive.Value placeholder={placeholder} />
+        {displayValue !== undefined ? (
+          <>{displayValue}</>
+        ) : (
+          <InputSelectPrimitive.Value placeholder={placeholder} />
+        )}
       </SelectButton>
     </InputSelectPrimitive.Trigger>
   );

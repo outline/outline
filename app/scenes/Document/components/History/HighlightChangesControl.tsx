@@ -13,7 +13,7 @@ import Switch from "~/components/Switch";
 import useUserLocale from "~/hooks/useUserLocale";
 import { revisionCollaboratorText } from "./utils";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
-import Fade from "~/components/Fade";
+import { ConditionalFade } from "~/components/Fade";
 
 export const COMPARE_TO_PREVIOUS = "previous";
 
@@ -38,6 +38,7 @@ export function HighlightChangesControl({
 }: Props) {
   const { t } = useTranslation();
   const userLocale = useUserLocale();
+  const skipFadeRef = React.useRef(showChanges);
 
   const compareOptions = React.useMemo((): Option[] => {
     const revisionItems = items.filter(
@@ -94,17 +95,22 @@ export function HighlightChangesControl({
           />
         </Text>
         {showChanges && (
-          <Fade as="div">
+          <ConditionalFade animate={!skipFadeRef.current}>
             <StyledInputSelect
               options={compareOptions}
               value={compareTo}
               onChange={onCompareToChange}
               label={t("Compare to")}
+              displayValue={(item) => (
+                <>
+                  <Text weight="bold">{t("Compare to")}</Text> {item?.label}
+                </>
+              )}
               labelHidden
               nude
               short
             />
-          </Fade>
+          </ConditionalFade>
         )}
       </ResizingHeightContainer>
     </Content>
@@ -118,6 +124,7 @@ const StyledInputSelect = styled(InputSelect)`
   border-top-right-radius: 0;
   position: relative;
   inset-block-end: -1px;
+  height: 40px;
 `;
 
 const Content = styled.div`

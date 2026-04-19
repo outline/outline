@@ -67,6 +67,8 @@ type Props = Omit<React.HTMLAttributes<HTMLButtonElement>, "onChange"> & {
   short?: boolean;
   /** Display a tooltip with the descriptive help text about the select menu. */
   help?: string;
+  /** Render function to override the selected value shown in the trigger. Receives the currently selected option, or undefined when none is selected. */
+  displayValue?: (selectedOption: Item | undefined) => React.ReactNode;
 } & TriggerButtonProps;
 
 export const InputSelect = React.forwardRef<HTMLButtonElement, Props>(
@@ -79,6 +81,7 @@ export const InputSelect = React.forwardRef<HTMLButtonElement, Props>(
       labelHidden,
       short,
       help,
+      displayValue,
       ...triggerProps
     } = props;
 
@@ -94,6 +97,20 @@ export const InputSelect = React.forwardRef<HTMLButtonElement, Props>(
     const optionsHaveIcon = options.some(
       (opt) => opt.type === "item" && !!opt.icon
     );
+
+    const selectedOption = React.useMemo(
+      () =>
+        localValue
+          ? (options.find(
+              (opt) => opt.type === "item" && opt.value === localValue
+            ) as Item | undefined)
+          : undefined,
+      [localValue, options]
+    );
+
+    const resolvedDisplayValue = displayValue
+      ? displayValue(selectedOption)
+      : undefined;
 
     const renderOption = React.useCallback(
       (option: Option, idx: number) => {
@@ -143,6 +160,7 @@ export const InputSelect = React.forwardRef<HTMLButtonElement, Props>(
           onChange={onValueChange}
           placeholder={placeholder}
           optionsHaveIcon={optionsHaveIcon}
+          resolvedDisplayValue={resolvedDisplayValue}
         />
       );
     }
@@ -159,6 +177,7 @@ export const InputSelect = React.forwardRef<HTMLButtonElement, Props>(
           <InputSelectTrigger
             ref={ref}
             placeholder={placeholder}
+            displayValue={resolvedDisplayValue}
             {...triggerProps}
           />
           <InputSelectContent
@@ -179,6 +198,7 @@ InputSelect.displayName = "InputSelect";
 type MobileSelectProps = Props & {
   placeholder: string;
   optionsHaveIcon: boolean;
+  resolvedDisplayValue?: React.ReactNode;
 };
 
 const MobileSelect = React.forwardRef<HTMLButtonElement, MobileSelectProps>(
@@ -193,6 +213,8 @@ const MobileSelect = React.forwardRef<HTMLButtonElement, MobileSelectProps>(
       short,
       placeholder,
       optionsHaveIcon,
+      displayValue: _displayValue,
+      resolvedDisplayValue,
       ...triggerProps
     } = props;
 
@@ -262,7 +284,9 @@ const MobileSelect = React.forwardRef<HTMLButtonElement, MobileSelectProps>(
               disclosure
               data-placeholder={selectedOption ? false : ""}
             >
-              {selectedOption ? (
+              {resolvedDisplayValue !== undefined ? (
+                resolvedDisplayValue
+              ) : selectedOption ? (
                 <Option
                   option={selectedOption as Item}
                   optionsHaveIcon={optionsHaveIcon}
