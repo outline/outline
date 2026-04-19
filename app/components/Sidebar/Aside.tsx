@@ -7,6 +7,7 @@ import { depths, s } from "@shared/styles";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import Flex from "~/components/Flex";
 import ResizeBorder from "~/components/Sidebar/components/ResizeBorder";
+import useMediaQuery from "~/hooks/useMediaQuery";
 import useStores from "~/hooks/useStores";
 import useWindowScrollbarWidth from "~/hooks/useWindowScrollbarWidth";
 import { sidebarAppearDuration } from "~/styles/animations";
@@ -22,6 +23,7 @@ interface Props extends React.HTMLAttributes<HTMLDivElement> {
 function Aside({ children, border, className, skipInitialAnimation }: Props) {
   const theme = useTheme();
   const { ui } = useStores();
+  const isPrinting = useMediaQuery("print");
   const [isResizing, setResizing] = React.useState(false);
   const maxWidth = theme.sidebarMaxWidth;
   const minWidth = theme.sidebarMinWidth + 16; // padding
@@ -112,7 +114,7 @@ function Aside({ children, border, className, skipInitialAnimation }: Props) {
       aria-label="Aside"
     >
       <Position style={style} column>
-        <ErrorBoundary>{children}</ErrorBoundary>
+        {!isPrinting && <ErrorBoundary>{children}</ErrorBoundary>}
         <ResizeBorder
           onMouseDown={handleMouseDown}
           onDoubleClick={handleReset}
@@ -153,6 +155,10 @@ const Sidebar = styled(m.div)<{
   ${breakpoint("tablet")`
     position: relative;
   `}
+
+  @media print {
+    display: none;
+  }
 `;
 
 export default observer(Aside);
