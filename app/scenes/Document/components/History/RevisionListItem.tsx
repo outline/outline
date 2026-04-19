@@ -27,8 +27,8 @@ import { useMenuAction } from "~/hooks/useMenuAction";
 import RevisionMenu from "~/menus/RevisionMenu";
 import { documentHistoryPath } from "~/utils/routeHelpers";
 import { EventItem, lineStyle } from "./EventListItem";
-import Facepile from "./Facepile";
-import Text from "./Text";
+import Facepile from "~/components/Facepile";
+import Text from "~/components/Text";
 
 type Props = {
   document: Document;

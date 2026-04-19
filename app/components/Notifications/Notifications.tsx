@@ -123,7 +123,7 @@ function Notifications(
           <HStack>
             <StyledInputSelect
               label={t("Filter")}
-              hideLabel
+              labelHidden
               options={filterOptions}
               value={filter}
               onChange={(value) => setFilter(value as NotificationFilter)}

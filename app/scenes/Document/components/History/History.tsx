@@ -12,14 +12,14 @@ import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import Revision from "~/models/Revision";
 import Empty from "~/components/Empty";
 import { InputSelect, type Option } from "~/components/InputSelect";
-import PaginatedEventList from "~/components/PaginatedEventList";
+import PaginatedEventList from "./PaginatedEventList";
 import useKeyDown from "~/hooks/useKeyDown";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import useUserLocale from "~/hooks/useUserLocale";
 import { documentPath, matchDocumentHistory } from "~/utils/routeHelpers";
-import Sidebar from "./SidebarLayout";
+import Sidebar from "../SidebarLayout";
 import useMobile from "~/hooks/useMobile";
 import Switch from "~/components/Switch";
 import Text from "@shared/components/Text";
@@ -233,21 +233,25 @@ function History() {
         : selectedRevisionId;
 
     const options: Option[] = [
-      { type: "item", label: t("Previous revision"), value: COMPARE_TO_PREVIOUS },
+      {
+        type: "item",
+        label: t("Previous version"),
+        value: COMPARE_TO_PREVIOUS,
+      },
     ];
 
-    const latestId = document ? RevisionHelper.latestId(document.id) : undefined;
+    const latestId = document
+      ? RevisionHelper.latestId(document.id)
+      : undefined;
 
     for (const rev of revisionItems) {
       if (rev.id === resolvedSelectedId) {
         continue;
       }
 
-      const dateLabel = formatDate(
-        new Date(rev.createdAt),
-        "MMM do, h:mm a",
-        { locale }
-      );
+      const dateLabel = formatDate(new Date(rev.createdAt), "MMM do, h:mm a", {
+        locale,
+      });
       const collaboratorName =
         rev.collaborators?.[0]?.name ?? rev.createdBy?.name;
 
@@ -298,6 +302,8 @@ function History() {
               value={compareTo}
               onChange={handleCompareToChange}
               label={t("Compare to")}
+              labelHidden
+              nude
               short
             />
           </CompareToWrapper>

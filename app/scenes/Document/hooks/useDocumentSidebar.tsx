@@ -22,7 +22,7 @@ const DocumentComments = lazyWithRetry(
   () => import("~/scenes/Document/components/Comments/Comments")
 );
 const DocumentHistory = lazyWithRetry(
-  () => import("~/scenes/Document/components/History")
+  () => import("~/scenes/Document/components/History/History")
 );
 
 interface DocumentSidebarContentProps {
