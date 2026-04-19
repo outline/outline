@@ -29,6 +29,7 @@ import { documentHistoryPath } from "~/utils/routeHelpers";
 import { EventItem, lineStyle } from "./EventListItem";
 import Facepile from "~/components/Facepile";
 import Text from "~/components/Text";
+import { revisionCollaboratorText } from "./utils";
 
 type Props = {
   document: Document;
@@ -70,16 +71,7 @@ const RevisionListItem = ({ item, document, ...rest }: Props) => {
   } else {
     icon = <EditIcon size={16} />;
 
-    let collaboratorText: string | undefined;
-    if (item.collaborators && item.collaborators.length === 2) {
-      collaboratorText = `${item.collaborators[0].name} and ${item.collaborators[1].name}`;
-    } else if (item.collaborators && item.collaborators.length > 2) {
-      collaboratorText = t("{{count}} people", {
-        count: item.collaborators.length,
-      });
-    } else {
-      collaboratorText = item.createdBy?.name;
-    }
+    const collaboratorText = revisionCollaboratorText(item, t);
 
     meta = isLatestRevision ? (
       <>
