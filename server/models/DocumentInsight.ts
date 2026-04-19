@@ -8,7 +8,6 @@ import {
   ForeignKey,
   Table,
 } from "sequelize-typescript";
-import { sequelize } from "@server/storage/database";
 import Document from "./Document";
 import Team from "./Team";
 import IdModel from "./base/IdModel";
@@ -106,7 +105,7 @@ class DocumentInsight extends IdModel<
     startUuid: string;
     endUuid: string;
   }): Promise<number> {
-    const [{ upserted }] = await sequelize.query<{ upserted: string }>(
+    const [{ upserted }] = await this.sequelize!.query<{ upserted: string }>(
       `
       WITH partitioned_documents AS (
         SELECT id, "teamId"
