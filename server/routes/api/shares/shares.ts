@@ -351,7 +351,7 @@ router.post(
       showLastUpdated,
       showTOC,
       title,
-      logoUrl,
+      iconUrl,
     } = ctx.input.body;
 
     const { user } = ctx.state.auth;
@@ -396,8 +396,8 @@ router.post(
       share.title = title ?? null;
     }
 
-    if (!isUndefined(logoUrl)) {
-      share.logoUrl = logoUrl ?? null;
+    if (!isUndefined(iconUrl)) {
+      share.iconUrl = iconUrl ?? null;
     }
 
     await share.saveWithCtx(ctx);

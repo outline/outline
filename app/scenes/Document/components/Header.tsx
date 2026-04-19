@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { TableOfContentsIcon, EditIcon } from "outline-icons";
+import { TableOfContentsIcon, EditIcon, SettingsIcon } from "outline-icons";
 import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -22,6 +22,7 @@ import {
   AppearanceAction,
   SubscribeAction,
 } from "~/components/Sharing/components/Actions";
+import ShareSettingsPopover from "~/components/Sharing/components/ShareSettingsPopover";
 import Star from "~/components/Star";
 import Tooltip from "~/components/Tooltip";
 import { type Editor } from "~/editor";
@@ -78,7 +79,7 @@ function DocumentHeader({
   onSave,
 }: Props) {
   const { t } = useTranslation();
-  const { ui } = useStores();
+  const { ui, shares } = useStores();
   const theme = useTheme();
   const team = useCurrentTeam({ rejectOnEmpty: false });
   const user = useCurrentUser({ rejectOnEmpty: false });
@@ -98,6 +99,7 @@ function DocumentHeader({
   const sidebarContext = useLocationSidebarContext();
   const [measureRef, size] = useMeasure();
   const { isShare, shareId, sharedTree, allowSubscriptions } = useShare();
+  const share = shareId ? shares.get(shareId) : undefined;
   const isMobile = isMobileMedia || (size.width > 0 && size.width < 700);
 
   // We cache this value for as long as the component is mounted so that if you
@@ -225,6 +227,18 @@ function DocumentHeader({
               <SubscribeAction shareId={shareId} documentId={document.id} />
             )}
             <AppearanceAction />
+            {can.update && share && (
+              <Action>
+                <ShareSettingsPopover share={share}>
+                  <Button
+                    icon={<SettingsIcon />}
+                    aria-label={t("Display settings")}
+                    neutral
+                    borderOnHover
+                  />
+                </ShareSettingsPopover>
+              </Action>
+            )}
             {can.update && !isEditing ? editAction : <div />}
           </>
         }

@@ -6,7 +6,7 @@ module.exports = {
       type: Sequelize.STRING,
       allowNull: true,
     });
-    await queryInterface.addColumn("shares", "logoUrl", {
+    await queryInterface.addColumn("shares", "iconUrl", {
       type: Sequelize.STRING(4096),
       allowNull: true,
     });
@@ -14,6 +14,6 @@ module.exports = {
 
   async down(queryInterface) {
     await queryInterface.removeColumn("shares", "title");
-    await queryInterface.removeColumn("shares", "logoUrl");
+    await queryInterface.removeColumn("shares", "iconUrl");
   },
 };

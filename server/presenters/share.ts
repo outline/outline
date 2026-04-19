@@ -20,7 +20,7 @@ export default function presentShare(share: Share, isAdmin = false) {
     showLastUpdated: share.showLastUpdated,
     showTOC: share.showTOC,
     title: share.title,
-    logoUrl: share.logoUrl,
+    iconUrl: share.iconUrl,
     lastAccessedAt: share.lastAccessedAt || undefined,
     views: share.views || 0,
     domain: share.domain,

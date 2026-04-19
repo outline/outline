@@ -87,10 +87,10 @@ class Share extends Model implements Searchable {
   @observable
   title: string | null;
 
-  /** Custom branding logo URL to display on the shared page, supersedes team avatar. */
+  /** Custom branding icon URL to display on the shared page, supersedes team avatar. */
   @Field
   @observable
-  logoUrl: string | null;
+  iconUrl: string | null;
 
   @observable
   views: number;

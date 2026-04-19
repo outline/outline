@@ -105,8 +105,8 @@ export const ShareValidation = {
   /** The maximum length of the share title */
   maxTitleLength: 255,
 
-  /** The maximum length of the share logoUrl */
-  maxLogoUrlLength: 4096,
+  /** The maximum length of the share iconUrl */
+  maxIconUrlLength: 4096,
 };
 
 export const RevisionValidation = {

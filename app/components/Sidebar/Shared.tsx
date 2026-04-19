@@ -35,7 +35,7 @@ function SharedSidebar({ share }: Props) {
   const { query } = useKBar();
 
   const displayName = share.title ?? team?.name ?? null;
-  const displayLogoUrl = share.logoUrl ?? team?.avatarUrl ?? null;
+  const displayLogoUrl = share.iconUrl ?? team?.avatarUrl ?? null;
   const displayLogoModel = displayLogoUrl ? undefined : team;
   const brandingAvailable = !!(displayName || displayLogoUrl);
   const rootNode = share.tree;
