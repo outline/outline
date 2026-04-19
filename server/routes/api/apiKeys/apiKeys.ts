@@ -53,7 +53,7 @@ router.post(
   pagination(),
   validate(T.APIKeysListSchema),
   async (ctx: APIContext<T.APIKeysListReq>) => {
-    const { userId, query } = ctx.input.body;
+    const { userId, query, sort, direction } = ctx.input.body;
     const { pagination } = ctx.state;
     const actor = ctx.state.auth.user;
 
@@ -101,7 +101,7 @@ router.post(
           where: userWhere,
         },
       ],
-      order: [["createdAt", "DESC"]],
+      order: [[sort, direction]],
       offset: pagination.offset,
       limit: pagination.limit,
     });
