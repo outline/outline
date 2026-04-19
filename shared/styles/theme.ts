@@ -29,7 +29,7 @@ const defaultColors: Colors = {
   warmGrey: "#EDF2F7",
   danger: "#ed2651",
   warning: "#f08a24",
-  success: "#2f3336",
+  success: "#3ad984",
   info: "#a0d3e8",
   brand: {
     red: "#FF5C80",

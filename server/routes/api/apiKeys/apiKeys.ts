@@ -1,5 +1,5 @@
 import Router from "koa-router";
-import type { WhereOptions } from "sequelize";
+import { Op, Sequelize, type WhereOptions } from "sequelize";
 import { UserRole } from "@shared/types";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
@@ -53,17 +53,17 @@ router.post(
   pagination(),
   validate(T.APIKeysListSchema),
   async (ctx: APIContext<T.APIKeysListReq>) => {
-    const { userId, sort, direction } = ctx.input.body;
+    const { userId, query, sort, direction } = ctx.input.body;
     const { pagination } = ctx.state;
     const actor = ctx.state.auth.user;
 
-    let where: WhereOptions<User> = {
+    let userWhere: WhereOptions<User> = {
       teamId: actor.teamId,
     };
 
     if (cannot(actor, "listApiKeys", actor.team)) {
-      where = {
-        ...where,
+      userWhere = {
+        ...userWhere,
         id: actor.id,
       };
     }
@@ -72,18 +72,35 @@ router.post(
       const user = await User.findByPk(userId);
       authorize(actor, "listApiKeys", user);
 
-      where = {
-        ...where,
+      userWhere = {
+        ...userWhere,
         id: userId,
       };
     }
 
+    let where: WhereOptions<ApiKey> = {};
+
+    if (query) {
+      where = {
+        ...where,
+        [Op.and]: [
+          Sequelize.literal(
+            `unaccent(LOWER("apiKey"."name")) like unaccent(LOWER(:query))`
+          ),
+        ],
+      };
+    }
+
+    const replacements = { query: `%${query}%` };
+
     const apiKeys = await ApiKey.findAll({
+      where,
+      replacements,
       include: [
         {
           model: User,
           required: true,
-          where,
+          where: userWhere,
         },
       ],
       order: [[sort, direction]],

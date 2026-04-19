@@ -1,12 +1,14 @@
 import Text from "@shared/components/Text";
 import { s } from "@shared/styles";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
+
+type StatusColor = "accent" | "warning" | "danger" | "textTertiary" | "success";
 
 export const Status = styled(Text).attrs({
   type: "secondary",
   size: "small",
   as: "span",
-})`
+})<{ $color?: StatusColor }>`
   display: inline-flex;
   align-items: center;
 
@@ -16,11 +18,13 @@ export const Status = styled(Text).attrs({
     width: 17px;
     height: 17px;
 
-    background: radial-gradient(
-      circle at center,
-      ${s("accent")} 0 33%,
-      transparent 33%
-    );
+    ${(props) => css`
+      background: radial-gradient(
+        circle at center,
+        ${s(props.$color ?? "accent")} 0 33%,
+        transparent 33%
+      );
+    `}
     border-radius: 50%;
   }
 `;

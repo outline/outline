@@ -24,6 +24,8 @@ export const APIKeysListSchema = BaseSchema.extend({
   body: z.object({
     /** The owner of the API key */
     userId: z.uuid().optional(),
+    /** Search query to filter API keys by name */
+    query: z.string().optional(),
 
     /** API keys sorting direction */
     direction: z
