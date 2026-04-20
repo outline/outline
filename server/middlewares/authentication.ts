@@ -92,6 +92,29 @@ export default function auth(options: AuthenticationOptions = {}) {
         );
       }
     } catch (err) {
+      // If a cookie-transported JWT caused the 401, clear it so the browser
+      // stops sending it. On the next request ForwardAuth headers take over
+      // and a fresh session is issued. Only clear when the cookie was the
+      // active transport (no Authorization: Bearer header present).
+      //
+      // IMPORTANT: ctx.cookies.set() cannot be used here — Koa's onerror
+      // handler strips all response headers before sending the error response,
+      // then re-applies only err.headers (context.js:139-146). Attaching the
+      // Set-Cookie directives to the error object is the only way they survive.
+      if (
+        err.status === 401 &&
+        !ctx.request.get("authorization") &&
+        ctx.cookies.get("accessToken")
+      ) {
+        const epoch = "Thu, 01 Jan 1970 00:00:00 GMT";
+        err.headers = {
+          ...err.headers,
+          "set-cookie": [
+            `accessToken=; expires=${epoch}; path=/`,
+            `lastSignedIn=; expires=${epoch}; path=/`,
+          ],
+        };
+      }
       if (options.optional) {
         ctx.state.auth = {};
       } else {

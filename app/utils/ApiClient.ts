@@ -180,6 +180,18 @@ class ApiClient {
     // Handle 401, log out user
     if (response.status === 401) {
       if (!this.shareId) {
+        if (env.AUTH_TYPE === "SSO") {
+          // In ForwardAuth mode, the stale JWT cookie has been cleared by the
+          // server. Navigate to the current URL so the browser makes a fresh
+          // HTTP request — the proxy will inject new identity headers and a new
+          // session will be issued automatically.
+          //
+          // We skip auth.logout() here: clearing MobX state would cause
+          // <Authenticated> to render <Redirect to="/" /> and land the user on
+          // the login page instead of their original document.
+          window.location.replace(window.location.href);
+          throw new AuthorizationError();
+        }
         await stores.auth.logout({
           savePath: true,
           clearCache: false,

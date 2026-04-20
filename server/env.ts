@@ -525,6 +525,7 @@ export class Environment {
    * provisioning. Only enable this when Outline is deployed behind a trusted
    * authenticating proxy on a self-hosted instance.
    */
+  @Public
   @IsOptional()
   @IsIn(["SSO"])
   public AUTH_TYPE = this.toOptionalString(environment.AUTH_TYPE);
