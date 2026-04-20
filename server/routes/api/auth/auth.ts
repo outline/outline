@@ -20,6 +20,7 @@ import {
 import ValidateSSOAccessTask from "@server/queues/tasks/ValidateSSOAccessTask";
 import type { APIContext } from "@server/types";
 import { getSessionsInCookie } from "@server/utils/authentication";
+import RateLimiter from "@server/utils/RateLimiter";
 import type * as T from "./schema";
 
 const router = new Router();
@@ -187,7 +188,7 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.AuthDeleteReq>) => {
     const { auth, transaction } = ctx.state;
-    const { user } = auth;
+    const { user, token } = auth;
 
     await user.rotateJwtSecret({ transaction });
     await Event.createFromContext(ctx, {
@@ -197,6 +198,8 @@ router.post(
         name: user.name,
       },
     });
+
+    void RateLimiter.clearCachedToken(token);
 
     ctx.cookies.set("accessToken", "", {
       sameSite: "lax",

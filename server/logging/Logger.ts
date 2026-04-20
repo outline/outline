@@ -191,6 +191,17 @@ class Logger {
    * @returns The sanitized data
    */
   private sanitize = <T>(input: T, level = 0): T => {
+    // Errors have non-enumerable message/stack which are dropped by spreads
+    // and JSON serialization, so convert them to a plain object up-front.
+    if (input instanceof Error) {
+      // oxlint-disable-next-line @typescript-eslint/no-explicit-any
+      return {
+        name: input.name,
+        message: input.message,
+        stack: input.stack,
+      } as any as T;
+    }
+
     // Short circuit if we're not in production to enable easier debugging
     if (!env.isProduction) {
       return input;
