@@ -90,8 +90,8 @@ const StyledDisclosure = styled(Disclosure)`
   left: auto;
   margin: 2px 0;
 
-  &[aria-expanded="true"]:not(:hover) {
-    background: none !important;
+  &&[aria-expanded="true"]:not(:hover) {
+    background: none;
   }
 `;
 
