@@ -335,8 +335,8 @@ const Container = styled(Flex)<ContainerProps>`
   background: ${s("sidebarBackground")};
   transition:
     box-shadow 150ms ease-in-out,
-    transform 150ms
-      ease-out${(props: ContainerProps) =>
+    transform 250ms cubic-bezier(0.34, 1.15, 0.64, 1)
+      ${(props: ContainerProps) =>
         props.$isAnimating ? `, width ${ANIMATION_MS}ms ease-out` : ""};
   transform: translateX(
     ${(props) => (props.$mobileSidebarVisible ? 0 : "-100%")}
@@ -379,6 +379,10 @@ const Container = styled(Flex)<ContainerProps>`
     z-index: ${depths.sidebar};
     margin: 0;
     min-width: 0;
+    transition:
+      box-shadow 150ms ease-in-out,
+      transform 150ms ease-out${(props: ContainerProps) =>
+        props.$isAnimating ? `, width ${ANIMATION_MS}ms ease-out` : ""};
     transform: translateX(${(props: ContainerProps) =>
       props.$collapsed
         ? `calc(-100% + ${Desktop.hasInsetTitlebar() ? 8 : 16}px)`

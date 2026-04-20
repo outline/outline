@@ -3,7 +3,8 @@ import type { LocationDescriptor } from "history";
 import isEqual from "lodash/isEqual";
 import queryString from "query-string";
 import * as React from "react";
-import styled, { useTheme } from "styled-components";
+import styled, { css, useTheme } from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 import { s, hover } from "@shared/styles";
 import NavLink from "~/components/NavLink";
 
@@ -46,7 +47,7 @@ interface ButtonProps extends BaseProps {
 
 type Props = LinkProps | ButtonProps;
 
-const tabStyles = `
+const tabStyles = css`
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -54,7 +55,11 @@ const tabStyles = `
   font-size: 14px;
   cursor: var(--pointer);
   user-select: none;
-  padding: 6px 0;
+  padding: 12px 0;
+
+  ${breakpoint("tablet")`
+    padding: 6px 0;
+  `};
 `;
 
 const TabLink = styled(NavLink)`
