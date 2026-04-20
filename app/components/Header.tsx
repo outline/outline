@@ -116,9 +116,14 @@ function Header(
 const Breadcrumbs = styled("div")`
   flex-grow: 1;
   flex-basis: 0;
+  min-width: 0;
   align-items: center;
   padding-inline: 0 8px;
   display: flex;
+
+  ${breakpoint("tablet")`
+    min-width: auto;
+  `};
 `;
 
 const Actions = styled(Flex)`
