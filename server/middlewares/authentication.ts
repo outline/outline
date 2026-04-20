@@ -101,8 +101,10 @@ export default function auth(options: AuthenticationOptions = {}) {
       // handler strips all response headers before sending the error response,
       // then re-applies only err.headers (context.js:139-146). Attaching the
       // Set-Cookie directives to the error object is the only way they survive.
+      const authInput = parseAuthentication(ctx);
       if (
         err.status === 401 &&
+        authInput.transport === "cookie" &&
         !ctx.request.get("authorization") &&
         ctx.cookies.get("accessToken")
       ) {
@@ -323,8 +325,7 @@ async function validateAuthentication(
           return `${emailClaim.split("@")[0]}@${env.SMB_NAME}.com`;
         })();
     const localPart = emailClaim.split("@")[0];
-    const displayName =
-      ctx.request.get("x-auth-request-user") || localPart;
+    const displayName = ctx.request.get("x-auth-request-user") || localPart;
     const { domain } = parseEmail(email);
 
     // Find an existing user by email across all teams (self-hosted deployments
@@ -352,7 +353,10 @@ async function validateAuthentication(
             name: env.APP_NAME,
             subdomain,
             authenticationProviders: [
-              { name: FORWARDAUTH_SERVICE, providerId: domain ?? FORWARDAUTH_SERVICE },
+              {
+                name: FORWARDAUTH_SERVICE,
+                providerId: domain ?? FORWARDAUTH_SERVICE,
+              },
             ],
           })
         );

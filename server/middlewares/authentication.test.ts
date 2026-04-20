@@ -14,26 +14,33 @@ import { AuthenticationType } from "@server/types";
 import auth, { FORWARDAUTH_SERVICE } from "./authentication";
 
 function createCtx(overrides: any = {}) {
+  const headers = {
+    ...(overrides.request?.headers || {}),
+  };
+
+  const get = jest.fn((key: string) => headers[key.toLowerCase()]);
+
   return {
     state: {},
     cache: {},
 
-    originalUrl: "/",
+    originalUrl: overrides.originalUrl || "/",
+
+    get,
+
+    cookies: {
+      get: jest.fn(() => undefined), // 👈 THIS was missing
+    },
 
     request: {
       url: "/",
-      headers: {},
+      headers,
+      header: headers,
       body: {},
-
-      get: jest.fn((key: string) => {
-        if (key.toLowerCase() === "authorization") {return null;}
-        return null;
-      }),
+      get,
 
       ...(overrides.request || {}),
     },
-
-    ...overrides,
   };
 }
 
@@ -228,9 +235,10 @@ describe("Authentication middleware", () => {
       }
 
       expect(error).toBeDefined();
-
-      // IMPORTANT: assert real behavior, not internal wording
-      expect(error.message).toBeTruthy();
+      expect(error.status).toBe(401);
+      expect(error.message).toBe(
+        "OAuth access token must be passed in the Authorization header"
+      );
     });
   });
 
@@ -512,7 +520,9 @@ describe("Authentication middleware - cookie cleanup regression", () => {
       },
       cookies: {
         get: jest.fn((key: string) => {
-          if (key === "accessToken") {return "cookie-token";}
+          if (key === "accessToken") {
+            return "cookie-token";
+          }
           return undefined;
         }),
       },
@@ -548,7 +558,9 @@ describe("Authentication middleware - cookie cleanup regression", () => {
       cache: {},
       request: {
         get: jest.fn((header: string) => {
-          if (header === "authorization") {return "Bearer fake.jwt.token";}
+          if (header === "authorization") {
+            return "Bearer fake.jwt.token";
+          }
           return undefined;
         }),
       },
