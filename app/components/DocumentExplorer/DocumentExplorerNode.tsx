@@ -89,6 +89,10 @@ const StyledDisclosure = styled(Disclosure)`
   position: relative;
   left: auto;
   margin: 2px 0;
+
+  &[aria-expanded="true"]:not(:hover) {
+    background: none !important;
+  }
 `;
 
 const Spacer = styled(Flex)<{ width: number }>`
