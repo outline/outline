@@ -90,7 +90,7 @@ router.post(
     // which the transport already answers with an HTTP error — warn keeps
     // visibility without reporting client mistakes to Sentry.
     transport.onerror = (error) => {
-      Logger.warn("MCP transport error", { error: error.message });
+      Logger.warn("MCP transport error", error);
     };
 
     await server.connect(transport);
