@@ -454,7 +454,6 @@ describe("Authentication middleware", () => {
       const authMiddleware = auth();
       const localPart = `user-${randomString(6)}`;
       const savedDomain = env.DEFAULT_EMAIL_DOMAIN;
-      // @ts-expect-error override env for test
       env.DEFAULT_EMAIL_DOMAIN = "askii.ai";
 
       try {
@@ -480,7 +479,6 @@ describe("Authentication middleware", () => {
 
         expect(state.auth.user.email).toEqual(`${localPart.toLowerCase()}@askii.ai`);
       } finally {
-        // @ts-expect-error restore env
         env.DEFAULT_EMAIL_DOMAIN = savedDomain;
       }
     });
