@@ -13,6 +13,37 @@ import { User } from "@server/models";
 import { AuthenticationType } from "@server/types";
 import auth, { FORWARDAUTH_SERVICE } from "./authentication";
 
+function createCtx(overrides: any = {}) {
+  const headers = {
+    ...(overrides.request?.headers || {}),
+  };
+
+  const get = jest.fn((key: string) => headers[key.toLowerCase()]);
+
+  return {
+    state: {},
+    cache: {},
+
+    originalUrl: overrides.originalUrl || "/",
+
+    get,
+
+    cookies: {
+      get: jest.fn(() => undefined), // 👈 THIS was missing
+    },
+
+    request: {
+      url: "/",
+      headers,
+      header: headers,
+      body: {},
+      get,
+
+      ...(overrides.request || {}),
+    },
+  };
+}
+
 describe("Authentication middleware", () => {
   describe("with session JWT", () => {
     it("should authenticate with correct session token", async () => {
@@ -176,35 +207,38 @@ describe("Authentication middleware", () => {
     });
 
     it("should return error with OAuth access token in body", async () => {
-      const state = {} as DefaultState;
       const user = await buildUser();
-      const authMiddleware = auth();
+
       const authentication = await buildOAuthAuthentication({
         user,
         scope: [Scope.Read],
       });
-      try {
-        await authMiddleware(
-          {
-            originalUrl: "/api/users.info",
-            request: {
-              url: "/users.info",
-              // @ts-expect-error mock request
-              get: jest.fn(() => null),
-              body: {
-                token: authentication.accessToken,
-              },
-            },
-            state,
-            cache: {},
+
+      const ctx: any = createCtx({
+        originalUrl: "/api/users.info",
+        request: {
+          body: {
+            token: authentication.accessToken,
           },
-          jest.fn()
-        );
-      } catch (e) {
-        expect(e.message).toContain(
-          "must be passed in the Authorization header"
-        );
+        },
+      });
+
+      const authMiddleware = auth();
+
+      let error: any;
+
+      try {
+        await authMiddleware(ctx, jest.fn());
+        throw new Error("Expected middleware to throw");
+      } catch (e: any) {
+        error = e;
       }
+
+      expect(error).toBeDefined();
+      expect(error.status).toBe(401);
+      expect(error.message).toBe(
+        "OAuth access token must be passed in the Authorization header"
+      );
     });
   });
 
@@ -409,7 +443,9 @@ describe("Authentication middleware", () => {
       );
 
       expect(state.auth.user.email).toEqual(newEmail.toLowerCase());
-      expect(state.auth.user.name).toEqual(newEmail.toLowerCase().split("@")[0]);
+      expect(state.auth.user.name).toEqual(
+        newEmail.toLowerCase().split("@")[0]
+      );
     });
 
     it("should not honour ForwardAuth headers when AUTH_TYPE is not SSO", async () => {
@@ -469,5 +505,85 @@ describe("Authentication middleware", () => {
     }
 
     expect(error.message).toEqual("Invalid token");
+  });
+});
+
+describe("Authentication middleware - cookie cleanup regression", () => {
+  it("clears auth cookies on 401 when using cookie JWT (no Authorization header)", async () => {
+    const state = {} as DefaultState;
+
+    const ctx: any = {
+      state,
+      cache: {},
+      request: {
+        get: jest.fn(() => undefined),
+      },
+      cookies: {
+        get: jest.fn((key: string) => {
+          if (key === "accessToken") {
+            return "cookie-token";
+          }
+          return undefined;
+        }),
+      },
+    };
+
+    const authMiddleware = auth();
+
+    let err: any;
+
+    try {
+      await authMiddleware(ctx, async () => {
+        throw Object.assign(new Error("fail"), { status: 401 });
+      });
+    } catch (e) {
+      err = e;
+    }
+
+    expect(err).toBeDefined();
+
+    expect(err.headers?.["set-cookie"]).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("accessToken="),
+        expect.stringContaining("lastSignedIn="),
+      ])
+    );
+  });
+
+  it("does NOT clear cookies when Authorization header is present", async () => {
+    const state = {} as DefaultState;
+
+    const ctx: any = {
+      state,
+      cache: {},
+      request: {
+        get: jest.fn((header: string) => {
+          if (header === "authorization") {
+            return "Bearer fake.jwt.token";
+          }
+          return undefined;
+        }),
+      },
+      cookies: {
+        get: jest.fn(() => "cookie-token"),
+      },
+    };
+
+    const authMiddleware = auth();
+
+    let err: any;
+
+    try {
+      await authMiddleware(ctx, async () => {
+        throw Object.assign(new Error("fail"), { status: 401 });
+      });
+    } catch (e) {
+      err = e;
+    }
+
+    expect(err).toBeDefined();
+
+    // 🔥 core regression assertion
+    expect(err.headers?.["set-cookie"]).toBeUndefined();
   });
 });

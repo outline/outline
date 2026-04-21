@@ -103,6 +103,7 @@ export enum MentionType {
 
 export type PublicEnv = {
   ROOT_SHARE_ID?: string;
+  AUTH_TYPE?: string;
   analytics: {
     service: IntegrationService;
     settings: IntegrationSettings<IntegrationType.Analytics>;
