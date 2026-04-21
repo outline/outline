@@ -16,7 +16,7 @@ import {
 } from "class-validator";
 import uniq from "lodash/uniq";
 import { languages } from "@shared/i18n";
-import { Day, Hour } from "@shared/utils/time";
+import { Week } from "@shared/utils/time";
 import {
   CannotUseWith,
   CannotUseWithout,
@@ -721,19 +721,21 @@ export class Environment {
 
   /**
    * The number of seconds access tokens issue by the OAuth provider are valid.
+   * Default 7d matches FOSS devstack SESSION_COOKIE_MAX_AGE_SECONDS when unset.
    */
   @IsNumber()
   public OAUTH_PROVIDER_ACCESS_TOKEN_LIFETIME =
     this.toOptionalNumber(environment.OAUTH_PROVIDER_ACCESS_TOKEN_LIFETIME) ??
-    Hour.seconds;
+    Week.seconds;
 
   /**
    * The number of seconds refresh tokens issue by the OAuth provider are valid.
+   * Default 14d matches FOSS devstack SESSION_REFRESH_TOKEN_MAX_AGE_SECONDS when unset.
    */
   @IsNumber()
   public OAUTH_PROVIDER_REFRESH_TOKEN_LIFETIME =
     this.toOptionalNumber(environment.OAUTH_PROVIDER_REFRESH_TOKEN_LIFETIME) ??
-    30 * Day.seconds;
+    2 * Week.seconds;
 
   /**
    * The number of seconds authorization codes issue by the OAuth provider are valid.
