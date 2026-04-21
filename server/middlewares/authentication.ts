@@ -316,14 +316,7 @@ async function validateAuthentication(
     const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailClaim);
     const email = isValidEmail
       ? emailClaim
-      : (() => {
-          if (!env.SMB_NAME) {
-            throw AuthenticationError(
-              "SMB_NAME environment variable is not set, cannot construct email for ForwardAuth user"
-            );
-          }
-          return `${emailClaim.split("@")[0]}@${env.SMB_NAME}.com`;
-        })();
+      : `${emailClaim.split("@")[0]}@${env.DEFAULT_EMAIL_DOMAIN}`;
     const localPart = emailClaim.split("@")[0];
     const displayName = ctx.request.get("x-auth-request-user") || localPart;
     const { domain } = parseEmail(email);
