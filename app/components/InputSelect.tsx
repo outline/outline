@@ -21,6 +21,7 @@ import {
   InputSelectContent,
   InputSelectItem,
   InputSelectSeparator,
+  InputSelectHeading,
   InputSelectTrigger,
   type TriggerButtonProps,
 } from "./primitives/InputSelect";
@@ -33,6 +34,13 @@ import {
 type Separator = {
   /* Denotes a horizontal divider line to be rendered in the menu, */
   type: "separator";
+};
+
+type Heading = {
+  /* Denotes a non-selectable heading rendered above a group of options. */
+  type: "heading";
+  /* Text shown as the heading label. */
+  label: string;
 };
 
 export type Item = {
@@ -48,7 +56,7 @@ export type Item = {
   icon?: React.ReactElement;
 };
 
-export type Option = Item | Separator;
+export type Option = Item | Separator | Heading;
 
 type Props = Omit<React.HTMLAttributes<HTMLButtonElement>, "onChange"> & {
   /* Options to display in the select menu. */
@@ -116,6 +124,14 @@ export const InputSelect = React.forwardRef<HTMLButtonElement, Props>(
       (option: Option, idx: number) => {
         if (option.type === "separator") {
           return <InputSelectSeparator key={`separator-${idx}`} />;
+        }
+
+        if (option.type === "heading") {
+          return (
+            <InputSelectHeading key={`heading-${option.label}`}>
+              {option.label}
+            </InputSelectHeading>
+          );
         }
 
         return (
@@ -242,6 +258,14 @@ const MobileSelect = React.forwardRef<HTMLButtonElement, MobileSelectProps>(
       (option: Option, idx: number) => {
         if (option.type === "separator") {
           return <InputSelectSeparator key={`separator-${idx}`} />;
+        }
+
+        if (option.type === "heading") {
+          return (
+            <InputSelectHeading key={`heading-${option.label}`}>
+              {option.label}
+            </InputSelectHeading>
+          );
         }
 
         const isSelected = option === selectedOption;
