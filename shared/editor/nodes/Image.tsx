@@ -254,7 +254,7 @@ export default class Image extends SimpleImage {
               if (selection instanceof NodeSelection) {
                 const { node } = selection;
                 if (node.type.name === "image") {
-                  const image = document.querySelector<HTMLImageElement>(
+                  const image = view.dom.querySelector<HTMLImageElement>(
                     ".ProseMirror-selectednode img"
                   );
                   image?.click();
