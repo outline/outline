@@ -65,8 +65,10 @@ const activeDropStyle = {
   fontWeight: 600,
 };
 
-const preventDefault = (ev: React.MouseEvent) => {
-  ev.preventDefault();
+// Prevents the parent NavLink's mousedown handler from firing (which would
+// navigate or toggle), without calling preventDefault — that would block the
+// native HTML5 drag from initiating on the draggable row.
+const stopPropagation = (ev: React.MouseEvent) => {
   ev.stopPropagation();
 };
 
@@ -154,8 +156,8 @@ function SidebarLink(
           {hasDisclosure && (
             <DisclosureComponent
               expanded={expanded}
-              onClick={preventDefault}
-              onPointerDown={handleDisclosureClick}
+              onClick={handleDisclosureClick}
+              onMouseDown={stopPropagation}
               tabIndex={-1}
             />
           )}
