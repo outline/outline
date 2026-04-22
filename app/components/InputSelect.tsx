@@ -128,7 +128,7 @@ export const InputSelect = React.forwardRef<HTMLButtonElement, Props>(
 
         if (option.type === "heading") {
           return (
-            <InputSelectHeading key={`heading-${idx}`}>
+            <InputSelectHeading key={`heading-${option.label}`}>
               {option.label}
             </InputSelectHeading>
           );
@@ -262,7 +262,7 @@ const MobileSelect = React.forwardRef<HTMLButtonElement, MobileSelectProps>(
 
         if (option.type === "heading") {
           return (
-            <InputSelectHeading key={`heading-${idx}`}>
+            <InputSelectHeading key={`heading-${option.label}`}>
               {option.label}
             </InputSelectHeading>
           );

@@ -122,7 +122,7 @@ const InputSelectHeading = React.forwardRef<
     </InputSelectPrimitive.Label>
   </InputSelectPrimitive.Group>
 ));
-InputSelectHeading.displayName = InputSelectPrimitive.Label.displayName;
+InputSelectHeading.displayName = "InputSelectHeading";
 
 const Heading = styled(Text).attrs({
   type: "tertiary",
