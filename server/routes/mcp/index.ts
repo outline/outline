@@ -86,8 +86,11 @@ router.post(
       sessionIdGenerator: undefined,
     });
 
+    // onerror fires for client-side 4xx conditions (bad Accept header, etc)
+    // which the transport already answers with an HTTP error — warn keeps
+    // visibility without reporting client mistakes to Sentry.
     transport.onerror = (error) => {
-      Logger.error("MCP transport error", error);
+      Logger.warn("MCP transport error", error);
     };
 
     await server.connect(transport);
