@@ -63,12 +63,26 @@ export function HighlightChangesControl({
       ? RevisionHelper.latestId(document.id)
       : undefined;
 
+    const currentYear = new Date().getFullYear();
+    let lastHeadingYear: number | undefined;
+
     for (const rev of revisionItems) {
       if (rev.id === resolvedSelectedId) {
         continue;
       }
 
-      const dateLabel = formatDate(new Date(rev.createdAt), "MMM do, h:mm a", {
+      const revDate = new Date(rev.createdAt);
+      const revYear = revDate.getFullYear();
+
+      if (revYear !== currentYear && revYear !== lastHeadingYear) {
+        options.push({
+          type: "heading",
+          label: String(revYear),
+        });
+        lastHeadingYear = revYear;
+      }
+
+      const dateLabel = formatDate(revDate, "MMM do, h:mm a", {
         locale,
       });
       const collaboratorText = revisionCollaboratorText(rev, t);
