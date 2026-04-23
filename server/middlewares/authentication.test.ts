@@ -448,6 +448,41 @@ describe("Authentication middleware", () => {
       );
     });
 
+    it("should use askii.ai domain when X-Auth-Request-Email is not a valid email and DEFAULT_EMAIL_DOMAIN is unset", async () => {
+      await buildTeam();
+      const state = {} as DefaultState;
+      const authMiddleware = auth();
+      const localPart = `user-${randomString(6)}`;
+      const savedDomain = env.DEFAULT_EMAIL_DOMAIN;
+      env.DEFAULT_EMAIL_DOMAIN = "askii.ai";
+
+      try {
+        await authMiddleware(
+          {
+            // @ts-expect-error mock request
+            request: {
+              get: jest.fn((header: string) => {
+                if (header === "x-auth-request-email") {
+                  return localPart;
+                }
+                return "";
+              }),
+            },
+            // @ts-expect-error mock cookies
+            cookies: { get: jest.fn(() => undefined), set: jest.fn() },
+            state,
+            ip: "127.0.0.1",
+            cache: {},
+          },
+          jest.fn()
+        );
+
+        expect(state.auth.user.email).toEqual(`${localPart.toLowerCase()}@askii.ai`);
+      } finally {
+        env.DEFAULT_EMAIL_DOMAIN = savedDomain;
+      }
+    });
+
     it("should not honour ForwardAuth headers when AUTH_TYPE is not SSO", async () => {
       env.AUTH_TYPE = undefined;
       const state = {} as DefaultState;

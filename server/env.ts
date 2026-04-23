@@ -531,11 +531,11 @@ export class Environment {
   public AUTH_TYPE = this.toOptionalString(environment.AUTH_TYPE);
 
   /**
-   * The SMB organisation name used to construct internal email addresses for
-   * users authenticated via ForwardAuth (e.g. "acme" → user@acme.com).
+   * Default email domain for ForwardAuth users.
    */
-  @IsNotEmpty()
-  public SMB_NAME = environment.SMB_NAME ?? "";
+  @IsOptional()
+  public DEFAULT_EMAIL_DOMAIN =
+    environment.DEFAULT_EMAIL_DOMAIN ?? "askii.ai";
 
   /**
    * A boolean switch to toggle the rate limiter at application web server.
