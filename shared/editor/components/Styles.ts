@@ -1733,6 +1733,16 @@ code {
   }
 }
 
+.${EditorStyleHelper.hexColorSwatch} {
+  display: inline-block;
+  width: 0.75em;
+  height: 0.75em;
+  margin-left: 0.3em;
+  vertical-align: -0.05em;
+  border-radius: 50%;
+  background-clip: padding-box;
+}
+
 mark {
   border-radius: 1px;
   padding: 2px 0;

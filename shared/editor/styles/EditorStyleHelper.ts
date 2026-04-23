@@ -28,6 +28,8 @@ export class EditorStyleHelper {
 
   static readonly codeWord = "code-word";
 
+  static readonly hexColorSwatch = "hex-color-swatch";
+
   /** Toggle button for collapsible code blocks */
   static readonly codeBlockToggle = "code-block-toggle";
 

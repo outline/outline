@@ -1,5 +1,6 @@
 import DateTime from "../extensions/DateTime";
 import DeleteNearAtom from "../extensions/DeleteNearAtom";
+import HexColorPreview from "../extensions/HexColorPreview";
 import History from "../extensions/History";
 import MaxLength from "../extensions/MaxLength";
 import TrailingNode from "../extensions/TrailingNode";
@@ -70,6 +71,7 @@ export const inlineExtensions: Nodes = [
   DateTime,
   HardBreak,
   DeleteNearAtom,
+  HexColorPreview,
 ];
 
 export const listExtensions: Nodes = [
