@@ -97,7 +97,7 @@ function DocumentHeader({
   const sidebarContext = useLocationSidebarContext();
   const [measureRef, size] = useMeasure();
   const { isShare, shareId, sharedTree, allowSubscriptions } = useShare();
-  const isMobile = isMobileMedia || size.width < 700;
+  const isMobile = isMobileMedia || (size.width > 0 && size.width < 700);
 
   // We cache this value for as long as the component is mounted so that if you
   // apply a template there is still the option to replace it until the user
