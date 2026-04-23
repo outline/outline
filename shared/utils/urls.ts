@@ -198,7 +198,10 @@ export function sanitizeUrl(url: string | null | undefined) {
     !url.startsWith("mailto:") &&
     !url.startsWith("sms:") &&
     !url.startsWith("fax:") &&
-    !url.startsWith("tel:")
+    !url.startsWith("tel:") &&
+    !url.startsWith("geo:") &&
+    !url.startsWith("maps:") &&
+    !url.startsWith("magnet:")
   ) {
     return `https://${url}`;
   }
