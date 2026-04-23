@@ -43,23 +43,25 @@ const Modal: React.FC<Props> = ({
   const { t } = useTranslation();
   const dialog = useDialogContext();
 
+  const onClose = React.useCallback(() => {
+    dialog.setAnimating(false); // Reset
+    onRequestClose();
+  }, [dialog, onRequestClose]);
+
   if (!isOpen && !wasOpen) {
     return null;
   }
 
   return (
-    <Dialog.Root
-      open={isOpen}
-      onOpenChange={(open) => !open && onRequestClose()}
-    >
+    <Dialog.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <Dialog.Portal>
         <StyledOverlay />
         <Dialog.Title asChild>
           <VisuallyHidden.Root>{title}</VisuallyHidden.Root>
         </Dialog.Title>
         <StyledContent
-          onEscapeKeyDown={onRequestClose}
-          onPointerDownOutside={onRequestClose}
+          onEscapeKeyDown={onClose}
+          onPointerDownOutside={onClose}
           aria-describedby={undefined}
         >
           {isMobile ? (
@@ -74,10 +76,10 @@ const Modal: React.FC<Props> = ({
                   <ErrorBoundary>{children}</ErrorBoundary>
                 </Centered>
               </MobileContent>
-              <Close onClick={onRequestClose}>
+              <Close onClick={onClose}>
                 <CloseIcon size={32} />
               </Close>
-              <Back onClick={onRequestClose}>
+              <Back onClick={onClose}>
                 <BackIcon size={32} />
                 <Text>{t("Back")} </Text>
               </Back>
@@ -102,7 +104,7 @@ const Modal: React.FC<Props> = ({
                 <Header>
                   {title && <Text size="large">{title}</Text>}
                   <Tooltip content={t("Close")} shortcut="Esc">
-                    <NudeButton onClick={onRequestClose}>
+                    <NudeButton onClick={onClose}>
                       <CloseIcon />
                     </NudeButton>
                   </Tooltip>
