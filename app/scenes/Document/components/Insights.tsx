@@ -15,6 +15,8 @@ import { useTextStats } from "~/hooks/useTextStats";
 import type Document from "~/models/Document";
 import { useFormatNumber } from "~/hooks/useFormatNumber";
 import { ProsemirrorHelper } from "~/models/helpers/ProsemirrorHelper";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { useLayoutEffect, useRef } from "react";
 
 type Props = {
   document: Document;
@@ -22,13 +24,23 @@ type Props = {
 
 function Insights({ document }: Props) {
   const { t } = useTranslation();
+  const hiddenRef = useRef<HTMLSpanElement | null>(null);
   const selectedText = useTextSelection();
   const text = ProsemirrorHelper.toPlainText(document);
   const stats = useTextStats(text ?? "", selectedText);
   const formatNumber = useFormatNumber();
 
+  // Manually focus inside the modal to account for lazy-loading.
+  // Hidden span is needed since the only other focusable element is the close button.
+  useLayoutEffect(() => {
+    hiddenRef.current?.focus();
+  }, []);
+
   return (
     <div>
+      <VisuallyHidden>
+        <span ref={hiddenRef} tabIndex={0} />
+      </VisuallyHidden>
       {document ? (
         <Flex
           column

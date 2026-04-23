@@ -91,6 +91,13 @@ function SharePopover({
     }
   );
 
+  // Focus the search input to account for lazy-loading
+  React.useLayoutEffect(() => {
+    if (visible) {
+      searchInputRef.current?.focus();
+    }
+  }, [visible]);
+
   React.useEffect(() => {
     if (visible) {
       if (externalLoading === undefined) {
