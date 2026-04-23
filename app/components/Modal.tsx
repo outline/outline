@@ -17,6 +17,7 @@ import Desktop from "~/utils/Desktop";
 import ErrorBoundary from "./ErrorBoundary";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import Tooltip from "./Tooltip";
+import { useDialogContext } from "~/components/DialogContext";
 
 type Props = {
   children?: React.ReactNode;
@@ -40,6 +41,7 @@ const Modal: React.FC<Props> = ({
   const wasOpen = usePrevious(isOpen);
   const isMobile = useMobile();
   const { t } = useTranslation();
+  const dialog = useDialogContext();
 
   if (!isOpen && !wasOpen) {
     return null;
@@ -89,7 +91,12 @@ const Modal: React.FC<Props> = ({
                 column
                 reverse
               >
-                <DesktopContent style={style} topShadow>
+                <DesktopContent
+                  style={style}
+                  topShadow
+                  overflow={dialog.animating ? "hidden" : undefined}
+                  onAnimationEnd={() => dialog.setAnimating(false)}
+                >
                   <ErrorBoundary component="div">{children}</ErrorBoundary>
                 </DesktopContent>
                 <Header>

@@ -25,6 +25,7 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import { EmptySelectValue } from "~/types";
 import { HStack } from "../primitives/HStack";
+import { useDialogContext } from "~/components/DialogContext";
 
 const IconPicker = createLazyComponent(() => import("~/components/IconPicker"));
 
@@ -67,6 +68,7 @@ export const CollectionForm = observer(function CollectionForm_({
 }) {
   const team = useCurrentTeam();
   const { t } = useTranslation();
+  const dialog = useDialogContext();
 
   const [hasOpenedIconPicker, setHasOpenedIconPicker] = useBoolean(false);
 
@@ -278,7 +280,12 @@ export const CollectionForm = observer(function CollectionForm_({
       {collection ? (
         options
       ) : (
-        <Collapsible label={t("Advanced options")}>{options}</Collapsible>
+        <Collapsible
+          label={t("Advanced options")}
+          onOpenChange={() => dialog.setAnimating(true)}
+        >
+          {options}
+        </Collapsible>
       )}
 
       <HStack justify="flex-end">

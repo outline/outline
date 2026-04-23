@@ -64,7 +64,7 @@ const StyledTrigger = styled(RadixCollapsible.Trigger)`
   padding: 0 0 8px 0;
   cursor: var(--pointer);
   color: ${s("textTertiary")};
-  font-size: 14pxte
+  font-size: 14px;
 
   &:hover {
     color: ${s("textSecondary")};
