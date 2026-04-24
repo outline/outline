@@ -1,0 +1,23 @@
+diff --git a/node_modules/bull/lib/scripts.js b/node_modules/bull/lib/scripts.js
+index 1234567..abcdefg 100644
+--- a/node_modules/bull/lib/scripts.js
++++ b/node_modules/bull/lib/scripts.js
+@@ -35,10 +35,18 @@ const scripts = {
+     addJob: {
+       content: addJobScript,
+       keys: 0,
+-      handler: function(client, args) {
++      handler: function(client, args) {
++        // Ensure data is properly encoded before passing to msgpackr
+         try {
++          // Check if args[args.length - 1] is the job data
++          const jobDataIndex = args.length - 1;
++          if (jobDataIndex >= 0 && typeof args[jobDataIndex] === 'string') {
++            // Validate string length before encoding
++            if (args[jobDataIndex].length > 524288000) { // 500MB limit
++              throw new Error('Job data exceeds maximum size limit');
++            }
++          }
+           return addJobScript(client, args);
+         } catch (err) {
+           if (err.message.includes('NOSCRIPT')) {
