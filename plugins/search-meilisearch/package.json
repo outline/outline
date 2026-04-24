@@ -1,0 +1,8 @@
+{
+  "name": "@outline/plugin-search-meilisearch",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "meilisearch": "^0.35.0"
+  }
+}

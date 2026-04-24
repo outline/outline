@@ -1,0 +1,6 @@
+{
+  "id": "search-meilisearch",
+  "name": "Meilisearch",
+  "priority": 50,
+  "description": "Full-text search powered by Meilisearch - faster and more flexible than PostgreSQL."
+}
