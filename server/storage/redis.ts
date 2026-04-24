@@ -85,20 +85,23 @@ export default class RedisAdapter extends Redis {
       if (this.status !== "ready") {
         return;
       }
-      Promise.race([
-        this.ping(),
-        new Promise((_, reject) =>
-          setTimeout(
-            () => reject(new Error("ping timeout")),
-            env.REDIS_HEALTHCHECK_TIMEOUT
-          )
-        ),
-      ]).catch((err) => {
-        Logger.warn(
-          `Redis healthcheck failed, forcing reconnect: ${err.message}`
+
+      let pingTimeout: NodeJS.Timeout;
+      const timeoutPromise = new Promise((_, reject) => {
+        pingTimeout = setTimeout(
+          () => reject(new Error("ping timeout")),
+          env.REDIS_HEALTHCHECK_TIMEOUT
         );
-        this.disconnect(true);
       });
+
+      Promise.race([this.ping(), timeoutPromise])
+        .catch((err) => {
+          Logger.warn("Redis healthcheck failed, forcing reconnect", {
+            error: err,
+          });
+          this.disconnect(true);
+        })
+        .finally(() => clearTimeout(pingTimeout));
     }, env.REDIS_HEALTHCHECK_INTERVAL);
 
     this.on("end", () => clearInterval(healthcheck));

@@ -13,6 +13,7 @@ import {
   IsNumber,
   IsIn,
   IsBoolean,
+  Min,
 } from "class-validator";
 import uniq from "lodash/uniq";
 import { languages } from "@shared/i18n";
@@ -204,6 +205,7 @@ export class Environment {
    * healthcheck issues a PING and forces a reconnect if it fails.
    */
   @IsNumber()
+  @Min(1000)
   public REDIS_HEALTHCHECK_INTERVAL = parseInt(
     environment.REDIS_HEALTHCHECK_INTERVAL || "30000",
     10
@@ -214,6 +216,7 @@ export class Environment {
    * connection is considered stuck and forcibly reconnected.
    */
   @IsNumber()
+  @Min(100)
   public REDIS_HEALTHCHECK_TIMEOUT = parseInt(
     environment.REDIS_HEALTHCHECK_TIMEOUT || "5000",
     10
