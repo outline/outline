@@ -24,23 +24,19 @@ type Props = {
 
 function Insights({ document }: Props) {
   const { t } = useTranslation();
-  const hiddenRef = useRef<HTMLSpanElement | null>(null);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
   const selectedText = useTextSelection();
   const text = ProsemirrorHelper.toPlainText(document);
   const stats = useTextStats(text ?? "", selectedText);
   const formatNumber = useFormatNumber();
 
-  // Manually focus inside the modal to account for lazy-loading.
-  // Hidden span is needed since the only other focusable element is the close button.
+  // Move focus into the modal to account for lazy-loading
   useLayoutEffect(() => {
-    hiddenRef.current?.focus();
+    wrapperRef.current?.focus();
   }, []);
 
   return (
-    <div>
-      <VisuallyHidden>
-        <span ref={hiddenRef} tabIndex={0} />
-      </VisuallyHidden>
+    <div ref={wrapperRef} tabIndex={-1}>
       {document ? (
         <Flex
           column
