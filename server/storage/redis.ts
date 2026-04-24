@@ -80,6 +80,37 @@ export default class RedisAdapter extends Redis {
         Logger.error("Redis error", err);
       }
     });
+
+    // Skip the healthcheck on connections reserved for blocking or pub/sub
+    // operations (signalled via maxRetriesPerRequest: null). A PING issued on
+    // those connections queues behind the in-flight blocking command and would
+    // spuriously time out.
+    if (this.options.maxRetriesPerRequest !== null) {
+      const healthcheck = setInterval(() => {
+        if (this.status !== "ready") {
+          return;
+        }
+
+        let pingTimeout: NodeJS.Timeout;
+        const timeoutPromise = new Promise((_, reject) => {
+          pingTimeout = setTimeout(
+            () => reject(new Error("ping timeout")),
+            env.REDIS_HEALTHCHECK_TIMEOUT
+          );
+        });
+
+        Promise.race([this.ping(), timeoutPromise])
+          .catch((err) => {
+            Logger.warn("Redis healthcheck failed, forcing reconnect", {
+              error: err,
+            });
+            this.disconnect(true);
+          })
+          .finally(() => clearTimeout(pingTimeout));
+      }, env.REDIS_HEALTHCHECK_INTERVAL);
+
+      this.on("end", () => clearInterval(healthcheck));
+    }
   }
 
   private static client: RedisAdapter;
