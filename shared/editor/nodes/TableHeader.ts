@@ -6,7 +6,12 @@ import type { EditorView } from "prosemirror-view";
 import { DecorationSet, Decoration } from "prosemirror-view";
 import { isInTable, moveTableColumn, TableMap } from "prosemirror-tables";
 import { addColumnBefore, selectColumn } from "../commands/table";
-import { getCellAttrs, setCellAttrs } from "../lib/table";
+import {
+  getCellAttrs,
+  isValidCellAlignment,
+  isValidCellMarks,
+  setCellAttrs,
+} from "../lib/table";
 import {
   getCellsInColumn,
   getCellsInRow,
@@ -208,10 +213,12 @@ export default class TableHeader extends Node {
       attrs: {
         colspan: { default: 1 },
         rowspan: { default: 1 },
-        alignment: { default: null },
+        alignment: { default: null, validate: isValidCellAlignment },
         colwidth: { default: null },
         marks: {
           default: undefined,
+          validate: (value: unknown) =>
+            isValidCellMarks(value, this.editor?.schema),
         },
       },
     };
@@ -224,7 +231,9 @@ export default class TableHeader extends Node {
   parseMarkdown() {
     return {
       block: "th",
-      getAttrs: (tok: Token) => ({ alignment: tok.info }),
+      getAttrs: (tok: Token) => ({
+        alignment: isValidCellAlignment(tok.info) ? tok.info : null,
+      }),
     };
   }
 
