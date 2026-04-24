@@ -15,7 +15,6 @@ import { useTextStats } from "~/hooks/useTextStats";
 import type Document from "~/models/Document";
 import { useFormatNumber } from "~/hooks/useFormatNumber";
 import { ProsemirrorHelper } from "~/models/helpers/ProsemirrorHelper";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { useLayoutEffect, useRef } from "react";
 
 type Props = {
