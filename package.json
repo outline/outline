@@ -391,6 +391,6 @@
     "fast-xml-parser": "5.5.7",
     "@types/markdown-it": "14.1.1"
   },
-  "version": "1.6.1",
+  "version": "1.7.0",
   "packageManager": "yarn@4.11.0"
 }
