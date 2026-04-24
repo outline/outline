@@ -11,6 +11,7 @@ import Extension from "@shared/editor/lib/Extension";
 import { Action, toggleFoldPluginKey } from "@shared/editor/nodes/ToggleBlock";
 import { isToggleBlock } from "@shared/editor/queries/toggleBlock";
 import { ancestors } from "@shared/editor/utils";
+import isTextInput from "~/utils/isTextInput";
 import FindAndReplace from "../components/FindAndReplace";
 
 const pluginKey = new PluginKey("find-and-replace");
@@ -470,8 +471,11 @@ export default class FindAndReplaceExtension extends Extension {
   }
 
   private clearHighlights() {
-    CSS.highlights?.delete("search-results");
-    CSS.highlights?.delete("search-results-current");
+    if (!supportsHighlightAPI) {
+      return;
+    }
+    CSS.highlights.delete("search-results");
+    CSS.highlights.delete("search-results-current");
     this.currentHighlightRange = undefined;
   }
 
@@ -494,9 +498,16 @@ export default class FindAndReplaceExtension extends Extension {
   };
 
   private handleDocumentKeyDown = (event: KeyboardEvent) => {
-    if (event.key === "Escape" && this.searchTerm) {
-      this.handleEscape();
+    if (event.key !== "Escape" || !this.searchTerm) {
+      return;
     }
+    if (event.defaultPrevented) {
+      return;
+    }
+    if (isTextInput(event.target as HTMLElement)) {
+      return;
+    }
+    this.handleEscape();
   };
 
   private currentHighlightRange?: StaticRange;
