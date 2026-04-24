@@ -191,14 +191,22 @@ export function sanitizeUrl(url: string | null | undefined) {
     return undefined;
   }
 
+  const allowedSchemes = [
+    "mailto:",
+    "sms:",
+    "fax:",
+    "tel:",
+    "geo:",
+    "maps:",
+    "magnet:",
+  ];
+  const lower = url.toLowerCase();
+
   if (
     !isUrl(url, { requireHostname: false }) &&
     !url.startsWith("/") &&
     !url.startsWith("#") &&
-    !url.startsWith("mailto:") &&
-    !url.startsWith("sms:") &&
-    !url.startsWith("fax:") &&
-    !url.startsWith("tel:")
+    !allowedSchemes.some((scheme) => lower.startsWith(scheme))
   ) {
     return `https://${url}`;
   }
