@@ -36,17 +36,18 @@ export const isValidCellAlignment = (
  * Validates a table cell's `marks` attribute against the given schema. Checks
  * that the value is an array of well-formed mark objects whose type exists in
  * the schema, and — for `background` marks — that the color is a valid hex
- * value. This prevents CSS injection when marks are rendered to DOM.
+ * value. This prevents CSS injection when marks are rendered to DOM. `null`
+ * and `undefined` are both considered valid (the attribute is optional).
  *
  * @param value The value to validate.
  * @param schema The editor schema, used to check mark types are registered.
  *               Optional — when absent, mark-type registration is not checked.
- * @returns true if the value is a valid marks array or undefined.
+ * @returns true if the value is a valid marks array, null, or undefined.
  */
 export const isValidCellMarks = (
   value: unknown,
   schema?: Schema
-): value is NodeAttrMark[] => {
+): value is NodeAttrMark[] | null | undefined => {
   if (value === undefined || value === null) {
     return true;
   }

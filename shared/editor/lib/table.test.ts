@@ -86,6 +86,24 @@ describe("isValidCellMarks", () => {
     ).toBe(true);
   });
 
+  it("accepts a background mark with a valid 4-digit hex color", () => {
+    expect(
+      isValidCellMarks(
+        [{ type: "background", attrs: { color: "#fff8" } }],
+        schema
+      )
+    ).toBe(true);
+  });
+
+  it("rejects a background mark with a malformed 4-digit hex color", () => {
+    expect(
+      isValidCellMarks(
+        [{ type: "background", attrs: { color: "#fffz" } }],
+        schema
+      )
+    ).toBe(false);
+  });
+
   it("rejects a background mark with a non-hex color", () => {
     expect(
       isValidCellMarks(
