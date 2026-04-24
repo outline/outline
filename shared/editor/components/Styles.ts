@@ -1741,6 +1741,15 @@ code {
   vertical-align: -0.05em;
   border-radius: 50%;
   background-clip: padding-box;
+  cursor: var(--pointer);
+}
+
+.${
+  props.theme.isDark
+    ? EditorStyleHelper.hexColorSwatchDark
+    : EditorStyleHelper.hexColorSwatchLight
+} {
+  outline: 1px solid ${props.theme.codeBorder};
 }
 
 mark {

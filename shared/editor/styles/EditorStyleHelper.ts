@@ -30,6 +30,10 @@ export class EditorStyleHelper {
 
   static readonly hexColorSwatch = "hex-color-swatch";
 
+  static readonly hexColorSwatchLight = "hex-color-swatch-light";
+
+  static readonly hexColorSwatchDark = "hex-color-swatch-dark";
+
   /** Toggle button for collapsible code blocks */
   static readonly codeBlockToggle = "code-block-toggle";
 
