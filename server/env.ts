@@ -200,6 +200,26 @@ export class Environment {
   public REDIS_COLLABORATION_URL = environment.REDIS_COLLABORATION_URL;
 
   /**
+   * The interval in milliseconds between redis connection healthchecks. Each
+   * healthcheck issues a PING and forces a reconnect if it fails.
+   */
+  @IsNumber()
+  public REDIS_HEALTHCHECK_INTERVAL = parseInt(
+    environment.REDIS_HEALTHCHECK_INTERVAL || "30000",
+    10
+  );
+
+  /**
+   * The timeout in milliseconds for a redis healthcheck PING before the
+   * connection is considered stuck and forcibly reconnected.
+   */
+  @IsNumber()
+  public REDIS_HEALTHCHECK_TIMEOUT = parseInt(
+    environment.REDIS_HEALTHCHECK_TIMEOUT || "5000",
+    10
+  );
+
+  /**
    * The fully qualified, external facing domain name of the server.
    * If not set, will be derived from HEROKU_APP_NAME for Heroku deployments.
    */

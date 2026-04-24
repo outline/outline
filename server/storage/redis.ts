@@ -80,6 +80,28 @@ export default class RedisAdapter extends Redis {
         Logger.error("Redis error", err);
       }
     });
+
+    const healthcheck = setInterval(() => {
+      if (this.status !== "ready") {
+        return;
+      }
+      Promise.race([
+        this.ping(),
+        new Promise((_, reject) =>
+          setTimeout(
+            () => reject(new Error("ping timeout")),
+            env.REDIS_HEALTHCHECK_TIMEOUT
+          )
+        ),
+      ]).catch((err) => {
+        Logger.warn(
+          `Redis healthcheck failed, forcing reconnect: ${err.message}`
+        );
+        this.disconnect(true);
+      });
+    }, env.REDIS_HEALTHCHECK_INTERVAL);
+
+    this.on("end", () => clearInterval(healthcheck));
   }
 
   private static client: RedisAdapter;
