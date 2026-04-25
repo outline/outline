@@ -869,6 +869,7 @@
   "Add content to your document, then use headings or dividers to separate it into slides.": "문서에 내용을 추가한 다음, 제목이나 구분선을 사용하여 슬라이드로 나누세요.",
   "Learn more": "자세히",
   "Backlinks": "백링크",
+  "Clear search highlight": "Clear search highlight",
   "This document is large which may affect performance": "이 문서의 크기가 커서 성능에 영향을 줄 수 있음",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history</em>.": "정말 <em>{{ documentTitle }}</em> 문서를 삭제하시겠습니까? 문서를 삭제하면 모든 이력이 삭제됩니다.",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history and <em>{{ any }} nested document</em>.": "정말 <em>{{ documentTitle }}</em> 문서를 삭제하시겠습니까? 문서를 삭제하면 모든 이력과 <em>{{ any }} 하위 문서들</em>이 삭제됩니다.",
