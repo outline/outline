@@ -869,6 +869,7 @@
   "Add content to your document, then use headings or dividers to separate it into slides.": "Add content to your document, then use headings or dividers to separate it into slides.",
   "Learn more": "Learn more",
   "Backlinks": "بک لینک ها",
+  "Clear search highlight": "Clear search highlight",
   "This document is large which may affect performance": "این سند بزرگ است و ممکن است بر عملکرد تأثیر بگذارد",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history</em>.": "آیا مطمئن هستید؟ حذف سند <em>{{ documentTitle }}</em> تمام تاریخچه آن را حذف خواهد کرد.</em>",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history and <em>{{ any }} nested document</em>.": "آیا مطمئن هستید؟ حذف سند <em>{{ documentTitle }}</em> تمام تاریخچه آن و <em>{{ any }} سند تو در تو</em> را حذف خواهد کرد.",
