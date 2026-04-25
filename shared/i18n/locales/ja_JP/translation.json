@@ -869,6 +869,7 @@
   "Add content to your document, then use headings or dividers to separate it into slides.": "Add content to your document, then use headings or dividers to separate it into slides.",
   "Learn more": "Learn more",
   "Backlinks": "ハイパーリンク",
+  "Clear search highlight": "Clear search highlight",
   "This document is large which may affect performance": "このドキュメントはパフォーマンスに影響を与える可能性があります",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history</em>.": "<em>{{ documentTitle }}</em>ドキュメントを削除すると、その履歴もすべて削除されます。このまま続けますか？",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history and <em>{{ any }} nested document</em>.": "<em>{{ documentTitle }}</em> ドキュメントを削除すると、その履歴と <em>ドキュメント内の{{ any }} </em>も全て削除されます。よろしいですか？",
