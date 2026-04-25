@@ -15,7 +15,6 @@ import usePrevious from "~/hooks/usePrevious";
 import { fadeAndScaleIn, fadeIn } from "~/styles/animations";
 import Desktop from "~/utils/Desktop";
 import ErrorBoundary from "./ErrorBoundary";
-import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import Tooltip from "./Tooltip";
 import { useDialogContext } from "~/components/DialogContext";
 
@@ -32,7 +31,7 @@ type Props = {
 const Modal: React.FC<Props> = ({
   children,
   isOpen,
-  title = "Untitled",
+  title,
   style,
   width,
   height,
@@ -41,6 +40,7 @@ const Modal: React.FC<Props> = ({
   const wasOpen = usePrevious(isOpen);
   const isMobile = useMobile();
   const { t } = useTranslation();
+  const resolvedTitle = title ?? t("Untitled");
   const dialog = useDialogContext();
 
   const onClose = React.useCallback(() => {
@@ -56,9 +56,6 @@ const Modal: React.FC<Props> = ({
     <Dialog.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <Dialog.Portal>
         <StyledOverlay />
-        <Dialog.Title asChild>
-          <VisuallyHidden.Root>{title}</VisuallyHidden.Root>
-        </Dialog.Title>
         <StyledContent
           onEscapeKeyDown={onClose}
           onPointerDownOutside={onClose}
@@ -68,11 +65,11 @@ const Modal: React.FC<Props> = ({
             <Mobile>
               <MobileContent>
                 <Centered onClick={(ev) => ev.stopPropagation()} column>
-                  {title && (
+                  <Dialog.Title asChild>
                     <Text size="xlarge" weight="bold">
-                      {title}
+                      {resolvedTitle}
                     </Text>
-                  )}
+                  </Dialog.Title>
                   <ErrorBoundary>{children}</ErrorBoundary>
                 </Centered>
               </MobileContent>
@@ -102,7 +99,9 @@ const Modal: React.FC<Props> = ({
                   <ErrorBoundary component="div">{children}</ErrorBoundary>
                 </DesktopContent>
                 <Header>
-                  {title && <Text size="large">{title}</Text>}
+                  <Dialog.Title asChild>
+                    <Text size="large">{resolvedTitle}</Text>
+                  </Dialog.Title>
                   <Tooltip content={t("Close")} shortcut="Esc">
                     <NudeButton onClick={onClose}>
                       <CloseIcon />

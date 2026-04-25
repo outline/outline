@@ -56,7 +56,8 @@ export default class RedisAdapter extends Redis {
         const decodedString = Buffer.from(url.slice(10), "base64").toString();
         customOptions = JSON.parse(decodedString);
       } catch (error) {
-        throw new Error(`Failed to decode redis adapter options: ${error}`);
+        const message = error instanceof Error ? error.message : String(error);
+        throw new Error(`Failed to decode redis adapter options: ${message}`);
       }
 
       try {
@@ -64,7 +65,8 @@ export default class RedisAdapter extends Redis {
           defaults(options, { connectionName }, customOptions, defaultOptions)
         );
       } catch (error) {
-        throw new Error(`Failed to initialize redis client: ${error}`);
+        const message = error instanceof Error ? error.message : String(error);
+        throw new Error(`Failed to initialize redis client: ${message}`);
       }
     }
 
@@ -91,7 +93,7 @@ export default class RedisAdapter extends Redis {
           return;
         }
 
-        let pingTimeout: NodeJS.Timeout;
+        let pingTimeout: NodeJS.Timeout | undefined;
         const timeoutPromise = new Promise((_, reject) => {
           pingTimeout = setTimeout(
             () => reject(new Error("ping timeout")),
@@ -106,7 +108,11 @@ export default class RedisAdapter extends Redis {
             });
             this.disconnect(true);
           })
-          .finally(() => clearTimeout(pingTimeout));
+          .finally(() => {
+            if (pingTimeout) {
+              clearTimeout(pingTimeout);
+            }
+          });
       }, env.REDIS_HEALTHCHECK_INTERVAL);
 
       this.on("end", () => clearInterval(healthcheck));
