@@ -10297,12 +10297,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cross-fetch@npm:4.0.0":
-  version: 4.0.0
-  resolution: "cross-fetch@npm:4.0.0"
+"cross-fetch@npm:4.1.0":
+  version: 4.1.0
+  resolution: "cross-fetch@npm:4.1.0"
   dependencies:
-    node-fetch: "npm:^2.6.12"
-  checksum: 10c0/386727dc4c6b044746086aced959ff21101abb85c43df5e1d151547ccb6f338f86dec3f28b9dbddfa8ff5b9ec8662ed2263ad4607a93b2dc354fb7fe3bbb898a
+    node-fetch: "npm:^2.7.0"
+  checksum: 10c0/628b134ea27cfcada67025afe6ef1419813fffc5d63d175553efa75a2334522d450300a0f3f0719029700da80e96327930709d5551cf6deb39bb62f1d536642e
   languageName: node
   linkType: hard
 
@@ -13176,12 +13176,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"i18next-http-backend@npm:^2.7.3":
-  version: 2.7.3
-  resolution: "i18next-http-backend@npm:2.7.3"
+"i18next-http-backend@npm:^3.0.5":
+  version: 3.0.5
+  resolution: "i18next-http-backend@npm:3.0.5"
   dependencies:
-    cross-fetch: "npm:4.0.0"
-  checksum: 10c0/51fd151a5cdd9969ec46b7bc8313b3e596c628aabd23b4106b2ba874c8b273055ce5ecc838eeeacd47bb98b7f22b2a2c7d8d1c4758ea9fd7e139eaf9a3f4b263
+    cross-fetch: "npm:4.1.0"
+  checksum: 10c0/ca26555be3487eb34c0b2dc879ba8ddbca426fd3fbd2568cb15cd1a8e2c641b8196cb8420fabb09762d1752d612895e54847f5e7db630a75a82301e7e829a90e
   languageName: node
   linkType: hard
 
@@ -17032,7 +17032,7 @@ __metadata:
     husky: "npm:^8.0.3"
     i18next: "npm:^22.5.1"
     i18next-fs-backend: "npm:^2.6.4"
-    i18next-http-backend: "npm:^2.7.3"
+    i18next-http-backend: "npm:^3.0.5"
     i18next-parser: "npm:^8.13.0"
     invariant: "npm:^2.2.4"
     ioredis: "npm:^5.8.2"
