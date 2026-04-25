@@ -869,6 +869,7 @@
   "Add content to your document, then use headings or dividers to separate it into slides.": "Add content to your document, then use headings or dividers to separate it into slides.",
   "Learn more": "Learn more",
   "Backlinks": "Links de referência",
+  "Clear search highlight": "Clear search highlight",
   "This document is large which may affect performance": "Este documento é grande o que pode afetar a performance",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history</em>.": "Você tem certeza disso? Excluir o documento <em>{{ documentTitle }}</em> excluirá todo o seu histórico</em>.",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history and <em>{{ any }} nested document</em>.": "Você tem certeza sobre isso? Excluir o documento <em>{{ documentTitle }}</em> excluirá todo o seu histórico e <em>{{ any }} documento aninhado</em>.",
