@@ -869,6 +869,7 @@
   "Add content to your document, then use headings or dividers to separate it into slides.": "הוסף תוכן למסמך שלך, ולאחר מכן השתמש בכותרות או חוצצים כדי להפריד אותו לשקופיות.",
   "Learn more": "למידע נוסף",
   "Backlinks": "קישורים נכנסים",
+  "Clear search highlight": "Clear search highlight",
   "This document is large which may affect performance": "מסמך זה גדול מה שעשוי להשפיע על הביצועים",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history</em>.": "אתה בטוח בזה? מחיקת המסמך <em>{{ documentTitle }}</em> תמחק את כל ההיסטוריה שלו</em>.",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history and <em>{{ any }} nested document</em>.": "אתה בטוח בזה? מחיקת המסמך <em>{{ documentTitle }}</em> תמחק את כל ההיסטוריה שלו ואת <em>{{ any }} המסמך המקונן</em>.",
