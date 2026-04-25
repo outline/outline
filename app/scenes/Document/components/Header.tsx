@@ -45,6 +45,7 @@ import { documentEditPath } from "~/utils/routeHelpers";
 import { ChangesNavigation } from "./ChangesNavigation";
 import ObservingBanner from "./ObservingBanner";
 import PublicBreadcrumb from "./PublicBreadcrumb";
+import { SearchHighlightChip } from "./SearchHighlightChip";
 import ShareButton from "./ShareButton";
 
 type Props = {
@@ -267,6 +268,7 @@ function DocumentHeader({
         actions={({ isCompact }) => (
           <>
             <ObservingBanner />
+            <SearchHighlightChip />
             {!isDeleted && !isRevision && can.listViews && (
               <Collaborators
                 document={document}
