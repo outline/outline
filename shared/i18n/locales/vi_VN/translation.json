@@ -869,6 +869,7 @@
   "Add content to your document, then use headings or dividers to separate it into slides.": "Add content to your document, then use headings or dividers to separate it into slides.",
   "Learn more": "Learn more",
   "Backlinks": "Liên kết ngược",
+  "Clear search highlight": "Clear search highlight",
   "This document is large which may affect performance": "This document is large which may affect performance",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history</em>.": "Bạn có chắc chắn không? Xóa văn bản <em>{{ documentTitle }}</em> sẽ xóa tất cả lịch sử của nó</em>.",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history and <em>{{ any }} nested document</em>.": "Bạn có chắc chắn về điều đó không? Xóa tài liệu <em>{{ documentTitle }}</em> sẽ xóa tất cả lịch sử của nó và <em>{{ any }} tài liệu lồng nhau</em>.",
