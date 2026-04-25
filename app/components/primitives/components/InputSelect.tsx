@@ -73,13 +73,13 @@ export const SelectButton = styled(Button)<{ $nude?: boolean }>`
 
   ${Inner} {
     line-height: 28px;
-    padding-left: 12px;
-    padding-right: 4px;
+    padding-inline-start: 12px;
+    padding-inline-end: 4px;
   }
 
   svg {
     justify-self: flex-end;
-    margin-left: auto;
+    margin-inline-start: auto;
   }
 
   &[data-placeholder=""] {
@@ -132,7 +132,7 @@ const ItemContainer = styled(Flex)`
   ${breakpoint("tablet")`
     font-size: 14px;
     padding: 4px;
-    padding-left: 8px;
+    padding-inline-start: 8px;
   `}
 `;
 

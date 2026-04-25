@@ -2,6 +2,7 @@ import JWT from "jsonwebtoken";
 import Router from "koa-router";
 import mime from "mime-types";
 import contentDisposition from "content-disposition";
+import { bytesToHumanReadable } from "@shared/utils/files";
 import env from "@server/env";
 import {
   AuthenticationError,
@@ -52,6 +53,16 @@ router.post(
       throw AuthorizationError("Invalid key");
     }
 
+    const declaredSize = Number(attachment.size);
+
+    if (file.size > declaredSize) {
+      throw ValidationError(
+        `The uploaded file exceeds the declared size of ${bytesToHumanReadable(
+          declaredSize
+        )}`
+      );
+    }
+
     try {
       await attachment.writeFile(file);
     } catch (err) {
@@ -61,6 +72,10 @@ router.post(
         );
       }
       throw err;
+    }
+
+    if (declaredSize !== file.size) {
+      await attachment.update({ size: file.size }, { silent: true });
     }
 
     ctx.body = {

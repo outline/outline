@@ -130,6 +130,63 @@ describe("#apiKeys.list", () => {
     expect(body.data.length).toEqual(2);
   });
 
+  it("should filter api keys by query", async () => {
+    const admin = await buildAdmin();
+    await buildApiKey({ userId: admin.id, name: "Production Key" });
+    await buildApiKey({ userId: admin.id, name: "Staging Key" });
+    await buildApiKey({ userId: admin.id, name: "Development Token" });
+
+    const res = await server.post("/api/apiKeys.list", {
+      body: {
+        token: admin.getJwtToken(),
+        query: "key",
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(2);
+    expect(
+      body.data.every((apiKey: { name: string }) =>
+        apiKey.name.toLowerCase().includes("key")
+      )
+    ).toBe(true);
+  });
+
+  it("should filter api keys by query case-insensitively", async () => {
+    const admin = await buildAdmin();
+    await buildApiKey({ userId: admin.id, name: "Production Key" });
+    await buildApiKey({ userId: admin.id, name: "Staging Key" });
+
+    const res = await server.post("/api/apiKeys.list", {
+      body: {
+        token: admin.getJwtToken(),
+        query: "PRODUCTION",
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].name).toEqual("Production Key");
+  });
+
+  it("should return empty array when query matches no api keys", async () => {
+    const admin = await buildAdmin();
+    await buildApiKey({ userId: admin.id, name: "Production Key" });
+
+    const res = await server.post("/api/apiKeys.list", {
+      body: {
+        token: admin.getJwtToken(),
+        query: "nonexistent",
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(0);
+  });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/apiKeys.list");
     expect(res.status).toEqual(401);

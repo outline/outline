@@ -7,33 +7,41 @@ import Metrics from "@server/logging/Metrics";
 import { ApiKey, OAuthAuthentication } from "@server/models";
 import Redis from "@server/storage/redis";
 import type { AppContext } from "@server/types";
-import { getJWTPayload } from "@server/utils/jwt";
+import { getUserForJWT } from "@server/utils/jwt";
 import RateLimiter from "@server/utils/RateLimiter";
 import { parseAuthentication } from "./authentication";
 
 /**
  * Returns a unique identifier for rate limiting based on the request context.
- * Combines the user ID from the JWT payload with the client's IP address for
- * authenticated requests, otherwise falls back to the client's IP address alone.
+ * Keys on the user id (so users behind a shared NAT don't share a bucket) when
+ * a token can be associated with a user, otherwise falls back to the client's
+ * IP address.
  *
  * @param ctx The application context.
  * @returns A string identifier for rate limiting.
  */
-function getRateLimiterIdentifier(ctx: AppContext): string {
+async function getRateLimiterIdentifier(ctx: AppContext): Promise<string> {
   try {
     const { token } = parseAuthentication(ctx);
-    if (token && !ApiKey.match(token) && !OAuthAuthentication.match(token)) {
-      // Note: JWT is not validated here which would require a DB request,
-      // just decoded to extract the user ID for separating rate limits by user
-      // on shared networks.
-      const payload = getJWTPayload(token);
-      if (payload.id) {
-        return `user:${payload.id}:${ctx.ip}`;
-      }
+    if (!token) {
+      return ctx.ip;
     }
+
+    if (ApiKey.match(token) || OAuthAuthentication.match(token)) {
+      return ctx.ip;
+    }
+
+    let userId = await RateLimiter.getCachedUserIdForToken(token);
+    if (!userId) {
+      const { user } = await getUserForJWT(token);
+      userId = user.id;
+      void RateLimiter.cacheUserForToken(token, userId);
+    }
+    return userId;
   } catch {
     // Fall through to IP-based rate limiting
   }
+
   return ctx.ip;
 }
 
@@ -51,7 +59,7 @@ export function defaultRateLimiter() {
     }
 
     const fullPath = `${ctx.mountPath ?? ""}${ctx.path}`;
-    const identifier = getRateLimiterIdentifier(ctx);
+    const identifier = await getRateLimiterIdentifier(ctx);
 
     const key = RateLimiter.hasRateLimiter(fullPath)
       ? `${fullPath}:${identifier}`

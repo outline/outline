@@ -484,29 +484,35 @@ export async function buildComment(overrides: {
   parentCommentId?: string;
   resolvedById?: string;
   reactions?: ReactionSummary[];
+  createdAt?: Date;
 }) {
-  const comment = await Comment.create({
-    resolvedById: overrides.resolvedById,
-    parentCommentId: overrides.parentCommentId,
-    documentId: overrides.documentId,
-    data: {
-      type: "doc",
-      content: [
-        {
-          type: "paragraph",
-          content: [
-            {
-              content: [],
-              type: "text",
-              text: "test",
-            },
-          ],
-        },
-      ],
+  const comment = await Comment.create(
+    {
+      resolvedById: overrides.resolvedById,
+      parentCommentId: overrides.parentCommentId,
+      documentId: overrides.documentId,
+      data: {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              {
+                content: [],
+                type: "text",
+                text: "test",
+              },
+            ],
+          },
+        ],
+      },
+      createdById: overrides.userId,
+      reactions: overrides.reactions,
+      createdAt: overrides.createdAt,
+      updatedAt: overrides.createdAt,
     },
-    createdById: overrides.userId,
-    reactions: overrides.reactions,
-  });
+    { silent: overrides.createdAt ? true : false }
+  );
 
   return comment;
 }
@@ -615,7 +621,7 @@ export async function buildAttachment(
     id,
     key: AttachmentHelper.getKey({ id, name, userId: overrides.userId }),
     contentType: "image/png",
-    size: 100,
+    size: 1_000_000,
     acl,
     name,
     createdAt: new Date("2018-01-02T00:00:00.000Z"),
@@ -803,7 +809,7 @@ export async function buildOAuthClient(overrides: Partial<OAuthClient> = {}) {
   return OAuthClient.create(
     {
       name: faker.company.name(),
-      description: faker.lorem.paragraph(),
+      description: faker.lorem.sentence(),
       redirectUris: ["https://example.com/oauth/callback"],
       published: true,
       ...(overrides.createdAt && !overrides.updatedAt

@@ -87,10 +87,11 @@ function Authorize() {
     redirect_uri: redirectUri,
     response_type: responseType,
     code_challenge: codeChallenge,
-    code_challenge_method: codeChallengeMethod,
+    code_challenge_method: rawCodeChallengeMethod,
     state,
     scope,
   } = Object.fromEntries(params);
+  const codeChallengeMethod = rawCodeChallengeMethod?.trim();
   const [scopes] = useState(() => inputScopes(scope));
   const { error: clientError, data: response } = useRequest<{
     data: OAuthClient;

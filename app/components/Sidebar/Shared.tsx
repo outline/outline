@@ -137,7 +137,7 @@ const SearchButton = styled.button`
 
 const SearchLabel = styled.span`
   flex-grow: 1;
-  text-align: left;
+  text-align: start;
 `;
 
 const Shortcut = styled.span`

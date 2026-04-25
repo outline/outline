@@ -12,6 +12,9 @@ import { undraggableOnDesktop } from "~/styles";
 export const NativeTextarea = styled.textarea<{
   hasIcon?: boolean;
   hasPrefix?: boolean;
+  $autoSize?: boolean;
+  $minHeight?: string;
+  $maxHeight?: string;
 }>`
   border: 0;
   flex: 1;
@@ -20,6 +23,10 @@ export const NativeTextarea = styled.textarea<{
   outline: none;
   background: none;
   color: ${s("text")};
+
+  ${(props) => props.$autoSize && `field-sizing: content;`}
+  ${(props) => props.$minHeight && `min-height: ${props.$minHeight};`}
+  ${(props) => props.$maxHeight && `max-height: ${props.$maxHeight};`}
 
   &:disabled,
   &::placeholder {
@@ -88,7 +95,7 @@ export const Wrapper = styled.div<{
 
 const IconWrapper = styled.span`
   position: relative;
-  left: 4px;
+  inset-inline-start: 4px;
   width: 24px;
   height: 24px;
 `;
@@ -97,6 +104,7 @@ export const Outline = styled(Flex)<{
   margin?: string | number;
   hasError?: boolean;
   $focused?: boolean;
+  $round?: boolean;
 }>`
   position: relative;
   flex: 1;
@@ -111,7 +119,7 @@ export const Outline = styled(Flex)<{
       : props.$focused
         ? props.theme.inputBorderFocused
         : props.theme.inputBorder};
-  border-radius: 4px;
+  border-radius: ${(props) => (props.$round ? "16px" : "4px")};
   font-weight: normal;
   align-items: center;
   overflow: hidden;
@@ -121,16 +129,21 @@ export const Outline = styled(Flex)<{
   user-select: none;
 `;
 
-const CharacterCount = styled.span`
+const CharacterCount = styled.span<{ $warning?: boolean }>`
   position: absolute;
   top: 0;
-  right: 0;
+  inset-inline-end: 0;
   font-size: 11px;
   line-height: 1;
   padding: 2px 4px;
-  border-radius: 0 0 0 2px;
-  background: ${s("inputBorder")};
-  color: ${s("textTertiary")};
+  border-start-start-radius: 0;
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+  border-end-start-radius: 2px;
+  background: ${(props) =>
+    props.$warning ? props.theme.warning : props.theme.inputBorder};
+  color: ${(props) =>
+    props.$warning ? props.theme.white : props.theme.textTertiary};
   pointer-events: none;
 `;
 
@@ -158,6 +171,16 @@ export interface Props extends Omit<
   icon?: React.ReactNode;
   /** Show a character count near the maxLength limit. Always shown for textareas, opt-in for other types. */
   showCharacterCount?: boolean;
+  /** An optional soft limit below maxLength. When the value exceeds this, the character count is shown in a warning color. */
+  warningLimit?: number;
+  /** For textareas, grow the height to fit content. Use with `maxHeight` to cap the growth. */
+  autoSize?: boolean;
+  /** Minimum height of the textarea as a CSS length value (e.g. "3lh", "80px"). */
+  minHeight?: string;
+  /** Maximum height of the textarea as a CSS length value (e.g. "20lh", "400px"). */
+  maxHeight?: string;
+  /** Whether to use a round border-radius (16px) instead of the default (4px). */
+  round?: boolean;
   /** Like autoFocus, but also select any text in the input */
   autoSelect?: boolean;
   /** Callback is triggered with the CMD+Enter keyboard combo */
@@ -246,9 +269,14 @@ function Input(
     short,
     flex,
     prefix,
+    round,
     labelHidden,
     maxLength,
     showCharacterCount,
+    warningLimit,
+    autoSize,
+    minHeight,
+    maxHeight,
     onFocus,
     onBlur,
     onChange,
@@ -260,7 +288,11 @@ function Input(
   const showCharCount =
     (type === "textarea" || showCharacterCount) &&
     maxLength !== undefined &&
-    charCount >= maxLength * 0.9;
+    (charCount >= maxLength * 0.9 ||
+      (warningLimit !== undefined && charCount >= warningLimit));
+
+  const overWarningLimit =
+    warningLimit !== undefined && charCount > warningLimit;
 
   const wrappedLabel = <LabelText>{label}</LabelText>;
 
@@ -273,7 +305,7 @@ function Input(
           ) : (
             wrappedLabel
           ))}
-        <Outline $focused={focused} margin={margin}>
+        <Outline $focused={focused} $round={round} margin={margin}>
           {prefix}
           {icon && <IconWrapper>{icon}</IconWrapper>}
           {type === "textarea" ? (
@@ -286,6 +318,9 @@ function Input(
               onFocus={handleFocus}
               hasIcon={!!icon}
               hasPrefix={!!prefix}
+              $autoSize={autoSize}
+              $minHeight={minHeight}
+              $maxHeight={maxHeight}
               {...rest}
               // set it after "rest" to override props from spread.
               maxLength={maxLength}
@@ -312,7 +347,7 @@ function Input(
           )}
           {showCharCount && (
             <Fade>
-              <CharacterCount>
+              <CharacterCount $warning={overWarningLimit}>
                 {charCount}/{maxLength}
               </CharacterCount>
             </Fade>

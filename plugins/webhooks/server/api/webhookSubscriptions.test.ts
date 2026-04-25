@@ -51,6 +51,78 @@ describe("#webhookSubscriptions.list", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(webhookSubscriptions.length);
   });
+
+  it("should filter webhook subscriptions by query", async () => {
+    const user = await buildAdmin();
+    await buildWebhookSubscription({
+      createdById: user.id,
+      teamId: user.teamId,
+      name: "Production Webhook",
+    });
+    await buildWebhookSubscription({
+      createdById: user.id,
+      teamId: user.teamId,
+      name: "Staging Webhook",
+    });
+    await buildWebhookSubscription({
+      createdById: user.id,
+      teamId: user.teamId,
+      name: "Development Hook",
+    });
+
+    const res = await server.post("/api/webhookSubscriptions.list", {
+      body: { token: user.getJwtToken(), query: "webhook" },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(2);
+    expect(
+      body.data.every((webhook: { name: string }) =>
+        webhook.name.toLowerCase().includes("webhook")
+      )
+    ).toBe(true);
+  });
+
+  it("should filter webhook subscriptions by query case-insensitively", async () => {
+    const user = await buildAdmin();
+    await buildWebhookSubscription({
+      createdById: user.id,
+      teamId: user.teamId,
+      name: "Production Webhook",
+    });
+    await buildWebhookSubscription({
+      createdById: user.id,
+      teamId: user.teamId,
+      name: "Staging Webhook",
+    });
+
+    const res = await server.post("/api/webhookSubscriptions.list", {
+      body: { token: user.getJwtToken(), query: "PRODUCTION" },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].name).toEqual("Production Webhook");
+  });
+
+  it("should return empty array when query matches no webhook subscriptions", async () => {
+    const user = await buildAdmin();
+    await buildWebhookSubscription({
+      createdById: user.id,
+      teamId: user.teamId,
+      name: "Production Webhook",
+    });
+
+    const res = await server.post("/api/webhookSubscriptions.list", {
+      body: { token: user.getJwtToken(), query: "nonexistent" },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(0);
+  });
 });
 
 describe("#webhookSubscriptions.create", () => {

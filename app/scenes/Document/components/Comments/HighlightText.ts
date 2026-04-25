@@ -19,7 +19,7 @@ export const HighlightedText = styled(Text)`
     content: "";
     width: 2px;
     position: absolute;
-    left: 0;
+    inset-inline-start: 0;
     top: 2px;
     bottom: 2px;
     background: ${s("commentMarkBackground")};

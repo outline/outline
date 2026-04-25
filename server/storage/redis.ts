@@ -56,7 +56,8 @@ export default class RedisAdapter extends Redis {
         const decodedString = Buffer.from(url.slice(10), "base64").toString();
         customOptions = JSON.parse(decodedString);
       } catch (error) {
-        throw new Error(`Failed to decode redis adapter options: ${error}`);
+        const message = error instanceof Error ? error.message : String(error);
+        throw new Error(`Failed to decode redis adapter options: ${message}`);
       }
 
       try {
@@ -64,7 +65,8 @@ export default class RedisAdapter extends Redis {
           defaults(options, { connectionName }, customOptions, defaultOptions)
         );
       } catch (error) {
-        throw new Error(`Failed to initialize redis client: ${error}`);
+        const message = error instanceof Error ? error.message : String(error);
+        throw new Error(`Failed to initialize redis client: ${message}`);
       }
     }
 
@@ -80,6 +82,41 @@ export default class RedisAdapter extends Redis {
         Logger.error("Redis error", err);
       }
     });
+
+    // Skip the healthcheck on connections reserved for blocking or pub/sub
+    // operations (signalled via maxRetriesPerRequest: null). A PING issued on
+    // those connections queues behind the in-flight blocking command and would
+    // spuriously time out.
+    if (this.options.maxRetriesPerRequest !== null) {
+      const healthcheck = setInterval(() => {
+        if (this.status !== "ready") {
+          return;
+        }
+
+        let pingTimeout: NodeJS.Timeout | undefined;
+        const timeoutPromise = new Promise((_, reject) => {
+          pingTimeout = setTimeout(
+            () => reject(new Error("ping timeout")),
+            env.REDIS_HEALTHCHECK_TIMEOUT
+          );
+        });
+
+        Promise.race([this.ping(), timeoutPromise])
+          .catch((err) => {
+            Logger.warn("Redis healthcheck failed, forcing reconnect", {
+              error: err,
+            });
+            this.disconnect(true);
+          })
+          .finally(() => {
+            if (pingTimeout) {
+              clearTimeout(pingTimeout);
+            }
+          });
+      }, env.REDIS_HEALTHCHECK_INTERVAL);
+
+      this.on("end", () => clearInterval(healthcheck));
+    }
   }
 
   private static client: RedisAdapter;

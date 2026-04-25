@@ -317,7 +317,7 @@ function Details() {
               value={tocPosition}
               onChange={handleTocPositionChange}
               label={t("Table of contents position")}
-              hideLabel
+              labelHidden
             />
           </SettingRow>
 

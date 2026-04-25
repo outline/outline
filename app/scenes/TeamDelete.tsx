@@ -52,6 +52,7 @@ function TeamDelete({ onSubmit }: Props) {
           savePath: false,
           revokeToken: false,
           userInitiated: true,
+          clearCache: true,
         });
         onSubmit();
       } catch (error) {

@@ -258,7 +258,7 @@ function Security() {
             options={userRoleOptions}
             onChange={handleDefaultRoleChange}
             label={t("Default role")}
-            hideLabel
+            labelHidden
             short
           />
         </SettingRow>
@@ -331,7 +331,7 @@ function Security() {
           options={emailDisplayOptions}
           onChange={handleEmailDisplayChange}
           label={t("Email address visibility")}
-          hideLabel
+          labelHidden
           short
         />
       </SettingRow>

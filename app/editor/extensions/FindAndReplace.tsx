@@ -11,6 +11,7 @@ import Extension from "@shared/editor/lib/Extension";
 import { Action, toggleFoldPluginKey } from "@shared/editor/nodes/ToggleBlock";
 import { isToggleBlock } from "@shared/editor/queries/toggleBlock";
 import { ancestors } from "@shared/editor/utils";
+import isTextInput from "~/utils/isTextInput";
 import FindAndReplace from "../components/FindAndReplace";
 
 const pluginKey = new PluginKey("find-and-replace");
@@ -31,23 +32,12 @@ export default class FindAndReplaceExtension extends Extension {
 
   keys(): Record<string, Command> {
     return {
-      Escape: (state, dispatch) => {
+      Escape: () => {
         if (!this.searchTerm) {
           return false;
         }
-
-        const params = new URLSearchParams(window.location.search);
-        if (params.has("q")) {
-          params.delete("q");
-          const search = params.toString();
-          window.history.replaceState(
-            window.history.state,
-            "",
-            window.location.pathname + (search ? `?${search}` : "")
-          );
-        }
-
-        return this.clear()(state, dispatch);
+        this.handleEscape();
+        return true;
       },
     };
   }
@@ -174,6 +164,8 @@ export default class FindAndReplaceExtension extends Extension {
     return (state, dispatch) => {
       this.searchTerm = "";
       this.currentResultIndex = 0;
+      this.results = [];
+      this.clearHighlights();
 
       dispatch?.(state.tr.setMeta(pluginKey, {}));
       return true;
@@ -437,9 +429,7 @@ export default class FindAndReplaceExtension extends Extension {
   private updateHighlights() {
     const view = this.editor?.view;
     if (!view || !this.results.length || !this.searchTerm) {
-      CSS.highlights.delete("search-results");
-      CSS.highlights.delete("search-results-current");
-      this.currentHighlightRange = undefined;
+      this.clearHighlights();
       return;
     }
 
@@ -480,6 +470,46 @@ export default class FindAndReplaceExtension extends Extension {
     }
   }
 
+  private clearHighlights() {
+    if (!supportsHighlightAPI) {
+      return;
+    }
+    CSS.highlights.delete("search-results");
+    CSS.highlights.delete("search-results-current");
+    this.currentHighlightRange = undefined;
+  }
+
+  private handleEscape = () => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has("q")) {
+      params.delete("q");
+      const search = params.toString();
+      window.history.replaceState(
+        window.history.state,
+        "",
+        window.location.pathname + (search ? `?${search}` : "")
+      );
+    }
+
+    const view = this.editor?.view;
+    if (view) {
+      this.clear()(view.state, view.dispatch);
+    }
+  };
+
+  private handleDocumentKeyDown = (event: KeyboardEvent) => {
+    if (event.key !== "Escape" || !this.searchTerm) {
+      return;
+    }
+    if (event.defaultPrevented) {
+      return;
+    }
+    if (isTextInput(event.target as HTMLElement)) {
+      return;
+    }
+    this.handleEscape();
+  };
+
   private currentHighlightRange?: StaticRange;
 
   get allowInReadOnly() {
@@ -491,10 +521,27 @@ export default class FindAndReplaceExtension extends Extension {
   }
 
   get plugins() {
-    if (supportsHighlightAPI) {
-      return [this.highlightAPIPlugin];
-    }
-    return [this.decorationPlugin];
+    const highlightPlugin = supportsHighlightAPI
+      ? this.highlightAPIPlugin
+      : this.decorationPlugin;
+    return [highlightPlugin, this.escapeListenerPlugin];
+  }
+
+  /**
+   * Plugin that listens for Escape at the document level so the search
+   * highlight can be cleared even when the editor is not focused.
+   */
+  private get escapeListenerPlugin() {
+    return new Plugin({
+      view: () => {
+        document.addEventListener("keydown", this.handleDocumentKeyDown);
+        return {
+          destroy: () => {
+            document.removeEventListener("keydown", this.handleDocumentKeyDown);
+          },
+        };
+      },
+    });
   }
 
   /** Plugin using the CSS Custom Highlight API (no DOM modifications). */
@@ -539,8 +586,7 @@ export default class FindAndReplaceExtension extends Extension {
             }
           },
           destroy: () => {
-            CSS.highlights?.delete("search-results");
-            CSS.highlights?.delete("search-results-current");
+            this.clearHighlights();
           },
         };
       },

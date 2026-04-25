@@ -1,5 +1,8 @@
-import { PlusIcon, TrashIcon } from "outline-icons";
+import copy from "copy-to-clipboard";
+import { CopyIcon, PlusIcon, TrashIcon } from "outline-icons";
+import { toast } from "sonner";
 import stores from "~/stores";
+import env from "~/env";
 import type ApiKey from "~/models/ApiKey";
 import ApiKeyNew from "~/scenes/ApiKeyNew";
 import ApiKeyRevokeDialog from "~/scenes/Settings/components/ApiKeyRevokeDialog";
@@ -24,6 +27,22 @@ export const createApiKey = createAction({
     });
   },
 });
+
+export const copyApiKeyFactory = ({ apiKey }: { apiKey: ApiKey }) =>
+  createAction({
+    name: ({ t }) => t("Copy"),
+    analyticsName: "Copy API key",
+    section: SettingsSection,
+    icon: <CopyIcon />,
+    visible: () => !!apiKey.value,
+    perform: ({ t }) => {
+      copy(apiKey.value, {
+        debug: env.ENVIRONMENT !== "production",
+        format: "text/plain",
+      });
+      toast.success(t("API key copied"));
+    },
+  });
 
 export const revokeApiKeyFactory = ({ apiKey }: { apiKey: ApiKey }) =>
   createAction({

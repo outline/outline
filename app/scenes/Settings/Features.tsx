@@ -125,9 +125,12 @@ function Features() {
               <Input
                 id="guidanceMCP"
                 type="textarea"
-                rows={6}
+                autoSize
+                minHeight="6lh"
+                maxHeight="20lh"
                 value={team.guidanceMCP ?? ""}
                 maxLength={TeamValidation.maxGuidanceMCPLength}
+                warningLimit={TeamValidation.warnGuidanceMCPLength}
                 onChange={handleGuidanceMCPChange}
                 onBlur={handleGuidanceMCPBlur}
               />

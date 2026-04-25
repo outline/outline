@@ -15,6 +15,7 @@ import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { VerificationCode } from "@server/utils/VerificationCode";
 import { signIn } from "@server/utils/authentication";
 import { getUserForEmailSigninToken } from "@server/utils/jwt";
+import { getTeamFromContext } from "@server/utils/passport";
 import * as T from "./schema";
 import { CSRF } from "@shared/constants";
 
@@ -128,28 +129,33 @@ const emailCallback = async (ctx: APIContext<T.EmailCallbackReq>) => {
     return ctx.redirectOnClient(url.toString(), "POST");
   }
 
-  let user!: User;
+  let user: User | null = null;
 
   try {
     if (token) {
       user = await getUserForEmailSigninToken(ctx, token as string);
     } else if (code && email) {
+      const team = await getTeamFromContext(ctx);
+
+      if (!team) {
+        ctx.redirect("/?notice=auth-error&description=Unknown%20team");
+        return;
+      }
+
       user = await User.scope("withTeam").findOne({
-        rejectOnEmpty: true,
         where: {
+          teamId: team.id,
           email: email.trim().toLowerCase(),
         },
       });
 
-      const isValid = await VerificationCode.verify(email, code);
-
-      if (!isValid) {
+      if (!user || !(await VerificationCode.verify(team.id, email, code))) {
         ctx.redirect(`/?notice=invalid-code`);
         return;
       }
 
       // Delete the code after successful verification
-      await VerificationCode.delete(email);
+      await VerificationCode.delete(team.id, email);
     } else {
       ctx.redirect("/?notice=auth-error&description=Missing%20token");
       return;
@@ -157,6 +163,10 @@ const emailCallback = async (ctx: APIContext<T.EmailCallbackReq>) => {
   } catch (err) {
     Logger.debug("authentication", err);
     return ctx.redirect(`/?notice=auth-error&description=${err.message}`);
+  }
+
+  if (!user) {
+    return ctx.redirect(`/?notice=invalid-code`);
   }
 
   if (!user.team.emailSigninEnabled) {

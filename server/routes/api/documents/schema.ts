@@ -154,6 +154,25 @@ export const DocumentsInfoSchema = BaseSchema.extend({
 
 export type DocumentsInfoReq = z.infer<typeof DocumentsInfoSchema>;
 
+export const DocumentsInsightsSchema = BaseSchema.extend({
+  body: BaseIdSchema.extend({
+    /** Start of the insights window (inclusive). Defaults to 30 days ago. */
+    startDate: z.coerce.date().optional(),
+    /** End of the insights window (inclusive). Defaults to today. */
+    endDate: z.coerce.date().optional(),
+  }),
+}).refine(
+  (req) =>
+    !req.body.startDate ||
+    !req.body.endDate ||
+    req.body.startDate <= req.body.endDate,
+  {
+    message: "startDate must be on or before endDate",
+  }
+);
+
+export type DocumentsInsightsReq = z.infer<typeof DocumentsInsightsSchema>;
+
 export const DocumentsExportSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
     signedUrls: z.number().optional(),

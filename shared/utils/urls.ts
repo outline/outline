@@ -59,9 +59,9 @@ export function isInternalUrl(href: string) {
 }
 
 /**
- * Returns true if the given string is a link to a documement.
+ * Returns true if the given string is a link to a document.
  *
- * @param options Parsing options.
+ * @param url The url to check.
  * @returns True if a document, false otherwise.
  */
 export function isDocumentUrl(url: string) {
@@ -79,7 +79,7 @@ export function isDocumentUrl(url: string) {
 /**
  * Returns true if the given string is a link to a collection.
  *
- * @param options Parsing options.
+ * @param url The url to check.
  * @returns True if a collection, false otherwise.
  */
 export function isCollectionUrl(url: string) {
@@ -191,14 +191,22 @@ export function sanitizeUrl(url: string | null | undefined) {
     return undefined;
   }
 
+  const allowedSchemes = [
+    "mailto:",
+    "sms:",
+    "fax:",
+    "tel:",
+    "geo:",
+    "maps:",
+    "magnet:",
+  ];
+  const lower = url.toLowerCase();
+
   if (
     !isUrl(url, { requireHostname: false }) &&
     !url.startsWith("/") &&
     !url.startsWith("#") &&
-    !url.startsWith("mailto:") &&
-    !url.startsWith("sms:") &&
-    !url.startsWith("fax:") &&
-    !url.startsWith("tel:")
+    !allowedSchemes.some((scheme) => lower.startsWith(scheme))
   ) {
     return `https://${url}`;
   }

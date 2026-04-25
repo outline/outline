@@ -110,7 +110,7 @@ function DocumentCard(props: Props) {
           dir={document.dir}
           $isDragging={isDragging}
           to={{
-            pathname: document.url,
+            pathname: document.path,
             state: {
               title: document.titleWithDefault,
             },

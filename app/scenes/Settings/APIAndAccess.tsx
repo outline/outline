@@ -45,7 +45,7 @@ function APIAndAccess() {
       }
     >
       <Heading>{t("API & Access")}</Heading>
-      <h2>{t("API keys")}</h2>
+      <h2>{t("Personal keys")}</h2>
       {can.createApiKey ? (
         <Text as="p" type="secondary">
           <Trans

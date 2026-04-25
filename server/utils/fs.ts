@@ -62,13 +62,21 @@ function sliceStringToByteLength(str: string, maxBytes: number): string {
 }
 
 /**
- * Trim a file name to a maximum length, retaining the extension.
+ * Trim a file name to a maximum length, retaining the extension. The input
+ * must be a filename only — passing a path (containing `/` or `\`) will throw.
  *
  * @param text The file name to trim.
  * @param length The maximum length of the file name in bytes.
  * @returns The trimmed file name.
+ * @throws If `text` contains a path separator.
  */
-export function trimFileAndExt(text: string, length: number): string {
+export function trimFilenameAndExt(text: string, length: number): string {
+  if (text.includes("/") || text.includes("\\")) {
+    throw new Error(
+      "trimFilenameAndExt expects a filename without path separators"
+    );
+  }
+
   if (Buffer.byteLength(text, "utf8") > length) {
     const ext = path.extname(text);
     const name = path.basename(text, ext);

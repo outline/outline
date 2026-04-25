@@ -24,6 +24,7 @@ import {
 } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import slugify from "@shared/utils/slugify";
+import { Day } from "@shared/utils/time";
 import documentCreator from "@server/commands/documentCreator";
 import documentDuplicator from "@server/commands/documentDuplicator";
 import documentLoader from "@server/commands/documentLoader";
@@ -49,6 +50,7 @@ import {
   Relationship,
   Collection,
   Document,
+  DocumentInsight,
   Event,
   Revision,
   SearchQuery,
@@ -69,6 +71,7 @@ import { TextHelper } from "@server/models/helpers/TextHelper";
 import { authorize, cannot } from "@server/policies";
 import {
   presentDocument,
+  presentDocumentInsight,
   presentDocuments,
   presentPolicies,
   presentTemplate,
@@ -617,6 +620,41 @@ router.post(
             }
           : serializedDocument,
       policies: isPublic ? undefined : presentPolicies(user, [document]),
+    };
+  }
+);
+
+router.post(
+  "documents.insights",
+  auth(),
+  validate(T.DocumentsInsightsSchema),
+  async (ctx: APIContext<T.DocumentsInsightsReq>) => {
+    const { id, startDate, endDate } = ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    const document = await Document.findByPk(id, { userId: user.id });
+    authorize(user, "listViews", document);
+
+    if (!document.insightsEnabled) {
+      throw ValidationError("Insights are not enabled for this document");
+    }
+
+    const end = endDate ?? new Date();
+    const start = startDate ?? new Date(end.getTime() - 30 * Day.ms);
+
+    const insights = await DocumentInsight.findAll({
+      where: {
+        documentId: document.id,
+        date: {
+          [Op.gte]: start.toISOString().slice(0, 10),
+          [Op.lte]: end.toISOString().slice(0, 10),
+        },
+      },
+      order: [["date", "ASC"]],
+    });
+
+    ctx.body = {
+      data: insights.map(presentDocumentInsight),
     };
   }
 );

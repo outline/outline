@@ -4,20 +4,22 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useRouteMatch } from "react-router-dom";
-import styled from "styled-components";
 import { Pagination } from "@shared/constants";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import Revision from "~/models/Revision";
 import Empty from "~/components/Empty";
-import PaginatedEventList from "~/components/PaginatedEventList";
+import PaginatedEventList from "./PaginatedEventList";
+import {
+  COMPARE_TO_PREVIOUS,
+  HighlightChangesControl,
+} from "./HighlightChangesControl";
 import useKeyDown from "~/hooks/useKeyDown";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
+import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
-import { documentPath } from "~/utils/routeHelpers";
-import Sidebar from "./SidebarLayout";
+import { documentPath, matchDocumentHistory } from "~/utils/routeHelpers";
+import Sidebar from "../SidebarLayout";
 import useMobile from "~/hooks/useMobile";
-import Switch from "~/components/Switch";
-import Text from "@shared/components/Text";
 import usePersistedState from "~/hooks/usePersistedState";
 import Scrollable from "~/components/Scrollable";
 import Flex from "@shared/components/Flex";
@@ -38,12 +40,19 @@ function History() {
   const { events, documents, revisions } = useStores();
   const { t } = useTranslation();
   const match = useRouteMatch<{ documentSlug: string }>();
+  const historyMatch = useRouteMatch<{ revisionId?: string }>({
+    path: matchDocumentHistory,
+  });
   const history = useHistory();
+  const query = useQuery();
   const sidebarContext = useLocationSidebarContext();
   const document = documents.get(match.params.documentSlug);
   const [revisionsOffset, setRevisionsOffset] = React.useState(0);
   const [eventsOffset, setEventsOffset] = React.useState(0);
   const isMobile = useMobile();
+  const [compareTo, setCompareTo] = React.useState(
+    () => query.get("compareTo") ?? COMPARE_TO_PREVIOUS
+  );
 
   const [defaultShowChanges, setDefaultShowChanges] =
     usePersistedState<boolean>("history-show-changes", true);
@@ -80,9 +89,37 @@ function History() {
     (checked: boolean) => {
       setShowChanges(checked);
       setDefaultShowChanges(checked);
-      updateLocation({ changes: checked ? "true" : null });
+      if (checked) {
+        updateLocation({ changes: "true" });
+      } else {
+        setCompareTo(COMPARE_TO_PREVIOUS);
+        updateLocation({ changes: null, compareTo: null });
+      }
     },
-    [history]
+    [updateLocation]
+  );
+
+  const selectedRevisionId = historyMatch?.params.revisionId;
+
+  // Reset "Compare to" when the user clicks a different revision in the list,
+  // but not on initial mount (which would break deep links with ?compareTo=…)
+  const prevSelectedRef = React.useRef(selectedRevisionId);
+  React.useEffect(() => {
+    if (prevSelectedRef.current !== selectedRevisionId) {
+      prevSelectedRef.current = selectedRevisionId;
+      setCompareTo(COMPARE_TO_PREVIOUS);
+      updateLocation({ compareTo: null });
+    }
+  }, [selectedRevisionId, updateLocation]);
+
+  const handleCompareToChange = React.useCallback(
+    (value: string) => {
+      setCompareTo(value);
+      updateLocation({
+        compareTo: value === COMPARE_TO_PREVIOUS ? null : value,
+      });
+    },
+    [updateLocation]
   );
 
   // Ensure that the URL parameter is in sync with the persisted state on mount
@@ -197,15 +234,15 @@ function History() {
 
   return (
     <Sidebar title={t("History")} onClose={onCloseHistory} scrollable={false}>
-      <Content>
-        <Text type="secondary" size="small" as="span">
-          <Switch
-            label={t("Highlight changes")}
-            checked={showChanges}
-            onChange={handleShowChangesToggle}
-          />
-        </Text>
-      </Content>
+      <HighlightChangesControl
+        showChanges={showChanges}
+        onShowChangesToggle={handleShowChangesToggle}
+        items={items}
+        document={document}
+        selectedRevisionId={selectedRevisionId}
+        compareTo={compareTo}
+        onCompareToChange={handleCompareToChange}
+      />
       <Scrollable hiddenScrollbars topShadow>
         {document ? (
           <PaginatedEventList
@@ -235,13 +272,5 @@ function History() {
     </Sidebar>
   );
 }
-
-const Content = styled.div`
-  margin: 0 16px 8px;
-  border: 1px solid ${(props) => props.theme.inputBorder};
-  border-radius: 8px;
-  padding: 8px 8px 0;
-  flex-shrink: 0;
-`;
 
 export default observer(History);

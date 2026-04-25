@@ -1,11 +1,10 @@
 import * as Sentry from "@sentry/react";
 import invariant from "invariant";
 import find from "lodash/find";
-import { action, observable } from "mobx";
+import { action } from "mobx";
 import { observer } from "mobx-react";
-import { createContext, Component } from "react";
-import type { WithTranslation } from "react-i18next";
-import { withTranslation } from "react-i18next";
+import { createContext, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { Socket } from "socket.io-client";
 import { io } from "socket.io-client";
 import { toast } from "sonner";
@@ -31,7 +30,7 @@ import type Subscription from "~/models/Subscription";
 import type Team from "~/models/Team";
 import type User from "~/models/User";
 import type UserMembership from "~/models/UserMembership";
-import withStores from "~/components/withStores";
+import useStores from "~/hooks/useStores";
 import type {
   PartialExcept,
   WebsocketCollectionUpdateIndexEvent,
@@ -51,89 +50,41 @@ export const WebsocketContext = createContext<SocketWithAuthentication | null>(
   null
 );
 
-type Props = WithTranslation & RootStore;
-
-@observer
-class WebsocketProvider extends Component<Props> {
-  @observable
-  socket: SocketWithAuthentication | null;
-
-  componentDidMount() {
-    this.createConnection();
-    document.addEventListener(getVisibilityListener(), this.checkConnection);
-  }
-
-  componentWillUnmount() {
-    if (this.socket) {
-      this.socket.authenticated = false;
-      this.socket.disconnect();
-    }
-
-    document.removeEventListener(getVisibilityListener(), this.checkConnection);
-  }
-
-  checkConnection = () => {
-    if (this.socket?.disconnected && getPageVisible()) {
-      // null-ifying this reference is important, do not remove. Without it
-      // references to old sockets are potentially held in context
-      this.socket.close();
-      this.socket = null;
-      this.createConnection();
-    }
-  };
-
-  createConnection = () => {
-    this.socket = io(window.location.origin, {
-      path: "/realtime",
-      transports: ["websocket"],
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 30000,
-      withCredentials: true,
+function invalidateChildPolicies(
+  documentId: string,
+  { documents, policies }: Pick<RootStore, "documents" | "policies">
+) {
+  const document = documents.get(documentId);
+  if (document) {
+    document.childDocuments.forEach((childDocument) => {
+      policies.remove(childDocument.id);
     });
-    invariant(this.socket, "Socket should be defined");
+  }
+}
 
-    this.socket.authenticated = false;
-    const {
-      auth,
-      documents,
-      collections,
-      groups,
-      groupUsers,
-      groupMemberships,
-      pins,
-      stars,
-      memberships,
-      users,
-      userMemberships,
-      policies,
-      comments,
-      subscriptions,
-      fileOperations,
-      notifications,
-      imports,
-    } = this.props;
+function useConnectionHandlers() {
+  const { auth } = useStores();
 
-    const currentUserId = auth?.user?.id;
-
+  return (socket: SocketWithAuthentication) => {
     // on reconnection, reset the transports option, as the Websocket
     // connection may have failed (caused by proxy, firewall, browser, ...)
-    this.socket.io.on("reconnect_attempt", () => {
-      if (this.socket) {
-        this.socket.io.opts.transports = auth?.team?.domain
+    socket.io.on("reconnect_attempt", () => {
+      if (socket) {
+        socket.io.opts.transports = auth?.team?.domain
           ? ["websocket"]
           : ["websocket", "polling"];
       }
     });
 
-    this.socket.on("authenticated", () => {
-      if (this.socket) {
-        this.socket.authenticated = true;
+    socket.on("authenticated", () => {
+      if (socket) {
+        socket.authenticated = true;
       }
     });
 
-    this.socket.on("unauthorized", (err: unknown) => {
-      if (this.socket) {
-        this.socket.authenticated = false;
+    socket.on("unauthorized", (err: unknown) => {
+      if (socket) {
+        socket.authenticated = false;
       }
 
       const message =
@@ -157,7 +108,7 @@ class WebsocketProvider extends Component<Props> {
     });
 
     // add a listener for all events that logs a sentry breadcrumb
-    this.socket.onAny((event: string, data: Record<string, unknown>) => {
+    socket.onAny((event: string, data: Record<string, unknown>) => {
       Sentry.addBreadcrumb({
         category: "websocket",
         message: `Received event: ${event}`,
@@ -165,7 +116,23 @@ class WebsocketProvider extends Component<Props> {
       });
     });
 
-    this.socket.on(
+    // received a message from the API server that we should request
+    // to join or leave a specific room. Forward that to the ws server.
+    socket.on("join", (event) => {
+      socket.emit("join", event);
+    });
+
+    socket.on("leave", (event) => {
+      socket.emit("leave", event);
+    });
+  };
+}
+
+function useEntityHandlers() {
+  const { documents, collections, policies, memberships } = useStores();
+
+  return (socket: SocketWithAuthentication) => {
+    socket.on(
       "entities",
       action(async (event: WebsocketEntitiesEvent) => {
         if (event.documentIds) {
@@ -261,8 +228,24 @@ class WebsocketProvider extends Component<Props> {
         }
       })
     );
+  };
+}
 
-    this.socket.on(
+function useDocumentHandlers() {
+  const {
+    auth,
+    documents,
+    collections,
+    policies,
+    userMemberships,
+    groupMemberships,
+    groups,
+  } = useStores();
+
+  return (socket: SocketWithAuthentication) => {
+    const currentUserId = auth?.user?.id;
+
+    socket.on(
       "documents.update",
       action((event: PartialExcept<Document, "id" | "title" | "url">) => {
         documents.add(event);
@@ -274,7 +257,7 @@ class WebsocketProvider extends Component<Props> {
       })
     );
 
-    this.socket.on(
+    socket.on(
       "documents.unpublish",
       action(
         (event: {
@@ -302,7 +285,7 @@ class WebsocketProvider extends Component<Props> {
       )
     );
 
-    this.socket.on(
+    socket.on(
       "documents.archive",
       action((event: PartialExcept<Document, "id">) => {
         const model = documents.add(event);
@@ -315,7 +298,7 @@ class WebsocketProvider extends Component<Props> {
       })
     );
 
-    this.socket.on(
+    socket.on(
       "documents.delete",
       action((event: PartialExcept<Document, "id">) => {
         documents.add(event);
@@ -332,26 +315,20 @@ class WebsocketProvider extends Component<Props> {
       })
     );
 
-    this.socket.on(
+    socket.on(
       "documents.permanent_delete",
       (event: WebsocketEntityDeletedEvent) => {
         documents.remove(event.modelId);
       }
     );
 
-    this.socket.on(
+    socket.on(
       "documents.add_user",
       async (event: PartialExcept<UserMembership, "id">) => {
         userMemberships.add(event);
 
-        // Any existing child policies are now invalid
         if (event.userId === currentUserId) {
-          const document = documents.get(event.documentId!);
-          if (document) {
-            document.childDocuments.forEach((childDocument) => {
-              policies.remove(childDocument.id);
-            });
-          }
+          invalidateChildPolicies(event.documentId!, { documents, policies });
         }
 
         try {
@@ -364,19 +341,13 @@ class WebsocketProvider extends Component<Props> {
       }
     );
 
-    this.socket.on(
+    socket.on(
       "documents.remove_user",
       (event: PartialExcept<UserMembership, "id">) => {
         userMemberships.remove(event.id);
 
-        // Any existing child policies are now invalid
         if (event.userId === currentUserId) {
-          const document = documents.get(event.documentId!);
-          if (document) {
-            document.childDocuments.forEach((childDocument) => {
-              policies.remove(childDocument.id);
-            });
-          }
+          invalidateChildPolicies(event.documentId!, { documents, policies });
         }
 
         const policy = policies.get(event.documentId!);
@@ -386,119 +357,56 @@ class WebsocketProvider extends Component<Props> {
       }
     );
 
-    this.socket.on(
+    socket.on(
       "documents.add_group",
       (event: PartialExcept<GroupMembership, "id">) => {
         groupMemberships.add(event);
 
         const group = groups.get(event.groupId!);
 
-        // Any existing child policies are now invalid
         if (currentUserId && group?.users.some((u) => u.id === currentUserId)) {
-          const document = documents.get(event.documentId!);
-          if (document) {
-            document.childDocuments.forEach((childDocument) => {
-              policies.remove(childDocument.id);
-            });
-          }
+          invalidateChildPolicies(event.documentId!, { documents, policies });
         }
       }
     );
 
-    this.socket.on(
+    socket.on(
       "documents.remove_group",
       (event: PartialExcept<GroupMembership, "id">) => {
         groupMemberships.remove(event.id);
       }
     );
+  };
+}
 
-    this.socket.on("comments.create", (event: PartialExcept<Comment, "id">) => {
-      comments.add(event);
-    });
+function useCollectionHandlers() {
+  const {
+    auth,
+    collections,
+    documents,
+    policies,
+    memberships,
+    groupMemberships,
+  } = useStores();
 
-    this.socket.on("comments.update", (event: PartialExcept<Comment, "id">) => {
-      const comment = comments.get(event.id);
+  return (socket: SocketWithAuthentication) => {
+    const currentUserId = auth?.user?.id;
 
-      // Existing policy becomes invalid when the resolution status has changed and we don't have the latest version.
-      if (comment?.resolvedAt !== event.resolvedAt) {
-        policies.remove(event.id);
-      }
-
-      comments.add(event);
-    });
-
-    this.socket.on("comments.delete", (event: WebsocketEntityDeletedEvent) => {
-      comments.remove(event.modelId);
-    });
-
-    this.socket.on(
-      "comments.add_reaction",
-      (event: WebsocketCommentReactionEvent) => {
-        const comment = comments.get(event.commentId);
-        comment?.updateReaction({
-          type: "add",
-          emoji: event.emoji,
-          user: event.user,
-        });
-      }
-    );
-
-    this.socket.on(
-      "comments.remove_reaction",
-      (event: WebsocketCommentReactionEvent) => {
-        const comment = comments.get(event.commentId);
-        comment?.updateReaction({
-          type: "remove",
-          emoji: event.emoji,
-          user: event.user,
-        });
-      }
-    );
-
-    this.socket.on("groups.create", (event: PartialExcept<Group, "id">) => {
-      groups.add(event);
-    });
-
-    this.socket.on("groups.update", (event: PartialExcept<Group, "id">) => {
-      groups.add(event);
-    });
-
-    this.socket.on("groups.delete", (event: WebsocketEntityDeletedEvent) => {
-      groups.remove(event.modelId);
-    });
-
-    this.socket.on(
-      "groups.add_user",
-      (event: PartialExcept<GroupUser, "id">) => {
-        groupUsers.add(event);
-      }
-    );
-
-    this.socket.on(
-      "groups.remove_user",
-      (event: PartialExcept<GroupUser, "id">) => {
-        groupUsers.removeAll({
-          groupId: event.groupId,
-          userId: event.userId,
-        });
-      }
-    );
-
-    this.socket.on(
+    socket.on(
       "collections.create",
       (event: PartialExcept<Collection, "id">) => {
         collections.add(event);
       }
     );
 
-    this.socket.on(
+    socket.on(
       "collections.update",
       (event: PartialExcept<Collection, "id">) => {
         collections.add(event);
       }
     );
 
-    this.socket.on(
+    socket.on(
       "collections.delete",
       action((event: WebsocketEntityDeletedEvent) => {
         const collectionId = event.modelId;
@@ -518,7 +426,7 @@ class WebsocketProvider extends Component<Props> {
       })
     );
 
-    this.socket.on(
+    socket.on(
       "collections.archive",
       async (event: PartialExcept<Collection, "id">) => {
         const collectionId = event.id;
@@ -544,7 +452,7 @@ class WebsocketProvider extends Component<Props> {
       }
     );
 
-    this.socket.on(
+    socket.on(
       "collections.restore",
       async (event: PartialExcept<Collection, "id">) => {
         const collectionId = event.id;
@@ -568,55 +476,7 @@ class WebsocketProvider extends Component<Props> {
       }
     );
 
-    this.socket.on("teams.update", (event: PartialExcept<Team, "id">) => {
-      if ("sharing" in event && event.sharing !== auth.team?.sharing) {
-        documents.all.forEach((document) => {
-          policies.remove(document.id);
-        });
-      }
-
-      auth.team?.updateData(event);
-    });
-
-    this.socket.on(
-      "notifications.create",
-      (event: PartialExcept<Notification, "id">) => {
-        notifications.add(event);
-      }
-    );
-
-    this.socket.on(
-      "notifications.update",
-      (event: PartialExcept<Notification, "id">) => {
-        notifications.add(event);
-      }
-    );
-
-    this.socket.on("pins.create", (event: PartialExcept<Pin, "id">) => {
-      pins.add(event);
-    });
-
-    this.socket.on("pins.update", (event: PartialExcept<Pin, "id">) => {
-      pins.add(event);
-    });
-
-    this.socket.on("pins.delete", (event: WebsocketEntityDeletedEvent) => {
-      pins.remove(event.modelId);
-    });
-
-    this.socket.on("stars.create", (event: PartialExcept<Star, "id">) => {
-      stars.add(event);
-    });
-
-    this.socket.on("stars.update", (event: PartialExcept<Star, "id">) => {
-      stars.add(event);
-    });
-
-    this.socket.on("stars.delete", (event: WebsocketEntityDeletedEvent) => {
-      stars.remove(event.modelId);
-    });
-
-    this.socket.on("collections.add_user", async (event: Membership) => {
+    socket.on("collections.add_user", async (event: Membership) => {
       memberships.add(event);
       try {
         await collections.fetch(event.collectionId, {
@@ -627,7 +487,7 @@ class WebsocketProvider extends Component<Props> {
       }
     });
 
-    this.socket.on("collections.remove_user", (event: Membership) => {
+    socket.on("collections.remove_user", (event: Membership) => {
       memberships.remove(event.id);
 
       const policy = policies.get(event.collectionId);
@@ -636,7 +496,7 @@ class WebsocketProvider extends Component<Props> {
       }
     });
 
-    this.socket.on("collections.add_group", async (event: GroupMembership) => {
+    socket.on("collections.add_group", async (event: GroupMembership) => {
       groupMemberships.add(event);
       try {
         await collections.fetch(event.collectionId!);
@@ -645,86 +505,129 @@ class WebsocketProvider extends Component<Props> {
       }
     });
 
-    this.socket.on(
-      "collections.remove_group",
-      async (event: GroupMembership) => {
-        groupMemberships.remove(event.id);
+    socket.on("collections.remove_group", async (event: GroupMembership) => {
+      groupMemberships.remove(event.id);
 
-        const policy = policies.get(event.collectionId!);
-        if (policy && policy.abilities.read === false) {
-          collections.remove(event.collectionId!);
-        }
+      const policy = policies.get(event.collectionId!);
+      if (policy && policy.abilities.read === false) {
+        collections.remove(event.collectionId!);
       }
-    );
+    });
 
-    this.socket.on(
+    socket.on(
       "collections.update_index",
       action((event: WebsocketCollectionUpdateIndexEvent) => {
         const collection = collections.get(event.collectionId);
         collection?.updateIndex(event.index);
       })
     );
+  };
+}
 
-    this.socket.on(
-      "fileOperations.create",
-      (event: PartialExcept<FileOperation, "id">) => {
-        fileOperations.add(event);
-      }
-    );
+function useCommentHandlers() {
+  const { comments, policies } = useStores();
 
-    this.socket.on(
-      "fileOperations.update",
-      (event: PartialExcept<FileOperation, "id">) => {
-        fileOperations.add(event);
-
-        if (
-          event.state === FileOperationState.Complete &&
-          event.type === FileOperationType.Import &&
-          event.user?.id === auth.user?.id
-        ) {
-          toast.success(event.name, {
-            description: this.props.t("Your import completed"),
-          });
-        }
-      }
-    );
-
-    this.socket.on("imports.create", (event: PartialExcept<Import, "id">) => {
-      imports.add(event);
+  return (socket: SocketWithAuthentication) => {
+    socket.on("comments.create", (event: PartialExcept<Comment, "id">) => {
+      comments.add(event);
     });
 
-    this.socket.on("imports.update", (event: PartialExcept<Import, "id">) => {
-      imports.add(event);
+    socket.on("comments.update", (event: PartialExcept<Comment, "id">) => {
+      const comment = comments.get(event.id);
 
-      if (
-        event.state === ImportState.Completed &&
-        event.createdBy?.id === auth.user?.id
-      ) {
-        toast.success(event.name, {
-          description: this.props.t("Your import completed"),
+      // Existing policy becomes invalid when the resolution status has changed and we don't have the latest version.
+      if (comment?.resolvedAt !== event.resolvedAt) {
+        policies.remove(event.id);
+      }
+
+      comments.add(event);
+    });
+
+    socket.on("comments.delete", (event: WebsocketEntityDeletedEvent) => {
+      comments.remove(event.modelId);
+    });
+
+    socket.on(
+      "comments.add_reaction",
+      (event: WebsocketCommentReactionEvent) => {
+        const comment = comments.get(event.commentId);
+        comment?.updateReaction({
+          type: "add",
+          emoji: event.emoji,
+          user: event.user,
         });
       }
+    );
+
+    socket.on(
+      "comments.remove_reaction",
+      (event: WebsocketCommentReactionEvent) => {
+        const comment = comments.get(event.commentId);
+        comment?.updateReaction({
+          type: "remove",
+          emoji: event.emoji,
+          user: event.user,
+        });
+      }
+    );
+  };
+}
+
+function useGroupHandlers() {
+  const { groups, groupUsers } = useStores();
+
+  return (socket: SocketWithAuthentication) => {
+    socket.on("groups.create", (event: PartialExcept<Group, "id">) => {
+      groups.add(event);
     });
 
-    this.socket.on(
-      "subscriptions.create",
-      (event: PartialExcept<Subscription, "id">) => {
-        subscriptions.add(event);
-      }
-    );
+    socket.on("groups.update", (event: PartialExcept<Group, "id">) => {
+      groups.add(event);
+    });
 
-    this.socket.on(
-      "subscriptions.delete",
-      (event: WebsocketEntityDeletedEvent) => {
-        subscriptions.remove(event.modelId);
-      }
-    );
+    socket.on("groups.delete", (event: WebsocketEntityDeletedEvent) => {
+      groups.remove(event.modelId);
+    });
 
-    this.socket.on("users.update", (event: PartialExcept<User, "id">) => {
+    socket.on("groups.add_user", (event: PartialExcept<GroupUser, "id">) => {
+      groupUsers.add(event);
+    });
+
+    socket.on("groups.remove_user", (event: PartialExcept<GroupUser, "id">) => {
+      groupUsers.removeAll({
+        groupId: event.groupId,
+        userId: event.userId,
+      });
+    });
+  };
+}
+
+function useTeamHandlers() {
+  const { auth, documents, policies } = useStores();
+
+  return (socket: SocketWithAuthentication) => {
+    socket.on("teams.update", (event: PartialExcept<Team, "id">) => {
+      if ("sharing" in event && event.sharing !== auth.team?.sharing) {
+        documents.all.forEach((document) => {
+          policies.remove(document.id);
+        });
+      }
+
+      auth.team?.updateData(event);
+    });
+  };
+}
+
+function useUserHandlers() {
+  const { auth, users, userMemberships, documents, collections, policies } =
+    useStores();
+
+  return (socket: SocketWithAuthentication) => {
+    socket.on("users.update", (event: PartialExcept<User, "id">) => {
       users.add(event);
     });
 
-    this.socket.on("users.demote", async (event: PartialExcept<User, "id">) => {
+    socket.on("users.demote", async (event: PartialExcept<User, "id">) => {
       if (event.id === auth.user?.id) {
         documents.all.forEach((document) => policies.remove(document.id));
         try {
@@ -735,37 +638,210 @@ class WebsocketProvider extends Component<Props> {
       }
     });
 
-    this.socket.on("users.delete", (event: WebsocketEntityDeletedEvent) => {
+    socket.on("users.delete", (event: WebsocketEntityDeletedEvent) => {
       users.remove(event.modelId);
     });
 
-    this.socket.on(
+    socket.on(
       "userMemberships.update",
       async (event: PartialExcept<UserMembership, "id">) => {
         userMemberships.add(event);
       }
     );
-
-    // received a message from the API server that we should request
-    // to join a specific room. Forward that to the ws server.
-    this.socket.on("join", (event) => {
-      this.socket?.emit("join", event);
-    });
-
-    // received a message from the API server that we should request
-    // to leave a specific room. Forward that to the ws server.
-    this.socket.on("leave", (event) => {
-      this.socket?.emit("leave", event);
-    });
   };
-
-  render() {
-    return (
-      <WebsocketContext.Provider value={this.socket}>
-        {this.props.children}
-      </WebsocketContext.Provider>
-    );
-  }
 }
 
-export default withTranslation()(withStores(WebsocketProvider));
+function useNotificationHandlers() {
+  const { notifications, subscriptions } = useStores();
+
+  return (socket: SocketWithAuthentication) => {
+    socket.on(
+      "notifications.create",
+      (event: PartialExcept<Notification, "id">) => {
+        notifications.add(event);
+      }
+    );
+
+    socket.on(
+      "notifications.update",
+      (event: PartialExcept<Notification, "id">) => {
+        notifications.add(event);
+      }
+    );
+
+    socket.on(
+      "subscriptions.create",
+      (event: PartialExcept<Subscription, "id">) => {
+        subscriptions.add(event);
+      }
+    );
+
+    socket.on("subscriptions.delete", (event: WebsocketEntityDeletedEvent) => {
+      subscriptions.remove(event.modelId);
+    });
+  };
+}
+
+function usePinHandlers() {
+  const { pins } = useStores();
+
+  return (socket: SocketWithAuthentication) => {
+    socket.on("pins.create", (event: PartialExcept<Pin, "id">) => {
+      pins.add(event);
+    });
+
+    socket.on("pins.update", (event: PartialExcept<Pin, "id">) => {
+      pins.add(event);
+    });
+
+    socket.on("pins.delete", (event: WebsocketEntityDeletedEvent) => {
+      pins.remove(event.modelId);
+    });
+  };
+}
+
+function useStarHandlers() {
+  const { stars } = useStores();
+
+  return (socket: SocketWithAuthentication) => {
+    socket.on("stars.create", (event: PartialExcept<Star, "id">) => {
+      stars.add(event);
+    });
+
+    socket.on("stars.update", (event: PartialExcept<Star, "id">) => {
+      stars.add(event);
+    });
+
+    socket.on("stars.delete", (event: WebsocketEntityDeletedEvent) => {
+      stars.remove(event.modelId);
+    });
+  };
+}
+
+function useImportHandlers() {
+  const { auth, fileOperations, imports } = useStores();
+  const { t } = useTranslation();
+
+  return (socket: SocketWithAuthentication) => {
+    socket.on(
+      "fileOperations.create",
+      (event: PartialExcept<FileOperation, "id">) => {
+        fileOperations.add(event);
+      }
+    );
+
+    socket.on(
+      "fileOperations.update",
+      (event: PartialExcept<FileOperation, "id">) => {
+        fileOperations.add(event);
+
+        if (
+          event.state === FileOperationState.Complete &&
+          event.type === FileOperationType.Import &&
+          event.user?.id === auth.user?.id
+        ) {
+          toast.success(event.name, {
+            description: t("Your import completed"),
+          });
+        }
+      }
+    );
+
+    socket.on("imports.create", (event: PartialExcept<Import, "id">) => {
+      imports.add(event);
+    });
+
+    socket.on("imports.update", (event: PartialExcept<Import, "id">) => {
+      imports.add(event);
+
+      if (
+        event.state === ImportState.Completed &&
+        event.createdBy?.id === auth.user?.id
+      ) {
+        toast.success(event.name, {
+          description: t("Your import completed"),
+        });
+      }
+    });
+  };
+}
+
+function WebsocketProvider({ children }: React.PropsWithChildren<object>) {
+  const [socket, setSocket] = useState<SocketWithAuthentication | null>(null);
+
+  const registerConnectionHandlers = useConnectionHandlers();
+  const registerEntityHandlers = useEntityHandlers();
+  const registerDocumentHandlers = useDocumentHandlers();
+  const registerCollectionHandlers = useCollectionHandlers();
+  const registerCommentHandlers = useCommentHandlers();
+  const registerGroupHandlers = useGroupHandlers();
+  const registerTeamHandlers = useTeamHandlers();
+  const registerUserHandlers = useUserHandlers();
+  const registerNotificationHandlers = useNotificationHandlers();
+  const registerPinHandlers = usePinHandlers();
+  const registerStarHandlers = useStarHandlers();
+  const registerImportHandlers = useImportHandlers();
+
+  useEffect(() => {
+    let currentSocket: SocketWithAuthentication | null = null;
+
+    function createConnection() {
+      currentSocket = io(window.location.origin, {
+        path: "/realtime",
+        transports: ["websocket"],
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 30000,
+        withCredentials: true,
+      });
+      invariant(currentSocket, "Socket should be defined");
+
+      currentSocket.authenticated = false;
+
+      registerConnectionHandlers(currentSocket);
+      registerEntityHandlers(currentSocket);
+      registerDocumentHandlers(currentSocket);
+      registerCollectionHandlers(currentSocket);
+      registerCommentHandlers(currentSocket);
+      registerGroupHandlers(currentSocket);
+      registerTeamHandlers(currentSocket);
+      registerUserHandlers(currentSocket);
+      registerNotificationHandlers(currentSocket);
+      registerPinHandlers(currentSocket);
+      registerStarHandlers(currentSocket);
+      registerImportHandlers(currentSocket);
+
+      setSocket(currentSocket);
+    }
+
+    function checkConnection() {
+      if (currentSocket?.disconnected && getPageVisible()) {
+        // null-ifying this reference is important, do not remove. Without it
+        // references to old sockets are potentially held in context
+        currentSocket.close();
+        currentSocket = null;
+        setSocket(null);
+        createConnection();
+      }
+    }
+
+    createConnection();
+    document.addEventListener(getVisibilityListener(), checkConnection);
+
+    return () => {
+      if (currentSocket) {
+        currentSocket.authenticated = false;
+        currentSocket.disconnect();
+      }
+      document.removeEventListener(getVisibilityListener(), checkConnection);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <WebsocketContext.Provider value={socket}>
+      {children}
+    </WebsocketContext.Provider>
+  );
+}
+
+export default observer(WebsocketProvider);

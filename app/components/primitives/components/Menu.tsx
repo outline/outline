@@ -16,7 +16,7 @@ type BaseMenuItemProps = {
 const BaseMenuItemCSS = css<BaseMenuItemProps>`
   position: relative;
   display: flex;
-  justify-content: left;
+  justify-content: flex-start;
   align-items: center;
   width: 100%;
   min-height: 32px;
@@ -129,20 +129,25 @@ export const MenuHeader = styled.h3`
   color: ${s("sidebarText")};
   letter-spacing: 0.04em;
   margin: 1em 12px 0.5em;
+  user-select: none;
 `;
 
 export const MenuDisclosure = styled(ExpandedIcon)`
   transform: rotate(270deg);
   position: absolute;
-  right: 8px;
+  inset-inline-end: 8px;
   color: ${s("textTertiary")};
+
+  [dir="rtl"] & {
+    transform: rotate(90deg);
+  }
 `;
 
 export const MenuIconWrapper = styled.span`
   width: 24px;
   height: 24px;
-  margin-right: 6px;
-  margin-left: -4px;
+  margin-inline-end: 6px;
+  margin-inline-start: -4px;
   color: ${s("textSecondary")};
   flex-shrink: 0;
   display: flex;
@@ -153,7 +158,7 @@ export const MenuIconWrapper = styled.span`
 export const SelectedIconWrapper = styled.span`
   width: 24px;
   height: 24px;
-  margin-right: -6px;
+  margin-inline-end: -6px;
   color: ${s("textSecondary")};
   flex-shrink: 0;
   display: flex;
@@ -168,7 +173,7 @@ export const MenuShortcut = styled.span`
   font-size: 12px;
   color: currentColor;
   opacity: 0.5;
-  margin-left: 16px;
+  margin-inline-start: 16px;
   flex-shrink: 0;
 `;
 

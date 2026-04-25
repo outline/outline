@@ -22,7 +22,6 @@ import DocumentExplorerNode from "./DocumentExplorerNode";
 import DocumentExplorerSearchResult from "./DocumentExplorerSearchResult";
 import Flex from "~/components/Flex";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
-import { Outline } from "~/components/Input";
 import InputSearch from "~/components/InputSearch";
 import Text from "~/components/Text";
 import useMobile from "~/hooks/useMobile";
@@ -447,10 +446,7 @@ const FlexContainer = styled(Flex)`
   justify-content: center;
 `;
 
-const ListSearch = styled(InputSearch)`
-  ${Outline} {
-    border-radius: 16px;
-  }
+const ListSearch = styled(InputSearch).attrs({ round: true })`
   margin-bottom: 4px;
   padding-left: 24px;
   padding-right: 24px;

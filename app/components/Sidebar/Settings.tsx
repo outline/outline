@@ -101,7 +101,11 @@ function SettingsSidebar() {
 }
 
 const StyledBackIcon = styled(BackIcon)`
-  margin-left: 4px;
+  margin-inline-start: 4px;
+
+  [dir="rtl"] & {
+    transform: rotate(180deg);
+  }
 `;
 
 export default observer(SettingsSidebar);
