@@ -869,6 +869,7 @@
   "Add content to your document, then use headings or dividers to separate it into slides.": "Belgenize içerik ekleyin, ardından başlıklar veya ayırıcılarla slaytlara ayırın.",
   "Learn more": "Daha fazla bilgi edinin",
   "Backlinks": "Geri bağlantılar",
+  "Clear search highlight": "Clear search highlight",
   "This document is large which may affect performance": "Bu belge büyük, bu da performansı etkileyebilir",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history</em>.": "Bundan emin misiniz? <em>{{ documentTitle }}</em> belgesini silmek, tüm geçmişini silecektir.",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history and <em>{{ any }} nested document</em>.": "Bundan emin misiniz? <em>{{ documentTitle }}</em> belgesini silmek, tüm geçmişini ve <em>{{ any }} iç içe belgeyi</em> silecektir.",
