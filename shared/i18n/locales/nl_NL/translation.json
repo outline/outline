@@ -869,6 +869,7 @@
   "Add content to your document, then use headings or dividers to separate it into slides.": "Voeg inhoud toe aan je document, gebruik koppen of scheidingen om het te scheiden in dia's.",
   "Learn more": "Meer informatie",
   "Backlinks": "Backlinks",
+  "Clear search highlight": "Clear search highlight",
   "This document is large which may affect performance": "Dit document is groot wat de prestaties kan beïnvloeden",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history</em>.": "Weet je het zeker? Door het document <em>{{ documentTitle }}</em> te verwijderen zal ook alle geschiedenis ervan worden verwijderd</em>.",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history and <em>{{ any }} nested document</em>.": "Weet je het zeker? Door het document <em>{{ documentTitle }}</em> te verwijderen zal ook alle geschiedenis en <em>{{ any }} onderliggend document worden verwijderd</em>.",
