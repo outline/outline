@@ -869,6 +869,7 @@
   "Add content to your document, then use headings or dividers to separate it into slides.": "Add content to your document, then use headings or dividers to separate it into slides.",
   "Learn more": "瞭解更多",
   "Backlinks": "反向連結",
+  "Clear search highlight": "Clear search highlight",
   "This document is large which may affect performance": "This document is large which may affect performance",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history</em>.": "你確定嗎？刪除 <em>{{ documentTitle }}</em> 文件將刪除其所有歷史記錄</em>。",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history and <em>{{ any }} nested document</em>.": "您確定要這麼做嗎？將文件 <em>{{ documentTitle }}</em> 刪除同時也會刪除所有它的歷史紀錄以及 <em>{{ any }} 所屬的子文件</em>。",
