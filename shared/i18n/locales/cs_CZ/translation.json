@@ -869,6 +869,7 @@
   "Add content to your document, then use headings or dividers to separate it into slides.": "Přidejte do dokumentu obsah a poté použijte nadpisy nebo oddělovače pro jeho rozdělení do snímků pro prezentaci.",
   "Learn more": "Zjistit více",
   "Backlinks": "Zpětné odkazy",
+  "Clear search highlight": "Clear search highlight",
   "This document is large which may affect performance": "Dokument je rozsáhlý, což může ovlivnit výkon aplikace.",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history</em>.": "Opravdu chcete pokračovat? Odstraněním dokumentu <em>{{ documentTitle }}</em> smažete i celou jeho historii.",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history and <em>{{ any }} nested document</em>.": "Opravdu chcete pokračovat? Odstraněním dokumentu <em>{{ documentTitle }}</em> smažete celou jeho historii i <em>{{ any }} vnořený dokument</em>.",
