@@ -869,6 +869,7 @@
   "Add content to your document, then use headings or dividers to separate it into slides.": "Fügen Sie dem Dokument Inhalte hinzu, dann verwenden Sie Überschriften oder Trennlinien, um das Dokument in Folien zu trennen.",
   "Learn more": "Mehr erfahren",
   "Backlinks": "Backlinks",
+  "Clear search highlight": "Clear search highlight",
   "This document is large which may affect performance": "Dieses Dokument ist groß und kann die Leistung negativ beeinträchtigen",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history</em>.": "Bist du sicher? Durch Löschen des Dokuments <em>{{ documentTitle }}</em> wird auch der gesamte Verlauf davon gelöscht</em>.",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history and <em>{{ any }} nested document</em>.": "Bist du sicher? Durch Löschen des Dokuments <em>{{ documentTitle }}</em> wird der gesamte Verlauf sowie <em>{{ any }} Unterdokumente</em> gelöscht.",
