@@ -57,7 +57,7 @@ const Chip = styled.button`
   padding: 0 6px 0 10px;
   margin: 0 4px;
   background: rgba(255, 213, 0, 0.25);
-  color: ${(props) => props.theme.almostBlack};
+  color: ${(props) => props.theme.text};
   border: 0;
   border-radius: 14px;
   font-size: 14px;
