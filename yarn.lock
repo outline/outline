@@ -649,17 +649,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/types@npm:^3.222.0":
-  version: 3.973.1
-  resolution: "@aws-sdk/types@npm:3.973.1"
-  dependencies:
-    "@smithy/types": "npm:^4.12.0"
-    tslib: "npm:^2.6.2"
-  checksum: 10c0/8a4a183cc39b4d6f4d065ece884b50d397a54b17add32b649f49adbe676174e7bee2c3c94394fc5227a4fccb96c34482291a1eb2702158e1dbb12c441af32863
-  languageName: node
-  linkType: hard
-
-"@aws-sdk/types@npm:^3.973.8":
+"@aws-sdk/types@npm:^3.222.0, @aws-sdk/types@npm:^3.973.8":
   version: 3.973.8
   resolution: "@aws-sdk/types@npm:3.973.8"
   dependencies:
@@ -6598,15 +6588,6 @@ __metadata:
     "@smithy/util-stream": "npm:^4.5.23"
     tslib: "npm:^2.6.2"
   checksum: 10c0/5688db9635e4c9a89dd425706e45aa0b2dff7317d7c417a965fceb0b83f803690a73a1ebe749397a97c86b462bff7bd541005354538118888da2a489aec5e301
-  languageName: node
-  linkType: hard
-
-"@smithy/types@npm:^4.12.0":
-  version: 4.12.0
-  resolution: "@smithy/types@npm:4.12.0"
-  dependencies:
-    tslib: "npm:^2.6.2"
-  checksum: 10c0/ac81de3f24b43e52a5089279bced4ff04a853e0bdc80143a234e79f7f40cbd61d85497b08a252265570b4637a3cf265cf85a7a09e5f194937fe30706498640b7
   languageName: node
   linkType: hard
 
@@ -17091,7 +17072,6 @@ __metadata:
     pluralize: "npm:^8.0.0"
     png-chunks-extract: "npm:^1.0.0"
     polished: "npm:^4.3.1"
-    postinstall-postinstall: "npm:^2.1.0"
     prettier: "npm:^3.6.2"
     prosemirror-changeset: "npm:2.3.1"
     prosemirror-codemark: "npm:^0.4.2"
@@ -17988,13 +17968,6 @@ __metadata:
   dependencies:
     xtend: "npm:^4.0.0"
   checksum: 10c0/c1734c3cb79e7f22579af0b268a463b1fa1d084e742a02a7a290c4f041e349456f3bee3b4ee0bb3f226828597f7b76deb615c1b857db9a742c45520100456272
-  languageName: node
-  linkType: hard
-
-"postinstall-postinstall@npm:^2.1.0":
-  version: 2.1.0
-  resolution: "postinstall-postinstall@npm:2.1.0"
-  checksum: 10c0/70488447292c712afa7806126824d6fe93362392cbe261ae60166d9119a350713e0dbf4deb2ca91637c1037bc030ed1de78d61d9041bf2504513070f1caacdfd
   languageName: node
   linkType: hard
 

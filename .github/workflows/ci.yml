@@ -75,6 +75,24 @@ jobs:
           key: ${{ runner.os }}-node-modules-24.x-${{ hashFiles('yarn.lock') }}
       - run: yarn tsc
 
+  audit:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Enable Corepack
+        run: corepack enable
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24.x
+          cache: "yarn"
+      - name: Restore node_modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-24.x-${{ hashFiles('yarn.lock') }}
+      - run: yarn npm audit --severity high --recursive
+
   changes:
     runs-on: ubuntu-latest
     outputs:
