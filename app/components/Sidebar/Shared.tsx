@@ -11,11 +11,11 @@ import type Share from "~/models/Share";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import useShareBranding from "~/hooks/useShareBranding";
 import useStores from "~/hooks/useStores";
 import history from "~/utils/history";
 import { homePath, sharedModelPath } from "~/utils/routeHelpers";
 import { AvatarSize } from "../Avatar";
-import { useTeamContext } from "../TeamContext";
 import TeamLogo from "../TeamLogo";
 import Sidebar from "./Sidebar";
 import Section from "./components/Section";
@@ -28,16 +28,13 @@ type Props = {
 };
 
 function SharedSidebar({ share }: Props) {
-  const team = useTeamContext();
   const user = useCurrentUser({ rejectOnEmpty: false });
   const { ui, documents, collections } = useStores();
   const { t } = useTranslation();
   const { query } = useKBar();
 
-  const displayName = share.title ?? team?.name ?? null;
-  const displayLogoUrl = share.iconUrl ?? team?.avatarUrl ?? null;
-  const displayLogoModel = displayLogoUrl ? undefined : team;
-  const brandingAvailable = !!(displayName || displayLogoUrl);
+  const { displayName, displayLogoUrl, displayLogoModel, brandingAvailable } =
+    useShareBranding(share);
   const rootNode = share.tree;
   const shareId = share.urlId || share.id;
   const collection = collections.get(rootNode?.id);

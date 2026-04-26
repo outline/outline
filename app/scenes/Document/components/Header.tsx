@@ -22,6 +22,7 @@ import {
   AppearanceAction,
   SubscribeAction,
 } from "~/components/Sharing/components/Actions";
+import HeaderBranding from "~/components/Sharing/components/HeaderBranding";
 import ShareSettingsPopover from "~/components/Sharing/components/ShareSettingsPopover";
 import Star from "~/components/Star";
 import Tooltip from "~/components/Tooltip";
@@ -189,6 +190,7 @@ function DocumentHeader({
   );
 
   if (shareId) {
+    const hasSidebar = !!(sharedTree && sharedTree.children?.length);
     return (
       <StyledHeader
         ref={measureRef}
@@ -205,13 +207,13 @@ function DocumentHeader({
             {document.title}
           </Flex>
         }
-        hasSidebar={sharedTree && sharedTree.children?.length > 0}
+        hasSidebar={hasSidebar}
         left={
           isMobile ? (
             hasHeadings ? (
               <TableOfContentsMenu />
             ) : null
-          ) : (
+          ) : hasSidebar ? (
             <PublicBreadcrumb
               documentId={document.id}
               shareId={shareId}
@@ -219,6 +221,11 @@ function DocumentHeader({
             >
               {hasHeadings ? toc : null}
             </PublicBreadcrumb>
+          ) : (
+            <Flex align="center" gap={8}>
+              {share && <HeaderBranding share={share} />}
+              {hasHeadings ? toc : null}
+            </Flex>
           )
         }
         actions={
