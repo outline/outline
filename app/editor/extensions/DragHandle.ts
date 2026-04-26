@@ -17,6 +17,7 @@ type Target = {
   pos: number;
   element: HTMLElement;
   isListItem: boolean;
+  isCheckboxItem: boolean;
 };
 
 type PluginState = {
@@ -118,9 +119,7 @@ export default class DragHandle extends Extension {
           const show = (next: Target) => {
             target = next;
             const rect = next.element.getBoundingClientRect();
-            // List items render their own marker in the gutter so the
-            // handle needs a small extra offset to clear it.
-            const offsetX = next.isListItem ? 40 : 29;
+            const offsetX = next.isCheckboxItem ? 0 : next.isListItem ? 40 : 24;
             const offsetY = 2;
             handle.style.top = `${rect.top - offsetY}px`;
             handle.style.left = `${rect.left - offsetX}px`;
@@ -184,6 +183,9 @@ export default class DragHandle extends Extension {
             );
             event.dataTransfer.clearData();
             event.dataTransfer.effectAllowed = "copyMove";
+            // Hide the handle for the duration of the drag — leave
+            // pointer-events alone so the in-flight drag isn't cancelled.
+            handle.style.opacity = "0";
             const selection = NodeSelection.create(view.state.doc, pos);
             // Use the slice from the original NodeSelection rather than
             // view.state.selection, which prosemirror-tables' tableEditing
@@ -301,6 +303,15 @@ function findTarget(view: EditorView, event: MouseEvent): Target | null {
     contentLeft,
     Math.min(contentRight, event.clientX)
   );
+
+  // Mermaid diagrams hide their source code block and render an SVG widget
+  // next to it — target the underlying code block but anchor the handle to
+  // the visible diagram element.
+  const mermaid = findMermaidTarget(view, event, projectedX);
+  if (mermaid) {
+    return mermaid;
+  }
+
   const coords = view.posAtCoords({
     left: projectedX,
     top: event.clientY,
@@ -316,20 +327,80 @@ function findTarget(view: EditorView, event: MouseEvent): Target | null {
   if (!(dom instanceof HTMLElement)) {
     return null;
   }
-  return { pos: resolved.pos, element: dom, isListItem: resolved.isListItem };
+  return {
+    pos: resolved.pos,
+    element: dom,
+    isListItem: resolved.isListItem,
+    isCheckboxItem: resolved.isCheckboxItem,
+  };
+}
+
+function findMermaidTarget(
+  view: EditorView,
+  event: MouseEvent,
+  projectedX: number
+): Target | null {
+  // Look at the element directly under the cursor, and at the projected X
+  // inside the editor so we still find the diagram when the cursor sits in
+  // the left gutter where the handle is rendered.
+  const eventTarget = event.target as HTMLElement | null;
+  const projectedTarget =
+    projectedX !== event.clientX
+      ? document.elementFromPoint(projectedX, event.clientY)
+      : null;
+  const diagram =
+    eventTarget?.closest<HTMLElement>(".mermaid-diagram-wrapper") ??
+    (projectedTarget instanceof Element
+      ? projectedTarget.closest<HTMLElement>(".mermaid-diagram-wrapper")
+      : null);
+  if (!diagram) {
+    return null;
+  }
+  const codeBlockDom = diagram.previousElementSibling;
+  if (!(codeBlockDom instanceof HTMLElement)) {
+    return null;
+  }
+  let pos: number;
+  try {
+    pos = view.posAtDOM(codeBlockDom, 0);
+  } catch {
+    return null;
+  }
+  if (pos < 0) {
+    return null;
+  }
+  const $pos = view.state.doc.resolve(pos);
+  const blockPos = $pos.depth > 0 ? $pos.before($pos.depth) : 0;
+  if (!view.state.doc.nodeAt(blockPos)) {
+    return null;
+  }
+  return {
+    pos: blockPos,
+    element: diagram,
+    isListItem: false,
+    isCheckboxItem: false,
+  };
 }
 
 function resolveTargetPos(
   state: EditorState,
   pos: number
-): { pos: number; isListItem: boolean } | null {
+): {
+  pos: number;
+  isListItem: boolean;
+  isCheckboxItem: boolean;
+} | null {
   const $pos = state.doc.resolve(pos);
 
   const listItem = findParentNodeClosestToPos($pos, (node) =>
     LIST_ITEM_TYPES.includes(node.type.name)
   );
   if (listItem) {
-    return { pos: listItem.pos, isListItem: true };
+    return {
+      pos: listItem.pos,
+      isListItem: true,
+      isCheckboxItem: listItem.node.type.name === "checkbox_item",
+    };
   }
 
   if ($pos.depth >= 1) {
@@ -342,7 +413,11 @@ function resolveTargetPos(
     if (node.type.name === "paragraph" && node.content.size === 0) {
       return null;
     }
-    return { pos: $pos.before(1), isListItem: false };
+    return {
+      pos: $pos.before(1),
+      isListItem: false,
+      isCheckboxItem: false,
+    };
   }
 
   // Hovering on a top-level atom block (video, etc.) — there are no
@@ -351,11 +426,15 @@ function resolveTargetPos(
   // position is adjacent to.
   const after = $pos.nodeAfter;
   if (after?.isBlock && after.isAtom) {
-    return { pos: $pos.pos, isListItem: false };
+    return { pos: $pos.pos, isListItem: false, isCheckboxItem: false };
   }
   const before = $pos.nodeBefore;
   if (before?.isBlock && before.isAtom) {
-    return { pos: $pos.pos - before.nodeSize, isListItem: false };
+    return {
+      pos: $pos.pos - before.nodeSize,
+      isListItem: false,
+      isCheckboxItem: false,
+    };
   }
   return null;
 }
