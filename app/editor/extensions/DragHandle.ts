@@ -31,11 +31,36 @@ export default class DragHandle extends Extension {
   get plugins() {
     return [
       new Plugin({
+        props: {
+          handleDOMEvents: {
+            dragstart: (view) => {
+              view.dom.classList.add("dragging");
+              return false;
+            },
+            drop: (view) => {
+              view.dom.classList.remove("dragging");
+              return false;
+            },
+            dragend: (view) => {
+              view.dom.classList.remove("dragging");
+              return false;
+            },
+          },
+        },
         view: (view) => {
           const handle = createHandle();
           document.body.appendChild(handle);
 
           let target: Target | null = null;
+          let draggedElement: HTMLElement | null = null;
+
+          const onDragEnd = () => {
+            view.dom.classList.remove("dragging");
+            if (draggedElement) {
+              draggedElement.classList.remove("dragging-source");
+              draggedElement = null;
+            }
+          };
 
           const show = (next: Target) => {
             target = next;
@@ -81,20 +106,27 @@ export default class DragHandle extends Extension {
             if (!view.state.doc.nodeAt(pos)) {
               return;
             }
-            view.focus();
+            // Snapshot the drag image of the unmodified element first.
+            // Anchor it to its original screen position by offsetting by the
+            // cursor's location within the block (negative X — the cursor
+            // sits in the gutter to the left).
+            const rect = target.element.getBoundingClientRect();
+            event.dataTransfer.setDragImage(
+              target.element,
+              event.clientX - rect.left,
+              event.clientY - rect.top
+            );
+            event.dataTransfer.clearData();
+            event.dataTransfer.effectAllowed = "copyMove";
             const selection = NodeSelection.create(view.state.doc, pos);
-            view.dispatch(view.state.tr.setSelection(selection));
             // Use the slice from the original NodeSelection rather than
             // view.state.selection, which prosemirror-tables' tableEditing
             // normalizes from a NodeSelection on a table into a CellSelection
             // covering only the cells.
             const slice = selection.content();
             const { dom, text } = view.serializeForClipboard(slice);
-            event.dataTransfer.clearData();
-            event.dataTransfer.effectAllowed = "copyMove";
             event.dataTransfer.setData("text/html", dom.innerHTML);
             event.dataTransfer.setData("text/plain", text);
-            event.dataTransfer.setDragImage(target.element, 0, 0);
             // Include the original NodeSelection as `node` so ProseMirror's
             // drop handler removes the source via node.replace(tr) rather
             // than tr.deleteSelection() (which would operate on the
@@ -109,6 +141,15 @@ export default class DragHandle extends Extension {
               node: selection,
             };
             view.dragging = dragging;
+            // Apply visual state for the duration of the drag in a follow-up
+            // task so it doesn't end up baked into the drag image snapshot.
+            window.setTimeout(() => {
+              view.focus();
+              view.dom.classList.add("dragging");
+              draggedElement = target?.element ?? null;
+              draggedElement?.classList.add("dragging-source");
+              view.dispatch(view.state.tr.setSelection(selection));
+            }, 0);
           };
 
           const onClick = () => {
@@ -126,6 +167,7 @@ export default class DragHandle extends Extension {
           window.addEventListener("mousemove", onMouseMove);
           window.addEventListener("scroll", onScroll, true);
           handle.addEventListener("dragstart", onDragStart);
+          handle.addEventListener("dragend", onDragEnd);
           handle.addEventListener("click", onClick);
 
           return {
@@ -133,8 +175,10 @@ export default class DragHandle extends Extension {
               window.removeEventListener("mousemove", onMouseMove);
               window.removeEventListener("scroll", onScroll, true);
               handle.removeEventListener("dragstart", onDragStart);
+              handle.removeEventListener("dragend", onDragEnd);
               handle.removeEventListener("click", onClick);
               handle.remove();
+              onDragEnd();
             },
           };
         },

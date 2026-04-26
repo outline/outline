@@ -907,37 +907,19 @@ iframe.embed {
   caret-color: transparent;
 }
 
-.ProseMirror-selectednode {
-  outline: 2px solid
-    ${props.readOnly ? "transparent" : props.theme.selected};
-
-  @media print {
-    outline: none;
-  }
+.ProseMirror.dragging .ProseMirror-selectednode,
+.ProseMirror .dragging-source {
+  opacity: 0.5;
 }
 
-/* Make sure li selections wrap around markers */
-
-li.ProseMirror-selectednode {
-  outline: none;
+.ProseMirror.dragging *::selection {
+  background: transparent;
 }
-
-li.ProseMirror-selectednode {
-  &::after {
-    content: "";
-    position: absolute;
-    left: -32px;
-    right: -2px;
-    top: -2px;
-    bottom: -2px;
-    border: 2px solid ${props.theme.selected};
-    pointer-events: none;
-  }
-
-  &:dir(rtl)::after {
-    left: -2px;
-    right: -32px;
-  }
+.ProseMirror.dragging *::-moz-selection {
+  background: transparent;
+}
+.ProseMirror.dragging .selectedCell::after {
+  display: none;
 }
 
 img.ProseMirror-separator {
@@ -2511,8 +2493,15 @@ table {
   position: absolute;
   top: -2px;
   width: 20px;
-  border-top: 1px solid ${props.theme.cursor};
+  height: 2px;
+  background: ${props.theme.accent};
+  border-radius: 1px;
   animation: ProseMirror-cursor-blink 1.1s steps(2, start) infinite;
+}
+
+.prosemirror-dropcursor-block,
+.prosemirror-dropcursor-inline {
+  border-radius: 1px;
 }
 
 .folded-content,
