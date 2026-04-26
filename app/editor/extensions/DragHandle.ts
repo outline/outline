@@ -1,10 +1,12 @@
 import type { EditorState } from "prosemirror-state";
-import { NodeSelection, Plugin } from "prosemirror-state";
+import { NodeSelection, Plugin, PluginKey } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
+import { Decoration, DecorationSet } from "prosemirror-view";
 import Extension from "@shared/editor/lib/Extension";
 import { findParentNodeClosestToPos } from "@shared/editor/queries/findParentNode";
 
 const HANDLE_CLASS = "block-drag-handle";
+const META_KEY = "drag-handle";
 const LIST_ITEM_TYPES = ["list_item", "checkbox_item"];
 const LIST_TYPES = ["bullet_list", "ordered_list", "checkbox_list"];
 
@@ -15,6 +17,13 @@ type Target = {
   pos: number;
   element: HTMLElement;
 };
+
+type PluginState = {
+  pos: number;
+  size: number;
+} | null;
+
+const pluginKey = new PluginKey<PluginState>(META_KEY);
 
 /**
  * Renders a floating drag handle to the left of block-level nodes when the
@@ -30,8 +39,47 @@ export default class DragHandle extends Extension {
 
   get plugins() {
     return [
-      new Plugin({
+      new Plugin<PluginState>({
+        key: pluginKey,
+        state: {
+          init: () => null,
+          apply: (tr, value) => {
+            const meta = tr.getMeta(META_KEY) as
+              | { pos: number | null }
+              | undefined;
+            if (meta) {
+              if (meta.pos === null) {
+                return null;
+              }
+              const node = tr.doc.nodeAt(meta.pos);
+              if (!node) {
+                return null;
+              }
+              return { pos: meta.pos, size: node.nodeSize };
+            }
+            if (value && tr.docChanged) {
+              const newPos = tr.mapping.map(value.pos);
+              const node = tr.doc.nodeAt(newPos);
+              if (!node) {
+                return null;
+              }
+              return { pos: newPos, size: node.nodeSize };
+            }
+            return value;
+          },
+        },
         props: {
+          decorations: (state) => {
+            const dragState = pluginKey.getState(state);
+            if (!dragState) {
+              return DecorationSet.empty;
+            }
+            return DecorationSet.create(state.doc, [
+              Decoration.node(dragState.pos, dragState.pos + dragState.size, {
+                class: "dragging-source",
+              }),
+            ]);
+          },
           handleDOMEvents: {
             dragstart: (view) => {
               view.dom.classList.add("dragging");
@@ -39,10 +87,16 @@ export default class DragHandle extends Extension {
             },
             drop: (view) => {
               view.dom.classList.remove("dragging");
+              if (pluginKey.getState(view.state)) {
+                view.dispatch(view.state.tr.setMeta(META_KEY, { pos: null }));
+              }
               return false;
             },
             dragend: (view) => {
               view.dom.classList.remove("dragging");
+              if (pluginKey.getState(view.state)) {
+                view.dispatch(view.state.tr.setMeta(META_KEY, { pos: null }));
+              }
               return false;
             },
           },
@@ -52,13 +106,11 @@ export default class DragHandle extends Extension {
           document.body.appendChild(handle);
 
           let target: Target | null = null;
-          let draggedElement: HTMLElement | null = null;
 
           const onDragEnd = () => {
             view.dom.classList.remove("dragging");
-            if (draggedElement) {
-              draggedElement.classList.remove("dragging-source");
-              draggedElement = null;
+            if (pluginKey.getState(view.state)) {
+              view.dispatch(view.state.tr.setMeta(META_KEY, { pos: null }));
             }
           };
 
@@ -106,13 +158,15 @@ export default class DragHandle extends Extension {
             if (!view.state.doc.nodeAt(pos)) {
               return;
             }
-            // Snapshot the drag image of the unmodified element first.
-            // Anchor it to its original screen position by offsetting by the
-            // cursor's location within the block (negative X — the cursor
-            // sits in the gutter to the left).
-            const rect = target.element.getBoundingClientRect();
+            const sourceElement = target.element;
+            // Snapshot the drag image of the unmodified element first, so
+            // it isn't baked with the dragging-source opacity. Anchor it to
+            // its original screen position by offsetting by the cursor's
+            // location within the block (negative X — the cursor sits in
+            // the gutter to the left of the block).
+            const rect = sourceElement.getBoundingClientRect();
             event.dataTransfer.setDragImage(
-              target.element,
+              sourceElement,
               event.clientX - rect.left,
               event.clientY - rect.top
             );
@@ -141,15 +195,16 @@ export default class DragHandle extends Extension {
               node: selection,
             };
             view.dragging = dragging;
-            // Apply visual state for the duration of the drag in a follow-up
-            // task so it doesn't end up baked into the drag image snapshot.
-            window.setTimeout(() => {
-              view.focus();
-              view.dom.classList.add("dragging");
-              draggedElement = target?.element ?? null;
-              draggedElement?.classList.add("dragging-source");
-              view.dispatch(view.state.tr.setSelection(selection));
-            }, 0);
+            view.dom.classList.add("dragging");
+            view.focus();
+            // Apply the source decoration via the plugin's state and set
+            // the NodeSelection in a single transaction so the
+            // dragging-source class survives any DOM re-rendering caused
+            // by selection changes (e.g., tableEditing normalizing a table
+            // NodeSelection into a CellSelection).
+            view.dispatch(
+              view.state.tr.setSelection(selection).setMeta(META_KEY, { pos })
+            );
           };
 
           const onClick = () => {
