@@ -237,12 +237,14 @@ function DocumentHeader({
             {can.update && share && (
               <Action>
                 <ShareSettingsPopover share={share}>
-                  <Button
-                    icon={<SettingsIcon />}
-                    aria-label={t("Display settings")}
-                    neutral
-                    borderOnHover
-                  />
+                  <Tooltip content={t("Display settings")} placement="bottom">
+                    <Button
+                      icon={<SettingsIcon />}
+                      aria-label={t("Display settings")}
+                      neutral
+                      borderOnHover
+                    />
+                  </Tooltip>
                 </ShareSettingsPopover>
               </Action>
             )}

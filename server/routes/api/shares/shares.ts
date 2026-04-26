@@ -393,11 +393,11 @@ router.post(
     }
 
     if (!isUndefined(title)) {
-      share.title = title ?? null;
+      share.title = title || null;
     }
 
     if (!isUndefined(iconUrl)) {
-      share.iconUrl = iconUrl ?? null;
+      share.iconUrl = iconUrl || null;
     }
 
     await share.saveWithCtx(ctx);
