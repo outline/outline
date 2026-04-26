@@ -1,18 +1,22 @@
 import debounce from "lodash/debounce";
+import uniqueId from "lodash/uniqueId";
 import { observer } from "mobx-react";
 import { QuestionMarkIcon, SettingsIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled, { useTheme } from "styled-components";
-import Flex from "@shared/components/Flex";
 import { s } from "@shared/styles";
+import { HStack } from "~/components/primitives/HStack";
 import { AttachmentPreset } from "@shared/types";
 import { AttachmentValidation } from "@shared/validations";
 import type Share from "~/models/Share";
+import { AvatarSize } from "~/components/Avatar";
+import ButtonSmall from "~/components/ButtonSmall";
 import Input from "~/components/Input";
 import NudeButton from "~/components/NudeButton";
 import Switch from "~/components/Switch";
+import TeamLogo from "~/components/TeamLogo";
 import Text from "~/components/Text";
 import Tooltip from "~/components/Tooltip";
 import env from "~/env";
@@ -43,7 +47,13 @@ function ShareSettingsPopover({ share, children }: Props) {
   const { auth } = useStores();
   const theme = useTheme();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const hasChangesRef = React.useRef(false);
   const [isUploading, setIsUploading] = React.useState(false);
+  const idPrefix = React.useMemo(() => uniqueId("share-settings-"), []);
+  const showLastUpdatedId = `${idPrefix}-show-last-updated`;
+  const showTOCId = `${idPrefix}-show-toc`;
+  const indexingId = `${idPrefix}-indexing`;
+  const subscriptionsId = `${idPrefix}-subscriptions`;
 
   const handleTitleChange = React.useMemo(
     () =>
@@ -51,6 +61,7 @@ function ShareSettingsPopover({ share, children }: Props) {
         const val = ev.target.value;
         try {
           await share.save({ title: val || null });
+          hasChangesRef.current = true;
         } catch (err) {
           toast.error(err.message);
         }
@@ -76,6 +87,7 @@ function ShareSettingsPopover({ share, children }: Props) {
           preset: AttachmentPreset.Avatar,
         });
         await share.save({ iconUrl: attachment.url });
+        hasChangesRef.current = true;
       } catch (err) {
         toast.error(err.message);
       } finally {
@@ -91,6 +103,7 @@ function ShareSettingsPopover({ share, children }: Props) {
   const handleLogoRemove = React.useCallback(async () => {
     try {
       await share.save({ iconUrl: null });
+      hasChangesRef.current = true;
     } catch (err) {
       toast.error(err.message);
     }
@@ -100,6 +113,7 @@ function ShareSettingsPopover({ share, children }: Props) {
     async (checked: boolean) => {
       try {
         await share.save({ allowIndexing: checked });
+        hasChangesRef.current = true;
       } catch (err) {
         toast.error(err.message);
       }
@@ -111,6 +125,7 @@ function ShareSettingsPopover({ share, children }: Props) {
     async (checked: boolean) => {
       try {
         await share.save({ allowSubscriptions: checked });
+        hasChangesRef.current = true;
       } catch (err) {
         toast.error(err.message);
       }
@@ -122,6 +137,7 @@ function ShareSettingsPopover({ share, children }: Props) {
     async (checked: boolean) => {
       try {
         await share.save({ showLastUpdated: checked });
+        hasChangesRef.current = true;
       } catch (err) {
         toast.error(err.message);
       }
@@ -133,6 +149,7 @@ function ShareSettingsPopover({ share, children }: Props) {
     async (checked: boolean) => {
       try {
         await share.save({ showTOC: checked });
+        hasChangesRef.current = true;
       } catch (err) {
         toast.error(err.message);
       }
@@ -140,8 +157,33 @@ function ShareSettingsPopover({ share, children }: Props) {
     [share]
   );
 
+  const flushChangeToast = React.useCallback(() => {
+    if (hasChangesRef.current) {
+      toast.success(t("Sharing settings updated"));
+      hasChangesRef.current = false;
+    }
+  }, [t]);
+
+  const handleOpenChange = React.useCallback(
+    (open: boolean) => {
+      if (!open) {
+        flushChangeToast();
+      }
+    },
+    [flushChangeToast]
+  );
+
+  // Also flush on unmount in case the parent popover closes us before
+  // onOpenChange fires.
+  React.useEffect(
+    () => () => {
+      flushChangeToast();
+    },
+    [flushChangeToast]
+  );
+
   return (
-    <Popover>
+    <Popover modal onOpenChange={handleOpenChange}>
       {children ? (
         <PopoverTrigger>{children}</PopoverTrigger>
       ) : (
@@ -153,110 +195,58 @@ function ShareSettingsPopover({ share, children }: Props) {
           </PopoverTrigger>
         </Tooltip>
       )}
-      <PopoverContent side="bottom" align="end" width={320}>
-        <Text as="h3" type="secondary" size="small" weight="bold">
+      <PopoverContent
+        side="bottom"
+        align="end"
+        minWidth={400}
+        style={{ paddingTop: 20, paddingBottom: 20 }}
+      >
+        <Text as="h3" weight="bold">
           {t("Display settings")}
         </Text>
-        <Input
-          type="text"
-          label={t("Site title")}
-          placeholder={auth.team?.name ?? ""}
-          defaultValue={share.title ?? ""}
-          onChange={handleTitleChange}
-          short
+        <Text as="p" size="small" type="secondary">
+          {t("Customize how the published document is displayed")}
+        </Text>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept={AttachmentValidation.avatarContentTypes.join(",")}
+          onChange={handleLogoUpload}
+          style={{ display: "none" }}
         />
-        <Flex align="center" gap={8} style={{ margin: "8px 0" }}>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept={AttachmentValidation.avatarContentTypes.join(",")}
-            onChange={handleLogoUpload}
-            style={{ display: "none" }}
-          />
-          {share.iconUrl ? (
-            <>
-              <LogoPreview src={share.iconUrl} alt="" />
-              <Flex column gap={2} style={{ flex: 1 }}>
-                <Text type="secondary" size="small">
-                  {t("Icon")}
-                </Text>
-                <Flex gap={4}>
-                  <TextButton
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isUploading}
-                  >
-                    {t("Replace")}
-                  </TextButton>
-                  <TextButton onClick={handleLogoRemove}>
-                    {t("Remove")}
-                  </TextButton>
-                </Flex>
-              </Flex>
-            </>
-          ) : (
-            <TextButton
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading}
-            >
-              {isUploading ? `${t("Uploading")}…` : t("Upload logo")}
-            </TextButton>
-          )}
-        </Flex>
-        <ListItem
-          title={
-            <Text type="tertiary" as={Flex}>
-              {t("Search engine indexing")}&nbsp;
-              <Tooltip
-                content={t(
-                  "Disable this setting to discourage search engines from indexing the page"
-                )}
-              >
-                <NudeButton size={18}>
-                  <QuestionMarkIcon size={18} />
-                </NudeButton>
-              </Tooltip>
-            </Text>
-          }
-          actions={
-            <Switch
-              aria-label={t("Search engine indexing")}
-              checked={share.allowIndexing ?? false}
-              onChange={handleIndexingChanged}
-              width={26}
-              height={14}
+        <HStack spacing={8} style={{ marginBottom: 8 }}>
+          <LogoButton
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
+            aria-label={share.iconUrl ? t("Replace") : t("Upload")}
+          >
+            <TeamLogo
+              model={share.iconUrl ? undefined : (auth.team ?? undefined)}
+              src={share.iconUrl ?? undefined}
+              size={AvatarSize.Large}
+              alt={t("Icon")}
             />
-          }
-        />
-        {env.EMAIL_ENABLED && (
-          <ListItem
-            title={
-              <Text type="tertiary" as={Flex}>
-                {t("Email subscriptions")}&nbsp;
-                <Tooltip
-                  content={t(
-                    "Allow viewers to subscribe and receive email notifications when documents are updated"
-                  )}
-                >
-                  <NudeButton size={18}>
-                    <QuestionMarkIcon size={18} />
-                  </NudeButton>
-                </Tooltip>
-              </Text>
-            }
-            actions={
-              <Switch
-                aria-label={t("Email subscriptions")}
-                checked={share.allowSubscriptions ?? true}
-                onChange={handleSubscriptionsChanged}
-                width={26}
-                height={14}
-              />
-            }
+          </LogoButton>
+          <Input
+            type="text"
+            label={t("Site title")}
+            labelHidden
+            placeholder={auth.team?.name ?? ""}
+            defaultValue={share.title ?? ""}
+            onChange={handleTitleChange}
+            margin={0}
+            flex
           />
+        </HStack>
+        {share.iconUrl && (
+          <ButtonSmall onClick={handleLogoRemove} neutral>
+            {t("Remove icon")}
+          </ButtonSmall>
         )}
         <ListItem
           title={
-            <Text type="tertiary" as={Flex}>
+            <SwitchLabel htmlFor={showLastUpdatedId}>
               {t("Show last modified")}&nbsp;
               <Tooltip
                 content={t(
@@ -267,11 +257,11 @@ function ShareSettingsPopover({ share, children }: Props) {
                   <QuestionMarkIcon size={18} />
                 </NudeButton>
               </Tooltip>
-            </Text>
+            </SwitchLabel>
           }
           actions={
             <Switch
-              aria-label={t("Show last modified")}
+              id={showLastUpdatedId}
               checked={share.showLastUpdated ?? false}
               onChange={handleShowLastModifiedChanged}
               width={26}
@@ -281,7 +271,7 @@ function ShareSettingsPopover({ share, children }: Props) {
         />
         <ListItem
           title={
-            <Text type="tertiary" as={Flex}>
+            <SwitchLabel htmlFor={showTOCId}>
               {t("Show table of contents")}&nbsp;
               <Tooltip
                 content={t(
@@ -292,11 +282,11 @@ function ShareSettingsPopover({ share, children }: Props) {
                   <QuestionMarkIcon size={18} />
                 </NudeButton>
               </Tooltip>
-            </Text>
+            </SwitchLabel>
           }
           actions={
             <Switch
-              aria-label={t("Show table of contents")}
+              id={showTOCId}
               checked={share.showTOC ?? false}
               onChange={handleShowTOCChanged}
               width={26}
@@ -304,10 +294,72 @@ function ShareSettingsPopover({ share, children }: Props) {
             />
           }
         />
+        <Text as="h3" weight="bold" style={{ marginTop: 16 }}>
+          {t("Behavior")}
+        </Text>
+        <ListItem
+          title={
+            <SwitchLabel htmlFor={indexingId}>
+              {t("Search engine indexing")}&nbsp;
+              <Tooltip
+                content={t(
+                  "Disable this setting to discourage search engines from indexing the page"
+                )}
+              >
+                <NudeButton size={18}>
+                  <QuestionMarkIcon size={18} />
+                </NudeButton>
+              </Tooltip>
+            </SwitchLabel>
+          }
+          actions={
+            <Switch
+              id={indexingId}
+              checked={share.allowIndexing ?? false}
+              onChange={handleIndexingChanged}
+              width={26}
+              height={14}
+            />
+          }
+        />
+        {env.EMAIL_ENABLED && (
+          <ListItem
+            title={
+              <SwitchLabel htmlFor={subscriptionsId}>
+                {t("Email subscriptions")}&nbsp;
+                <Tooltip
+                  content={t(
+                    "Allow viewers to subscribe and receive email notifications when documents are updated"
+                  )}
+                >
+                  <NudeButton size={18}>
+                    <QuestionMarkIcon size={18} />
+                  </NudeButton>
+                </Tooltip>
+              </SwitchLabel>
+            }
+            actions={
+              <Switch
+                id={subscriptionsId}
+                checked={share.allowSubscriptions ?? true}
+                onChange={handleSubscriptionsChanged}
+                width={26}
+                height={14}
+              />
+            }
+          />
+        )}
       </PopoverContent>
     </Popover>
   );
 }
+
+const SwitchLabel = styled.label`
+  display: flex;
+  align-items: center;
+  color: ${s("textSecondary")};
+  cursor: var(--pointer);
+`;
 
 const SettingsTrigger = styled(NudeButton)`
   width: 32px;
@@ -318,24 +370,12 @@ const SettingsTrigger = styled(NudeButton)`
   right: -4px;
 `;
 
-const LogoPreview = styled.img`
-  width: 32px;
-  height: 32px;
-  object-fit: contain;
-  border-radius: 4px;
-`;
-
-const TextButton = styled.button`
+const LogoButton = styled.button`
   background: none;
-  border: none;
+  border: 0;
   padding: 0;
-  color: ${s("accent")};
   cursor: var(--pointer);
-  font-size: 13px;
-
-  &:hover {
-    text-decoration: underline;
-  }
+  flex-shrink: 0;
 
   &:disabled {
     opacity: 0.5;
