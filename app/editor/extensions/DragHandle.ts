@@ -16,6 +16,7 @@ const HANDLE_ICON =
 type Target = {
   pos: number;
   element: HTMLElement;
+  isListItem: boolean;
 };
 
 type PluginState = {
@@ -117,8 +118,12 @@ export default class DragHandle extends Extension {
           const show = (next: Target) => {
             target = next;
             const rect = next.element.getBoundingClientRect();
-            handle.style.top = `${rect.top}px`;
-            handle.style.left = `${rect.left - 32}px`;
+            // List items render their own marker in the gutter so the
+            // handle needs a small extra offset to clear it.
+            const offsetX = next.isListItem ? 40 : 29;
+            const offsetY = 2;
+            handle.style.top = `${rect.top - offsetY}px`;
+            handle.style.left = `${rect.left - offsetX}px`;
             handle.style.opacity = "1";
             handle.style.pointerEvents = "auto";
           };
@@ -134,10 +139,17 @@ export default class DragHandle extends Extension {
               hide();
               return;
             }
+            // When the cursor is over the handle itself, keep the current
+            // target. Re-resolving from a cursor in the gutter can land on
+            // a different (often parent) block, causing the handle to
+            // flicker between the hovered block and its parent.
+            if (isOverElement(handle, event)) {
+              return;
+            }
             const next = findTarget(view, event);
             if (next) {
               show(next);
-            } else if (!isOverElement(handle, event)) {
+            } else {
               hide();
             }
           };
@@ -296,25 +308,28 @@ function findTarget(view: EditorView, event: MouseEvent): Target | null {
   if (!coords) {
     return null;
   }
-  const target = resolveTargetPos(view.state, coords.pos);
-  if (target === null) {
+  const resolved = resolveTargetPos(view.state, coords.pos);
+  if (resolved === null) {
     return null;
   }
-  const dom = view.nodeDOM(target);
+  const dom = view.nodeDOM(resolved.pos);
   if (!(dom instanceof HTMLElement)) {
     return null;
   }
-  return { pos: target, element: dom };
+  return { pos: resolved.pos, element: dom, isListItem: resolved.isListItem };
 }
 
-function resolveTargetPos(state: EditorState, pos: number): number | null {
+function resolveTargetPos(
+  state: EditorState,
+  pos: number
+): { pos: number; isListItem: boolean } | null {
   const $pos = state.doc.resolve(pos);
 
   const listItem = findParentNodeClosestToPos($pos, (node) =>
     LIST_ITEM_TYPES.includes(node.type.name)
   );
   if (listItem) {
-    return listItem.pos;
+    return { pos: listItem.pos, isListItem: true };
   }
 
   if ($pos.depth >= 1) {
@@ -322,7 +337,12 @@ function resolveTargetPos(state: EditorState, pos: number): number | null {
     if (LIST_TYPES.includes(node.type.name)) {
       return null;
     }
-    return $pos.before(1);
+    // Skip empty top-level paragraphs — the block menu trigger is shown
+    // there instead.
+    if (node.type.name === "paragraph" && node.content.size === 0) {
+      return null;
+    }
+    return { pos: $pos.before(1), isListItem: false };
   }
   return null;
 }
