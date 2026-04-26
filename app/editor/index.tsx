@@ -457,6 +457,7 @@ export class Editor extends React.PureComponent<
         dropCursor({
           color: this.props.theme.accent,
           width: 2,
+          class: "drop-cursor",
         }),
         gapCursor(),
         inputRules({
