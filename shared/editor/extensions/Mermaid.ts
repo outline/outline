@@ -453,9 +453,23 @@ export default function Mermaid({
 
         const node = state.selection.$head.parent;
         const previousNode = oldState.selection.$head.parent;
+        // For a NodeSelection on a top-level code_fence, $head.parent
+        // resolves to the doc rather than the code_fence — so also inspect
+        // the selected node directly to catch e.g. drag-and-drop reordering.
+        const selectedNode =
+          state.selection instanceof NodeSelection
+            ? state.selection.node
+            : null;
+        const previousSelectedNode =
+          oldState.selection instanceof NodeSelection
+            ? oldState.selection.node
+            : null;
         const codeBlockChanged =
           transaction.docChanged &&
-          (isMermaid(node) || isMermaid(previousNode));
+          (isMermaid(node) ||
+            isMermaid(previousNode) ||
+            (!!selectedNode && isMermaid(selectedNode)) ||
+            (!!previousSelectedNode && isMermaid(previousSelectedNode)));
 
         // @ts-expect-error accessing private field.
         const isPaste = transaction.meta?.paste;
