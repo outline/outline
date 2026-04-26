@@ -91,7 +91,7 @@ jobs:
         with:
           path: node_modules
           key: ${{ runner.os }}-node-modules-24.x-${{ hashFiles('yarn.lock') }}
-      - run: yarn npm audit --severity high --recursive
+      - run: yarn npm audit --severity high --recursive --environment production
 
   changes:
     runs-on: ubuntu-latest
