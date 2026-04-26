@@ -455,7 +455,8 @@ export class Editor extends React.PureComponent<
         ...this.keymaps,
         anchorPlugin(),
         dropCursor({
-          color: this.props.theme.cursor,
+          color: this.props.theme.accent,
+          width: 2,
         }),
         gapCursor(),
         inputRules({
