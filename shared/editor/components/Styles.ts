@@ -980,7 +980,7 @@ th .image .image-wrapper img {
 
 .ProseMirror.dragging .ProseMirror-selectednode,
 .ProseMirror .dragging-source {
-  opacity: 0.5;
+  opacity: 0.25;
 }
 
 .ProseMirror.dragging *::selection {
@@ -2595,10 +2595,6 @@ table {
   animation: ProseMirror-cursor-blink 1.1s steps(2, start) infinite;
 }
 
-.prosemirror-dropcursor-block,
-.prosemirror-dropcursor-inline {
-  border-radius: 1px;
-}
 
 .folded-content,
 .folded-content + .mermaid-diagram-wrapper {
