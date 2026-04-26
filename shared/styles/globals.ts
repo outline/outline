@@ -168,4 +168,10 @@ export default createGlobalStyle<Props>`
   &.${EditorStyleHelper.resizeDragging} *::after {
     cursor: var(--resize-drag-cursor) !important;
   }
+
+  /* prosemirror-dropcursor renders adjacent to the editor (in view.dom.offsetParent), outside
+     the styled EditorContainer scope, so this rule has to live globally. */
+  .drop-cursor {
+    border-radius: 9999px;
+  }
 `;
