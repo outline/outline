@@ -344,5 +344,18 @@ function resolveTargetPos(
     }
     return { pos: $pos.before(1), isListItem: false };
   }
+
+  // Hovering on a top-level atom block (video, etc.) — there are no
+  // positions inside an atom, so posAtCoords lands at depth 0 between
+  // siblings of the doc. Pick whichever neighbouring atom block the
+  // position is adjacent to.
+  const after = $pos.nodeAfter;
+  if (after?.isBlock && after.isAtom) {
+    return { pos: $pos.pos, isListItem: false };
+  }
+  const before = $pos.nodeBefore;
+  if (before?.isBlock && before.isAtom) {
+    return { pos: $pos.pos - before.nodeSize, isListItem: false };
+  }
   return null;
 }
