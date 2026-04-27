@@ -1,7 +1,12 @@
 import debounce from "lodash/debounce";
 import uniqueId from "lodash/uniqueId";
 import { observer } from "mobx-react";
-import { QuestionMarkIcon, SettingsIcon } from "outline-icons";
+import {
+  ImageIcon,
+  QuestionMarkIcon,
+  SettingsIcon,
+  TrashIcon,
+} from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -11,15 +16,18 @@ import { HStack } from "~/components/primitives/HStack";
 import { AttachmentPreset } from "@shared/types";
 import { AttachmentValidation } from "@shared/validations";
 import type Share from "~/models/Share";
+import { createAction } from "~/actions";
+import { ShareSection } from "~/actions/sections";
 import { AvatarSize } from "~/components/Avatar";
-import ButtonSmall from "~/components/ButtonSmall";
 import Input from "~/components/Input";
+import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import NudeButton from "~/components/NudeButton";
 import Switch from "~/components/Switch";
 import TeamLogo from "~/components/TeamLogo";
 import Text from "~/components/Text";
 import Tooltip from "~/components/Tooltip";
 import env from "~/env";
+import { useMenuAction } from "~/hooks/useMenuAction";
 import useStores from "~/hooks/useStores";
 import { compressImage } from "~/utils/compressImage";
 import { uploadFile } from "~/utils/files";
@@ -68,6 +76,10 @@ function ShareSettingsPopover({ share, children }: Props) {
       }, 500),
     [share]
   );
+
+  const triggerUpload = React.useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
 
   const handleLogoUpload = React.useCallback(
     async (ev: React.ChangeEvent<HTMLInputElement>) => {
@@ -182,19 +194,39 @@ function ShareSettingsPopover({ share, children }: Props) {
     [flushChangeToast]
   );
 
+  const iconActions = React.useMemo(
+    () => [
+      createAction({
+        name: ({ t: translate }) => translate("Upload image"),
+        analyticsName: "Upload share icon",
+        section: ShareSection,
+        icon: <ImageIcon />,
+        perform: triggerUpload,
+      }),
+      createAction({
+        name: ({ t: translate }) => translate("Remove image"),
+        analyticsName: "Remove share icon",
+        section: ShareSection,
+        icon: <TrashIcon />,
+        dangerous: true,
+        perform: handleLogoRemove,
+      }),
+    ],
+    [triggerUpload, handleLogoRemove]
+  );
+  const iconRootAction = useMenuAction(iconActions);
+
   return (
     <Popover modal onOpenChange={handleOpenChange}>
-      {children ? (
-        <PopoverTrigger>{children}</PopoverTrigger>
-      ) : (
-        <Tooltip content={t("Display settings")} placement="top">
-          <PopoverTrigger>
+      <Tooltip content={t("Display settings")} placement="top">
+        <PopoverTrigger>
+          {children ?? (
             <SettingsTrigger type="button">
               <SettingsIcon color={theme.placeholder} size={24} />
             </SettingsTrigger>
-          </PopoverTrigger>
-        </Tooltip>
-      )}
+          )}
+        </PopoverTrigger>
+      </Tooltip>
       <PopoverContent
         side="bottom"
         align="end"
@@ -215,19 +247,34 @@ function ShareSettingsPopover({ share, children }: Props) {
           style={{ display: "none" }}
         />
         <HStack spacing={8} style={{ marginBottom: 8 }}>
-          <LogoButton
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isUploading}
-            aria-label={share.iconUrl ? t("Replace") : t("Upload")}
-          >
-            <TeamLogo
-              model={share.iconUrl ? undefined : (auth.team ?? undefined)}
-              src={share.iconUrl ?? undefined}
-              size={AvatarSize.Large}
-              alt={t("Icon")}
-            />
-          </LogoButton>
+          {share.iconUrl ? (
+            <DropdownMenu
+              action={iconRootAction}
+              align="start"
+              ariaLabel={t("Image options")}
+            >
+              <LogoButton type="button" disabled={isUploading}>
+                <TeamLogo
+                  src={share.iconUrl}
+                  size={AvatarSize.Large}
+                  alt={t("Icon")}
+                />
+              </LogoButton>
+            </DropdownMenu>
+          ) : (
+            <LogoButton
+              type="button"
+              onClick={triggerUpload}
+              disabled={isUploading}
+              aria-label={t("Upload")}
+            >
+              <TeamLogo
+                model={auth.team ?? undefined}
+                size={AvatarSize.Large}
+                alt={t("Icon")}
+              />
+            </LogoButton>
+          )}
           <Input
             type="text"
             label={t("Site title")}
@@ -239,11 +286,6 @@ function ShareSettingsPopover({ share, children }: Props) {
             flex
           />
         </HStack>
-        {share.iconUrl && (
-          <ButtonSmall onClick={handleLogoRemove} neutral>
-            {t("Remove icon")}
-          </ButtonSmall>
-        )}
         <ListItem
           title={
             <SwitchLabel htmlFor={showLastUpdatedId}>

@@ -184,14 +184,12 @@ function SharedDocumentHeader({ document }: Props) {
           {can.update && share && (
             <Action>
               <ShareSettingsPopover share={share}>
-                <Tooltip content={t("Display settings")} placement="bottom">
-                  <Button
-                    icon={<SettingsIcon />}
-                    aria-label={t("Display settings")}
-                    neutral
-                    borderOnHover
-                  />
-                </Tooltip>
+                <Button
+                  icon={<SettingsIcon />}
+                  aria-label={t("Display settings")}
+                  neutral
+                  borderOnHover
+                />
               </ShareSettingsPopover>
             </Action>
           )}
