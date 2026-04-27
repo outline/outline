@@ -9959,13 +9959,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"compressorjs@npm:^1.2.1":
-  version: 1.2.1
-  resolution: "compressorjs@npm:1.2.1"
+"compressorjs@npm:^1.3.0":
+  version: 1.3.0
+  resolution: "compressorjs@npm:1.3.0"
   dependencies:
     blueimp-canvas-to-blob: "npm:^3.29.0"
     is-blob: "npm:^2.1.0"
-  checksum: 10c0/811eb37b7211af94da6e87df4986f1f8d07524bd762e913927469cede270a705c56de91000b0c190f4bdf059d601c81e259c4ff19efbf5cb34d97b87367b7c92
+  checksum: 10c0/76fe13bac63a32ccc148a6b03f1cd9ac81b794a0b3dad0aefad6b63ab4dec887f8d03ff0ed195d363f4ce214f68c147d4aae404928d35263d9656e7749869d0d
   languageName: node
   linkType: hard
 
@@ -16713,7 +16713,7 @@ __metadata:
     bull: "npm:^4.16.5"
     class-validator: "npm:^0.14.4"
     command-score: "npm:^0.1.2"
-    compressorjs: "npm:^1.2.1"
+    compressorjs: "npm:^1.3.0"
     concurrently: "npm:^8.2.2"
     content-disposition: "npm:^0.5.4"
     cookie: "npm:^0.7.2"
