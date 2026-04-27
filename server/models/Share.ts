@@ -26,6 +26,7 @@ import User from "./User";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
 import IsFQDN from "./validators/IsFQDN";
+import IsUrlOrRelativePath from "./validators/IsUrlOrRelativePath";
 import Length from "./validators/Length";
 
 @DefaultScope(() => ({
@@ -165,6 +166,7 @@ class Share extends IdModel<
   title: string | null;
 
   @AllowNull
+  @IsUrlOrRelativePath
   @Length({
     max: ShareValidation.maxIconUrlLength,
     msg: `iconUrl must be ${ShareValidation.maxIconUrlLength} characters or less`,
