@@ -204,7 +204,7 @@
     "prosemirror-schema-list": "^1.5.1",
     "prosemirror-state": "^1.4.4",
     "prosemirror-tables": "^1.8.5",
-    "prosemirror-transform": "1.10.5",
+    "prosemirror-transform": "1.12.0",
     "prosemirror-view": "^1.41.8",
     "proxy-from-env": "^1.1.0",
     "query-string": "^7.1.3",
@@ -375,7 +375,7 @@
   "resolutions": {
     "@types/react": "17.0.91",
     "@types/koa": "2.15.0",
-    "prosemirror-transform": "1.10.5",
+    "prosemirror-transform": "1.12.0",
     "debug": "4.3.4",
     "js-yaml": "^4.1.1",
     "qs@npm:^6.5.2": "^6.14.2",
