@@ -3071,7 +3071,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@hocuspocus/server@npm:1.1.3":
+"@hocuspocus/server@npm:1.1.3, @hocuspocus/server@npm:^1.1.3":
   version: 1.1.3
   resolution: "@hocuspocus/server@npm:1.1.3"
   dependencies:
@@ -3091,7 +3091,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@hono/node-server@npm:^1.19.10":
+"@hono/node-server@npm:^1.19.9":
   version: 1.19.14
   resolution: "@hono/node-server@npm:1.19.14"
   peerDependencies:
@@ -8472,7 +8472,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmldom/xmldom@npm:^0.8.13":
+"@xmldom/xmldom@npm:^0.8.6":
   version: 0.8.13
   resolution: "@xmldom/xmldom@npm:0.8.13"
   checksum: 10c0/06405ee6fffba631abf715a305ace338420ebcea8baf1317f19f2752f5c505952b7df45159908e7be8451a42faa54326b780616ab4d08242b20477b2973da24b
@@ -10667,7 +10667,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"d3@npm:^7.0.0":
+"d3@npm:^7.9.0":
   version: 7.9.0
   resolution: "d3@npm:7.9.0"
   dependencies:
@@ -11982,7 +11982,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fengari@npm:0.1.5":
+"fengari@npm:^0.1.4":
   version: 0.1.5
   resolution: "fengari@npm:0.1.5"
   dependencies:
@@ -16230,7 +16230,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-fetch@npm:^2.7.0":
+"node-fetch@npm:2.7.0, node-fetch@npm:^2.6.1, node-fetch@npm:^2.7.0":
   version: 2.7.0
   resolution: "node-fetch@npm:2.7.0"
   dependencies:
@@ -19690,7 +19690,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"socket.io-parser@npm:4.2.6":
+"socket.io-parser@npm:~4.2.4":
   version: 4.2.6
   resolution: "socket.io-parser@npm:4.2.6"
   dependencies:
@@ -20326,7 +20326,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tar@npm:^7.5.13":
+"tar@npm:^7.5.2":
   version: 7.5.13
   resolution: "tar@npm:7.5.13"
   dependencies:
@@ -20935,7 +20935,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"underscore@npm:^1.13.8":
+"underscore@npm:^1.13.1":
   version: 1.13.8
   resolution: "underscore@npm:1.13.8"
   checksum: 10c0/6677688daeda30484823e77c0b89ce4dcf29964a77d5a06f37299c007ab4bb1c66a0ff75e0d274620b62a1fe2a6ba29879f8214533ca611d71a1ae504f2bfc9b
