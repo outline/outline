@@ -1110,7 +1110,7 @@
   "Removing": "Eliminando",
   "Removing this authentication provider will prevent members from signing in with {{ authProvider }}.": "Removing this authentication provider will prevent members from signing in with {{ authProvider }}.",
   "Disable group sync": "Desactivar sincronización de grupo",
-  "Manage how members sign-in to your workspace and which authentication providers are enabled.": "Manage how members sign-in to your workspace and which authentication providers are enabled.",
+  "Manage how members sign-in to your workspace and which authentication providers are enabled.": "Administre cómo los miembros se conectan a su área de trabajo y qué proveedores de autenticación están habilitados.",
   "Allow members to sign-in with {{ authProvider }}": "Permitir que los miembros inicien sesión con {{ authProvider }}",
   "Connect {{ authProvider }} to allow members to sign-in": "Connect {{ authProvider }} to allow members to sign-in",
   "Connected": "Conectado",
