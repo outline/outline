@@ -17,9 +17,12 @@ export default class AzureClient extends OAuthClient {
 
   constructor() {
     invariant(env.AZURE_CLIENT_ID, "AZURE_CLIENT_ID is required");
-    invariant(env.AZURE_CLIENT_SECRET, "AZURE_CLIENT_SECRET is required");
+    invariant(
+      env.AZURE_CLIENT_SECRET || env.AZURE_USE_MANAGED_IDENTITY,
+      "Either AZURE_CLIENT_SECRET or AZURE_USE_MANAGED_IDENTITY is required"
+    );
 
-    super(env.AZURE_CLIENT_ID, env.AZURE_CLIENT_SECRET);
+    super(env.AZURE_CLIENT_ID, env.AZURE_CLIENT_SECRET ?? "managed-identity");
   }
 
   async rotateToken(

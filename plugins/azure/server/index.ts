@@ -3,7 +3,9 @@ import config from "../plugin.json";
 import router from "./auth/azure";
 import env from "./env";
 
-const enabled = !!env.AZURE_CLIENT_ID && !!env.AZURE_CLIENT_SECRET;
+const enabled =
+  !!env.AZURE_CLIENT_ID &&
+  (!!env.AZURE_CLIENT_SECRET || env.AZURE_USE_MANAGED_IDENTITY);
 
 if (enabled) {
   PluginManager.add({
