@@ -16900,7 +16900,7 @@ __metadata:
     y-protocols: "npm:^1.0.7"
     yauzl: "npm:^3.2.1"
     yjs: "npm:^13.6.30"
-    zod: "npm:^4.2.1"
+    zod: "npm:^4.3.6"
   languageName: unknown
   linkType: soft
 
@@ -22343,9 +22343,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^4.2.1":
-  version: 4.2.1
-  resolution: "zod@npm:4.2.1"
-  checksum: 10c0/ecb5219bddf76a42d092a843fb98ad4cb78f1e1077082772b03ef032ee5cbc80790a4051836b962d26fb4af854323bc784d628bd1b8d9898149eba7af21c5560
+"zod@npm:^4.3.6":
+  version: 4.3.6
+  resolution: "zod@npm:4.3.6"
+  checksum: 10c0/860d25a81ab41d33aa25f8d0d07b091a04acb426e605f396227a796e9e800c44723ed96d0f53a512b57be3d1520f45bf69c0cb3b378a232a00787a2609625307
   languageName: node
   linkType: hard
