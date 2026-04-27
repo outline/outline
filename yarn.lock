@@ -9664,14 +9664,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"class-validator@npm:^0.14.4":
-  version: 0.14.4
-  resolution: "class-validator@npm:0.14.4"
+"class-validator@npm:^0.15.1":
+  version: 0.15.1
+  resolution: "class-validator@npm:0.15.1"
   dependencies:
     "@types/validator": "npm:^13.15.3"
     libphonenumber-js: "npm:^1.11.1"
     validator: "npm:^13.15.22"
-  checksum: 10c0/1d415261aad7bdd72528db76e814195ca627a9d33f159752554dbbf71b8360359d3061a8edd16ac951a9a4fb86e0495cdf8badf82ec44e2dcc187ab496f37c5a
+  checksum: 10c0/bc030e0118d79a5fc2d053dfd4c7475092dd159222eafe946c2b01d7ff22a0a8075c8713a96239a3db536ff2a18e18d791c3a6bfabd66dbac077f7d3fd950402
   languageName: node
   linkType: hard
 
@@ -16711,7 +16711,7 @@ __metadata:
     babel-plugin-tsconfig-paths-module-resolver: "npm:^1.0.4"
     browserslist-to-esbuild: "npm:^1.2.0"
     bull: "npm:^4.16.5"
-    class-validator: "npm:^0.14.4"
+    class-validator: "npm:^0.15.1"
     command-score: "npm:^0.1.2"
     compressorjs: "npm:^1.3.0"
     concurrently: "npm:^8.2.2"
