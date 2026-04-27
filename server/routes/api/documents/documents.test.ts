@@ -1079,6 +1079,264 @@ describe("#documents.list", () => {
     expect(body.data[0].id).toEqual(anotherDoc.id);
   });
 
+  describe("filter DSL", () => {
+    it("should match a simple contains leaf case-insensitively", async () => {
+      const user = await buildUser();
+      await buildDocument({
+        title: "First document",
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      await buildDocument({
+        title: "Second document",
+        userId: user.id,
+        teamId: user.teamId,
+      });
+
+      const res = await server.post("/api/documents.list", {
+        body: {
+          token: user.getJwtToken(),
+          filter: { field: "title", operator: "contains", value: "first" },
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data).toHaveLength(1);
+      expect(body.data[0].title).toEqual("First document");
+    });
+
+    it("should match an OR group", async () => {
+      const user = await buildUser();
+      await buildDocument({
+        title: "First document",
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      await buildDocument({
+        title: "Second document",
+        userId: user.id,
+        teamId: user.teamId,
+      });
+
+      const res = await server.post("/api/documents.list", {
+        body: {
+          token: user.getJwtToken(),
+          filter: {
+            operator: "OR",
+            filters: [
+              { field: "title", operator: "eq", value: "First document" },
+              { field: "title", operator: "eq", value: "Second document" },
+            ],
+          },
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data).toHaveLength(2);
+    });
+
+    it("should reject an unknown field", async () => {
+      const user = await buildUser();
+      const res = await server.post("/api/documents.list", {
+        body: {
+          token: user.getJwtToken(),
+          filter: { field: "nope", operator: "eq", value: "x" },
+        },
+      });
+      expect(res.status).toEqual(400);
+    });
+
+    it("should reject a value provided with isNull", async () => {
+      const user = await buildUser();
+      const res = await server.post("/api/documents.list", {
+        body: {
+          token: user.getJwtToken(),
+          filter: { field: "publishedAt", operator: "isNull", value: "x" },
+        },
+      });
+      expect(res.status).toEqual(400);
+    });
+
+    it("should reject a scalar value for the in operator", async () => {
+      const user = await buildUser();
+      const res = await server.post("/api/documents.list", {
+        body: {
+          token: user.getJwtToken(),
+          filter: { field: "title", operator: "in", value: "x" },
+        },
+      });
+      expect(res.status).toEqual(400);
+    });
+
+    it("should reject filter nesting beyond the depth limit", async () => {
+      const user = await buildUser();
+      const leaf = { field: "title", operator: "eq", value: "x" };
+      let nested: Record<string, unknown> = leaf;
+      for (let i = 0; i < 6; i++) {
+        nested = { operator: "AND", filters: [nested] };
+      }
+      const res = await server.post("/api/documents.list", {
+        body: { token: user.getJwtToken(), filter: nested },
+      });
+      expect(res.status).toEqual(400);
+    });
+
+    it("should not leak documents across teams", async () => {
+      const userA = await buildUser();
+      const userB = await buildUser();
+      await buildDocument({
+        title: "Cross team",
+        userId: userB.id,
+        teamId: userB.teamId,
+      });
+      const res = await server.post("/api/documents.list", {
+        body: {
+          token: userA.getJwtToken(),
+          filter: { field: "title", operator: "eq", value: "Cross team" },
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data).toHaveLength(0);
+    });
+
+    it("should re-run authorize for collectionId in filter", async () => {
+      const user = await buildUser();
+      const otherUser = await buildUser();
+      const privateCollection = await buildCollection({
+        teamId: otherUser.teamId,
+        userId: otherUser.id,
+        permission: null,
+      });
+      const res = await server.post("/api/documents.list", {
+        body: {
+          token: user.getJwtToken(),
+          filter: {
+            field: "collectionId",
+            operator: "eq",
+            value: privateCollection.id,
+          },
+        },
+      });
+      expect(res.status).toEqual(403);
+    });
+
+    it("should include archived documents when filter references archivedAt", async () => {
+      const user = await buildUser();
+      const archived = await buildDocument({
+        title: "Old doc",
+        userId: user.id,
+        teamId: user.teamId,
+        archivedAt: new Date(),
+      });
+      const res = await server.post("/api/documents.list", {
+        body: {
+          token: user.getJwtToken(),
+          filter: { field: "archivedAt", operator: "isNotNull" },
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.map((d: { id: string }) => d.id)).toContain(archived.id);
+    });
+
+    it("should escape LIKE wildcards in contains values", async () => {
+      const user = await buildUser();
+      await buildDocument({
+        title: "5050",
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const literal = await buildDocument({
+        title: "50% off",
+        userId: user.id,
+        teamId: user.teamId,
+      });
+
+      const res = await server.post("/api/documents.list", {
+        body: {
+          token: user.getJwtToken(),
+          filter: { field: "title", operator: "contains", value: "50%" },
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data).toHaveLength(1);
+      expect(body.data[0].id).toEqual(literal.id);
+    });
+
+    it("should produce equivalent results for legacy collectionId and filter", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const legacyRes = await server.post("/api/documents.list", {
+        body: {
+          token: user.getJwtToken(),
+          collectionId: document.collectionId,
+        },
+      });
+      const filterRes = await server.post("/api/documents.list", {
+        body: {
+          token: user.getJwtToken(),
+          filter: {
+            field: "collectionId",
+            operator: "eq",
+            value: document.collectionId,
+          },
+        },
+      });
+      const legacyBody = await legacyRes.json();
+      const filterBody = await filterRes.json();
+      expect(legacyRes.status).toEqual(200);
+      expect(filterRes.status).toEqual(200);
+      expect(filterBody.data.map((d: { id: string }) => d.id).sort()).toEqual(
+        legacyBody.data.map((d: { id: string }) => d.id).sort()
+      );
+    });
+
+    it("should reject filter combined with legacy userId", async () => {
+      const user = await buildUser();
+      const res = await server.post("/api/documents.list", {
+        body: {
+          token: user.getJwtToken(),
+          userId: user.id,
+          filter: { field: "title", operator: "eq", value: "Match" },
+        },
+      });
+      expect(res.status).toEqual(400);
+    });
+
+    it("should reject filter combined with legacy collectionId", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const res = await server.post("/api/documents.list", {
+        body: {
+          token: user.getJwtToken(),
+          collectionId: document.collectionId,
+          filter: { field: "title", operator: "eq", value: "x" },
+        },
+      });
+      expect(res.status).toEqual(400);
+    });
+
+    it("should reject filter combined with statusFilter", async () => {
+      const user = await buildUser();
+      const res = await server.post("/api/documents.list", {
+        body: {
+          token: user.getJwtToken(),
+          statusFilter: [StatusFilter.Archived],
+          filter: { field: "title", operator: "eq", value: "x" },
+        },
+      });
+      expect(res.status).toEqual(400);
+    });
+  });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/documents.list");
     const body = await res.json();

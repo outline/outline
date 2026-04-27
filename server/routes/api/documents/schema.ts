@@ -1,6 +1,7 @@
 import type formidable from "formidable";
 import isEmpty from "lodash/isEmpty";
 import { z } from "zod";
+import { createFilterSchema } from "@shared/helpers/FilterHelper";
 import {
   DirectionFilter,
   DocumentPermission,
@@ -11,6 +12,18 @@ import {
 import { BaseSchema } from "@server/routes/api/schema";
 import { zodIconType, zodIdType, zodShareIdType } from "@server/utils/zod";
 import { ValidateColor } from "@server/validation";
+
+const documentFilter = createFilterSchema([
+  "createdAt",
+  "updatedAt",
+  "publishedAt",
+  "archivedAt",
+  "title",
+  "templateId",
+  "collectionId",
+  "userId",
+  "parentDocumentId",
+] as const);
 
 const DocumentsSortParamsSchema = z.object({
   /** Specifies the attributes by which documents will be sorted in the list */
@@ -77,36 +90,75 @@ const BaseIdSchema = z.object({
 
 export const DocumentsListSchema = BaseSchema.extend({
   body: DocumentsSortParamsSchema.extend({
-    /** Id of the user who created the doc */
+    /**
+     * Id of the user who created the doc.
+     * @deprecated use `filter` with field `userId` instead.
+     */
     userId: z.uuid().optional(),
 
-    /** Alias for userId - kept for backwards compatibility */
+    /**
+     * Alias for userId - kept for backwards compatibility.
+     * @deprecated use `filter` with field `userId` instead.
+     */
     user: z.uuid().optional(),
 
-    /** Id of the collection to which the document belongs */
+    /**
+     * Id of the collection to which the document belongs.
+     * @deprecated use `filter` with field `collectionId` instead.
+     */
     collectionId: z.uuid().optional(),
 
-    /** Alias for collectionId - kept for backwards compatibility */
+    /**
+     * Alias for collectionId - kept for backwards compatibility.
+     * @deprecated use `filter` with field `collectionId` instead.
+     */
     collection: z.uuid().optional(),
 
     /** Id of the backlinked document */
     backlinkDocumentId: z.uuid().optional(),
 
-    /** Id of the parent document to which the document belongs */
+    /**
+     * Id of the parent document to which the document belongs.
+     * @deprecated use `filter` with field `parentDocumentId` instead.
+     */
     parentDocumentId: z.uuid().nullish(),
 
-    /** Document statuses to include in results */
+    /**
+     * Document statuses to include in results.
+     * @deprecated use `filter` with `archivedAt`/`publishedAt` instead.
+     */
     statusFilter: z.enum(StatusFilter).array().optional(),
+
+    /** Advanced filter expression. */
+    filter: documentFilter.FilterSchema.optional(),
   }),
   // Maintains backwards compatibility
-}).transform((req) => {
-  req.body.collectionId = req.body.collectionId || req.body.collection;
-  req.body.userId = req.body.userId || req.body.user;
-  delete req.body.collection;
-  delete req.body.user;
+})
+  .transform((req) => {
+    req.body.collectionId = req.body.collectionId || req.body.collection;
+    req.body.userId = req.body.userId || req.body.user;
+    delete req.body.collection;
+    delete req.body.user;
 
-  return req;
-});
+    return req;
+  })
+  .refine(
+    (req) => {
+      if (req.body.filter === undefined) {
+        return true;
+      }
+      return (
+        req.body.userId === undefined &&
+        req.body.collectionId === undefined &&
+        req.body.parentDocumentId === undefined &&
+        req.body.statusFilter === undefined
+      );
+    },
+    {
+      message:
+        "filter cannot be combined with deprecated parameters userId, collectionId, parentDocumentId, or statusFilter",
+    }
+  );
 
 export type DocumentsListReq = z.infer<typeof DocumentsListSchema>;
 

@@ -65,6 +65,15 @@ import {
 } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import {
+  authorizeFilterFields,
+  buildWhere,
+  extractTopLevelEqValue,
+  hasExplicitCollectionId,
+  hasFieldInFilter,
+  legacyParamsToFilter,
+  mapFilterFields,
+} from "@server/models/helpers/Filters";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import SearchProviderManager from "@server/utils/SearchProviderManager";
 import { TextHelper } from "@server/models/helpers/TextHelper";
@@ -109,12 +118,13 @@ router.post(
     const {
       sort,
       direction,
-      collectionId,
       backlinkDocumentId,
-      parentDocumentId,
-      userId: createdById,
+      parentDocumentId: legacyParentDocumentId,
+      userId: legacyUserId,
       statusFilter,
+      filter: rawFilter,
     } = ctx.input.body;
+    let { collectionId: legacyCollectionId } = ctx.input.body;
     const { offset, limit } = ctx.state.pagination;
 
     // always filter by the current team
@@ -132,51 +142,15 @@ router.post(
       ],
     };
 
-    // Exclude archived docs by default
-    if (!statusFilter) {
-      where[Op.and].push({ archivedAt: { [Op.eq]: null } });
-    }
-
-    // if a specific user is passed then add to filters. If the user doesn't
-    // exist in the team then nothing will be returned, so no need to check auth
-    if (createdById) {
-      where[Op.and].push({ createdById });
-    }
-
-    let documentIds: string[] = [];
-
-    // if a specific collection is passed then we need to check auth to view it
-    if (collectionId) {
-      where[Op.and].push({ collectionId: [collectionId] });
-      const collection = await Collection.findByPk(collectionId, {
-        userId: user.id,
-        includeDocumentStructure: sort === "index",
-      });
-
-      authorize(user, "readDocument", collection);
-
-      // index sort is special because it uses the order of the documents in the
-      // collection.documentStructure rather than a database column
-      if (sort === "index") {
-        // Extract all document IDs from the collection structure.
-        documentIds = (collection.documentStructure || [])
-          .slice(offset, offset + limit)
-          .map((node) => node.id);
-        where[Op.and].push({ id: documentIds });
-      } // if it's not a backlink request, filter by all collections the user has access to
-    } else if (!backlinkDocumentId) {
-      const collectionIds = await user.collectionIds();
-      where[Op.and].push({
-        collectionId: collectionIds,
-      });
-    }
-
-    if (parentDocumentId) {
+    // Membership escape: if the caller is filtering by a parent document they
+    // are a direct member of (or have group membership to), bypass the default
+    // collection access check. Mirrors the prior behavior of pushing then
+    // removing the legacy collectionId predicate.
+    let collectionScopeDropped = false;
+    if (legacyParentDocumentId) {
       const [groupMembership, membership] = await Promise.all([
         GroupMembership.findOne({
-          where: {
-            documentId: parentDocumentId,
-          },
+          where: { documentId: legacyParentDocumentId },
           include: [
             {
               model: Group,
@@ -185,37 +159,81 @@ router.post(
                 {
                   model: GroupUser,
                   required: true,
-                  where: {
-                    userId: user.id,
-                  },
+                  where: { userId: user.id },
                 },
               ],
             },
           ],
         }),
         UserMembership.findOne({
-          where: {
-            userId: user.id,
-            documentId: parentDocumentId,
-          },
+          where: { userId: user.id, documentId: legacyParentDocumentId },
         }),
       ]);
 
       if (groupMembership || membership) {
-        remove(where[Op.and], (cond) => has(cond, "collectionId"));
+        collectionScopeDropped = true;
+        legacyCollectionId = undefined;
       }
-
-      where[Op.and].push({ parentDocumentId });
     }
 
-    // Explicitly passing 'null' as the parentDocumentId allows listing documents
-    // that have no parent document (aka they are at the root of the collection)
-    if (parentDocumentId === null) {
-      where[Op.and].push({
-        parentDocumentId: {
-          [Op.is]: null,
-        },
+    // The schema rejects callers that combine `filter` with the deprecated
+    // top-level params, so exactly one of these is set.
+    const filter =
+      rawFilter ??
+      legacyParamsToFilter({
+        userId: legacyUserId,
+        collectionId: legacyCollectionId,
+        parentDocumentId: legacyParentDocumentId,
       });
+
+    // Exclude archived docs by default. Suppressed when the caller targets a
+    // specific status, or when their filter already references archivedAt.
+    const filterMentionsArchivedAt =
+      filter !== undefined && hasFieldInFilter(filter, "archivedAt");
+    if (!statusFilter && !filterMentionsArchivedAt) {
+      where[Op.and].push({ archivedAt: { [Op.eq]: null } });
+    }
+
+    // Sort=index needs the collection's documentStructure for ordering and
+    // pagination. Only meaningful when the filter targets a single collection.
+    let documentIds: string[] = [];
+    const explicitCollectionId =
+      filter !== undefined
+        ? extractTopLevelEqValue(filter, "collectionId")
+        : undefined;
+    if (explicitCollectionId && sort === "index") {
+      const collection = await Collection.findByPk(explicitCollectionId, {
+        userId: user.id,
+        includeDocumentStructure: true,
+      });
+      authorize(user, "readDocument", collection);
+      documentIds = (collection.documentStructure || [])
+        .slice(offset, offset + limit)
+        .map((node) => node.id);
+      where[Op.and].push({ id: documentIds });
+    }
+
+    // Apply filter and re-run authorize() for any auth-bearing fields. Field
+    // names are mapped from the public API (e.g. `userId`) to the underlying
+    // column (e.g. `createdById`) only at the point of building the where clause.
+    if (filter) {
+      await authorizeFilterFields(user, filter);
+      const mapped = mapFilterFields(filter, { userId: "createdById" });
+      where[Op.and].push(buildWhere<Document>(mapped));
+    }
+
+    // Default scope to the user's accessible collections unless the filter
+    // already restricts to specific collections, the request is a backlink
+    // lookup, or the parent-doc membership escape applies.
+    const filterHasExplicitCollection =
+      filter !== undefined && hasExplicitCollectionId(filter);
+    if (
+      !filterHasExplicitCollection &&
+      !backlinkDocumentId &&
+      !collectionScopeDropped
+    ) {
+      const collectionIds = await user.collectionIds();
+      where[Op.and].push({ collectionId: collectionIds });
     }
 
     if (backlinkDocumentId) {
