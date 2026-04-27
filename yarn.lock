@@ -2356,10 +2356,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@css-inline/css-inline-wasm@npm:^0.18.0":
-  version: 0.18.0
-  resolution: "@css-inline/css-inline-wasm@npm:0.18.0"
-  checksum: 10c0/522287464a27c3755ec0ad0672adffa6c385dddaf6f334256e6c43d5c5818b913594e604fb9cab7105dc26755e3e82f950b8ae0fc385f83c7bb614945dbb7fa7
+"@css-inline/css-inline-wasm@npm:^0.20.2":
+  version: 0.20.2
+  resolution: "@css-inline/css-inline-wasm@npm:0.20.2"
+  checksum: 10c0/6d2b58850493a5613ce44c0307108d50a0e8bf23a469aa445e66b68e20883eb97ccbab16543de51c8edfb071a197787526bedaf4cc7db03472c3f3931ffe551f
   languageName: node
   linkType: hard
 
@@ -16733,7 +16733,7 @@ __metadata:
     "@benrbray/prosemirror-math": "npm:^0.2.2"
     "@bull-board/api": "npm:^6.7.10"
     "@bull-board/koa": "npm:^6.13.1"
-    "@css-inline/css-inline-wasm": "npm:^0.18.0"
+    "@css-inline/css-inline-wasm": "npm:^0.20.2"
     "@dnd-kit/core": "npm:^6.3.1"
     "@dnd-kit/modifiers": "npm:^6.0.1"
     "@dnd-kit/sortable": "npm:^7.0.2"
