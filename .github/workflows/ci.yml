@@ -75,12 +75,32 @@ jobs:
           key: ${{ runner.os }}-node-modules-24.x-${{ hashFiles('yarn.lock') }}
       - run: yarn tsc
 
+  audit:
+    needs: [setup, changes]
+    if: ${{ needs.changes.outputs.deps == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Enable Corepack
+        run: corepack enable
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24.x
+          cache: "yarn"
+      - name: Restore node_modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-24.x-${{ hashFiles('yarn.lock') }}
+      - run: yarn npm audit --severity high --recursive --environment production
+
   changes:
     runs-on: ubuntu-latest
     outputs:
       config: ${{ steps.filter.outputs.config }}
       server: ${{ steps.filter.outputs.server }}
       app: ${{ steps.filter.outputs.app }}
+      deps: ${{ steps.filter.outputs.deps }}
     steps:
       - uses: actions/checkout@v5
       - uses: dorny/paths-filter@v2
@@ -100,6 +120,10 @@ jobs:
               - 'shared/**'
               - 'package.json'
               - 'yarn.lock'
+            deps:
+              - 'package.json'
+              - 'yarn.lock'
+              - '.yarnrc.yml'
 
   test:
     needs: [setup, changes]

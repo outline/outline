@@ -365,7 +365,6 @@
     "nodemon": "^3.1.14",
     "oxlint": "1.11.2",
     "oxlint-tsgolint": "^0.1.6",
-    "postinstall-postinstall": "^2.1.0",
     "prettier": "^3.6.2",
     "react-refresh": "^0.18.0",
     "rimraf": "^2.5.4",
@@ -388,9 +387,12 @@
     "cheerio": "1.0.0-rc.12",
     "zod": "^4.2.1",
     "socket.io-parser": "4.2.6",
-    "@xmldom/xmldom": "0.8.12",
+    "@xmldom/xmldom": "^0.8.13",
     "fast-xml-parser": "5.5.7",
-    "@types/markdown-it": "14.1.1"
+    "@types/markdown-it": "14.1.1",
+    "underscore": "^1.13.8",
+    "tar": "^7.5.13",
+    "@hono/node-server": "^1.19.10"
   },
   "version": "1.7.0",
   "packageManager": "yarn@4.11.0"
