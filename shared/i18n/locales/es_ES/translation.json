@@ -1755,8 +1755,8 @@
   "{{ user }} created {{ timeAgo }}": "{{ user }} lo creó {{ timeAgo }}",
   "Caption": "Caption",
   "Empty diagram": "Empty diagram",
-  "Double click to edit": "Double click to edit",
-  "Open": "Open",
+  "Double click to edit": "Doble click para editar",
+  "Open": "Abrir",
   "Loading": "Cargando",
   "Error loading data": "Error al cargar datos"
 }
