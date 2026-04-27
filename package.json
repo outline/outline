@@ -400,7 +400,14 @@
     "minimatch@npm:9.0.1": "9.0.9",
     "minimatch@npm:^9.0.4": "^9.0.9",
     "brace-expansion@npm:^1.1.7": "^1.1.13",
-    "brace-expansion@npm:^2.0.1": "^2.0.3"
+    "brace-expansion@npm:^2.0.1": "^2.0.3",
+    "picomatch@npm:^2.0.4": "^2.3.2",
+    "picomatch@npm:^2.2.1": "^2.3.2",
+    "picomatch@npm:^2.2.2": "^2.3.2",
+    "picomatch@npm:^2.2.3": "^2.3.2",
+    "picomatch@npm:^2.3.1": "^2.3.2",
+    "picomatch@npm:^4.0.2": "^4.0.4",
+    "picomatch@npm:^4.0.3": "^4.0.4"
   },
   "version": "1.7.0",
   "packageManager": "yarn@4.11.0"
