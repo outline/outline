@@ -143,7 +143,7 @@
     "i18next-fs-backend": "^2.6.4",
     "i18next-http-backend": "^3.0.5",
     "invariant": "^2.2.4",
-    "ioredis": "^5.8.2",
+    "ioredis": "^5.10.1",
     "ipaddr.js": "^2.3.0",
     "is-printable-key-event": "^1.0.0",
     "iso-639-3": "^3.0.1",
