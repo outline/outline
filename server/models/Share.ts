@@ -15,6 +15,7 @@ import {
   BeforeUpdate,
 } from "sequelize-typescript";
 import { UrlHelper } from "@shared/utils/UrlHelper";
+import { ShareValidation } from "@shared/validations";
 import env from "@server/env";
 import { ValidationError } from "@server/errors";
 import type { APIContext } from "@server/types";
@@ -25,6 +26,7 @@ import User from "./User";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
 import IsFQDN from "./validators/IsFQDN";
+import IsUrlOrRelativePath from "./validators/IsUrlOrRelativePath";
 import Length from "./validators/Length";
 
 @DefaultScope(() => ({
@@ -154,6 +156,23 @@ class Share extends IdModel<
   @Default(false)
   @Column
   showTOC: boolean;
+
+  @AllowNull
+  @Length({
+    max: ShareValidation.maxTitleLength,
+    msg: `title must be ${ShareValidation.maxTitleLength} characters or less`,
+  })
+  @Column
+  title: string | null;
+
+  @AllowNull
+  @IsUrlOrRelativePath
+  @Length({
+    max: ShareValidation.maxIconUrlLength,
+    msg: `iconUrl must be ${ShareValidation.maxIconUrlLength} characters or less`,
+  })
+  @Column
+  iconUrl: string | null;
 
   // hooks
 

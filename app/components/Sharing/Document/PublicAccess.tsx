@@ -1,7 +1,8 @@
+import copy from "copy-to-clipboard";
 import debounce from "lodash/debounce";
 import isEmpty from "lodash/isEmpty";
 import { observer } from "mobx-react";
-import { CopyIcon, GlobeIcon, QuestionMarkIcon } from "outline-icons";
+import { CopyIcon, GlobeIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -22,6 +23,7 @@ import { ResizingHeightContainer } from "../../ResizingHeightContainer";
 import Text from "../../Text";
 import Tooltip from "../../Tooltip";
 import { ListItem } from "../components/ListItem";
+import ShareSettingsPopover from "../components/ShareSettingsPopover";
 import {
   DomainPrefix,
   ShareLinkInput,
@@ -60,70 +62,24 @@ function PublicAccess(
     setUrlId(share?.urlId);
   }, [share?.urlId]);
 
-  const handleIndexingChanged = React.useCallback(
-    async (checked: boolean) => {
-      try {
-        await share?.save({
-          allowIndexing: checked,
-        });
-      } catch (err) {
-        toast.error(err.message);
-      }
-    },
-    [share]
-  );
-
-  const handleSubscriptionsChanged = React.useCallback(
-    async (checked: boolean) => {
-      try {
-        await share?.save({
-          allowSubscriptions: checked,
-        });
-      } catch (err) {
-        toast.error(err.message);
-      }
-    },
-    [share]
-  );
-
-  const handleShowLastModifiedChanged = React.useCallback(
-    async (checked: boolean) => {
-      try {
-        await share?.save({
-          showLastUpdated: checked,
-        });
-      } catch (err) {
-        toast.error(err.message);
-      }
-    },
-    [share]
-  );
-
-  const handleShowTOCChanged = React.useCallback(
-    async (checked: boolean) => {
-      try {
-        await share?.save({
-          showTOC: checked,
-        });
-      } catch (err) {
-        toast.error(err.message);
-      }
-    },
-    [share]
-  );
-
   const handlePublishedChange = React.useCallback(
     async (checked: boolean) => {
       try {
         if (checked && !share) {
           setCreating(true);
-          await shares.create({
+          const newShare = await shares.create({
             type: "document",
             documentId: document.id,
             published: true,
           });
+          copy(newShare.url);
+          toast.success(t("Public link copied to clipboard"));
         } else if (share) {
           await share.save({ published: checked });
+          if (checked) {
+            copy(share.url);
+            toast.success(t("Public link copied to clipboard"));
+          }
         }
       } catch (err) {
         toast.error(err.message);
@@ -131,7 +87,7 @@ function PublicAccess(
         setCreating(false);
       }
     },
-    [share, shares, document]
+    [t, share, shares, document]
   );
 
   const handleUrlChange = React.useMemo(
@@ -187,7 +143,7 @@ function PublicAccess(
   return (
     <div ref={ref}>
       <ListItem
-        title={t("Web")}
+        title={t("Publish to web")}
         subtitle={
           <>
             {sharedParent && !document.isDraft ? (
@@ -236,133 +192,29 @@ function PublicAccess(
       />
 
       <ResizingHeightContainer>
-        {share?.published && !sharedParent?.published && (
-          <>
-            <ListItem
-              title={
-                <Text type="tertiary" as={Flex}>
-                  {t("Search engine indexing")}&nbsp;
-                  <Tooltip
-                    content={t(
-                      "Disable this setting to discourage search engines from indexing the page"
-                    )}
-                  >
-                    <NudeButton size={18}>
-                      <QuestionMarkIcon size={18} />
-                    </NudeButton>
-                  </Tooltip>
-                </Text>
-              }
-              actions={
-                <Switch
-                  aria-label={t("Search engine indexing")}
-                  checked={share?.allowIndexing ?? false}
-                  onChange={handleIndexingChanged}
-                  width={26}
-                  height={14}
-                />
-              }
-            />
-            {env.EMAIL_ENABLED && (
-              <ListItem
-                title={
-                  <Text type="tertiary" as={Flex}>
-                    {t("Email subscriptions")}&nbsp;
-                    <Tooltip
-                      content={t(
-                        "Allow viewers to subscribe and receive email notifications when this document is updated"
-                      )}
-                    >
-                      <NudeButton size={18}>
-                        <QuestionMarkIcon size={18} />
-                      </NudeButton>
-                    </Tooltip>
-                  </Text>
-                }
-                actions={
-                  <Switch
-                    aria-label={t("Email subscriptions")}
-                    checked={share?.allowSubscriptions ?? true}
-                    onChange={handleSubscriptionsChanged}
-                    width={26}
-                    height={14}
-                  />
-                }
-              />
-            )}
-            <ListItem
-              title={
-                <Text type="tertiary" as={Flex}>
-                  {t("Show last modified")}&nbsp;
-                  <Tooltip
-                    content={t(
-                      "Display the last modified timestamp on the shared page"
-                    )}
-                  >
-                    <NudeButton size={18}>
-                      <QuestionMarkIcon size={18} />
-                    </NudeButton>
-                  </Tooltip>
-                </Text>
-              }
-              actions={
-                <Switch
-                  aria-label={t("Show last modified")}
-                  checked={share?.showLastUpdated ?? false}
-                  onChange={handleShowLastModifiedChanged}
-                  width={26}
-                  height={14}
-                />
-              }
-            />
-            <ListItem
-              title={
-                <Text type="tertiary" as={Flex}>
-                  {t("Show table of contents")}&nbsp;
-                  <Tooltip
-                    content={t(
-                      "Display the table of contents on documents by default"
-                    )}
-                  >
-                    <NudeButton size={18}>
-                      <QuestionMarkIcon size={18} />
-                    </NudeButton>
-                  </Tooltip>
-                </Text>
-              }
-              actions={
-                <Switch
-                  aria-label={t("Show table of contents")}
-                  checked={share?.showTOC ?? false}
-                  onChange={handleShowTOCChanged}
-                  width={26}
-                  height={14}
-                />
-              }
-            />
-          </>
-        )}
-
         {sharedParent?.published && !document.isDraft ? (
           <ShareLinkInput type="text" disabled defaultValue={shareUrl}>
             {copyButton}
           </ShareLinkInput>
         ) : share?.published ? (
-          <ShareLinkInput
-            type="text"
-            ref={inputRef}
-            placeholder={share?.id}
-            onChange={handleUrlChange}
-            error={validationError}
-            defaultValue={urlId}
-            prefix={
-              <DomainPrefix onClick={() => inputRef.current?.focus()}>
-                {env.URL.replace(/https?:\/\//, "") + "/s/"}
-              </DomainPrefix>
-            }
-          >
-            {copyButton}
-          </ShareLinkInput>
+          <Flex align="center" gap={2}>
+            <ShareLinkInput
+              type="text"
+              ref={inputRef}
+              placeholder={share?.id}
+              onChange={handleUrlChange}
+              error={validationError}
+              defaultValue={urlId}
+              prefix={
+                <DomainPrefix onClick={() => inputRef.current?.focus()}>
+                  {env.URL.replace(/https?:\/\//, "") + "/s/"}
+                </DomainPrefix>
+              }
+            >
+              {copyButton}
+            </ShareLinkInput>
+            <ShareSettingsPopover share={share} />
+          </Flex>
         ) : null}
 
         {share?.published && !share.includeChildDocuments ? (
