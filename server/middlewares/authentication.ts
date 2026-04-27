@@ -2,6 +2,7 @@ import type { Next } from "koa";
 import capitalize from "lodash/capitalize";
 import type { UserRole } from "@shared/types";
 import { UserRoleHelper } from "@shared/utils/UserRoleHelper";
+import Logger from "@server/logging/Logger";
 import tracer, {
   addTags,
   getRootSpanFromRequestContext,
@@ -15,6 +16,7 @@ import {
   AuthorizationError,
   UserSuspendedError,
 } from "../errors";
+import { Hook, PluginManager } from "../utils/PluginManager";
 
 type AuthenticationOptions = {
   /** Role required to access the route. */
@@ -242,10 +244,29 @@ async function validateAuthentication(
     scope = apiKey.scope ?? ["*"];
     await apiKey.updateActiveAt();
   } else {
-    type = AuthenticationType.APP;
-    const result = await getUserForJWT(token);
-    user = result.user;
-    service = result.service;
+    // Try plugin-registered token validators (e.g. Azure AD bearer tokens)
+    // before falling back to Outline's native JWT. This enables SSO-based
+    // API access for tools like MCP servers and AI agents.
+    const validators = PluginManager.getHooks(Hook.TokenValidator);
+    let pluginResult: { user: User; scope: string[] } | null = null;
+
+    for (const validator of validators) {
+      pluginResult = await validator.value(token).catch(() => null);
+      if (pluginResult) {
+        break;
+      }
+    }
+
+    if (pluginResult) {
+      type = AuthenticationType.API;
+      user = pluginResult.user;
+      scope = pluginResult.scope;
+    } else {
+      type = AuthenticationType.APP;
+      const result = await getUserForJWT(token);
+      user = result.user;
+      service = result.service;
+    }
   }
 
   if (user.isSuspended) {
