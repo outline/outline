@@ -144,15 +144,26 @@ router.post(
       ],
     };
 
+    // Resolve the parent document being targeted from either the legacy
+    // top-level param or the filters DSL, so the membership escape below
+    // applies in both cases. `isNull` leaves resolve to undefined here
+    // (no specific parent to authorize against).
+    const normalizedFilter = combineFilters(rawFilters);
+    const parentDocumentId =
+      legacyParentDocumentId ??
+      (normalizedFilter
+        ? extractTopLevelEqValue(normalizedFilter, "parentDocumentId")
+        : undefined);
+
     // Membership escape: if the caller is filtering by a parent document they
     // are a direct member of (or have group membership to), bypass the default
     // collection access check. Mirrors the prior behavior of pushing then
     // removing the legacy collectionId predicate.
     let collectionScopeDropped = false;
-    if (legacyParentDocumentId) {
+    if (parentDocumentId) {
       const [groupMembership, membership] = await Promise.all([
         GroupMembership.findOne({
-          where: { documentId: legacyParentDocumentId },
+          where: { documentId: parentDocumentId },
           include: [
             {
               model: Group,
@@ -168,7 +179,7 @@ router.post(
           ],
         }),
         UserMembership.findOne({
-          where: { userId: user.id, documentId: legacyParentDocumentId },
+          where: { userId: user.id, documentId: parentDocumentId },
         }),
       ]);
 
@@ -181,7 +192,7 @@ router.post(
     // The schema rejects callers that combine `filters` with the deprecated
     // top-level params, so exactly one of these is set.
     const filter =
-      combineFilters(rawFilters) ??
+      normalizedFilter ??
       legacyParamsToFilter({
         userId: legacyUserId,
         collectionId: legacyCollectionId,

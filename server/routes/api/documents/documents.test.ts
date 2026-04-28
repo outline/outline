@@ -1341,6 +1341,44 @@ describe("#documents.list", () => {
       });
       expect(res.status).toEqual(400);
     });
+
+    it("should apply parent-doc membership escape for parentDocumentId in filters", async () => {
+      const user = await buildUser();
+      const otherUser = await buildUser({ teamId: user.teamId });
+      const privateCollection = await buildCollection({
+        teamId: user.teamId,
+        userId: otherUser.id,
+        permission: null,
+      });
+      const parent = await buildDocument({
+        teamId: user.teamId,
+        userId: otherUser.id,
+        collectionId: privateCollection.id,
+      });
+      const child = await buildDocument({
+        teamId: user.teamId,
+        userId: otherUser.id,
+        collectionId: privateCollection.id,
+        parentDocumentId: parent.id,
+      });
+      await UserMembership.create({
+        createdById: otherUser.id,
+        documentId: parent.id,
+        userId: user.id,
+        permission: DocumentPermission.Read,
+      });
+      const res = await server.post("/api/documents.list", {
+        body: {
+          token: user.getJwtToken(),
+          filters: [
+            { field: "parentDocumentId", operator: "eq", value: parent.id },
+          ],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.map((d: { id: string }) => d.id)).toEqual([child.id]);
+    });
   });
 
   it("should require authentication", async () => {
