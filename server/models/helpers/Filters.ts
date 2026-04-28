@@ -1,4 +1,4 @@
-import { Op, type WhereOptions } from "sequelize";
+import { Op, Sequelize, type Utils, type WhereOptions } from "sequelize";
 import type {
   ComparisonOperator,
   Filter,
@@ -8,6 +8,7 @@ import type {
 import { Collection } from "@server/models";
 import type User from "@server/models/User";
 import { authorize } from "@server/policies";
+import { isISO8601Duration } from "@server/validation";
 
 const operatorMap: Record<
   ComparisonOperator,
@@ -31,6 +32,36 @@ const operatorMap: Record<
 /** Escape a value for safe use inside a SQL LIKE / iLike pattern. */
 function escapeLike(value: string): string {
   return value.replace(/[\\%_]/g, (c) => `\\${c}`);
+}
+
+const COMPARISON_OPERATORS = new Set<ComparisonOperator>([
+  "gt",
+  "gte",
+  "lt",
+  "lte",
+]);
+
+/**
+ * Convert an ISO 8601 duration into a Sequelize literal expressing
+ * `now() ± interval '<duration>'`. A leading `-` flips the sign, allowing
+ * relative-past durations (`-P7D` → `now() - 7 days`) and relative-future
+ * durations (`P7D` → `now() + 7 days`).
+ *
+ * The duration is regex-validated to contain only `P`, `T`, digits, and the
+ * unit letters `YMWDHS`, so the literal interpolation is safe by construction.
+ *
+ * @param duration an ISO 8601 duration, optionally signed with a leading `-`.
+ * @returns a Sequelize literal that resolves to `now() ± interval '<duration>'`.
+ * @throws if the input is not a valid ISO 8601 duration.
+ */
+export function dateFromDuration(duration: string): Utils.Literal {
+  if (!isISO8601Duration(duration)) {
+    throw new Error(`Invalid ISO 8601 duration: ${duration}`);
+  }
+  const negative = duration.startsWith("-");
+  const magnitude = negative ? duration.slice(1) : duration;
+  const op = negative ? "-" : "+";
+  return Sequelize.literal(`now() ${op} interval '${magnitude}'`);
 }
 
 function isGroup<F extends string>(
@@ -58,7 +89,13 @@ function leafToWhere(condition: FilterCondition): Record<string, unknown> {
       if (typeof op !== "symbol") {
         throw new Error(`Unhandled filter operator: ${operator}`);
       }
-      return { [field]: { [op]: value } };
+      const resolved =
+        COMPARISON_OPERATORS.has(operator) &&
+        typeof value === "string" &&
+        isISO8601Duration(value)
+          ? dateFromDuration(value)
+          : value;
+      return { [field]: { [op]: resolved } };
     }
   }
 }

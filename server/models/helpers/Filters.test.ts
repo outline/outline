@@ -5,6 +5,7 @@ import {
   authorizeFilterFields,
   buildWhere,
   collectEqValues,
+  dateFromDuration,
   extractTopLevelEqValue,
   hasExplicitCollectionId,
   hasFieldInFilter,
@@ -89,6 +90,80 @@ describe("Filters", () => {
       ).toEqual({ title: { [Op.iLike]: "%%" } });
     });
 
+    it("converts a positive duration value on gte to a now()+interval literal", () => {
+      const result = buildWhere({
+        field: "dueDate",
+        operator: "lte",
+        value: "P7D",
+      }) as Record<string, Record<symbol, { val: string }>>;
+      expect(result.dueDate[Op.lte].val).toBe("now() + interval 'P7D'");
+    });
+
+    it("converts a negative duration value on gte to a now()-interval literal", () => {
+      const result = buildWhere({
+        field: "updatedAt",
+        operator: "gte",
+        value: "-P7D",
+      }) as Record<string, Record<symbol, { val: string }>>;
+      expect(result.updatedAt[Op.gte].val).toBe("now() - interval 'P7D'");
+    });
+
+    it("converts a duration on lt for the older-than case", () => {
+      const result = buildWhere({
+        field: "updatedAt",
+        operator: "lt",
+        value: "-P30D",
+      }) as Record<string, Record<symbol, { val: string }>>;
+      expect(result.updatedAt[Op.lt].val).toBe("now() - interval 'P30D'");
+    });
+
+    it("converts a duration on gt for the further-than-future case", () => {
+      const result = buildWhere({
+        field: "dueDate",
+        operator: "gt",
+        value: "P1M",
+      }) as Record<string, Record<symbol, { val: string }>>;
+      expect(result.dueDate[Op.gt].val).toBe("now() + interval 'P1M'");
+    });
+
+    it("does not transform a duration-shaped value on eq", () => {
+      expect(
+        buildWhere({ field: "title", operator: "eq", value: "P1D" })
+      ).toEqual({ title: { [Op.eq]: "P1D" } });
+    });
+
+    it("does not transform a duration-shaped value on neq", () => {
+      expect(
+        buildWhere({ field: "title", operator: "neq", value: "P1D" })
+      ).toEqual({ title: { [Op.ne]: "P1D" } });
+    });
+
+    it("does not transform duration-shaped values inside an in array", () => {
+      expect(
+        buildWhere({ field: "title", operator: "in", value: ["P1D"] })
+      ).toEqual({ title: { [Op.in]: ["P1D"] } });
+    });
+
+    it("passes through ISO 8601 datetimes unchanged on gte", () => {
+      expect(
+        buildWhere({
+          field: "createdAt",
+          operator: "gte",
+          value: "2024-01-01",
+        })
+      ).toEqual({ createdAt: { [Op.gte]: "2024-01-01" } });
+    });
+
+    it("passes through numeric values unchanged on gte", () => {
+      expect(
+        buildWhere({
+          field: "createdAt",
+          operator: "gte",
+          value: 1700000000,
+        })
+      ).toEqual({ createdAt: { [Op.gte]: 1700000000 } });
+    });
+
     it("converts a flat AND group at the root", () => {
       expect(
         buildWhere({
@@ -154,6 +229,33 @@ describe("Filters", () => {
         ],
       });
     });
+  });
+
+  describe("dateFromDuration", () => {
+    it("returns a now()+interval literal for a positive duration", () => {
+      expect(dateFromDuration("P1D").val).toBe("now() + interval 'P1D'");
+    });
+
+    it("preserves a multi-unit positive duration verbatim", () => {
+      expect(dateFromDuration("P1Y2M3DT4H5M6S").val).toBe(
+        "now() + interval 'P1Y2M3DT4H5M6S'"
+      );
+    });
+
+    it("returns a now()-interval literal for a negative duration", () => {
+      expect(dateFromDuration("-P7D").val).toBe("now() - interval 'P7D'");
+    });
+
+    it("strips the sign from the magnitude in negative durations", () => {
+      expect(dateFromDuration("-PT1H").val).toBe("now() - interval 'PT1H'");
+    });
+
+    it.each(["", "P", "P1.5D", "P1D'", "P-1D", "p1d"])(
+      "throws on invalid input %j",
+      (value) => {
+        expect(() => dateFromDuration(value)).toThrow(/Invalid ISO 8601/);
+      }
+    );
   });
 
   describe("hasFieldInFilter", () => {
