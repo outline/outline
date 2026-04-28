@@ -45,32 +45,41 @@ export function CounterCache<
         distinct: !!options.include,
       });
 
-    // Add hooks after model is added to the sequelize instance
-    setImmediate(() => {
-      const invalidate = async (
-        model: InstanceType<T>,
-        hookOptions?: { transaction?: Transaction | null }
-      ) => {
-        const cacheKey = buildCacheKey(
-          model[options.foreignKey as keyof typeof model]
-        );
-        const remove = async () => {
-          await CacheHelper.removeData(cacheKey);
-        };
-
-        // Defer invalidation until after the transaction commits so that a
-        // rollback does not leave the cache out of sync, and so that a stale
-        // pre-commit count is not re-cached by a concurrent reader.
-        if (hookOptions?.transaction) {
-          hookOptions.transaction.afterCommit(remove);
-        } else {
-          await remove();
-        }
+    const invalidate = async (
+      model: InstanceType<T>,
+      hookOptions?: { transaction?: Transaction | null }
+    ) => {
+      const cacheKey = buildCacheKey(
+        model[options.foreignKey as keyof typeof model]
+      );
+      const remove = async () => {
+        await CacheHelper.removeData(cacheKey);
       };
 
+      // Defer invalidation until after the transaction commits so that a
+      // rollback does not leave the cache out of sync, and so that a stale
+      // pre-commit count is not re-cached by a concurrent reader.
+      if (hookOptions?.transaction) {
+        hookOptions.transaction.afterCommit(remove);
+      } else {
+        await remove();
+      }
+    };
+
+    // The model class is not added to a Sequelize instance until the database
+    // module is first imported, which is later than decorator evaluation. Poll
+    // until the model is ready, then register the hooks. Use unref() so the
+    // pending immediate does not keep the event loop alive in environments
+    // (such as tests) where the database is never initialized.
+    const registerHooks = () => {
+      if (!modelClass.sequelize) {
+        setImmediate(registerHooks).unref();
+        return;
+      }
       modelClass.addHook("afterCreate", invalidate);
       modelClass.addHook("afterDestroy", invalidate);
-    });
+    };
+    setImmediate(registerHooks).unref();
 
     return {
       get() {
