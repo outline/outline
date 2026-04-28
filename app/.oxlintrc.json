@@ -1,5 +1,6 @@
 {
   "extends": ["../.oxlintrc.json"],
+  "ignorePatterns": ["**/*.d.ts"],
   "plugins": ["oxc", "eslint", "typescript", "react"],
   "overrides": [
     {
