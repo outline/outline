@@ -756,7 +756,7 @@ describe("#comments.create", () => {
     });
 
     expect(res.status).toEqual(200);
-    expect(res.json()).resolves.toMatchObject({
+    await expect(res.json()).resolves.toMatchObject({
       data: {
         data: {
           content: [

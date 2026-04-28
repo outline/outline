@@ -229,7 +229,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
   );
 
   const handleCloseSidebar = () => {
-    trigger("light");
+    void trigger("light");
     ui.toggleMobileSidebar();
   };
 

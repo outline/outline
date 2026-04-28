@@ -73,7 +73,7 @@ export default class ShareSubscriptionNotificationsTask extends BaseTask<Revisio
           ? `${baseShareUrl.replace(/\/$/, "")}${document.path}`
           : baseShareUrl;
 
-      new ShareDocumentUpdatedEmail({
+      await new ShareDocumentUpdatedEmail({
         to: subscription.email,
         shareSubscriptionId: subscription.id,
         documentTitle: document.titleWithDefault,
