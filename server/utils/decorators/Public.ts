@@ -7,7 +7,7 @@ const key = Symbol("env:public");
 /**
  * This decorator on an environment variable makes that variable available client-side
  */
-export function Public(target: any, propertyKey: string) {
+export function Public(target: object, propertyKey: string) {
   const publicVars: string[] = Reflect.getMetadata(key, target);
 
   if (!publicVars) {
@@ -18,6 +18,7 @@ export function Public(target: any, propertyKey: string) {
 }
 
 export class PublicEnvironmentRegister {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- consumed at runtime as a flat map of typed Environment values; tightening to unknown breaks call sites.
   private static publicEnv: Record<string, any> = {};
 
   static registerEnv(env: Environment) {

@@ -3,13 +3,20 @@ import type { AddressInfo } from "node:net";
 import type Koa from "koa";
 // oxlint-disable-next-line no-restricted-imports
 import nodeFetch from "node-fetch";
+// oxlint-disable-next-line no-restricted-imports
+import type { RequestInit } from "node-fetch";
+
+type TestRequestOptions = Omit<RequestInit, "body" | "headers"> & {
+  body?: unknown;
+  headers?: Record<string, string>;
+};
 
 class TestServer {
   private server: http.Server;
   private listener?: Promise<void> | null;
 
   constructor(app: Koa) {
-    this.server = http.createServer(app.callback() as any);
+    this.server = http.createServer(app.callback() as http.RequestListener);
   }
 
   get address(): string {
@@ -29,19 +36,23 @@ class TestServer {
     return this.listener;
   }
 
-  fetch(path: string, opts: any) {
+  fetch(path: string, opts: TestRequestOptions) {
     return this.listen().then(() => {
       const url = `${this.address}${path}`;
-      const options = Object.assign({ headers: {} }, opts);
-      const contentType =
-        options.headers["Content-Type"] ?? options.headers["content-type"];
+      const headers: Record<string, string> = { ...opts.headers };
+      let body = opts.body;
+      const contentType = headers["Content-Type"] ?? headers["content-type"];
       // automatic JSON encoding
-      if (!contentType && typeof options.body === "object") {
-        options.headers["Content-Type"] = "application/json";
-        options.body = JSON.stringify(options.body);
+      if (!contentType && typeof body === "object" && body !== null) {
+        headers["Content-Type"] = "application/json";
+        body = JSON.stringify(body);
       }
 
-      return nodeFetch(url, options);
+      return nodeFetch(url, {
+        ...opts,
+        headers,
+        body: body as string | undefined,
+      });
     });
   }
 
@@ -51,31 +62,31 @@ class TestServer {
     this.server.close();
   }
 
-  delete(path: string, options?: any) {
+  delete(path: string, options?: TestRequestOptions) {
     return this.fetch(path, { ...options, method: "DELETE" });
   }
 
-  get(path: string, options?: any) {
+  get(path: string, options?: TestRequestOptions) {
     return this.fetch(path, { ...options, method: "GET" });
   }
 
-  head(path: string, options?: any) {
+  head(path: string, options?: TestRequestOptions) {
     return this.fetch(path, { ...options, method: "HEAD" });
   }
 
-  options(path: string, options?: any) {
+  options(path: string, options?: TestRequestOptions) {
     return this.fetch(path, { ...options, method: "OPTIONS" });
   }
 
-  patch(path: string, options?: any) {
+  patch(path: string, options?: TestRequestOptions) {
     return this.fetch(path, { ...options, method: "PATCH" });
   }
 
-  post(path: string, options?: any) {
+  post(path: string, options?: TestRequestOptions) {
     return this.fetch(path, { ...options, method: "POST" });
   }
 
-  put(path: string, options?: any) {
+  put(path: string, options?: TestRequestOptions) {
     return this.fetch(path, { ...options, method: "PUT" });
   }
 }

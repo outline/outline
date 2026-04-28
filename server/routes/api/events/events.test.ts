@@ -472,7 +472,7 @@ describe("#events.list", () => {
     expect(res.status).toEqual(200);
 
     // admin SHOULD see events for documents without a collection
-    const eventIds = body.data.map((e: any) => e.id);
+    const eventIds = body.data.map((e: { id: string }) => e.id);
     expect(eventIds).toContain(draftEvent.id);
   });
 

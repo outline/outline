@@ -1,5 +1,5 @@
 import { buildTeam } from "@server/test/factories";
-import { AuthenticationProvider } from "@server/models";
+import { AuthenticationProvider, type User } from "@server/models";
 import { createContext } from "@server/context";
 
 describe("AuthenticationProvider", () => {
@@ -15,7 +15,7 @@ describe("AuthenticationProvider", () => {
         enabled: true,
       });
 
-      const ctx = createContext({ user: { team } as any });
+      const ctx = createContext({ user: { team } as unknown as User });
       await expect(provider.disable(ctx)).resolves.not.toThrow();
       expect(provider.enabled).toBe(false);
     });
@@ -37,7 +37,7 @@ describe("AuthenticationProvider", () => {
         enabled: true,
       });
 
-      const ctx = createContext({ user: { team } as any });
+      const ctx = createContext({ user: { team } as unknown as User });
       await expect(provider1.disable(ctx)).resolves.not.toThrow();
       expect(provider1.enabled).toBe(false);
     });
@@ -59,7 +59,7 @@ describe("AuthenticationProvider", () => {
         enabled: true,
       });
 
-      const ctx = createContext({ user: { team } as any });
+      const ctx = createContext({ user: { team } as unknown as User });
       await expect(provider.disable(ctx)).rejects.toThrow(
         "At least one authentication provider is required"
       );

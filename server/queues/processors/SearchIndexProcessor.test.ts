@@ -7,6 +7,8 @@ import {
 import SearchProviderManager from "@server/utils/SearchProviderManager";
 import SearchIndexProcessor from "./SearchIndexProcessor";
 
+type PerformArg = Parameters<SearchIndexProcessor["perform"]>[0];
+
 const processor = new SearchIndexProcessor();
 
 describe("SearchIndexProcessor", () => {
@@ -48,7 +50,7 @@ describe("SearchIndexProcessor", () => {
       collectionId: collection.id,
       teamId: user.teamId,
       actorId: user.id,
-    } as any);
+    } as PerformArg);
 
     expect(indexSpy).toHaveBeenCalledWith(
       SearchableModel.Document,
@@ -69,7 +71,7 @@ describe("SearchIndexProcessor", () => {
       collectionId: "some-collection-id",
       teamId: user.teamId,
       actorId: user.id,
-    } as any);
+    } as PerformArg);
 
     expect(removeSpy).toHaveBeenCalledWith(
       SearchableModel.Document,

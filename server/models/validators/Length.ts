@@ -13,8 +13,8 @@ export default function Length({
   msg?: string;
   min?: number;
   max: number;
-}): (target: any, propertyName: string) => void {
-  return (target: any, propertyName: string) =>
+}): (target: object, propertyName: string) => void {
+  return (target: object, propertyName: string) =>
     addAttributeOptions(target, propertyName, {
       validate: {
         validLength(value: string) {

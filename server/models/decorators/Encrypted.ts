@@ -11,7 +11,7 @@ const key = "sequelize:vault";
  * so that it can be used by getters and setters. Must be accompanied by a
  * @Column(DataType.BLOB) annotation.
  */
-export default function Encrypted(target: any, propertyKey: string) {
+export default function Encrypted(target: object, propertyKey: string) {
   // Ensure that the Encrypted decorator is the first decorator applied to the property, we can check
   // this by looking at the attributes of the target and checking if the propertyKey is already defined.
   if (getAttributes(target)[propertyKey]) {
@@ -71,5 +71,6 @@ export default function Encrypted(target: any, propertyKey: string) {
         throw err;
       }
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TS rejects PropertyDescriptor return for legacy decorator; descriptor is consumed by Sequelize at runtime.
   } as any;
 }

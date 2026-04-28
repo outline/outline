@@ -7,8 +7,11 @@ import type { Document, User, Group } from "@server/models";
 import { View } from "@server/models";
 import { opts } from "@server/utils/i18n";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- heterogeneous payload from internal callers and third-party unfurl plugins.
+type UnfurlData = Record<string, any>;
+
 async function presentUnfurl(
-  data: Record<string, any>,
+  data: UnfurlData,
   options?: { includeEmail: boolean }
 ) {
   switch (data.type) {
@@ -30,7 +33,7 @@ async function presentUnfurl(
 }
 
 const presentURL = (
-  data: Record<string, any>
+  data: UnfurlData
 ): UnfurlResponse[UnfurlResourceType.URL] => {
   // TODO: For backwards compatibility, remove once cache has expired in next release.
   if (data.transformedUnfurl) {
@@ -49,7 +52,7 @@ const presentURL = (
 };
 
 const presentMention = async (
-  data: Record<string, any>,
+  data: UnfurlData,
   options?: { includeEmail: boolean }
 ): Promise<UnfurlResponse[UnfurlResourceType.Mention]> => {
   const user: User = data.user;
@@ -69,7 +72,7 @@ const presentMention = async (
 };
 
 const presentGroup = async (
-  data: Record<string, any>
+  data: UnfurlData
 ): Promise<UnfurlResponse[UnfurlResourceType.Group]> => {
   const group: Group = data.group;
   const memberCount = await group.memberCount;
@@ -89,7 +92,7 @@ const presentGroup = async (
 };
 
 const presentDocument = (
-  data: Record<string, any>
+  data: UnfurlData
 ): UnfurlResponse[UnfurlResourceType.Document] => {
   const document: Document = data.document;
   const viewer: User | undefined = data.viewer;
@@ -106,18 +109,16 @@ const presentDocument = (
   };
 };
 
-const presentPR = (
-  data: Record<string, any>
-): UnfurlResponse[UnfurlResourceType.PR] =>
+const presentPR = (data: UnfurlData): UnfurlResponse[UnfurlResourceType.PR] =>
   data as UnfurlResponse[UnfurlResourceType.PR]; // this would have been transformed by the unfurl plugin.
 
 const presentIssue = (
-  data: Record<string, any>
+  data: UnfurlData
 ): UnfurlResponse[UnfurlResourceType.Issue] =>
   data as UnfurlResponse[UnfurlResourceType.Issue]; // this would have been transformed by the unfurl plugin.
 
 const presentProject = (
-  data: Record<string, any>
+  data: UnfurlData
 ): UnfurlResponse[UnfurlResourceType.Project] =>
   data as UnfurlResponse[UnfurlResourceType.Project]; // this would have been transformed by the unfurl plugin.
 
