@@ -107,9 +107,8 @@ function buildCollapseState(
 
     if (isCollapsed) {
       const totalLines = (node.textContent.match(/\n/g)?.length ?? 0) + 1;
-      const cappedLines = Math.min(totalLines, COLLAPSE_LINE_THRESHOLD);
       const gutterWidth = String(totalLines).length;
-      const lineNumberText = Array.from({ length: cappedLines }, (_, i) =>
+      const lineNumberText = Array.from({ length: totalLines }, (_, i) =>
         String(i + 1).padStart(gutterWidth, " ")
       ).join("\n");
 
