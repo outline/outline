@@ -18,6 +18,6 @@ export function SkipChangeset(target: object, propertyKey: string) {
 /**
  * This function is used to get the properties that should be skipped from a changeset.
  */
-export function getChangsetSkipped(target: object): string[] {
+export function getChangesetSkipped(target: object): string[] {
   return Reflect.getMetadata(key, target) || [];
 }

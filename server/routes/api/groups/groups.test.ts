@@ -319,12 +319,12 @@ describe("#groups.list", () => {
     expect(anotherBody.data.groupMemberships[0].groupId).toEqual(group.id);
     expect(anotherBody.data.groupMemberships[1].groupId).toEqual(group.id);
     expect(
-      body.data.groupMemberships
+      anotherBody.data.groupMemberships
         .map((u: { user: { id: string } }) => u.user.id)
         .includes(user.id)
     ).toBe(true);
     expect(
-      body.data.groupMemberships
+      anotherBody.data.groupMemberships
         .map((u: { user: { id: string } }) => u.user.id)
         .includes(anotherUser.id)
     ).toBe(true);

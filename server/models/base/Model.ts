@@ -24,7 +24,7 @@ import {
 } from "sequelize-typescript";
 import Logger from "@server/logging/Logger";
 import type { Replace, APIContext } from "@server/types";
-import { getChangsetSkipped } from "../decorators/Changeset";
+import { getChangesetSkipped } from "../decorators/Changeset";
 import { InternalError } from "@server/errors";
 
 type EventOverrideOptions = {
@@ -393,7 +393,7 @@ class Model<
 
     const virtualFields = (this.constructor as typeof Model).virtualFields;
     const blobFields = (this.constructor as typeof Model).blobFields;
-    const skippedFields = getChangsetSkipped(this);
+    const skippedFields = getChangesetSkipped(this);
 
     for (const change of changes) {
       const previous = this.previous(change);
