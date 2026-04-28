@@ -20,9 +20,9 @@ function getSortByField<T extends object>(
 ) {
   const field =
     typeof keyOrCallback === "string"
-      ? (item as Record<string, string>)[keyOrCallback]
+      ? (item as Record<string, unknown>)[keyOrCallback]
       : keyOrCallback(item);
-  return cleanValue(field);
+  return cleanValue(typeof field === "string" ? field : "");
 }
 
 function naturalSortBy<T extends object>(

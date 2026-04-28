@@ -220,7 +220,10 @@ export class ProsemirrorHelper {
       });
 
       (
-        (node.attrs.marks ?? []) as { type: string; attrs: CommentMark }[]
+        (node.attrs.marks ?? []) as {
+          type: string;
+          attrs: Partial<CommentMark>;
+        }[]
       ).forEach((mark) => {
         if (mark.type === "comment") {
           comments.push({
