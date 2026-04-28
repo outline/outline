@@ -50,7 +50,11 @@ const DocumentsSortParamsSchema = z.object({
 });
 
 const DateFilterSchema = z.object({
-  /** Date filter */
+  /**
+   * Date filter.
+   * @deprecated use `filter` with `updatedAt` and an ISO 8601 duration
+   * (`-P1D`, `-P1W`, `-P1M`, `-P1Y`) instead.
+   */
   dateFilter: z
     .union([
       z.literal("day"),
@@ -80,7 +84,10 @@ const BaseSearchSchema = DateFilterSchema.extend({
    */
   documentId: z.uuid().optional(),
 
-  /** Document statuses to include in results */
+  /**
+   * Document statuses to include in results.
+   * @deprecated use `filter` with `archivedAt`/`publishedAt` instead.
+   */
   statusFilter: z.enum(StatusFilter).array().optional(),
 
   /** Filter results for the team derived from shareId */
@@ -262,15 +269,19 @@ const filterIncompatibleWithLegacy = (req: {
     collectionId?: unknown;
     userId?: unknown;
     documentId?: unknown;
+    dateFilter?: unknown;
+    statusFilter?: unknown;
   };
 }) =>
   req.body.filter === undefined ||
   (req.body.collectionId === undefined &&
     req.body.userId === undefined &&
-    req.body.documentId === undefined);
+    req.body.documentId === undefined &&
+    req.body.dateFilter === undefined &&
+    req.body.statusFilter === undefined);
 
 const filterIncompatibleWithLegacyMessage =
-  "filter cannot be combined with deprecated parameters collectionId, userId, or documentId";
+  "filter cannot be combined with deprecated parameters collectionId, userId, documentId, dateFilter, or statusFilter";
 
 export const DocumentsSearchSchema = BaseSchema.extend({
   body: BaseSearchSchema.extend({

@@ -5,6 +5,8 @@ import type {
   FilterCondition,
   FilterGroup,
 } from "@shared/helpers/FilterHelper";
+import type { DateFilter, StatusFilter } from "@shared/types";
+import { StatusFilter as StatusFilterEnum } from "@shared/types";
 import { Collection } from "@server/models";
 import type User from "@server/models/User";
 import { authorize } from "@server/policies";
@@ -284,6 +286,8 @@ interface SearchFilterTranslation {
   collectionId?: string;
   collaboratorIds?: string[];
   documentId?: string;
+  dateFilter?: DateFilter;
+  statusFilter?: StatusFilter[];
 }
 
 interface TranslateSearchFilterOptions {
@@ -291,17 +295,92 @@ interface TranslateSearchFilterOptions {
   allowDocumentId?: boolean;
 }
 
+const DATE_FILTER_BY_DURATION: Record<string, DateFilter> = {
+  "-P1D": "day",
+  "-P1W": "week",
+  "-P1M": "month",
+  "-P1Y": "year",
+};
+
+function recognizeDateFilter(leaf: FilterCondition): DateFilter | undefined {
+  if (
+    leaf.field !== "updatedAt" ||
+    leaf.operator !== "gte" ||
+    typeof leaf.value !== "string"
+  ) {
+    return undefined;
+  }
+  return DATE_FILTER_BY_DURATION[leaf.value];
+}
+
+function recognizeStatus(node: Filter): StatusFilter | undefined {
+  if (!isGroup(node)) {
+    if (node.field === "archivedAt" && node.operator === "isNotNull") {
+      return StatusFilterEnum.Archived;
+    }
+    return undefined;
+  }
+  if (node.operator !== "AND" || node.filters.length !== 2) {
+    return undefined;
+  }
+  const archived = node.filters.find(
+    (f): f is FilterCondition => !isGroup(f) && f.field === "archivedAt"
+  );
+  const published = node.filters.find(
+    (f): f is FilterCondition => !isGroup(f) && f.field === "publishedAt"
+  );
+  if (
+    !archived ||
+    !published ||
+    archived.operator !== "isNull" ||
+    node.filters.length !== 2
+  ) {
+    return undefined;
+  }
+  if (published.operator === "isNotNull") {
+    return StatusFilterEnum.Published;
+  }
+  if (published.operator === "isNull") {
+    return StatusFilterEnum.Draft;
+  }
+  return undefined;
+}
+
+function recognizeStatusGroup(node: Filter): StatusFilter[] | undefined {
+  const single = recognizeStatus(node);
+  if (single) {
+    return [single];
+  }
+  if (isGroup(node) && node.operator === "OR") {
+    const statuses: StatusFilter[] = [];
+    for (const child of node.filters) {
+      const s = recognizeStatus(child);
+      if (!s) {
+        return undefined;
+      }
+      statuses.push(s);
+    }
+    return statuses;
+  }
+  return undefined;
+}
+
 /**
  * Translate a search filter expression into the subset of SearchOptions fields
  * that SearchProvider implementations accept.
  *
  * Search providers consume a fixed shape rather than arbitrary WHERE clauses,
- * so the filter must be either a single leaf or an AND group of leaves on
- * supported fields and operators:
+ * so the filter must be either a single leaf or an AND group whose children
+ * are each one of:
  *   - `collectionId` eq → `collectionId`
  *   - `userId` eq → `collaboratorIds: [value]`
  *   - `userId` in → `collaboratorIds: [...values]`
  *   - `documentId` eq → `documentId` (only when allowDocumentId is true)
+ *   - `updatedAt` gte with a duration `-P1D|-P1W|-P1M|-P1Y` → `dateFilter` preset
+ *   - a status shape (single or OR group): each shape is one of:
+ *     - `archivedAt isNotNull` → `archived`
+ *     - AND of `archivedAt isNull` + `publishedAt isNotNull` → `published`
+ *     - AND of `archivedAt isNull` + `publishedAt isNull` → `draft`
  *
  * @param filter the filter to translate.
  * @param options translation options.
@@ -312,49 +391,81 @@ export function translateSearchFilter(
   filter: Filter,
   options: TranslateSearchFilterOptions = {}
 ): SearchFilterTranslation {
-  const leaves: FilterCondition[] = [];
-
-  if (isGroup(filter)) {
-    if (filter.operator !== "AND") {
-      throw new Error(
-        `Search filter only supports AND groups at the top level; got ${filter.operator}`
-      );
-    }
-    for (const child of filter.filters) {
-      if (isGroup(child)) {
-        throw new Error("Search filter does not support nested groups");
-      }
-      leaves.push(child);
-    }
-  } else {
-    leaves.push(filter);
+  // The root itself may be a recognized status shape (single status, AND of
+  // archivedAt+publishedAt for published/draft, or OR group of statuses).
+  const rootStatuses = recognizeStatusGroup(filter);
+  if (rootStatuses) {
+    return { statusFilter: rootStatuses };
   }
 
-  const result: SearchFilterTranslation = {};
-  const seenFields = new Set<string>();
+  if (isGroup(filter) && filter.operator !== "AND") {
+    throw new Error(
+      `Search filter only supports AND groups at the top level; got ${filter.operator}`
+    );
+  }
 
-  for (const leaf of leaves) {
-    if (seenFields.has(leaf.field)) {
+  const children: Filter[] =
+    isGroup(filter) && filter.operator === "AND" ? filter.filters : [filter];
+
+  const result: SearchFilterTranslation = {};
+  const seenLeafFields = new Set<string>();
+
+  const setOnce = <K extends keyof SearchFilterTranslation>(
+    key: K,
+    value: SearchFilterTranslation[K],
+    label: string
+  ) => {
+    if (result[key] !== undefined) {
+      throw new Error(`Search filter has duplicate ${label}`);
+    }
+    result[key] = value;
+  };
+
+  for (const child of children) {
+    if (isGroup(child)) {
+      const statuses = recognizeStatusGroup(child);
+      if (!statuses) {
+        throw new Error("Search filter contains an unrecognized group");
+      }
+      setOnce("statusFilter", statuses, "status filter");
+      continue;
+    }
+
+    // Try date filter
+    const dateFilter = recognizeDateFilter(child);
+    if (dateFilter) {
+      setOnce("dateFilter", dateFilter, "date filter");
+      continue;
+    }
+
+    // Try standalone status (e.g. archivedAt isNotNull)
+    const statusOnly = recognizeStatus(child);
+    if (statusOnly) {
+      setOnce("statusFilter", [statusOnly], "status filter");
+      continue;
+    }
+
+    if (seenLeafFields.has(child.field)) {
       throw new Error(
-        `Search filter has multiple leaves on the same field '${leaf.field}'`
+        `Search filter has multiple leaves on the same field '${child.field}'`
       );
     }
-    seenFields.add(leaf.field);
+    seenLeafFields.add(child.field);
 
-    switch (leaf.field) {
+    switch (child.field) {
       case "collectionId":
-        if (leaf.operator !== "eq" || leaf.value === undefined) {
+        if (child.operator !== "eq" || child.value === undefined) {
           throw new Error(
             "Search filter only supports `eq` on collectionId with a value"
           );
         }
-        result.collectionId = String(leaf.value);
+        result.collectionId = String(child.value);
         break;
       case "userId":
-        if (leaf.operator === "eq" && leaf.value !== undefined) {
-          result.collaboratorIds = [String(leaf.value)];
-        } else if (leaf.operator === "in" && Array.isArray(leaf.value)) {
-          result.collaboratorIds = leaf.value.map(String);
+        if (child.operator === "eq" && child.value !== undefined) {
+          result.collaboratorIds = [String(child.value)];
+        } else if (child.operator === "in" && Array.isArray(child.value)) {
+          result.collaboratorIds = child.value.map(String);
         } else {
           throw new Error(
             "Search filter only supports `eq` or `in` on userId with a value"
@@ -367,15 +478,17 @@ export function translateSearchFilter(
             "Search filter does not support `documentId` for this endpoint"
           );
         }
-        if (leaf.operator !== "eq" || leaf.value === undefined) {
+        if (child.operator !== "eq" || child.value === undefined) {
           throw new Error(
             "Search filter only supports `eq` on documentId with a value"
           );
         }
-        result.documentId = String(leaf.value);
+        result.documentId = String(child.value);
         break;
       default:
-        throw new Error(`Search filter does not support field '${leaf.field}'`);
+        throw new Error(
+          `Search filter does not support field '${child.field}'`
+        );
     }
   }
 

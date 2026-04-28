@@ -1051,9 +1051,9 @@ router.post(
   rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsSearchTitlesSchema),
   async (ctx: APIContext<T.DocumentsSearchTitlesReq>) => {
-    const { query, statusFilter, dateFilter, sort, direction, filter } =
+    const { query, sort, direction, filter } = ctx.input.body;
+    let { collectionId, userId, documentId, statusFilter, dateFilter } =
       ctx.input.body;
-    let { collectionId, userId, documentId } = ctx.input.body;
     const { offset, limit } = ctx.state.pagination;
     const { user } = ctx.state.auth;
     let collaboratorIds: string[] | undefined = undefined;
@@ -1066,6 +1066,8 @@ router.post(
         collectionId = translated.collectionId;
         collaboratorIds = translated.collaboratorIds;
         documentId = translated.documentId;
+        statusFilter = translated.statusFilter;
+        dateFilter = translated.dateFilter;
       } catch (err) {
         throw InvalidRequestError(
           err instanceof Error ? err.message : "Invalid filter"
@@ -1125,8 +1127,6 @@ router.post(
   async (ctx: APIContext<T.DocumentsSearchReq>) => {
     const {
       query,
-      dateFilter,
-      statusFilter = [],
       shareId,
       snippetMinWords,
       snippetMaxWords,
@@ -1134,7 +1134,13 @@ router.post(
       direction,
       filter,
     } = ctx.input.body;
-    let { collectionId, documentId, userId } = ctx.input.body;
+    let {
+      collectionId,
+      documentId,
+      userId,
+      dateFilter,
+      statusFilter = [],
+    } = ctx.input.body;
     const { offset, limit } = ctx.state.pagination;
     const { user } = ctx.state.auth;
 
@@ -1207,6 +1213,8 @@ router.post(
           collectionId = translated.collectionId;
           collaboratorIds = translated.collaboratorIds;
           documentId = translated.documentId;
+          dateFilter = translated.dateFilter;
+          statusFilter = translated.statusFilter ?? [];
         } catch (err) {
           throw InvalidRequestError(
             err instanceof Error ? err.message : "Invalid filter"

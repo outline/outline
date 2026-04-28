@@ -1,5 +1,5 @@
 import { Op } from "sequelize";
-import { CollectionPermission } from "@shared/types";
+import { CollectionPermission, StatusFilter } from "@shared/types";
 import { buildCollection, buildUser, buildTeam } from "@server/test/factories";
 import {
   authorizeFilterFields,
@@ -849,6 +849,119 @@ describe("Filters", () => {
             { field: "collectionId", operator: "eq", value: "a" },
             { field: "collectionId", operator: "eq", value: "b" },
           ],
+        })
+      ).toThrow();
+    });
+
+    it("translates updatedAt gte -P1D into the day dateFilter preset", () => {
+      expect(
+        translateSearchFilter({
+          field: "updatedAt",
+          operator: "gte",
+          value: "-P1D",
+        })
+      ).toEqual({ dateFilter: "day" });
+    });
+
+    it("translates each supported duration into its dateFilter preset", () => {
+      const cases: Array<[string, string]> = [
+        ["-P1D", "day"],
+        ["-P1W", "week"],
+        ["-P1M", "month"],
+        ["-P1Y", "year"],
+      ];
+      for (const [duration, preset] of cases) {
+        expect(
+          translateSearchFilter({
+            field: "updatedAt",
+            operator: "gte",
+            value: duration,
+          })
+        ).toEqual({ dateFilter: preset });
+      }
+    });
+
+    it("translates archivedAt isNotNull into statusFilter [archived]", () => {
+      expect(
+        translateSearchFilter({
+          field: "archivedAt",
+          operator: "isNotNull",
+        })
+      ).toEqual({ statusFilter: [StatusFilter.Archived] });
+    });
+
+    it("translates AND of archivedAt isNull + publishedAt isNotNull into statusFilter [published]", () => {
+      expect(
+        translateSearchFilter({
+          operator: "AND",
+          filters: [
+            {
+              operator: "AND",
+              filters: [
+                { field: "archivedAt", operator: "isNull" },
+                { field: "publishedAt", operator: "isNotNull" },
+              ],
+            },
+          ],
+        })
+      ).toEqual({ statusFilter: [StatusFilter.Published] });
+    });
+
+    it("translates AND of archivedAt isNull + publishedAt isNull into statusFilter [draft]", () => {
+      expect(
+        translateSearchFilter({
+          operator: "AND",
+          filters: [
+            { field: "archivedAt", operator: "isNull" },
+            { field: "publishedAt", operator: "isNull" },
+          ],
+        })
+      ).toEqual({ statusFilter: [StatusFilter.Draft] });
+    });
+
+    it("translates an OR of status shapes into a multi-status statusFilter", () => {
+      expect(
+        translateSearchFilter({
+          operator: "OR",
+          filters: [
+            {
+              operator: "AND",
+              filters: [
+                { field: "archivedAt", operator: "isNull" },
+                { field: "publishedAt", operator: "isNotNull" },
+              ],
+            },
+            { field: "archivedAt", operator: "isNotNull" },
+          ],
+        })
+      ).toEqual({
+        statusFilter: [StatusFilter.Published, StatusFilter.Archived],
+      });
+    });
+
+    it("combines collectionId, dateFilter and statusFilter in an AND", () => {
+      expect(
+        translateSearchFilter({
+          operator: "AND",
+          filters: [
+            { field: "collectionId", operator: "eq", value: "c" },
+            { field: "updatedAt", operator: "gte", value: "-P1W" },
+            { field: "archivedAt", operator: "isNotNull" },
+          ],
+        })
+      ).toEqual({
+        collectionId: "c",
+        dateFilter: "week",
+        statusFilter: [StatusFilter.Archived],
+      });
+    });
+
+    it("rejects an unsupported duration on updatedAt gte", () => {
+      expect(() =>
+        translateSearchFilter({
+          field: "updatedAt",
+          operator: "gte",
+          value: "-P3D",
         })
       ).toThrow();
     });
