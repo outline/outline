@@ -1,4 +1,5 @@
 import copy from "copy-to-clipboard";
+import type Token from "markdown-it/lib/token.mjs";
 import { textblockTypeInputRule } from "prosemirror-inputrules";
 import type {
   Node as ProsemirrorNode,
@@ -80,7 +81,7 @@ export default class Heading extends Node {
   parseMarkdown() {
     return {
       block: "heading",
-      getAttrs: (token: Record<string, any>) => ({
+      getAttrs: (token: Token) => ({
         level: +token.tag.slice(1),
       }),
     };

@@ -17,6 +17,7 @@ import {
   mergeCells,
   splitCell,
   TableMap,
+  type TableRect,
 } from "prosemirror-tables";
 import { ProsemirrorHelper } from "../../utils/ProsemirrorHelper";
 import { CSVHelper } from "../../utils/csv";
@@ -103,7 +104,7 @@ export function createTableInner(
   const cells: Node[] = [];
   const rows: Node[] = [];
 
-  const createCell = (cellType: NodeType, attrs: Record<string, any> | null) =>
+  const createCell = (cellType: NodeType, attrs: Attrs | null) =>
     cellContent
       ? cellType.createChecked(attrs, cellContent)
       : cellType.createAndFill(attrs);
@@ -916,7 +917,7 @@ export function splitCellAndCollapse(): Command {
  */
 function addRowWithAlignment(
   tr: Transaction,
-  rect: any,
+  rect: TableRect,
   index: number,
   copyFromRow: number | undefined,
   state: EditorState
