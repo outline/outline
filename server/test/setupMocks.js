@@ -6,7 +6,6 @@ jest.mock("ioredis", () => require("ioredis-mock"));
 
 // Mock other Redis-dependent modules
 jest.mock("@server/utils/MutexLock");
-jest.mock("@server/utils/CacheHelper");
 
 // Mock AWS SDK signature module to prevent aws_logger open handle
 jest.mock("@aws-sdk/signature-v4-crt", () => ({}));

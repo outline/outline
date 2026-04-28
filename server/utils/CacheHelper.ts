@@ -127,6 +127,19 @@ export class CacheHelper {
   }
 
   /**
+   * Removes a single cached entry by key.
+   *
+   * @param key Cache key to remove.
+   */
+  public static async removeData(key: string) {
+    try {
+      await Redis.defaultClient.del(key);
+    } catch (err) {
+      Logger.error(`Could not remove cached entry against ${key}`, err);
+    }
+  }
+
+  /**
    * Clears all cache data with the given prefix
    *
    * @param prefix Prefix to clear cache data

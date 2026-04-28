@@ -60,6 +60,7 @@ import Attachment from "./Attachment";
 import AuthenticationProvider from "./AuthenticationProvider";
 import Collection from "./Collection";
 import Group from "./Group";
+import GroupUser from "./GroupUser";
 import Team from "./Team";
 import UserAuthentication from "./UserAuthentication";
 import UserMembership from "./UserMembership";
@@ -847,6 +848,41 @@ class User extends ParanoidModel<
           },
         }
       );
+    }
+  }
+
+  // When a user's suspension state changes, invalidate the cached member count
+  // for every group they belong to so the count reflects only active members.
+  @AfterUpdate
+  static async invalidateGroupMemberCount(
+    model: User,
+    options: InstanceUpdateOptions<InferAttributes<User>>
+  ) {
+    if (!model.changed("suspendedAt")) {
+      return;
+    }
+
+    const groupUsers = await GroupUser.findAll({
+      where: { userId: model.id },
+      transaction: options.transaction,
+    });
+
+    if (!groupUsers.length) {
+      return;
+    }
+
+    const invalidate = async () => {
+      await Promise.all(
+        groupUsers.map((groupUser) =>
+          CacheHelper.removeData(`count:Group:members:${groupUser.groupId}`)
+        )
+      );
+    };
+
+    if (options.transaction) {
+      options.transaction.afterCommit(invalidate);
+    } else {
+      await invalidate();
     }
   }
 
