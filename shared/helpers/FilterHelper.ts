@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { FilterValidation } from "../validations";
 
 export const ComparisonOperator = z.enum([
   "eq",
@@ -29,9 +30,6 @@ export const FilterValue = z.union([
   z.array(z.number()),
 ]);
 export type FilterValue = z.infer<typeof FilterValue>;
-
-const MAX_DEPTH = 5;
-const MAX_FILTERS_PER_GROUP = 50;
 
 export interface FilterCondition<F extends string = string> {
   field: F;
@@ -112,6 +110,14 @@ export function createFilterSchema<F extends readonly [string, ...string[]]>(
             message: `value must be a non-empty array for operator '${operator}'`,
             path: ["value"],
           });
+          return;
+        }
+        if (value.length > FilterValidation.maxInValues) {
+          ctx.addIssue({
+            code: "custom",
+            message: `value must contain at most ${FilterValidation.maxInValues} entries for operator '${operator}'`,
+            path: ["value"],
+          });
         }
         return;
       }
@@ -146,17 +152,17 @@ export function createFilterSchema<F extends readonly [string, ...string[]]>(
       filters: z
         .array(z.union([FilterConditionSchema, FilterGroupSchema]))
         .min(1)
-        .max(MAX_FILTERS_PER_GROUP),
+        .max(FilterValidation.maxFiltersPerGroup),
     })
   );
 
   const FilterSchema = z
     .union([FilterConditionSchema, FilterGroupSchema])
     .superRefine((data, ctx) => {
-      if (depthOf(data as Filter) > MAX_DEPTH) {
+      if (depthOf(data as Filter) > FilterValidation.maxDepth) {
         ctx.addIssue({
           code: "custom",
-          message: `filter nesting depth exceeds maximum of ${MAX_DEPTH}`,
+          message: `filter nesting depth exceeds maximum of ${FilterValidation.maxDepth}`,
         });
       }
     });

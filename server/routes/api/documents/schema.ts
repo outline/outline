@@ -9,6 +9,7 @@ import {
   TextEditMode,
   SortFilter,
 } from "@shared/types";
+import { FilterValidation } from "@shared/validations";
 import { BaseSchema } from "@server/routes/api/schema";
 import { zodIconType, zodIdType, zodShareIdType } from "@server/utils/zod";
 import { ValidateColor } from "@server/validation";
@@ -147,7 +148,11 @@ export const DocumentsListSchema = BaseSchema.extend({
     statusFilter: z.enum(StatusFilter).array().optional(),
 
     /** List of filter expressions. Implicit AND between top-level entries. */
-    filters: z.array(documentFilter.FilterSchema).min(1).max(50).optional(),
+    filters: z
+      .array(documentFilter.FilterSchema)
+      .min(1)
+      .max(FilterValidation.maxFiltersPerGroup)
+      .optional(),
   }),
   // Maintains backwards compatibility
 })
@@ -297,7 +302,11 @@ export const DocumentsSearchSchema = BaseSchema.extend({
       .optional(),
 
     /** List of filter expressions. Implicit AND between top-level entries. */
-    filters: z.array(documentFilter.FilterSchema).min(1).max(50).optional(),
+    filters: z
+      .array(documentFilter.FilterSchema)
+      .min(1)
+      .max(FilterValidation.maxFiltersPerGroup)
+      .optional(),
   }),
 }).refine(filterIncompatibleWithLegacy, {
   message: filterIncompatibleWithLegacyMessage,
@@ -319,7 +328,11 @@ export const DocumentsSearchTitlesSchema = BaseSchema.extend({
       .optional(),
 
     /** List of filter expressions. Implicit AND between top-level entries. */
-    filters: z.array(documentFilter.FilterSchema).min(1).max(50).optional(),
+    filters: z
+      .array(documentFilter.FilterSchema)
+      .min(1)
+      .max(FilterValidation.maxFiltersPerGroup)
+      .optional(),
   }),
 }).refine(filterIncompatibleWithLegacy, {
   message: filterIncompatibleWithLegacyMessage,
