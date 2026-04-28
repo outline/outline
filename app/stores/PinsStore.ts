@@ -53,7 +53,7 @@ export default class PinsStore extends Store<Pin> {
   }
 
   @action
-  fetchPage = async (params?: FetchParams | undefined): Promise<Pin[]> => {
+  fetchPage = async (params?: FetchParams): Promise<Pin[]> => {
     this.isFetching = true;
 
     try {
