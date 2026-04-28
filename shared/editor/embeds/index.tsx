@@ -727,7 +727,7 @@ const embeds: EmbedDescriptor[] = [
     title: "Plant UML",
     keywords: "plant plantuml uml",
     regexMatch: [
-      /(?:https?:\/\/)?(?:www\.)?editor\.plantuml\.com\/uml\/([a-zA-Z0-9-_]+)([&?].*)?$/i,
+      /(?:https?:\/\/)?(?:www\.)?editor\.plantuml\.com\/uml\/([a-zA-Z0-9_-]+)([&?].*)?$/i,
     ],
     icon: <Img src="/images/plantuml.png" alt="PlantUml" />,
     component: PlantUmlDiagrams,
