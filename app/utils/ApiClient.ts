@@ -70,10 +70,14 @@ class ApiClient {
 
     if (this.shareId) {
       // add to data
-      data = {
-        ...(data || {}),
-        shareId: this.shareId,
-      };
+      if (data instanceof FormData) {
+        data.append("shareId", this.shareId);
+      } else {
+        data = {
+          ...(data || {}),
+          shareId: this.shareId,
+        };
+      }
     }
 
     if (method === "GET") {
@@ -285,7 +289,7 @@ class ApiClient {
 
   post = <T = any>(
     path: string,
-    data?: JSONObject | FormData | undefined,
+    data?: JSONObject | FormData  ,
     options?: FetchOptions
   ): Promise<T> => {
     if (data instanceof FormData) {

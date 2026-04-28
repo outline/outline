@@ -57,6 +57,7 @@ if (element) {
   const App = () => (
     <StrictMode>
       <HelmetProvider>
+        {/* oxlint-disable-next-line typescript/no-misused-spread */}
         <Provider {...stores}>
           <Analytics>
             <Router history={history}>

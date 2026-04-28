@@ -253,7 +253,10 @@ export class ChangesetHelper {
         }
 
         return {
-          ...change,
+          fromA: change.fromA,
+          toA: change.toA,
+          fromB: change.fromB,
+          toB: change.toB,
           deleted: change.deleted.filter(
             (_, index) => !matchedDeletionIndices.has(index)
           ),

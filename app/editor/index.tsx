@@ -369,12 +369,12 @@ export class Editor extends React.PureComponent<
   }
 
   private createNodeViews() {
-    return this.extensions.extensions
-      .filter((extension: ReactNode) => extension.component)
-      .reduce(
-        (nodeViews, extension: ReactNode) => ({
-          ...nodeViews,
-          [extension.name]: (
+    return Object.fromEntries(
+      this.extensions.extensions
+        .filter((extension: ReactNode) => extension.component)
+        .map((extension: ReactNode) => [
+          extension.name,
+          (
             node: ProsemirrorNode,
             view: EditorView,
             getPos: () => number,
@@ -388,9 +388,8 @@ export class Editor extends React.PureComponent<
               getPos,
               decorations,
             }),
-        }),
-        {}
-      );
+        ])
+    ) as { [name: string]: NodeViewConstructor };
   }
 
   private createCommands() {

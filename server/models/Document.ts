@@ -923,10 +923,9 @@ class Document extends ArchivableModel<
   collaborators = async (options?: FindOptions<User>): Promise<User[]> =>
     await User.findAll({
       ...options,
-      where: {
-        ...options?.where,
-        id: this.collaboratorIds,
-      },
+      where: options?.where
+        ? { [Op.and]: [options.where, { id: this.collaboratorIds }] }
+        : { id: this.collaboratorIds },
     });
 
   /**

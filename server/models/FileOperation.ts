@@ -169,11 +169,15 @@ class FileOperation extends ParanoidModel<
   ): Promise<number> {
     return this.count({
       where: {
-        teamId,
-        createdAt: {
-          [Op.gt]: startDate,
-        },
-        ...where,
+        [Op.and]: [
+          {
+            teamId,
+            createdAt: {
+              [Op.gt]: startDate,
+            },
+          },
+          where,
+        ],
       },
     });
   }

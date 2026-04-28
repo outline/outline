@@ -1,4 +1,3 @@
-import type { WhereOptions } from "sequelize";
 import { Op } from "sequelize";
 import { Minute } from "@shared/utils/time";
 import { BaseTask } from "./BaseTask";
@@ -178,7 +177,7 @@ export abstract class CronTask extends BaseTask<Props> {
   protected getPartitionWhereClause(
     idField: string,
     partitionInfo: PartitionInfo | undefined
-  ): WhereOptions {
+  ): Record<string, unknown> {
     if (!partitionInfo) {
       return {};
     }

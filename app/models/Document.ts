@@ -570,7 +570,7 @@ export default class Document extends ArchivableModel implements Searchable {
       );
 
       // if saving is successful set the new values on the model itself
-      set(this, { ...params, ...model });
+      set(this, { ...params, ...model.toJSON() });
 
       this.persistedAttributes = this.toAPI();
 

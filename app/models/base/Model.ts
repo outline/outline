@@ -120,7 +120,7 @@ export default abstract class Model {
       );
 
       // if saving is successful set the new values on the model itself
-      this.updateData({ ...params, ...model });
+      this.updateData({ ...params, ...model.toJSON() });
 
       if (isNew) {
         LifecycleManager.executeHooks(this.constructor, "afterCreate", this);

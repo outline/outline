@@ -1,7 +1,11 @@
 /* oxlint-disable no-restricted-imports, react/rules-of-hooks */
 import type http from "node:http";
 import type https from "node:https";
-import nodeFetch, { type RequestInit, type Response } from "node-fetch";
+import nodeFetch, {
+  Headers,
+  type RequestInit,
+  type Response,
+} from "node-fetch";
 import { getProxyForUrl } from "proxy-from-env";
 import tunnelAgent, { type TunnelAgent } from "tunnel-agent";
 import { useAgent as useFilteringAgent } from "request-filtering-agent";
@@ -23,7 +27,8 @@ const DefaultOptions = {
   maxCachedSessions: 500,
 };
 
-export type { RequestInit } from "node-fetch";
+export type { HeadersInit, RequestInit } from "node-fetch";
+export { Headers } from "node-fetch";
 
 /**
  * Default user agent string for outgoing requests.
@@ -72,13 +77,15 @@ export default async function fetch(
 
   const signal = abortController?.signal || rest.signal;
 
+  const headers = new Headers(rest?.headers);
+  if (!headers.has("User-Agent")) {
+    headers.set("User-Agent", outlineUserAgent);
+  }
+
   try {
     const response = await nodeFetch(url, {
       ...rest,
-      headers: {
-        "User-Agent": outlineUserAgent,
-        ...rest?.headers,
-      },
+      headers,
       signal,
       agent: buildAgent(url, { signal, allowPrivateIPAddress }),
     });

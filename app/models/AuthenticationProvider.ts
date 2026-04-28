@@ -37,8 +37,11 @@ class AuthenticationProvider extends Model {
   @AfterDelete
   static afterDelete(model: AuthenticationProvider) {
     // Restore a placeholder record to allow re-connection
+    const data = model.toJSON() as Partial<AuthenticationProvider> & {
+      id: string;
+    };
     return (model.store as AuthenticationProvidersStore).add({
-      ...model,
+      ...data,
       isEnabled: false,
       isConnected: false,
     });

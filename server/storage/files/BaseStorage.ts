@@ -7,8 +7,8 @@ import { isBase64Url, isInternalUrl } from "@shared/utils/urls";
 import { Week } from "@shared/utils/time";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
-import type { RequestInit } from "@server/utils/fetch";
-import fetch, { chromeUserAgent } from "@server/utils/fetch";
+import type { HeadersInit, RequestInit } from "@server/utils/fetch";
+import fetch, { Headers, chromeUserAgent } from "@server/utils/fetch";
 import type { AppContext } from "@server/types";
 
 export default abstract class BaseStorage {
@@ -189,10 +189,16 @@ export default abstract class BaseStorage {
       }
     } else {
       try {
-        const headers = {
+        const headers: Record<string, string | string[]> = {
           "User-Agent": chromeUserAgent,
-          ...init?.headers,
         };
+        if (init?.headers) {
+          for (const [name, value] of new Headers(
+            init.headers as HeadersInit
+          ).entries()) {
+            headers[name] = value;
+          }
+        }
         const initWithoutHeaders = omit(init, ["headers"]);
 
         const res = await fetch(url, {
