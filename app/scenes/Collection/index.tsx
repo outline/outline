@@ -364,7 +364,7 @@ const Content = styled.div`
 const RecentDocuments = observer(
   ({ collection, documents }: { collection: Collection; documents: any }) => {
     useEffect(() => {
-      collection.fetchDocuments();
+      void collection.fetchDocuments();
     }, [collection]);
 
     return (

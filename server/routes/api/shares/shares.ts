@@ -540,7 +540,7 @@ router.post(
     const confirmUrl = ShareSubscriptionHelper.confirmUrl(subscription);
     const usePublicBranding =
       share.team?.getPreference(TeamPreference.PublicBranding) ?? false;
-    new ShareSubscriptionConfirmEmail({
+    await new ShareSubscriptionConfirmEmail({
       to: email,
       documentTitle: document?.titleWithDefault ?? "",
       confirmUrl,

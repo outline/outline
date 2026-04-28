@@ -121,7 +121,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
       provider.shouldConnect = false;
       retryCount.current++;
 
-      sleep(retryCount.current * 1000 - 1000).then(() =>
+      void sleep(retryCount.current * 1000 - 1000).then(() =>
         auth
           .fetchAuth()
           .then(() => {
