@@ -280,6 +280,108 @@ export function legacyParamsToFilter(legacy: LegacyParams): Filter | undefined {
   return { operator: "AND", filters: leaves };
 }
 
+interface SearchFilterTranslation {
+  collectionId?: string;
+  collaboratorIds?: string[];
+  documentId?: string;
+}
+
+interface TranslateSearchFilterOptions {
+  /** Whether `documentId` is a permitted leaf field. */
+  allowDocumentId?: boolean;
+}
+
+/**
+ * Translate a search filter expression into the subset of SearchOptions fields
+ * that SearchProvider implementations accept.
+ *
+ * Search providers consume a fixed shape rather than arbitrary WHERE clauses,
+ * so the filter must be either a single leaf or an AND group of leaves on
+ * supported fields and operators:
+ *   - `collectionId` eq → `collectionId`
+ *   - `userId` eq → `collaboratorIds: [value]`
+ *   - `userId` in → `collaboratorIds: [...values]`
+ *   - `documentId` eq → `documentId` (only when allowDocumentId is true)
+ *
+ * @param filter the filter to translate.
+ * @param options translation options.
+ * @returns the SearchOptions subset extracted from the filter.
+ * @throws if the filter shape is not supported for search.
+ */
+export function translateSearchFilter(
+  filter: Filter,
+  options: TranslateSearchFilterOptions = {}
+): SearchFilterTranslation {
+  const leaves: FilterCondition[] = [];
+
+  if (isGroup(filter)) {
+    if (filter.operator !== "AND") {
+      throw new Error(
+        `Search filter only supports AND groups at the top level; got ${filter.operator}`
+      );
+    }
+    for (const child of filter.filters) {
+      if (isGroup(child)) {
+        throw new Error("Search filter does not support nested groups");
+      }
+      leaves.push(child);
+    }
+  } else {
+    leaves.push(filter);
+  }
+
+  const result: SearchFilterTranslation = {};
+  const seenFields = new Set<string>();
+
+  for (const leaf of leaves) {
+    if (seenFields.has(leaf.field)) {
+      throw new Error(
+        `Search filter has multiple leaves on the same field '${leaf.field}'`
+      );
+    }
+    seenFields.add(leaf.field);
+
+    switch (leaf.field) {
+      case "collectionId":
+        if (leaf.operator !== "eq" || leaf.value === undefined) {
+          throw new Error(
+            "Search filter only supports `eq` on collectionId with a value"
+          );
+        }
+        result.collectionId = String(leaf.value);
+        break;
+      case "userId":
+        if (leaf.operator === "eq" && leaf.value !== undefined) {
+          result.collaboratorIds = [String(leaf.value)];
+        } else if (leaf.operator === "in" && Array.isArray(leaf.value)) {
+          result.collaboratorIds = leaf.value.map(String);
+        } else {
+          throw new Error(
+            "Search filter only supports `eq` or `in` on userId with a value"
+          );
+        }
+        break;
+      case "documentId":
+        if (!options.allowDocumentId) {
+          throw new Error(
+            "Search filter does not support `documentId` for this endpoint"
+          );
+        }
+        if (leaf.operator !== "eq" || leaf.value === undefined) {
+          throw new Error(
+            "Search filter only supports `eq` on documentId with a value"
+          );
+        }
+        result.documentId = String(leaf.value);
+        break;
+      default:
+        throw new Error(`Search filter does not support field '${leaf.field}'`);
+    }
+  }
+
+  return result;
+}
+
 /**
  * Re-run authorization for any auth-bearing fields referenced inside a filter.
  *

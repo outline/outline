@@ -73,6 +73,7 @@ import {
   hasFieldInFilter,
   legacyParamsToFilter,
   mapFilterFields,
+  translateSearchFilter,
 } from "@server/models/helpers/Filters";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import SearchProviderManager from "@server/utils/SearchProviderManager";
@@ -218,7 +219,10 @@ router.post(
     // column (e.g. `createdById`) only at the point of building the where clause.
     if (filter) {
       await authorizeFilterFields(user, filter);
-      const mapped = mapFilterFields(filter, { userId: "createdById" });
+      const mapped = mapFilterFields(filter, {
+        userId: "createdById",
+        documentId: "id",
+      });
       where[Op.and].push(buildWhere<Document>(mapped));
     }
 
@@ -1047,28 +1051,45 @@ router.post(
   rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsSearchTitlesSchema),
   async (ctx: APIContext<T.DocumentsSearchTitlesReq>) => {
-    const {
-      query,
-      statusFilter,
-      dateFilter,
-      collectionId,
-      userId,
-      sort,
-      direction,
-    } = ctx.input.body;
+    const { query, statusFilter, dateFilter, sort, direction, filter } =
+      ctx.input.body;
+    let { collectionId, userId, documentId } = ctx.input.body;
     const { offset, limit } = ctx.state.pagination;
     const { user } = ctx.state.auth;
-    let collaboratorIds = undefined;
+    let collaboratorIds: string[] | undefined = undefined;
 
-    if (collectionId) {
+    if (filter) {
+      try {
+        const translated = translateSearchFilter(filter, {
+          allowDocumentId: true,
+        });
+        collectionId = translated.collectionId;
+        collaboratorIds = translated.collaboratorIds;
+        documentId = translated.documentId;
+      } catch (err) {
+        throw InvalidRequestError(
+          err instanceof Error ? err.message : "Invalid filter"
+        );
+      }
+      await authorizeFilterFields(user, filter);
+    } else if (userId) {
+      collaboratorIds = [userId];
+    }
+
+    if (collectionId && !filter) {
       const collection = await Collection.findByPk(collectionId, {
         userId: user.id,
       });
       authorize(user, "readDocument", collection);
     }
 
-    if (userId) {
-      collaboratorIds = [userId];
+    let documentIds: string[] | undefined = undefined;
+    if (documentId) {
+      const document = await Document.findByPk(documentId, {
+        userId: user.id,
+      });
+      authorize(user, "read", document);
+      documentIds = [documentId, ...(await document.findAllChildDocumentIds())];
     }
 
     const documents =
@@ -1078,6 +1099,7 @@ router.post(
         statusFilter,
         collectionId,
         collaboratorIds,
+        documentIds,
         offset,
         limit,
         sort: sort as SortFilter,
@@ -1103,9 +1125,6 @@ router.post(
   async (ctx: APIContext<T.DocumentsSearchReq>) => {
     const {
       query,
-      collectionId,
-      documentId,
-      userId,
       dateFilter,
       statusFilter = [],
       shareId,
@@ -1113,7 +1132,9 @@ router.post(
       snippetMaxWords,
       sort,
       direction,
+      filter,
     } = ctx.input.body;
+    let { collectionId, documentId, userId } = ctx.input.body;
     const { offset, limit } = ctx.state.pagination;
     const { user } = ctx.state.auth;
 
@@ -1176,8 +1197,27 @@ router.post(
       }
 
       teamId = user.teamId;
+      let collaboratorIds: string[] | undefined = undefined;
 
-      if (collectionId) {
+      if (filter) {
+        try {
+          const translated = translateSearchFilter(filter, {
+            allowDocumentId: true,
+          });
+          collectionId = translated.collectionId;
+          collaboratorIds = translated.collaboratorIds;
+          documentId = translated.documentId;
+        } catch (err) {
+          throw InvalidRequestError(
+            err instanceof Error ? err.message : "Invalid filter"
+          );
+        }
+        await authorizeFilterFields(user, filter);
+      } else if (userId) {
+        collaboratorIds = [userId];
+      }
+
+      if (collectionId && !filter) {
         const collection = await Collection.findByPk(collectionId, {
           userId: user.id,
         });
@@ -1194,12 +1234,6 @@ router.post(
           documentId,
           ...(await document.findAllChildDocumentIds()),
         ];
-      }
-
-      let collaboratorIds = undefined;
-
-      if (userId) {
-        collaboratorIds = [userId];
       }
 
       response = await SearchProviderManager.getProvider().searchForUser(user, {

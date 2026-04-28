@@ -1670,6 +1670,77 @@ describe("#documents.search_titles", () => {
     const res = await server.post("/api/documents.search_titles");
     expect(res.status).toEqual(401);
   });
+
+  describe("filter DSL", () => {
+    it("should filter by userId via collaboratorIds", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        title: "match title",
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      await buildDocument({
+        title: "match title",
+        teamId: user.teamId,
+      });
+      const res = await server.post("/api/documents.search_titles", {
+        body: {
+          token: user.getJwtToken(),
+          query: "match",
+          filter: { field: "userId", operator: "eq", value: user.id },
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data).toHaveLength(1);
+      expect(body.data[0].id).toEqual(document.id);
+    });
+
+    it("should filter by documentId scope", async () => {
+      const user = await buildUser();
+      const parent = await buildDocument({
+        title: "parent match",
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const child = await buildDocument({
+        title: "child match",
+        teamId: user.teamId,
+        userId: user.id,
+        parentDocumentId: parent.id,
+        collectionId: parent.collectionId,
+      });
+      await buildDocument({
+        title: "unrelated match",
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const res = await server.post("/api/documents.search_titles", {
+        body: {
+          token: user.getJwtToken(),
+          query: "match",
+          filter: { field: "documentId", operator: "eq", value: parent.id },
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const returnedIds = body.data.map((d: { id: string }) => d.id).sort();
+      expect(returnedIds).toEqual([parent.id, child.id].sort());
+    });
+
+    it("should reject filter combined with legacy userId", async () => {
+      const user = await buildUser();
+      const res = await server.post("/api/documents.search_titles", {
+        body: {
+          token: user.getJwtToken(),
+          query: "match",
+          userId: user.id,
+          filter: { field: "userId", operator: "eq", value: user.id },
+        },
+      });
+      expect(res.status).toEqual(400);
+    });
+  });
 });
 
 describe("#documents.search", () => {
@@ -2294,6 +2365,182 @@ describe("#documents.search", () => {
     const returnedIds = body.data.map((d: any) => d.document.id).sort();
     const expectedIds = docsInCollection1.map((d) => d.id).sort();
     expect(returnedIds).toEqual(expectedIds);
+  });
+
+  describe("filter DSL", () => {
+    it("should produce equivalent results for legacy collectionId and filter", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        title: "search term",
+        text: "search term",
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const legacyRes = await server.post("/api/documents.search", {
+        body: {
+          token: user.getJwtToken(),
+          query: "search term",
+          collectionId: document.collectionId,
+        },
+      });
+      const filterRes = await server.post("/api/documents.search", {
+        body: {
+          token: user.getJwtToken(),
+          query: "search term",
+          filter: {
+            field: "collectionId",
+            operator: "eq",
+            value: document.collectionId,
+          },
+        },
+      });
+      const legacyBody = await legacyRes.json();
+      const filterBody = await filterRes.json();
+      expect(legacyRes.status).toEqual(200);
+      expect(filterRes.status).toEqual(200);
+      expect(
+        filterBody.data
+          .map((r: { document: { id: string } }) => r.document.id)
+          .sort()
+      ).toEqual(
+        legacyBody.data
+          .map((r: { document: { id: string } }) => r.document.id)
+          .sort()
+      );
+    });
+
+    it("should filter by userId via collaboratorIds", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        title: "search term",
+        text: "search term",
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      await buildDocument({
+        title: "search term",
+        text: "search term",
+        teamId: user.teamId,
+      });
+      const res = await server.post("/api/documents.search", {
+        body: {
+          token: user.getJwtToken(),
+          query: "search term",
+          filter: { field: "userId", operator: "eq", value: user.id },
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data).toHaveLength(1);
+      expect(body.data[0].document.id).toEqual(document.id);
+    });
+
+    it("should filter by documentId scope", async () => {
+      const user = await buildUser();
+      const parent = await buildDocument({
+        title: "parent",
+        text: "search term",
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const child = await buildDocument({
+        title: "child",
+        text: "search term",
+        teamId: user.teamId,
+        userId: user.id,
+        parentDocumentId: parent.id,
+        collectionId: parent.collectionId,
+      });
+      await buildDocument({
+        title: "unrelated",
+        text: "search term",
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      const res = await server.post("/api/documents.search", {
+        body: {
+          token: user.getJwtToken(),
+          query: "search term",
+          filter: { field: "documentId", operator: "eq", value: parent.id },
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const returnedIds = body.data
+        .map((r: { document: { id: string } }) => r.document.id)
+        .sort();
+      expect(returnedIds).toEqual([parent.id, child.id].sort());
+    });
+
+    it("should re-run authorize for collectionId in filter", async () => {
+      const user = await buildUser();
+      const otherUser = await buildUser();
+      const privateCollection = await buildCollection({
+        teamId: otherUser.teamId,
+        userId: otherUser.id,
+        permission: null,
+      });
+      const res = await server.post("/api/documents.search", {
+        body: {
+          token: user.getJwtToken(),
+          query: "search term",
+          filter: {
+            field: "collectionId",
+            operator: "eq",
+            value: privateCollection.id,
+          },
+        },
+      });
+      expect(res.status).toEqual(403);
+    });
+
+    it("should reject filter combined with legacy collectionId", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const res = await server.post("/api/documents.search", {
+        body: {
+          token: user.getJwtToken(),
+          collectionId: document.collectionId,
+          filter: {
+            field: "collectionId",
+            operator: "eq",
+            value: document.collectionId,
+          },
+        },
+      });
+      expect(res.status).toEqual(400);
+    });
+
+    it("should reject an unknown field", async () => {
+      const user = await buildUser();
+      const res = await server.post("/api/documents.search", {
+        body: {
+          token: user.getJwtToken(),
+          filter: { field: "title", operator: "eq", value: "x" },
+        },
+      });
+      expect(res.status).toEqual(400);
+    });
+
+    it("should reject an OR group at top level", async () => {
+      const user = await buildUser();
+      const res = await server.post("/api/documents.search", {
+        body: {
+          token: user.getJwtToken(),
+          filter: {
+            operator: "OR",
+            filters: [
+              { field: "collectionId", operator: "eq", value: user.id },
+              { field: "userId", operator: "eq", value: user.id },
+            ],
+          },
+        },
+      });
+      expect(res.status).toEqual(400);
+    });
   });
 });
 

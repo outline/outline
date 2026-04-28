@@ -11,6 +11,7 @@ import {
   hasFieldInFilter,
   legacyParamsToFilter,
   mapFilterFields,
+  translateSearchFilter,
 } from "./Filters";
 
 describe("Filters", () => {
@@ -734,6 +735,122 @@ describe("Filters", () => {
           value: [accessible.id, privateCollection.id],
         })
       ).rejects.toThrow();
+    });
+  });
+
+  describe("translateSearchFilter", () => {
+    it("handles a single collectionId leaf", () => {
+      expect(
+        translateSearchFilter({
+          field: "collectionId",
+          operator: "eq",
+          value: "abc",
+        })
+      ).toEqual({ collectionId: "abc" });
+    });
+
+    it("handles userId eq as a single-element collaboratorIds", () => {
+      expect(
+        translateSearchFilter({
+          field: "userId",
+          operator: "eq",
+          value: "user-1",
+        })
+      ).toEqual({ collaboratorIds: ["user-1"] });
+    });
+
+    it("handles userId in as multi-element collaboratorIds", () => {
+      expect(
+        translateSearchFilter({
+          field: "userId",
+          operator: "in",
+          value: ["a", "b"],
+        })
+      ).toEqual({ collaboratorIds: ["a", "b"] });
+    });
+
+    it("combines an AND group of supported leaves", () => {
+      expect(
+        translateSearchFilter(
+          {
+            operator: "AND",
+            filters: [
+              { field: "collectionId", operator: "eq", value: "c" },
+              { field: "userId", operator: "eq", value: "u" },
+              { field: "documentId", operator: "eq", value: "d" },
+            ],
+          },
+          { allowDocumentId: true }
+        )
+      ).toEqual({
+        collectionId: "c",
+        collaboratorIds: ["u"],
+        documentId: "d",
+      });
+    });
+
+    it("rejects documentId when not allowed", () => {
+      expect(() =>
+        translateSearchFilter({
+          field: "documentId",
+          operator: "eq",
+          value: "d",
+        })
+      ).toThrow();
+    });
+
+    it("rejects unsupported fields", () => {
+      expect(() =>
+        translateSearchFilter({ field: "title", operator: "eq", value: "x" })
+      ).toThrow();
+    });
+
+    it("rejects OR groups at the top level", () => {
+      expect(() =>
+        translateSearchFilter({
+          operator: "OR",
+          filters: [
+            { field: "collectionId", operator: "eq", value: "a" },
+            { field: "userId", operator: "eq", value: "u" },
+          ],
+        })
+      ).toThrow();
+    });
+
+    it("rejects nested groups", () => {
+      expect(() =>
+        translateSearchFilter({
+          operator: "AND",
+          filters: [
+            {
+              operator: "AND",
+              filters: [{ field: "collectionId", operator: "eq", value: "a" }],
+            },
+          ],
+        })
+      ).toThrow();
+    });
+
+    it("rejects unsupported operators", () => {
+      expect(() =>
+        translateSearchFilter({
+          field: "collectionId",
+          operator: "neq",
+          value: "a",
+        })
+      ).toThrow();
+    });
+
+    it("rejects duplicate leaves on the same field", () => {
+      expect(() =>
+        translateSearchFilter({
+          operator: "AND",
+          filters: [
+            { field: "collectionId", operator: "eq", value: "a" },
+            { field: "collectionId", operator: "eq", value: "b" },
+          ],
+        })
+      ).toThrow();
     });
   });
 });

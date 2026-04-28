@@ -22,6 +22,7 @@ const documentFilter = createFilterSchema([
   "templateId",
   "collectionId",
   "userId",
+  "documentId",
   "parentDocumentId",
 ] as const);
 
@@ -61,13 +62,22 @@ const DateFilterSchema = z.object({
 });
 
 const BaseSearchSchema = DateFilterSchema.extend({
-  /** Filter results for team based on the collection */
+  /**
+   * Filter results for team based on the collection.
+   * @deprecated use `filter` with field `collectionId` instead.
+   */
   collectionId: z.uuid().optional(),
 
-  /** Filter results based on user */
+  /**
+   * Filter results based on user.
+   * @deprecated use `filter` with field `userId` instead.
+   */
   userId: z.uuid().optional(),
 
-  /** Filter results based on content within a document and it's children */
+  /**
+   * Filter results based on content within a document and it's children.
+   * @deprecated use `filter` with field `documentId` instead.
+   */
   documentId: z.uuid().optional(),
 
   /** Document statuses to include in results */
@@ -246,6 +256,22 @@ export const DocumentsRestoreSchema = BaseSchema.extend({
 
 export type DocumentsRestoreReq = z.infer<typeof DocumentsRestoreSchema>;
 
+const filterIncompatibleWithLegacy = (req: {
+  body: {
+    filter?: unknown;
+    collectionId?: unknown;
+    userId?: unknown;
+    documentId?: unknown;
+  };
+}) =>
+  req.body.filter === undefined ||
+  (req.body.collectionId === undefined &&
+    req.body.userId === undefined &&
+    req.body.documentId === undefined);
+
+const filterIncompatibleWithLegacyMessage =
+  "filter cannot be combined with deprecated parameters collectionId, userId, or documentId";
+
 export const DocumentsSearchSchema = BaseSchema.extend({
   body: BaseSearchSchema.extend({
     /** Query for search */
@@ -258,7 +284,12 @@ export const DocumentsSearchSchema = BaseSchema.extend({
     direction: z
       .enum(Object.values(DirectionFilter) as [string, ...string[]])
       .optional(),
+
+    /** Advanced filter expression. */
+    filter: documentFilter.FilterSchema.optional(),
   }),
+}).refine(filterIncompatibleWithLegacy, {
+  message: filterIncompatibleWithLegacyMessage,
 });
 
 export type DocumentsSearchReq = z.infer<typeof DocumentsSearchSchema>;
@@ -275,7 +306,12 @@ export const DocumentsSearchTitlesSchema = BaseSchema.extend({
     direction: z
       .enum(Object.values(DirectionFilter) as [string, ...string[]])
       .optional(),
+
+    /** Advanced filter expression. */
+    filter: documentFilter.FilterSchema.optional(),
   }),
+}).refine(filterIncompatibleWithLegacy, {
+  message: filterIncompatibleWithLegacyMessage,
 });
 
 export type DocumentsSearchTitlesReq = z.infer<
