@@ -6,8 +6,10 @@
  * @param target model class
  */
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- decorator extends a Sequelize Model class with dynamic statics (rawAttributes, associations) that defy precise typing.
 export default function Fix(target: any): void {
   return class extends target {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- mixin constructor must accept arbitrary Sequelize Model args.
     constructor(...args: any[]) {
       // suppresses warning from here which is not applicable in our typescript
       // environment: https://github.com/sequelize/sequelize/blob/00ced18c2cb2a8b99ae0ebf5669c124abb4c673d/src/model.js#L99
@@ -63,5 +65,6 @@ export default function Fix(target: any): void {
         });
       });
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- mixin class returned in place of original target; consumer expects original class shape.
   } as any;
 }

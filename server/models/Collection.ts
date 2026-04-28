@@ -49,6 +49,7 @@ import {
 import isUUID from "validator/lib/isUUID";
 import type {
   CollectionSort,
+  ImportableIntegrationService,
   ProsemirrorData,
   SourceMetadata,
   NavigationNode,
@@ -510,7 +511,7 @@ class Collection extends ParanoidModel<
   importId: string | null;
 
   @BelongsTo(() => Import, "apiImportId")
-  apiImport: Import<any> | null;
+  apiImport: Import<ImportableIntegrationService> | null;
 
   @ForeignKey(() => Import)
   @Column(DataType.UUID)

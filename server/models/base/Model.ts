@@ -48,6 +48,7 @@ type EventOptions = EventOverrideOptions & {
 export type HookContext = APIContext["context"] & { event?: EventOptions };
 
 class Model<
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Sequelize's Attributes<M> resolves to never under object default; load-bearing for static helpers like saveWithCtx<M extends Model>.
   TModelAttributes extends object = any,
   TCreationAttributes extends object = TModelAttributes,
 > extends SequelizeModel<TModelAttributes, TCreationAttributes> {
