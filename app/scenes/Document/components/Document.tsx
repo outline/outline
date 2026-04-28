@@ -38,6 +38,7 @@ import Header from "./Header";
 import Notices from "./Notices";
 import References from "./References";
 import RevisionViewer from "./RevisionViewer";
+import SharedHeader from "./SharedHeader";
 
 type LocationState = {
   title?: string;
@@ -316,19 +317,25 @@ function DocumentScene({
               )}
             />
           )}
-          <Header
-            editorRef={editorRef}
-            document={document}
-            revision={revision}
-            isDraft={document.isDraft}
-            isEditing={!readOnly && !!user?.separateEditMode}
-            isSaving={isSaving}
-            isPublishing={isPublishing}
-            publishingIsDisabled={document.isSaving || isPublishing || isEmpty}
-            savingIsDisabled={document.isSaving || isEmpty}
-            onSelectTemplate={handleSelectTemplate}
-            onSave={onSave}
-          />
+          {isShare ? (
+            <SharedHeader document={document} />
+          ) : (
+            <Header
+              editorRef={editorRef}
+              document={document}
+              revision={revision}
+              isDraft={document.isDraft}
+              isEditing={!readOnly && !!user?.separateEditMode}
+              isSaving={isSaving}
+              isPublishing={isPublishing}
+              publishingIsDisabled={
+                document.isSaving || isPublishing || isEmpty
+              }
+              savingIsDisabled={document.isSaving || isEmpty}
+              onSelectTemplate={handleSelectTemplate}
+              onSave={onSave}
+            />
+          )}
           <Main
             fullWidth={document.fullWidth}
             tocPosition={tocPos}

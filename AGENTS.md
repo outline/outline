@@ -46,6 +46,18 @@ You're an expert in the following areas:
 yarn install
 ```
 
+- When adding a `resolutions` entry to address a security advisory in a transitive dependency, target only the specific vulnerable descriptors using the `name@npm:<range>` syntax rather than overriding the package globally. Inspect `yarn.lock` to find the exact ranges requested by upstream packages and add one entry per vulnerable range, e.g.:
+
+```json
+"resolutions": {
+  "qs@npm:^6.5.2": "^6.14.2",
+  "qs@npm:^6.11.0": "^6.14.2",
+  "qs@npm:^6.14.0": "^6.14.2"
+}
+```
+
+This keeps overrides scoped to the affected dependents and avoids forcing unrelated consumers onto an incompatible version.
+
 ## TypeScript Usage
 
 - Use strict mode.

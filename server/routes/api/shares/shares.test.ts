@@ -1009,6 +1009,141 @@ describe("#shares.update", () => {
     expect(body.data.urlId).toBeNull();
   });
 
+  it("should update title and iconUrl", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/shares.update", {
+      body: {
+        token: user.getJwtToken(),
+        id: share.id,
+        title: "Custom Title",
+        iconUrl: "https://example.com/icon.png",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.title).toEqual("Custom Title");
+    expect(body.data.iconUrl).toEqual("https://example.com/icon.png");
+  });
+
+  it("should allow clearing title and iconUrl with null", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      title: "Custom Title",
+      iconUrl: "https://example.com/icon.png",
+    });
+    const res = await server.post("/api/shares.update", {
+      body: {
+        token: user.getJwtToken(),
+        id: share.id,
+        title: null,
+        iconUrl: null,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.title).toBeNull();
+    expect(body.data.iconUrl).toBeNull();
+  });
+
+  it("should normalize empty title to null", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      title: "Custom Title",
+    });
+    const res = await server.post("/api/shares.update", {
+      body: {
+        token: user.getJwtToken(),
+        id: share.id,
+        title: "",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.title).toBeNull();
+  });
+
+  it("should accept a relative iconUrl", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/shares.update", {
+      body: {
+        token: user.getJwtToken(),
+        id: share.id,
+        iconUrl: "/uploads/icon.png",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.iconUrl).toEqual("/uploads/icon.png");
+  });
+
+  it("should reject malformed iconUrl", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/shares.update", {
+      body: {
+        token: user.getJwtToken(),
+        id: share.id,
+        iconUrl: "not a url",
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should reject iconUrl with disallowed protocol", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/shares.update", {
+      body: {
+        token: user.getJwtToken(),
+        id: share.id,
+        iconUrl: "javascript:alert(1)",
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
   it("should allow user to update a share", async () => {
     const user = await buildUser();
     const document = await buildDocument({
