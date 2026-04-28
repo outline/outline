@@ -116,7 +116,7 @@ export class GitHubIssueProvider extends BaseIssueProvider {
     const installation = await client.requestAppInstallation(installationId);
 
     const scopes = Object.entries(installation.data.permissions).map(
-      ([name, permission]) => `${name}:${permission}`
+      ([name, permission]) => `${name}:${String(permission)}`
     );
 
     await sequelize.transaction(async (transaction) => {

@@ -112,7 +112,6 @@ export const Card = styled.div<{ fadeOut?: boolean; $borderRadius?: string }>`
   ${(props) =>
     props.fadeOut !== false
       ? `&:after {
-          ${sharedVars}
           content: "";
           display: block;
           position: absolute;

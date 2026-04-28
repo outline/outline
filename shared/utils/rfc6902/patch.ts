@@ -23,7 +23,7 @@ export class TestError extends Error {
     public actual: unknown,
     public expected: unknown
   ) {
-    super(`Test failed: ${actual} != ${expected}`);
+    super(`Test failed: ${String(actual)} != ${String(expected)}`);
     this.name = "TestError";
   }
 }
