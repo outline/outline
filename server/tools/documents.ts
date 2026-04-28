@@ -17,12 +17,11 @@ import {
   buildAPIContext,
   buildSiblingIndexMap,
   getActorFromContext,
+  getDocumentBreadcrumb,
   pathToUrl,
   withTracing,
 } from "./util";
 import { TextEditMode } from "@shared/types";
-import { CacheHelper } from "@server/utils/CacheHelper";
-import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import SearchProviderManager from "@server/utils/SearchProviderManager";
 
 /**
@@ -131,9 +130,14 @@ export function documentTools(server: McpServer, scopes: string[]) {
                         includeText: false,
                       })
                     );
+                    const breadcrumb = await getDocumentBreadcrumb(
+                      result.document,
+                      user
+                    );
                     const siblingIndex = indexMap?.get(result.document.id);
                     return {
-                      ...doc,
+                      document: doc,
+                      ...(breadcrumb !== undefined && { breadcrumb }),
                       context: result.context,
                       ...(siblingIndex !== undefined && {
                         index: siblingIndex,
@@ -150,9 +154,14 @@ export function documentTools(server: McpServer, scopes: string[]) {
                     includeText: false,
                   })
                 );
+                const breadcrumb = await getDocumentBreadcrumb(
+                  exactMatch,
+                  user
+                );
                 const siblingIndex = indexMap?.get(exactMatch.id);
                 presented.unshift({
-                  ...doc,
+                  document: doc,
+                  ...(breadcrumb !== undefined && { breadcrumb }),
                   context: undefined,
                   ...(siblingIndex !== undefined && { index: siblingIndex }),
                 });
@@ -179,18 +188,20 @@ export function documentTools(server: McpServer, scopes: string[]) {
 
             const presented = await Promise.all(
               documents.map(async (document) => {
-                const result = pathToUrl(
+                const doc = pathToUrl(
                   user.team,
                   await presentDocument(undefined, document, {
                     includeData: false,
                     includeText: false,
                   })
                 );
+                const breadcrumb = await getDocumentBreadcrumb(document, user);
                 const siblingIndex = indexMap?.get(document.id);
-                if (siblingIndex !== undefined) {
-                  result.index = siblingIndex;
-                }
-                return result;
+                return {
+                  document: doc,
+                  ...(breadcrumb !== undefined && { breadcrumb }),
+                  ...(siblingIndex !== undefined && { index: siblingIndex }),
+                };
               })
             );
             return success(presented);
@@ -233,18 +244,8 @@ export function documentTools(server: McpServer, scopes: string[]) {
             });
             authorize(user, "readDocument", collection);
 
-            const documentStructure = await CacheHelper.getDataOrSet(
-              RedisPrefixHelper.getCollectionDocumentsKey(collection.id),
-              async () =>
-                (
-                  await Collection.findByPk(collection.id, {
-                    attributes: ["documentStructure"],
-                    includeDocumentStructure: true,
-                    rejectOnEmpty: true,
-                  })
-                ).documentStructure,
-              60
-            );
+            const documentStructure =
+              await collection.getCachedDocumentStructure();
 
             const tree = (documentStructure ?? []).map((node) =>
               presentNavigationNode(user.team, node)
@@ -348,11 +349,15 @@ export function documentTools(server: McpServer, scopes: string[]) {
               includeUpdatedAt: true,
             }
           );
+          const breadcrumb = await getDocumentBreadcrumb(document, user);
           return {
             content: [
               {
                 type: "text" as const,
-                text: JSON.stringify(pathToUrl(user.team, attributes)),
+                text: JSON.stringify({
+                  document: pathToUrl(user.team, attributes),
+                  ...(breadcrumb !== undefined && { breadcrumb }),
+                }),
               },
               {
                 type: "text" as const,
@@ -472,19 +477,21 @@ export function documentTools(server: McpServer, scopes: string[]) {
             }
 
             const presented = await Promise.all(
-              documents.map(async (doc) => {
-                const result = pathToUrl(
+              documents.map(async (document) => {
+                const doc = pathToUrl(
                   user.team,
-                  await presentDocument(undefined, doc, {
+                  await presentDocument(undefined, document, {
                     includeData: false,
                     includeText: false,
                   })
                 );
-                const siblingIndex = indexMap.get(doc.id);
-                if (siblingIndex !== undefined) {
-                  result.index = siblingIndex;
-                }
-                return result;
+                const breadcrumb = await getDocumentBreadcrumb(document, user);
+                const siblingIndex = indexMap.get(document.id);
+                return {
+                  document: doc,
+                  ...(breadcrumb !== undefined && { breadcrumb }),
+                  ...(siblingIndex !== undefined && { index: siblingIndex }),
+                };
               })
             );
             return success(presented);
@@ -598,11 +605,15 @@ export function documentTools(server: McpServer, scopes: string[]) {
               includeUpdatedAt: true,
             }
           );
+          const breadcrumb = await getDocumentBreadcrumb(updated, user);
           return {
             content: [
               {
                 type: "text" as const,
-                text: JSON.stringify(pathToUrl(user.team, attributes)),
+                text: JSON.stringify({
+                  document: pathToUrl(user.team, attributes),
+                  ...(breadcrumb !== undefined && { breadcrumb }),
+                }),
               },
               {
                 type: "text" as const,

@@ -14,6 +14,7 @@ import {
   error,
   success,
   getActorFromContext,
+  getDocumentBreadcrumb,
   pathToUrl,
   withTracing,
 } from "./util";
@@ -111,11 +112,15 @@ export function fetchTool(server: McpServer, scopes: string[]) {
                 includeUpdatedAt: true,
               }
             );
+            const breadcrumb = await getDocumentBreadcrumb(document, actor);
             return {
               content: [
                 {
                   type: "text" as const,
-                  text: JSON.stringify(pathToUrl(actor.team, attributes)),
+                  text: JSON.stringify({
+                    document: pathToUrl(actor.team, attributes),
+                    ...(breadcrumb !== undefined && { breadcrumb }),
+                  }),
                 },
                 {
                   type: "text" as const,
