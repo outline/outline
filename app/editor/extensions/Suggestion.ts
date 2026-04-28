@@ -27,7 +27,7 @@ export default class Suggestion extends Extension {
         : `(?:${triggers.map(escapeRegExp).join("|")})`;
 
     this.openRegex = new RegExp(
-      `(?:^|\\s|\\(|[\\p{Script=Han}\\p{Script=Hiragana}\\p{Script=Katakana}\\p{Script=Hangul}])${triggerPattern}(${`[\\p{L}\/\\p{M}\\d${
+      `(?:^|\\s|\\(|[\\p{Script=Han}\\p{Script=Hiragana}\\p{Script=Katakana}\\p{Script=Hangul}])${triggerPattern}(${`[\\p{L}/\\p{M}\\d${
         this.options.allowSpaces ? "\\s{1}" : ""
       }\\.\\-–_]+`})${this.options.requireSearchTerm ? "" : "?"}$`,
       "u"
