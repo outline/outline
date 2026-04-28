@@ -863,18 +863,24 @@ class User extends ParanoidModel<
     }
 
     const groupUsers = await GroupUser.findAll({
+      attributes: ["groupId"],
       where: { userId: model.id },
       transaction: options.transaction,
+      raw: true,
     });
 
-    if (!groupUsers.length) {
+    const groupIds = [
+      ...new Set(groupUsers.map((groupUser) => groupUser.groupId)),
+    ];
+
+    if (!groupIds.length) {
       return;
     }
 
     const invalidate = async () => {
       await Promise.all(
-        groupUsers.map((groupUser) =>
-          CacheHelper.removeData(`count:Group:members:${groupUser.groupId}`)
+        groupIds.map((groupId) =>
+          CacheHelper.removeData(`count:Group:members:${groupId}`)
         )
       );
     };
