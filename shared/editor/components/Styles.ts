@@ -1893,6 +1893,8 @@ mark {
   }
 
   &::after {
+    max-height: calc(10 * 1.4em + 0.75em);
+    overflow: hidden;
     clip-path: inset(0 0 calc(100% - 10 * 1.4em - 0.75em) 0);
   }
 
@@ -1912,6 +1914,23 @@ mark {
       ${transparentize(0.2, props.theme.codeBackground)} 70%,
       ${props.theme.codeBackground} 100%
     );
+  }
+
+  @media print {
+    pre {
+      max-height: none;
+      overflow: visible;
+    }
+
+    &::after {
+      max-height: none;
+      overflow: visible;
+      clip-path: none;
+    }
+
+    &::before {
+      display: none;
+    }
   }
 }
 
