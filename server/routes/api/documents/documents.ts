@@ -68,6 +68,7 @@ import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import {
   authorizeFilterFields,
   buildWhere,
+  combineFilters,
   extractTopLevelEqValue,
   hasExplicitCollectionId,
   hasFieldInFilter,
@@ -123,7 +124,7 @@ router.post(
       parentDocumentId: legacyParentDocumentId,
       userId: legacyUserId,
       statusFilter,
-      filter: rawFilter,
+      filters: rawFilters,
     } = ctx.input.body;
     let { collectionId: legacyCollectionId } = ctx.input.body;
     const { offset, limit } = ctx.state.pagination;
@@ -177,10 +178,10 @@ router.post(
       }
     }
 
-    // The schema rejects callers that combine `filter` with the deprecated
+    // The schema rejects callers that combine `filters` with the deprecated
     // top-level params, so exactly one of these is set.
     const filter =
-      rawFilter ??
+      combineFilters(rawFilters) ??
       legacyParamsToFilter({
         userId: legacyUserId,
         collectionId: legacyCollectionId,
@@ -1051,11 +1052,12 @@ router.post(
   rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsSearchTitlesSchema),
   async (ctx: APIContext<T.DocumentsSearchTitlesReq>) => {
-    const { query, sort, direction, filter } = ctx.input.body;
+    const { query, sort, direction, filters: rawFilters } = ctx.input.body;
     let { collectionId, userId, documentId, statusFilter, dateFilter } =
       ctx.input.body;
     const { offset, limit } = ctx.state.pagination;
     const { user } = ctx.state.auth;
+    const filter = combineFilters(rawFilters);
     let collaboratorIds: string[] | undefined = undefined;
 
     if (filter) {
@@ -1132,7 +1134,7 @@ router.post(
       snippetMaxWords,
       sort,
       direction,
-      filter,
+      filters: rawFilters,
     } = ctx.input.body;
     let {
       collectionId,
@@ -1141,6 +1143,7 @@ router.post(
       dateFilter,
       statusFilter = [],
     } = ctx.input.body;
+    const filter = combineFilters(rawFilters);
     const { offset, limit } = ctx.state.pagination;
     const { user } = ctx.state.auth;
 

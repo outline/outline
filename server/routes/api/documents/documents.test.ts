@@ -1096,7 +1096,7 @@ describe("#documents.list", () => {
       const res = await server.post("/api/documents.list", {
         body: {
           token: user.getJwtToken(),
-          filter: { field: "title", operator: "contains", value: "first" },
+          filters: [{ field: "title", operator: "contains", value: "first" }],
         },
       });
       const body = await res.json();
@@ -1121,13 +1121,15 @@ describe("#documents.list", () => {
       const res = await server.post("/api/documents.list", {
         body: {
           token: user.getJwtToken(),
-          filter: {
-            operator: "OR",
-            filters: [
-              { field: "title", operator: "eq", value: "First document" },
-              { field: "title", operator: "eq", value: "Second document" },
-            ],
-          },
+          filters: [
+            {
+              operator: "OR",
+              filters: [
+                { field: "title", operator: "eq", value: "First document" },
+                { field: "title", operator: "eq", value: "Second document" },
+              ],
+            },
+          ],
         },
       });
       const body = await res.json();
@@ -1140,7 +1142,7 @@ describe("#documents.list", () => {
       const res = await server.post("/api/documents.list", {
         body: {
           token: user.getJwtToken(),
-          filter: { field: "nope", operator: "eq", value: "x" },
+          filters: [{ field: "nope", operator: "eq", value: "x" }],
         },
       });
       expect(res.status).toEqual(400);
@@ -1151,7 +1153,7 @@ describe("#documents.list", () => {
       const res = await server.post("/api/documents.list", {
         body: {
           token: user.getJwtToken(),
-          filter: { field: "publishedAt", operator: "isNull", value: "x" },
+          filters: [{ field: "publishedAt", operator: "isNull", value: "x" }],
         },
       });
       expect(res.status).toEqual(400);
@@ -1162,7 +1164,7 @@ describe("#documents.list", () => {
       const res = await server.post("/api/documents.list", {
         body: {
           token: user.getJwtToken(),
-          filter: { field: "title", operator: "in", value: "x" },
+          filters: [{ field: "title", operator: "in", value: "x" }],
         },
       });
       expect(res.status).toEqual(400);
@@ -1176,7 +1178,7 @@ describe("#documents.list", () => {
         nested = { operator: "AND", filters: [nested] };
       }
       const res = await server.post("/api/documents.list", {
-        body: { token: user.getJwtToken(), filter: nested },
+        body: { token: user.getJwtToken(), filters: [nested] },
       });
       expect(res.status).toEqual(400);
     });
@@ -1192,7 +1194,7 @@ describe("#documents.list", () => {
       const res = await server.post("/api/documents.list", {
         body: {
           token: userA.getJwtToken(),
-          filter: { field: "title", operator: "eq", value: "Cross team" },
+          filters: [{ field: "title", operator: "eq", value: "Cross team" }],
         },
       });
       const body = await res.json();
@@ -1211,11 +1213,13 @@ describe("#documents.list", () => {
       const res = await server.post("/api/documents.list", {
         body: {
           token: user.getJwtToken(),
-          filter: {
-            field: "collectionId",
-            operator: "eq",
-            value: privateCollection.id,
-          },
+          filters: [
+            {
+              field: "collectionId",
+              operator: "eq",
+              value: privateCollection.id,
+            },
+          ],
         },
       });
       expect(res.status).toEqual(403);
@@ -1232,7 +1236,7 @@ describe("#documents.list", () => {
       const res = await server.post("/api/documents.list", {
         body: {
           token: user.getJwtToken(),
-          filter: { field: "archivedAt", operator: "isNotNull" },
+          filters: [{ field: "archivedAt", operator: "isNotNull" }],
         },
       });
       const body = await res.json();
@@ -1256,7 +1260,7 @@ describe("#documents.list", () => {
       const res = await server.post("/api/documents.list", {
         body: {
           token: user.getJwtToken(),
-          filter: { field: "title", operator: "contains", value: "50%" },
+          filters: [{ field: "title", operator: "contains", value: "50%" }],
         },
       });
       const body = await res.json();
@@ -1280,11 +1284,13 @@ describe("#documents.list", () => {
       const filterRes = await server.post("/api/documents.list", {
         body: {
           token: user.getJwtToken(),
-          filter: {
-            field: "collectionId",
-            operator: "eq",
-            value: document.collectionId,
-          },
+          filters: [
+            {
+              field: "collectionId",
+              operator: "eq",
+              value: document.collectionId,
+            },
+          ],
         },
       });
       const legacyBody = await legacyRes.json();
@@ -1296,19 +1302,19 @@ describe("#documents.list", () => {
       );
     });
 
-    it("should reject filter combined with legacy userId", async () => {
+    it("should reject filters combined with legacy userId", async () => {
       const user = await buildUser();
       const res = await server.post("/api/documents.list", {
         body: {
           token: user.getJwtToken(),
           userId: user.id,
-          filter: { field: "title", operator: "eq", value: "Match" },
+          filters: [{ field: "title", operator: "eq", value: "Match" }],
         },
       });
       expect(res.status).toEqual(400);
     });
 
-    it("should reject filter combined with legacy collectionId", async () => {
+    it("should reject filters combined with legacy collectionId", async () => {
       const user = await buildUser();
       const document = await buildDocument({
         userId: user.id,
@@ -1318,19 +1324,19 @@ describe("#documents.list", () => {
         body: {
           token: user.getJwtToken(),
           collectionId: document.collectionId,
-          filter: { field: "title", operator: "eq", value: "x" },
+          filters: [{ field: "title", operator: "eq", value: "x" }],
         },
       });
       expect(res.status).toEqual(400);
     });
 
-    it("should reject filter combined with statusFilter", async () => {
+    it("should reject filters combined with statusFilter", async () => {
       const user = await buildUser();
       const res = await server.post("/api/documents.list", {
         body: {
           token: user.getJwtToken(),
           statusFilter: [StatusFilter.Archived],
-          filter: { field: "title", operator: "eq", value: "x" },
+          filters: [{ field: "title", operator: "eq", value: "x" }],
         },
       });
       expect(res.status).toEqual(400);
@@ -1687,7 +1693,7 @@ describe("#documents.search_titles", () => {
         body: {
           token: user.getJwtToken(),
           query: "match",
-          filter: { field: "userId", operator: "eq", value: user.id },
+          filters: [{ field: "userId", operator: "eq", value: user.id }],
         },
       });
       const body = await res.json();
@@ -1719,7 +1725,7 @@ describe("#documents.search_titles", () => {
         body: {
           token: user.getJwtToken(),
           query: "match",
-          filter: { field: "documentId", operator: "eq", value: parent.id },
+          filters: [{ field: "documentId", operator: "eq", value: parent.id }],
         },
       });
       const body = await res.json();
@@ -1728,14 +1734,14 @@ describe("#documents.search_titles", () => {
       expect(returnedIds).toEqual([parent.id, child.id].sort());
     });
 
-    it("should reject filter combined with legacy userId", async () => {
+    it("should reject filters combined with legacy userId", async () => {
       const user = await buildUser();
       const res = await server.post("/api/documents.search_titles", {
         body: {
           token: user.getJwtToken(),
           query: "match",
           userId: user.id,
-          filter: { field: "userId", operator: "eq", value: user.id },
+          filters: [{ field: "userId", operator: "eq", value: user.id }],
         },
       });
       expect(res.status).toEqual(400);
@@ -2387,11 +2393,13 @@ describe("#documents.search", () => {
         body: {
           token: user.getJwtToken(),
           query: "search term",
-          filter: {
-            field: "collectionId",
-            operator: "eq",
-            value: document.collectionId,
-          },
+          filters: [
+            {
+              field: "collectionId",
+              operator: "eq",
+              value: document.collectionId,
+            },
+          ],
         },
       });
       const legacyBody = await legacyRes.json();
@@ -2426,7 +2434,7 @@ describe("#documents.search", () => {
         body: {
           token: user.getJwtToken(),
           query: "search term",
-          filter: { field: "userId", operator: "eq", value: user.id },
+          filters: [{ field: "userId", operator: "eq", value: user.id }],
         },
       });
       const body = await res.json();
@@ -2461,7 +2469,7 @@ describe("#documents.search", () => {
         body: {
           token: user.getJwtToken(),
           query: "search term",
-          filter: { field: "documentId", operator: "eq", value: parent.id },
+          filters: [{ field: "documentId", operator: "eq", value: parent.id }],
         },
       });
       const body = await res.json();
@@ -2484,17 +2492,19 @@ describe("#documents.search", () => {
         body: {
           token: user.getJwtToken(),
           query: "search term",
-          filter: {
-            field: "collectionId",
-            operator: "eq",
-            value: privateCollection.id,
-          },
+          filters: [
+            {
+              field: "collectionId",
+              operator: "eq",
+              value: privateCollection.id,
+            },
+          ],
         },
       });
       expect(res.status).toEqual(403);
     });
 
-    it("should reject filter combined with legacy collectionId", async () => {
+    it("should reject filters combined with legacy collectionId", async () => {
       const user = await buildUser();
       const document = await buildDocument({
         userId: user.id,
@@ -2504,11 +2514,13 @@ describe("#documents.search", () => {
         body: {
           token: user.getJwtToken(),
           collectionId: document.collectionId,
-          filter: {
-            field: "collectionId",
-            operator: "eq",
-            value: document.collectionId,
-          },
+          filters: [
+            {
+              field: "collectionId",
+              operator: "eq",
+              value: document.collectionId,
+            },
+          ],
         },
       });
       expect(res.status).toEqual(400);
@@ -2519,7 +2531,7 @@ describe("#documents.search", () => {
       const res = await server.post("/api/documents.search", {
         body: {
           token: user.getJwtToken(),
-          filter: { field: "title", operator: "eq", value: "x" },
+          filters: [{ field: "title", operator: "eq", value: "x" }],
         },
       });
       expect(res.status).toEqual(400);
@@ -2530,13 +2542,15 @@ describe("#documents.search", () => {
       const res = await server.post("/api/documents.search", {
         body: {
           token: user.getJwtToken(),
-          filter: {
-            operator: "OR",
-            filters: [
-              { field: "collectionId", operator: "eq", value: user.id },
-              { field: "userId", operator: "eq", value: user.id },
-            ],
-          },
+          filters: [
+            {
+              operator: "OR",
+              filters: [
+                { field: "collectionId", operator: "eq", value: user.id },
+                { field: "userId", operator: "eq", value: user.id },
+              ],
+            },
+          ],
         },
       });
       expect(res.status).toEqual(400);

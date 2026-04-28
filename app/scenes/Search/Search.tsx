@@ -89,7 +89,7 @@ function Search() {
     sort: isSearchable,
   };
 
-  const filter = React.useMemo<Filter | undefined>(() => {
+  const filters = React.useMemo<Filter[] | undefined>(() => {
     const children: Filter[] = [];
     if (collectionId) {
       children.push({
@@ -155,10 +155,7 @@ function Search() {
     if (children.length === 0) {
       return undefined;
     }
-    if (children.length === 1) {
-      return children[0];
-    }
-    return { operator: "AND", filters: children };
+    return children;
   }, [
     collectionId,
     userId,
@@ -167,15 +164,15 @@ function Search() {
     JSON.stringify(statusFilter),
   ]);
 
-  const filters = React.useMemo(
+  const requestParams = React.useMemo(
     () => ({
       query,
       titleFilter,
       sort,
       direction,
-      filter,
+      filters,
     }),
-    [query, titleFilter, sort, direction, filter]
+    [query, titleFilter, sort, direction, filters]
   );
 
   const requestFn = React.useMemo(() => {
@@ -196,13 +193,19 @@ function Search() {
           limit: params?.limit,
         };
         return titleFilter
-          ? await documents.searchTitles({ ...filters, ...paginationParams })
-          : await documents.search({ ...filters, ...paginationParams });
+          ? await documents.searchTitles({
+              ...requestParams,
+              ...paginationParams,
+            })
+          : await documents.search({
+              ...requestParams,
+              ...paginationParams,
+            });
       };
     }
 
     return () => Promise.resolve([] as SearchResult[]);
-  }, [query, titleFilter, filters, searches, documents, isSearchable]);
+  }, [query, titleFilter, requestParams, searches, documents, isSearchable]);
 
   const { data, next, end, error, loading } = usePaginatedRequest(requestFn, {
     limit: Pagination.defaultLimit,

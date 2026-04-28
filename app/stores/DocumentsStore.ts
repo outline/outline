@@ -40,7 +40,7 @@ export type SearchParams = {
   shareId?: string;
   sort?: SortFilter;
   direction?: DirectionFilter;
-  filter?: Filter;
+  filters?: Filter[];
 };
 
 type ImportOptions = {

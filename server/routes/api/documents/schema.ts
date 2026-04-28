@@ -52,7 +52,7 @@ const DocumentsSortParamsSchema = z.object({
 const DateFilterSchema = z.object({
   /**
    * Date filter.
-   * @deprecated use `filter` with `updatedAt` and an ISO 8601 duration
+   * @deprecated use `filters` with `updatedAt` and an ISO 8601 duration
    * (`-P1D`, `-P1W`, `-P1M`, `-P1Y`) instead.
    */
   dateFilter: z
@@ -68,25 +68,25 @@ const DateFilterSchema = z.object({
 const BaseSearchSchema = DateFilterSchema.extend({
   /**
    * Filter results for team based on the collection.
-   * @deprecated use `filter` with field `collectionId` instead.
+   * @deprecated use `filters` with field `collectionId` instead.
    */
   collectionId: z.uuid().optional(),
 
   /**
    * Filter results based on user.
-   * @deprecated use `filter` with field `userId` instead.
+   * @deprecated use `filters` with field `userId` instead.
    */
   userId: z.uuid().optional(),
 
   /**
    * Filter results based on content within a document and it's children.
-   * @deprecated use `filter` with field `documentId` instead.
+   * @deprecated use `filters` with field `documentId` instead.
    */
   documentId: z.uuid().optional(),
 
   /**
    * Document statuses to include in results.
-   * @deprecated use `filter` with `archivedAt`/`publishedAt` instead.
+   * @deprecated use `filters` with `archivedAt`/`publishedAt` instead.
    */
   statusFilter: z.enum(StatusFilter).array().optional(),
 
@@ -109,25 +109,25 @@ export const DocumentsListSchema = BaseSchema.extend({
   body: DocumentsSortParamsSchema.extend({
     /**
      * Id of the user who created the doc.
-     * @deprecated use `filter` with field `userId` instead.
+     * @deprecated use `filters` with field `userId` instead.
      */
     userId: z.uuid().optional(),
 
     /**
      * Alias for userId - kept for backwards compatibility.
-     * @deprecated use `filter` with field `userId` instead.
+     * @deprecated use `filters` with field `userId` instead.
      */
     user: z.uuid().optional(),
 
     /**
      * Id of the collection to which the document belongs.
-     * @deprecated use `filter` with field `collectionId` instead.
+     * @deprecated use `filters` with field `collectionId` instead.
      */
     collectionId: z.uuid().optional(),
 
     /**
      * Alias for collectionId - kept for backwards compatibility.
-     * @deprecated use `filter` with field `collectionId` instead.
+     * @deprecated use `filters` with field `collectionId` instead.
      */
     collection: z.uuid().optional(),
 
@@ -136,18 +136,18 @@ export const DocumentsListSchema = BaseSchema.extend({
 
     /**
      * Id of the parent document to which the document belongs.
-     * @deprecated use `filter` with field `parentDocumentId` instead.
+     * @deprecated use `filters` with field `parentDocumentId` instead.
      */
     parentDocumentId: z.uuid().nullish(),
 
     /**
      * Document statuses to include in results.
-     * @deprecated use `filter` with `archivedAt`/`publishedAt` instead.
+     * @deprecated use `filters` with `archivedAt`/`publishedAt` instead.
      */
     statusFilter: z.enum(StatusFilter).array().optional(),
 
-    /** Advanced filter expression. */
-    filter: documentFilter.FilterSchema.optional(),
+    /** List of filter expressions. Implicit AND between top-level entries. */
+    filters: z.array(documentFilter.FilterSchema).min(1).max(50).optional(),
   }),
   // Maintains backwards compatibility
 })
@@ -161,7 +161,7 @@ export const DocumentsListSchema = BaseSchema.extend({
   })
   .refine(
     (req) => {
-      if (req.body.filter === undefined) {
+      if (req.body.filters === undefined) {
         return true;
       }
       return (
@@ -173,7 +173,7 @@ export const DocumentsListSchema = BaseSchema.extend({
     },
     {
       message:
-        "filter cannot be combined with deprecated parameters userId, collectionId, parentDocumentId, or statusFilter",
+        "filters cannot be combined with deprecated parameters userId, collectionId, parentDocumentId, or statusFilter",
     }
   );
 
@@ -265,7 +265,7 @@ export type DocumentsRestoreReq = z.infer<typeof DocumentsRestoreSchema>;
 
 const filterIncompatibleWithLegacy = (req: {
   body: {
-    filter?: unknown;
+    filters?: unknown;
     collectionId?: unknown;
     userId?: unknown;
     documentId?: unknown;
@@ -273,7 +273,7 @@ const filterIncompatibleWithLegacy = (req: {
     statusFilter?: unknown;
   };
 }) =>
-  req.body.filter === undefined ||
+  req.body.filters === undefined ||
   (req.body.collectionId === undefined &&
     req.body.userId === undefined &&
     req.body.documentId === undefined &&
@@ -281,7 +281,7 @@ const filterIncompatibleWithLegacy = (req: {
     req.body.statusFilter === undefined);
 
 const filterIncompatibleWithLegacyMessage =
-  "filter cannot be combined with deprecated parameters collectionId, userId, documentId, dateFilter, or statusFilter";
+  "filters cannot be combined with deprecated parameters collectionId, userId, documentId, dateFilter, or statusFilter";
 
 export const DocumentsSearchSchema = BaseSchema.extend({
   body: BaseSearchSchema.extend({
@@ -296,8 +296,8 @@ export const DocumentsSearchSchema = BaseSchema.extend({
       .enum(Object.values(DirectionFilter) as [string, ...string[]])
       .optional(),
 
-    /** Advanced filter expression. */
-    filter: documentFilter.FilterSchema.optional(),
+    /** List of filter expressions. Implicit AND between top-level entries. */
+    filters: z.array(documentFilter.FilterSchema).min(1).max(50).optional(),
   }),
 }).refine(filterIncompatibleWithLegacy, {
   message: filterIncompatibleWithLegacyMessage,
@@ -318,8 +318,8 @@ export const DocumentsSearchTitlesSchema = BaseSchema.extend({
       .enum(Object.values(DirectionFilter) as [string, ...string[]])
       .optional(),
 
-    /** Advanced filter expression. */
-    filter: documentFilter.FilterSchema.optional(),
+    /** List of filter expressions. Implicit AND between top-level entries. */
+    filters: z.array(documentFilter.FilterSchema).min(1).max(50).optional(),
   }),
 }).refine(filterIncompatibleWithLegacy, {
   message: filterIncompatibleWithLegacyMessage,

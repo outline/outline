@@ -103,6 +103,27 @@ function leafToWhere(condition: FilterCondition): Record<string, unknown> {
 }
 
 /**
+ * Combine a list of filter expressions into a single tree, ANDing top-level entries.
+ *
+ * The wire-level API accepts `filters: Filter[]` with an implicit AND between
+ * entries; internal helpers operate on a single Filter tree. This bridges the two.
+ *
+ * @param filters the list of filter expressions, or undefined.
+ * @returns the equivalent single filter, or undefined if the list is empty/missing.
+ */
+export function combineFilters(
+  filters: Filter[] | undefined
+): Filter | undefined {
+  if (!filters || filters.length === 0) {
+    return undefined;
+  }
+  if (filters.length === 1) {
+    return filters[0];
+  }
+  return { operator: "AND", filters };
+}
+
+/**
  * Convert a filter DSL expression into a Sequelize WhereOptions clause.
  *
  * @param filter the filter expression to convert.
