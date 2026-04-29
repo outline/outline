@@ -6,8 +6,11 @@ import documentPermanentDeleter from "./documentPermanentDeleter";
 
 jest.mock("@server/queues/tasks/DeleteAttachmentTask");
 
+const schedule = jest.fn();
+
 beforeEach(() => {
   jest.resetAllMocks();
+  DeleteAttachmentTask.prototype.schedule = schedule;
 });
 
 describe("documentPermanentDeleter", () => {
@@ -62,9 +65,7 @@ describe("documentPermanentDeleter", () => {
     await document.save();
     const countDeletedDoc = await documentPermanentDeleter([document]);
     expect(countDeletedDoc).toEqual(1);
-    expect(
-      jest.mocked(DeleteAttachmentTask.prototype.schedule)
-    ).toHaveBeenCalledTimes(2);
+    expect(schedule).toHaveBeenCalledTimes(2);
     expect(
       await Document.unscoped().count({
         where: {
