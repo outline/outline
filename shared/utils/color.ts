@@ -21,7 +21,7 @@ export const palette = [
 ];
 
 export const validateColorHex = (color: string) =>
-  /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(color);
+  /^#(?:[0-9A-F]{3,4}|[0-9A-F]{6}|[0-9A-F]{8})$/i.test(color);
 
 export const stringToColor = (input: string) => {
   const inputAsNumber = parseInt(md5(input).toString(), 16);
