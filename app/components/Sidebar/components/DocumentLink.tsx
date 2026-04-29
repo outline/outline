@@ -73,6 +73,12 @@ const DocumentLink = observer(function DocumentLinkInner({
   const expanded = expansion.isExpanded(node.id);
 
   React.useEffect(() => {
+    if (expanded && !hasChildDocuments) {
+      expansion.collapse(node.id);
+    }
+  }, [expansion, expanded, hasChildDocuments, node.id]);
+
+  React.useEffect(() => {
     if (
       isActiveDocument &&
       (hasChildDocuments || sidebarContext !== "collections")

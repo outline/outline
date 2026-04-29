@@ -4,9 +4,6 @@ import Icon from "@shared/components/Icon";
 import type { NavigationNode } from "@shared/types";
 import useStores from "~/hooks/useStores";
 import { sharedModelPath } from "~/utils/routeHelpers";
-import SidebarExpansionContext, {
-  useSidebarExpansionState,
-} from "./SidebarExpansionContext";
 import { SharedDocumentLink } from "./SharedDocumentLink";
 import SidebarLink from "./SidebarLink";
 
@@ -20,13 +17,9 @@ function CollectionLink({ node, shareId, hideRootNode }: Props) {
   const { t } = useTranslation();
   const { documents, ui } = useStores();
   const icon = node.icon ?? node.emoji;
-  const expansion = useSidebarExpansionState(
-    node.children,
-    ui.activeDocumentId
-  );
 
   return (
-    <SidebarExpansionContext.Provider value={expansion}>
+    <>
       {!hideRootNode && (
         <SidebarLink
           to={{
@@ -59,7 +52,7 @@ function CollectionLink({ node, shareId, hideRootNode }: Props) {
           activeDocument={documents.active}
         />
       ))}
-    </SidebarExpansionContext.Provider>
+    </>
   );
 }
 
