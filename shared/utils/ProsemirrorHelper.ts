@@ -506,19 +506,19 @@ export class ProsemirrorHelper {
       if (
         node.type === "image" &&
         node.attrs?.src &&
-        regex.test(String(node.attrs.src))
+        regex.test(node.attrs.src as string)
       ) {
         node.attrs.src = env.URL + node.attrs.src;
       } else if (
         node.type === "video" &&
         node.attrs?.src &&
-        regex.test(String(node.attrs.src))
+        regex.test(node.attrs.src as string)
       ) {
         node.attrs.src = env.URL + node.attrs.src;
       } else if (
         node.type === "attachment" &&
         node.attrs?.href &&
-        regex.test(String(node.attrs.href))
+        regex.test(node.attrs.href as string)
       ) {
         node.attrs.href = env.URL + node.attrs.href;
       }

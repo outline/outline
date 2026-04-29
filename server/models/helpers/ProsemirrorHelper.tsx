@@ -371,13 +371,13 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
 
     function replaceAttachmentUrls(node: ProsemirrorData) {
       if (node.attrs?.src) {
-        node.attrs.src = getMapping(String(node.attrs.src));
+        node.attrs.src = getMapping(node.attrs.src as string);
       } else if (node.attrs?.href) {
-        node.attrs.href = getMapping(String(node.attrs.href));
+        node.attrs.href = getMapping(node.attrs.href as string);
       } else if (node.marks) {
         node.marks.forEach((mark) => {
           if (mark.attrs?.href) {
-            mark.attrs.href = getMapping(String(mark.attrs.href));
+            mark.attrs.href = getMapping(mark.attrs.href as string);
           }
         });
       }

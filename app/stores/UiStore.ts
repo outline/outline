@@ -26,6 +26,8 @@ export enum SystemTheme {
   Dark = "dark",
 }
 
+export type ResolvedTheme = "light" | "dark" | "system";
+
 type PersistedData = Pick<
   UiStore,
   | "languagePromptDismissed"
@@ -209,7 +211,9 @@ class UiStore {
    * @param modelClass the model class to filter by.
    * @returns array of active models of the specified type.
    */
-  getActiveModels<T extends Model>(modelClass: new (...args: any[]) => T): T[] {
+  getActiveModels<T extends Model>(
+    modelClass: new (...args: never[]) => T
+  ): T[] {
     return Array.from(this.activeModels.values()).filter(
       (model) => model.constructor === modelClass
     ) as T[];
@@ -231,7 +235,7 @@ class UiStore {
    * @param modelClass optional model class to filter by.
    */
   @action
-  clearActiveModels(modelClass?: new (...args: any[]) => Model): void {
+  clearActiveModels(modelClass?: new (...args: never[]) => Model): void {
     if (modelClass) {
       const modelsToRemove = this.getActiveModels(modelClass);
       modelsToRemove.forEach((model) => this.activeModels.delete(model.id));
@@ -247,7 +251,7 @@ class UiStore {
    * @returns the most recently added model of the specified type.
    */
   getPrimaryActiveModel<T extends Model>(
-    modelClass: new (...args: any[]) => T
+    modelClass: new (...args: never[]) => T
   ): T | undefined {
     const models = this.getActiveModels<T>(modelClass);
     return models[models.length - 1];

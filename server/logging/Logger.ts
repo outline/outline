@@ -60,8 +60,8 @@ class Logger {
               winston.format.printf(
                 ({ message, level, label, ...extra }) =>
                   `${level}: ${
-                    label ? styleText("bold", `[${String(label)}] `) : ""
-                  }${String(message)} ${isEmpty(extra) ? "" : JSON.stringify(extra)}`
+                    label ? styleText("bold", `[${label as string}] `) : ""
+                  }${message as string} ${isEmpty(extra) ? "" : JSON.stringify(extra)}`
               )
             ),
       })

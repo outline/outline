@@ -47,6 +47,7 @@ class ApiClient {
   shareId?: string;
 
   /** Map of in-flight POST requests for deduplication, keyed by path + body. */
+  // oxlint-disable-next-line no-explicit-any
   private inflightRequests = new Map<string, Promise<any>>();
 
   constructor(options: Options = {}) {
@@ -57,6 +58,7 @@ class ApiClient {
     this.shareId = shareId;
   };
 
+  // oxlint-disable-next-line no-explicit-any
   fetch = async <T = any>(
     path: string,
     method: string,
@@ -93,7 +95,7 @@ class ApiClient {
         // toggling Content-Type to application/json
         if (
           typeof data === "object" &&
-          (data || "").toString() === "[object Object]"
+          Object.prototype.toString.call(data) === "[object Object]"
         ) {
           body = JSON.stringify(data);
         }
@@ -206,7 +208,7 @@ class ApiClient {
     const error: {
       message?: string;
       error?: string;
-      data?: Record<string, any>;
+      data?: Record<string, unknown>;
     } = {};
 
     try {
@@ -277,12 +279,14 @@ class ApiClient {
     throw err;
   };
 
+  // oxlint-disable-next-line no-explicit-any
   get = <T = any>(
     path: string,
     data: JSONObject | undefined,
     options?: FetchOptions
   ) => this.fetch<T>(path, "GET", data, options);
 
+  // oxlint-disable-next-line no-explicit-any
   post = <T = any>(
     path: string,
     data?: JSONObject | FormData,

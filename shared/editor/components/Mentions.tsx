@@ -195,10 +195,15 @@ export const MentionURL = (props: IssueUrlProps) => {
     ...attrs
   } = getAttributesFromNode(node);
 
-  const url = String(attrs.href);
-  const unfurl = unfurls.get(url)?.data ?? unfurlAttr;
+  const url = typeof attrs.href === "string" ? attrs.href : undefined;
+  const unfurl = url ? (unfurls.get(url)?.data ?? unfurlAttr) : undefined;
 
   React.useEffect(() => {
+    if (!url) {
+      setLoaded(true);
+      return;
+    }
+
     const fetchUnfurl = async () => {
       try {
         const unfurlModel = await unfurls.fetchUnfurl({ url });

@@ -35,10 +35,12 @@ interface Props<
    * @param options Pagination and other query options
    */
   fetch?: (
+    // oxlint-disable-next-line no-explicit-any
     options: Record<string, any> | undefined
   ) => Promise<unknown[] | undefined> | undefined;
 
   /** Additional options to pass to the fetch function */
+  // oxlint-disable-next-line no-explicit-any
   options?: Record<string, any>;
 
   /** Optional header content to display above the list */
@@ -78,7 +80,7 @@ interface Props<
    * Function to render section headings (typically date-based)
    * @param name The heading text or element to render
    */
-  renderHeading?: (name: React.ReactElement<any> | string) => React.ReactNode;
+  renderHeading?: (name: React.ReactElement | string) => React.ReactNode;
 
   /**
    * Function to determine if an item is a duplicate of the previous item.
