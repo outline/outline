@@ -1,6 +1,6 @@
 import isEqual from "lodash/isEqual";
 import type { Pointer } from "./pointer";
-import { hasOwnProperty, objectType } from "./util";
+import { hasOwn, objectType } from "./util";
 
 /**
  * All diff* functions should return a list of operations, often empty.
@@ -102,20 +102,14 @@ export function subtract(
   const obj: { [index: string]: number } = {};
   // build up obj with all the properties of minuend
   for (const add_key in minuend) {
-    if (
-      hasOwnProperty.call(minuend, add_key) &&
-      minuend[add_key] !== undefined
-    ) {
+    if (hasOwn(minuend, add_key) && minuend[add_key] !== undefined) {
       obj[add_key] = 1;
     }
   }
   // now delete all the properties of subtrahend from obj
   // (deleting a missing key has no effect)
   for (const del_key in subtrahend) {
-    if (
-      hasOwnProperty.call(subtrahend, del_key) &&
-      subtrahend[del_key] !== undefined
-    ) {
+    if (hasOwn(subtrahend, del_key) && subtrahend[del_key] !== undefined) {
       delete obj[del_key];
     }
   }
@@ -141,7 +135,7 @@ export function intersection(
   for (let i = 0; i < length; i++) {
     const object = objects[i];
     for (const key in object) {
-      if (hasOwnProperty.call(object, key) && object[key] !== undefined) {
+      if (hasOwn(object, key) && object[key] !== undefined) {
         counter[key] = (counter[key] || 0) + 1;
       }
     }

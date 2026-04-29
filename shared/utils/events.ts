@@ -18,8 +18,11 @@ export default class EventEmitter {
     );
   }
 
-  public on = this.addListener;
-  public off = this.removeListener;
+  public on = (name: string, callback: (data: unknown) => unknown) =>
+    this.addListener(name, callback);
+
+  public off = (name: string, callback: (data: unknown) => unknown) =>
+    this.removeListener(name, callback);
 
   public emit(name: string, data?: unknown) {
     this.listeners[name]?.forEach((callback) => {

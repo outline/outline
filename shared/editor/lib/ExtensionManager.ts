@@ -67,7 +67,8 @@ export default class ExtensionManager {
       .reduce(
         (memo, node: Node) => ({
           ...memo,
-          [node.name]: observer(node.widget as React.FC<WidgetProps>),
+          [node.name]: observer(((props: WidgetProps) =>
+            node.widget(props)) as React.FC<WidgetProps>),
         }),
         {}
       );
@@ -131,7 +132,8 @@ export default class ExtensionManager {
       .reduce(
         (memo, extension: Node) => ({
           ...memo,
-          [extension.name]: extension.toMarkdown,
+          [extension.name]: (...args: Parameters<Node["toMarkdown"]>) =>
+            extension.toMarkdown(...args),
         }),
         {}
       );
@@ -141,7 +143,8 @@ export default class ExtensionManager {
       .reduce(
         (memo, extension: Mark) => ({
           ...memo,
-          [extension.name]: extension.toMarkdown,
+          [extension.name]: (...args: Parameters<Mark["toMarkdown"]>) =>
+            extension.toMarkdown(...args),
         }),
         {}
       );

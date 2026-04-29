@@ -174,7 +174,7 @@ export class Linear {
     const [author, state, labels] = await Promise.all([
       issue.creator,
       issue.state,
-      issue.paginate(issue.labels, {}),
+      issue.paginate((args) => issue.labels(args), {}),
     ]);
 
     if (!state || !labels) {
@@ -229,7 +229,7 @@ export class Linear {
     const [lead, status, labels] = await Promise.all([
       project.lead,
       project.status,
-      project.paginate(project.labels, {}),
+      project.paginate((args) => project.labels(args), {}),
     ]);
 
     if (!status || !labels) {
@@ -280,12 +280,15 @@ export class Linear {
       return defaultCompletionPercentage;
     }
 
-    const allStates = await client.paginate(client.workflowStates, {
-      filter: {
-        team: { id: { eq: team.id } },
-        type: { eq: "started" },
-      },
-    });
+    const allStates = await client.paginate(
+      (args) => client.workflowStates(args),
+      {
+        filter: {
+          team: { id: { eq: team.id } },
+          type: { eq: "started" },
+        },
+      }
+    );
     const states = sortBy(
       allStates.map((s) => ({
         name: s.name,

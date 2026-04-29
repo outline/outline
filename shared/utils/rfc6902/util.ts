@@ -1,4 +1,5 @@
-export const hasOwnProperty = Object.prototype.hasOwnProperty;
+export const hasOwn = (obj: object, key: PropertyKey): boolean =>
+  Object.prototype.hasOwnProperty.call(obj, key);
 
 export function objectType(object: unknown) {
   if (object === undefined) {
@@ -51,9 +52,8 @@ export function clone<T>(source: T): T {
   const objectTarget = {} as T;
   // declaring the variable (with const) inside the loop is faster
   for (const key in source) {
-    // hasOwnProperty costs a bit of performance, but it's semantically necessary
-    // using a global helper is MUCH faster than calling source.hasOwnProperty(key)
-    if (hasOwnProperty.call(source, key)) {
+    // hasOwn costs a bit of performance, but it's semantically necessary
+    if (hasOwn(source, key)) {
       (objectTarget as Record<string, unknown>)[key] = clone(
         (source as Record<string, unknown>)[key]
       );
