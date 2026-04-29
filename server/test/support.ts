@@ -63,9 +63,14 @@ export function withAPIContext<T>(
  * @param obj Object to convert to form-urlencoded string
  * @returns Form-urlencoded string representation of the object
  */
-export function toFormData(obj: Record<string, any>): string {
+export function toFormData(
+  obj: Record<string, string | number | boolean | null | undefined>
+): string {
   return Object.entries(obj)
-    .filter(([_, value]) => value !== undefined)
+    .filter(
+      (entry): entry is [string, string | number | boolean] =>
+        entry[1] !== undefined && entry[1] !== null
+    )
     .map(
       ([key, value]) =>
         `${encodeURIComponent(key)}=${encodeURIComponent(value)}`

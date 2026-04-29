@@ -13,6 +13,4 @@ export class MutexLock {
       }),
     };
   }
-
-  private static redlock: any;
 }

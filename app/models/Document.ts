@@ -38,7 +38,7 @@ type SaveOptions = JSONObject & {
 export default class Document extends ArchivableModel implements Searchable {
   static modelName = "Document";
 
-  constructor(fields: Record<string, any>, store: DocumentsStore) {
+  constructor(fields: Record<string, unknown>, store: DocumentsStore) {
     super(fields, store);
 
     this.embedsDisabled = Storage.get(`embedsDisabled-${this.id}`) ?? false;
@@ -570,7 +570,7 @@ export default class Document extends ArchivableModel implements Searchable {
       );
 
       // if saving is successful set the new values on the model itself
-      set(this, { ...params, ...model });
+      set(this, Object.assign({}, params, model));
 
       this.persistedAttributes = this.toAPI();
 
