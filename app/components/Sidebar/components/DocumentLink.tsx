@@ -25,15 +25,12 @@ import {
   useDropToReorderDocument,
   useDropToReparentDocument,
 } from "../hooks/useDragAndDrop";
+import { useSidebarExpansion } from "./SidebarExpansionContext";
 import DocumentRow from "./DocumentRow";
 import DropCursor from "./DropCursor";
 import Folder from "./Folder";
 import type { SidebarContextType } from "./SidebarContext";
 import { useSidebarContext } from "./SidebarContext";
-import SidebarDisclosureContext, {
-  useSidebarDisclosure,
-  useSidebarDisclosureState,
-} from "./SidebarDisclosureContext";
 
 type Props = {
   node: NavigationNode;
@@ -58,10 +55,11 @@ const DocumentLink = observer(function DocumentLinkInner({
   index,
   parentId,
 }: Props) {
-  const { documents, policies } = useStores();
+  const { documents } = useStores();
   const { t } = useTranslation();
   const history = useHistory();
-  const canUpdate = usePolicy(node.id).update;
+  const can = usePolicy(node.id);
+  const canUpdate = can.update;
   const isActiveDocument = activeDocument && activeDocument.id === node.id;
   const hasChildDocuments =
     !!node.children.length || activeDocument?.parentDocumentId === node.id;
@@ -71,6 +69,14 @@ const DocumentLink = observer(function DocumentLinkInner({
   const editableTitleRef = React.useRef<RefHandle>(null);
   const sidebarContext = useSidebarContext();
   const user = useCurrentUser();
+  const expansion = useSidebarExpansion();
+  const expanded = expansion.isExpanded(node.id);
+
+  React.useEffect(() => {
+    if (expanded && !hasChildDocuments) {
+      expansion.collapse(node.id);
+    }
+  }, [expansion, expanded, hasChildDocuments, node.id]);
 
   React.useEffect(() => {
     if (
@@ -87,58 +93,32 @@ const DocumentLink = observer(function DocumentLinkInner({
     isActiveDocument,
   ]);
 
-  const showChildren = React.useMemo(() => {
-    if (!hasChildDocuments || !activeDocument) {
-      return false;
-    }
-
-    const pathToDocument =
-      collection?.pathToDocument(activeDocument.id) ??
-      membership?.pathToDocument(activeDocument.id);
-
-    return !!(
-      pathToDocument?.some((entry) => entry.id === node.id) || isActiveDocument
-    );
-  }, [
-    hasChildDocuments,
-    activeDocument,
-    isActiveDocument,
-    node,
-    collection,
-    membership,
-  ]);
-
-  const [expanded, setExpanded, setCollapsed] = useBoolean(showChildren);
-
-  const { event: disclosureEvent, onDisclosureClick } =
-    useSidebarDisclosureState();
-
-  useSidebarDisclosure(setExpanded, setCollapsed);
-
-  React.useEffect(() => {
-    if (showChildren) {
-      setExpanded();
-    }
-  }, [setExpanded, showChildren]);
-
-  React.useEffect(() => {
-    if (expanded && !hasChildDocuments) {
-      setCollapsed();
-    }
-  }, [setCollapsed, expanded, hasChildDocuments]);
-
   const handleDisclosureClick = React.useCallback(
     (ev?: React.MouseEvent<HTMLElement>) => {
-      const willExpand = !expanded;
-      if (willExpand) {
-        setExpanded();
+      if (expanded) {
+        if (ev?.altKey) {
+          expansion.collapseDescendants(node);
+        } else {
+          expansion.collapse(node.id);
+        }
       } else {
-        setCollapsed();
+        if (ev?.altKey) {
+          expansion.expandDescendants(node);
+        } else {
+          expansion.expand(node.id);
+        }
       }
-      onDisclosureClick(willExpand, !!ev?.altKey);
     },
-    [setCollapsed, setExpanded, expanded, onDisclosureClick]
+    [expansion, expanded, node]
   );
+
+  const handleExpand = React.useCallback(() => {
+    expansion.expand(node.id);
+  }, [expansion, node.id]);
+
+  const handleCollapse = React.useCallback(() => {
+    expansion.collapse(node.id);
+  }, [expansion, node.id]);
 
   const handlePrefetch = React.useCallback(() => {
     void prefetchDocument?.(node.id);
@@ -191,7 +171,6 @@ const DocumentLink = observer(function DocumentLinkInner({
 
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const isMoving = documents.movingDocumentId === node.id;
-  const can = policies.abilities(node.id);
   const icon = document?.icon || node.icon || node.emoji;
   const color = document?.color || node.color;
   const initial = document?.initial || node.title.charAt(0).toUpperCase();
@@ -211,7 +190,7 @@ const DocumentLink = observer(function DocumentLinkInner({
 
   const parentRef = React.useRef<HTMLDivElement>(null);
   const [{ isOverReparent, canDropToReparent }, dropToReparent] =
-    useDropToReparentDocument(node, setExpanded, parentRef);
+    useDropToReparentDocument(node, handleExpand, parentRef);
 
   const [{ isOverReorder: isOverReorderAbove }, dropToReorderAbove] =
     useDropToReorderDocument(node, collection, (item) => {
@@ -231,7 +210,7 @@ const DocumentLink = observer(function DocumentLinkInner({
       if (!collection) {
         return;
       }
-      if (expanded) {
+      if (expansion.isExpanded(node.id)) {
         return {
           documentId: item.id,
           collectionId: collection.id,
@@ -266,11 +245,10 @@ const DocumentLink = observer(function DocumentLinkInner({
             false
           )
         : node.children,
-    [draftNavNode, collection, node]
+    [draftNavNode, collection, node.children]
   );
 
-  const doc = documents.get(node.id);
-  const title = doc?.title || node.title || t("Untitled");
+  const title = document?.title || node.title || t("Untitled");
   const hasChildren = nodeChildren.length > 0;
 
   const handleNewDoc = React.useCallback(
@@ -280,7 +258,7 @@ const DocumentLink = observer(function DocumentLinkInner({
           collectionId: collection?.id,
           parentDocumentId: node.id,
           fullWidth:
-            doc?.fullWidth ??
+            document?.fullWidth ??
             user.getPreference(UserPreference.FullWidthDocuments),
           title: input,
           data: ProsemirrorHelper.getEmptyDocument(),
@@ -300,8 +278,8 @@ const DocumentLink = observer(function DocumentLinkInner({
       membership,
       sidebarContext,
       user,
-      node,
-      doc,
+      node.id,
+      document,
       history,
     ]
   );
@@ -353,8 +331,8 @@ const DocumentLink = observer(function DocumentLinkInner({
       expanded={expanded && !isDragging}
       hasChildren={hasChildren}
       onDisclosureClick={handleDisclosureClick}
-      onExpand={setExpanded}
-      onCollapse={setCollapsed}
+      onExpand={handleExpand}
+      onCollapse={handleCollapse}
       dragRef={drag}
       isDragging={isDragging}
       isMoving={isMoving}
@@ -371,24 +349,22 @@ const DocumentLink = observer(function DocumentLinkInner({
       isActiveOverride={isActiveCheck}
       onClickIntent={handlePrefetch}
     >
-      <SidebarDisclosureContext.Provider value={disclosureEvent}>
-        <Folder expanded={expanded && !isDragging}>
-          {nodeChildren.map((childNode, childIndex) => (
-            <DocumentLink
-              key={childNode.id}
-              collection={collection}
-              membership={membership}
-              node={childNode}
-              activeDocument={activeDocument}
-              prefetchDocument={prefetchDocument}
-              isDraft={childNode.isDraft}
-              depth={depth + 1}
-              index={childIndex}
-              parentId={node.id}
-            />
-          ))}
-        </Folder>
-      </SidebarDisclosureContext.Provider>
+      <Folder expanded={expanded && !isDragging}>
+        {nodeChildren.map((childNode, childIndex) => (
+          <DocumentLink
+            key={childNode.id}
+            collection={collection}
+            membership={membership}
+            node={childNode}
+            activeDocument={activeDocument}
+            prefetchDocument={prefetchDocument}
+            isDraft={childNode.isDraft}
+            depth={depth + 1}
+            index={childIndex}
+            parentId={node.id}
+          />
+        ))}
+      </Folder>
     </DocumentRow>
   );
 });

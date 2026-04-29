@@ -1,7 +1,7 @@
 import { useKBar } from "kbar";
 import { observer } from "mobx-react";
 import { SearchIcon } from "outline-icons";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
@@ -18,6 +18,9 @@ import { homePath, sharedModelPath } from "~/utils/routeHelpers";
 import { AvatarSize } from "../Avatar";
 import TeamLogo from "../TeamLogo";
 import Sidebar from "./Sidebar";
+import SidebarExpansionContext, {
+  useSidebarExpansionState,
+} from "./components/SidebarExpansionContext";
 import Section from "./components/Section";
 import { SharedCollectionLink } from "./components/SharedCollectionLink";
 import { SharedDocumentLink } from "./components/SharedDocumentLink";
@@ -45,6 +48,12 @@ function SharedSidebar({ share }: Props) {
   const handleOpenSearch = useCallback(() => {
     query.toggle();
   }, [query]);
+
+  const rootChildren = useMemo(
+    () => (rootNode ? [rootNode] : undefined),
+    [rootNode]
+  );
+  const expansion = useSidebarExpansionState(rootChildren, ui.activeDocumentId);
 
   useEffect(() => {
     ui.tocVisible = share.showTOC;
@@ -87,24 +96,26 @@ function SharedSidebar({ share }: Props) {
           </SearchButton>
         </TopSection>
         <Section as="nav" aria-label={t("Documents")}>
-          {share.collectionId ? (
-            <SharedCollectionLink
-              node={rootNode}
-              shareId={shareId}
-              hideRootNode={hideRootNode}
-            />
-          ) : (
-            <SharedDocumentLink
-              index={0}
-              // If the root node has an icon we need some extra space for it
-              depth={rootNode.icon ? 1 : 0}
-              shareId={shareId}
-              node={rootNode}
-              prefetchDocument={documents.prefetchDocument}
-              activeDocumentId={ui.activeDocumentId}
-              activeDocument={documents.active}
-            />
-          )}
+          <SidebarExpansionContext.Provider value={expansion}>
+            {share.collectionId ? (
+              <SharedCollectionLink
+                node={rootNode}
+                shareId={shareId}
+                hideRootNode={hideRootNode}
+              />
+            ) : (
+              <SharedDocumentLink
+                index={0}
+                // If the root node has an icon we need some extra space for it
+                depth={rootNode.icon ? 1 : 0}
+                shareId={shareId}
+                node={rootNode}
+                prefetchDocument={documents.prefetchDocument}
+                activeDocumentId={ui.activeDocumentId}
+                activeDocument={documents.active}
+              />
+            )}
+          </SidebarExpansionContext.Provider>
         </Section>
       </ScrollContainer>
     </Sidebar>
