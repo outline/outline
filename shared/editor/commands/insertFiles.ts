@@ -85,9 +85,9 @@ const insertFiles = async function (
         !options.isAttachment &&
         !!schema.nodes.video;
       const getDimensions = isImage
-        ? FileHelper.getImageDimensions
+        ? (f: File) => FileHelper.getImageDimensions(f)
         : isVideo
-          ? FileHelper.getVideoDimensions
+          ? (f: File) => FileHelper.getVideoDimensions(f)
           : undefined;
 
       return {

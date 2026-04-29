@@ -402,13 +402,14 @@ export default class FindAndReplaceExtension extends Extension {
    */
   private get decorations() {
     return this.results.map((deco, index) => {
-      const decorationType =
-        deco.type === "node" ? Decoration.node : Decoration.inline;
-      return decorationType(deco.from, deco.to, {
+      const attrs = {
         class:
           "find-result" +
           (this.currentResultIndex === index ? " current-result" : ""),
-      });
+      };
+      return deco.type === "node"
+        ? Decoration.node(deco.from, deco.to, attrs)
+        : Decoration.inline(deco.from, deco.to, attrs);
     });
   }
 

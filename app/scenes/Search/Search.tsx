@@ -249,7 +249,7 @@ function Search() {
       textTitle={query ? `${query} – ${t("Search")}` : t("Search")}
       actions={isMobile ? sortInput : null}
     >
-      <RegisterKeyDown trigger="Escape" handler={history.goBack} />
+      <RegisterKeyDown trigger="Escape" handler={() => history.goBack()} />
       {loading && <LoadingIndicator />}
       <ResultsWrapper column auto>
         <form method="GET" action={searchPath()} onSubmit={preventDefault}>

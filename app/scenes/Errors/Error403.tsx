@@ -26,7 +26,7 @@ const Error403 = () => {
           <Button action={navigateToHome} hideIcon>
             {t("Home")}
           </Button>
-          <Button onClick={history.goBack} neutral>
+          <Button onClick={() => history.goBack()} neutral>
             {t("Go back")}
           </Button>
         </HStack>
