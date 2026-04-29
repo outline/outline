@@ -310,9 +310,9 @@ describe("#removeDocument", () => {
     const document = await buildDocument({ collectionId: collection.id });
     await collection.reload();
 
-    jest.spyOn(collection, "save");
+    const saveSpy = jest.spyOn(collection, "save");
     await collection.deleteDocument(document);
-    expect(collection.save).toHaveBeenCalled();
+    expect(saveSpy).toHaveBeenCalled();
   });
 
   it("should remove documents from root", async () => {
