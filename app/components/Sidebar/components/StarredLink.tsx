@@ -41,6 +41,7 @@ import Relative from "./Relative";
 import type { SidebarContextType } from "./SidebarContext";
 import SidebarContext, { starredSidebarContext } from "./SidebarContext";
 import SidebarDisclosureContext, {
+  useSidebarDisclosure,
   useSidebarDisclosureState,
 } from "./SidebarDisclosureContext";
 
@@ -108,6 +109,18 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
     childDocuments,
     documents.active?.id
   );
+
+  const handleCascadeExpand = React.useCallback(() => {
+    if (childDocuments.length) {
+      expansion.expandAll(childDocuments);
+    }
+  }, [expansion, childDocuments]);
+
+  const handleCascadeCollapse = React.useCallback(() => {
+    expansion.collapseAll();
+  }, [expansion]);
+
+  useSidebarDisclosure(handleCascadeExpand, handleCascadeCollapse);
 
   const handleRename = React.useCallback(() => {
     editableTitleRef.current?.setIsEditing(true);

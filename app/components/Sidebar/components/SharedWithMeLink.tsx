@@ -50,9 +50,7 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
     ui.activeDocumentId
   );
   const isActiveDocumentInPath = ui.activeDocumentId
-    ? expansion.isExpanded(ui.activeDocumentId) ||
-      membershipDocuments?.some((n) => n.id === ui.activeDocumentId) ||
-      documentId === ui.activeDocumentId
+    ? membership.pathToDocument(ui.activeDocumentId).length > 0
     : false;
 
   const [expanded, setExpanded, setCollapsed] = useBoolean(
@@ -95,12 +93,25 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
       const willExpand = !expanded;
       if (willExpand) {
         setExpanded();
+        if (ev?.altKey && membershipDocuments) {
+          expansion.expandAll(membershipDocuments);
+        }
       } else {
         setCollapsed();
+        if (ev?.altKey) {
+          expansion.collapseAll();
+        }
       }
       onDisclosureClick(willExpand, !!ev?.altKey);
     },
-    [expanded, setExpanded, setCollapsed, onDisclosureClick]
+    [
+      expanded,
+      setExpanded,
+      setCollapsed,
+      onDisclosureClick,
+      expansion,
+      membershipDocuments,
+    ]
   );
 
   const parentRef = React.useRef<HTMLDivElement>(null);

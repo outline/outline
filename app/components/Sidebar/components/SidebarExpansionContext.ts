@@ -16,23 +16,23 @@ function computeAncestorPath(
   targetId: string
 ): string[] {
   const stack: string[] = [];
+  let found = false;
   const search = (nodes: NavigationNode[]): boolean => {
     for (const node of nodes) {
+      stack.push(node.id);
       if (node.id === targetId) {
+        found = true;
         return true;
       }
-      if (node.children.length) {
-        stack.push(node.id);
-        if (search(node.children)) {
-          return true;
-        }
-        stack.pop();
+      if (node.children.length && search(node.children)) {
+        return true;
       }
+      stack.pop();
     }
     return false;
   };
   search(roots);
-  return stack;
+  return found ? stack : [];
 }
 
 /**
