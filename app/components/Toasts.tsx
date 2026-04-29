@@ -26,6 +26,7 @@ function Toasts() {
 
   return (
     <StyledToaster
+      // oxlint-disable-next-line no-explicit-any -- styled-components wrapping overrides sonner's theme prop type
       theme={ui.resolvedTheme as any}
       closeButton
       toastOptions={{
