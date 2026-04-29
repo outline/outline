@@ -18,10 +18,9 @@ import { homePath, sharedModelPath } from "~/utils/routeHelpers";
 import { AvatarSize } from "../Avatar";
 import TeamLogo from "../TeamLogo";
 import Sidebar from "./Sidebar";
-import {
-  SidebarExpansionContext,
+import SidebarExpansionContext, {
   useSidebarExpansionState,
-} from "./hooks/useSidebarExpansion";
+} from "./components/SidebarExpansionContext";
 import Section from "./components/Section";
 import { SharedCollectionLink } from "./components/SharedCollectionLink";
 import { SharedDocumentLink } from "./components/SharedDocumentLink";

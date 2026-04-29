@@ -28,10 +28,9 @@ import {
   useDropToReorderStar,
 } from "../hooks/useDragAndDrop";
 import { useSidebarLabelAndIcon } from "../hooks/useSidebarLabelAndIcon";
-import {
-  SidebarExpansionContext,
+import SidebarExpansionContext, {
   useSidebarExpansionState,
-} from "../hooks/useSidebarExpansion";
+} from "./SidebarExpansionContext";
 import CollectionLinkChildren from "./CollectionLinkChildren";
 import CollectionRow from "./CollectionRow";
 import DocumentLink from "./DocumentLink";

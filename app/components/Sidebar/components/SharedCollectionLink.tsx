@@ -4,10 +4,9 @@ import Icon from "@shared/components/Icon";
 import type { NavigationNode } from "@shared/types";
 import useStores from "~/hooks/useStores";
 import { sharedModelPath } from "~/utils/routeHelpers";
-import {
-  SidebarExpansionContext,
+import SidebarExpansionContext, {
   useSidebarExpansionState,
-} from "../hooks/useSidebarExpansion";
+} from "./SidebarExpansionContext";
 import { SharedDocumentLink } from "./SharedDocumentLink";
 import SidebarLink from "./SidebarLink";
 

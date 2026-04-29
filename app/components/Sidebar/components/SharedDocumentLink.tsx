@@ -7,7 +7,7 @@ import type Collection from "~/models/Collection";
 import type Document from "~/models/Document";
 import useStores from "~/hooks/useStores";
 import { sharedModelPath } from "~/utils/routeHelpers";
-import { useSidebarExpansion } from "../hooks/useSidebarExpansion";
+import { useSidebarExpansion } from "./SidebarExpansionContext";
 import SidebarLink from "./SidebarLink";
 
 type Props = {

@@ -15,10 +15,9 @@ import {
   useDropToReorderUserMembership,
   useDropToReparentDocument,
 } from "../hooks/useDragAndDrop";
-import {
-  SidebarExpansionContext,
+import SidebarExpansionContext, {
   useSidebarExpansionState,
-} from "../hooks/useSidebarExpansion";
+} from "./SidebarExpansionContext";
 import { useSidebarLabelAndIcon } from "../hooks/useSidebarLabelAndIcon";
 import DocumentLink from "./DocumentLink";
 import DocumentRow from "./DocumentRow";

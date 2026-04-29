@@ -13,10 +13,9 @@ import useStores from "~/hooks/useStores";
 import history from "~/utils/history";
 import useCollectionDocuments from "../hooks/useCollectionDocuments";
 import { useDropToChangeCollection } from "../hooks/useDragAndDrop";
-import {
-  SidebarExpansionContext,
+import SidebarExpansionContext, {
   useSidebarExpansionState,
-} from "../hooks/useSidebarExpansion";
+} from "./SidebarExpansionContext";
 import DocumentLink from "./DocumentLink";
 import DropCursor from "./DropCursor";
 import Folder from "./Folder";

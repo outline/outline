@@ -145,6 +145,11 @@ export class SidebarExpansionState {
   }
 }
 
+/**
+ * Context for providing a SidebarExpansionState to descendant sidebar
+ * components. Each document tree root (collection, starred doc, shared
+ * membership) creates its own instance so expansion state is scoped.
+ */
 const SidebarExpansionContext = createContext<SidebarExpansionState | null>(
   null
 );
@@ -158,7 +163,7 @@ export function useSidebarExpansion(): SidebarExpansionState {
   const ctx = useContext(SidebarExpansionContext);
   if (!ctx) {
     throw new Error(
-      "useSidebarExpansion must be used within a SidebarExpansionProvider"
+      "useSidebarExpansion must be used within a SidebarExpansionContext.Provider"
     );
   }
   return ctx;
@@ -192,4 +197,4 @@ export function useSidebarExpansionState(
   return state;
 }
 
-export { SidebarExpansionContext };
+export default SidebarExpansionContext;
