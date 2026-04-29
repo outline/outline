@@ -49,13 +49,13 @@ function CollectionLinkChildren({
     if (!expanded) {
       setShowing(pageSize);
     }
-  }, [expanded]);
+  }, [expanded, pageSize]);
 
   const showMore = useCallback(() => {
     if (childDocuments && childDocuments.length > showing) {
       setShowing((value) => value + pageSize);
     }
-  }, [childDocuments, showing]);
+  }, [childDocuments, showing, pageSize]);
 
   return (
     <Folder expanded={expanded}>

@@ -69,7 +69,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
         res.data.collections.map(collections.add);
         res.data.groups.map(groups.add);
       });
-    }, [search, documents, users, collections])
+    }, [search, documents, users, collections, groups, maxResultsInSection])
   );
 
   useEffect(() => {

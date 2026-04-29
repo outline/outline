@@ -96,7 +96,7 @@ function History() {
         updateLocation({ changes: null, compareTo: null });
       }
     },
-    [updateLocation]
+    [updateLocation, setDefaultShowChanges]
   );
 
   const selectedRevisionId = historyMatch?.params.revisionId;
@@ -127,7 +127,7 @@ function History() {
     if (defaultShowChanges) {
       updateLocation({ changes: "true" });
     }
-  }, [defaultShowChanges]);
+  }, [defaultShowChanges, updateLocation]);
 
   const fetchHistory = React.useCallback(async () => {
     if (!document) {
@@ -170,6 +170,7 @@ function History() {
       .getByDocumentId(document.id)
       .filter((revision: Revision) => revision.id !== latestRevisionId)
       .slice(0, revisionsOffset);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [document, revisions.orderedData, revisionsOffset]);
 
   const nonRevisionEvents = React.useMemo(
@@ -177,6 +178,7 @@ function History() {
       document
         ? events.getByDocumentId(document.id).slice(0, eventsOffset)
         : [],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [document, events.orderedData, eventsOffset]
   );
 
@@ -228,7 +230,7 @@ function History() {
     } else {
       history.goBack();
     }
-  }, [history, document, sidebarContext]);
+  }, [history, document, sidebarContext, isMobile]);
 
   useKeyDown("Escape", onCloseHistory);
 

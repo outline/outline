@@ -146,7 +146,7 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
             }
           : undefined,
       ]),
-    [t, hasDomain, canManage]
+    [t, hasDomain, canManage, formatNumber]
   );
 
   return (

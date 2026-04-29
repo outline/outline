@@ -102,7 +102,7 @@ const LinkEditor: React.FC<Props> = ({
 
   const openLink = React.useCallback(() => {
     commands["openLink"]();
-  }, []);
+  }, [commands]);
 
   const removeLink = React.useCallback(() => {
     commands["removeLink"]();

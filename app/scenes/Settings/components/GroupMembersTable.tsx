@@ -177,6 +177,7 @@ export const GroupMembersTable = observer(function GroupMembersTable({
       t,
       can.update,
       group.id,
+      group.isExternallyManaged,
       groupUsers.orderedData,
       permissions,
       handlePermissionChange,

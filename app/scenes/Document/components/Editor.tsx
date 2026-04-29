@@ -103,7 +103,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
       }
       ui.set({ rightSidebar: "comments" });
     }
-  }, [focusedComment, ui, document.id, params]);
+  }, [focusedComment, ui, document.id, params, setFocusedCommentId]);
 
   // Save document when blurring title, but delay so that if clicking on a
   // button this is allowed to execute first.
@@ -148,7 +148,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         setFocusedCommentId(commentId);
       }
     },
-    [comments, user?.id, props.id]
+    [comments, user?.id, props.id, setFocusedCommentId]
   );
 
   // Soft delete the Comment model when associated mark is totally removed.

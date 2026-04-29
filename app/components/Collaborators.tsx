@@ -146,7 +146,14 @@ function Collaborators(props: Props) {
         />
       );
     },
-    [presentIds, editingIds, observingUserId, currentUserId, handleAvatarClick]
+    [
+      presentIds,
+      editingIds,
+      observingUserId,
+      currentUserId,
+      handleAvatarClick,
+      t,
+    ]
   );
 
   if (!document.insightsEnabled) {

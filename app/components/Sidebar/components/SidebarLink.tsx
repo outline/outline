@@ -132,7 +132,7 @@ function SidebarLink(
         onClick(ev);
       }
     },
-    [onClick, disabled, expanded]
+    [onClick, disabled]
   );
 
   const handleDisclosureClick = React.useCallback(
