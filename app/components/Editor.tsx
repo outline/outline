@@ -99,7 +99,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
       );
     }, 2000);
     onFileUploadStart?.();
-  }, [onFileUploadStart, dictionary.uploadingWithProgress]);
+  }, [onFileUploadStart, dictionary]);
 
   const handleFileUploadProgress = React.useCallback(
     (fileId: string, fractionComplete: number) => {
@@ -118,7 +118,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
         });
       }
     },
-    [dictionary.uploadingWithProgress]
+    [dictionary]
   );
 
   const handleFileUploadStop = React.useCallback(() => {

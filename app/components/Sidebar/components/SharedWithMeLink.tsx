@@ -70,7 +70,7 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
       void documents.fetch(documentId);
       void membership.fetchDocuments();
     }
-  }, [documentId, documents]);
+  }, [documentId, documents, membership]);
 
   React.useEffect(() => {
     if (isActiveDocument && membership.documentId) {

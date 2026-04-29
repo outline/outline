@@ -61,7 +61,7 @@ export function MediaLinkEditor({
     const { state, dispatch } = view;
     dispatch(state.tr.deleteSelection());
     onLinkRemove();
-  }, [view]);
+  }, [view, onLinkRemove]);
 
   const update = useCallback(() => {
     const { state } = view;
@@ -74,7 +74,7 @@ export function MediaLinkEditor({
     view.dispatch(tr);
     moveSelectionToEnd();
     onLinkUpdate();
-  }, [localUrl, node, view, moveSelectionToEnd]);
+  }, [localUrl, node, view, moveSelectionToEnd, onLinkUpdate]);
 
   useOnClickOutside(wrapperRef, onClickOutside);
 
@@ -99,7 +99,7 @@ export function MediaLinkEditor({
         }
       }
     },
-    [update, moveSelectionToEnd]
+    [update, moveSelectionToEnd, onEscape]
   );
 
   if (!node) {

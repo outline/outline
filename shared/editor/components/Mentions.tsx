@@ -239,7 +239,7 @@ export const MentionURL = (props: IssueUrlProps) => {
     };
 
     void fetchUnfurl();
-  }, [unfurls, url, node, isMounted]);
+  }, [unfurls, url, node, isMounted, onChangeUnfurl]);
 
   if (!unfurl) {
     return !loaded ? (

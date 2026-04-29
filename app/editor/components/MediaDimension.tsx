@@ -166,7 +166,16 @@ export function MediaDimension() {
         height: finalHeight,
       });
     }
-  }, [commands, width, height, localDimension, nodeType, error, reset]);
+  }, [
+    commands,
+    width,
+    height,
+    localDimension,
+    nodeType,
+    error,
+    reset,
+    isOutsideBounds,
+  ]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {

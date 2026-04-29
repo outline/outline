@@ -83,7 +83,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
         ui.set({ sidebarWidth: Math.max(newWidth, minWidth) });
       }
     },
-    [ui, theme, offset, minWidth, maxWidth, direction]
+    [ui, theme, offset, minWidth, maxWidth, direction, canCollapse]
   );
 
   const handleStopDrag = React.useCallback(() => {
@@ -107,7 +107,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
     } else {
       ui.set({ sidebarWidth: width });
     }
-  }, [ui, isSmallerThanMinimum, minWidth, width]);
+  }, [ui, isSmallerThanMinimum, minWidth, width, canCollapse]);
 
   const handleBlur = React.useCallback(() => {
     setHovering(false);

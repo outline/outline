@@ -187,7 +187,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         selection.to
       )
     );
-  }, [props.search, props.trigger, view]);
+  }, [props.search, props.trigger, view, isMobile]);
 
   const restoreSelection = React.useCallback(() => {
     if (!isMobile) {
