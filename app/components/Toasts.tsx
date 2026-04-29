@@ -4,6 +4,7 @@ import { Toaster, useSonner } from "sonner";
 import styled, { useTheme } from "styled-components";
 import { useWebHaptics } from "web-haptics/react";
 import useStores from "~/hooks/useStores";
+import type { ResolvedTheme } from "~/stores/UiStore";
 
 function Toasts() {
   const { ui } = useStores();
@@ -26,8 +27,8 @@ function Toasts() {
 
   return (
     <StyledToaster
-      // oxlint-disable-next-line no-explicit-any -- styled-components wrapping overrides sonner's theme prop type
-      theme={ui.resolvedTheme as any}
+      // @ts-expect-error styled-components overrides sonner's theme prop with DefaultTheme
+      theme={ui.resolvedTheme as ResolvedTheme}
       closeButton
       toastOptions={{
         duration: 5000,

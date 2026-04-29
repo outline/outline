@@ -26,6 +26,8 @@ export enum SystemTheme {
   Dark = "dark",
 }
 
+export type ResolvedTheme = "light" | "dark" | "system";
+
 type PersistedData = Pick<
   UiStore,
   | "languagePromptDismissed"
