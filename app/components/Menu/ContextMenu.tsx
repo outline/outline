@@ -47,7 +47,7 @@ export const ContextMenu = observer(
           onClose?.();
         }
       },
-      [open, onOpen, onClose]
+      [onOpen, onClose]
     );
 
     const enablePointerEvents = React.useCallback(() => {

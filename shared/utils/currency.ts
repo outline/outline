@@ -82,7 +82,7 @@ export function isCurrency(value: string): boolean {
   }
 
   // Remove digits, separators, whitespace, and negative indicators
-  remaining = remaining.replace(/[\d.,\s()\-]/g, "");
+  remaining = remaining.replace(/[\d.,\s()-]/g, "");
 
   // If anything remains, it's not a valid currency
   return remaining.length === 0;

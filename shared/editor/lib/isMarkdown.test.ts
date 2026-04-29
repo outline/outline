@@ -25,11 +25,11 @@ this is code
 });
 
 test("returns true for latex fence", () => {
-  expect(isMarkdown(`\$i\$`)).toBe(true);
+  expect(isMarkdown(`$i$`)).toBe(true);
   expect(
-    isMarkdown(`\$0.00
+    isMarkdown(`$0.00
 random content
-\$1.00`)
+$1.00`)
   ).toBe(false);
 });
 

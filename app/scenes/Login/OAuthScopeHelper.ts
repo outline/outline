@@ -42,7 +42,7 @@ export class OAuthScopeHelper {
         return t("Write all data");
       }
 
-      const [namespace, method] = scope.replace("/api/", "").split(/[:\.]/g);
+      const [namespace, method] = scope.replace("/api/", "").split(/[:.]/g);
       const readableMethod =
         methodToReadable[method as keyof typeof methodToReadable] ?? method;
       if (!readableMethod) {

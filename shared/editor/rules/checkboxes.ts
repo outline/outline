@@ -3,19 +3,19 @@ import type MarkdownIt from "markdown-it";
 
 const CHECKBOX_REGEX = /\[(X|\s|_|-)\]\s(.*)?/i;
 
-function matches(token: Token | void) {
+function matches(token: Token | undefined) {
   return token && token.content.match(CHECKBOX_REGEX);
 }
 
-function isInline(token: Token | void): boolean {
+function isInline(token: Token | undefined): boolean {
   return !!token && token.type === "inline";
 }
 
-function isParagraph(token: Token | void): boolean {
+function isParagraph(token: Token | undefined): boolean {
   return !!token && token.type === "paragraph_open";
 }
 
-function isListItem(token: Token | void): boolean {
+function isListItem(token: Token | undefined): boolean {
   // Only match list_item_open, not checkbox_item_open - items that are already
   // checkbox_item_open have been processed (e.g., by the tables rule for
   // checkboxes in table cells) and should not be processed again.

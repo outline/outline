@@ -401,7 +401,7 @@ export default abstract class Store<T extends Model> {
 
   @action
   fetchPage = async (
-    params?: FetchPageParams | undefined
+    params?: FetchPageParams
   ): Promise<PaginatedResponse<T>> => {
     if (!this.actions.includes(RPCAction.List)) {
       throw new Error(`Cannot list ${this.modelName}`);

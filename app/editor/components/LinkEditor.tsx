@@ -144,7 +144,11 @@ const LinkEditor: React.FC<Props> = ({
 
         if (selectedIndex >= 0 && results[selectedIndex]) {
           const selectedDoc = results[selectedIndex];
-          !mark ? addLink(selectedDoc.url) : updateLink(selectedDoc.url);
+          if (!mark) {
+            addLink(selectedDoc.url);
+          } else {
+            updateLink(selectedDoc.url);
+          }
         } else if (!trimmedQuery) {
           removeLink();
         } else if (!mark) {
@@ -238,7 +242,11 @@ const LinkEditor: React.FC<Props> = ({
               {results.map((doc, index) => (
                 <SuggestionsMenuItem
                   onClick={() => {
-                    !mark ? addLink(doc.path) : updateLink(doc.path);
+                    if (!mark) {
+                      addLink(doc.path);
+                    } else {
+                      updateLink(doc.path);
+                    }
                   }}
                   onPointerMove={() => setSelectedIndex(index)}
                   selected={index === selectedIndex}

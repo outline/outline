@@ -155,7 +155,7 @@ export default class ImportJSONTask extends ImportTask {
       }
 
       if (Object.values(item.attachments).length) {
-        await mapAttachments(item.attachments);
+        mapAttachments(item.attachments);
       }
     }
 

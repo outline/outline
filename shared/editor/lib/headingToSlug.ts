@@ -14,7 +14,7 @@ function safeSlugify(text: string) {
 
   const slug = `h-${escape(
     slugify(text, {
-      remove: /[!"#$%&'\.()*+,\/:;<=>?@\[\]\\^_`{|}~]/g,
+      remove: /[!"#$%&'.()*+,/:;<=>?@[\]\\^_`{|}~]/g,
       lower: true,
     })
   )}`;
