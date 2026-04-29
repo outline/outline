@@ -88,6 +88,7 @@ export const CardContent = styled.div`
 
 // &:after — gradient mask for overflow text
 export const Card = styled.div<{ fadeOut?: boolean; $borderRadius?: string }>`
+  ${sharedVars}
   backdrop-filter: blur(10px);
   background: ${s("menuBackground")};
   padding: 16px;
