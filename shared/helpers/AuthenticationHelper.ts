@@ -46,8 +46,8 @@ export default class AuthenticationHelper {
     const [namespace, method] = resource.split(".");
 
     return scopes.some((scope) => {
-      const [scopeNamespace, scopeMethod] = scope.match(/[:\.]/g)
-        ? scope.replace("/api/", "").split(/[:\.]/g)
+      const [scopeNamespace, scopeMethod] = scope.match(/[:.]/g)
+        ? scope.replace("/api/", "").split(/[:.]/g)
         : ["*", scope];
       const isRouteScope = scope.startsWith("/api/");
 

@@ -50,7 +50,7 @@ function Overview({ collection, readOnly }: Props) {
 
   useEffect(
     () => () => {
-      handleSave.flush();
+      void handleSave.flush();
     },
     [handleSave]
   );

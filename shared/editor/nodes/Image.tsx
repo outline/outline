@@ -85,7 +85,7 @@ export const downloadImageNode = async (
     document.body.removeChild(link);
   } catch {
     if (cache !== "reload") {
-      downloadImageNode(node, "reload");
+      await downloadImageNode(node, "reload");
     } else {
       window.open(sanitizeUrl(node.attrs.src), "_blank");
     }

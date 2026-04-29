@@ -48,7 +48,7 @@ describe("#ValidateKey.sanitize", () => {
     const uuid1 = randomUUID();
     const uuid2 = randomUUID();
     expect(
-      ValidateKey.sanitize(`public/${uuid1}/${uuid2}/~\.\u0000\malicious_key`)
+      ValidateKey.sanitize(`public/${uuid1}/${uuid2}/~.\u0000malicious_key`)
     ).toEqual(`public/${uuid1}/${uuid2}/~.malicious_key`);
   });
 

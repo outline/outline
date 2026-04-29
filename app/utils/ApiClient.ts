@@ -285,7 +285,7 @@ class ApiClient {
 
   post = <T = any>(
     path: string,
-    data?: JSONObject | FormData | undefined,
+    data?: JSONObject | FormData,
     options?: FetchOptions
   ): Promise<T> => {
     if (data instanceof FormData) {

@@ -43,7 +43,9 @@ const LoadingState = observer(function LoadingState() {
       ui.addActiveModel(template);
     }
     return () => {
-      template && ui.removeActiveModel(template);
+      if (template) {
+        ui.removeActiveModel(template);
+      }
     };
   }, [template, ui]);
 

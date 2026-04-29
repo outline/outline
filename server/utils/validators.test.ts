@@ -135,11 +135,15 @@ describe("isDatabaseUrl", () => {
     });
 
     it("should reject null", () => {
-      expect(isDatabaseUrl(null as any, defaultOptions)).toBe(false);
+      expect(isDatabaseUrl(null as unknown as string, defaultOptions)).toBe(
+        false
+      );
     });
 
     it("should reject undefined", () => {
-      expect(isDatabaseUrl(undefined as any, defaultOptions)).toBe(false);
+      expect(
+        isDatabaseUrl(undefined as unknown as string, defaultOptions)
+      ).toBe(false);
     });
 
     it("should reject URL with invalid protocol", () => {
@@ -279,9 +283,7 @@ describe("isMailboxAddress", () => {
     });
 
     it("should accept a mailbox format with quoted display name containing a comma", () => {
-      expect(
-        isMailboxAddress('"Company, Inc." <user@example.com>')
-      ).toBe(true);
+      expect(isMailboxAddress('"Company, Inc." <user@example.com>')).toBe(true);
     });
 
     it("should accept a mailbox format with a quoted display name", () => {

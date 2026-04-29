@@ -40,6 +40,7 @@ import {
 import { MaxLength } from "class-validator";
 import isUUID from "validator/lib/isUUID";
 import type {
+  ImportableIntegrationService,
   NavigationNode,
   ProsemirrorData,
   SourceMetadata,
@@ -609,7 +610,7 @@ class Document extends ArchivableModel<
   importId: string | null;
 
   @BelongsTo(() => Import, "apiImportId")
-  apiImport: Import<any> | null;
+  apiImport: Import<ImportableIntegrationService> | null;
 
   @ForeignKey(() => Import)
   @Column(DataType.UUID)
