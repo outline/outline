@@ -214,15 +214,15 @@ export function createMigrationRunner(
         Logger.info(
           "database",
           params.event === "migrating"
-            ? `Migrating ${params.name}…`
-            : `Migrated ${params.name} in ${params.durationSeconds}s`
+            ? `Migrating ${String(params.name)}…`
+            : `Migrated ${String(params.name)} in ${String(params.durationSeconds)}s`
         ),
       debug: (params) =>
         Logger.debug(
           "database",
           params.event === "migrating"
-            ? `Migrating ${params.name}…`
-            : `Migrated ${params.name} in ${params.durationSeconds}s`
+            ? `Migrating ${String(params.name)}…`
+            : `Migrated ${String(params.name)} in ${String(params.durationSeconds)}s`
         ),
     },
   });

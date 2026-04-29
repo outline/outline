@@ -37,7 +37,7 @@ type Attrs = {
 } & Record<string, JSONValue>;
 
 const getAttributesFromNode = (node: Node): Attrs => {
-  const spec = node.type.spec.toDOM?.(node) as any as Record<
+  const spec = node.type.spec.toDOM?.(node) as unknown as Record<
     string,
     JSONValue
   >[];
@@ -45,7 +45,9 @@ const getAttributesFromNode = (node: Node): Attrs => {
 
   return {
     className: className as Attrs["className"],
-    unfurl: unfurl ? (JSON.parse(unfurl as any) as Attrs["unfurl"]) : undefined,
+    unfurl: unfurl
+      ? (JSON.parse(unfurl as string) as Attrs["unfurl"])
+      : undefined,
     ...attrs,
   };
 };

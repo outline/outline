@@ -64,7 +64,7 @@ router.get(
     }
 
     const scopes = Object.entries(installation.permissions).map(
-      ([name, permission]) => `${name}:${permission}`
+      ([name, permission]) => `${name}:${String(permission)}`
     );
 
     const authentication = await IntegrationAuthentication.create(

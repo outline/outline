@@ -73,9 +73,13 @@
         "eqeqeq": "error",
         "curly": "error",
         "no-console": "error",
+        "no-unused-expressions": "error",
         "arrow-body-style": ["error", "as-needed"],
-        "no-useless-escape": "off",
         "react/react-in-jsx-scope": "off",
+        "typescript/await-thenable": "error",
+        "typescript/no-duplicate-type-constituents": "error",
+        "typescript/no-meaningless-void-operator": "error",
+        "typescript/require-array-sort-compare": "error",
         "react/self-closing-comp": [
           "error",
           {
@@ -87,6 +91,8 @@
         "import/no-named-as-default": "off",
         "import/no-named-as-default-member": "off",
         "typescript/consistent-type-imports": "error",
+        "typescript/restrict-template-expressions": "error",
+        "typescript/no-floating-promises": "error",
         "no-unused-vars": [
           "error",
           {

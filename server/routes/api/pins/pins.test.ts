@@ -302,10 +302,10 @@ describe("#pins.list", () => {
     expect(body.data).toBeTruthy();
     expect(body.data.pins).toBeTruthy();
     expect(body.data.pins).toHaveLength(2);
-    const pinIds = body.data.pins.map((p: any) => p.id);
+    const pinIds = body.data.pins.map((p: { id: string }) => p.id);
     expect(pinIds).toContain(pins[0].id);
     expect(pinIds).toContain(pins[1].id);
-    const docIds = body.data.documents.map((d: any) => d.id);
+    const docIds = body.data.documents.map((d: { id: string }) => d.id);
     expect(docIds).toContain(docs[0].id);
     expect(docIds).toContain(docs[1].id);
   });

@@ -282,7 +282,7 @@ export function useDocumentSave({
       titleRef.current = value;
       document.title = value;
       updateIsDirtyRef.current();
-      void autosave();
+      autosave();
     },
     [document, autosave]
   );

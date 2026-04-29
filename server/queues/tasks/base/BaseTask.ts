@@ -8,7 +8,7 @@ export enum TaskPriority {
   High = 10,
 }
 
-export abstract class BaseTask<T extends Record<string, any>> {
+export abstract class BaseTask<T extends object> {
   /**
    * Schedule this task type to be processed asynchronously by a worker.
    *
@@ -32,7 +32,7 @@ export abstract class BaseTask<T extends Record<string, any>> {
    * @param props Properties to be used by the task
    * @returns A promise that resolves once the task has completed.
    */
-  public abstract perform(props: T): Promise<any>;
+  public abstract perform(props: T): Promise<unknown>;
 
   /**
    * Handle failure when all attempts are exhausted for the task.

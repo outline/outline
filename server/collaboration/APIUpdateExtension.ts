@@ -66,7 +66,7 @@ export class APIUpdateExtension implements Extension {
       });
 
       // Subscribe to the API update channel pattern
-      this.subscriber.psubscribe(`${CHANNEL_PREFIX}:*`, (err) => {
+      await this.subscriber.psubscribe(`${CHANNEL_PREFIX}:*`, (err) => {
         if (err) {
           Logger.error("Failed to subscribe to API update channel", err);
           return;

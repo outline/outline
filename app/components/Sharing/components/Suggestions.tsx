@@ -143,7 +143,7 @@ export const Suggestions = observer(
     );
 
     React.useEffect(() => {
-      void fetchUsersByQuery(query);
+      fetchUsersByQuery(query);
     }, [query, fetchUsersByQuery]);
 
     function getListItemProps(suggestion: User | Group) {
