@@ -42,4 +42,21 @@ export class RedisPrefixHelper {
   public static getUserCollectionIdsKey(userId: string) {
     return `uc:${userId}`;
   }
+
+  /**
+   * Gets key for caching the count of a relationship managed by the
+   * `CounterCache` decorator.
+   *
+   * @param modelName The owning model name (e.g. "Group").
+   * @param relationName The relationship reference name (e.g. "members").
+   * @param id The owning record id.
+   * @returns the cache key string.
+   */
+  public static getCounterCacheKey(
+    modelName: string,
+    relationName: string,
+    id: string
+  ) {
+    return `count:${modelName}:${relationName}:${id}`;
+  }
 }

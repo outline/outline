@@ -7,6 +7,7 @@ import type {
 } from "sequelize";
 import type { ModelClassGetter } from "sequelize-typescript";
 import { CacheHelper } from "@server/utils/CacheHelper";
+import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import type Model from "../base/Model";
 
 type RelationOptions = {
@@ -34,9 +35,10 @@ export function CounterCache<
 ) {
   return function (target: InstanceType<T>, _propertyKey: string) {
     const modelClass = classResolver() as typeof Model;
-    const cacheKeyPrefix = `count:${target.constructor.name}:${options.as}`;
+    const modelName = target.constructor.name;
 
-    const buildCacheKey = (id: unknown) => `${cacheKeyPrefix}:${String(id)}`;
+    const buildCacheKey = (id: unknown) =>
+      RedisPrefixHelper.getCounterCacheKey(modelName, options.as, String(id));
 
     const computeCount = (id: unknown) =>
       modelClass.count({

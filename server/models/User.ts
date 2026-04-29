@@ -880,7 +880,9 @@ class User extends ParanoidModel<
     const invalidate = async () => {
       await Promise.all(
         groupIds.map((groupId) =>
-          CacheHelper.removeData(`count:Group:members:${groupId}`)
+          CacheHelper.removeData(
+            RedisPrefixHelper.getCounterCacheKey("Group", "members", groupId)
+          )
         )
       );
     };
