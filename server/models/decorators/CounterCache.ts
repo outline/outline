@@ -60,9 +60,13 @@ export function CounterCache<
 
       // Defer invalidation until after the transaction commits so that a
       // rollback does not leave the cache out of sync, and so that a stale
-      // pre-commit count is not re-cached by a concurrent reader.
+      // pre-commit count is not re-cached by a concurrent reader. Walk to
+      // the parent transaction when nested so the callback isn't lost when
+      // the savepoint releases without committing the outer transaction.
       if (hookOptions?.transaction) {
-        hookOptions.transaction.afterCommit(remove);
+        const transaction =
+          hookOptions.transaction.parent || hookOptions.transaction;
+        transaction.afterCommit(remove);
       } else {
         await remove();
       }

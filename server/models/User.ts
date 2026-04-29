@@ -888,7 +888,8 @@ class User extends ParanoidModel<
     };
 
     if (options.transaction) {
-      options.transaction.afterCommit(invalidate);
+      const transaction = options.transaction.parent || options.transaction;
+      transaction.afterCommit(invalidate);
     } else {
       await invalidate();
     }
