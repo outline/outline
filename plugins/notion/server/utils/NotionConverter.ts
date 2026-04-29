@@ -279,7 +279,7 @@ export class NotionConverter {
     };
   }
 
-  private static rich_text(item: RichTextItemResponse) {
+  private static rich_text = (item: RichTextItemResponse) => {
     const annotationToMark: Record<
       keyof RichTextItemResponse["annotations"],
       string
@@ -386,11 +386,10 @@ export class NotionConverter {
     }
 
     return undefined;
-  }
+  };
 
-  private static rich_text_to_plaintext(item: RichTextItemResponse) {
-    return item.plain_text;
-  }
+  private static rich_text_to_plaintext = (item: RichTextItemResponse) =>
+    item.plain_text;
 
   private static divider(_: DividerBlockObjectResponse) {
     return {
