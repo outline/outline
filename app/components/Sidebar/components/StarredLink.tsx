@@ -28,6 +28,10 @@ import {
   useDropToReorderStar,
 } from "../hooks/useDragAndDrop";
 import { useSidebarLabelAndIcon } from "../hooks/useSidebarLabelAndIcon";
+import {
+  SidebarExpansionContext,
+  useSidebarExpansionState,
+} from "../hooks/useSidebarExpansion";
 import CollectionLinkChildren from "./CollectionLinkChildren";
 import CollectionRow from "./CollectionRow";
 import DocumentLink from "./DocumentLink";
@@ -101,6 +105,10 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
     : [];
   const hasChildDocuments = childDocuments.length > 0;
   const displayChildDocuments = expanded && !isDragging;
+  const expansion = useSidebarExpansionState(
+    childDocuments,
+    documents.active?.id
+  );
 
   const handleRename = React.useCallback(() => {
     editableTitleRef.current?.setIsEditing(true);
@@ -199,24 +207,26 @@ const StarredDocumentLink = observer(function StarredDocumentLink({
         onClickIntent={handlePrefetch}
       >
         <SidebarContext.Provider value={sidebarContext}>
-          <Relative>
-            <Folder expanded={displayChildDocuments}>
-              {childDocuments.map((node, index) => (
-                <DocumentLink
-                  key={node.id}
-                  node={node}
-                  collection={documentCollection}
-                  activeDocument={documents.active}
-                  prefetchDocument={documents.prefetchDocument}
-                  isDraft={node.isDraft}
-                  depth={2}
-                  index={index}
-                  parentId={document.id}
-                />
-              ))}
-            </Folder>
-            {cursor}
-          </Relative>
+          <SidebarExpansionContext.Provider value={expansion}>
+            <Relative>
+              <Folder expanded={displayChildDocuments}>
+                {childDocuments.map((node, index) => (
+                  <DocumentLink
+                    key={node.id}
+                    node={node}
+                    collection={documentCollection}
+                    activeDocument={documents.active}
+                    prefetchDocument={documents.prefetchDocument}
+                    isDraft={node.isDraft}
+                    depth={2}
+                    index={index}
+                    parentId={document.id}
+                  />
+                ))}
+              </Folder>
+              {cursor}
+            </Relative>
+          </SidebarExpansionContext.Provider>
         </SidebarContext.Provider>
       </DocumentRow>
     </Draggable>

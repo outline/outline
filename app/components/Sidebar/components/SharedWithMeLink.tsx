@@ -15,6 +15,10 @@ import {
   useDropToReorderUserMembership,
   useDropToReparentDocument,
 } from "../hooks/useDragAndDrop";
+import {
+  SidebarExpansionContext,
+  useSidebarExpansionState,
+} from "../hooks/useSidebarExpansion";
 import { useSidebarLabelAndIcon } from "../hooks/useSidebarLabelAndIcon";
 import DocumentLink from "./DocumentLink";
 import DocumentRow from "./DocumentRow";
@@ -41,8 +45,15 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
   const sidebarContext = useSidebarContext();
   const document = documentId ? documents.get(documentId) : undefined;
 
+  const membershipDocuments = membership.documents;
+  const expansion = useSidebarExpansionState(
+    membershipDocuments,
+    ui.activeDocumentId
+  );
   const isActiveDocumentInPath = ui.activeDocumentId
-    ? membership.pathToDocument(ui.activeDocumentId).length > 0
+    ? expansion.isExpanded(ui.activeDocumentId) ||
+      membershipDocuments?.some((n) => n.id === ui.activeDocumentId) ||
+      documentId === ui.activeDocumentId
     : false;
 
   const [expanded, setExpanded, setCollapsed] = useBoolean(
@@ -135,7 +146,7 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
     ? collections.get(document.collectionId)
     : undefined;
 
-  const childDocuments = membership.documents ?? [];
+  const childDocuments = membershipDocuments ?? [];
   const hasChildren = childDocuments.length > 0;
 
   const unreadBadge =
@@ -177,20 +188,22 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
       isActiveOverride={isActive}
     >
       <SidebarDisclosureContext.Provider value={disclosureEvent}>
-        <Folder expanded={displayChildDocuments}>
-          {childDocuments.map((childNode, index) => (
-            <DocumentLink
-              key={childNode.id}
-              node={childNode}
-              collection={collection}
-              membership={membership}
-              activeDocument={documents.active}
-              isDraft={childNode.isDraft}
-              depth={2}
-              index={index}
-            />
-          ))}
-        </Folder>
+        <SidebarExpansionContext.Provider value={expansion}>
+          <Folder expanded={displayChildDocuments}>
+            {childDocuments.map((childNode, index) => (
+              <DocumentLink
+                key={childNode.id}
+                node={childNode}
+                collection={collection}
+                membership={membership}
+                activeDocument={documents.active}
+                isDraft={childNode.isDraft}
+                depth={2}
+                index={index}
+              />
+            ))}
+          </Folder>
+        </SidebarExpansionContext.Provider>
       </SidebarDisclosureContext.Provider>
       {reorderProps.isDragging && (
         <DropCursor
