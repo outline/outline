@@ -59,8 +59,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   const { presence, auth, ui } = useStores();
   const [editorVersionBehind, setEditorVersionBehind] = useState(false);
   const [showCursorNames, setShowCursorNames] = useState(false);
-  const [remoteProvider, setRemoteProvider] =
-    useState<HocuspocusProvider | null>(null);
+  const [remoteProvider, setRemoteProvider] = useState<HocuspocusProvider>();
   const [hasLocalPersistence, setHasLocalPersistence] = useState(true);
   const [isLocalSynced, setLocalSynced] = useState(false);
   const [isRemoteSynced, setRemoteSynced] = useState(false);
@@ -223,7 +222,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
       window.removeEventListener("scroll", syncScrollPosition);
       provider?.destroy();
       void localProvider?.destroy();
-      setRemoteProvider(null);
+      setRemoteProvider(undefined);
       ui.setMultiplayerStatus(undefined, undefined);
     };
   }, [

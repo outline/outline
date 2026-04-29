@@ -44,9 +44,7 @@ describe("DeliverWebhookTask", () => {
       "http://example.com",
       expect.anything()
     );
-    const parsedBody = JSON.parse(
-      fetchMock.mock.calls[0]![1]!.body!.toString()
-    );
+    const parsedBody = JSON.parse(fetchMock.mock.calls[0]![1]!.body as string);
     expect(parsedBody.webhookSubscriptionId).toBe(subscription.id);
     expect(parsedBody.event).toBe("users.signin");
     expect(parsedBody.payload.id).toBe(signedInUser.id);
@@ -120,9 +118,7 @@ describe("DeliverWebhookTask", () => {
       "http://example.com",
       expect.anything()
     );
-    const parsedBody = JSON.parse(
-      fetchMock.mock.calls[0]![1]!.body!.toString()
-    );
+    const parsedBody = JSON.parse(fetchMock.mock.calls[0]![1]!.body as string);
     expect(parsedBody.webhookSubscriptionId).toBe(subscription.id);
     expect(parsedBody.event).toBe("users.delete");
     expect(parsedBody.payload.id).toBe(deletedUserId);
