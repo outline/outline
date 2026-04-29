@@ -204,9 +204,7 @@ export async function getDocumentBreadcrumb(
  * Resolves breadcrumb strings for a batch of documents in a single pass.
  * Loads all referenced collections (with the user's memberships) in one
  * query, filters by collection-level read access, then loads each
- * collection's cached documentStructure once. Documents whose collection
- * the user cannot read are omitted from the returned map, matching the
- * single-document helper's safety behavior.
+ * collection's cached documentStructure once.
  *
  * @param documents - the documents to build breadcrumbs for.
  * @param user - the user performing the action, used to authorize collection access.

@@ -103,16 +103,14 @@ export function fetchTool(server: McpServer, scopes: string[]) {
 
             authorize(actor, "read", document);
 
-            const { text, ...attributes } = await presentDocument(
-              undefined,
-              document,
-              {
+            const [{ text, ...attributes }, breadcrumb] = await Promise.all([
+              presentDocument(undefined, document, {
                 includeData: false,
                 includeText: true,
                 includeUpdatedAt: true,
-              }
-            );
-            const breadcrumb = await getDocumentBreadcrumb(document, actor);
+              }),
+              getDocumentBreadcrumb(document, actor),
+            ]);
             return {
               content: [
                 {

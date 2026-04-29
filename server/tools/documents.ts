@@ -349,16 +349,14 @@ export function documentTools(server: McpServer, scopes: string[]) {
             collectionId: collection?.id,
           });
 
-          const { text, ...attributes } = await presentDocument(
-            undefined,
-            document,
-            {
+          const [{ text, ...attributes }, breadcrumb] = await Promise.all([
+            presentDocument(undefined, document, {
               includeData: false,
               includeText: true,
               includeUpdatedAt: true,
-            }
-          );
-          const breadcrumb = await getDocumentBreadcrumb(document, user);
+            }),
+            getDocumentBreadcrumb(document, user),
+          ]);
           return {
             content: [
               {
@@ -610,16 +608,14 @@ export function documentTools(server: McpServer, scopes: string[]) {
             });
           }
 
-          const { text, ...attributes } = await presentDocument(
-            undefined,
-            updated,
-            {
+          const [{ text, ...attributes }, breadcrumb] = await Promise.all([
+            presentDocument(undefined, updated, {
               includeData: false,
               includeText: true,
               includeUpdatedAt: true,
-            }
-          );
-          const breadcrumb = await getDocumentBreadcrumb(updated, user);
+            }),
+            getDocumentBreadcrumb(updated, user),
+          ]);
           return {
             content: [
               {
