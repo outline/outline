@@ -20,8 +20,7 @@ export interface CellAttrs {
 const ALLOWED_ALIGNMENTS = new Set(["left", "center", "right"]);
 
 /**
- * Validates an alignment attribute value. Used to prevent CSS injection via the
- * `text-align` style on table cells.
+ * Validates an alignment attribute value.
  *
  * @param value The value to validate.
  * @returns true if the value is a safe alignment or null.
@@ -36,8 +35,8 @@ export const isValidCellAlignment = (
  * Validates a table cell's `marks` attribute against the given schema. Checks
  * that the value is an array of well-formed mark objects whose type exists in
  * the schema, and — for `background` marks — that the color is a valid hex
- * value. This prevents CSS injection when marks are rendered to DOM. `null`
- * and `undefined` are both considered valid (the attribute is optional).
+ * value. `null` and `undefined` are both considered valid (the attribute is
+ * optional).
  *
  * @param value The value to validate.
  * @param schema The editor schema, used to check mark types are registered.
