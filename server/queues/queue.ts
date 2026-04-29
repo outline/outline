@@ -31,7 +31,7 @@ export function createQueue(
           });
 
         default:
-          throw new Error(`Unexpected connection type: ${type}`);
+          throw new Error(`Unexpected connection type: ${String(type)}`);
       }
     },
     defaultJobOptions: {

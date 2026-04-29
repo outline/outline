@@ -36,9 +36,9 @@ export function CounterCache<
     setImmediate(() => {
       const recalculateCache =
         (offset: number) => async (model: InstanceType<T>) => {
-          const cacheKey = `${cacheKeyPrefix}:${
+          const cacheKey = `${cacheKeyPrefix}:${String(
             model[options.foreignKey as keyof typeof model]
-          }`;
+          )}`;
 
           const count = await modelClass.count({
             where: {

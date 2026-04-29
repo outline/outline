@@ -75,7 +75,7 @@ export function defaultRateLimiter() {
         ctx.set("RateLimit-Remaining", `${rateLimiterRes.remainingPoints}`);
         ctx.set(
           "RateLimit-Reset",
-          `${new Date(Date.now() + rateLimiterRes.msBeforeNext)}`
+          new Date(Date.now() + rateLimiterRes.msBeforeNext).toString()
         );
 
         Metrics.increment("rate_limit.exceeded", {

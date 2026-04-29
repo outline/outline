@@ -91,6 +91,7 @@
         "import/no-named-as-default": "off",
         "import/no-named-as-default-member": "off",
         "typescript/consistent-type-imports": "error",
+        "typescript/restrict-template-expressions": "error",
         "typescript/no-floating-promises": "error",
         "no-unused-vars": [
           "error",
