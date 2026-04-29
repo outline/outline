@@ -16986,7 +16986,7 @@ __metadata:
     react-dom: "npm:^17.0.2"
     react-dropzone: "npm:^11.7.1"
     react-helmet-async: "npm:^2.0.5"
-    react-hook-form: "npm:^7.68.0"
+    react-hook-form: "npm:^7.72.1"
     react-i18next: "npm:^12.3.1"
     react-merge-refs: "npm:^2.1.1"
     react-portal: "npm:^4.3.0"
@@ -17036,7 +17036,7 @@ __metadata:
     validator: "npm:13.15.35"
     vaul: "npm:^1.1.2"
     vite: "npm:rolldown-vite@7.3.1"
-    vite-plugin-pwa: "npm:1.0.3"
+    vite-plugin-pwa: "npm:1.2.0"
     web-haptics: "npm:^0.0.6"
     winston: "npm:^3.17.0"
     ws: "npm:^7.5.10"
@@ -18528,12 +18528,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-hook-form@npm:^7.68.0":
-  version: 7.69.0
-  resolution: "react-hook-form@npm:7.69.0"
+"react-hook-form@npm:^7.72.1":
+  version: 7.74.0
+  resolution: "react-hook-form@npm:7.74.0"
   peerDependencies:
     react: ^16.8.0 || ^17 || ^18 || ^19
-  checksum: 10c0/99440aac1edbbda1f1704e31bea72dd75130d09593f5fce037596d381fb3dbf5a9864b28f49ecd52bd6dfabceb437905578fe2efc20c69411500fbdbc8647df6
+  checksum: 10c0/54d18c584aedea6db266a4981fb9de3df6bdf238996d2009a4dbf2e28b1fdd53b0644faba72fb55b087db7f93c6ea50753bc1a1691f43d1ba5f92861dc3fd096
   languageName: node
   linkType: hard
 
@@ -21593,24 +21593,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite-plugin-pwa@npm:1.0.3":
-  version: 1.0.3
-  resolution: "vite-plugin-pwa@npm:1.0.3"
+"vite-plugin-pwa@npm:1.2.0":
+  version: 1.2.0
+  resolution: "vite-plugin-pwa@npm:1.2.0"
   dependencies:
     debug: "npm:^4.3.6"
     pretty-bytes: "npm:^6.1.1"
     tinyglobby: "npm:^0.2.10"
-    workbox-build: "npm:^7.3.0"
-    workbox-window: "npm:^7.3.0"
+    workbox-build: "npm:^7.4.0"
+    workbox-window: "npm:^7.4.0"
   peerDependencies:
     "@vite-pwa/assets-generator": ^1.0.0
     vite: ^3.1.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0
-    workbox-build: ^7.3.0
-    workbox-window: ^7.3.0
+    workbox-build: ^7.4.0
+    workbox-window: ^7.4.0
   peerDependenciesMeta:
     "@vite-pwa/assets-generator":
       optional: true
-  checksum: 10c0/03fc24bd12ae4a4130979da4877e3dabddf13d7d6ff2bd68e5e8497a2643b8874a78e6c2502874277ddf2f28593d0a3b025d78af2335bdcc5d2966295784fd46
+  checksum: 10c0/d037591fc6a44b9a97f45b2452f691fce34c1c8ece4721d4f1a068f6dd7c30991b63c090a2af87d5b78d351bf5f5eee9d9dbbfc4bb39a77d3bc2ab7d2ca5df6b
   languageName: node
   linkType: hard
 
@@ -22058,7 +22058,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"workbox-build@npm:^7.3.0":
+"workbox-build@npm:^7.4.0":
   version: 7.4.0
   resolution: "workbox-build@npm:7.4.0"
   dependencies:
@@ -22219,7 +22219,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"workbox-window@npm:7.4.0, workbox-window@npm:^7.3.0":
+"workbox-window@npm:7.4.0, workbox-window@npm:^7.4.0":
   version: 7.4.0
   resolution: "workbox-window@npm:7.4.0"
   dependencies:
