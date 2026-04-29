@@ -201,6 +201,66 @@ export async function getDocumentBreadcrumb(
 }
 
 /**
+ * Resolves breadcrumb strings for a batch of documents in a single pass.
+ * Loads all referenced collections (with the user's memberships) in one
+ * query, filters by collection-level read access, then loads each
+ * collection's cached documentStructure once. Documents whose collection
+ * the user cannot read are omitted from the returned map, matching the
+ * single-document helper's safety behavior.
+ *
+ * @param documents - the documents to build breadcrumbs for.
+ * @param user - the user performing the action, used to authorize collection access.
+ * @returns a map from document ID to breadcrumb string.
+ */
+export async function getBreadcrumbsForDocuments(
+  documents: { id: string; collectionId?: string | null }[],
+  user: User
+): Promise<Map<string, string>> {
+  const breadcrumbs = new Map<string, string>();
+
+  const collectionIds = [
+    ...new Set(
+      documents
+        .map((doc) => doc.collectionId)
+        .filter((id): id is string => !!id)
+    ),
+  ];
+  if (collectionIds.length === 0) {
+    return breadcrumbs;
+  }
+
+  const collections = await Collection.scope([
+    "defaultScope",
+    { method: ["withMembership", user.id] },
+  ]).findAll({
+    where: { id: collectionIds },
+  });
+
+  const collectionsById = new Map(
+    collections
+      .filter((collection) => can(user, "read", collection))
+      .map((collection) => [collection.id, collection])
+  );
+
+  for (const doc of documents) {
+    if (!doc.collectionId) {
+      continue;
+    }
+    const collection = collectionsById.get(doc.collectionId);
+    if (!collection) {
+      continue;
+    }
+    const structure = await collection.getCachedDocumentStructure();
+    breadcrumbs.set(
+      doc.id,
+      buildBreadcrumb(doc.id, structure, collection.name)
+    );
+  }
+
+  return breadcrumbs;
+}
+
+/**
  * Utility function to construct a URL by joining a team URL with a path segment.
  *
  * @param team - the team object containing the base URL.

@@ -17,6 +17,7 @@ import {
   buildAPIContext,
   buildSiblingIndexMap,
   getActorFromContext,
+  getBreadcrumbsForDocuments,
   getDocumentBreadcrumb,
   pathToUrl,
   withTracing,
@@ -119,31 +120,37 @@ export function documentTools(server: McpServer, scopes: string[]) {
                 limit: effectiveLimit,
               });
 
+              const filteredResults = results.filter(
+                (result) => result.document.id !== exactMatch?.id
+              );
+              const breadcrumbs = await getBreadcrumbsForDocuments(
+                [
+                  ...(exactMatch ? [exactMatch] : []),
+                  ...filteredResults.map((r) => r.document),
+                ],
+                user
+              );
+
               const presented = await Promise.all(
-                results
-                  .filter((result) => result.document.id !== exactMatch?.id)
-                  .map(async (result) => {
-                    const doc = pathToUrl(
-                      user.team,
-                      await presentDocument(undefined, result.document, {
-                        includeData: false,
-                        includeText: false,
-                      })
-                    );
-                    const breadcrumb = await getDocumentBreadcrumb(
-                      result.document,
-                      user
-                    );
-                    const siblingIndex = indexMap?.get(result.document.id);
-                    return {
-                      document: doc,
-                      ...(breadcrumb !== undefined && { breadcrumb }),
-                      context: result.context,
-                      ...(siblingIndex !== undefined && {
-                        index: siblingIndex,
-                      }),
-                    };
-                  })
+                filteredResults.map(async (result) => {
+                  const doc = pathToUrl(
+                    user.team,
+                    await presentDocument(undefined, result.document, {
+                      includeData: false,
+                      includeText: false,
+                    })
+                  );
+                  const breadcrumb = breadcrumbs.get(result.document.id);
+                  const siblingIndex = indexMap?.get(result.document.id);
+                  return {
+                    document: doc,
+                    ...(breadcrumb !== undefined && { breadcrumb }),
+                    context: result.context,
+                    ...(siblingIndex !== undefined && {
+                      index: siblingIndex,
+                    }),
+                  };
+                })
               );
 
               if (exactMatch) {
@@ -154,10 +161,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
                     includeText: false,
                   })
                 );
-                const breadcrumb = await getDocumentBreadcrumb(
-                  exactMatch,
-                  user
-                );
+                const breadcrumb = breadcrumbs.get(exactMatch.id);
                 const siblingIndex = indexMap?.get(exactMatch.id);
                 presented.unshift({
                   document: doc,
@@ -186,6 +190,11 @@ export function documentTools(server: McpServer, scopes: string[]) {
               limit: effectiveLimit,
             });
 
+            const breadcrumbs = await getBreadcrumbsForDocuments(
+              documents,
+              user
+            );
+
             const presented = await Promise.all(
               documents.map(async (document) => {
                 const doc = pathToUrl(
@@ -195,7 +204,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
                     includeText: false,
                   })
                 );
-                const breadcrumb = await getDocumentBreadcrumb(document, user);
+                const breadcrumb = breadcrumbs.get(document.id);
                 const siblingIndex = indexMap?.get(document.id);
                 return {
                   document: doc,
@@ -476,6 +485,11 @@ export function documentTools(server: McpServer, scopes: string[]) {
               }
             }
 
+            const breadcrumbs = await getBreadcrumbsForDocuments(
+              documents,
+              user
+            );
+
             const presented = await Promise.all(
               documents.map(async (document) => {
                 const doc = pathToUrl(
@@ -485,7 +499,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
                     includeText: false,
                   })
                 );
-                const breadcrumb = await getDocumentBreadcrumb(document, user);
+                const breadcrumb = breadcrumbs.get(document.id);
                 const siblingIndex = indexMap.get(document.id);
                 return {
                   document: doc,
