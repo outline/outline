@@ -115,6 +115,9 @@ export default class RedisAdapter extends Redis {
           });
       }, env.REDIS_HEALTHCHECK_INTERVAL);
 
+      // Don't keep the Node event loop alive solely for the healthcheck.
+      healthcheck.unref();
+
       this.on("end", () => clearInterval(healthcheck));
     }
   }

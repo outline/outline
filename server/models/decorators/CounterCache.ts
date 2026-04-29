@@ -1,8 +1,13 @@
 import isNil from "lodash/isNil";
-import type { InferAttributes } from "sequelize";
+import type {
+  IncludeOptions,
+  InferAttributes,
+  Transaction,
+  WhereOptions,
+} from "sequelize";
 import type { ModelClassGetter } from "sequelize-typescript";
-import env from "@server/env";
 import { CacheHelper } from "@server/utils/CacheHelper";
+import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import type Model from "../base/Model";
 
 type RelationOptions = {
@@ -10,6 +15,10 @@ type RelationOptions = {
   as: string;
   /** The foreign key to use for the relationship query. */
   foreignKey: string;
+  /** Optional include used in the count query for filtering through associations. */
+  include?: IncludeOptions[];
+  /** Optional additional where clause used in the count query. */
+  where?: WhereOptions;
 };
 
 /**
@@ -25,57 +34,72 @@ export function CounterCache<
   options: RelationOptions
 ) {
   return function (target: InstanceType<T>, _propertyKey: string) {
-    if (env.isTest) {
-      // No-op cache in test environment
-      return;
-    }
     const modelClass = classResolver() as typeof Model;
-    const cacheKeyPrefix = `count:${target.constructor.name}:${options.as}`;
+    const modelName = target.constructor.name;
 
-    // Add hooks after model is added to the sequelize instance
-    setImmediate(() => {
-      const recalculateCache =
-        (offset: number) => async (model: InstanceType<T>) => {
-          const cacheKey = `${cacheKeyPrefix}:${String(
-            model[options.foreignKey as keyof typeof model]
-          )}`;
+    const buildCacheKey = (id: unknown) =>
+      RedisPrefixHelper.getCounterCacheKey(modelName, options.as, String(id));
 
-          const count = await modelClass.count({
-            where: {
-              [options.foreignKey]:
-                model[options.foreignKey as keyof typeof model],
-            },
-          });
-          await CacheHelper.setData(cacheKey, count + offset);
-        };
+    const computeCount = (id: unknown) =>
+      modelClass.count({
+        where: { [options.foreignKey]: id, ...(options.where ?? {}) },
+        include: options.include,
+        distinct: !!options.include,
+      });
 
-      // Because the transaction is not complete until after the response is sent, we need to
-      // offset the count by 1 to account for the record. TODO: Need to find a better way to handle
-      // this as a rollback would not decrement the count.
-      modelClass.addHook("afterCreate", recalculateCache(1));
-      modelClass.addHook("afterDestroy", recalculateCache(-1));
-    });
+    const invalidate = async (
+      model: InstanceType<T>,
+      hookOptions?: { transaction?: Transaction | null }
+    ) => {
+      const cacheKey = buildCacheKey(
+        model[options.foreignKey as keyof typeof model]
+      );
+      const remove = async () => {
+        await CacheHelper.removeData(cacheKey);
+      };
+
+      // Defer invalidation until after the transaction commits so that a
+      // rollback does not leave the cache out of sync, and so that a stale
+      // pre-commit count is not re-cached by a concurrent reader. Walk to
+      // the parent transaction when nested so the callback isn't lost when
+      // the savepoint releases without committing the outer transaction.
+      if (hookOptions?.transaction) {
+        const transaction =
+          hookOptions.transaction.parent || hookOptions.transaction;
+        transaction.afterCommit(remove);
+      } else {
+        await remove();
+      }
+    };
+
+    // The model class is not added to a Sequelize instance until the database
+    // module is first imported, which is later than decorator evaluation. Poll
+    // until the model is ready, then register the hooks. Use unref() so the
+    // pending immediate does not keep the event loop alive in environments
+    // (such as tests) where the database is never initialized.
+    const registerHooks = () => {
+      if (!modelClass.sequelize) {
+        setImmediate(registerHooks).unref();
+        return;
+      }
+      modelClass.addHook("afterCreate", invalidate);
+      modelClass.addHook("afterDestroy", invalidate);
+    };
+    setImmediate(registerHooks).unref();
 
     return {
       get() {
-        const cacheKey = `${cacheKeyPrefix}:${this.id}`;
+        const cacheKey = buildCacheKey(this.id);
 
         return CacheHelper.getData<number>(cacheKey).then((value) => {
           if (!isNil(value)) {
             return value;
           }
 
-          // calculate and cache count
-          return modelClass
-            .count({
-              where: {
-                [options.foreignKey]: this.id,
-              },
-            })
-            .then((count) => {
-              void CacheHelper.setData(cacheKey, count);
-              return count;
-            });
+          return computeCount(this.id).then((count) => {
+            void CacheHelper.setData(cacheKey, count);
+            return count;
+          });
         });
       },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TS rejects PropertyDescriptor as legacy decorator return type; descriptor is consumed by Sequelize at runtime.
