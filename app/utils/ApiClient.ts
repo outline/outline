@@ -95,7 +95,7 @@ class ApiClient {
         // toggling Content-Type to application/json
         if (
           typeof data === "object" &&
-          (data || "").toString() === "[object Object]"
+          Object.prototype.toString.call(data) === "[object Object]"
         ) {
           body = JSON.stringify(data);
         }

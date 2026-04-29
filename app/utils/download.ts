@@ -41,9 +41,8 @@ export default function download(
   }
 
   // go ahead and download dataURLs right away
-  if (String(x).match(/^data:[\w+-]+\/[\w+-]+[,;]/)) {
-    // @ts-expect-error ts-migrate(2554) FIXME: Expected 2 arguments, but got 1.
-    return saver(x); // everyone else can save dataURLs un-processed
+  if (typeof x === "string" && x.match(/^data:[\w+-]+\/[\w+-]+[,;]/)) {
+    return saver(x);
   }
 
   // end if dataURL passed?

@@ -119,7 +119,7 @@ export function fetchTool(server: McpServer, scopes: string[]) {
                 },
                 {
                   type: "text" as const,
-                  text: String(text ?? ""),
+                  text: typeof text === "string" ? text : "",
                 },
               ],
             } satisfies CallToolResult;

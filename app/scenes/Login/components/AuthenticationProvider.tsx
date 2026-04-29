@@ -104,7 +104,7 @@ function AuthenticationProvider(props: Props) {
                 const input = document.createElement("input");
                 input.type = "hidden";
                 input.name = fieldName;
-                input.value = String(value);
+                input.value = String(value as string | number | boolean);
                 formRef.current?.appendChild(input);
               }
             });

@@ -142,7 +142,8 @@ export function setCellAttrs(node: Node): Attrs {
       attrs["data-colwidth"] = node.attrs.colwidth.map(Number).join(",");
     } else {
       attrs.style =
-        (attrs.style ?? "") + `min-width: ${Number(node.attrs.colwidth[0])}px;`;
+        ((attrs.style as string) ?? "") +
+        `min-width: ${Number(node.attrs.colwidth[0])}px;`;
     }
   }
   if (Array.isArray(node.attrs.marks)) {
@@ -156,7 +157,7 @@ export function setCellAttrs(node: Node): Attrs {
       const color = backgroundMark.attrs!.color as string;
       attrs["data-bgcolor"] = color;
       attrs.style =
-        (attrs.style ?? "") +
+        ((attrs.style as string) ?? "") +
         `--cell-bg-color: ${color}; --cell-text-color: ${readableColor(color)};`;
     }
   }

@@ -195,7 +195,7 @@ export const MentionURL = (props: IssueUrlProps) => {
     ...attrs
   } = getAttributesFromNode(node);
 
-  const url = String(attrs.href);
+  const url = attrs.href as string;
   const unfurl = unfurls.get(url)?.data ?? unfurlAttr;
 
   React.useEffect(() => {
