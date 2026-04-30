@@ -97,6 +97,62 @@ describe("Authentication middleware", () => {
       );
       expect(state.auth.user.id).toEqual(user.id);
     });
+    it("should authenticate with global read scope on read endpoints", async () => {
+      const state = {} as DefaultState;
+      const user = await buildUser();
+      const authMiddleware = auth();
+      const key = await buildApiKey({
+        userId: user.id,
+        scope: [Scope.Read],
+      });
+
+      await authMiddleware(
+        {
+          originalUrl: "/api/auth.info",
+          // @ts-expect-error mock request
+          request: {
+            url: "/auth.info",
+            get: jest.fn(() => `Bearer ${key.value}`),
+          },
+          state,
+          cache: {},
+        },
+        jest.fn()
+      );
+      expect(state.auth.user.id).toEqual(user.id);
+    });
+
+    it("should return 403 authorization error when scope does not match", async () => {
+      const state = {} as DefaultState;
+      const user = await buildUser();
+      const authMiddleware = auth();
+      const key = await buildApiKey({
+        userId: user.id,
+        scope: [Scope.Read],
+      });
+
+      try {
+        await authMiddleware(
+          {
+            originalUrl: "/api/documents.create",
+            // @ts-expect-error mock request
+            request: {
+              url: "/documents.create",
+              get: jest.fn(() => `Bearer ${key.value}`),
+            },
+            state,
+            cache: {},
+          },
+          jest.fn()
+        );
+        throw new Error("Expected error to be thrown");
+      } catch (e) {
+        expect(e.status).toBe(403);
+        expect(e.id).toBe("authorization_error");
+        expect(e.message).toContain("does not have access to this resource");
+      }
+    });
+
     it("should return error with invalid API key", async () => {
       const state = {} as DefaultState;
       const authMiddleware = auth();

@@ -177,7 +177,7 @@ async function validateAuthentication(
       throw AuthenticationError("Access token is expired");
     }
     if (!authentication.canAccess(ctx.originalUrl)) {
-      throw AuthenticationError(
+      throw AuthorizationError(
         "Access token does not have access to this resource"
       );
     }
@@ -220,9 +220,7 @@ async function validateAuthentication(
     }
 
     if (!apiKey.canAccess(ctx.originalUrl)) {
-      throw AuthenticationError(
-        "API key does not have access to this resource"
-      );
+      throw AuthorizationError("API key does not have access to this resource");
     }
 
     user = await User.findByPk(apiKey.userId, {
