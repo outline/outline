@@ -1009,6 +1009,9 @@ class Document extends ArchivableModel<
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
 
+    this.lastModifiedById = user.id;
+    this.updatedBy = user;
+
     // If the document is already published then calling publish should act like
     // a regular save
     if (this.publishedAt) {
@@ -1056,8 +1059,6 @@ class Document extends ArchivableModel<
       );
     }
 
-    this.lastModifiedById = user.id;
-    this.updatedBy = user;
     this.publishedAt = new Date();
 
     if (event) {

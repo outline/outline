@@ -31,6 +31,25 @@ describe("documentUpdater", () => {
     expect(event!.documentId).toEqual(document.id);
   });
 
+  it("should change lastModifiedById when republishing an already published document", async () => {
+    const user = await buildUser();
+    let document = await buildDocument({
+      teamId: user.teamId,
+    });
+    const originalCreatorId = document.createdById;
+
+    document = await withAPIContext(user, (ctx) =>
+      documentUpdater(ctx, {
+        text: "Changed",
+        publish: true,
+        document,
+      })
+    );
+
+    expect(originalCreatorId).not.toEqual(user.id);
+    expect(document.lastModifiedById).toEqual(user.id);
+  });
+
   it("should not change lastModifiedById or generate event if nothing changed", async () => {
     const user = await buildUser();
     let document = await buildDocument({
