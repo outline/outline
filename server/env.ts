@@ -800,6 +800,14 @@ export class Environment {
   public APP_NAME = "Outline";
 
   /**
+   * The subdomain name of the portal (e.g. "moneta" for moneta.example.com).
+   * Used to redirect users to the portal after logout. Defaults to "foss".
+   */
+  @Public
+  @IsOptional()
+  public SMB_NAME = environment.SMB_NAME ?? "foss";
+
+  /**
    * Gravity constant for time decay in popularity scoring. Higher values cause
    * faster decay of older content. Default is 0.7.
    */
