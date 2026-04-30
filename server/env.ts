@@ -581,6 +581,20 @@ export class Environment {
     this.toOptionalNumber(environment.RATE_LIMITER_DURATION_WINDOW) ?? 60;
 
   /**
+   * Multiplier applied to the per-endpoint API rate limits. Allows operators to
+   * uniformly scale the hard-coded route-level limits up or down without
+   * touching code. A value of 1 (the default) preserves the built-in limits.
+   * Effective per-endpoint limits are scaled by this value, rounded to the
+   * nearest integer, and clamped to a minimum of 1.
+   */
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @CannotUseWithout("RATE_LIMITER_ENABLED")
+  public RATE_LIMITER_MULTIPLIER =
+    this.toOptionalFloat(environment.RATE_LIMITER_MULTIPLIER) ?? 1;
+
+  /**
    * Set max allowed upload size for file attachments.
    * @deprecated Use FILE_STORAGE_UPLOAD_MAX_SIZE instead
    */
@@ -879,6 +893,10 @@ export class Environment {
 
   protected toOptionalNumber(value: string | undefined) {
     return value ? parseInt(value, 10) : undefined;
+  }
+
+  protected toOptionalFloat(value: string | undefined) {
+    return value ? parseFloat(value) : undefined;
   }
 
   /**

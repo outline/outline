@@ -7,14 +7,17 @@ import { defaultRateLimiter, rateLimiter } from "./rateLimiter";
 
 describe("rateLimiter middleware", () => {
   const originalRateLimiterEnabled = env.RATE_LIMITER_ENABLED;
+  const originalApiMultiplier = env.RATE_LIMITER_MULTIPLIER;
 
   beforeEach(() => {
     env.RATE_LIMITER_ENABLED = true;
+    env.RATE_LIMITER_MULTIPLIER = 1;
     RateLimiter.rateLimiterMap.clear();
   });
 
   afterEach(() => {
     env.RATE_LIMITER_ENABLED = originalRateLimiterEnabled;
+    env.RATE_LIMITER_MULTIPLIER = originalApiMultiplier;
     jest.restoreAllMocks();
   });
 
@@ -60,6 +63,42 @@ describe("rateLimiter middleware", () => {
     const limiter = RateLimiter.getRateLimiter(registrationPath);
     expect(limiter).not.toBe(RateLimiter.defaultRateLimiter);
     expect(limiter.points).toBe(5);
+  });
+
+  it("scales the per-route limit by RATE_LIMITER_MULTIPLIER", async () => {
+    env.RATE_LIMITER_MULTIPLIER = 2;
+
+    const registerMiddleware = rateLimiter({ duration: 60, requests: 5 });
+    const mockCtx = {
+      path: "/documents.export",
+      mountPath: undefined,
+      ip: "127.0.0.1",
+      set: jest.fn(),
+      request: {},
+    } as unknown as Context;
+
+    await registerMiddleware(mockCtx, jest.fn());
+
+    const limiter = RateLimiter.getRateLimiter("/documents.export");
+    expect(limiter.points).toBe(10);
+  });
+
+  it("rounds fractional multiplier results and never drops below 1", async () => {
+    env.RATE_LIMITER_MULTIPLIER = 0.1;
+
+    const registerMiddleware = rateLimiter({ duration: 60, requests: 5 });
+    const mockCtx = {
+      path: "/shares.subscribe",
+      mountPath: undefined,
+      ip: "127.0.0.1",
+      set: jest.fn(),
+      request: {},
+    } as unknown as Context;
+
+    await registerMiddleware(mockCtx, jest.fn());
+
+    const limiter = RateLimiter.getRateLimiter("/shares.subscribe");
+    expect(limiter.points).toBe(1);
   });
 
   it("should use default rate limiter when no custom rate limiter is registered", async () => {
