@@ -76,6 +76,13 @@ export function isLoopbackUri(uri: string | undefined): boolean {
  */
 export const isAllowedLoginRedirect = (input: string) => {
   const path = input.split("?")[0].split("#")[0];
+
+  // Reject protocol-relative or backslash-prefixed paths that browsers may
+  // interpret as navigations to a different origin.
+  if (path.startsWith("//") || path.startsWith("/\\")) {
+    return false;
+  }
+
   return (
     !["/", "/create", "/home", "/logout", "/desktop-redirect"].includes(path) &&
     !path.startsWith("/auth/") &&
