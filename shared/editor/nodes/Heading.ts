@@ -8,7 +8,7 @@ import type {
   Schema,
 } from "prosemirror-model";
 import type { Command } from "prosemirror-state";
-import { Plugin, Selection } from "prosemirror-state";
+import { Plugin, Selection, TextSelection } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { toast } from "sonner";
 import type { Primitive } from "utility-types";
@@ -197,6 +197,29 @@ export default class Heading extends Node {
       ...options,
       Backspace: backspaceToParagraph(type),
       Enter: splitHeading(type),
+      // Cmd+Left in Firefox lands the DOM caret inside the heading-actions
+      // widget (contentEditable=false, ignoreSelection: true), so Prosemirror
+      // does not update its model. Subsequent commands like Enter then operate
+      // on the stale position. Move the model selection explicitly to keep it
+      // in sync with the visual caret.
+      "Mod-ArrowLeft": ((state, dispatch) => {
+        const { $from, empty } = state.selection;
+        if (!empty || $from.parent.type !== type) {
+          return false;
+        }
+        const start = $from.start();
+        if ($from.pos === start) {
+          return false;
+        }
+        if (dispatch) {
+          dispatch(
+            state.tr
+              .setSelection(TextSelection.create(state.doc, start))
+              .scrollIntoView()
+          );
+        }
+        return true;
+      }) as Command,
     };
   }
 
