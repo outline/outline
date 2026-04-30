@@ -53,6 +53,8 @@ describe("#apiKeys.create", () => {
           "*.info",
           "users.*",
           "collections:read",
+          "read",
+          "write",
         ],
       },
     });
@@ -66,6 +68,8 @@ describe("#apiKeys.create", () => {
       "/api/*.info",
       "/api/users.*",
       "collections:read",
+      "read",
+      "write",
     ]);
   });
 

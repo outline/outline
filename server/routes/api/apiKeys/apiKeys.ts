@@ -1,6 +1,6 @@
 import Router from "koa-router";
 import { Op, Sequelize, type WhereOptions } from "sequelize";
-import { UserRole } from "@shared/types";
+import { Scope, UserRole } from "@shared/types";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
@@ -33,7 +33,9 @@ router.post(
       userId: user.id,
       expiresAt,
       scope: scope?.map((s) =>
-        s.startsWith("/api/") || s.includes(":")
+        s.startsWith("/api/") ||
+        s.includes(":") ||
+        Object.values(Scope).includes(s as Scope)
           ? s
           : `/api/${s.replace(/^\//, "")}`
       ),
