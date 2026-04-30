@@ -33,10 +33,11 @@ describe("documentUpdater", () => {
 
   it("should change lastModifiedById when republishing an already published document", async () => {
     const user = await buildUser();
+    const creator = await buildUser({ teamId: user.teamId });
     let document = await buildDocument({
       teamId: user.teamId,
+      userId: creator.id,
     });
-    const originalCreatorId = document.createdById;
 
     document = await withAPIContext(user, (ctx) =>
       documentUpdater(ctx, {
@@ -46,7 +47,7 @@ describe("documentUpdater", () => {
       })
     );
 
-    expect(originalCreatorId).not.toEqual(user.id);
+    expect(document.createdById).toEqual(creator.id);
     expect(document.lastModifiedById).toEqual(user.id);
   });
 
