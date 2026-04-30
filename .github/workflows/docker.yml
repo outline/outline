@@ -1,4 +1,4 @@
-name: Docker
+name: Publish build
 
 on:
   push:
@@ -173,6 +173,7 @@ jobs:
     needs:
       - build-amd
       - build-arm
+    environment: dockerhub
     steps:
       - name: Download digests
         uses: actions/download-artifact@v4
