@@ -120,7 +120,7 @@ export function rateLimiter(config: RateLimiterConfig) {
     if (!RateLimiter.hasRateLimiter(fullPath)) {
       const points = Math.max(
         1,
-        Math.round(config.requests * env.RATE_LIMITER_API_MULTIPLIER)
+        Math.round(config.requests * env.RATE_LIMITER_MULTIPLIER)
       );
 
       RateLimiter.setRateLimiter(

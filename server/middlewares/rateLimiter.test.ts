@@ -7,17 +7,17 @@ import { defaultRateLimiter, rateLimiter } from "./rateLimiter";
 
 describe("rateLimiter middleware", () => {
   const originalRateLimiterEnabled = env.RATE_LIMITER_ENABLED;
-  const originalApiMultiplier = env.RATE_LIMITER_API_MULTIPLIER;
+  const originalApiMultiplier = env.RATE_LIMITER_MULTIPLIER;
 
   beforeEach(() => {
     env.RATE_LIMITER_ENABLED = true;
-    env.RATE_LIMITER_API_MULTIPLIER = 1;
+    env.RATE_LIMITER_MULTIPLIER = 1;
     RateLimiter.rateLimiterMap.clear();
   });
 
   afterEach(() => {
     env.RATE_LIMITER_ENABLED = originalRateLimiterEnabled;
-    env.RATE_LIMITER_API_MULTIPLIER = originalApiMultiplier;
+    env.RATE_LIMITER_MULTIPLIER = originalApiMultiplier;
     jest.restoreAllMocks();
   });
 
@@ -65,8 +65,8 @@ describe("rateLimiter middleware", () => {
     expect(limiter.points).toBe(5);
   });
 
-  it("scales the per-route limit by RATE_LIMITER_API_MULTIPLIER", async () => {
-    env.RATE_LIMITER_API_MULTIPLIER = 2;
+  it("scales the per-route limit by RATE_LIMITER_MULTIPLIER", async () => {
+    env.RATE_LIMITER_MULTIPLIER = 2;
 
     const registerMiddleware = rateLimiter({ duration: 60, requests: 5 });
     const mockCtx = {
@@ -84,7 +84,7 @@ describe("rateLimiter middleware", () => {
   });
 
   it("rounds fractional multiplier results and never drops below 1", async () => {
-    env.RATE_LIMITER_API_MULTIPLIER = 0.1;
+    env.RATE_LIMITER_MULTIPLIER = 0.1;
 
     const registerMiddleware = rateLimiter({ duration: 60, requests: 5 });
     const mockCtx = {

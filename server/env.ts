@@ -583,15 +583,16 @@ export class Environment {
   /**
    * Multiplier applied to the per-endpoint API rate limits. Allows operators to
    * uniformly scale the hard-coded route-level limits up or down without
-   * touching code. A value of 1 (the default) preserves the built-in limits, 2
-   * doubles them, 0.5 halves them.
+   * touching code. A value of 1 (the default) preserves the built-in limits.
+   * Effective per-endpoint limits are scaled by this value, rounded to the
+   * nearest integer, and clamped to a minimum of 1.
    */
   @IsOptional()
   @IsNumber()
   @Min(0)
   @CannotUseWithout("RATE_LIMITER_ENABLED")
-  public RATE_LIMITER_API_MULTIPLIER =
-    this.toOptionalFloat(environment.RATE_LIMITER_API_MULTIPLIER) ?? 1;
+  public RATE_LIMITER_MULTIPLIER =
+    this.toOptionalFloat(environment.RATE_LIMITER_MULTIPLIER) ?? 1;
 
   /**
    * Set max allowed upload size for file attachments.
