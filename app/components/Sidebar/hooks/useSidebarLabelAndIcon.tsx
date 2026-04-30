@@ -7,11 +7,13 @@ import useStores from "~/hooks/useStores";
 interface SidebarItem {
   documentId?: string;
   collectionId?: string;
+  groupId?: string;
 }
 
 export function useSidebarLabelAndIcon({
   documentId,
   collectionId,
+  groupId,
 }: SidebarItem) {
   const { collections, documents } = useStores();
   const icon = <QuestionMarkIcon />;
@@ -27,7 +29,7 @@ export function useSidebarLabelAndIcon({
             initial={document.initial}
             color={document.color ?? undefined}
           />
-        ) : (
+        ) : groupId ? null : (
           <DocumentIcon outline={document.isDraft} />
         ),
       };
