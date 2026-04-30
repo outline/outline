@@ -14,6 +14,8 @@ import * as T from "./schema";
 
 const router = new Router();
 
+const globalScopes = new Set<string>(Object.values(Scope));
+
 router.post(
   "apiKeys.create",
   auth({
@@ -33,9 +35,7 @@ router.post(
       userId: user.id,
       expiresAt,
       scope: scope?.map((s) =>
-        s.startsWith("/api/") ||
-        s.includes(":") ||
-        Object.values(Scope).includes(s as Scope)
+        s.startsWith("/api/") || s.includes(":") || globalScopes.has(s)
           ? s
           : `/api/${s.replace(/^\//, "")}`
       ),
