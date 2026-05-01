@@ -47,6 +47,16 @@ type Params = {
 };
 
 export default function useDragResize(props: Params): ReturnValue {
+  const {
+    onChangeSize,
+    naturalWidth,
+    naturalHeight,
+    gridSnap,
+    gridHeightSnap,
+    minHeight,
+    ref,
+  } = props;
+
   const [size, setSize] = React.useState<SizeState>({
     width: props.width,
     height: props.height,
@@ -55,78 +65,103 @@ export default function useDragResize(props: Params): ReturnValue {
   const [offset, setOffset] = React.useState(0);
   const [sizeAtDragStart, setSizeAtDragStart] = React.useState(size);
   const [dragging, setDragging] = React.useState<DragDirection>();
-  const isResizable = !!props.onChangeSize;
+  const isResizable = !!onChangeSize;
 
-  const constrainWidth = (width: number, max: number) => {
-    const minWidth = Math.min(props.naturalWidth, (props.gridSnap / 100) * max);
-    return Math.round(Math.min(max, Math.max(width, minWidth)));
-  };
+  // Mirror the latest size into a ref so handlePointerUp can read it without
+  // re-binding listeners on every pointermove that updates size.
+  const sizeRef = React.useRef(size);
+  sizeRef.current = size;
 
-  const handlePointerMove = (event: PointerEvent) => {
-    event.preventDefault();
+  const constrainWidth = React.useCallback(
+    (width: number, max: number) => {
+      const minWidth = Math.min(naturalWidth, (gridSnap / 100) * max);
+      return Math.round(Math.min(max, Math.max(width, minWidth)));
+    },
+    [naturalWidth, gridSnap]
+  );
 
-    let diffX, diffY;
-    if (dragging === "left") {
-      diffX = offset - event.pageX;
-    } else if (dragging === "right") {
-      diffX = event.pageX - offset;
-    } else {
-      diffY = event.pageY - offset;
-    }
+  const handlePointerMove = React.useCallback(
+    (event: PointerEvent) => {
+      event.preventDefault();
 
-    if (diffX && sizeAtDragStart.width) {
-      const gridWidth = (props.gridSnap / 100) * maxWidth;
-      const newWidth = sizeAtDragStart.width + diffX * 2;
-      const widthOnGrid = Math.round(newWidth / gridWidth) * gridWidth;
-      const constrainedWidth = constrainWidth(widthOnGrid, maxWidth);
-      const aspectRatio = props.naturalHeight / props.naturalWidth;
+      let diffX, diffY;
+      if (dragging === "left") {
+        diffX = offset - event.pageX;
+      } else if (dragging === "right") {
+        diffX = event.pageX - offset;
+      } else {
+        diffY = event.pageY - offset;
+      }
 
-      setSize({
-        width:
-          // If the natural width is the same as the constrained width, use the natural width -
-          // special case for images resized to the full width of the editor.
-          constrainedWidth === Math.min(newWidth, maxWidth)
-            ? props.naturalWidth
-            : constrainedWidth,
-        height: props.naturalWidth
-          ? Math.round(constrainedWidth * aspectRatio)
-          : undefined,
-      });
-    }
+      if (diffX && sizeAtDragStart.width) {
+        const gridWidth = (gridSnap / 100) * maxWidth;
+        const newWidth = sizeAtDragStart.width + diffX * 2;
+        const widthOnGrid = Math.round(newWidth / gridWidth) * gridWidth;
+        const constrainedWidth = constrainWidth(widthOnGrid, maxWidth);
+        const aspectRatio = naturalHeight / naturalWidth;
 
-    if (diffY && sizeAtDragStart.height) {
-      const gridHeight = props.gridHeightSnap ?? 10;
-      const newHeight = sizeAtDragStart.height + diffY;
-      const heightOnGrid = Math.round(newHeight / gridHeight) * gridHeight;
+        setSize({
+          width:
+            // If the natural width is the same as the constrained width, use the natural width -
+            // special case for images resized to the full width of the editor.
+            constrainedWidth === Math.min(newWidth, maxWidth)
+              ? naturalWidth
+              : constrainedWidth,
+          height: naturalWidth
+            ? Math.round(constrainedWidth * aspectRatio)
+            : undefined,
+        });
+      }
 
-      setSize((state) => ({
-        ...state,
-        height: Math.max(heightOnGrid, props.minHeight ?? 50),
-      }));
-    }
-  };
+      if (diffY && sizeAtDragStart.height) {
+        const gridHeight = gridHeightSnap ?? 10;
+        const newHeight = sizeAtDragStart.height + diffY;
+        const heightOnGrid = Math.round(newHeight / gridHeight) * gridHeight;
 
-  const handlePointerUp = (event: PointerEvent) => {
-    event.preventDefault();
-    event.stopPropagation();
+        setSize((state) => ({
+          ...state,
+          height: Math.max(heightOnGrid, minHeight ?? 50),
+        }));
+      }
+    },
+    [
+      dragging,
+      offset,
+      sizeAtDragStart,
+      maxWidth,
+      gridSnap,
+      gridHeightSnap,
+      naturalWidth,
+      naturalHeight,
+      minHeight,
+      constrainWidth,
+    ]
+  );
 
-    setOffset(0);
-    setDragging(undefined);
-    props.onChangeSize?.(size);
-
-    document.removeEventListener("pointerup", handlePointerUp);
-    document.removeEventListener("pointermove", handlePointerMove);
-  };
-
-  const handleKeyDown = (event: KeyboardEvent) => {
-    if (event.key === "Escape") {
+  const handlePointerUp = React.useCallback(
+    (event: PointerEvent) => {
       event.preventDefault();
       event.stopPropagation();
 
-      setSize(sizeAtDragStart);
+      setOffset(0);
       setDragging(undefined);
-    }
-  };
+      onChangeSize?.(sizeRef.current);
+    },
+    [onChangeSize]
+  );
+
+  const handleKeyDown = React.useCallback(
+    (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+
+        setSize(sizeAtDragStart);
+        setDragging(undefined);
+      }
+    },
+    [sizeAtDragStart]
+  );
 
   const handleDoubleClick = () => {
     if (!isResizable) {
@@ -135,11 +170,11 @@ export default function useDragResize(props: Params): ReturnValue {
 
     // Resize to original size
     const newSize = {
-      width: props.naturalWidth,
-      height: props.naturalHeight,
+      width: naturalWidth,
+      height: naturalHeight,
     };
     setSize(newSize);
-    props.onChangeSize?.(newSize);
+    onChangeSize?.(newSize);
   };
 
   const handlePointerDown =
@@ -149,11 +184,9 @@ export default function useDragResize(props: Params): ReturnValue {
       event.stopPropagation();
 
       // Calculate constraints once at the start of dragging as it's relatively expensive operation
-      const max = props.ref.current
+      const max = ref.current
         ? parseInt(
-            getComputedStyle(props.ref.current).getPropertyValue(
-              "--document-width"
-            )
+            getComputedStyle(ref.current).getPropertyValue("--document-width")
           ) -
           EditorStyleHelper.padding * 2
         : Infinity;
@@ -189,7 +222,13 @@ export default function useDragResize(props: Params): ReturnValue {
       document.removeEventListener("pointermove", handlePointerMove);
       document.removeEventListener("pointerup", handlePointerUp);
     };
-  }, [dragging, handlePointerMove, handlePointerUp, isResizable]);
+  }, [
+    dragging,
+    handleKeyDown,
+    handlePointerMove,
+    handlePointerUp,
+    isResizable,
+  ]);
 
   return {
     handlePointerDown,
