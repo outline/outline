@@ -29,7 +29,7 @@ const router = new Router();
 
 router.post(
   "comments.create",
-  rateLimiter(RateLimiterStrategy.TenPerMinute),
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth(),
   feature(TeamPreference.Commenting),
   validate(T.CommentsCreateSchema),

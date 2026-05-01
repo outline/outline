@@ -81,7 +81,7 @@ router.post(
 
 router.post(
   "attachments.create",
-  rateLimiter(RateLimiterStrategy.TenPerMinute),
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth(),
   validate(T.AttachmentsCreateSchema),
   transaction(),
