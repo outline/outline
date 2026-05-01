@@ -141,7 +141,7 @@ export class GitLabIssueProvider extends BaseIssueProvider {
 
       const newName = payload.full_path ?? payload.username;
       if (!newName) {
-        Logger.warn(`GitLab namespace_update event without new name;`);
+        Logger.warn(`GitLab namespace_update event without new name`);
         return;
       }
 
@@ -166,6 +166,13 @@ export class GitLabIssueProvider extends BaseIssueProvider {
   }
 
   private async destroyNamespace(payload: GitLabWebhookPayload) {
+    if (!payload.user_id && !payload.full_path) {
+      Logger.warn(
+        `GitLab namespace_destroy event without user_id or full_path`
+      );
+      return;
+    }
+
     let replacements = {};
     const whereCondition: WhereOptions = {
       service: IntegrationService.GitLab,
