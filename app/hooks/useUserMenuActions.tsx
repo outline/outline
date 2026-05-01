@@ -24,7 +24,7 @@ import {
 
 /**
  * Hook that constructs the action menu for user management operations.
- * 
+ *
  * @param targetUser - the user to build actions for, or null to skip.
  * @returns action with children for use in menus, or undefined if user is null.
  */

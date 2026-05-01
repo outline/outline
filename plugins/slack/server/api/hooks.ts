@@ -238,7 +238,8 @@ router.post(
       return;
     }
 
-    const { results, total } = await SearchProviderManager.getProvider().searchForUser(user, options);
+    const { results, total } =
+      await SearchProviderManager.getProvider().searchForUser(user, options);
 
     await SearchQuery.create({
       userId: user ? user.id : null,

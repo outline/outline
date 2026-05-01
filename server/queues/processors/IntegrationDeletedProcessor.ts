@@ -27,7 +27,9 @@ export default class IntegrationDeletedProcessor extends BaseProcessor {
 
     // Clear the cache of unfurled data for the team as it may be stale now.
     if (integration.type === IntegrationType.Embed) {
-      await CacheHelper.clearData(RedisPrefixHelper.getUnfurlKey(integration.teamId));
+      await CacheHelper.clearData(
+        RedisPrefixHelper.getUnfurlKey(integration.teamId)
+      );
     }
 
     await integration.destroy({ force: true });

@@ -16,7 +16,7 @@ export class SlackUtils {
   static createState(
     teamId: string,
     type: IntegrationType,
-    data?: Record<string, any>
+    data?: Record<string, unknown>
   ) {
     return JSON.stringify({ type, teamId, ...data });
   }

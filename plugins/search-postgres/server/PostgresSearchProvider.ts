@@ -236,13 +236,13 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
         where,
         limit,
         offset,
-      }) as any as Promise<RankedDocument[]>;
+      }) as unknown as Promise<RankedDocument[]>;
 
       const countQuery = Document.unscoped().count({
         // @ts-expect-error Types are incorrect for count
         replacements: findOptions.replacements,
         where,
-      }) as any as Promise<number>;
+      }) as unknown as Promise<number>;
       const [results, count] = await Promise.all([resultsQuery, countQuery]);
 
       // Final query to get associated document data
@@ -428,7 +428,7 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
         where,
         limit,
         offset,
-      })) as any as RankedDocument[];
+      })) as unknown as RankedDocument[];
 
       const countQuery = Document.unscoped().count({
         // @ts-expect-error Types are incorrect for count
@@ -436,7 +436,7 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
         include,
         replacements: findOptions.replacements,
         where,
-      }) as any as Promise<number>;
+      }) as unknown as Promise<number>;
 
       // Final query to get associated document data
       const [documents, count] = await Promise.all([
