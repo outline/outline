@@ -54,14 +54,17 @@ export default function markdownItAlphaLists(md: MarkdownIt): void {
 
   // Post-process tokens to add the listStyle attribute
   md.core.ruler.after("block", "alpha_lists_postprocess", (state) => {
-    if (!state.env.alphaListMarkers || state.env.alphaListMarkers.length === 0) {
+    if (
+      !state.env.alphaListMarkers ||
+      state.env.alphaListMarkers.length === 0
+    ) {
       return;
     }
 
     const markers = state.env.alphaListMarkers;
 
     // Build a map of line numbers to markers for more reliable matching
-    const lineToMarkerMap = new Map<number, typeof markers[0]>();
+    const lineToMarkerMap = new Map<number, (typeof markers)[0]>();
     for (const marker of markers) {
       lineToMarkerMap.set(marker.lineIndex, marker);
     }

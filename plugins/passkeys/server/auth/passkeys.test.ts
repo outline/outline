@@ -8,19 +8,20 @@ describe("getExpectedOrigin", () => {
     hostname: string;
     host: string;
     forwardedPort?: string;
-  }): APIContext => ({
-    protocol: options.protocol,
-    request: {
-      hostname: options.hostname,
-      host: options.host,
-      get: (header: string) => {
-        if (header === "X-Forwarded-Port" && options.forwardedPort) {
-          return options.forwardedPort;
-        }
-        return undefined;
-      },
-    } as unknown,
-  }) as unknown as APIContext;
+  }): APIContext =>
+    ({
+      protocol: options.protocol,
+      request: {
+        hostname: options.hostname,
+        host: options.host,
+        get: (header: string) => {
+          if (header === "X-Forwarded-Port" && options.forwardedPort) {
+            return options.forwardedPort;
+          }
+          return undefined;
+        },
+      } as unknown,
+    }) as unknown as APIContext;
 
   it("should construct origin with non-standard HTTPS port from X-Forwarded-Port", () => {
     const ctx = createMockContext({

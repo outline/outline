@@ -11,7 +11,7 @@ import { useMenuAction } from "~/hooks/useMenuAction";
 
 /**
  * Hook that constructs the action menu for share management operations.
- * 
+ *
  * @param targetShare - the share to build actions for, or null to skip.
  * @returns action with children for use in menus, or undefined if share is null.
  */
