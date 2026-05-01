@@ -14,6 +14,7 @@ import {
   ImportState,
   IntegrationService,
   IntegrationType,
+  MentionType,
   NotificationEventType,
   SubscriptionType,
   UserRole,
@@ -909,6 +910,25 @@ export function buildProseMirrorDoc(content: DeepPartial<ProsemirrorData>[]) {
     type: "doc",
     content,
   });
+}
+
+export function buildMention(overrides: {
+  type?: MentionType;
+  modelId: string;
+  actorId: string;
+  label?: string;
+  id?: string;
+}): DeepPartial<ProsemirrorData> {
+  return {
+    type: "mention",
+    attrs: {
+      id: overrides.id ?? randomUUID(),
+      type: overrides.type ?? MentionType.User,
+      label: overrides.label ?? faker.name.fullName(),
+      modelId: overrides.modelId,
+      actorId: overrides.actorId,
+    },
+  };
 }
 
 export function buildCommentMark(overrides: {
