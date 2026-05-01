@@ -251,6 +251,7 @@ router.post(
 
 router.post(
   "shares.create",
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth(),
   validate(T.SharesCreateSchema),
   transaction(),

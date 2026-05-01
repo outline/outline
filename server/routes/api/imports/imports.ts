@@ -6,6 +6,7 @@ import { ImportState, UserRole } from "@shared/types";
 import { ImportValidation } from "@shared/validations";
 import { UnprocessableEntityError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
+import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { Integration } from "@server/models";
@@ -13,6 +14,7 @@ import Import from "@server/models/Import";
 import { authorize } from "@server/policies";
 import { presentImport, presentPolicies } from "@server/presenters";
 import type { APIContext } from "@server/types";
+import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -20,6 +22,7 @@ const router = new Router();
 
 router.post(
   "imports.create",
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth({ role: UserRole.Admin }),
   validate(T.ImportsCreateSchema),
   transaction(),

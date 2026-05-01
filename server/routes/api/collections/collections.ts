@@ -50,6 +50,7 @@ const router = new Router();
 
 router.post(
   "collections.create",
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth(),
   validate(T.CollectionsCreateSchema),
   transaction(),

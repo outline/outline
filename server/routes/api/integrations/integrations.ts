@@ -3,12 +3,14 @@ import type { WhereOptions } from "sequelize";
 import { Op } from "sequelize";
 import { IntegrationType, UserRole } from "@shared/types";
 import auth from "@server/middlewares/authentication";
+import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import Integration from "@server/models/Integration";
 import { authorize } from "@server/policies";
 import { presentIntegration, presentPolicies } from "@server/presenters";
 import type { APIContext } from "@server/types";
+import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -68,6 +70,7 @@ router.post(
 
 router.post(
   "integrations.create",
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth({ role: UserRole.Admin }),
   validate(T.IntegrationsCreateSchema),
   transaction(),

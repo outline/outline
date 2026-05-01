@@ -29,7 +29,7 @@ const router = new Router();
 
 router.post(
   "files.create",
-  rateLimiter(RateLimiterStrategy.TenPerMinute),
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth(),
   validate(T.FilesCreateSchema),
   timeout(30 * 60 * 1000), // 30 minutes for large file uploads

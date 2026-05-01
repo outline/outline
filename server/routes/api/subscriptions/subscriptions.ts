@@ -114,6 +114,7 @@ router.post(
 
 router.post(
   "subscriptions.create",
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth(),
   validate(T.SubscriptionsCreateSchema),
   transaction(),
