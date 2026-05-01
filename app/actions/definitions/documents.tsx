@@ -41,9 +41,7 @@ import type { NavigationNode } from "@shared/types";
 import { ExportContentType, TeamPreference } from "@shared/types";
 import { isMobile } from "@shared/utils/browser";
 import { getEventFiles } from "@shared/utils/files";
-import { Week } from "@shared/utils/time";
 import type UserMembership from "~/models/UserMembership";
-import { client } from "~/utils/ApiClient";
 import DocumentDelete from "~/scenes/DocumentDelete";
 import { ProsemirrorHelper } from "~/models/helpers/ProsemirrorHelper";
 import DocumentPermanentDelete from "~/scenes/DocumentPermanentDelete";
@@ -711,16 +709,12 @@ export const copyDocumentAsMarkdown = createAction({
   iconInContextMenu: false,
   visible: ({ activeDocumentId, stores }) =>
     !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
-  perform: async ({ stores, activeDocumentId, t }) => {
+  perform: ({ stores, activeDocumentId, t }) => {
     const document = activeDocumentId
       ? stores.documents.get(activeDocumentId)
       : undefined;
     if (document) {
-      const res = await client.post("/documents.export", {
-        id: document.id,
-        signedUrls: Week.seconds, // 7 days (AWS S3 max for presigned URLs)
-      });
-      copy(res.data);
+      copy(ProsemirrorHelper.toMarkdown(document));
       toast.success(t("Markdown copied to clipboard"));
     }
   },
