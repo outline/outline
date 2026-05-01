@@ -2,7 +2,10 @@ import { subHours } from "date-fns";
 import differenceBy from "lodash/differenceBy";
 import { Op } from "sequelize";
 import { MentionType, NotificationEventType } from "@shared/types";
-import { createSubscriptionsForDocument } from "@server/commands/subscriptionCreator";
+import {
+  createSubscriptionsForDocument,
+  subscribeUserToDocument,
+} from "@server/commands/subscriptionCreator";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import {
@@ -47,21 +50,30 @@ export default class RevisionCreatedNotificationsTask extends BaseTask<RevisionE
     ];
 
     const mentions = differenceBy(newMentions, oldMentions, "id");
+    const userIdsProcessed = new Set<string>();
     const userIdsMentioned: string[] = [];
     for (const mention of mentions) {
-      if (userIdsMentioned.includes(mention.modelId)) {
+      if (userIdsProcessed.has(mention.modelId)) {
         continue;
       }
+      userIdsProcessed.add(mention.modelId);
 
       const recipient = await User.findByPk(mention.modelId);
 
       if (
-        recipient &&
-        recipient.id !== mention.actorId &&
+        !recipient ||
+        recipient.id === mention.actorId ||
+        !(await canUserAccessDocument(recipient, document.id))
+      ) {
+        continue;
+      }
+
+      await subscribeUserToDocument(recipient, document, event);
+
+      if (
         recipient.subscribedToEventType(
           NotificationEventType.MentionedInDocument
-        ) &&
-        (await canUserAccessDocument(recipient, document.id))
+        )
       ) {
         await Notification.create({
           event: NotificationEventType.MentionedInDocument,
