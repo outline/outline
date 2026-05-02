@@ -1,7 +1,11 @@
 /* oxlint-disable no-restricted-imports, react/rules-of-hooks */
 import type http from "node:http";
 import type https from "node:https";
-import nodeFetch, { type RequestInit, type Response } from "node-fetch";
+import nodeFetch, {
+  Headers,
+  type RequestInit,
+  type Response,
+} from "node-fetch";
 import { getProxyForUrl } from "proxy-from-env";
 import tunnelAgent, { type TunnelAgent } from "tunnel-agent";
 import { useAgent as useFilteringAgent } from "request-filtering-agent";
@@ -24,6 +28,7 @@ const DefaultOptions = {
 };
 
 export type { RequestInit } from "node-fetch";
+export { Headers };
 
 /**
  * Default user agent string for outgoing requests.
