@@ -38,7 +38,11 @@ import { basicExtensions as extensions } from "@shared/editor/nodes";
 import type Node from "@shared/editor/nodes/Node";
 import type ReactNode from "@shared/editor/nodes/ReactNode";
 import type { ComponentProps } from "@shared/editor/types";
-import type { ProsemirrorData, UserPreferences } from "@shared/types";
+import type {
+  ProsemirrorData,
+  ProsemirrorMark,
+  UserPreferences,
+} from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import EventEmitter from "@shared/utils/events";
 import type Document from "~/models/Document";
@@ -58,8 +62,6 @@ import type { LightboxImage } from "@shared/editor/lib/Lightbox";
 import { LightboxImageFactory } from "@shared/editor/lib/Lightbox";
 import Lightbox from "~/components/Lightbox";
 import { anchorPlugin } from "@shared/editor/plugins/AnchorPlugin";
-
-type JSONMark = NonNullable<ProsemirrorData["marks"]>[number];
 
 export type Props = {
   /** An optional identifier for the editor context. It is used to persist local settings */
@@ -758,7 +760,7 @@ export class Editor extends React.PureComponent<
       }
 
       if (isArray(node.attrs?.marks)) {
-        const existingMarks = node.attrs.marks as JSONMark[];
+        const existingMarks = node.attrs.marks as ProsemirrorMark[];
         const updatedMarks = existingMarks.filter(
           (mark) => mark.attrs?.id !== commentId
         );
@@ -803,7 +805,7 @@ export class Editor extends React.PureComponent<
       }
 
       if (isArray(node.attrs?.marks)) {
-        const existingMarks = node.attrs.marks as JSONMark[];
+        const existingMarks = node.attrs.marks as ProsemirrorMark[];
         const updatedMarks = existingMarks.map((mark) =>
           mark.type === "comment" && mark.attrs?.id === commentId
             ? { ...mark, attrs: { ...mark.attrs, ...attrs } }
