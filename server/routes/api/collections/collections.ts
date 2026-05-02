@@ -38,8 +38,6 @@ import {
   presentFileOperation,
 } from "@server/presenters";
 import type { APIContext } from "@server/types";
-import { CacheHelper } from "@server/utils/CacheHelper";
-import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { collectionIndexing } from "@server/utils/indexing";
 import pagination from "../middlewares/pagination";
@@ -146,18 +144,7 @@ router.post(
 
     authorize(user, "readDocument", collection);
 
-    const documentStructure = await CacheHelper.getDataOrSet(
-      RedisPrefixHelper.getCollectionDocumentsKey(collection.id),
-      async () =>
-        (
-          await Collection.findByPk(collection.id, {
-            attributes: ["documentStructure"],
-            includeDocumentStructure: true,
-            rejectOnEmpty: true,
-          })
-        ).documentStructure,
-      60
-    );
+    const documentStructure = await collection.getCachedDocumentStructure();
 
     ctx.body = {
       data: documentStructure || [],

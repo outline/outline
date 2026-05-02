@@ -1,8 +1,9 @@
 import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
-import type { Team, User } from "@server/models";
+import { Collection, type Team, type User } from "@server/models";
 import { addTags } from "@server/logging/tracer";
 import { traceFunction } from "@server/logging/tracing";
+import { can } from "@server/policies";
 import { type APIContext, AuthenticationType } from "@server/types";
 import type { NavigationNode } from "@shared/types";
 
@@ -128,6 +129,133 @@ export function buildSiblingIndexMap(
 
   walk(nodes);
   return map;
+}
+
+/**
+ * Builds a human-readable breadcrumb string showing a document's location.
+ * The path includes only ancestors (collection name plus any parent document
+ * titles) — not the document itself, since callers already have the title.
+ * Documents at the root of a collection get just the collection name.
+ *
+ * @param documentId - the ID of the document to locate.
+ * @param structure - the collection's documentStructure tree, may be null.
+ * @param collectionName - the name of the containing collection.
+ * @returns the breadcrumb string, e.g. "Engineering › Onboarding".
+ */
+export function buildBreadcrumb(
+  documentId: string,
+  structure: NavigationNode[] | null | undefined,
+  collectionName: string
+): string {
+  const ancestors: string[] = [];
+
+  if (structure) {
+    const findPath = (nodes: NavigationNode[], chain: string[]): boolean => {
+      for (const node of nodes) {
+        if (node.id === documentId) {
+          ancestors.push(...chain);
+          return true;
+        }
+        if (findPath(node.children, [...chain, node.title])) {
+          return true;
+        }
+      }
+      return false;
+    };
+
+    findPath(structure, []);
+  }
+
+  return [collectionName, ...ancestors].join(" › ");
+}
+
+/**
+ * Resolves a breadcrumb string for a document by loading its collection's
+ * cached documentStructure. Returns undefined when the document has no
+ * collection, the collection cannot be loaded, or the user lacks read
+ * access to the collection — the latter prevents leaking collection and
+ * ancestor names to users granted access to a single nested document via
+ * direct membership without wider collection access.
+ *
+ * @param document - the document to build a breadcrumb for.
+ * @param user - the user performing the action, used to authorize collection access.
+ * @returns the breadcrumb string, or undefined.
+ */
+export async function getDocumentBreadcrumb(
+  document: { id: string; collectionId?: string | null },
+  user: User
+): Promise<string | undefined> {
+  if (!document.collectionId) {
+    return undefined;
+  }
+
+  const collection = await Collection.findByPk(document.collectionId, {
+    userId: user.id,
+  });
+  if (!collection || !can(user, "read", collection)) {
+    return undefined;
+  }
+
+  const structure = await collection.getCachedDocumentStructure();
+  return buildBreadcrumb(document.id, structure, collection.name);
+}
+
+/**
+ * Resolves breadcrumb strings for a batch of documents in a single pass.
+ * Loads all referenced collections (with the user's memberships) in one
+ * query, filters by collection-level read access, then loads each
+ * collection's cached documentStructure once.
+ *
+ * @param documents - the documents to build breadcrumbs for.
+ * @param user - the user performing the action, used to authorize collection access.
+ * @returns a map from document ID to breadcrumb string.
+ */
+export async function getBreadcrumbsForDocuments(
+  documents: { id: string; collectionId?: string | null }[],
+  user: User
+): Promise<Map<string, string>> {
+  const breadcrumbs = new Map<string, string>();
+
+  const collectionIds = [
+    ...new Set(
+      documents
+        .map((doc) => doc.collectionId)
+        .filter((id): id is string => !!id)
+    ),
+  ];
+  if (collectionIds.length === 0) {
+    return breadcrumbs;
+  }
+
+  const collections = await Collection.scope([
+    "defaultScope",
+    { method: ["withMembership", user.id] },
+  ]).findAll({
+    where: { id: collectionIds },
+  });
+
+  const collectionsById = new Map(
+    collections
+      .filter((collection) => can(user, "read", collection))
+      .map((collection) => [collection.id, collection])
+  );
+
+  for (const doc of documents) {
+    if (!doc.collectionId) {
+      continue;
+    }
+    const collection = collectionsById.get(doc.collectionId);
+    if (!collection) {
+      continue;
+    }
+    const structure = await collection.getCachedDocumentStructure();
+    breadcrumbs.set(
+      doc.id,
+      buildBreadcrumb(doc.id, structure, collection.name)
+    );
+  }
+
+  return breadcrumbs;
 }
 
 /**

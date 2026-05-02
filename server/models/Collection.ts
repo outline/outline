@@ -370,7 +370,7 @@ class Collection extends ParanoidModel<
         CacheHelper.setData(
           RedisPrefixHelper.getCollectionDocumentsKey(model.id),
           model.documentStructure,
-          60
+          Collection.DOCUMENT_STRUCTURE_CACHE_TTL
         );
 
       if (options.transaction) {
@@ -560,6 +560,8 @@ class Collection extends ParanoidModel<
       direction: "asc",
     };
 
+  static DOCUMENT_STRUCTURE_CACHE_TTL = 60;
+
   /**
    * Returns an array of unique userIds that are members of a collection,
    * either via group or direct membership.
@@ -705,6 +707,29 @@ class Collection extends ParanoidModel<
   get isPrivate() {
     return !this.permission;
   }
+
+  /**
+   * Returns the collection's documentStructure via cache, populating it on
+   * miss. The cache is kept fresh by this model's save hooks, so callers
+   * should prefer this over re-fetching the column directly.
+   *
+   * @returns the cached documentStructure, or null when the collection has none.
+   */
+  getCachedDocumentStructure = async (): Promise<NavigationNode[] | null> => {
+    const result = await CacheHelper.getDataOrSet<NavigationNode[] | null>(
+      RedisPrefixHelper.getCollectionDocumentsKey(this.id),
+      async () =>
+        (
+          await (this.constructor as typeof Collection).findByPk(this.id, {
+            attributes: ["documentStructure"],
+            includeDocumentStructure: true,
+            rejectOnEmpty: true,
+          })
+        ).documentStructure,
+      Collection.DOCUMENT_STRUCTURE_CACHE_TTL
+    );
+    return result ?? null;
+  };
 
   getDocumentTree = (documentId: string): NavigationNode | null => {
     if (!this.documentStructure) {

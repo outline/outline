@@ -14,6 +14,7 @@ import {
   error,
   success,
   getActorFromContext,
+  getDocumentBreadcrumb,
   pathToUrl,
   withTracing,
 } from "./util";
@@ -102,20 +103,22 @@ export function fetchTool(server: McpServer, scopes: string[]) {
 
             authorize(actor, "read", document);
 
-            const { text, ...attributes } = await presentDocument(
-              undefined,
-              document,
-              {
+            const [{ text, ...attributes }, breadcrumb] = await Promise.all([
+              presentDocument(undefined, document, {
                 includeData: false,
                 includeText: true,
                 includeUpdatedAt: true,
-              }
-            );
+              }),
+              getDocumentBreadcrumb(document, actor),
+            ]);
             return {
               content: [
                 {
                   type: "text" as const,
-                  text: JSON.stringify(pathToUrl(actor.team, attributes)),
+                  text: JSON.stringify({
+                    document: pathToUrl(actor.team, attributes),
+                    ...(breadcrumb !== undefined && { breadcrumb }),
+                  }),
                 },
                 {
                   type: "text" as const,
