@@ -8,6 +8,7 @@ import {
   buildTeam,
   buildDocument,
 } from "@server/test/factories";
+import { withAPIContext } from "@server/test/support";
 import Collection from "./Collection";
 import Document from "./Document";
 
@@ -547,5 +548,61 @@ describe("#setIndex", () => {
     });
     expect(anotherCollection.index).not.toBeNull();
     expect(anotherCollection.index).not.toEqual(collection.index);
+  });
+});
+
+describe("#archiveWithCtx", () => {
+  it("should archive the collection and its non-archived documents", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({ teamId: team.id });
+    const document = await buildDocument({
+      collectionId: collection.id,
+      teamId: team.id,
+      publishedAt: new Date(),
+    });
+    const alreadyArchived = await buildDocument({
+      collectionId: collection.id,
+      teamId: team.id,
+      publishedAt: new Date(),
+      archivedAt: new Date("2024-01-01"),
+    });
+
+    await withAPIContext(user, (ctx) => collection.archiveWithCtx(ctx));
+
+    await Promise.all([
+      collection.reload(),
+      document.reload(),
+      alreadyArchived.reload(),
+    ]);
+
+    expect(collection.archivedAt).not.toBeNull();
+    expect(collection.archivedById).toBe(user.id);
+    expect(document.archivedAt).not.toBeNull();
+    expect(document.archivedAt?.getTime()).toBe(
+      collection.archivedAt!.getTime()
+    );
+    expect(document.lastModifiedById).toBe(user.id);
+    // Previously-archived documents keep their original archivedAt timestamp.
+    expect(alreadyArchived.archivedAt?.getTime()).toBe(
+      new Date("2024-01-01").getTime()
+    );
+  });
+
+  it("should leave documents in other collections untouched", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({ teamId: team.id });
+    const otherCollection = await buildCollection({ teamId: team.id });
+    const otherDocument = await buildDocument({
+      collectionId: otherCollection.id,
+      teamId: team.id,
+      publishedAt: new Date(),
+    });
+
+    await withAPIContext(user, (ctx) => collection.archiveWithCtx(ctx));
+
+    await otherDocument.reload();
+    expect(otherDocument.archivedAt).toBeNull();
   });
 });

@@ -772,6 +772,42 @@ class Collection extends ParanoidModel<
     };
   };
 
+  /**
+   * Archives the collection and all of its non-archived documents. The
+   * collection's `archivedAt` and `archivedBy` are set to now and the acting
+   * user respectively, and child documents inherit the same `archivedAt`.
+   *
+   * @param ctx - the API context, including the acting user and optional transaction.
+   * @returns the updated collection.
+   */
+  archiveWithCtx = async (ctx: APIContext) => {
+    const { transaction } = ctx.state;
+    const { user } = ctx.state.auth;
+
+    this.archivedAt = new Date();
+    this.archivedById = user.id;
+    this.archivedBy = user;
+
+    await this.saveWithCtx(ctx, undefined, { name: "archive" });
+
+    await Document.update(
+      {
+        lastModifiedById: user.id,
+        archivedAt: this.archivedAt,
+      },
+      {
+        where: {
+          teamId: this.teamId,
+          collectionId: this.id,
+          archivedAt: { [Op.is]: null },
+        },
+        transaction,
+      }
+    );
+
+    return this;
+  };
+
   deleteDocument = async function (document: Document, options?: FindOptions) {
     await this.removeDocumentInStructure(document, options);
 
