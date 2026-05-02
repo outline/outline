@@ -55,7 +55,11 @@ export function assertKeysIn(
   Object.keys(obj).forEach((key) => assertIn(key, Object.values(type)));
 }
 
-export const assertSort = (value: string, model: any, message?: string) => {
+export const assertSort = (
+  value: string,
+  model: { rawAttributes: Record<string, unknown> },
+  message?: string
+) => {
   if (!Object.keys(model.rawAttributes).includes(value)) {
     throw ValidationError(
       message ?? `${String(value)} is not a valid sort field`

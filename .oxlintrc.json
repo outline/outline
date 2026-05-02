@@ -31,7 +31,7 @@
     "no-empty-pattern": "error",
     "no-empty-static-block": "error",
     "no-ex-assign": "error",
-    "no-explicit-any": "warn",
+    "no-explicit-any": "error",
     "no-extra-boolean-cast": "error",
     "no-fallthrough": "error",
     "no-func-assign": "error",

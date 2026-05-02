@@ -14,6 +14,7 @@ import styled from "styled-components";
 import { s } from "@shared/styles";
 import { StatusFilter } from "@shared/types";
 import type Collection from "~/models/Collection";
+import type DocumentsStore from "~/stores/DocumentsStore";
 import CenteredContent from "~/components/CenteredContent";
 import { CollectionBreadcrumb } from "~/components/CollectionBreadcrumb";
 import Heading from "~/components/Heading";
@@ -362,7 +363,13 @@ const Content = styled.div`
 `;
 
 const RecentDocuments = observer(
-  ({ collection, documents }: { collection: Collection; documents: any }) => {
+  ({
+    collection,
+    documents,
+  }: {
+    collection: Collection;
+    documents: DocumentsStore;
+  }) => {
     useEffect(() => {
       void collection.fetchDocuments();
     }, [collection]);

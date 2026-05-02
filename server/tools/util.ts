@@ -86,6 +86,7 @@ export function error(err: unknown): CallToolResult {
  * @param handler - the handler function to wrap.
  * @returns the wrapped handler with tracing enabled.
  */
+/* oxlint-disable @typescript-eslint/no-explicit-any */
 export function withTracing<F extends (...args: any[]) => any>(
   toolName: string,
   handler: F
@@ -107,6 +108,7 @@ export function withTracing<F extends (...args: any[]) => any>(
     return handler.apply(this, args);
   } as F);
 }
+/* oxlint-enable @typescript-eslint/no-explicit-any */
 
 /**
  * Builds a map from document ID to its zero-based index among siblings,

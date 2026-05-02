@@ -757,7 +757,14 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     // Create a new document with the emoji removed from the text
     const json = doc.toJSON();
 
-    function removeEmojiFromNode(node: any): any {
+    type JSONNode = {
+      type?: string;
+      text?: string;
+      content?: JSONNode[];
+      [key: string]: unknown;
+    };
+
+    function removeEmojiFromNode(node: JSONNode): JSONNode {
       if (node.type === "text" && node.text && node.text.startsWith(emoji)) {
         return {
           ...node,
@@ -768,7 +775,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
         let found = false;
         return {
           ...node,
-          content: node.content.map((child: any) => {
+          content: node.content.map((child: JSONNode) => {
             if (found) {
               return child;
             }
@@ -783,7 +790,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
       return node;
     }
 
-    const modifiedJson = removeEmojiFromNode(json);
+    const modifiedJson = removeEmojiFromNode(json as JSONNode);
     return {
       emoji,
       doc: Node.fromJSON(schema, modifiedJson),
@@ -798,7 +805,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
    * @returns A cleanup function to restore the global environment.
    */
   public static patchGlobalEnv(domWindow: JSDOM["window"]) {
-    const g = global as any;
+    const g = global as unknown as Record<string, unknown>;
 
     const globalParams = {
       window: g.window,

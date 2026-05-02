@@ -28,7 +28,7 @@ for (const extension of extensionManager.extensions) {
         isDark: false,
       },
     },
-  } as any);
+  } as unknown as Parameters<typeof extension.bindEditor>[0]);
 }
 
 export const parser = extensionManager.parser({
@@ -55,7 +55,7 @@ for (const extension of basicExtensionManager.extensions) {
         isDark: false,
       },
     },
-  } as any);
+  } as unknown as Parameters<typeof extension.bindEditor>[0]);
 }
 
 export const basicParser = basicExtensionManager.parser({
@@ -79,7 +79,7 @@ for (const extension of commentExtensionManager.extensions) {
         isDark: false,
       },
     },
-  } as any);
+  } as unknown as Parameters<typeof extension.bindEditor>[0]);
 }
 
 export const commentParser = commentExtensionManager.parser({

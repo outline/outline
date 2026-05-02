@@ -7,6 +7,7 @@ import {
   useEffect,
   forwardRef,
   useRef,
+  type ForwardedRef,
 } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
@@ -18,6 +19,7 @@ import EDITOR_VERSION from "@shared/editor/version";
 import { supportsPassiveListener } from "@shared/utils/browser";
 import type { Props as EditorProps } from "~/components/Editor";
 import Editor from "~/components/Editor";
+import type { Editor as SharedEditor } from "~/editor";
 import MultiplayerExtension from "~/editor/extensions/Multiplayer";
 import env from "~/env";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -50,7 +52,10 @@ type MessageEvent = {
   };
 };
 
-function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
+function MultiplayerEditor(
+  { onSynced, ...props }: Props,
+  ref: ForwardedRef<SharedEditor>
+) {
   const documentId = props.id;
   const history = useHistory();
   const { t } = useTranslation();
@@ -352,4 +357,4 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   );
 }
 
-export default forwardRef<typeof MultiplayerEditor, Props>(MultiplayerEditor);
+export default forwardRef<SharedEditor, Props>(MultiplayerEditor);

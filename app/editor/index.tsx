@@ -59,6 +59,11 @@ import { LightboxImageFactory } from "@shared/editor/lib/Lightbox";
 import Lightbox from "~/components/Lightbox";
 import { anchorPlugin } from "@shared/editor/plugins/AnchorPlugin";
 
+type JSONMark = {
+  type?: string;
+  attrs: Record<string, unknown> & { id?: string };
+};
+
 export type Props = {
   /** An optional identifier for the editor context. It is used to persist local settings */
   id?: string;
@@ -117,7 +122,8 @@ export type Props = {
   /** Callback when user uses cancel key combo */
   onCancel?: () => void;
   /** Callback when user changes editor content */
-  onChange?: (value: () => any) => void;
+  // oxlint-disable-next-line @typescript-eslint/no-explicit-any
+  onChange?: (value: (asString?: boolean, trim?: boolean) => any) => void;
   /** Callback when a comment mark is clicked */
   onClickCommentMark?: (commentId: string) => void;
   /**
@@ -755,9 +761,9 @@ export class Editor extends React.PureComponent<
       }
 
       if (isArray(node.attrs?.marks)) {
-        const existingMarks = node.attrs.marks;
+        const existingMarks = node.attrs.marks as JSONMark[];
         const updatedMarks = existingMarks.filter(
-          (mark: any) => mark.attrs.id !== commentId
+          (mark) => mark.attrs.id !== commentId
         );
         const attrs = {
           ...node.attrs,
@@ -800,8 +806,8 @@ export class Editor extends React.PureComponent<
       }
 
       if (isArray(node.attrs?.marks)) {
-        const existingMarks = node.attrs.marks;
-        const updatedMarks = existingMarks.map((mark: any) =>
+        const existingMarks = node.attrs.marks as JSONMark[];
+        const updatedMarks = existingMarks.map((mark) =>
           mark.type === "comment" && mark.attrs.id === commentId
             ? { ...mark, attrs: { ...mark.attrs, ...attrs } }
             : mark
