@@ -666,18 +666,24 @@ export function documentTools(server: McpServer, scopes: string[]) {
           const ctx = buildAPIContext(context);
           const { user } = ctx.state.auth;
 
-          const document = await Document.findByPk(id, {
-            userId: user.id,
-            rejectOnEmpty: true,
-          });
+          await sequelize.transaction(async (transaction) => {
+            ctx.state.transaction = transaction;
+            ctx.context.transaction = transaction;
 
-          if (archive) {
-            authorize(user, "archive", document);
-            await document.archiveWithCtx(ctx);
-          } else {
-            authorize(user, "delete", document);
-            await document.destroyWithCtx(ctx);
-          }
+            const document = await Document.findByPk(id, {
+              userId: user.id,
+              rejectOnEmpty: true,
+              transaction,
+            });
+
+            if (archive) {
+              authorize(user, "archive", document);
+              await document.archiveWithCtx(ctx);
+            } else {
+              authorize(user, "delete", document);
+              await document.destroyWithCtx(ctx);
+            }
+          });
 
           return success({ success: true });
         } catch (message) {

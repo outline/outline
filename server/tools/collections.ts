@@ -3,6 +3,7 @@ import { Sequelize, Op, type WhereOptions } from "sequelize";
 import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { CollectionPermission } from "@shared/types";
 import { Collection, Team } from "@server/models";
+import { sequelize } from "@server/storage/database";
 import { authorize } from "@server/policies";
 import { presentCollection } from "@server/presenters";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
@@ -309,18 +310,24 @@ export function collectionTools(server: McpServer, scopes: string[]) {
           const ctx = buildAPIContext(context);
           const { user } = ctx.state.auth;
 
-          const collection = await Collection.findByPk(id, {
-            userId: user.id,
-            rejectOnEmpty: true,
-          });
+          await sequelize.transaction(async (transaction) => {
+            ctx.state.transaction = transaction;
+            ctx.context.transaction = transaction;
 
-          if (archive) {
-            authorize(user, "archive", collection);
-            await collection.archiveWithCtx(ctx);
-          } else {
-            authorize(user, "delete", collection);
-            await collection.destroyWithCtx(ctx);
-          }
+            const collection = await Collection.findByPk(id, {
+              userId: user.id,
+              rejectOnEmpty: true,
+              transaction,
+            });
+
+            if (archive) {
+              authorize(user, "archive", collection);
+              await collection.archiveWithCtx(ctx);
+            } else {
+              authorize(user, "delete", collection);
+              await collection.destroyWithCtx(ctx);
+            }
+          });
 
           return success({ success: true });
         } catch (message) {
