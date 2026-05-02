@@ -2,6 +2,7 @@ import Router from "koa-router";
 import find from "lodash/find";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import { createContext } from "@server/context";
+import { ValidationError } from "@server/errors";
 import apexAuthRedirect from "@server/middlewares/apexAuthRedirect";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
@@ -9,7 +10,8 @@ import validate from "@server/middlewares/validate";
 import validateWebhook from "@server/middlewares/validateWebhook";
 import { IntegrationAuthentication, Integration } from "@server/models";
 import type { APIContext } from "@server/types";
-import { GitHubUtils } from "../../shared/GitHubUtils";
+import { verifyOAuthStateNonce } from "@server/utils/oauth";
+import { GitHubOAuthNonceCookie, GitHubUtils } from "../../shared/GitHubUtils";
 import env from "../env";
 import { GitHub } from "../github";
 import GitHubWebhookTask from "../tasks/GitHubWebhookTask";
@@ -22,7 +24,7 @@ router.get(
   auth({ optional: true }),
   validate(T.GitHubCallbackSchema),
   apexAuthRedirect<T.GitHubCallbackReq>({
-    getTeamId: (ctx) => ctx.input.query.state,
+    getTeamId: (ctx) => GitHubUtils.parseState(ctx.input.query.state)?.teamId,
     getRedirectPath: (ctx, team) =>
       GitHubUtils.callbackUrl({
         baseUrl: team.url,
@@ -34,7 +36,7 @@ router.get(
   async (ctx: APIContext<T.GitHubCallbackReq>) => {
     const {
       code,
-      state: teamId,
+      state,
       error,
       installation_id: installationId,
       setup_action: setupAction,
@@ -52,7 +54,14 @@ router.get(
       return;
     }
 
-    const client = await GitHub.authenticateAsUser(code!, teamId);
+    const parsedState = GitHubUtils.parseState(state);
+    if (!parsedState) {
+      throw ValidationError("Invalid state");
+    }
+
+    verifyOAuthStateNonce(ctx, GitHubOAuthNonceCookie, parsedState.nonce);
+
+    const client = await GitHub.authenticateAsUser(code!, state);
     const installationsByUser = await client.requestAppInstallations();
     const installation = find(
       installationsByUser,

@@ -12,7 +12,7 @@ export const GitHubCallbackSchema = BaseSchema.extend({
   query: z
     .object({
       code: z.string().nullish(),
-      state: z.uuid().nullish(),
+      state: z.string(),
       error: z.string().nullish(),
       installation_id: z.coerce.number().optional(),
       setup_action: z.enum(SetupAction),

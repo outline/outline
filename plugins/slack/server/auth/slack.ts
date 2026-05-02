@@ -19,6 +19,7 @@ import {
 import { authorize } from "@server/policies";
 import { sequelize } from "@server/storage/database";
 import type { APIContext, AuthenticationResult } from "@server/types";
+import { verifyOAuthStateNonce } from "@server/utils/oauth";
 import {
   getClientFromOAuthState,
   getTeamFromContext,
@@ -29,7 +30,10 @@ import { parseEmail } from "@shared/utils/email";
 import env from "../env";
 import * as Slack from "../slack";
 import * as T from "./schema";
-import { SlackUtils } from "plugins/slack/shared/SlackUtils";
+import {
+  SlackUtils,
+  SlackOAuthNonceCookie,
+} from "plugins/slack/shared/SlackUtils";
 import { createContext } from "@server/context";
 
 type SlackProfile = Profile & {
@@ -155,19 +159,20 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
         return;
       }
 
-      let parsedState;
-      try {
-        parsedState = SlackUtils.parseState<{
-          collectionId: string;
-        }>(state);
-      } catch (_err) {
+      const parsedState = SlackUtils.parseState(state);
+      if (!parsedState) {
         throw ValidationError("Invalid state");
       }
+
+      verifyOAuthStateNonce(ctx, SlackOAuthNonceCookie, parsedState.nonce);
 
       const { collectionId, type } = parsedState;
 
       switch (type) {
         case IntegrationType.Post: {
+          if (!collectionId) {
+            throw ValidationError("collectionId is required");
+          }
           const collection = await Collection.findByPk(collectionId, {
             userId: user.id,
           });
