@@ -22,7 +22,10 @@ export default class RollupWeeklyDocumentInsightsTask extends CronTask {
     // and still have daily rows inside this partition. Postgres `date_trunc`
     // uses ISO weeks, so the result is always a Monday. Join to documents and
     // filter out soft-deleted ones so we stay consistent with rollupPeriod —
-    // otherwise we'd delete daily rows it didn't replace.
+    // otherwise we'd delete daily rows it didn't replace. The `date <` bound
+    // is implied by the `date_trunc` filter but stated separately so the
+    // planner can short-circuit via the (documentId, date, period) index
+    // before evaluating the truncation.
     const weeks = await sequelize.query<{ weekStart: string }>(
       `
       SELECT DISTINCT date_trunc('week', di.date)::date AS "weekStart"
@@ -33,11 +36,12 @@ export default class RollupWeeklyDocumentInsightsTask extends CronTask {
       WHERE di.period = 'day'
         AND di."documentId" >= :startUuid::uuid
         AND di."documentId" <= :endUuid::uuid
-        AND date_trunc('week', di.date) < ((NOW() AT TIME ZONE 'UTC')::date - INTERVAL '${CUTOFF_DAYS + 6} days')
+        AND di.date < (NOW() AT TIME ZONE 'UTC')::date - (:cutoffDays::int * INTERVAL '1 day')
+        AND date_trunc('week', di.date) < (NOW() AT TIME ZONE 'UTC')::date - ((:cutoffDays::int + 6) * INTERVAL '1 day')
       ORDER BY "weekStart" ASC
       `,
       {
-        replacements: { startUuid, endUuid },
+        replacements: { startUuid, endUuid, cutoffDays: CUTOFF_DAYS },
         type: QueryTypes.SELECT,
       }
     );
