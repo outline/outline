@@ -59,10 +59,7 @@ import { LightboxImageFactory } from "@shared/editor/lib/Lightbox";
 import Lightbox from "~/components/Lightbox";
 import { anchorPlugin } from "@shared/editor/plugins/AnchorPlugin";
 
-type JSONMark = {
-  type?: string;
-  attrs: Record<string, unknown> & { id?: string };
-};
+type JSONMark = NonNullable<ProsemirrorData["marks"]>[number];
 
 export type Props = {
   /** An optional identifier for the editor context. It is used to persist local settings */
@@ -763,7 +760,7 @@ export class Editor extends React.PureComponent<
       if (isArray(node.attrs?.marks)) {
         const existingMarks = node.attrs.marks as JSONMark[];
         const updatedMarks = existingMarks.filter(
-          (mark) => mark.attrs.id !== commentId
+          (mark) => mark.attrs?.id !== commentId
         );
         const attrs = {
           ...node.attrs,
@@ -808,7 +805,7 @@ export class Editor extends React.PureComponent<
       if (isArray(node.attrs?.marks)) {
         const existingMarks = node.attrs.marks as JSONMark[];
         const updatedMarks = existingMarks.map((mark) =>
-          mark.type === "comment" && mark.attrs.id === commentId
+          mark.type === "comment" && mark.attrs?.id === commentId
             ? { ...mark, attrs: { ...mark.attrs, ...attrs } }
             : mark
         );
