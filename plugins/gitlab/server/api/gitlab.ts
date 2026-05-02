@@ -2,6 +2,7 @@ import Router from "koa-router";
 import { Op } from "sequelize";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import { createContext } from "@server/context";
+import { ValidationError } from "@server/errors";
 import apexAuthRedirect from "@server/middlewares/apexAuthRedirect";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
@@ -10,14 +11,18 @@ import validateWebhook from "@server/middlewares/validateWebhook";
 import { IntegrationAuthentication, Integration } from "@server/models";
 import { authorize } from "@server/policies";
 import type { APIContext } from "@server/types";
+import {
+  generateOAuthStateNonce,
+  verifyOAuthStateNonce,
+} from "@server/utils/oauth";
 import { validateUrlNotPrivate } from "@server/utils/url";
 import { addSeconds } from "date-fns";
 import Logger from "@server/logging/Logger";
-import { GitLabUtils } from "../../shared/GitLabUtils";
+import { GitLabOAuthNonceCookie, GitLabUtils } from "../../shared/GitLabUtils";
 import { GitLab } from "../gitlab";
 import env from "../env";
 import GitLabWebhookTask from "../tasks/GitLabWebhookTask";
-import * as T from "../schema";
+import * as T from "./schema";
 
 const router = new Router();
 
@@ -111,7 +116,12 @@ router.post(
       }
     }
 
-    const redirectUrl = GitLabUtils.authUrl(user.teamId, url, clientId);
+    const nonce = generateOAuthStateNonce(ctx, GitLabOAuthNonceCookie);
+    const redirectUrl = GitLabUtils.authUrl(
+      { teamId: user.teamId, nonce },
+      url,
+      clientId
+    );
     ctx.body = {
       data: { redirectUrl },
     };
@@ -123,7 +133,7 @@ router.get(
   auth({ optional: true }),
   validate(T.GitLabCallbackSchema),
   apexAuthRedirect<T.GitLabCallbackReq>({
-    getTeamId: (ctx) => ctx.input.query.state,
+    getTeamId: (ctx) => GitLabUtils.parseState(ctx.input.query.state)?.teamId,
     getRedirectPath: (ctx, team) =>
       GitLabUtils.callbackUrl({
         baseUrl: team.url,
@@ -133,7 +143,7 @@ router.get(
   }),
   transaction(),
   async (ctx: APIContext<T.GitLabCallbackReq>) => {
-    const { code, error } = ctx.input.query;
+    const { code, error, state } = ctx.input.query;
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
 
@@ -141,6 +151,13 @@ router.get(
       ctx.redirect(GitLabUtils.errorUrl(error));
       return;
     }
+
+    const parsedState = GitLabUtils.parseState(state);
+    if (!parsedState) {
+      throw ValidationError("Invalid state");
+    }
+
+    verifyOAuthStateNonce(ctx, GitLabOAuthNonceCookie, parsedState.nonce);
 
     try {
       // Check for a pending IntegrationAuthentication with custom credentials
