@@ -9,6 +9,7 @@ import type { Command } from "prosemirror-state";
 import { NodeSelection } from "prosemirror-state";
 import { Trans } from "react-i18next";
 import type { Primitive } from "utility-types";
+import type { Dictionary } from "~/hooks/useDictionary";
 import { bytesToHumanReadable, getEventFiles } from "../../utils/files";
 import { sanitizeUrl } from "../../utils/urls";
 import insertFiles from "../commands/insertFiles";
@@ -21,7 +22,15 @@ import type { ComponentProps } from "../types";
 import Node from "./Node";
 import PdfViewer from "../components/PDF";
 
-export default class Attachment extends Node {
+/**
+ * Options for the Attachment node.
+ */
+type AttachmentOptions = {
+  /** A dictionary of translated strings used in the editor. */
+  dictionary: Dictionary;
+};
+
+export default class Attachment extends Node<AttachmentOptions> {
   get name() {
     return "attachment";
   }

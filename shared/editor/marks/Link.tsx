@@ -12,6 +12,7 @@ import type { Command, EditorState } from "prosemirror-state";
 import { Plugin, TextSelection } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
 import { toast } from "sonner";
+import type { Dictionary } from "~/hooks/useDictionary";
 import { isUrl, sanitizeUrl } from "../../utils/urls";
 import { getMarkRange } from "../queries/getMarkRange";
 import Mark from "./Mark";
@@ -53,7 +54,20 @@ function isPlainURL(
   return !link.isInSet(next.marks);
 }
 
-export default class Link extends Mark {
+/**
+ * Options for the Link mark.
+ */
+type LinkOptions = {
+  /** A dictionary of translated strings used in the editor. */
+  dictionary: Dictionary;
+  /** Callback invoked when the user clicks any link in the document. */
+  onClickLink?: (
+    href: string,
+    event?: MouseEvent | React.MouseEvent<HTMLButtonElement>
+  ) => void;
+};
+
+export default class Link extends Mark<LinkOptions> {
   get name() {
     return "link";
   }
@@ -208,10 +222,11 @@ export default class Link extends Mark {
                   : "");
 
               try {
-                if (this.options.onClickLink && href) {
+                const sanitized = sanitizeUrl(href);
+                if (this.options.onClickLink && sanitized) {
                   event.stopPropagation();
                   event.preventDefault();
-                  this.options.onClickLink(sanitizeUrl(href), event);
+                  this.options.onClickLink(sanitized, event);
                 }
               } catch (_err) {
                 toast.error(this.options.dictionary.openLinkError);

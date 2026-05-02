@@ -3,7 +3,15 @@ import type { NodeSpec } from "prosemirror-model";
 import { PlaceholderPlugin } from "../plugins/PlaceholderPlugin";
 import Node from "./Node";
 
-export default class Doc extends Node {
+/**
+ * Options for the Doc node.
+ */
+type DocOptions = {
+  /** Placeholder text shown when the document is empty. */
+  placeholder: string;
+};
+
+export default class Doc extends Node<DocOptions> {
   get name() {
     return "doc";
   }

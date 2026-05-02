@@ -2,12 +2,22 @@ import type { NodeType } from "prosemirror-model";
 import { Plugin, PluginKey } from "prosemirror-state";
 import Extension from "../lib/Extension";
 
-export default class TrailingNode extends Extension {
+/**
+ * Options for the TrailingNode extension.
+ */
+type TrailingNodeOptions = {
+  /** Name of the node type to insert as the trailing node. */
+  node: string;
+  /** Node names after which a trailing node should not be inserted. */
+  notAfter: string[];
+};
+
+export default class TrailingNode extends Extension<TrailingNodeOptions> {
   get name() {
     return "trailing_node";
   }
 
-  get defaultOptions() {
+  get defaultOptions(): TrailingNodeOptions {
     return {
       node: "paragraph",
       notAfter: ["paragraph", "heading"],

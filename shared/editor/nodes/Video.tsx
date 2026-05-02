@@ -7,6 +7,7 @@ import type {
 import { NodeSelection, TextSelection } from "prosemirror-state";
 import * as React from "react";
 import type { Primitive } from "utility-types";
+import type { Dictionary } from "~/hooks/useDictionary";
 import { sanitizeUrl } from "../../utils/urls";
 import toggleWrap from "../commands/toggleWrap";
 import Caption from "../components/Caption";
@@ -16,7 +17,15 @@ import attachmentsRule from "../rules/links";
 import type { ComponentProps } from "../types";
 import Node from "./Node";
 
-export default class Video extends Node {
+/**
+ * Options for the Video node.
+ */
+type VideoOptions = {
+  /** A dictionary of translated strings used in the editor. */
+  dictionary: Dictionary;
+};
+
+export default class Video extends Node<VideoOptions> {
   get name() {
     return "video";
   }
