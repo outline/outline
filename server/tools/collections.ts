@@ -288,7 +288,7 @@ export function collectionTools(server: McpServer, scopes: string[]) {
       {
         title: "Delete collection",
         description:
-          "Deletes a collection by its ID. All documents within the collection will also be deleted. Set archive to true to archive the collection instead of deleting it.",
+          "Deletes a collection by its ID. Non-archived documents within the collection will also be deleted. Set archive to true to archive the collection instead of deleting it.",
         annotations: {
           idempotentHint: false,
           readOnlyHint: false,
