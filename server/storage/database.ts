@@ -237,7 +237,8 @@ export function monkeyPatchSequelizeErrorsForJest(instance: Sequelize) {
     return instance;
   }
 
-  const sequelizeVersion = (Sequelize as any).version;
+  const sequelizeVersion = (Sequelize as unknown as { version: string })
+    .version;
   const major = sequelizeVersion.split(".").map(Number)[0];
 
   if (major >= 7) {
@@ -250,12 +251,13 @@ export function monkeyPatchSequelizeErrorsForJest(instance: Sequelize) {
   }
 
   const origQueryFunc = instance.query.bind(instance);
-  instance.query = (async (...args: any[]) => {
+  instance.query = (async (...args: Parameters<typeof origQueryFunc>) => {
     try {
-      return await origQueryFunc(...(args as Parameters<typeof origQueryFunc>));
-    } catch (err: any) {
+      return await origQueryFunc(...args);
+    } catch (err) {
       // Ensure error appears in Jest output, not swallowed by Sequelize internals
-      Logger.error(err.message, err.parent);
+      const error = err as Error & { parent?: Error };
+      Logger.error(error.message, error.parent ?? error);
       throw err;
     }
   }) as typeof instance.query;

@@ -38,7 +38,11 @@ import { basicExtensions as extensions } from "@shared/editor/nodes";
 import type Node from "@shared/editor/nodes/Node";
 import type ReactNode from "@shared/editor/nodes/ReactNode";
 import type { ComponentProps } from "@shared/editor/types";
-import type { ProsemirrorData, UserPreferences } from "@shared/types";
+import type {
+  ProsemirrorData,
+  ProsemirrorMark,
+  UserPreferences,
+} from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import EventEmitter from "@shared/utils/events";
 import type Document from "~/models/Document";
@@ -117,7 +121,8 @@ export type Props = {
   /** Callback when user uses cancel key combo */
   onCancel?: () => void;
   /** Callback when user changes editor content */
-  onChange?: (value: () => any) => void;
+  // oxlint-disable-next-line @typescript-eslint/no-explicit-any
+  onChange?: (value: (asString?: boolean, trim?: boolean) => any) => void;
   /** Callback when a comment mark is clicked */
   onClickCommentMark?: (commentId: string) => void;
   /**
@@ -755,9 +760,9 @@ export class Editor extends React.PureComponent<
       }
 
       if (isArray(node.attrs?.marks)) {
-        const existingMarks = node.attrs.marks;
+        const existingMarks = node.attrs.marks as ProsemirrorMark[];
         const updatedMarks = existingMarks.filter(
-          (mark: any) => mark.attrs.id !== commentId
+          (mark) => mark.attrs?.id !== commentId
         );
         const attrs = {
           ...node.attrs,
@@ -800,9 +805,9 @@ export class Editor extends React.PureComponent<
       }
 
       if (isArray(node.attrs?.marks)) {
-        const existingMarks = node.attrs.marks;
-        const updatedMarks = existingMarks.map((mark: any) =>
-          mark.type === "comment" && mark.attrs.id === commentId
+        const existingMarks = node.attrs.marks as ProsemirrorMark[];
+        const updatedMarks = existingMarks.map((mark) =>
+          mark.type === "comment" && mark.attrs?.id === commentId
             ? { ...mark, attrs: { ...mark.attrs, ...attrs } }
             : mark
         );

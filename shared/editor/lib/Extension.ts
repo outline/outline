@@ -13,9 +13,11 @@ export type WidgetProps = {
 };
 
 export default class Extension {
+  // oxlint-disable-next-line @typescript-eslint/no-explicit-any
   options: any;
   editor: Editor;
 
+  // oxlint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(options: Record<string, any> = {}) {
     this.options = {
       ...this.defaultOptions,
