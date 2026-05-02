@@ -4,14 +4,13 @@ import HexColorPreview from "../extensions/HexColorPreview";
 import History from "../extensions/History";
 import MaxLength from "../extensions/MaxLength";
 import TrailingNode from "../extensions/TrailingNode";
-import type Extension from "../lib/Extension";
+import type { AnyExtensionClass } from "../lib/types";
 import Bold from "../marks/Bold";
 import Code from "../marks/Code";
 import Comment from "../marks/Comment";
 import Highlight from "../marks/Highlight";
 import Italic from "../marks/Italic";
 import Link from "../marks/Link";
-import type Mark from "../marks/Mark";
 import TemplatePlaceholder from "../marks/Placeholder";
 import Strikethrough from "../marks/Strikethrough";
 import Underline from "../marks/Underline";
@@ -33,7 +32,6 @@ import ListItem from "./ListItem";
 import Math from "./Math";
 import MathBlock from "./MathBlock";
 import Mention from "./Mention";
-import type Node from "./Node";
 import Notice from "./Notice";
 import OrderedList from "./OrderedList";
 import Paragraph from "./Paragraph";
@@ -47,7 +45,7 @@ import ToggleBlock from "./ToggleBlock";
 
 import Video from "./Video";
 
-type Nodes = (typeof Node | typeof Mark | typeof Extension)[];
+type Nodes = AnyExtensionClass[];
 
 /**
  * A set of inline nodes that are used in the editor. This is used for simple
