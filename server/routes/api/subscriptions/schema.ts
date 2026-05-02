@@ -17,6 +17,9 @@ const SubscriptionBody = z
   })
   .refine((obj) => !(isEmpty(obj.collectionId) && isEmpty(obj.documentId)), {
     error: "one of collectionId or documentId is required",
+  })
+  .refine((obj) => !(!isEmpty(obj.collectionId) && !isEmpty(obj.documentId)), {
+    error: "only one of collectionId or documentId may be provided",
   });
 
 export const SubscriptionsListSchema = BaseSchema.extend({
