@@ -637,4 +637,59 @@ export function documentTools(server: McpServer, scopes: string[]) {
       })
     );
   }
+
+  if (AuthenticationHelper.canAccess("documents.delete", scopes)) {
+    server.registerTool(
+      "delete_document",
+      {
+        title: "Delete document",
+        description:
+          "Deletes a document by its ID. The document is moved to the trash and can be restored later. Set archive to true to archive the document instead of deleting it.",
+        annotations: {
+          idempotentHint: false,
+          readOnlyHint: false,
+        },
+        inputSchema: {
+          id: z
+            .string()
+            .describe("The unique identifier of the document to delete."),
+          archive: z
+            .boolean()
+            .optional()
+            .describe(
+              "Set to true to archive the document instead of deleting it. Archived documents remain searchable in the archive view."
+            ),
+        },
+      },
+      withTracing("delete_document", async ({ id, archive }, context) => {
+        try {
+          const ctx = buildAPIContext(context);
+          const { user } = ctx.state.auth;
+
+          await sequelize.transaction(async (transaction) => {
+            ctx.state.transaction = transaction;
+            ctx.context.transaction = transaction;
+
+            const document = await Document.findByPk(id, {
+              userId: user.id,
+              rejectOnEmpty: true,
+              transaction,
+            });
+
+            if (archive) {
+              authorize(user, "archive", document);
+              await document.archiveWithCtx(ctx);
+            } else {
+              authorize(user, "delete", document);
+              await document.destroyWithCtx(ctx);
+            }
+          });
+
+          return success({ success: true });
+        } catch (message) {
+          return error(message);
+        }
+      })
+    );
+  }
 }

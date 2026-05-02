@@ -27,7 +27,7 @@ import type { Replace, APIContext } from "@server/types";
 import { getChangesetSkipped } from "../decorators/Changeset";
 import { InternalError } from "@server/errors";
 
-type EventOverrideOptions = {
+export type EventOverrideOptions = {
   /** Override the default event name. */
   name?: string;
   /** Additional data to publish in the event. */

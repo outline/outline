@@ -12,7 +12,7 @@ import {
   buildTeam,
 } from "@server/test/factories";
 
-import { getTestServer } from "@server/test/support";
+import { getTestServer, withAPIContext } from "@server/test/support";
 
 const server = getTestServer();
 
@@ -166,7 +166,7 @@ describe("#shares.list", () => {
       teamId: user.teamId,
       userId: user.id,
     });
-    await document.delete(user);
+    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
     const res = await server.post("/api/shares.list", {
       body: {
         token: user.getJwtToken(),
@@ -1323,7 +1323,7 @@ describe("#shares.revoke", () => {
       teamId: user.teamId,
       userId: user.id,
     });
-    await document.delete(user);
+    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
     const res = await server.post("/api/shares.revoke", {
       body: {
         token: user.getJwtToken(),
