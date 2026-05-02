@@ -28,7 +28,7 @@ export function generateOAuthStateNonce(
 ): string {
   const nonce = randomString(32);
   ctx.cookies.set(cookieName, nonce, {
-    httpOnly: false,
+    httpOnly: true,
     sameSite: "lax",
     expires: addMinutes(new Date(), 10),
     domain: getCookieDomain(ctx.hostname, env.isCloudHosted),
@@ -55,7 +55,7 @@ export function verifyOAuthStateNonce(
 ): void {
   const cookieNonce = ctx.cookies.get(cookieName);
   ctx.cookies.set(cookieName, "", {
-    httpOnly: false,
+    httpOnly: true,
     sameSite: "lax",
     expires: subMinutes(new Date(), 1),
     domain: getCookieDomain(ctx.hostname, env.isCloudHosted),
