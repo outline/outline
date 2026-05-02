@@ -70,7 +70,7 @@ export const toggleStorageKey = (id: string) => `toggle:${id}`;
  */
 type ToggleBlockOptions = {
   /** A dictionary of translated strings used in the editor. */
-  dictionary: Dictionary;
+  dictionary?: Dictionary;
 };
 
 export default class ToggleBlock extends Node<ToggleBlockOptions> {
@@ -349,7 +349,7 @@ export default class ToggleBlock extends Node<ToggleBlockOptions> {
             parent.type.name === "container_toggle" &&
             $start.index($start.depth - 1) === 0 &&
             node.textContent === "",
-          text: this.options.dictionary.emptyToggleBlockHead,
+          text: this.options.dictionary?.emptyToggleBlockHead ?? "",
         },
         {
           condition: ({ parent, $start, state }) =>
@@ -359,7 +359,7 @@ export default class ToggleBlock extends Node<ToggleBlockOptions> {
             ToggleBlock.isBodyEmpty(parent) &&
             (state.selection.$from.pos < $start.pos ||
               state.selection.$from.pos > $start.end($start.depth - 1)),
-          text: this.options.dictionary.emptyToggleBlockBody,
+          text: this.options.dictionary?.emptyToggleBlockBody ?? "",
         },
         {
           condition: ({ node, parent, $start, state }) =>
@@ -368,7 +368,7 @@ export default class ToggleBlock extends Node<ToggleBlockOptions> {
             node.isTextblock &&
             node.textContent === "" &&
             (state.selection as TextSelection).$cursor?.pos === $start.pos,
-          text: this.options.dictionary.newLineEmpty,
+          text: this.options.dictionary?.newLineEmpty ?? "",
         },
       ]),
     ];

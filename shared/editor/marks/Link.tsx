@@ -61,7 +61,7 @@ type LinkOptions = {
   /** A dictionary of translated strings used in the editor. */
   dictionary: Dictionary;
   /** Callback invoked when the user clicks any link in the document. */
-  onClickLink: (
+  onClickLink?: (
     href: string,
     event?: MouseEvent | React.MouseEvent<HTMLButtonElement>
   ) => void;
@@ -264,8 +264,10 @@ export default class Link extends Mark<LinkOptions> {
 
             // Prevent all default click behavior of links, see mousedown above
             // for custom link handling.
-            event.stopPropagation();
-            event.preventDefault();
+            if (this.options.onClickLink) {
+              event.stopPropagation();
+              event.preventDefault();
+            }
 
             return false;
           },

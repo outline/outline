@@ -37,8 +37,6 @@ export enum HeadingLevel {
 type HeadingOptions = {
   /** Heading levels (1-based) that are enabled in this editor. */
   levels: number[];
-  /** Default value for the per-heading collapsed attribute. */
-  collapsed: undefined;
   /** Offset added to the rendered heading level (e.g. 1 renders an `h2` for level 1). */
   offset?: number;
   /** A dictionary of translated strings used in the editor. */
@@ -53,7 +51,6 @@ export default class Heading extends Node<HeadingOptions> {
   get defaultOptions(): Partial<HeadingOptions> {
     return {
       levels: [1, 2, 3, 4],
-      collapsed: undefined,
     };
   }
 

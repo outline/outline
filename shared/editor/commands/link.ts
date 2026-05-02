@@ -50,10 +50,15 @@ const addLinkNodeSelection =
 
 const openLinkTextSelection =
   (
-    onClickLink: (
-      url: string,
-      event?: KeyboardEvent | MouseEvent | React.MouseEvent<HTMLButtonElement>
-    ) => void,
+    onClickLink:
+      | ((
+          url: string,
+          event?:
+            | KeyboardEvent
+            | MouseEvent
+            | React.MouseEvent<HTMLButtonElement>
+        ) => void)
+      | undefined,
     dictionary: { openLinkError: string }
   ): Command =>
   (state) => {
@@ -76,10 +81,15 @@ const openLinkTextSelection =
 
 const openLinkNodeSelection =
   (
-    onClickLink: (
-      url: string,
-      event?: KeyboardEvent | MouseEvent | React.MouseEvent<HTMLButtonElement>
-    ) => void,
+    onClickLink:
+      | ((
+          url: string,
+          event?:
+            | KeyboardEvent
+            | MouseEvent
+            | React.MouseEvent<HTMLButtonElement>
+        ) => void)
+      | undefined,
     dictionary: { openLinkError: string }
   ): Command =>
   (state) => {
@@ -245,10 +255,12 @@ export const addLink = (attrs: Attrs): Command =>
   chainCommands(addLinkTextSelection(attrs), addLinkNodeSelection(attrs));
 
 export const openLink = (
-  onClickLink: (
-    url: string,
-    event?: KeyboardEvent | MouseEvent | React.MouseEvent<HTMLButtonElement>
-  ) => void,
+  onClickLink:
+    | ((
+        url: string,
+        event?: KeyboardEvent | MouseEvent | React.MouseEvent<HTMLButtonElement>
+      ) => void)
+    | undefined,
   dictionary: { openLinkError: string }
 ): Command =>
   chainCommands(
