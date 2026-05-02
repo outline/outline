@@ -757,14 +757,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     // Create a new document with the emoji removed from the text
     const json = doc.toJSON();
 
-    type JSONNode = {
-      type?: string;
-      text?: string;
-      content?: JSONNode[];
-      [key: string]: unknown;
-    };
-
-    function removeEmojiFromNode(node: JSONNode): JSONNode {
+    function removeEmojiFromNode(node: ProsemirrorData): ProsemirrorData {
       if (node.type === "text" && node.text && node.text.startsWith(emoji)) {
         return {
           ...node,
@@ -775,7 +768,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
         let found = false;
         return {
           ...node,
-          content: node.content.map((child: JSONNode) => {
+          content: node.content.map((child) => {
             if (found) {
               return child;
             }
@@ -790,7 +783,7 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
       return node;
     }
 
-    const modifiedJson = removeEmojiFromNode(json as JSONNode);
+    const modifiedJson = removeEmojiFromNode(json as ProsemirrorData);
     return {
       emoji,
       doc: Node.fromJSON(schema, modifiedJson),
