@@ -20,15 +20,20 @@ export default class RollupWeeklyDocumentInsightsTask extends CronTask {
 
     // Find ISO week starts (Monday) whose Sunday end is older than the cutoff
     // and still have daily rows inside this partition. Postgres `date_trunc`
-    // uses ISO weeks, so the result is always a Monday.
+    // uses ISO weeks, so the result is always a Monday. Join to documents and
+    // filter out soft-deleted ones so we stay consistent with rollupPeriod —
+    // otherwise we'd delete daily rows it didn't replace.
     const weeks = await sequelize.query<{ weekStart: string }>(
       `
-      SELECT DISTINCT date_trunc('week', date)::date AS "weekStart"
-      FROM document_insights
-      WHERE period = 'day'
-        AND "documentId" >= :startUuid::uuid
-        AND "documentId" <= :endUuid::uuid
-        AND date_trunc('week', date) < ((NOW() AT TIME ZONE 'UTC')::date - INTERVAL '${CUTOFF_DAYS + 6} days')
+      SELECT DISTINCT date_trunc('week', di.date)::date AS "weekStart"
+      FROM document_insights di
+      INNER JOIN documents d
+        ON d.id = di."documentId"
+        AND d."deletedAt" IS NULL
+      WHERE di.period = 'day'
+        AND di."documentId" >= :startUuid::uuid
+        AND di."documentId" <= :endUuid::uuid
+        AND date_trunc('week', di.date) < ((NOW() AT TIME ZONE 'UTC')::date - INTERVAL '${CUTOFF_DAYS + 6} days')
       ORDER BY "weekStart" ASC
       `,
       {
@@ -48,12 +53,15 @@ export default class RollupWeeklyDocumentInsightsTask extends CronTask {
 
       await sequelize.query(
         `
-        DELETE FROM document_insights
-        WHERE period = 'day'
-          AND "documentId" >= :startUuid::uuid
-          AND "documentId" <= :endUuid::uuid
-          AND date >= :weekStart::date
-          AND date < :weekStart::date + INTERVAL '7 days'
+        DELETE FROM document_insights di
+        USING documents d
+        WHERE d.id = di."documentId"
+          AND d."deletedAt" IS NULL
+          AND di.period = 'day'
+          AND di."documentId" >= :startUuid::uuid
+          AND di."documentId" <= :endUuid::uuid
+          AND di.date >= :weekStart::date
+          AND di.date < :weekStart::date + INTERVAL '7 days'
         `,
         {
           replacements: { startUuid, endUuid, weekStart },

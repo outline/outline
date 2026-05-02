@@ -92,6 +92,36 @@ describe("RollupWeeklyDocumentInsightsTask", () => {
     expect(rows[0].viewerCount).toBe(1);
   });
 
+  it("preserves daily rows for soft-deleted documents", async () => {
+    const team = await buildTeam();
+    const document = await buildDocument({
+      teamId: team.id,
+      publishedAt: new Date(),
+      deletedAt: new Date(),
+    });
+
+    const aDayInOldWeek = daysAgo(60);
+
+    await DocumentInsight.create({
+      documentId: document.id,
+      teamId: team.id,
+      date: dayStr(aDayInOldWeek),
+      period: DocumentInsightPeriod.Day,
+      viewCount: 7,
+    });
+
+    await task.perform(props);
+
+    const rows = await DocumentInsight.findAll({
+      where: { documentId: document.id },
+    });
+    // The daily row stays put — rollupPeriod skips deleted documents, so we
+    // must not delete data we wouldn't replace.
+    expect(rows).toHaveLength(1);
+    expect(rows[0].period).toBe(DocumentInsightPeriod.Day);
+    expect(rows[0].viewCount).toBe(7);
+  });
+
   it("is idempotent when re-run", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
