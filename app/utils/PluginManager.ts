@@ -146,6 +146,13 @@ export class PluginManager {
     this.loaded = true;
   }
 
+  /**
+   * Whether all plugin client modules have finished loading.
+   */
+  public static get isLoaded(): boolean {
+    return this.loaded;
+  }
+
   private static plugins = observable.map<Hook, Plugin<Hook>[]>();
 
   @observable
