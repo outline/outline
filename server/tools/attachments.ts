@@ -44,7 +44,12 @@ export function attachmentTools(server: McpServer, scopes: string[]) {
           name: z
             .string()
             .describe("The filename including extension, e.g. screenshot.png."),
-          size: z.coerce.number().describe("The file size in bytes."),
+          size: z.coerce
+            .number()
+            .int()
+            .nonnegative()
+            .finite()
+            .describe("The file size in bytes."),
         },
       },
       withTracing(
@@ -96,7 +101,8 @@ export function attachmentTools(server: McpServer, scopes: string[]) {
               contentType
             );
 
-            const uploadUrl = FileStorage.getUploadUrl();
+            const uploadUrl = new URL(FileStorage.getUploadUrl(), team.url)
+              .href;
             const form = {
               "Cache-Control": "max-age=31557600",
               "Content-Type": contentType,

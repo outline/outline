@@ -42,6 +42,7 @@ export function buildAPIContext(context: McpContext) {
   return {
     state: { auth },
     context: { auth, ip },
+    cookies: { get: () => undefined, set: () => undefined },
   } as unknown as APIContext;
 }
 
