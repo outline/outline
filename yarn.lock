@@ -2249,7 +2249,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@bull-board/api@npm:6.21.2, @bull-board/api@npm:^6.7.10":
+"@bull-board/api@npm:6.21.2":
   version: 6.21.2
   resolution: "@bull-board/api@npm:6.21.2"
   dependencies:
@@ -2257,6 +2257,17 @@ __metadata:
   peerDependencies:
     "@bull-board/ui": 6.21.2
   checksum: 10c0/cb19790f43d3cc4a578cfecddcfa7ca89507b5c20555664b03ea7a718e73e716ed98caf0904dc9972de7e6edf80ea95d69bcf28b604d80c0b111f3160876d93f
+  languageName: node
+  linkType: hard
+
+"@bull-board/api@npm:^6.21.3":
+  version: 6.21.3
+  resolution: "@bull-board/api@npm:6.21.3"
+  dependencies:
+    redis-info: "npm:^3.1.0"
+  peerDependencies:
+    "@bull-board/ui": 6.21.3
+  checksum: 10c0/34604a87d4bebbe37be36afa85634bce0c5e79ce7e887b866edc167654da55f965f483312fe5751c7d3022cb632ee6c78f1b6638350029b6cb9d86b63f5b0d40
   languageName: node
   linkType: hard
 
@@ -16741,7 +16752,7 @@ __metadata:
     "@babel/preset-react": "npm:^7.28.5"
     "@babel/preset-typescript": "npm:^7.28.5"
     "@benrbray/prosemirror-math": "npm:^0.2.2"
-    "@bull-board/api": "npm:^6.7.10"
+    "@bull-board/api": "npm:^6.21.3"
     "@bull-board/koa": "npm:^6.13.1"
     "@css-inline/css-inline-wasm": "npm:^0.20.2"
     "@dnd-kit/core": "npm:^6.3.1"
