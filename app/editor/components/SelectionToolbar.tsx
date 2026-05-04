@@ -264,7 +264,7 @@ export function SelectionToolbar(props: Props) {
   } else if (isDividerSelection) {
     items = getDividerMenuItems(state, readOnly, dictionary);
   } else if (readOnly) {
-    items = getReadOnlyMenuItems(state, !!canUpdate, dictionary);
+    items = getReadOnlyMenuItems(state, !!canUpdate, dictionary, !!canComment);
   } else if (isNoticeSelection && selection.empty) {
     items = getNoticeMenuItems(state, readOnly, dictionary);
     align = "end";
