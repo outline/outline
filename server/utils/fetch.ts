@@ -93,7 +93,12 @@ export default async function fetch(
         url,
         status: response.status,
         statusText: response.statusText,
-        headers: response.headers.raw(),
+        headers:
+          typeof response.headers.raw === "function"
+            ? response.headers.raw()
+            : Object.fromEntries(
+                response.headers as unknown as Iterable<[string, string]>
+              ),
       });
     }
 

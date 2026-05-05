@@ -6,7 +6,7 @@ describe("Timeout middleware", () => {
     const originalTimeout = 10000;
     const newTimeout = 1800000; // 30 minutes
 
-    const setTimeout = jest.fn();
+    const setTimeout = vi.fn();
     const mockSocket = {
       timeout: originalTimeout,
       setTimeout,
@@ -18,7 +18,7 @@ describe("Timeout middleware", () => {
       },
     };
 
-    const next = jest.fn();
+    const next = vi.fn();
     const middleware = timeout(newTimeout);
 
     await middleware(
@@ -39,7 +39,7 @@ describe("Timeout middleware", () => {
     const originalTimeout = 10000;
     const newTimeout = 1800000; // 30 minutes
 
-    const setTimeout = jest.fn();
+    const setTimeout = vi.fn();
     const mockSocket = {
       timeout: originalTimeout,
       setTimeout,
@@ -52,7 +52,7 @@ describe("Timeout middleware", () => {
     };
 
     const error = new Error("Test error");
-    const next = jest.fn().mockRejectedValue(error);
+    const next = vi.fn().mockRejectedValue(error);
     const middleware = timeout(newTimeout);
 
     await expect(
@@ -74,7 +74,7 @@ describe("Timeout middleware", () => {
   it("should handle undefined original timeout", async () => {
     const newTimeout = 1800000; // 30 minutes
 
-    const setTimeout = jest.fn();
+    const setTimeout = vi.fn();
     const mockSocket = {
       timeout: undefined,
       setTimeout,
@@ -86,7 +86,7 @@ describe("Timeout middleware", () => {
       },
     };
 
-    const next = jest.fn();
+    const next = vi.fn();
     const middleware = timeout(newTimeout);
 
     await middleware(

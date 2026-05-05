@@ -1,4 +1,22 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`#groups.add_user > should require admin 1`] = `
+{
+  "error": "authorization_error",
+  "message": "Authorization error",
+  "ok": false,
+  "status": 403,
+}
+`;
+
+exports[`#groups.add_user > should require user in team 1`] = `
+{
+  "error": "authorization_error",
+  "message": "Authorization error",
+  "ok": false,
+  "status": 403,
+}
+`;
 
 exports[`#groups.add_user should require admin 1`] = `
 {
@@ -18,7 +36,25 @@ exports[`#groups.add_user should require user in team 1`] = `
 }
 `;
 
+exports[`#groups.delete > should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
 exports[`#groups.delete should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
+exports[`#groups.info > should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",
@@ -36,7 +72,25 @@ exports[`#groups.info should require authentication 1`] = `
 }
 `;
 
+exports[`#groups.list > should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
 exports[`#groups.list should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
+exports[`#groups.memberships > should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",
@@ -51,6 +105,24 @@ exports[`#groups.memberships should require authentication 1`] = `
   "message": "Authentication required",
   "ok": false,
   "status": 401,
+}
+`;
+
+exports[`#groups.remove_user > should require admin 1`] = `
+{
+  "error": "authorization_error",
+  "message": "Authorization error",
+  "ok": false,
+  "status": 403,
+}
+`;
+
+exports[`#groups.remove_user > should require user in team 1`] = `
+{
+  "error": "authorization_error",
+  "message": "Authorization error",
+  "ok": false,
+  "status": 403,
 }
 `;
 
@@ -69,6 +141,24 @@ exports[`#groups.remove_user should require user in team 1`] = `
   "message": "Authorization error",
   "ok": false,
   "status": 403,
+}
+`;
+
+exports[`#groups.update > should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
+exports[`#groups.update > when checking for noop updates > fails with validation error when name already taken 1`] = `
+{
+  "error": "validation_error",
+  "message": "The name of this group is already in use (isUniqueNameInTeam)",
+  "ok": false,
+  "status": 400,
 }
 `;
 

@@ -1,4 +1,4 @@
-import fetchMock from "jest-fetch-mock";
+import fetchMock from "../../../__mocks__/fetchMock";
 import { fetchOIDCConfiguration } from "./oidcDiscovery";
 
 beforeEach(() => {

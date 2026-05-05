@@ -13,12 +13,12 @@ import DocumentPublishedNotificationsTask from "./DocumentPublishedNotifications
 const ip = "127.0.0.1";
 
 beforeEach(async () => {
-  jest.resetAllMocks();
+  vi.resetAllMocks();
 });
 
 describe("documents.publish", () => {
   test("should not send a notification to author", async () => {
-    const spy = jest.spyOn(Notification, "create");
+    const spy = vi.spyOn(Notification, "create");
     const user = await buildUser();
     const document = await buildDocument({
       teamId: user.teamId,
@@ -40,7 +40,7 @@ describe("documents.publish", () => {
   });
 
   test("should send a notification to other users in team", async () => {
-    const spy = jest.spyOn(Notification, "create");
+    const spy = vi.spyOn(Notification, "create");
     const user = await buildUser();
     const document = await buildDocument({
       teamId: user.teamId,
@@ -61,7 +61,7 @@ describe("documents.publish", () => {
   });
 
   test("should send only one notification in a 12-hour window", async () => {
-    const spy = jest.spyOn(Notification, "create");
+    const spy = vi.spyOn(Notification, "create");
     const user = await buildUser();
     const document = await buildDocument({
       teamId: user.teamId,
@@ -98,7 +98,7 @@ describe("documents.publish", () => {
   });
 
   test("should not send a notification to users without collection access", async () => {
-    const spy = jest.spyOn(Notification, "create");
+    const spy = vi.spyOn(Notification, "create");
     const user = await buildUser();
     const collection = await buildCollection({
       teamId: user.teamId,
@@ -124,7 +124,7 @@ describe("documents.publish", () => {
   });
 
   test("should not send a notification for group mentions when disableMentions is true", async () => {
-    const spy = jest.spyOn(Notification, "create");
+    const spy = vi.spyOn(Notification, "create");
     const actor = await buildUser();
     const group = await buildGroup({
       teamId: actor.teamId,

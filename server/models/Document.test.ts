@@ -15,7 +15,7 @@ import { withAPIContext } from "@server/test/support";
 import UserMembership from "./UserMembership";
 
 beforeEach(() => {
-  jest.resetAllMocks();
+  vi.resetAllMocks();
 });
 
 describe("#getSummary", () => {

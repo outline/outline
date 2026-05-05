@@ -1,5 +1,6 @@
 import { format, subDays } from "date-fns";
 import { DocumentInsight, Event, Reaction, Revision } from "@server/models";
+import { sequelize } from "@server/storage/database";
 import {
   buildComment,
   buildDocument,
@@ -16,14 +17,19 @@ const props = {
   },
 };
 
+vi.setConfig({ testTimeout: 30000 });
+
 const daysAgo = (n: number) => subDays(new Date(), n);
 const dayStr = (d: Date) => format(d, "yyyy-MM-dd");
 
 describe("RollupDocumentInsightsTask", () => {
   let task: RollupDocumentInsightsTask;
 
-  beforeAll(() => {
-    jest.setTimeout(30000);
+  beforeAll(async () => {
+    await sequelize.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS "document_insights_document_id_date"
+      ON document_insights ("documentId", date);
+    `);
   });
 
   beforeEach(() => {

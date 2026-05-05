@@ -15,11 +15,11 @@ import User from "./User";
 import UserMembership from "./UserMembership";
 
 beforeAll(() => {
-  jest.useFakeTimers().setSystemTime(new Date("2018-01-02T00:00:00.000Z"));
+  vi.useFakeTimers().setSystemTime(new Date("2018-01-02T00:00:00.000Z"));
 });
 
 afterAll(() => {
-  jest.useRealTimers();
+  vi.useRealTimers();
 });
 
 describe("user model", () => {

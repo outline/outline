@@ -5,7 +5,7 @@ import { getTestServer, setSelfHosted } from "@server/test/support";
 
 const mockTeamInSessionId = randomUUID();
 
-jest.mock("@server/utils/authentication", () => ({
+vi.mock("@server/utils/authentication", () => ({
   getSessionsInCookie() {
     return { [mockTeamInSessionId]: {} };
   },

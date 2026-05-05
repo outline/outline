@@ -1,8 +1,12 @@
 import emojiRegex from "emoji-regex";
 import { JSDOM } from "jsdom";
 import chunk from "lodash/chunk";
-import { EditorState } from "prosemirror-state";
-import { EditorView } from "prosemirror-view";
+import { EditorState, type Plugin } from "prosemirror-state";
+import {
+  DecorationSet,
+  EditorView,
+  type DecorationSource,
+} from "prosemirror-view";
 import isMatch from "lodash/isMatch";
 import { Node, Fragment } from "prosemirror-model";
 import { renderToString } from "react-dom/server";
@@ -63,6 +67,45 @@ export type MentionAttrs = {
   href?: string;
   unfurl?: UnfurlResponse[keyof UnfurlResponse];
 };
+
+const pluginsWithSafeDecorations = new WeakSet<Plugin>();
+const createDecorationSet = DecorationSet.create.bind(DecorationSet);
+let decorationSetCreatePatched = false;
+
+function isDecorationSource(value: unknown): value is DecorationSource {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  if (!("forChild" in value) || typeof value.forChild !== "function") {
+    return false;
+  }
+
+  if ("members" in value && Array.isArray(value.members)) {
+    return value.members.every(
+      (member) =>
+        typeof member === "object" &&
+        member !== null &&
+        "localsInner" in member &&
+        typeof member.localsInner === "function"
+    );
+  }
+
+  return true;
+}
+
+function patchDecorationSetCreate() {
+  if (decorationSetCreatePatched) {
+    return;
+  }
+
+  DecorationSet.create = ((doc, decorations) =>
+    createDecorationSet(
+      doc,
+      decorations.filter(Boolean)
+    )) as typeof DecorationSet.create;
+  decorationSetCreatePatched = true;
+}
 
 @trace()
 export class ProsemirrorHelper extends SharedProsemirrorHelper {
@@ -510,14 +553,44 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
       const target = doc.getElementById("content");
 
       cleanupEnv = this.patchGlobalEnv(dom.window);
+      patchDecorationSetCreate();
 
       const diffPlugins = options?.changes
         ? new Diff({ changes: options.changes }).plugins
         : [];
+      const editorPlugins = [...plugins, ...diffPlugins];
+
+      for (const plugin of plugins) {
+        if (
+          !plugin.props.decorations ||
+          pluginsWithSafeDecorations.has(plugin)
+        ) {
+          continue;
+        }
+
+        plugin.props.decorations = () => DecorationSet.empty;
+        pluginsWithSafeDecorations.add(plugin);
+      }
+
+      for (const plugin of diffPlugins) {
+        if (
+          !plugin.props.decorations ||
+          pluginsWithSafeDecorations.has(plugin)
+        ) {
+          continue;
+        }
+
+        const decorations = plugin.props.decorations.bind(plugin);
+        plugin.props.decorations = (state) => {
+          const result = decorations(state);
+          return isDecorationSource(result) ? result : DecorationSet.empty;
+        };
+        pluginsWithSafeDecorations.add(plugin);
+      }
 
       const state = EditorState.create({
         doc: node,
-        plugins: [...plugins, ...diffPlugins],
+        plugins: editorPlugins,
         schema,
       });
 

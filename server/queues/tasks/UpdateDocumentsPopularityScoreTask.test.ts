@@ -17,32 +17,30 @@ const props = {
   },
 };
 
+vi.setConfig({ testTimeout: 30000 });
+
 describe("UpdateDocumentsPopularityScoreTask", () => {
   let task: UpdateDocumentsPopularityScoreTask;
 
-  beforeAll(() => {
-    jest.setTimeout(30000);
-  });
-
   beforeEach(() => {
     task = new UpdateDocumentsPopularityScoreTask();
-    jest.spyOn(Date.prototype, "getHours").mockReturnValue(0);
+    vi.spyOn(Date.prototype, "getHours").mockReturnValue(0);
 
     // Ensure calculation query sees data created in tests by redirecting to main sequelize instance.
     // We only mock if the instances are different to avoid infinite recursion.
     if (sequelizeReadOnly !== sequelize) {
-      jest
-        .spyOn(sequelizeReadOnly, "query")
-        .mockImplementation(sequelize.query.bind(sequelize));
+      vi.spyOn(sequelizeReadOnly, "query").mockImplementation(
+        sequelize.query.bind(sequelize)
+      );
     }
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it("should skip execution if not at a 6-hour interval", async () => {
-    jest.spyOn(Date.prototype, "getHours").mockReturnValue(1);
+    vi.spyOn(Date.prototype, "getHours").mockReturnValue(1);
     const team = await buildTeam();
     const document = await buildDocument({
       teamId: team.id,

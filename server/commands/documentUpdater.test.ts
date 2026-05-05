@@ -68,7 +68,7 @@ describe("documentUpdater", () => {
   });
 
   it("should notify collaboration server when text changes", async () => {
-    const notifyUpdateSpy = jest
+    const notifyUpdateSpy = vi
       .spyOn(APIUpdateExtension, "notifyUpdate")
       .mockResolvedValue(undefined);
 
@@ -95,7 +95,7 @@ describe("documentUpdater", () => {
   });
 
   it("should not notify collaboration server when only title changes", async () => {
-    const notifyUpdateSpy = jest
+    const notifyUpdateSpy = vi
       .spyOn(APIUpdateExtension, "notifyUpdate")
       .mockResolvedValue(undefined);
 

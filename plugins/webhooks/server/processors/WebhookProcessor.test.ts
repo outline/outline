@@ -1,15 +1,18 @@
 import { buildUser, buildWebhookSubscription } from "@server/test/factories";
+import { BaseTask } from "@server/queues/tasks/base/BaseTask";
 import type { UserEvent } from "@server/types";
-import DeliverWebhookTask from "../tasks/DeliverWebhookTask";
 import WebhookProcessor from "./WebhookProcessor";
 
-jest.mock("../tasks/DeliverWebhookTask");
 const ip = "127.0.0.1";
-const schedule = jest.fn();
+const schedule = vi.fn<BaseTask<object>["schedule"]>();
 
 beforeEach(() => {
-  jest.resetAllMocks();
-  DeliverWebhookTask.prototype.schedule = schedule;
+  schedule.mockReset();
+  vi.spyOn(BaseTask.prototype, "schedule").mockImplementation(schedule);
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
 });
 
 describe("WebhookProcessor", () => {

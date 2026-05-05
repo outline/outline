@@ -1,4 +1,4 @@
-import fetchMock from "jest-fetch-mock";
+import fetchMock from "../../../../__mocks__/fetchMock";
 import { WebhookDelivery } from "@server/models";
 import {
   buildUser,
@@ -9,7 +9,7 @@ import type { UserEvent } from "@server/types";
 import DeliverWebhookTask from "./DeliverWebhookTask";
 
 beforeEach(async () => {
-  jest.resetAllMocks();
+  vi.resetAllMocks();
   fetchMock.resetMocks();
   fetchMock.doMock();
 });

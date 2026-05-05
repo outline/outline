@@ -13,7 +13,19 @@ import IdModel from "./base/IdModel";
 import { SkipChangeset } from "./decorators/Changeset";
 import Fix from "./decorators/Fix";
 
-@Table({ tableName: "document_insights", modelName: "documentInsight" })
+@Table({
+  tableName: "document_insights",
+  modelName: "documentInsight",
+  indexes: [
+    {
+      fields: ["documentId", "date"],
+      unique: true,
+    },
+    {
+      fields: ["teamId", "date"],
+    },
+  ],
+})
 @Fix
 class DocumentInsight extends IdModel<
   InferAttributes<DocumentInsight>,

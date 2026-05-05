@@ -1,4 +1,3 @@
-import { describe, it, expect } from "@jest/globals";
 import { isDatabaseUrl, isMailboxAddress } from "./validators";
 
 describe("isDatabaseUrl", () => {

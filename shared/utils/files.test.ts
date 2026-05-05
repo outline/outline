@@ -3,7 +3,7 @@ import { bytesToHumanReadable, getFileNameFromUrl } from "./files";
 // Mock the browser detection with a mutable value
 let mockIsMacValue = false;
 
-jest.mock("./browser", () => ({
+vi.mock("./browser", () => ({
   get isMac() {
     return mockIsMacValue;
   },

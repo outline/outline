@@ -1,6 +1,24 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`#shares.create > should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
 
 exports[`#shares.create should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
+exports[`#shares.list > should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",
@@ -18,7 +36,25 @@ exports[`#shares.list should require authentication 1`] = `
 }
 `;
 
+exports[`#shares.revoke > should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
 exports[`#shares.revoke should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
+exports[`#shares.update > should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",

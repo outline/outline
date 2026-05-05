@@ -1,16 +1,18 @@
 import { subDays } from "date-fns";
 import { Attachment, Document } from "@server/models";
-import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
+import { BaseTask } from "@server/queues/tasks/base/BaseTask";
 import { buildAttachment, buildDocument } from "@server/test/factories";
 import documentPermanentDeleter from "./documentPermanentDeleter";
 
-jest.mock("@server/queues/tasks/DeleteAttachmentTask");
-
-const schedule = jest.fn();
+const schedule = vi.fn<BaseTask<object>["schedule"]>();
 
 beforeEach(() => {
-  jest.resetAllMocks();
-  DeleteAttachmentTask.prototype.schedule = schedule;
+  schedule.mockReset();
+  vi.spyOn(BaseTask.prototype, "schedule").mockImplementation(schedule);
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
 });
 
 describe("documentPermanentDeleter", () => {

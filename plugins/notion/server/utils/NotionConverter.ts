@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import * as crypto from "node:crypto";
 import type {
   BookmarkBlockObjectResponse,
   BreadcrumbBlockObjectResponse,
@@ -81,7 +81,7 @@ export class NotionConverter {
           return {
             type: "container_toggle",
             attrs: {
-              id: randomUUID(),
+              id: crypto.randomUUID(),
             },
             content: [response, ...this.mapChildren(child)],
           };
@@ -624,7 +624,7 @@ export class NotionConverter {
     return {
       type: "container_toggle",
       attrs: {
-        id: randomUUID(),
+        id: crypto.randomUUID(),
       },
       content: [
         {
