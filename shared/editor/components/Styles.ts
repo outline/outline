@@ -2059,7 +2059,6 @@ table {
     position: relative;
     padding: 4px 8px;
     text-align: start;
-    min-width: 100px;
     font-weight: normal;
     border-left: 1px solid ${props.theme.divider};
     border-top: 1px solid ${props.theme.divider};
