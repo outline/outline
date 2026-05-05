@@ -1,19 +1,10 @@
 import { subDays } from "date-fns";
 import { Attachment, Document } from "@server/models";
-import { BaseTask } from "@server/queues/tasks/base/BaseTask";
 import { buildAttachment, buildDocument } from "@server/test/factories";
+import { mockTaskSchedule } from "@server/test/support";
 import documentPermanentDeleter from "./documentPermanentDeleter";
 
-const schedule = vi.fn<BaseTask<object>["schedule"]>();
-
-beforeEach(() => {
-  schedule.mockReset();
-  vi.spyOn(BaseTask.prototype, "schedule").mockImplementation(schedule);
-});
-
-afterEach(() => {
-  vi.restoreAllMocks();
-});
+const schedule = mockTaskSchedule();
 
 describe("documentPermanentDeleter", () => {
   it("should destroy documents", async () => {

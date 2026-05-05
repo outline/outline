@@ -1,10 +1,12 @@
 import { faker } from "@faker-js/faker";
 import type { Transaction } from "sequelize";
+import { afterEach, beforeEach, vi } from "vitest";
 import sharedEnv from "@shared/env";
 import { createContext } from "@server/context";
 import env from "@server/env";
 import type { User } from "@server/models";
 import onerror from "@server/onerror";
+import { BaseTask } from "@server/queues/tasks/base/BaseTask";
 import webService from "@server/services/web";
 import { sequelize } from "@server/storage/database";
 import type { APIContext } from "@server/types";
@@ -31,6 +33,26 @@ export function getTestServer() {
  */
 export function setSelfHosted() {
   env.URL = sharedEnv.URL = `https://${faker.internet.domainName()}`;
+}
+
+/**
+ * Mock scheduling for all task subclasses in the current test file.
+ *
+ * @returns the schedule mock for assertions.
+ */
+export function mockTaskSchedule() {
+  const schedule = vi.fn<BaseTask<object>["schedule"]>();
+
+  beforeEach(() => {
+    schedule.mockReset();
+    vi.spyOn(BaseTask.prototype, "schedule").mockImplementation(schedule);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  return schedule;
 }
 
 export function withAPIContext<T>(

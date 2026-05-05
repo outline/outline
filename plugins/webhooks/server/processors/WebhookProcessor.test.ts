@@ -1,19 +1,10 @@
 import { buildUser, buildWebhookSubscription } from "@server/test/factories";
-import { BaseTask } from "@server/queues/tasks/base/BaseTask";
+import { mockTaskSchedule } from "@server/test/support";
 import type { UserEvent } from "@server/types";
 import WebhookProcessor from "./WebhookProcessor";
 
 const ip = "127.0.0.1";
-const schedule = vi.fn<BaseTask<object>["schedule"]>();
-
-beforeEach(() => {
-  schedule.mockReset();
-  vi.spyOn(BaseTask.prototype, "schedule").mockImplementation(schedule);
-});
-
-afterEach(() => {
-  vi.restoreAllMocks();
-});
+const schedule = mockTaskSchedule();
 
 describe("WebhookProcessor", () => {
   it("it schedules a delivery for the event", async () => {
