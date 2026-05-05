@@ -144,7 +144,12 @@ export default class Diff extends Extension<DiffOptions> {
         key: pluginKey,
         state: {
           init: (_, state) => this.createDecorations(state.doc),
-          apply: (tr) => this.createDecorations(tr.doc),
+          apply: (tr, prev) => {
+            if (!tr.docChanged && !tr.getMeta(pluginKey)) {
+              return prev;
+            }
+            return this.createDecorations(tr.doc);
+          },
         },
         props: {
           decorations(state) {
