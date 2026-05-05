@@ -47,7 +47,6 @@ export default function (options: { delim: string; mark: string }) {
         state.delimiters.push({
           marker,
           length: 0, // disable "rule of 3" length checks meant for emphasis
-          jump: i,
           token: state.tokens.length - 1,
           end: -1,
           open: scanned.can_open,
