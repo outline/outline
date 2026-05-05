@@ -8,7 +8,6 @@ import createFetchMock, {
 } from "vitest-fetch-mock";
 
 const fetchMock = createFetchMock(vi);
-export const originalFetch = globalThis.fetch;
 
 let mockAllRequests = false;
 let mockOnceRequests = 0;

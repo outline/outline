@@ -1,6 +1,5 @@
 import { format, subDays } from "date-fns";
 import { DocumentInsight, Event, Reaction, Revision } from "@server/models";
-import { sequelize } from "@server/storage/database";
 import {
   buildComment,
   buildDocument,
@@ -24,13 +23,6 @@ const dayStr = (d: Date) => format(d, "yyyy-MM-dd");
 
 describe("RollupDocumentInsightsTask", () => {
   let task: RollupDocumentInsightsTask;
-
-  beforeAll(async () => {
-    await sequelize.query(`
-      CREATE UNIQUE INDEX IF NOT EXISTS "document_insights_document_id_date"
-      ON document_insights ("documentId", date);
-    `);
-  });
 
   beforeEach(() => {
     task = new RollupDocumentInsightsTask();

@@ -69,8 +69,6 @@ export type MentionAttrs = {
 };
 
 const pluginsWithSafeDecorations = new WeakSet<Plugin>();
-const createDecorationSet = DecorationSet.create.bind(DecorationSet);
-let decorationSetCreatePatched = false;
 
 function isDecorationSource(value: unknown): value is DecorationSource {
   if (typeof value !== "object" || value === null) {
@@ -92,19 +90,6 @@ function isDecorationSource(value: unknown): value is DecorationSource {
   }
 
   return true;
-}
-
-function patchDecorationSetCreate() {
-  if (decorationSetCreatePatched) {
-    return;
-  }
-
-  DecorationSet.create = ((doc, decorations) =>
-    createDecorationSet(
-      doc,
-      decorations.filter(Boolean)
-    )) as typeof DecorationSet.create;
-  decorationSetCreatePatched = true;
 }
 
 @trace()
@@ -553,7 +538,6 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
       const target = doc.getElementById("content");
 
       cleanupEnv = this.patchGlobalEnv(dom.window);
-      patchDecorationSetCreate();
 
       const diffPlugins = options?.changes
         ? new Diff({ changes: options.changes }).plugins
