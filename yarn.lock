@@ -13489,7 +13489,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ipaddr.js@npm:^2.1.0, ipaddr.js@npm:^2.3.0":
+"ipaddr.js@npm:^2.3.0":
   version: 2.3.0
   resolution: "ipaddr.js@npm:2.3.0"
   checksum: 10c0/084bab99e2f6875d7a62adc3325e1c64b038a12c9521e35fb967b5e263a8b3afb1b8884dd77c276092331f5d63298b767491e10997ef147c62da01b143780bbd
@@ -17001,7 +17001,6 @@ __metadata:
     redlock: "npm:^5.0.0-beta2"
     reflect-metadata: "npm:^0.2.2"
     refractor: "npm:^3.6.0"
-    request-filtering-agent: "npm:^3.2.0"
     resolve-path: "npm:^1.4.0"
     rimraf: "npm:^6.1.3"
     rollup-plugin-webpack-stats: "npm:2.1.11"
@@ -18991,15 +18990,6 @@ __metadata:
   version: 2.0.0
   resolution: "replace-ext@npm:2.0.0"
   checksum: 10c0/52cb1006f83c5f07ef2c76b070c58bdeca1b67beded57d60593d1af8cd8ee731501d0433645cea8e9a4bf57a7018f47c9a3928c0463496cad1946fa85907aa47
-  languageName: node
-  linkType: hard
-
-"request-filtering-agent@npm:^3.2.0":
-  version: 3.2.0
-  resolution: "request-filtering-agent@npm:3.2.0"
-  dependencies:
-    ipaddr.js: "npm:^2.1.0"
-  checksum: 10c0/f32128c067ca4b700c7e02b41fdd2db430707ec285a2fb44c347f0d9f42326aeb9c32c1986d20c6354630d1368c2fdb1933928a657cec57d637dd895b08cca07
   languageName: node
   linkType: hard
 
