@@ -151,13 +151,13 @@ export default class Diff extends Extension<DiffOptions> {
             return this.getState(state);
           },
         },
-        // Allow meta transactions to bypass filtering
+        // Block doc-changing transactions to keep the diff immutable, but
+        // allow selection updates and a few cooperating plugins through.
         filterTransaction: (tr) =>
-          tr.getMeta("codeHighlighting") ||
-          tr.getMeta(pluginKey) ||
-          tr.getMeta(toggleFoldPluginKey)
-            ? true
-            : false,
+          !tr.docChanged ||
+          !!tr.getMeta("codeHighlighting") ||
+          !!tr.getMeta(pluginKey) ||
+          !!tr.getMeta(toggleFoldPluginKey),
       }),
     ];
   }
