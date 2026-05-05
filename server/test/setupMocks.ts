@@ -54,8 +54,3 @@ vi.mock(
   "request-filtering-agent",
   () => import("../__mocks__/request-filtering-agent")
 );
-vi.mock("fetch-with-proxy", () => import("../__mocks__/fetch-with-proxy"));
-vi.mock("node-fetch", async () => {
-  const { getNodeFetchMock } = await import("../../__mocks__/fetchMock");
-  return getNodeFetchMock();
-});

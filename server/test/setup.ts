@@ -1,9 +1,13 @@
 import "reflect-metadata";
 import { EventEmitter } from "node:events";
-import { beforeEach, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, vi } from "vitest";
 import sharedEnv from "@shared/env";
 import env from "@server/env";
-import "../../__mocks__/fetchMock";
+import { server } from "./msw";
+
+beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
 
 // Increase the default max listeners for EventEmitter to prevent warnings in tests
 // This needs to be done before any modules that use EventEmitter are loaded
