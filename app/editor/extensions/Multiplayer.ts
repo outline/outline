@@ -1,3 +1,4 @@
+import type { HocuspocusProvider } from "@hocuspocus/provider";
 import isEqual from "lodash/isEqual";
 import { Plugin } from "prosemirror-state";
 import {
@@ -20,7 +21,19 @@ type UserAwareness = {
   head: object;
 };
 
-export default class Multiplayer extends Extension {
+/**
+ * Options for the Multiplayer extension.
+ */
+type MultiplayerOptions = {
+  /** The local user, used for cursor presence and the persistent user/client mapping. */
+  user: { id: string; color: string };
+  /** The Hocuspocus provider used for awareness and document sync. */
+  provider: HocuspocusProvider;
+  /** The shared Yjs document this editor is bound to. */
+  document: Y.Doc;
+};
+
+export default class Multiplayer extends Extension<MultiplayerOptions> {
   get name() {
     return "multiplayer";
   }

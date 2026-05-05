@@ -265,7 +265,6 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
                   alt={t("Avatar of {{ name }}", { name: user.name })}
                   model={user}
                   size={24}
-                  style={{ marginInlineStart: 4 }}
                 />
               }
             >
@@ -274,6 +273,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
                   position="bottom"
                   image={<NotificationIcon />}
                   aria-label={t("Notifications")}
+                  style={{ paddingInline: 4 }}
                 />
               </NotificationsPopover>
             </SidebarButton>

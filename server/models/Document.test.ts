@@ -11,6 +11,7 @@ import {
   buildUser,
   buildGuestUser,
 } from "@server/test/factories";
+import { withAPIContext } from "@server/test/support";
 import UserMembership from "./UserMembership";
 
 beforeEach(() => {
@@ -39,11 +40,11 @@ paragraph 2`,
   });
 });
 
-describe("#delete", () => {
+describe("#destroyWithCtx", () => {
   test("should soft delete and set last modified", async () => {
     const document = await buildDocument();
     const user = await buildUser();
-    await document.delete(user);
+    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
 
     const newDocument = await Document.findByPk(document.id, {
       paranoid: false,
@@ -57,7 +58,7 @@ describe("#delete", () => {
       archivedAt: new Date(),
     });
     const user = await buildUser();
-    await document.delete(user);
+    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
     const newDocument = await Document.findByPk(document.id, {
       paranoid: false,
     });
@@ -80,7 +81,7 @@ describe("#delete", () => {
     });
     await collection.addDocumentToStructure(document, 0);
 
-    await document.delete(user);
+    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
     const [newDocument, newCollection] = await Promise.all([
       document.reload({ paranoid: false }),
       collection.reload(),
@@ -94,7 +95,7 @@ describe("#delete", () => {
   it("should delete draft without collection", async () => {
     const user = await buildUser();
     const document = await buildDraftDocument();
-    await document.delete(user);
+    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
     const deletedDocument = await Document.findByPk(document.id, {
       paranoid: false,
     });

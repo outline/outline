@@ -13,8 +13,8 @@ type Item = Revision | Event<Document>;
 type Props = {
   items: Item[];
   document: Document;
-  fetch: (options: Record<string, any> | undefined) => Promise<Item[]>;
-  options?: Record<string, any>;
+  fetch: (options: Record<string, unknown> | undefined) => Promise<Item[]>;
+  options?: Record<string, unknown>;
   heading?: React.ReactNode;
   empty?: JSX.Element;
 };

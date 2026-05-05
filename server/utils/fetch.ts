@@ -3,7 +3,11 @@ import { promises as dns } from "node:dns";
 import type http from "node:http";
 import type https from "node:https";
 import * as net from "node:net";
-import nodeFetch, { type RequestInit, type Response } from "node-fetch";
+import nodeFetch, {
+  Headers,
+  type RequestInit,
+  type Response,
+} from "node-fetch";
 import { getProxyForUrl } from "proxy-from-env";
 import tunnelAgent, { type TunnelAgent } from "tunnel-agent";
 import env from "@server/env";
@@ -30,6 +34,7 @@ const DefaultOptions = {
 };
 
 export type { RequestInit } from "node-fetch";
+export { Headers };
 
 /**
  * Default user agent string for outgoing requests.

@@ -345,7 +345,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     }
   };
 
-  const triggerFilePick = (accept: string, attrs?: Record<string, any>) => {
+  const triggerFilePick = (accept: string, attrs?: Record<string, unknown>) => {
     if (inputRef.current) {
       if (accept) {
         inputRef.current.accept = accept;
@@ -887,7 +887,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
                 onPointerMove={handlePointerMove}
                 onPointerDown={handlePointerDown}
               >
-                {props.renderMenuItem(item as any, index, {
+                {props.renderMenuItem(item as unknown as T, index, {
                   selected: index === selectedIndex,
                   disclosure: hasChildren,
                   onClick: handleOnClick,
@@ -1053,7 +1053,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
                     key={`sub-${childIndex}-${child.name}`}
                     onPointerMove={handleChildPointerMove}
                   >
-                    {props.renderMenuItem(child as any, childIndex, {
+                    {props.renderMenuItem(child as unknown as T, childIndex, {
                       selected: childIndex === submenu.selectedIndex,
                       onClick: handleChildClick,
                     })}

@@ -2,6 +2,7 @@ import Router from "koa-router";
 import { Sequelize } from "sequelize";
 import starCreator from "@server/commands/starCreator";
 import auth from "@server/middlewares/authentication";
+import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { Document, Star, Collection } from "@server/models";
@@ -13,6 +14,7 @@ import {
 } from "@server/presenters";
 import type { APIContext } from "@server/types";
 import { starIndexing } from "@server/utils/indexing";
+import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -20,6 +22,7 @@ const router = new Router();
 
 router.post(
   "stars.create",
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth(),
   validate(T.StarsCreateSchema),
   transaction(),

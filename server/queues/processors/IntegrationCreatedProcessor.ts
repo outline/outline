@@ -26,6 +26,8 @@ export default class IntegrationCreatedProcessor extends BaseProcessor {
     });
 
     // Clear the cache of unfurled data for the team as it may be stale now.
-    await CacheHelper.clearData(RedisPrefixHelper.getUnfurlKey(integration.teamId));
+    await CacheHelper.clearData(
+      RedisPrefixHelper.getUnfurlKey(integration.teamId)
+    );
   }
 }

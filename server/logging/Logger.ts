@@ -194,12 +194,11 @@ class Logger {
     // Errors have non-enumerable message/stack which are dropped by spreads
     // and JSON serialization, so convert them to a plain object up-front.
     if (input instanceof Error) {
-      // oxlint-disable-next-line @typescript-eslint/no-explicit-any
       return {
         name: input.name,
         message: input.message,
         stack: input.stack,
-      } as any as T;
+      } as unknown as T;
     }
 
     // Short circuit if we're not in production to enable easier debugging

@@ -370,7 +370,7 @@ class Collection extends ParanoidModel<
         CacheHelper.setData(
           RedisPrefixHelper.getCollectionDocumentsKey(model.id),
           model.documentStructure,
-          60
+          Collection.DOCUMENT_STRUCTURE_CACHE_TTL
         );
 
       if (options.transaction) {
@@ -560,6 +560,8 @@ class Collection extends ParanoidModel<
       direction: "asc",
     };
 
+  static DOCUMENT_STRUCTURE_CACHE_TTL = 60;
+
   /**
    * Returns an array of unique userIds that are members of a collection,
    * either via group or direct membership.
@@ -706,6 +708,29 @@ class Collection extends ParanoidModel<
     return !this.permission;
   }
 
+  /**
+   * Returns the collection's documentStructure via cache, populating it on
+   * miss. The cache is kept fresh by this model's save hooks, so callers
+   * should prefer this over re-fetching the column directly.
+   *
+   * @returns the cached documentStructure, or null when the collection has none.
+   */
+  getCachedDocumentStructure = async (): Promise<NavigationNode[] | null> => {
+    const result = await CacheHelper.getDataOrSet<NavigationNode[] | null>(
+      RedisPrefixHelper.getCollectionDocumentsKey(this.id),
+      async () =>
+        (
+          await (this.constructor as typeof Collection).findByPk(this.id, {
+            attributes: ["documentStructure"],
+            includeDocumentStructure: true,
+            rejectOnEmpty: true,
+          })
+        ).documentStructure,
+      Collection.DOCUMENT_STRUCTURE_CACHE_TTL
+    );
+    return result ?? null;
+  };
+
   getDocumentTree = (documentId: string): NavigationNode | null => {
     if (!this.documentStructure) {
       return null;
@@ -745,6 +770,42 @@ class Collection extends ParanoidModel<
       ...result,
       children: sortNavigationNodes(result.children, this.sort),
     };
+  };
+
+  /**
+   * Archives the collection and all of its non-archived documents. The
+   * collection's `archivedAt` and `archivedBy` are set to now and the acting
+   * user respectively, and child documents inherit the same `archivedAt`.
+   *
+   * @param ctx - the API context, including the acting user and optional transaction.
+   * @returns the updated collection.
+   */
+  archiveWithCtx = async (ctx: APIContext) => {
+    const { transaction } = ctx.state;
+    const { user } = ctx.state.auth;
+
+    this.archivedAt = new Date();
+    this.archivedById = user.id;
+    this.archivedBy = user;
+
+    await this.saveWithCtx(ctx, undefined, { name: "archive" });
+
+    await Document.update(
+      {
+        lastModifiedById: user.id,
+        archivedAt: this.archivedAt,
+      },
+      {
+        where: {
+          teamId: this.teamId,
+          collectionId: this.id,
+          archivedAt: { [Op.is]: null },
+        },
+        transaction,
+      }
+    );
+
+    return this;
   };
 
   deleteDocument = async function (document: Document, options?: FindOptions) {

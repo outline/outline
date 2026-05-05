@@ -114,6 +114,7 @@ router.post(
 
 router.post(
   "subscriptions.create",
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth(),
   validate(T.SubscriptionsCreateSchema),
   transaction(),
@@ -121,19 +122,20 @@ router.post(
     const { user } = ctx.state.auth;
     const { event, collectionId, documentId } = ctx.input.body;
 
+    if (documentId) {
+      const document = await Document.findByPk(documentId, {
+        userId: user.id,
+      });
+
+      authorize(user, "subscribe", document);
+    }
+
     if (collectionId) {
       const collection = await Collection.findByPk(collectionId, {
         userId: user.id,
       });
 
       authorize(user, "subscribe", collection);
-    } else {
-      // documentId will be available here
-      const document = await Document.findByPk(documentId!, {
-        userId: user.id,
-      });
-
-      authorize(user, "subscribe", document);
     }
 
     const subscription = await subscriptionCreator({

@@ -18,12 +18,22 @@ const pluginKey = new PluginKey("find-and-replace");
 const supportsHighlightAPI =
   typeof CSS !== "undefined" && CSS.highlights !== undefined;
 
-export default class FindAndReplaceExtension extends Extension {
+/**
+ * Options for the FindAndReplace extension.
+ */
+type FindAndReplaceOptions = {
+  /** Whether the search should be case sensitive by default. */
+  caseSensitive: boolean;
+  /** Whether the search query should be interpreted as a regular expression by default. */
+  regexEnabled: boolean;
+};
+
+export default class FindAndReplaceExtension extends Extension<FindAndReplaceOptions> {
   public get name() {
     return "find-and-replace";
   }
 
-  public get defaultOptions() {
+  public get defaultOptions(): FindAndReplaceOptions {
     return {
       caseSensitive: false,
       regexEnabled: false,

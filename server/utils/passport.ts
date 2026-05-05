@@ -11,6 +11,7 @@ import { getCookieDomain, parseDomain } from "@shared/utils/domains";
 import env from "@server/env";
 import { Team } from "@server/models";
 import { InternalError, OAuthStateMismatchError } from "../errors";
+import { safeEqual } from "./crypto";
 import fetch from "./fetch";
 import { getUserForJWT } from "./jwt";
 
@@ -86,7 +87,7 @@ export class StateStore {
       domain: getCookieDomain(ctx.hostname, env.isCloudHosted),
     });
 
-    if (!token || token !== providedToken) {
+    if (!safeEqual(token, providedToken)) {
       return callback(
         OAuthStateMismatchError("Token in state mismatched"),
         false,

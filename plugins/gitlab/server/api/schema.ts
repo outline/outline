@@ -6,7 +6,7 @@ export const GitLabCallbackSchema = BaseSchema.extend({
   query: z
     .object({
       code: z.string().nullish(),
-      state: z.string().uuid().nullish(),
+      state: z.string(),
       error: z.string().nullish(),
     })
     .refine((req) => !(isEmpty(req.code) && isEmpty(req.error)), {

@@ -10,7 +10,25 @@ import { isMarkActive } from "../queries/isMarkActive";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import Mark from "./Mark";
 
-export default class Comment extends Mark {
+/**
+ * Options for the Comment mark.
+ */
+type CommentOptions = {
+  /** The id of the current user, recorded on newly created comment marks. */
+  userId?: string;
+  /** Callback invoked when a comment mark is created in the document. */
+  onCreateCommentMark?: (
+    commentId: string,
+    userId: string,
+    options?: { focus: boolean }
+  ) => void;
+  /** Callback invoked when an existing comment mark is clicked. */
+  onClickCommentMark?: (commentId: string) => void;
+  /** Callback invoked to request that the comments sidebar be opened. */
+  onOpenCommentsSidebar?: () => void;
+};
+
+export default class Comment extends Mark<CommentOptions> {
   get name() {
     return "comment";
   }

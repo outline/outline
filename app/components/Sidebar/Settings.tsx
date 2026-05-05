@@ -21,6 +21,7 @@ import SidebarButton from "./components/SidebarButton";
 import SidebarLink from "./components/SidebarLink";
 import ToggleButton from "./components/ToggleButton";
 import Version from "./components/Version";
+import useMobile from "~/hooks/useMobile";
 
 function SettingsSidebar() {
   const { ui, integrations } = useStores();
@@ -28,6 +29,7 @@ function SettingsSidebar() {
   const history = useHistory();
   const location = useLocation();
   const configs = useSettingsConfig();
+  const isMobile = useMobile();
 
   const groupedConfig = groupBy(
     configs.filter((item) =>
@@ -49,19 +51,24 @@ function SettingsSidebar() {
         image={<StyledBackIcon />}
         onClick={returnToApp}
       >
-        <Tooltip content={t("Toggle sidebar")} shortcut={`${metaDisplay}+.`}>
-          <ToggleButton
-            aria-label={
-              ui.sidebarCollapsed ? t("Expand sidebar") : t("Collapse sidebar")
-            }
-            position="bottom"
-            image={<SidebarIcon />}
-            onClick={() => {
-              ui.toggleCollapsedSidebar();
-              (document.activeElement as HTMLElement)?.blur();
-            }}
-          />
-        </Tooltip>
+        {isMobile ? null : (
+          <Tooltip content={t("Toggle sidebar")} shortcut={`${metaDisplay}+.`}>
+            <ToggleButton
+              aria-label={
+                ui.sidebarCollapsed
+                  ? t("Expand sidebar")
+                  : t("Collapse sidebar")
+              }
+              position="bottom"
+              image={<SidebarIcon />}
+              style={{ paddingInline: 4 }}
+              onClick={() => {
+                ui.toggleCollapsedSidebar();
+                (document.activeElement as HTMLElement)?.blur();
+              }}
+            />
+          </Tooltip>
+        )}
       </SidebarButton>
 
       <Flex auto column>

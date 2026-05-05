@@ -2,8 +2,11 @@ import queryString from "query-string";
 import env from "@shared/env";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 
+export const FigmaOAuthNonceCookie = "figmaOAuthNonce";
+
 export type OAuthState = {
   teamId: string;
+  nonce: string;
 };
 
 export class FigmaUtils {
@@ -16,8 +19,12 @@ export class FigmaUtils {
 
   private static settingsUrl = integrationSettingsPath("figma");
 
-  static parseState(state: string): OAuthState {
-    return JSON.parse(state);
+  static parseState(state: string): OAuthState | undefined {
+    try {
+      return JSON.parse(state);
+    } catch {
+      return undefined;
+    }
   }
 
   static successUrl() {

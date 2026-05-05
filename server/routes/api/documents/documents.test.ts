@@ -2351,7 +2351,7 @@ describe("#documents.archived", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await document.delete(user);
+    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
     const res = await server.post("/api/documents.archived", {
       body: {
         token: user.getJwtToken(),
@@ -2405,7 +2405,7 @@ describe("#documents.deleted", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await document.delete(user);
+    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
     const res = await server.post("/api/documents.deleted", {
       body: {
         token: user.getJwtToken(),
@@ -2437,9 +2437,9 @@ describe("#documents.deleted", () => {
       collectionId: null,
     });
     await Promise.all([
-      document.delete(user),
-      draftDocument.delete(user),
-      otherUserDraft.delete(user2),
+      withAPIContext(user, (ctx) => document.destroyWithCtx(ctx)),
+      withAPIContext(user, (ctx) => draftDocument.destroyWithCtx(ctx)),
+      withAPIContext(user2, (ctx) => otherUserDraft.destroyWithCtx(ctx)),
     ]);
     const res = await server.post("/api/documents.deleted", {
       body: {
@@ -2460,7 +2460,7 @@ describe("#documents.deleted", () => {
       userId: admin.id,
       teamId: admin.teamId,
     });
-    await document.delete(admin);
+    await withAPIContext(admin, (ctx) => document.destroyWithCtx(ctx));
     const res = await server.post("/api/documents.deleted", {
       body: {
         token: admin.getJwtToken(),
@@ -2483,7 +2483,7 @@ describe("#documents.deleted", () => {
       teamId: user.teamId,
       collectionId: collection.id,
     });
-    await document.delete(user);
+    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
     const res = await server.post("/api/documents.deleted", {
       body: {
         token: user.getJwtToken(),
@@ -3056,7 +3056,7 @@ describe("#documents.restore", () => {
       collectionId: collection.id,
       teamId: team.id,
     });
-    await document.delete(user);
+    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
     await collection.destroy({ hooks: false });
 
     const res = await server.post("/api/documents.restore", {
@@ -3086,7 +3086,7 @@ describe("#documents.restore", () => {
       collectionId: collection.id,
       teamId: team.id,
     });
-    await document.delete(user);
+    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
     await collection.destroy({ hooks: false });
 
     const res = await server.post("/api/documents.restore", {
@@ -4618,7 +4618,7 @@ describe("#documents.unpublish", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await document.delete(user);
+    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
     const res = await server.post("/api/documents.unpublish", {
       body: {
         token: user.getJwtToken(),

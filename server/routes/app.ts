@@ -341,7 +341,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
     content,
     shortcutIcon:
       publicBranding && team?.avatarUrl
-        ? (await team.publicAvatarUrl()) ?? undefined
+        ? ((await team.publicAvatarUrl()) ?? undefined)
         : undefined,
     analytics,
     isShare: true,

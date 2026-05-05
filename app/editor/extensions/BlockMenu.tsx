@@ -6,10 +6,20 @@ import ReactDOM from "react-dom";
 import type { WidgetProps } from "@shared/editor/lib/Extension";
 import { PlaceholderPlugin } from "@shared/editor/plugins/PlaceholderPlugin";
 import { findParentNode } from "@shared/editor/queries/findParentNode";
+import type { Dictionary } from "~/hooks/useDictionary";
+import type { SuggestionOptions } from "~/editor/extensions/Suggestion";
 import Suggestion from "~/editor/extensions/Suggestion";
 import BlockMenu from "../components/BlockMenu";
 
-export default class BlockMenuExtension extends Suggestion {
+/**
+ * Options for the BlockMenu extension.
+ */
+type BlockMenuOptions = SuggestionOptions & {
+  /** A dictionary of translated strings used in the editor. */
+  dictionary: Dictionary;
+};
+
+export default class BlockMenuExtension extends Suggestion<BlockMenuOptions> {
   get defaultOptions() {
     return {
       trigger: "/",

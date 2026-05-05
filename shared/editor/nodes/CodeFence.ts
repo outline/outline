@@ -145,17 +145,21 @@ function buildCollapseState(
   };
 }
 
-export default class CodeFence extends Node {
+/**
+ * Options for the CodeFence node.
+ */
+type CodeFenceOptions = {
+  /** A dictionary of translated strings used in the editor. */
+  dictionary: Dictionary;
+  /** Display preferences for the logged in user, if any. */
+  userPreferences?: UserPreferences | null;
+};
+
+export default class CodeFence extends Node<CodeFenceOptions> {
   /** Plugin key for the collapse state, shared with the command. */
   private static readonly collapseKey = new PluginKey<CollapseState>(
     "collapse-code-block"
   );
-  constructor(options: {
-    dictionary: Dictionary;
-    userPreferences?: UserPreferences | null;
-  }) {
-    super(options);
-  }
 
   get showLineNumbers(): boolean {
     return this.options.userPreferences?.codeBlockLineNumbers ?? true;

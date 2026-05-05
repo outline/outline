@@ -95,6 +95,10 @@ async function presentDocument(
     delete res.updatedAt;
   }
 
+  if (document.summary) {
+    res.summary = document.summary;
+  }
+
   if (!options.isPublic) {
     const source = document.import ?? (await document.$get("import"));
 

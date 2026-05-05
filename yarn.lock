@@ -812,10 +812,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/compat-data@npm:^7.28.6, @babel/compat-data@npm:^7.29.0":
-  version: 7.29.0
-  resolution: "@babel/compat-data@npm:7.29.0"
-  checksum: 10c0/08f348554989d23aa801bf1405aa34b15e841c0d52d79da7e524285c77a5f9d298e70e11d91cc578d8e2c9542efc586d50c5f5cf8e1915b254a9dcf786913a94
+"@babel/compat-data@npm:^7.28.6, @babel/compat-data@npm:^7.29.3":
+  version: 7.29.3
+  resolution: "@babel/compat-data@npm:7.29.3"
+  checksum: 10c0/81bddd53ce1b1395576fbb7cb739631a976f6b421cd260e6cf2715a9691b9a0ec12ca5c4e1bb88088e60dc87875f6e4ef7fa8674f1dc96ae1bd7c357416605a7
   languageName: node
   linkType: hard
 
@@ -1098,6 +1098,18 @@ __metadata:
   peerDependencies:
     "@babel/core": ^7.0.0
   checksum: 10c0/cf29835498c4a25bd470908528919729a0799b2ec94e89004929a5532c94a5e4b1a49bc5d6673a22e5afe05d08465873e14ee3b28c42eb3db489cdf5ca47c680
+  languageName: node
+  linkType: hard
+
+"@babel/plugin-bugfix-safari-rest-destructuring-rhs-array@npm:^7.29.3":
+  version: 7.29.3
+  resolution: "@babel/plugin-bugfix-safari-rest-destructuring-rhs-array@npm:7.29.3"
+  dependencies:
+    "@babel/helper-plugin-utils": "npm:^7.28.6"
+    "@babel/helper-skip-transparent-expression-wrappers": "npm:^7.27.1"
+  peerDependencies:
+    "@babel/core": ^7.0.0
+  checksum: 10c0/5c60605526e87d1bb200faa6c2fae606764bd675f3338c32924feac55ad98671ccb16f270112310a8667e50e4905d893993c4e2533a9bb53507e8fcc2f6893ad
   languageName: node
   linkType: hard
 
@@ -2050,17 +2062,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/preset-env@npm:^7.11.0, @babel/preset-env@npm:^7.28.6":
-  version: 7.29.2
-  resolution: "@babel/preset-env@npm:7.29.2"
+"@babel/preset-env@npm:^7.11.0, @babel/preset-env@npm:^7.29.3":
+  version: 7.29.3
+  resolution: "@babel/preset-env@npm:7.29.3"
   dependencies:
-    "@babel/compat-data": "npm:^7.29.0"
+    "@babel/compat-data": "npm:^7.29.3"
     "@babel/helper-compilation-targets": "npm:^7.28.6"
     "@babel/helper-plugin-utils": "npm:^7.28.6"
     "@babel/helper-validator-option": "npm:^7.27.1"
     "@babel/plugin-bugfix-firefox-class-in-computed-class-key": "npm:^7.28.5"
     "@babel/plugin-bugfix-safari-class-field-initializer-scope": "npm:^7.27.1"
     "@babel/plugin-bugfix-safari-id-destructuring-collision-in-function-expression": "npm:^7.27.1"
+    "@babel/plugin-bugfix-safari-rest-destructuring-rhs-array": "npm:^7.29.3"
     "@babel/plugin-bugfix-v8-spread-parameters-in-optional-chaining": "npm:^7.27.1"
     "@babel/plugin-bugfix-v8-static-class-fields-redefine-readonly": "npm:^7.28.6"
     "@babel/plugin-proposal-private-property-in-object": "npm:7.21.0-placeholder-for-preset-env.2"
@@ -2126,7 +2139,7 @@ __metadata:
     semver: "npm:^6.3.1"
   peerDependencies:
     "@babel/core": ^7.0.0-0
-  checksum: 10c0/d49cb005f2dbc3f2293ab6d80ee8f1380e6215af5518fe26b087c8961c1ea8ebaa554dfce589abe1fbebac25ad7c2515d943dec3859ea2d4981a3f8f4711c580
+  checksum: 10c0/40591ca097502b547eaf844fceaafbc71aa726a86bec95b66ca4e762b2642a8dfc224eb9204a9d0d952ad62b6b326008f6be4dfc9e274e4438503e4975848372
   languageName: node
   linkType: hard
 
@@ -2249,23 +2262,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@bull-board/api@npm:6.21.2, @bull-board/api@npm:^6.7.10":
-  version: 6.21.2
-  resolution: "@bull-board/api@npm:6.21.2"
+"@bull-board/api@npm:6.21.3, @bull-board/api@npm:^6.21.3":
+  version: 6.21.3
+  resolution: "@bull-board/api@npm:6.21.3"
   dependencies:
     redis-info: "npm:^3.1.0"
   peerDependencies:
-    "@bull-board/ui": 6.21.2
-  checksum: 10c0/cb19790f43d3cc4a578cfecddcfa7ca89507b5c20555664b03ea7a718e73e716ed98caf0904dc9972de7e6edf80ea95d69bcf28b604d80c0b111f3160876d93f
+    "@bull-board/ui": 6.21.3
+  checksum: 10c0/34604a87d4bebbe37be36afa85634bce0c5e79ce7e887b866edc167654da55f965f483312fe5751c7d3022cb632ee6c78f1b6638350029b6cb9d86b63f5b0d40
   languageName: node
   linkType: hard
 
-"@bull-board/koa@npm:^6.13.1":
-  version: 6.21.2
-  resolution: "@bull-board/koa@npm:6.21.2"
+"@bull-board/koa@npm:^6.21.3":
+  version: 6.21.3
+  resolution: "@bull-board/koa@npm:6.21.3"
   dependencies:
-    "@bull-board/api": "npm:6.21.2"
-    "@bull-board/ui": "npm:6.21.2"
+    "@bull-board/api": "npm:6.21.3"
+    "@bull-board/ui": "npm:6.21.3"
     "@koa/bodyparser": "npm:^6.1.0"
     "@koa/router": "npm:^15.4.0"
     "@ladjs/koa-views": "npm:^9.0.0"
@@ -2273,16 +2286,16 @@ __metadata:
     koa: "npm:^3.2.0"
     koa-mount: "npm:^4.2.0"
     koa-static: "npm:^5.0.0"
-  checksum: 10c0/469d5318145ff1f8eb9400f5940b0f73829a5f633bcdce70e34dabb3c745a41812621e4458cb0e93f340c23439b35f709ac2ac40ff4404f4ea93ec570d4eb68c
+  checksum: 10c0/44d21a821e3a39ff9d2580d775a2e5aa6847c7d00567d261ff9a2e1c51ca01ff57821a7365bd7e0b024d12784475d9c893077ac90af3e25819ea151084f3a234
   languageName: node
   linkType: hard
 
-"@bull-board/ui@npm:6.21.2":
-  version: 6.21.2
-  resolution: "@bull-board/ui@npm:6.21.2"
+"@bull-board/ui@npm:6.21.3":
+  version: 6.21.3
+  resolution: "@bull-board/ui@npm:6.21.3"
   dependencies:
-    "@bull-board/api": "npm:6.21.2"
-  checksum: 10c0/9df43a023b16841d06e77c423ab3c0cb56e3f372a30a82721f130f1125169c243b129d03cf7652e0a45598c39dec1810b8b8fcb36ac5660710ce5b5bbeb5cdef
+    "@bull-board/api": "npm:6.21.3"
+  checksum: 10c0/287082716f40e747e8f22150689680a6d4aa1ad97a4c92d793562dad53bb75c47095d51497382e17898d31e59973d683f2e455f50929a0736e19db5a7cdfcb24
   languageName: node
   linkType: hard
 
@@ -2568,9 +2581,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@dotenvx/dotenvx@npm:^1.51.4":
-  version: 1.61.0
-  resolution: "@dotenvx/dotenvx@npm:1.61.0"
+"@dotenvx/dotenvx@npm:^1.64.0":
+  version: 1.64.0
+  resolution: "@dotenvx/dotenvx@npm:1.64.0"
   dependencies:
     commander: "npm:^11.1.0"
     dotenv: "npm:^17.2.1"
@@ -2579,12 +2592,12 @@ __metadata:
     fdir: "npm:^6.2.0"
     ignore: "npm:^5.3.0"
     object-treeify: "npm:1.1.33"
-    picomatch: "npm:^4.0.2"
+    picomatch: "npm:^4.0.4"
     which: "npm:^4.0.0"
     yocto-spinner: "npm:^1.1.0"
   bin:
     dotenvx: src/cli/dotenvx.js
-  checksum: 10c0/1e5089af19f43bcc9774c6fec1c0a575bcf958f6d27f61373e580778d2b96d2110591768eeaba1258fa1b911363aacac40ccf485838024daa8423edcdeb8db91
+  checksum: 10c0/592f1d51d6688fad53684a37e9762d34e74068ad46ab2223453b86de157071590ac1d39cef4a2d83251ec84d9383aaa556b022fb54774a59742c457d2f9875b1
   languageName: node
   linkType: hard
 
@@ -7965,13 +7978,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/markdown-it@npm:14.1.1":
-  version: 14.1.1
-  resolution: "@types/markdown-it@npm:14.1.1"
+"@types/markdown-it@npm:14.1.2":
+  version: 14.1.2
+  resolution: "@types/markdown-it@npm:14.1.2"
   dependencies:
     "@types/linkify-it": "npm:^5"
     "@types/mdurl": "npm:^2"
-  checksum: 10c0/f029e471d6927c78879de8de085302544cd43643e2435775fbe0d49be998d4a23890555b0c090c154925e3a9df01ba48514582671e4f8488d8dcf992e2d155ef
+  checksum: 10c0/34f709f0476bd4e7b2ba7c3341072a6d532f1f4cb6f70aef371e403af8a08a7c372ba6907ac426bc618d356dab660c5b872791ff6c1ead80c483e0d639c6f127
   languageName: node
   linkType: hard
 
@@ -9018,13 +9031,13 @@ __metadata:
   linkType: hard
 
 "axios@npm:^1.12.2":
-  version: 1.15.0
-  resolution: "axios@npm:1.15.0"
+  version: 1.15.2
+  resolution: "axios@npm:1.15.2"
   dependencies:
     follow-redirects: "npm:^1.15.11"
     form-data: "npm:^4.0.5"
     proxy-from-env: "npm:^2.1.0"
-  checksum: 10c0/47e0f860e98d4d7aa145e89ce0cae00e1fb0f1d2485f065c21fce955ddb1dba4103a46bd0e47acd18a27208a7f62c96249e620db575521b92a968619ab133409
+  checksum: 10c0/4eeae0feeaa7fdc1ef24f81f8b378fdadedf4aebdd6bf224484675160f8744cf17b9b0d1c215279979940f7e8ce463beffa2f713099612e428eac238515c81d5
   languageName: node
   linkType: hard
 
@@ -16737,17 +16750,17 @@ __metadata:
     "@babel/core": "npm:^7.28.6"
     "@babel/plugin-proposal-decorators": "npm:^7.28.6"
     "@babel/plugin-transform-class-properties": "npm:^7.27.1"
-    "@babel/preset-env": "npm:^7.28.6"
+    "@babel/preset-env": "npm:^7.29.3"
     "@babel/preset-react": "npm:^7.28.5"
     "@babel/preset-typescript": "npm:^7.28.5"
     "@benrbray/prosemirror-math": "npm:^0.2.2"
-    "@bull-board/api": "npm:^6.7.10"
-    "@bull-board/koa": "npm:^6.13.1"
+    "@bull-board/api": "npm:^6.21.3"
+    "@bull-board/koa": "npm:^6.21.3"
     "@css-inline/css-inline-wasm": "npm:^0.20.2"
     "@dnd-kit/core": "npm:^6.3.1"
     "@dnd-kit/modifiers": "npm:^6.0.1"
     "@dnd-kit/sortable": "npm:^7.0.2"
-    "@dotenvx/dotenvx": "npm:^1.51.4"
+    "@dotenvx/dotenvx": "npm:^1.64.0"
     "@emoji-mart/data": "npm:^1.2.1"
     "@faker-js/faker": "npm:^8.4.1"
     "@fast-csv/parse": "npm:^5.0.5"
@@ -16820,7 +16833,7 @@ __metadata:
     "@types/koa-sslify": "npm:^4.0.6"
     "@types/koa-useragent": "npm:^2.1.2"
     "@types/mailparser": "npm:^3.4.6"
-    "@types/markdown-it": "npm:14.1.1"
+    "@types/markdown-it": "npm:14.1.2"
     "@types/markdown-it-container": "npm:^2.0.11"
     "@types/markdown-it-emoji": "npm:^3.0.1"
     "@types/mime-types": "npm:^3.0.1"
@@ -16960,7 +16973,7 @@ __metadata:
     polished: "npm:^4.3.1"
     postinstall-postinstall: "npm:^2.1.0"
     prettier: "npm:^3.6.2"
-    prosemirror-changeset: "npm:2.3.1"
+    prosemirror-changeset: "npm:2.4.1"
     prosemirror-codemark: "npm:^0.4.2"
     prosemirror-commands: "npm:^1.7.1"
     prosemirror-dropcursor: "npm:^1.8.2"
@@ -18058,12 +18071,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prosemirror-changeset@npm:2.3.1":
-  version: 2.3.1
-  resolution: "prosemirror-changeset@npm:2.3.1"
+"prosemirror-changeset@npm:2.4.1":
+  version: 2.4.1
+  resolution: "prosemirror-changeset@npm:2.4.1"
   dependencies:
     prosemirror-transform: "npm:^1.0.0"
-  checksum: 10c0/efd6578ee4535d72d11c032b49921f14b3f7ccae680eb14c8d9f6cc1fbec00299c598475af0ab432864976bdbb7f94f011193278b2d19eadda83b754fe6d8a35
+  checksum: 10c0/ca6b6bab73809dbb8554cddc0a3af666db8bcfed57938314ce6b04b28e41ea355441eaadabcddd9c785727219ad3779534dfa6e33521f0d333e90788b8dc9e3c
   languageName: node
   linkType: hard
 

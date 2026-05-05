@@ -13,12 +13,34 @@ import { toggleFoldPluginKey } from "../nodes/ToggleBlock";
 
 const pluginKey = new PluginKey("diffs");
 
-export default class Diff extends Extension {
+/**
+ * Options for the Diff extension.
+ */
+type DiffOptions = {
+  /** The set of changes to render as decorations, or null to disable diff rendering. */
+  changes: readonly ExtendedChange[] | null;
+  /** CSS class applied to inline insertions. */
+  insertionClassName: string;
+  /** CSS class applied to inline deletions. */
+  deletionClassName: string;
+  /** CSS class applied to whole-node insertions. */
+  nodeInsertionClassName: string;
+  /** CSS class applied to whole-node deletions. */
+  nodeDeletionClassName: string;
+  /** CSS class applied to inline modifications. */
+  modificationClassName: string;
+  /** CSS class applied to whole-node modifications. */
+  nodeModificationClassName: string;
+  /** CSS class applied to the change currently focused via navigation. */
+  currentChangeClassName: string;
+};
+
+export default class Diff extends Extension<DiffOptions> {
   get name() {
     return "diff";
   }
 
-  get defaultOptions() {
+  get defaultOptions(): DiffOptions {
     return {
       changes: null,
       insertionClassName: EditorStyleHelper.diffInsertion,
@@ -60,7 +82,7 @@ export default class Diff extends Extension {
    * @returns the total count of all inserted, deleted, and modified items.
    */
   public getTotalChangesCount(): number {
-    const { changes } = this.options as { changes: ExtendedChange[] | null };
+    const { changes } = this.options;
     if (!changes) {
       return 0;
     }
