@@ -48,11 +48,11 @@ vi.mock("dd-trace", async () => {
   const mod = await import("../__mocks__/dd-trace");
   return { default: mod.mockTracer, ...mod };
 });
-vi.mock("franc", () => import("../__mocks__/franc.js"));
-vi.mock("iso-639-3", () => import("../__mocks__/iso-639-3.js"));
+vi.mock("franc", () => import("../__mocks__/franc"));
+vi.mock("iso-639-3", () => import("../__mocks__/iso-639-3"));
 vi.mock(
   "request-filtering-agent",
-  () => import("../__mocks__/request-filtering-agent.js")
+  () => import("../__mocks__/request-filtering-agent")
 );
 vi.mock("fetch-with-proxy", () => import("../__mocks__/fetch-with-proxy"));
 vi.mock("node-fetch", async () => {

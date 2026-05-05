@@ -1,5 +1,4 @@
-// Mock for iso-639-3 language code conversion library
-const iso6393To1 = {
+export const iso6393To1: Record<string, string | undefined> = {
   eng: "en",
   fra: "fr",
   deu: "de",
@@ -12,7 +11,5 @@ const iso6393To1 = {
   ara: "ar",
   hin: "hi",
   ben: "bn",
-  und: undefined, // undetermined
+  und: undefined,
 };
-
-module.exports = { iso6393To1 };
