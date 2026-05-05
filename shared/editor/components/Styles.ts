@@ -405,12 +405,12 @@ const diffStyle = (props: Props) => css`
 `;
 
 const findAndReplaceStyle = () => css`
-  ::highlight(search-results) {
+  & ::highlight(search-results) {
     background-color: rgba(255, 213, 0, 0.25);
     color: inherit;
   }
 
-  ::highlight(search-results-current) {
+  & ::highlight(search-results-current) {
     background-color: rgba(255, 213, 0, 0.75);
     color: inherit;
   }
