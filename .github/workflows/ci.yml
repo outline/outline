@@ -82,7 +82,15 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/install
-      - run: yarn test:${{ matrix.test-group }}
+      - name: Restore Jest transform cache
+        uses: actions/cache@v4
+        with:
+          path: /tmp/jest_runner
+          key: jest-${{ matrix.test-group }}-${{ hashFiles('.babelrc', '.jestconfig.json', 'yarn.lock', 'app/**/*.ts', 'app/**/*.tsx', 'shared/**/*.ts', 'shared/**/*.tsx') }}
+          restore-keys: |
+            jest-${{ matrix.test-group }}-${{ hashFiles('.babelrc', '.jestconfig.json', 'yarn.lock') }}-
+            jest-${{ matrix.test-group }}-
+      - run: yarn test:${{ matrix.test-group }} --cacheDirectory=/tmp/jest_runner
 
   test-server:
     needs: changes
@@ -110,9 +118,17 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/install
+      - name: Restore Jest transform cache
+        uses: actions/cache@v4
+        with:
+          path: /tmp/jest_runner
+          key: jest-server-${{ matrix.shard }}-${{ hashFiles('.babelrc', '.jestconfig.json', 'yarn.lock', 'server/**/*.ts', 'shared/**/*.ts', 'plugins/**/*.ts') }}
+          restore-keys: |
+            jest-server-${{ matrix.shard }}-${{ hashFiles('.babelrc', '.jestconfig.json', 'yarn.lock') }}-
+            jest-server-${{ matrix.shard }}-
       - run: yarn sequelize db:migrate
       - name: Run server tests
-        run: yarn test:server --maxWorkers=2 --shard=${{ matrix.shard }}/4
+        run: yarn test:server --maxWorkers=2 --shard=${{ matrix.shard }}/4 --cacheDirectory=/tmp/jest_runner
 
   bundle-size:
     needs: changes
