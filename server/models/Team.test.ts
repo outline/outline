@@ -106,7 +106,8 @@ describe("Team", () => {
     });
 
     it("should return signed URL for private-bucket attachment redirect", async () => {
-      vi.useFakeTimers().setSystemTime(new Date("2026-04-16T00:00:00.000Z"));
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-04-16T00:00:00.000Z"));
       try {
         const team = await buildTeam();
         const attachment = await buildAttachment({

@@ -37,14 +37,16 @@ vi.mock("@aws-sdk/s3-request-presigner", () => ({
   getSignedUrl: vi.fn(),
 }));
 
-// Initialize the database models
-import "@server/storage/database";
+// Initialize the database models. Loaded dynamically so the
+// EventEmitter.defaultMaxListeners assignment above runs first; static imports
+// would be hoisted ahead of it.
+await import("@server/storage/database");
 
 // Eagerly load plugin server entry points so that PluginManager.getHooks()
 // returns the registered plugins. Vitest does not support require() of TS
 // files with bare imports (e.g. `@server/...`), so we use Vite's
 // import.meta.glob to load them through the Vite resolver instead.
-import { PluginManager } from "@server/utils/PluginManager";
+const { PluginManager } = await import("@server/utils/PluginManager");
 const pluginModules = import.meta.glob(
   "../../plugins/*/server/!(*.test|schema).{js,ts}",
   { eager: true }
