@@ -112,7 +112,7 @@ function Notifications(
           width: "100%",
           minHeight: "300px",
           maxHeight:
-            "min(75vh, calc(var(--radix-popover-content-available-height) - 44px))",
+            "min(75vh, calc(var(--radix-popover-content-available-height, 75vh) - 44px))",
         }}
         column
       >
