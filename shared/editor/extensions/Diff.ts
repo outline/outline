@@ -144,20 +144,25 @@ export default class Diff extends Extension<DiffOptions> {
         key: pluginKey,
         state: {
           init: (_, state) => this.createDecorations(state.doc),
-          apply: (tr) => this.createDecorations(tr.doc),
+          apply: (tr, prev) => {
+            if (!tr.docChanged && !tr.getMeta(pluginKey)) {
+              return prev;
+            }
+            return this.createDecorations(tr.doc);
+          },
         },
         props: {
           decorations(state) {
             return this.getState(state);
           },
         },
-        // Allow meta transactions to bypass filtering
+        // Block doc-changing transactions to keep the diff immutable, but
+        // allow selection updates and a few cooperating plugins through.
         filterTransaction: (tr) =>
-          tr.getMeta("codeHighlighting") ||
-          tr.getMeta(pluginKey) ||
-          tr.getMeta(toggleFoldPluginKey)
-            ? true
-            : false,
+          !tr.docChanged ||
+          !!tr.getMeta("codeHighlighting") ||
+          !!tr.getMeta(pluginKey) ||
+          !!tr.getMeta(toggleFoldPluginKey),
       }),
     ];
   }
