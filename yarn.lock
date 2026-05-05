@@ -2349,23 +2349,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@bull-board/api@npm:6.21.2, @bull-board/api@npm:^6.7.10":
-  version: 6.21.2
-  resolution: "@bull-board/api@npm:6.21.2"
+"@bull-board/api@npm:6.21.3, @bull-board/api@npm:^6.21.3":
+  version: 6.21.3
+  resolution: "@bull-board/api@npm:6.21.3"
   dependencies:
     redis-info: "npm:^3.1.0"
   peerDependencies:
-    "@bull-board/ui": 6.21.2
-  checksum: 10c0/cb19790f43d3cc4a578cfecddcfa7ca89507b5c20555664b03ea7a718e73e716ed98caf0904dc9972de7e6edf80ea95d69bcf28b604d80c0b111f3160876d93f
+    "@bull-board/ui": 6.21.3
+  checksum: 10c0/34604a87d4bebbe37be36afa85634bce0c5e79ce7e887b866edc167654da55f965f483312fe5751c7d3022cb632ee6c78f1b6638350029b6cb9d86b63f5b0d40
   languageName: node
   linkType: hard
 
-"@bull-board/koa@npm:^6.13.1":
-  version: 6.21.2
-  resolution: "@bull-board/koa@npm:6.21.2"
+"@bull-board/koa@npm:^6.21.3":
+  version: 6.21.3
+  resolution: "@bull-board/koa@npm:6.21.3"
   dependencies:
-    "@bull-board/api": "npm:6.21.2"
-    "@bull-board/ui": "npm:6.21.2"
+    "@bull-board/api": "npm:6.21.3"
+    "@bull-board/ui": "npm:6.21.3"
     "@koa/bodyparser": "npm:^6.1.0"
     "@koa/router": "npm:^15.4.0"
     "@ladjs/koa-views": "npm:^9.0.0"
@@ -2373,16 +2373,16 @@ __metadata:
     koa: "npm:^3.2.0"
     koa-mount: "npm:^4.2.0"
     koa-static: "npm:^5.0.0"
-  checksum: 10c0/469d5318145ff1f8eb9400f5940b0f73829a5f633bcdce70e34dabb3c745a41812621e4458cb0e93f340c23439b35f709ac2ac40ff4404f4ea93ec570d4eb68c
+  checksum: 10c0/44d21a821e3a39ff9d2580d775a2e5aa6847c7d00567d261ff9a2e1c51ca01ff57821a7365bd7e0b024d12784475d9c893077ac90af3e25819ea151084f3a234
   languageName: node
   linkType: hard
 
-"@bull-board/ui@npm:6.21.2":
-  version: 6.21.2
-  resolution: "@bull-board/ui@npm:6.21.2"
+"@bull-board/ui@npm:6.21.3":
+  version: 6.21.3
+  resolution: "@bull-board/ui@npm:6.21.3"
   dependencies:
-    "@bull-board/api": "npm:6.21.2"
-  checksum: 10c0/9df43a023b16841d06e77c423ab3c0cb56e3f372a30a82721f130f1125169c243b129d03cf7652e0a45598c39dec1810b8b8fcb36ac5660710ce5b5bbeb5cdef
+    "@bull-board/api": "npm:6.21.3"
+  checksum: 10c0/287082716f40e747e8f22150689680a6d4aa1ad97a4c92d793562dad53bb75c47095d51497382e17898d31e59973d683f2e455f50929a0736e19db5a7cdfcb24
   languageName: node
   linkType: hard
 
@@ -16841,8 +16841,8 @@ __metadata:
     "@babel/preset-react": "npm:^7.28.5"
     "@babel/preset-typescript": "npm:^7.28.5"
     "@benrbray/prosemirror-math": "npm:^0.2.2"
-    "@bull-board/api": "npm:^6.7.10"
-    "@bull-board/koa": "npm:^6.13.1"
+    "@bull-board/api": "npm:^6.21.3"
+    "@bull-board/koa": "npm:^6.21.3"
     "@css-inline/css-inline-wasm": "npm:^0.20.2"
     "@dnd-kit/core": "npm:^6.3.1"
     "@dnd-kit/modifiers": "npm:^6.0.1"
