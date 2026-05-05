@@ -2568,9 +2568,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@dotenvx/dotenvx@npm:^1.51.4":
-  version: 1.61.0
-  resolution: "@dotenvx/dotenvx@npm:1.61.0"
+"@dotenvx/dotenvx@npm:^1.64.0":
+  version: 1.64.0
+  resolution: "@dotenvx/dotenvx@npm:1.64.0"
   dependencies:
     commander: "npm:^11.1.0"
     dotenv: "npm:^17.2.1"
@@ -2579,12 +2579,12 @@ __metadata:
     fdir: "npm:^6.2.0"
     ignore: "npm:^5.3.0"
     object-treeify: "npm:1.1.33"
-    picomatch: "npm:^4.0.2"
+    picomatch: "npm:^4.0.4"
     which: "npm:^4.0.0"
     yocto-spinner: "npm:^1.1.0"
   bin:
     dotenvx: src/cli/dotenvx.js
-  checksum: 10c0/1e5089af19f43bcc9774c6fec1c0a575bcf958f6d27f61373e580778d2b96d2110591768eeaba1258fa1b911363aacac40ccf485838024daa8423edcdeb8db91
+  checksum: 10c0/592f1d51d6688fad53684a37e9762d34e74068ad46ab2223453b86de157071590ac1d39cef4a2d83251ec84d9383aaa556b022fb54774a59742c457d2f9875b1
   languageName: node
   linkType: hard
 
@@ -16747,7 +16747,7 @@ __metadata:
     "@dnd-kit/core": "npm:^6.3.1"
     "@dnd-kit/modifiers": "npm:^6.0.1"
     "@dnd-kit/sortable": "npm:^7.0.2"
-    "@dotenvx/dotenvx": "npm:^1.51.4"
+    "@dotenvx/dotenvx": "npm:^1.64.0"
     "@emoji-mart/data": "npm:^1.2.1"
     "@faker-js/faker": "npm:^8.4.1"
     "@fast-csv/parse": "npm:^5.0.5"
