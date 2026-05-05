@@ -18,82 +18,6 @@ env:
   SMTP_USERNAME: localhost
 
 jobs:
-  setup:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - name: Enable Corepack
-        run: corepack enable
-      - name: Use Node.js 24.x
-        uses: actions/setup-node@v5
-        with:
-          node-version: 24.x
-          cache: "yarn"
-      - name: Cache node_modules
-        id: cache-node-modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-modules-24.x-${{ hashFiles('yarn.lock') }}
-      - name: Install dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: yarn install --immutable
-
-  lint:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - name: Enable Corepack
-        run: corepack enable
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 24.x
-          cache: "yarn"
-      - name: Restore node_modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-modules-24.x-${{ hashFiles('yarn.lock') }}
-      - run: yarn lint --quiet
-
-  types:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - name: Enable Corepack
-        run: corepack enable
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 24.x
-          cache: "yarn"
-      - name: Restore node_modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-modules-24.x-${{ hashFiles('yarn.lock') }}
-      - run: yarn tsc
-
-  audit:
-    needs: [setup, changes]
-    if: ${{ needs.changes.outputs.deps == 'true' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - name: Enable Corepack
-        run: corepack enable
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 24.x
-          cache: "yarn"
-      - name: Restore node_modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-modules-24.x-${{ hashFiles('yarn.lock') }}
-      - run: yarn npm audit --severity high --recursive --environment production
-
   changes:
     runs-on: ubuntu-latest
     outputs:
@@ -125,8 +49,31 @@ jobs:
               - 'yarn.lock'
               - '.yarnrc.yml'
 
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/install
+      - run: yarn lint --quiet
+
+  types:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/install
+      - run: yarn tsc
+
+  audit:
+    needs: changes
+    if: ${{ needs.changes.outputs.deps == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/install
+      - run: yarn npm audit --severity high --recursive --environment production
+
   test:
-    needs: [setup, changes]
+    needs: changes
     if: ${{ needs.changes.outputs.app == 'true' || needs.changes.outputs.config == 'true' }}
     runs-on: ubuntu-latest
     strategy:
@@ -134,21 +81,11 @@ jobs:
         test-group: [app, shared]
     steps:
       - uses: actions/checkout@v5
-      - name: Enable Corepack
-        run: corepack enable
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 24.x
-          cache: "yarn"
-      - name: Restore node_modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-modules-24.x-${{ hashFiles('yarn.lock') }}
+      - uses: ./.github/actions/install
       - run: yarn test:${{ matrix.test-group }}
 
   test-server:
-    needs: [setup, changes]
+    needs: changes
     if: ${{ needs.changes.outputs.server == 'true' || needs.changes.outputs.config == 'true' }}
     runs-on: ubuntu-latest
     services:
@@ -172,40 +109,18 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
-      - name: Enable Corepack
-        run: corepack enable
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 24.x
-          cache: "yarn"
-      - name: Restore node_modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-modules-24.x-${{ hashFiles('yarn.lock') }}
+      - uses: ./.github/actions/install
       - run: yarn sequelize db:migrate
       - name: Run server tests
-        run: |
-          TESTFILES=$(find . -name "*.test.ts" -path "*/server/*" | sort | awk "NR % 4 == (${{ matrix.shard }} - 1)")
-          yarn test --maxWorkers=2 $TESTFILES
+        run: yarn test:server --maxWorkers=2 --shard=${{ matrix.shard }}/4
 
   bundle-size:
-    needs: [setup, types, changes]
+    needs: changes
     if: ${{ (needs.changes.outputs.app == 'true' || needs.changes.outputs.config == 'true') && github.repository == 'outline/outline' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Enable Corepack
-        run: corepack enable
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 24.x
-          cache: "yarn"
-      - name: Restore node_modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-modules-24.x-${{ hashFiles('yarn.lock') }}
+      - uses: ./.github/actions/install
       - name: Set environment to production
         run: echo "NODE_ENV=production" >> $GITHUB_ENV
       - run: yarn vite:build
