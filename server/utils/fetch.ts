@@ -53,17 +53,41 @@ export const chromeUserAgent =
  *
  * @param url The target URL to validate.
  * @param options Allow/deny rules to apply.
+ * @param signal Optional abort signal — if it fires (e.g. fetch timeout),
+ * the validation rejects with an AbortError so the configured timeout
+ * applies to slow DNS resolution as well.
  * @throws An error if any resolved address is disallowed.
  */
 const validateTargetURL = async (
   url: URL,
-  options: RequestFilteringAgentOptions
+  options: RequestFilteringAgentOptions,
+  signal?: AbortSignal | null
 ): Promise<void> => {
   const host = url.hostname;
-  const addresses =
+  const lookup =
     net.isIP(host) !== 0
-      ? [{ address: host, family: net.isIP(host) }]
-      : await dns.lookup(host, { all: true });
+      ? Promise.resolve([{ address: host, family: net.isIP(host) }])
+      : dns.lookup(host, { all: true });
+
+  const addresses = signal
+    ? await Promise.race([
+        lookup,
+        new Promise<never>((_, reject) => {
+          if (signal.aborted) {
+            reject(Object.assign(new Error("aborted"), { name: "AbortError" }));
+            return;
+          }
+          signal.addEventListener(
+            "abort",
+            () =>
+              reject(
+                Object.assign(new Error("aborted"), { name: "AbortError" })
+              ),
+            { once: true }
+          );
+        }),
+      ])
+    : await lookup;
 
   for (const { address, family } of addresses) {
     const err = validateIPAddress({ address, family, host }, options);
@@ -119,10 +143,14 @@ export default async function fetch(
     // that gap would require the proxy itself to enforce egress rules.
     const parsedURL = new URL(url);
     if (getProxyForUrl(parsedURL.href)) {
-      await validateTargetURL(parsedURL, {
-        allowPrivateIPAddress,
-        allowIPAddressList: env.ALLOWED_PRIVATE_IP_ADDRESSES,
-      });
+      await validateTargetURL(
+        parsedURL,
+        {
+          allowPrivateIPAddress,
+          allowIPAddressList: env.ALLOWED_PRIVATE_IP_ADDRESSES ?? [],
+        },
+        signal
+      );
     }
 
     const response = await nodeFetch(url, {
@@ -242,7 +270,7 @@ function buildAgent(
   const filteringOptions = {
     ...agentOptions,
     allowPrivateIPAddress: options.allowPrivateIPAddress,
-    allowIPAddressList: env.ALLOWED_PRIVATE_IP_ADDRESSES,
+    allowIPAddressList: env.ALLOWED_PRIVATE_IP_ADDRESSES ?? [],
   };
 
   if (proxyURL) {
