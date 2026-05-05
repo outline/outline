@@ -8,12 +8,3 @@ exports[`#events.list > should require authentication 1`] = `
   "status": 401,
 }
 `;
-
-exports[`#events.list should require authentication 1`] = `
-{
-  "error": "authentication_required",
-  "message": "Authentication required",
-  "ok": false,
-  "status": 401,
-}
-`;

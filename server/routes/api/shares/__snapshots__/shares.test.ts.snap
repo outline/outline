@@ -9,25 +9,7 @@ exports[`#shares.create > should require authentication 1`] = `
 }
 `;
 
-exports[`#shares.create should require authentication 1`] = `
-{
-  "error": "authentication_required",
-  "message": "Authentication required",
-  "ok": false,
-  "status": 401,
-}
-`;
-
 exports[`#shares.list > should require authentication 1`] = `
-{
-  "error": "authentication_required",
-  "message": "Authentication required",
-  "ok": false,
-  "status": 401,
-}
-`;
-
-exports[`#shares.list should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",
@@ -45,25 +27,7 @@ exports[`#shares.revoke > should require authentication 1`] = `
 }
 `;
 
-exports[`#shares.revoke should require authentication 1`] = `
-{
-  "error": "authentication_required",
-  "message": "Authentication required",
-  "ok": false,
-  "status": 401,
-}
-`;
-
 exports[`#shares.update > should require authentication 1`] = `
-{
-  "error": "authentication_required",
-  "message": "Authentication required",
-  "ok": false,
-  "status": 401,
-}
-`;
-
-exports[`#shares.update should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",

@@ -9,25 +9,7 @@ exports[`oauthClients.create > should require authentication 1`] = `
 }
 `;
 
-exports[`oauthClients.create should require authentication 1`] = `
-{
-  "error": "authentication_required",
-  "message": "Authentication required",
-  "ok": false,
-  "status": 401,
-}
-`;
-
 exports[`oauthClients.delete > should require authentication 1`] = `
-{
-  "error": "authentication_required",
-  "message": "Authentication required",
-  "ok": false,
-  "status": 401,
-}
-`;
-
-exports[`oauthClients.delete should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",
@@ -45,25 +27,7 @@ exports[`oauthClients.info > should require authentication 1`] = `
 }
 `;
 
-exports[`oauthClients.info should require authentication 1`] = `
-{
-  "error": "authentication_required",
-  "message": "Authentication required",
-  "ok": false,
-  "status": 401,
-}
-`;
-
 exports[`oauthClients.list > should require authentication 1`] = `
-{
-  "error": "authentication_required",
-  "message": "Authentication required",
-  "ok": false,
-  "status": 401,
-}
-`;
-
-exports[`oauthClients.list should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",
@@ -81,25 +45,7 @@ exports[`oauthClients.rotate_secret > should require authentication 1`] = `
 }
 `;
 
-exports[`oauthClients.rotate_secret should require authentication 1`] = `
-{
-  "error": "authentication_required",
-  "message": "Authentication required",
-  "ok": false,
-  "status": 401,
-}
-`;
-
 exports[`oauthclients.update > should require authentication 1`] = `
-{
-  "error": "authentication_required",
-  "message": "Authentication required",
-  "ok": false,
-  "status": 401,
-}
-`;
-
-exports[`oauthclients.update should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",
