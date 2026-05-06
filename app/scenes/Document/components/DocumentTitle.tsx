@@ -297,7 +297,7 @@ const StyledIconPicker = styled(IconPicker)`
 const Title = styled(ContentEditable)<TitleProps>`
   position: relative;
   line-height: ${lineHeight};
-  margin-top: ${(props: TitleProps) => (props.$containsIcon ? "10vh" : "3vh")};
+  margin-top: 8vh;
   margin-bottom: 0.5em;
   font-size: ${fontSize};
   font-weight: 600;
