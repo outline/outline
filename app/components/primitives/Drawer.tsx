@@ -35,10 +35,14 @@ const DrawerContent = React.forwardRef<
       </DrawerPrimitive.Overlay>
       <DrawerPrimitive.Content ref={ref} asChild>
         <StyledContent
-          animate={{
-            height: bounds.height,
-            transition: { bounce: 0, duration: 0.2 },
-          }}
+          animate={
+            bounds.height
+              ? {
+                  height: bounds.height,
+                  transition: { bounce: 0, duration: 0.2 },
+                }
+              : undefined
+          }
         >
           <StyledInnerContent column ref={measureRef} {...rest}>
             {children}
