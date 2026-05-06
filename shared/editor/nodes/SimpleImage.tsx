@@ -184,7 +184,6 @@ export default class SimpleImage extends Node {
             onFileUploadStart,
             onFileUploadStop,
             onFileUploadProgress,
-            dictionary: this.options.dictionary,
             replaceExisting: true,
             attrs: {
               width: node.attrs.width,

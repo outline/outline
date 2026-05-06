@@ -1,3 +1,4 @@
+import { t } from "i18next";
 import { chainCommands, newlineInCode } from "prosemirror-commands";
 import { wrappingInputRule } from "prosemirror-inputrules";
 import type { ParseSpec } from "prosemirror-markdown";
@@ -12,7 +13,6 @@ import { Plugin, PluginKey, TextSelection } from "prosemirror-state";
 import { findWrapping } from "prosemirror-transform";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { v4 } from "uuid";
-import type { Dictionary } from "~/hooks/useDictionary";
 import Storage from "../../utils/Storage";
 import {
   deleteSelectionPreservingBody,
@@ -65,15 +65,7 @@ export const toggleEventPluginKey = new PluginKey("toggleBlockEvent");
 /** Build the localStorage key used to persist a toggle block's fold state. */
 export const toggleStorageKey = (id: string) => `toggle:${id}`;
 
-/**
- * Options for the ToggleBlock node.
- */
-type ToggleBlockOptions = {
-  /** A dictionary of translated strings used in the editor. */
-  dictionary?: Dictionary;
-};
-
-export default class ToggleBlock extends Node<ToggleBlockOptions> {
+export default class ToggleBlock extends Node {
   get name() {
     return "container_toggle";
   }
@@ -349,7 +341,7 @@ export default class ToggleBlock extends Node<ToggleBlockOptions> {
             parent.type.name === "container_toggle" &&
             $start.index($start.depth - 1) === 0 &&
             node.textContent === "",
-          text: this.options.dictionary?.emptyToggleBlockHead ?? "",
+          text: `${t("Add title")}…`,
         },
         {
           condition: ({ parent, $start, state }) =>
@@ -359,7 +351,7 @@ export default class ToggleBlock extends Node<ToggleBlockOptions> {
             ToggleBlock.isBodyEmpty(parent) &&
             (state.selection.$from.pos < $start.pos ||
               state.selection.$from.pos > $start.end($start.depth - 1)),
-          text: this.options.dictionary?.emptyToggleBlockBody ?? "",
+          text: `${t("Add content")}…`,
         },
         {
           condition: ({ node, parent, $start, state }) =>
@@ -368,7 +360,7 @@ export default class ToggleBlock extends Node<ToggleBlockOptions> {
             node.isTextblock &&
             node.textContent === "" &&
             (state.selection as TextSelection).$cursor?.pos === $start.pos,
-          text: this.options.dictionary?.newLineEmpty ?? "",
+          text: `${t("Type '/' to insert")}…`,
         },
       ]),
     ];

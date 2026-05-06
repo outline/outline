@@ -1,3 +1,4 @@
+import { t } from "i18next";
 import type { Token } from "markdown-it";
 import { InputRule } from "prosemirror-inputrules";
 import type { MarkdownSerializerState } from "prosemirror-markdown";
@@ -12,7 +13,6 @@ import type { Command, EditorState } from "prosemirror-state";
 import { Plugin, TextSelection } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
 import { toast } from "sonner";
-import type { Dictionary } from "~/hooks/useDictionary";
 import { isUrl, sanitizeUrl } from "../../utils/urls";
 import { getMarkRange } from "../queries/getMarkRange";
 import Mark from "./Mark";
@@ -58,8 +58,6 @@ function isPlainURL(
  * Options for the Link mark.
  */
 type LinkOptions = {
-  /** A dictionary of translated strings used in the editor. */
-  dictionary: Dictionary;
   /** Callback invoked when the user clicks any link in the document. */
   onClickLink?: (
     href: string,
@@ -128,7 +126,7 @@ export default class Link extends Mark<LinkOptions> {
 
   keys(): Record<string, Command> {
     return {
-      "Mod-Enter": openLink(this.options.onClickLink, this.options.dictionary),
+      "Mod-Enter": openLink(this.options.onClickLink),
     };
   }
 
@@ -137,8 +135,7 @@ export default class Link extends Mark<LinkOptions> {
       link: (attrs: Attrs) => toggleLink(attrs),
       addLink,
       updateLink,
-      openLink: (): Command =>
-        openLink(this.options.onClickLink, this.options.dictionary),
+      openLink: (): Command => openLink(this.options.onClickLink),
       removeLink,
     };
   }
@@ -229,7 +226,7 @@ export default class Link extends Mark<LinkOptions> {
                   this.options.onClickLink(sanitized, event);
                 }
               } catch (_err) {
-                toast.error(this.options.dictionary.openLinkError);
+                toast.error(t("Sorry, that type of link is not supported"));
               }
 
               return true;

@@ -1,4 +1,5 @@
 import copy from "copy-to-clipboard";
+import { t } from "i18next";
 import type { Token } from "markdown-it";
 import { textblockTypeInputRule } from "prosemirror-inputrules";
 import type {
@@ -17,7 +18,6 @@ import {
 import { Decoration, DecorationSet, type EditorView } from "prosemirror-view";
 import { toast } from "sonner";
 import type { Primitive } from "utility-types";
-import type { Dictionary } from "~/hooks/useDictionary";
 import type { UserPreferences } from "../../types";
 import { isBrowser, isMac } from "../../utils/browser";
 import backspaceToParagraph from "../commands/backspaceToParagraph";
@@ -149,8 +149,6 @@ function buildCollapseState(
  * Options for the CodeFence node.
  */
 type CodeFenceOptions = {
-  /** A dictionary of translated strings used in the editor. */
-  dictionary: Dictionary;
   /** Display preferences for the logged in user, if any. */
   userPreferences?: UserPreferences | null;
 };
@@ -317,7 +315,7 @@ export default class CodeFence extends Node<CodeFenceOptions> {
 
         if (codeBlock) {
           copy(codeBlock.node.textContent);
-          toast.message(this.options.dictionary.codeCopied);
+          toast.message(t("Copied to clipboard"));
           return true;
         }
 
@@ -338,7 +336,7 @@ export default class CodeFence extends Node<CodeFenceOptions> {
           dispatch?.(tr);
 
           copy(tr.doc.textBetween(state.selection.from, state.selection.to));
-          toast.message(this.options.dictionary.codeCopied);
+          toast.message(t("Copied to clipboard"));
           return true;
         }
 
@@ -380,19 +378,11 @@ export default class CodeFence extends Node<CodeFenceOptions> {
   /** Plugins for collapsible code block behavior. */
   private collapsePlugins(): Plugin[] {
     const collapseKey = CodeFence.collapseKey;
-    const options = this.options;
     const build = (
       doc: ProsemirrorNode,
       tall: Set<number>,
       collapsed: Set<number>
-    ) =>
-      buildCollapseState(
-        doc,
-        tall,
-        collapsed,
-        options.dictionary?.expandCode ?? "",
-        options.dictionary?.collapseCode ?? ""
-      );
+    ) => buildCollapseState(doc, tall, collapsed, t("Expand"), t("Collapse"));
 
     return [
       // Main collapse plugin: manages state and decorations
