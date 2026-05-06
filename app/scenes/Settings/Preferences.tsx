@@ -21,6 +21,7 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
+import Desktop from "~/utils/Desktop";
 import UserDelete from "../UserDelete";
 import SettingRow from "./components/SettingRow";
 
@@ -97,6 +98,33 @@ function Preferences() {
       toast.success(t("Preferences saved"));
     },
     [user, t]
+  );
+
+  const supportsAutoLaunch =
+    Desktop.isElectron() &&
+    !!Desktop.bridge?.getAutoLaunch &&
+    !!Desktop.bridge?.setAutoLaunch;
+  const [autoLaunch, setAutoLaunchState] = React.useState(false);
+
+  React.useEffect(() => {
+    const getAutoLaunch = Desktop.bridge?.getAutoLaunch;
+    if (!getAutoLaunch) {
+      return;
+    }
+    void getAutoLaunch().then(setAutoLaunchState);
+  }, [supportsAutoLaunch]);
+
+  const handleAutoLaunchChange = React.useCallback(
+    async (checked: boolean) => {
+      const setAutoLaunch = Desktop.bridge?.setAutoLaunch;
+      if (!setAutoLaunch) {
+        return;
+      }
+      const result = await setAutoLaunch(checked);
+      setAutoLaunchState(result);
+      toast.success(t("Preferences saved"));
+    },
+    [t]
   );
 
   const notificationBadgeOptions: Option[] = React.useMemo(
@@ -280,6 +308,22 @@ function Preferences() {
           onChange={handleEnableSmartTextChange}
         />
       </SettingRow>
+      {supportsAutoLaunch && (
+        <SettingRow
+          name="autoLaunch"
+          label={t("Open on startup")}
+          description={t(
+            "Automatically launch Outline when you sign in to your computer."
+          )}
+        >
+          <Switch
+            id="autoLaunch"
+            name="autoLaunch"
+            checked={autoLaunch}
+            onChange={handleAutoLaunchChange}
+          />
+        </SettingRow>
+      )}
       <SettingRow
         border={false}
         name={UserPreference.NotificationBadge}
