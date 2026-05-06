@@ -63,7 +63,7 @@ const GridTemplate = (
   const buttonSize = isMobile ? BUTTON_SIZE_MOBILE : BUTTON_SIZE_DESKTOP;
   const iconSize = isMobile ? ICON_SIZE_MOBILE : ICON_SIZE_DESKTOP;
   // 24px padding for the Grid Container
-  const itemsPerRow = Math.floor((width - 24) / buttonSize);
+  const itemsPerRow = Math.max(1, Math.floor((width - 24) / buttonSize));
 
   const gridItems = compact(
     data.flatMap((node) => {
@@ -93,7 +93,11 @@ const GridTemplate = (
               onClick={() => onIconSelect({ id: item.name, value: item.name })}
               style={{ "--delay": `${item.delay}ms` } as React.CSSProperties}
             >
-              <Icon as={IconLibrary.getComponent(item.name)} color={item.color}>
+              <Icon
+                as={IconLibrary.getComponent(item.name)}
+                color={item.color}
+                size={iconSize}
+              >
                 {item.initial}
               </Icon>
             </IconButton>
