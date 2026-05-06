@@ -25,7 +25,7 @@ describe("CleanupDemotedUserTask", () => {
     expect(await ApiKey.findByPk(apiKey.id)).toBeNull();
   });
 
-  it("should delete api keys for viewer", async () => {
+  it("should retain api keys for viewer", async () => {
     const user = await buildViewer();
     const apiKey = await buildApiKey({
       userId: user.id,
@@ -33,7 +33,7 @@ describe("CleanupDemotedUserTask", () => {
 
     const task = new CleanupDemotedUserTask();
     await task.perform({ userId: user.id });
-    expect(await ApiKey.findByPk(apiKey.id)).toBeNull();
+    expect(await ApiKey.findByPk(apiKey.id)).not.toBeNull();
   });
 
   it("should retain api keys for member", async () => {
