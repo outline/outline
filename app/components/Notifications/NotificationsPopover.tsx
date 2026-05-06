@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Drawer,
@@ -14,9 +14,7 @@ import {
 } from "~/components/primitives/Popover";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
-import lazyWithRetry from "~/utils/lazyWithRetry";
-
-const Notifications = lazyWithRetry(() => import("./Notifications"));
+import Notifications from "./Notifications";
 
 type Props = {
   children?: React.ReactNode;
@@ -28,8 +26,7 @@ const NotificationsPopover: React.FC = ({ children }: Props) => {
   const [open, setOpen] = useState(false);
   const isMobile = useMobile();
   const scrollableRef = useRef<HTMLDivElement>(null);
-  const drawerContentRef =
-    useRef<React.ElementRef<typeof DrawerContent>>(null);
+  const drawerContentRef = useRef<React.ElementRef<typeof DrawerContent>>(null);
 
   useEffect(() => {
     void notifications.fetchPage({ archived: false });
@@ -63,9 +60,7 @@ const NotificationsPopover: React.FC = ({ children }: Props) => {
   }, []);
 
   const notificationsList = (
-    <Suspense fallback={null}>
-      <Notifications onRequestClose={handleRequestClose} ref={scrollableRef} />
-    </Suspense>
+    <Notifications onRequestClose={handleRequestClose} ref={scrollableRef} />
   );
 
   if (isMobile) {
