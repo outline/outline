@@ -1,6 +1,6 @@
 import path from "node:path";
 import type JSZip from "jszip";
-import escapeRegExp from "lodash/escapeRegExp";
+import { escapeRegExp } from "es-toolkit/compat";
 import type { NavigationNode } from "@shared/types";
 import { FileOperationFormat } from "@shared/types";
 import Logger from "@server/logging/Logger";

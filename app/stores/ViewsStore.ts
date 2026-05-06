@@ -1,7 +1,4 @@
-import filter from "lodash/filter";
-import find from "lodash/find";
-import orderBy from "lodash/orderBy";
-import reduce from "lodash/reduce";
+import { filter, find, orderBy, reduce } from "es-toolkit/compat";
 import View from "~/models/View";
 import type RootStore from "./RootStore";
 import Store, { RPCAction } from "./base/Store";

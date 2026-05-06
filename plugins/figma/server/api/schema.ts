@@ -1,5 +1,5 @@
 import { BaseSchema } from "@server/routes/api/schema";
-import isEmpty from "lodash/isEmpty";
+import { isEmpty } from "es-toolkit/compat";
 import { z } from "zod";
 
 export const FigmaCallbackSchema = BaseSchema.extend({

@@ -1,4 +1,4 @@
-import groupBy from "lodash/groupBy";
+import { groupBy } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { BackIcon, SidebarIcon } from "outline-icons";
 import { useCallback } from "react";

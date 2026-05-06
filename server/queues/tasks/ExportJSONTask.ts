@@ -1,5 +1,5 @@
 import JSZip from "jszip";
-import omit from "lodash/omit";
+import { omit } from "es-toolkit/compat";
 import type { NavigationNode } from "@shared/types";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";

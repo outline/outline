@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import isUndefined from "lodash/isUndefined";
+import { isUndefined } from "es-toolkit/compat";
 import type { Environment } from "@server/env";
 
 const key = Symbol("env:public");

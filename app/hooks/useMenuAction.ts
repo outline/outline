@@ -1,4 +1,4 @@
-import isEqual from "lodash/isEqual";
+import { isEqual } from "es-toolkit/compat";
 import { useRef } from "react";
 import { createRootMenuAction } from "~/actions";
 import type {

@@ -1,4 +1,4 @@
-import isObject from "lodash/isPlainObject";
+import { isObject } from "es-toolkit/compat";
 import type { Model } from "sequelize-typescript";
 import { AuthorizationError } from "@server/errors";
 

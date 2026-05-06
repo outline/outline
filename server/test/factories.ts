@@ -1,6 +1,5 @@
 import { faker } from "@faker-js/faker";
-import isNil from "lodash/isNil";
-import isNull from "lodash/isNull";
+import { isNil, isNull } from "es-toolkit/compat";
 import { Node } from "prosemirror-model";
 import type { InferCreationAttributes } from "sequelize";
 import type { DeepPartial } from "utility-types";

@@ -1,4 +1,4 @@
-import compact from "lodash/compact";
+import { compact } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { DocumentIcon } from "outline-icons";
 import React, { useCallback } from "react";

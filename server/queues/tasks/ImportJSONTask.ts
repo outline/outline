@@ -1,6 +1,6 @@
 import path from "node:path";
 import fs from "fs-extra";
-import find from "lodash/find";
+import { find } from "es-toolkit/compat";
 import mime from "mime-types";
 import { Fragment, Node } from "prosemirror-model";
 import { randomUUID } from "node:crypto";

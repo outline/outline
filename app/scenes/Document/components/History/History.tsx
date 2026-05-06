@@ -1,5 +1,5 @@
 import isEqual from "fast-deep-equal";
-import orderBy from "lodash/orderBy";
+import { orderBy } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";

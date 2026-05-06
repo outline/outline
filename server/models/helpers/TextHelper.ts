@@ -1,5 +1,4 @@
-import chunk from "lodash/chunk";
-import escapeRegExp from "lodash/escapeRegExp";
+import { chunk, escapeRegExp } from "es-toolkit/compat";
 import { AttachmentPreset } from "@shared/types";
 import { isInternalUrl } from "@shared/utils/urls";
 import attachmentCreator from "@server/commands/attachmentCreator";

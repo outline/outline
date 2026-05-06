@@ -1,7 +1,5 @@
 import type { JobOptions } from "bull";
-import chunk from "lodash/chunk";
-import truncate from "lodash/truncate";
-import uniqBy from "lodash/uniqBy";
+import { chunk, truncate, uniqBy } from "es-toolkit/compat";
 import { Fragment, Node } from "prosemirror-model";
 import type { WhereOptions } from "sequelize";
 import { Transaction } from "sequelize";

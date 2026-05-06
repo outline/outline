@@ -1,7 +1,6 @@
 import path from "node:path";
 import fs from "fs-extra";
-import chunk from "lodash/chunk";
-import truncate from "lodash/truncate";
+import { chunk, truncate } from "es-toolkit/compat";
 import type { InferCreationAttributes } from "sequelize";
 import tmp from "tmp";
 import type { CollectionSort, ProsemirrorData } from "@shared/types";

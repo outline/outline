@@ -1,4 +1,4 @@
-import deburr from "lodash/deburr";
+import { deburr } from "es-toolkit/compat";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";

@@ -1,4 +1,4 @@
-import isArrayLike from "lodash/isArrayLike";
+import { isArrayLike } from "es-toolkit/compat";
 import sanitize from "sanitize-filename";
 import type { Primitive } from "utility-types";
 import validator from "validator";

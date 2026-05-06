@@ -35,7 +35,7 @@ import { decodeURIComponentSafe } from "~/utils/urls";
 import MultiplayerEditor from "./AsyncMultiplayerEditor";
 import DocumentMeta from "./DocumentMeta";
 import DocumentTitle from "./DocumentTitle";
-import first from "lodash/first";
+import { first } from "es-toolkit/compat";
 import { getLangFor } from "~/utils/language";
 import useShare from "@shared/hooks/useShare";
 

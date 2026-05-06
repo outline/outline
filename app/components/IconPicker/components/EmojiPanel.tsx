@@ -1,4 +1,4 @@
-import concat from "lodash/concat";
+import { concat } from "es-toolkit/compat";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";

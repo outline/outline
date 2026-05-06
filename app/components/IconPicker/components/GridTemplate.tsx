@@ -1,5 +1,4 @@
-import chunk from "lodash/chunk";
-import compact from "lodash/compact";
+import { chunk, compact } from "es-toolkit/compat";
 import * as React from "react";
 import styled from "styled-components";
 import { IconType } from "@shared/types";

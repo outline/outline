@@ -1,6 +1,6 @@
 /* oxlint-disable @typescript-eslint/no-misused-promises */
 import Queue from "bull";
-import snakeCase from "lodash/snakeCase";
+import { snakeCase } from "es-toolkit/compat";
 import { Second } from "@shared/utils/time";
 import env from "@server/env";
 import Metrics from "@server/logging/Metrics";

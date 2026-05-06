@@ -12,7 +12,7 @@ import { useAgent as useFilteringAgent } from "request-filtering-agent";
 import env from "@server/env";
 import { InternalError } from "@server/errors";
 import Logger from "@server/logging/Logger";
-import { capitalize } from "lodash";
+import { capitalize } from "es-toolkit/compat";
 
 interface UrlWithTunnel extends URL {
   tunnelMethod?: string;

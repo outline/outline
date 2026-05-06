@@ -1,4 +1,4 @@
-import size from "lodash/size";
+import { size } from "es-toolkit/compat";
 import { Node } from "prosemirror-model";
 import { addAttributeOptions } from "sequelize-typescript";
 import type { ProsemirrorData } from "@shared/types";

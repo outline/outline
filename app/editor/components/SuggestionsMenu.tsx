@@ -1,7 +1,6 @@
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import commandScore from "command-score";
-import capitalize from "lodash/capitalize";
-import orderBy from "lodash/orderBy";
+import { capitalize, orderBy } from "es-toolkit/compat";
 import { TextSelection } from "prosemirror-state";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";

@@ -1,5 +1,4 @@
-import deburr from "lodash/deburr";
-import escapeRegExp from "lodash/escapeRegExp";
+import { deburr, escapeRegExp } from "es-toolkit/compat";
 import { observable } from "mobx";
 import type { Node } from "prosemirror-model";
 import type { Command } from "prosemirror-state";

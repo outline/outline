@@ -32,7 +32,7 @@ import type {
   SyncedBlockBlockObjectResponse,
   LinkToPageBlockObjectResponse,
 } from "@notionhq/client/build/src/api-endpoints";
-import isArray from "lodash/isArray";
+import { isArray } from "es-toolkit/compat";
 import { NoticeTypes } from "@shared/editor/nodes/Notice";
 import type { ProsemirrorData, ProsemirrorDoc } from "@shared/types";
 import { MentionType } from "@shared/types";

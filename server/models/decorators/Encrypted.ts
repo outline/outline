@@ -1,5 +1,4 @@
-import isEmpty from "lodash/isEmpty";
-import isNil from "lodash/isNil";
+import { isEmpty, isNil } from "es-toolkit/compat";
 import { getAttributes } from "sequelize-typescript";
 import Logger from "@server/logging/Logger";
 import vaults from "@server/storage/vaults";

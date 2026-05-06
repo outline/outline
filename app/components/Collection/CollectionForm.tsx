@@ -1,4 +1,4 @@
-import uniq from "lodash/uniq";
+import { uniq } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { useMemo, useEffect, useCallback, Suspense } from "react";
 import { Controller, useForm } from "react-hook-form";

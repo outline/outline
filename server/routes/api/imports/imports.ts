@@ -1,5 +1,5 @@
 import Router from "koa-router";
-import truncate from "lodash/truncate";
+import { truncate } from "es-toolkit/compat";
 import type { WhereOptions } from "sequelize";
 import type { IntegrationType } from "@shared/types";
 import { ImportState, UserRole } from "@shared/types";

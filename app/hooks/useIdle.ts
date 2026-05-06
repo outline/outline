@@ -1,4 +1,4 @@
-import throttle from "lodash/throttle";
+import { throttle } from "es-toolkit/compat";
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Minute } from "@shared/utils/time";
 import useIsMounted from "./useIsMounted";

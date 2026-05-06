@@ -1,10 +1,6 @@
 /* oxlint-disable lines-between-class-members */
 import fractionalIndex from "fractional-index";
-import find from "lodash/find";
-import findIndex from "lodash/findIndex";
-import isNil from "lodash/isNil";
-import remove from "lodash/remove";
-import uniq from "lodash/uniq";
+import { find, findIndex, isNil, remove, uniq } from "es-toolkit/compat";
 import type {
   Identifier,
   Transaction,

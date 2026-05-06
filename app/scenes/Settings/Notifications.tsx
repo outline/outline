@@ -1,4 +1,4 @@
-import debounce from "lodash/debounce";
+import { debounce } from "es-toolkit/compat";
 import { runInAction } from "mobx";
 import { observer } from "mobx-react";
 import {
