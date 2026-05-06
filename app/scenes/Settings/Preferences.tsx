@@ -24,6 +24,7 @@ import useStores from "~/hooks/useStores";
 import Desktop from "~/utils/Desktop";
 import UserDelete from "../UserDelete";
 import SettingRow from "./components/SettingRow";
+import env from "~/env";
 
 function Preferences() {
   const { t } = useTranslation();
@@ -313,7 +314,8 @@ function Preferences() {
           name="autoLaunch"
           label={t("Open on startup")}
           description={t(
-            "Automatically launch Outline when you sign in to your computer."
+            "Automatically launch {{ appName }} when you sign in to your computer.",
+            { appName: env.APP_NAME }
           )}
         >
           <Switch
