@@ -33,7 +33,7 @@ describe("CleanupDemotedUserTask", () => {
 
     const task = new CleanupDemotedUserTask();
     await task.perform({ userId: user.id });
-    expect(await ApiKey.findByPk(apiKey.id)).toBeTruthy();
+    expect(await ApiKey.findByPk(apiKey.id)).not.toBeNull();
   });
 
   it("should retain api keys for member", async () => {

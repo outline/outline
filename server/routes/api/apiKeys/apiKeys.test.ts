@@ -225,6 +225,22 @@ describe("#apiKeys.list", () => {
     expect(body.data.length).toEqual(0);
   });
 
+  it("should allow viewers to list their own api keys", async () => {
+    const viewer = await buildViewer();
+    await buildApiKey({ userId: viewer.id });
+
+    const res = await server.post("/api/apiKeys.list", {
+      body: {
+        token: viewer.getJwtToken(),
+        userId: viewer.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+  });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/apiKeys.list");
     expect(res.status).toEqual(401);
@@ -278,6 +294,20 @@ describe("#apiKeys.delete", () => {
     const res = await server.post("/api/apiKeys.delete", {
       body: {
         token: admin.getJwtToken(),
+        id: apiKey.id,
+      },
+    });
+
+    expect(res.status).toEqual(200);
+  });
+
+  it("should allow viewers to delete their own api key", async () => {
+    const viewer = await buildViewer();
+    const apiKey = await buildApiKey({ userId: viewer.id });
+
+    const res = await server.post("/api/apiKeys.delete", {
+      body: {
+        token: viewer.getJwtToken(),
         id: apiKey.id,
       },
     });
