@@ -1,4 +1,10 @@
-import { buildAdmin, buildApiKey, buildUser } from "@server/test/factories";
+import {
+  buildAdmin,
+  buildApiKey,
+  buildGuestUser,
+  buildUser,
+  buildViewer,
+} from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 
 const server = getTestServer();
@@ -71,6 +77,34 @@ describe("#apiKeys.create", () => {
       "read",
       "write",
     ]);
+  });
+
+  it("should allow viewers to create an api key", async () => {
+    const viewer = await buildViewer();
+
+    const res = await server.post("/api/apiKeys.create", {
+      body: {
+        token: viewer.getJwtToken(),
+        name: "My API Key",
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.name).toEqual("My API Key");
+  });
+
+  it("should not allow guests to create an api key", async () => {
+    const guest = await buildGuestUser();
+
+    const res = await server.post("/api/apiKeys.create", {
+      body: {
+        token: guest.getJwtToken(),
+        name: "My API Key",
+      },
+    });
+
+    expect(res.status).toEqual(403);
   });
 
   it("should require authentication", async () => {

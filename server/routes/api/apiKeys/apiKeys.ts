@@ -1,6 +1,6 @@
 import Router from "koa-router";
 import { Op, Sequelize, type WhereOptions } from "sequelize";
-import { Scope, UserRole } from "@shared/types";
+import { Scope } from "@shared/types";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -22,7 +22,6 @@ router.post(
   "apiKeys.create",
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth({
-    role: UserRole.Member,
     type: AuthenticationType.APP,
   }),
   validate(T.APIKeysCreateSchema),
@@ -54,7 +53,7 @@ router.post(
 
 router.post(
   "apiKeys.list",
-  auth({ role: UserRole.Member }),
+  auth(),
   pagination(),
   validate(T.APIKeysListSchema),
   async (ctx: APIContext<T.APIKeysListReq>) => {
@@ -123,7 +122,6 @@ router.post(
 router.post(
   "apiKeys.delete",
   auth({
-    role: UserRole.Member,
     type: AuthenticationType.APP,
   }),
   validate(T.APIKeysDeleteSchema),
