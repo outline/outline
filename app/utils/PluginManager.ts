@@ -1,5 +1,6 @@
 import { isArray, sortBy } from "es-toolkit/compat";
 import { action, observable } from "mobx";
+import type { IObservableArray } from "mobx";
 import type Team from "~/models/Team";
 import type User from "~/models/User";
 import type { LazyComponent } from "~/components/LazyLoad";
@@ -116,7 +117,8 @@ export class PluginManager {
    * @returns A list of plugins
    */
   public static getHooks<T extends Hook>(type: T) {
-    return sortBy(this.plugins.get(type) || [], "priority") as Plugin<T>[];
+    const plugins = this.plugins.get(type) ?? [];
+    return sortBy([...plugins], "priority") as Plugin<T>[];
   }
 
   /**
@@ -152,7 +154,10 @@ export class PluginManager {
     return this.loaded;
   }
 
-  private static plugins = observable.map<Hook, Plugin<Hook>[]>();
+  private static plugins = observable.map<
+    Hook,
+    IObservableArray<Plugin<Hook>>
+  >();
 
   @observable
   private static loaded = false;
