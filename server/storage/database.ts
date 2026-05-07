@@ -106,7 +106,7 @@ export function createDatabaseInstance(
     sequelizeStrictAttributes(instance);
 
     if (env.isTest) {
-      instance = monkeyPatchSequelizeErrorsForJest(instance);
+      instance = monkeyPatchSequelizeErrorsForTests(instance);
     }
 
     // Skip queries when the originating HTTP request socket has been destroyed
@@ -232,7 +232,7 @@ export function createMigrationRunner(
  * Fixed in Sequelize v7, but hasn't been back-ported to Sequelize v6.
  * See https://github.com/sequelize/sequelize/issues/14807#issuecomment-1854398131
  */
-export function monkeyPatchSequelizeErrorsForJest(instance: Sequelize) {
+export function monkeyPatchSequelizeErrorsForTests(instance: Sequelize) {
   const sequelizeVersion = (Sequelize as unknown as { version: string })
     .version;
   const major = sequelizeVersion.split(".").map(Number)[0];
@@ -251,7 +251,7 @@ export function monkeyPatchSequelizeErrorsForJest(instance: Sequelize) {
     try {
       return await origQueryFunc(...args);
     } catch (err) {
-      // Ensure error appears in Jest output, not swallowed by Sequelize internals
+      // Ensure error appears in test output, not swallowed by Sequelize internals
       const error = err as Error & { parent?: Error };
       Logger.error(error.message, error.parent ?? error);
       throw err;

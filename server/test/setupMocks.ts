@@ -41,8 +41,7 @@ vi.mock("@server/utils/MutexLock");
 vi.mock("@aws-sdk/signature-v4-crt", () => ({}));
 
 // Auto-mock these modules using the corresponding files under server/__mocks__/.
-// In Jest, __mocks__ next to a `roots` directory is auto-applied; vitest
-// requires an explicit vi.mock() call to wire them up.
+// Vitest requires an explicit vi.mock() call to wire them up.
 vi.mock("bull", () => import("../__mocks__/bull"));
 vi.mock("dd-trace", async () => {
   const mod = await import("../__mocks__/dd-trace");

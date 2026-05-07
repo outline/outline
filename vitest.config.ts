@@ -49,8 +49,7 @@ export default defineConfig({
   test: {
     globals: true,
     pool: "threads",
-    // Match Jest's default behavior — unhandled promise rejections are
-    // logged but don't fail tests on their own.
+    // Unhandled promise rejections are logged but don't fail tests on their own.
     dangerouslyIgnoreUnhandledErrors: true,
     projects: [
       {

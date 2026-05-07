@@ -98,7 +98,6 @@ export default function onerror(app: Koa) {
 function wrapInNativeError(err: any): Error {
   // When dealing with cross-globals a normal `instanceof` check doesn't work properly.
   // See https://github.com/koajs/koa/issues/1466
-  // We can probably remove it once jest fixes https://github.com/facebook/jest/issues/2549.
   const isNativeError =
     Object.prototype.toString.call(err) === "[object Error]" ||
     err instanceof Error;
