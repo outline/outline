@@ -82,6 +82,7 @@ export enum UserFlag {
   Desktop = "desktop",
   DesktopWeb = "desktopWeb",
   MobileWeb = "mobileWeb",
+  MCP = "mcp",
   AvatarUpdated = "avatarUpdated",
 }
 

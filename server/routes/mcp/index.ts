@@ -10,6 +10,7 @@ import Logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import requestTracer from "@server/middlewares/requestTracer";
+import { UserFlag } from "@server/models/User";
 import { AuthenticationType } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { attachmentTools } from "@server/tools/attachments";
@@ -79,6 +80,9 @@ router.post(
     if (!user.team.getPreference(TeamPreference.MCP)) {
       throw NotFoundError();
     }
+
+    user.setFlag(UserFlag.MCP);
+    await user.save({ hooks: false });
 
     const server = createMcpServer(
       scope ?? [],

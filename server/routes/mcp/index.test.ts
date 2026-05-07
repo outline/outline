@@ -1,6 +1,7 @@
 import { Scope, TeamPreference } from "@shared/types";
 import type { ProsemirrorData } from "@shared/types";
 import { Attachment } from "@server/models";
+import { UserFlag } from "@server/models/User";
 import {
   buildUser,
   buildAdmin,
@@ -106,6 +107,30 @@ describe("POST /mcp/", () => {
       expect(result).toBeDefined();
       expect(result?.capabilities).toBeDefined();
       expect(result?.serverInfo?.name).toEqual("outline");
+    });
+
+    it("should set the MCP flag on the user after a successful request", async () => {
+      const { user, accessToken } = await buildOAuthUser();
+      expect(user.getFlag(UserFlag.MCP)).toEqual(0);
+
+      const { body } = mcpRequest("tools/list");
+      const res = await server.post("/mcp/", {
+        headers: mcpHeaders(accessToken),
+        body,
+      });
+      expect(res.status).toEqual(200);
+
+      await user.reload();
+      expect(user.getFlag(UserFlag.MCP)).toEqual(1);
+
+      const second = await server.post("/mcp/", {
+        headers: mcpHeaders(accessToken),
+        body,
+      });
+      expect(second.status).toEqual(200);
+
+      await user.reload();
+      expect(user.getFlag(UserFlag.MCP)).toEqual(1);
     });
   });
 
