@@ -5,18 +5,18 @@ import type { Tracer } from "dd-trace";
 const emptyFn = function () {};
 
 const callableHandlers = {
-  get<T, P extends keyof T>(_target: T, _prop: P, _receiver: any): T[P] {
+  get<T, P extends keyof T>(_target: T, _prop: P, _receiver: unknown): T[P] {
     const newMock = new Proxy(emptyFn, callableHandlers);
-    return newMock as any as T[P];
+    return newMock as unknown as T[P];
   },
 
-  apply<T extends (...args: any) => any, A extends Parameters<T>>(
+  apply<T extends (...args: never[]) => unknown, A extends Parameters<T>>(
     _target: T,
-    _thisArg: any,
+    _thisArg: unknown,
     _args: A
   ): ReturnType<T> {
     const newMock = new Proxy(emptyFn, callableHandlers);
-    return newMock as any as ReturnType<T>;
+    return newMock as unknown as ReturnType<T>;
   },
 };
 
@@ -31,7 +31,7 @@ export const mockTracer = new Proxy({} as MockTracer, {
     }
 
     if (key === "wrap") {
-      return (_: any, f: any) => f;
+      return (_: unknown, f: unknown) => f;
     }
 
     return callableMock;

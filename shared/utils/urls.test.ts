@@ -165,6 +165,26 @@ describe("sanitizeUrl", () => {
       expect(urlsUtils.sanitizeUrl("fax:0123456789")).toEqual("fax:0123456789");
       expect(urlsUtils.sanitizeUrl("sms:0123456789")).toEqual("sms:0123456789");
     });
+    it("should return the url unchanged if it's geo:", () => {
+      expect(urlsUtils.sanitizeUrl("geo:37.786971,-122.399677")).toEqual(
+        "geo:37.786971,-122.399677"
+      );
+    });
+    it("should return the url unchanged if it's maps:", () => {
+      expect(urlsUtils.sanitizeUrl("maps:?q=Eiffel+Tower")).toEqual(
+        "maps:?q=Eiffel+Tower"
+      );
+    });
+    it("should return the url unchanged if it's magnet:", () => {
+      expect(
+        urlsUtils.sanitizeUrl("magnet:?xt=urn:btih:abc123&dn=file")
+      ).toEqual("magnet:?xt=urn:btih:abc123&dn=file");
+    });
+    it("should handle uppercase scheme", () => {
+      expect(urlsUtils.sanitizeUrl("GEO:37.786971,-122.399677")).toEqual(
+        "GEO:37.786971,-122.399677"
+      );
+    });
     it("should return the url as it's if it's a special protocol", () => {
       expect(urlsUtils.sanitizeUrl("mqtt://getoutline.com")).toEqual(
         "mqtt://getoutline.com"

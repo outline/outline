@@ -239,8 +239,8 @@ export default () =>
                 priority: 20,
               },
               {
-                name: "vendor-lodash",
-                test: /node_modules[\\/](lodash|lodash-es)/,
+                name: "vendor-es-toolkit",
+                test: /node_modules[\\/]es-toolkit/,
                 priority: 20,
               },
               {

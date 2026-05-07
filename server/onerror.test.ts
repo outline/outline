@@ -1,22 +1,40 @@
 import type Koa from "koa";
+import type { Mock } from "vitest";
 import { requestErrorHandler } from "@server/logging/sentry";
 import { InternalError, ValidationError, NotFoundError } from "./errors";
 import onerror from "./onerror";
 
 // Mock the requestErrorHandler from Sentry
-jest.mock("@server/logging/sentry", () => ({
-  requestErrorHandler: jest.fn(),
+vi.mock("@server/logging/sentry", () => ({
+  requestErrorHandler: vi.fn(),
 }));
+
+type MockCtx = {
+  headers: Record<string, string>;
+  headerSent: boolean;
+  writable: boolean;
+  accepts: Mock;
+  set: Mock;
+  res: { end: Mock };
+  status: number | undefined;
+  type: string | undefined;
+  body: unknown;
+};
+
+type ReportableError = Error & {
+  status?: number;
+  isReportable?: boolean;
+};
 
 describe("onerror", () => {
   let app: Koa;
-  let ctx: any;
+  let ctx: MockCtx;
 
   beforeEach(() => {
     // Create a mock Koa app
     app = {
       context: {},
-    } as any;
+    } as unknown as Koa;
 
     // Apply the onerror middleware
     onerror(app);
@@ -26,10 +44,10 @@ describe("onerror", () => {
       headers: {},
       headerSent: false,
       writable: true,
-      accepts: jest.fn(() => "json"),
-      set: jest.fn(),
+      accepts: vi.fn(() => "json"),
+      set: vi.fn(),
       res: {
-        end: jest.fn(),
+        end: vi.fn(),
       },
       status: undefined,
       type: undefined,
@@ -37,7 +55,7 @@ describe("onerror", () => {
     };
 
     // Clear mock calls
-    (requestErrorHandler as jest.Mock).mockClear();
+    (requestErrorHandler as Mock).mockClear();
   });
 
   it("should report InternalError to Sentry", () => {
@@ -68,7 +86,7 @@ describe("onerror", () => {
   });
 
   it("should report unknown errors without isReportable property to Sentry", () => {
-    const error = new Error("Unknown error") as any;
+    const error = new Error("Unknown error") as ReportableError;
     error.status = 500;
 
     app.context.onerror.call(ctx, error);
@@ -77,7 +95,7 @@ describe("onerror", () => {
   });
 
   it("should report errors with invalid status codes to Sentry", () => {
-    const error = new Error("Invalid status error") as any;
+    const error = new Error("Invalid status error") as ReportableError;
     error.status = 999;
 
     app.context.onerror.call(ctx, error);
@@ -86,7 +104,7 @@ describe("onerror", () => {
   });
 
   it("should not report errors explicitly marked with isReportable: false", () => {
-    const error = new Error("Custom error") as any;
+    const error = new Error("Custom error") as ReportableError;
     error.status = 500;
     error.isReportable = false;
 
@@ -96,7 +114,7 @@ describe("onerror", () => {
   });
 
   it("should report errors explicitly marked with isReportable: true", () => {
-    const error = new Error("Custom error") as any;
+    const error = new Error("Custom error") as ReportableError;
     error.status = 400;
     error.isReportable = true;
 

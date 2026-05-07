@@ -1,4 +1,4 @@
-import trim from "lodash/trim";
+import { trim } from "es-toolkit/compat";
 import env from "../env";
 
 type Domain = {

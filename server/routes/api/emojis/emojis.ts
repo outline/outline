@@ -166,7 +166,7 @@ router.post(
 
 router.post(
   "emojis.create",
-  rateLimiter(RateLimiterStrategy.TenPerMinute),
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth(),
   validate(T.EmojisCreateSchema),
   transaction(),

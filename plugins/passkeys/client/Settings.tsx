@@ -1,4 +1,5 @@
 import { startRegistration } from "@simplewebauthn/browser";
+import type { JSONObject } from "@shared/types";
 import { observer } from "mobx-react";
 import { KeyIcon, PlusIcon } from "outline-icons";
 import * as React from "react";
@@ -66,9 +67,13 @@ function PasskeysSettings() {
         }
       );
       const attResp = await startRegistration(resp.data);
-      await client.post("/passkeys.verifyRegistration", attResp as any, {
-        baseUrl: "/auth",
-      });
+      await client.post(
+        "/passkeys.verifyRegistration",
+        attResp as unknown as JSONObject,
+        {
+          baseUrl: "/auth",
+        }
+      );
       toast.success(t("Passkey added successfully"));
       await loadPasskeys();
     } catch (err) {

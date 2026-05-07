@@ -119,10 +119,12 @@ export default class ComponentView {
     // Apply classes from inline decorations.
     this.decorations.forEach((decoration) => {
       // For inline decorations, attrs contain the class property.
-      const attrs = (decoration as any).type?.attrs;
+      const attrs = (
+        decoration as Decoration & { type?: { attrs?: { class?: string } } }
+      ).type?.attrs;
       if (attrs?.class) {
         const classes = attrs.class.split(" ");
-        classes.forEach((className: string) => {
+        classes.forEach((className) => {
           if (className && this.dom) {
             this.dom.classList.add(className);
           }

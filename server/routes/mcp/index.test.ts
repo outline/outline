@@ -1,5 +1,6 @@
 import { Scope, TeamPreference } from "@shared/types";
 import type { ProsemirrorData } from "@shared/types";
+import { Attachment } from "@server/models";
 import {
   buildUser,
   buildAdmin,
@@ -223,13 +224,13 @@ describe("POST /mcp/", () => {
         JSON.parse(c.text)
       );
 
-      const ids = data.map((d: { id: string }) => d.id);
+      const ids = data.map((d: { document: { id: string } }) => d.document.id);
       expect(ids).toContain(document.id);
 
-      const match = data.find((d: { id: string }) => d.id === document.id) as {
-        url: string;
-      };
-      expect(match.url).toMatch(/^https?:\/\//);
+      const match = data.find(
+        (d: { document: { id: string } }) => d.document.id === document.id
+      ) as { document: { url: string } };
+      expect(match.document.url).toMatch(/^https?:\/\//);
     });
 
     it("list_documents filters by collection", async () => {
@@ -260,11 +261,12 @@ describe("POST /mcp/", () => {
         JSON.parse(c.text)
       );
 
-      const ids = data.map((d: { id: string }) => d.id);
+      const ids = data.map((d: { document: { id: string } }) => d.document.id);
       expect(ids).toContain(doc1.id);
       expect(
         data.every(
-          (d: { collectionId: string }) => d.collectionId === collection1.id
+          (d: { document: { collectionId: string } }) =>
+            d.document.collectionId === collection1.id
         )
       ).toBe(true);
     });
@@ -283,10 +285,10 @@ describe("POST /mcp/", () => {
       });
       const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
 
-      expect(data.title).toEqual("New Document");
-      expect(data.collectionId).toEqual(collection.id);
-      expect(data.id).toBeDefined();
-      expect(data.url).toMatch(/^https?:\/\//);
+      expect(data.document.title).toEqual("New Document");
+      expect(data.document.collectionId).toEqual(collection.id);
+      expect(data.document.id).toBeDefined();
+      expect(data.document.url).toMatch(/^https?:\/\//);
     });
 
     it("create_document creates nested under parent document", async () => {
@@ -308,8 +310,8 @@ describe("POST /mcp/", () => {
       });
       const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
 
-      expect(data.title).toEqual("Child Document");
-      expect(data.parentDocumentId).toEqual(parent.id);
+      expect(data.document.title).toEqual("Child Document");
+      expect(data.document.parentDocumentId).toEqual(parent.id);
     });
 
     it("update_document updates title and text", async () => {
@@ -331,8 +333,8 @@ describe("POST /mcp/", () => {
       });
       const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
 
-      expect(data.title).toEqual("Updated Title");
-      expect(data.url).toMatch(/^https?:\/\//);
+      expect(data.document.title).toEqual("Updated Title");
+      expect(data.document.url).toMatch(/^https?:\/\//);
     });
 
     it("update_document unpublishes a document", async () => {
@@ -353,7 +355,7 @@ describe("POST /mcp/", () => {
       });
       const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
 
-      expect(data.id).toEqual(document.id);
+      expect(data.document.id).toEqual(document.id);
       expect(res?.result?.isError).toBeUndefined();
     });
 
@@ -408,11 +410,11 @@ describe("POST /mcp/", () => {
       );
 
       expect(res?.result?.isError).toBeUndefined();
-      const moved = data.find((d: { id: string }) => d.id === document.id) as {
-        collectionId: string;
-      };
+      const moved = data.find(
+        (d: { document: { id: string } }) => d.document.id === document.id
+      ) as { document: { collectionId: string } };
       expect(moved).toBeDefined();
-      expect(moved.collectionId).toEqual(collection2.id);
+      expect(moved.document.collectionId).toEqual(collection2.id);
     });
 
     it("move_document moves under a parent document", async () => {
@@ -441,11 +443,11 @@ describe("POST /mcp/", () => {
       );
 
       expect(res?.result?.isError).toBeUndefined();
-      const moved = data.find((d: { id: string }) => d.id === child.id) as {
-        parentDocumentId: string;
-      };
+      const moved = data.find(
+        (d: { document: { id: string } }) => d.document.id === child.id
+      ) as { document: { parentDocumentId: string } };
       expect(moved).toBeDefined();
-      expect(moved.parentDocumentId).toEqual(parent.id);
+      expect(moved.document.parentDocumentId).toEqual(parent.id);
     });
 
     it("move_document fails without collectionId or parentDocumentId", async () => {
@@ -510,9 +512,9 @@ describe("POST /mcp/", () => {
 
       // First content is JSON metadata
       const metadata = JSON.parse(res!.result!.content![0].text ?? "{}");
-      expect(metadata.id).toEqual(document.id);
-      expect(metadata.title).toEqual(document.title);
-      expect(metadata.url).toMatch(/^https?:\/\//);
+      expect(metadata.document.id).toEqual(document.id);
+      expect(metadata.document.title).toEqual(document.title);
+      expect(metadata.document.url).toMatch(/^https?:\/\//);
 
       // Second content is markdown text
       expect(res!.result!.content![1].text).toContain("Hello");
@@ -822,6 +824,92 @@ describe("POST /mcp/", () => {
     });
   });
 
+  describe("attachment tools", () => {
+    it("create_attachment returns absolute uploadUrl and proxied attachment url", async () => {
+      const { accessToken } = await buildOAuthUser();
+      const res = await callMcpTool(server, accessToken, "create_attachment", {
+        contentType: "image/png",
+        name: "test.png",
+        size: 1000,
+      });
+
+      expect(res?.result?.isError).toBeFalsy();
+      const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+
+      expect(data.uploadUrl).toMatch(/^https?:\/\//);
+      expect(data.attachment.url).toMatch(/^https?:\/\//);
+      expect(data.attachment.url).toContain("/api/attachments.redirect?id=");
+      expect(data.curlCommand).toContain(data.uploadUrl);
+    });
+
+    it("create_attachment persists attachment record", async () => {
+      const { user, accessToken } = await buildOAuthUser();
+      const res = await callMcpTool(server, accessToken, "create_attachment", {
+        contentType: "image/png",
+        name: "test.png",
+        size: 1000,
+      });
+
+      const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
+      const attachment = await Attachment.findByPk(data.attachment.id, {
+        rejectOnEmpty: true,
+      });
+      expect(Number(attachment.size)).toEqual(1000);
+      expect(attachment.contentType).toEqual("image/png");
+      expect(attachment.userId).toEqual(user.id);
+      expect(attachment.teamId).toEqual(user.teamId);
+    });
+
+    it("create_attachment rejects size larger than max", async () => {
+      const { accessToken } = await buildOAuthUser();
+      const res = await callMcpTool(server, accessToken, "create_attachment", {
+        contentType: "image/png",
+        name: "huge.png",
+        size: 10_000_000_000,
+      });
+      expect(res?.result?.isError).toBe(true);
+    });
+
+    it("create_attachment rejects negative size", async () => {
+      const { accessToken } = await buildOAuthUser();
+      const res = await callMcpTool(server, accessToken, "create_attachment", {
+        contentType: "image/png",
+        name: "neg.png",
+        size: -1,
+      });
+      expect(res?.error ?? res?.result?.isError).toBeTruthy();
+    });
+
+    it("create_attachment rejects fractional size", async () => {
+      const { accessToken } = await buildOAuthUser();
+      const res = await callMcpTool(server, accessToken, "create_attachment", {
+        contentType: "image/png",
+        name: "frac.png",
+        size: 1.5,
+      });
+      expect(res?.error ?? res?.result?.isError).toBeTruthy();
+    });
+
+    it("read-only token does not have create_attachment tool", async () => {
+      const user = await buildUser();
+      const auth = await buildOAuthAuthentication({
+        user,
+        scope: [Scope.Read],
+      });
+      const res = await callMcpTool(
+        server,
+        auth.accessToken!,
+        "create_attachment",
+        {
+          contentType: "image/png",
+          name: "test.png",
+          size: 1000,
+        }
+      );
+      expect(res?.result?.isError).toBe(true);
+    });
+  });
+
   describe("scope enforcement", () => {
     async function buildScopedOAuthUser(scope: Scope[]) {
       const user = await buildUser();
@@ -909,7 +997,7 @@ describe("POST /mcp/", () => {
       });
       expect(res?.result?.isError).toBeUndefined();
       const data = JSON.parse(res?.result?.content?.[0]?.text ?? "{}");
-      expect(data.title).toEqual("Created Document");
+      expect(data.document.title).toEqual("Created Document");
     });
 
     it("create-scoped token does not have update_document tool", async () => {
@@ -966,7 +1054,7 @@ describe("POST /mcp/", () => {
         accessToken,
         "update_document",
         {
-          id: created.id,
+          id: created.document.id,
           title: "Updated by Write Token",
         }
       );

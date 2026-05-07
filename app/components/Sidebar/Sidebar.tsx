@@ -83,7 +83,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
         ui.set({ sidebarWidth: Math.max(newWidth, minWidth) });
       }
     },
-    [ui, theme, offset, minWidth, maxWidth, direction]
+    [ui, theme, offset, minWidth, maxWidth, direction, canCollapse]
   );
 
   const handleStopDrag = React.useCallback(() => {
@@ -107,7 +107,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
     } else {
       ui.set({ sidebarWidth: width });
     }
-  }, [ui, isSmallerThanMinimum, minWidth, width]);
+  }, [ui, isSmallerThanMinimum, minWidth, width, canCollapse]);
 
   const handleBlur = React.useCallback(() => {
     setHovering(false);
@@ -229,7 +229,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
   );
 
   const handleCloseSidebar = () => {
-    trigger("light");
+    void trigger("light");
     ui.toggleMobileSidebar();
   };
 
@@ -265,7 +265,6 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
                   alt={t("Avatar of {{ name }}", { name: user.name })}
                   model={user}
                   size={24}
-                  style={{ marginInlineStart: 4 }}
                 />
               }
             >
@@ -274,6 +273,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function Sidebar_(
                   position="bottom"
                   image={<NotificationIcon />}
                   aria-label={t("Notifications")}
+                  style={{ paddingInline: 4 }}
                 />
               </NotificationsPopover>
             </SidebarButton>
@@ -335,8 +335,8 @@ const Container = styled(Flex)<ContainerProps>`
   background: ${s("sidebarBackground")};
   transition:
     box-shadow 150ms ease-in-out,
-    transform 150ms
-      ease-out${(props: ContainerProps) =>
+    transform 250ms cubic-bezier(0.34, 1.15, 0.64, 1)
+      ${(props: ContainerProps) =>
         props.$isAnimating ? `, width ${ANIMATION_MS}ms ease-out` : ""};
   transform: translateX(
     ${(props) => (props.$mobileSidebarVisible ? 0 : "-100%")}
@@ -379,6 +379,10 @@ const Container = styled(Flex)<ContainerProps>`
     z-index: ${depths.sidebar};
     margin: 0;
     min-width: 0;
+    transition:
+      box-shadow 150ms ease-in-out,
+      transform 150ms ease-out${(props: ContainerProps) =>
+        props.$isAnimating ? `, width ${ANIMATION_MS}ms ease-out` : ""};
     transform: translateX(${(props: ContainerProps) =>
       props.$collapsed
         ? `calc(-100% + ${Desktop.hasInsetTitlebar() ? 8 : 16}px)`

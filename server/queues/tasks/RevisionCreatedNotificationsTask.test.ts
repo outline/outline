@@ -23,7 +23,7 @@ import RevisionCreatedNotificationsTask from "./RevisionCreatedNotificationsTask
 const ip = "127.0.0.1";
 
 beforeEach(async () => {
-  jest.resetAllMocks();
+  vi.resetAllMocks();
 });
 
 function updateDocumentText(document: Document, text: string) {
@@ -34,7 +34,7 @@ function updateDocumentText(document: Document, text: string) {
 
 describe("revisions.create", () => {
   test("should send a notification to other collaborators", async () => {
-    const spy = jest.spyOn(Notification, "create");
+    const spy = vi.spyOn(Notification, "create");
     const user = await buildUser();
     let document = await buildDocument({
       teamId: user.teamId,
@@ -64,7 +64,7 @@ describe("revisions.create", () => {
   });
 
   test("should not send a notification if viewed since update", async () => {
-    const spy = jest.spyOn(Notification, "create");
+    const spy = vi.spyOn(Notification, "create");
     const user = await buildUser();
     let document = await buildDocument({
       teamId: user.teamId,
@@ -99,7 +99,7 @@ describe("revisions.create", () => {
   });
 
   test("should not send a notification to last editor", async () => {
-    const spy = jest.spyOn(Notification, "create");
+    const spy = vi.spyOn(Notification, "create");
     const user = await buildUser();
     let document = await buildDocument({
       teamId: user.teamId,
@@ -125,7 +125,7 @@ describe("revisions.create", () => {
   });
 
   test("should send a notification for subscriptions, even to collaborator", async () => {
-    const spy = jest.spyOn(Notification, "create");
+    const spy = vi.spyOn(Notification, "create");
     const user = await buildUser();
     let document = await buildDocument({
       teamId: user.teamId,
@@ -225,7 +225,7 @@ describe("revisions.create", () => {
   });
 
   test("should not send multiple emails", async () => {
-    const spy = jest.spyOn(Notification, "create");
+    const spy = vi.spyOn(Notification, "create");
     const collaborator0 = await buildUser();
     const collaborator1 = await buildUser({ teamId: collaborator0.teamId });
     const collaborator2 = await buildUser({ teamId: collaborator0.teamId });
@@ -265,7 +265,7 @@ describe("revisions.create", () => {
   });
 
   test("should not create subscriptions if previously unsubscribed", async () => {
-    const spy = jest.spyOn(Notification, "create");
+    const spy = vi.spyOn(Notification, "create");
     const collaborator0 = await buildUser();
     const collaborator1 = await buildUser({ teamId: collaborator0.teamId });
     const collaborator2 = await buildUser({ teamId: collaborator0.teamId });
@@ -333,7 +333,7 @@ describe("revisions.create", () => {
   });
 
   test("should send a notification for subscriptions to non-collaborators", async () => {
-    const spy = jest.spyOn(Notification, "create");
+    const spy = vi.spyOn(Notification, "create");
     let document = await buildDocument();
     const collaborator = await buildUser({ teamId: document.teamId });
     const subscriber = await buildUser({ teamId: document.teamId });
@@ -375,7 +375,7 @@ describe("revisions.create", () => {
   });
 
   test("should not send a notification for subscriptions to collaborators if unsubscribed", async () => {
-    const spy = jest.spyOn(Notification, "create");
+    const spy = vi.spyOn(Notification, "create");
 
     let document = await buildDocument();
     const collaborator = await buildUser({ teamId: document.teamId });
@@ -421,7 +421,7 @@ describe("revisions.create", () => {
   });
 
   test("should not send a notification for subscriptions to members outside of the team", async () => {
-    const spy = jest.spyOn(Notification, "create");
+    const spy = vi.spyOn(Notification, "create");
 
     let document = await buildDocument();
     const collaborator = await buildUser({ teamId: document.teamId });
@@ -470,7 +470,7 @@ describe("revisions.create", () => {
   });
 
   test("should not send a notification if viewed since update", async () => {
-    const spy = jest.spyOn(Notification, "create");
+    const spy = vi.spyOn(Notification, "create");
 
     const document = await buildDocument();
     const collaborator = await buildUser({ teamId: document.teamId });
@@ -500,7 +500,7 @@ describe("revisions.create", () => {
   });
 
   test("should not send a notification to last editor", async () => {
-    const spy = jest.spyOn(Notification, "create");
+    const spy = vi.spyOn(Notification, "create");
 
     const user = await buildUser();
     const document = await buildDocument({
@@ -525,7 +525,7 @@ describe("revisions.create", () => {
   });
 
   test("should send a mention notification even when change is below threshold", async () => {
-    const spy = jest.spyOn(Notification, "create");
+    const spy = vi.spyOn(Notification, "create");
     const actor = await buildUser();
     const mentioned = await buildUser({ teamId: actor.teamId, name: "Kim" });
 
@@ -590,7 +590,7 @@ describe("revisions.create", () => {
   });
 
   test("should not send a notification for group mentions when disableMentions is true", async () => {
-    const spy = jest.spyOn(Notification, "create");
+    const spy = vi.spyOn(Notification, "create");
     const actor = await buildUser();
     const group = await buildGroup({
       teamId: actor.teamId,

@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import usePersistedState from "~/hooks/usePersistedState";
 import useStores from "./useStores";
 
-type UrlId = "home" | string;
+type UrlId = string;
 
 export const pinsCacheKey = (urlId: UrlId) => `pins-${urlId}`;
 

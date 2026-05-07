@@ -1,4 +1,4 @@
-import debounce from "lodash/debounce";
+import { debounce } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { ShieldIcon } from "outline-icons";
 import { useState } from "react";
@@ -258,7 +258,7 @@ function Security() {
             options={userRoleOptions}
             onChange={handleDefaultRoleChange}
             label={t("Default role")}
-            hideLabel
+            labelHidden
             short
           />
         </SettingRow>
@@ -331,7 +331,7 @@ function Security() {
           options={emailDisplayOptions}
           onChange={handleEmailDisplayChange}
           label={t("Email address visibility")}
-          hideLabel
+          labelHidden
           short
         />
       </SettingRow>

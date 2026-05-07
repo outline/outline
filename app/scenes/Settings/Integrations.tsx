@@ -1,4 +1,4 @@
-import groupBy from "lodash/groupBy";
+import { groupBy } from "es-toolkit/compat";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";

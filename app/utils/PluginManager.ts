@@ -1,5 +1,4 @@
-import isArray from "lodash/isArray";
-import sortBy from "lodash/sortBy";
+import { isArray, sortBy } from "es-toolkit/compat";
 import { action, observable } from "mobx";
 import type Team from "~/models/Team";
 import type User from "~/models/User";
@@ -144,6 +143,13 @@ export class PluginManager {
     const r = import.meta.glob("../../plugins/*/client/index.{ts,js,tsx,jsx}");
     await Promise.all(Object.keys(r).map((key: string) => r[key]()));
     this.loaded = true;
+  }
+
+  /**
+   * Whether all plugin client modules have finished loading.
+   */
+  public static get isLoaded(): boolean {
+    return this.loaded;
   }
 
   private static plugins = observable.map<Hook, Plugin<Hook>[]>();

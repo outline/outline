@@ -19,6 +19,8 @@ export default function presentShare(share: Share, isAdmin = false) {
     allowSubscriptions: share.allowSubscriptions,
     showLastUpdated: share.showLastUpdated,
     showTOC: share.showTOC,
+    title: share.title,
+    iconUrl: share.iconUrl,
     lastAccessedAt: share.lastAccessedAt || undefined,
     views: share.views || 0,
     domain: share.domain,

@@ -106,7 +106,7 @@ export function createDatabaseInstance(
     sequelizeStrictAttributes(instance);
 
     if (env.isTest) {
-      instance = monkeyPatchSequelizeErrorsForJest(instance);
+      instance = monkeyPatchSequelizeErrorsForTests(instance);
     }
 
     // Skip queries when the originating HTTP request socket has been destroyed
@@ -214,15 +214,15 @@ export function createMigrationRunner(
         Logger.info(
           "database",
           params.event === "migrating"
-            ? `Migrating ${params.name}…`
-            : `Migrated ${params.name} in ${params.durationSeconds}s`
+            ? `Migrating ${String(params.name)}…`
+            : `Migrated ${String(params.name)} in ${String(params.durationSeconds)}s`
         ),
       debug: (params) =>
         Logger.debug(
           "database",
           params.event === "migrating"
-            ? `Migrating ${params.name}…`
-            : `Migrated ${params.name} in ${params.durationSeconds}s`
+            ? `Migrating ${String(params.name)}…`
+            : `Migrated ${String(params.name)} in ${String(params.durationSeconds)}s`
         ),
     },
   });
@@ -232,12 +232,9 @@ export function createMigrationRunner(
  * Fixed in Sequelize v7, but hasn't been back-ported to Sequelize v6.
  * See https://github.com/sequelize/sequelize/issues/14807#issuecomment-1854398131
  */
-export function monkeyPatchSequelizeErrorsForJest(instance: Sequelize) {
-  if (typeof jest === "undefined") {
-    return instance;
-  }
-
-  const sequelizeVersion = (Sequelize as any).version;
+export function monkeyPatchSequelizeErrorsForTests(instance: Sequelize) {
+  const sequelizeVersion = (Sequelize as unknown as { version: string })
+    .version;
   const major = sequelizeVersion.split(".").map(Number)[0];
 
   if (major >= 7) {
@@ -249,18 +246,17 @@ export function monkeyPatchSequelizeErrorsForJest(instance: Sequelize) {
     );
   }
 
-  const origQueryFunc = instance.query;
-  instance.query = async function query(this: Sequelize, ...args: any[]) {
-    let result;
+  const origQueryFunc = instance.query.bind(instance);
+  instance.query = (async (...args: Parameters<typeof origQueryFunc>) => {
     try {
-      result = await origQueryFunc.apply(this, args as any);
-    } catch (err: any) {
-      // Ensure error appears in Jest output, not swallowed by Sequelize internals
-      Logger.error(err.message, err.parent);
+      return await origQueryFunc(...args);
+    } catch (err) {
+      // Ensure error appears in test output, not swallowed by Sequelize internals
+      const error = err as Error & { parent?: Error };
+      Logger.error(error.message, error.parent ?? error);
       throw err;
     }
-    return result;
-  } as typeof origQueryFunc;
+  }) as typeof instance.query;
 
   return instance;
 }

@@ -1,4 +1,4 @@
-import escapeRegExp from "lodash/escapeRegExp";
+import { escapeRegExp } from "es-toolkit/compat";
 import { action, observable } from "mobx";
 import { InputRule } from "prosemirror-inputrules";
 import type { NodeType, Schema } from "prosemirror-model";
@@ -7,15 +7,25 @@ import Extension from "@shared/editor/lib/Extension";
 import { SuggestionsMenuPlugin } from "@shared/editor/plugins/SuggestionsMenuPlugin";
 import { isInCode } from "@shared/editor/queries/isInCode";
 
-type Options = {
+/**
+ * Options shared by all suggestion-style extensions (block menu, emoji menu,
+ * mention menu).
+ */
+export type SuggestionOptions = {
+  /** Whether the suggestion menu is allowed to open inside code blocks or inline code. */
   enabledInCode: boolean;
+  /** Character (or list of characters) that opens the suggestion menu. */
   trigger: string | string[];
+  /** Whether spaces are allowed inside the search term. */
   allowSpaces: boolean;
+  /** Whether the menu only opens once at least one character has been typed after the trigger. */
   requireSearchTerm: boolean;
 };
 
-export default class Suggestion extends Extension {
-  constructor(options: Options) {
+export default class Suggestion<
+  TOptions extends SuggestionOptions = SuggestionOptions,
+> extends Extension<TOptions> {
+  constructor(options: TOptions) {
     super(options);
 
     const triggers = Array.isArray(this.options.trigger)
@@ -27,7 +37,7 @@ export default class Suggestion extends Extension {
         : `(?:${triggers.map(escapeRegExp).join("|")})`;
 
     this.openRegex = new RegExp(
-      `(?:^|\\s|\\(|[\\p{Script=Han}\\p{Script=Hiragana}\\p{Script=Katakana}\\p{Script=Hangul}])${triggerPattern}(${`[\\p{L}\/\\p{M}\\d${
+      `(?:^|\\s|\\(|[\\p{Script=Han}\\p{Script=Hiragana}\\p{Script=Katakana}\\p{Script=Hangul}])${triggerPattern}(${`[\\p{L}/\\p{M}\\d${
         this.options.allowSpaces ? "\\s{1}" : ""
       }\\.\\-–_]+`})${this.options.requireSearchTerm ? "" : "?"}$`,
       "u"

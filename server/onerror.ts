@@ -3,9 +3,7 @@ import http from "node:http";
 import path from "node:path";
 import formidable from "formidable";
 import type Koa from "koa";
-import escape from "lodash/escape";
-import isNil from "lodash/isNil";
-import snakeCase from "lodash/snakeCase";
+import { escape, isNil, snakeCase } from "es-toolkit/compat";
 import env from "@server/env";
 import { ClientClosedRequestError, InternalError } from "@server/errors";
 import { requestErrorHandler } from "@server/logging/sentry";
@@ -100,7 +98,6 @@ export default function onerror(app: Koa) {
 function wrapInNativeError(err: any): Error {
   // When dealing with cross-globals a normal `instanceof` check doesn't work properly.
   // See https://github.com/koajs/koa/issues/1466
-  // We can probably remove it once jest fixes https://github.com/facebook/jest/issues/2549.
   const isNativeError =
     Object.prototype.toString.call(err) === "[object Error]" ||
     err instanceof Error;

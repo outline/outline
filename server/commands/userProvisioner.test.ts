@@ -308,10 +308,9 @@ describe("userProvisioner", () => {
 
     const authenticationProviders = await team.$get("authenticationProviders");
     const authenticationProvider = authenticationProviders[0];
-    let error;
 
-    try {
-      await userProvisioner(ctx, {
+    await expect(
+      userProvisioner(ctx, {
         name: "Uninvited User",
         email: "invite@ExamPle.com",
         teamId: team.id,
@@ -321,14 +320,8 @@ describe("userProvisioner", () => {
           accessToken: "123",
           scopes: ["read"],
         },
-      });
-    } catch (err) {
-      error = err;
-    }
-
-    expect(error && error.toString()).toContain(
-      "You need an invite to join this team"
-    );
+      })
+    ).rejects.toThrow("You need an invite to join this team");
   });
 
   it("should create a user from allowed domain", async () => {
@@ -389,19 +382,14 @@ describe("userProvisioner", () => {
 
   it("should not create a user with emailMatchOnly when no allowed domains are set", async () => {
     const team = await buildTeam();
-    let error;
 
-    try {
-      await userProvisioner(ctx, {
+    await expect(
+      userProvisioner(ctx, {
         name: "Test Name",
         email: faker.internet.email(),
         teamId: team.id,
-      });
-    } catch (err) {
-      error = err;
-    }
-
-    expect(error && error.toString()).toContain("UnauthorizedError");
+      })
+    ).rejects.toThrow("No matching user for email or allowed domain");
   });
 
   it("should reject an user when the domain is not allowed", async () => {
@@ -415,10 +403,9 @@ describe("userProvisioner", () => {
 
     const authenticationProviders = await team.$get("authenticationProviders");
     const authenticationProvider = authenticationProviders[0];
-    let error;
 
-    try {
-      await userProvisioner(ctx, {
+    await expect(
+      userProvisioner(ctx, {
         name: "Bad Domain User",
         email: faker.internet.email(),
         teamId: team.id,
@@ -428,13 +415,7 @@ describe("userProvisioner", () => {
           accessToken: "123",
           scopes: ["read"],
         },
-      });
-    } catch (err) {
-      error = err;
-    }
-
-    expect(error && error.toString()).toContain(
-      "The domain is not allowed for this workspace"
-    );
+      })
+    ).rejects.toThrow("The domain is not allowed for this workspace");
   });
 });

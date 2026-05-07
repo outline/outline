@@ -348,6 +348,11 @@ export const liftAllChildBlocksOfNodeAfter: Command = (state, dispatch) => {
 };
 
 export const dedentBlocks: Command = (state, dispatch) => {
+  // If inside a list, allow the list's Shift-Tab handler to handle outdentation instead.
+  if (isInList(state)) {
+    return false;
+  }
+
   const { $from } = state.selection;
 
   const isToggle = isToggleBlock(state);

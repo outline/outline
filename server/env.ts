@@ -13,8 +13,9 @@ import {
   IsNumber,
   IsIn,
   IsBoolean,
+  Min,
 } from "class-validator";
-import uniq from "lodash/uniq";
+import { uniq } from "es-toolkit/compat";
 import { languages } from "@shared/i18n";
 import { Day, Hour } from "@shared/utils/time";
 import {
@@ -198,6 +199,28 @@ export class Environment {
    * set then the collaboration service must be ran as a singleton.
    */
   public REDIS_COLLABORATION_URL = environment.REDIS_COLLABORATION_URL;
+
+  /**
+   * The interval in milliseconds between redis connection healthchecks. Each
+   * healthcheck issues a PING and forces a reconnect if it fails.
+   */
+  @IsNumber()
+  @Min(1000)
+  public REDIS_HEALTHCHECK_INTERVAL = parseInt(
+    environment.REDIS_HEALTHCHECK_INTERVAL || "30000",
+    10
+  );
+
+  /**
+   * The timeout in milliseconds for a redis healthcheck PING before the
+   * connection is considered stuck and forcibly reconnected.
+   */
+  @IsNumber()
+  @Min(100)
+  public REDIS_HEALTHCHECK_TIMEOUT = parseInt(
+    environment.REDIS_HEALTHCHECK_TIMEOUT || "5000",
+    10
+  );
 
   /**
    * The fully qualified, external facing domain name of the server.
@@ -558,6 +581,20 @@ export class Environment {
     this.toOptionalNumber(environment.RATE_LIMITER_DURATION_WINDOW) ?? 60;
 
   /**
+   * Multiplier applied to the per-endpoint API rate limits. Allows operators to
+   * uniformly scale the hard-coded route-level limits up or down without
+   * touching code. A value of 1 (the default) preserves the built-in limits.
+   * Effective per-endpoint limits are scaled by this value, rounded to the
+   * nearest integer, and clamped to a minimum of 1.
+   */
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @CannotUseWithout("RATE_LIMITER_ENABLED")
+  public RATE_LIMITER_MULTIPLIER =
+    this.toOptionalFloat(environment.RATE_LIMITER_MULTIPLIER) ?? 1;
+
+  /**
    * Set max allowed upload size for file attachments.
    * @deprecated Use FILE_STORAGE_UPLOAD_MAX_SIZE instead
    */
@@ -856,6 +893,10 @@ export class Environment {
 
   protected toOptionalNumber(value: string | undefined) {
     return value ? parseInt(value, 10) : undefined;
+  }
+
+  protected toOptionalFloat(value: string | undefined) {
+    return value ? parseFloat(value) : undefined;
   }
 
   /**

@@ -1,4 +1,4 @@
-import filter from "lodash/filter";
+import { filter } from "es-toolkit/compat";
 import type { ResolvedPos } from "prosemirror-model";
 import { findBlockNodes } from "./findChildren";
 

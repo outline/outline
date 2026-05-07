@@ -7,7 +7,7 @@ import useStores from "~/hooks/useStores";
 import { useHistory } from "react-router-dom";
 import { settingsPath } from "~/utils/routeHelpers";
 import { observer } from "mobx-react";
-import capitalize from "lodash/capitalize";
+import { capitalize } from "es-toolkit/compat";
 
 type Props = {
   integration: Integration<IntegrationType.Analytics>;

@@ -155,7 +155,9 @@ describe("#relationships.info", () => {
     expect(body.data.relationship).toBeTruthy();
     expect(body.data.documents).toHaveLength(2);
     // User can read their own document but admin document should also be included
-    const documentIds = body.data.documents.map((doc: any) => doc.id);
+    const documentIds = body.data.documents.map(
+      (doc: { id: string }) => doc.id
+    );
     expect(documentIds).toContain(userDocument.id);
   });
 
@@ -172,7 +174,9 @@ describe("#relationships.info", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.documents).toHaveLength(2);
-    const documentIds = body.data.documents.map((doc: any) => doc.id);
+    const documentIds = body.data.documents.map(
+      (doc: { id: string }) => doc.id
+    );
     expect(documentIds).toContain(document.id);
     expect(documentIds).toContain(reverseDocument.id);
   });
@@ -267,7 +271,7 @@ describe("#relationships.list", () => {
     expect(body.data.relationships).toBeTruthy();
 
     // All returned relationships should be backlinks
-    body.data.relationships.forEach((rel: any) => {
+    body.data.relationships.forEach((rel: { type: RelationshipType }) => {
       expect(rel.type).toEqual(RelationshipType.Backlink);
     });
   });
@@ -285,7 +289,7 @@ describe("#relationships.list", () => {
     expect(body.data.relationships).toBeTruthy();
 
     // All returned relationships should have the specified documentId
-    body.data.relationships.forEach((rel: any) => {
+    body.data.relationships.forEach((rel: { documentId: string }) => {
       expect(rel.documentId).toEqual(documents[0].id);
     });
   });
@@ -303,7 +307,7 @@ describe("#relationships.list", () => {
     expect(body.data.relationships).toBeTruthy();
 
     // All returned relationships should have the specified reverseDocumentId
-    body.data.relationships.forEach((rel: any) => {
+    body.data.relationships.forEach((rel: { reverseDocumentId: string }) => {
       expect(rel.reverseDocumentId).toEqual(documents[1].id);
     });
   });
@@ -322,10 +326,12 @@ describe("#relationships.list", () => {
     expect(body.data.relationships).toBeTruthy();
 
     // All returned relationships should match both filters
-    body.data.relationships.forEach((rel: any) => {
-      expect(rel.type).toEqual(RelationshipType.Backlink);
-      expect(rel.documentId).toEqual(documents[0].id);
-    });
+    body.data.relationships.forEach(
+      (rel: { type: RelationshipType; documentId: string }) => {
+        expect(rel.type).toEqual(RelationshipType.Backlink);
+        expect(rel.documentId).toEqual(documents[0].id);
+      }
+    );
   });
 
   it("should fail with status 400 bad request when documentId is invalid", async () => {

@@ -28,9 +28,9 @@ export default class UpArrowAtStart extends Extension {
               const isAtDocStart = $pos.parentOffset === 0 && $pos.depth <= 1;
 
               if (isAtDocStart) {
-                // Call the onUpArrowAtStart callback if it exists
-                // Cast to any to access the custom prop since it's not in the base Props type
-                const props = this.editor.props as any;
+                const props = this.editor.props as {
+                  onUpArrowAtStart?: () => void;
+                };
                 if (props.onUpArrowAtStart) {
                   props.onUpArrowAtStart();
                   return true;

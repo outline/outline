@@ -1,4 +1,4 @@
-import isUndefined from "lodash/isUndefined";
+import { isUndefined } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { ArchiveIcon } from "outline-icons";
 import { useState, useEffect, useCallback } from "react";

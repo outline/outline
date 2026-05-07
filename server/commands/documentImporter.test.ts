@@ -6,7 +6,7 @@ import { sequelize } from "@server/storage/database";
 import { buildUser } from "@server/test/factories";
 import documentImporter from "./documentImporter";
 
-jest.mock("@server/storage/files");
+vi.mock("@server/storage/files");
 
 describe("documentImporter", () => {
   it("should convert Word Document to markdown", async () => {

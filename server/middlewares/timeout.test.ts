@@ -6,9 +6,10 @@ describe("Timeout middleware", () => {
     const originalTimeout = 10000;
     const newTimeout = 1800000; // 30 minutes
 
+    const setTimeout = vi.fn();
     const mockSocket = {
       timeout: originalTimeout,
-      setTimeout: jest.fn(),
+      setTimeout,
     } as unknown as Socket;
 
     const ctx = {
@@ -17,7 +18,7 @@ describe("Timeout middleware", () => {
       },
     };
 
-    const next = jest.fn();
+    const next = vi.fn();
     const middleware = timeout(newTimeout);
 
     await middleware(
@@ -27,20 +28,21 @@ describe("Timeout middleware", () => {
     );
 
     // Should have set the new timeout
-    expect(mockSocket.setTimeout).toHaveBeenCalledWith(newTimeout);
+    expect(setTimeout).toHaveBeenCalledWith(newTimeout);
     // Should have called next
     expect(next).toHaveBeenCalled();
     // Should have restored the original timeout
-    expect(mockSocket.setTimeout).toHaveBeenCalledWith(originalTimeout);
+    expect(setTimeout).toHaveBeenCalledWith(originalTimeout);
   });
 
   it("should restore original timeout even if next throws", async () => {
     const originalTimeout = 10000;
     const newTimeout = 1800000; // 30 minutes
 
+    const setTimeout = vi.fn();
     const mockSocket = {
       timeout: originalTimeout,
-      setTimeout: jest.fn(),
+      setTimeout,
     } as unknown as Socket;
 
     const ctx = {
@@ -50,7 +52,7 @@ describe("Timeout middleware", () => {
     };
 
     const error = new Error("Test error");
-    const next = jest.fn().mockRejectedValue(error);
+    const next = vi.fn().mockRejectedValue(error);
     const middleware = timeout(newTimeout);
 
     await expect(
@@ -62,19 +64,20 @@ describe("Timeout middleware", () => {
     ).rejects.toThrow("Test error");
 
     // Should have set the new timeout
-    expect(mockSocket.setTimeout).toHaveBeenCalledWith(newTimeout);
+    expect(setTimeout).toHaveBeenCalledWith(newTimeout);
     // Should have called next
     expect(next).toHaveBeenCalled();
     // Should have restored the original timeout even after error
-    expect(mockSocket.setTimeout).toHaveBeenCalledWith(originalTimeout);
+    expect(setTimeout).toHaveBeenCalledWith(originalTimeout);
   });
 
   it("should handle undefined original timeout", async () => {
     const newTimeout = 1800000; // 30 minutes
 
+    const setTimeout = vi.fn();
     const mockSocket = {
       timeout: undefined,
-      setTimeout: jest.fn(),
+      setTimeout,
     } as unknown as Socket;
 
     const ctx = {
@@ -83,7 +86,7 @@ describe("Timeout middleware", () => {
       },
     };
 
-    const next = jest.fn();
+    const next = vi.fn();
     const middleware = timeout(newTimeout);
 
     await middleware(
@@ -93,10 +96,10 @@ describe("Timeout middleware", () => {
     );
 
     // Should have set the new timeout
-    expect(mockSocket.setTimeout).toHaveBeenCalledWith(newTimeout);
+    expect(setTimeout).toHaveBeenCalledWith(newTimeout);
     // Should have called next
     expect(next).toHaveBeenCalled();
     // Should have restored timeout to 0 when original was undefined
-    expect(mockSocket.setTimeout).toHaveBeenCalledWith(0);
+    expect(setTimeout).toHaveBeenCalledWith(0);
   });
 });

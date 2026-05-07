@@ -1,4 +1,4 @@
-import compact from "lodash/compact";
+import { compact } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useMemo, useCallback } from "react";
@@ -146,7 +146,7 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
             }
           : undefined,
       ]),
-    [t, hasDomain, canManage]
+    [t, hasDomain, canManage, formatNumber]
   );
 
   return (

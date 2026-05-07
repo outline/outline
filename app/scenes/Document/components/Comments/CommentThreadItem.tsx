@@ -158,7 +158,7 @@ function CommentThreadItem({
         setFocusedCommentId(null);
       }
     },
-    [comment.id, onUpdate]
+    [comment.id, onUpdate, setFocusedCommentId]
   );
 
   const handleDelete = React.useCallback(() => {

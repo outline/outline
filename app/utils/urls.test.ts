@@ -123,5 +123,13 @@ describe("decodeURIComponentSafe", () => {
       expect(isAllowedLoginRedirect("/s/share#public")).toBe(false);
       expect(isAllowedLoginRedirect("/#top")).toBe(false);
     });
+
+    test("should block protocol-relative paths", () => {
+      expect(isAllowedLoginRedirect("//home")).toBe(false);
+      expect(isAllowedLoginRedirect("//evil.com")).toBe(false);
+      expect(isAllowedLoginRedirect("//evil.com/path")).toBe(false);
+      expect(isAllowedLoginRedirect("/\\evil.com")).toBe(false);
+      expect(isAllowedLoginRedirect("//documents?foo=bar")).toBe(false);
+    });
   });
 });

@@ -31,6 +31,26 @@ describe("documentUpdater", () => {
     expect(event!.documentId).toEqual(document.id);
   });
 
+  it("should change lastModifiedById when republishing an already published document", async () => {
+    const user = await buildUser();
+    const creator = await buildUser({ teamId: user.teamId });
+    let document = await buildDocument({
+      teamId: user.teamId,
+      userId: creator.id,
+    });
+
+    document = await withAPIContext(user, (ctx) =>
+      documentUpdater(ctx, {
+        text: "Changed",
+        publish: true,
+        document,
+      })
+    );
+
+    expect(document.createdById).toEqual(creator.id);
+    expect(document.lastModifiedById).toEqual(user.id);
+  });
+
   it("should not change lastModifiedById or generate event if nothing changed", async () => {
     const user = await buildUser();
     let document = await buildDocument({
@@ -48,7 +68,7 @@ describe("documentUpdater", () => {
   });
 
   it("should notify collaboration server when text changes", async () => {
-    const notifyUpdateSpy = jest
+    const notifyUpdateSpy = vi
       .spyOn(APIUpdateExtension, "notifyUpdate")
       .mockResolvedValue(undefined);
 
@@ -75,7 +95,7 @@ describe("documentUpdater", () => {
   });
 
   it("should not notify collaboration server when only title changes", async () => {
-    const notifyUpdateSpy = jest
+    const notifyUpdateSpy = vi
       .spyOn(APIUpdateExtension, "notifyUpdate")
       .mockResolvedValue(undefined);
 

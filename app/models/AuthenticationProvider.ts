@@ -37,11 +37,12 @@ class AuthenticationProvider extends Model {
   @AfterDelete
   static afterDelete(model: AuthenticationProvider) {
     // Restore a placeholder record to allow re-connection
-    return (model.store as AuthenticationProvidersStore).add({
-      ...model,
-      isEnabled: false,
-      isConnected: false,
-    });
+    return (model.store as AuthenticationProvidersStore).add(
+      Object.assign({}, model, {
+        isEnabled: false,
+        isConnected: false,
+      })
+    );
   }
 }
 

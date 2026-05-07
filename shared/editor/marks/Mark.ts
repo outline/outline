@@ -13,7 +13,9 @@ import Extension from "../lib/Extension";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 import type { Primitive } from "utility-types";
 
-export default abstract class Mark extends Extension {
+export default abstract class Mark<
+  TOptions extends object = object,
+> extends Extension<TOptions> {
   get type() {
     return "mark";
   }

@@ -11,7 +11,7 @@ type Props = {
   shrink?: boolean;
 } & Pick<
   React.ComponentProps<typeof InputSelect>,
-  "value" | "onChange" | "disabled" | "hideLabel" | "nude" | "help"
+  "value" | "onChange" | "disabled" | "labelHidden" | "nude" | "help"
 >;
 
 export const InputSelectPermission = React.forwardRef<HTMLButtonElement, Props>(

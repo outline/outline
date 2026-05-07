@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`NotionConverter converts a page 1`] = `
+exports[`NotionConverter > converts a page 1`] = `
 {
   "content": [
     {
@@ -2093,7 +2093,7 @@ exports[`NotionConverter converts a page 1`] = `
 }
 `;
 
-exports[`NotionConverter converts a page with empty text nodes 1`] = `
+exports[`NotionConverter > converts a page with empty text nodes 1`] = `
 {
   "content": [
     {

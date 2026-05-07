@@ -19,7 +19,19 @@ export enum DocumentInsightPeriod {
   Week = "week",
 }
 
-@Table({ tableName: "document_insights", modelName: "documentInsight" })
+@Table({
+  tableName: "document_insights",
+  modelName: "documentInsight",
+  indexes: [
+    {
+      fields: ["documentId", "date", "period"],
+      unique: true,
+    },
+    {
+      fields: ["teamId", "date"],
+    },
+  ],
+})
 @Fix
 class DocumentInsight extends IdModel<
   InferAttributes<DocumentInsight>,

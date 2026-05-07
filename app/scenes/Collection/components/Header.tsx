@@ -1,6 +1,6 @@
 import { IconTitleWrapper } from "@shared/components/Icon";
 import breakpoint from "styled-components-breakpoint";
-import first from "lodash/first";
+import { first } from "es-toolkit/compat";
 import { Suspense, useCallback } from "react";
 import styled from "styled-components";
 import { CollectionValidation } from "@shared/validations";

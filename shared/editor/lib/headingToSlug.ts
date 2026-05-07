@@ -1,4 +1,4 @@
-import escape from "lodash/escape";
+import { escape } from "es-toolkit/compat";
 import type { Node } from "prosemirror-model";
 import slugify from "slugify";
 
@@ -14,7 +14,7 @@ function safeSlugify(text: string) {
 
   const slug = `h-${escape(
     slugify(text, {
-      remove: /[!"#$%&'\.()*+,\/:;<=>?@\[\]\\^_`{|}~]/g,
+      remove: /[!"#$%&'.()*+,/:;<=>?@[\]\\^_`{|}~]/g,
       lower: true,
     })
   )}`;

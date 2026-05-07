@@ -1,4 +1,4 @@
-import find from "lodash/find";
+import { find } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { EmailIcon } from "outline-icons";
 import * as React from "react";
@@ -81,7 +81,7 @@ function Login({ children, onBack }: Props) {
   const handleGoSubdomain = React.useCallback(async (event) => {
     event.preventDefault();
     const data = Object.fromEntries(new FormData(event.target));
-    await navigateToSubdomain(data.subdomain.toString());
+    await navigateToSubdomain(data.subdomain as string);
   }, []);
 
   React.useEffect(() => {

@@ -20,7 +20,7 @@ import { randomUUID } from "node:crypto";
 const server = getTestServer();
 
 // Increase timeout for all tests in this file
-jest.setTimeout(10000);
+vi.setConfig({ testTimeout: 10000 });
 
 describe("#files.create", () => {
   it("should fail with status 400 bad request if key is invalid", async () => {

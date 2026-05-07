@@ -32,7 +32,7 @@ function mockHandle(fileOperation: FileOperation) {
       };
     },
   });
-  jest.spyOn(FileOperation, "findByPk").mockResolvedValue(fileOperation);
+  vi.spyOn(FileOperation, "findByPk").mockResolvedValue(fileOperation);
 }
 
 describe("ImportJSONTask", () => {

@@ -30,7 +30,7 @@ export const ellipsis = () => `
  */
 export const s =
   (key: keyof DefaultTheme) => (props: { theme: DefaultTheme }) =>
-    String(props.theme[key]);
+    props.theme[key] as string;
 
 /**
  * Mixin to hide scrollbars.

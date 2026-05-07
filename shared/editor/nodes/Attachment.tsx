@@ -207,7 +207,6 @@ export default class Attachment extends Node {
             onFileUploadStart,
             onFileUploadStop,
             onFileUploadProgress,
-            dictionary: this.options.dictionary,
             replaceExisting: true,
             attrs: {
               preview: node.attrs.preview,

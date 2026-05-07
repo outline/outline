@@ -5,7 +5,7 @@ const key = Symbol("skipChangeset");
 /**
  * This decorator is used to annotate a property as being skipped from being included in a changeset.
  */
-export function SkipChangeset(target: any, propertyKey: string) {
+export function SkipChangeset(target: object, propertyKey: string) {
   const properties: string[] = Reflect.getMetadata(key, target);
 
   if (!properties) {
@@ -18,6 +18,6 @@ export function SkipChangeset(target: any, propertyKey: string) {
 /**
  * This function is used to get the properties that should be skipped from a changeset.
  */
-export function getChangsetSkipped(target: any): string[] {
+export function getChangesetSkipped(target: object): string[] {
   return Reflect.getMetadata(key, target) || [];
 }

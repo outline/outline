@@ -1,5 +1,5 @@
 import Router from "koa-router";
-import isUndefined from "lodash/isUndefined";
+import { isUndefined } from "es-toolkit/compat";
 import type { FindOptions, WhereAttributeHash, WhereOptions } from "sequelize";
 import { Op } from "sequelize";
 import { subMinutes } from "date-fns";
@@ -251,6 +251,7 @@ router.post(
 
 router.post(
   "shares.create",
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth(),
   validate(T.SharesCreateSchema),
   transaction(),
@@ -350,6 +351,8 @@ router.post(
       allowSubscriptions,
       showLastUpdated,
       showTOC,
+      title,
+      iconUrl,
     } = ctx.input.body;
 
     const { user } = ctx.state.auth;
@@ -388,6 +391,14 @@ router.post(
     }
     if (showTOC !== undefined) {
       share.showTOC = showTOC;
+    }
+
+    if (!isUndefined(title)) {
+      share.title = title || null;
+    }
+
+    if (!isUndefined(iconUrl)) {
+      share.iconUrl = iconUrl || null;
     }
 
     await share.saveWithCtx(ctx);
@@ -530,7 +541,7 @@ router.post(
     const confirmUrl = ShareSubscriptionHelper.confirmUrl(subscription);
     const usePublicBranding =
       share.team?.getPreference(TeamPreference.PublicBranding) ?? false;
-    new ShareSubscriptionConfirmEmail({
+    await new ShareSubscriptionConfirmEmail({
       to: email,
       documentTitle: document?.titleWithDefault ?? "",
       confirmUrl,

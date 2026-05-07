@@ -1,9 +1,10 @@
 import Extension from "@shared/editor/lib/Extension";
 import { InputRule } from "@shared/editor/lib/InputRule";
+import type { UserPreferences } from "@shared/types";
 
 const rightArrow = new InputRule(/->$/, "→");
 // Note that the suppression of pipe here prevents conflict with table creation rule.
-const emdash = new InputRule(/(?:^|[^\|])(--\s)$/, "— ");
+const emdash = new InputRule(/(?:^|[^|])(--\s)$/, "— ");
 const oneHalf = new InputRule(/(?:^|\s)(1\/2)$/, "½");
 const threeQuarters = new InputRule(/(?:^|\s)(3\/4)$/, "¾");
 const copyright = new InputRule(/\(c\)$/, "©️");
@@ -12,20 +13,22 @@ const trademarked = new InputRule(/\(tm\)$/, "™️");
 const ellipsis = new InputRule(/\.\.\.$/, "…");
 
 // Double quotes
-const openDoubleQuote = new InputRule(
-  /(?:^|[\s\{\[\(\<'"\u2018\u201C])(")$/,
-  "“"
-);
+const openDoubleQuote = new InputRule(/(?:^|[\s{[(<'"\u2018\u201C])(")$/, "“");
 const closeDoubleQuote = new InputRule(/^(?!.*`)[\s\S]*(")$/, "”");
 
 // Single quotes
-const openSingleQuote = new InputRule(
-  /(?:^|[\s\{\[\(\<'"\u2018\u201C])(')$/,
-  "‘"
-);
+const openSingleQuote = new InputRule(/(?:^|[\s{[(<'"\u2018\u201C])(')$/, "‘");
 const closeSingleQuote = new InputRule(/^(?!.*`)[\s\S]*(')$/, "’");
 
-export default class SmartText extends Extension {
+/**
+ * Options for the SmartText extension.
+ */
+type SmartTextOptions = {
+  /** Display preferences for the logged in user, if any. */
+  userPreferences?: UserPreferences | null;
+};
+
+export default class SmartText extends Extension<SmartTextOptions> {
   get name() {
     return "smart_text";
   }

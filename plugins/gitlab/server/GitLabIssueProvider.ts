@@ -5,7 +5,26 @@ import { Integration, IntegrationAuthentication } from "@server/models";
 import { BaseIssueProvider } from "@server/utils/BaseIssueProvider";
 import { GitLab } from "./gitlab";
 import { sequelize } from "@server/storage/database";
-import { Op } from "sequelize";
+import { Op, type WhereOptions } from "sequelize";
+
+interface GitLabWebhookPayload {
+  event_name?: string;
+  old_full_path?: string;
+  old_username?: string;
+  full_path?: string;
+  username?: string;
+  group_id?: string;
+  user_id?: string;
+  project_id?: string | number;
+  project_namespace_id?: string | number;
+  name?: string;
+  path_with_namespace?: string;
+  changes?: { before: string }[];
+  project?: {
+    name: string;
+    path_with_namespace: string;
+  };
+}
 
 export class GitLabIssueProvider extends BaseIssueProvider {
   constructor() {
@@ -64,7 +83,8 @@ export class GitLabIssueProvider extends BaseIssueProvider {
     headers: Record<string, unknown>;
   }) {
     const hookId = headers["x-gitlab-webhook-uuid"] as string;
-    const eventName = payload.event_name as string;
+    const typedPayload = payload as GitLabWebhookPayload;
+    const eventName = typedPayload.event_name;
 
     if (!eventName) {
       Logger.warn(
@@ -77,28 +97,28 @@ export class GitLabIssueProvider extends BaseIssueProvider {
       case "project_update":
       case "project_transfer":
       case "project_rename":
-        await this.updateProject(payload);
+        await this.updateProject(typedPayload);
         break;
       case "repository_update":
-        await this.createProject(payload);
+        await this.createProject(typedPayload);
         break;
       case "project_destroy":
-        await this.destroyProject(payload);
+        await this.destroyProject(typedPayload);
         break;
       case "group_rename":
       case "user_rename":
-        await this.updateNamespace(payload);
+        await this.updateNamespace(typedPayload);
         break;
       case "user_destroy":
       case "group_destroy":
-        await this.destroyNamespace(payload);
+        await this.destroyNamespace(typedPayload);
         break;
       default:
         break;
     }
   }
 
-  private async updateNamespace(payload: Record<string, any>) {
+  private async updateNamespace(payload: GitLabWebhookPayload) {
     const name = payload.old_full_path ?? payload.old_username;
     const where = {
       service: IntegrationService.GitLab,
@@ -119,6 +139,12 @@ export class GitLabIssueProvider extends BaseIssueProvider {
         return;
       }
 
+      const newName = payload.full_path ?? payload.username;
+      if (!newName) {
+        Logger.warn(`GitLab namespace_update event without new name`);
+        return;
+      }
+
       const sources = integration.issueSources ?? [];
       const updatedSources = sources.map((source) => {
         if (source.owner.name === name) {
@@ -126,7 +152,7 @@ export class GitLabIssueProvider extends BaseIssueProvider {
             ...source,
             owner: {
               id: payload.group_id || source.owner.id,
-              name: payload.full_path ?? payload.username,
+              name: newName,
             },
           };
         }
@@ -139,19 +165,29 @@ export class GitLabIssueProvider extends BaseIssueProvider {
     });
   }
 
-  private async destroyNamespace(payload: Record<string, any>) {
+  private async destroyNamespace(payload: GitLabWebhookPayload) {
+    if (!payload.user_id && !payload.full_path) {
+      Logger.warn(
+        `GitLab namespace_destroy event without user_id or full_path`
+      );
+      return;
+    }
+
     let replacements = {};
-    const whereCondition: any = {
+    const whereCondition: WhereOptions = {
       service: IntegrationService.GitLab,
+      ...(payload.user_id && {
+        "settings.gitlab.installation.account.id": payload.user_id,
+      }),
+      ...(!payload.user_id &&
+        payload.full_path && {
+          [Op.and]: sequelize.literal(
+            `"issueSources"::jsonb @> :jsonCondition`
+          ),
+        }),
     };
 
-    if (payload.user_id) {
-      whereCondition["settings.gitlab.installation.account.id"] =
-        payload.user_id;
-    } else if (payload.full_path) {
-      whereCondition[Op.and] = sequelize.literal(
-        `"issueSources"::jsonb @> :jsonCondition`
-      );
+    if (!payload.user_id && payload.full_path) {
       replacements = {
         jsonCondition: JSON.stringify([{ owner: { name: payload.full_path } }]),
       };
@@ -187,7 +223,7 @@ export class GitLabIssueProvider extends BaseIssueProvider {
     });
   }
 
-  private async destroyProject(payload: Record<string, any>) {
+  private async destroyProject(payload: GitLabWebhookPayload) {
     await sequelize.transaction(async (transaction) => {
       const integrations = await Integration.findAll({
         where: {
@@ -223,14 +259,20 @@ export class GitLabIssueProvider extends BaseIssueProvider {
     });
   }
 
-  private async createProject(payload: Record<string, any>) {
-    const createEvent = payload.changes.some((p: { before: string }) =>
+  private async createProject(payload: GitLabWebhookPayload) {
+    const createEvent = payload.changes?.some((p: { before: string }) =>
       /^0{40}$/.test(p.before)
     );
 
     if (!createEvent) {
       return;
     }
+
+    const project = payload.project;
+    if (!project || !payload.project_id) {
+      return;
+    }
+
     await sequelize.transaction(async (transaction) => {
       const integration = (await Integration.findOne({
         where: {
@@ -245,7 +287,6 @@ export class GitLabIssueProvider extends BaseIssueProvider {
         return;
       }
 
-      const project = payload.project;
       const owner = {
         id: "", // namespace.id is not provided in this webhook payload
         name: project.path_with_namespace.split("/").slice(0, -1).join("/"),
@@ -264,7 +305,13 @@ export class GitLabIssueProvider extends BaseIssueProvider {
     });
   }
 
-  private async updateProject(payload: Record<string, any>) {
+  private async updateProject(payload: GitLabWebhookPayload) {
+    if (!payload.name || !payload.path_with_namespace) {
+      return;
+    }
+    const newName = payload.name;
+    const pathWithNamespace = payload.path_with_namespace;
+
     await sequelize.transaction(async (transaction) => {
       const integrations = await Integration.findAll({
         where: {
@@ -293,8 +340,8 @@ export class GitLabIssueProvider extends BaseIssueProvider {
         );
 
         if (source) {
-          source.name = payload.name;
-          source.owner.name = payload.path_with_namespace
+          source.name = newName;
+          source.owner.name = pathWithNamespace
             .split("/")
             .slice(0, -1)
             .join("/");

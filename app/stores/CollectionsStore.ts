@@ -1,7 +1,5 @@
 import invariant from "invariant";
-import isEmpty from "lodash/isEmpty";
-import orderBy from "lodash/orderBy";
-import sortBy from "lodash/sortBy";
+import { isEmpty, orderBy, sortBy } from "es-toolkit/compat";
 import { computed, action, runInAction } from "mobx";
 import {
   CollectionPermission,

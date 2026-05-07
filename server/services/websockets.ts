@@ -56,7 +56,7 @@ export default function init(
   if (ioHandleUpgrade) {
     server.removeListener(
       "upgrade",
-      ioHandleUpgrade as (...args: any[]) => void
+      ioHandleUpgrade as (...args: unknown[]) => void
     );
   }
 

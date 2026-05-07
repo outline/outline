@@ -5,7 +5,7 @@ import { useRef, useEffect } from "react";
  *
  * @param callback Function to be called on component unmount
  */
-const useUnmount = (callback: (...args: Array<any>) => any) => {
+const useUnmount = (callback: () => void) => {
   const ref = useRef(callback);
   ref.current = callback;
 

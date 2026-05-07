@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`#comments.add_reaction should require authentication 1`] = `
+exports[`#comments.add_reaction > should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",
@@ -9,7 +9,7 @@ exports[`#comments.add_reaction should require authentication 1`] = `
 }
 `;
 
-exports[`#comments.create should require authentication 1`] = `
+exports[`#comments.create > should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",
@@ -18,7 +18,7 @@ exports[`#comments.create should require authentication 1`] = `
 }
 `;
 
-exports[`#comments.info should require authentication 1`] = `
+exports[`#comments.info > should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",
@@ -27,7 +27,7 @@ exports[`#comments.info should require authentication 1`] = `
 }
 `;
 
-exports[`#comments.list should require authentication 1`] = `
+exports[`#comments.list > should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",
@@ -36,7 +36,7 @@ exports[`#comments.list should require authentication 1`] = `
 }
 `;
 
-exports[`#comments.remove_reaction should require authentication 1`] = `
+exports[`#comments.remove_reaction > should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",
@@ -45,7 +45,7 @@ exports[`#comments.remove_reaction should require authentication 1`] = `
 }
 `;
 
-exports[`#comments.resolve should require authentication 1`] = `
+exports[`#comments.resolve > should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",
@@ -54,7 +54,7 @@ exports[`#comments.resolve should require authentication 1`] = `
 }
 `;
 
-exports[`#comments.unresolve should require authentication 1`] = `
+exports[`#comments.unresolve > should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",
@@ -63,7 +63,7 @@ exports[`#comments.unresolve should require authentication 1`] = `
 }
 `;
 
-exports[`#comments.update should require authentication 1`] = `
+exports[`#comments.update > should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",

@@ -1,4 +1,4 @@
-import isEqual from "lodash/isEqual";
+import { isEqual } from "es-toolkit/compat";
 import { action, computed, observable } from "mobx";
 import type { FunctionComponent } from "react";
 import { createPortal } from "react-dom";

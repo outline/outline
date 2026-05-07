@@ -1,3 +1,4 @@
+import { t } from "i18next";
 import { chainCommands, newlineInCode } from "prosemirror-commands";
 import { wrappingInputRule } from "prosemirror-inputrules";
 import type { ParseSpec } from "prosemirror-markdown";
@@ -340,7 +341,7 @@ export default class ToggleBlock extends Node {
             parent.type.name === "container_toggle" &&
             $start.index($start.depth - 1) === 0 &&
             node.textContent === "",
-          text: this.options.dictionary?.emptyToggleBlockHead,
+          text: `${t("Add title")}…`,
         },
         {
           condition: ({ parent, $start, state }) =>
@@ -350,7 +351,7 @@ export default class ToggleBlock extends Node {
             ToggleBlock.isBodyEmpty(parent) &&
             (state.selection.$from.pos < $start.pos ||
               state.selection.$from.pos > $start.end($start.depth - 1)),
-          text: this.options.dictionary?.emptyToggleBlockBody,
+          text: `${t("Add content")}…`,
         },
         {
           condition: ({ node, parent, $start, state }) =>
@@ -359,7 +360,7 @@ export default class ToggleBlock extends Node {
             node.isTextblock &&
             node.textContent === "" &&
             (state.selection as TextSelection).$cursor?.pos === $start.pos,
-          text: this.options.dictionary?.newLineEmpty,
+          text: `${t("Type '/' to insert")}…`,
         },
       ]),
     ];

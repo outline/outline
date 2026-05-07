@@ -1,5 +1,4 @@
-import uniqBy from "lodash/uniqBy";
-import partition from "lodash/partition";
+import { partition, uniqBy } from "es-toolkit/compat";
 import { UserRole } from "@shared/types";
 import InviteEmail from "@server/emails/templates/InviteEmail";
 import env from "@server/env";

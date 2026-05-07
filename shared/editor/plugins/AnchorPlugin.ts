@@ -28,8 +28,8 @@ export class AnchorPlugin extends Plugin {
     });
   }
 
-  private createAnchorDecoration(anchor: NodeAnchor) {
-    return Decoration.widget(
+  private createAnchorDecoration = (anchor: NodeAnchor) =>
+    Decoration.widget(
       anchor.pos,
       () => {
         const anchorElement = document.createElement("a");
@@ -39,7 +39,6 @@ export class AnchorPlugin extends Plugin {
       },
       { side: -1, key: anchor.id }
     );
-  }
 
   private createDecorations(state: EditorState) {
     const anchors = ProsemirrorHelper.getAnchors(state.doc);

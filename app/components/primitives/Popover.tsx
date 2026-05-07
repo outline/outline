@@ -44,7 +44,7 @@ const PopoverContent = React.forwardRef<
   const timeoutRef = React.useRef<NodeJS.Timeout>();
   const container = usePortalContext();
   const {
-    width = 380,
+    width,
     minWidth,
     minHeight,
     scrollable = true,
@@ -53,6 +53,7 @@ const PopoverContent = React.forwardRef<
     children,
     ...rest
   } = props;
+  const resolvedWidth = width ?? (minWidth ? undefined : 380);
 
   const enablePointerEvents = React.useCallback(() => {
     if (timeoutRef.current) {
@@ -78,7 +79,7 @@ const PopoverContent = React.forwardRef<
       <StyledContent
         ref={mergeRefs([ref, forwardedRef])}
         sideOffset={sideOffset}
-        $width={width}
+        $width={resolvedWidth}
         $minWidth={minWidth}
         $minHeight={minHeight}
         $scrollable={scrollable}

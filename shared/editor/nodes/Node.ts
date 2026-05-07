@@ -11,7 +11,9 @@ import type { CommandFactory } from "../lib/Extension";
 import Extension from "../lib/Extension";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
 
-export default abstract class Node extends Extension {
+export default abstract class Node<
+  TOptions extends object = object,
+> extends Extension<TOptions> {
   get type() {
     return "node";
   }

@@ -183,9 +183,7 @@ const embeds: EmbedDescriptor[] = [
     id: "canva",
     title: "Canva",
     keywords: "design",
-    regexMatch: [
-      /^https:\/\/(?:www\.)?canva\.com\/design\/([\/a-zA-Z0-9_\-]*)$/,
-    ],
+    regexMatch: [/^https:\/\/(?:www\.)?canva\.com\/design\/([/a-zA-Z0-9_-]*)$/],
     transformMatch: (matches: RegExpMatchArray) => {
       const input = matches.input ?? matches[0];
 
@@ -634,7 +632,7 @@ const embeds: EmbedDescriptor[] = [
     id: "tella",
     title: "Tella",
     keywords: "video",
-    regexMatch: [/^https?:\/\/(?:www\.)?tella\.tv\/video\/([^\/]+)(?:.*)?$/],
+    regexMatch: [/^https?:\/\/(?:www\.)?tella\.tv\/video\/([^/]+)(?:.*)?$/],
     transformMatch: (matches: RegExpMatchArray) =>
       `https://www.tella.tv/video/${matches[1]}/embed?b=0&title=1&a=0&loop=0&t=0&muted=0&wt=1`,
     icon: <Img src="/images/tella.png" alt="Tella" />,
@@ -719,7 +717,7 @@ const embeds: EmbedDescriptor[] = [
     title: "YouTube",
     keywords: "google video",
     regexMatch: [
-      /(?:https?:\/\/)?(?:www\.)?youtu\.?be(?:\.com)?\/?.*(?:watch|embed)?(?:.*v=|v\/|\/)([a-zA-Z0-9_-]{11})([\&\?](.*))?$/i,
+      /(?:https?:\/\/)?(?:www\.)?youtu\.?be(?:\.com)?\/?.*(?:watch|embed)?(?:.*v=|v\/|\/)([a-zA-Z0-9_-]{11})([&?](.*))?$/i,
     ],
     icon: <Img src="/images/youtube.png" alt="YouTube" />,
     component: YouTube,
@@ -729,7 +727,7 @@ const embeds: EmbedDescriptor[] = [
     title: "Plant UML",
     keywords: "plant plantuml uml",
     regexMatch: [
-      /(?:https?:\/\/)?(?:www\.)?editor\.plantuml\.com\/uml\/([a-zA-Z0-9\-_]+)([\&\?].*)?$/i,
+      /(?:https?:\/\/)?(?:www\.)?editor\.plantuml\.com\/uml\/([a-zA-Z0-9_-]+)([&?].*)?$/i,
     ],
     icon: <Img src="/images/plantuml.png" alt="PlantUml" />,
     component: PlantUmlDiagrams,

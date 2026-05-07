@@ -10,6 +10,7 @@ import type { Mark } from "prosemirror-model";
 import type { EditorView } from "prosemirror-view";
 import * as React from "react";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Icon from "@shared/components/Icon";
 import { hideScrollbars, s } from "@shared/styles";
@@ -18,7 +19,6 @@ import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
 import Flex from "~/components/Flex";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Scrollable from "~/components/Scrollable";
-import type { Dictionary } from "~/hooks/useDictionary";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import { client } from "~/utils/ApiClient";
@@ -31,7 +31,6 @@ import { useEditor } from "./EditorContext";
 
 type Props = {
   mark?: Mark;
-  dictionary: Dictionary;
   view: EditorView;
   autoFocus?: boolean;
   onLinkAdd: () => void;
@@ -44,7 +43,6 @@ type Props = {
 
 const LinkEditor: React.FC<Props> = ({
   mark,
-  dictionary,
   view,
   autoFocus,
   onLinkAdd,
@@ -54,6 +52,7 @@ const LinkEditor: React.FC<Props> = ({
   onClickOutside,
   onClickBack,
 }) => {
+  const { t } = useTranslation();
   const getHref = () => sanitizeUrl(mark?.attrs.href) ?? "";
   const initialValue = getHref();
   const { commands } = useEditor();
@@ -102,7 +101,7 @@ const LinkEditor: React.FC<Props> = ({
 
   const openLink = React.useCallback(() => {
     commands["openLink"]();
-  }, []);
+  }, [commands]);
 
   const removeLink = React.useCallback(() => {
     commands["removeLink"]();
@@ -144,7 +143,11 @@ const LinkEditor: React.FC<Props> = ({
 
         if (selectedIndex >= 0 && results[selectedIndex]) {
           const selectedDoc = results[selectedIndex];
-          !mark ? addLink(selectedDoc.url) : updateLink(selectedDoc.url);
+          if (!mark) {
+            addLink(selectedDoc.url);
+          } else {
+            updateLink(selectedDoc.url);
+          }
         } else if (!trimmedQuery) {
           removeLink();
         } else if (!mark) {
@@ -179,21 +182,21 @@ const LinkEditor: React.FC<Props> = ({
   const isInternal = isInternalUrl(query);
   const actions = [
     {
-      tooltip: isInternal ? dictionary.goToLink : dictionary.openLink,
+      tooltip: isInternal ? t("Go to link") : t("Open link"),
       icon: isInternal ? <ArrowIcon /> : <OpenIcon />,
       visible: true,
       disabled: !query,
       handler: openLink,
     },
     {
-      tooltip: dictionary.removeLink,
+      tooltip: t("Remove link"),
       icon: <CloseIcon />,
       visible: view.editable,
       disabled: false,
       handler: removeLink,
     },
     {
-      tooltip: dictionary.formattingControls,
+      tooltip: t("Formatting controls"),
       icon: <ReturnIcon />,
       visible: view.editable,
       disabled: false,
@@ -207,7 +210,7 @@ const LinkEditor: React.FC<Props> = ({
         <Input
           ref={inputRef}
           value={query}
-          placeholder={dictionary.searchOrPasteLink}
+          placeholder={`${t("Search or paste a link")}…`}
           onKeyDown={handleKeyDown}
           onChange={handleSearch}
           onFocus={handleSearch}
@@ -238,7 +241,11 @@ const LinkEditor: React.FC<Props> = ({
               {results.map((doc, index) => (
                 <SuggestionsMenuItem
                   onClick={() => {
-                    !mark ? addLink(doc.path) : updateLink(doc.path);
+                    if (!mark) {
+                      addLink(doc.path);
+                    } else {
+                      updateLink(doc.path);
+                    }
                   }}
                   onPointerMove={() => setSelectedIndex(index)}
                   selected={index === selectedIndex}

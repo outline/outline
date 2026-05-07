@@ -85,9 +85,24 @@ export const uploadFile = async (
       }
     });
     xhr.addEventListener("error", () => {
+      const extra = {
+        status: xhr.status,
+        statusText: xhr.statusText,
+        contentType: file.type,
+        size: file.size,
+      };
+
+      // Status 0 means the request never reached the server (network drop,
+      // CORS, abort) — log as a warning rather than an unhelpful "Error: 0".
+      if (xhr.status === 0) {
+        Logger.warn("File upload failed before response", extra);
+        return;
+      }
+
       Logger.error(
         "File upload failed",
-        new Error(`${xhr.status} ${xhr.statusText}`)
+        new Error(`${xhr.status} ${xhr.statusText}`),
+        extra
       );
     });
     xhr.addEventListener("loadend", () => {

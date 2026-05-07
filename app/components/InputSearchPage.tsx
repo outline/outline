@@ -4,7 +4,6 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
-import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
 import {
   isModKey,
@@ -13,6 +12,7 @@ import {
 } from "@shared/utils/keyboard";
 import useBoolean from "~/hooks/useBoolean";
 import useKeyDown from "~/hooks/useKeyDown";
+import useMobile from "~/hooks/useMobile";
 import { searchPath } from "~/utils/routeHelpers";
 import Input from "./Input";
 
@@ -48,6 +48,7 @@ function InputSearchPage({
   const theme = useTheme();
   const history = useHistory();
   const { t } = useTranslation();
+  const isMobile = useMobile();
   const [isFocused, setFocused, setUnfocused] = useBoolean(false);
 
   useKeyDown("f", (ev: KeyboardEvent) => {
@@ -104,10 +105,12 @@ function InputSearchPage({
       margin={0}
       labelHidden
     >
-      <Shortcut $visible={!isFocused && !value && !collectionId}>
-        {metaDisplay}
-        {shortcutSeparator}K
-      </Shortcut>
+      {!isMobile && (
+        <Shortcut $visible={!isFocused && !value && !collectionId}>
+          {metaDisplay}
+          {shortcutSeparator}K
+        </Shortcut>
+      )}
     </InputMaxWidth>
   );
 }
@@ -117,7 +120,6 @@ const InputMaxWidth = styled(Input).attrs({ round: true })`
 `;
 
 const Shortcut = styled.span<{ $visible: boolean }>`
-  display: none;
   flex-shrink: 0;
   font-size: 13px;
   color: ${s("textTertiary")};
@@ -125,10 +127,6 @@ const Shortcut = styled.span<{ $visible: boolean }>`
   pointer-events: none;
   opacity: ${(props) => (props.$visible ? 1 : 0)};
   transition: opacity 100ms ease-in-out;
-
-  ${breakpoint("tablet")`
-    display: inline;
-  `};
 `;
 
 export default observer(InputSearchPage);

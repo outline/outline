@@ -1,14 +1,19 @@
 import Router from "koa-router";
 import { IntegrationService, IntegrationType } from "@shared/types";
+import { ValidationError } from "@server/errors";
 import apexAuthRedirect from "@server/middlewares/apexAuthRedirect";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { Integration, IntegrationAuthentication } from "@server/models";
 import type { APIContext } from "@server/types";
+import { verifyOAuthStateNonce } from "@server/utils/oauth";
 import { NotionClient } from "../notion";
 import * as T from "./schema";
-import { NotionUtils } from "plugins/notion/shared/NotionUtils";
+import {
+  NotionOAuthNonceCookie,
+  NotionUtils,
+} from "plugins/notion/shared/NotionUtils";
 
 const router = new Router();
 
@@ -27,7 +32,7 @@ router.get(
   }),
   transaction(),
   async (ctx: APIContext<T.NotionCallbackReq>) => {
-    const { code, error } = ctx.input.query;
+    const { code, error, state } = ctx.input.query;
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
 
@@ -36,6 +41,13 @@ router.get(
       ctx.redirect(NotionUtils.errorUrl(error));
       return;
     }
+
+    const parsedState = NotionUtils.parseState(state);
+    if (!parsedState) {
+      throw ValidationError("Invalid state");
+    }
+
+    verifyOAuthStateNonce(ctx, NotionOAuthNonceCookie, parsedState.nonce);
 
     // validation middleware ensures that code is non-null at this point.
     const data = await NotionClient.oauthAccess(code!);

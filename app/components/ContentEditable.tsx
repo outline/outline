@@ -87,22 +87,23 @@ const ContentEditable = React.forwardRef(function ContentEditable_(
   }));
 
   const wrappedEvent =
-    (
-      callback:
-        | React.FocusEventHandler<HTMLSpanElement>
-        | React.FormEventHandler<HTMLSpanElement>
-        | React.KeyboardEventHandler<HTMLSpanElement>
-        | undefined
+    <E extends React.SyntheticEvent<HTMLSpanElement>>(
+      callback: ((event: E) => void) | undefined
     ) =>
-    (event: any) => {
+    (event: E) => {
       if (readOnly) {
         return;
       }
 
       const text = event.currentTarget.textContent || "";
 
-      if (maxLength && isPrintableKeyEvent(event) && text.length >= maxLength) {
-        event?.preventDefault();
+      if (
+        maxLength &&
+        event.nativeEvent instanceof KeyboardEvent &&
+        isPrintableKeyEvent(event.nativeEvent) &&
+        text.length >= maxLength
+      ) {
+        event.preventDefault();
         return;
       }
 

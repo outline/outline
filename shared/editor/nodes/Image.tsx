@@ -1,3 +1,4 @@
+import { t } from "i18next";
 import type { Token } from "markdown-it";
 import { InputRule } from "prosemirror-inputrules";
 import type {
@@ -85,7 +86,7 @@ export const downloadImageNode = async (
     document.body.removeChild(link);
   } catch {
     if (cache !== "reload") {
-      downloadImageNode(node, "reload");
+      await downloadImageNode(node, "reload");
     } else {
       window.open(sanitizeUrl(node.attrs.src), "_blank");
     }
@@ -254,10 +255,10 @@ export default class Image extends SimpleImage {
               if (selection instanceof NodeSelection) {
                 const { node } = selection;
                 if (node.type.name === "image") {
-                  const image = document.querySelector(
+                  const image = view.dom.querySelector<HTMLImageElement>(
                     ".ProseMirror-selectednode img"
-                  ) as HTMLImageElement;
-                  image.click();
+                  );
+                  image?.click();
                   return true;
                 }
               }
@@ -402,7 +403,7 @@ export default class Image extends SimpleImage {
           onBlur={this.handleCaptionBlur(props)}
           onKeyDown={this.handleCaptionKeyDown(props)}
           isSelected={props.isSelected}
-          placeholder={this.options.dictionary.imageCaptionPlaceholder}
+          placeholder={t("Write a caption")}
         >
           {props.node.attrs.alt}
         </Caption>

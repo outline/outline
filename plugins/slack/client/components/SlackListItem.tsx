@@ -1,4 +1,4 @@
-import uniq from "lodash/uniq";
+import { uniq } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";

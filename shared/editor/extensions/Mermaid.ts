@@ -1,5 +1,5 @@
-import last from "lodash/last";
-import sortBy from "lodash/sortBy";
+import { last, sortBy } from "es-toolkit/compat";
+import { t } from "i18next";
 import { v4 as uuidv4 } from "uuid";
 import type MermaidUnsafe from "mermaid";
 import type { IconPack } from "@fortawesome/fontawesome-common-types";
@@ -363,7 +363,7 @@ export default function Mermaid({
   isDark: boolean;
   editor: Editor;
 }) {
-  const { onClickLink, dictionary } = editor.props;
+  const { onClickLink } = editor.props;
 
   return new Plugin({
     key: pluginKey,
@@ -591,7 +591,7 @@ export default function Mermaid({
                 onClickLink(sanitizeUrl(href) ?? "");
               }
             } catch (_err) {
-              toast.error(dictionary.openLinkError);
+              toast.error(t("Sorry, that type of link is not supported"));
             }
           }
 

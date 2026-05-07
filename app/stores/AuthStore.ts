@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/react";
 import invariant from "invariant";
-import isNil from "lodash/isNil";
+import { isNil } from "es-toolkit/compat";
 import { observable, action, computed, autorun, runInAction } from "mobx";
 import { getCookie, setCookie } from "tiny-cookie";
 import type { CustomTheme } from "@shared/types";

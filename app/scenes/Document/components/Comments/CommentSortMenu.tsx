@@ -75,7 +75,7 @@ const CommentSortMenu = ({ viewingResolved, onChange }: Props) => {
       value={value}
       onChange={handleChange}
       label={t("Sort comments")}
-      hideLabel
+      labelHidden
       borderOnHover
     />
   );

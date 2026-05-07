@@ -13,7 +13,7 @@ import Switch from "../Switch";
 import EventBoundary from "@shared/components/EventBoundary";
 import { InputClientType } from "./InputClientType";
 
-export interface FormData {
+export type FormData = {
   name: string;
   developerName: string;
   developerUrl: string;
@@ -22,7 +22,7 @@ export interface FormData {
   redirectUris: string[];
   published: boolean;
   clientType: "confidential" | "public";
-}
+};
 
 export const OAuthClientForm = observer(function OAuthClientForm_({
   handleSubmit,

@@ -85,7 +85,7 @@ export default function Relation<T extends typeof Model>(
   classResolver: () => T,
   options?: RelationOptions
 ) {
-  return function (target: any, propertyKey: string) {
+  return function (target: Model, propertyKey: string) {
     const idKey = options?.multiple
       ? `${String(singular(propertyKey))}Ids`
       : `${String(propertyKey)}Id`;
@@ -96,16 +96,16 @@ export default function Relation<T extends typeof Model>(
     // TODO: requestAnimationFrame is a temporary solution to a bug in rolldown compiled code that
     // will place static methods _after_ decorators. Temporary fix is to delay the registration until
     // the next frame.
+    const modelName = (target.constructor as typeof Model).modelName;
     requestAnimationFrame(() => {
       if (options) {
-        const configForClass =
-          relations.get(target.constructor.modelName) || new Map();
+        const configForClass = relations.get(modelName) ?? new Map();
         configForClass.set(propertyKey, {
           options,
           relationClassResolver: classResolver,
           idKey,
         });
-        relations.set(target.constructor.modelName, configForClass);
+        relations.set(modelName, configForClass);
       }
     });
 

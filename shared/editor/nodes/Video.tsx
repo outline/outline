@@ -1,3 +1,4 @@
+import { t } from "i18next";
 import type { Token } from "markdown-it";
 import type {
   NodeSpec,
@@ -169,7 +170,7 @@ export default class Video extends Node {
         onBlur={this.handleCaptionBlur(props)}
         onKeyDown={this.handleCaptionKeyDown(props)}
         isSelected={props.isSelected}
-        placeholder={this.options.dictionary.imageCaptionPlaceholder}
+        placeholder={t("Write a caption")}
       >
         {props.node.attrs.title}
       </Caption>

@@ -1,7 +1,5 @@
 import * as Collapsible from "@radix-ui/react-collapsible";
-import filter from "lodash/filter";
-import includes from "lodash/includes";
-import isEqual from "lodash/isEqual";
+import { filter, includes, isEqual } from "es-toolkit/compat";
 import { DisclosureIcon } from "outline-icons";
 import { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";

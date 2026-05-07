@@ -64,7 +64,7 @@ type Props = {
 };
 
 const Tabs: React.FC = ({ children }: Props) => {
-  const ref = React.useRef<any>();
+  const ref = React.useRef<HTMLElement>(null);
   const [shadowVisible, setShadow] = React.useState(false);
   const { width } = useWindowSize();
 

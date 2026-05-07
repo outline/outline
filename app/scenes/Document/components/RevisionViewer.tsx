@@ -92,7 +92,7 @@ function RevisionViewer(props: Props, ref: React.Ref<TEditor>) {
         document={document}
         revision={revision}
         to={documentPath(document)}
-        rtl={revision.rtl}
+        $rtl={revision.rtl}
       />
       <Editor
         key={compareToRevisionId}

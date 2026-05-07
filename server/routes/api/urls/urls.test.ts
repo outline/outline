@@ -1,3 +1,4 @@
+import type { Mock } from "vitest";
 import { UnfurlResourceType } from "@shared/types";
 import env from "@server/env";
 import type { User } from "@server/models";
@@ -10,22 +11,38 @@ import {
 import { getTestServer } from "@server/test/support";
 import Iframely from "plugins/iframely/server/iframely";
 
-jest.mock("dns", () => ({
-  resolveCname: (
-    input: string,
-    callback: (err: Error | null, addresses: string[]) => void
-  ) => {
-    if (input.includes("valid.custom.domain")) {
-      callback(null, ["secure.outline.dev"]);
-    } else {
+const resolveCname = vi.hoisted(
+  () =>
+    (
+      input: string,
+      callback: (err: Error | null, addresses: string[]) => void
+    ) => {
+      if (input.includes("valid.custom.domain")) {
+        callback(null, ["secure.outline.dev"]);
+        return;
+      }
+
       callback(null, []);
     }
+);
+
+vi.mock("node:dns", () => ({
+  default: {
+    resolveCname,
   },
+  resolveCname,
 }));
 
-jest
-  .spyOn(Iframely, "requestResource")
-  .mockImplementation(() => Promise.resolve({}));
+vi.mock("dns", () => ({
+  default: {
+    resolveCname,
+  },
+  resolveCname,
+}));
+
+vi.spyOn(Iframely, "requestResource").mockImplementation(() =>
+  Promise.resolve({})
+);
 
 const server = getTestServer();
 
@@ -287,7 +304,7 @@ describe("#urls.unfurl", () => {
   });
 
   it("should succeed with status 200 ok for a valid external url", async () => {
-    (Iframely.requestResource as jest.Mock).mockResolvedValue(
+    (Iframely.requestResource as Mock).mockResolvedValue(
       Promise.resolve({
         url: "https://www.flickr.com",
         type: "rich",
@@ -343,7 +360,7 @@ describe("#urls.unfurl", () => {
   });
 
   it("should succeed with status 204 no content for a non-existing external url", async () => {
-    (Iframely.requestResource as jest.Mock).mockResolvedValue(
+    (Iframely.requestResource as Mock).mockResolvedValue(
       Promise.resolve({
         status: 404,
         error:

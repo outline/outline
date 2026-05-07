@@ -36,7 +36,6 @@ export default class CheckboxList extends Node {
 
   get plugins() {
     const userIdentifier = this.editor.props.userId;
-    const dictionary = this.editor.props.dictionary;
 
     // Plugin to auto-assign IDs to checkbox lists
     const assignIdsPlugin = new Plugin({
@@ -67,13 +66,7 @@ export default class CheckboxList extends Node {
       props: {
         nodeViews: {
           [this.name]: (node, view, getPos) =>
-            new CheckboxListView(
-              node,
-              view,
-              getPos,
-              userIdentifier || "",
-              dictionary
-            ),
+            new CheckboxListView(node, view, getPos, userIdentifier || ""),
         },
       },
     });

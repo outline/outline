@@ -1,5 +1,4 @@
-import has from "lodash/has";
-import isEqual from "lodash/isEqual";
+import { has, isEqual } from "es-toolkit/compat";
 import { TeamPreference } from "@shared/types";
 import env from "@server/env";
 import type { Team, User } from "@server/models";

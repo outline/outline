@@ -19,9 +19,7 @@ export default class UserMembershipsStore extends Store<UserMembership> {
   }
 
   @action
-  fetchPage = async (
-    params?: PaginationParams | undefined
-  ): Promise<UserMembership[]> => {
+  fetchPage = async (params?: PaginationParams): Promise<UserMembership[]> => {
     this.isFetching = true;
 
     try {

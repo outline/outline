@@ -2,12 +2,12 @@ import { TextHelper } from "./TextHelper";
 
 describe("TextHelper", () => {
   beforeAll(() => {
-    jest.useFakeTimers();
-    jest.setSystemTime(Date.parse("2021-01-01T00:00:00.000Z"));
+    vi.useFakeTimers();
+    vi.setSystemTime(Date.parse("2021-01-01T00:00:00.000Z"));
   });
 
   afterAll(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   describe("replaceTemplateVariables", () => {
