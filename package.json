@@ -231,7 +231,6 @@
     "redlock": "^5.0.0-beta2",
     "reflect-metadata": "^0.2.2",
     "refractor": "^3.6.0",
-    "request-filtering-agent": "^3.2.0",
     "resolve-path": "^1.4.0",
     "sanitize-filename": "^1.6.4",
     "scroll-into-view-if-needed": "^3.1.0",
