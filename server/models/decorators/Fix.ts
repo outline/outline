@@ -32,7 +32,7 @@ export default function Fix(target: any): void {
 
         Object.defineProperty(this, propertyKey, {
           get() {
-            // Safety check for Jest serialization - getDataValue may not be available
+            // Safety check for test serialization - getDataValue may not be available
             // during serialization for inter-process communication
             if (typeof this.getDataValue === "function") {
               return this.getDataValue(propertyKey);
@@ -41,7 +41,7 @@ export default function Fix(target: any): void {
             return this.dataValues?.[propertyKey];
           },
           set(value) {
-            // Safety check for Jest serialization - setDataValue may not be available
+            // Safety check for test serialization - setDataValue may not be available
             // during serialization for inter-process communication
             if (typeof this.setDataValue === "function") {
               this.setDataValue(propertyKey, value);

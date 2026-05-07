@@ -9,7 +9,7 @@ There is a web client which is fully responsive and works on mobile devices.
 - **`shared/`** - Shared TypeScript types, utilities, and editor components
 - **`plugins/`** - Plugin system for extending functionality
 - **`public/`** - Static assets served directly
-- **Various config files** - TypeScript, Vite, Jest, Prettier, Oxlint configurations
+- **Various config files** - TypeScript, Vite, Vitest, Prettier, Oxlint configurations
 
 Refer to /docs/ARCHITECTURE.md for detailed architecture documentation.
 
@@ -152,7 +152,7 @@ yarn sequelize migration:create --name=add-field-to-table
 
 ## Testing
 
-- Run tests with Jest:
+- Run tests with Vitest:
 
 ```bash
 # Run a specific test file (preferred)
