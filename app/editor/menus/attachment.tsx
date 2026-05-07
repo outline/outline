@@ -1,13 +1,13 @@
+import type { TFunction } from "i18next";
 import { TrashIcon, DownloadIcon, ReplaceIcon, PDFIcon } from "outline-icons";
 import type { EditorState } from "prosemirror-state";
 import type { MenuItem } from "@shared/editor/types";
-import type { Dictionary } from "~/hooks/useDictionary";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 
 export default function attachmentMenuItems(
   state: EditorState,
   readOnly: boolean,
-  dictionary: Dictionary
+  t: TFunction
 ): MenuItem[] {
   if (readOnly) {
     return [];
@@ -24,17 +24,17 @@ export default function attachmentMenuItems(
   return [
     {
       name: "replaceAttachment",
-      tooltip: dictionary.replaceAttachment,
+      tooltip: t("Replace file"),
       icon: <ReplaceIcon />,
     },
     {
       name: "deleteAttachment",
-      tooltip: dictionary.deleteAttachment,
+      tooltip: t("Delete file"),
       icon: <TrashIcon />,
     },
     {
       name: "toggleAttachmentPreview",
-      tooltip: dictionary.previewAttachment,
+      tooltip: t("Show preview"),
       icon: <PDFIcon />,
       active: isAttachmentWithPreview,
       visible: isPdfAttachment(state),
@@ -44,7 +44,7 @@ export default function attachmentMenuItems(
     },
     {
       name: "dimensions",
-      tooltip: dictionary.dimensions,
+      tooltip: `${t("Width")} × ${t("Height")}`,
       visible: isAttachmentWithPreview(state),
       skipIcon: true,
     },
@@ -53,7 +53,7 @@ export default function attachmentMenuItems(
     },
     {
       name: "downloadAttachment",
-      label: dictionary.download,
+      label: t("Download"),
       icon: <DownloadIcon />,
       visible: !!fetch,
     },

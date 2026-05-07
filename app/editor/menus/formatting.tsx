@@ -35,8 +35,8 @@ import { isMarkActive } from "@shared/editor/queries/isMarkActive";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import type { MenuItem } from "@shared/editor/types";
 import { metaDisplay } from "@shared/utils/keyboard";
+import type { TFunction } from "i18next";
 import CircleIcon from "~/components/Icons/CircleIcon";
-import type { Dictionary } from "~/hooks/useDictionary";
 import {
   isMobile as isMobileDevice,
   isTouchDevice,
@@ -57,7 +57,7 @@ import { DottedCircleIcon } from "~/components/Icons/DottedCircleIcon";
 export default function formattingMenuItems(
   state: EditorState,
   isTemplate: boolean,
-  dictionary: Dictionary
+  t: TFunction
 ): MenuItem[] {
   const { schema } = state;
   const isCode = isInCode(state);
@@ -86,7 +86,7 @@ export default function formattingMenuItems(
   return [
     {
       name: "placeholder",
-      tooltip: dictionary.placeholder,
+      tooltip: t("Placeholder"),
       icon: <InputIcon />,
       active: isMarkActive(schema.marks.placeholder),
       visible: isTemplate && (!isMobile || !isEmpty),
@@ -97,7 +97,7 @@ export default function formattingMenuItems(
     },
     {
       name: "strong",
-      tooltip: dictionary.strong,
+      tooltip: t("Bold"),
       shortcut: `${metaDisplay}+B`,
       icon: <BoldIcon />,
       active: isMarkActive(schema.marks.strong),
@@ -105,7 +105,7 @@ export default function formattingMenuItems(
     },
     {
       name: "em",
-      tooltip: dictionary.em,
+      tooltip: t("Italic"),
       shortcut: `${metaDisplay}+I`,
       icon: <ItalicIcon />,
       active: isMarkActive(schema.marks.em),
@@ -113,14 +113,14 @@ export default function formattingMenuItems(
     },
     {
       name: "strikethrough",
-      tooltip: dictionary.strikethrough,
+      tooltip: t("Strikethrough"),
       shortcut: `${metaDisplay}+D`,
       icon: <StrikethroughIcon />,
       active: isMarkActive(schema.marks.strikethrough),
       visible: !isCodeBlock && (!isMobile || !isEmpty),
     },
     {
-      tooltip: dictionary.background,
+      tooltip: t("Background color"),
       icon:
         getColorSetForSelectedCells(state.selection).size > 1 ? (
           <CircleIcon color="rainbow" />
@@ -147,7 +147,7 @@ export default function formattingMenuItems(
         return [
           {
             name: "toggleCellSelectionBackgroundAndCollapseSelection",
-            label: dictionary.none,
+            label: t("None"),
             icon: <DottedCircleIcon retainColor color="transparent" />,
             active: () => (cellSelectionHasBackground ? false : true),
             attrs: { color: null },
@@ -215,7 +215,7 @@ export default function formattingMenuItems(
       },
     },
     {
-      tooltip: dictionary.mark,
+      tooltip: t("Highlight"),
       shortcut: `${metaDisplay}+⇧+H`,
       icon: highlight ? (
         <CircleIcon
@@ -242,7 +242,7 @@ export default function formattingMenuItems(
             ? [
                 {
                   name: "highlight",
-                  label: dictionary.none,
+                  label: t("None"),
                   icon: <DottedCircleIcon retainColor color="transparent" />,
                   active: () => false,
                   attrs: { color: highlight.mark.attrs.color },
@@ -309,7 +309,7 @@ export default function formattingMenuItems(
     },
     {
       name: "code_inline",
-      tooltip: dictionary.codeInline,
+      tooltip: t("Code"),
       shortcut: `${metaDisplay}+E`,
       icon: <CodeIcon />,
       active: isMarkActive(schema.marks.code_inline),
@@ -321,7 +321,7 @@ export default function formattingMenuItems(
     },
     {
       name: "heading",
-      tooltip: dictionary.heading,
+      tooltip: t("Heading"),
       shortcut: `⇧+Ctrl+1`,
       icon: <Heading1Icon />,
       active: isNodeActive(schema.nodes.heading, { level: 1 }),
@@ -330,7 +330,7 @@ export default function formattingMenuItems(
     },
     {
       name: "heading",
-      tooltip: dictionary.subheading,
+      tooltip: t("Subheading"),
       shortcut: `⇧+Ctrl+2`,
       icon: <Heading2Icon />,
       active: isNodeActive(schema.nodes.heading, { level: 2 }),
@@ -339,7 +339,7 @@ export default function formattingMenuItems(
     },
     {
       name: "heading",
-      tooltip: dictionary.subheading,
+      tooltip: t("Subheading"),
       shortcut: `⇧+Ctrl+3`,
       icon: <Heading3Icon />,
       active: isNodeActive(schema.nodes.heading, { level: 3 }),
@@ -348,7 +348,7 @@ export default function formattingMenuItems(
     },
     {
       name: "blockquote",
-      tooltip: dictionary.quote,
+      tooltip: t("Quote"),
       shortcut: `${metaDisplay}+]`,
       icon: <BlockQuoteIcon />,
       active: isNodeActive(schema.nodes.blockquote),
@@ -360,20 +360,20 @@ export default function formattingMenuItems(
     },
     {
       name: "mergeCells",
-      tooltip: dictionary.mergeCells,
+      tooltip: t("Merge cells"),
       icon: <TableMergeCellsIcon />,
       visible: isMultipleCellSelection(state),
     },
     {
       name: "splitCell",
-      tooltip: dictionary.splitCell,
+      tooltip: t("Split cell"),
       icon: <TableSplitCellsIcon />,
       visible: isMergedCellSelection(state),
     },
     {
       name: "container_toggle",
       icon: <CollapseIcon />,
-      tooltip: dictionary.toggleBlock,
+      tooltip: t("Toggle block"),
       active: isNodeActive(schema.nodes.container_toggle),
       attrs: { id: uuidv4() },
       visible: !isCodeBlock && (!isMobile || isEmpty),
@@ -383,7 +383,7 @@ export default function formattingMenuItems(
     },
     {
       name: "checkbox_list",
-      tooltip: dictionary.checkboxList,
+      tooltip: t("Todo list"),
       shortcut: `⇧+Ctrl+7`,
       icon: <TodoListIcon />,
       keywords: "checklist checkbox task",
@@ -392,7 +392,7 @@ export default function formattingMenuItems(
     },
     {
       name: "bullet_list",
-      tooltip: dictionary.bulletList,
+      tooltip: t("Bulleted list"),
       shortcut: `⇧+Ctrl+8`,
       icon: <BulletedListIcon />,
       active: isNodeActive(schema.nodes.bullet_list),
@@ -400,7 +400,7 @@ export default function formattingMenuItems(
     },
     {
       name: "ordered_list",
-      tooltip: dictionary.orderedList,
+      tooltip: t("Ordered list"),
       shortcut: `⇧+Ctrl+9`,
       icon: <OrderedListIcon />,
       active: isNodeActive(schema.nodes.ordered_list),
@@ -408,28 +408,28 @@ export default function formattingMenuItems(
     },
     {
       name: "outdentList",
-      tooltip: dictionary.outdent,
+      tooltip: t("Outdent"),
       shortcut: `⇧+Tab`,
       icon: <OutdentIcon />,
       visible: isTouch && isList,
     },
     {
       name: "indentList",
-      tooltip: dictionary.indent,
+      tooltip: t("Indent"),
       shortcut: `Tab`,
       icon: <IndentIcon />,
       visible: isTouch && isList,
     },
     {
       name: "outdentCheckboxList",
-      tooltip: dictionary.outdent,
+      tooltip: t("Outdent"),
       shortcut: `⇧+Tab`,
       icon: <OutdentIcon />,
       visible: isTouch && isInList(state, { types: ["checkbox_list"] }),
     },
     {
       name: "indentCheckboxList",
-      tooltip: dictionary.indent,
+      tooltip: t("Indent"),
       shortcut: `Tab`,
       icon: <IndentIcon />,
       visible: isTouch && isInList(state, { types: ["checkbox_list"] }),
@@ -440,7 +440,7 @@ export default function formattingMenuItems(
     },
     {
       name: "addLink",
-      tooltip: dictionary.createLink,
+      tooltip: t("Create link"),
       shortcut: `${metaDisplay}+K`,
       icon: <LinkIcon />,
       attrs: { href: "" },
@@ -449,10 +449,10 @@ export default function formattingMenuItems(
     },
     {
       name: "comment",
-      tooltip: dictionary.comment,
+      tooltip: t("Comment"),
       shortcut: `${metaDisplay}+⌥+M`,
       icon: <CommentIcon />,
-      label: isCodeBlock ? dictionary.comment : undefined,
+      label: isCodeBlock ? t("Comment") : undefined,
       active: isMarkActive(
         schema.marks.comment,
         { resolved: false },
@@ -467,7 +467,7 @@ export default function formattingMenuItems(
     {
       name: "copyToClipboard",
       icon: <CopyIcon />,
-      tooltip: dictionary.copy,
+      tooltip: t("Copy"),
       shortcut: `${metaDisplay}+C`,
       visible: isCode && !isCodeBlock && (!isMobile || !isEmpty),
     },

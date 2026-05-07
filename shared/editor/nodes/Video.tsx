@@ -1,3 +1,4 @@
+import { t } from "i18next";
 import type { Token } from "markdown-it";
 import type {
   NodeSpec,
@@ -7,7 +8,6 @@ import type {
 import { NodeSelection, TextSelection } from "prosemirror-state";
 import * as React from "react";
 import type { Primitive } from "utility-types";
-import type { Dictionary } from "~/hooks/useDictionary";
 import { sanitizeUrl } from "../../utils/urls";
 import toggleWrap from "../commands/toggleWrap";
 import Caption from "../components/Caption";
@@ -17,15 +17,7 @@ import attachmentsRule from "../rules/links";
 import type { ComponentProps } from "../types";
 import Node from "./Node";
 
-/**
- * Options for the Video node.
- */
-type VideoOptions = {
-  /** A dictionary of translated strings used in the editor. */
-  dictionary: Dictionary;
-};
-
-export default class Video extends Node<VideoOptions> {
+export default class Video extends Node {
   get name() {
     return "video";
   }
@@ -178,7 +170,7 @@ export default class Video extends Node<VideoOptions> {
         onBlur={this.handleCaptionBlur(props)}
         onKeyDown={this.handleCaptionKeyDown(props)}
         isSelected={props.isSelected}
-        placeholder={this.options.dictionary.imageCaptionPlaceholder}
+        placeholder={t("Write a caption")}
       >
         {props.node.attrs.title}
       </Caption>

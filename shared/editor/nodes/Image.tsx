@@ -1,3 +1,4 @@
+import { t } from "i18next";
 import type { Token } from "markdown-it";
 import { InputRule } from "prosemirror-inputrules";
 import type {
@@ -402,7 +403,7 @@ export default class Image extends SimpleImage {
           onBlur={this.handleCaptionBlur(props)}
           onKeyDown={this.handleCaptionKeyDown(props)}
           isSelected={props.isSelected}
-          placeholder={this.options.dictionary.imageCaptionPlaceholder}
+          placeholder={t("Write a caption")}
         >
           {props.node.attrs.alt}
         </Caption>
