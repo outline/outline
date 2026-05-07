@@ -5,6 +5,7 @@ import { TeamPreference } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
 import env from "@server/env";
 import auth from "@server/middlewares/authentication";
+import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import { Event, Team } from "@server/models";
 import AuthenticationHelper from "@server/models/helpers/AuthenticationHelper";
@@ -20,12 +21,12 @@ import {
 import ValidateSSOAccessTask from "@server/queues/tasks/ValidateSSOAccessTask";
 import type { APIContext } from "@server/types";
 import { getSessionsInCookie } from "@server/utils/authentication";
-import RateLimiter from "@server/utils/RateLimiter";
+import RateLimiter, { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import type * as T from "./schema";
 
 const router = new Router();
 
-router.post("auth.config", async (ctx: APIContext<T.AuthConfigReq>) => {
+router.post("auth.config", rateLimiter(RateLimiterStrategy.TwentyFivePerMinute), async (ctx: APIContext<T.AuthConfigReq>) => {
   // If self hosted AND there is only one team then that team becomes the
   // brand for the knowledge base and it's guest signin option is used for the
   // root login page.
@@ -118,7 +119,7 @@ router.post("auth.config", async (ctx: APIContext<T.AuthConfigReq>) => {
 /** Authentication services that don't require SSO validation. */
 const NON_SSO_SERVICES = ["email", "passkeys"];
 
-router.post("auth.info", auth(), async (ctx: APIContext<T.AuthInfoReq>) => {
+router.post("auth.info", rateLimiter(RateLimiterStrategy.OneHundredPerMinute), auth(), async (ctx: APIContext<T.AuthInfoReq>) => {
   const { user, service } = ctx.state.auth;
   const sessions = getSessionsInCookie(ctx);
   const signedInTeamIds = Object.keys(sessions);
