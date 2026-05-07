@@ -1,16 +1,14 @@
 import * as Sentry from "@sentry/react";
+import { t } from "i18next";
 import { v4 as uuidv4 } from "uuid";
 import type { EditorView } from "prosemirror-view";
 import { toast } from "sonner";
-import type { Dictionary } from "~/hooks/useDictionary";
 import FileHelper from "../lib/FileHelper";
 import uploadPlaceholderPlugin, {
   findPlaceholder,
 } from "../lib/uploadPlaceholder";
 
 export type Options = {
-  /** Dictionary object containing translation strings */
-  dictionary: Dictionary;
   /** Set to true to force images and videos to become file attachments */
   isAttachment?: boolean;
   /** Set to true to replace any existing image at the users selection */
@@ -55,7 +53,6 @@ const insertFiles = async function (
   options: Options
 ) {
   const {
-    dictionary,
     uploadFile,
     onFileUploadStart,
     onFileUploadStop,
@@ -179,7 +176,7 @@ const insertFiles = async function (
                 to || from,
                 schema.nodes.video.create({
                   src,
-                  title: upload.file.name ?? dictionary.untitled,
+                  title: upload.file.name ?? t("Untitled"),
                   ...upload.dimensions,
                   ...options.attrs,
                 })
@@ -201,7 +198,7 @@ const insertFiles = async function (
                 to || from,
                 schema.nodes.attachment.create({
                   href: src,
-                  title: upload.file.name ?? dictionary.untitled,
+                  title: upload.file.name ?? t("Untitled"),
                   size: upload.file.size,
                   contentType: upload.file.type,
                   preview: false,
@@ -229,7 +226,9 @@ const insertFiles = async function (
           })
         );
 
-        toast.error(error.message || dictionary.fileUploadError);
+        toast.error(
+          error.message || t("Sorry, an error occurred uploading the file")
+        );
       })
       .finally(() => {
         complete++;

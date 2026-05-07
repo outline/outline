@@ -1,4 +1,5 @@
 import copy from "copy-to-clipboard";
+import { t } from "i18next";
 import type Token from "markdown-it/lib/token.mjs";
 import { textblockTypeInputRule } from "prosemirror-inputrules";
 import type {
@@ -13,7 +14,6 @@ import { Decoration, DecorationSet } from "prosemirror-view";
 import { toast } from "sonner";
 import type { Primitive } from "utility-types";
 import { isSafari } from "../../utils/browser";
-import type { Dictionary } from "~/hooks/useDictionary";
 import Storage from "../../utils/Storage";
 import backspaceToParagraph from "../commands/backspaceToParagraph";
 import splitHeading from "../commands/splitHeading";
@@ -39,8 +39,6 @@ type HeadingOptions = {
   levels: number[];
   /** Offset added to the rendered heading level (e.g. 1 renders an `h2` for level 1). */
   offset?: number;
-  /** A dictionary of translated strings used in the editor. */
-  dictionary: Dictionary;
 };
 
 export default class Heading extends Node<HeadingOptions> {
@@ -187,7 +185,7 @@ export default class Heading extends Node<HeadingOptions> {
       .replace("/edit", "");
     copy(normalizedUrl + hash);
 
-    toast.message(this.options.dictionary.linkCopied);
+    toast.message(t("Link copied to clipboard"));
   };
 
   keys({ type, schema }: { type: NodeType; schema: Schema }) {

@@ -1,3 +1,4 @@
+import { t } from "i18next";
 import last from "lodash/last";
 import sortBy from "lodash/sortBy";
 import { v4 as uuidv4 } from "uuid";
@@ -363,7 +364,7 @@ export default function Mermaid({
   isDark: boolean;
   editor: Editor;
 }) {
-  const { onClickLink, dictionary } = editor.props;
+  const { onClickLink } = editor.props;
 
   return new Plugin({
     key: pluginKey,
@@ -591,7 +592,7 @@ export default function Mermaid({
                 onClickLink(sanitizeUrl(href) ?? "");
               }
             } catch (_err) {
-              toast.error(dictionary.openLinkError);
+              toast.error(t("Sorry, that type of link is not supported"));
             }
           }
 

@@ -26,10 +26,10 @@ import {
 } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
+import type { TFunction } from "i18next";
 import Image from "@shared/editor/components/Img";
 import type { MenuItem } from "@shared/editor/types";
 import { metaDisplay } from "@shared/utils/keyboard";
-import type { Dictionary } from "~/hooks/useDictionary";
 import Desktop from "~/utils/Desktop";
 
 const Img = styled(Image)`
@@ -42,7 +42,7 @@ const Img = styled(Image)`
 `;
 
 export default function blockMenuItems(
-  dictionary: Dictionary,
+  t: TFunction,
   documentRef: React.RefObject<HTMLDivElement>
 ): MenuItem[] {
   const documentWidth = documentRef.current?.clientWidth ?? 0;
@@ -50,7 +50,7 @@ export default function blockMenuItems(
   const items = [
     {
       name: "heading",
-      title: dictionary.h1,
+      title: t("Big heading"),
       keywords: "h1 heading1 title",
       icon: <Heading1Icon />,
       shortcut: "^ ⇧ 1",
@@ -58,7 +58,7 @@ export default function blockMenuItems(
     },
     {
       name: "heading",
-      title: dictionary.h2,
+      title: t("Medium heading"),
       keywords: "h2 heading2",
       icon: <Heading2Icon />,
       shortcut: "^ ⇧ 2",
@@ -66,7 +66,7 @@ export default function blockMenuItems(
     },
     {
       name: "heading",
-      title: dictionary.h3,
+      title: t("Small heading"),
       keywords: "h3 heading3",
       icon: <Heading3Icon />,
       shortcut: "^ ⇧ 3",
@@ -74,7 +74,7 @@ export default function blockMenuItems(
     },
     {
       name: "heading",
-      title: dictionary.h4,
+      title: t("Extra small heading"),
       keywords: "h4 heading4",
       icon: <Heading4Icon />,
       shortcut: "^ ⇧ 4",
@@ -85,20 +85,20 @@ export default function blockMenuItems(
     },
     {
       name: "checkbox_list",
-      title: dictionary.checkboxList,
+      title: t("Todo list"),
       icon: <TodoListIcon />,
       keywords: "checklist checkbox task",
       shortcut: "^ ⇧ 7",
     },
     {
       name: "bullet_list",
-      title: dictionary.bulletList,
+      title: t("Bulleted list"),
       icon: <BulletedListIcon />,
       shortcut: "^ ⇧ 8",
     },
     {
       name: "ordered_list",
-      title: dictionary.orderedList,
+      title: t("Ordered list"),
       icon: <OrderedListIcon />,
       shortcut: "^ ⇧ 9",
     },
@@ -107,19 +107,19 @@ export default function blockMenuItems(
     },
     {
       name: "image",
-      title: dictionary.image,
+      title: t("Image"),
       icon: <ImageIcon />,
       keywords: "picture photo",
     },
     {
       name: "video",
-      title: dictionary.video,
+      title: t("Video"),
       icon: <EmbedIcon />,
       keywords: "mov avi upload player",
     },
     {
       name: "attachment",
-      title: dictionary.pdf,
+      title: t("Embed PDF"),
       icon: <PDFIcon />,
       keywords: "pdf upload attach",
       attrs: {
@@ -131,13 +131,13 @@ export default function blockMenuItems(
     },
     {
       name: "attachment",
-      title: dictionary.file,
+      title: t("File attachment"),
       icon: <AttachmentIcon />,
       keywords: "file upload attach",
     },
     {
       name: "table",
-      title: dictionary.table,
+      title: t("Table"),
       icon: <TableIcon />,
       attrs: {
         rowsCount: 3,
@@ -147,59 +147,59 @@ export default function blockMenuItems(
     },
     {
       name: "blockquote",
-      title: dictionary.quote,
+      title: t("Quote"),
       icon: <BlockQuoteIcon />,
       keywords: "blockquote pullquote",
       shortcut: `${metaDisplay} ]`,
     },
     {
       name: "code_block",
-      title: dictionary.codeBlock,
+      title: t("Code block"),
       icon: <CodeIcon />,
       shortcut: "^ ⇧ c",
       keywords: "script",
     },
     {
       name: "math_block",
-      title: dictionary.mathBlock,
+      title: t("Math block (LaTeX)"),
       icon: <MathIcon />,
       keywords: "math katex latex",
     },
     {
       name: "container_toggle",
-      title: dictionary.toggleBlock,
+      title: t("Toggle block"),
       icon: <CollapseIcon />,
       keywords: "toggle collapsible collapse fold",
     },
     {
       name: "hr",
-      title: dictionary.hr,
+      title: t("Divider"),
       icon: <HorizontalRuleIcon />,
       shortcut: `${metaDisplay} _`,
       keywords: "horizontal rule break line",
     },
     {
       name: "hr",
-      title: dictionary.pageBreak,
+      title: t("Page break"),
       icon: <PageBreakIcon />,
       keywords: "page print break line",
       attrs: { markup: "***" },
     },
     {
       name: "date",
-      title: dictionary.insertDate,
+      title: t("Current date"),
       keywords: "clock today",
       icon: <CalendarIcon />,
     },
     {
       name: "time",
-      title: dictionary.insertTime,
+      title: t("Current time"),
       keywords: "clock now",
       icon: <ClockIcon />,
     },
     {
       name: "datetime",
-      title: dictionary.insertDateTime,
+      title: t("Current date and time"),
       keywords: "clock today date",
       icon: <CalendarIcon />,
     },
@@ -208,28 +208,28 @@ export default function blockMenuItems(
     },
     {
       name: "container_notice",
-      title: dictionary.infoNotice,
+      title: t("Info notice"),
       icon: <InfoIcon />,
       keywords: "notice card information",
       attrs: { style: "info" },
     },
     {
       name: "container_notice",
-      title: dictionary.successNotice,
+      title: t("Success notice"),
       icon: <DoneIcon />,
       keywords: "notice card success",
       attrs: { style: "success" },
     },
     {
       name: "container_notice",
-      title: dictionary.warningNotice,
+      title: t("Warning notice"),
       icon: <WarningIcon />,
       keywords: "notice card error",
       attrs: { style: "warning" },
     },
     {
       name: "container_notice",
-      title: dictionary.tipNotice,
+      title: t("Tip notice"),
       icon: <StarredIcon />,
       keywords: "notice card suggestion",
       attrs: { style: "tip" },

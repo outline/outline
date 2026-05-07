@@ -3,18 +3,17 @@ import type { Node } from "prosemirror-model";
 import { Selection, TextSelection } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
 import { useCallback, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Flex from "~/components/Flex";
 import Tooltip from "~/components/Tooltip";
 import Input from "~/editor/components/Input";
-import type { Dictionary } from "~/hooks/useDictionary";
 import ToolbarButton from "./ToolbarButton";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
 
 type Props = {
   node?: Node;
   view: EditorView;
-  dictionary: Dictionary;
   autoFocus?: boolean;
   onLinkUpdate: () => void;
   onLinkRemove: () => void;
@@ -25,12 +24,12 @@ type Props = {
 export function MediaLinkEditor({
   node,
   view,
-  dictionary,
   onLinkUpdate,
   onLinkRemove,
   onEscape,
   onClickOutside,
 }: Props) {
+  const { t } = useTranslation();
   const url = (node?.attrs.href ?? node?.attrs.src) as string;
   const [localUrl, setLocalUrl] = useState(url);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -111,12 +110,12 @@ export function MediaLinkEditor({
       <Input
         autoFocus={isEditingImgUrl}
         value={localUrl}
-        placeholder={dictionary.pasteLink}
+        placeholder={`${t("Paste a link")}…`}
         onChange={(e) => setLocalUrl(e.target.value)}
         onKeyDown={handleKeyDown}
         readOnly={!view.editable}
       />
-      <Tooltip content={dictionary.openLink}>
+      <Tooltip content={t("Open link")}>
         <ToolbarButton onClick={openLink} disabled={!localUrl}>
           <OpenIcon />
         </ToolbarButton>
@@ -124,9 +123,7 @@ export function MediaLinkEditor({
       {view.editable && (
         <Tooltip
           content={
-            node.type.name === "embed"
-              ? dictionary.deleteEmbed
-              : dictionary.deleteImage
+            node.type.name === "embed" ? t("Delete embed") : t("Delete image")
           }
         >
           <ToolbarButton onClick={remove}>

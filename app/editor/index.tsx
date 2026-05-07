@@ -46,7 +46,6 @@ import EventEmitter from "@shared/utils/events";
 import type Document from "~/models/Document";
 import Flex from "~/components/Flex";
 import { PortalContext } from "~/components/Portal";
-import type { Dictionary } from "~/hooks/useDictionary";
 import type { Properties } from "~/types";
 import Logger from "~/utils/Logger";
 import ComponentView from "./components/ComponentView";
@@ -89,8 +88,6 @@ export type Props = {
   canUpdate?: boolean;
   /** If the editor should still allow commenting when it is readOnly */
   canComment?: boolean;
-  /** A dictionary of translated strings used in the editor */
-  dictionary: Dictionary;
   /** The reading direction of the text content, if known */
   dir?: "rtl" | "ltr";
   /** If the editor should vertically grow to fill available space */

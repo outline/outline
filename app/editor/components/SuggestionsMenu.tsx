@@ -27,7 +27,6 @@ import {
 } from "~/components/primitives/Popover";
 import { MouseSafeArea } from "~/components/MouseSafeArea";
 import Scrollable from "~/components/Scrollable";
-import useDictionary from "~/hooks/useDictionary";
 import useMobile from "~/hooks/useMobile";
 import Logger from "~/utils/Logger";
 import { useEditor } from "./EditorContext";
@@ -63,7 +62,6 @@ export type Props<T extends MenuItem = MenuItem> = {
 
 function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
   const { view, commands, props: editorProps } = useEditor();
-  const dictionary = useDictionary();
   const { t } = useTranslation();
   const isMobile = useMobile();
   const pointerRef = React.useRef<{ clientX: number; clientY: number }>({
@@ -301,7 +299,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       const matches = "matcher" in insertItem && insertItem.matcher(href);
 
       if (!matches) {
-        toast.error(dictionary.embedInvalidLink);
+        toast.error(t("Sorry, that link won’t work for this embed type"));
         return;
       }
 
@@ -390,7 +388,6 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         onFileUploadStart,
         onFileUploadStop,
         onFileUploadProgress,
-        dictionary,
         isAttachment: inputRef.current?.accept === "*",
         attrs,
       });
@@ -901,7 +898,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         })}
         {items.length === 0 && (
           <ListItem>
-            <Empty>{dictionary.noResults}</Empty>
+            <Empty>{t("No results")}</Empty>
           </ListItem>
         )}
       </>
@@ -925,8 +922,10 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
                       "placeholder" in insertItem && !!insertItem.placeholder
                         ? insertItem.placeholder
                         : insertItem.title
-                          ? dictionary.pasteLinkWithTitle(insertItem.title)
-                          : dictionary.pasteLink
+                          ? t("Paste a {{service}} link…", {
+                              service: insertItem.title,
+                            })
+                          : `${t("Paste a link")}…`
                     }
                     onKeyDown={handleLinkInputKeydown}
                     onPaste={handleLinkInputPaste}
@@ -975,8 +974,10 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
                   "placeholder" in insertItem && !!insertItem.placeholder
                     ? insertItem.placeholder
                     : insertItem.title
-                      ? dictionary.pasteLinkWithTitle(insertItem.title)
-                      : dictionary.pasteLink
+                      ? t("Paste a {{service}} link…", {
+                          service: insertItem.title,
+                        })
+                      : `${t("Paste a link")}…`
                 }
                 onKeyDown={handleLinkInputKeydown}
                 onPaste={handleLinkInputPaste}
