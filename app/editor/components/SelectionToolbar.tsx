@@ -2,6 +2,7 @@ import type { EditorState, Selection } from "prosemirror-state";
 import Suggestion from "~/editor/extensions/Suggestion";
 import { NodeSelection, TextSelection } from "prosemirror-state";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
 import {
   getMarkRange,
@@ -17,7 +18,6 @@ import {
 } from "@shared/editor/queries/table";
 import type { MenuItem } from "@shared/editor/types";
 import useBoolean from "~/hooks/useBoolean";
-import useDictionary from "~/hooks/useDictionary";
 import useEventListener from "~/hooks/useEventListener";
 import useMobile from "~/hooks/useMobile";
 import getAttachmentMenuItems from "../menus/attachment";
@@ -82,7 +82,7 @@ enum Toolbar {
 export function SelectionToolbar(props: Props) {
   const { readOnly = false } = props;
   const { view, extensions, commands } = useEditor();
-  const dictionary = useDictionary();
+  const { t } = useTranslation();
   const menuRef = React.useRef<HTMLDivElement | null>(null);
   const isMobile = useMobile();
   const isActive = props.isActive || isMobile;
@@ -244,32 +244,32 @@ export function SelectionToolbar(props: Props) {
     isCodeSelection &&
     (selection.empty || selection instanceof NodeSelection)
   ) {
-    items = getCodeMenuItems(state, readOnly, dictionary);
+    items = getCodeMenuItems(state, readOnly, t);
     align = "end";
   } else if (isTableSelected(state)) {
-    items = getTableMenuItems(state, readOnly, dictionary);
+    items = getTableMenuItems(state, readOnly, t);
   } else if (colIndex !== undefined) {
-    items = getTableColMenuItems(state, readOnly, dictionary, {
+    items = getTableColMenuItems(state, readOnly, t, {
       index: colIndex,
       rtl,
     });
   } else if (rowIndex !== undefined) {
-    items = getTableRowMenuItems(state, readOnly, dictionary, {
+    items = getTableRowMenuItems(state, readOnly, t, {
       index: rowIndex,
     });
   } else if (isImageSelection) {
-    items = getImageMenuItems(state, readOnly, dictionary);
+    items = getImageMenuItems(state, readOnly, t);
   } else if (isAttachmentSelection) {
-    items = getAttachmentMenuItems(state, readOnly, dictionary);
+    items = getAttachmentMenuItems(state, readOnly, t);
   } else if (isDividerSelection) {
-    items = getDividerMenuItems(state, readOnly, dictionary);
+    items = getDividerMenuItems(state, readOnly, t);
   } else if (readOnly) {
-    items = getReadOnlyMenuItems(state, !!canUpdate, dictionary);
+    items = getReadOnlyMenuItems(state, !!canUpdate, t);
   } else if (isNoticeSelection && selection.empty) {
-    items = getNoticeMenuItems(state, readOnly, dictionary);
+    items = getNoticeMenuItems(state, readOnly, t);
     align = "end";
   } else {
-    items = getFormattingMenuItems(state, isTemplate, dictionary);
+    items = getFormattingMenuItems(state, isTemplate, t);
   }
 
   // Some extensions may be disabled, remove corresponding items
@@ -332,7 +332,6 @@ export function SelectionToolbar(props: Props) {
       {activeToolbar === Toolbar.Link ? (
         <LinkEditor
           key={`link-${selection.anchor}`}
-          dictionary={dictionary}
           autoFocus={autoFocusLinkInput}
           view={view}
           mark={linkMark ? linkMark.mark : undefined}
@@ -350,7 +349,6 @@ export function SelectionToolbar(props: Props) {
             "node" in selection ? (selection as NodeSelection).node : undefined
           }
           view={view}
-          dictionary={dictionary}
           onLinkUpdate={() => setActiveToolbar(null)}
           onLinkRemove={() => setActiveToolbar(null)}
           onEscape={() => setActiveToolbar(Toolbar.Menu)}

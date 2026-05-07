@@ -1,7 +1,5 @@
 import isEqual from "fast-deep-equal";
-import isArray from "lodash/isArray";
-import isObject from "lodash/isObject";
-import pick from "lodash/pick";
+import { isArray, isObject, pick } from "es-toolkit/compat";
 import type {
   Attributes,
   CreateOptions,

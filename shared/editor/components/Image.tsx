@@ -3,7 +3,7 @@ import type { EditorView } from "prosemirror-view";
 import * as React from "react";
 import styled from "styled-components";
 import { useTranslation } from "react-i18next";
-import find from "lodash/find";
+import { find } from "es-toolkit/compat";
 import Flex from "../../components/Flex";
 import { s } from "../../styles";
 import { isExternalUrl, sanitizeUrl } from "../../utils/urls";

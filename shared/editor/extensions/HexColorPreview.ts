@@ -1,4 +1,5 @@
 import copy from "copy-to-clipboard";
+import { t } from "i18next";
 import type { EditorState } from "prosemirror-state";
 import { Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
@@ -110,7 +111,7 @@ export default class HexColorPreview extends Extension {
       event.preventDefault();
       event.stopPropagation();
       copy(color);
-      toast.message(this.editor.props.dictionary.codeCopied);
+      toast.message(t("Copied to clipboard"));
     });
 
     return swatch;

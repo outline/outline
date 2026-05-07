@@ -1,4 +1,4 @@
-import capitalize from "lodash/capitalize";
+import { capitalize } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { CrossIcon, DoneIcon, WarningIcon } from "outline-icons";
 import { useMemo, useCallback } from "react";

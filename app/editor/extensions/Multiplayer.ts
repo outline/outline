@@ -1,5 +1,5 @@
 import type { HocuspocusProvider } from "@hocuspocus/provider";
-import isEqual from "lodash/isEqual";
+import { isEqual } from "es-toolkit/compat";
 import { Plugin } from "prosemirror-state";
 import {
   ySyncPlugin,

@@ -1,4 +1,4 @@
-import groupBy from "lodash/groupBy";
+import { groupBy } from "es-toolkit/compat";
 import Logger from "@server/logging/Logger";
 import { sleep } from "@shared/utils/timers";
 

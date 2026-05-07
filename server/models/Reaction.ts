@@ -1,5 +1,4 @@
-import cloneDeep from "lodash/cloneDeep";
-import uniq from "lodash/uniq";
+import { cloneDeep, uniq } from "es-toolkit/compat";
 import type {
   Attributes,
   CreationAttributes,

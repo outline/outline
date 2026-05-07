@@ -1,9 +1,6 @@
 import commandScore from "command-score";
 import invariant from "invariant";
-import deburr from "lodash/deburr";
-import differenceWith from "lodash/differenceWith";
-import filter from "lodash/filter";
-import orderBy from "lodash/orderBy";
+import { deburr, differenceWith, filter, orderBy } from "es-toolkit/compat";
 import { computed, action, runInAction } from "mobx";
 import type { UserRole } from "@shared/types";
 import User from "~/models/User";

@@ -1,5 +1,5 @@
 import copy from "copy-to-clipboard";
-import debounce from "lodash/debounce";
+import { debounce } from "es-toolkit/compat";
 import { CheckmarkIcon, CopyIcon } from "outline-icons";
 import { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import {

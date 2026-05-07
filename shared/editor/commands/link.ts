@@ -1,3 +1,4 @@
+import { t } from "i18next";
 import { chainCommands, toggleMark } from "prosemirror-commands";
 import type { Attrs } from "prosemirror-model";
 import type { Command } from "prosemirror-state";
@@ -58,8 +59,7 @@ const openLinkTextSelection =
             | MouseEvent
             | React.MouseEvent<HTMLButtonElement>
         ) => void)
-      | undefined,
-    dictionary: { openLinkError: string }
+      | undefined
   ): Command =>
   (state) => {
     if (!(state.selection instanceof TextSelection)) {
@@ -72,7 +72,7 @@ const openLinkTextSelection =
         const event = new KeyboardEvent("keydown", { metaKey: false });
         onClickLink(sanitizeUrl(range.mark.attrs.href) ?? "", event);
       } catch (_err) {
-        toast.error(dictionary.openLinkError);
+        toast.error(t("Sorry, that type of link is not supported"));
       }
       return true;
     }
@@ -89,8 +89,7 @@ const openLinkNodeSelection =
             | MouseEvent
             | React.MouseEvent<HTMLButtonElement>
         ) => void)
-      | undefined,
-    dictionary: { openLinkError: string }
+      | undefined
   ): Command =>
   (state) => {
     if (!(state.selection instanceof NodeSelection)) {
@@ -111,7 +110,7 @@ const openLinkNodeSelection =
       const event = new KeyboardEvent("keydown", { metaKey: false });
       onClickLink(sanitizeUrl(linkMark.attrs.href) ?? "", event);
     } catch (_err) {
-      toast.error(dictionary.openLinkError);
+      toast.error(t("Sorry, that type of link is not supported"));
     }
     return true;
   };
@@ -260,12 +259,11 @@ export const openLink = (
         url: string,
         event?: KeyboardEvent | MouseEvent | React.MouseEvent<HTMLButtonElement>
       ) => void)
-    | undefined,
-  dictionary: { openLinkError: string }
+    | undefined
 ): Command =>
   chainCommands(
-    openLinkTextSelection(onClickLink, dictionary),
-    openLinkNodeSelection(onClickLink, dictionary)
+    openLinkTextSelection(onClickLink),
+    openLinkNodeSelection(onClickLink)
   );
 
 export const updateLink = (attrs: Attrs): Command =>

@@ -1,4 +1,4 @@
-import debounce from "lodash/debounce";
+import { debounce } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { ShieldIcon } from "outline-icons";
 import { useState } from "react";

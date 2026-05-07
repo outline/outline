@@ -1,4 +1,4 @@
-import pick from "lodash/pick";
+import { isEqual, pick } from "es-toolkit/compat";
 import { observable, action, toJS } from "mobx";
 import type { JSONObject } from "@shared/types";
 import type Store from "~/stores/base/Store";
@@ -6,7 +6,6 @@ import Logger from "~/utils/Logger";
 import { getFieldsForModel } from "../decorators/Field";
 import { LifecycleManager } from "../decorators/Lifecycle";
 import { getRelationsForModelClass } from "../decorators/Relation";
-import { isEqual } from "lodash";
 
 export default abstract class Model {
   static modelName: string;

@@ -1,7 +1,7 @@
 import type { Issue, WorkflowState } from "@linear/sdk";
 import { LinearClient } from "@linear/sdk";
 import fetch from "@server/utils/fetch";
-import sortBy from "lodash/sortBy";
+import { sortBy } from "es-toolkit/compat";
 import { z } from "zod";
 import type { IntegrationType } from "@shared/types";
 import { IntegrationService, UnfurlResourceType } from "@shared/types";

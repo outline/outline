@@ -46,7 +46,6 @@ import EventEmitter from "@shared/utils/events";
 import type Document from "~/models/Document";
 import Flex from "~/components/Flex";
 import { PortalContext } from "~/components/Portal";
-import type { Dictionary } from "~/hooks/useDictionary";
 import type { Properties } from "~/types";
 import Logger from "~/utils/Logger";
 import ComponentView from "./components/ComponentView";
@@ -54,8 +53,7 @@ import EditorContext from "./components/EditorContext";
 import type { NodeViewRenderer } from "./components/NodeViewRenderer";
 
 import WithTheme from "./components/WithTheme";
-import isNull from "lodash/isNull";
-import { isArray, map } from "lodash";
+import { isArray, isNull, map } from "es-toolkit/compat";
 import type { LightboxImage } from "@shared/editor/lib/Lightbox";
 import { LightboxImageFactory } from "@shared/editor/lib/Lightbox";
 import Lightbox from "~/components/Lightbox";
@@ -89,8 +87,6 @@ export type Props = {
   canUpdate?: boolean;
   /** If the editor should still allow commenting when it is readOnly */
   canComment?: boolean;
-  /** A dictionary of translated strings used in the editor */
-  dictionary: Dictionary;
   /** The reading direction of the text content, if known */
   dir?: "rtl" | "ltr";
   /** If the editor should vertically grow to fill available space */

@@ -1,5 +1,4 @@
-import compact from "lodash/compact";
-import uniq from "lodash/uniq";
+import { compact, uniq } from "es-toolkit/compat";
 import {
   attachmentPublicRegex,
   attachmentRedirectRegex,

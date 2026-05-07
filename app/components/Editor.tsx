@@ -1,8 +1,9 @@
-import difference from "lodash/difference";
+import { difference } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { DOMParser as ProsemirrorDOMParser } from "prosemirror-model";
 import { TextSelection } from "prosemirror-state";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { mergeRefs } from "react-merge-refs";
 import type { Optional } from "utility-types";
@@ -16,7 +17,6 @@ import ClickablePadding from "~/components/ClickablePadding";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import type { Props as EditorProps, Editor as SharedEditor } from "~/editor";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import useDictionary from "~/hooks/useDictionary";
 import useEditorClickHandlers from "~/hooks/useEditorClickHandlers";
 import useEmbeds from "~/hooks/useEmbeds";
 import useStores from "~/hooks/useStores";
@@ -28,12 +28,7 @@ const LazyLoadedEditor = lazyWithRetry(() => import("~/editor"));
 
 export type Props = Optional<
   EditorProps,
-  | "placeholder"
-  | "defaultValue"
-  | "onClickLink"
-  | "embeds"
-  | "dictionary"
-  | "extensions"
+  "placeholder" | "defaultValue" | "onClickLink" | "embeds" | "extensions"
 > & {
   embedsDisabled?: boolean;
   onSynced?: () => Promise<void>;
@@ -52,7 +47,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   } = props;
   const { comments } = useStores();
   const { shareId } = useShare();
-  const dictionary = useDictionary();
+  const { t } = useTranslation();
   const embeds = useEmbeds(!shareId);
   const localRef = React.useRef<SharedEditor>();
   const preferences = useCurrentUser({ rejectOnEmpty: false })?.preferences;
@@ -95,11 +90,11 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   const handleFileUploadStart = React.useCallback(() => {
     uploadState.current.timeoutId = setTimeout(() => {
       uploadState.current.toastId = toast.loading(
-        dictionary.uploadingWithProgress(0)
+        t("Uploading… {{ progress }}%", { progress: 0 })
       );
     }, 2000);
     onFileUploadStart?.();
-  }, [onFileUploadStart, dictionary]);
+  }, [onFileUploadStart, t]);
 
   const handleFileUploadProgress = React.useCallback(
     (fileId: string, fractionComplete: number) => {
@@ -113,12 +108,12 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
 
       // Update toast if visible
       if (uploadState.current.toastId) {
-        toast.loading(dictionary.uploadingWithProgress(percent), {
+        toast.loading(t("Uploading… {{ progress }}%", { progress: percent }), {
           id: uploadState.current.toastId,
         });
       }
     },
-    [dictionary]
+    [t]
   );
 
   const handleFileUploadStop = React.useCallback(() => {
@@ -183,7 +178,6 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
         onFileUploadStart: handleFileUploadStart,
         onFileUploadStop: handleFileUploadStop,
         onFileUploadProgress: handleFileUploadProgress,
-        dictionary,
         isAttachment,
       });
     },
@@ -192,7 +186,6 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
       handleFileUploadStart,
       handleFileUploadStop,
       handleFileUploadProgress,
-      dictionary,
       handleUploadFile,
     ]
   );
@@ -289,7 +282,6 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
             uploadFile={handleUploadFile}
             embeds={embeds}
             userPreferences={preferences}
-            dictionary={dictionary}
             {...props}
             onClickLink={handleClickLink}
             onChange={handleChange}

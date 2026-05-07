@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/react";
 import invariant from "invariant";
-import find from "lodash/find";
+import { find } from "es-toolkit/compat";
 import { action } from "mobx";
 import { observer } from "mobx-react";
 import { createContext, useEffect, useState } from "react";

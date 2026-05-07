@@ -2,7 +2,7 @@ import path from "node:path";
 import Router from "koa-router";
 import contentDisposition from "content-disposition";
 import JSZip from "jszip";
-import escapeRegExp from "lodash/escapeRegExp";
+import { escapeRegExp } from "es-toolkit/compat";
 import mime from "mime-types";
 import { UserRole } from "@shared/types";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";

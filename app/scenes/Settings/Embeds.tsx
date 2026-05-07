@@ -1,4 +1,4 @@
-import debounce from "lodash/debounce";
+import { debounce } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { BrowserIcon } from "outline-icons";
 import * as React from "react";

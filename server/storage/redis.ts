@@ -1,6 +1,6 @@
 import type { RedisOptions } from "ioredis";
 import Redis from "ioredis";
-import defaults from "lodash/defaults";
+import { defaults } from "es-toolkit/compat";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { getConnectionName } from "./utils";

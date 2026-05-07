@@ -1,5 +1,5 @@
 import Router from "koa-router";
-import difference from "lodash/difference";
+import { difference } from "es-toolkit/compat";
 import type { FindOptions, WhereOptions } from "sequelize";
 import { Op } from "sequelize";
 import {

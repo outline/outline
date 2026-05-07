@@ -1,5 +1,4 @@
-import compact from "lodash/compact";
-import orderBy from "lodash/orderBy";
+import { compact, orderBy } from "es-toolkit/compat";
 import type { WhereOptions } from "sequelize";
 import { Op } from "sequelize";
 import { CollectionPermission, DocumentPermission } from "@shared/types";

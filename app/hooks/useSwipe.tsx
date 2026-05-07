@@ -1,4 +1,4 @@
-import { isNumber } from "lodash";
+import { isNumber } from "es-toolkit/compat";
 import { useRef } from "react";
 
 type Props = {

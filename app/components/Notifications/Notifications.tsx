@@ -6,6 +6,7 @@ import styled from "styled-components";
 import { s, hover } from "@shared/styles";
 import Notification, { type NotificationFilter } from "~/models/Notification";
 import { markNotificationsAsRead } from "~/actions/definitions/notifications";
+import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 import NotificationMenu from "~/menus/NotificationMenu";
 import Empty from "../Empty";
@@ -83,6 +84,7 @@ function Notifications(
 ) {
   const { notifications } = useStores();
   const { t } = useTranslation();
+  const isMobile = useMobile();
   const [filter, setFilter] = React.useState<NotificationFilter>("all");
 
   const filterOptions = React.useMemo<Option[]>(
@@ -110,9 +112,9 @@ function Notifications(
       <Flex
         style={{
           width: "100%",
-          minHeight: "300px",
+          minHeight: isMobile ? "75vh" : "300px",
           maxHeight:
-            "min(75vh, calc(var(--radix-popover-content-available-height) - 44px))",
+            "min(75vh, calc(var(--radix-popover-content-available-height, 75vh) - 44px))",
         }}
         column
       >

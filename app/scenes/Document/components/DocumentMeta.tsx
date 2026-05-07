@@ -28,7 +28,7 @@ type Props = {
   rtl?: boolean;
 };
 
-function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
+function TitleDocumentMeta({ to, document, revision, rtl, ...rest }: Props) {
   const { views, comments, ui } = useStores();
   const { t } = useTranslation();
   const sidebarContext = useLocationSidebarContext();
@@ -50,6 +50,7 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
       revision={revision}
       to={to}
       replace
+      $rtl={rtl}
       {...rest}
     >
       {commentingEnabled && can.comment && (
@@ -113,8 +114,8 @@ const InsightsButton = styled(NudeButton)`
   }
 `;
 
-export const Meta = styled(DocumentMeta)<{ rtl?: boolean }>`
-  justify-content: ${(props) => (props.rtl ? "flex-end" : "flex-start")};
+export const Meta = styled(DocumentMeta)<{ $rtl?: boolean }>`
+  justify-content: ${(props) => (props.$rtl ? "flex-end" : "flex-start")};
   margin: -12px 0 2em 0;
   font-size: 14px;
   position: relative;

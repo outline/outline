@@ -1,5 +1,4 @@
-import isArray from "lodash/isArray";
-import sortBy from "lodash/sortBy";
+import { isArray, sortBy } from "es-toolkit/compat";
 import { action, observable } from "mobx";
 import type Team from "~/models/Team";
 import type User from "~/models/User";

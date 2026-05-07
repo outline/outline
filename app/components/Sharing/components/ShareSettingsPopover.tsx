@@ -1,5 +1,4 @@
-import debounce from "lodash/debounce";
-import uniqueId from "lodash/uniqueId";
+import { debounce, uniqueId } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import {
   ImageIcon,

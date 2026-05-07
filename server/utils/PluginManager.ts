@@ -1,8 +1,7 @@
 import path from "node:path";
 import { glob } from "glob";
 import type Router from "koa-router";
-import isArray from "lodash/isArray";
-import sortBy from "lodash/sortBy";
+import { isArray, sortBy } from "es-toolkit/compat";
 import type BaseEmail from "@server/emails/templates/BaseEmail";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";

@@ -1,7 +1,5 @@
 import fractionalIndex from "fractional-index";
-import chunk from "lodash/chunk";
-import keyBy from "lodash/keyBy";
-import truncate from "lodash/truncate";
+import { chunk, keyBy, truncate } from "es-toolkit/compat";
 import { Fragment, Node } from "prosemirror-model";
 import type { CreateOptions, CreationAttributes, Transaction } from "sequelize";
 import { UniqueConstraintError } from "sequelize";

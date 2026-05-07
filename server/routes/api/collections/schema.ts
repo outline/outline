@@ -1,4 +1,4 @@
-import isUndefined from "lodash/isUndefined";
+import { isUndefined } from "es-toolkit/compat";
 import { z } from "zod";
 import {
   CollectionPermission,

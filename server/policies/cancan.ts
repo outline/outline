@@ -1,4 +1,4 @@
-import isObject from "lodash/isPlainObject";
+import { isPlainObject } from "es-toolkit/compat";
 import type { Model } from "sequelize-typescript";
 import { AuthorizationError } from "@server/errors";
 
@@ -42,14 +42,14 @@ export class CanCan {
     if (
       typeof condition !== "undefined" &&
       typeof condition !== "function" &&
-      !isObject(condition)
+      !isPlainObject(condition)
     ) {
       throw new TypeError(
         `Expected condition to be object or function, got ${typeof condition}`
       );
     }
 
-    if (condition && isObject(condition)) {
+    if (condition && isPlainObject(condition)) {
       condition = this.getConditionFn(condition);
     }
 

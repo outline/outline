@@ -1,7 +1,4 @@
-import filter from "lodash/filter";
-import isEqual from "lodash/isEqual";
-import orderBy from "lodash/orderBy";
-import uniq from "lodash/uniq";
+import { filter, isEqual, orderBy, uniq } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";

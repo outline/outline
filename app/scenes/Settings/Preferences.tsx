@@ -22,6 +22,7 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import UserDelete from "../UserDelete";
+import { AutoLaunchSetting } from "./components/AutoLaunchSetting";
 import SettingRow from "./components/SettingRow";
 
 function Preferences() {
@@ -280,6 +281,7 @@ function Preferences() {
           onChange={handleEnableSmartTextChange}
         />
       </SettingRow>
+      <AutoLaunchSetting />
       <SettingRow
         border={false}
         name={UserPreference.NotificationBadge}

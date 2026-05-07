@@ -1,5 +1,5 @@
 import type { Next } from "koa";
-import defaults from "lodash/defaults";
+import { defaults } from "es-toolkit/compat";
 import env from "@server/env";
 import { RateLimitExceededError } from "@server/errors";
 import Logger from "@server/logging/Logger";

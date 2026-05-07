@@ -1,5 +1,5 @@
 import type { Next } from "koa";
-import capitalize from "lodash/capitalize";
+import { capitalize } from "es-toolkit/compat";
 import type { UserRole } from "@shared/types";
 import { UserRoleHelper } from "@shared/utils/UserRoleHelper";
 import tracer, {

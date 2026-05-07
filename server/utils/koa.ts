@@ -1,6 +1,6 @@
 import type formidable from "formidable";
 import type { Request } from "koa";
-import isArray from "lodash/isArray";
+import { isArray } from "es-toolkit/compat";
 
 /**
  * Get the first file from an incoming koa request

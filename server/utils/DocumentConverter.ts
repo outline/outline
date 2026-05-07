@@ -1,6 +1,6 @@
 import { parse } from "@fast-csv/parse";
 import { JSDOM } from "jsdom";
-import escapeRegExp from "lodash/escapeRegExp";
+import { escapeRegExp } from "es-toolkit/compat";
 import { simpleParser } from "mailparser";
 import mammoth from "mammoth";
 import type { Node } from "prosemirror-model";

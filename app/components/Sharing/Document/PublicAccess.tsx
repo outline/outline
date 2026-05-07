@@ -1,6 +1,5 @@
 import copy from "copy-to-clipboard";
-import debounce from "lodash/debounce";
-import isEmpty from "lodash/isEmpty";
+import { debounce, isEmpty } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { CopyIcon, GlobeIcon } from "outline-icons";
 import * as React from "react";

@@ -1,7 +1,7 @@
 import type { Blob } from "node:buffer";
 import type { Readable } from "node:stream";
 import type { PresignedPost } from "@aws-sdk/s3-presigned-post";
-import omit from "lodash/omit";
+import { omit } from "es-toolkit/compat";
 import FileHelper from "@shared/editor/lib/FileHelper";
 import { isBase64Url, isInternalUrl } from "@shared/utils/urls";
 import { Week } from "@shared/utils/time";

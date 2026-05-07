@@ -1,4 +1,4 @@
-import debounce from "lodash/debounce";
+import { debounce } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { useMemo, useRef, useCallback, useEffect, Suspense } from "react";
 import { useTranslation } from "react-i18next";

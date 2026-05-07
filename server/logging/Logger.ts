@@ -1,9 +1,7 @@
 /* oxlint-disable no-console */
 import type { IncomingMessage } from "node:http";
 import { styleText } from "node:util";
-import isArray from "lodash/isArray";
-import isEmpty from "lodash/isEmpty";
-import isObject from "lodash/isObject";
+import { isArray, isEmpty, isObject } from "es-toolkit/compat";
 import winston from "winston";
 import env from "@server/env";
 import Metrics from "@server/logging/Metrics";

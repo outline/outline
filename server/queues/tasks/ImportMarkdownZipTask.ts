@@ -1,6 +1,6 @@
 import path from "node:path";
 import fs from "fs-extra";
-import escapeRegExp from "lodash/escapeRegExp";
+import { escapeRegExp } from "es-toolkit/compat";
 import mime from "mime-types";
 import { randomUUID } from "node:crypto";
 import documentImporter from "@server/commands/documentImporter";

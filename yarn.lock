@@ -11220,6 +11220,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"es-toolkit@npm:^1.46.1":
+  version: 1.46.1
+  resolution: "es-toolkit@npm:1.46.1"
+  dependenciesMeta:
+    "@trivago/prettier-plugin-sort-imports@4.3.0":
+      unplugged: true
+    prettier-plugin-sort-re-exports@0.0.1:
+      unplugged: true
+  checksum: 10c0/6a4c3dd0ddc2138fa13d983d93ebaf8061759c52c2cf7c3101315139fc1fca826d253daa67fe85ad880c03cc4c092bd53a83a7cbf58b4721c251479122ba5303
+  languageName: node
+  linkType: hard
+
 "es6-error@npm:^4.1.1":
   version: 4.1.1
   resolution: "es6-error@npm:4.1.1"
@@ -12511,9 +12523,9 @@ __metadata:
   linkType: hard
 
 "hono@npm:^4.11.4":
-  version: 4.12.12
-  resolution: "hono@npm:4.12.12"
-  checksum: 10c0/7e514cac7f0fde53a93b5344605a11bc944c55c7b68e586ab722269a60c2d78e81b91c298e934b232d44aa8fcbfd2584b7cd7e01fb3f0edaaba0597a584b2ead
+  version: 4.12.16
+  resolution: "hono@npm:4.12.16"
+  checksum: 10c0/3afee13722bf574780a641bd6d8812663c650fb7ac86df390f2d90293e1a6e2413aa9c45e4bc5b626a29c1b534fdb8353dd2151aab09bc4a95cd277aad4bd5c7
   languageName: node
   linkType: hard
 
@@ -13003,7 +13015,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ipaddr.js@npm:^2.1.0, ipaddr.js@npm:^2.3.0":
+"ipaddr.js@npm:^2.3.0":
   version: 2.3.0
   resolution: "ipaddr.js@npm:2.3.0"
   checksum: 10c0/084bab99e2f6875d7a62adc3325e1c64b038a12c9521e35fb967b5e263a8b3afb1b8884dd77c276092331f5d63298b767491e10997ef147c62da01b143780bbd
@@ -15827,6 +15839,7 @@ __metadata:
     email-providers: "npm:^1.14.0"
     emoji-mart: "npm:^5.6.0"
     emoji-regex: "npm:^10.6.0"
+    es-toolkit: "npm:^1.46.1"
     es6-error: "npm:^4.1.1"
     fast-deep-equal: "npm:^3.1.3"
     fetch-retry: "npm:^5.0.6"
@@ -15868,7 +15881,6 @@ __metadata:
     koa-sslify: "npm:5.0.1"
     koa-useragent: "npm:^4.1.0"
     lint-staged: "npm:^16.4.0"
-    lodash: "npm:^4.17.23"
     mailparser: "npm:^3.7.5"
     mammoth: "npm:^1.11.0"
     markdown-it: "npm:^14.1.1"
@@ -15943,7 +15955,6 @@ __metadata:
     redlock: "npm:^5.0.0-beta2"
     reflect-metadata: "npm:^0.2.2"
     refractor: "npm:^3.6.0"
-    request-filtering-agent: "npm:^3.2.0"
     resolve-path: "npm:^1.4.0"
     rimraf: "npm:^6.1.3"
     rollup-plugin-webpack-stats: "npm:2.1.11"
@@ -17874,15 +17885,6 @@ __metadata:
   version: 2.0.0
   resolution: "replace-ext@npm:2.0.0"
   checksum: 10c0/52cb1006f83c5f07ef2c76b070c58bdeca1b67beded57d60593d1af8cd8ee731501d0433645cea8e9a4bf57a7018f47c9a3928c0463496cad1946fa85907aa47
-  languageName: node
-  linkType: hard
-
-"request-filtering-agent@npm:^3.2.0":
-  version: 3.2.0
-  resolution: "request-filtering-agent@npm:3.2.0"
-  dependencies:
-    ipaddr.js: "npm:^2.1.0"
-  checksum: 10c0/f32128c067ca4b700c7e02b41fdd2db430707ec285a2fb44c347f0d9f42326aeb9c32c1986d20c6354630d1368c2fdb1933928a657cec57d637dd895b08cca07
   languageName: node
   linkType: hard
 

@@ -1,4 +1,4 @@
-import isEqual from "lodash/isEqual";
+import { isEqual } from "es-toolkit/compat";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Waypoint } from "react-waypoint";

@@ -1,13 +1,12 @@
 import emojiRegex from "emoji-regex";
 import { JSDOM } from "jsdom";
-import chunk from "lodash/chunk";
+import { chunk, isMatch } from "es-toolkit/compat";
 import { EditorState, type Plugin } from "prosemirror-state";
 import {
   DecorationSet,
   EditorView,
   type DecorationSource,
 } from "prosemirror-view";
-import isMatch from "lodash/isMatch";
 import { Node, Fragment } from "prosemirror-model";
 import { renderToString } from "react-dom/server";
 import styled, { ServerStyleSheet, ThemeProvider } from "styled-components";
