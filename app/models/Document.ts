@@ -1,7 +1,6 @@
 import { addDays, differenceInDays } from "date-fns";
 import i18n, { t } from "i18next";
-import capitalize from "lodash/capitalize";
-import floor from "lodash/floor";
+import { capitalize, floor } from "es-toolkit/compat";
 import { action, autorun, comparer, computed, observable, set } from "mobx";
 import type {
   JSONObject,

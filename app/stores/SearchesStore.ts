@@ -1,4 +1,4 @@
-import uniqBy from "lodash/uniqBy";
+import { uniqBy } from "es-toolkit/compat";
 import { computed } from "mobx";
 import SearchQuery from "~/models/SearchQuery";
 import type RootStore from "./RootStore";

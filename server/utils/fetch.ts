@@ -13,7 +13,7 @@ import tunnelAgent, { type TunnelAgent } from "tunnel-agent";
 import env from "@server/env";
 import { InternalError } from "@server/errors";
 import Logger from "@server/logging/Logger";
-import { capitalize } from "lodash";
+import { capitalize } from "es-toolkit/compat";
 import {
   type RequestFilteringAgentOptions,
   useAgent as useFilteringAgent,

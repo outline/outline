@@ -2,7 +2,7 @@ import passport from "@outlinewiki/koa-passport";
 import JWT from "jsonwebtoken";
 import type { Context } from "koa";
 import type Router from "koa-router";
-import get from "lodash/get";
+import { get } from "es-toolkit/compat";
 import { slugifyDomain } from "@shared/utils/domains";
 import { parseEmail } from "@shared/utils/email";
 import { isBase64Url } from "@shared/utils/urls";

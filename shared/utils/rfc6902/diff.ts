@@ -1,4 +1,4 @@
-import isEqual from "lodash/isEqual";
+import { isEqual } from "es-toolkit/compat";
 import type { Pointer } from "./pointer";
 import { hasOwn, objectType } from "./util";
 

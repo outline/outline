@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import type { Context, Next } from "koa";
 import { contentSecurityPolicy } from "koa-helmet";
-import uniq from "lodash/uniq";
+import { uniq } from "es-toolkit/compat";
 import env from "@server/env";
 
 const getBucketOrigin = () => {

@@ -1,5 +1,5 @@
 import { DocumentIcon, ShapesIcon } from "outline-icons";
-import cloneDeep from "lodash/cloneDeep";
+import { cloneDeep } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";

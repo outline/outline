@@ -1,5 +1,5 @@
 import { HocuspocusProvider, WebSocketStatus } from "@hocuspocus/provider";
-import throttle from "lodash/throttle";
+import { throttle } from "es-toolkit/compat";
 import {
   useState,
   useLayoutEffect,

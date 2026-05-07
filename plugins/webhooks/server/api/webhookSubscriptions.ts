@@ -1,6 +1,5 @@
 import Router from "koa-router";
-import compact from "lodash/compact";
-import isEmpty from "lodash/isEmpty";
+import { compact, isEmpty } from "es-toolkit/compat";
 import { Op, Sequelize, type WhereOptions } from "sequelize";
 import { UserRole } from "@shared/types";
 import auth from "@server/middlewares/authentication";

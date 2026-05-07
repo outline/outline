@@ -1,7 +1,5 @@
 import invariant from "invariant";
-import escapeRegExp from "lodash/escapeRegExp";
-import find from "lodash/find";
-import map from "lodash/map";
+import { escapeRegExp, find, map } from "es-toolkit/compat";
 import queryParser from "pg-tsquery";
 import type {
   BindOrReplacements,

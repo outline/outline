@@ -1,13 +1,13 @@
 import commandScore from "command-score";
 import invariant from "invariant";
-// oxlint-disable-next-line lodash/import-scope
-import type { ObjectIterateeCustom } from "lodash";
-import deburr from "lodash/deburr";
-import filter from "lodash/filter";
-import find from "lodash/find";
-import flatten from "lodash/flatten";
-import lowerFirst from "lodash/lowerFirst";
-import orderBy from "lodash/orderBy";
+import {
+  deburr,
+  filter,
+  find,
+  flatten,
+  lowerFirst,
+  orderBy,
+} from "es-toolkit/compat";
 import { observable, action, computed, runInAction } from "mobx";
 import pluralize from "pluralize";
 import { Pagination } from "@shared/constants";
@@ -23,6 +23,12 @@ import type { PaginationParams, PartialExcept, Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
 import { AuthorizationError, NotFoundError } from "~/utils/errors";
 import ParanoidModel from "~/models/base/ParanoidModel";
+
+type ListPredicate<T> =
+  | ((value: T, index: number, collection: ArrayLike<T>) => boolean)
+  | PropertyKey
+  | [PropertyKey, unknown]
+  | Partial<T>;
 
 export enum RPCAction {
   Info = "info",
@@ -475,7 +481,7 @@ export default abstract class Store<T extends Model> {
    *
    * @param predicate A function that returns true if the item matches, or an object with the properties to match.
    */
-  find = (predicate: ObjectIterateeCustom<T, boolean>): T | undefined =>
+  find = (predicate: ListPredicate<T>): T | undefined =>
     // @ts-expect-error not sure why T is incompatible
     find(this.orderedData, predicate);
 
@@ -484,7 +490,7 @@ export default abstract class Store<T extends Model> {
    *
    * @param predicate A function that returns true if the item matches, or an object with the properties to match.
    */
-  filter = (predicate: ObjectIterateeCustom<T, boolean>): T[] =>
+  filter = (predicate: ListPredicate<T>): T[] =>
     // @ts-expect-error not sure why T is incompatible
     filter(this.orderedData, predicate);
 }

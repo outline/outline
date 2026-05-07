@@ -1,6 +1,6 @@
 import { t } from "i18next";
 import Router from "koa-router";
-import escapeRegExp from "lodash/escapeRegExp";
+import { escapeRegExp } from "es-toolkit/compat";
 import queryString from "query-string";
 import { z } from "zod";
 import { IntegrationService, IntegrationType } from "@shared/types";

@@ -1,4 +1,4 @@
-import uniqBy from "lodash/uniqBy";
+import { uniqBy } from "es-toolkit/compat";
 import { useState, useEffect, useCallback } from "react";
 import type { PaginationParams } from "~/types";
 import useRequest from "./useRequest";

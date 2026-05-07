@@ -1,6 +1,4 @@
-import cloneDeep from "lodash/cloneDeep";
-import debounce from "lodash/debounce";
-import isEqual from "lodash/isEqual";
+import { cloneDeep, debounce, isEqual } from "es-toolkit/compat";
 import { Node } from "prosemirror-model";
 import type { Selection } from "prosemirror-state";
 import { AllSelection, TextSelection } from "prosemirror-state";

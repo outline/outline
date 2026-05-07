@@ -1,5 +1,5 @@
 import Router from "koa-router";
-import find from "lodash/find";
+import { find } from "es-toolkit/compat";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import { createContext } from "@server/context";
 import { ValidationError } from "@server/errors";

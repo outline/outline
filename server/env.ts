@@ -15,7 +15,7 @@ import {
   IsBoolean,
   Min,
 } from "class-validator";
-import uniq from "lodash/uniq";
+import { uniq } from "es-toolkit/compat";
 import { languages } from "@shared/i18n";
 import { Day, Hour } from "@shared/utils/time";
 import {

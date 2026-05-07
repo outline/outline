@@ -1,4 +1,4 @@
-import differenceBy from "lodash/differenceBy";
+import { differenceBy } from "es-toolkit/compat";
 import * as React from "react";
 import { MentionType } from "@shared/types";
 import { Document, Revision } from "@server/models";

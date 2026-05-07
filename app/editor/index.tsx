@@ -53,8 +53,7 @@ import EditorContext from "./components/EditorContext";
 import type { NodeViewRenderer } from "./components/NodeViewRenderer";
 
 import WithTheme from "./components/WithTheme";
-import isNull from "lodash/isNull";
-import { isArray, map } from "lodash";
+import { isArray, isNull, map } from "es-toolkit/compat";
 import type { LightboxImage } from "@shared/editor/lib/Lightbox";
 import { LightboxImageFactory } from "@shared/editor/lib/Lightbox";
 import Lightbox from "~/components/Lightbox";

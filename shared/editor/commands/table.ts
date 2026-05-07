@@ -41,8 +41,7 @@ import { collapseSelection } from "./collapseSelection";
 import { RowSelection } from "../selection/RowSelection";
 import { ColumnSelection } from "../selection/ColumnSelection";
 import type { Attrs } from "prosemirror-model";
-import isUndefined from "lodash/isUndefined";
-import find from "lodash/find";
+import { find, isUndefined } from "es-toolkit/compat";
 
 /**
  * Restores column selection after a table operation that may have changed cell

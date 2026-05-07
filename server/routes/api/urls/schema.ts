@@ -1,4 +1,4 @@
-import isNil from "lodash/isNil";
+import { isNil } from "es-toolkit/compat";
 import isUUID from "validator/lib/isUUID";
 import { z } from "zod";
 import { UrlHelper } from "@shared/utils/UrlHelper";

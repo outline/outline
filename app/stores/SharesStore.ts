@@ -1,8 +1,5 @@
 import invariant from "invariant";
-import filter from "lodash/filter";
-import find from "lodash/find";
-import isUndefined from "lodash/isUndefined";
-import orderBy from "lodash/orderBy";
+import { filter, find, isUndefined, orderBy } from "es-toolkit/compat";
 import { action, computed, observable } from "mobx";
 import type { NavigationNode, PublicTeam } from "@shared/types";
 import type Document from "~/models/Document";

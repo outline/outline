@@ -1,5 +1,5 @@
 import { isEmail } from "class-validator";
-import concat from "lodash/concat";
+import { concat } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { CheckmarkIcon, CloseIcon } from "outline-icons";
 import * as React from "react";

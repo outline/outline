@@ -1,5 +1,4 @@
-import compact from "lodash/compact";
-import sortBy from "lodash/sortBy";
+import { compact, sortBy } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";

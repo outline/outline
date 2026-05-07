@@ -1,4 +1,4 @@
-import difference from "lodash/difference";
+import { difference } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { DOMParser as ProsemirrorDOMParser } from "prosemirror-model";
 import { TextSelection } from "prosemirror-state";

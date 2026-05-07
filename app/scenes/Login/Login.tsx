@@ -1,4 +1,4 @@
-import find from "lodash/find";
+import { find } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { EmailIcon } from "outline-icons";
 import * as React from "react";

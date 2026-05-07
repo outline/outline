@@ -1,6 +1,6 @@
 // Based on https://github.com/rehooks/window-scroll-position which is no longer
 // maintained.
-import throttle from "lodash/throttle";
+import { throttle } from "es-toolkit/compat";
 import { useState, useEffect } from "react";
 import { supportsPassiveListener } from "@shared/utils/browser";
 

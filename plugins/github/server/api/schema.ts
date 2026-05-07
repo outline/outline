@@ -1,5 +1,4 @@
-import isEmpty from "lodash/isEmpty";
-import isUndefined from "lodash/isUndefined";
+import { isEmpty, isUndefined } from "es-toolkit/compat";
 import { z } from "zod";
 import { BaseSchema } from "@server/routes/api/schema";
 

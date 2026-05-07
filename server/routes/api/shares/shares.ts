@@ -1,5 +1,5 @@
 import Router from "koa-router";
-import isUndefined from "lodash/isUndefined";
+import { isUndefined } from "es-toolkit/compat";
 import type { FindOptions, WhereAttributeHash, WhereOptions } from "sequelize";
 import { Op } from "sequelize";
 import { subMinutes } from "date-fns";

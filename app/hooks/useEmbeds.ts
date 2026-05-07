@@ -1,4 +1,4 @@
-import find from "lodash/find";
+import { find } from "es-toolkit/compat";
 import { useEffect, useMemo } from "react";
 import embeds from "@shared/editor/embeds";
 import { IntegrationType, TeamPreference } from "@shared/types";

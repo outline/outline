@@ -1,4 +1,4 @@
-import escapeRegExp from "lodash/escapeRegExp";
+import { escapeRegExp } from "es-toolkit/compat";
 import { action, observable } from "mobx";
 import { InputRule } from "prosemirror-inputrules";
 import type { NodeType, Schema } from "prosemirror-model";

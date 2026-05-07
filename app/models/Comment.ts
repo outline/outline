@@ -1,5 +1,5 @@
 import invariant from "invariant";
-import uniq from "lodash/uniq";
+import { uniq } from "es-toolkit/compat";
 import { action, computed, observable } from "mobx";
 import { Pagination } from "@shared/constants";
 import type { ProsemirrorData, ReactionSummary } from "@shared/types";

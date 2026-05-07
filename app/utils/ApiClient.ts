@@ -1,5 +1,5 @@
 import retry from "fetch-retry";
-import trim from "lodash/trim";
+import { trim } from "es-toolkit/compat";
 import queryString from "query-string";
 import EDITOR_VERSION from "@shared/editor/version";
 import type { JSONObject } from "@shared/types";

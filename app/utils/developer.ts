@@ -1,4 +1,4 @@
-import flatten from "lodash/flatten";
+import { flatten } from "es-toolkit/compat";
 import stores from "~/stores";
 import { flattenTree } from "@shared/utils/tree";
 

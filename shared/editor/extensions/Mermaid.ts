@@ -1,6 +1,5 @@
+import { last, sortBy } from "es-toolkit/compat";
 import { t } from "i18next";
-import last from "lodash/last";
-import sortBy from "lodash/sortBy";
 import { v4 as uuidv4 } from "uuid";
 import type MermaidUnsafe from "mermaid";
 import type { IconPack } from "@fortawesome/fontawesome-common-types";

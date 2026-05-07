@@ -1,6 +1,6 @@
 import copy from "copy-to-clipboard";
 import invariant from "invariant";
-import uniqBy from "lodash/uniqBy";
+import { capitalize, uniqBy } from "es-toolkit/compat";
 import {
   DownloadIcon,
   DuplicateIcon,
@@ -81,7 +81,6 @@ import {
   trashPath,
   documentEditPath,
 } from "~/utils/routeHelpers";
-import capitalize from "lodash/capitalize";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import type {
   Action,

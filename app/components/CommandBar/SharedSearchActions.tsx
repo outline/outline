@@ -1,5 +1,5 @@
 import { useKBar } from "kbar";
-import escapeRegExp from "lodash/escapeRegExp";
+import { escapeRegExp } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { DocumentIcon } from "outline-icons";
 import * as React from "react";

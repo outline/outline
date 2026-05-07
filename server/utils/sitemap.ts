@@ -1,4 +1,4 @@
-import escape from "lodash/escape";
+import { escape } from "es-toolkit/compat";
 import type { NavigationNode } from "@shared/types";
 
 /**

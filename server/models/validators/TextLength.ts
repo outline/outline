@@ -1,4 +1,3 @@
-import size from "lodash/size";
 import { Node } from "prosemirror-model";
 import { addAttributeOptions } from "sequelize-typescript";
 import type { ProsemirrorData } from "@shared/types";
@@ -30,7 +29,8 @@ export default function TextLength({
             throw new Error("Invalid data");
           }
 
-          if (size(text) > max || size(text) < min) {
+          const length = text ? [...text].length : 0;
+          if (length > max || length < min) {
             throw new Error(msg);
           }
         },

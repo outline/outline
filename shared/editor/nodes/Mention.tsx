@@ -1,4 +1,4 @@
-import isMatch from "lodash/isMatch";
+import { isMatch } from "es-toolkit/compat";
 import { sanitizeUrl } from "../../utils/urls";
 import type { Token } from "markdown-it";
 import type {
