@@ -1,12 +1,13 @@
 import dns from "node:dns";
+import type { MockInstance } from "vitest";
 import env from "@server/env";
 import { validateUrlNotPrivate } from "./url";
 
 describe("validateUrlNotPrivate", () => {
-  let lookupSpy: jest.SpyInstance;
+  let lookupSpy: MockInstance;
 
   beforeEach(() => {
-    lookupSpy = jest
+    lookupSpy = vi
       .spyOn(dns.promises, "lookup")
       .mockResolvedValue({ address: "93.184.216.34", family: 4 });
   });

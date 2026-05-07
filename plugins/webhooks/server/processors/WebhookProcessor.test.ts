@@ -1,16 +1,10 @@
 import { buildUser, buildWebhookSubscription } from "@server/test/factories";
+import { mockTaskSchedule } from "@server/test/support";
 import type { UserEvent } from "@server/types";
-import DeliverWebhookTask from "../tasks/DeliverWebhookTask";
 import WebhookProcessor from "./WebhookProcessor";
 
-jest.mock("../tasks/DeliverWebhookTask");
 const ip = "127.0.0.1";
-const schedule = jest.fn();
-
-beforeEach(() => {
-  jest.resetAllMocks();
-  DeliverWebhookTask.prototype.schedule = schedule;
-});
+const schedule = mockTaskSchedule();
 
 describe("WebhookProcessor", () => {
   it("it schedules a delivery for the event", async () => {

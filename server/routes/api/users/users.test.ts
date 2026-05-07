@@ -14,10 +14,10 @@ import { getTestServer } from "@server/test/support";
 const server = getTestServer();
 
 beforeAll(() => {
-  jest.useFakeTimers().setSystemTime(new Date("2018-01-02T00:00:00.000Z"));
+  vi.useFakeTimers().setSystemTime(new Date("2018-01-02T00:00:00.000Z"));
 });
 afterAll(() => {
-  jest.useRealTimers();
+  vi.useRealTimers();
 });
 
 describe("#users.list", () => {
@@ -766,7 +766,7 @@ describe("#users.update", () => {
 describe("#users.updateEmail", () => {
   describe("post", () => {
     it("should trigger verification email", async () => {
-      const spy = jest.spyOn(ConfirmUpdateEmail.prototype, "schedule");
+      const spy = vi.spyOn(ConfirmUpdateEmail.prototype, "schedule");
       const user = await buildUser();
       const res = await server.post("/api/users.updateEmail", {
         body: {

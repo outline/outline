@@ -12,12 +12,12 @@ import GroupMentionedInCommentNotificationsTask from "./GroupMentionedInCommentN
 const ip = "127.0.0.1";
 
 beforeEach(async () => {
-  jest.resetAllMocks();
+  vi.resetAllMocks();
 });
 
 describe("GroupMentionedInCommentNotificationsTask", () => {
   it("should send notifications to all group members with access", async () => {
-    const spy = jest.spyOn(Notification, "create");
+    const spy = vi.spyOn(Notification, "create");
     const actor = await buildUser();
     const document = await buildDocument({
       teamId: actor.teamId,
@@ -91,7 +91,7 @@ describe("GroupMentionedInCommentNotificationsTask", () => {
   });
 
   it("should not send notification to actor", async () => {
-    const spy = jest.spyOn(Notification, "create");
+    const spy = vi.spyOn(Notification, "create");
     const actor = await buildUser();
     const document = await buildDocument({
       teamId: actor.teamId,
@@ -133,7 +133,7 @@ describe("GroupMentionedInCommentNotificationsTask", () => {
   });
 
   it("should not send notification if group has mentions disabled", async () => {
-    const spy = jest.spyOn(Notification, "create");
+    const spy = vi.spyOn(Notification, "create");
     const actor = await buildUser();
     const document = await buildDocument({
       teamId: actor.teamId,
@@ -177,7 +177,7 @@ describe("GroupMentionedInCommentNotificationsTask", () => {
   });
 
   it("should not send notification to users without subscription", async () => {
-    const spy = jest.spyOn(Notification, "create");
+    const spy = vi.spyOn(Notification, "create");
     const actor = await buildUser();
     const document = await buildDocument({
       teamId: actor.teamId,
@@ -222,7 +222,7 @@ describe("GroupMentionedInCommentNotificationsTask", () => {
   });
 
   it("should handle large groups with batching", async () => {
-    const spy = jest.spyOn(Notification, "create");
+    const spy = vi.spyOn(Notification, "create");
     const actor = await buildUser();
     const document = await buildDocument({
       teamId: actor.teamId,
@@ -269,7 +269,7 @@ describe("GroupMentionedInCommentNotificationsTask", () => {
   });
 
   it("should not send notification if document does not exist", async () => {
-    const spy = jest.spyOn(Notification, "create");
+    const spy = vi.spyOn(Notification, "create");
     const actor = await buildUser();
     const document = await buildDocument({
       teamId: actor.teamId,

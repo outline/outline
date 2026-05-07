@@ -3335,11 +3335,11 @@ describe("#documents.import", () => {
       collectionId: collection.id,
     });
 
-    jest
-      .spyOn(FileStorage, "store")
-      .mockResolvedValue(undefined as unknown as string);
-    jest.spyOn(DocumentImportTask.prototype, "schedule").mockResolvedValue({
-      finished: jest.fn().mockResolvedValue({ documentId: document.id }),
+    vi.spyOn(FileStorage, "store").mockResolvedValue(
+      undefined as unknown as string
+    );
+    vi.spyOn(DocumentImportTask.prototype, "schedule").mockResolvedValue({
+      finished: vi.fn().mockResolvedValue({ documentId: document.id }),
     } as unknown as Awaited<ReturnType<DocumentImportTask["schedule"]>>);
 
     const content = await readFile(
@@ -3366,7 +3366,7 @@ describe("#documents.import", () => {
     expect(res.status).toEqual(200);
     expect(body.data.id).toEqual(document.id);
 
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it("should require authentication", async () => {

@@ -1,9 +1,24 @@
-import fetchMock from "jest-fetch-mock";
+import { http, HttpResponse } from "msw";
+import { server } from "@server/test/msw";
 import { checkEmbeddability, convertBareUrlsToEmbedMarkdown } from "./embeds";
 
-beforeEach(() => {
-  fetchMock.resetMocks();
-});
+const embedUrl = "https://www.example.com/embed";
+
+const mockEmbedResponse = (
+  url: string,
+  init: { status?: number; headers?: Record<string, string> } = {}
+) => {
+  server.use(
+    http.get(
+      url,
+      () =>
+        new HttpResponse(null, {
+          status: init.status ?? 200,
+          headers: init.headers ?? {},
+        })
+    )
+  );
+};
 
 describe("checkEmbeddability", () => {
   describe("when URL doesn't match any embed pattern", () => {
@@ -21,55 +36,48 @@ describe("checkEmbeddability", () => {
 
   describe("when URL matches an embed pattern", () => {
     it("should return embeddable: true when no restrictive headers", async () => {
-      fetchMock.mockResponseOnce("", {
-        status: 200,
-        headers: {},
-      });
+      mockEmbedResponse(embedUrl);
 
-      const result = await checkEmbeddability("https://www.example.com/embed");
+      const result = await checkEmbeddability(embedUrl);
       expect(result).toEqual({ embeddable: true });
     });
 
     it("should return embeddable: false when X-Frame-Options: DENY", async () => {
-      fetchMock.mockResponseOnce("", {
-        status: 200,
+      mockEmbedResponse(embedUrl, {
         headers: { "X-Frame-Options": "DENY" },
       });
 
-      const result = await checkEmbeddability("https://www.example.com/embed");
+      const result = await checkEmbeddability(embedUrl);
       expect(result).toEqual({ embeddable: false, reason: "x-frame-options" });
     });
 
     it("should return embeddable: false when X-Frame-Options: SAMEORIGIN", async () => {
-      fetchMock.mockResponseOnce("", {
-        status: 200,
+      mockEmbedResponse(embedUrl, {
         headers: { "X-Frame-Options": "SAMEORIGIN" },
       });
 
-      const result = await checkEmbeddability("https://www.example.com/embed");
+      const result = await checkEmbeddability(embedUrl);
       expect(result).toEqual({ embeddable: false, reason: "x-frame-options" });
     });
 
     it("should return embeddable: false when X-Frame-Options: ALLOW-FROM", async () => {
-      fetchMock.mockResponseOnce("", {
-        status: 200,
+      mockEmbedResponse(embedUrl, {
         headers: { "X-Frame-Options": "ALLOW-FROM https://example.com" },
       });
 
-      const result = await checkEmbeddability("https://www.example.com/embed");
+      const result = await checkEmbeddability(embedUrl);
       expect(result).toEqual({ embeddable: false, reason: "x-frame-options" });
     });
 
     it("should return embeddable: false when CSP frame-ancestors is 'none'", async () => {
-      fetchMock.mockResponseOnce("", {
-        status: 200,
+      mockEmbedResponse(embedUrl, {
         headers: {
           "Content-Security-Policy":
             "default-src 'self'; frame-ancestors 'none'",
         },
       });
 
-      const result = await checkEmbeddability("https://www.example.com/embed");
+      const result = await checkEmbeddability(embedUrl);
       expect(result).toEqual({
         embeddable: false,
         reason: "csp-frame-ancestors",
@@ -77,14 +85,13 @@ describe("checkEmbeddability", () => {
     });
 
     it("should return embeddable: false when CSP frame-ancestors is 'self'", async () => {
-      fetchMock.mockResponseOnce("", {
-        status: 200,
+      mockEmbedResponse(embedUrl, {
         headers: {
           "Content-Security-Policy": "frame-ancestors 'self'",
         },
       });
 
-      const result = await checkEmbeddability("https://www.example.com/embed");
+      const result = await checkEmbeddability(embedUrl);
       expect(result).toEqual({
         embeddable: false,
         reason: "csp-frame-ancestors",
@@ -92,26 +99,24 @@ describe("checkEmbeddability", () => {
     });
 
     it("should return embeddable: true when CSP frame-ancestors is *", async () => {
-      fetchMock.mockResponseOnce("", {
-        status: 200,
+      mockEmbedResponse(embedUrl, {
         headers: {
           "Content-Security-Policy": "frame-ancestors *",
         },
       });
 
-      const result = await checkEmbeddability("https://www.example.com/embed");
+      const result = await checkEmbeddability(embedUrl);
       expect(result).toEqual({ embeddable: true });
     });
 
     it("should return embeddable: false when CSP frame-ancestors has specific origins", async () => {
-      fetchMock.mockResponseOnce("", {
-        status: 200,
+      mockEmbedResponse(embedUrl, {
         headers: {
           "Content-Security-Policy": "frame-ancestors https://allowed-site.com",
         },
       });
 
-      const result = await checkEmbeddability("https://www.example.com/embed");
+      const result = await checkEmbeddability(embedUrl);
       expect(result).toEqual({
         embeddable: false,
         reason: "csp-frame-ancestors",
@@ -119,60 +124,52 @@ describe("checkEmbeddability", () => {
     });
 
     it("should return embeddable: false when COEP is require-corp", async () => {
-      fetchMock.mockResponseOnce("", {
-        status: 200,
+      mockEmbedResponse(embedUrl, {
         headers: { "Cross-Origin-Embedder-Policy": "require-corp" },
       });
 
-      const result = await checkEmbeddability("https://www.example.com/embed");
+      const result = await checkEmbeddability(embedUrl);
       expect(result).toEqual({ embeddable: false, reason: "coep" });
     });
 
     it("should return embeddable: true when COEP is unsafe-none", async () => {
-      fetchMock.mockResponseOnce("", {
-        status: 200,
+      mockEmbedResponse(embedUrl, {
         headers: { "Cross-Origin-Embedder-Policy": "unsafe-none" },
       });
 
-      const result = await checkEmbeddability("https://www.example.com/embed");
+      const result = await checkEmbeddability(embedUrl);
       expect(result).toEqual({ embeddable: true });
     });
 
     it("should return embeddable: false when server returns 403", async () => {
-      fetchMock.mockResponseOnce("", {
-        status: 403,
-        headers: {},
-      });
+      const url = "https://www.example.com/forbiddenpage";
+      mockEmbedResponse(url, { status: 403 });
 
-      const result = await checkEmbeddability(
-        "https://www.example.com/forbiddenpage"
-      );
+      const result = await checkEmbeddability(url);
       expect(result).toEqual({ embeddable: false, reason: "http-error" });
     });
 
     it("should return embeddable: false when server returns 404", async () => {
-      fetchMock.mockResponseOnce("", {
-        status: 404,
-        headers: {},
-      });
+      const url = "https://www.example.com/nonexistentpage";
+      mockEmbedResponse(url, { status: 404 });
 
-      const result = await checkEmbeddability(
-        "https://www.example.com/nonexistentpage"
-      );
+      const result = await checkEmbeddability(url);
       expect(result).toEqual({ embeddable: false, reason: "http-error" });
     });
 
     it("should return embeddable: true on timeout (optimistic)", async () => {
-      fetchMock.mockAbortOnce();
+      // Network errors and aborts both land in the catch branch and return
+      // { embeddable: true, reason: "timeout" }.
+      server.use(http.get(embedUrl, () => HttpResponse.error()));
 
-      const result = await checkEmbeddability("https://www.example.com/embed");
+      const result = await checkEmbeddability(embedUrl);
       expect(result).toEqual({ embeddable: true, reason: "timeout" });
     });
 
     it("should return embeddable: true on network error (optimistic)", async () => {
-      fetchMock.mockRejectOnce(new Error("Network error"));
+      server.use(http.get(embedUrl, () => HttpResponse.error()));
 
-      const result = await checkEmbeddability("https://www.example.com/embed");
+      const result = await checkEmbeddability(embedUrl);
       expect(result).toEqual({ embeddable: true, reason: "timeout" });
     });
   });

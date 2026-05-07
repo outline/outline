@@ -233,10 +233,6 @@ export function createMigrationRunner(
  * See https://github.com/sequelize/sequelize/issues/14807#issuecomment-1854398131
  */
 export function monkeyPatchSequelizeErrorsForJest(instance: Sequelize) {
-  if (typeof jest === "undefined") {
-    return instance;
-  }
-
   const sequelizeVersion = (Sequelize as unknown as { version: string })
     .version;
   const major = sequelizeVersion.split(".").map(Number)[0];

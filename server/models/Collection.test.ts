@@ -13,7 +13,7 @@ import Collection from "./Collection";
 import Document from "./Document";
 
 beforeEach(() => {
-  jest.resetAllMocks();
+  vi.resetAllMocks();
 });
 
 describe("#url", () => {
@@ -311,7 +311,7 @@ describe("#removeDocument", () => {
     const document = await buildDocument({ collectionId: collection.id });
     await collection.reload();
 
-    const saveSpy = jest.spyOn(collection, "save");
+    const saveSpy = vi.spyOn(collection, "save");
     await collection.deleteDocument(document);
     expect(saveSpy).toHaveBeenCalled();
   });

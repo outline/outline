@@ -1,20 +1,21 @@
 import type Koa from "koa";
+import type { Mock } from "vitest";
 import { requestErrorHandler } from "@server/logging/sentry";
 import { InternalError, ValidationError, NotFoundError } from "./errors";
 import onerror from "./onerror";
 
 // Mock the requestErrorHandler from Sentry
-jest.mock("@server/logging/sentry", () => ({
-  requestErrorHandler: jest.fn(),
+vi.mock("@server/logging/sentry", () => ({
+  requestErrorHandler: vi.fn(),
 }));
 
 type MockCtx = {
   headers: Record<string, string>;
   headerSent: boolean;
   writable: boolean;
-  accepts: jest.Mock;
-  set: jest.Mock;
-  res: { end: jest.Mock };
+  accepts: Mock;
+  set: Mock;
+  res: { end: Mock };
   status: number | undefined;
   type: string | undefined;
   body: unknown;
@@ -43,10 +44,10 @@ describe("onerror", () => {
       headers: {},
       headerSent: false,
       writable: true,
-      accepts: jest.fn(() => "json"),
-      set: jest.fn(),
+      accepts: vi.fn(() => "json"),
+      set: vi.fn(),
       res: {
-        end: jest.fn(),
+        end: vi.fn(),
       },
       status: undefined,
       type: undefined,
@@ -54,7 +55,7 @@ describe("onerror", () => {
     };
 
     // Clear mock calls
-    (requestErrorHandler as jest.Mock).mockClear();
+    (requestErrorHandler as Mock).mockClear();
   });
 
   it("should report InternalError to Sentry", () => {

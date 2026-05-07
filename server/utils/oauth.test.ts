@@ -1,4 +1,5 @@
-import fetchMock from "jest-fetch-mock";
+import { http, HttpResponse } from "msw";
+import { server } from "@server/test/msw";
 import OAuthClient from "./oauth";
 
 class MinimalOAuthClient extends OAuthClient {
@@ -9,16 +10,15 @@ class MinimalOAuthClient extends OAuthClient {
   };
 }
 
-beforeEach(() => {
-  fetchMock.resetMocks();
-});
-
 describe("userInfo", () => {
   it("should work with empty-body 401 Unauthorized responses", async () => {
-    fetchMock.mockResponseOnce("", {
-      status: 401,
-      statusText: "unauthorized",
-    });
+    server.use(
+      http.get(
+        "http://example.com/userinfo",
+        () =>
+          new HttpResponse(null, { status: 401, statusText: "unauthorized" })
+      )
+    );
 
     const client = new MinimalOAuthClient("clientid", "clientsecret");
     try {

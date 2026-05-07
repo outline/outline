@@ -2,7 +2,7 @@ import { createContext } from "@server/context";
 import { buildProseMirrorDoc, buildUser } from "@server/test/factories";
 import { ProsemirrorHelper } from "./ProsemirrorHelper";
 
-jest.mock("@server/storage/files");
+vi.mock("@server/storage/files");
 
 describe("ProsemirrorHelper", () => {
   describe("replaceImagesWithAttachments", () => {

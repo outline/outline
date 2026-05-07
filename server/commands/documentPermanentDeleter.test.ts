@@ -1,17 +1,10 @@
 import { subDays } from "date-fns";
 import { Attachment, Document } from "@server/models";
-import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
 import { buildAttachment, buildDocument } from "@server/test/factories";
+import { mockTaskSchedule } from "@server/test/support";
 import documentPermanentDeleter from "./documentPermanentDeleter";
 
-jest.mock("@server/queues/tasks/DeleteAttachmentTask");
-
-const schedule = jest.fn();
-
-beforeEach(() => {
-  jest.resetAllMocks();
-  DeleteAttachmentTask.prototype.schedule = schedule;
-});
+const schedule = mockTaskSchedule();
 
 describe("documentPermanentDeleter", () => {
   it("should destroy documents", async () => {

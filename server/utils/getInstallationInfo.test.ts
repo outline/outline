@@ -1,9 +1,9 @@
-import fetchMock from "jest-fetch-mock";
+import { http, HttpResponse } from "msw";
+import { server } from "@server/test/msw";
 import { getVersionInfo, getVersion } from "./getInstallationInfo";
 
-beforeEach(() => {
-  fetchMock.resetMocks();
-});
+const dockerHubUrl =
+  "https://hub.docker.com/v2/repositories/outlinewiki/outline/tags";
 
 describe("getVersion", () => {
   it("should return the current version", () => {
@@ -17,11 +17,13 @@ describe("getVersionInfo", () => {
   const currentVersion = "0.80.0";
 
   it("should return version info when Docker Hub is accessible", async () => {
-    fetchMock.mockResponseOnce(
-      JSON.stringify({
-        results: [{ name: "0.81.0" }, { name: "0.80.0" }, { name: "0.79.0" }],
-        next: null,
-      })
+    server.use(
+      http.get(dockerHubUrl, () =>
+        HttpResponse.json({
+          results: [{ name: "0.81.0" }, { name: "0.80.0" }, { name: "0.79.0" }],
+          next: null,
+        })
+      )
     );
 
     const result = await getVersionInfo(currentVersion);
@@ -33,7 +35,7 @@ describe("getVersionInfo", () => {
   });
 
   it("should return fallback values when Docker Hub is unreachable", async () => {
-    fetchMock.mockRejectOnce(new Error("Network request failed"));
+    server.use(http.get(dockerHubUrl, () => HttpResponse.error()));
 
     const result = await getVersionInfo(currentVersion);
 
@@ -44,7 +46,7 @@ describe("getVersionInfo", () => {
   });
 
   it("should return fallback values when fetch times out", async () => {
-    fetchMock.mockRejectOnce(new Error("Request timeout after 10000ms"));
+    server.use(http.get(dockerHubUrl, () => HttpResponse.error()));
 
     const result = await getVersionInfo(currentVersion);
 
@@ -55,7 +57,7 @@ describe("getVersionInfo", () => {
   });
 
   it("should return fallback values when DNS lookup fails", async () => {
-    fetchMock.mockRejectOnce(new Error("DNS lookup failed"));
+    server.use(http.get(dockerHubUrl, () => HttpResponse.error()));
 
     const result = await getVersionInfo(currentVersion);
 
@@ -66,7 +68,12 @@ describe("getVersionInfo", () => {
   });
 
   it("should return fallback values when response is not JSON", async () => {
-    fetchMock.mockResponseOnce("Not JSON");
+    server.use(
+      http.get(
+        dockerHubUrl,
+        () => new HttpResponse("Not JSON", { status: 200 })
+      )
+    );
 
     const result = await getVersionInfo(currentVersion);
 

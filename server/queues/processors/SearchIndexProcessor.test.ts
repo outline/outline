@@ -42,7 +42,7 @@ describe("SearchIndexProcessor", () => {
     });
 
     const provider = SearchProviderManager.getProvider();
-    const indexSpy = jest.spyOn(provider, "index");
+    const indexSpy = vi.spyOn(provider, "index");
 
     await processor.perform({
       name: "documents.publish",
@@ -63,7 +63,7 @@ describe("SearchIndexProcessor", () => {
   it("should call provider.remove for documents.permanent_delete", async () => {
     const user = await buildUser();
     const provider = SearchProviderManager.getProvider();
-    const removeSpy = jest.spyOn(provider, "remove");
+    const removeSpy = vi.spyOn(provider, "remove");
 
     await processor.perform({
       name: "documents.permanent_delete",

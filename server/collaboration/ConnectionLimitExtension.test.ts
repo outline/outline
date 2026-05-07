@@ -5,7 +5,10 @@ import { sleep } from "@shared/utils/timers";
 import { ConnectionLimitExtension } from "./ConnectionLimitExtension";
 import { EditorVersionExtension } from "./EditorVersionExtension";
 
-jest.mock("@server/env", () => ({
+vi.mock("@server/env", () => ({
+  default: {
+    COLLABORATION_MAX_CLIENTS_PER_DOCUMENT: 2,
+  },
   COLLABORATION_MAX_CLIENTS_PER_DOCUMENT: 2,
 }));
 
@@ -13,7 +16,7 @@ describe("ConnectionLimitExtension", () => {
   let server: typeof Server;
   let extension: ConnectionLimitExtension;
   const port = 12345;
-  const url = `ws://localhost:${port}`;
+  const url = `ws://127.0.0.1:${port}`;
   const documentName = "test";
 
   beforeEach(async () => {

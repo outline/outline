@@ -1,4 +1,10 @@
-import fetchMock from "jest-fetch-mock";
+import {
+  http,
+  HttpResponse,
+  type DefaultBodyType,
+  type StrictRequest,
+} from "msw";
+import { server } from "@server/test/msw";
 import { WebhookDelivery } from "@server/models";
 import {
   buildUser,
@@ -8,13 +14,27 @@ import {
 import type { UserEvent } from "@server/types";
 import DeliverWebhookTask from "./DeliverWebhookTask";
 
-beforeEach(async () => {
-  jest.resetAllMocks();
-  fetchMock.resetMocks();
-  fetchMock.doMock();
-});
-
 const ip = "127.0.0.1";
+
+type CapturedRequest = {
+  request: StrictRequest<DefaultBodyType>;
+  body: string;
+};
+
+const captureWebhook = (
+  url: string,
+  response: () => Response = () => new HttpResponse(null, { status: 200 })
+) => {
+  const captured: CapturedRequest[] = [];
+  server.use(
+    http.post(url, async ({ request }) => {
+      const cloned = request.clone();
+      captured.push({ request, body: await cloned.text() });
+      return response();
+    })
+  );
+  return captured;
+};
 
 describe("DeliverWebhookTask", () => {
   test("should hit the subscription url and record a delivery", async () => {
@@ -25,7 +45,10 @@ describe("DeliverWebhookTask", () => {
     const signedInUser = await buildUser({ teamId: subscription.teamId });
     const processor = new DeliverWebhookTask();
 
-    fetchMock.mockResponse("SUCCESS", { status: 200 });
+    const captured = captureWebhook(
+      "http://example.com",
+      () => new HttpResponse("SUCCESS", { status: 200 })
+    );
 
     const event: UserEvent = {
       name: "users.signin",
@@ -39,12 +62,9 @@ describe("DeliverWebhookTask", () => {
       event,
     });
 
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(fetchMock).toHaveBeenCalledWith(
-      "http://example.com",
-      expect.anything()
-    );
-    const parsedBody = JSON.parse(fetchMock.mock.calls[0]![1]!.body as string);
+    expect(captured.length).toBe(1);
+    expect(captured[0].request.url).toBe("http://example.com/");
+    const parsedBody = JSON.parse(captured[0].body);
     expect(parsedBody.webhookSubscriptionId).toBe(subscription.id);
     expect(parsedBody.event).toBe("users.signin");
     expect(parsedBody.payload.id).toBe(signedInUser.id);
@@ -70,6 +90,8 @@ describe("DeliverWebhookTask", () => {
     const signedInUser = await buildUser({ teamId: subscription.teamId });
     const processor = new DeliverWebhookTask();
 
+    const captured = captureWebhook("http://example.com");
+
     const event: UserEvent = {
       name: "users.signin",
       userId: signedInUser.id,
@@ -82,13 +104,10 @@ describe("DeliverWebhookTask", () => {
       event,
     });
 
-    const headers = fetchMock.mock.calls[0]![1]!.headers! as Record<
-      string,
-      string
-    >;
-
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(headers["Outline-Signature"]).toMatch(/^t=[0-9]+,s=[a-z0-9]+$/);
+    expect(captured.length).toBe(1);
+    expect(captured[0].request.headers.get("Outline-Signature")).toMatch(
+      /^t=[0-9]+,s=[a-z0-9]+$/
+    );
   });
 
   test("should hit the subscription url when the eventing model doesn't exist", async () => {
@@ -108,17 +127,16 @@ describe("DeliverWebhookTask", () => {
       ip,
     };
 
+    const captured = captureWebhook("http://example.com");
+
     await task.perform({
       event,
       subscriptionId: subscription.id,
     });
 
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(fetchMock).toHaveBeenCalledWith(
-      "http://example.com",
-      expect.anything()
-    );
-    const parsedBody = JSON.parse(fetchMock.mock.calls[0]![1]!.body as string);
+    expect(captured.length).toBe(1);
+    expect(captured[0].request.url).toBe("http://example.com/");
+    const parsedBody = JSON.parse(captured[0].body);
     expect(parsedBody.webhookSubscriptionId).toBe(subscription.id);
     expect(parsedBody.event).toBe("users.delete");
     expect(parsedBody.payload.id).toBe(deletedUserId);
@@ -140,7 +158,10 @@ describe("DeliverWebhookTask", () => {
       events: ["*"],
     });
 
-    fetchMock.mockResponse("FAILED", { status: 500 });
+    captureWebhook(
+      "http://example.com",
+      () => new HttpResponse("FAILED", { status: 500 })
+    );
 
     const signedInUser = await buildUser({ teamId: subscription.teamId });
     const task = new DeliverWebhookTask();
@@ -186,9 +207,9 @@ describe("DeliverWebhookTask", () => {
       });
     }
 
-    fetchMock.mockResponse(JSON.stringify({ message: "Failure" }), {
-      status: 500,
-    });
+    captureWebhook("http://example.com", () =>
+      HttpResponse.json({ message: "Failure" }, { status: 500 })
+    );
 
     const signedInUser = await buildUser({ teamId: subscription.teamId });
     const task = new DeliverWebhookTask();
