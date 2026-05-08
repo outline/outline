@@ -21,6 +21,7 @@ import Fix from "./decorators/Fix";
 import IdModel from "./base/IdModel";
 import { IsIn } from "class-validator";
 import { ValidationError } from "@server/errors";
+import type { APIContext } from "@server/types";
 
 export enum AccessRequestStatus {
   Pending = "pending",
@@ -112,25 +113,27 @@ class AccessRequest extends IdModel<
   }
 
   /**
-   * Approve this access request, setting the status and responder.
+   * Approve this access request, setting the status and responder, and persist.
    *
-   * @param responderId the id of the user approving the request.
+   * @param ctx the API context; the authenticated user is recorded as responder.
    */
-  public approve(responderId: string) {
+  public approve(ctx: APIContext) {
     this.status = AccessRequestStatus.Approved;
-    this.responderId = responderId;
+    this.responderId = ctx.state.auth.user.id;
     this.respondedAt = new Date();
+    return this.saveWithCtx(ctx);
   }
 
   /**
-   * Dismiss this access request, setting the status and responder.
+   * Dismiss this access request, setting the status and responder, and persist.
    *
-   * @param responderId the id of the user dismissing the request.
+   * @param ctx the API context; the authenticated user is recorded as responder.
    */
-  public dismiss(responderId: string) {
+  public dismiss(ctx: APIContext) {
     this.status = AccessRequestStatus.Dismissed;
-    this.responderId = responderId;
+    this.responderId = ctx.state.auth.user.id;
     this.respondedAt = new Date();
+    return this.saveWithCtx(ctx);
   }
 
   /**
