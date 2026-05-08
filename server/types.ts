@@ -15,6 +15,7 @@ import type {
 import type { BaseSchema } from "@server/routes/api/schema";
 import type { AccountProvisionerResult } from "./commands/accountProvisioner";
 import type {
+  AccessRequest,
   ApiKey,
   Attachment,
   AuthenticationProvider,
@@ -248,6 +249,7 @@ export type DocumentEvent = BaseEvent<Document> &
         createdAt: string;
       }
     | DocumentMovedEvent
+    | AccessRequestEvent
   );
 
 export type TemplateEvent = BaseEvent<Document> & {
@@ -306,6 +308,12 @@ export type DocumentUserEvent = BaseEvent<UserMembership> & {
   data: {
     isNew?: boolean;
   };
+};
+
+export type AccessRequestEvent = BaseEvent<AccessRequest> & {
+  name: "access_requests.create";
+  modelId: string;
+  documentId: string;
 };
 
 export type DocumentGroupEvent = BaseEvent<GroupMembership> & {
@@ -483,6 +491,7 @@ export type Event =
   | AuthenticationProviderEvent
   | DocumentEvent
   | DocumentUserEvent
+  | AccessRequestEvent
   | DocumentMovedEvent
   | DocumentGroupEvent
   | PinEvent

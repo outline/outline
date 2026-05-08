@@ -12,6 +12,7 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from "~/components/primitives/Popover";
+import useConsumeQueryParam from "~/hooks/useConsumeQueryParam";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 import Notifications from "./Notifications";
@@ -23,7 +24,8 @@ type Props = {
 const NotificationsPopover: React.FC = ({ children }: Props) => {
   const { t } = useTranslation();
   const { notifications } = useStores();
-  const [open, setOpen] = useState(false);
+  const shouldOpen = useConsumeQueryParam("notifications") === "true";
+  const [open, setOpen] = useState(shouldOpen);
   const isMobile = useMobile();
   const scrollableRef = useRef<HTMLDivElement>(null);
   const drawerContentRef = useRef<React.ElementRef<typeof DrawerContent>>(null);
