@@ -193,6 +193,16 @@ describe("sanitizeUrl", () => {
   });
 
   describe("Blocked protocols", () => {
+    it("should sanitize base64-encoded image data URIs (links should not embed data)", () => {
+      expect(
+        urlsUtils.sanitizeUrl(
+          "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+        )
+      ).toEqual(
+        "https://data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+      );
+    });
+
     it("should be sanitized", () => {
       expect(urlsUtils.sanitizeUrl("file://localhost.com/outline.txt")).toEqual(
         "https://file://localhost.com/outline.txt"
@@ -207,6 +217,62 @@ describe("sanitizeUrl", () => {
         "https://vbscript:whatever"
       );
     });
+  });
+});
+
+describe("sanitizeImageSrc", () => {
+  it("should return undefined if not a src", () => {
+    expect(urlsUtils.sanitizeImageSrc(undefined)).toBeUndefined();
+    expect(urlsUtils.sanitizeImageSrc(null)).toBeUndefined();
+    expect(urlsUtils.sanitizeImageSrc("")).toBeUndefined();
+  });
+
+  it("should return base64-encoded image data URIs unchanged", () => {
+    const png =
+      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
+    expect(urlsUtils.sanitizeImageSrc(png)).toEqual(png);
+    const gif =
+      "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+    expect(urlsUtils.sanitizeImageSrc(gif)).toEqual(gif);
+    const jpeg = "data:image/jpeg;base64,/9j/4AAQSkZJRg==";
+    expect(urlsUtils.sanitizeImageSrc(jpeg)).toEqual(jpeg);
+    const webp = "data:image/webp;base64,UklGRh4AAABXRUJQVlA4TBEAAAAvAAAAAA";
+    expect(urlsUtils.sanitizeImageSrc(webp)).toEqual(webp);
+    const avif = "data:image/avif;base64,AAAAHGZ0eXBhdmlmAAAAAGF2aWY";
+    expect(urlsUtils.sanitizeImageSrc(avif)).toEqual(avif);
+  });
+
+  it("should sanitize svg data URIs (can contain inline scripts)", () => {
+    expect(
+      urlsUtils.sanitizeImageSrc("data:image/svg+xml;base64,PHN2Zy8+")
+    ).toEqual("https://data:image/svg+xml;base64,PHN2Zy8+");
+    expect(
+      urlsUtils.sanitizeImageSrc("data:image/svg;base64,PHN2Zy8+")
+    ).toEqual("https://data:image/svg;base64,PHN2Zy8+");
+    expect(
+      urlsUtils.sanitizeImageSrc("data:image/SVG+XML;base64,PHN2Zy8+")
+    ).toEqual("https://data:image/SVG+XML;base64,PHN2Zy8+");
+    expect(
+      urlsUtils.sanitizeImageSrc("data:image/svg+xml,<svg></svg>")
+    ).toEqual("https://data:image/svg+xml,<svg></svg>");
+  });
+
+  it("should sanitize non-image data URIs", () => {
+    expect(
+      urlsUtils.sanitizeImageSrc("data:text/html,<script>alert('hi');</script>")
+    ).toEqual("https://data:text/html,<script>alert('hi');</script>");
+  });
+
+  it("should fall through to sanitizeUrl behavior for non-data-URI input", () => {
+    expect(urlsUtils.sanitizeImageSrc("https://example.com/a.png")).toEqual(
+      "https://example.com/a.png"
+    );
+    expect(urlsUtils.sanitizeImageSrc("/uploads/a.png")).toEqual(
+      "/uploads/a.png"
+    );
+    expect(urlsUtils.sanitizeImageSrc("javascript:alert(1)")).toEqual(
+      "https://javascript:alert(1)"
+    );
   });
 });
 
