@@ -689,6 +689,72 @@ describe("revisions.create", () => {
     expect(subscription).not.toBeNull();
   });
 
+  it("should respect a prior unsubscribe when a user is mentioned", async () => {
+    const actor = await buildUser();
+    const mentioned = await buildUser({ teamId: actor.teamId });
+
+    const document = await buildDocument({
+      teamId: actor.teamId,
+      userId: actor.id,
+    });
+    await Revision.createFromDocument(createContext({ user: actor }), document);
+
+    // The mentioned user previously subscribed and then unsubscribed.
+    const prior = await Subscription.create({
+      userId: mentioned.id,
+      documentId: document.id,
+      event: SubscriptionType.Document,
+    });
+    await prior.destroy();
+
+    document.content = buildProseMirrorDoc([
+      ...(document.content?.content ?? []),
+      {
+        type: "paragraph",
+        content: [buildMention({ modelId: mentioned.id, actorId: actor.id })],
+      },
+    ]).toJSON();
+    document.updatedAt = new Date();
+    await document.save();
+
+    const revision = await Revision.createFromDocument(
+      createContext({ user: actor }),
+      document
+    );
+
+    const task = new RevisionCreatedNotificationsTask();
+    await task.perform({
+      name: "revisions.create",
+      documentId: document.id,
+      teamId: document.teamId,
+      actorId: actor.id,
+      modelId: revision.id,
+      ip,
+    });
+
+    // No active subscription should exist.
+    const active = await Subscription.findOne({
+      where: {
+        userId: mentioned.id,
+        documentId: document.id,
+        event: SubscriptionType.Document,
+      },
+    });
+    expect(active).toBeNull();
+
+    // The original soft-deleted subscription should still be soft-deleted.
+    const withDeleted = await Subscription.findOne({
+      where: {
+        userId: mentioned.id,
+        documentId: document.id,
+        event: SubscriptionType.Document,
+      },
+      paranoid: false,
+    });
+    expect(withDeleted).not.toBeNull();
+    expect(withDeleted?.deletedAt).not.toBeNull();
+  });
+
   it("should not subscribe users mentioned via a group", async () => {
     const actor = await buildUser();
     const group = await buildGroup({ teamId: actor.teamId });

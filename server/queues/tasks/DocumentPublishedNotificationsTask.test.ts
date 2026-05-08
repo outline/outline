@@ -209,6 +209,62 @@ describe("documents.publish", () => {
     expect(subscription).not.toBeNull();
   });
 
+  it("should respect a prior unsubscribe when a user is mentioned", async () => {
+    const actor = await buildUser();
+    const mentioned = await buildUser({ teamId: actor.teamId });
+
+    const document = await buildDocument({
+      teamId: actor.teamId,
+      userId: actor.id,
+      content: buildProseMirrorDoc([
+        {
+          type: "paragraph",
+          content: [buildMention({ modelId: mentioned.id, actorId: actor.id })],
+        },
+      ]).toJSON(),
+    });
+
+    // The mentioned user previously subscribed and then unsubscribed.
+    const prior = await Subscription.create({
+      userId: mentioned.id,
+      documentId: document.id,
+      event: SubscriptionType.Document,
+    });
+    await prior.destroy();
+
+    const processor = new DocumentPublishedNotificationsTask();
+    await processor.perform({
+      name: "documents.publish",
+      documentId: document.id,
+      collectionId: document.collectionId!,
+      teamId: document.teamId,
+      actorId: actor.id,
+      ip,
+    });
+
+    // No active subscription should exist.
+    const active = await Subscription.findOne({
+      where: {
+        userId: mentioned.id,
+        documentId: document.id,
+        event: SubscriptionType.Document,
+      },
+    });
+    expect(active).toBeNull();
+
+    // The original soft-deleted subscription should still be soft-deleted.
+    const withDeleted = await Subscription.findOne({
+      where: {
+        userId: mentioned.id,
+        documentId: document.id,
+        event: SubscriptionType.Document,
+      },
+      paranoid: false,
+    });
+    expect(withDeleted).not.toBeNull();
+    expect(withDeleted?.deletedAt).not.toBeNull();
+  });
+
   it("should not subscribe users mentioned via a group", async () => {
     const actor = await buildUser();
     const group = await buildGroup({ teamId: actor.teamId });
