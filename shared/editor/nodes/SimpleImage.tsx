@@ -10,7 +10,7 @@ import { TextSelection, NodeSelection } from "prosemirror-state";
 import * as React from "react";
 import type { Primitive } from "utility-types";
 import { getEventFiles } from "../../utils/files";
-import { sanitizeUrl } from "../../utils/urls";
+import { sanitizeImageSrc } from "../../utils/urls";
 import { AttachmentValidation } from "../../validations";
 import type { Options } from "../commands/insertFiles";
 import insertFiles from "../commands/insertFiles";
@@ -77,7 +77,7 @@ export default class SimpleImage extends Node {
           "img",
           {
             ...node.attrs,
-            src: sanitizeUrl(node.attrs.src),
+            src: sanitizeImageSrc(node.attrs.src),
             contentEditable: "false",
           },
         ],

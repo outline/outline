@@ -214,6 +214,35 @@ export function sanitizeUrl(url: string | null | undefined) {
 }
 
 /**
+ * For use in the editor on image-like elements, this function will ensure
+ * that a src is potentially valid. In addition to the protocols allowed by
+ * `sanitizeUrl`, base64-encoded image data URIs are permitted (excluding
+ * SVG, which can contain inline scripts).
+ *
+ * @param src The src to sanitize.
+ * @returns The sanitized src.
+ */
+export function sanitizeImageSrc(src: string | null | undefined) {
+  if (!src) {
+    return undefined;
+  }
+
+  const allowedDataUris = [
+    "data:image/png;base64,",
+    "data:image/jpeg;base64,",
+    "data:image/gif;base64,",
+    "data:image/webp;base64,",
+    "data:image/avif;base64,",
+  ];
+  const lower = src.toLowerCase();
+
+  if (allowedDataUris.some((scheme) => lower.startsWith(scheme))) {
+    return src;
+  }
+  return sanitizeUrl(src);
+}
+
+/**
  * Returns a regex to match the given url.
  *
  * @param url The url to create a regex for.
