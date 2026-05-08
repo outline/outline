@@ -179,6 +179,24 @@ export function isBase64Url(url: string) {
   return match ? match : false;
 }
 
+const allowedSchemes = [
+  "mailto:",
+  "sms:",
+  "fax:",
+  "tel:",
+  "geo:",
+  "maps:",
+  "magnet:",
+];
+
+const allowedImageDataUris = [
+  "data:image/png;base64,",
+  "data:image/jpeg;base64,",
+  "data:image/gif;base64,",
+  "data:image/webp;base64,",
+  "data:image/avif;base64,",
+];
+
 /**
  * For use in the editor, this function will ensure that a url is
  * potentially valid, and filter out unsupported and malicious protocols.
@@ -191,17 +209,7 @@ export function sanitizeUrl(url: string | null | undefined) {
     return undefined;
   }
 
-  const allowedSchemes = [
-    "mailto:",
-    "sms:",
-    "fax:",
-    "tel:",
-    "geo:",
-    "maps:",
-    "magnet:",
-  ];
   const lower = url.toLowerCase();
-
   if (
     !isUrl(url, { requireHostname: false }) &&
     !url.startsWith("/") &&
@@ -227,16 +235,8 @@ export function sanitizeImageSrc(src: string | null | undefined) {
     return undefined;
   }
 
-  const allowedDataUris = [
-    "data:image/png;base64,",
-    "data:image/jpeg;base64,",
-    "data:image/gif;base64,",
-    "data:image/webp;base64,",
-    "data:image/avif;base64,",
-  ];
   const lower = src.toLowerCase();
-
-  if (allowedDataUris.some((scheme) => lower.startsWith(scheme))) {
+  if (allowedImageDataUris.some((scheme) => lower.startsWith(scheme))) {
     return src;
   }
   return sanitizeUrl(src);
