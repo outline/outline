@@ -4,7 +4,7 @@ import { Op } from "sequelize";
 import { MentionType, NotificationEventType } from "@shared/types";
 import {
   createSubscriptionsForDocument,
-  subscribeUserToDocument,
+  subscribeUsersToDocument,
 } from "@server/commands/subscriptionCreator";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
@@ -52,6 +52,7 @@ export default class RevisionCreatedNotificationsTask extends BaseTask<RevisionE
     const mentions = differenceBy(newMentions, oldMentions, "id");
     const userIdsProcessed = new Set<string>();
     const userIdsMentioned: string[] = [];
+    const usersToSubscribe: User[] = [];
     for (const mention of mentions) {
       if (userIdsProcessed.has(mention.modelId)) {
         continue;
@@ -68,7 +69,7 @@ export default class RevisionCreatedNotificationsTask extends BaseTask<RevisionE
         continue;
       }
 
-      await subscribeUserToDocument(recipient, document, event);
+      usersToSubscribe.push(recipient);
 
       if (
         recipient.subscribedToEventType(
@@ -87,6 +88,8 @@ export default class RevisionCreatedNotificationsTask extends BaseTask<RevisionE
         userIdsMentioned.push(recipient.id);
       }
     }
+
+    await subscribeUsersToDocument(usersToSubscribe, document, event);
 
     // Send notifications to users in mentioned groups
     const oldGroupMentions = before

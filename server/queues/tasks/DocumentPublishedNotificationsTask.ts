@@ -1,7 +1,7 @@
 import { MentionType, NotificationEventType } from "@shared/types";
 import {
   createSubscriptionsForDocument,
-  subscribeUserToDocument,
+  subscribeUsersToDocument,
 } from "@server/commands/subscriptionCreator";
 import { Document, Group, Notification, User, GroupUser } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -27,6 +27,7 @@ export default class DocumentPublishedNotificationsTask extends BaseTask<Documen
     });
     const userIdsProcessed = new Set<string>();
     const userIdsMentioned: string[] = [];
+    const usersToSubscribe: User[] = [];
 
     for (const mention of mentions) {
       if (userIdsProcessed.has(mention.modelId)) {
@@ -44,7 +45,7 @@ export default class DocumentPublishedNotificationsTask extends BaseTask<Documen
         continue;
       }
 
-      await subscribeUserToDocument(recipient, document, event);
+      usersToSubscribe.push(recipient);
 
       if (
         recipient.subscribedToEventType(
@@ -61,6 +62,8 @@ export default class DocumentPublishedNotificationsTask extends BaseTask<Documen
         userIdsMentioned.push(recipient.id);
       }
     }
+
+    await subscribeUsersToDocument(usersToSubscribe, document, event);
 
     // send notifications to users in mentioned groups
     const groupMentions = DocumentHelper.parseMentions(document, {

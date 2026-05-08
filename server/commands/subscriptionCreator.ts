@@ -1,4 +1,4 @@
-import { QueryTypes } from "sequelize";
+import { QueryTypes, type Transaction } from "sequelize";
 import { SubscriptionType } from "@shared/types";
 import { createContext } from "@server/context";
 import type { Document, User } from "@server/models";
@@ -113,14 +113,18 @@ export default async function subscriptionCreator({
  * @param user The user to subscribe.
  * @param document The document to subscribe the user to.
  * @param event The event that triggered the subscription creation.
+ * @param options.transaction An existing transaction to run within. When
+ * subscribing many users in a row, callers should open a single transaction
+ * and pass it in to avoid the overhead of one BEGIN/COMMIT per call.
  */
 export const subscribeUserToDocument = async (
   user: User,
   document: Document,
-  event: DocumentEvent | RevisionEvent
+  event: DocumentEvent | RevisionEvent,
+  options: { transaction?: Transaction } = {}
 ): Promise<void> => {
-  await sequelize.transaction(async (transaction) => {
-    await subscriptionCreator({
+  const run = (transaction: Transaction) =>
+    subscriptionCreator({
       ctx: createContext({
         user,
         authType: event.authType,
@@ -131,6 +135,35 @@ export const subscribeUserToDocument = async (
       event: SubscriptionType.Document,
       resubscribe: false,
     });
+
+  if (options.transaction) {
+    await run(options.transaction);
+    return;
+  }
+
+  await sequelize.transaction(run);
+};
+
+/**
+ * Subscribe a batch of users to a document inside a single transaction.
+ *
+ * @param users The users to subscribe.
+ * @param document The document to subscribe the users to.
+ * @param event The event that triggered the subscription creation.
+ */
+export const subscribeUsersToDocument = async (
+  users: User[],
+  document: Document,
+  event: DocumentEvent | RevisionEvent
+): Promise<void> => {
+  if (!users.length) {
+    return;
+  }
+
+  await sequelize.transaction(async (transaction) => {
+    for (const user of users) {
+      await subscribeUserToDocument(user, document, event, { transaction });
+    }
   });
 };
 
@@ -148,8 +181,5 @@ export const createSubscriptionsForDocument = async (
   event: DocumentEvent | RevisionEvent
 ): Promise<void> => {
   const users = await document.collaborators();
-
-  for (const user of users) {
-    await subscribeUserToDocument(user, document, event);
-  }
+  await subscribeUsersToDocument(users, document, event);
 };
