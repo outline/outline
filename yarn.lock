@@ -8469,6 +8469,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ajv@npm:^8.0.0, ajv@npm:^8.17.1, ajv@npm:^8.6.0":
+  version: 8.20.0
+  resolution: "ajv@npm:8.20.0"
+  dependencies:
+    fast-deep-equal: "npm:^3.1.3"
+    fast-uri: "npm:^3.0.1"
+    json-schema-traverse: "npm:^1.0.0"
+    require-from-string: "npm:^2.0.2"
+  checksum: 10c0/5df9a1c8f83863cde1bd3a9ddb426f599718f88e3dc9153616c79fb28e0be455335830d7f21d745576519f057b371352daa31047b6a33d7036fe08777d60cf2a
+  languageName: node
+  linkType: hard
+
 "ajv@npm:^8.18.0":
   version: 8.18.0
   resolution: "ajv@npm:8.18.0"
@@ -8990,7 +9002,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"brace-expansion@npm:^1.1.13":
+"brace-expansion@npm:^1.1.7":
   version: 1.1.14
   resolution: "brace-expansion@npm:1.1.14"
   dependencies:
@@ -9000,7 +9012,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"brace-expansion@npm:^2.0.2, brace-expansion@npm:^2.0.3":
+"brace-expansion@npm:^2.0.1, brace-expansion@npm:^2.0.2":
   version: 2.1.0
   resolution: "brace-expansion@npm:2.1.0"
   dependencies:
@@ -13001,7 +13013,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ip-address@npm:^10.2.0":
+"ip-address@npm:^10.0.1, ip-address@npm:^10.2.0":
   version: 10.2.0
   resolution: "ip-address@npm:10.2.0"
   checksum: 10c0/5a00aada6e922c9c69dfc800ed5d0fa3348675ebdeed0e1575f503f27ca385b5f534363c9af7ad1daf64c1f1409388cdd3cc2e9b9b0fe1c924a431378d55075a
@@ -14361,7 +14373,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash-es@npm:^4.18.1":
+"lodash-es@npm:^4.17.21, lodash-es@npm:^4.17.23, lodash-es@npm:^4.18.1":
   version: 4.18.1
   resolution: "lodash-es@npm:4.18.1"
   checksum: 10c0/35d4dcf87ef07f8d090f409447575800108057e360b445f590d0d25d09e3d1e33a163d2fc100d4d072b0f901d5e2fc533cd7c4bfd8eeb38a06abec693823c8b8
@@ -14501,7 +14513,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash@npm:^4.18.1":
+"lodash@npm:^4.17.11, lodash@npm:^4.17.20, lodash@npm:^4.17.21, lodash@npm:^4.18.1":
   version: 4.18.1
   resolution: "lodash@npm:4.18.1"
   checksum: 10c0/757228fc68805c59789e82185135cf85f05d0b2d3d54631d680ca79ec21944ec8314d4533639a14b8bcfbd97a517e78960933041a5af17ecb693ec6eecb99a27
@@ -14892,7 +14904,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minimatch@npm:9.0.9, minimatch@npm:^9.0.9":
+"minimatch@npm:9.0.9, minimatch@npm:^9.0.4":
   version: 9.0.9
   resolution: "minimatch@npm:9.0.9"
   dependencies:
@@ -14910,7 +14922,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minimatch@npm:^3.1.5":
+"minimatch@npm:^3.0.2, minimatch@npm:^3.0.4, minimatch@npm:^3.1.1":
   version: 3.1.5
   resolution: "minimatch@npm:3.1.5"
   dependencies:
@@ -14919,7 +14931,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minimatch@npm:^5.1.9":
+"minimatch@npm:^5.0.1":
   version: 5.1.9
   resolution: "minimatch@npm:5.1.9"
   dependencies:
@@ -16683,14 +16695,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"picomatch@npm:^2.3.2":
+"picomatch@npm:^2.0.4, picomatch@npm:^2.2.1, picomatch@npm:^2.2.2, picomatch@npm:^2.3.1":
   version: 2.3.2
   resolution: "picomatch@npm:2.3.2"
   checksum: 10c0/a554d1709e59be97d1acb9eaedbbc700a5c03dbd4579807baed95100b00420bc729335440ef15004ae2378984e2487a7c1cebd743cfdb72b6fa9ab69223c0d61
   languageName: node
   linkType: hard
 
-"picomatch@npm:^4.0.4":
+"picomatch@npm:^4.0.2, picomatch@npm:^4.0.3, picomatch@npm:^4.0.4":
   version: 4.0.4
   resolution: "picomatch@npm:4.0.4"
   checksum: 10c0/e2c6023372cc7b5764719a5ffb9da0f8e781212fa7ca4bd0562db929df8e117460f00dff3cb7509dacfc06b86de924b247f504d0ce1806a37fac4633081466b0
@@ -17209,7 +17221,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"qs@npm:^6.14.2":
+"qs@npm:^6.11.0, qs@npm:^6.14.0, qs@npm:^6.5.2":
   version: 6.15.1
   resolution: "qs@npm:6.15.1"
   dependencies:
