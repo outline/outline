@@ -1,7 +1,8 @@
-import type { DeepPartial } from "utility-types";
-import type { ProsemirrorData } from "@shared/types";
-import { v4 as uuidv4 } from "uuid";
-import { MentionType, NotificationEventType } from "@shared/types";
+import {
+  MentionType,
+  NotificationEventType,
+  SubscriptionType,
+} from "@shared/types";
 import { createContext } from "@server/context";
 import { parser } from "@server/editor";
 import type { Document } from "@server/models";
@@ -16,6 +17,8 @@ import {
   buildDocument,
   buildGroup,
   buildGroupUser,
+  buildMention,
+  buildProseMirrorDoc,
   buildUser,
 } from "@server/test/factories";
 import RevisionCreatedNotificationsTask from "./RevisionCreatedNotificationsTask";
@@ -539,28 +542,20 @@ describe("revisions.create", () => {
     // Now add a mention – the only change is the mention node itself, which
     // renders as "@<label>" in plain text and may be below the 5-char
     // threshold that gates generic update notifications.
-    const mentionContent: DeepPartial<ProsemirrorData> = {
-      type: "doc",
-      content: [
-        ...(document.content?.content ?? []),
-        {
-          type: "paragraph",
-          content: [
-            {
-              type: "mention",
-              attrs: {
-                type: MentionType.User,
-                label: mentioned.name,
-                modelId: mentioned.id,
-                actorId: actor.id,
-                id: "test-mention-id",
-              },
-            },
-          ],
-        },
-      ],
-    };
-    document.content = mentionContent as ProsemirrorData;
+    document.content = buildProseMirrorDoc([
+      ...(document.content?.content ?? []),
+      {
+        type: "paragraph",
+        content: [
+          buildMention({
+            id: "test-mention-id",
+            modelId: mentioned.id,
+            actorId: actor.id,
+            label: mentioned.name,
+          }),
+        ],
+      },
+    ]).toJSON();
     document.updatedAt = new Date();
     await document.save();
 
@@ -611,30 +606,23 @@ describe("revisions.create", () => {
     await Revision.createFromDocument(createContext({ user: actor }), document);
 
     // Update document to include a group mention
-    document.content = {
-      type: "doc",
-      content: [
-        {
-          type: "paragraph",
-          content: [
-            {
-              type: "text",
-              text: "Updated content with a group mention ",
-            },
-            {
-              type: "mention",
-              attrs: {
-                id: uuidv4(),
-                type: MentionType.Group,
-                label: group.name,
-                modelId: group.id,
-                actorId: actor.id,
-              },
-            },
-          ],
-        },
-      ],
-    };
+    document.content = buildProseMirrorDoc([
+      {
+        type: "paragraph",
+        content: [
+          {
+            type: "text",
+            text: "Updated content with a group mention ",
+          },
+          buildMention({
+            type: MentionType.Group,
+            modelId: group.id,
+            actorId: actor.id,
+            label: group.name,
+          }),
+        ],
+      },
+    ]).toJSON();
     document.updatedAt = new Date();
     await document.save();
 
@@ -654,5 +642,169 @@ describe("revisions.create", () => {
     });
 
     expect(spy).not.toHaveBeenCalled();
+  });
+
+  it("should subscribe a mentioned user to the document", async () => {
+    const actor = await buildUser();
+    const mentioned = await buildUser({ teamId: actor.teamId, name: "Kim" });
+
+    const document = await buildDocument({
+      teamId: actor.teamId,
+      userId: actor.id,
+    });
+    await Revision.createFromDocument(createContext({ user: actor }), document);
+
+    document.content = buildProseMirrorDoc([
+      ...(document.content?.content ?? []),
+      {
+        type: "paragraph",
+        content: [buildMention({ modelId: mentioned.id, actorId: actor.id })],
+      },
+    ]).toJSON();
+    document.updatedAt = new Date();
+    await document.save();
+
+    const revision = await Revision.createFromDocument(
+      createContext({ user: actor }),
+      document
+    );
+
+    const task = new RevisionCreatedNotificationsTask();
+    await task.perform({
+      name: "revisions.create",
+      documentId: document.id,
+      teamId: document.teamId,
+      actorId: actor.id,
+      modelId: revision.id,
+      ip,
+    });
+
+    const subscription = await Subscription.findOne({
+      where: {
+        userId: mentioned.id,
+        documentId: document.id,
+        event: SubscriptionType.Document,
+      },
+    });
+    expect(subscription).not.toBeNull();
+  });
+
+  it("should respect a prior unsubscribe when a user is mentioned", async () => {
+    const actor = await buildUser();
+    const mentioned = await buildUser({ teamId: actor.teamId });
+
+    const document = await buildDocument({
+      teamId: actor.teamId,
+      userId: actor.id,
+    });
+    await Revision.createFromDocument(createContext({ user: actor }), document);
+
+    // The mentioned user previously subscribed and then unsubscribed.
+    const prior = await Subscription.create({
+      userId: mentioned.id,
+      documentId: document.id,
+      event: SubscriptionType.Document,
+    });
+    await prior.destroy();
+
+    document.content = buildProseMirrorDoc([
+      ...(document.content?.content ?? []),
+      {
+        type: "paragraph",
+        content: [buildMention({ modelId: mentioned.id, actorId: actor.id })],
+      },
+    ]).toJSON();
+    document.updatedAt = new Date();
+    await document.save();
+
+    const revision = await Revision.createFromDocument(
+      createContext({ user: actor }),
+      document
+    );
+
+    const task = new RevisionCreatedNotificationsTask();
+    await task.perform({
+      name: "revisions.create",
+      documentId: document.id,
+      teamId: document.teamId,
+      actorId: actor.id,
+      modelId: revision.id,
+      ip,
+    });
+
+    // No active subscription should exist.
+    const active = await Subscription.findOne({
+      where: {
+        userId: mentioned.id,
+        documentId: document.id,
+        event: SubscriptionType.Document,
+      },
+    });
+    expect(active).toBeNull();
+
+    // The original soft-deleted subscription should still be soft-deleted.
+    const withDeleted = await Subscription.findOne({
+      where: {
+        userId: mentioned.id,
+        documentId: document.id,
+        event: SubscriptionType.Document,
+      },
+      paranoid: false,
+    });
+    expect(withDeleted).not.toBeNull();
+    expect(withDeleted?.deletedAt).not.toBeNull();
+  });
+
+  it("should not subscribe users mentioned via a group", async () => {
+    const actor = await buildUser();
+    const group = await buildGroup({ teamId: actor.teamId });
+    const member = await buildUser({ teamId: actor.teamId });
+    await buildGroupUser({ groupId: group.id, userId: member.id });
+
+    const document = await buildDocument({
+      teamId: actor.teamId,
+      userId: actor.id,
+    });
+    await Revision.createFromDocument(createContext({ user: actor }), document);
+
+    document.content = buildProseMirrorDoc([
+      {
+        type: "paragraph",
+        content: [
+          buildMention({
+            type: MentionType.Group,
+            modelId: group.id,
+            actorId: actor.id,
+            label: group.name,
+          }),
+        ],
+      },
+    ]).toJSON();
+    document.updatedAt = new Date();
+    await document.save();
+
+    const revision = await Revision.createFromDocument(
+      createContext({ user: actor }),
+      document
+    );
+
+    const task = new RevisionCreatedNotificationsTask();
+    await task.perform({
+      name: "revisions.create",
+      documentId: document.id,
+      teamId: document.teamId,
+      actorId: actor.id,
+      modelId: revision.id,
+      ip,
+    });
+
+    const subscription = await Subscription.findOne({
+      where: {
+        userId: member.id,
+        documentId: document.id,
+        event: SubscriptionType.Document,
+      },
+    });
+    expect(subscription).toBeNull();
   });
 });
