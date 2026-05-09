@@ -366,6 +366,50 @@ describe("#accessRequests.approve", () => {
     expect(res.status).toEqual(403);
   });
 
+  it("should be a no-op when user already has membership", async () => {
+    const team = await buildTeam();
+    const requester = await buildUser({ teamId: team.id });
+    const admin = await buildAdmin({ teamId: team.id });
+    const document = await buildDocument({
+      createdById: admin.id,
+      teamId: team.id,
+    });
+
+    await UserMembership.create({
+      userId: requester.id,
+      documentId: document.id,
+      createdById: admin.id,
+      permission: DocumentPermission.Read,
+    });
+
+    const accessRequest = await AccessRequest.create({
+      documentId: document.id,
+      userId: requester.id,
+      teamId: team.id,
+      status: AccessRequestStatus.Pending,
+    });
+
+    const res = await server.post("/api/accessRequests.approve", {
+      body: {
+        token: admin.getJwtToken(),
+        id: accessRequest.id,
+        permission: DocumentPermission.ReadWrite,
+      },
+    });
+
+    expect(res.status).toEqual(200);
+
+    // Existing membership is unchanged.
+    const memberships = await UserMembership.findAll({
+      where: {
+        userId: requester.id,
+        documentId: document.id,
+      },
+    });
+    expect(memberships).toHaveLength(1);
+    expect(memberships[0].permission).toEqual(DocumentPermission.Read);
+  });
+
   it("should not allow approving requests that have been responded to", async () => {
     const team = await buildTeam();
     const requester = await buildUser({ teamId: team.id });
@@ -475,23 +519,24 @@ describe("#accessRequests.dismiss", () => {
     expect(res.status).toEqual(403);
   });
 
-  it("should not allow dismissing requests that have been responded to", async () => {
+  it("should be a no-op when request has already been responded to", async () => {
     const team = await buildTeam();
     const requester = await buildUser({ teamId: team.id });
     const admin = await buildAdmin({ teamId: team.id });
+    const responder = await buildAdmin({ teamId: team.id });
     const document = await buildDocument({
       createdById: admin.id,
       teamId: team.id,
     });
 
-    // Create access request that's already dismissed
+    const respondedAt = new Date();
     const accessRequest = await AccessRequest.create({
       documentId: document.id,
       userId: requester.id,
       teamId: team.id,
       status: AccessRequestStatus.Dismissed,
-      responderId: admin.id,
-      respondedAt: new Date(),
+      responderId: responder.id,
+      respondedAt,
     });
 
     const res = await server.post("/api/accessRequests.dismiss", {
@@ -500,7 +545,10 @@ describe("#accessRequests.dismiss", () => {
         id: accessRequest.id,
       },
     });
+    const body = await res.json();
 
-    expect(res.status).toEqual(400);
+    expect(res.status).toEqual(200);
+    expect(body.data.status).toEqual(AccessRequestStatus.Dismissed);
+    expect(body.data.responderId).toEqual(responder.id);
   });
 });

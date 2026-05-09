@@ -123,17 +123,16 @@ router.post(
       transaction,
     });
 
-    if (membership) {
-      throw InvalidRequestError("User already has access to the document");
-    }
-    await UserMembership.createWithCtx(ctx, {
-      userId: accessRequest.userId,
-      documentId: accessRequest.documentId,
-      permission: permission,
-      createdById: user.id,
-    });
+    if (!membership) {
+      await UserMembership.createWithCtx(ctx, {
+        userId: accessRequest.userId,
+        documentId: accessRequest.documentId,
+        permission: permission,
+        createdById: user.id,
+      });
 
-    await accessRequest.approve(ctx);
+      await accessRequest.approve(ctx);
+    }
 
     ctx.body = {
       data: presentAccessRequest(accessRequest),
@@ -161,17 +160,15 @@ router.post(
     authorize(user, "update", accessRequest);
     authorize(user, "read", accessRequest.user);
 
-    if (accessRequest.status !== AccessRequestStatus.Pending) {
-      throw InvalidRequestError("Access request has already been responded to");
-    }
-
     const document = await Document.findByPk(accessRequest.documentId, {
       userId: user.id,
       transaction,
     });
     authorize(user, "share", document);
 
-    await accessRequest.dismiss(ctx);
+    if (accessRequest.status === AccessRequestStatus.Pending) {
+      await accessRequest.dismiss(ctx);
+    }
 
     ctx.body = {
       data: presentAccessRequest(accessRequest),
