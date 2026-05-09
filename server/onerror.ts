@@ -26,6 +26,12 @@ export default function onerror(app: Koa) {
       if (err.internalCode === 1002) {
         err = ClientClosedRequestError();
       }
+    } else if (
+      err.code === "HPE_INVALID_EOF_STATE" ||
+      err.code === "ECONNRESET" ||
+      err.code === "EPIPE"
+    ) {
+      err = ClientClosedRequestError();
     }
 
     // Push only errors explicitly marked for Sentry reporting.
