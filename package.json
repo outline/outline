@@ -357,7 +357,7 @@
     "concurrently": "^8.2.2",
     "discord-api-types": "^0.38.46",
     "husky": "^8.0.3",
-    "i18next-parser": "^8.13.0",
+    "i18next-parser": "^9.4.0",
     "ioredis-mock": "^8.13.1",
     "lint-staged": "^16.4.0",
     "msw": "^2.14.2",
@@ -389,7 +389,8 @@
     "ip-address@npm:10.1.0": "^10.2.0",
     "minimatch@npm:9.0.1": "9.0.9",
     "lodash@npm:4.17.21": "^4.18.1",
-    "lodash-es@npm:4.17.23": "^4.18.1"
+    "lodash-es@npm:4.17.23": "^4.18.1",
+    "i18next-parser/i18next": "^23.16.8"
   },
   "version": "1.7.1",
   "packageManager": "yarn@4.11.0"
