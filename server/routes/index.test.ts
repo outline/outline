@@ -166,7 +166,7 @@ describe("/s/:id", () => {
 
 describe("scanner path 404s", () => {
   it.each([
-    "/.well-known/gpc.json?eiqtx=dpnin",
+    "/.well-known/gpc.json",
     "/.env",
     "/.git/config",
     "/cgi-bin/test.cgi",

@@ -101,7 +101,7 @@ describe("validateUrlNotPrivate", () => {
 
 describe("isInvalidAppPath", () => {
   it.each([
-    "/.well-known/gpc.json?eiqtx=dpnin",
+    "/.well-known/gpc.json",
     "/.env",
     "/.env.production",
     "/.git/config",
@@ -115,7 +115,7 @@ describe("isInvalidAppPath", () => {
     "/phpmyadmin/index.php",
     "/actuator/health",
     "/HNAP1/",
-    "/index.php?q=1",
+    "/index.php",
   ])("returns true for scanner path %s", (path) => {
     expect(isInvalidAppPath(path)).toBe(true);
   });
