@@ -1,15 +1,16 @@
-import isObject from "lodash/isPlainObject";
+import { isPlainObject } from "es-toolkit/compat";
 import type { Model } from "sequelize-typescript";
 import { AuthorizationError } from "@server/errors";
 
-type Constructor = new (...args: any) => any;
+// oxlint-disable-next-line @typescript-eslint/no-explicit-any -- variance requires `any` to accept arbitrary constructors
+type Constructor = new (...args: any[]) => unknown;
 
 type Policy = Record<string, boolean | string[]>;
 
 type Condition<T extends Constructor, P extends Constructor> = (
   performer: InstanceType<P>,
   target: InstanceType<T> | null,
-  options?: any
+  options?: unknown
 ) => boolean | string;
 
 type Ability = {
@@ -41,14 +42,14 @@ export class CanCan {
     if (
       typeof condition !== "undefined" &&
       typeof condition !== "function" &&
-      !isObject(condition)
+      !isPlainObject(condition)
     ) {
       throw new TypeError(
         `Expected condition to be object or function, got ${typeof condition}`
       );
     }
 
-    if (condition && isObject(condition)) {
+    if (condition && isPlainObject(condition)) {
       condition = this.getConditionFn(condition);
     }
 
@@ -132,7 +133,7 @@ export class CanCan {
       if (performer instanceof model) {
         for (const [action, abilities] of actionMap.entries()) {
           for (const ability of abilities) {
-            if (target instanceof (ability.target as any)) {
+            if (target instanceof (ability.target as Constructor)) {
               actionsToCheck.add(action);
               break;
             }
@@ -211,7 +212,7 @@ export class CanCan {
           if (
             ability.target === "all" ||
             target === ability.target ||
-            target instanceof (ability.target as any)
+            target instanceof (ability.target as Constructor)
           ) {
             matchingAbilities.push(ability);
           }
@@ -225,7 +226,7 @@ export class CanCan {
           if (
             ability.target === "all" ||
             target === ability.target ||
-            target instanceof (ability.target as any)
+            target instanceof (ability.target as Constructor)
           ) {
             matchingAbilities.push(ability);
           }

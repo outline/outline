@@ -1,5 +1,5 @@
 import { m } from "framer-motion";
-import find from "lodash/find";
+import { find } from "es-toolkit/compat";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { languages, languageOptions } from "@shared/i18n";

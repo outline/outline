@@ -1,7 +1,9 @@
+import { t } from "i18next";
 import { chainCommands, toggleMark } from "prosemirror-commands";
 import type { Attrs } from "prosemirror-model";
 import type { Command } from "prosemirror-state";
 import { NodeSelection, Selection, TextSelection } from "prosemirror-state";
+import type * as React from "react";
 import { getMarkRange } from "../queries/getMarkRange";
 import { toast } from "sonner";
 import { sanitizeUrl } from "@shared/utils/urls";
@@ -49,8 +51,15 @@ const addLinkNodeSelection =
 
 const openLinkTextSelection =
   (
-    onClickLink: (url: string, event: KeyboardEvent) => void,
-    dictionary: Record<string, string>
+    onClickLink:
+      | ((
+          url: string,
+          event?:
+            | KeyboardEvent
+            | MouseEvent
+            | React.MouseEvent<HTMLButtonElement>
+        ) => void)
+      | undefined
   ): Command =>
   (state) => {
     if (!(state.selection instanceof TextSelection)) {
@@ -63,7 +72,7 @@ const openLinkTextSelection =
         const event = new KeyboardEvent("keydown", { metaKey: false });
         onClickLink(sanitizeUrl(range.mark.attrs.href) ?? "", event);
       } catch (_err) {
-        toast.error(dictionary.openLinkError);
+        toast.error(t("Sorry, that type of link is not supported"));
       }
       return true;
     }
@@ -72,8 +81,15 @@ const openLinkTextSelection =
 
 const openLinkNodeSelection =
   (
-    onClickLink: (url: string, event: KeyboardEvent) => void,
-    dictionary: Record<string, string>
+    onClickLink:
+      | ((
+          url: string,
+          event?:
+            | KeyboardEvent
+            | MouseEvent
+            | React.MouseEvent<HTMLButtonElement>
+        ) => void)
+      | undefined
   ): Command =>
   (state) => {
     if (!(state.selection instanceof NodeSelection)) {
@@ -94,7 +110,7 @@ const openLinkNodeSelection =
       const event = new KeyboardEvent("keydown", { metaKey: false });
       onClickLink(sanitizeUrl(linkMark.attrs.href) ?? "", event);
     } catch (_err) {
-      toast.error(dictionary.openLinkError);
+      toast.error(t("Sorry, that type of link is not supported"));
     }
     return true;
   };
@@ -238,12 +254,16 @@ export const addLink = (attrs: Attrs): Command =>
   chainCommands(addLinkTextSelection(attrs), addLinkNodeSelection(attrs));
 
 export const openLink = (
-  onClickLink: (url: string, event: KeyboardEvent) => void,
-  dictionary: Record<string, string>
+  onClickLink:
+    | ((
+        url: string,
+        event?: KeyboardEvent | MouseEvent | React.MouseEvent<HTMLButtonElement>
+      ) => void)
+    | undefined
 ): Command =>
   chainCommands(
-    openLinkTextSelection(onClickLink, dictionary),
-    openLinkNodeSelection(onClickLink, dictionary)
+    openLinkTextSelection(onClickLink),
+    openLinkNodeSelection(onClickLink)
   );
 
 export const updateLink = (attrs: Attrs): Command =>

@@ -1,4 +1,4 @@
-import isEmpty from "lodash/isEmpty";
+import { isEmpty } from "es-toolkit/compat";
 import { z } from "zod";
 import { CommentStatusFilter } from "@shared/types";
 import { commentSchema } from "@server/editor";

@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any -- window.env is a server-injected boundary with mixed value types
 declare global {
   interface Window {
     env: Record<string, any>;

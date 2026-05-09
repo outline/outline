@@ -11,6 +11,7 @@ import useKeyDown from "~/hooks/useKeyDown";
 import { usePostLoginPath } from "~/hooks/useLastVisitedPath";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
+import Logger from "~/utils/Logger";
 import history from "~/utils/history";
 import { isModKey } from "@shared/utils/keyboard";
 import lazyWithRetry from "~/utils/lazyWithRetry";
@@ -18,6 +19,7 @@ import {
   searchPath,
   newDocumentPath,
   settingsPath,
+  homePath,
 } from "~/utils/routeHelpers";
 import { DocumentContextProvider } from "./DocumentContext";
 import Fade from "./Fade";
@@ -69,7 +71,15 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
   React.useEffect(() => {
     const postLoginPath = spendPostLoginPath();
     if (postLoginPath) {
-      history.replace(postLoginPath);
+      try {
+        history.replace(postLoginPath);
+      } catch (err) {
+        Logger.warn("Failed to navigate to post login path, falling back", {
+          path: postLoginPath,
+          error: err,
+        });
+        history.replace(homePath());
+      }
     }
   }, [spendPostLoginPath]);
 

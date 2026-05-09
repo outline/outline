@@ -2,6 +2,7 @@ import Event from "~/models/Event";
 import type RootStore from "./RootStore";
 import Store, { RPCAction } from "./base/Store";
 
+// oxlint-disable no-explicit-any -- Event generic must be `any` because the store holds events for all model types
 export default class EventsStore extends Store<Event<any>> {
   actions = [RPCAction.List];
 

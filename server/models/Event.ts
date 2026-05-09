@@ -60,6 +60,7 @@ class Event extends IdModel<
    * Note that the `data` column will be visible to the client and API requests.
    */
   @Column(DataType.JSONB)
+  // oxlint-disable-next-line @typescript-eslint/no-explicit-any
   data: Record<string, any> | null;
 
   /**
@@ -67,6 +68,7 @@ class Event extends IdModel<
    * used for arbitrary data associated with the event.
    */
   @Column(DataType.JSONB)
+  // oxlint-disable-next-line @typescript-eslint/no-explicit-any
   changes: Record<string, any> | null;
 
   // hooks

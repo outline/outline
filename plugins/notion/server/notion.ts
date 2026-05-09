@@ -15,8 +15,7 @@ import type {
 } from "@notionhq/client/build/src/api-endpoints";
 import { RateLimit } from "async-sema";
 import emojiRegex from "emoji-regex";
-import compact from "lodash/compact";
-import truncate from "lodash/truncate";
+import { compact, truncate } from "es-toolkit/compat";
 import { z } from "zod";
 import { Second } from "@shared/utils/time";
 import { isUrl } from "@shared/utils/urls";

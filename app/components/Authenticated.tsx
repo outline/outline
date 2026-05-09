@@ -31,7 +31,10 @@ const Authenticated = ({ children }: Props) => {
     return <LoadingIndicator />;
   }
 
-  void auth.logout({ savePath: true });
+  void auth.logout({
+    savePath: true,
+    clearCache: false,
+  });
 
   if (auth.logoutRedirectUri) {
     window.location.href = auth.logoutRedirectUri;

@@ -1,4 +1,4 @@
-import times from "lodash/times";
+import { times } from "es-toolkit/compat";
 import styled from "styled-components";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";

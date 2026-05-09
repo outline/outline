@@ -24,7 +24,10 @@ export type Modification = {
 /**
  * Extended Change type that includes modifications.
  */
-export interface ExtendedChange extends Change {
+export interface ExtendedChange extends Pick<
+  Change,
+  "fromA" | "toA" | "fromB" | "toB" | "deleted" | "inserted"
+> {
   modified: readonly Modification[];
 }
 

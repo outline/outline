@@ -688,15 +688,17 @@ export type JSONValue =
 
 export type JSONObject = { [x: string]: JSONValue };
 
+export type ProsemirrorMark = {
+  type: string;
+  attrs?: JSONObject;
+};
+
 export type ProsemirrorData = {
   type: string;
   content?: ProsemirrorData[];
   text?: string;
   attrs?: JSONObject;
-  marks?: {
-    type: string;
-    attrs?: JSONObject;
-  }[];
+  marks?: ProsemirrorMark[];
 };
 
 export type ProsemirrorDoc = {

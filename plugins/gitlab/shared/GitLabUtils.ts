@@ -2,6 +2,13 @@ import env from "@shared/env";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 import { UnfurlResourceType } from "@shared/types";
 
+export const GitLabOAuthNonceCookie = "gitlabOAuthNonce";
+
+export type OAuthState = {
+  teamId: string;
+  nonce: string;
+};
+
 export class GitLabUtils {
   public static defaultGitlabUrl = "https://gitlab.com";
 
@@ -67,13 +74,13 @@ export class GitLabUtils {
   /**
    * Generates the authorization URL for GitLab OAuth.
    *
-   * @param state - A unique state string to prevent CSRF attacks.
+   * @param state - The OAuth state with teamId for routing and nonce for CSRF.
    * @param customUrl - Optional custom GitLab URL from integration settings.
    * @param customClientId - Optional custom OAuth client ID from integration settings.
    * @returns The full URL to redirect the user to GitLab's OAuth authorization page.
    */
   public static authUrl(
-    state: string,
+    state: OAuthState,
     customUrl?: string,
     customClientId?: string
   ): string {
@@ -81,11 +88,25 @@ export class GitLabUtils {
       client_id: customClientId || env.GITLAB_CLIENT_ID,
       redirect_uri: this.callbackUrl(),
       response_type: "code",
-      state,
+      state: JSON.stringify(state),
       scope: "read_api read_user",
     });
 
     return `${this.getOauthUrl(customUrl)}/authorize?${params.toString()}`;
+  }
+
+  /**
+   * Parses an OAuth state string from a GitLab callback.
+   *
+   * @param state - The state string carried in the callback query.
+   * @returns The parsed OAuth state.
+   */
+  public static parseState(state: string): OAuthState | undefined {
+    try {
+      return JSON.parse(state);
+    } catch {
+      return undefined;
+    }
   }
 
   /**
@@ -275,6 +296,62 @@ export class GitLabUtils {
       "#7e7e7e", // neutral
     ];
     return palette[projectId % 7];
+  }
+
+  /**
+   * Sanitizes GitLab-flavored markdown to standard markdown compatible with
+   * our editor. Strips or converts GitLab-specific syntax that would otherwise
+   * render as raw text in previews.
+   *
+   * Note: This is for display purposes only and is not a security boundary.
+   * Do not rely on this to sanitize untrusted HTML.
+   *
+   * @param text - the markdown text to sanitize.
+   * @returns the sanitized text, or null if input is null/undefined.
+   */
+  public static sanitizeGitLabMarkdown(
+    text: string | null | undefined
+  ): string | null {
+    if (!text) {
+      return null;
+    }
+
+    // Strip HTML comments repeatedly in case of overlapping patterns like
+    // `<!<!-- x -->-- -->` that would leave `<!--` after a single pass.
+    let result = text;
+    let prev: string;
+    do {
+      prev = result;
+      result = result.replace(/<!--[\s\S]*?-->/g, "");
+    } while (result !== prev);
+
+    return (
+      result
+        // YAML front matter
+        .replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, "")
+        // Collapsible sections: extract inner content
+        .replace(
+          /<details>\s*<summary>([\s\S]*?)<\/summary>([\s\S]*?)<\/details>/gi,
+          "**$1**\n$2"
+        )
+        // TOC markers
+        .replace(/\[\[_TOC_\]\]/g, "")
+        .replace(/^\[TOC\]$/gm, "")
+        // Inline diffs
+        .replace(/\{\+([\s\S]*?)\+\}/g, "$1")
+        .replace(/\[-([\s\S]*?)-\]/g, "~~$1~~")
+        // Multiline blockquotes
+        .replace(/^>>>\s*$/gm, "")
+        // Footnote definitions
+        .replace(/^\[\^[^\]]+\]:\s+.*$/gm, "")
+        // Footnote references
+        .replace(/\[\^([^\]]+)\]/g, "")
+        // Include directives
+        .replace(/^::include\{[^}]*\}$/gm, "")
+        // Clean up excessive blank lines left by removals
+        .replace(/\n{3,}/g, "\n\n")
+        .trim() || null
+    );
   }
 
   /**

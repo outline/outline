@@ -1,6 +1,6 @@
 import copy from "copy-to-clipboard";
 import invariant from "invariant";
-import uniqBy from "lodash/uniqBy";
+import { capitalize, uniqBy } from "es-toolkit/compat";
 import {
   DownloadIcon,
   DuplicateIcon,
@@ -39,6 +39,7 @@ import { toast } from "sonner";
 import Icon from "@shared/components/Icon";
 import type { NavigationNode } from "@shared/types";
 import { ExportContentType, TeamPreference } from "@shared/types";
+import { isMobile } from "@shared/utils/browser";
 import { getEventFiles } from "@shared/utils/files";
 import { Week } from "@shared/utils/time";
 import type UserMembership from "~/models/UserMembership";
@@ -80,7 +81,6 @@ import {
   trashPath,
   documentEditPath,
 } from "~/utils/routeHelpers";
-import capitalize from "lodash/capitalize";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import type {
   Action,
@@ -969,7 +969,11 @@ export const openDocumentInDesktop = createAction({
     }
     const document = stores.documents.get(activeDocumentId);
     return (
-      isCloudHosted && (isMac || isWindows) && !!document && !document.isDeleted
+      isCloudHosted &&
+      (isMac || isWindows) &&
+      !!document &&
+      !document.isDeleted &&
+      !isMobile()
     );
   },
   perform: ({ activeDocumentId, stores }) => {
@@ -988,7 +992,7 @@ export const presentDocument = createAction({
   section: ActiveDocumentSection,
   icon: <EmbedIcon />,
   shortcut: ["Control+Alt+KeyP"],
-  visible: ({ activeDocumentId }) => !!activeDocumentId,
+  visible: ({ activeDocumentId }) => !!activeDocumentId && !isMobile(),
   perform: ({ activeDocumentId, stores }) => {
     if (stores.ui.presentationData) {
       stores.ui.setPresentingDocument(null);

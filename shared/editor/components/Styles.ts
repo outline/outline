@@ -405,12 +405,12 @@ const diffStyle = (props: Props) => css`
 `;
 
 const findAndReplaceStyle = () => css`
-  ::highlight(search-results) {
+  & ::highlight(search-results) {
     background-color: rgba(255, 213, 0, 0.25);
     color: inherit;
   }
 
-  ::highlight(search-results-current) {
+  & ::highlight(search-results-current) {
     background-color: rgba(255, 213, 0, 0.75);
     color: inherit;
   }
@@ -1733,6 +1733,25 @@ code {
   }
 }
 
+.${EditorStyleHelper.hexColorSwatch} {
+  display: inline-block;
+  width: 0.75em;
+  height: 0.75em;
+  margin-left: 0.3em;
+  vertical-align: -0.05em;
+  border-radius: 50%;
+  background-clip: padding-box;
+  cursor: var(--pointer);
+}
+
+.${
+  props.theme.isDark
+    ? EditorStyleHelper.hexColorSwatchDark
+    : EditorStyleHelper.hexColorSwatchLight
+} {
+  outline: 1px solid ${props.theme.codeBorder};
+}
+
 mark {
   border-radius: 1px;
   padding: 2px 0;
@@ -1874,6 +1893,8 @@ mark {
   }
 
   &::after {
+    max-height: calc(10 * 1.4em + 0.75em);
+    overflow: hidden;
     clip-path: inset(0 0 calc(100% - 10 * 1.4em - 0.75em) 0);
   }
 
@@ -1893,6 +1914,23 @@ mark {
       ${transparentize(0.2, props.theme.codeBackground)} 70%,
       ${props.theme.codeBackground} 100%
     );
+  }
+
+  @media print {
+    pre {
+      max-height: none;
+      overflow: visible;
+    }
+
+    &::after {
+      max-height: none;
+      overflow: visible;
+      clip-path: none;
+    }
+
+    &::before {
+      display: none;
+    }
   }
 }
 
@@ -2021,7 +2059,6 @@ table {
     position: relative;
     padding: 4px 8px;
     text-align: start;
-    min-width: 100px;
     font-weight: normal;
     border-left: 1px solid ${props.theme.divider};
     border-top: 1px solid ${props.theme.divider};

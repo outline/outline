@@ -1,4 +1,4 @@
-import uniq from "lodash/uniq";
+import { uniq } from "es-toolkit/compat";
 import { Op, QueryTypes } from "sequelize";
 import Logger from "@server/logging/Logger";
 import { Document, Attachment } from "@server/models";

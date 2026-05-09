@@ -1,9 +1,7 @@
 /* oxlint-disable no-console */
 import type { IncomingMessage } from "node:http";
 import { styleText } from "node:util";
-import isArray from "lodash/isArray";
-import isEmpty from "lodash/isEmpty";
-import isObject from "lodash/isObject";
+import { isArray, isEmpty, isObject } from "es-toolkit/compat";
 import winston from "winston";
 import env from "@server/env";
 import Metrics from "@server/logging/Metrics";
@@ -60,8 +58,8 @@ class Logger {
               winston.format.printf(
                 ({ message, level, label, ...extra }) =>
                   `${level}: ${
-                    label ? styleText("bold", `[${label}] `) : ""
-                  }${message} ${isEmpty(extra) ? "" : JSON.stringify(extra)}`
+                    label ? styleText("bold", `[${label as string}] `) : ""
+                  }${message as string} ${isEmpty(extra) ? "" : JSON.stringify(extra)}`
               )
             ),
       })
@@ -191,6 +189,16 @@ class Logger {
    * @returns The sanitized data
    */
   private sanitize = <T>(input: T, level = 0): T => {
+    // Errors have non-enumerable message/stack which are dropped by spreads
+    // and JSON serialization, so convert them to a plain object up-front.
+    if (input instanceof Error) {
+      return {
+        name: input.name,
+        message: input.message,
+        stack: input.stack,
+      } as unknown as T;
+    }
+
     // Short circuit if we're not in production to enable easier debugging
     if (!env.isProduction) {
       return input;

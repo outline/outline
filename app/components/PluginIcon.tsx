@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import styled from "styled-components";
 import Logger from "~/utils/Logger";
-import { Hook, usePluginValue } from "~/utils/PluginManager";
+import { Hook, PluginManager, usePluginValue } from "~/utils/PluginManager";
 
 type Props = {
   /** The ID of the plugin to render an Icon for. */
@@ -26,7 +26,9 @@ function PluginIcon({ id, color, size = 24 }: Props) {
     );
   }
 
-  Logger.warn("No Icon registered for plugin", { id });
+  if (PluginManager.isLoaded) {
+    Logger.warn("No Icon registered for plugin", { id });
+  }
   return null;
 }
 

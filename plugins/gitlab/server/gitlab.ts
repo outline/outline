@@ -362,7 +362,7 @@ export class GitLab {
       url: issue.web_url,
       id: `#${issue.iid}`,
       title: issue.title,
-      description: issue.description ?? null,
+      description: GitLabUtils.sanitizeGitLabMarkdown(issue.description),
       author: {
         name: issue.author?.username ?? "",
         avatarUrl: issue.author?.avatar_url ?? "",
@@ -386,7 +386,7 @@ export class GitLab {
       url: mr.web_url,
       id: `!${mr.iid}`,
       title: mr.title,
-      description: mr.description ?? "",
+      description: GitLabUtils.sanitizeGitLabMarkdown(mr.description) ?? "",
       author: {
         name: mr.author.username,
         avatarUrl: mr.author.avatar_url,
@@ -419,7 +419,7 @@ export class GitLab {
       name: project.name,
       color: GitLabUtils.getColorForProject(project.id),
       avatarUrl: project.avatar_url || undefined,
-      description: project.description ?? null,
+      description: GitLabUtils.sanitizeGitLabMarkdown(project.description),
       lead: owner
         ? {
             name: owner.name,

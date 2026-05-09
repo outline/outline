@@ -1,3 +1,4 @@
+import { t } from "i18next";
 import type { Token } from "markdown-it";
 import { InputRule } from "prosemirror-inputrules";
 import type {
@@ -8,7 +9,7 @@ import type {
 import type { Command } from "prosemirror-state";
 import { NodeSelection, Plugin, TextSelection } from "prosemirror-state";
 import * as React from "react";
-import { sanitizeUrl } from "../../utils/urls";
+import { sanitizeImageSrc } from "../../utils/urls";
 import Caption from "../components/Caption";
 import ImageComponent from "../components/Image";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";
@@ -85,9 +86,9 @@ export const downloadImageNode = async (
     document.body.removeChild(link);
   } catch {
     if (cache !== "reload") {
-      downloadImageNode(node, "reload");
+      await downloadImageNode(node, "reload");
     } else {
-      window.open(sanitizeUrl(node.attrs.src), "_blank");
+      window.open(sanitizeImageSrc(node.attrs.src), "_blank");
     }
   }
 };
@@ -210,7 +211,7 @@ export default class Image extends SimpleImage {
             "img",
             {
               ...node.attrs,
-              src: sanitizeUrl(node.attrs.src),
+              src: sanitizeImageSrc(node.attrs.src),
               width: node.attrs.width,
               height: node.attrs.height,
               contentEditable: "false",
@@ -254,10 +255,10 @@ export default class Image extends SimpleImage {
               if (selection instanceof NodeSelection) {
                 const { node } = selection;
                 if (node.type.name === "image") {
-                  const image = document.querySelector(
+                  const image = view.dom.querySelector<HTMLImageElement>(
                     ".ProseMirror-selectednode img"
-                  ) as HTMLImageElement;
-                  image.click();
+                  );
+                  image?.click();
                   return true;
                 }
               }
@@ -402,7 +403,7 @@ export default class Image extends SimpleImage {
           onBlur={this.handleCaptionBlur(props)}
           onKeyDown={this.handleCaptionKeyDown(props)}
           isSelected={props.isSelected}
-          placeholder={this.options.dictionary.imageCaptionPlaceholder}
+          placeholder={t("Write a caption")}
         >
           {props.node.attrs.alt}
         </Caption>

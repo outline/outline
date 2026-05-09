@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import util from "node:util";
 import type { Context, Next } from "koa";
-import escape from "lodash/escape";
+import { escape } from "es-toolkit/compat";
 import { Sequelize } from "sequelize";
 import isUUID from "validator/lib/isUUID";
 import {
@@ -341,7 +341,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
     content,
     shortcutIcon:
       publicBranding && team?.avatarUrl
-        ? (await team.publicAvatarUrl()) ?? undefined
+        ? ((await team.publicAvatarUrl()) ?? undefined)
         : undefined,
     analytics,
     isShare: true,

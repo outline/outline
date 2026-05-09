@@ -121,7 +121,7 @@ const Item = styled(Link)<{ $highlight: boolean; $withIcon: boolean }>`
   height: 24px;
   line-height: 24px;
   font-weight: ${(props) => (props.$highlight ? "500" : "inherit")};
-  margin-left: ${(props) => (props.$withIcon ? "4px" : "0")};
+  margin-inline-start: ${(props) => (props.$withIcon ? "4px" : "0")};
   max-width: 460px;
 
   &:hover {

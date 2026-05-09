@@ -7,6 +7,8 @@ import {
 import SearchProviderManager from "@server/utils/SearchProviderManager";
 import SearchIndexProcessor from "./SearchIndexProcessor";
 
+type PerformArg = Parameters<SearchIndexProcessor["perform"]>[0];
+
 const processor = new SearchIndexProcessor();
 
 describe("SearchIndexProcessor", () => {
@@ -40,7 +42,7 @@ describe("SearchIndexProcessor", () => {
     });
 
     const provider = SearchProviderManager.getProvider();
-    const indexSpy = jest.spyOn(provider, "index");
+    const indexSpy = vi.spyOn(provider, "index");
 
     await processor.perform({
       name: "documents.publish",
@@ -48,7 +50,7 @@ describe("SearchIndexProcessor", () => {
       collectionId: collection.id,
       teamId: user.teamId,
       actorId: user.id,
-    } as any);
+    } as PerformArg);
 
     expect(indexSpy).toHaveBeenCalledWith(
       SearchableModel.Document,
@@ -61,7 +63,7 @@ describe("SearchIndexProcessor", () => {
   it("should call provider.remove for documents.permanent_delete", async () => {
     const user = await buildUser();
     const provider = SearchProviderManager.getProvider();
-    const removeSpy = jest.spyOn(provider, "remove");
+    const removeSpy = vi.spyOn(provider, "remove");
 
     await processor.perform({
       name: "documents.permanent_delete",
@@ -69,7 +71,7 @@ describe("SearchIndexProcessor", () => {
       collectionId: "some-collection-id",
       teamId: user.teamId,
       actorId: user.id,
-    } as any);
+    } as PerformArg);
 
     expect(removeSpy).toHaveBeenCalledWith(
       SearchableModel.Document,

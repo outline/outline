@@ -1,5 +1,4 @@
-import isEmpty from "lodash/isEmpty";
-import isUndefined from "lodash/isUndefined";
+import { isEmpty, isUndefined } from "es-toolkit/compat";
 import { z } from "zod";
 import { BaseSchema } from "@server/routes/api/schema";
 
@@ -12,7 +11,7 @@ export const GitHubCallbackSchema = BaseSchema.extend({
   query: z
     .object({
       code: z.string().nullish(),
-      state: z.uuid().nullish(),
+      state: z.string(),
       error: z.string().nullish(),
       installation_id: z.coerce.number().optional(),
       setup_action: z.enum(SetupAction),

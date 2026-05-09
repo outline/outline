@@ -1,4 +1,4 @@
-import isEmpty from "lodash/isEmpty";
+import { isEmpty } from "es-toolkit/compat";
 import { z } from "zod";
 import { RevisionValidation } from "@shared/validations";
 import { Revision } from "@server/models";

@@ -32,7 +32,7 @@ import type {
   SyncedBlockBlockObjectResponse,
   LinkToPageBlockObjectResponse,
 } from "@notionhq/client/build/src/api-endpoints";
-import isArray from "lodash/isArray";
+import { isArray } from "es-toolkit/compat";
 import { NoticeTypes } from "@shared/editor/nodes/Notice";
 import type { ProsemirrorData, ProsemirrorDoc } from "@shared/types";
 import { MentionType } from "@shared/types";
@@ -279,7 +279,7 @@ export class NotionConverter {
     };
   }
 
-  private static rich_text(item: RichTextItemResponse) {
+  private static rich_text = (item: RichTextItemResponse) => {
     const annotationToMark: Record<
       keyof RichTextItemResponse["annotations"],
       string
@@ -386,11 +386,10 @@ export class NotionConverter {
     }
 
     return undefined;
-  }
+  };
 
-  private static rich_text_to_plaintext(item: RichTextItemResponse) {
-    return item.plain_text;
-  }
+  private static rich_text_to_plaintext = (item: RichTextItemResponse) =>
+    item.plain_text;
 
   private static divider(_: DividerBlockObjectResponse) {
     return {

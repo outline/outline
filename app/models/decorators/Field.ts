@@ -12,9 +12,9 @@ export const getFieldsForModel = <T extends Model>(target: T) =>
  * @param target
  * @param propertyKey
  */
-const Field = <T>(target: any, propertyKey: keyof T) => {
+const Field = (target: Model, propertyKey: string | symbol) => {
   const className = target.constructor.name;
-  fields.set(className, [...(fields.get(className) || []), propertyKey]);
+  fields.set(className, [...(fields.get(className) ?? []), propertyKey]);
 };
 
 export default Field;

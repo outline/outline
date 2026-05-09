@@ -91,7 +91,7 @@ function HistoryNavigation(props: React.ComponentProps<typeof Flex>) {
 
 const Navigation = styled(Flex)`
   position: absolute;
-  right: 12px;
+  inset-inline-end: 12px;
   top: 14px;
 
   button {
@@ -108,11 +108,19 @@ const Forward = styled(ArrowIcon)<{ $enabled: boolean }>`
   &:hover {
     opacity: ${(props) => (props.$enabled ? 1 : 0.15)};
   }
+
+  [dir="rtl"] & {
+    transform: rotate(180deg);
+  }
 `;
 
 const Back = styled(Forward)`
   transform: rotate(180deg);
   flex-shrink: 0;
+
+  [dir="rtl"] & {
+    transform: rotate(0deg);
+  }
 `;
 
 const StyledClockIcon = styled(ClockIcon)`

@@ -1,11 +1,9 @@
 import { observer } from "mobx-react";
-import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import type ApiKey from "~/models/ApiKey";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
-import { revokeApiKeyFactory } from "~/actions/definitions/apiKeys";
-import { useMenuAction } from "~/hooks/useMenuAction";
+import { useApiKeyMenuActions } from "~/hooks/useApiKeyMenuActions";
 
 type Props = {
   /** The apiKey to associate with the menu */
@@ -14,11 +12,10 @@ type Props = {
 
 function ApiKeyMenu({ apiKey }: Props) {
   const { t } = useTranslation();
-  const actions = useMemo(() => [revokeApiKeyFactory({ apiKey })], [apiKey]);
-  const rootAction = useMenuAction(actions);
+  const rootAction = useApiKeyMenuActions(apiKey);
 
   return (
-    <DropdownMenu action={rootAction} ariaLabel={t("API key")}>
+    <DropdownMenu action={rootAction} align="end" ariaLabel={t("API key")}>
       <OverflowMenuButton />
     </DropdownMenu>
   );

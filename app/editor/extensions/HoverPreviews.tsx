@@ -7,12 +7,15 @@ import stores from "~/stores";
 import HoverPreview from "~/components/HoverPreview";
 import env from "~/env";
 
+/**
+ * Options for the HoverPreviews extension.
+ */
 interface HoverPreviewsOptions {
-  /** Delay before the target is considered "hovered" and callback is triggered. */
+  /** Delay in milliseconds before the target is considered "hovered" and the preview is shown. */
   delay: number;
 }
 
-export default class HoverPreviews extends Extension {
+export default class HoverPreviews extends Extension<HoverPreviewsOptions> {
   state: {
     activeLinkElement: HTMLElement | null;
     unfurlId: string | null;

@@ -1,6 +1,6 @@
 import { parse } from "@fast-csv/parse";
 import { JSDOM } from "jsdom";
-import escapeRegExp from "lodash/escapeRegExp";
+import { escapeRegExp } from "es-toolkit/compat";
 import { simpleParser } from "mailparser";
 import mammoth from "mammoth";
 import type { Node } from "prosemirror-model";
@@ -299,9 +299,9 @@ export class DocumentConverter {
 
     // Replace the content-location with a data URI for each attachment.
     for (const attachment of parsed.attachments) {
-      const contentLocation = String(
-        attachment.headers.get("content-location") ?? ""
-      );
+      const contentLocation =
+        (attachment.headers.get("content-location") as string | undefined) ??
+        "";
 
       const id = contentLocation.split("/").pop();
       if (!id) {

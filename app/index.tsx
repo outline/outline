@@ -57,7 +57,7 @@ if (element) {
   const App = () => (
     <StrictMode>
       <HelmetProvider>
-        <Provider {...stores}>
+        <Provider rootStore={stores}>
           <Analytics>
             <Router history={history}>
               <Theme>

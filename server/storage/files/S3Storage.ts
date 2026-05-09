@@ -15,7 +15,7 @@ import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import fs from "fs-extra";
 import invariant from "invariant";
-import compact from "lodash/compact";
+import { compact } from "es-toolkit/compat";
 import tmp from "tmp";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";

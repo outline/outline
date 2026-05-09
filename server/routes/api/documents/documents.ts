@@ -5,10 +5,7 @@ import invariant from "invariant";
 import contentDisposition from "content-disposition";
 import JSZip from "jszip";
 import Router from "koa-router";
-import escapeRegExp from "lodash/escapeRegExp";
-import has from "lodash/has";
-import remove from "lodash/remove";
-import uniq from "lodash/uniq";
+import { escapeRegExp, has, remove, uniq } from "es-toolkit/compat";
 import mime from "mime-types";
 import type { Order, ScopeOptions, WhereOptions } from "sequelize";
 import { Op, Sequelize } from "sequelize";
@@ -1504,7 +1501,9 @@ router.post(
   "documents.delete",
   auth(),
   validate(T.DocumentsDeleteSchema),
+  transaction(),
   async (ctx: APIContext<T.DocumentsDeleteReq>) => {
+    const { transaction } = ctx.state;
     const { id, permanent } = ctx.input.body;
     const { user } = ctx.state.auth;
 
@@ -1512,6 +1511,7 @@ router.post(
       const document = await Document.findByPk(id, {
         userId: user.id,
         paranoid: false,
+        transaction,
       });
       authorize(user, "permanentDelete", document);
 
@@ -1527,11 +1527,12 @@ router.post(
     } else {
       const document = await Document.findByPk(id, {
         userId: user.id,
+        transaction,
       });
 
       authorize(user, "delete", document);
 
-      await document.delete(user);
+      await document.destroyWithCtx(ctx);
     }
 
     ctx.body = {

@@ -37,7 +37,7 @@ type Attrs = {
 } & Record<string, JSONValue>;
 
 const getAttributesFromNode = (node: Node): Attrs => {
-  const spec = node.type.spec.toDOM?.(node) as any as Record<
+  const spec = node.type.spec.toDOM?.(node) as unknown as Record<
     string,
     JSONValue
   >[];
@@ -45,7 +45,9 @@ const getAttributesFromNode = (node: Node): Attrs => {
 
   return {
     className: className as Attrs["className"],
-    unfurl: unfurl ? (JSON.parse(unfurl as any) as Attrs["unfurl"]) : undefined,
+    unfurl: unfurl
+      ? (JSON.parse(unfurl as string) as Attrs["unfurl"])
+      : undefined,
     ...attrs,
   };
 };
@@ -193,10 +195,15 @@ export const MentionURL = (props: IssueUrlProps) => {
     ...attrs
   } = getAttributesFromNode(node);
 
-  const url = String(attrs.href);
-  const unfurl = unfurls.get(url)?.data ?? unfurlAttr;
+  const url = typeof attrs.href === "string" ? attrs.href : undefined;
+  const unfurl = url ? (unfurls.get(url)?.data ?? unfurlAttr) : undefined;
 
   React.useEffect(() => {
+    if (!url) {
+      setLoaded(true);
+      return;
+    }
+
     const fetchUnfurl = async () => {
       try {
         const unfurlModel = await unfurls.fetchUnfurl({ url });
@@ -237,7 +244,7 @@ export const MentionURL = (props: IssueUrlProps) => {
     };
 
     void fetchUnfurl();
-  }, [unfurls, url, node, isMounted]);
+  }, [unfurls, url, node, isMounted, onChangeUnfurl]);
 
   if (!unfurl) {
     return !loaded ? (

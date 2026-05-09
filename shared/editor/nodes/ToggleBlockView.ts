@@ -6,6 +6,7 @@ import {
   Action,
   toggleEventPluginKey,
   toggleFoldPluginKey,
+  toggleStorageKey,
 } from "./ToggleBlock";
 
 /**
@@ -18,7 +19,6 @@ export class ToggleBlockView implements NodeView {
   private node: ProsemirrorNode;
   private view: EditorView;
   private getPos: () => number | undefined;
-  private editorProps: Record<string, unknown>;
   private boundBroadcastFoldState: (event: StorageEvent) => void;
 
   constructor(
@@ -26,13 +26,11 @@ export class ToggleBlockView implements NodeView {
     view: EditorView,
     getPos: () => number | undefined,
     decorations: readonly Decoration[],
-    _innerDecorations: DecorationSource,
-    editorProps: Record<string, unknown>
+    _innerDecorations: DecorationSource
   ) {
     this.node = node;
     this.view = view;
     this.getPos = getPos;
-    this.editorProps = editorProps;
 
     // Create DOM structure
     this.dom = document.createElement("div");
@@ -123,8 +121,11 @@ export class ToggleBlockView implements NodeView {
   };
 
   private broadcastFoldState(event: StorageEvent) {
-    const key = `${this.node.attrs.id}:${this.editorProps.userId}`;
-    if (event.key !== key || !event.newValue || !event.oldValue) {
+    if (
+      event.key !== toggleStorageKey(this.node.attrs.id) ||
+      !event.newValue ||
+      !event.oldValue
+    ) {
       return;
     }
 

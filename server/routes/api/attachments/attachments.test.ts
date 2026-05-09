@@ -12,7 +12,7 @@ import {
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 
-jest.mock("@server/storage/files");
+vi.mock("@server/storage/files");
 
 const server = getTestServer();
 

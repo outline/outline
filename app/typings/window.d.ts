@@ -118,6 +118,17 @@ declare global {
        * Registers a callback to be called when the application wants to open the replace in page dialog.
        */
       onReplaceInPage: (callback: () => void) => void;
+
+      /**
+       * Get whether the app is configured to launch at login.
+       */
+      getAutoLaunch: () => Promise<boolean>;
+
+      /**
+       * Enable or disable launching the app at login. Resolves with the
+       * resulting state as reported by the OS.
+       */
+      setAutoLaunch: (enabled: boolean) => Promise<boolean>;
     };
   }
 }

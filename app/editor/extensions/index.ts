@@ -1,6 +1,4 @@
-import type Extension from "@shared/editor/lib/Extension";
-import type Mark from "@shared/editor/marks/Mark";
-import type Node from "@shared/editor/nodes/Node";
+import type { AnyExtensionClass } from "@shared/editor/lib/types";
 import BlockMenuExtension from "~/editor/extensions/BlockMenu";
 import ClipboardTextSerializer from "~/editor/extensions/ClipboardTextSerializer";
 import DiagramsExtension from "@shared/editor/extensions/Diagrams";
@@ -14,7 +12,7 @@ import PreventTab from "~/editor/extensions/PreventTab";
 import SelectionToolbarExtension from "~/editor/extensions/SelectionToolbar";
 import SmartText from "~/editor/extensions/SmartText";
 
-type Nodes = (typeof Node | typeof Mark | typeof Extension)[];
+type Nodes = AnyExtensionClass[];
 
 export const withUIExtensions = (nodes: Nodes) => [
   ...nodes,

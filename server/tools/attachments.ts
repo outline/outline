@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import { z } from "zod";
 import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { ValidationError } from "@server/errors";
 import { Attachment, Team } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { authorize } from "@server/policies";
@@ -8,7 +9,14 @@ import presentAttachment from "@server/presenters/attachment";
 import FileStorage from "@server/storage/files";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import { AttachmentPreset } from "@shared/types";
-import { error, success, buildAPIContext, withTracing } from "./util";
+import { bytesToHumanReadable } from "@shared/utils/files";
+import {
+  error,
+  success,
+  buildAPIContext,
+  pathToUrl,
+  withTracing,
+} from "./util";
 
 /**
  * Registers attachment-related MCP tools on the given server, filtered by
@@ -36,7 +44,12 @@ export function attachmentTools(server: McpServer, scopes: string[]) {
           name: z
             .string()
             .describe("The filename including extension, e.g. screenshot.png."),
-          size: z.coerce.number().describe("The file size in bytes."),
+          size: z.coerce
+            .number()
+            .int()
+            .nonnegative()
+            .finite()
+            .describe("The file size in bytes."),
         },
       },
       withTracing(
@@ -53,6 +66,15 @@ export function attachmentTools(server: McpServer, scopes: string[]) {
             const preset = AttachmentPreset.DocumentAttachment;
             const maxUploadSize =
               AttachmentHelper.presetToMaxUploadSize(preset);
+
+            if (size > maxUploadSize) {
+              throw ValidationError(
+                `Sorry, this file is too large – the maximum size is ${bytesToHumanReadable(
+                  maxUploadSize
+                )}`
+              );
+            }
+
             const id = randomUUID();
             const acl = AttachmentHelper.presetToAcl(preset);
             const key = AttachmentHelper.getKey({
@@ -79,7 +101,8 @@ export function attachmentTools(server: McpServer, scopes: string[]) {
               contentType
             );
 
-            const uploadUrl = FileStorage.getUploadUrl();
+            const uploadUrl = new URL(FileStorage.getUploadUrl(), team.url)
+              .href;
             const form = {
               "Cache-Control": "max-age=31557600",
               "Content-Type": contentType,
@@ -97,10 +120,10 @@ export function attachmentTools(server: McpServer, scopes: string[]) {
               form,
               maxUploadSize,
               curlCommand,
-              attachment: {
+              attachment: pathToUrl(team, {
                 ...presentAttachment(attachment),
                 url: attachment.redirectUrl,
-              },
+              }),
             });
           } catch (message) {
             return error(message);

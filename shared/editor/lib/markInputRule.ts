@@ -1,4 +1,4 @@
-import escapeRegExp from "lodash/escapeRegExp";
+import { escapeRegExp } from "es-toolkit/compat";
 import { InputRule } from "prosemirror-inputrules";
 import type { MarkType } from "prosemirror-model";
 import type { EditorState } from "prosemirror-state";

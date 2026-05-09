@@ -1,4 +1,4 @@
-import uniqBy from "lodash/uniqBy";
+import { uniqBy } from "es-toolkit/compat";
 import { useState, useEffect, useCallback } from "react";
 import type { PaginationParams } from "~/types";
 import useRequest from "./useRequest";
@@ -31,7 +31,7 @@ const DEFAULT_LIMIT = 10;
  * @returns
  */
 export default function usePaginatedRequest<T = unknown>(
-  requestFn: (params?: PaginationParams | undefined) => Promise<T[]>,
+  requestFn: (params?: PaginationParams) => Promise<T[]>,
   params: PaginationParams = {}
 ): RequestResponse<T> {
   const [data, setData] = useState<T[]>();

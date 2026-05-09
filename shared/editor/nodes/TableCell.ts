@@ -8,7 +8,12 @@ import type { EditorState } from "prosemirror-state";
 import { Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { TableMap } from "prosemirror-tables";
-import { getCellAttrs, setCellAttrs } from "../lib/table";
+import {
+  getCellAttrs,
+  isValidCellAlignment,
+  isValidCellMarks,
+  setCellAttrs,
+} from "../lib/table";
 import Node from "./Node";
 import { presetColors, rgbaToHex } from "@shared/utils/color";
 import { parseToRgb, transparentize } from "polished";
@@ -53,10 +58,12 @@ export default class TableCell extends Node {
       attrs: {
         colspan: { default: 1 },
         rowspan: { default: 1 },
-        alignment: { default: null },
+        alignment: { default: null, validate: isValidCellAlignment },
         colwidth: { default: null },
         marks: {
           default: undefined,
+          validate: (value: unknown) =>
+            isValidCellMarks(value, this.editor?.schema),
         },
       },
     };
@@ -69,7 +76,9 @@ export default class TableCell extends Node {
   parseMarkdown() {
     return {
       block: "td",
-      getAttrs: (tok: Token) => ({ alignment: tok.info }),
+      getAttrs: (tok: Token) => ({
+        alignment: isValidCellAlignment(tok.info) ? tok.info : null,
+      }),
     };
   }
 

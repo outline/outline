@@ -141,10 +141,6 @@ const NavLink = ({
     (event: React.MouseEvent<HTMLAnchorElement>) => {
       onClick?.(event);
 
-      if (isActive && !event.defaultPrevented) {
-        onActiveClick?.(event);
-      }
-
       if (shouldFastClick(event)) {
         event.currentTarget.focus();
 
@@ -157,7 +153,7 @@ const NavLink = ({
         });
       }
     },
-    [onClick, navigateTo, isActive, shouldFastClick]
+    [onClick, navigateTo, shouldFastClick]
   );
 
   const handleClick = React.useCallback(
@@ -170,8 +166,15 @@ const NavLink = ({
       ) {
         event.preventDefault();
       }
+
+      // Fire onActiveClick on click rather than mousedown so that the native
+      // HTML5 drag gesture can initiate from an active row without being
+      // blocked by a preventDefault on mousedown.
+      if (isActive) {
+        onActiveClick?.(event);
+      }
     },
-    [isActive]
+    [isActive, onActiveClick]
   );
 
   React.useEffect(() => {

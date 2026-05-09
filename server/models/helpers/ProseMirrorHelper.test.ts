@@ -7,7 +7,7 @@ import { buildProseMirrorDoc, buildUser } from "@server/test/factories";
 import type { MentionAttrs } from "./ProsemirrorHelper";
 import { ProsemirrorHelper } from "./ProsemirrorHelper";
 
-jest.mock("@server/storage/files");
+vi.mock("@server/storage/files");
 
 describe("ProsemirrorHelper", () => {
   describe("processMentions", () => {

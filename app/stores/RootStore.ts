@@ -1,5 +1,5 @@
 import invariant from "invariant";
-import lowerFirst from "lodash/lowerFirst";
+import { lowerFirst } from "es-toolkit/compat";
 import pluralize from "pluralize";
 import ApiKeysStore from "./ApiKeysStore";
 import AuthStore from "./AuthStore";

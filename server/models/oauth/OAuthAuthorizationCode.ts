@@ -57,7 +57,7 @@ class OAuthAuthorizationCode extends IdModel<
   grantId: string | null;
 
   /** A list of scopes that this authorization code has access to */
-  @Matches(/[\/\.\w\s]*/, {
+  @Matches(/[/.\w\s]*/, {
     each: true,
   })
   @Column(DataType.ARRAY(DataType.STRING))

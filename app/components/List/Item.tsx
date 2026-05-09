@@ -203,7 +203,7 @@ const Wrapper = styled.a<{
 `;
 
 const Image = styled(Flex)`
-  padding: 0 8px 0 0;
+  padding-inline-end: 8px;
   max-height: 32px;
   align-items: center;
   user-select: none;

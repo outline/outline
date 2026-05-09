@@ -1,5 +1,5 @@
 import type { ColumnSort } from "@tanstack/react-table";
-import deburr from "lodash/deburr";
+import { deburr } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { ShapesIcon } from "outline-icons";
 import { useEffect, useMemo, useCallback, useState } from "react";

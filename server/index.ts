@@ -14,7 +14,7 @@ import Router from "koa-router";
 import type { AddressInfo } from "node:net";
 import stoppable from "stoppable";
 import throng from "throng";
-import escape from "lodash/escape";
+import { escape } from "es-toolkit/compat";
 import Logger from "./logging/Logger";
 import services from "./services";
 import { getArg } from "./utils/args";

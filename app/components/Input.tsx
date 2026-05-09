@@ -95,7 +95,7 @@ export const Wrapper = styled.div<{
 
 const IconWrapper = styled.span`
   position: relative;
-  left: 4px;
+  inset-inline-start: 4px;
   width: 24px;
   height: 24px;
 `;
@@ -132,11 +132,14 @@ export const Outline = styled(Flex)<{
 const CharacterCount = styled.span<{ $warning?: boolean }>`
   position: absolute;
   top: 0;
-  right: 0;
+  inset-inline-end: 0;
   font-size: 11px;
   line-height: 1;
   padding: 2px 4px;
-  border-radius: 0 0 0 2px;
+  border-start-start-radius: 0;
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+  border-end-start-radius: 2px;
   background: ${(props) =>
     props.$warning ? props.theme.warning : props.theme.inputBorder};
   color: ${(props) =>

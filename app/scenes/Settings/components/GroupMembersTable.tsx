@@ -1,4 +1,4 @@
-import compact from "lodash/compact";
+import { compact } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -177,6 +177,7 @@ export const GroupMembersTable = observer(function GroupMembersTable({
       t,
       can.update,
       group.id,
+      group.isExternallyManaged,
       groupUsers.orderedData,
       permissions,
       handlePermissionChange,

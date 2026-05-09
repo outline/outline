@@ -2,8 +2,11 @@ import queryString from "query-string";
 import env from "@shared/env";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 
+export const LinearOAuthNonceCookie = "linearOAuthNonce";
+
 export type OAuthState = {
   teamId: string;
+  nonce: string;
 };
 
 export class LinearUtils {
@@ -15,8 +18,12 @@ export class LinearUtils {
 
   private static settingsUrl = integrationSettingsPath("linear");
 
-  static parseState(state: string): OAuthState {
-    return JSON.parse(state);
+  static parseState(state: string): OAuthState | undefined {
+    try {
+      return JSON.parse(state);
+    } catch {
+      return undefined;
+    }
   }
 
   static successUrl() {

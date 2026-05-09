@@ -1,6 +1,160 @@
 import { UnfurlResourceType } from "@shared/types";
 import { GitLabUtils } from "./GitLabUtils";
 
+describe("GitLabUtils.sanitizeGitLabMarkdown", () => {
+  it("should return null for null/undefined/empty input", () => {
+    expect(GitLabUtils.sanitizeGitLabMarkdown(null)).toBeNull();
+    expect(GitLabUtils.sanitizeGitLabMarkdown(undefined)).toBeNull();
+    expect(GitLabUtils.sanitizeGitLabMarkdown("")).toBeNull();
+  });
+
+  it("should return null when only unsupported syntax remains", () => {
+    expect(
+      GitLabUtils.sanitizeGitLabMarkdown("<!-- only a comment -->")
+    ).toBeNull();
+  });
+
+  it("should pass through standard markdown unchanged", () => {
+    const md = "# Hello\n\nSome **bold** and *italic* text.";
+    expect(GitLabUtils.sanitizeGitLabMarkdown(md)).toBe(md);
+  });
+
+  it("should strip YAML front matter", () => {
+    const md = "---\ntitle: Test\nauthor: Name\n---\n# Real content";
+    expect(GitLabUtils.sanitizeGitLabMarkdown(md)).toBe("# Real content");
+  });
+
+  it("should strip YAML front matter with CRLF line endings", () => {
+    const md = "---\r\ntitle: Test\r\nauthor: Name\r\n---\r\n# Real content";
+    expect(GitLabUtils.sanitizeGitLabMarkdown(md)).toBe("# Real content");
+  });
+
+  it("should not strip --- that is not front matter", () => {
+    const md = "Some text\n---\nMore text";
+    expect(GitLabUtils.sanitizeGitLabMarkdown(md)).toBe(md);
+  });
+
+  it("should strip single-line HTML comments", () => {
+    const md = "Before <!-- comment --> After";
+    expect(GitLabUtils.sanitizeGitLabMarkdown(md)).toBe("Before  After");
+  });
+
+  it("should strip multi-line HTML comments", () => {
+    const md = "Before\n<!-- \nthis is\na comment\n-->\nAfter";
+    expect(GitLabUtils.sanitizeGitLabMarkdown(md)).toBe("Before\n\nAfter");
+  });
+
+  it("should strip overlapping HTML comment patterns", () => {
+    const md = "Before <!<!-- inner -->-- outer --> After";
+    expect(GitLabUtils.sanitizeGitLabMarkdown(md)).toBe("Before  After");
+  });
+
+  it("should convert collapsible sections to bold heading + content", () => {
+    const md =
+      "<details>\n<summary>Click me</summary>\nHidden content\n</details>";
+    expect(GitLabUtils.sanitizeGitLabMarkdown(md)).toBe(
+      "**Click me**\n\nHidden content"
+    );
+  });
+
+  it("should strip [[_TOC_]] markers", () => {
+    const md = "[[_TOC_]]\n\n# Heading";
+    expect(GitLabUtils.sanitizeGitLabMarkdown(md)).toBe("# Heading");
+  });
+
+  it("should strip [TOC] markers", () => {
+    const md = "[TOC]\n\n# Heading";
+    expect(GitLabUtils.sanitizeGitLabMarkdown(md)).toBe("# Heading");
+  });
+
+  it("should convert inline diff additions to plain text", () => {
+    expect(GitLabUtils.sanitizeGitLabMarkdown("This is {+added+} text")).toBe(
+      "This is added text"
+    );
+  });
+
+  it("should convert inline diff additions containing + characters", () => {
+    expect(GitLabUtils.sanitizeGitLabMarkdown("Formula: {+a+b+c+}")).toBe(
+      "Formula: a+b+c"
+    );
+  });
+
+  it("should convert inline diff deletions to strikethrough", () => {
+    expect(GitLabUtils.sanitizeGitLabMarkdown("This is [-removed-] text")).toBe(
+      "This is ~~removed~~ text"
+    );
+  });
+
+  it("should strip multiline blockquote markers", () => {
+    const md = ">>>\nQuoted line 1\nQuoted line 2\n>>>";
+    expect(GitLabUtils.sanitizeGitLabMarkdown(md)).toBe(
+      "Quoted line 1\nQuoted line 2"
+    );
+  });
+
+  it("should strip footnote definitions", () => {
+    const md = "Some text[^1]\n\n[^1]: This is a footnote";
+    expect(GitLabUtils.sanitizeGitLabMarkdown(md)).toBe("Some text");
+  });
+
+  it("should strip footnote references", () => {
+    const md = "Some text[^note] and more[^1] text";
+    expect(GitLabUtils.sanitizeGitLabMarkdown(md)).toBe(
+      "Some text and more text"
+    );
+  });
+
+  it("should strip include directives", () => {
+    const md = "# Title\n\n::include{file=chapter1.md}\n\nMore text";
+    expect(GitLabUtils.sanitizeGitLabMarkdown(md)).toBe("# Title\n\nMore text");
+  });
+
+  it("should collapse excessive blank lines", () => {
+    const md = "Line 1\n\n\n\n\nLine 2";
+    expect(GitLabUtils.sanitizeGitLabMarkdown(md)).toBe("Line 1\n\nLine 2");
+  });
+
+  it("should handle a realistic GitLab template with multiple features", () => {
+    const md = [
+      "---",
+      "title: Bug Report",
+      "---",
+      "<!-- Please fill out this template -->",
+      "[[_TOC_]]",
+      "",
+      "## Description",
+      "",
+      "This feature was {+added+} in v2 and [-removed-] in v3.",
+      "",
+      "<details>",
+      "<summary>Steps to reproduce</summary>",
+      "1. Go to page",
+      "2. Click button",
+      "</details>",
+      "",
+      "See also[^1].",
+      "",
+      "[^1]: Some reference",
+    ].join("\n");
+
+    const result = GitLabUtils.sanitizeGitLabMarkdown(md);
+    expect(result).toBe(
+      [
+        "## Description",
+        "",
+        "This feature was added in v2 and ~~removed~~ in v3.",
+        "",
+        "**Steps to reproduce**",
+        "",
+        "1. Go to page",
+        "2. Click button",
+        "",
+        "See also.",
+      ].join("\n")
+    );
+  });
+});
+
 describe("GitLabUtils.parseUrl", () => {
   describe("direct URLs", () => {
     it("should parse an issue URL", () => {

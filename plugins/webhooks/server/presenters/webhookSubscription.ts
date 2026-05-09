@@ -1,4 +1,5 @@
 import type { WebhookSubscription } from "@server/models";
+import presentUser from "@server/presenters/user";
 
 export default function presentWebhookSubscription(
   webhook: WebhookSubscription
@@ -10,6 +11,8 @@ export default function presentWebhookSubscription(
     secret: webhook.secret,
     events: webhook.events,
     enabled: webhook.enabled,
+    createdBy: webhook.createdBy ? presentUser(webhook.createdBy) : undefined,
+    createdById: webhook.createdById,
     createdAt: webhook.createdAt,
     updatedAt: webhook.updatedAt,
   };

@@ -120,7 +120,7 @@ const DefaultCollectionInputSelect = observer(
         value={defaultCollectionId ?? "home"}
         onChange={onSelectCollection}
         label={t("Start view")}
-        hideLabel
+        labelHidden
         short
       />
     );

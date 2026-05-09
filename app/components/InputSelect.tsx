@@ -21,6 +21,7 @@ import {
   InputSelectContent,
   InputSelectItem,
   InputSelectSeparator,
+  InputSelectHeading,
   InputSelectTrigger,
   type TriggerButtonProps,
 } from "./primitives/InputSelect";
@@ -33,6 +34,13 @@ import {
 type Separator = {
   /* Denotes a horizontal divider line to be rendered in the menu, */
   type: "separator";
+};
+
+type Heading = {
+  /* Denotes a non-selectable heading rendered above a group of options. */
+  type: "heading";
+  /* Text shown as the heading label. */
+  label: string;
 };
 
 export type Item = {
@@ -48,7 +56,7 @@ export type Item = {
   icon?: React.ReactElement;
 };
 
-export type Option = Item | Separator;
+export type Option = Item | Separator | Heading;
 
 type Props = Omit<React.HTMLAttributes<HTMLButtonElement>, "onChange"> & {
   /* Options to display in the select menu. */
@@ -60,13 +68,15 @@ type Props = Omit<React.HTMLAttributes<HTMLButtonElement>, "onChange"> & {
   /* Label for the select menu. */
   label: string;
   /* When true, label is hidden in an accessible manner. */
-  hideLabel?: boolean;
+  labelHidden?: boolean;
   /* When true, menu is disabled. */
   disabled?: boolean;
   /* When true, width of the menu trigger is restricted. Otherwise, takes up the full width of parent. */
   short?: boolean;
   /** Display a tooltip with the descriptive help text about the select menu. */
   help?: string;
+  /** Render function to override the selected value shown in the trigger. Receives the currently selected option, or undefined when none is selected. */
+  displayValue?: (selectedOption: Item | undefined) => React.ReactNode;
 } & TriggerButtonProps;
 
 export const InputSelect = React.forwardRef<HTMLButtonElement, Props>(
@@ -76,9 +86,10 @@ export const InputSelect = React.forwardRef<HTMLButtonElement, Props>(
       value,
       onChange,
       label,
-      hideLabel,
+      labelHidden,
       short,
       help,
+      displayValue,
       ...triggerProps
     } = props;
 
@@ -95,10 +106,32 @@ export const InputSelect = React.forwardRef<HTMLButtonElement, Props>(
       (opt) => opt.type === "item" && !!opt.icon
     );
 
+    const selectedOption = React.useMemo(
+      () =>
+        localValue
+          ? (options.find(
+              (opt) => opt.type === "item" && opt.value === localValue
+            ) as Item | undefined)
+          : undefined,
+      [localValue, options]
+    );
+
+    const resolvedDisplayValue = displayValue
+      ? displayValue(selectedOption)
+      : undefined;
+
     const renderOption = React.useCallback(
       (option: Option, idx: number) => {
         if (option.type === "separator") {
           return <InputSelectSeparator key={`separator-${idx}`} />;
+        }
+
+        if (option.type === "heading") {
+          return (
+            <InputSelectHeading key={`heading-${option.label}`}>
+              {option.label}
+            </InputSelectHeading>
+          );
         }
 
         return (
@@ -143,13 +176,14 @@ export const InputSelect = React.forwardRef<HTMLButtonElement, Props>(
           onChange={onValueChange}
           placeholder={placeholder}
           optionsHaveIcon={optionsHaveIcon}
+          resolvedDisplayValue={resolvedDisplayValue}
         />
       );
     }
 
     return (
       <Wrapper short={short}>
-        <Label text={label} hidden={hideLabel ?? false} help={help} />
+        <Label text={label} hidden={labelHidden ?? false} help={help} />
         <InputSelectRoot
           open={open}
           onOpenChange={setOpen}
@@ -159,6 +193,7 @@ export const InputSelect = React.forwardRef<HTMLButtonElement, Props>(
           <InputSelectTrigger
             ref={ref}
             placeholder={placeholder}
+            displayValue={resolvedDisplayValue}
             {...triggerProps}
           />
           <InputSelectContent
@@ -179,6 +214,7 @@ InputSelect.displayName = "InputSelect";
 type MobileSelectProps = Props & {
   placeholder: string;
   optionsHaveIcon: boolean;
+  resolvedDisplayValue?: React.ReactNode;
 };
 
 const MobileSelect = React.forwardRef<HTMLButtonElement, MobileSelectProps>(
@@ -188,11 +224,13 @@ const MobileSelect = React.forwardRef<HTMLButtonElement, MobileSelectProps>(
       value,
       onChange,
       label,
-      hideLabel,
+      labelHidden,
       disabled,
       short,
       placeholder,
       optionsHaveIcon,
+      displayValue: _displayValue,
+      resolvedDisplayValue,
       ...triggerProps
     } = props;
 
@@ -220,6 +258,14 @@ const MobileSelect = React.forwardRef<HTMLButtonElement, MobileSelectProps>(
       (option: Option, idx: number) => {
         if (option.type === "separator") {
           return <InputSelectSeparator key={`separator-${idx}`} />;
+        }
+
+        if (option.type === "heading") {
+          return (
+            <InputSelectHeading key={`heading-${option.label}`}>
+              {option.label}
+            </InputSelectHeading>
+          );
         }
 
         const isSelected = option === selectedOption;
@@ -252,7 +298,7 @@ const MobileSelect = React.forwardRef<HTMLButtonElement, MobileSelectProps>(
 
     return (
       <Wrapper>
-        <Label text={label} hidden={hideLabel ?? false} />
+        <Label text={label} hidden={labelHidden ?? false} />
         <Drawer open={open} onOpenChange={setOpen}>
           <DrawerTrigger asChild>
             <SelectButton
@@ -262,7 +308,9 @@ const MobileSelect = React.forwardRef<HTMLButtonElement, MobileSelectProps>(
               disclosure
               data-placeholder={selectedOption ? false : ""}
             >
-              {selectedOption ? (
+              {resolvedDisplayValue !== undefined ? (
+                resolvedDisplayValue
+              ) : selectedOption ? (
                 <Option
                   option={selectedOption as Item}
                   optionsHaveIcon={optionsHaveIcon}
@@ -365,8 +413,8 @@ const IconWrapper = styled.span`
   align-items: center;
   width: 24px;
   height: 24px;
-  margin-left: -4px;
-  margin-right: 4px;
+  margin-inline-start: -4px;
+  margin-inline-end: 4px;
   overflow: hidden;
   flex-shrink: 0;
 `;

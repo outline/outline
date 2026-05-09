@@ -21,7 +21,7 @@ import PostgresSearchProvider from "./PostgresSearchProvider";
 const provider = SearchProviderManager.getProvider();
 
 beforeEach(async () => {
-  jest.resetAllMocks();
+  vi.resetAllMocks();
   await buildDocument();
 });
 

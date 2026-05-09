@@ -1,20 +1,25 @@
-import chunk from "lodash/chunk";
-import compact from "lodash/compact";
+import { chunk, compact } from "es-toolkit/compat";
 import * as React from "react";
 import styled from "styled-components";
 import { IconType } from "@shared/types";
 import { IconLibrary } from "@shared/utils/IconLibrary";
 import { Emoji } from "~/components/Emoji";
 import Text from "~/components/Text";
+import useMobile from "~/hooks/useMobile";
 import { TRANSLATED_CATEGORIES } from "../utils";
 import Grid from "./Grid";
 import { IconButton } from "./IconButton";
 import { CustomEmoji } from "@shared/components/CustomEmoji";
 
 /**
- * icon/emoji size is 24px; and we add 4px padding on all sides,
+ * Desktop: 24px icon/emoji + 4px padding on all sides = 32px button.
+ * Mobile: 32px icon/emoji + 4px padding on all sides = 40px button, so
+ * roughly 8 emojis fit across a typical phone screen.
  */
-const BUTTON_SIZE = 32;
+const BUTTON_SIZE_DESKTOP = 32;
+const BUTTON_SIZE_MOBILE = 40;
+const ICON_SIZE_DESKTOP = 24;
+const ICON_SIZE_MOBILE = 32;
 
 type OutlineNode = {
   type: IconType.SVG;
@@ -53,8 +58,11 @@ const GridTemplate = (
   { width, height, data, empty, onIconSelect }: Props,
   ref: React.Ref<HTMLDivElement>
 ) => {
+  const isMobile = useMobile();
+  const buttonSize = isMobile ? BUTTON_SIZE_MOBILE : BUTTON_SIZE_DESKTOP;
+  const iconSize = isMobile ? ICON_SIZE_MOBILE : ICON_SIZE_DESKTOP;
   // 24px padding for the Grid Container
-  const itemsPerRow = Math.floor((width - 24) / BUTTON_SIZE);
+  const itemsPerRow = Math.max(1, Math.floor((width - 24) / buttonSize));
 
   const gridItems = compact(
     data.flatMap((node) => {
@@ -84,7 +92,11 @@ const GridTemplate = (
               onClick={() => onIconSelect({ id: item.name, value: item.name })}
               style={{ "--delay": `${item.delay}ms` } as React.CSSProperties}
             >
-              <Icon as={IconLibrary.getComponent(item.name)} color={item.color}>
+              <Icon
+                as={IconLibrary.getComponent(item.name)}
+                color={item.color}
+                size={iconSize}
+              >
                 {item.initial}
               </Icon>
             </IconButton>
@@ -96,7 +108,11 @@ const GridTemplate = (
             key={item.id}
             onClick={() => onIconSelect({ id: item.id, value: item.value })}
           >
-            <Emoji width={24} height={24}>
+            <Emoji
+              width={iconSize}
+              height={iconSize}
+              size={isMobile ? iconSize : undefined}
+            >
               {item.type === IconType.Custom ? (
                 <CustomEmoji value={item.value} title={item.name} />
               ) : (
@@ -119,7 +135,7 @@ const GridTemplate = (
       height={height}
       data={gridItems}
       columns={itemsPerRow}
-      itemWidth={BUTTON_SIZE}
+      itemWidth={buttonSize}
     />
   );
 };

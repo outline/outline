@@ -69,7 +69,16 @@ function DocumentDelete({ document, onSubmit }: Props) {
         setDeleting(false);
       }
     },
-    [onSubmit, ui, document, documents, history, collection]
+    [
+      onSubmit,
+      ui,
+      document,
+      documents,
+      history,
+      collection,
+      userMemberships,
+      groupMemberships,
+    ]
   );
 
   const handleArchive = React.useCallback(

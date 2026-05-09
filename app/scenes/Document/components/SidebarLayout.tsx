@@ -9,7 +9,7 @@ import Flex from "~/components/Flex";
 import { PortalContext } from "~/components/Portal";
 import { RightSidebarWrappedContext } from "~/components/RightSidebarContext";
 import Scrollable from "~/components/Scrollable";
-import RightSidebar from "~/components/Sidebar/Right";
+import Aside from "~/components/Sidebar/Aside";
 import Tooltip from "~/components/Tooltip";
 import {
   Drawer,
@@ -79,12 +79,16 @@ function SidebarLayout({ title, onClose, children, scrollable = true }: Props) {
     return inner;
   }
 
-  return <RightSidebar>{inner}</RightSidebar>;
+  return <Aside>{inner}</Aside>;
 }
 
 const ForwardIcon = styled(BackIcon)`
   transform: rotate(180deg);
   flex-shrink: 0;
+
+  [dir="rtl"] & {
+    transform: rotate(0deg);
+  }
 `;
 
 const Title = styled(Flex)`

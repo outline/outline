@@ -15,6 +15,7 @@ import type { RefHandle } from "~/components/ContentEditable";
 import { useDocumentContext } from "~/components/DocumentContext";
 import type { Props as EditorProps } from "~/components/Editor";
 import Editor from "~/components/Editor";
+import type { Editor as SharedEditor } from "~/editor";
 import Flex from "~/components/Flex";
 import Time from "~/components/Time";
 import { withUIExtensions } from "~/editor/extensions";
@@ -34,7 +35,7 @@ import { decodeURIComponentSafe } from "~/utils/urls";
 import MultiplayerEditor from "./AsyncMultiplayerEditor";
 import DocumentMeta from "./DocumentMeta";
 import DocumentTitle from "./DocumentTitle";
-import first from "lodash/first";
+import { first } from "es-toolkit/compat";
 import { getLangFor } from "~/utils/language";
 import useShare from "@shared/hooks/useShare";
 
@@ -59,7 +60,8 @@ type Props = Omit<EditorProps, "editorStyle"> & {
  * The main document editor includes an editable title with metadata below it,
  * and support for commenting.
  */
-function DocumentEditor(props: Props, ref: React.RefObject<any>) {
+function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
+  const editorRef = React.useRef<SharedEditor>(null);
   const titleRef = React.useRef<RefHandle>(null);
   const { t } = useTranslation();
   const match = useRouteMatch();
@@ -87,10 +89,10 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   const iconColor = document.color ?? (first(colorPalette) as string);
   const childRef = React.useRef<HTMLDivElement>(null);
   const focusAtStart = React.useCallback(() => {
-    if (ref.current) {
-      ref.current.focusAtStart();
+    if (editorRef.current) {
+      editorRef.current.focusAtStart();
     }
-  }, [ref]);
+  }, []);
 
   React.useEffect(() => {
     if (focusedComment && focusedComment.documentId === document.id) {
@@ -103,7 +105,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
       }
       ui.set({ rightSidebar: "comments" });
     }
-  }, [focusedComment, ui, document.id, params]);
+  }, [focusedComment, ui, document.id, params, setFocusedCommentId]);
 
   // Save document when blurring title, but delay so that if clicking on a
   // button this is allowed to execute first.
@@ -113,15 +115,15 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
 
   const handleGoToNextInput = React.useCallback(
     (insertParagraph: boolean) => {
-      if (insertParagraph && ref.current) {
-        const { view } = ref.current;
+      if (insertParagraph && editorRef.current) {
+        const { view } = editorRef.current;
         const { dispatch, state } = view;
         dispatch(state.tr.insert(0, state.schema.nodes.paragraph.create()));
       }
 
       focusAtStart();
     },
-    [focusAtStart, ref]
+    [focusAtStart]
   );
 
   // Create a Comment model in local store when a comment mark is created, this
@@ -148,7 +150,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         setFocusedCommentId(commentId);
       }
     },
-    [comments, user?.id, props.id]
+    [comments, user?.id, props.id, setFocusedCommentId]
   );
 
   // Soft delete the Comment model when associated mark is totally removed.
@@ -231,7 +233,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         />
       ) : null}
       <EditorComponent
-        ref={mergeRefs([ref, handleRefChanged])}
+        ref={mergeRefs([ref, editorRef, handleRefChanged])}
         lang={getLangFor(document.language)}
         autoFocus={!!document.title && !props.defaultValue}
         placeholder={t("Type '/' to insert, or start writing…")}

@@ -52,6 +52,7 @@ function Search() {
   const location = useLocation();
   const history = useHistory();
   const routeMatch = useRouteMatch<{ query: string }>();
+  const handleGoBack = React.useCallback(() => history.goBack(), [history]);
 
   // refs
   const searchInputRef = React.useRef<HTMLInputElement | null>(null);
@@ -249,7 +250,7 @@ function Search() {
       textTitle={query ? `${query} – ${t("Search")}` : t("Search")}
       actions={isMobile ? sortInput : null}
     >
-      <RegisterKeyDown trigger="Escape" handler={history.goBack} />
+      <RegisterKeyDown trigger="Escape" handler={handleGoBack} />
       {loading && <LoadingIndicator />}
       <ResultsWrapper column auto>
         <form method="GET" action={searchPath()} onSubmit={preventDefault}>

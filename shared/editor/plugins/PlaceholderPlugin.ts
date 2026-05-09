@@ -1,6 +1,4 @@
-import filter from "lodash/filter";
-import find from "lodash/find";
-import map from "lodash/map";
+import { filter, find, map } from "es-toolkit/compat";
 import type { Node, ResolvedPos } from "prosemirror-model";
 import type { EditorState } from "prosemirror-state";
 import { Plugin } from "prosemirror-state";

@@ -112,6 +112,25 @@ export function getFilenamesInDirectory(dirName: string): string[] {
     );
 }
 
+// Optional cache used in tests, where Node's require() cannot resolve
+// TypeScript files with aliased imports. Populated by the test setup with
+// modules pre-loaded via Vite's import.meta.glob, keyed by directory suffix.
+const requireDirectoryCache = new Map<string, Record<string, unknown>>();
+
+/**
+ * Pre-populate requireDirectory's module cache. Intended for use only by the
+ * Vitest test setup; production code should not call this.
+ *
+ * @param suffix The directory path suffix to match against.
+ * @param modules The eagerly-loaded modules.
+ */
+export function __setRequireDirectoryCache(
+  suffix: string,
+  modules: Record<string, unknown>
+): void {
+  requireDirectoryCache.set(suffix, modules);
+}
+
 /**
  * Require all files in a directory and return them as an array of tuples.
  *
@@ -119,6 +138,22 @@ export function getFilenamesInDirectory(dirName: string): string[] {
  * @returns An array of tuples containing the required files and their names.
  */
 export function requireDirectory<T>(dirName: string): [T, string][] {
+  for (const [suffix, modules] of requireDirectoryCache) {
+    if (dirName.endsWith(suffix)) {
+      return Object.entries(modules)
+        .filter(
+          ([filePath]) =>
+            !filePath.endsWith("/index.ts") &&
+            !filePath.endsWith("/index.js") &&
+            !filePath.includes(".test.")
+        )
+        .map(([filePath, mod]) => {
+          const base = filePath.split("/").pop() ?? filePath;
+          const id = base.replace(/\.[jt]s$/, "");
+          return [mod as T, id];
+        });
+    }
+  }
   return getFilenamesInDirectory(dirName).map((fileName) => {
     const filePath = path.join(dirName, fileName);
     const name = path.basename(filePath.replace(/\.[jt]s$/, ""));

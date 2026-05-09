@@ -40,7 +40,7 @@ import CopyToClipboard from "./CopyToClipboard";
 import { Separator } from "./Actions";
 import useSwipe from "~/hooks/useSwipe";
 import { toast } from "sonner";
-import { findIndex } from "lodash";
+import { findIndex } from "es-toolkit/compat";
 import type { LightboxImage } from "@shared/editor/lib/Lightbox";
 import type { ReactZoomPanPinchRef } from "react-zoom-pan-pinch";
 import {

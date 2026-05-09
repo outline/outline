@@ -193,6 +193,65 @@ describe("#subscriptions.create", () => {
       "body: one of collectionId or documentId is required"
     );
   });
+
+  it("should throw 400 when both documentId and collectionId are provided", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/subscriptions.create", {
+      body: {
+        token: user.getJwtToken(),
+        collectionId: collection.id,
+        documentId: document.id,
+        event: SubscriptionType.Document,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(400);
+    expect(body.ok).toEqual(false);
+    expect(body.error).toEqual("validation_error");
+    expect(body.message).toEqual(
+      "body: only one of collectionId or documentId may be provided"
+    );
+  });
+
+  it("should throw 400 when documentId is not visible to actor", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const otherUser = await buildUser();
+    const otherDocument = await buildDocument({
+      userId: otherUser.id,
+      teamId: otherUser.teamId,
+    });
+
+    const res = await server.post("/api/subscriptions.create", {
+      body: {
+        token: user.getJwtToken(),
+        collectionId: collection.id,
+        documentId: otherDocument.id,
+        event: SubscriptionType.Document,
+      },
+    });
+
+    expect(res.status).toEqual(400);
+
+    const subscriptions = await Subscription.findAll({
+      where: { documentId: otherDocument.id },
+    });
+    expect(subscriptions.length).toEqual(0);
+  });
 });
 
 describe("#subscriptions.info", () => {
