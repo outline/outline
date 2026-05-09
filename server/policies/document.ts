@@ -1,7 +1,7 @@
 import invariant from "invariant";
 import { DocumentPermission, TeamPreference } from "@shared/types";
 import { Document, Revision, User, Team } from "@server/models";
-import { allow, cannot, can } from "./cancan";
+import { allow, can } from "./cancan";
 import { and, isTeamAdmin, isTeamModel, isTeamMutable, or } from "./utils";
 
 allow(User, "createDocument", Team, (actor, document) =>
@@ -270,26 +270,27 @@ allow(
   (document, revision) => document.id === revision?.documentId
 );
 
-allow(User, "unpublish", Document, (user, document) => {
-  if (
-    !document ||
-    user.isGuest ||
-    user.isViewer ||
-    !document.isActive ||
-    document.isDraft
-  ) {
-    return false;
-  }
-
-  invariant(
-    document.collection,
-    "collection is missing, did you forget to include in the query scope?"
-  );
-  if (cannot(user, "updateDocument", document.collection)) {
-    return false;
-  }
-  return user.teamId === document.teamId;
-});
+allow(User, "unpublish", Document, (user, document) =>
+  and(
+    !!document,
+    !user.isGuest,
+    !user.isViewer,
+    !!document?.isActive,
+    !document?.isDraft,
+    user.teamId === document?.teamId,
+    or(
+      includesMembership(document, [
+        DocumentPermission.ReadWrite,
+        DocumentPermission.Admin,
+      ]),
+      and(isTeamAdmin(user, document), can(user, "read", document)),
+      and(
+        !document?.isPrivate,
+        can(user, "updateDocument", document?.collection)
+      )
+    )
+  )
+);
 
 function includesMembership(
   document: Document | null,

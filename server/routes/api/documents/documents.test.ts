@@ -1079,6 +1079,89 @@ describe("#documents.list", () => {
     expect(body.data[0].id).toEqual(anotherDoc.id);
   });
 
+  it("should not return restricted backlinks for non-members", async () => {
+    const team = await buildTeam();
+    const owner = await buildUser({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const document = await buildDocument({
+      userId: owner.id,
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    const restrictedDoc = await buildDocument({
+      title: "restricted backlink",
+      text: "secret",
+      userId: owner.id,
+      teamId: team.id,
+      collectionId: collection.id,
+      isPrivate: true,
+    });
+    await Relationship.create({
+      reverseDocumentId: restrictedDoc.id,
+      type: RelationshipType.Backlink,
+      documentId: document.id,
+      userId: owner.id,
+    });
+    const res = await server.post("/api/documents.list", {
+      body: {
+        token: user.getJwtToken(),
+        backlinkDocumentId: document.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(0);
+  });
+
+  it("should return restricted backlinks for direct members", async () => {
+    const team = await buildTeam();
+    const owner = await buildUser({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const document = await buildDocument({
+      userId: owner.id,
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    const restrictedDoc = await buildDocument({
+      title: "restricted backlink",
+      text: "secret",
+      userId: owner.id,
+      teamId: team.id,
+      collectionId: collection.id,
+      isPrivate: true,
+    });
+    await UserMembership.create({
+      documentId: restrictedDoc.id,
+      userId: user.id,
+      permission: DocumentPermission.Read,
+      createdById: owner.id,
+    });
+    await Relationship.create({
+      reverseDocumentId: restrictedDoc.id,
+      type: RelationshipType.Backlink,
+      documentId: document.id,
+      userId: owner.id,
+    });
+    const res = await server.post("/api/documents.list", {
+      body: {
+        token: user.getJwtToken(),
+        backlinkDocumentId: document.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(restrictedDoc.id);
+  });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/documents.list");
     const body = await res.json();

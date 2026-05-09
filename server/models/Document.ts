@@ -900,19 +900,17 @@ class Document extends ArchivableModel<
         return true;
       }
 
-      // Check isPrivate safely (may not be loaded when attributes are restricted)
-      let isPrivate = false;
-      try {
-        isPrivate = doc.isPrivate;
-      } catch {
-        // attribute not loaded, treat as unrestricted
+      // Fail closed if isPrivate cannot be determined — callers that restrict
+      // attributes must explicitly include isPrivate to opt into collection
+      // inheritance.
+      if (doc.isPrivate !== false) {
+        return false;
       }
 
       return (
-        !isPrivate &&
-        ((!doc.collection?.isPrivate && !user?.isGuest) ||
-          (doc.collection?.memberships.length || 0) > 0 ||
-          (doc.collection?.groupMemberships.length || 0) > 0)
+        (!doc.collection?.isPrivate && !user?.isGuest) ||
+        (doc.collection?.memberships.length || 0) > 0 ||
+        (doc.collection?.groupMemberships.length || 0) > 0
       );
     });
   }

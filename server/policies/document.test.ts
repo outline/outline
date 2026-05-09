@@ -589,4 +589,77 @@ describe("restricted document", () => {
     const abilities = serialize(user, document);
     expect(abilities.manageUsers).toEqual(false);
   });
+
+  it("should not allow unpublish for collection writer without direct membership", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const doc = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+      isPrivate: true,
+    });
+    const document = await Document.findByPk(doc.id, { userId: user.id });
+    const abilities = serialize(user, document);
+    expect(abilities.unpublish).toEqual(false);
+  });
+
+  it("should allow unpublish for direct ReadWrite member", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const doc = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+      isPrivate: true,
+    });
+    await UserMembership.create({
+      documentId: doc.id,
+      userId: user.id,
+      permission: DocumentPermission.ReadWrite,
+      createdById: user.id,
+    });
+    const document = await Document.findByPk(doc.id, { userId: user.id });
+    const abilities = serialize(user, document);
+    expect(abilities.unpublish).toBeTruthy();
+  });
+
+  it("should allow unpublish for team admin", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const doc = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+      isPrivate: true,
+    });
+    const document = await Document.findByPk(doc.id, { userId: admin.id });
+    const abilities = serialize(admin, document);
+    expect(abilities.unpublish).toBeTruthy();
+  });
+
+  it("should allow unpublish for collection writer on non-private document", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const doc = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    const document = await Document.findByPk(doc.id, { userId: user.id });
+    const abilities = serialize(user, document);
+    expect(abilities.unpublish).toBeTruthy();
+  });
 });
