@@ -63,13 +63,6 @@ export default class DocumentAccessRequestNotificationsTask extends BaseTask<Acc
         });
         continue;
       }
-      if (recipient.isSuspended) {
-        Logger.debug("task", "Skipping recipient: suspended", {
-          documentId: event.documentId,
-          recipientId: recipient.id,
-        });
-        continue;
-      }
       if (
         !recipient.subscribedToEventType(
           NotificationEventType.RequestDocumentAccess
@@ -130,6 +123,7 @@ export default class DocumentAccessRequestNotificationsTask extends BaseTask<Acc
       where: {
         teamId: document.teamId,
         role: UserRole.Admin,
+        suspendedAt: null,
       },
     });
   }
@@ -139,6 +133,7 @@ export default class DocumentAccessRequestNotificationsTask extends BaseTask<Acc
       where: {
         id: { [Op.in]: uniq(ids) },
         teamId,
+        suspendedAt: null,
       },
     });
   }

@@ -130,9 +130,9 @@ router.post(
         permission: permission,
         createdById: user.id,
       });
-
-      await accessRequest.approve(ctx);
     }
+
+    await accessRequest.approve(ctx);
 
     ctx.body = {
       data: presentAccessRequest(accessRequest),
