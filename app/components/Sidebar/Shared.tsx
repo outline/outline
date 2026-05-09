@@ -1,23 +1,26 @@
 import { useKBar } from "kbar";
 import { observer } from "mobx-react";
 import { SearchIcon } from "outline-icons";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
-import { metaDisplay } from "@shared/utils/keyboard";
+import { metaDisplay, shortcutSeparator } from "@shared/utils/keyboard";
 import type Share from "~/models/Share";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import useShareBranding from "~/hooks/useShareBranding";
 import useStores from "~/hooks/useStores";
 import history from "~/utils/history";
 import { homePath, sharedModelPath } from "~/utils/routeHelpers";
 import { AvatarSize } from "../Avatar";
-import { useTeamContext } from "../TeamContext";
 import TeamLogo from "../TeamLogo";
 import Sidebar from "./Sidebar";
+import SidebarExpansionContext, {
+  useSidebarExpansionState,
+} from "./components/SidebarExpansionContext";
 import Section from "./components/Section";
 import { SharedCollectionLink } from "./components/SharedCollectionLink";
 import { SharedDocumentLink } from "./components/SharedDocumentLink";
@@ -28,13 +31,13 @@ type Props = {
 };
 
 function SharedSidebar({ share }: Props) {
-  const team = useTeamContext();
   const user = useCurrentUser({ rejectOnEmpty: false });
   const { ui, documents, collections } = useStores();
   const { t } = useTranslation();
   const { query } = useKBar();
 
-  const teamAvailable = !!team?.name;
+  const { displayName, displayLogoUrl, displayLogoModel, brandingAvailable } =
+    useShareBranding(share);
   const rootNode = share.tree;
   const shareId = share.urlId || share.id;
   const collection = collections.get(rootNode?.id);
@@ -46,6 +49,12 @@ function SharedSidebar({ share }: Props) {
     query.toggle();
   }, [query]);
 
+  const rootChildren = useMemo(
+    () => (rootNode ? [rootNode] : undefined),
+    [rootNode]
+  );
+  const expansion = useSidebarExpansionState(rootChildren, ui.activeDocumentId);
+
   useEffect(() => {
     ui.tocVisible = share.showTOC;
   }, []);
@@ -56,11 +65,16 @@ function SharedSidebar({ share }: Props) {
 
   return (
     <Sidebar canCollapse={false}>
-      {teamAvailable && (
+      {brandingAvailable && (
         <SidebarButton
-          title={team.name}
+          title={displayName}
           image={
-            <TeamLogo model={team} size={AvatarSize.XLarge} alt={t("Logo")} />
+            <TeamLogo
+              model={displayLogoModel}
+              src={displayLogoUrl ?? undefined}
+              size={AvatarSize.XLarge}
+              alt={t("Logo")}
+            />
           }
           disabled={hideRootNode}
           onClick={
@@ -75,28 +89,33 @@ function SharedSidebar({ share }: Props) {
           <SearchButton onClick={handleOpenSearch}>
             <SearchIcon size={20} />
             <SearchLabel>{t("Search")}</SearchLabel>
-            <Shortcut>{metaDisplay}K</Shortcut>
+            <Shortcut>
+              {metaDisplay}
+              {shortcutSeparator}K
+            </Shortcut>
           </SearchButton>
         </TopSection>
-        <Section>
-          {share.collectionId ? (
-            <SharedCollectionLink
-              node={rootNode}
-              shareId={shareId}
-              hideRootNode={hideRootNode}
-            />
-          ) : (
-            <SharedDocumentLink
-              index={0}
-              // If the root node has an icon we need some extra space for it
-              depth={rootNode.icon ? 1 : 0}
-              shareId={shareId}
-              node={rootNode}
-              prefetchDocument={documents.prefetchDocument}
-              activeDocumentId={ui.activeDocumentId}
-              activeDocument={documents.active}
-            />
-          )}
+        <Section as="nav" aria-label={t("Documents")}>
+          <SidebarExpansionContext.Provider value={expansion}>
+            {share.collectionId ? (
+              <SharedCollectionLink
+                node={rootNode}
+                shareId={shareId}
+                hideRootNode={hideRootNode}
+              />
+            ) : (
+              <SharedDocumentLink
+                index={0}
+                // If the root node has an icon we need some extra space for it
+                depth={rootNode.icon ? 1 : 0}
+                shareId={shareId}
+                node={rootNode}
+                prefetchDocument={documents.prefetchDocument}
+                activeDocumentId={ui.activeDocumentId}
+                activeDocument={documents.active}
+              />
+            )}
+          </SidebarExpansionContext.Provider>
         </Section>
       </ScrollContainer>
     </Sidebar>
@@ -134,7 +153,7 @@ const SearchButton = styled.button`
 
 const SearchLabel = styled.span`
   flex-grow: 1;
-  text-align: left;
+  text-align: start;
 `;
 
 const Shortcut = styled.span`

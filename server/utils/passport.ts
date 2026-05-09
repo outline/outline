@@ -11,6 +11,7 @@ import { getCookieDomain, parseDomain } from "@shared/utils/domains";
 import env from "@server/env";
 import { Team } from "@server/models";
 import { InternalError, OAuthStateMismatchError } from "../errors";
+import { safeEqual } from "./crypto";
 import fetch from "./fetch";
 import { getUserForJWT } from "./jwt";
 
@@ -86,7 +87,7 @@ export class StateStore {
       domain: getCookieDomain(ctx.hostname, env.isCloudHosted),
     });
 
-    if (!token || token !== providedToken) {
+    if (!safeEqual(token, providedToken)) {
       return callback(
         OAuthStateMismatchError("Token in state mismatched"),
         false,
@@ -240,7 +241,7 @@ export async function getTeamFromContext(
   let team;
   if (!env.isCloudHosted) {
     if (env.ENVIRONMENT === "test") {
-      team = await Team.findOne({ where: { domain: env.URL } });
+      team = await Team.findByDomain(env.URL);
     } else {
       team = await Team.findOne({
         order: [["createdAt", "DESC"]],
@@ -249,7 +250,7 @@ export async function getTeamFromContext(
   } else if (ctx.state?.rootShare) {
     team = await Team.findByPk(ctx.state.rootShare.teamId);
   } else if (domain.custom) {
-    team = await Team.findOne({ where: { domain: domain.host } });
+    team = await Team.findByDomain(domain.host);
   } else if (domain.teamSubdomain) {
     team = await Team.findBySubdomain(domain.teamSubdomain);
   }

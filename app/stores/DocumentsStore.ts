@@ -1,8 +1,5 @@
 import invariant from "invariant";
-import compact from "lodash/compact";
-import filter from "lodash/filter";
-import omitBy from "lodash/omitBy";
-import orderBy from "lodash/orderBy";
+import { compact, filter, omitBy, orderBy } from "es-toolkit/compat";
 import { observable, action, computed, runInAction } from "mobx";
 import type { DirectionFilter, SortFilter } from "@shared/types";
 import {

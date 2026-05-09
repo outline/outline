@@ -1,3 +1,4 @@
+import { t } from "i18next";
 import { chainCommands, newlineInCode } from "prosemirror-commands";
 import { wrappingInputRule } from "prosemirror-inputrules";
 import type { ParseSpec } from "prosemirror-markdown";
@@ -61,6 +62,9 @@ export const toggleFoldPluginKey = new PluginKey<ToggleFoldState>("toggleFold");
 /** Plugin key for toggle block fold/unfold events. */
 export const toggleEventPluginKey = new PluginKey("toggleBlockEvent");
 
+/** Build the localStorage key used to persist a toggle block's fold state. */
+export const toggleStorageKey = (id: string) => `toggle:${id}`;
+
 export default class ToggleBlock extends Node {
   get name() {
     return "container_toggle";
@@ -92,10 +96,8 @@ export default class ToggleBlock extends Node {
   }
 
   get plugins() {
-    const userId = this.editor.props.userId;
-
-    // Assign IDs, fix positions, auto-fold empty
-    const fixToggleBlocksPlugin = new Plugin({
+    // Assign IDs and auto-fold empty
+    const plugin = new Plugin({
       appendTransaction: (transactions, _oldState, newState) => {
         if (!transactions.some((tr) => tr.docChanged)) {
           return null;
@@ -112,47 +114,19 @@ export default class ToggleBlock extends Node {
 
         let tr: Transaction | null = null;
 
-        // 1. Assign IDs to blocks that need them and set fold state for creator
+        // Assign IDs to blocks that need them and default to unfolded in this browser
         const blocksNeedingIds = toggleBlocks.filter((b) => !b.node.attrs.id);
         if (blocksNeedingIds.length > 0) {
           tr = newState.tr;
           blocksNeedingIds.forEach((block) => {
             const id = v4();
             tr!.setNodeAttribute(block.pos, "id", id);
-            // Set unfolded for the user who created the toggle
-            Storage.set(`${id}:${userId}`, { fold: false });
+            Storage.set(toggleStorageKey(id), { fold: false });
           });
         }
 
-        // 2. Fix invalid positions (toggle at start of list item)
-        // Use the updated doc if we made changes, process in reverse order
-        const doc = tr?.doc ?? newState.doc;
-        const currentBlocks = tr
-          ? findBlockNodes(doc, true).filter(
-              (b) => b.node.type.name === this.name
-            )
-          : toggleBlocks;
-
-        const invalidBlocks = currentBlocks.filter((block) => {
-          const $pos = doc.resolve(block.pos);
-          return (
-            $pos.parent.type === newState.schema.nodes.list_item &&
-            $pos.parentOffset === 0
-          );
-        });
-
-        if (invalidBlocks.length > 0) {
-          tr = tr ?? newState.tr;
-          for (let i = invalidBlocks.length - 1; i >= 0; i--) {
-            tr.insert(
-              invalidBlocks[i].pos,
-              newState.schema.nodes.paragraph.create({})
-            );
-          }
-        }
-
-        // 3. Auto-fold toggle blocks with empty bodies
-        // Only if no structural changes were made (positions would be invalid)
+        // Auto-fold toggle blocks with empty bodies, only if no structural
+        // changes were made (positions would be invalid)
         if (!tr) {
           const pluginState = toggleFoldPluginKey.getState(newState);
           if (pluginState) {
@@ -217,7 +191,7 @@ export default class ToggleBlock extends Node {
             currentBlocks.forEach((block) => {
               const id = block.node.attrs.id as string;
               if (!pluginState.foldedIds.has(id)) {
-                const stored = Storage.get(`${id}:${userId}`);
+                const stored = Storage.get(toggleStorageKey(id));
                 // Default to folded if no stored state (new block from sync)
                 if (stored?.fold !== false) {
                   newFoldedIds.add(id);
@@ -241,7 +215,7 @@ export default class ToggleBlock extends Node {
               const node = newState.doc.nodeAt(action.at);
               if (node?.attrs.id) {
                 newFoldedIds.add(node.attrs.id);
-                Storage.set(`${node.attrs.id}:${userId}`, { fold: true });
+                Storage.set(toggleStorageKey(node.attrs.id), { fold: true });
               }
               break;
             }
@@ -250,7 +224,7 @@ export default class ToggleBlock extends Node {
               const node = newState.doc.nodeAt(action.at);
               if (node?.attrs.id) {
                 newFoldedIds.delete(node.attrs.id);
-                Storage.set(`${node.attrs.id}:${userId}`, { fold: false });
+                Storage.set(toggleStorageKey(node.attrs.id), { fold: false });
               }
               break;
             }
@@ -273,8 +247,7 @@ export default class ToggleBlock extends Node {
               view,
               getPos,
               decorations,
-              innerDecorations,
-              this.editor.props
+              innerDecorations
             ),
         },
       },
@@ -358,7 +331,7 @@ export default class ToggleBlock extends Node {
     });
 
     return [
-      fixToggleBlocksPlugin,
+      plugin,
       foldPlugin,
       eventPlugin,
       new PlaceholderPlugin([
@@ -368,7 +341,7 @@ export default class ToggleBlock extends Node {
             parent.type.name === "container_toggle" &&
             $start.index($start.depth - 1) === 0 &&
             node.textContent === "",
-          text: this.options.dictionary?.emptyToggleBlockHead,
+          text: `${t("Add title")}…`,
         },
         {
           condition: ({ parent, $start, state }) =>
@@ -378,7 +351,7 @@ export default class ToggleBlock extends Node {
             ToggleBlock.isBodyEmpty(parent) &&
             (state.selection.$from.pos < $start.pos ||
               state.selection.$from.pos > $start.end($start.depth - 1)),
-          text: this.options.dictionary?.emptyToggleBlockBody,
+          text: `${t("Add content")}…`,
         },
         {
           condition: ({ node, parent, $start, state }) =>
@@ -387,7 +360,7 @@ export default class ToggleBlock extends Node {
             node.isTextblock &&
             node.textContent === "" &&
             (state.selection as TextSelection).$cursor?.pos === $start.pos,
-          text: this.options.dictionary?.newLineEmpty,
+          text: `${t("Type '/' to insert")}…`,
         },
       ]),
     ];
@@ -459,7 +432,7 @@ export default class ToggleBlock extends Node {
         if (!wrapping) {
           return false;
         }
-        Storage.set(`${id}:${this.editor.props.userId}`, { fold: false });
+        Storage.set(toggleStorageKey(id), { fold: false });
         const tr = state.tr.wrap(range!, wrapping);
         dispatch?.(tr);
         return true;
@@ -473,7 +446,7 @@ export default class ToggleBlock extends Node {
           return false;
         }
 
-        Storage.set(`${id}:${this.editor.props.userId}`, { fold: false });
+        Storage.set(toggleStorageKey(id), { fold: false });
         const tr = state.tr.wrap(range!, wrapping);
         dispatch?.(
           tr.insert(
@@ -503,19 +476,18 @@ export default class ToggleBlock extends Node {
   private initFoldedIds(state: EditorState) {
     const pluginState = toggleFoldPluginKey.getState(state);
     const foldedIds = new Set<string>(pluginState?.foldedIds);
-    const userId = this.editor.props.userId;
     findBlockNodes(state.doc, true)
       .filter((b) => b.node.type.name === this.name && b.node.attrs.id)
       .forEach((block) => {
         const id = block.node.attrs.id as string;
-        const stored = Storage.get(`${id}:${userId}`);
+        const stored = Storage.get(toggleStorageKey(id));
         // Default to folded if no stored state
         if (stored?.fold !== false) {
           foldedIds.add(id);
         }
         // Ensure storage has a value
         if (stored === null || stored === undefined) {
-          Storage.set(`${id}:${userId}`, { fold: true });
+          Storage.set(toggleStorageKey(id), { fold: true });
         }
       });
 

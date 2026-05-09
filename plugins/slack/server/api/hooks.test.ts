@@ -6,11 +6,15 @@ import { getTestServer } from "@server/test/support";
 import env from "../env";
 import * as Slack from "../slack";
 
-jest.mock("../slack", () => ({
-  post: jest.fn(),
-}));
-
 const server = getTestServer();
+
+beforeEach(() => {
+  vi.spyOn(Slack, "post").mockResolvedValue({ ok: true });
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 describe("#hooks.unfurl", () => {
   it("should return documents with matching SSO user", async () => {

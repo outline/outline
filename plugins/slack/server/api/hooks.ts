@@ -1,6 +1,6 @@
 import { t } from "i18next";
 import Router from "koa-router";
-import escapeRegExp from "lodash/escapeRegExp";
+import { escapeRegExp } from "es-toolkit/compat";
 import queryString from "query-string";
 import { z } from "zod";
 import { IntegrationService, IntegrationType } from "@shared/types";
@@ -238,7 +238,8 @@ router.post(
       return;
     }
 
-    const { results, total } = await SearchProviderManager.getProvider().searchForUser(user, options);
+    const { results, total } =
+      await SearchProviderManager.getProvider().searchForUser(user, options);
 
     await SearchQuery.create({
       userId: user ? user.id : null,

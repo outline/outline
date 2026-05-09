@@ -12,7 +12,7 @@ import {
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 
-jest.mock("@server/storage/files");
+vi.mock("@server/storage/files");
 
 const server = getTestServer();
 
@@ -222,6 +222,34 @@ describe("#attachments.create", () => {
           contentType: "application/pdf",
           size: 1000,
           preset: AttachmentPreset.Avatar,
+          token: user.getJwtToken(),
+        },
+      });
+      expect(res.status).toEqual(400);
+    });
+
+    it("should reject negative size", async () => {
+      const user = await buildUser();
+      const res = await server.post("/api/attachments.create", {
+        body: {
+          name: "test.png",
+          contentType: "image/png",
+          size: -1,
+          preset: AttachmentPreset.Emoji,
+          token: user.getJwtToken(),
+        },
+      });
+      expect(res.status).toEqual(400);
+    });
+
+    it("should reject non-integer size", async () => {
+      const user = await buildUser();
+      const res = await server.post("/api/attachments.create", {
+        body: {
+          name: "test.png",
+          contentType: "image/png",
+          size: 1.5,
+          preset: AttachmentPreset.Emoji,
           token: user.getJwtToken(),
         },
       });

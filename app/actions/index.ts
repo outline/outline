@@ -17,8 +17,12 @@ import Analytics from "~/utils/Analytics";
 import history from "~/utils/history";
 import type { Action as KbarAction } from "kbar";
 
-export function resolve<T>(value: any, context: ActionContext): T {
-  return typeof value === "function" ? value(context) : value;
+export function resolve<T>(value: unknown, context: ActionContext): T {
+  return (
+    typeof value === "function"
+      ? (value as (context: ActionContext) => T)(context)
+      : value
+  ) as T;
 }
 
 export const ActionSeparator: TActionSeparator = {
@@ -132,6 +136,7 @@ export function actionToMenuItem(
             tooltip: resolve<React.ReactChild>(action.tooltip, context),
             selected: resolve<boolean>(action.selected, context),
             dangerous: action.dangerous,
+            shortcut: action.shortcut,
             onClick: () => performAction(action, context),
           };
 
@@ -143,6 +148,7 @@ export function actionToMenuItem(
             icon,
             visible,
             disabled,
+            shortcut: action.shortcut,
             to,
           };
         }
@@ -154,6 +160,7 @@ export function actionToMenuItem(
             icon,
             visible,
             disabled,
+            shortcut: action.shortcut,
             href: action.target
               ? { url: action.url, target: action.target }
               : action.url,

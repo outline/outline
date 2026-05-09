@@ -3,13 +3,12 @@ import { PadlockIcon, TableOfContentsIcon, EditIcon } from "outline-icons";
 import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import useMeasure from "react-use-measure";
 import styled, { useTheme } from "styled-components";
 import Icon from "@shared/components/Icon";
-import useMeasure from "react-use-measure";
 import { altDisplay, metaDisplay } from "@shared/utils/keyboard";
-import type Document from "~/models/Document";
-import type Revision from "~/models/Revision";
-import type Template from "~/models/Template";
+import { publishDocument } from "~/actions/definitions/documents";
+import { restoreRevision } from "~/actions/definitions/revisions";
 import { Action, Separator } from "~/components/Actions";
 import Badge from "~/components/Badge";
 import Button from "~/components/Button";
@@ -20,8 +19,7 @@ import Flex from "~/components/Flex";
 import Header from "~/components/Header";
 import Star from "~/components/Star";
 import Tooltip from "~/components/Tooltip";
-import { publishDocument } from "~/actions/definitions/documents";
-import { restoreRevision } from "~/actions/definitions/revisions";
+import { type Editor } from "~/editor";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useEditingFocus from "~/hooks/useEditingFocus";
@@ -34,14 +32,14 @@ import DocumentMenu from "~/menus/DocumentMenu";
 import NewChildDocumentMenu from "~/menus/NewChildDocumentMenu";
 import TableOfContentsMenu from "~/menus/TableOfContentsMenu";
 import TemplatesMenu from "~/menus/TemplatesMenu";
+import type Document from "~/models/Document";
+import type Revision from "~/models/Revision";
+import type Template from "~/models/Template";
 import { documentEditPath } from "~/utils/routeHelpers";
-import ObservingBanner from "./ObservingBanner";
-import PublicBreadcrumb from "./PublicBreadcrumb";
-import ShareButton from "./ShareButton";
-import { AppearanceAction } from "~/components/Sharing/components/Actions";
-import useShare from "@shared/hooks/useShare";
-import { type Editor } from "~/editor";
 import { ChangesNavigation } from "./ChangesNavigation";
+import ObservingBanner from "./ObservingBanner";
+import { SearchHighlightChip } from "./SearchHighlightChip";
+import ShareButton from "./ShareButton";
 
 type Props = {
   editorRef: React.RefObject<Editor>;
@@ -92,13 +90,12 @@ function DocumentHeader({
   const { hasHeadings, editor } = useDocumentContext();
   const sidebarContext = useLocationSidebarContext();
   const [measureRef, size] = useMeasure();
-  const { isShare, shareId, sharedTree } = useShare();
-  const isMobile = isMobileMedia || size.width < 700;
+  const isMobile = isMobileMedia || (size.width > 0 && size.width < 700);
 
   // We cache this value for as long as the component is mounted so that if you
   // apply a template there is still the option to replace it until the user
   // navigates away from the doc
-  const [isNew] = useState(document.isPersistedOnce);
+  const [wasNew] = useState(document.isPersistedOnce);
 
   const handleSave = useCallback(() => {
     onSave({
@@ -107,19 +104,19 @@ function DocumentHeader({
   }, [onSave]);
 
   const handleToggle = useCallback(() => {
-    // Public shares, by default, show ToC on load.
-    if (isShare && ui.tocVisible === undefined) {
-      ui.set({ tocVisible: false });
-    } else {
-      ui.set({ tocVisible: !ui.tocVisible });
-    }
-  }, [ui, isShare]);
+    ui.set({ tocVisible: !ui.tocVisible });
+  }, [ui]);
 
   const can = usePolicy(document);
   const { isDeleted } = document;
   const canToggleEmbeds = team?.documentEmbeds;
-  const showContents =
-    ui.tocVisible === true || (isShare && ui.tocVisible !== false);
+  const showContents = ui.tocVisible === true;
+
+  useEffect(() => {
+    if (isMobile && showContents) {
+      ui.set({ tocVisible: false });
+    }
+  }, [isMobile, showContents, ui]);
 
   const toc = (
     <Tooltip
@@ -175,192 +172,142 @@ function DocumentHeader({
     }
   );
 
-  if (shareId) {
-    return (
-      <StyledHeader
-        ref={measureRef}
-        $hidden={isEditingFocus}
-        title={
-          <Flex gap={4}>
-            {document.icon && (
-              <Icon
-                value={document.icon}
-                initial={document.initial}
-                color={document.color ?? undefined}
-              />
-            )}
-            {document.title}
-          </Flex>
-        }
-        hasSidebar={sharedTree && sharedTree.children?.length > 0}
-        left={
-          isMobile ? (
-            hasHeadings ? (
-              <TableOfContentsMenu />
-            ) : null
-          ) : (
-            <PublicBreadcrumb
-              documentId={document.id}
-              shareId={shareId}
-              sharedTree={sharedTree}
-            >
-              {hasHeadings ? toc : null}
-            </PublicBreadcrumb>
-          )
-        }
-        actions={
-          <>
-            <AppearanceAction />
-            {can.update && !isEditing ? editAction : <div />}
-          </>
-        }
-      />
-    );
-  }
-
   return (
-    <>
-      <StyledHeader
-        ref={measureRef}
-        $hidden={isEditingFocus}
-        hasSidebar
-        left={
-          isMobile ? (
-            <TableOfContentsMenu />
-          ) : (
-            <DocumentBreadcrumb document={document as Document}>
-              {toc}{" "}
-              <Star
-                document={document as Document}
-                color={theme.textSecondary}
-              />
-            </DocumentBreadcrumb>
-          )
-        }
-        title={
-          <Flex gap={4} align="center">
-            {document.icon && (
-              <Icon
-                value={document.icon}
-                initial={document.initial}
-                color={document.color ?? undefined}
-              />
-            )}
-            {document.title}
-            {document.isPrivate && (
-              <Tooltip content={t("Access restricted")} placement="bottom">
-                <PadlockIcon size={16} />
-              </Tooltip>
-            )}
-            {document.isArchived && <Badge>{t("Archived")}</Badge>}
-          </Flex>
-        }
-        actions={({ isCompact }) => (
-          <>
-            <ObservingBanner />
-            {!isDeleted && !isRevision && can.listViews && (
-              <Collaborators
+    <StyledHeader
+      ref={measureRef}
+      $hidden={isEditingFocus}
+      hasSidebar
+      left={
+        isMobile ? (
+          <TableOfContentsMenu />
+        ) : (
+          <DocumentBreadcrumb document={document}>
+            {toc} <Star document={document} color={theme.textSecondary} />
+          </DocumentBreadcrumb>
+        )
+      }
+      title={
+        <Flex gap={4} align="center">
+          {document.icon && (
+            <Icon
+              value={document.icon}
+              initial={document.initial}
+              color={document.color ?? undefined}
+            />
+          )}
+          {document.title}
+          {document.isPrivate && (
+            <Tooltip content={t("Access restricted")} placement="bottom">
+              <PadlockIcon size={16} />
+            </Tooltip>
+          )}
+          {document.isArchived && <Badge>{t("Archived")}</Badge>}
+          {document.isDraft && <Badge>{t("Draft")}</Badge>}
+        </Flex>
+      }
+      actions={({ isCompact }) => (
+        <>
+          <ObservingBanner />
+          <SearchHighlightChip />
+          {!isDeleted && !isRevision && can.listViews && (
+            <Collaborators
+              document={document}
+              limit={isCompact ? 3 : undefined}
+            />
+          )}
+          {(isEditing || !user?.separateEditMode) && wasNew && can.update && (
+            <Action>
+              <TemplatesMenu
+                isCompact={isCompact}
                 document={document}
-                limit={isCompact ? 3 : undefined}
+                onSelectTemplate={onSelectTemplate}
               />
-            )}
-            {(isEditing || !user?.separateEditMode) && isNew && can.update && (
-              <Action>
-                <TemplatesMenu
-                  isCompact={isCompact}
-                  document={document as Document}
-                  onSelectTemplate={onSelectTemplate}
-                />
-              </Action>
-            )}
-            {!isEditing && !isRevision && can.update && (
-              <Action>
-                <ShareButton document={document} />
-              </Action>
-            )}
-            {isEditing && (
-              <Action>
-                <Tooltip
-                  content={isDraft ? t("Save draft") : t("Done editing")}
-                  shortcut={`${metaDisplay}+enter`}
-                  placement="bottom"
+            </Action>
+          )}
+          {!isEditing && !isRevision && can.update && (
+            <Action>
+              <ShareButton document={document} />
+            </Action>
+          )}
+          {isEditing && (
+            <Action>
+              <Tooltip
+                content={isDraft ? t("Save draft") : t("Done editing")}
+                shortcut={`${metaDisplay}+enter`}
+                placement="bottom"
+              >
+                <Button
+                  onClick={handleSave}
+                  disabled={savingIsDisabled}
+                  neutral={isDraft}
+                  haptic="medium"
+                  hideIcon
                 >
+                  {isDraft ? t("Save draft") : t("Done editing")}
+                </Button>
+              </Tooltip>
+            </Action>
+          )}
+          {can.update &&
+            !isEditing &&
+            user?.separateEditMode &&
+            !isRevision &&
+            editAction}
+          {can.update &&
+            can.createChildDocument &&
+            !isRevision &&
+            !isCompact &&
+            !isMobile && (
+              <Action>
+                <NewChildDocumentMenu document={document} />
+              </Action>
+            )}
+          {revision && (
+            <>
+              <Action>
+                <ChangesNavigation revision={revision} editorRef={editorRef} />
+              </Action>
+              <Action>
+                <Tooltip content={t("Restore version")} placement="bottom">
                   <Button
-                    onClick={handleSave}
-                    disabled={savingIsDisabled}
-                    neutral={isDraft}
-                    haptic="medium"
-                    hideIcon
+                    action={restoreRevision}
+                    disabled={revision.createdAt === document.updatedAt}
+                    neutral
+                    hideOnActionDisabled
                   >
-                    {isDraft ? t("Save draft") : t("Done editing")}
+                    {t("Restore")}
                   </Button>
                 </Tooltip>
               </Action>
-            )}
-            {can.update &&
-              !isEditing &&
-              user?.separateEditMode &&
-              !isRevision &&
-              editAction}
-            {can.update &&
-              can.createChildDocument &&
-              !isRevision &&
-              !isCompact &&
-              !isMobile && (
-                <Action>
-                  <NewChildDocumentMenu document={document} />
-                </Action>
-              )}
-            {revision && (
-              <>
-                <Action>
-                  <ChangesNavigation
-                    revision={revision}
-                    editorRef={editorRef}
-                  />
-                </Action>
-                <Action>
-                  <Tooltip content={t("Restore version")} placement="bottom">
-                    <Button
-                      action={restoreRevision}
-                      disabled={revision.createdAt === document.updatedAt}
-                      neutral
-                      hideOnActionDisabled
-                    >
-                      {t("Restore")}
-                    </Button>
-                  </Tooltip>
-                </Action>
-              </>
-            )}
-            {can.publish && (
-              <Action>
-                <Button
-                  action={publishDocument}
-                  disabled={publishingIsDisabled}
-                  hideOnActionDisabled
-                  hideIcon
-                >
-                  {t("Publish")}…
-                </Button>
-              </Action>
-            )}
-            {!isDeleted && <Separator />}
+            </>
+          )}
+          {can.publish && (
             <Action>
-              <DocumentMenu
-                document={document}
-                align="end"
-                neutral
-                onSelectTemplate={onSelectTemplate}
-                onFindAndReplace={editor?.commands.openFindAndReplace}
-                showToggleEmbeds={canToggleEmbeds}
-                showDisplayOptions
-              />
+              <Button
+                action={publishDocument}
+                disabled={publishingIsDisabled}
+                hideOnActionDisabled
+                hideIcon
+              >
+                {t("Publish")}…
+              </Button>
             </Action>
-          </>
-        )}
-      />
-    </>
+          )}
+          {!isDeleted && <Separator />}
+          <Action>
+            <DocumentMenu
+              document={document}
+              align="end"
+              neutral
+              onSelectTemplate={onSelectTemplate}
+              onFindAndReplace={editor?.commands.openFindAndReplace}
+              showToggleEmbeds={canToggleEmbeds}
+              showDisplayOptions
+            />
+          </Action>
+        </>
+      )}
+    />
   );
 }
 

@@ -10,6 +10,10 @@ const ToggleButton = styled(SidebarButton)`
   &:active {
     opacity: 1;
   }
+
+  [dir="rtl"] & svg {
+    transform: scaleX(-1);
+  }
 `;
 
 export default ToggleButton;

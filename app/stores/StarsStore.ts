@@ -12,9 +12,7 @@ export default class StarsStore extends Store<Star> {
   }
 
   @action
-  fetchPage = async (
-    params?: PaginationParams | undefined
-  ): Promise<Star[]> => {
+  fetchPage = async (params?: PaginationParams): Promise<Star[]> => {
     this.isFetching = true;
 
     try {

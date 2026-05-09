@@ -61,7 +61,7 @@ const GroupLink: React.FC<Props> = ({ group }) => {
               <SharedWithMeLink
                 key={membership.id}
                 membership={membership}
-                depth={1}
+                depth={2}
               />
             ))}
           </Folder>

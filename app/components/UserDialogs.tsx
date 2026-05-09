@@ -2,6 +2,7 @@ import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { UserRole } from "@shared/types";
+import { UserValidation } from "@shared/validations";
 import type User from "~/models/User";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Input from "~/components/Input";
@@ -131,6 +132,8 @@ export function UserChangeNameDialog({ user, onSubmit }: Props) {
         onChange={handleChange}
         error={!name ? t("Name can't be empty") : undefined}
         value={name}
+        maxLength={UserValidation.maxNameLength}
+        showCharacterCount
         autoSelect
         required
         flex
@@ -192,6 +195,8 @@ export function UserChangeEmailDialog({ user, onSubmit }: Props) {
         onChange={handleChange}
         error={!email ? t("Email can't be empty") : error}
         value={email}
+        maxLength={UserValidation.maxEmailLength}
+        showCharacterCount
         autoSelect
         required
         flex

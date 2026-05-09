@@ -52,7 +52,8 @@ router.use(["/images/*", "/email/*", "/fonts/*"], async (ctx, next) => {
 router.use(
   ["/share/:shareId", "/share/:shareId/doc/:documentSlug", "/share/:shareId/*"],
   (ctx) => {
-    ctx.redirect(ctx.path.replace(/^\/share/, "/s"));
+    const redirectPath = ctx.path.replace(/^\/share/, "/s");
+    ctx.redirect(redirectPath + ctx.request.URL.search);
     ctx.status = 301;
   }
 );

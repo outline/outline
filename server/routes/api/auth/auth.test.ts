@@ -5,7 +5,7 @@ import { getTestServer, setSelfHosted } from "@server/test/support";
 
 const mockTeamInSessionId = randomUUID();
 
-jest.mock("@server/utils/authentication", () => ({
+vi.mock("@server/utils/authentication", () => ({
   getSessionsInCookie() {
     return { [mockTeamInSessionId]: {} };
   },
@@ -35,7 +35,9 @@ describe("#auth.info", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
 
-    const availableTeamIds = body.data.availableTeams.map((t: any) => t.id);
+    const availableTeamIds = body.data.availableTeams.map(
+      (t: { id: string }) => t.id
+    );
 
     expect(availableTeamIds.length).toEqual(3);
     expect(availableTeamIds).toContain(team.id);

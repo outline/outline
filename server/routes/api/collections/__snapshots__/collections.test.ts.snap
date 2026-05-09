@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`#collections.add_group should require group in team 1`] = `
+exports[`#collections.add_group > should require group in team 1`] = `
 {
   "error": "authorization_error",
   "message": "Authorization error",
@@ -9,7 +9,7 @@ exports[`#collections.add_group should require group in team 1`] = `
 }
 `;
 
-exports[`#collections.add_user should not allow add self 1`] = `
+exports[`#collections.add_user > should not allow add self 1`] = `
 {
   "error": "authorization_error",
   "message": "Authorization error",
@@ -18,7 +18,7 @@ exports[`#collections.add_user should not allow add self 1`] = `
 }
 `;
 
-exports[`#collections.add_user should require user in team 1`] = `
+exports[`#collections.add_user > should require user in team 1`] = `
 {
   "error": "authorization_error",
   "message": "Authorization error",
@@ -27,7 +27,7 @@ exports[`#collections.add_user should require user in team 1`] = `
 }
 `;
 
-exports[`#collections.create should require authentication 1`] = `
+exports[`#collections.create > should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",
@@ -36,7 +36,7 @@ exports[`#collections.create should require authentication 1`] = `
 }
 `;
 
-exports[`#collections.delete should require authentication 1`] = `
+exports[`#collections.delete > should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",
@@ -45,7 +45,7 @@ exports[`#collections.delete should require authentication 1`] = `
 }
 `;
 
-exports[`#collections.export should require authentication 1`] = `
+exports[`#collections.export > should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",
@@ -54,7 +54,7 @@ exports[`#collections.export should require authentication 1`] = `
 }
 `;
 
-exports[`#collections.export_all should require authentication 1`] = `
+exports[`#collections.export_all > should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",
@@ -63,7 +63,7 @@ exports[`#collections.export_all should require authentication 1`] = `
 }
 `;
 
-exports[`#collections.group_memberships should require authentication 1`] = `
+exports[`#collections.group_memberships > should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",
@@ -72,7 +72,7 @@ exports[`#collections.group_memberships should require authentication 1`] = `
 }
 `;
 
-exports[`#collections.import should require authentication 1`] = `
+exports[`#collections.import > should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",
@@ -81,7 +81,7 @@ exports[`#collections.import should require authentication 1`] = `
 }
 `;
 
-exports[`#collections.info should require authentication 1`] = `
+exports[`#collections.info > should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",
@@ -90,7 +90,7 @@ exports[`#collections.info should require authentication 1`] = `
 }
 `;
 
-exports[`#collections.list should require authentication 1`] = `
+exports[`#collections.list > should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",
@@ -99,7 +99,7 @@ exports[`#collections.list should require authentication 1`] = `
 }
 `;
 
-exports[`#collections.memberships should require authentication 1`] = `
+exports[`#collections.memberships > should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",
@@ -108,7 +108,7 @@ exports[`#collections.memberships should require authentication 1`] = `
 }
 `;
 
-exports[`#collections.move should require authentication 1`] = `
+exports[`#collections.move > should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",
@@ -117,7 +117,7 @@ exports[`#collections.move should require authentication 1`] = `
 }
 `;
 
-exports[`#collections.remove_group should require group in team 1`] = `
+exports[`#collections.remove_group > should require group in team 1`] = `
 {
   "error": "authorization_error",
   "message": "Authorization error",
@@ -126,7 +126,7 @@ exports[`#collections.remove_group should require group in team 1`] = `
 }
 `;
 
-exports[`#collections.remove_user should require user in team 1`] = `
+exports[`#collections.remove_user > should require user in team 1`] = `
 {
   "error": "authorization_error",
   "message": "Authorization error",
@@ -135,7 +135,7 @@ exports[`#collections.remove_user should require user in team 1`] = `
 }
 `;
 
-exports[`#collections.update should require authentication 1`] = `
+exports[`#collections.update > should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",

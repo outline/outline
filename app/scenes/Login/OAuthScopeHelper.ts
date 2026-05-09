@@ -1,6 +1,5 @@
 import type { TFunction } from "i18next";
-import capitalize from "lodash/capitalize";
-import uniq from "lodash/uniq";
+import { capitalize, uniq } from "es-toolkit/compat";
 import { Scope } from "@shared/types";
 
 export class OAuthScopeHelper {
@@ -42,7 +41,7 @@ export class OAuthScopeHelper {
         return t("Write all data");
       }
 
-      const [namespace, method] = scope.replace("/api/", "").split(/[:\.]/g);
+      const [namespace, method] = scope.replace("/api/", "").split(/[:.]/g);
       const readableMethod =
         methodToReadable[method as keyof typeof methodToReadable] ?? method;
       if (!readableMethod) {

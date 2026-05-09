@@ -1,5 +1,4 @@
-import filter from "lodash/filter";
-import isNull from "lodash/isNull";
+import { filter, isNull } from "es-toolkit/compat";
 import type { Node, NodeType, ResolvedPos, Attrs } from "prosemirror-model";
 import { Slice, Fragment } from "prosemirror-model";
 import type { TextSelection, Transaction } from "prosemirror-state";

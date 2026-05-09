@@ -5,38 +5,56 @@ import type { EditorView } from "prosemirror-view";
 
 const MAX_MATCH = 500;
 
-type Options = {
-  openRegex: RegExp;
-  closeRegex: RegExp;
-  enabledInCode: boolean;
-  trigger: string;
-  allowSpaces: boolean;
-  requireSearchTerm: boolean;
-};
-
 type ExtensionState = {
   open: boolean;
   query: string;
 };
 
 export class SuggestionsMenuPlugin extends Plugin {
-  constructor(
-    options: Options,
-    extensionState: ExtensionState,
-    openRegex: RegExp
-  ) {
+  constructor(extensionState: ExtensionState, openRegex: RegExp) {
     super({
       props: {
+        handleDOMEvents: {
+          // IME composition (e.g. Korean, Japanese, Chinese) fires compositionupdate
+          // as each character is being built up. ProseMirror's view.composing flag
+          // blocks the normal handleKeyDown path, so we handle it separately here.
+          compositionupdate: (view) => {
+            setTimeout(() => {
+              const { pos: fromPos } = view.state.selection.$from;
+              const state = view.state;
+              const $from = state.doc.resolve(fromPos);
+              if ($from.parent.type.spec.code) {
+                return;
+              }
+              const textBefore = $from.parent.textBetween(
+                Math.max(0, $from.parentOffset - MAX_MATCH),
+                $from.parentOffset,
+                undefined,
+                "\ufffc"
+              );
+              const match = openRegex.exec(textBefore);
+              action(() => {
+                if (match) {
+                  if (match[0].length <= 2) {
+                    extensionState.open = true;
+                  }
+                  extensionState.query = match[1];
+                }
+              })();
+            }, 0);
+            return false;
+          },
+        },
         handleKeyDown: (view, event) => {
           // Prosemirror input rules are not triggered on backspace, however
-          // we need them to be evaluted for the filter trigger to work
+          // we need them to be evaluated for the filter trigger to work
           // correctly. This additional handler adds inputrules-like handling.
           if (event.key === "Backspace") {
             // timeout ensures that the delete has been handled by prosemirror
             // and any characters removed, before we evaluate the rule.
             setTimeout(() => {
               const { pos: fromPos } = view.state.selection.$from;
-              return this.execute(
+              this.execute(
                 view,
                 fromPos,
                 fromPos,
@@ -50,7 +68,7 @@ export class SuggestionsMenuPlugin extends Plugin {
                   return null;
                 })
               );
-            });
+            }, 0);
           }
 
           // Another plugin (e.g. the Placeholder mark) may consume the
@@ -81,7 +99,7 @@ export class SuggestionsMenuPlugin extends Plugin {
                   return null;
                 })
               );
-            });
+            }, 0);
           }
 
           // If the menu is open then just ignore the key events in the editor
@@ -132,8 +150,13 @@ export class SuggestionsMenuPlugin extends Plugin {
     );
 
     const match = regex.exec(textBefore);
-    const tr = handler(state, match, match ? from - match[0].length : from, to);
-    if (!tr) {
+    const result = handler(
+      state,
+      match,
+      match ? from - match[0].length : from,
+      to
+    );
+    if (!result) {
       return false;
     }
     return true;

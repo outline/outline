@@ -77,30 +77,32 @@ function ReferenceListItem({
   const initial = title.charAt(0).toUpperCase();
 
   return (
-    <DocumentLink
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      to={{
-        pathname: shareId
-          ? sharedModelPath(shareId, document.url)
-          : document.url,
-        hash: anchor ? `d-${anchor}` : undefined,
-        state: {
-          title: document.title,
-          sidebarContext,
-        },
-      }}
-      {...rest}
-    >
-      <Content gap={4} dir="auto">
-        {icon ? (
-          <Icon value={icon} color={color ?? undefined} initial={initial} />
-        ) : (
-          <DocumentIcon />
-        )}
-        <Title>{isEmoji ? title.replace(icon!, "") : title}</Title>
-      </Content>
-    </DocumentLink>
+    <li>
+      <DocumentLink
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        to={{
+          pathname: shareId
+            ? sharedModelPath(shareId, document.url)
+            : document.url,
+          hash: anchor ? `d-${anchor}` : undefined,
+          state: {
+            title: document.title,
+            sidebarContext,
+          },
+        }}
+        {...rest}
+      >
+        <Content gap={4} dir="auto">
+          {icon ? (
+            <Icon value={icon} color={color ?? undefined} initial={initial} />
+          ) : (
+            <DocumentIcon />
+          )}
+          <Title>{isEmoji ? title.replace(icon!, "") : title}</Title>
+        </Content>
+      </DocumentLink>
+    </li>
   );
 }
 

@@ -9,6 +9,7 @@ export default class EmojisStore extends Store<Emoji> {
     RPCAction.Info,
     RPCAction.List,
     RPCAction.Create,
+    RPCAction.Update,
     RPCAction.Delete,
   ];
 

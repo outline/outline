@@ -16,7 +16,8 @@ type Params =
  * @returns preload function, loading state, and reset function.
  */
 export default function useShareDataLoader(params: Params) {
-  const { userMemberships, groupMemberships, memberships } = useStores();
+  const { shares, userMemberships, groupMemberships, memberships } =
+    useStores();
   const [loading, setLoading] = useState(false);
   const requestedRef = useRef(false);
   const requestCountRef = useRef(0);
@@ -42,7 +43,7 @@ export default function useShareDataLoader(params: Params) {
     if (params.document) {
       const doc = params.document;
       promises.push(
-        doc.share(),
+        shares.fetchOne({ documentId: doc.id }),
         userMemberships.fetchDocumentMemberships({
           id: doc.id,
           limit: Pagination.defaultLimit,
@@ -52,7 +53,7 @@ export default function useShareDataLoader(params: Params) {
     } else {
       const col = params.collection;
       promises.push(
-        col.share(),
+        shares.fetchOne({ collectionId: col.id }),
         memberships.fetchAll({ id: col.id }),
         groupMemberships.fetchAll({ collectionId: col.id })
       );
@@ -66,6 +67,7 @@ export default function useShareDataLoader(params: Params) {
   }, [
     params.document,
     params.collection,
+    shares,
     userMemberships,
     groupMemberships,
     memberships,

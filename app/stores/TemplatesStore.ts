@@ -1,5 +1,4 @@
-import orderBy from "lodash/orderBy";
-import filter from "lodash/filter";
+import { filter, orderBy } from "es-toolkit/compat";
 import { action, computed } from "mobx";
 import { invariant } from "mobx-utils";
 import naturalSort from "@shared/utils/naturalSort";

@@ -1,6 +1,8 @@
+import queryString from "query-string";
+import { randomString } from "@shared/random";
 import { CollectionPermission } from "@shared/types";
 import { createContext } from "@server/context";
-import { UserMembership, Share } from "@server/models";
+import { UserMembership, Share, ShareSubscription } from "@server/models";
 import {
   buildUser,
   buildDocument,
@@ -10,7 +12,7 @@ import {
   buildTeam,
 } from "@server/test/factories";
 
-import { getTestServer } from "@server/test/support";
+import { getTestServer, withAPIContext } from "@server/test/support";
 
 const server = getTestServer();
 
@@ -164,7 +166,7 @@ describe("#shares.list", () => {
       teamId: user.teamId,
       userId: user.id,
     });
-    await document.delete(user);
+    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
     const res = await server.post("/api/shares.list", {
       body: {
         token: user.getJwtToken(),
@@ -320,6 +322,25 @@ describe("#shares.create", () => {
     expect(body.data.includeChildDocuments).toBe(true);
     expect(body.data.urlId).toBe("test");
     expect(body.data.documentTitle).toBe(document.title);
+  });
+
+  it("should set includeChildDocuments when creating a published share", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/shares.create", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: document.id,
+        published: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.published).toBe(true);
+    expect(body.data.includeChildDocuments).toBe(true);
   });
 
   it("should accept allowIndexing and showLastUpdated parameters", async () => {
@@ -548,6 +569,89 @@ describe("#shares.create", () => {
       },
     });
     expect(res.status).toEqual(403);
+  });
+
+  it("should not allow creating a share for a document in another team", async () => {
+    const user = await buildUser();
+    const otherDocument = await buildDocument();
+
+    const res = await server.post("/api/shares.create", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: otherDocument.id,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should not allow creating a published share for a document in another team", async () => {
+    const user = await buildUser();
+    const otherDocument = await buildDocument();
+
+    const res = await server.post("/api/shares.create", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: otherDocument.id,
+        published: true,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should not allow creating a share for a collection in another team", async () => {
+    const user = await buildUser();
+    const otherCollection = await buildCollection();
+
+    const res = await server.post("/api/shares.create", {
+      body: {
+        token: user.getJwtToken(),
+        collectionId: otherCollection.id,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should not allow creating a share with both a collectionId and documentId", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/shares.create", {
+      body: {
+        token: user.getJwtToken(),
+        collectionId: collection.id,
+        documentId: document.id,
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should not allow creating a published share with both a collectionId and documentId", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/shares.create", {
+      body: {
+        token: user.getJwtToken(),
+        collectionId: collection.id,
+        documentId: document.id,
+        published: true,
+      },
+    });
+    expect(res.status).toEqual(400);
   });
 });
 
@@ -905,6 +1009,141 @@ describe("#shares.update", () => {
     expect(body.data.urlId).toBeNull();
   });
 
+  it("should update title and iconUrl", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/shares.update", {
+      body: {
+        token: user.getJwtToken(),
+        id: share.id,
+        title: "Custom Title",
+        iconUrl: "https://example.com/icon.png",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.title).toEqual("Custom Title");
+    expect(body.data.iconUrl).toEqual("https://example.com/icon.png");
+  });
+
+  it("should allow clearing title and iconUrl with null", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      title: "Custom Title",
+      iconUrl: "https://example.com/icon.png",
+    });
+    const res = await server.post("/api/shares.update", {
+      body: {
+        token: user.getJwtToken(),
+        id: share.id,
+        title: null,
+        iconUrl: null,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.title).toBeNull();
+    expect(body.data.iconUrl).toBeNull();
+  });
+
+  it("should normalize empty title to null", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      title: "Custom Title",
+    });
+    const res = await server.post("/api/shares.update", {
+      body: {
+        token: user.getJwtToken(),
+        id: share.id,
+        title: "",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.title).toBeNull();
+  });
+
+  it("should accept a relative iconUrl", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/shares.update", {
+      body: {
+        token: user.getJwtToken(),
+        id: share.id,
+        iconUrl: "/uploads/icon.png",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.iconUrl).toEqual("/uploads/icon.png");
+  });
+
+  it("should reject malformed iconUrl", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/shares.update", {
+      body: {
+        token: user.getJwtToken(),
+        id: share.id,
+        iconUrl: "not a url",
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should reject iconUrl with disallowed protocol", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/shares.update", {
+      body: {
+        token: user.getJwtToken(),
+        id: share.id,
+        iconUrl: "javascript:alert(1)",
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
   it("should allow user to update a share", async () => {
     const user = await buildUser();
     const document = await buildDocument({
@@ -1084,7 +1323,7 @@ describe("#shares.revoke", () => {
       teamId: user.teamId,
       userId: user.id,
     });
-    await document.delete(user);
+    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
     const res = await server.post("/api/shares.revoke", {
       body: {
         token: user.getJwtToken(),
@@ -1151,5 +1390,282 @@ describe("#shares.revoke", () => {
       },
     });
     expect(res.status).toEqual(403);
+  });
+});
+
+describe("#shares.subscribe", () => {
+  it("should create a subscription for a published share", async () => {
+    const share = await buildShare();
+    const res = await server.post("/api/shares.subscribe", {
+      body: {
+        shareId: share.id,
+        documentId: share.documentId!,
+        email: "subscriber@example.com",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.success).toBe(true);
+
+    const subscription = await ShareSubscription.findOne({
+      where: { shareId: share.id },
+    });
+    expect(subscription).not.toBeNull();
+    expect(subscription!.email).toBe("subscriber@example.com");
+    expect(subscription!.confirmedAt).toBeNull();
+  });
+
+  it("should normalize email fingerprint on create", async () => {
+    const share = await buildShare();
+    await server.post("/api/shares.subscribe", {
+      body: {
+        shareId: share.id,
+        documentId: share.documentId!,
+        email: "First.Last+tag@Example.com",
+      },
+    });
+
+    const subscription = await ShareSubscription.findOne({
+      where: { shareId: share.id },
+    });
+    expect(subscription!.emailFingerprint).toBe(
+      ShareSubscription.normalizeEmailFingerprint("First.Last+tag@Example.com")
+    );
+  });
+
+  it("should not create duplicate subscriptions for same fingerprint", async () => {
+    const share = await buildShare();
+    await server.post("/api/shares.subscribe", {
+      body: {
+        shareId: share.id,
+        documentId: share.documentId!,
+        email: "user@gmail.com",
+      },
+    });
+    await server.post("/api/shares.subscribe", {
+      body: {
+        shareId: share.id,
+        documentId: share.documentId!,
+        email: "u.s.e.r@gmail.com",
+      },
+    });
+
+    const count = await ShareSubscription.count({
+      where: { shareId: share.id },
+    });
+    expect(count).toBe(1);
+  });
+
+  it("should silently succeed for already confirmed subscription", async () => {
+    const share = await buildShare();
+    await ShareSubscription.create({
+      shareId: share.id,
+      documentId: share.documentId!,
+      email: "user@example.com",
+      emailFingerprint:
+        ShareSubscription.normalizeEmailFingerprint("user@example.com"),
+      secret: randomString(32),
+      confirmedAt: new Date(),
+    });
+
+    const res = await server.post("/api/shares.subscribe", {
+      body: {
+        shareId: share.id,
+        documentId: share.documentId!,
+        email: "user@example.com",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.success).toBe(true);
+  });
+
+  it("should allow re-subscribing after unsubscribe", async () => {
+    const share = await buildShare();
+    const subscription = await ShareSubscription.create({
+      shareId: share.id,
+      documentId: share.documentId!,
+      email: "user@example.com",
+      emailFingerprint:
+        ShareSubscription.normalizeEmailFingerprint("user@example.com"),
+      secret: randomString(32),
+      confirmedAt: new Date(),
+      unsubscribedAt: new Date(),
+    });
+
+    const res = await server.post("/api/shares.subscribe", {
+      body: {
+        shareId: share.id,
+        documentId: share.documentId!,
+        email: "user@example.com",
+      },
+    });
+    expect(res.status).toEqual(200);
+
+    await subscription.reload();
+    expect(subscription.unsubscribedAt).toBeNull();
+    expect(subscription.confirmedAt).toBeNull();
+  });
+
+  it("should fail for unpublished share", async () => {
+    const share = await buildShare({ published: false });
+    const res = await server.post("/api/shares.subscribe", {
+      body: {
+        shareId: share.id,
+        documentId: share.documentId!,
+        email: "user@example.com",
+      },
+    });
+    expect(res.status).toEqual(404);
+  });
+
+  it("should fail with invalid email", async () => {
+    const share = await buildShare();
+    const res = await server.post("/api/shares.subscribe", {
+      body: {
+        shareId: share.id,
+        documentId: share.documentId!,
+        email: "not-an-email",
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+});
+
+describe("#shares.confirmSubscription", () => {
+  it("should confirm a subscription with valid token", async () => {
+    const share = await buildShare();
+    const subscription = await ShareSubscription.create({
+      shareId: share.id,
+      documentId: share.documentId!,
+      email: "user@example.com",
+      emailFingerprint: "user@example.com",
+      secret: randomString(32),
+    });
+
+    const token = ShareSubscription.generateConfirmToken(subscription);
+    const res = await server.get(
+      `/api/shares.confirmSubscription?${queryString.stringify({
+        id: subscription.id,
+        token,
+        follow: "true",
+      })}`,
+      { redirect: "manual" }
+    );
+    expect(res.status).toEqual(302);
+    expect(res.headers.get("location")).toContain("notice=subscribed");
+
+    await subscription.reload();
+    expect(subscription.confirmedAt).not.toBeNull();
+  });
+
+  it("should reject an invalid token", async () => {
+    const share = await buildShare();
+    const subscription = await ShareSubscription.create({
+      shareId: share.id,
+      documentId: share.documentId!,
+      email: "user@example.com",
+      emailFingerprint: "user@example.com",
+      secret: randomString(32),
+    });
+
+    const res = await server.get(
+      `/api/shares.confirmSubscription?${queryString.stringify({
+        id: subscription.id,
+        token: "invalid-token",
+        follow: "true",
+      })}`,
+      { redirect: "manual" }
+    );
+    expect(res.status).toEqual(302);
+    expect(res.headers.get("location")).toContain("notice=invalid-auth");
+
+    await subscription.reload();
+    expect(subscription.confirmedAt).toBeNull();
+  });
+
+  it("should reject an expired token", async () => {
+    const share = await buildShare();
+    const subscription = await ShareSubscription.create({
+      shareId: share.id,
+      documentId: share.documentId!,
+      email: "user@example.com",
+      emailFingerprint: "user@example.com",
+      secret: randomString(32),
+    });
+    // Force updatedAt to 25 hours ago so the token is expired
+    const expiredDate = new Date(Date.now() - 25 * 60 * 60 * 1000);
+    await ShareSubscription.update(
+      { createdAt: expiredDate, updatedAt: expiredDate },
+      { where: { id: subscription.id }, silent: true }
+    );
+    await subscription.reload();
+
+    const token = ShareSubscription.generateConfirmToken(subscription);
+    const res = await server.get(
+      `/api/shares.confirmSubscription?${queryString.stringify({
+        id: subscription.id,
+        token,
+        follow: "true",
+      })}`,
+      { redirect: "manual" }
+    );
+    expect(res.status).toEqual(302);
+    expect(res.headers.get("location")).toContain("notice=expired-token");
+  });
+});
+
+describe("#shares.unsubscribe", () => {
+  it("should unsubscribe with valid token", async () => {
+    const share = await buildShare();
+    const subscription = await ShareSubscription.create({
+      shareId: share.id,
+      documentId: share.documentId!,
+      email: "user@example.com",
+      emailFingerprint: "user@example.com",
+      secret: randomString(32),
+      confirmedAt: new Date(),
+    });
+
+    const token = ShareSubscription.generateUnsubscribeToken(subscription);
+    const res = await server.get(
+      `/api/shares.unsubscribe?${queryString.stringify({
+        id: subscription.id,
+        token,
+        follow: "true",
+      })}`,
+      { redirect: "manual" }
+    );
+    expect(res.status).toEqual(302);
+    expect(res.headers.get("location")).toContain("notice=unsubscribed");
+
+    await subscription.reload();
+    expect(subscription.unsubscribedAt).not.toBeNull();
+  });
+
+  it("should reject an invalid token", async () => {
+    const share = await buildShare();
+    const subscription = await ShareSubscription.create({
+      shareId: share.id,
+      documentId: share.documentId!,
+      email: "user@example.com",
+      emailFingerprint: "user@example.com",
+      secret: randomString(32),
+      confirmedAt: new Date(),
+    });
+
+    const res = await server.get(
+      `/api/shares.unsubscribe?${queryString.stringify({
+        id: subscription.id,
+        token: "invalid-token",
+        follow: "true",
+      })}`,
+      { redirect: "manual" }
+    );
+    expect(res.status).toEqual(302);
+    expect(res.headers.get("location")).toContain("notice=invalid-auth");
+
+    await subscription.reload();
+    expect(subscription.unsubscribedAt).toBeNull();
   });
 });

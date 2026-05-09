@@ -1,7 +1,4 @@
-import compact from "lodash/compact";
-import concat from "lodash/concat";
-import uniq from "lodash/uniq";
-import uniqBy from "lodash/uniqBy";
+import { compact, concat, uniq, uniqBy } from "es-toolkit/compat";
 import type { Server } from "socket.io";
 import {
   Comment,

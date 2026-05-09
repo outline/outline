@@ -117,7 +117,7 @@ import {
   faSpiral,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import intersection from "lodash/intersection";
+import { intersection } from "es-toolkit/compat";
 import {
   BookmarkedIcon,
   BicycleIcon,

@@ -154,7 +154,7 @@ export const AccessControlList = observer(
                     value={document.isPrivate ? "private" : "inherited"}
                     onChange={handleAccessChange}
                     label={t("Access")}
-                    hideLabel
+                    labelHidden
                     short
                     disabled={!can.manageUsers || parentIsPrivate}
                     nude

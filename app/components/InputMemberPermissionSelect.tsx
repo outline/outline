@@ -37,7 +37,7 @@ export default function InputMemberPermissionSelect(
       value={value || EmptySelectValue}
       onChange={onChange}
       label={t("Permissions")}
-      hideLabel
+      labelHidden
       nude
       {...rest}
     />

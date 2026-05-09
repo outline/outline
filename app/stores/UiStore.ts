@@ -26,6 +26,8 @@ export enum SystemTheme {
   Dark = "dark",
 }
 
+export type ResolvedTheme = "light" | "dark" | "system";
+
 type PersistedData = Pick<
   UiStore,
   | "languagePromptDismissed"
@@ -111,7 +113,7 @@ class UiStore {
   setPresentingDocument = (document: Document | null): void => {
     this.presentationData = document
       ? {
-          title: document.title,
+          title: document.titleWithDefault,
           icon: document.icon,
           color: document.color,
           data: document.data,
@@ -153,14 +155,21 @@ class UiStore {
 
       setSystemTheme(colorSchemeQueryList);
 
-      if (colorSchemeQueryList.addListener) {
+      if (typeof colorSchemeQueryList.addEventListener === "function") {
+        colorSchemeQueryList.addEventListener("change", setSystemTheme);
+      } else if (typeof colorSchemeQueryList.addListener === "function") {
         colorSchemeQueryList.addListener(setSystemTheme);
       }
     }
 
     window.addEventListener("storage", (event) => {
       if (event.key === UI_STORE && event.newValue) {
-        const newData: PersistedData | null = JSON.parse(event.newValue);
+        let newData: PersistedData | null;
+        try {
+          newData = JSON.parse(event.newValue);
+        } catch {
+          return;
+        }
 
         // data may be null if key is deleted in localStorage
         if (!newData) {
@@ -202,7 +211,9 @@ class UiStore {
    * @param modelClass the model class to filter by.
    * @returns array of active models of the specified type.
    */
-  getActiveModels<T extends Model>(modelClass: new (...args: any[]) => T): T[] {
+  getActiveModels<T extends Model>(
+    modelClass: new (...args: never[]) => T
+  ): T[] {
     return Array.from(this.activeModels.values()).filter(
       (model) => model.constructor === modelClass
     ) as T[];
@@ -224,7 +235,7 @@ class UiStore {
    * @param modelClass optional model class to filter by.
    */
   @action
-  clearActiveModels(modelClass?: new (...args: any[]) => Model): void {
+  clearActiveModels(modelClass?: new (...args: never[]) => Model): void {
     if (modelClass) {
       const modelsToRemove = this.getActiveModels(modelClass);
       modelsToRemove.forEach((model) => this.activeModels.delete(model.id));
@@ -240,7 +251,7 @@ class UiStore {
    * @returns the most recently added model of the specified type.
    */
   getPrimaryActiveModel<T extends Model>(
-    modelClass: new (...args: any[]) => T
+    modelClass: new (...args: never[]) => T
   ): T | undefined {
     const models = this.getActiveModels<T>(modelClass);
     return models[models.length - 1];

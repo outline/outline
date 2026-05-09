@@ -22,7 +22,7 @@ describe("ImportMarkdownZipTask", () => {
         };
       },
     });
-    jest.spyOn(FileOperation, "findByPk").mockResolvedValue(fileOperation);
+    vi.spyOn(FileOperation, "findByPk").mockResolvedValue(fileOperation);
 
     const props = {
       fileOperationId: fileOperation.id,
@@ -53,7 +53,7 @@ describe("ImportMarkdownZipTask", () => {
         };
       },
     });
-    jest.spyOn(FileOperation, "findByPk").mockResolvedValue(fileOperation);
+    vi.spyOn(FileOperation, "findByPk").mockResolvedValue(fileOperation);
 
     const props = {
       fileOperationId: fileOperation.id,
@@ -84,7 +84,7 @@ describe("ImportMarkdownZipTask", () => {
         };
       },
     });
-    jest.spyOn(FileOperation, "findByPk").mockResolvedValue(fileOperation);
+    vi.spyOn(FileOperation, "findByPk").mockResolvedValue(fileOperation);
 
     const props = {
       fileOperationId: fileOperation.id,
@@ -118,7 +118,7 @@ describe("ImportMarkdownZipTask", () => {
         };
       },
     });
-    jest.spyOn(FileOperation, "findByPk").mockResolvedValue(fileOperation);
+    vi.spyOn(FileOperation, "findByPk").mockResolvedValue(fileOperation);
 
     const props = {
       fileOperationId: fileOperation.id,

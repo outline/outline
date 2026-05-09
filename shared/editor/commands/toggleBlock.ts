@@ -26,6 +26,7 @@ import {
   detachToggleBlockBody,
   attachToggleBlockBody,
 } from "../queries/toggleBlock";
+import { isInList } from "../queries/isInList";
 import {
   ancestors,
   atBlockEnd,
@@ -196,6 +197,11 @@ export const selectNodeBackwardPreservingBody: Command = (state, dispatch) => {
 };
 
 export const indentBlock: Command = (state, dispatch) => {
+  // If inside a list, allow the list's Tab handler to handle indentation instead.
+  if (isInList(state)) {
+    return false;
+  }
+
   const { $from } = state.selection;
 
   let before = -1;
@@ -342,6 +348,11 @@ export const liftAllChildBlocksOfNodeAfter: Command = (state, dispatch) => {
 };
 
 export const dedentBlocks: Command = (state, dispatch) => {
+  // If inside a list, allow the list's Shift-Tab handler to handle outdentation instead.
+  if (isInList(state)) {
+    return false;
+  }
+
   const { $from } = state.selection;
 
   const isToggle = isToggleBlock(state);

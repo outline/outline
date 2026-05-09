@@ -1,3 +1,4 @@
+import type { TFunction } from "i18next";
 import {
   DoneIcon,
   ExpandedIcon,
@@ -8,21 +9,20 @@ import {
 import type { EditorState } from "prosemirror-state";
 import { NoticeTypes } from "@shared/editor/nodes/Notice";
 import type { MenuItem } from "@shared/editor/types";
-import type { Dictionary } from "~/hooks/useDictionary";
 
 export default function noticeMenuItems(
   state: EditorState,
   readOnly: boolean | undefined,
-  dictionary: Dictionary
+  t: TFunction
 ): MenuItem[] {
   const node = state.selection.$from.node(-1);
   const currentStyle = node?.attrs.style as NoticeTypes;
 
   const mapping = {
-    [NoticeTypes.Info]: dictionary.infoNotice,
-    [NoticeTypes.Warning]: dictionary.warningNotice,
-    [NoticeTypes.Success]: dictionary.successNotice,
-    [NoticeTypes.Tip]: dictionary.tipNotice,
+    [NoticeTypes.Info]: t("Info notice"),
+    [NoticeTypes.Warning]: t("Warning notice"),
+    [NoticeTypes.Success]: t("Success notice"),
+    [NoticeTypes.Tip]: t("Tip notice"),
   };
 
   return [
@@ -35,25 +35,25 @@ export default function noticeMenuItems(
         {
           name: NoticeTypes.Info,
           icon: <InfoIcon />,
-          label: dictionary.infoNotice,
+          label: t("Info notice"),
           active: () => currentStyle === NoticeTypes.Info,
         },
         {
           name: NoticeTypes.Success,
           icon: <DoneIcon />,
-          label: dictionary.successNotice,
+          label: t("Success notice"),
           active: () => currentStyle === NoticeTypes.Success,
         },
         {
           name: NoticeTypes.Warning,
           icon: <WarningIcon />,
-          label: dictionary.warningNotice,
+          label: t("Warning notice"),
           active: () => currentStyle === NoticeTypes.Warning,
         },
         {
           name: NoticeTypes.Tip,
           icon: <StarredIcon />,
-          label: dictionary.tipNotice,
+          label: t("Tip notice"),
           active: () => currentStyle === NoticeTypes.Tip,
         },
       ],

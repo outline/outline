@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`#users.activate should require admin 1`] = `
+exports[`#users.activate > should require admin 1`] = `
 {
   "error": "authorization_error",
   "message": "Authorization error",
@@ -9,7 +9,7 @@ exports[`#users.activate should require admin 1`] = `
 }
 `;
 
-exports[`#users.delete should require authentication 1`] = `
+exports[`#users.delete > should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",
@@ -18,7 +18,7 @@ exports[`#users.delete should require authentication 1`] = `
 }
 `;
 
-exports[`#users.demote should not allow demoting self 1`] = `
+exports[`#users.demote > should not allow demoting self 1`] = `
 {
   "error": "validation_error",
   "message": "You cannot change your own role",
@@ -27,7 +27,7 @@ exports[`#users.demote should not allow demoting self 1`] = `
 }
 `;
 
-exports[`#users.demote should require admin 1`] = `
+exports[`#users.demote > should require admin 1`] = `
 {
   "error": "authorization_error",
   "message": "Admin role required",
@@ -36,7 +36,7 @@ exports[`#users.demote should require admin 1`] = `
 }
 `;
 
-exports[`#users.promote should require admin 1`] = `
+exports[`#users.promote > should require admin 1`] = `
 {
   "error": "authorization_error",
   "message": "Admin role required",
@@ -45,7 +45,7 @@ exports[`#users.promote should require admin 1`] = `
 }
 `;
 
-exports[`#users.suspend should not allow suspending self 1`] = `
+exports[`#users.suspend > should not allow suspending self 1`] = `
 {
   "error": "authorization_error",
   "message": "Authorization error",
@@ -54,7 +54,7 @@ exports[`#users.suspend should not allow suspending self 1`] = `
 }
 `;
 
-exports[`#users.suspend should require admin 1`] = `
+exports[`#users.suspend > should require admin 1`] = `
 {
   "error": "authorization_error",
   "message": "Authorization error",
@@ -63,7 +63,7 @@ exports[`#users.suspend should require admin 1`] = `
 }
 `;
 
-exports[`#users.update should require authentication 1`] = `
+exports[`#users.update > should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",
@@ -72,7 +72,7 @@ exports[`#users.update should require authentication 1`] = `
 }
 `;
 
-exports[`#users.updateEmail post should fail if email not in allowed domains 1`] = `
+exports[`#users.updateEmail > post > should fail if email not in allowed domains 1`] = `
 {
   "error": "validation_error",
   "message": "The domain is not allowed for this workspace",
@@ -81,7 +81,7 @@ exports[`#users.updateEmail post should fail if email not in allowed domains 1`]
 }
 `;
 
-exports[`#users.updateEmail post should fail if email not unique in workspace 1`] = `
+exports[`#users.updateEmail > post > should fail if email not unique in workspace 1`] = `
 {
   "error": "validation_error",
   "message": "User with email already exists",
@@ -90,7 +90,7 @@ exports[`#users.updateEmail post should fail if email not unique in workspace 1`
 }
 `;
 
-exports[`#users.updateEmail post should require authentication 1`] = `
+exports[`#users.updateEmail > post > should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",

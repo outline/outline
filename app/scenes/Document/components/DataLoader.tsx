@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import type { RouteComponentProps, StaticContext } from "react-router";
-import { useLocation } from "react-router";
+import { Redirect, useLocation } from "react-router";
 import { TeamPreference } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
@@ -27,7 +27,11 @@ import {
   PaymentRequiredError,
 } from "~/utils/errors";
 import history from "~/utils/history";
-import { matchDocumentEdit, settingsPath } from "~/utils/routeHelpers";
+import {
+  matchDocumentEdit,
+  settingsPath,
+  updateDocumentPath,
+} from "~/utils/routeHelpers";
 import useDocumentSidebar from "../hooks/useDocumentSidebar";
 import Loading from "./Loading";
 import MarkAsViewed from "./MarkAsViewed";
@@ -107,25 +111,38 @@ function DataLoader({ match, children }: Props) {
     void fetchDocument();
   }, [ui, documents, missingPolicy, documentSlug]);
 
-  React.useEffect(() => {
-    async function fetchRevision() {
-      if (!revisionId) {
-        return;
-      }
+  const fetchRevisionById = React.useCallback(
+    async (id: string, onError: (err: Error) => void) => {
       try {
-        if (revisionId === "latest") {
+        if (id === "latest") {
           if (document?.id) {
             await revisions.fetchLatest(document.id);
           }
         } else {
-          await revisions.fetch(revisionId);
+          await revisions.fetch(id);
         }
       } catch (err) {
-        setError(err);
+        onError(err as Error);
       }
+    },
+    [revisions, document?.id]
+  );
+
+  React.useEffect(() => {
+    if (revisionId) {
+      void fetchRevisionById(revisionId, setError);
     }
-    void fetchRevision();
-  }, [revisions, revisionId, document?.id]);
+  }, [fetchRevisionById, revisionId]);
+
+  const compareTo = query.get("compareTo");
+
+  React.useEffect(() => {
+    if (compareTo) {
+      void fetchRevisionById(compareTo, (err) =>
+        Logger.error("Failed to fetch compareTo revision", err)
+      );
+    }
+  }, [fetchRevisionById, compareTo]);
 
   React.useEffect(() => {
     async function fetchViews() {
@@ -205,6 +222,7 @@ function DataLoader({ match, children }: Props) {
     shares,
     ui,
     revisionId,
+    missingPolicy,
   ]);
 
   // Auto-enter presentation mode when ?present=true query param is set
@@ -237,6 +255,21 @@ function DataLoader({ match, children }: Props) {
       <>
         <Loading location={location} />
       </>
+    );
+  }
+
+  // Redirect to the canonical URL if the document slug has changed, e.g.
+  // after a rename, so the browser address bar stays in sync.
+  const canonicalUrl = updateDocumentPath(match.url, document);
+  if (location.pathname !== canonicalUrl) {
+    return (
+      <Redirect
+        to={{
+          pathname: canonicalUrl,
+          state: location.state,
+          hash: location.hash,
+        }}
+      />
     );
   }
 

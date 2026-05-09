@@ -1,5 +1,5 @@
 import { isEmail } from "class-validator";
-import concat from "lodash/concat";
+import { concat } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { CheckmarkIcon, CloseIcon } from "outline-icons";
 import * as React from "react";
@@ -143,7 +143,7 @@ export const Suggestions = observer(
     );
 
     React.useEffect(() => {
-      void fetchUsersByQuery(query);
+      fetchUsersByQuery(query);
     }, [query, fetchUsersByQuery]);
 
     function getListItemProps(suggestion: User | Group) {

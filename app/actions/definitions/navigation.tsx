@@ -241,7 +241,10 @@ export const logout = createAction({
   section: NavigationSection,
   icon: <LogoutIcon />,
   perform: async () => {
-    await stores.auth.logout({ userInitiated: true });
+    await stores.auth.logout({
+      userInitiated: true,
+      clearCache: true,
+    });
   },
 });
 

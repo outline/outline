@@ -1,4 +1,4 @@
-import isEmpty from "lodash/isEmpty";
+import { isEmpty } from "es-toolkit/compat";
 import { z } from "zod";
 import { AttachmentPreset } from "@shared/types";
 import { BaseSchema } from "@server/routes/api/schema";
@@ -26,7 +26,7 @@ export const AttachmentsCreateSchema = BaseSchema.extend({
     documentId: z.uuid().optional(),
 
     /** File size of the Attachment */
-    size: z.number(),
+    size: z.number().int().nonnegative(),
 
     /** Content-Type of the Attachment */
     contentType: z.string().optional().prefault("application/octet-stream"),

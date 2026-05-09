@@ -18,7 +18,7 @@ type Props = {
 };
 
 /**
- * Wraps children in a <Fade> if loading is true on mount.
+ * Wraps children in a <Fade> if animate is true on mount.
  */
 export const ConditionalFade = ({ animate, children }: Props) => {
   const [isAnimated] = useState(animate);

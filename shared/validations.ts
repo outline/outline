@@ -67,6 +67,8 @@ export const DocumentValidation = {
 };
 
 export const GroupValidation = {
+  /** The maximum length of the group name */
+  maxNameLength: 255,
   /** The maximum length of the group description */
   maxDescriptionLength: 2000,
 };
@@ -81,22 +83,30 @@ export const OAuthClientValidation = {
   maxNameLength: 100,
 
   /** The maximum length of the OAuth client description */
-  maxDescriptionLength: 1000,
+  maxDescriptionLength: 255,
 
   /** The maximum length of the OAuth client developer name */
   maxDeveloperNameLength: 100,
 
   /** The maximum length of the OAuth client developer URL */
-  maxDeveloperUrlLength: 1000,
+  maxDeveloperUrlLength: 255,
 
   /** The maximum length of the OAuth client avatar URL */
-  maxAvatarUrlLength: 1000,
+  maxAvatarUrlLength: 255,
 
   /** The maximum length of an OAuth client redirect URI */
-  maxRedirectUriLength: 1000,
+  maxRedirectUriLength: 255,
 
   /** The allowed OAuth client types */
   clientTypes: ["confidential", "public"] as const,
+};
+
+export const ShareValidation = {
+  /** The maximum length of the share title */
+  maxTitleLength: 255,
+
+  /** The maximum length of the share iconUrl */
+  maxIconUrlLength: 4096,
 };
 
 export const RevisionValidation = {
@@ -133,8 +143,14 @@ export const TeamValidation = {
   /** The maximum length of the team subdomain for self-hosted */
   maxSubdomainSelfHostedLength: 255,
 
+  /** The maximum length of a team domain */
+  maxDomainLength: 255,
+
   /** The maximum length of MCP workspace guidance */
-  maxGuidanceMCPLength: 2000,
+  maxGuidanceMCPLength: 10000,
+
+  /** The recommended length of MCP workspace guidance, beyond which a warning is shown */
+  warnGuidanceMCPLength: 2000,
 };
 
 export const UserValidation = {
@@ -151,6 +167,10 @@ export const UserValidation = {
 export const WebhookSubscriptionValidation = {
   /** The maximum number of webhooks per team */
   maxSubscriptions: 10,
+  /** The maximum length of the webhook name */
+  maxNameLength: 255,
+  /** The maximum length of the webhook url */
+  maxUrlLength: 255,
 };
 
 export const EmojiValidation = {

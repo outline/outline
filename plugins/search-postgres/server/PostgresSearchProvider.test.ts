@@ -21,7 +21,7 @@ import PostgresSearchProvider from "./PostgresSearchProvider";
 const provider = SearchProviderManager.getProvider();
 
 beforeEach(async () => {
-  jest.resetAllMocks();
+  vi.resetAllMocks();
   await buildDocument();
 });
 
@@ -389,6 +389,46 @@ describe("PostgresSearchProvider", () => {
         statusFilter: [StatusFilter.Draft],
       });
       expect(results.length).toBe(1);
+    });
+
+    it("should include drafts with no collection created by user", async () => {
+      const user = await buildUser();
+      const draft = await buildDraftDocument({
+        teamId: user.teamId,
+        userId: user.id,
+        createdById: user.id,
+        collectionId: null,
+        title: "test",
+      });
+      const { results } = await provider.searchForUser(user, {
+        query: "test",
+        statusFilter: [StatusFilter.Draft],
+      });
+      expect(results.length).toBe(1);
+      expect(results[0].document?.id).toBe(draft.id);
+    });
+
+    it("should not include drafts created by user in inaccessible collections", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const otherUser = await buildUser({ teamId: team.id });
+      const privateCollection = await buildCollection({
+        teamId: team.id,
+        userId: otherUser.id,
+        permission: null,
+      });
+      await buildDraftDocument({
+        teamId: team.id,
+        userId: user.id,
+        createdById: user.id,
+        collectionId: privateCollection.id,
+        title: "test",
+      });
+      const { results } = await provider.searchForUser(user, {
+        query: "test",
+        statusFilter: [StatusFilter.Draft],
+      });
+      expect(results.length).toBe(0);
     });
 
     it("should not include drafts with user read permission", async () => {

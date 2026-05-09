@@ -1,4 +1,4 @@
-import throttle from "lodash/throttle";
+import { throttle } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { MenuIcon } from "outline-icons";
 import { transparentize } from "polished";
@@ -116,17 +116,23 @@ function Header(
 const Breadcrumbs = styled("div")`
   flex-grow: 1;
   flex-basis: 0;
+  min-width: 0;
   align-items: center;
-  padding-right: 8px;
+  padding-inline: 0 8px;
   display: flex;
+
+  ${breakpoint("tablet")`
+    min-width: auto;
+  `};
 `;
 
 const Actions = styled(Flex)`
   flex-grow: 1;
   flex-basis: 0;
   min-width: auto;
-  padding-left: 8px;
+  padding-inline: 8px 0;
   gap: 12px;
+  margin-inline-start: 8px;
 
   ${breakpoint("tablet")`
     position: unset;

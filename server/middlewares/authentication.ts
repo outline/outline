@@ -1,5 +1,5 @@
 import type { Next } from "koa";
-import capitalize from "lodash/capitalize";
+import { capitalize } from "es-toolkit/compat";
 import type { UserRole } from "@shared/types";
 import { UserRoleHelper } from "@shared/utils/UserRoleHelper";
 import tracer, {
@@ -177,7 +177,7 @@ async function validateAuthentication(
       throw AuthenticationError("Access token is expired");
     }
     if (!authentication.canAccess(ctx.originalUrl)) {
-      throw AuthenticationError(
+      throw AuthorizationError(
         "Access token does not have access to this resource"
       );
     }
@@ -220,9 +220,7 @@ async function validateAuthentication(
     }
 
     if (!apiKey.canAccess(ctx.originalUrl)) {
-      throw AuthenticationError(
-        "API key does not have access to this resource"
-      );
+      throw AuthorizationError("API key does not have access to this resource");
     }
 
     user = await User.findByPk(apiKey.userId, {

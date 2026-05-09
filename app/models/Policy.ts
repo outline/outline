@@ -1,4 +1,4 @@
-import isEqual from "lodash/isEqual";
+import { isEqual } from "es-toolkit/compat";
 import { computed, observable } from "mobx";
 import Model from "./base/Model";
 import Field from "./decorators/Field";

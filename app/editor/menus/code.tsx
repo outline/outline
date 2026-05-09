@@ -12,14 +12,14 @@ import {
   getLabelForLanguage,
 } from "@shared/editor/lib/code";
 import { isMermaid } from "@shared/editor/lib/isCode";
+import type { TFunction } from "i18next";
 import type { MenuItem } from "@shared/editor/types";
-import type { Dictionary } from "~/hooks/useDictionary";
 import { metaDisplay } from "@shared/utils/keyboard";
 
 export default function codeMenuItems(
   state: EditorState,
   readOnly: boolean | undefined,
-  dictionary: Dictionary
+  t: TFunction
 ): MenuItem[] {
   const node =
     state.selection instanceof NodeSelection
@@ -59,7 +59,7 @@ export default function codeMenuItems(
       label: readOnly
         ? getLabelForLanguage(node.attrs.language ?? "none")
         : undefined,
-      tooltip: dictionary.copy,
+      tooltip: t("Copy"),
     },
     {
       name: "separator",
@@ -67,7 +67,7 @@ export default function codeMenuItems(
     {
       name: "edit_mermaid",
       icon: <EditIcon />,
-      tooltip: dictionary.editDiagram,
+      tooltip: t("Edit diagram"),
       shortcut: `${metaDisplay} Enter`,
       visible: isMermaid(node) && !isEditingMermaid && !readOnly,
     },
@@ -77,7 +77,7 @@ export default function codeMenuItems(
     {
       name: "toggleCodeBlockWrap",
       icon: <TextWrapIcon />,
-      tooltip: dictionary.wrapText,
+      tooltip: t("Wrap text"),
       active: () => node.attrs.wrap,
       visible: !readOnly && (!isMermaid(node) || isEditingMermaid),
     },

@@ -9,7 +9,9 @@ import coalesceBody from "@server/middlewares/coaleseBody";
 import { Collection, Team, View } from "@server/models";
 import AuthenticationHelper from "@server/models/helpers/AuthenticationHelper";
 import type { AppState, AppContext, APIContext } from "@server/types";
+import { AuthenticationType } from "@server/types";
 import { verifyCSRFToken } from "@server/middlewares/csrf";
+import { getJWTPayload } from "@server/utils/jwt";
 
 const app = new Koa<AppState, AppContext>();
 const router = new Router();
@@ -30,55 +32,61 @@ void (async () => {
   }
 })();
 
-router.get("/redirect", authMiddleware(), async (ctx: APIContext) => {
-  const { user, service } = ctx.state.auth;
-  const jwtToken = user.getJwtToken(undefined, service);
+router.get(
+  "/redirect",
+  authMiddleware({ type: AuthenticationType.APP }),
+  async (ctx: APIContext) => {
+    const { user, service } = ctx.state.auth;
 
-  if (jwtToken === ctx.state.auth.token) {
-    throw AuthenticationError("Cannot extend token");
-  }
-
-  // ensure that the lastActiveAt on user is updated to prevent replay requests
-  await user.updateActiveAt(ctx, true);
-
-  ctx.cookies.set("accessToken", jwtToken, {
-    sameSite: "lax",
-    expires: addMonths(new Date(), 3),
-  });
-  const [team, collection, view] = await Promise.all([
-    Team.findByPk(user.teamId),
-    Collection.findFirstCollectionForUser(user),
-    View.findOne({
-      where: {
-        userId: user.id,
-      },
-    }),
-  ]);
-
-  const defaultCollectionId = team?.defaultCollectionId;
-
-  if (defaultCollectionId) {
-    const collection = await Collection.findOne({
-      where: {
-        id: defaultCollectionId,
-        teamId: team.id,
-      },
-    });
-
-    if (collection) {
-      ctx.redirect(`${team.url}${collection.path}`);
-      return;
+    const payload = getJWTPayload(ctx.state.auth.token);
+    if (payload.type !== "transfer") {
+      throw AuthenticationError("Cannot extend token");
     }
+
+    const jwtToken = user.getJwtToken(undefined, service);
+
+    // ensure that the lastActiveAt on user is updated to prevent replay requests
+    await user.updateActiveAt(ctx, true);
+
+    ctx.cookies.set("accessToken", jwtToken, {
+      sameSite: "lax",
+      expires: addMonths(new Date(), 3),
+    });
+    const [team, collection, view] = await Promise.all([
+      Team.findByPk(user.teamId),
+      Collection.findFirstCollectionForUser(user),
+      View.findOne({
+        where: {
+          userId: user.id,
+        },
+      }),
+    ]);
+
+    const defaultCollectionId = team?.defaultCollectionId;
+
+    if (defaultCollectionId) {
+      const collection = await Collection.findOne({
+        where: {
+          id: defaultCollectionId,
+          teamId: team.id,
+        },
+      });
+
+      if (collection) {
+        ctx.redirect(`${team.url}${collection.path}`);
+        return;
+      }
+    }
+
+    const hasViewedDocuments = !!view;
+
+    ctx.redirect(
+      !hasViewedDocuments && collection
+        ? `${team?.url}${collection.path}/recent`
+        : `${team?.url}/home`
+    );
   }
-
-  const hasViewedDocuments = !!view;
-
-  ctx.redirect(
-    !hasViewedDocuments && collection
-      ? `${team?.url}${collection.path}/recent`
-      : `${team?.url}/home`
-  );
-});
+);
 
 app.use(bodyParser());
 app.use(coalesceBody());

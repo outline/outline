@@ -1,5 +1,5 @@
 import mime from "mime-types";
-import truncate from "lodash/truncate";
+import { truncate } from "es-toolkit/compat";
 import type { ProsemirrorData } from "@shared/types";
 import { DocumentValidation } from "@shared/validations";
 import { serializer } from "@server/editor";

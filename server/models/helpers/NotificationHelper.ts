@@ -1,5 +1,4 @@
-import uniq from "lodash/uniq";
-import uniqBy from "lodash/uniqBy";
+import { uniq, uniqBy } from "es-toolkit/compat";
 import { Op } from "sequelize";
 import {
   NotificationEventType,

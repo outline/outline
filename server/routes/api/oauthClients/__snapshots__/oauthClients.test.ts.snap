@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`oauthClients.create should require authentication 1`] = `
+exports[`oauthClients.create > should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",
@@ -9,7 +9,7 @@ exports[`oauthClients.create should require authentication 1`] = `
 }
 `;
 
-exports[`oauthClients.delete should require authentication 1`] = `
+exports[`oauthClients.delete > should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",
@@ -18,7 +18,7 @@ exports[`oauthClients.delete should require authentication 1`] = `
 }
 `;
 
-exports[`oauthClients.info should require authentication 1`] = `
+exports[`oauthClients.info > should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",
@@ -27,7 +27,7 @@ exports[`oauthClients.info should require authentication 1`] = `
 }
 `;
 
-exports[`oauthClients.list should require authentication 1`] = `
+exports[`oauthClients.list > should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",
@@ -36,7 +36,7 @@ exports[`oauthClients.list should require authentication 1`] = `
 }
 `;
 
-exports[`oauthClients.rotate_secret should require authentication 1`] = `
+exports[`oauthClients.rotate_secret > should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",
@@ -45,7 +45,7 @@ exports[`oauthClients.rotate_secret should require authentication 1`] = `
 }
 `;
 
-exports[`oauthclients.update should require authentication 1`] = `
+exports[`oauthclients.update > should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",

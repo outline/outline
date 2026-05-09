@@ -187,7 +187,7 @@ const Application = observer(function Application({ oauthClient }: Props) {
             name="clientType"
             render={({ field }) => (
               <InputClientType
-                hideLabel
+                labelHidden
                 value={field.value}
                 onChange={field.onChange}
                 ref={field.ref}

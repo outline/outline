@@ -1,9 +1,10 @@
 import { IconTitleWrapper } from "@shared/components/Icon";
 import breakpoint from "styled-components-breakpoint";
-import first from "lodash/first";
+import { first } from "es-toolkit/compat";
 import { Suspense, useCallback } from "react";
 import styled from "styled-components";
 import { CollectionValidation } from "@shared/validations";
+import { isRTL } from "@shared/utils/rtl";
 import Heading from "~/components/Heading";
 import ContentEditable from "~/components/ContentEditable";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
@@ -48,9 +49,11 @@ export const Header = observer(function Header_({
     <CollectionIcon collection={collection} size={40} expanded />
   ) : null;
 
+  const dir = isRTL(collection.name) ? "rtl" : "ltr";
+
   return (
-    <StyledHeading>
-      <IconTitleWrapper>
+    <StyledHeading dir={dir}>
+      <IconTitleWrapper dir={dir}>
         {canEdit ? (
           <Suspense fallback={fallbackIcon}>
             <IconPicker

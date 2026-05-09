@@ -1,0 +1,94 @@
+name: Update Node.js LTS
+
+on:
+  schedule:
+    # Run every Monday at 9:00 UTC
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-node:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Check for Node.js LTS update
+        id: check
+        run: |
+          # Get current Node version from Dockerfile
+          CURRENT_VERSION=$(grep -oP 'FROM node:\K[0-9]+\.[0-9]+\.[0-9]+' Dockerfile.base)
+          echo "current=$CURRENT_VERSION" >> "$GITHUB_OUTPUT"
+          echo "Current Node.js version: $CURRENT_VERSION"
+
+          # Fetch the latest LTS release (any major version) from nodejs.org
+          LATEST_VERSION=$(curl -s https://nodejs.org/dist/index.json | \
+            jq -r '[.[] | select(.lts != false)][0].version' | \
+            sed 's/^v//')
+
+          if ! [[ "$LATEST_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Failed to fetch a valid LTS version (got '$LATEST_VERSION')"
+            exit 1
+          fi
+
+          echo "latest=$LATEST_VERSION" >> "$GITHUB_OUTPUT"
+          echo "Latest Node.js LTS version: $LATEST_VERSION"
+
+          if [ "$CURRENT_VERSION" = "$LATEST_VERSION" ]; then
+            echo "updated=false" >> "$GITHUB_OUTPUT"
+            echo "Already up to date."
+          else
+            echo "updated=true" >> "$GITHUB_OUTPUT"
+            echo "Update available: $CURRENT_VERSION -> $LATEST_VERSION"
+          fi
+
+      - name: Update Node.js version references
+        if: steps.check.outputs.updated == 'true'
+        env:
+          CURRENT: ${{ steps.check.outputs.current }}
+          LATEST: ${{ steps.check.outputs.latest }}
+        run: |
+          CURRENT_MAJOR=$(echo "$CURRENT" | cut -d. -f1)
+          LATEST_MAJOR=$(echo "$LATEST" | cut -d. -f1)
+
+          # Update Dockerfiles
+          sed -i "s/node:${CURRENT}-slim/node:${LATEST}-slim/g" Dockerfile
+          sed -i "s/node:${CURRENT} /node:${LATEST} /g" Dockerfile.base
+
+          # Update references that depend on major version
+          if [ "$CURRENT_MAJOR" != "$LATEST_MAJOR" ]; then
+            # .nvmrc
+            echo "$LATEST_MAJOR" > .nvmrc
+
+            # CI workflow: step name, node-version, and cache keys
+            sed -i "s/Use Node.js ${CURRENT_MAJOR}.x/Use Node.js ${LATEST_MAJOR}.x/g" .github/workflows/ci.yml
+            sed -i "s/node-version: ${CURRENT_MAJOR}.x/node-version: ${LATEST_MAJOR}.x/g" .github/workflows/ci.yml
+            # Update cache keys: replace node-modules-[optional old version] with new version
+            sed -i -E "s/node-modules-([0-9]+\.x-)?/node-modules-${LATEST_MAJOR}.x-/g" .github/workflows/ci.yml
+
+            # package.json engines field: append new major version
+            sed -i "s/\"node\": \"\(.*\)\"/\"node\": \"\1 || ${LATEST_MAJOR}\"/" package.json
+          fi
+
+          echo "Updated Node.js from $CURRENT to $LATEST"
+
+      - name: Create pull request
+        if: steps.check.outputs.updated == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "fix: Update Node.js to ${{ steps.check.outputs.latest }}"
+          title: "fix: Update Node.js to ${{ steps.check.outputs.latest }}"
+          body: |
+            Automated update of Node.js in Docker images.
+
+            - **Previous version:** ${{ steps.check.outputs.current }}
+            - **New version:** ${{ steps.check.outputs.latest }}
+
+            [Release notes](https://nodejs.org/en/blog/release/v${{ steps.check.outputs.latest }})
+          branch: automated/update-node-lts
+          delete-branch: true
+          labels: dependencies

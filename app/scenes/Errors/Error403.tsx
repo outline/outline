@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import Button from "~/components/Button";
@@ -11,6 +12,7 @@ import { VStack } from "~/components/primitives/VStack";
 const Error403 = () => {
   const { t } = useTranslation();
   const history = useHistory();
+  const handleGoBack = useCallback(() => history.goBack(), [history]);
 
   return (
     <Scene title={t("No access to this doc")}>
@@ -26,7 +28,7 @@ const Error403 = () => {
           <Button action={navigateToHome} hideIcon>
             {t("Home")}
           </Button>
-          <Button onClick={history.goBack} neutral>
+          <Button onClick={handleGoBack} neutral>
             {t("Go back")}
           </Button>
         </HStack>

@@ -43,6 +43,7 @@ export function initSentry(history: History) {
       "Failed to fetch dynamically imported module",
       "ResizeObserver loop completed with undelivered notifications",
       "ResizeObserver loop limit exceeded",
+      "Object Not Found Matching Id",
       "file://",
       "chrome-extension://",
     ],

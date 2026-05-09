@@ -1,5 +1,5 @@
 import { HocuspocusProvider, WebSocketStatus } from "@hocuspocus/provider";
-import throttle from "lodash/throttle";
+import { throttle } from "es-toolkit/compat";
 import {
   useState,
   useLayoutEffect,
@@ -7,6 +7,7 @@ import {
   useEffect,
   forwardRef,
   useRef,
+  type ForwardedRef,
 } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
@@ -18,6 +19,7 @@ import EDITOR_VERSION from "@shared/editor/version";
 import { supportsPassiveListener } from "@shared/utils/browser";
 import type { Props as EditorProps } from "~/components/Editor";
 import Editor from "~/components/Editor";
+import type { Editor as SharedEditor } from "~/editor";
 import MultiplayerExtension from "~/editor/extensions/Multiplayer";
 import env from "~/env";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -50,7 +52,10 @@ type MessageEvent = {
   };
 };
 
-function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
+function MultiplayerEditor(
+  { onSynced, ...props }: Props,
+  ref: ForwardedRef<SharedEditor>
+) {
   const documentId = props.id;
   const history = useHistory();
   const { t } = useTranslation();
@@ -59,8 +64,8 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   const { presence, auth, ui } = useStores();
   const [editorVersionBehind, setEditorVersionBehind] = useState(false);
   const [showCursorNames, setShowCursorNames] = useState(false);
-  const [remoteProvider, setRemoteProvider] =
-    useState<HocuspocusProvider | null>(null);
+  const [remoteProvider, setRemoteProvider] = useState<HocuspocusProvider>();
+  const [hasLocalPersistence, setHasLocalPersistence] = useState(true);
   const [isLocalSynced, setLocalSynced] = useState(false);
   const [isRemoteSynced, setRemoteSynced] = useState(false);
   const [ydoc] = useState(() => new Y.Doc());
@@ -76,7 +81,15 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   useLayoutEffect(() => {
     const debug = env.ENVIRONMENT === "development";
     const name = `document.${documentId}`;
-    const localProvider = new IndexeddbPersistence(name, ydoc);
+    const localProvider =
+      typeof indexedDB !== "undefined"
+        ? new IndexeddbPersistence(name, ydoc)
+        : undefined;
+
+    if (!localProvider) {
+      setHasLocalPersistence(false);
+    }
+
     const provider = new HocuspocusProvider({
       parameters: {
         editorVersion: EDITOR_VERSION,
@@ -112,7 +125,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
       provider.shouldConnect = false;
       retryCount.current++;
 
-      sleep(retryCount.current * 1000 - 1000).then(() =>
+      void sleep(retryCount.current * 1000 - 1000).then(() =>
         auth
           .fetchAuth()
           .then(() => {
@@ -156,7 +169,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     };
 
     provider.on("awarenessChange", showCursorNames);
-    localProvider.on("synced", () =>
+    localProvider?.on("synced", () =>
       // only set local storage to "synced" if it's loaded a non-empty doc
       setLocalSynced(!!ydoc.get("default")._start)
     );
@@ -195,7 +208,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
           message: ev.message,
         })
       );
-      localProvider.on("synced", () =>
+      localProvider?.on("synced", () =>
         Logger.debug("collaboration", "local synced")
       );
     }
@@ -214,7 +227,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
       window.removeEventListener("scroll", syncScrollPosition);
       provider?.destroy();
       void localProvider?.destroy();
-      setRemoteProvider(null);
+      setRemoteProvider(undefined);
       ui.setMultiplayerStatus(undefined, undefined);
     };
   }, [
@@ -254,10 +267,10 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   }, [remoteProvider, user, ydoc, props.extensions]);
 
   useEffect(() => {
-    if (isLocalSynced && isRemoteSynced) {
+    if ((!hasLocalPersistence || isLocalSynced) && isRemoteSynced) {
       void onSynced?.();
     }
-  }, [onSynced, isLocalSynced, isRemoteSynced]);
+  }, [onSynced, hasLocalPersistence, isLocalSynced, isRemoteSynced]);
 
   // Disconnect the realtime connection while idle. `isIdle` also checks for
   // page visibility and will immediately disconnect when a tab is hidden.
@@ -306,7 +319,8 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
 
   // while the collaborative document is loading, we render a version of the
   // document from the last text cache in read-only mode if we have it.
-  const showCache = !isLocalSynced && !isRemoteSynced;
+  const isLocalReady = !hasLocalPersistence || isLocalSynced;
+  const showCache = !isLocalReady && !isRemoteSynced;
 
   return (
     <>
@@ -343,4 +357,4 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   );
 }
 
-export default forwardRef<typeof MultiplayerEditor, Props>(MultiplayerEditor);
+export default forwardRef<SharedEditor, Props>(MultiplayerEditor);

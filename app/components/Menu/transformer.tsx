@@ -42,13 +42,14 @@ export function toMenuItems(items: MenuItem[]) {
       case "button":
         return (
           <MenuButton
-            key={`${item.type}-${item.title}-${index}`}
+            key={`${item.type}-${index}`}
             label={item.title as string}
             icon={icon}
             disabled={item.disabled}
             tooltip={item.tooltip}
             selected={item.selected}
             dangerous={item.dangerous}
+            shortcut={item.shortcut}
             onClick={item.onClick}
           />
         );
@@ -56,10 +57,11 @@ export function toMenuItems(items: MenuItem[]) {
       case "route":
         return (
           <MenuInternalLink
-            key={`${item.type}-${item.title}-${index}`}
+            key={`${item.type}-${index}`}
             label={item.title as string}
             icon={icon}
             disabled={item.disabled}
+            shortcut={item.shortcut}
             to={item.to}
           />
         );
@@ -67,10 +69,11 @@ export function toMenuItems(items: MenuItem[]) {
       case "link":
         return (
           <MenuExternalLink
-            key={`${item.type}-${item.title}-${index}`}
+            key={`${item.type}-${index}`}
             label={item.title as string}
             icon={icon}
             disabled={item.disabled}
+            shortcut={item.shortcut}
             href={typeof item.href === "string" ? item.href : item.href.url}
             target={
               typeof item.href === "string" ? undefined : item.href.target
@@ -92,7 +95,7 @@ export function toMenuItems(items: MenuItem[]) {
         };
 
         return (
-          <SubMenu key={`${item.type}-${item.title}-${index}`}>
+          <SubMenu key={`${item.type}-${index}`}>
             <SubMenuTrigger
               label={item.title as string}
               icon={icon}
@@ -118,7 +121,7 @@ export function toMenuItems(items: MenuItem[]) {
 
         return (
           <MenuGroup
-            key={`${item.type}-${item.title}-${index}`}
+            key={`${item.type}-${index}`}
             label={item.title as string}
             items={groupItems}
           />
@@ -168,7 +171,7 @@ export function toMobileMenuItems(
       case "button":
         return (
           <Components.MenuButton
-            key={`${item.type}-${item.title}-${index}`}
+            key={`${item.type}-${index}`}
             disabled={item.disabled}
             $dangerous={item.dangerous}
             onClick={(e) => {
@@ -189,7 +192,7 @@ export function toMobileMenuItems(
       case "route":
         return (
           <Components.MenuInternalLink
-            key={`${item.type}-${item.title}-${index}`}
+            key={`${item.type}-${index}`}
             to={item.to}
             disabled={item.disabled}
             onClick={closeMenu}
@@ -202,7 +205,7 @@ export function toMobileMenuItems(
       case "link":
         return (
           <Components.MenuExternalLink
-            key={`${item.type}-${item.title}-${index}`}
+            key={`${item.type}-${index}`}
             href={typeof item.href === "string" ? item.href : item.href.url}
             target={
               typeof item.href === "string" ? undefined : item.href.target
@@ -228,7 +231,7 @@ export function toMobileMenuItems(
 
         return (
           <Components.MenuButton
-            key={`${item.type}-${item.title}-${index}`}
+            key={`${item.type}-${index}`}
             disabled={item.disabled}
             onClick={() => {
               openSubmenu(item.title as string);
@@ -253,7 +256,7 @@ export function toMobileMenuItems(
         }
 
         return (
-          <div key={`${item.type}-${item.title}-${index}`}>
+          <div key={`${item.type}-${index}`}>
             <Components.MenuHeader>{item.title}</Components.MenuHeader>
             {groupItems}
           </div>

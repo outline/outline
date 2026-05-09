@@ -118,16 +118,19 @@ function setupRowDragTracking(
     document.removeEventListener("mouseup", handleMouseUp);
 
     document.body.classList.remove(EditorStyleHelper.tableDragging);
-    clearDragState();
 
-    if (isDragging && currentToIndex !== fromIndex) {
-      moveTableRow({ from: fromIndex, to: currentToIndex })(
+    if (isDragging && currentToIndex !== fromIndex && isInTable(view.state)) {
+      const moved = moveTableRow({ from: fromIndex, to: currentToIndex })(
         view.state,
         view.dispatch
       );
-      // Select the row at its new position
-      selectRow(currentToIndex)(view.state, view.dispatch);
+      if (moved) {
+        // Select the row at its new position
+        selectRow(currentToIndex)(view.state, view.dispatch);
+      }
     }
+
+    clearDragState();
   };
 
   document.addEventListener("mousemove", handleMouseMove);

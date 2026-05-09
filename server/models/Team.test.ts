@@ -1,7 +1,54 @@
 import { randomUUID } from "node:crypto";
-import { buildTeam, buildCollection, buildAttachment } from "@server/test/factories";
+import { Team } from "@server/models";
+import {
+  buildTeam,
+  buildCollection,
+  buildAttachment,
+} from "@server/test/factories";
 
 describe("Team", () => {
+  describe("findByDomain", () => {
+    it("should find a team by its domain", async () => {
+      const domain = `${randomUUID()}.example.com`;
+      const team = await buildTeam({ domain });
+      const result = await Team.findByDomain(domain);
+      expect(result?.id).toEqual(team.id);
+    });
+
+    it("should normalize domain to lowercase", async () => {
+      const id = randomUUID().split("-")[0];
+      const team = await buildTeam({ domain: `${id}.example.com` });
+      const result = await Team.findByDomain(`${id}.Example.COM`);
+      expect(result?.id).toEqual(team.id);
+    });
+
+    it("should strip protocol from input", async () => {
+      const domain = `${randomUUID()}.example.com`;
+      const team = await buildTeam({ domain });
+      const result = await Team.findByDomain(`https://${domain}`);
+      expect(result?.id).toEqual(team.id);
+    });
+
+    it("should strip port from input", async () => {
+      const domain = `${randomUUID()}.example.com`;
+      const team = await buildTeam({ domain });
+      const result = await Team.findByDomain(`${domain}:3000`);
+      expect(result?.id).toEqual(team.id);
+    });
+
+    it("should strip path from input", async () => {
+      const domain = `${randomUUID()}.example.com`;
+      const team = await buildTeam({ domain });
+      const result = await Team.findByDomain(`${domain}/some/path`);
+      expect(result?.id).toEqual(team.id);
+    });
+
+    it("should return null for unregistered domain", async () => {
+      const result = await Team.findByDomain("unknown.example.com");
+      expect(result).toBeNull();
+    });
+  });
+
   describe("collectionIds", () => {
     it("should return non-private collection ids", async () => {
       const team = await buildTeam();
@@ -23,21 +70,23 @@ describe("Team", () => {
 
   describe("previousSubdomains", () => {
     it("should list the previous subdomains", async () => {
+      const id = randomUUID();
+      const originalSubdomain = `example-${id}`;
+      const subdomain = `updated-${id}`;
+      const subdomain2 = `another-${id}`;
       const team = await buildTeam({
-        subdomain: "example",
+        subdomain: originalSubdomain,
       });
-      const subdomain = "updated";
 
       await team.update({ subdomain });
       expect(team.subdomain).toEqual(subdomain);
       expect(team.previousSubdomains?.length).toEqual(1);
-      expect(team.previousSubdomains?.[0]).toEqual("example");
+      expect(team.previousSubdomains?.[0]).toEqual(originalSubdomain);
 
-      const subdomain2 = "another";
       await team.update({ subdomain: subdomain2 });
       expect(team.subdomain).toEqual(subdomain2);
       expect(team.previousSubdomains?.length).toEqual(2);
-      expect(team.previousSubdomains?.[0]).toEqual("example");
+      expect(team.previousSubdomains?.[0]).toEqual(originalSubdomain);
       expect(team.previousSubdomains?.[1]).toEqual(subdomain);
     });
   });
@@ -57,18 +106,24 @@ describe("Team", () => {
     });
 
     it("should return signed URL for private-bucket attachment redirect", async () => {
-      const team = await buildTeam();
-      const attachment = await buildAttachment({
-        teamId: team.id,
-        acl: "private",
-      });
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-04-16T00:00:00.000Z"));
+      try {
+        const team = await buildTeam();
+        const attachment = await buildAttachment({
+          teamId: team.id,
+          acl: "private",
+        });
 
-      await team.update({
-        avatarUrl: `/api/attachments.redirect?id=${attachment.id}`,
-      });
+        await team.update({
+          avatarUrl: `/api/attachments.redirect?id=${attachment.id}`,
+        });
 
-      const result = await team.publicAvatarUrl();
-      expect(result).toEqual(await attachment.signedUrl);
+        const result = await team.publicAvatarUrl();
+        expect(result).toEqual(await attachment.signedUrl);
+      } finally {
+        vi.useRealTimers();
+      }
     });
 
     it("should return canonical URL for public-bucket attachment redirect", async () => {

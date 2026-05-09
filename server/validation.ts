@@ -1,4 +1,4 @@
-import isArrayLike from "lodash/isArrayLike";
+import { isArrayLike } from "es-toolkit/compat";
 import sanitize from "sanitize-filename";
 import type { Primitive } from "utility-types";
 import validator from "validator";
@@ -55,7 +55,11 @@ export function assertKeysIn(
   Object.keys(obj).forEach((key) => assertIn(key, Object.values(type)));
 }
 
-export const assertSort = (value: string, model: any, message?: string) => {
+export const assertSort = (
+  value: string,
+  model: { rawAttributes: Record<string, unknown> },
+  message?: string
+) => {
   if (!Object.keys(model.rawAttributes).includes(value)) {
     throw ValidationError(
       message ?? `${String(value)} is not a valid sort field`

@@ -38,8 +38,6 @@ import {
   presentFileOperation,
 } from "@server/presenters";
 import type { APIContext } from "@server/types";
-import { CacheHelper } from "@server/utils/CacheHelper";
-import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { collectionIndexing } from "@server/utils/indexing";
 import pagination from "../middlewares/pagination";
@@ -50,6 +48,7 @@ const router = new Router();
 
 router.post(
   "collections.create",
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth(),
   validate(T.CollectionsCreateSchema),
   transaction(),
@@ -145,18 +144,7 @@ router.post(
 
     authorize(user, "readDocument", collection);
 
-    const documentStructure = await CacheHelper.getDataOrSet(
-      RedisPrefixHelper.getCollectionDocumentsKey(collection.id),
-      async () =>
-        (
-          await Collection.findByPk(collection.id, {
-            attributes: ["documentStructure"],
-            includeDocumentStructure: true,
-            rejectOnEmpty: true,
-          })
-        ).documentStructure,
-      60
-    );
+    const documentStructure = await collection.getCachedDocumentStructure();
 
     // Filter restricted subtrees for non-admin users
     const filteredStructure = user.isAdmin
@@ -873,31 +861,7 @@ router.post(
 
     authorize(user, "archive", collection);
 
-    collection.archivedAt = new Date();
-    collection.archivedById = user.id;
-    collection.archivedBy = user;
-
-    await collection.saveWithCtx(ctx, undefined, {
-      name: "archive",
-    });
-
-    // Archive all documents within the collection
-    await Document.update(
-      {
-        lastModifiedById: user.id,
-        archivedAt: collection.archivedAt,
-      },
-      {
-        where: {
-          teamId: collection.teamId,
-          collectionId: collection.id,
-          archivedAt: {
-            [Op.is]: null,
-          },
-        },
-        transaction,
-      }
-    );
+    await collection.archiveWithCtx(ctx);
 
     ctx.body = {
       data: await presentCollection(ctx, collection),

@@ -17,6 +17,7 @@ import {
   mergeCells,
   splitCell,
   TableMap,
+  type TableRect,
 } from "prosemirror-tables";
 import { ProsemirrorHelper } from "../../utils/ProsemirrorHelper";
 import { CSVHelper } from "../../utils/csv";
@@ -40,8 +41,7 @@ import { collapseSelection } from "./collapseSelection";
 import { RowSelection } from "../selection/RowSelection";
 import { ColumnSelection } from "../selection/ColumnSelection";
 import type { Attrs } from "prosemirror-model";
-import isUndefined from "lodash/isUndefined";
-import find from "lodash/find";
+import { find, isUndefined } from "es-toolkit/compat";
 
 /**
  * Restores column selection after a table operation that may have changed cell
@@ -103,7 +103,7 @@ export function createTableInner(
   const cells: Node[] = [];
   const rows: Node[] = [];
 
-  const createCell = (cellType: NodeType, attrs: Record<string, any> | null) =>
+  const createCell = (cellType: NodeType, attrs: Attrs | null) =>
     cellContent
       ? cellType.createChecked(attrs, cellContent)
       : cellType.createAndFill(attrs);
@@ -916,7 +916,7 @@ export function splitCellAndCollapse(): Command {
  */
 function addRowWithAlignment(
   tr: Transaction,
-  rect: any,
+  rect: TableRect,
   index: number,
   copyFromRow: number | undefined,
   state: EditorState

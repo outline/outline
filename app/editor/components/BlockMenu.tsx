@@ -1,5 +1,5 @@
 import { DocumentIcon, ShapesIcon } from "outline-icons";
-import cloneDeep from "lodash/cloneDeep";
+import { cloneDeep } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -8,7 +8,6 @@ import type { MenuItem } from "@shared/editor/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { TextHelper } from "@shared/utils/TextHelper";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import useDictionary from "~/hooks/useDictionary";
 import useStores from "~/hooks/useStores";
 import getMenuItems from "../menus/block";
 import { useEditor } from "./EditorContext";
@@ -108,19 +107,19 @@ type Props = Omit<SuggestionsMenuProps, "renderMenuItem" | "items"> &
   Required<Pick<SuggestionsMenuProps, "embeds">>;
 
 function BlockMenu(props: Props) {
-  const dictionary = useDictionary();
+  const { t } = useTranslation();
   const { elementRef } = useEditor();
   const templateMenuItem = useTemplateMenuItem();
 
   const items = useMemo(() => {
-    const baseItems = getMenuItems(dictionary, elementRef);
+    const baseItems = getMenuItems(t, elementRef);
 
     if (!templateMenuItem) {
       return baseItems;
     }
 
     return [...baseItems, { name: "separator" } as MenuItem, templateMenuItem];
-  }, [dictionary, elementRef, templateMenuItem]);
+  }, [t, elementRef, templateMenuItem]);
 
   const renderMenuItem = useCallback(
     (item, _index, options) => (

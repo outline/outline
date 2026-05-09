@@ -83,7 +83,7 @@ class OAuthAuthentication extends ParanoidModel<
   grantId: string | null;
 
   /** A list of scopes that this authentication has access to */
-  @Matches(/[\/\.\w\s]*/, {
+  @Matches(/[/.\w\s]*/, {
     each: true,
   })
   @Column(DataType.ARRAY(DataType.STRING))

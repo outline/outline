@@ -1,4 +1,4 @@
-import groupBy from "lodash/groupBy";
+import { groupBy } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { BackIcon, SidebarIcon } from "outline-icons";
 import { useCallback } from "react";
@@ -21,6 +21,7 @@ import SidebarButton from "./components/SidebarButton";
 import SidebarLink from "./components/SidebarLink";
 import ToggleButton from "./components/ToggleButton";
 import Version from "./components/Version";
+import useMobile from "~/hooks/useMobile";
 
 function SettingsSidebar() {
   const { ui, integrations } = useStores();
@@ -28,10 +29,11 @@ function SettingsSidebar() {
   const history = useHistory();
   const location = useLocation();
   const configs = useSettingsConfig();
+  const isMobile = useMobile();
 
   const groupedConfig = groupBy(
     configs.filter((item) =>
-      item.group === "Integrations" && item.pluginId
+      item.group === t("Integrations") && item.pluginId
         ? integrations.findByService(item.pluginId)
         : true
     ),
@@ -44,25 +46,29 @@ function SettingsSidebar() {
 
   return (
     <Sidebar>
-      <HistoryNavigation />
       <SidebarButton
         title={t("Return to App")}
         image={<StyledBackIcon />}
         onClick={returnToApp}
       >
-        <Tooltip content={t("Toggle sidebar")} shortcut={`${metaDisplay}+.`}>
-          <ToggleButton
-            aria-label={
-              ui.sidebarCollapsed ? t("Expand sidebar") : t("Collapse sidebar")
-            }
-            position="bottom"
-            image={<SidebarIcon />}
-            onClick={() => {
-              ui.toggleCollapsedSidebar();
-              (document.activeElement as HTMLElement)?.blur();
-            }}
-          />
-        </Tooltip>
+        {isMobile ? null : (
+          <Tooltip content={t("Toggle sidebar")} shortcut={`${metaDisplay}+.`}>
+            <ToggleButton
+              aria-label={
+                ui.sidebarCollapsed
+                  ? t("Expand sidebar")
+                  : t("Collapse sidebar")
+              }
+              position="bottom"
+              image={<SidebarIcon />}
+              style={{ paddingInline: 4 }}
+              onClick={() => {
+                ui.toggleCollapsedSidebar();
+                (document.activeElement as HTMLElement)?.blur();
+              }}
+            />
+          </Tooltip>
+        )}
       </SidebarButton>
 
       <Flex auto column>
@@ -96,12 +102,17 @@ function SettingsSidebar() {
           )}
         </Scrollable>
       </Flex>
+      <HistoryNavigation />
     </Sidebar>
   );
 }
 
 const StyledBackIcon = styled(BackIcon)`
-  margin-left: 4px;
+  margin-inline-start: 4px;
+
+  [dir="rtl"] & {
+    transform: rotate(180deg);
+  }
 `;
 
 export default observer(SettingsSidebar);

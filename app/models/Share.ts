@@ -72,11 +72,25 @@ class Share extends Model implements Searchable {
 
   @Field
   @observable
+  allowSubscriptions: boolean;
+
+  @Field
+  @observable
   showLastUpdated: boolean;
 
   @Field
   @observable
   showTOC: boolean;
+
+  /** Custom branding title to display on the shared page, supersedes team name. */
+  @Field
+  @observable
+  title: string | null;
+
+  /** Custom branding icon URL to display on the shared page, supersedes team avatar. */
+  @Field
+  @observable
+  iconUrl: string | null;
 
   @observable
   views: number;
@@ -86,18 +100,13 @@ class Share extends Model implements Searchable {
   createdBy: User;
 
   @computed
-  get title(): string {
-    return this.sourceTitle ?? this.documentTitle;
-  }
-
-  @computed
   get sourcePathWithFallback(): string {
     return this.sourcePath ?? this.documentUrl;
   }
 
   @computed
   get searchContent(): string[] {
-    return [this.title];
+    return [this.sourceTitle ?? this.documentTitle];
   }
 
   @computed

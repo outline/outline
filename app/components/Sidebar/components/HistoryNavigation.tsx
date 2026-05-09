@@ -1,57 +1,89 @@
-import { ArrowIcon } from "outline-icons";
+import { ArrowIcon, ClockIcon } from "outline-icons";
+import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
-import { isMac } from "@shared/utils/browser";
+import { createActionGroup } from "~/actions";
+import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
-import useKeyDown from "~/hooks/useKeyDown";
+import useRecentDocumentActions from "~/components/CommandBar/useRecentDocumentActions";
+import { useMenuAction } from "~/hooks/useMenuAction";
+import useStores from "~/hooks/useStores";
 import Desktop from "~/utils/Desktop";
+
+const RECENT_DOCUMENTS_LIMIT = 10;
 
 function HistoryNavigation(props: React.ComponentProps<typeof Flex>) {
   const { t } = useTranslation();
-  const [back, setBack] = React.useState(false);
-  const [forward, setForward] = React.useState(false);
+  const { documents } = useStores();
+  const [canGoBack, setCanGoBack] = React.useState(false);
+  const [canGoForward, setCanGoForward] = React.useState(false);
+  const [supported, setSupported] = React.useState(false);
 
-  useKeyDown(
-    (event) =>
-      isMac
-        ? event.metaKey && event.key === "["
-        : event.altKey && event.key === "ArrowLeft",
-    () => {
-      setBack(true);
-      setTimeout(() => setBack(false), 100);
-    }
+  const recentActions = useRecentDocumentActions(RECENT_DOCUMENTS_LIMIT);
+  const menuActions = React.useMemo(
+    () => [
+      createActionGroup({
+        name: t("Recent"),
+        actions: recentActions,
+      }),
+    ],
+    [t, recentActions]
   );
+  const menuAction = useMenuAction(menuActions);
 
-  useKeyDown(
-    (event) =>
-      isMac
-        ? event.metaKey && event.key === "]"
-        : event.altKey && event.key === "ArrowRight",
-    () => {
-      setForward(true);
-      setTimeout(() => setForward(false), 100);
+  const handleOpen = React.useCallback(() => {
+    void documents.fetchRecentlyViewed({ limit: RECENT_DOCUMENTS_LIMIT });
+  }, [documents]);
+
+  React.useEffect(() => {
+    if (!(Desktop.bridge && "onNavigationStateChanged" in Desktop.bridge)) {
+      return;
     }
-  );
+    setSupported(true);
+    return Desktop.bridge.onNavigationStateChanged((state) => {
+      setCanGoBack(state.canGoBack);
+      setCanGoForward(state.canGoForward);
+    });
+  }, []);
 
-  if (!Desktop.isMacApp()) {
+  if (!Desktop.isMacApp() || !supported) {
     return null;
   }
 
   return (
     <Navigation gap={4} {...props}>
-      <Tooltip content={t("Go back")}>
-        <NudeButton onClick={() => Desktop.bridge?.goBack()}>
-          <Back $active={back} />
+      <Tooltip content={t("Go back")} disabled={!canGoBack}>
+        <NudeButton
+          aria-label={t("Go back")}
+          disabled={!canGoBack}
+          onClick={() => Desktop.bridge?.goBack()}
+        >
+          <Back $enabled={canGoBack} />
         </NudeButton>
       </Tooltip>
-      <Tooltip content={t("Go forward")}>
-        <NudeButton onClick={() => Desktop.bridge?.goForward()}>
-          <Forward $active={forward} />
+      <Tooltip content={t("Go forward")} disabled={!canGoForward}>
+        <NudeButton
+          aria-label={t("Go forward")}
+          disabled={!canGoForward}
+          onClick={() => Desktop.bridge?.goForward()}
+        >
+          <Forward $enabled={canGoForward} />
         </NudeButton>
+      </Tooltip>
+      <Tooltip content={t("History")}>
+        <DropdownMenu
+          action={menuAction}
+          ariaLabel={t("History")}
+          onOpen={handleOpen}
+        >
+          <NudeButton aria-label={t("History")}>
+            <StyledClockIcon />
+          </NudeButton>
+        </DropdownMenu>
       </Tooltip>
     </Navigation>
   );
@@ -59,24 +91,48 @@ function HistoryNavigation(props: React.ComponentProps<typeof Flex>) {
 
 const Navigation = styled(Flex)`
   position: absolute;
-  right: 12px;
+  inset-inline-end: 12px;
   top: 14px;
+
+  button {
+    cursor: default;
+  }
 `;
 
-const Forward = styled(ArrowIcon)<{ $active: boolean }>`
+const Forward = styled(ArrowIcon)<{ $enabled: boolean }>`
   color: ${s("textTertiary")};
-  opacity: ${(props) => (props.$active ? 1 : 0.5)};
+  opacity: ${(props) => (props.$enabled ? 0.5 : 0.15)};
   transition: color 100ms ease-in-out;
 
   &:active,
   &:hover {
-    opacity: 1;
+    opacity: ${(props) => (props.$enabled ? 1 : 0.15)};
+  }
+
+  [dir="rtl"] & {
+    transform: rotate(180deg);
   }
 `;
 
 const Back = styled(Forward)`
   transform: rotate(180deg);
   flex-shrink: 0;
+
+  [dir="rtl"] & {
+    transform: rotate(0deg);
+  }
 `;
 
-export default HistoryNavigation;
+const StyledClockIcon = styled(ClockIcon)`
+  color: ${s("textTertiary")};
+  opacity: 0.5;
+  transition: color 100ms ease-in-out;
+
+  &:active,
+  &:hover,
+  [data-state="open"] & {
+    opacity: 1;
+  }
+`;
+
+export default observer(HistoryNavigation);

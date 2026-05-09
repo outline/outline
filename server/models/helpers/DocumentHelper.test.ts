@@ -6,12 +6,12 @@ import { DocumentHelper } from "./DocumentHelper";
 
 describe("DocumentHelper", () => {
   beforeAll(() => {
-    jest.useFakeTimers();
-    jest.setSystemTime(Date.parse("2021-01-01T00:00:00.000Z"));
+    vi.useFakeTimers();
+    vi.setSystemTime(Date.parse("2021-01-01T00:00:00.000Z"));
   });
 
   afterAll(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   describe("replaceInternalUrls", () => {
@@ -98,6 +98,32 @@ describe("DocumentHelper", () => {
         includeStyles: false,
       });
       expect(result).toContain('<p dir="auto">This is a test paragraph</p>');
+    });
+
+    it("should apply the cspNonce to the injected mermaid script", async () => {
+      const document = await buildDocument({
+        text: "```mermaid\ngraph TD;\nA-->B;\n```",
+      });
+      const result = await DocumentHelper.toHTML(document, {
+        includeTitle: false,
+        includeStyles: false,
+        includeMermaid: true,
+        cspNonce: "test-nonce-123",
+      });
+      expect(result).toMatch(/<script[^>]*nonce="test-nonce-123"/);
+      expect(result).toContain('window.status = "ready"');
+    });
+
+    it("should not set a nonce attribute when cspNonce is not provided", async () => {
+      const document = await buildDocument({
+        text: "```mermaid\ngraph TD;\nA-->B;\n```",
+      });
+      const result = await DocumentHelper.toHTML(document, {
+        includeTitle: false,
+        includeStyles: false,
+        includeMermaid: true,
+      });
+      expect(result).not.toMatch(/<script[^>]*nonce="/);
     });
 
     it("should render diff classes when changes provided", async () => {

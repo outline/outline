@@ -1,7 +1,8 @@
 import Router from "koa-router";
-import type { WhereOptions } from "sequelize";
-import { UserRole } from "@shared/types";
+import { Op, Sequelize, type WhereOptions } from "sequelize";
+import { Scope } from "@shared/types";
 import auth from "@server/middlewares/authentication";
+import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { ApiKey, User } from "@server/models";
@@ -9,15 +10,18 @@ import { authorize, cannot } from "@server/policies";
 import { presentApiKey } from "@server/presenters";
 import type { APIContext } from "@server/types";
 import { AuthenticationType } from "@server/types";
+import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
 const router = new Router();
 
+const globalScopes = new Set<string>(Object.values(Scope));
+
 router.post(
   "apiKeys.create",
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth({
-    role: UserRole.Member,
     type: AuthenticationType.APP,
   }),
   validate(T.APIKeysCreateSchema),
@@ -33,7 +37,7 @@ router.post(
       userId: user.id,
       expiresAt,
       scope: scope?.map((s) =>
-        s.startsWith("/api/") || s.includes(":")
+        s.startsWith("/api/") || s.includes(":") || globalScopes.has(s)
           ? s
           : `/api/${s.replace(/^\//, "")}`
       ),
@@ -49,21 +53,21 @@ router.post(
 
 router.post(
   "apiKeys.list",
-  auth({ role: UserRole.Member }),
+  auth(),
   pagination(),
   validate(T.APIKeysListSchema),
   async (ctx: APIContext<T.APIKeysListReq>) => {
-    const { userId } = ctx.input.body;
+    const { userId, query, sort, direction } = ctx.input.body;
     const { pagination } = ctx.state;
     const actor = ctx.state.auth.user;
 
-    let where: WhereOptions<User> = {
+    let userWhere: WhereOptions<User> = {
       teamId: actor.teamId,
     };
 
     if (cannot(actor, "listApiKeys", actor.team)) {
-      where = {
-        ...where,
+      userWhere = {
+        ...userWhere,
         id: actor.id,
       };
     }
@@ -72,21 +76,38 @@ router.post(
       const user = await User.findByPk(userId);
       authorize(actor, "listApiKeys", user);
 
-      where = {
-        ...where,
+      userWhere = {
+        ...userWhere,
         id: userId,
       };
     }
 
+    let where: WhereOptions<ApiKey> = {};
+
+    if (query) {
+      where = {
+        ...where,
+        [Op.and]: [
+          Sequelize.literal(
+            `unaccent(LOWER("apiKey"."name")) like unaccent(LOWER(:query))`
+          ),
+        ],
+      };
+    }
+
+    const replacements = { query: `%${query}%` };
+
     const apiKeys = await ApiKey.findAll({
+      where,
+      replacements,
       include: [
         {
           model: User,
           required: true,
-          where,
+          where: userWhere,
         },
       ],
-      order: [["createdAt", "DESC"]],
+      order: [[sort, direction]],
       offset: pagination.offset,
       limit: pagination.limit,
     });
@@ -101,7 +122,6 @@ router.post(
 router.post(
   "apiKeys.delete",
   auth({
-    role: UserRole.Member,
     type: AuthenticationType.APP,
   }),
   validate(T.APIKeysDeleteSchema),

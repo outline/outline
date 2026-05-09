@@ -1,5 +1,5 @@
 import fs from "fs-extra";
-import truncate from "lodash/truncate";
+import { truncate } from "es-toolkit/compat";
 import type { NavigationNode } from "@shared/types";
 import { FileOperationState, NotificationEventType } from "@shared/types";
 import { bytesToHumanReadable } from "@shared/utils/files";

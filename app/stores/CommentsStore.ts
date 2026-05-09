@@ -1,9 +1,5 @@
 import invariant from "invariant";
-import compact from "lodash/compact";
-import differenceBy from "lodash/differenceBy";
-import keyBy from "lodash/keyBy";
-import orderBy from "lodash/orderBy";
-import uniq from "lodash/uniq";
+import { compact, differenceBy, keyBy, orderBy, uniq } from "es-toolkit/compat";
 import { action, computed } from "mobx";
 import Comment from "~/models/Comment";
 import { type CommentSortOption, CommentSortType } from "~/types";

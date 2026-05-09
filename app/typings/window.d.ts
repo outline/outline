@@ -102,6 +102,14 @@ declare global {
       goForward: () => void;
 
       /**
+       * Registers a callback to be called when the navigation state changes (e.g. after
+       * navigating to a new page). Receives whether back/forward navigation is possible.
+       */
+      onNavigationStateChanged: (
+        callback: (state: { canGoBack: boolean; canGoForward: boolean }) => void
+      ) => () => void;
+
+      /**
        * Registers a callback to be called when the application wants to open the find in page dialog.
        */
       onFindInPage: (callback: () => void) => void;
@@ -110,6 +118,17 @@ declare global {
        * Registers a callback to be called when the application wants to open the replace in page dialog.
        */
       onReplaceInPage: (callback: () => void) => void;
+
+      /**
+       * Get whether the app is configured to launch at login.
+       */
+      getAutoLaunch: () => Promise<boolean>;
+
+      /**
+       * Enable or disable launching the app at login. Resolves with the
+       * resulting state as reported by the OS.
+       */
+      setAutoLaunch: (enabled: boolean) => Promise<boolean>;
     };
   }
 }

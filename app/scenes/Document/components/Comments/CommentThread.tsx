@@ -219,7 +219,6 @@ function CommentThread({
       ref={topRef}
       $focused={focused}
       $recessed={recessed}
-      $dir={document.dir}
       onClick={handleClickThread}
     >
       {commentsInThread.map((comment, index) => {
@@ -252,7 +251,6 @@ function CommentThread({
             firstOfAuthor={firstOfAuthor}
             lastOfAuthor={lastOfAuthor}
             previousCommentCreatedAt={commentsInThread[index - 1]?.createdAt}
-            dir={document.dir}
             forceEdit={editingCommentIds.has(comment.id)}
             onEditStart={() => handleCommentEditStart(comment.id)}
             onEditEnd={() => handleCommentEditEnd(comment.id)}
@@ -270,7 +268,6 @@ function CommentThread({
               documentId={document.id}
               thread={thread}
               standalone={commentsInThread.length === 0}
-              dir={document.dir}
               autoFocus={autoFocus}
               highlightedText={
                 commentsInThread.length === 0 ? highlightedText : undefined
@@ -298,23 +295,22 @@ const Reply = styled.button`
   cursor: var(--pointer);
   transition: opacity 100ms ease-out;
   position: absolute;
-  text-align: left;
+  text-align: start;
   width: 100%;
   bottom: -30px;
-  left: 32px;
+  inset-inline-start: 32px;
 
   ${breakpoint("tablet")`
     opacity: 0;
   `}
 `;
 
-const ShowMore = styled.div<{ $dir?: "rtl" | "ltr" }>`
+const ShowMore = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1px;
-  margin-left: ${(props) => (props.$dir === "rtl" ? 0 : 32)}px;
-  margin-right: ${(props) => (props.$dir !== "rtl" ? 0 : 32)}px;
+  margin-inline-start: 32px;
   padding: 8px 12px;
   color: ${s("textTertiary")};
   background: ${(props) => darken(0.015, props.theme.backgroundSecondary)};
@@ -334,11 +330,10 @@ const ShowMore = styled.div<{ $dir?: "rtl" | "ltr" }>`
 const Thread = styled.div<{
   $focused: boolean;
   $recessed: boolean;
-  $dir?: "rtl" | "ltr";
 }>`
   margin: 12px 12px 32px;
-  margin-right: ${(props) => (props.$dir !== "rtl" ? "18px" : "12px")};
-  margin-left: ${(props) => (props.$dir === "rtl" ? "18px" : "12px")};
+  margin-inline-end: 18px;
+  margin-inline-start: 12px;
   position: relative;
   transition: opacity 100ms ease-out;
 

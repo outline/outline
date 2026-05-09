@@ -14,7 +14,7 @@ export const ActionRow = styled(HStack).attrs({
   bottom: 0;
   width: 100vw;
   padding: 16px 12px;
-  margin-left: -12px;
+  margin-inline-start: -12px;
 
   background: ${s("background")};
 

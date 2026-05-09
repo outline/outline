@@ -1,14 +1,14 @@
 import type { Blob } from "node:buffer";
 import type { Readable } from "node:stream";
 import type { PresignedPost } from "@aws-sdk/s3-presigned-post";
-import omit from "lodash/omit";
+import { omit } from "es-toolkit/compat";
 import FileHelper from "@shared/editor/lib/FileHelper";
 import { isBase64Url, isInternalUrl } from "@shared/utils/urls";
 import { Week } from "@shared/utils/time";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import type { RequestInit } from "@server/utils/fetch";
-import fetch, { chromeUserAgent } from "@server/utils/fetch";
+import fetch, { chromeUserAgent, Headers } from "@server/utils/fetch";
 import type { AppContext } from "@server/types";
 
 export default abstract class BaseStorage {
@@ -189,10 +189,10 @@ export default abstract class BaseStorage {
       }
     } else {
       try {
-        const headers = {
-          "User-Agent": chromeUserAgent,
-          ...init?.headers,
-        };
+        const headers = new Headers(init?.headers);
+        if (!headers.has("User-Agent")) {
+          headers.set("User-Agent", chromeUserAgent);
+        }
         const initWithoutHeaders = omit(init, ["headers"]);
 
         const res = await fetch(url, {

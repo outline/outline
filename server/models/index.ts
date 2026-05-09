@@ -16,6 +16,8 @@ export { default as Comment } from "./Comment";
 
 export { default as Document } from "./Document";
 
+export { default as DocumentInsight } from "./DocumentInsight";
+
 export { default as Event } from "./Event";
 
 export { default as ExternalGroup } from "./ExternalGroup";
@@ -51,6 +53,8 @@ export { default as Revision } from "./Revision";
 export { default as SearchQuery } from "./SearchQuery";
 
 export { default as Share } from "./Share";
+
+export { default as ShareSubscription } from "./ShareSubscription";
 
 export { default as Star } from "./Star";
 

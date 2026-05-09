@@ -1,6 +1,9 @@
 import { Op } from "sequelize";
+import { Minute } from "@shared/utils/time";
 import type { PartitionInfo } from "./CronTask";
 import { CronTask, TaskInterval } from "./CronTask";
+
+type RangeWhere = Record<string, { [Op.gte]: string; [Op.lte]: string }>;
 
 // Create a concrete implementation of CronTask for testing
 class TestTask extends CronTask {
@@ -17,8 +20,8 @@ class TestTask extends CronTask {
   public testPartitionWhereClause(
     idField: string,
     partition: PartitionInfo | undefined
-  ) {
-    return this.getPartitionWhereClause(idField, partition);
+  ): RangeWhere {
+    return this.getPartitionWhereClause(idField, partition) as RangeWhere;
   }
 }
 
@@ -27,6 +30,71 @@ describe("CronTask", () => {
 
   beforeEach(() => {
     task = new TestTask();
+  });
+
+  describe("getStaggerDelay", () => {
+    it("should return a deterministic delay for the same task name", () => {
+      const delay1 = CronTask.getStaggerDelay("TaskA", TaskInterval.Hour);
+      const delay2 = CronTask.getStaggerDelay("TaskA", TaskInterval.Hour);
+      expect(delay1).toBe(delay2);
+    });
+
+    it("should return different delays for different task names", () => {
+      const delayA = CronTask.getStaggerDelay(
+        "CleanupDeletedDocumentsTask",
+        TaskInterval.Hour
+      );
+      const delayB = CronTask.getStaggerDelay(
+        "CleanupOldEventsTask",
+        TaskInterval.Hour
+      );
+      expect(delayA).not.toBe(delayB);
+    });
+
+    it("should stay within the hourly stagger window (10 minutes)", () => {
+      const names = [
+        "CleanupDeletedDocumentsTask",
+        "CleanupOldEventsTask",
+        "CleanupOldNotificationsTask",
+        "CleanupDeletedTeamsTask",
+        "CleanupExpiredAttachmentsTask",
+        "CleanupExpiredFileOperationsTask",
+      ];
+      for (const name of names) {
+        const delay = CronTask.getStaggerDelay(name, TaskInterval.Hour);
+        expect(delay).toBeGreaterThanOrEqual(0);
+        expect(delay).toBeLessThan(10 * Minute.ms);
+      }
+    });
+
+    it("should stay within the daily stagger window (30 minutes)", () => {
+      const names = [
+        "CleanupOAuthAuthorizationCodeTask",
+        "CleanupDynamicOAuthClientsTask",
+        "CleanupOldImportsTask",
+      ];
+      for (const name of names) {
+        const delay = CronTask.getStaggerDelay(name, TaskInterval.Day);
+        expect(delay).toBeGreaterThanOrEqual(0);
+        expect(delay).toBeLessThan(30 * Minute.ms);
+      }
+    });
+
+    it("should distribute delays across the window for real task names", () => {
+      const names = [
+        "CleanupDeletedDocumentsTask",
+        "CleanupOldEventsTask",
+        "CleanupOldNotificationsTask",
+        "CleanupDeletedTeamsTask",
+        "CleanupExpiredAttachmentsTask",
+        "CleanupExpiredFileOperationsTask",
+      ];
+      const delays = names.map((name) =>
+        CronTask.getStaggerDelay(name, TaskInterval.Hour)
+      );
+      const unique = new Set(delays);
+      expect(unique.size).toBe(delays.length);
+    });
   });
 
   describe("getPartitionWhereClause", () => {
@@ -39,7 +107,7 @@ describe("CronTask", () => {
       const where = task.testPartitionWhereClause("id", {
         partitionIndex: 0,
         partitionCount: 3,
-      }) as any;
+      });
 
       expect(where).toBeDefined();
       expect(where.id).toBeDefined();
@@ -51,17 +119,17 @@ describe("CronTask", () => {
       const where0 = task.testPartitionWhereClause("id", {
         partitionIndex: 0,
         partitionCount: 3,
-      }) as any;
+      });
 
       const where1 = task.testPartitionWhereClause("id", {
         partitionIndex: 1,
         partitionCount: 3,
-      }) as any;
+      });
 
       const where2 = task.testPartitionWhereClause("id", {
         partitionIndex: 2,
         partitionCount: 3,
-      }) as any;
+      });
 
       // Partition 0: Should start from 00000000
       expect(where0.id[Op.gte]).toBe("00000000-0000-4000-8000-000000000000");
@@ -80,12 +148,12 @@ describe("CronTask", () => {
       const where0 = task.testPartitionWhereClause("id", {
         partitionIndex: 0,
         partitionCount: 2,
-      }) as any;
+      });
 
       const where1 = task.testPartitionWhereClause("id", {
         partitionIndex: 1,
         partitionCount: 2,
-      }) as any;
+      });
 
       // Partition 0: 0x00000000 to 0x7fffffff
       expect(where0.id[Op.gte]).toBe("00000000-0000-4000-8000-000000000000");
@@ -104,7 +172,7 @@ describe("CronTask", () => {
         const where = task.testPartitionWhereClause("id", {
           partitionIndex: i,
           partitionCount,
-        }) as any;
+        });
         ranges.push({
           start: where.id[Op.gte],
           end: where.id[Op.lte],
@@ -133,7 +201,7 @@ describe("CronTask", () => {
       const where = task.testPartitionWhereClause("id", {
         partitionIndex: 0,
         partitionCount: 1,
-      }) as any;
+      });
 
       // Should cover entire UUID space
       expect(where.id[Op.gte]).toBe("00000000-0000-4000-8000-000000000000");
@@ -167,12 +235,12 @@ describe("CronTask", () => {
       const where1 = task.testPartitionWhereClause("id", {
         partitionIndex: 0,
         partitionCount: 2,
-      }) as any;
+      });
 
       const where2 = task.testPartitionWhereClause("documentId", {
         partitionIndex: 0,
         partitionCount: 2,
-      }) as any;
+      });
 
       expect(where1.id).toBeDefined();
       expect(where1.documentId).toBeUndefined();
@@ -188,7 +256,7 @@ describe("CronTask", () => {
         const where = task.testPartitionWhereClause("id", {
           partitionIndex: i,
           partitionCount,
-        }) as any;
+        });
         ranges.push({
           start: where.id[Op.gte],
           end: where.id[Op.lte],
@@ -210,7 +278,7 @@ describe("CronTask", () => {
       const where = task.testPartitionWhereClause("id", {
         partitionIndex: 1,
         partitionCount: 16, // 16 partitions = 0x10000000 per partition
-      }) as any;
+      });
 
       // Partition 1 should be from 0x10000000 to 0x1fffffff
       expect(where.id[Op.gte]).toBe("10000000-0000-4000-8000-000000000000");
@@ -238,7 +306,7 @@ describe("CronTask", () => {
           const where = task.testPartitionWhereClause("id", {
             partitionIndex: i,
             partitionCount,
-          }) as any;
+          });
 
           const startUuid = where.id[Op.gte];
           const endUuid = where.id[Op.lte];
@@ -268,7 +336,7 @@ describe("CronTask", () => {
           const where = task.testPartitionWhereClause("id", {
             partitionIndex: i,
             partitionCount,
-          }) as any;
+          });
           ranges.push({
             start: where.id[Op.gte],
             end: where.id[Op.lte],

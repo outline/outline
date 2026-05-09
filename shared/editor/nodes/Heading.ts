@@ -1,4 +1,6 @@
 import copy from "copy-to-clipboard";
+import { t } from "i18next";
+import type Token from "markdown-it/lib/token.mjs";
 import { textblockTypeInputRule } from "prosemirror-inputrules";
 import type {
   Node as ProsemirrorNode,
@@ -7,7 +9,7 @@ import type {
   Schema,
 } from "prosemirror-model";
 import type { Command } from "prosemirror-state";
-import { Plugin, Selection } from "prosemirror-state";
+import { Plugin, Selection, TextSelection } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { toast } from "sonner";
 import type { Primitive } from "utility-types";
@@ -29,15 +31,24 @@ export enum HeadingLevel {
   Four,
 }
 
-export default class Heading extends Node {
+/**
+ * Options for the Heading node.
+ */
+type HeadingOptions = {
+  /** Heading levels (1-based) that are enabled in this editor. */
+  levels: number[];
+  /** Offset added to the rendered heading level (e.g. 1 renders an `h2` for level 1). */
+  offset?: number;
+};
+
+export default class Heading extends Node<HeadingOptions> {
   get name() {
     return "heading";
   }
 
-  get defaultOptions() {
+  get defaultOptions(): Partial<HeadingOptions> {
     return {
       levels: [1, 2, 3, 4],
-      collapsed: undefined,
     };
   }
 
@@ -80,7 +91,7 @@ export default class Heading extends Node {
   parseMarkdown() {
     return {
       block: "heading",
-      getAttrs: (token: Record<string, any>) => ({
+      getAttrs: (token: Token) => ({
         level: +token.tag.slice(1),
       }),
     };
@@ -142,19 +153,29 @@ export default class Heading extends Node {
   };
 
   handleCopyLink = (event: MouseEvent) => {
-    // this is unfortunate but appears to be the best way to grab the anchor
-    // as it's added directly to the dom by a decoration.
-    const anchor =
-      event.currentTarget instanceof HTMLButtonElement &&
-      (event.currentTarget.parentNode?.parentNode
-        ?.previousSibling as HTMLElement);
-
-    if (
-      !anchor ||
-      !anchor.className.includes(EditorStyleHelper.headingPositionAnchor)
-    ) {
-      throw new Error("Did not find anchor as previous sibling of heading");
+    if (!(event.currentTarget instanceof HTMLButtonElement)) {
+      return;
     }
+
+    const heading = event.currentTarget.closest(".heading-content");
+    if (!heading) {
+      return;
+    }
+
+    // Search previous siblings for the anchor element, as other elements
+    // (e.g. multiplayer cursors) may be inserted between the anchor and heading.
+    let anchor = heading.previousElementSibling;
+    while (
+      anchor &&
+      !anchor.className?.includes(EditorStyleHelper.headingPositionAnchor)
+    ) {
+      anchor = anchor.previousElementSibling;
+    }
+
+    if (!anchor) {
+      return;
+    }
+
     const hash = `#${anchor.id}`;
 
     // the existing url might contain a hash already, lets make sure to remove
@@ -164,7 +185,7 @@ export default class Heading extends Node {
       .replace("/edit", "");
     copy(normalizedUrl + hash);
 
-    toast.message(this.options.dictionary.linkCopied);
+    toast.message(t("Link copied to clipboard"));
   };
 
   keys({ type, schema }: { type: NodeType; schema: Schema }) {
@@ -186,6 +207,29 @@ export default class Heading extends Node {
       ...options,
       Backspace: backspaceToParagraph(type),
       Enter: splitHeading(type),
+      // Cmd+Left in Firefox lands the DOM caret inside the heading-actions
+      // widget (contentEditable=false, ignoreSelection: true), so Prosemirror
+      // does not update its model. Subsequent commands like Enter then operate
+      // on the stale position. Move the model selection explicitly to keep it
+      // in sync with the visual caret.
+      "Mod-ArrowLeft": ((state, dispatch) => {
+        const { $from, empty } = state.selection;
+        if (!empty || $from.parent.type !== type) {
+          return false;
+        }
+        const start = $from.start();
+        if ($from.pos === start) {
+          return false;
+        }
+        if (dispatch) {
+          dispatch(
+            state.tr
+              .setSelection(TextSelection.create(state.doc, start))
+              .scrollIntoView()
+          );
+        }
+        return true;
+      }) as Command,
     };
   }
 
@@ -200,6 +244,7 @@ export default class Heading extends Node {
           anchor.innerText = "#";
           anchor.type = "button";
           anchor.className = "heading-anchor";
+          anchor.setAttribute("aria-label", "Copy link to heading");
           anchor.addEventListener("mousedown", (event) =>
             this.handleCopyLink(event)
           );
@@ -213,7 +258,15 @@ export default class Heading extends Node {
           fold.className = `heading-fold ${
             node.attrs.collapsed ? "collapsed" : ""
           }`;
-          fold.addEventListener("mousedown", (event) =>
+          fold.setAttribute(
+            "aria-label",
+            node.attrs.collapsed ? "Expand section" : "Collapse section"
+          );
+          fold.setAttribute(
+            "aria-expanded",
+            (!node.attrs.collapsed).toString()
+          );
+          fold.addEventListener("click", (event) =>
             this.handleFoldContent(event)
           );
 

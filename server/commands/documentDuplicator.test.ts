@@ -200,4 +200,64 @@ describe("documentDuplicator", () => {
     );
     expect(duplicatedChild?.sourceMetadata?.fileName).toEqual("child.md");
   });
+
+  it("should copy fullWidth property when duplicating document", async () => {
+    const user = await buildUser();
+    const original = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      fullWidth: true,
+    });
+
+    const response = await withAPIContext(user, (ctx) =>
+      documentDuplicator(ctx, {
+        document: original,
+        collection: original.collection,
+      })
+    );
+
+    expect(response).toHaveLength(1);
+    expect(response[0].fullWidth).toBe(true);
+  });
+
+  it("should copy fullWidth property to child documents when duplicating recursively", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    const original = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      fullWidth: true,
+      collectionId: collection.id,
+    });
+
+    await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      parentDocumentId: original.id,
+      fullWidth: true,
+      collectionId: collection.id,
+    });
+
+    const response = await withAPIContext(user, (ctx) =>
+      documentDuplicator(ctx, {
+        document: original,
+        collection: original.collection,
+        recursive: true,
+      })
+    );
+
+    expect(response).toHaveLength(2);
+
+    // Check parent document
+    const duplicatedParent = response.find((doc) => !doc.parentDocumentId);
+    expect(duplicatedParent?.fullWidth).toBe(true);
+
+    // Check child document
+    const duplicatedChild = response.find((doc) => doc.parentDocumentId);
+    expect(duplicatedChild?.fullWidth).toBe(true);
+  });
 });

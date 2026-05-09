@@ -18,6 +18,7 @@ function Disclosure({ onClick, expanded, ...rest }: Props) {
       size={20}
       onClick={onClick}
       aria-label={expanded ? t("Collapse") : t("Expand")}
+      aria-expanded={expanded}
       {...rest}
     >
       <StyledCollapsedIcon $expanded={expanded} size={20} />
@@ -27,7 +28,7 @@ function Disclosure({ onClick, expanded, ...rest }: Props) {
 
 const Button = styled(NudeButton)`
   position: absolute;
-  left: -24px;
+  inset-inline-start: -24px;
   flex-shrink: 0;
   color: ${s("textSecondary")};
   margin: 2px;
@@ -46,7 +47,14 @@ const StyledCollapsedIcon = styled(CollapsedIcon)<{
     opacity 100ms ease,
     transform 100ms ease,
     fill 50ms !important;
-  ${(props) => !props.$expanded && "transform: rotate(-90deg);"};
+
+  [aria-expanded="false"] & {
+    transform: rotate(-90deg);
+  }
+
+  [dir="rtl"] [aria-expanded="false"] & {
+    transform: rotate(90deg);
+  }
 `;
 
 // Enables identifying this component within styled components

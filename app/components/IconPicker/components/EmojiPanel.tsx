@@ -1,4 +1,4 @@
-import concat from "lodash/concat";
+import { concat } from "es-toolkit/compat";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -6,7 +6,7 @@ import type { EmojiSkinTone } from "@shared/types";
 import { EmojiCategory, IconType } from "@shared/types";
 import { getEmojis, getEmojisWithCategory, search } from "@shared/utils/emoji";
 import Flex from "~/components/Flex";
-import { EmojiCreateDialog } from "~/components/EmojiCreateDialog";
+import { EmojiCreateDialog } from "~/components/EmojiDialog/EmojiCreateDialog";
 import { DisplayCategory } from "../utils";
 import type { DataNode, EmojiNode } from "./GridTemplate";
 import GridTemplate from "./GridTemplate";

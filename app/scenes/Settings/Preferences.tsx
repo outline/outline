@@ -22,6 +22,7 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import UserDelete from "../UserDelete";
+import { AutoLaunchSetting } from "./components/AutoLaunchSetting";
 import SettingRow from "./components/SettingRow";
 
 function Preferences() {
@@ -188,7 +189,7 @@ function Preferences() {
           value={user.language}
           onChange={handleLanguageChange}
           label={t("Language")}
-          hideLabel
+          labelHidden
         />
       </SettingRow>
       <SettingRow
@@ -201,7 +202,7 @@ function Preferences() {
           value={ui.theme}
           onChange={handleThemeChange}
           label={t("Appearance")}
-          hideLabel
+          labelHidden
         />
       </SettingRow>
       <SettingRow
@@ -280,6 +281,7 @@ function Preferences() {
           onChange={handleEnableSmartTextChange}
         />
       </SettingRow>
+      <AutoLaunchSetting />
       <SettingRow
         border={false}
         name={UserPreference.NotificationBadge}
@@ -293,7 +295,7 @@ function Preferences() {
           value={user.getPreference(UserPreference.NotificationBadge)}
           onChange={handleNotificationBadgeChange}
           label={t("Notification badge")}
-          hideLabel
+          labelHidden
         />
       </SettingRow>
 

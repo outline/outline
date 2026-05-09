@@ -30,7 +30,12 @@ const Span = styled.span<{ $size: number }>`
 `;
 
 const SVG = ({ size, emoji }: { size: number; emoji: string }) => (
-  <svg width={size} height={size} xmlns="http://www.w3.org/2000/svg">
+  <svg
+    width={size}
+    height={size}
+    xmlns="http://www.w3.org/2000/svg"
+    aria-hidden="true"
+  >
     <text
       x="50%"
       y="55%"

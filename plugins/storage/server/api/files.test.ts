@@ -20,7 +20,7 @@ import { randomUUID } from "node:crypto";
 const server = getTestServer();
 
 // Increase timeout for all tests in this file
-jest.setTimeout(10000);
+vi.setConfig({ testTimeout: 10000 });
 
 describe("#files.create", () => {
   it("should fail with status 400 bad request if key is invalid", async () => {
@@ -96,6 +96,70 @@ describe("#files.create", () => {
       body: form,
     });
     expect(res.status).toEqual(400);
+  });
+
+  it("should fail with status 400 if uploaded file exceeds declared size", async () => {
+    const user = await buildUser();
+    const fileName = "images.docx";
+    const attachment = await buildAttachment(
+      {
+        teamId: user.teamId,
+        userId: user.id,
+        size: 100,
+        contentType:
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      },
+      fileName
+    );
+
+    const content = await readFile(
+      path.resolve(__dirname, "..", "test", "fixtures", fileName)
+    );
+    const form = new FormData();
+    form.append("key", attachment.key);
+    form.append("file", content, fileName);
+    form.append("token", user.getJwtToken());
+
+    const res = await server.post(`/api/files.create`, {
+      headers: form.getHeaders(),
+      body: form,
+    });
+    expect(res.status).toEqual(400);
+    expect(
+      existsSync(path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, attachment.key))
+    ).toBe(false);
+  });
+
+  it("should update attachment size to actual uploaded bytes", async () => {
+    const user = await buildUser();
+    const fileName = "images.docx";
+    const attachment = await buildAttachment(
+      {
+        teamId: user.teamId,
+        userId: user.id,
+        size: 1_000_000,
+        contentType:
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      },
+      fileName
+    );
+
+    const content = await readFile(
+      path.resolve(__dirname, "..", "test", "fixtures", fileName)
+    );
+    const form = new FormData();
+    form.append("key", attachment.key);
+    form.append("file", content, fileName);
+    form.append("token", user.getJwtToken());
+
+    const res = await server.post(`/api/files.create`, {
+      headers: form.getHeaders(),
+      body: form,
+    });
+    expect(res.status).toEqual(200);
+
+    await attachment.reload();
+    expect(Number(attachment.size)).toEqual(content.byteLength);
   });
 
   it("should succeed with status 200 ok and create a file", async () => {

@@ -1,7 +1,5 @@
 "use strict";
 
-const { Op } = require("sequelize");
-
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.sequelize.transaction(async (transaction) => {

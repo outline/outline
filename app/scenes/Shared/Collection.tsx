@@ -29,7 +29,7 @@ type Props = {
 
 function SharedCollection({ collection }: Props) {
   const { t } = useTranslation();
-  const { shareId } = useShare();
+  const { shareId, showLastUpdated } = useShare();
   const can = usePolicy(collection);
   const isMobile = useMobile();
 
@@ -42,6 +42,7 @@ function SharedCollection({ collection }: Props) {
           to={{
             pathname: collectionPath(collection, "overview"),
           }}
+          aria-label={t("Edit collection")}
           neutral
         >
           {isMobile ? null : t("Edit")}
@@ -76,7 +77,7 @@ function SharedCollection({ collection }: Props) {
             </IconTitleWrapper>
             {collection.name}
           </CollectionHeading>
-          {!!shareId && !!collection.updatedAt ? (
+          {!!shareId && showLastUpdated && !!collection.updatedAt ? (
             <SharedMeta type="tertiary">
               {t("Last updated")}{" "}
               <Time dateTime={collection.updatedAt} addSuffix />

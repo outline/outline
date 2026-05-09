@@ -1,5 +1,6 @@
 import * as React from "react";
 
+// oxlint-disable no-explicit-any -- ComponentType<any> is the standard React pattern for generic component constraints
 type ComponentPromise<T extends React.ComponentType<any>> = Promise<{
   default: T;
 }>;

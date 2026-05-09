@@ -69,15 +69,15 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
     activeDocumentId: stores.ui.activeDocumentId ?? undefined,
 
     getActiveModels: <T extends Model>(
-      modelClass: new (...args: any[]) => T
+      modelClass: new (...args: never[]) => T
     ): T[] => stores.ui.getActiveModels<T>(modelClass),
 
     getActiveModel: <T extends Model>(
-      modelClass: new (...args: any[]) => T
+      modelClass: new (...args: never[]) => T
     ): T | undefined => stores.ui.getActiveModels<T>(modelClass)[0],
 
     getActivePolicies: <T extends Model>(
-      modelClass: new (...args: any[]) => T
+      modelClass: new (...args: never[]) => T
     ): Policy[] =>
       stores.ui
         .getActiveModels<T>(modelClass)
@@ -97,7 +97,7 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
   // Override model accessors when models are provided in value
   const getActiveModels =
     valueModels && valueModels.length > 0
-      ? <T extends Model>(modelClass: new (...args: any[]) => T): T[] => {
+      ? <T extends Model>(modelClass: new (...args: never[]) => T): T[] => {
           const matching = valueModels.filter(
             (model): model is T => model instanceof modelClass
           );
@@ -108,11 +108,11 @@ export const ActionContextProvider = observer(function ActionContextProvider_({
       : baseContext.getActiveModels;
 
   const getActiveModel = <T extends Model>(
-    modelClass: new (...args: any[]) => T
+    modelClass: new (...args: never[]) => T
   ): T | undefined => getActiveModels(modelClass)[0];
 
   const getActivePolicies = <T extends Model>(
-    modelClass: new (...args: any[]) => T
+    modelClass: new (...args: never[]) => T
   ): Policy[] =>
     getActiveModels(modelClass)
       .map((node) => stores.policies.get(node.id))

@@ -55,7 +55,7 @@ export type GroupsInfoReq = z.infer<typeof GroupsInfoSchema>;
 export const GroupsCreateSchema = z.object({
   body: z.object({
     /** Group name */
-    name: z.string(),
+    name: z.string().max(GroupValidation.maxNameLength),
     /** Group description */
     description: z
       .string()
@@ -73,7 +73,7 @@ export type GroupsCreateReq = z.infer<typeof GroupsCreateSchema>;
 export const GroupsUpdateSchema = z.object({
   body: BaseIdSchema.extend({
     /** Group name */
-    name: z.string().optional(),
+    name: z.string().max(GroupValidation.maxNameLength).optional(),
     /** Group description */
     description: z
       .string()

@@ -1,4 +1,4 @@
-import compact from "lodash/compact";
+import { compact } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -110,7 +110,7 @@ export function MembersTable({ canManage, ...rest }: Props) {
               accessor: (user) => user.lastActiveAt,
               component: (user) =>
                 user.lastActiveAt ? (
-                  <Time dateTime={user.lastActiveAt} addSuffix />
+                  <Time dateTime={user.lastActiveAt} addSuffix shorten />
                 ) : null,
               width: "2fr",
             },
@@ -121,7 +121,7 @@ export function MembersTable({ canManage, ...rest }: Props) {
           accessor: (user) => user.role,
           component: (user) => (
             <HStack spacing={4} wrap>
-              {!user.lastActiveAt && <Badge>{t("Invited")}</Badge>}
+              {user.isInvited && <Badge>{t("Invited")}</Badge>}
               {user.isAdmin ? (
                 <Badge primary>{t("Admin")}</Badge>
               ) : user.isViewer ? (

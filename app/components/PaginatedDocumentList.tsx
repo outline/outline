@@ -7,7 +7,9 @@ import PaginatedList from "~/components/PaginatedList";
 
 type Props = {
   documents: Document[];
-  fetch: (options: any) => Promise<Document[] | undefined>;
+  // oxlint-disable-next-line no-explicit-any
+  fetch: (options: Record<string, any>) => Promise<Document[] | undefined>;
+  // oxlint-disable-next-line no-explicit-any
   options?: Record<string, any>;
   heading?: React.ReactNode;
   empty?: JSX.Element;

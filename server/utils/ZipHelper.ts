@@ -7,10 +7,9 @@ import yauzl, { validateFileName } from "yauzl";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
-import { trimFileAndExt } from "./fs";
+import { trimFilenameAndExt } from "./fs";
 
 const MAX_FILE_NAME_LENGTH = 255;
-const MAX_PATH_LENGTH = 4096;
 
 @trace()
 export default class ZipHelper {
@@ -170,15 +169,29 @@ export default class ZipHelper {
                         return processNext(mkErr);
                       }
 
-                      const fileName = trimFileAndExt(
+                      const fileName = trimFilenameAndExt(
                         path.basename(filePath),
                         MAX_FILE_NAME_LENGTH
                       );
 
-                      const location = trimFileAndExt(
-                        path.join(outputDir, path.dirname(filePath), fileName),
-                        MAX_PATH_LENGTH
+                      const resolvedOutput = path.resolve(outputDir);
+                      const location = path.resolve(
+                        resolvedOutput,
+                        path.dirname(filePath),
+                        fileName
                       );
+
+                      if (
+                        location !== resolvedOutput &&
+                        !location.startsWith(resolvedOutput + path.sep)
+                      ) {
+                        Logger.warn("Zip entry escapes extraction directory", {
+                          filePath,
+                          location,
+                        });
+                        readStream.destroy();
+                        return processNext();
+                      }
 
                       const dest = fs
                         .createWriteStream(location)

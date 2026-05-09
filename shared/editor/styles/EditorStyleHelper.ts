@@ -24,7 +24,18 @@ export class EditorStyleHelper {
 
   // Code
 
+  static readonly codeBlock = "code-block";
+
   static readonly codeWord = "code-word";
+
+  static readonly hexColorSwatch = "hex-color-swatch";
+
+  static readonly hexColorSwatchLight = "hex-color-swatch-light";
+
+  static readonly hexColorSwatchDark = "hex-color-swatch-dark";
+
+  /** Toggle button for collapsible code blocks */
+  static readonly codeBlockToggle = "code-block-toggle";
 
   // Diffs
 

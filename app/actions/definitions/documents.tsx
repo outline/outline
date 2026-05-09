@@ -1,6 +1,6 @@
 import copy from "copy-to-clipboard";
 import invariant from "invariant";
-import uniqBy from "lodash/uniqBy";
+import { capitalize, uniqBy } from "es-toolkit/compat";
 import {
   DownloadIcon,
   DuplicateIcon,
@@ -39,11 +39,13 @@ import { toast } from "sonner";
 import Icon from "@shared/components/Icon";
 import type { NavigationNode } from "@shared/types";
 import { ExportContentType, TeamPreference } from "@shared/types";
+import { isMobile } from "@shared/utils/browser";
 import { getEventFiles } from "@shared/utils/files";
 import { Week } from "@shared/utils/time";
 import type UserMembership from "~/models/UserMembership";
 import { client } from "~/utils/ApiClient";
 import DocumentDelete from "~/scenes/DocumentDelete";
+import { ProsemirrorHelper } from "~/models/helpers/ProsemirrorHelper";
 import DocumentPermanentDelete from "~/scenes/DocumentPermanentDelete";
 import DocumentPublish from "~/scenes/DocumentPublish";
 import DeleteDocumentsInTrash from "~/scenes/Trash/components/DeleteDocumentsInTrash";
@@ -79,7 +81,6 @@ import {
   trashPath,
   documentEditPath,
 } from "~/utils/routeHelpers";
-import capitalize from "lodash/capitalize";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import type {
   Action,
@@ -127,7 +128,7 @@ export const openDocument = createActionWithChildren({
             color={item.color ?? undefined}
           />
         ) : (
-          <DocumentIcon />
+          <DocumentIcon outline={item.isDraft} />
         ),
         section: DocumentSection,
         to: item.url,
@@ -737,8 +738,6 @@ export const copyDocumentAsPlainText = createAction({
       ? stores.documents.get(activeDocumentId)
       : undefined;
     if (document) {
-      const { ProsemirrorHelper } =
-        await import("~/models/helpers/ProsemirrorHelper");
       copy(ProsemirrorHelper.toPlainText(document));
       toast.success(t("Text copied to clipboard"));
     }
@@ -970,7 +969,11 @@ export const openDocumentInDesktop = createAction({
     }
     const document = stores.documents.get(activeDocumentId);
     return (
-      isCloudHosted && (isMac || isWindows) && !!document && !document.isDeleted
+      isCloudHosted &&
+      (isMac || isWindows) &&
+      !!document &&
+      !document.isDeleted &&
+      !isMobile()
     );
   },
   perform: ({ activeDocumentId, stores }) => {
@@ -988,9 +991,14 @@ export const presentDocument = createAction({
   analyticsName: "Present document",
   section: ActiveDocumentSection,
   icon: <EmbedIcon />,
-  shortcut: ["Meta+Alt+p"],
-  visible: ({ activeDocumentId }) => !!activeDocumentId,
+  shortcut: ["Control+Alt+KeyP"],
+  visible: ({ activeDocumentId }) => !!activeDocumentId && !isMobile(),
   perform: ({ activeDocumentId, stores }) => {
+    if (stores.ui.presentationData) {
+      stores.ui.setPresentingDocument(null);
+      return;
+    }
+
     const document = activeDocumentId
       ? stores.documents.get(activeDocumentId)
       : undefined;

@@ -1,5 +1,4 @@
-import flattenDeep from "lodash/flattenDeep";
-import padStart from "lodash/padStart";
+import { flattenDeep, padStart } from "es-toolkit/compat";
 import type { Node } from "prosemirror-model";
 import type { Transaction } from "prosemirror-state";
 import { Plugin, PluginKey } from "prosemirror-state";

@@ -24,7 +24,18 @@
         "include": ["SOURCE_COMMIT", "SOURCE_VERSION"]
       }
     ],
-    "tsconfig-paths-module-resolver"
+    [
+      "module-resolver",
+      {
+        "root": ["./"],
+        "alias": {
+          "@server": "./server",
+          "@shared": "./shared",
+          "~": "./app",
+          "plugins": "./plugins"
+        }
+      }
+    ]
   ],
   "env": {
     "production": {

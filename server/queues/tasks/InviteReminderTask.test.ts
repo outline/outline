@@ -5,7 +5,7 @@ import InviteReminderTask from "./InviteReminderTask";
 
 describe("InviteReminderTask", () => {
   it("should send reminder emails", async () => {
-    const spy = jest.spyOn(InviteReminderEmail.prototype, "schedule");
+    const spy = vi.spyOn(InviteReminderEmail.prototype, "schedule");
 
     // too old
     await buildInvite({

@@ -1,6 +1,6 @@
 import path from "node:path";
 import fs from "fs-extra";
-import escapeRegExp from "lodash/escapeRegExp";
+import { escapeRegExp } from "es-toolkit/compat";
 import mime from "mime-types";
 import { randomUUID } from "node:crypto";
 import documentImporter from "@server/commands/documentImporter";
@@ -228,11 +228,11 @@ export default class ImportMarkdownZipTask extends ImportTask {
         document.text = document.text
           .replace(new RegExp(escapeRegExp(encodedPath), "g"), reference)
           .replace(
-            new RegExp(`\\\.?/?${escapeRegExp(normalizedAttachmentPath)}`, "g"),
+            new RegExp(`\\.?/?${escapeRegExp(normalizedAttachmentPath)}`, "g"),
             reference
           )
           .replace(
-            new RegExp(`\\\.?/?${escapeRegExp(genericNormalizedPath)}`, "g"),
+            new RegExp(`\\.?/?${escapeRegExp(genericNormalizedPath)}`, "g"),
             reference
           );
       }

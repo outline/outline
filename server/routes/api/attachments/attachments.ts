@@ -81,7 +81,7 @@ router.post(
 
 router.post(
   "attachments.create",
-  rateLimiter(RateLimiterStrategy.TenPerMinute),
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth(),
   validate(T.AttachmentsCreateSchema),
   transaction(),
@@ -276,6 +276,11 @@ const handleAttachmentsRedirect = async (
     rejectOnEmpty: true,
   });
 
+  // Private attachments are accessible to any member of the workspace they
+  // belong to. This is intentional and not a permission bypass – attachments
+  // are owned by the workspace (team), not by individual documents. Checking
+  // document-level permissions here would be insufficient anyway as attachments
+  // can exist independently of documents.
   if (attachment.isPrivate && attachment.teamId !== user?.teamId) {
     throw AuthorizationError();
   }

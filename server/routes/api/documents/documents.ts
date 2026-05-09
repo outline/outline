@@ -5,10 +5,7 @@ import invariant from "invariant";
 import contentDisposition from "content-disposition";
 import JSZip from "jszip";
 import Router from "koa-router";
-import escapeRegExp from "lodash/escapeRegExp";
-import has from "lodash/has";
-import remove from "lodash/remove";
-import uniq from "lodash/uniq";
+import { escapeRegExp, has, remove, uniq } from "es-toolkit/compat";
 import mime from "mime-types";
 import type { Order, ScopeOptions, WhereOptions } from "sequelize";
 import { Op, Sequelize } from "sequelize";
@@ -25,6 +22,7 @@ import {
 } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import slugify from "@shared/utils/slugify";
+import { Day } from "@shared/utils/time";
 import documentCreator from "@server/commands/documentCreator";
 import documentDuplicator from "@server/commands/documentDuplicator";
 import documentLoader from "@server/commands/documentLoader";
@@ -50,6 +48,7 @@ import {
   Relationship,
   Collection,
   Document,
+  DocumentInsight,
   Event,
   Revision,
   SearchQuery,
@@ -70,6 +69,7 @@ import { TextHelper } from "@server/models/helpers/TextHelper";
 import { authorize, cannot } from "@server/policies";
 import {
   presentDocument,
+  presentDocumentInsight,
   presentDocuments,
   presentPolicies,
   presentTemplate,
@@ -649,6 +649,41 @@ router.post(
             }
           : serializedDocument,
       policies: isPublic ? undefined : presentPolicies(user, [document]),
+    };
+  }
+);
+
+router.post(
+  "documents.insights",
+  auth(),
+  validate(T.DocumentsInsightsSchema),
+  async (ctx: APIContext<T.DocumentsInsightsReq>) => {
+    const { id, startDate, endDate } = ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    const document = await Document.findByPk(id, { userId: user.id });
+    authorize(user, "listViews", document);
+
+    if (!document.insightsEnabled) {
+      throw ValidationError("Insights are not enabled for this document");
+    }
+
+    const end = endDate ?? new Date();
+    const start = startDate ?? new Date(end.getTime() - 30 * Day.ms);
+
+    const insights = await DocumentInsight.findAll({
+      where: {
+        documentId: document.id,
+        date: {
+          [Op.gte]: start.toISOString().slice(0, 10),
+          [Op.lte]: end.toISOString().slice(0, 10),
+        },
+      },
+      order: [["date", "ASC"]],
+    });
+
+    ctx.body = {
+      data: insights.map(presentDocumentInsight),
     };
   }
 );
@@ -1537,7 +1572,9 @@ router.post(
   "documents.delete",
   auth(),
   validate(T.DocumentsDeleteSchema),
+  transaction(),
   async (ctx: APIContext<T.DocumentsDeleteReq>) => {
+    const { transaction } = ctx.state;
     const { id, permanent } = ctx.input.body;
     const { user } = ctx.state.auth;
 
@@ -1545,6 +1582,7 @@ router.post(
       const document = await Document.findByPk(id, {
         userId: user.id,
         paranoid: false,
+        transaction,
       });
       authorize(user, "permanentDelete", document);
 
@@ -1560,11 +1598,12 @@ router.post(
     } else {
       const document = await Document.findByPk(id, {
         userId: user.id,
+        transaction,
       });
 
       authorize(user, "delete", document);
 
-      await document.delete(user);
+      await document.destroyWithCtx(ctx);
     }
 
     ctx.body = {

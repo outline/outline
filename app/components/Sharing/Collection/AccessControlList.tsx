@@ -167,7 +167,7 @@ export const AccessControlList = observer(
                     }
                   }}
                   label={t("Access")}
-                  hideLabel
+                  labelHidden
                   disabled={!can.update}
                   short
                   nude
@@ -192,7 +192,7 @@ export const AccessControlList = observer(
                         });
                       }}
                       label={t("Permission")}
-                      hideLabel
+                      labelHidden
                       disabled={!can.update}
                       nude
                     />

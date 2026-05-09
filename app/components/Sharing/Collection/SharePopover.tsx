@@ -66,6 +66,7 @@ function SharePopover({
   const share = shares.getByCollectionId(collection.id);
   const prevPendingIds = usePrevious(pendingIds);
 
+  const wrapperRef = React.useRef<HTMLDivElement | null>(null);
   const suggestionsRef = React.useRef<HTMLDivElement | null>(null);
   const searchInputRef = React.useRef<HTMLInputElement | null>(null);
 
@@ -88,6 +89,15 @@ function SharePopover({
       allowInInput: true,
     }
   );
+
+  // Move focus into the popover to account for lazy-loading
+  React.useLayoutEffect(() => {
+    if (!hasRendered) {
+      return;
+    }
+
+    (searchInputRef.current ?? wrapperRef.current)?.focus();
+  }, [hasRendered]);
 
   // Hide the picker when the popover is closed
   React.useEffect(() => {
@@ -351,7 +361,7 @@ function SharePopover({
   );
 
   return (
-    <Wrapper>
+    <Wrapper ref={wrapperRef} tabIndex={-1}>
       {can.update && (
         <SearchInput
           ref={searchInputRef}

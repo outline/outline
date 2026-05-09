@@ -834,7 +834,7 @@ describe("#documents.list", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data).toHaveLength(2);
-    const docIds = body.data.map((doc: any) => doc.id);
+    const docIds = body.data.map((doc: { id: string }) => doc.id);
     expect(docIds).toContain(docs[0].id);
     expect(docIds).toContain(docs[1].id);
     expect(docIds).not.toContain(docs[2].id);
@@ -2033,7 +2033,9 @@ describe("#documents.search", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data).toHaveLength(2);
-    const returnedIds = body.data.map((d: any) => d.document.id).sort();
+    const returnedIds = body.data
+      .map((d: { document: { id: string } }) => d.document.id)
+      .sort();
     const expectedIds = docsInCollection1.map((d) => d.id).sort();
     expect(returnedIds).toEqual(expectedIds);
   });
@@ -2349,7 +2351,7 @@ describe("#documents.archived", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await document.delete(user);
+    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
     const res = await server.post("/api/documents.archived", {
       body: {
         token: user.getJwtToken(),
@@ -2403,7 +2405,7 @@ describe("#documents.deleted", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await document.delete(user);
+    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
     const res = await server.post("/api/documents.deleted", {
       body: {
         token: user.getJwtToken(),
@@ -2435,9 +2437,9 @@ describe("#documents.deleted", () => {
       collectionId: null,
     });
     await Promise.all([
-      document.delete(user),
-      draftDocument.delete(user),
-      otherUserDraft.delete(user2),
+      withAPIContext(user, (ctx) => document.destroyWithCtx(ctx)),
+      withAPIContext(user, (ctx) => draftDocument.destroyWithCtx(ctx)),
+      withAPIContext(user2, (ctx) => otherUserDraft.destroyWithCtx(ctx)),
     ]);
     const res = await server.post("/api/documents.deleted", {
       body: {
@@ -2458,7 +2460,7 @@ describe("#documents.deleted", () => {
       userId: admin.id,
       teamId: admin.teamId,
     });
-    await document.delete(admin);
+    await withAPIContext(admin, (ctx) => document.destroyWithCtx(ctx));
     const res = await server.post("/api/documents.deleted", {
       body: {
         token: admin.getJwtToken(),
@@ -2481,7 +2483,7 @@ describe("#documents.deleted", () => {
       teamId: user.teamId,
       collectionId: collection.id,
     });
-    await document.delete(user);
+    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
     const res = await server.post("/api/documents.deleted", {
       body: {
         token: user.getJwtToken(),
@@ -3054,7 +3056,7 @@ describe("#documents.restore", () => {
       collectionId: collection.id,
       teamId: team.id,
     });
-    await document.delete(user);
+    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
     await collection.destroy({ hooks: false });
 
     const res = await server.post("/api/documents.restore", {
@@ -3084,7 +3086,7 @@ describe("#documents.restore", () => {
       collectionId: collection.id,
       teamId: team.id,
     });
-    await document.delete(user);
+    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
     await collection.destroy({ hooks: false });
 
     const res = await server.post("/api/documents.restore", {
@@ -3218,7 +3220,7 @@ describe("#documents.restore", () => {
         revisionId,
       },
       headers: {
-        "x-api-version": 3,
+        "x-api-version": "3",
       },
     });
     const body = await res.json();
@@ -3333,10 +3335,12 @@ describe("#documents.import", () => {
       collectionId: collection.id,
     });
 
-    jest.spyOn(FileStorage, "store").mockResolvedValue(undefined as any);
-    jest.spyOn(DocumentImportTask.prototype, "schedule").mockResolvedValue({
-      finished: jest.fn().mockResolvedValue({ documentId: document.id }),
-    } as any);
+    vi.spyOn(FileStorage, "store").mockResolvedValue(
+      undefined as unknown as string
+    );
+    vi.spyOn(DocumentImportTask.prototype, "schedule").mockResolvedValue({
+      finished: vi.fn().mockResolvedValue({ documentId: document.id }),
+    } as unknown as Awaited<ReturnType<DocumentImportTask["schedule"]>>);
 
     const content = await readFile(
       path.resolve(
@@ -3362,7 +3366,7 @@ describe("#documents.import", () => {
     expect(res.status).toEqual(200);
     expect(body.data.id).toEqual(document.id);
 
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it("should require authentication", async () => {
@@ -4614,7 +4618,7 @@ describe("#documents.unpublish", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await document.delete(user);
+    await withAPIContext(user, (ctx) => document.destroyWithCtx(ctx));
     const res = await server.post("/api/documents.unpublish", {
       body: {
         token: user.getJwtToken(),
@@ -5634,6 +5638,69 @@ describe("#documents.memberships", () => {
   });
 });
 
+describe("#documents.duplicate", () => {
+  it("should require authentication", async () => {
+    const res = await server.post("/api/documents.duplicate");
+    expect(res.status).toEqual(401);
+  });
+
+  it("should duplicate a document with fullWidth property", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      fullWidth: true,
+    });
+
+    const res = await server.post("/api/documents.duplicate", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.documents).toHaveLength(1);
+    expect(body.data.documents[0].fullWidth).toBe(true);
+  });
+
+  it("should duplicate child documents with fullWidth property when recursive=true", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const parent = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      fullWidth: true,
+    });
+    await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      parentDocumentId: parent.id,
+      fullWidth: true,
+    });
+
+    const res = await server.post("/api/documents.duplicate", {
+      body: {
+        token: user.getJwtToken(),
+        id: parent.id,
+        recursive: true,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.documents).toHaveLength(2);
+    expect(body.data.documents[0].fullWidth).toBe(true);
+    expect(body.data.documents[1].fullWidth).toBe(true);
+  });
+});
+
 describe("#documents.empty_trash", () => {
   it("should require authentication", async () => {
     const res = await server.post("/api/documents.empty_trash");
@@ -5702,7 +5769,7 @@ describe("#documents.documents", () => {
 
     expect(res.status).toBe(200);
     expect(body.data.id).toBe(parent.id);
-    const childIds = body.data.children.map((node: any) => node.id);
+    const childIds = body.data.children.map((node: { id: string }) => node.id);
     expect(childIds).toContain(child1.id);
     expect(childIds).toContain(child2.id);
   });
@@ -5826,7 +5893,7 @@ describe("#documents.documents", () => {
 
     expect(res.status).toBe(200);
     expect(body.data.id).toBe(parent.id);
-    const childIds = body.data.children.map((node: any) => node.id);
+    const childIds = body.data.children.map((node: { id: string }) => node.id);
     expect(childIds).toContain(publicChild.id);
     expect(childIds).not.toContain(privateChild.id);
   });

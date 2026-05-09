@@ -4,7 +4,7 @@ module.exports = {
       type: Sequelize.DATE,
       allowNull: true,
     });
-    const [documents, metaData] = await queryInterface.sequelize.query(
+    const [documents] = await queryInterface.sequelize.query(
       `SELECT * FROM documents`
     );
 

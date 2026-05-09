@@ -2,7 +2,6 @@ import path from "node:path";
 import { readFile } from "fs-extra";
 import invariant from "invariant";
 import { CollectionPermission, UserRole } from "@shared/types";
-import WelcomeEmail from "@server/emails/templates/WelcomeEmail";
 import env from "@server/env";
 import {
   InvalidAuthenticationError,
@@ -15,6 +14,7 @@ import {
   AuthenticationProvider,
   Collection,
   Document,
+  Event,
   Team,
 } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -102,7 +102,7 @@ async function accountProvisioner(
   // allow them to connect a new authentication provider
   if (actor && actor.teamId === teamParams.teamId && actor.isAdmin) {
     const team = actor.team;
-    let authenticationProvider = await AuthenticationProvider.findOne({
+    const authenticationProvider = await AuthenticationProvider.findOne({
       where: {
         ...authenticationProviderParams,
         teamId: team.id,
@@ -110,7 +110,7 @@ async function accountProvisioner(
     });
 
     if (!authenticationProvider) {
-      authenticationProvider = await team.$create<AuthenticationProvider>(
+      await team.$create<AuthenticationProvider>(
         "authenticationProvider",
         authenticationProviderParams
       );
@@ -194,14 +194,11 @@ async function accountProvisioner(
   });
   const { isNewUser, user } = result;
 
-  // TODO: Move to processor
-  if (isNewUser) {
-    await new WelcomeEmail({
-      to: user.email,
-      language: user.language,
-      role: user.role,
-      teamUrl: team.url,
-    }).schedule();
+  if (isNewUser && user.isInvited) {
+    await Event.createFromContext(ctx, {
+      name: "users.invite_accepted",
+      userId: user.id,
+    });
   }
 
   if (isNewUser || isNewTeam) {

@@ -1,5 +1,5 @@
 import type formidable from "formidable";
-import isEmpty from "lodash/isEmpty";
+import { isEmpty } from "es-toolkit/compat";
 import { z } from "zod";
 import {
   DirectionFilter,
@@ -154,6 +154,25 @@ export const DocumentsInfoSchema = BaseSchema.extend({
 
 export type DocumentsInfoReq = z.infer<typeof DocumentsInfoSchema>;
 
+export const DocumentsInsightsSchema = BaseSchema.extend({
+  body: BaseIdSchema.extend({
+    /** Start of the insights window (inclusive). Defaults to 30 days ago. */
+    startDate: z.coerce.date().optional(),
+    /** End of the insights window (inclusive). Defaults to today. */
+    endDate: z.coerce.date().optional(),
+  }),
+}).refine(
+  (req) =>
+    !req.body.startDate ||
+    !req.body.endDate ||
+    req.body.startDate <= req.body.endDate,
+  {
+    message: "startDate must be on or before endDate",
+  }
+);
+
+export type DocumentsInsightsReq = z.infer<typeof DocumentsInsightsSchema>;
+
 export const DocumentsExportSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
     signedUrls: z.number().optional(),
@@ -274,8 +293,11 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
     /** @deprecated Use editMode instead */
     append: z.boolean().optional(),
 
-    /** The edit mode for text updates: "replace", "append", or "prepend" */
+    /** The edit mode for text updates: "replace", "append", "prepend", or "patch" */
     editMode: z.enum(TextEditMode).optional(),
+
+    /** The markdown text to find when using "patch" edit mode */
+    findText: z.string().optional(),
 
     /** @deprecated Version of the API to be used, remove in a few releases */
     apiVersion: z.number().optional(),
@@ -297,6 +319,21 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
       ),
     {
       message: "text is required when using append, prepend, or editMode",
+    }
+  )
+  .refine(
+    (req) =>
+      !(
+        req.body.editMode === TextEditMode.Patch && req.body.text === undefined
+      ),
+    {
+      message: "text is required when using patch editMode",
+    }
+  )
+  .refine(
+    (req) => !(req.body.editMode === TextEditMode.Patch && !req.body.findText),
+    {
+      message: "findText is required when using patch editMode",
     }
   )
   .transform((req) => {

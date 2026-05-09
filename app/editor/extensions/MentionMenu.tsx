@@ -6,7 +6,7 @@ import MentionMenu from "../components/MentionMenu";
 export default class MentionMenuExtension extends Suggestion {
   get defaultOptions() {
     return {
-      trigger: "@",
+      trigger: ["@", "\uff20"],
       allowSpaces: true,
       requireSearchTerm: false,
       enabledInCode: false,

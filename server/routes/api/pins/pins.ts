@@ -2,6 +2,7 @@ import Router from "koa-router";
 import { Sequelize, Op, Transaction } from "sequelize";
 import pinCreator from "@server/commands/pinCreator";
 import auth from "@server/middlewares/authentication";
+import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { Collection, Document, Pin } from "@server/models";
@@ -12,6 +13,7 @@ import {
   presentPolicies,
 } from "@server/presenters";
 import type { APIContext } from "@server/types";
+import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -19,6 +21,7 @@ const router = new Router();
 
 router.post(
   "pins.create",
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth(),
   validate(T.PinsCreateSchema),
   transaction(),

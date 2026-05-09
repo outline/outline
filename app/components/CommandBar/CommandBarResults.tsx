@@ -43,7 +43,8 @@ const Container = styled.div`
 const Header = styled(Text).attrs({ as: "h3" })`
   letter-spacing: 0.03em;
   margin: 0;
-  padding: 16px 0 4px 20px;
+  padding-block: 16px 4px;
+  padding-inline: 20px 0;
   height: 36px;
   cursor: default;
 `;

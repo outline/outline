@@ -63,7 +63,11 @@ class Group extends ParanoidModel<
   InferAttributes<Group>,
   Partial<InferCreationAttributes<Group>>
 > {
-  @Length({ min: 0, max: 255, msg: "name must be 255 characters or less" })
+  @Length({
+    min: 0,
+    max: GroupValidation.maxNameLength,
+    msg: `name must be ${GroupValidation.maxNameLength} characters or less`,
+  })
   @NotContainsUrl
   @Column
   name: string;
@@ -116,7 +120,20 @@ class Group extends ParanoidModel<
   @BelongsToMany(() => User, () => GroupUser)
   users: User[];
 
-  @CounterCache(() => GroupUser, { as: "members", foreignKey: "groupId" })
+  @CounterCache(() => GroupUser, {
+    as: "members",
+    foreignKey: "groupId",
+    include: [
+      {
+        association: "user",
+        required: true,
+        attributes: [],
+        where: {
+          suspendedAt: { [Op.is]: null },
+        },
+      },
+    ],
+  })
   memberCount: Promise<number>;
 }
 

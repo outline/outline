@@ -67,7 +67,6 @@ export class CacheHelper {
         // Check if result is a CacheResult with dynamic expiry
         const isCacheResult =
           typeof result === "object" &&
-          result !== null &&
           "data" in result &&
           Object.keys(result).every((k) => k === "data" || k === "expiry");
 
@@ -124,6 +123,19 @@ export class CacheHelper {
     } catch (err) {
       // just log it, can skip caching and directly return response
       Logger.error(`Could not cache response against ${key}`, err);
+    }
+  }
+
+  /**
+   * Removes a single cached entry by key.
+   *
+   * @param key Cache key to remove.
+   */
+  public static async removeData(key: string) {
+    try {
+      await Redis.defaultClient.del(key);
+    } catch (err) {
+      Logger.error(`Could not remove cached entry against ${key}`, err);
     }
   }
 

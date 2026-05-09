@@ -25,6 +25,7 @@ import {
   settingsPath,
   urlify,
 } from "~/utils/routeHelpers";
+import { ProsemirrorHelper } from "~/models/helpers/ProsemirrorHelper";
 import { ActiveTemplateSection, TemplateSection } from "../sections";
 import Template from "~/models/Template";
 import { AvatarSize } from "~/components/Avatar";
@@ -200,8 +201,6 @@ export const copyTemplateAsPlainText = createAction({
   perform: async ({ getActiveModel, t }) => {
     const template = getActiveModel(Template);
     if (template) {
-      const { ProsemirrorHelper } =
-        await import("~/models/helpers/ProsemirrorHelper");
       copy(ProsemirrorHelper.toPlainText(template));
       toast.success(t("Text copied to clipboard"));
     }

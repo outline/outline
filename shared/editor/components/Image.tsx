@@ -3,10 +3,10 @@ import type { EditorView } from "prosemirror-view";
 import * as React from "react";
 import styled from "styled-components";
 import { useTranslation } from "react-i18next";
-import find from "lodash/find";
+import { find } from "es-toolkit/compat";
 import Flex from "../../components/Flex";
 import { s } from "../../styles";
-import { isExternalUrl, sanitizeUrl } from "../../utils/urls";
+import { isExternalUrl, sanitizeImageSrc } from "../../utils/urls";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import type { ComponentProps } from "../types";
 import { ResizeLeft, ResizeRight } from "./ResizeHandle";
@@ -68,7 +68,7 @@ const Image = (props: Props) => {
     }
   }, [node.attrs.width]);
 
-  const sanitizedSrc = sanitizeUrl(src);
+  const sanitizedSrc = sanitizeImageSrc(src);
   const linkMarkType = props.view.state.schema.marks.link;
   const imgLink =
     find(node.attrs.marks ?? [], (mark) => mark.type === linkMarkType.name)

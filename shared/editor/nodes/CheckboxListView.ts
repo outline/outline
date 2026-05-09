@@ -1,6 +1,6 @@
+import { t } from "i18next";
 import type { Node as ProsemirrorNode } from "prosemirror-model";
 import type { EditorView, NodeView } from "prosemirror-view";
-import type { Dictionary } from "../../../app/hooks/useDictionary";
 import { isBrowser } from "../../utils/browser";
 import Storage from "../../utils/Storage";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
@@ -16,19 +16,16 @@ export class CheckboxListView implements NodeView {
   private toggleControl: HTMLButtonElement;
   private node: ProsemirrorNode;
   private userIdentifier: string;
-  private dictionary: Dictionary;
   private isNested: boolean;
 
   constructor(
     node: ProsemirrorNode,
     _view: EditorView,
     _getPos: () => number | undefined,
-    userIdentifier: string,
-    dictionary: Dictionary
+    userIdentifier: string
   ) {
     this.node = node;
     this.userIdentifier = userIdentifier;
-    this.dictionary = dictionary;
 
     // Detect if this is a nested checkbox list (inside a checkbox_item)
     const pos = _getPos();
@@ -118,8 +115,8 @@ export class CheckboxListView implements NodeView {
     } else {
       this.toggleControl.style.display = "inline-block";
       this.toggleControl.textContent = shouldCollapse
-        ? this.dictionary.showCompleted(completedItemsCount)
-        : this.dictionary.hideCompleted;
+        ? t("Show {{ count }} completed", { count: completedItemsCount })
+        : t("Hide completed");
 
       if (shouldCollapse) {
         this.dom.classList.add(EditorStyleHelper.checklistCompletedHidden);

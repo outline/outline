@@ -12,15 +12,15 @@ export type WidgetProps = {
   selection?: Selection;
 };
 
-export default class Extension {
-  options: any;
+export default class Extension<TOptions extends object = object> {
+  options: TOptions;
   editor: Editor;
 
-  constructor(options: Record<string, any> = {}) {
+  constructor(options: Partial<TOptions> = {}) {
     this.options = {
       ...this.defaultOptions,
       ...options,
-    };
+    } as TOptions;
   }
 
   bindEditor(editor: Editor) {
@@ -43,7 +43,7 @@ export default class Extension {
     return [];
   }
 
-  get defaultOptions() {
+  get defaultOptions(): Partial<TOptions> {
     return {};
   }
 

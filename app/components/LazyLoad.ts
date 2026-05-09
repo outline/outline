@@ -1,6 +1,7 @@
 import * as React from "react";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 
+// oxlint-disable no-explicit-any -- ComponentType<any> is the standard React pattern for generic component constraints
 export interface LazyComponent<T extends React.ComponentType<any>> {
   Component: React.LazyExoticComponent<T>;
   preload: () => Promise<{ default: T }>;

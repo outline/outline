@@ -1,7 +1,6 @@
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import commandScore from "command-score";
-import capitalize from "lodash/capitalize";
-import orderBy from "lodash/orderBy";
+import { capitalize, orderBy } from "es-toolkit/compat";
 import { TextSelection } from "prosemirror-state";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
@@ -27,7 +26,6 @@ import {
 } from "~/components/primitives/Popover";
 import { MouseSafeArea } from "~/components/MouseSafeArea";
 import Scrollable from "~/components/Scrollable";
-import useDictionary from "~/hooks/useDictionary";
 import useMobile from "~/hooks/useMobile";
 import Logger from "~/utils/Logger";
 import { useEditor } from "./EditorContext";
@@ -38,7 +36,7 @@ export type Props<T extends MenuItem = MenuItem> = {
   rtl: boolean;
   isActive: boolean;
   search: string;
-  trigger: string;
+  trigger: string | string[];
   uploadFile?: (file: File) => Promise<string>;
   onFileUploadStart?: () => void;
   onFileUploadStop?: () => void;
@@ -63,7 +61,6 @@ export type Props<T extends MenuItem = MenuItem> = {
 
 function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
   const { view, commands, props: editorProps } = useEditor();
-  const dictionary = useDictionary();
   const { t } = useTranslation();
   const isMobile = useMobile();
   const pointerRef = React.useRef<{ clientX: number; clientY: number }>({
@@ -160,11 +157,15 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     const { state, dispatch } = view;
     const selection =
       isMobile && selectionRef.current ? selectionRef.current : state.selection;
+    const triggers = Array.isArray(props.trigger)
+      ? props.trigger
+      : [props.trigger];
+    const triggerLength = triggers[0].length;
     const poss = state.doc.cut(
-      selection.from - (props.search ?? "").length - props.trigger.length,
+      selection.from - (props.search ?? "").length - triggerLength,
       selection.from
     );
-    const trimTrigger = poss.textContent.startsWith(props.trigger);
+    const trimTrigger = triggers.some((t) => poss.textContent.startsWith(t));
 
     if (!props.search && !trimTrigger) {
       return;
@@ -178,12 +179,12 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
           0,
           selection.from -
             (props.search ?? "").length -
-            (trimTrigger ? props.trigger.length : 0)
+            (trimTrigger ? triggerLength : 0)
         ),
         selection.to
       )
     );
-  }, [props.search, props.trigger, view]);
+  }, [props.search, props.trigger, view, isMobile]);
 
   const restoreSelection = React.useCallback(() => {
     if (!isMobile) {
@@ -297,7 +298,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       const matches = "matcher" in insertItem && insertItem.matcher(href);
 
       if (!matches) {
-        toast.error(dictionary.embedInvalidLink);
+        toast.error(t("Sorry, that link won’t work for this embed type"));
         return;
       }
 
@@ -341,13 +342,13 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     }
   };
 
-  const triggerFilePick = (accept: string, attrs?: Record<string, any>) => {
+  const triggerFilePick = (accept: string, attrs?: Record<string, unknown>) => {
     if (inputRef.current) {
       if (accept) {
         inputRef.current.accept = accept;
       }
       if (attrs) {
-        inputRef.current.dataset.attrs = attrs ? JSON.stringify(attrs) : "";
+        inputRef.current.dataset.attrs = JSON.stringify(attrs);
       }
       inputRef.current.click();
     }
@@ -386,7 +387,6 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         onFileUploadStart,
         onFileUploadStop,
         onFileUploadProgress,
-        dictionary,
         isAttachment: inputRef.current?.accept === "*",
         attrs,
       });
@@ -883,7 +883,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
                 onPointerMove={handlePointerMove}
                 onPointerDown={handlePointerDown}
               >
-                {props.renderMenuItem(item as any, index, {
+                {props.renderMenuItem(item as unknown as T, index, {
                   selected: index === selectedIndex,
                   disclosure: hasChildren,
                   onClick: handleOnClick,
@@ -897,7 +897,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         })}
         {items.length === 0 && (
           <ListItem>
-            <Empty>{dictionary.noResults}</Empty>
+            <Empty>{t("No results")}</Empty>
           </ListItem>
         )}
       </>
@@ -909,7 +909,9 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       <>
         <Drawer open={isActive} onOpenChange={handleOpenChange}>
           <DrawerContent aria-describedby={undefined}>
-            <DrawerTitle hidden>{props.trigger}</DrawerTitle>
+            <DrawerTitle hidden>
+              {Array.isArray(props.trigger) ? props.trigger[0] : props.trigger}
+            </DrawerTitle>
             <MobileScrollable hiddenScrollbars>
               {insertItem ? (
                 <LinkInputWrapper>
@@ -919,8 +921,10 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
                       "placeholder" in insertItem && !!insertItem.placeholder
                         ? insertItem.placeholder
                         : insertItem.title
-                          ? dictionary.pasteLinkWithTitle(insertItem.title)
-                          : dictionary.pasteLink
+                          ? t("Paste a {{service}} link…", {
+                              service: insertItem.title,
+                            })
+                          : `${t("Paste a link")}…`
                     }
                     onKeyDown={handleLinkInputKeydown}
                     onPaste={handleLinkInputPaste}
@@ -969,8 +973,10 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
                   "placeholder" in insertItem && !!insertItem.placeholder
                     ? insertItem.placeholder
                     : insertItem.title
-                      ? dictionary.pasteLinkWithTitle(insertItem.title)
-                      : dictionary.pasteLink
+                      ? t("Paste a {{service}} link…", {
+                          service: insertItem.title,
+                        })
+                      : `${t("Paste a link")}…`
                 }
                 onKeyDown={handleLinkInputKeydown}
                 onPaste={handleLinkInputPaste}
@@ -1047,7 +1053,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
                     key={`sub-${childIndex}-${child.name}`}
                     onPointerMove={handleChildPointerMove}
                   >
-                    {props.renderMenuItem(child as any, childIndex, {
+                    {props.renderMenuItem(child as unknown as T, childIndex, {
                       selected: childIndex === submenu.selectedIndex,
                       onClick: handleChildClick,
                     })}

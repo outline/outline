@@ -1,4 +1,4 @@
-import escapeRegExp from "lodash/escapeRegExp";
+import { escapeRegExp } from "es-toolkit/compat";
 import env from "../env";
 import { isBrowser } from "./browser";
 import { parseDomain } from "./domains";
@@ -59,9 +59,9 @@ export function isInternalUrl(href: string) {
 }
 
 /**
- * Returns true if the given string is a link to a documement.
+ * Returns true if the given string is a link to a document.
  *
- * @param options Parsing options.
+ * @param url The url to check.
  * @returns True if a document, false otherwise.
  */
 export function isDocumentUrl(url: string) {
@@ -79,7 +79,7 @@ export function isDocumentUrl(url: string) {
 /**
  * Returns true if the given string is a link to a collection.
  *
- * @param options Parsing options.
+ * @param url The url to check.
  * @returns True if a collection, false otherwise.
  */
 export function isCollectionUrl(url: string) {
@@ -179,6 +179,24 @@ export function isBase64Url(url: string) {
   return match ? match : false;
 }
 
+const allowedSchemes = [
+  "mailto:",
+  "sms:",
+  "fax:",
+  "tel:",
+  "geo:",
+  "maps:",
+  "magnet:",
+];
+
+const allowedImageDataUris = [
+  "data:image/png;base64,",
+  "data:image/jpeg;base64,",
+  "data:image/gif;base64,",
+  "data:image/webp;base64,",
+  "data:image/avif;base64,",
+];
+
 /**
  * For use in the editor, this function will ensure that a url is
  * potentially valid, and filter out unsupported and malicious protocols.
@@ -191,18 +209,37 @@ export function sanitizeUrl(url: string | null | undefined) {
     return undefined;
   }
 
+  const lower = url.toLowerCase();
   if (
     !isUrl(url, { requireHostname: false }) &&
     !url.startsWith("/") &&
     !url.startsWith("#") &&
-    !url.startsWith("mailto:") &&
-    !url.startsWith("sms:") &&
-    !url.startsWith("fax:") &&
-    !url.startsWith("tel:")
+    !allowedSchemes.some((scheme) => lower.startsWith(scheme))
   ) {
     return `https://${url}`;
   }
   return url;
+}
+
+/**
+ * For use in the editor on image-like elements, this function will ensure
+ * that a src is potentially valid. In addition to the protocols allowed by
+ * `sanitizeUrl`, base64-encoded image data URIs are permitted (excluding
+ * SVG, which can contain inline scripts).
+ *
+ * @param src The src to sanitize.
+ * @returns The sanitized src.
+ */
+export function sanitizeImageSrc(src: string | null | undefined) {
+  if (!src) {
+    return undefined;
+  }
+
+  const lower = src.toLowerCase();
+  if (allowedImageDataUris.some((scheme) => lower.startsWith(scheme))) {
+    return src;
+  }
+  return sanitizeUrl(src);
 }
 
 /**
@@ -219,6 +256,39 @@ export function urlRegex(url: string | null | undefined): RegExp | undefined {
   const urlObj = new URL(sanitizeUrl(url) as string);
 
   return new RegExp(escapeRegExp(`${urlObj.protocol}//${urlObj.host}`));
+}
+
+/**
+ * Parse the share identifier from a given url.
+ *
+ * @param url The url to parse.
+ * @returns A share identifier or undefined if not found.
+ */
+export function parseShareIdFromUrl(url: string): string | undefined {
+  if (url[0] === "/") {
+    url = `${env.URL}${url}`;
+  }
+
+  let pathname;
+  try {
+    pathname = new URL(url).pathname;
+  } catch (_err) {
+    return;
+  }
+
+  const split = pathname.split("/");
+  const indexOfS = split.indexOf("s");
+
+  if (indexOfS >= 0) {
+    const shareId = split[indexOfS + 1];
+    if (shareId) {
+      // Remove trailing format like .md
+      const dotIndex = shareId.indexOf(".");
+      return dotIndex >= 0 ? shareId.substring(0, dotIndex) : shareId;
+    }
+  }
+
+  return undefined;
 }
 
 /**

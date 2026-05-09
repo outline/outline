@@ -275,7 +275,9 @@ const DocumentTitle = React.forwardRef(function DocumentTitle_(
           </React.Suspense>
         </IconTitleWrapper>
       ) : icon ? (
-        <IconTitleWrapper dir={dir}>{fallbackIcon}</IconTitleWrapper>
+        <IconTitleWrapper dir={dir} aria-hidden>
+          {fallbackIcon}
+        </IconTitleWrapper>
       ) : null}
     </Title>
   );
@@ -295,7 +297,7 @@ const StyledIconPicker = styled(IconPicker)`
 const Title = styled(ContentEditable)<TitleProps>`
   position: relative;
   line-height: ${lineHeight};
-  margin-top: 10vh;
+  margin-top: 8vh;
   margin-bottom: 0.5em;
   font-size: ${fontSize};
   font-weight: 600;

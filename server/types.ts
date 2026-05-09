@@ -162,7 +162,8 @@ export type UserEvent = BaseEvent<User> &
           | "users.update"
           | "users.suspend"
           | "users.activate"
-          | "users.delete";
+          | "users.delete"
+          | "users.invite_accepted";
         userId: string;
       }
     | {

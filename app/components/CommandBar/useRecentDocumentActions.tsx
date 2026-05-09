@@ -26,7 +26,7 @@ const useRecentDocumentActions = (count = 6) => {
                 color={item.color ?? undefined}
               />
             ) : (
-              <DocumentIcon />
+              <DocumentIcon outline={item.isDraft} />
             ),
             to: documentPath(item),
           })

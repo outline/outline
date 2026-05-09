@@ -3,7 +3,7 @@ import { ArrowIcon, BackIcon } from "outline-icons";
 import * as React from "react";
 import styled, { css, useTheme } from "styled-components";
 import { s, ellipsis } from "@shared/styles";
-import { normalizeKeyDisplay } from "@shared/utils/keyboard";
+import { normalizeKeyDisplay, shortcutSeparator } from "@shared/utils/keyboard";
 import Highlight from "~/components/Highlight";
 import Flex from "~/components/Flex";
 import Key from "~/components/Key";
@@ -30,8 +30,8 @@ function CommandBarItem(
 ) {
   const theme = useTheme();
   const ancestors = React.useMemo(() => {
-    if (!currentRootActionId) {
-      return action.ancestors;
+    if (!currentRootActionId || !action.ancestors) {
+      return action.ancestors ?? [];
     }
     const index = action.ancestors.findIndex(
       (ancestor) => ancestor.id === currentRootActionId
@@ -90,9 +90,12 @@ function CommandBarItem(
               ) : (
                 ""
               )}
-              {sc.split("+").map((key) => (
-                <Key key={key}>{normalizeKeyDisplay(key)}</Key>
-              ))}
+              {sc.split("+").flatMap((key, i, arr) => {
+                const el = <Key key={key}>{normalizeKeyDisplay(key)}</Key>;
+                return i < arr.length - 1 && shortcutSeparator
+                  ? [el, shortcutSeparator]
+                  : [el];
+              })}
             </React.Fragment>
           ))}
         </Shortcut>
