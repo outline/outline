@@ -18,6 +18,31 @@ const privateRanges = new Set([
 
 export const generateUrlId = () => randomString(UrlIdLength);
 
+// Paths probed by vulnerability scanners.
+const scannerPathPattern = new RegExp(
+  [
+    // paths
+    "^\\/(?:cgi-bin|wp-admin|wp-content|wp-includes|wp-json|wp-login\\.php|wordpress|xmlrpc\\.php|phpmyadmin|pma|myadmin|owa|autodiscover|actuator|vendor|webdav|cms|drupal|joomla|magento|laravel|adminer|console|server-status|server-info|HNAP1|boaform|hudson|jenkins)(?:\\/|$)",
+    // file endings
+    "\\.(?:php|asp|aspx|jsp|cgi|env|sql|bak|swp|htaccess|htpasswd)(?:$|[/?])",
+    // dotfiles
+    "^\\/\\.(?:well-known|env|git|svn|aws|ssh|DS_Store)",
+  ].join("|"),
+  "i"
+);
+
+/**
+ * Checks whether a request path looks like an automated scanner probe rather
+ * than a legitimate application route, so the server can short-circuit with a
+ * 404 instead of rendering the SPA shell.
+ *
+ * @param path - the request path to check.
+ * @returns true if the path matches a known scanner pattern.
+ */
+export function isInvalidAppPath(path: string): boolean {
+  return scannerPathPattern.test(path);
+}
+
 /**
  * Checks if an IP address is private, loopback, or link-local.
  *

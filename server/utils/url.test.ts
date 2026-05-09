@@ -1,7 +1,7 @@
 import dns from "node:dns";
 import type { MockInstance } from "vitest";
 import env from "@server/env";
-import { validateUrlNotPrivate } from "./url";
+import { isInvalidAppPath, validateUrlNotPrivate } from "./url";
 
 describe("validateUrlNotPrivate", () => {
   let lookupSpy: MockInstance;
@@ -96,5 +96,38 @@ describe("validateUrlNotPrivate", () => {
         validateUrlNotPrivate("https://gitlab.internal")
       ).resolves.toBeUndefined();
     });
+  });
+});
+
+describe("isInvalidAppPath", () => {
+  it.each([
+    "/.well-known/gpc.json",
+    "/.env",
+    "/.env.production",
+    "/.git/config",
+    "/.DS_Store",
+    "/cgi-bin/test.cgi",
+    "/wp-admin/setup-config.php",
+    "/wp-login.php",
+    "/wp-content/plugins/foo",
+    "/xmlrpc.php",
+    "/admin.php",
+    "/phpmyadmin/index.php",
+    "/actuator/health",
+    "/HNAP1/",
+    "/index.php",
+  ])("returns true for scanner path %s", (path) => {
+    expect(isInvalidAppPath(path)).toBe(true);
+  });
+
+  it.each([
+    "/",
+    "/home",
+    "/doc/document-slug",
+    "/collection/abc123",
+    "/settings/account",
+    "/api/documents.list",
+  ])("returns false for legitimate path %s", (path) => {
+    expect(isInvalidAppPath(path)).toBe(false);
   });
 });
