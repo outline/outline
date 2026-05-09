@@ -28,7 +28,8 @@ export default function onerror(app: Koa) {
       }
     } else if (
       err.code === "HPE_INVALID_EOF_STATE" ||
-      err.code === "ECONNRESET"
+      err.code === "ECONNRESET" ||
+      err.code === "EPIPE"
     ) {
       err = ClientClosedRequestError();
     }
