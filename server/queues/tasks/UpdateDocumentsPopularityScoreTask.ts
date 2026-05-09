@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { setTimeout } from "node:timers/promises";
-import { subWeeks } from "date-fns";
+import { subDays } from "date-fns";
 import { QueryTypes } from "sequelize";
 import { Minute } from "@shared/utils/time";
 import env from "@server/env";
@@ -23,6 +23,7 @@ const TIME_OFFSET_HOURS = 2;
 const ACTIVITY_WEIGHTS = {
   revision: 1.0,
   comment: 1.2,
+  reaction: 0.8,
   view: 0.5,
 };
 
@@ -64,7 +65,16 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
     }
 
     const now = new Date();
-    const threshold = subWeeks(now, env.POPULARITY_ACTIVITY_THRESHOLD_WEEKS);
+    // Use UTC day boundaries to match how document_insights.date is written by
+    // RollupDocumentInsightsTask (which derives dates via toISOString). Local
+    // timezone could shift the window by a day in some deployments.
+    const today = now.toISOString().slice(0, 10);
+    const thresholdDate = subDays(
+      now,
+      env.POPULARITY_ACTIVITY_THRESHOLD_WEEKS * 7
+    )
+      .toISOString()
+      .slice(0, 10);
 
     // Generate unique table name for this run to prevent conflicts
     const dateStr = now.toISOString().slice(0, 19).replace(/[-:T]/g, "");
@@ -76,7 +86,7 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
       await this.cleanupStaleWorkingTables();
 
       // Setup: Create working table and populate with active document IDs
-      await this.setupWorkingTable(threshold, partition);
+      await this.setupWorkingTable(thresholdDate, today, partition);
 
       const activeCount = await this.getWorkingTableCount();
 
@@ -104,7 +114,7 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
         batchNumber++;
 
         try {
-          const updated = await this.processBatch(threshold, now);
+          const updated = await this.processBatch(thresholdDate, today);
           totalUpdated += updated;
 
           Logger.debug(
@@ -144,7 +154,8 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
    * skip WAL logging, and data loss on crash is acceptable here.
    */
   private async setupWorkingTable(
-    threshold: Date,
+    thresholdDate: string,
+    today: string,
     partition: PartitionInfo
   ): Promise<void> {
     // Drop any existing table first to avoid type conflicts from previous crashed runs
@@ -160,9 +171,10 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
 
     const [startUuid, endUuid] = this.getPartitionBounds(partition);
 
-    // Populate with documents that have recent activity and are valid
-    // (published, not deleted). Process in chunks to avoid long-running queries.
-    // Read from replica to avoid excessive locking on primary.
+    // Populate with documents that have recent activity OR a current non-zero
+    // score (so dormant docs decay back to zero once activity falls out of the
+    // window). Must be valid: published and not deleted. Process in chunks to
+    // avoid long-running queries. Read from replica to avoid excessive locking.
     let lastId = startUuid;
     let insertedCount = 0;
     const chunkSize = 1000;
@@ -178,17 +190,12 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
           ${lastId ? (insertedCount === 0 ? "AND d.id >= :lastId" : "AND d.id > :lastId") : ""}
           ${endUuid ? "AND d.id <= :endUuid" : ""}
           AND (
-            EXISTS (
-              SELECT 1 FROM revisions r
-              WHERE r."documentId" = d.id AND r."createdAt" >= :threshold
-            )
+            d."popularityScore" > 0
             OR EXISTS (
-              SELECT 1 FROM comments c
-              WHERE c."documentId" = d.id AND c."createdAt" >= :threshold
-            )
-            OR EXISTS (
-              SELECT 1 FROM views v
-              WHERE v."documentId" = d.id AND v."updatedAt" >= :threshold
+              SELECT 1 FROM document_insights di
+              WHERE di."documentId" = d.id
+                AND di.date >= :thresholdDate::date
+                AND di.date <= :today::date
             )
           )
         ORDER BY d.id
@@ -196,7 +203,8 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
         `,
         {
           replacements: {
-            threshold,
+            thresholdDate,
+            today,
             lastId,
             endUuid,
             limit: chunkSize,
@@ -257,7 +265,10 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
   /**
    * Processes a batch of documents with retry logic.
    */
-  private async processBatch(threshold: Date, now: Date): Promise<number> {
+  private async processBatch(
+    thresholdDate: string,
+    today: string
+  ): Promise<number> {
     // Step 1: Get batch of document IDs to process
     const batch = await sequelize.query<{ documentId: string }>(
       `
@@ -281,8 +292,8 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
     // Step 2: Calculate scores outside of a transaction
     const scores = await this.calculateScoresForDocuments(
       documentIds,
-      threshold,
-      now
+      thresholdDate,
+      today
     );
 
     // Step 3: Update document scores
@@ -295,13 +306,14 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
   }
 
   /**
-   * Calculates popularity scores for a set of documents.
+   * Calculates popularity scores for a set of documents by summing weighted,
+   * time-decayed daily activity counts from the document_insights rollup.
    * This is a read-only operation that doesn't require locks.
    */
   private async calculateScoresForDocuments(
     documentIds: string[],
-    threshold: Date,
-    now: Date
+    thresholdDate: string,
+    today: string
   ): Promise<DocumentScore[]> {
     const results = await sequelizeReadOnly.query<{
       documentId: string;
@@ -310,60 +322,39 @@ export default class UpdateDocumentsPopularityScoreTask extends CronTask {
       `
       WITH batch_docs AS (
         SELECT * FROM unnest(ARRAY[:documentIds]::uuid[]) AS t(id)
-      ),
-      revision_scores AS (
-        SELECT
-          r."documentId",
-          SUM(:revisionWeight / POWER(
-            GREATEST(EXTRACT(EPOCH FROM (:now::timestamp - r."createdAt")) / 3600 + :timeOffset, 0.1),
-            :gravity
-          )) as score
-        FROM revisions r
-        INNER JOIN batch_docs bd ON r."documentId" = bd.id
-        WHERE r."createdAt" >= :threshold
-        GROUP BY r."documentId"
-      ),
-      comment_scores AS (
-        SELECT
-          c."documentId",
-          SUM(:commentWeight / POWER(
-            GREATEST(EXTRACT(EPOCH FROM (:now::timestamp - c."createdAt")) / 3600 + :timeOffset, 0.1),
-            :gravity
-          )) as score
-        FROM comments c
-        INNER JOIN batch_docs bd ON c."documentId" = bd.id
-        WHERE c."createdAt" >= :threshold
-        GROUP BY c."documentId"
-      ),
-      view_scores AS (
-        SELECT
-          v."documentId",
-          SUM(:viewWeight / POWER(
-            GREATEST(EXTRACT(EPOCH FROM (:now::timestamp - v."updatedAt")) / 3600 + :timeOffset, 0.1),
-            :gravity
-          )) as score
-        FROM views v
-        INNER JOIN batch_docs bd ON v."documentId" = bd.id
-        WHERE v."updatedAt" >= :threshold
-        GROUP BY v."documentId"
       )
       SELECT
-        bd.id as "documentId",
-        COALESCE(rs.score, 0) + COALESCE(cs.score, 0) + COALESCE(vs.score, 0) as total_score
+        bd.id AS "documentId",
+        COALESCE(SUM(
+          (di."revisionCount" * :revisionWeight
+            + di."commentCount" * :commentWeight
+            + di."reactionCount" * :reactionWeight
+            + di."viewCount" * :viewWeight)
+          / POWER(
+            GREATEST(
+              (:today::date - di.date) * 24 + :timeOffset,
+              0.1
+            ),
+            :gravity
+          )
+        ), 0) AS total_score
       FROM batch_docs bd
-      LEFT JOIN revision_scores rs ON bd.id = rs."documentId"
-      LEFT JOIN comment_scores cs ON bd.id = cs."documentId"
-      LEFT JOIN view_scores vs ON bd.id = vs."documentId"
+      LEFT JOIN document_insights di
+        ON di."documentId" = bd.id
+        AND di.date >= :thresholdDate::date
+        AND di.date <= :today::date
+      GROUP BY bd.id
       `,
       {
         replacements: {
           documentIds,
-          threshold,
-          now,
+          thresholdDate,
+          today,
           gravity: env.POPULARITY_GRAVITY,
           timeOffset: TIME_OFFSET_HOURS,
           revisionWeight: ACTIVITY_WEIGHTS.revision,
           commentWeight: ACTIVITY_WEIGHTS.comment,
+          reactionWeight: ACTIVITY_WEIGHTS.reaction,
           viewWeight: ACTIVITY_WEIGHTS.view,
         },
         type: QueryTypes.SELECT,
