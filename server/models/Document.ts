@@ -363,6 +363,11 @@ class Document extends ArchivableModel<
   @SkipChangeset
   state?: Uint8Array | null;
 
+  /** Whether this document has restricted access (does not inherit permissions from parent/collection). */
+  @Default(false)
+  @Column
+  isPrivate: boolean;
+
   /** Whether this document is part of onboarding. */
   @Default(false)
   @Column
@@ -452,7 +457,8 @@ class Document extends ArchivableModel<
       !(
         model.changed("title") ||
         model.changed("icon") ||
-        model.changed("color")
+        model.changed("color") ||
+        model.changed("isPrivate")
       ) ||
       !model.collectionId
     ) {
@@ -563,6 +569,49 @@ class Document extends ArchivableModel<
       throw ValidationError(
         "infinite loop detected, cannot nest a document inside itself"
       );
+    }
+  }
+
+  @BeforeUpdate
+  static async validateIsPrivateChange(
+    model: Document,
+    options: SaveOptions<InferAttributes<Document>>
+  ) {
+    if (!model.changed("isPrivate") || model.isPrivate) {
+      return;
+    }
+
+    // Cannot unrestrict a child of a restricted parent
+    if (model.parentDocumentId) {
+      const parentDocument = await this.unscoped().findOne({
+        attributes: ["id", "isPrivate"],
+        where: { id: model.parentDocumentId },
+        transaction: options.transaction,
+      });
+      if (parentDocument?.isPrivate) {
+        throw ValidationError(
+          "Cannot remove restriction from a document whose parent is restricted"
+        );
+      }
+    }
+  }
+
+  @AfterUpdate
+  static async cascadeIsPrivateChange(model: Document, ctx: HookContext) {
+    if (!model.changed("isPrivate")) {
+      return;
+    }
+
+    // Skip cascade during publish — publish handles its own membership setup
+    if (model.changed("publishedAt")) {
+      return;
+    }
+
+    const transaction = ctx.transaction;
+    if (model.isPrivate) {
+      await model.cascadeRestrict({ transaction });
+    } else {
+      await model.cascadeUnrestrict({ transaction });
     }
   }
 
@@ -844,14 +893,28 @@ class Document extends ArchivableModel<
       return documents;
     }
 
-    return documents.filter(
-      (doc) =>
-        (!doc.collection?.isPrivate && !user?.isGuest) ||
-        (doc.collection?.memberships.length || 0) > 0 ||
-        (doc.collection?.groupMemberships.length || 0) > 0 ||
-        doc.memberships.length > 0 ||
-        doc.groupMemberships.length > 0
-    );
+    return documents.filter((doc) => {
+      const hasDirectAccess =
+        doc.memberships.length > 0 || doc.groupMemberships.length > 0;
+      if (hasDirectAccess) {
+        return true;
+      }
+
+      // Check isPrivate safely (may not be loaded when attributes are restricted)
+      let isPrivate = false;
+      try {
+        isPrivate = doc.isPrivate;
+      } catch {
+        // attribute not loaded, treat as unrestricted
+      }
+
+      return (
+        !isPrivate &&
+        ((!doc.collection?.isPrivate && !user?.isGuest) ||
+          (doc.collection?.memberships.length || 0) > 0 ||
+          (doc.collection?.groupMemberships.length || 0) > 0)
+      );
+    });
   }
 
   // instance methods
@@ -987,6 +1050,169 @@ class Document extends ArchivableModel<
     return findAllChildDocumentIds(this.id);
   };
 
+  /**
+   * Cascade restriction to all descendant documents. Destroys sourced
+   * memberships inherited from outside the subtree, then rebuilds sourced
+   * memberships from direct memberships within the subtree so that users
+   * explicitly shared on this document (or its children) retain access.
+   *
+   * @param options - options including transaction.
+   */
+  cascadeRestrict = async (options: { transaction?: Transaction }) => {
+    const { transaction } = options;
+    const childDocumentIds = await this.findAllChildDocumentIds(undefined, {
+      transaction,
+    });
+
+    if (childDocumentIds.length) {
+      // Note: bulk update intentionally does not fire instance hooks
+      await (this.constructor as typeof Document).update(
+        { isPrivate: true },
+        { where: { id: childDocumentIds }, transaction }
+      );
+    }
+
+    const allDocIds = [this.id, ...childDocumentIds];
+
+    // Destroy all sourced memberships in the subtree
+    await UserMembership.destroy({
+      where: {
+        documentId: { [Op.in]: allDocIds },
+        sourceId: { [Op.ne]: null },
+      },
+      transaction,
+    });
+    await GroupMembership.destroy({
+      where: {
+        documentId: { [Op.in]: allDocIds },
+        sourceId: { [Op.ne]: null },
+      },
+      transaction,
+    });
+
+    // Rebuild sourced memberships from direct memberships within the subtree
+    const directUserMemberships = await UserMembership.findAll({
+      where: {
+        documentId: { [Op.in]: allDocIds },
+        sourceId: null,
+      },
+      transaction,
+    });
+    for (const membership of directUserMemberships) {
+      await UserMembership.recreateSourcedMemberships(membership, {
+        transaction,
+      });
+    }
+
+    const directGroupMemberships = await GroupMembership.findAll({
+      where: {
+        documentId: { [Op.in]: allDocIds },
+        sourceId: null,
+      },
+      transaction,
+    });
+    for (const membership of directGroupMemberships) {
+      await GroupMembership.recreateSourcedMemberships(membership, {
+        transaction,
+      });
+    }
+  };
+
+  /**
+   * Cascade unrestriction to all descendant documents, re-inheriting
+   * memberships from ancestor documents and the subtree.
+   *
+   * @param options - options including transaction.
+   */
+  cascadeUnrestrict = async (options: { transaction?: Transaction }) => {
+    const { transaction } = options;
+    const childDocumentIds = await this.findAllChildDocumentIds(undefined, {
+      transaction,
+    });
+
+    if (childDocumentIds.length) {
+      // Note: bulk update intentionally does not fire instance hooks
+      await (this.constructor as typeof Document).update(
+        { isPrivate: false },
+        { where: { id: childDocumentIds }, transaction }
+      );
+    }
+
+    // Walk up the ancestor chain and find all direct memberships on shared
+    // parent documents, then cascade them into this document and its children.
+    // We use the direct (root) memberships to ensure correct sourceId chains.
+    let currentDocId: string | null | undefined = this.parentDocumentId;
+    while (currentDocId) {
+      const ancestor: Document | null = await (
+        this.constructor as typeof Document
+      )
+        .unscoped()
+        .scope("withoutState")
+        .findOne({
+          attributes: ["id", "parentDocumentId", "isPrivate"],
+          where: { id: currentDocId },
+          transaction,
+        });
+      if (!ancestor) {
+        break;
+      }
+
+      const directUserMemberships = await UserMembership.findAll({
+        where: { documentId: ancestor.id, sourceId: null },
+        transaction,
+      });
+      for (const membership of directUserMemberships) {
+        await UserMembership.recreateSourcedMemberships(membership, {
+          transaction,
+          documentId: this.id,
+        });
+      }
+
+      const directGroupMemberships = await GroupMembership.findAll({
+        where: { documentId: ancestor.id, sourceId: null },
+        transaction,
+      });
+      for (const membership of directGroupMemberships) {
+        await GroupMembership.recreateSourcedMemberships(membership, {
+          transaction,
+          documentId: this.id,
+        });
+      }
+
+      // Stop at private boundaries — memberships don't cascade through them
+      if (ancestor.isPrivate) {
+        break;
+      }
+      currentDocId = ancestor.parentDocumentId;
+    }
+
+    // Recreate sourced memberships from direct memberships within the subtree.
+    // These may have been added while the document was private and couldn't
+    // cascade to children that were also marked private.
+    const allDocIds = [this.id, ...childDocumentIds];
+    for (const docId of allDocIds) {
+      const directUserMemberships = await UserMembership.findAll({
+        where: { documentId: docId, sourceId: null },
+        transaction,
+      });
+      for (const membership of directUserMemberships) {
+        await UserMembership.recreateSourcedMemberships(membership, {
+          transaction,
+        });
+      }
+
+      const directGroupMemberships = await GroupMembership.findAll({
+        where: { documentId: docId, sourceId: null },
+        transaction,
+      });
+      for (const membership of directGroupMemberships) {
+        await GroupMembership.recreateSourcedMemberships(membership, {
+          transaction,
+        });
+      }
+    }
+  };
+
   publish = async (
     ctx: APIContext,
     {
@@ -1035,6 +1261,21 @@ class Document extends ArchivableModel<
         if (this.collection) {
           this.collection.documentStructure = collection.documentStructure;
         }
+      }
+    }
+
+    // Auto-restrict when publishing under a restricted parent
+    if (this.parentDocumentId) {
+      const parentDocument = await (this.constructor as typeof Document)
+        .unscoped()
+        .findOne({
+          attributes: ["id", "isPrivate"],
+          where: { id: this.parentDocumentId },
+          transaction,
+        });
+
+      if (parentDocument?.isPrivate) {
+        this.isPrivate = true;
       }
     }
 
@@ -1308,6 +1549,7 @@ class Document extends ArchivableModel<
       url: this.url,
       icon: isNil(this.icon) ? undefined : this.icon,
       color: isNil(this.color) ? undefined : this.color,
+      isPrivate: this.isPrivate || undefined,
       children,
     };
   };

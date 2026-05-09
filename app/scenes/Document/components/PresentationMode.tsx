@@ -365,6 +365,7 @@ function PresentationMode({ title, icon, iconColor, data, onClose }: Props) {
                 <a
                   href="https://docs.getoutline.com/s/guide/doc/present-mode-yMGzaY7A9L"
                   target="_blank"
+                  rel="noreferrer"
                 >
                   {t("Learn more")}
                 </a>

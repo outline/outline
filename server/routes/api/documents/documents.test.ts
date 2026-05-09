@@ -5842,6 +5842,62 @@ describe("#documents.documents", () => {
     expect(body).toMatchSnapshot();
   });
 
+  it("should filter private children the user cannot access", async () => {
+    const team = await buildTeam();
+    const owner = await buildUser({ teamId: team.id });
+    const viewer = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: owner.id,
+      teamId: team.id,
+    });
+
+    const parent = await buildDocument({
+      userId: owner.id,
+      collectionId: collection.id,
+      teamId: team.id,
+    });
+    const publicChild = await buildDocument({
+      userId: owner.id,
+      collectionId: collection.id,
+      teamId: team.id,
+      parentDocumentId: parent.id,
+      title: "Public Child",
+    });
+    const privateChild = await buildDocument({
+      userId: owner.id,
+      collectionId: collection.id,
+      teamId: team.id,
+      parentDocumentId: parent.id,
+      title: "Private Child",
+    });
+
+    // Make privateChild private
+    privateChild.isPrivate = true;
+    await privateChild.save();
+
+    // Give viewer a membership on the parent so they can read it
+    await UserMembership.create({
+      userId: viewer.id,
+      documentId: parent.id,
+      permission: DocumentPermission.ReadWrite,
+      createdById: owner.id,
+    });
+
+    const res = await server.post("/api/documents.documents", {
+      body: {
+        token: viewer.getJwtToken(),
+        id: parent.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.data.id).toBe(parent.id);
+    const childIds = body.data.children.map((node: { id: string }) => node.id);
+    expect(childIds).toContain(publicChild.id);
+    expect(childIds).not.toContain(privateChild.id);
+  });
+
   it("should return 403 if user does not have access to the document", async () => {
     const user = await buildUser();
     const otherUser = await buildUser();

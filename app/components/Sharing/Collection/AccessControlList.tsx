@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { UserIcon } from "outline-icons";
+import { PadlockIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -11,15 +11,21 @@ import type Collection from "~/models/Collection";
 import type Share from "~/models/Share";
 import { Avatar, GroupAvatar, AvatarSize } from "~/components/Avatar";
 import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelect";
-import { InputSelectPermission } from "~/components/InputSelectPermission";
+import { InputSelect, type Option } from "~/components/InputSelect";
 import Scrollable from "~/components/Scrollable";
+import TeamLogo from "~/components/TeamLogo";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useMaxHeight from "~/hooks/useMaxHeight";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import type { Permission } from "~/types";
 import { EmptySelectValue } from "~/types";
-import { Separator, GroupMembersPopover } from "../components";
+import {
+  SectionHeading,
+  SmallInputSelect,
+  Separator,
+  GroupMembersPopover,
+} from "../components";
 import { ListItem } from "../components/ListItem";
 import { Placeholder } from "../components/Placeholder";
 import { PublicAccess } from "./PublicAccess";
@@ -71,6 +77,38 @@ export const AccessControlList = observer(
       calcMaxHeight();
     });
 
+    const accessOptions: Option[] = React.useMemo(
+      () => [
+        {
+          type: "item",
+          label: t("Everyone in workspace"),
+          value: "everyone",
+        },
+        {
+          type: "item",
+          label: t("Restricted"),
+          value: "invited",
+        },
+      ],
+      [t]
+    );
+
+    const permissionOptions: Option[] = React.useMemo(
+      () => [
+        {
+          type: "item",
+          label: t("View only"),
+          value: CollectionPermission.Read,
+        },
+        {
+          type: "item",
+          label: t("Can edit"),
+          value: CollectionPermission.ReadWrite,
+        },
+      ],
+      [t]
+    );
+
     const permissions = React.useMemo(
       () =>
         [
@@ -107,31 +145,64 @@ export const AccessControlList = observer(
           <>
             <ListItem
               image={
-                <Squircle color={theme.accent} size={AvatarSize.Medium}>
-                  <UserIcon color={theme.accentText} size={16} />
-                </Squircle>
+                collection.isPrivate ? (
+                  <Squircle color={theme.textTertiary} size={AvatarSize.Medium}>
+                    <PadlockIcon color={theme.white} size={16} />
+                  </Squircle>
+                ) : (
+                  <TeamLogo model={team} size={AvatarSize.Medium} />
+                )
               }
-              title={t("All members")}
-              subtitle={t("Everyone in the workspace")}
+              title={
+                <SmallInputSelect
+                  options={accessOptions}
+                  value={collection.permission ? "everyone" : "invited"}
+                  onChange={(value: string) => {
+                    if (value === "invited") {
+                      void collection.save({ permission: null });
+                    } else {
+                      void collection.save({
+                        permission: CollectionPermission.Read,
+                      });
+                    }
+                  }}
+                  label={t("Access")}
+                  labelHidden
+                  disabled={!can.update}
+                  short
+                  nude
+                />
+              }
+              subtitle={
+                collection.isPrivate
+                  ? t("Only invited users can access")
+                  : t("All members of {{ itemName }}", {
+                      itemName: team.name,
+                    })
+              }
               actions={
                 <div style={{ marginRight: -8 }}>
-                  <InputSelectPermission
-                    onChange={(
-                      value: CollectionPermission | typeof EmptySelectValue
-                    ) => {
-                      void collection.save({
-                        permission: value === EmptySelectValue ? null : value,
-                      });
-                    }}
-                    disabled={!can.update}
-                    value={collection?.permission}
-                    labelHidden
-                    nude
-                    shrink
-                  />
+                  {collection.permission && (
+                    <InputSelect
+                      options={permissionOptions}
+                      value={collection.permission}
+                      onChange={(value: string) => {
+                        void collection.save({
+                          permission: value as CollectionPermission,
+                        });
+                      }}
+                      label={t("Permission")}
+                      labelHidden
+                      disabled={!can.update}
+                      nude
+                    />
+                  )}
                 </div>
               }
             />
+            {(showLoading || hasMemberships) && (
+              <SectionHeading>{t("People with access")}</SectionHeading>
+            )}
             {showLoading ? (
               <Placeholder />
             ) : (
