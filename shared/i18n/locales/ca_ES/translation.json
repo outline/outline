@@ -259,7 +259,7 @@
   "You will receive an email when it's complete.": "You will receive an email when it's complete.",
   "Select a location to copy": "Select a location to copy",
   "Document copied": "Document copied",
-  "Couldn’t copy the document, try again?": "Couldn’t copy the document, try again?",
+  "Couldn’t copy the document, try again?": "No s'ha pogut copiar el document, provar de nou?",
   "Include nested documents": "Include nested documents",
   "Copy to <em>{{ location }}</em>": "Copy to <em>{{ location }}</em>",
   "Copying": "Copying",
