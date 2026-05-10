@@ -169,6 +169,7 @@
   "New workspace": "Nieuwe werkruimte",
   "Create a workspace": "Werkruimte aanmaken",
   "Login to workspace": "Inloggen op werkruimte",
+  "template": "template",
   "Template deleted": "Sjabloon verwijderd",
   "Deleting": "Verwijderen",
   "Are you sure about that? Deleting the <em>{{ templateName }}</em> template is permanent.": "Weet je het zeker? Het verwijderen van het sjabloon <em>{{ templateName }}</em> is definitief.",
