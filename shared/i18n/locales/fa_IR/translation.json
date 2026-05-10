@@ -169,6 +169,7 @@
   "New workspace": "مجموعه جدید",
   "Create a workspace": "مجموعه ایجاد کنید",
   "Login to workspace": "وارد شدن به workspace",
+  "template": "template",
   "Template deleted": "Template deleted",
   "Deleting": "در حال حذف کردن",
   "Are you sure about that? Deleting the <em>{{ templateName }}</em> template is permanent.": "Are you sure about that? Deleting the <em>{{ templateName }}</em> template is permanent.",
