@@ -169,6 +169,7 @@
   "New workspace": "Новий робочий простір",
   "Create a workspace": "Створити робочий простір",
   "Login to workspace": "Увійти в робоче середовище",
+  "template": "template",
   "Template deleted": "Шаблон видалено",
   "Deleting": "Видаляємо",
   "Are you sure about that? Deleting the <em>{{ templateName }}</em> template is permanent.": "Ви впевнені? Видалення шаблону <em>{{ templateName }}</em> є незворотним.",
