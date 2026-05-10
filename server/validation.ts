@@ -1,4 +1,4 @@
-import { isArrayLike } from "es-toolkit/compat";
+import isArrayLike from "lodash/isArrayLike";
 import sanitize from "sanitize-filename";
 import type { Primitive } from "utility-types";
 import validator from "validator";
@@ -55,11 +55,7 @@ export function assertKeysIn(
   Object.keys(obj).forEach((key) => assertIn(key, Object.values(type)));
 }
 
-export const assertSort = (
-  value: string,
-  model: { rawAttributes: Record<string, unknown> },
-  message?: string
-) => {
+export const assertSort = (value: string, model: any, message?: string) => {
   if (!Object.keys(model.rawAttributes).includes(value)) {
     throw ValidationError(
       message ?? `${String(value)} is not a valid sort field`
@@ -146,6 +142,38 @@ export const assertPositiveInteger = (
     );
   }
 };
+
+const ISO8601_DURATION_RE =
+  /^-?P(?:(\d+W)|((?:\d+Y)?(?:\d+M)?(?:\d+D)?)(T(?:\d+H)?(?:\d+M)?(?:\d+S)?)?)$/;
+
+/**
+ * Validate a string against the ISO 8601 duration format.
+ *
+ * Supported subset: an optional leading `-`, then `P[nY][nM][nW][nD][T[nH][nM][nS]]`.
+ * The weeks form (`PnW`) is mutually exclusive with year/month/day units.
+ * Decimals are not supported.
+ *
+ * @param value the candidate string.
+ * @returns true if the string is a syntactically valid ISO 8601 duration.
+ */
+export function isISO8601Duration(value: string): boolean {
+  const m = ISO8601_DURATION_RE.exec(value);
+  if (!m) {
+    return false;
+  }
+  const [, weeks, date, time] = m;
+  if (weeks) {
+    return true;
+  }
+  // A bare `T` separator with no following time unit is invalid even if a date
+  // portion is present (e.g. `P1DT` should be rejected).
+  if (time === "T") {
+    return false;
+  }
+  const hasDate = !!date && date.length > 0;
+  const hasTime = !!time && time.length > 1;
+  return hasDate || hasTime;
+}
 
 export const assertHexColor = (value: string, message?: string) => {
   if (!validateColorHex(value)) {

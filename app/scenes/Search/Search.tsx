@@ -8,6 +8,7 @@ import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { Pagination } from "@shared/constants";
+import type { Filter } from "@shared/helpers/FilterHelper";
 import type {
   SortFilter as TSortFilter,
   DirectionFilter as TDirectionFilter,
@@ -52,7 +53,6 @@ function Search() {
   const location = useLocation();
   const history = useHistory();
   const routeMatch = useRouteMatch<{ query: string }>();
-  const handleGoBack = React.useCallback(() => history.goBack(), [history]);
 
   // refs
   const searchInputRef = React.useRef<HTMLInputElement | null>(null);
@@ -89,29 +89,90 @@ function Search() {
     sort: isSearchable,
   };
 
-  const filters = React.useMemo(
+  const filters = React.useMemo<Filter[] | undefined>(() => {
+    const children: Filter[] = [];
+    if (collectionId) {
+      children.push({
+        field: "collectionId",
+        operator: "eq",
+        value: collectionId,
+      });
+    }
+    if (userId) {
+      children.push({ field: "userId", operator: "eq", value: userId });
+    }
+    if (documentId) {
+      children.push({
+        field: "documentId",
+        operator: "eq",
+        value: documentId,
+      });
+    }
+    if (dateFilter) {
+      const duration = (
+        {
+          day: "-P1D",
+          week: "-P1W",
+          month: "-P1M",
+          year: "-P1Y",
+        } as const
+      )[dateFilter];
+      if (duration) {
+        children.push({ field: "updatedAt", operator: "gte", value: duration });
+      }
+    }
+    if (statusFilter.length > 0) {
+      const statusShape = (status: TStatusFilter): Filter => {
+        if (status === TStatusFilter.Archived) {
+          return { field: "archivedAt", operator: "isNotNull" };
+        }
+        if (status === TStatusFilter.Published) {
+          return {
+            operator: "AND",
+            filters: [
+              { field: "archivedAt", operator: "isNull" },
+              { field: "publishedAt", operator: "isNotNull" },
+            ],
+          };
+        }
+        return {
+          operator: "AND",
+          filters: [
+            { field: "archivedAt", operator: "isNull" },
+            { field: "publishedAt", operator: "isNull" },
+          ],
+        };
+      };
+      const statusGroup =
+        statusFilter.length === 1
+          ? statusShape(statusFilter[0])
+          : ({
+              operator: "OR",
+              filters: statusFilter.map(statusShape),
+            } as Filter);
+      children.push(statusGroup);
+    }
+    if (children.length === 0) {
+      return undefined;
+    }
+    return children;
+  }, [
+    collectionId,
+    userId,
+    documentId,
+    dateFilter,
+    JSON.stringify(statusFilter),
+  ]);
+
+  const requestParams = React.useMemo(
     () => ({
       query,
-      statusFilter,
-      collectionId,
-      userId,
-      dateFilter,
       titleFilter,
-      documentId,
       sort,
       direction,
+      filters,
     }),
-    [
-      query,
-      JSON.stringify(statusFilter),
-      collectionId,
-      userId,
-      dateFilter,
-      titleFilter,
-      documentId,
-      sort,
-      direction,
-    ]
+    [query, titleFilter, sort, direction, filters]
   );
 
   const requestFn = React.useMemo(() => {
@@ -132,13 +193,19 @@ function Search() {
           limit: params?.limit,
         };
         return titleFilter
-          ? await documents.searchTitles({ ...filters, ...paginationParams })
-          : await documents.search({ ...filters, ...paginationParams });
+          ? await documents.searchTitles({
+              ...requestParams,
+              ...paginationParams,
+            })
+          : await documents.search({
+              ...requestParams,
+              ...paginationParams,
+            });
       };
     }
 
     return () => Promise.resolve([] as SearchResult[]);
-  }, [query, titleFilter, filters, searches, documents, isSearchable]);
+  }, [query, titleFilter, requestParams, searches, documents, isSearchable]);
 
   const { data, next, end, error, loading } = usePaginatedRequest(requestFn, {
     limit: Pagination.defaultLimit,
@@ -250,7 +317,7 @@ function Search() {
       textTitle={query ? `${query} – ${t("Search")}` : t("Search")}
       actions={isMobile ? sortInput : null}
     >
-      <RegisterKeyDown trigger="Escape" handler={handleGoBack} />
+      <RegisterKeyDown trigger="Escape" handler={history.goBack} />
       {loading && <LoadingIndicator />}
       <ResultsWrapper column auto>
         <form method="GET" action={searchPath()} onSubmit={preventDefault}>

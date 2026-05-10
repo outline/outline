@@ -5,7 +5,10 @@ import invariant from "invariant";
 import contentDisposition from "content-disposition";
 import JSZip from "jszip";
 import Router from "koa-router";
-import { escapeRegExp, has, remove, uniq } from "es-toolkit/compat";
+import escapeRegExp from "lodash/escapeRegExp";
+import has from "lodash/has";
+import remove from "lodash/remove";
+import uniq from "lodash/uniq";
 import mime from "mime-types";
 import type { Order, ScopeOptions, WhereOptions } from "sequelize";
 import { Op, Sequelize } from "sequelize";
@@ -62,6 +65,17 @@ import {
 } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import {
+  authorizeFilterFields,
+  buildWhere,
+  combineFilters,
+  extractTopLevelEqValue,
+  hasExplicitCollectionId,
+  hasFieldInFilter,
+  legacyParamsToFilter,
+  mapFilterFields,
+  translateSearchFilter,
+} from "@server/models/helpers/Filters";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import SearchProviderManager from "@server/utils/SearchProviderManager";
 import { TextHelper } from "@server/models/helpers/TextHelper";
@@ -106,12 +120,13 @@ router.post(
     const {
       sort,
       direction,
-      collectionId,
       backlinkDocumentId,
-      parentDocumentId,
-      userId: createdById,
+      parentDocumentId: legacyParentDocumentId,
+      userId: legacyUserId,
       statusFilter,
+      filters: rawFilters,
     } = ctx.input.body;
+    let { collectionId: legacyCollectionId } = ctx.input.body;
     const { offset, limit } = ctx.state.pagination;
 
     // always filter by the current team
@@ -129,51 +144,26 @@ router.post(
       ],
     };
 
-    // Exclude archived docs by default
-    if (!statusFilter) {
-      where[Op.and].push({ archivedAt: { [Op.eq]: null } });
-    }
+    // Resolve the parent document being targeted from either the legacy
+    // top-level param or the filters DSL, so the membership escape below
+    // applies in both cases. `isNull` leaves resolve to undefined here
+    // (no specific parent to authorize against).
+    const normalizedFilter = combineFilters(rawFilters);
+    const parentDocumentId =
+      legacyParentDocumentId ??
+      (normalizedFilter
+        ? extractTopLevelEqValue(normalizedFilter, "parentDocumentId")
+        : undefined);
 
-    // if a specific user is passed then add to filters. If the user doesn't
-    // exist in the team then nothing will be returned, so no need to check auth
-    if (createdById) {
-      where[Op.and].push({ createdById });
-    }
-
-    let documentIds: string[] = [];
-
-    // if a specific collection is passed then we need to check auth to view it
-    if (collectionId) {
-      where[Op.and].push({ collectionId: [collectionId] });
-      const collection = await Collection.findByPk(collectionId, {
-        userId: user.id,
-        includeDocumentStructure: sort === "index",
-      });
-
-      authorize(user, "readDocument", collection);
-
-      // index sort is special because it uses the order of the documents in the
-      // collection.documentStructure rather than a database column
-      if (sort === "index") {
-        // Extract all document IDs from the collection structure.
-        documentIds = (collection.documentStructure || [])
-          .slice(offset, offset + limit)
-          .map((node) => node.id);
-        where[Op.and].push({ id: documentIds });
-      } // if it's not a backlink request, filter by all collections the user has access to
-    } else if (!backlinkDocumentId) {
-      const collectionIds = await user.collectionIds();
-      where[Op.and].push({
-        collectionId: collectionIds,
-      });
-    }
-
+    // Membership escape: if the caller is filtering by a parent document they
+    // are a direct member of (or have group membership to), bypass the default
+    // collection access check. Mirrors the prior behavior of pushing then
+    // removing the legacy collectionId predicate.
+    let collectionScopeDropped = false;
     if (parentDocumentId) {
       const [groupMembership, membership] = await Promise.all([
         GroupMembership.findOne({
-          where: {
-            documentId: parentDocumentId,
-          },
+          where: { documentId: parentDocumentId },
           include: [
             {
               model: Group,
@@ -182,37 +172,84 @@ router.post(
                 {
                   model: GroupUser,
                   required: true,
-                  where: {
-                    userId: user.id,
-                  },
+                  where: { userId: user.id },
                 },
               ],
             },
           ],
         }),
         UserMembership.findOne({
-          where: {
-            userId: user.id,
-            documentId: parentDocumentId,
-          },
+          where: { userId: user.id, documentId: parentDocumentId },
         }),
       ]);
 
       if (groupMembership || membership) {
-        remove(where[Op.and], (cond) => has(cond, "collectionId"));
+        collectionScopeDropped = true;
+        legacyCollectionId = undefined;
       }
-
-      where[Op.and].push({ parentDocumentId });
     }
 
-    // Explicitly passing 'null' as the parentDocumentId allows listing documents
-    // that have no parent document (aka they are at the root of the collection)
-    if (parentDocumentId === null) {
-      where[Op.and].push({
-        parentDocumentId: {
-          [Op.is]: null,
-        },
+    // The schema rejects callers that combine `filters` with the deprecated
+    // top-level params, so exactly one of these is set.
+    const filter =
+      normalizedFilter ??
+      legacyParamsToFilter({
+        userId: legacyUserId,
+        collectionId: legacyCollectionId,
+        parentDocumentId: legacyParentDocumentId,
       });
+
+    // Exclude archived docs by default. Suppressed when the caller targets a
+    // specific status, or when their filter already references archivedAt.
+    const filterMentionsArchivedAt =
+      filter !== undefined && hasFieldInFilter(filter, "archivedAt");
+    if (!statusFilter && !filterMentionsArchivedAt) {
+      where[Op.and].push({ archivedAt: { [Op.eq]: null } });
+    }
+
+    // Sort=index needs the collection's documentStructure for ordering and
+    // pagination. Only meaningful when the filter targets a single collection.
+    let documentIds: string[] = [];
+    const explicitCollectionId =
+      filter !== undefined
+        ? extractTopLevelEqValue(filter, "collectionId")
+        : undefined;
+    if (explicitCollectionId && sort === "index") {
+      const collection = await Collection.findByPk(explicitCollectionId, {
+        userId: user.id,
+        includeDocumentStructure: true,
+      });
+      authorize(user, "readDocument", collection);
+      documentIds = (collection.documentStructure || [])
+        .slice(offset, offset + limit)
+        .map((node) => node.id);
+      where[Op.and].push({ id: documentIds });
+    }
+
+    // Apply filter and re-run authorize() for any auth-bearing fields. Field
+    // names are mapped from the public API (e.g. `userId`) to the underlying
+    // column (e.g. `createdById`) only at the point of building the where clause.
+    if (filter) {
+      await authorizeFilterFields(user, filter);
+      const mapped = mapFilterFields(filter, {
+        userId: "createdById",
+        documentId: "id",
+      });
+      where[Op.and].push(buildWhere<Document>(mapped));
+    }
+
+    // Default scope to the user's accessible collections unless the filter
+    // already restricts to specific collections, the request is a backlink
+    // lookup, or the parent-doc membership escape applies.
+    const filterHasExplicitCollection =
+      filter !== undefined && hasExplicitCollectionId(filter);
+    if (
+      !filterHasExplicitCollection &&
+      !backlinkDocumentId &&
+      !collectionScopeDropped
+    ) {
+      const collectionIds = await user.collectionIds();
+      where[Op.and].push({ collectionId: collectionIds });
     }
 
     if (backlinkDocumentId) {
@@ -1026,28 +1063,48 @@ router.post(
   rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsSearchTitlesSchema),
   async (ctx: APIContext<T.DocumentsSearchTitlesReq>) => {
-    const {
-      query,
-      statusFilter,
-      dateFilter,
-      collectionId,
-      userId,
-      sort,
-      direction,
-    } = ctx.input.body;
+    const { query, sort, direction, filters: rawFilters } = ctx.input.body;
+    let { collectionId, userId, documentId, statusFilter, dateFilter } =
+      ctx.input.body;
     const { offset, limit } = ctx.state.pagination;
     const { user } = ctx.state.auth;
-    let collaboratorIds = undefined;
+    const filter = combineFilters(rawFilters);
+    let collaboratorIds: string[] | undefined = undefined;
 
-    if (collectionId) {
+    if (filter) {
+      try {
+        const translated = translateSearchFilter(filter, {
+          allowDocumentId: true,
+        });
+        collectionId = translated.collectionId;
+        collaboratorIds = translated.collaboratorIds;
+        documentId = translated.documentId;
+        statusFilter = translated.statusFilter;
+        dateFilter = translated.dateFilter;
+      } catch (err) {
+        throw InvalidRequestError(
+          err instanceof Error ? err.message : "Invalid filter"
+        );
+      }
+      await authorizeFilterFields(user, filter);
+    } else if (userId) {
+      collaboratorIds = [userId];
+    }
+
+    if (collectionId && !filter) {
       const collection = await Collection.findByPk(collectionId, {
         userId: user.id,
       });
       authorize(user, "readDocument", collection);
     }
 
-    if (userId) {
-      collaboratorIds = [userId];
+    let documentIds: string[] | undefined = undefined;
+    if (documentId) {
+      const document = await Document.findByPk(documentId, {
+        userId: user.id,
+      });
+      authorize(user, "read", document);
+      documentIds = [documentId, ...(await document.findAllChildDocumentIds())];
     }
 
     const documents =
@@ -1057,6 +1114,7 @@ router.post(
         statusFilter,
         collectionId,
         collaboratorIds,
+        documentIds,
         offset,
         limit,
         sort: sort as SortFilter,
@@ -1082,17 +1140,21 @@ router.post(
   async (ctx: APIContext<T.DocumentsSearchReq>) => {
     const {
       query,
-      collectionId,
-      documentId,
-      userId,
-      dateFilter,
-      statusFilter = [],
       shareId,
       snippetMinWords,
       snippetMaxWords,
       sort,
       direction,
+      filters: rawFilters,
     } = ctx.input.body;
+    let {
+      collectionId,
+      documentId,
+      userId,
+      dateFilter,
+      statusFilter = [],
+    } = ctx.input.body;
+    const filter = combineFilters(rawFilters);
     const { offset, limit } = ctx.state.pagination;
     const { user } = ctx.state.auth;
 
@@ -1155,8 +1217,29 @@ router.post(
       }
 
       teamId = user.teamId;
+      let collaboratorIds: string[] | undefined = undefined;
 
-      if (collectionId) {
+      if (filter) {
+        try {
+          const translated = translateSearchFilter(filter, {
+            allowDocumentId: true,
+          });
+          collectionId = translated.collectionId;
+          collaboratorIds = translated.collaboratorIds;
+          documentId = translated.documentId;
+          dateFilter = translated.dateFilter;
+          statusFilter = translated.statusFilter ?? [];
+        } catch (err) {
+          throw InvalidRequestError(
+            err instanceof Error ? err.message : "Invalid filter"
+          );
+        }
+        await authorizeFilterFields(user, filter);
+      } else if (userId) {
+        collaboratorIds = [userId];
+      }
+
+      if (collectionId && !filter) {
         const collection = await Collection.findByPk(collectionId, {
           userId: user.id,
         });
@@ -1173,12 +1256,6 @@ router.post(
           documentId,
           ...(await document.findAllChildDocumentIds()),
         ];
-      }
-
-      let collaboratorIds = undefined;
-
-      if (userId) {
-        collaboratorIds = [userId];
       }
 
       response = await SearchProviderManager.getProvider().searchForUser(user, {
@@ -1501,9 +1578,7 @@ router.post(
   "documents.delete",
   auth(),
   validate(T.DocumentsDeleteSchema),
-  transaction(),
   async (ctx: APIContext<T.DocumentsDeleteReq>) => {
-    const { transaction } = ctx.state;
     const { id, permanent } = ctx.input.body;
     const { user } = ctx.state.auth;
 
@@ -1511,7 +1586,6 @@ router.post(
       const document = await Document.findByPk(id, {
         userId: user.id,
         paranoid: false,
-        transaction,
       });
       authorize(user, "permanentDelete", document);
 
@@ -1527,12 +1601,11 @@ router.post(
     } else {
       const document = await Document.findByPk(id, {
         userId: user.id,
-        transaction,
       });
 
       authorize(user, "delete", document);
 
-      await document.destroyWithCtx(ctx);
+      await document.delete(user);
     }
 
     ctx.body = {
