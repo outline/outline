@@ -17,6 +17,7 @@ import {
   success,
   buildAPIContext,
   getActorFromContext,
+  optionalString,
   withTracing,
 } from "./util";
 
@@ -63,18 +64,15 @@ export function commentTools(server: McpServer, scopes: string[]) {
           readOnlyHint: true,
         },
         inputSchema: {
-          documentId: z
-            .string()
-            .optional()
-            .describe("The document ID to list comments for."),
-          collectionId: z
-            .string()
-            .optional()
-            .describe("The collection ID to list comments for."),
-          parentCommentId: z
-            .string()
-            .optional()
-            .describe("A parent comment ID to list only its replies."),
+          documentId: optionalString().describe(
+            "The document ID to list comments for."
+          ),
+          collectionId: optionalString().describe(
+            "The collection ID to list comments for."
+          ),
+          parentCommentId: optionalString().describe(
+            "A parent comment ID to list only the replies in that thread."
+          ),
           statusFilter: z
             .array(z.enum(CommentStatusFilter))
             .optional()
@@ -236,12 +234,9 @@ export function commentTools(server: McpServer, scopes: string[]) {
           text: z
             .string()
             .describe("The markdown text content of the comment."),
-          parentCommentId: z
-            .string()
-            .optional()
-            .describe(
-              "The parent comment ID to reply to. Omit for a top-level comment."
-            ),
+          parentCommentId: optionalString().describe(
+            "The parent comment ID to reply to. Omit for a top-level comment."
+          ),
         },
       },
       withTracing(
