@@ -169,6 +169,7 @@
   "New workspace": "새 워크스페이스",
   "Create a workspace": "워크스페이스 만들기",
   "Login to workspace": "워크스페이스에 로그인",
+  "template": "template",
   "Template deleted": "템플릿이 삭제됨",
   "Deleting": "삭제 중",
   "Are you sure about that? Deleting the <em>{{ templateName }}</em> template is permanent.": "정말로 진행할까요? <em>{{ templateName }}</em> 템플릿을 삭제하면 되돌릴 수 없습니다.",
