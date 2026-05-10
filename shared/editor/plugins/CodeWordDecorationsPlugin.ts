@@ -1,6 +1,9 @@
-import type { EditorState } from "prosemirror-state";
+import type { Node } from "prosemirror-model";
+import type { EditorState, Transaction } from "prosemirror-state";
 import { Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
+import { changedDescendants } from "../lib/changedDescendants";
+import { isRemoteTransaction } from "../lib/multiplayer";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 
 interface CodeWordDecorationsConfig {
@@ -22,13 +25,19 @@ class CodeWordDecorationsPlugin extends Plugin {
           decorations: this.createDecorations(state, finalConfig),
         }),
         apply: (tr, pluginState, _oldState, newState) => {
-          // Only recompute if doc changed
-          if (tr.docChanged) {
+          if (!tr.docChanged) {
+            return pluginState;
+          }
+
+          if (isRemoteTransaction(tr) || this.hasCodeInlineChange(tr)) {
             return {
               decorations: this.createDecorations(newState, finalConfig),
             };
           }
-          return pluginState;
+
+          return {
+            decorations: pluginState.decorations.map(tr.mapping, tr.doc),
+          };
         },
       },
       props: {
@@ -38,6 +47,33 @@ class CodeWordDecorationsPlugin extends Plugin {
         },
       },
     });
+  }
+
+  /**
+   * Check if the transaction changed any text nodes with code_inline marks.
+   */
+  private hasCodeInlineChange(tr: Transaction): boolean {
+    const codeMarkType = tr.doc.type.schema.marks.code_inline;
+    if (!codeMarkType) {
+      return false;
+    }
+
+    let found = false;
+    const check = (node: Node) => {
+      if (
+        !found &&
+        node.isText &&
+        node.marks.some((m) => m.type === codeMarkType)
+      ) {
+        found = true;
+      }
+    };
+
+    changedDescendants(tr.before, tr.doc, 0, check);
+    if (!found) {
+      changedDescendants(tr.doc, tr.before, 0, check);
+    }
+    return found;
   }
 
   private createDecorations(
