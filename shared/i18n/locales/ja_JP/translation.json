@@ -169,6 +169,7 @@
   "New workspace": "新しいワークスペース",
   "Create a workspace": "ワークスペースを作成",
   "Login to workspace": "ワークスペースにログイン",
+  "template": "template",
   "Template deleted": "テンプレートが削除されました",
   "Deleting": "削除中",
   "Are you sure about that? Deleting the <em>{{ templateName }}</em> template is permanent.": "Are you sure about that? Deleting the <em>{{ templateName }}</em> template is permanent.",
