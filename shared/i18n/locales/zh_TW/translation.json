@@ -169,6 +169,7 @@
   "New workspace": "新建的工作空間",
   "Create a workspace": "建立新的工作空間",
   "Login to workspace": "登入工作區",
+  "template": "template",
   "Template deleted": "範本已刪除",
   "Deleting": "正在刪除",
   "Are you sure about that? Deleting the <em>{{ templateName }}</em> template is permanent.": "您確定要刪除 <em>{{ templateName }}</em> 範本？ 此動作無法復原。",
