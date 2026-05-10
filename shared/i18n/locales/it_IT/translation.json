@@ -169,6 +169,7 @@
   "New workspace": "Nuova area di lavoro",
   "Create a workspace": "Crea area di lavoro",
   "Login to workspace": "Accedi allo spazio di lavoro",
+  "template": "template",
   "Template deleted": "Modello eliminato",
   "Deleting": "Sto eliminando",
   "Are you sure about that? Deleting the <em>{{ templateName }}</em> template is permanent.": "Ne sei sicuro? L'eliminazione del modello <em>{{ templateName }}</em> è definitiva.",
