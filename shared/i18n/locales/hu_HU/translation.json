@@ -169,6 +169,7 @@
   "New workspace": "Új munkaterület",
   "Create a workspace": "Munkaterület létrehozása",
   "Login to workspace": "Bejelentkezés a munkaterületbe",
+  "template": "template",
   "Template deleted": "Template deleted",
   "Deleting": "Törlés",
   "Are you sure about that? Deleting the <em>{{ templateName }}</em> template is permanent.": "Are you sure about that? Deleting the <em>{{ templateName }}</em> template is permanent.",
