@@ -169,6 +169,7 @@
   "New workspace": "Nowy obszar roboczy",
   "Create a workspace": "Stwórz obszar roboczy",
   "Login to workspace": "Zaloguj się do projektu",
+  "template": "template",
   "Template deleted": "Szablon usunięty",
   "Deleting": "Usuwanie",
   "Are you sure about that? Deleting the <em>{{ templateName }}</em> template is permanent.": "Are you sure about that? Deleting the <em>{{ templateName }}</em> template is permanent.",
