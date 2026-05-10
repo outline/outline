@@ -169,6 +169,7 @@
   "New workspace": "Workspace mới",
   "Create a workspace": "Tạo workspace",
   "Login to workspace": "Đăng nhập vào không gian làm việc",
+  "template": "template",
   "Template deleted": "Template deleted",
   "Deleting": "Đang xóa",
   "Are you sure about that? Deleting the <em>{{ templateName }}</em> template is permanent.": "Are you sure about that? Deleting the <em>{{ templateName }}</em> template is permanent.",
