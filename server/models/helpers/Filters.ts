@@ -182,20 +182,6 @@ export function collectEqValues(filter: Filter, field: string): string[] {
 }
 
 /**
- * Whether the filter narrows results to one or more specific collections via `eq` or `in`.
- *
- * Used by the `documents.list` handler to decide if the default `user.collectionIds()`
- * scope should be applied. Other operators (e.g. `neq`, `isNull`) do not constitute
- * an explicit collection target, and the default scope must still be applied.
- *
- * @param filter the filter to inspect.
- * @returns true if collectionId is restricted to specific values via eq/in.
- */
-export function hasExplicitCollectionId(filter: Filter): boolean {
-  return collectEqValues(filter, "collectionId").length > 0;
-}
-
-/**
  * Extract a single top-level eq value for a given field, if present.
  *
  * Only matches when the filter root is either a leaf condition or an AND group
@@ -303,217 +289,193 @@ export function legacyParamsToFilter(legacy: LegacyParams): Filter | undefined {
   return { operator: "AND", filters: leaves };
 }
 
-interface SearchFilterTranslation {
+/**
+ * Set of fields supported in a search filter expression. Only fields whose
+ * semantics are well-defined for ranked, full-text search are accepted —
+ * arbitrary WHERE conditions can produce surprising or unbounded results.
+ *
+ * `id` is included for internal use after a `documentId` leaf is expanded
+ * to its descendant ids by the route handler.
+ */
+const SEARCH_FILTER_FIELDS = new Set([
+  "id",
+  "collectionId",
+  "userId",
+  "updatedAt",
+  "archivedAt",
+  "publishedAt",
+]);
+
+function searchLeafToWhere(
+  condition: FilterCondition
+): Record<string, unknown> {
+  const { field, operator, value } = condition;
+
+  if (!SEARCH_FILTER_FIELDS.has(field)) {
+    throw new Error(`Search filter does not support field '${field}'`);
+  }
+
+  if (field === "userId") {
+    if (operator === "eq" && value !== undefined) {
+      return { collaboratorIds: { [Op.contains]: [String(value)] } };
+    }
+    if (operator === "in" && Array.isArray(value)) {
+      return { collaboratorIds: { [Op.contains]: value.map(String) } };
+    }
+    throw new Error("Search filter only supports `eq` or `in` on userId");
+  }
+
+  return leafToWhere(condition);
+}
+
+/**
+ * Convert a filter expression into a Sequelize WHERE clause for full-text
+ * search. The translation differs from `buildWhere` in two ways:
+ *
+ *   - `userId` leaves map to `collaboratorIds @> ARRAY[...]` rather than to
+ *     the document's creator. Search semantics are "documents this user
+ *     collaborated on", not "documents this user authored".
+ *   - The leaf field allowlist is intentionally narrow — see
+ *     `SEARCH_FILTER_FIELDS` — to keep search behavior predictable.
+ *
+ * `documentId` leaves must be expanded to `id` leaves by the route handler
+ * before reaching this function (the expansion is async and authorization-
+ * sensitive, so it does not belong inside the search provider).
+ *
+ * @param filter the filter expression.
+ * @returns a Sequelize WHERE clause.
+ * @throws if the filter references an unsupported field or operator.
+ */
+export function buildSearchWhere<M extends object = object>(
+  filter: Filter
+): WhereOptions<M> {
+  if (isGroup(filter)) {
+    const subWheres = filter.filters.map((f) => buildSearchWhere<M>(f));
+    const op = filter.operator === "AND" ? Op.and : Op.or;
+    return { [op]: subWheres } as WhereOptions<M>;
+  }
+  return searchLeafToWhere(filter) as WhereOptions<M>;
+}
+
+interface LegacySearchParams {
   collectionId?: string;
-  collaboratorIds?: string[];
+  userId?: string;
   documentId?: string;
   dateFilter?: DateFilter;
   statusFilter?: StatusFilter[];
 }
 
-interface TranslateSearchFilterOptions {
-  /** Whether `documentId` is a permitted leaf field. */
-  allowDocumentId?: boolean;
-}
-
-const DATE_FILTER_BY_DURATION: Record<string, DateFilter> = {
-  "-P1D": "day",
-  "-P1W": "week",
-  "-P1M": "month",
-  "-P1Y": "year",
+const DURATION_BY_DATE_FILTER: Record<DateFilter, string> = {
+  day: "-P1D",
+  week: "-P1W",
+  month: "-P1M",
+  year: "-P1Y",
 };
 
-function recognizeDateFilter(leaf: FilterCondition): DateFilter | undefined {
-  if (
-    leaf.field !== "updatedAt" ||
-    leaf.operator !== "gte" ||
-    typeof leaf.value !== "string"
-  ) {
-    return undefined;
+function statusToFilter(status: StatusFilter): Filter {
+  if (status === StatusFilterEnum.Archived) {
+    return { field: "archivedAt", operator: "isNotNull" };
   }
-  return DATE_FILTER_BY_DURATION[leaf.value];
-}
-
-function recognizeStatus(node: Filter): StatusFilter | undefined {
-  if (!isGroup(node)) {
-    if (node.field === "archivedAt" && node.operator === "isNotNull") {
-      return StatusFilterEnum.Archived;
-    }
-    return undefined;
+  if (status === StatusFilterEnum.Published) {
+    return {
+      operator: "AND",
+      filters: [
+        { field: "archivedAt", operator: "isNull" },
+        { field: "publishedAt", operator: "isNotNull" },
+      ],
+    };
   }
-  if (node.operator !== "AND" || node.filters.length !== 2) {
-    return undefined;
-  }
-  const archived = node.filters.find(
-    (f): f is FilterCondition => !isGroup(f) && f.field === "archivedAt"
-  );
-  const published = node.filters.find(
-    (f): f is FilterCondition => !isGroup(f) && f.field === "publishedAt"
-  );
-  if (
-    !archived ||
-    !published ||
-    archived.operator !== "isNull" ||
-    node.filters.length !== 2
-  ) {
-    return undefined;
-  }
-  if (published.operator === "isNotNull") {
-    return StatusFilterEnum.Published;
-  }
-  if (published.operator === "isNull") {
-    return StatusFilterEnum.Draft;
-  }
-  return undefined;
-}
-
-function recognizeStatusGroup(node: Filter): StatusFilter[] | undefined {
-  const single = recognizeStatus(node);
-  if (single) {
-    return [single];
-  }
-  if (isGroup(node) && node.operator === "OR") {
-    const statuses: StatusFilter[] = [];
-    for (const child of node.filters) {
-      const s = recognizeStatus(child);
-      if (!s) {
-        return undefined;
-      }
-      statuses.push(s);
-    }
-    return statuses;
-  }
-  return undefined;
+  // Draft
+  return {
+    operator: "AND",
+    filters: [
+      { field: "archivedAt", operator: "isNull" },
+      { field: "publishedAt", operator: "isNull" },
+    ],
+  };
 }
 
 /**
- * Translate a search filter expression into the subset of SearchOptions fields
- * that SearchProvider implementations accept.
+ * Translate the deprecated top-level search params into a filter expression.
+ * Used by `documents.search` and `documents.search_titles` to keep legacy
+ * callers working without the route handler having to special-case each
+ * parameter inside the search provider.
  *
- * Search providers consume a fixed shape rather than arbitrary WHERE clauses,
- * so the filter must be either a single leaf or an AND group whose children
- * are each one of:
- *   - `collectionId` eq → `collectionId`
- *   - `userId` eq → `collaboratorIds: [value]`
- *   - `userId` in → `collaboratorIds: [...values]`
- *   - `documentId` eq → `documentId` (only when allowDocumentId is true)
- *   - `updatedAt` gte with a duration `-P1D|-P1W|-P1M|-P1Y` → `dateFilter` preset
- *   - a status shape (single or OR group): each shape is one of:
- *     - `archivedAt isNotNull` → `archived`
- *     - AND of `archivedAt isNull` + `publishedAt isNotNull` → `published`
- *     - AND of `archivedAt isNull` + `publishedAt isNull` → `draft`
- *
- * @param filter the filter to translate.
- * @param options translation options.
- * @returns the SearchOptions subset extracted from the filter.
- * @throws if the filter shape is not supported for search.
+ * @param legacy the deprecated top-level params.
+ * @returns the equivalent filter expression, or undefined if none were set.
  */
-export function translateSearchFilter(
-  filter: Filter,
-  options: TranslateSearchFilterOptions = {}
-): SearchFilterTranslation {
-  // The root itself may be a recognized status shape (single status, AND of
-  // archivedAt+publishedAt for published/draft, or OR group of statuses).
-  const rootStatuses = recognizeStatusGroup(filter);
-  if (rootStatuses) {
-    return { statusFilter: rootStatuses };
-  }
+export function legacySearchParamsToFilter(
+  legacy: LegacySearchParams
+): Filter | undefined {
+  const leaves: Filter[] = [];
 
-  if (isGroup(filter) && filter.operator !== "AND") {
-    throw new Error(
-      `Search filter only supports AND groups at the top level; got ${filter.operator}`
+  if (legacy.collectionId) {
+    leaves.push({
+      field: "collectionId",
+      operator: "eq",
+      value: legacy.collectionId,
+    });
+  }
+  if (legacy.userId) {
+    leaves.push({ field: "userId", operator: "eq", value: legacy.userId });
+  }
+  if (legacy.documentId) {
+    leaves.push({
+      field: "documentId",
+      operator: "eq",
+      value: legacy.documentId,
+    });
+  }
+  if (legacy.dateFilter) {
+    leaves.push({
+      field: "updatedAt",
+      operator: "gte",
+      value: DURATION_BY_DATE_FILTER[legacy.dateFilter],
+    });
+  }
+  if (legacy.statusFilter && legacy.statusFilter.length > 0) {
+    const statusShapes = legacy.statusFilter.map(statusToFilter);
+    leaves.push(
+      statusShapes.length === 1
+        ? statusShapes[0]
+        : { operator: "OR", filters: statusShapes }
     );
   }
 
-  const children: Filter[] =
-    isGroup(filter) && filter.operator === "AND" ? filter.filters : [filter];
+  return combineFilters(leaves);
+}
 
-  const result: SearchFilterTranslation = {};
-  const seenLeafFields = new Set<string>();
-
-  const setOnce = <K extends keyof SearchFilterTranslation>(
-    key: K,
-    value: SearchFilterTranslation[K],
-    label: string
-  ) => {
-    if (result[key] !== undefined) {
-      throw new Error(`Search filter has duplicate ${label}`);
-    }
-    result[key] = value;
-  };
-
-  for (const child of children) {
-    if (isGroup(child)) {
-      const statuses = recognizeStatusGroup(child);
-      if (!statuses) {
-        throw new Error("Search filter contains an unrecognized group");
-      }
-      setOnce("statusFilter", statuses, "status filter");
-      continue;
-    }
-
-    // Try date filter
-    const dateFilter = recognizeDateFilter(child);
-    if (dateFilter) {
-      setOnce("dateFilter", dateFilter, "date filter");
-      continue;
-    }
-
-    // Try standalone status (e.g. archivedAt isNotNull)
-    const statusOnly = recognizeStatus(child);
-    if (statusOnly) {
-      setOnce("statusFilter", [statusOnly], "status filter");
-      continue;
-    }
-
-    if (seenLeafFields.has(child.field)) {
-      throw new Error(
-        `Search filter has multiple leaves on the same field '${child.field}'`
-      );
-    }
-    seenLeafFields.add(child.field);
-
-    switch (child.field) {
-      case "collectionId":
-        if (child.operator !== "eq" || child.value === undefined) {
-          throw new Error(
-            "Search filter only supports `eq` on collectionId with a value"
-          );
-        }
-        result.collectionId = String(child.value);
-        break;
-      case "userId":
-        if (child.operator === "eq" && child.value !== undefined) {
-          result.collaboratorIds = [String(child.value)];
-        } else if (child.operator === "in" && Array.isArray(child.value)) {
-          result.collaboratorIds = child.value.map(String);
-        } else {
-          throw new Error(
-            "Search filter only supports `eq` or `in` on userId with a value"
-          );
-        }
-        break;
-      case "documentId":
-        if (!options.allowDocumentId) {
-          throw new Error(
-            "Search filter does not support `documentId` for this endpoint"
-          );
-        }
-        if (child.operator !== "eq" || child.value === undefined) {
-          throw new Error(
-            "Search filter only supports `eq` on documentId with a value"
-          );
-        }
-        result.documentId = String(child.value);
-        break;
-      default:
-        throw new Error(
-          `Search filter does not support field '${child.field}'`
-        );
-    }
+/**
+ * Replace `documentId eq X` leaves in a filter with `id in [...]` leaves
+ * pre-resolved by the route handler (typically X plus its descendant ids).
+ *
+ * @param filter the filter to transform.
+ * @param documentId the documentId value to match leaves against.
+ * @param expandedIds the resolved id list to substitute.
+ * @returns a new filter with the substitution applied.
+ */
+export function expandDocumentIdInFilter(
+  filter: Filter,
+  documentId: string,
+  expandedIds: string[]
+): Filter {
+  if (isGroup(filter)) {
+    return {
+      operator: filter.operator,
+      filters: filter.filters.map((f) =>
+        expandDocumentIdInFilter(f, documentId, expandedIds)
+      ),
+    };
   }
-
-  return result;
+  if (
+    filter.field === "documentId" &&
+    filter.operator === "eq" &&
+    filter.value !== undefined &&
+    String(filter.value) === documentId
+  ) {
+    return { field: "id", operator: "in", value: expandedIds };
+  }
+  return filter;
 }
 
 /**

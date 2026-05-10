@@ -11,6 +11,7 @@ import remove from "lodash/remove";
 import uniq from "lodash/uniq";
 import mime from "mime-types";
 import type { Order, ScopeOptions, WhereOptions } from "sequelize";
+import type { Filter } from "@shared/helpers/FilterHelper";
 import { Op, Sequelize } from "sequelize";
 import { randomUUID } from "node:crypto";
 import type { DirectionFilter, SortFilter } from "@shared/types";
@@ -69,12 +70,12 @@ import {
   authorizeFilterFields,
   buildWhere,
   combineFilters,
+  expandDocumentIdInFilter,
   extractTopLevelEqValue,
-  hasExplicitCollectionId,
   hasFieldInFilter,
   legacyParamsToFilter,
+  legacySearchParamsToFilter,
   mapFilterFields,
-  translateSearchFilter,
 } from "@server/models/helpers/Filters";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import SearchProviderManager from "@server/utils/SearchProviderManager";
@@ -110,6 +111,30 @@ import {
 } from "@server/commands/shareLoader";
 
 const router = new Router();
+
+/**
+ * Resolve a `documentId eq X` leaf in a search filter to an `id in [...]`
+ * leaf containing the document and all of its descendants. The original
+ * document is authorized as part of the lookup.
+ *
+ * @param filter the search filter to transform.
+ * @param user the user performing the search.
+ * @returns the filter with documentId expanded, or the original filter if
+ * no documentId leaf is present.
+ */
+async function expandDocumentIdLeaf(
+  filter: Filter,
+  user: User
+): Promise<Filter> {
+  const documentId = extractTopLevelEqValue(filter, "documentId");
+  if (!documentId) {
+    return filter;
+  }
+  const document = await Document.findByPk(documentId, { userId: user.id });
+  authorize(user, "read", document);
+  const ids = [documentId, ...(await document.findAllChildDocumentIds())];
+  return expandDocumentIdInFilter(filter, documentId, ids);
+}
 
 router.post(
   "documents.list",
@@ -238,18 +263,22 @@ router.post(
       where[Op.and].push(buildWhere<Document>(mapped));
     }
 
-    // Default scope to the user's accessible collections unless the filter
-    // already restricts to specific collections, the request is a backlink
-    // lookup, or the parent-doc membership escape applies.
-    const filterHasExplicitCollection =
-      filter !== undefined && hasExplicitCollectionId(filter);
-    if (
-      !filterHasExplicitCollection &&
-      !backlinkDocumentId &&
-      !collectionScopeDropped
-    ) {
+    // Visibility predicate: a row is visible to the user if it lives in a
+    // collection they can access, or if it is one of their own unplaced
+    // drafts (collectionId is null). This is load-bearing for authorization
+    // — do not skip it based on what the filter "looks like", because under
+    // OR semantics any apparent narrowing collapses. The only exceptions are
+    // the backlink lookup (which scopes by `id` to relationship-derived
+    // documents) and the parent-doc membership escape (which intentionally
+    // surfaces children of an accessible parent across collection boundaries).
+    if (!backlinkDocumentId && !collectionScopeDropped) {
       const collectionIds = await user.collectionIds();
-      where[Op.and].push({ collectionId: collectionIds });
+      where[Op.and].push({
+        [Op.or]: [
+          { collectionId: collectionIds },
+          { collectionId: null, createdById: user.id },
+        ],
+      });
     }
 
     if (backlinkDocumentId) {
@@ -1064,57 +1093,32 @@ router.post(
   validate(T.DocumentsSearchTitlesSchema),
   async (ctx: APIContext<T.DocumentsSearchTitlesReq>) => {
     const { query, sort, direction, filters: rawFilters } = ctx.input.body;
-    let { collectionId, userId, documentId, statusFilter, dateFilter } =
+    const { collectionId, userId, documentId, statusFilter, dateFilter } =
       ctx.input.body;
     const { offset, limit } = ctx.state.pagination;
     const { user } = ctx.state.auth;
-    const filter = combineFilters(rawFilters);
-    let collaboratorIds: string[] | undefined = undefined;
+    const filter =
+      combineFilters(rawFilters) ??
+      legacySearchParamsToFilter({
+        collectionId,
+        userId,
+        documentId,
+        statusFilter,
+        dateFilter,
+      });
 
     if (filter) {
-      try {
-        const translated = translateSearchFilter(filter, {
-          allowDocumentId: true,
-        });
-        collectionId = translated.collectionId;
-        collaboratorIds = translated.collaboratorIds;
-        documentId = translated.documentId;
-        statusFilter = translated.statusFilter;
-        dateFilter = translated.dateFilter;
-      } catch (err) {
-        throw InvalidRequestError(
-          err instanceof Error ? err.message : "Invalid filter"
-        );
-      }
       await authorizeFilterFields(user, filter);
-    } else if (userId) {
-      collaboratorIds = [userId];
     }
 
-    if (collectionId && !filter) {
-      const collection = await Collection.findByPk(collectionId, {
-        userId: user.id,
-      });
-      authorize(user, "readDocument", collection);
-    }
-
-    let documentIds: string[] | undefined = undefined;
-    if (documentId) {
-      const document = await Document.findByPk(documentId, {
-        userId: user.id,
-      });
-      authorize(user, "read", document);
-      documentIds = [documentId, ...(await document.findAllChildDocumentIds())];
-    }
+    const resolvedFilter = filter
+      ? await expandDocumentIdLeaf(filter, user)
+      : undefined;
 
     const documents =
       await SearchProviderManager.getProvider().searchTitlesForUser(user, {
         query,
-        dateFilter,
-        statusFilter,
-        collectionId,
-        collaboratorIds,
-        documentIds,
+        filter: resolvedFilter,
         offset,
         limit,
         sort: sort as SortFilter,
@@ -1147,14 +1151,17 @@ router.post(
       direction,
       filters: rawFilters,
     } = ctx.input.body;
-    let {
-      collectionId,
-      documentId,
-      userId,
-      dateFilter,
-      statusFilter = [],
-    } = ctx.input.body;
-    const filter = combineFilters(rawFilters);
+    const { collectionId, documentId, userId, dateFilter, statusFilter } =
+      ctx.input.body;
+    const filter =
+      combineFilters(rawFilters) ??
+      legacySearchParamsToFilter({
+        collectionId,
+        userId,
+        documentId,
+        statusFilter,
+        dateFilter,
+      });
     const { offset, limit } = ctx.state.pagination;
     const { user } = ctx.state.auth;
 
@@ -1197,12 +1204,24 @@ router.post(
       const team = await share.$get("team");
       invariant(team, "Share must belong to a team");
 
+      const shareScopeId = collection?.id || document?.collectionId;
+      const shareFilter = combineFilters([
+        ...(filter ? [filter] : []),
+        ...(shareScopeId
+          ? [
+              {
+                field: "collectionId",
+                operator: "eq" as const,
+                value: shareScopeId,
+              },
+            ]
+          : []),
+      ]);
+
       response = await SearchProviderManager.getProvider().searchForTeam(team, {
         query,
-        collectionId: collection?.id || document?.collectionId,
+        filter: shareFilter,
         share,
-        dateFilter,
-        statusFilter,
         offset,
         limit,
         snippetMinWords,
@@ -1217,54 +1236,18 @@ router.post(
       }
 
       teamId = user.teamId;
-      let collaboratorIds: string[] | undefined = undefined;
 
       if (filter) {
-        try {
-          const translated = translateSearchFilter(filter, {
-            allowDocumentId: true,
-          });
-          collectionId = translated.collectionId;
-          collaboratorIds = translated.collaboratorIds;
-          documentId = translated.documentId;
-          dateFilter = translated.dateFilter;
-          statusFilter = translated.statusFilter ?? [];
-        } catch (err) {
-          throw InvalidRequestError(
-            err instanceof Error ? err.message : "Invalid filter"
-          );
-        }
         await authorizeFilterFields(user, filter);
-      } else if (userId) {
-        collaboratorIds = [userId];
       }
 
-      if (collectionId && !filter) {
-        const collection = await Collection.findByPk(collectionId, {
-          userId: user.id,
-        });
-        authorize(user, "readDocument", collection);
-      }
-
-      let documentIds = undefined;
-      if (documentId) {
-        const document = await Document.findByPk(documentId, {
-          userId: user.id,
-        });
-        authorize(user, "read", document);
-        documentIds = [
-          documentId,
-          ...(await document.findAllChildDocumentIds()),
-        ];
-      }
+      const resolvedFilter = filter
+        ? await expandDocumentIdLeaf(filter, user)
+        : undefined;
 
       response = await SearchProviderManager.getProvider().searchForUser(user, {
         query,
-        collaboratorIds,
-        collectionId,
-        documentIds,
-        dateFilter,
-        statusFilter,
+        filter: resolvedFilter,
         offset,
         limit,
         snippetMinWords,

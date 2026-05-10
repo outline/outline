@@ -3,15 +3,16 @@ import { CollectionPermission, StatusFilter } from "@shared/types";
 import { buildCollection, buildUser, buildTeam } from "@server/test/factories";
 import {
   authorizeFilterFields,
+  buildSearchWhere,
   buildWhere,
   collectEqValues,
   dateFromDuration,
+  expandDocumentIdInFilter,
   extractTopLevelEqValue,
-  hasExplicitCollectionId,
   hasFieldInFilter,
   legacyParamsToFilter,
+  legacySearchParamsToFilter,
   mapFilterFields,
-  translateSearchFilter,
 } from "./Filters";
 
 describe("Filters", () => {
@@ -294,7 +295,7 @@ describe("Filters", () => {
     });
   });
 
-  describe("collectEqValues / hasExplicitCollectionId", () => {
+  describe("collectEqValues", () => {
     it("collects eq and in values across the tree", () => {
       const values = collectEqValues(
         {
@@ -308,25 +309,6 @@ describe("Filters", () => {
         "collectionId"
       );
       expect(values.sort()).toEqual(["a", "b", "c"]);
-    });
-
-    it("hasExplicitCollectionId is false when only non-eq operators reference the field", () => {
-      expect(
-        hasExplicitCollectionId({
-          field: "collectionId",
-          operator: "isNotNull",
-        })
-      ).toBe(false);
-    });
-
-    it("hasExplicitCollectionId is true for an eq leaf at the root", () => {
-      expect(
-        hasExplicitCollectionId({
-          field: "collectionId",
-          operator: "eq",
-          value: "c1",
-        })
-      ).toBe(true);
     });
 
     it("collectEqValues returns an empty list when the field is absent", () => {
@@ -738,192 +720,60 @@ describe("Filters", () => {
     });
   });
 
-  describe("translateSearchFilter", () => {
-    it("handles a single collectionId leaf", () => {
+  describe("buildSearchWhere", () => {
+    it("maps userId eq to collaboratorIds @> ARRAY[value]", () => {
       expect(
-        translateSearchFilter({
-          field: "collectionId",
-          operator: "eq",
-          value: "abc",
-        })
-      ).toEqual({ collectionId: "abc" });
+        buildSearchWhere({ field: "userId", operator: "eq", value: "u1" })
+      ).toEqual({ collaboratorIds: { [Op.contains]: ["u1"] } });
     });
 
-    it("handles userId eq as a single-element collaboratorIds", () => {
+    it("maps userId in to collaboratorIds @> ARRAY[...values]", () => {
       expect(
-        translateSearchFilter({
-          field: "userId",
-          operator: "eq",
-          value: "user-1",
-        })
-      ).toEqual({ collaboratorIds: ["user-1"] });
+        buildSearchWhere({ field: "userId", operator: "in", value: ["a", "b"] })
+      ).toEqual({ collaboratorIds: { [Op.contains]: ["a", "b"] } });
     });
 
-    it("handles userId in as multi-element collaboratorIds", () => {
+    it("converts collectionId eq via the standard leaf conversion", () => {
       expect(
-        translateSearchFilter({
-          field: "userId",
-          operator: "in",
-          value: ["a", "b"],
-        })
-      ).toEqual({ collaboratorIds: ["a", "b"] });
+        buildSearchWhere({ field: "collectionId", operator: "eq", value: "c" })
+      ).toEqual({ collectionId: { [Op.eq]: "c" } });
     });
 
-    it("combines an AND group of supported leaves", () => {
+    it("converts an id in leaf (post-documentId expansion)", () => {
       expect(
-        translateSearchFilter(
-          {
-            operator: "AND",
-            filters: [
-              { field: "collectionId", operator: "eq", value: "c" },
-              { field: "userId", operator: "eq", value: "u" },
-              { field: "documentId", operator: "eq", value: "d" },
-            ],
-          },
-          { allowDocumentId: true }
-        )
-      ).toEqual({
-        collectionId: "c",
-        collaboratorIds: ["u"],
-        documentId: "d",
-      });
+        buildSearchWhere({ field: "id", operator: "in", value: ["a", "b"] })
+      ).toEqual({ id: { [Op.in]: ["a", "b"] } });
     });
 
-    it("rejects documentId when not allowed", () => {
-      expect(() =>
-        translateSearchFilter({
-          field: "documentId",
-          operator: "eq",
-          value: "d",
-        })
-      ).toThrow();
-    });
-
-    it("rejects unsupported fields", () => {
-      expect(() =>
-        translateSearchFilter({ field: "title", operator: "eq", value: "x" })
-      ).toThrow();
-    });
-
-    it("rejects OR groups at the top level", () => {
-      expect(() =>
-        translateSearchFilter({
-          operator: "OR",
-          filters: [
-            { field: "collectionId", operator: "eq", value: "a" },
-            { field: "userId", operator: "eq", value: "u" },
-          ],
-        })
-      ).toThrow();
-    });
-
-    it("rejects nested groups", () => {
-      expect(() =>
-        translateSearchFilter({
-          operator: "AND",
-          filters: [
-            {
-              operator: "AND",
-              filters: [{ field: "collectionId", operator: "eq", value: "a" }],
-            },
-          ],
-        })
-      ).toThrow();
-    });
-
-    it("rejects unsupported operators", () => {
-      expect(() =>
-        translateSearchFilter({
-          field: "collectionId",
-          operator: "neq",
-          value: "a",
-        })
-      ).toThrow();
-    });
-
-    it("rejects duplicate leaves on the same field", () => {
-      expect(() =>
-        translateSearchFilter({
-          operator: "AND",
-          filters: [
-            { field: "collectionId", operator: "eq", value: "a" },
-            { field: "collectionId", operator: "eq", value: "b" },
-          ],
-        })
-      ).toThrow();
-    });
-
-    it("translates updatedAt gte -P1D into the day dateFilter preset", () => {
+    it("converts archivedAt isNotNull", () => {
       expect(
-        translateSearchFilter({
-          field: "updatedAt",
-          operator: "gte",
-          value: "-P1D",
-        })
-      ).toEqual({ dateFilter: "day" });
+        buildSearchWhere({ field: "archivedAt", operator: "isNotNull" })
+      ).toEqual({ archivedAt: { [Op.not]: null } });
     });
 
-    it("translates each supported duration into its dateFilter preset", () => {
-      const cases: Array<[string, string]> = [
-        ["-P1D", "day"],
-        ["-P1W", "week"],
-        ["-P1M", "month"],
-        ["-P1Y", "year"],
-      ];
-      for (const [duration, preset] of cases) {
-        expect(
-          translateSearchFilter({
-            field: "updatedAt",
-            operator: "gte",
-            value: duration,
-          })
-        ).toEqual({ dateFilter: preset });
-      }
-    });
-
-    it("translates archivedAt isNotNull into statusFilter [archived]", () => {
+    it("converts a published-shape AND group", () => {
       expect(
-        translateSearchFilter({
-          field: "archivedAt",
-          operator: "isNotNull",
-        })
-      ).toEqual({ statusFilter: [StatusFilter.Archived] });
-    });
-
-    it("translates AND of archivedAt isNull + publishedAt isNotNull into statusFilter [published]", () => {
-      expect(
-        translateSearchFilter({
-          operator: "AND",
-          filters: [
-            {
-              operator: "AND",
-              filters: [
-                { field: "archivedAt", operator: "isNull" },
-                { field: "publishedAt", operator: "isNotNull" },
-              ],
-            },
-          ],
-        })
-      ).toEqual({ statusFilter: [StatusFilter.Published] });
-    });
-
-    it("translates AND of archivedAt isNull + publishedAt isNull into statusFilter [draft]", () => {
-      expect(
-        translateSearchFilter({
+        buildSearchWhere({
           operator: "AND",
           filters: [
             { field: "archivedAt", operator: "isNull" },
-            { field: "publishedAt", operator: "isNull" },
+            { field: "publishedAt", operator: "isNotNull" },
           ],
         })
-      ).toEqual({ statusFilter: [StatusFilter.Draft] });
+      ).toEqual({
+        [Op.and]: [
+          { archivedAt: { [Op.is]: null } },
+          { publishedAt: { [Op.not]: null } },
+        ],
+      });
     });
 
-    it("translates an OR of status shapes into a multi-status statusFilter", () => {
+    it("converts an OR group of statuses", () => {
       expect(
-        translateSearchFilter({
+        buildSearchWhere({
           operator: "OR",
           filters: [
+            { field: "archivedAt", operator: "isNotNull" },
             {
               operator: "AND",
               filters: [
@@ -931,39 +781,511 @@ describe("Filters", () => {
                 { field: "publishedAt", operator: "isNotNull" },
               ],
             },
-            { field: "archivedAt", operator: "isNotNull" },
           ],
         })
       ).toEqual({
-        statusFilter: [StatusFilter.Published, StatusFilter.Archived],
+        [Op.or]: [
+          { archivedAt: { [Op.not]: null } },
+          {
+            [Op.and]: [
+              { archivedAt: { [Op.is]: null } },
+              { publishedAt: { [Op.not]: null } },
+            ],
+          },
+        ],
       });
     });
 
-    it("combines collectionId, dateFilter and statusFilter in an AND", () => {
+    it("converts updatedAt gte with an ISO duration to a literal", () => {
+      const result = buildSearchWhere({
+        field: "updatedAt",
+        operator: "gte",
+        value: "-P7D",
+      }) as Record<string, Record<symbol, { val: string }>>;
+      expect(result.updatedAt[Op.gte].val).toBe("now() - interval 'P7D'");
+    });
+
+    it("rejects an unsupported field", () => {
+      expect(() =>
+        buildSearchWhere({ field: "title", operator: "eq", value: "x" })
+      ).toThrow();
+    });
+
+    it("rejects userId with a non-eq/in operator", () => {
+      expect(() =>
+        buildSearchWhere({ field: "userId", operator: "neq", value: "u" })
+      ).toThrow();
+    });
+
+    it("rejects documentId leaves (must be expanded by the route)", () => {
+      expect(() =>
+        buildSearchWhere({ field: "documentId", operator: "eq", value: "d" })
+      ).toThrow();
+    });
+  });
+
+  describe("expandDocumentIdInFilter", () => {
+    it("replaces a top-level documentId eq leaf with id in", () => {
       expect(
-        translateSearchFilter({
-          operator: "AND",
-          filters: [
-            { field: "collectionId", operator: "eq", value: "c" },
-            { field: "updatedAt", operator: "gte", value: "-P1W" },
-            { field: "archivedAt", operator: "isNotNull" },
-          ],
+        expandDocumentIdInFilter(
+          { field: "documentId", operator: "eq", value: "p" },
+          "p",
+          ["p", "c1", "c2"]
+        )
+      ).toEqual({ field: "id", operator: "in", value: ["p", "c1", "c2"] });
+    });
+
+    it("replaces a documentId leaf inside an AND group", () => {
+      expect(
+        expandDocumentIdInFilter(
+          {
+            operator: "AND",
+            filters: [
+              { field: "title", operator: "eq", value: "x" },
+              { field: "documentId", operator: "eq", value: "p" },
+            ],
+          },
+          "p",
+          ["p", "c1"]
+        )
+      ).toEqual({
+        operator: "AND",
+        filters: [
+          { field: "title", operator: "eq", value: "x" },
+          { field: "id", operator: "in", value: ["p", "c1"] },
+        ],
+      });
+    });
+
+    it("leaves non-matching leaves untouched", () => {
+      const filter = {
+        operator: "AND" as const,
+        filters: [
+          { field: "title" as const, operator: "eq" as const, value: "x" },
+          {
+            field: "documentId" as const,
+            operator: "eq" as const,
+            value: "different",
+          },
+        ],
+      };
+      expect(expandDocumentIdInFilter(filter, "p", ["p"])).toEqual(filter);
+    });
+  });
+
+  describe("legacySearchParamsToFilter", () => {
+    it("returns undefined when no params are set", () => {
+      expect(legacySearchParamsToFilter({})).toBeUndefined();
+    });
+
+    it("converts a collectionId param to an eq leaf", () => {
+      expect(legacySearchParamsToFilter({ collectionId: "c1" })).toEqual({
+        field: "collectionId",
+        operator: "eq",
+        value: "c1",
+      });
+    });
+
+    it("converts userId / documentId params to eq leaves", () => {
+      expect(
+        legacySearchParamsToFilter({ userId: "u1", documentId: "d1" })
+      ).toEqual({
+        operator: "AND",
+        filters: [
+          { field: "userId", operator: "eq", value: "u1" },
+          { field: "documentId", operator: "eq", value: "d1" },
+        ],
+      });
+    });
+
+    it("converts dateFilter to an updatedAt gte duration leaf", () => {
+      expect(legacySearchParamsToFilter({ dateFilter: "week" })).toEqual({
+        field: "updatedAt",
+        operator: "gte",
+        value: "-P1W",
+      });
+    });
+
+    it("converts a single statusFilter entry to its shape", () => {
+      expect(
+        legacySearchParamsToFilter({ statusFilter: [StatusFilter.Archived] })
+      ).toEqual({ field: "archivedAt", operator: "isNotNull" });
+    });
+
+    it("converts multiple statusFilter entries to an OR of shapes", () => {
+      expect(
+        legacySearchParamsToFilter({
+          statusFilter: [StatusFilter.Published, StatusFilter.Archived],
         })
       ).toEqual({
+        operator: "OR",
+        filters: [
+          {
+            operator: "AND",
+            filters: [
+              { field: "archivedAt", operator: "isNull" },
+              { field: "publishedAt", operator: "isNotNull" },
+            ],
+          },
+          { field: "archivedAt", operator: "isNotNull" },
+        ],
+      });
+    });
+
+    it("ANDs multiple legacy params together", () => {
+      const filter = legacySearchParamsToFilter({
         collectionId: "c",
-        dateFilter: "week",
+        dateFilter: "day",
         statusFilter: [StatusFilter.Archived],
       });
+      expect(filter).toEqual({
+        operator: "AND",
+        filters: [
+          { field: "collectionId", operator: "eq", value: "c" },
+          { field: "updatedAt", operator: "gte", value: "-P1D" },
+          { field: "archivedAt", operator: "isNotNull" },
+        ],
+      });
+    });
+  });
+
+  /**
+   * Red-team unit tests targeting the security-relevant invariants of the
+   * filter helpers. The integration tests in documents.test.ts probe the
+   * full end-to-end behavior; these tests pin the helper-level contracts
+   * that the documents.list handler relies on for authorization.
+   */
+  describe("red team — security invariants", () => {
+    describe("authorizeFilterFields", () => {
+      it("must authorize EVERY collectionId referenced anywhere in the tree", async () => {
+        // If the helper only checked top-level leaves, an attacker could
+        // smuggle an unauthorized collectionId into a nested OR.
+        const team = await buildTeam();
+        const ownerA = await buildUser({ teamId: team.id });
+        const ownerB = await buildUser({ teamId: team.id });
+        const reader = await buildUser({ teamId: team.id });
+        const accessible = await buildCollection({
+          teamId: team.id,
+          userId: reader.id,
+          permission: CollectionPermission.Read,
+        });
+        const inaccessible = await buildCollection({
+          teamId: team.id,
+          userId: ownerA.id,
+          permission: null,
+        });
+
+        // Buried in an OR group with sibling fields.
+        const filter = {
+          operator: "OR" as const,
+          filters: [
+            {
+              field: "collectionId",
+              operator: "eq" as const,
+              value: accessible.id,
+            },
+            {
+              field: "collectionId",
+              operator: "eq" as const,
+              value: inaccessible.id,
+            },
+          ],
+        };
+
+        await expect(
+          authorizeFilterFields(reader, filter)
+        ).rejects.toBeDefined();
+        // Suppress unused var lint
+        expect(ownerB.id).toBeDefined();
+      });
+
+      it("must authorize collectionId inside a deeply nested AND-OR chain", async () => {
+        const team = await buildTeam();
+        const ownerA = await buildUser({ teamId: team.id });
+        const reader = await buildUser({ teamId: team.id });
+        const inaccessible = await buildCollection({
+          teamId: team.id,
+          userId: ownerA.id,
+          permission: null,
+        });
+
+        const filter = {
+          operator: "AND" as const,
+          filters: [
+            { field: "title", operator: "contains" as const, value: "x" },
+            {
+              operator: "OR" as const,
+              filters: [
+                {
+                  operator: "AND" as const,
+                  filters: [
+                    {
+                      field: "collectionId",
+                      operator: "eq" as const,
+                      value: inaccessible.id,
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        };
+        await expect(
+          authorizeFilterFields(reader, filter)
+        ).rejects.toBeDefined();
+      });
+
+      it("must authorize every entry of an in[] list, even with one entry accessible", async () => {
+        const team = await buildTeam();
+        const ownerA = await buildUser({ teamId: team.id });
+        const reader = await buildUser({ teamId: team.id });
+        const accessible = await buildCollection({
+          teamId: team.id,
+          userId: reader.id,
+          permission: CollectionPermission.Read,
+        });
+        const inaccessible = await buildCollection({
+          teamId: team.id,
+          userId: ownerA.id,
+          permission: null,
+        });
+        const filter = {
+          field: "collectionId" as const,
+          operator: "in" as const,
+          value: [accessible.id, inaccessible.id],
+        };
+        await expect(
+          authorizeFilterFields(reader, filter)
+        ).rejects.toBeDefined();
+      });
+
+      it("must NOT authorize values that are smuggled through non-eq/in operators today", () => {
+        // The current contract only authorizes via collectEqValues which
+        // ignores neq/contains/etc — so those operators must NOT be
+        // available as a way to scope queries to specific collections.
+        // The default visibility predicate in documents.list is the safety
+        // net that catches anything those operators try to expand into.
+        for (const op of [
+          "neq",
+          "contains",
+          "startsWith",
+          "endsWith",
+          "notIn",
+          "isNull",
+          "isNotNull",
+        ] as const) {
+          const leaf =
+            op === "isNull" || op === "isNotNull"
+              ? { field: "collectionId", operator: op }
+              : op === "notIn"
+                ? { field: "collectionId", operator: op, value: ["x"] }
+                : { field: "collectionId", operator: op, value: "x" };
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          expect(collectEqValues(leaf as any, "collectionId")).toEqual([]);
+        }
+      });
     });
 
-    it("rejects an unsupported duration on updatedAt gte", () => {
-      expect(() =>
-        translateSearchFilter({
-          field: "updatedAt",
-          operator: "gte",
-          value: "-P3D",
-        })
-      ).toThrow();
+    describe("extractTopLevelEqValue / parent-doc membership escape", () => {
+      it("must NOT extract a parentDocumentId nested inside an OR group", () => {
+        // The membership escape drops collection scoping when this returns
+        // a value. An OR-nested parentDocumentId must not trigger it.
+        const filter = {
+          operator: "OR" as const,
+          filters: [
+            {
+              field: "parentDocumentId",
+              operator: "eq" as const,
+              value: "p1",
+            },
+            { field: "title", operator: "contains" as const, value: "x" },
+          ],
+        };
+        expect(
+          extractTopLevelEqValue(filter, "parentDocumentId")
+        ).toBeUndefined();
+      });
+
+      it("must NOT extract a parentDocumentId from a nested AND inside the root AND", () => {
+        // Only true top-level AND children count. Nested groups must not be
+        // recursed into.
+        const filter = {
+          operator: "AND" as const,
+          filters: [
+            { field: "title", operator: "contains" as const, value: "x" },
+            {
+              operator: "AND" as const,
+              filters: [
+                {
+                  field: "parentDocumentId",
+                  operator: "eq" as const,
+                  value: "p1",
+                },
+              ],
+            },
+          ],
+        };
+        expect(
+          extractTopLevelEqValue(filter, "parentDocumentId")
+        ).toBeUndefined();
+      });
+
+      it("must extract a parentDocumentId at the root or in a one-leaf top-level AND", () => {
+        expect(
+          extractTopLevelEqValue(
+            {
+              field: "parentDocumentId",
+              operator: "eq",
+              value: "p1",
+            },
+            "parentDocumentId"
+          )
+        ).toBe("p1");
+        expect(
+          extractTopLevelEqValue(
+            {
+              operator: "AND",
+              filters: [
+                { field: "title", operator: "contains", value: "x" },
+                { field: "parentDocumentId", operator: "eq", value: "p1" },
+              ],
+            },
+            "parentDocumentId"
+          )
+        ).toBe("p1");
+      });
+
+      it("must NOT extract a parentDocumentId when more than one leaf references the field", () => {
+        // Ambiguous: two `eq` leaves on parentDocumentId (caller likely
+        // meant in[] but used a duplicated leaf instead). The escape must
+        // not engage with an ambiguous target.
+        expect(
+          extractTopLevelEqValue(
+            {
+              operator: "AND",
+              filters: [
+                { field: "parentDocumentId", operator: "eq", value: "p1" },
+                { field: "parentDocumentId", operator: "eq", value: "p2" },
+              ],
+            },
+            "parentDocumentId"
+          )
+        ).toBeUndefined();
+      });
+    });
+
+    describe("buildWhere LIKE escaping", () => {
+      it("must escape backslashes in contains values", () => {
+        // Without escaping, `\%` would itself be interpreted as a literal
+        // `%` after PostgreSQL parses the LIKE pattern.
+        expect(
+          buildWhere({
+            field: "title",
+            operator: "contains",
+            value: "a\\b",
+          })
+        ).toEqual({ title: { [Op.iLike]: "%a\\\\b%" } });
+      });
+
+      it("must escape underscores so they cannot match arbitrary chars", () => {
+        expect(
+          buildWhere({
+            field: "title",
+            operator: "startsWith",
+            value: "a_b",
+          })
+        ).toEqual({ title: { [Op.iLike]: "a\\_b%" } });
+      });
+    });
+
+    describe("dateFromDuration SQL safety", () => {
+      it("must throw on inputs containing SQL quote characters", () => {
+        expect(() => dateFromDuration("P1D' OR 1=1 --")).toThrow();
+      });
+
+      it("must throw on inputs containing whitespace", () => {
+        expect(() => dateFromDuration("P 1D")).toThrow();
+      });
+
+      it("must throw on inputs with disallowed characters", () => {
+        for (const value of [
+          "P1D;DROP",
+          "P1D-",
+          "P1D--",
+          "P1D/*",
+          "P1D)",
+          "1D",
+          "PT",
+          "P",
+          "",
+          "P1.5D",
+        ]) {
+          expect(() => dateFromDuration(value)).toThrow();
+        }
+      });
+    });
+
+    describe("hasFieldInFilter", () => {
+      it("walks recursively across both AND and OR groups", () => {
+        const filter = {
+          operator: "AND" as const,
+          filters: [
+            {
+              operator: "OR" as const,
+              filters: [
+                {
+                  field: "archivedAt",
+                  operator: "isNotNull" as const,
+                },
+                { field: "title", operator: "contains" as const, value: "x" },
+              ],
+            },
+          ],
+        };
+        // The current handler uses this to disable the default
+        // archivedAt-is-null exclusion. That's defensible (a referenced
+        // archivedAt clause is the caller's intent), but the test pins the
+        // contract so future refactors don't silently change it.
+        expect(hasFieldInFilter(filter, "archivedAt")).toBe(true);
+      });
+    });
+
+    describe("mapFilterFields", () => {
+      it("does not mutate the input filter tree", () => {
+        const original = {
+          operator: "AND" as const,
+          filters: [
+            { field: "userId", operator: "eq" as const, value: "u1" },
+            {
+              operator: "OR" as const,
+              filters: [
+                { field: "documentId", operator: "eq" as const, value: "d1" },
+              ],
+            },
+          ],
+        };
+        const snapshot = JSON.parse(JSON.stringify(original));
+        mapFilterFields(original, { userId: "createdById", documentId: "id" });
+        expect(original).toEqual(snapshot);
+      });
+    });
+
+    describe("legacyParamsToFilter", () => {
+      it("never produces an OR group, so cannot enable the OR-bypass on its own", () => {
+        const result = legacyParamsToFilter({
+          userId: "u1",
+          collectionId: "c1",
+          parentDocumentId: "p1",
+        });
+        // The result should always be a single leaf or an AND group — never
+        // an OR group — to preserve the invariant that legacy callers AND
+        // their constraints together.
+        if (result && "filters" in result) {
+          expect(result.operator).toBe("AND");
+        } else {
+          expect(result).toBeDefined();
+        }
+      });
     });
   });
 });
