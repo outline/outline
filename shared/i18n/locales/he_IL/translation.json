@@ -169,6 +169,7 @@
   "New workspace": "מרחב עבודה חדש",
   "Create a workspace": "יצירת סביבת עבודה",
   "Login to workspace": "העבר לעזור העבודה",
+  "template": "template",
   "Template deleted": "התבנית נמחקה",
   "Deleting": "מוחק",
   "Are you sure about that? Deleting the <em>{{ templateName }}</em> template is permanent.": "אתה בטוח בזה? מחיקת התבנית <em>{{ templateName }}</em> היא לצמיתות.",
