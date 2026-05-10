@@ -13,6 +13,7 @@ import {
   error,
   getActorFromContext,
   buildAPIContext,
+  optionalString,
   pathToUrl,
   withTracing,
 } from "./util";
@@ -37,12 +38,9 @@ export function collectionTools(server: McpServer, scopes: string[]) {
           readOnlyHint: true,
         },
         inputSchema: {
-          query: z
-            .string()
-            .optional()
-            .describe(
-              "An optional search query to filter collections by name."
-            ),
+          query: optionalString().describe(
+            "An optional search query to filter collections by name."
+          ),
           offset: z.coerce
             .number()
             .int()
@@ -153,18 +151,15 @@ export function collectionTools(server: McpServer, scopes: string[]) {
         },
         inputSchema: {
           name: z.string().describe("The name of the collection."),
-          description: z
-            .string()
-            .optional()
-            .describe("A markdown description for the collection."),
-          icon: z
-            .string()
-            .optional()
-            .describe("An icon for the collection, e.g. an emoji."),
-          color: z
-            .string()
-            .optional()
-            .describe("The hex color for the collection icon, e.g. #FF0000."),
+          description: optionalString().describe(
+            "A markdown description for the collection."
+          ),
+          icon: optionalString().describe(
+            "An icon for the collection, e.g. an emoji."
+          ),
+          color: optionalString().describe(
+            "The hex color for the collection icon, e.g. #FF0000."
+          ),
         },
       },
       withTracing("create_collection", async (input, context) => {
@@ -220,14 +215,10 @@ export function collectionTools(server: McpServer, scopes: string[]) {
           id: z
             .string()
             .describe("The unique identifier of the collection to update."),
-          name: z
-            .string()
-            .optional()
-            .describe("The new name for the collection."),
-          description: z
-            .string()
-            .optional()
-            .describe("The new markdown description for the collection."),
+          name: optionalString().describe("The new name for the collection."),
+          description: optionalString().describe(
+            "The new markdown description for the collection."
+          ),
           icon: z
             .string()
             .nullable()

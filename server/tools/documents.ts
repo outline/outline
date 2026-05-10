@@ -19,6 +19,7 @@ import {
   getActorFromContext,
   getBreadcrumbsForDocuments,
   getDocumentBreadcrumb,
+  optionalString,
   pathToUrl,
   withTracing,
 } from "./util";
@@ -45,16 +46,12 @@ export function documentTools(server: McpServer, scopes: string[]) {
           readOnlyHint: true,
         },
         inputSchema: {
-          query: z
-            .string()
-            .optional()
-            .describe(
-              "A search query to find documents by content or title. When omitted, returns recent documents."
-            ),
-          collectionId: z
-            .string()
-            .optional()
-            .describe("An optional collection ID to filter documents by."),
+          query: optionalString().describe(
+            "A search query to find documents by content or title. When omitted, returns recent documents."
+          ),
+          collectionId: optionalString().describe(
+            "A collection ID to filter documents by."
+          ),
           offset: z.coerce
             .number()
             .int()
@@ -281,26 +278,21 @@ export function documentTools(server: McpServer, scopes: string[]) {
         },
         inputSchema: {
           title: z.string().describe("The title of the document."),
-          text: z
-            .string()
-            .optional()
-            .describe("The markdown content of the document."),
-          collectionId: z
-            .string()
-            .optional()
-            .describe("The collection to place the document in."),
-          parentDocumentId: z
-            .string()
-            .optional()
-            .describe("The parent document ID to nest this document under."),
-          icon: z
-            .string()
-            .optional()
-            .describe("An icon for the document, e.g. an emoji."),
-          color: z
-            .string()
-            .optional()
-            .describe("The hex color for the document icon, e.g. #FF0000."),
+          text: optionalString().describe(
+            "The markdown content of the document."
+          ),
+          collectionId: optionalString().describe(
+            "The collection to place the document in."
+          ),
+          parentDocumentId: optionalString().describe(
+            "The parent document ID to nest this document under."
+          ),
+          icon: optionalString().describe(
+            "An icon for the document, e.g. an emoji."
+          ),
+          color: optionalString().describe(
+            "The hex color for the document icon, e.g. #FF0000."
+          ),
           publish: z
             .boolean()
             .optional()
@@ -394,18 +386,12 @@ export function documentTools(server: McpServer, scopes: string[]) {
           id: z
             .string()
             .describe("The unique identifier of the document to move."),
-          collectionId: z
-            .string()
-            .optional()
-            .describe(
-              "The destination collection ID. Required if parentDocumentId is not provided."
-            ),
-          parentDocumentId: z
-            .string()
-            .optional()
-            .describe(
-              "The ID of the document to nest this document under. The document will be moved to the parent's collection."
-            ),
+          collectionId: optionalString().describe(
+            "The destination collection ID. Required if parentDocumentId is not provided."
+          ),
+          parentDocumentId: optionalString().describe(
+            "The ID of the document to nest this document under. The document will be moved to the parent's collection."
+          ),
           index: z
             .number()
             .int()
@@ -530,34 +516,22 @@ export function documentTools(server: McpServer, scopes: string[]) {
           id: z
             .string()
             .describe("The unique identifier of the document to update."),
-          title: z
-            .string()
-            .optional()
-            .describe("The new title for the document."),
-          text: z
-            .string()
-            .optional()
-            .describe(
-              'The markdown content to apply. In "replace" mode this becomes the entire document. In "append"/"prepend" mode it is added to the end/beginning. In "patch" mode this is the replacement text for the matched findText.'
-            ),
+          title: optionalString().describe("The new title for the document."),
+          text: optionalString().describe(
+            'The markdown content to apply. In "replace" mode this becomes the entire document. In "append"/"prepend" mode it is added to the end/beginning. In "patch" mode this is the replacement text for the matched findText.'
+          ),
           editMode: z
             .enum(TextEditMode)
             .optional()
             .describe(
               'How to apply the text update. "replace" (default) replaces the entire document content. "append" adds text to the end. "prepend" adds text to the beginning. "patch" finds the exact markdown specified in findText and replaces only that portion, preserving the rest of the document including any rich formatting that cannot be represented in markdown.'
             ),
-          findText: z
-            .string()
-            .optional()
-            .describe(
-              'Required when editMode is "patch". The exact markdown substring to find in the document. This should be copied verbatim from the document\'s existing markdown content. The first occurrence will be replaced with the text parameter. Can span multiple blocks (paragraphs, headings, etc).'
-            ),
-          collectionId: z
-            .string()
-            .optional()
-            .describe(
-              "The collection ID to publish a draft to, required when publishing a draft that has no collection."
-            ),
+          findText: optionalString().describe(
+            'Required when editMode is "patch". The exact markdown substring to find in the document. This should be copied verbatim from the document\'s existing markdown content. The first occurrence will be replaced with the text parameter. Can span multiple blocks (paragraphs, headings, etc).'
+          ),
+          collectionId: optionalString().describe(
+            "The collection ID to publish a draft to, required when publishing a draft that has no collection."
+          ),
           icon: z
             .string()
             .nullable()
