@@ -151,9 +151,10 @@ export function collectionTools(server: McpServer, scopes: string[]) {
         },
         inputSchema: {
           name: z.string().describe("The name of the collection."),
-          description: optionalString().describe(
-            "A markdown description for the collection."
-          ),
+          description: z
+            .string()
+            .optional()
+            .describe("A markdown description for the collection."),
           icon: optionalString().describe(
             "An icon for the collection, e.g. an emoji."
           ),
@@ -216,9 +217,10 @@ export function collectionTools(server: McpServer, scopes: string[]) {
             .string()
             .describe("The unique identifier of the collection to update."),
           name: optionalString().describe("The new name for the collection."),
-          description: optionalString().describe(
-            "The new markdown description for the collection."
-          ),
+          description: z
+            .string()
+            .optional()
+            .describe("The new markdown description for the collection."),
           icon: z
             .string()
             .nullable()

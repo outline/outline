@@ -50,7 +50,10 @@ export function buildAPIContext(context: McpContext) {
 /**
  * Builds a zod schema for an optional string MCP tool input that coerces
  * empty strings to `undefined`. MCP clients sometimes send `""` for fields
- * the caller intended to omit. Prefer this over `z.string().optional()`.
+ * the caller intended to omit. Use this for identifier, query, and similar
+ * fields where `""` is not a meaningful value — keep `z.string().optional()`
+ * for content/text fields where an empty string is a valid input (e.g.
+ * clearing a description).
  *
  * @returns a zod schema accepting `string | undefined`, with `""` treated as `undefined`.
  */

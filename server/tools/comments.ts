@@ -292,9 +292,10 @@ export function commentTools(server: McpServer, scopes: string[]) {
           id: z
             .string()
             .describe("The unique identifier of the comment to update."),
-          text: optionalString().describe(
-            "The new markdown text content of the comment."
-          ),
+          text: z
+            .string()
+            .optional()
+            .describe("The new markdown text content of the comment."),
           status: z
             .enum(["resolved", "unresolved"])
             .optional()

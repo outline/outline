@@ -278,9 +278,10 @@ export function documentTools(server: McpServer, scopes: string[]) {
         },
         inputSchema: {
           title: z.string().describe("The title of the document."),
-          text: optionalString().describe(
-            "The markdown content of the document."
-          ),
+          text: z
+            .string()
+            .optional()
+            .describe("The markdown content of the document."),
           collectionId: optionalString().describe(
             "The collection to place the document in."
           ),
@@ -517,9 +518,12 @@ export function documentTools(server: McpServer, scopes: string[]) {
             .string()
             .describe("The unique identifier of the document to update."),
           title: optionalString().describe("The new title for the document."),
-          text: optionalString().describe(
-            'The markdown content to apply. In "replace" mode this becomes the entire document. In "append"/"prepend" mode it is added to the end/beginning. In "patch" mode this is the replacement text for the matched findText.'
-          ),
+          text: z
+            .string()
+            .optional()
+            .describe(
+              'The markdown content to apply. In "replace" mode this becomes the entire document. In "append"/"prepend" mode it is added to the end/beginning. In "patch" mode this is the replacement text for the matched findText.'
+            ),
           editMode: z
             .enum(TextEditMode)
             .optional()

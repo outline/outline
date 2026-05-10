@@ -50,7 +50,7 @@ export function userTools(server: McpServer, scopes: string[]) {
             .enum(["active", "suspended", "invited", "all"])
             .optional()
             .describe(
-              "Filter users by status. Defaults to active, non-suspended users. Note filtering by 'suspended' is only available to admins. "
+              "Filter users by status. Defaults to active, non-suspended users. Note filtering by 'suspended' is only available to admins."
             ),
           offset: z.coerce
             .number()
