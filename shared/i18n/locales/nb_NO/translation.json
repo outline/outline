@@ -169,6 +169,7 @@
   "New workspace": "Nytt arbeidsområde",
   "Create a workspace": "Opprett et arbeidsområde",
   "Login to workspace": "Logg inn i arbeidsområdet",
+  "template": "template",
   "Template deleted": "Template deleted",
   "Deleting": "Sletter",
   "Are you sure about that? Deleting the <em>{{ templateName }}</em> template is permanent.": "Are you sure about that? Deleting the <em>{{ templateName }}</em> template is permanent.",
