@@ -169,6 +169,7 @@
   "New workspace": "Yeni çalışma alanı",
   "Create a workspace": "Bir çalışma alanı oluştur",
   "Login to workspace": "Çalışma alanına giriş yap",
+  "template": "template",
   "Template deleted": "Şablon silindi",
   "Deleting": "Siliniyor",
   "Are you sure about that? Deleting the <em>{{ templateName }}</em> template is permanent.": "Bu işlemi yapmak istediğinizden emin misiniz? <em>{{ templateName }}</em>  şablonu kalıcı olarak silinecektir.",
