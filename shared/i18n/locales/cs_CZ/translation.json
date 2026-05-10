@@ -169,6 +169,7 @@
   "New workspace": "Nový pracovní prostor",
   "Create a workspace": "Vytvořit pracovní prostor",
   "Login to workspace": "Přihlásit se do pracovního prostoru",
+  "template": "template",
   "Template deleted": "Šablona byla odstraněna",
   "Deleting": "Odstraňování…",
   "Are you sure about that? Deleting the <em>{{ templateName }}</em> template is permanent.": "Jste si jisti? Smazání šablony <em>{{ templateName }}</em> je trvalé.",
