@@ -18,6 +18,7 @@ import { Error as ImageError } from "@shared/editor/components/Image";
 import {
   BackIcon,
   CloseIcon,
+  CommentIcon,
   CrossIcon,
   DownloadIcon,
   LinkIcon,
@@ -55,6 +56,8 @@ import { NodeSelection } from "prosemirror-state";
 import { ImageSource } from "@shared/editor/lib/FileHelper";
 import Desktop from "~/utils/Desktop";
 import { HStack } from "./primitives/HStack";
+import { useDocumentContext } from "./DocumentContext";
+import LightboxComments from "~/scenes/Document/components/Comments/LightboxComments";
 
 export enum LightboxStatus {
   READY_TO_OPEN,
@@ -225,6 +228,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
   const overlayRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
   const [status, setStatus] = useState<Status>({ lightbox: null, image: null });
+  const [commentsOpen, setCommentsOpen] = useState(false);
   const animation = useRef<Animation | null>(null);
   const finalImage = useRef<{
     center: { x: number; y: number };
@@ -233,6 +237,10 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
   } | null>(null);
   const zoomPanPinchRef = useRef<ReactZoomPanPinchRef>(null);
   const editor = useEditor();
+  const { document: contextDocument } = useDocumentContext();
+  const activeNode = editor?.view?.state?.doc?.nodeAt(activeImage.pos);
+  const canShowComments =
+    !!contextDocument && activeNode?.type.name === "image";
 
   const currentImageIndex = findIndex(
     images,
@@ -698,14 +706,21 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
           onAnimationStart={handleFadeStart}
           onAnimationEnd={handleFadeEnd}
         />
-        <StyledContent onKeyDown={handleKeyDown} ref={contentRef}>
+        <StyledContent
+          onKeyDown={handleKeyDown}
+          ref={contentRef}
+          $commentsOpen={canShowComments && commentsOpen}
+        >
           <VisuallyHidden.Root>
             <Dialog.Title>{t("Lightbox")}</Dialog.Title>
             <Dialog.Description>
               {t("View, navigate, or download images in the document")}
             </Dialog.Description>
           </VisuallyHidden.Root>
-          <Actions animation={animation.current}>
+          <Actions
+            animation={animation.current}
+            $commentsOpen={canShowComments && commentsOpen}
+          >
             <Tooltip content={t("Zoom in")} placement="bottom">
               <ActionButton
                 tabIndex={-1}
@@ -788,6 +803,20 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
                   />
                 </Tooltip>
               )}
+            {canShowComments && (
+              <Tooltip content={t("Comments")} placement="bottom">
+                <ActionButton
+                  tabIndex={-1}
+                  onClick={() => setCommentsOpen((open) => !open)}
+                  aria-label={t("Comments")}
+                  aria-pressed={commentsOpen}
+                  size={32}
+                  icon={<CommentIcon />}
+                  borderOnHover
+                  neutral
+                />
+              </Tooltip>
+            )}
             <Separator />
             <Dialog.Close asChild>
               <Tooltip content={t("Close")} shortcut="Esc" placement="bottom">
@@ -878,13 +907,26 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
               status.image === ImageStatus.ZOOMED ||
               status.image === ImageStatus.MAX_ZOOM
             ) && (
-              <Nav dir="right" $hidden={isIdle} animation={animation.current}>
+              <Nav
+                dir="right"
+                $hidden={isIdle}
+                animation={animation.current}
+                $commentsOpen={canShowComments && commentsOpen}
+              >
                 <NavButton onClick={next} size={32} aria-label={t("Next")}>
                   <NextIcon size={32} />
                 </NavButton>
               </Nav>
             )}
         </StyledContent>
+        {canShowComments && commentsOpen && contextDocument && (
+          <CommentsSidebar>
+            <LightboxComments
+              document={contextDocument}
+              pos={activeImage.pos}
+            />
+          </CommentsSidebar>
+        )}
       </Dialog.Portal>
     </Dialog.Root>
   );
@@ -1090,7 +1132,7 @@ const StyledImg = styled.img<{
           : ""}
 `;
 
-const StyledContent = styled(Dialog.Content)`
+const StyledContent = styled(Dialog.Content)<{ $commentsOpen: boolean }>`
   position: fixed;
   inset: 0;
   z-index: ${depths.modal};
@@ -1098,6 +1140,8 @@ const StyledContent = styled(Dialog.Content)`
   justify-content: center;
   align-items: center;
   outline: none;
+  padding-inline-end: ${(props) => (props.$commentsOpen ? "360px" : "0")};
+  transition: padding-inline-end 200ms ease-out;
 `;
 
 const ActionButton = styled(Button)`
@@ -1106,15 +1150,17 @@ const ActionButton = styled(Button)`
 
 const Actions = styled(HStack)<{
   animation: Animation | null;
+  $commentsOpen: boolean;
 }>`
   position: absolute;
   top: 0;
-  right: 0;
+  right: ${(props) => (props.$commentsOpen ? "360px" : "0")};
   margin: 16px 12px;
   z-index: ${depths.modal};
   background: ${(props) => transparentize(0.2, props.theme.background)};
   backdrop-filter: blur(4px);
   border-radius: 6px;
+  transition: right 200ms ease-out;
 
   ${(props) =>
     props.animation === null
@@ -1138,10 +1184,16 @@ const Nav = styled.div<{
   $hidden: boolean;
   dir: "left" | "right";
   animation: Animation | null;
+  $commentsOpen?: boolean;
 }>`
   position: absolute;
-  ${(props) => (props.dir === "left" ? "left: 0;" : "right: 0;")}
-  transition: opacity 500ms ease-in-out;
+  ${(props) =>
+    props.dir === "left"
+      ? "left: 0;"
+      : `right: ${props.$commentsOpen ? "360px" : "0"};`}
+  transition:
+    opacity 500ms ease-in-out,
+    right 200ms ease-out;
   z-index: ${depths.modal};
   ${(props) => props.$hidden && "opacity: 0;"}
   ${(props) =>
@@ -1181,6 +1233,25 @@ const StyledError = styled(ImageError)<{
                 ${props.animation.fadeOut.duration}ms;
             `
           : ""}
+`;
+
+const slideIn = keyframes`
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+`;
+
+const CommentsSidebar = styled.div`
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: ${depths.modal};
+  display: flex;
+  animation: ${slideIn} 200ms ease-out;
 `;
 
 const NavButton = styled(NudeButton)`

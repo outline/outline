@@ -57,6 +57,11 @@ type Props = {
   onBlur?: () => void;
   /** Callback when user presses up arrow at the start of the editor */
   onUpArrowAtStart?: () => void;
+  /**
+   * Callback invoked when a new top-level comment is about to be created,
+   * just before it is added to the store. Receives the generated comment id.
+   */
+  onBeforeCreate?: (commentId: string) => void;
 };
 
 function CommentForm({
@@ -68,6 +73,7 @@ function CommentForm({
   onFocus,
   onBlur,
   onUpArrowAtStart,
+  onBeforeCreate,
   autoFocus,
   standalone,
   placeholder,
@@ -167,6 +173,9 @@ function CommentForm({
     );
 
     comment.id = uuidv4();
+    if (!thread) {
+      onBeforeCreate?.(comment.id);
+    }
     comments.add(comment);
 
     comment
