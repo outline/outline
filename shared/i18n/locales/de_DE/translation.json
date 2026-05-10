@@ -169,6 +169,7 @@
   "New workspace": "Neuer Arbeitsbereich",
   "Create a workspace": "Arbeitsbereich erstellen",
   "Login to workspace": "Im Arbeitsbereich anmelden",
+  "template": "template",
   "Template deleted": "Vorlage gelöscht",
   "Deleting": "Wird gelöscht",
   "Are you sure about that? Deleting the <em>{{ templateName }}</em> template is permanent.": "Sind Sie sicher? Die <em>{{ templateName }}</em> Vorlage wird dauerhaft gelöscht.",
