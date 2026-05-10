@@ -169,6 +169,7 @@
   "New workspace": "Ruang kerja baru",
   "Create a workspace": "Buat ruang kerja",
   "Login to workspace": "Login to workspace",
+  "template": "template",
   "Template deleted": "Template deleted",
   "Deleting": "Menghapus",
   "Are you sure about that? Deleting the <em>{{ templateName }}</em> template is permanent.": "Are you sure about that? Deleting the <em>{{ templateName }}</em> template is permanent.",
