@@ -225,9 +225,9 @@ router.post(
 
     // Exclude archived docs by default. Suppressed when the caller targets a
     // specific status, or when their filter already references archivedAt.
-    const filterMentionsArchivedAt =
+    const filterIncludesArchivedAt =
       filter !== undefined && hasFieldInFilter(filter, "archivedAt");
-    if (!statusFilter && !filterMentionsArchivedAt) {
+    if (!statusFilter && !filterIncludesArchivedAt) {
       where[Op.and].push({ archivedAt: { [Op.eq]: null } });
     }
 
@@ -259,14 +259,6 @@ router.post(
       where[Op.and].push(buildWhere<Document>(mapped));
     }
 
-    // Visibility predicate: a row is visible to the user if it lives in a
-    // collection they can access, or if it is one of their own unplaced
-    // drafts (collectionId is null). This is load-bearing for authorization
-    // — do not skip it based on what the filter "looks like", because under
-    // OR semantics any apparent narrowing collapses. The only exceptions are
-    // the backlink lookup (which scopes by `id` to relationship-derived
-    // documents) and the parent-doc membership escape (which intentionally
-    // surfaces children of an accessible parent across collection boundaries).
     if (!backlinkDocumentId && !collectionScopeDropped) {
       const collectionIds = await user.collectionIds();
       where[Op.and].push({

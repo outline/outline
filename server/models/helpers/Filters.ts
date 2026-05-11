@@ -52,9 +52,6 @@ const COMPARISON_OPERATORS = new Set<ComparisonOperator>([
  * relative-past durations (`-P7D` → `now() - 7 days`) and relative-future
  * durations (`P7D` → `now() + 7 days`).
  *
- * The duration is regex-validated to contain only `P`, `T`, digits, and the
- * unit letters `YMWDHS`, so the literal interpolation is safe by construction.
- *
  * @param duration an ISO 8601 duration, optionally signed with a leading `-`.
  * @returns a Sequelize literal that resolves to `now() ± interval '<duration>'`.
  * @throws if the input is not a valid ISO 8601 duration.

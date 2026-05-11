@@ -651,7 +651,7 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
 
     const filter = options.filter;
 
-    // Visibility predicate for User contexts. A row is visible if any of:
+    // A document is visible if any of:
     //
     //   - direct membership on the document
     //   - group membership on the document
@@ -662,12 +662,6 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
     //     user can access (the common case for non-draft visibility)
     //   - the user is the creator AND the doc has no collection (unplaced
     //     drafts that no membership/collection check can reach)
-    //
-    // This is load-bearing for authorization. Do not derive the collection
-    // arm from the filter's collectionId leaves — that's the OR-bypass that
-    // broke `documents.list`. Authorization for any collectionId referenced
-    // in the filter has already been enforced by `authorizeFilterFields` in
-    // the route handler; this clause is the safety net.
     //
     // For Team contexts (share-based search), the caller is privileged and
     // has done its own authorization — narrow to the filter's collectionId
