@@ -109,7 +109,7 @@ const BaseIdSchema = z.object({
 export const DocumentsListSchema = BaseSchema.extend({
   body: DocumentsSortParamsSchema.extend({
     /**
-     * Id of the user who created the doc.
+     * Id of a user who collaborated on the doc.
      * @deprecated use `filters` with field `userId` instead.
      */
     userId: z.uuid().optional(),

@@ -115,7 +115,13 @@ export function documentTools(server: McpServer, scopes: string[]) {
 
               const { results } = await searchProvider.searchForUser(user, {
                 query,
-                collectionId,
+                filter: collectionId
+                  ? {
+                      field: "collectionId",
+                      operator: "eq",
+                      value: collectionId,
+                    }
+                  : undefined,
                 offset: effectiveOffset,
                 limit: effectiveLimit,
               });

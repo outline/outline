@@ -1379,9 +1379,7 @@ describe("#documents.list", () => {
       expect(res.status).toEqual(200);
       expect(body.data.map((d: { id: string }) => d.id)).toEqual([child.id]);
     });
-  });
 
-  describe("filter DSL — red team", () => {
     /**
      * Helper: builds a viewing user plus a teammate-owned private collection
      * containing one secret document. The viewing user has zero access to the
@@ -2651,81 +2649,91 @@ describe("#documents.search_titles", () => {
       });
       expect(res.status).toEqual(400);
     });
-  });
 
-  describe("filter DSL — red team", () => {
-    it("must reject OR groups at the top level of the filter", async () => {
-      // Search filters must not allow OR semantics at the top level — that
-      // is the path that breaks collection scoping in documents.list and
-      // must not be inherited here.
-      const user = await buildUser();
-      const collection = await buildCollection({
-        teamId: user.teamId,
-        userId: user.id,
+    it("must not leak titles via OR with collectionId+title", async () => {
+      const viewer = await buildUser();
+      const otherUser = await buildUser({ teamId: viewer.teamId });
+      const privateCollection = await buildCollection({
+        teamId: viewer.teamId,
+        userId: otherUser.id,
+        permission: null,
+      });
+      const secretDoc = await buildDocument({
+        title: "TOP SECRET match",
+        teamId: viewer.teamId,
+        userId: otherUser.id,
+        collectionId: privateCollection.id,
+      });
+      const ownCollection = await buildCollection({
+        teamId: viewer.teamId,
+        userId: viewer.id,
       });
       const res = await server.post("/api/documents.search_titles", {
         body: {
-          token: user.getJwtToken(),
+          token: viewer.getJwtToken(),
           query: "match",
           filters: [
             {
               operator: "OR",
               filters: [
-                { field: "collectionId", operator: "eq", value: collection.id },
-                { field: "userId", operator: "eq", value: user.id },
+                {
+                  field: "collectionId",
+                  operator: "eq",
+                  value: ownCollection.id,
+                },
+                { field: "title", operator: "contains", value: "match" },
               ],
             },
           ],
         },
       });
-      expect(res.status).toEqual(400);
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map((d: { id: string }) => d.id);
+      expect(ids).not.toContain(secretDoc.id);
     });
 
-    it("must reject nested OR groups except for known status shapes", async () => {
-      const user = await buildUser();
-      const collection = await buildCollection({
-        teamId: user.teamId,
-        userId: user.id,
+    it("must not leak titles via collectionId in[] sibling to a permissive leaf", async () => {
+      const viewer = await buildUser();
+      const otherUser = await buildUser({ teamId: viewer.teamId });
+      const privateCollection = await buildCollection({
+        teamId: viewer.teamId,
+        userId: otherUser.id,
+        permission: null,
+      });
+      const secretDoc = await buildDocument({
+        title: "TOP SECRET match",
+        teamId: viewer.teamId,
+        userId: otherUser.id,
+        collectionId: privateCollection.id,
+      });
+      const ownCollection = await buildCollection({
+        teamId: viewer.teamId,
+        userId: viewer.id,
       });
       const res = await server.post("/api/documents.search_titles", {
         body: {
-          token: user.getJwtToken(),
-          query: "x",
+          token: viewer.getJwtToken(),
+          query: "match",
           filters: [
-            { field: "collectionId", operator: "eq", value: collection.id },
             {
               operator: "OR",
               filters: [
-                { field: "userId", operator: "eq", value: user.id },
-                { field: "title", operator: "contains", value: "x" },
+                {
+                  field: "collectionId",
+                  operator: "in",
+                  value: [ownCollection.id],
+                },
+                { field: "title", operator: "contains", value: "" },
               ],
             },
           ],
         },
       });
-      expect(res.status).toEqual(400);
-    });
-
-    it("must reject collectionId operators other than eq", async () => {
-      const user = await buildUser();
-      const collection = await buildCollection({
-        teamId: user.teamId,
-        userId: user.id,
-      });
-      const res = await server.post("/api/documents.search_titles", {
-        body: {
-          token: user.getJwtToken(),
-          query: "x",
-          filters: [
-            {
-              field: "collectionId",
-              operator: "in",
-              value: [collection.id],
-            },
-          ],
-        },
-      });
-      expect(res.status).toEqual(400);
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map((d: { id: string }) => d.id);
+      expect(ids).not.toContain(secretDoc.id);
     });
 
     it("must 403 when a private collection is targeted via filter", async () => {
@@ -3561,42 +3569,83 @@ describe("#documents.search", () => {
       expect(res.status).toEqual(400);
     });
 
-    it("should reject an unknown field", async () => {
+    it("supports title contains as an additional filter alongside the FTS query", async () => {
       const user = await buildUser();
+      const match = await buildDocument({
+        title: "match needle",
+        text: "search term",
+        teamId: user.teamId,
+        userId: user.id,
+      });
+      await buildDocument({
+        title: "no needle here",
+        text: "search term",
+        teamId: user.teamId,
+        userId: user.id,
+      });
       const res = await server.post("/api/documents.search", {
         body: {
           token: user.getJwtToken(),
-          filters: [{ field: "title", operator: "eq", value: "x" }],
+          query: "search term",
+          filters: [{ field: "title", operator: "contains", value: "match" }],
         },
       });
-      expect(res.status).toEqual(400);
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map(
+        (r: { document: { id: string } }) => r.document.id
+      );
+      expect(ids).toContain(match.id);
     });
 
-    it("should reject an OR group at top level", async () => {
-      const user = await buildUser();
+    it("supports an OR group at top level without bypassing visibility", async () => {
+      const viewer = await buildUser();
+      const otherUser = await buildUser({ teamId: viewer.teamId });
+      const ownCollection = await buildCollection({
+        teamId: viewer.teamId,
+        userId: viewer.id,
+      });
+      const ownDoc = await buildDocument({
+        title: "search term in own",
+        text: "search term",
+        teamId: viewer.teamId,
+        userId: viewer.id,
+        collectionId: ownCollection.id,
+      });
       const res = await server.post("/api/documents.search", {
         body: {
-          token: user.getJwtToken(),
+          token: viewer.getJwtToken(),
+          query: "search term",
           filters: [
             {
               operator: "OR",
               filters: [
-                { field: "collectionId", operator: "eq", value: user.id },
-                { field: "userId", operator: "eq", value: user.id },
+                {
+                  field: "collectionId",
+                  operator: "eq",
+                  value: ownCollection.id,
+                },
+                { field: "userId", operator: "eq", value: otherUser.id },
               ],
             },
           ],
         },
       });
-      expect(res.status).toEqual(400);
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map(
+        (r: { document: { id: string } }) => r.document.id
+      );
+      expect(ids).toContain(ownDoc.id);
     });
-  });
 
-  describe("filter DSL — red team", () => {
-    it("must not allow OR with collectionId+title to leak across collections", async () => {
-      // documents.search is supposed to disallow OR groups at the top level;
-      // verify a sibling OR with a collectionId leaf is also rejected and
-      // does not silently fall back to a permissive scope.
+    /**
+     * Helper: builds a viewer plus a teammate-owned private collection
+     * containing one secret document. The viewer has zero access to the
+     * collection. Tests below assert that no search-filter shape can
+     * surface the secret document to the viewer.
+     */
+    const setupVictim = async () => {
       const viewer = await buildUser();
       const otherUser = await buildUser({ teamId: viewer.teamId });
       const privateCollection = await buildCollection({
@@ -3604,18 +3653,28 @@ describe("#documents.search", () => {
         userId: otherUser.id,
         permission: null,
       });
-      const ownCollection = await buildCollection({
-        teamId: viewer.teamId,
-        userId: viewer.id,
-      });
-      await buildDocument({
-        title: "secret material",
+      const secretDoc = await buildDocument({
+        title: "TOP SECRET PAYROLL",
         text: "secret material body",
         teamId: viewer.teamId,
         userId: otherUser.id,
         collectionId: privateCollection.id,
       });
+      const ownCollection = await buildCollection({
+        teamId: viewer.teamId,
+        userId: viewer.id,
+      });
+      return {
+        viewer,
+        otherUser,
+        privateCollection,
+        secretDoc,
+        ownCollection,
+      };
+    };
 
+    it("must not leak docs across collections via OR with collectionId+title", async () => {
+      const { viewer, ownCollection, secretDoc } = await setupVictim();
       const res = await server.post("/api/documents.search", {
         body: {
           token: viewer.getJwtToken(),
@@ -3635,8 +3694,76 @@ describe("#documents.search", () => {
           ],
         },
       });
-      // OR at top level must be rejected.
-      expect(res.status).toEqual(400);
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map(
+        (r: { document: { id: string } }) => r.document.id
+      );
+      expect(ids).not.toContain(secretDoc.id);
+    });
+
+    it("must not leak docs via OR with collectionId+userId of teammate", async () => {
+      const { viewer, otherUser, ownCollection, secretDoc } =
+        await setupVictim();
+      const res = await server.post("/api/documents.search", {
+        body: {
+          token: viewer.getJwtToken(),
+          query: "secret material",
+          filters: [
+            {
+              operator: "OR",
+              filters: [
+                {
+                  field: "collectionId",
+                  operator: "eq",
+                  value: ownCollection.id,
+                },
+                { field: "userId", operator: "eq", value: otherUser.id },
+              ],
+            },
+          ],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map(
+        (r: { document: { id: string } }) => r.document.id
+      );
+      expect(ids).not.toContain(secretDoc.id);
+    });
+
+    it("must not leak docs via deeply nested AND-of-OR with collectionId", async () => {
+      const { viewer, ownCollection, secretDoc } = await setupVictim();
+      const res = await server.post("/api/documents.search", {
+        body: {
+          token: viewer.getJwtToken(),
+          query: "secret material",
+          filters: [
+            {
+              operator: "AND",
+              filters: [
+                {
+                  operator: "OR",
+                  filters: [
+                    {
+                      field: "collectionId",
+                      operator: "eq",
+                      value: ownCollection.id,
+                    },
+                    { field: "title", operator: "contains", value: "" },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      const ids = body.data.map(
+        (r: { document: { id: string } }) => r.document.id
+      );
+      expect(ids).not.toContain(secretDoc.id);
     });
 
     it("must 403 when filter targets a private collection", async () => {
@@ -3686,55 +3813,22 @@ describe("#documents.search", () => {
       expect(res.status).toEqual(403);
     });
 
-    it("must reject duplicate collectionId leaves to prevent ambiguity", async () => {
-      const user = await buildUser();
-      const c1 = await buildCollection({
-        teamId: user.teamId,
-        userId: user.id,
-      });
-      const c2 = await buildCollection({
-        teamId: user.teamId,
-        userId: user.id,
-      });
+    it("must 403 when in[] contains both an authorized and unauthorized collection", async () => {
+      const { viewer, ownCollection, privateCollection } = await setupVictim();
       const res = await server.post("/api/documents.search", {
         body: {
-          token: user.getJwtToken(),
-          query: "x",
-          filters: [
-            { field: "collectionId", operator: "eq", value: c1.id },
-            { field: "collectionId", operator: "eq", value: c2.id },
-          ],
-        },
-      });
-      expect(res.status).toEqual(400);
-    });
-
-    it("must reject a status group with extra leaves to prevent OR injection", async () => {
-      // OR groups are only acceptable inside translateSearchFilter for known
-      // status shapes. An OR containing a non-status leaf must be rejected.
-      const user = await buildUser();
-      const res = await server.post("/api/documents.search", {
-        body: {
-          token: user.getJwtToken(),
+          token: viewer.getJwtToken(),
           query: "x",
           filters: [
             {
-              operator: "OR",
-              filters: [
-                {
-                  operator: "AND",
-                  filters: [
-                    { field: "archivedAt", operator: "isNull" },
-                    { field: "publishedAt", operator: "isNotNull" },
-                  ],
-                },
-                { field: "userId", operator: "eq", value: user.id },
-              ],
+              field: "collectionId",
+              operator: "in",
+              value: [ownCollection.id, privateCollection.id],
             },
           ],
         },
       });
-      expect(res.status).toEqual(400);
+      expect(res.status).toEqual(403);
     });
   });
 });

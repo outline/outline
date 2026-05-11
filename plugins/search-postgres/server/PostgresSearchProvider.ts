@@ -11,8 +11,9 @@ import type {
   WhereOptions,
 } from "sequelize";
 import { Op, Sequelize } from "sequelize";
+import type { Filter } from "@shared/helpers/FilterHelper";
 import type { SearchableModel } from "@shared/types";
-import { DirectionFilter, SortFilter, StatusFilter } from "@shared/types";
+import { DirectionFilter, SortFilter } from "@shared/types";
 import { regexIndexOf, regexLastIndexOf } from "@shared/utils/string";
 import { getUrls } from "@shared/utils/urls";
 import { ValidationError } from "@server/errors";
@@ -22,7 +23,10 @@ import Document from "@server/models/Document";
 import Team from "@server/models/Team";
 import User from "@server/models/User";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
-import { sequelize } from "@server/storage/database";
+import {
+  buildSearchWhere,
+  collectEqValues,
+} from "@server/models/helpers/Filters";
 import type {
   SearchOptions,
   SearchResponse,
@@ -190,7 +194,9 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
 
     const where = await PostgresSearchProvider.buildWhere(team, {
       ...options,
-      statusFilter: [...(options.statusFilter || []), StatusFilter.Published],
+      // Team-context search (used by shares) is always restricted to
+      // published, non-archived documents.
+      filter: PostgresSearchProvider.withPublishedConstraint(options.filter),
     });
 
     if (options.share) {
@@ -606,6 +612,26 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
     return context.slice(startIndex, endIndex);
   }
 
+  /**
+   * AND a "published, non-archived" constraint into a filter expression.
+   *
+   * @param filter the filter to constrain, or undefined.
+   * @returns a filter that always requires Published status.
+   */
+  private static withPublishedConstraint(filter: Filter | undefined): Filter {
+    const publishedShape: Filter = {
+      operator: "AND",
+      filters: [
+        { field: "archivedAt", operator: "isNull" },
+        { field: "publishedAt", operator: "isNotNull" },
+      ],
+    };
+    if (!filter) {
+      return publishedShape;
+    }
+    return { operator: "AND", filters: [filter, publishedShape] };
+  }
+
   private static async buildWhere(model: User | Team, options: SearchOptions) {
     const teamId = model instanceof Team ? model.id : model.teamId;
     const where: WhereOptions<Document> & {
@@ -623,114 +649,65 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
       ],
     };
 
+    const filter = options.filter;
+
+    // Visibility predicate for User contexts. A row is visible if any of:
+    //
+    //   - direct membership on the document
+    //   - group membership on the document
+    //   - the user is the creator AND has collection access (covers own
+    //     drafts in shared collections — collection access alone does not
+    //     grant visibility into other users' drafts)
+    //   - the doc is published-or-archived AND lives in a collection the
+    //     user can access (the common case for non-draft visibility)
+    //   - the user is the creator AND the doc has no collection (unplaced
+    //     drafts that no membership/collection check can reach)
+    //
+    // This is load-bearing for authorization. Do not derive the collection
+    // arm from the filter's collectionId leaves — that's the OR-bypass that
+    // broke `documents.list`. Authorization for any collectionId referenced
+    // in the filter has already been enforced by `authorizeFilterFields` in
+    // the route handler; this clause is the safety net.
+    //
+    // For Team contexts (share-based search), the caller is privileged and
+    // has done its own authorization — narrow to the filter's collectionId
+    // if specified, otherwise to the team's publicly-permissioned set.
     if (model instanceof User) {
+      const collectionIds = await model.collectionIds();
       where[Op.or].push(
         { "$memberships.id$": { [Op.ne]: null } },
-        { "$groupMemberships.id$": { [Op.ne]: null } }
-      );
-
-      // Allow users to see their own drafts that have no collection, where no
-      // membership or collection access applies. Drafts in collections remain
-      // gated by the collection/membership checks above.
-      if (options.statusFilter?.includes(StatusFilter.Draft)) {
-        where[Op.or].push({
+        { "$groupMemberships.id$": { [Op.ne]: null } },
+        {
           createdById: model.id,
           collectionId: { [Op.is]: null },
-          publishedAt: { [Op.eq]: null },
-          archivedAt: { [Op.eq]: null },
-        });
+        }
+      );
+      if (collectionIds.length) {
+        where[Op.or].push(
+          {
+            collectionId: collectionIds,
+            publishedAt: { [Op.ne]: null },
+          },
+          {
+            createdById: model.id,
+            collectionId: collectionIds,
+          }
+        );
+      }
+    } else {
+      const explicitCollectionIds = filter
+        ? collectEqValues(filter, "collectionId")
+        : [];
+      const collectionIds = explicitCollectionIds.length
+        ? explicitCollectionIds
+        : await model.collectionIds();
+      if (collectionIds.length) {
+        where[Op.or].push({ collectionId: collectionIds });
       }
     }
 
-    // Ensure we're filtering by the users accessible collections. If
-    // collectionId is passed as an option it is assumed that the authorization
-    // has already been done in the router
-    const collectionIds = options.collectionId
-      ? [options.collectionId]
-      : await model.collectionIds();
-
-    if (options.collectionId) {
-      where[Op.and].push({ collectionId: options.collectionId });
-    }
-    if (collectionIds.length) {
-      where[Op.or].push({ collectionId: collectionIds });
-    }
-
-    if (options.dateFilter) {
-      where[Op.and].push({
-        updatedAt: {
-          [Op.gt]: sequelize.literal(
-            `now() - interval '1 ${options.dateFilter}'`
-          ),
-        },
-      });
-    }
-
-    if (options.collaboratorIds) {
-      where[Op.and].push({
-        collaboratorIds: {
-          [Op.contains]: options.collaboratorIds,
-        },
-      });
-    }
-
-    if (options.documentIds) {
-      where[Op.and].push({
-        id: options.documentIds,
-      });
-    }
-
-    const statusQuery = [];
-    if (options.statusFilter?.includes(StatusFilter.Published)) {
-      statusQuery.push({
-        [Op.and]: [
-          {
-            publishedAt: {
-              [Op.ne]: null,
-            },
-            archivedAt: {
-              [Op.eq]: null,
-            },
-          },
-        ],
-      });
-    }
-
-    if (
-      options.statusFilter?.includes(StatusFilter.Draft) &&
-      // Only ever include draft results for the user's own documents
-      model instanceof User
-    ) {
-      statusQuery.push({
-        [Op.and]: [
-          {
-            publishedAt: {
-              [Op.eq]: null,
-            },
-            archivedAt: {
-              [Op.eq]: null,
-            },
-            [Op.or]: [
-              { createdById: model.id },
-              { "$memberships.id$": { [Op.ne]: null } },
-            ],
-          },
-        ],
-      });
-    }
-
-    if (options.statusFilter?.includes(StatusFilter.Archived)) {
-      statusQuery.push({
-        archivedAt: {
-          [Op.ne]: null,
-        },
-      });
-    }
-
-    if (statusQuery.length) {
-      where[Op.and].push({
-        [Op.or]: statusQuery,
-      });
+    if (filter) {
+      where[Op.and].push(buildSearchWhere<Document>(filter));
     }
 
     if (options.query) {

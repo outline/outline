@@ -11,6 +11,9 @@ export const ComparisonOperator = z.enum([
   "contains",
   "startsWith",
   "endsWith",
+  "containsStrict",
+  "startsWithStrict",
+  "endsWithStrict",
   "in",
   "notIn",
   "isNull",
@@ -81,7 +84,10 @@ export function createFilterSchema<F extends readonly [string, ...string[]]>(
       const isStringOp =
         operator === "contains" ||
         operator === "startsWith" ||
-        operator === "endsWith";
+        operator === "endsWith" ||
+        operator === "containsStrict" ||
+        operator === "startsWithStrict" ||
+        operator === "endsWithStrict";
 
       if (isNullOp) {
         if (value !== undefined) {

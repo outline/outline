@@ -25,6 +25,9 @@ const operatorMap: Record<
   contains: Op.iLike,
   startsWith: Op.iLike,
   endsWith: Op.iLike,
+  containsStrict: Op.like,
+  startsWithStrict: Op.like,
+  endsWithStrict: Op.like,
   in: Op.in,
   notIn: Op.notIn,
   isNull: Op.is,
@@ -75,6 +78,18 @@ function isGroup<F extends string>(
 function leafToWhere(condition: FilterCondition): Record<string, unknown> {
   const { field, operator, value } = condition;
 
+  // `userId` is the public-API name for the denormalized collaboratorIds array
+  // column on Document. Semantics: "documents this user collaborated on".
+  if (field === "userId") {
+    if (operator === "eq" && value !== undefined) {
+      return { collaboratorIds: { [Op.contains]: [String(value)] } };
+    }
+    if (operator === "in" && Array.isArray(value)) {
+      return { collaboratorIds: { [Op.contains]: value.map(String) } };
+    }
+    throw new Error("`userId` only supports `eq` or `in` operators");
+  }
+
   switch (operator) {
     case "isNull":
       return { [field]: { [Op.is]: null } };
@@ -86,6 +101,12 @@ function leafToWhere(condition: FilterCondition): Record<string, unknown> {
       return { [field]: { [Op.iLike]: `${escapeLike(String(value))}%` } };
     case "endsWith":
       return { [field]: { [Op.iLike]: `%${escapeLike(String(value))}` } };
+    case "containsStrict":
+      return { [field]: { [Op.like]: `%${escapeLike(String(value))}%` } };
+    case "startsWithStrict":
+      return { [field]: { [Op.like]: `${escapeLike(String(value))}%` } };
+    case "endsWithStrict":
+      return { [field]: { [Op.like]: `%${escapeLike(String(value))}` } };
     default: {
       const op = operatorMap[operator];
       if (typeof op !== "symbol") {
@@ -242,109 +263,31 @@ export function mapFilterFields(
   return mapped ? { ...filter, field: mapped } : filter;
 }
 
-interface LegacyParams {
-  userId?: string;
-  collectionId?: string;
-  parentDocumentId?: string | null;
-}
-
-/**
- * Translate legacy top-level eq-params into an equivalent filter expression.
- *
- * `parentDocumentId === null` becomes an `isNull` leaf (matches root-level
- * documents); a truthy value becomes an `eq` leaf.
- *
- * @param legacy legacy top-level params.
- * @returns the equivalent filter, or undefined if no legacy params were provided.
- */
-export function legacyParamsToFilter(legacy: LegacyParams): Filter | undefined {
-  const leaves: FilterCondition[] = [];
-
-  if (legacy.userId) {
-    leaves.push({ field: "userId", operator: "eq", value: legacy.userId });
-  }
-  if (legacy.collectionId) {
-    leaves.push({
-      field: "collectionId",
-      operator: "eq",
-      value: legacy.collectionId,
-    });
-  }
-  if (legacy.parentDocumentId === null) {
-    leaves.push({ field: "parentDocumentId", operator: "isNull" });
-  } else if (legacy.parentDocumentId) {
-    leaves.push({
-      field: "parentDocumentId",
-      operator: "eq",
-      value: legacy.parentDocumentId,
-    });
-  }
-
-  if (leaves.length === 0) {
-    return undefined;
-  }
-  if (leaves.length === 1) {
-    return leaves[0];
-  }
-  return { operator: "AND", filters: leaves };
-}
-
-/**
- * Set of fields supported in a search filter expression. Only fields whose
- * semantics are well-defined for ranked, full-text search are accepted —
- * arbitrary WHERE conditions can produce surprising or unbounded results.
- *
- * `id` is included for internal use after a `documentId` leaf is expanded
- * to its descendant ids by the route handler.
- */
-const SEARCH_FILTER_FIELDS = new Set([
-  "id",
-  "collectionId",
-  "userId",
-  "updatedAt",
-  "archivedAt",
-  "publishedAt",
-]);
-
 function searchLeafToWhere(
   condition: FilterCondition
 ): Record<string, unknown> {
-  const { field, operator, value } = condition;
-
-  if (!SEARCH_FILTER_FIELDS.has(field)) {
-    throw new Error(`Search filter does not support field '${field}'`);
+  // documentId must be expanded to descendant ids by the route handler
+  // before reaching here — the expansion is async and authorization-
+  // sensitive.
+  if (condition.field === "documentId") {
+    throw new Error(
+      "documentId leaves must be expanded to `id` leaves before buildSearchWhere"
+    );
   }
-
-  if (field === "userId") {
-    if (operator === "eq" && value !== undefined) {
-      return { collaboratorIds: { [Op.contains]: [String(value)] } };
-    }
-    if (operator === "in" && Array.isArray(value)) {
-      return { collaboratorIds: { [Op.contains]: value.map(String) } };
-    }
-    throw new Error("Search filter only supports `eq` or `in` on userId");
-  }
-
   return leafToWhere(condition);
 }
 
 /**
  * Convert a filter expression into a Sequelize WHERE clause for full-text
- * search. The translation differs from `buildWhere` in two ways:
+ * search. Mirrors `buildWhere` apart from one field-specific guard:
  *
- *   - `userId` leaves map to `collaboratorIds @> ARRAY[...]` rather than to
- *     the document's creator. Search semantics are "documents this user
- *     collaborated on", not "documents this user authored".
- *   - The leaf field allowlist is intentionally narrow — see
- *     `SEARCH_FILTER_FIELDS` — to keep search behavior predictable.
- *
- * `documentId` leaves must be expanded to `id` leaves by the route handler
- * before reaching this function (the expansion is async and authorization-
- * sensitive, so it does not belong inside the search provider).
+ *   - `documentId` leaves must be expanded to `id` leaves by the route
+ *     handler before reaching this function — `expandDocumentIdInFilter`
+ *     handles that.
  *
  * @param filter the filter expression.
  * @returns a Sequelize WHERE clause.
- * @throws if the filter references an unsupported field or operator.
+ * @throws if the filter references documentId (unexpanded).
  */
 export function buildSearchWhere<M extends object = object>(
   filter: Filter
@@ -357,9 +300,10 @@ export function buildSearchWhere<M extends object = object>(
   return searchLeafToWhere(filter) as WhereOptions<M>;
 }
 
-interface LegacySearchParams {
-  collectionId?: string;
+interface LegacyParams {
   userId?: string;
+  collectionId?: string;
+  parentDocumentId?: string | null;
   documentId?: string;
   dateFilter?: DateFilter;
   statusFilter?: StatusFilter[];
@@ -396,19 +340,24 @@ function statusToFilter(status: StatusFilter): Filter {
 }
 
 /**
- * Translate the deprecated top-level search params into a filter expression.
- * Used by `documents.search` and `documents.search_titles` to keep legacy
- * callers working without the route handler having to special-case each
- * parameter inside the search provider.
+ * Translate deprecated top-level params into an equivalent filter expression.
+ * Callers pass only the subset of params their route accepts; each one becomes
+ * a leaf (or sub-tree, for `statusFilter`), and all entries are ANDed together.
+ *
+ * Notable shapes:
+ *   - `parentDocumentId === null` → `isNull` leaf (matches root-level docs).
+ *   - `dateFilter` → `updatedAt gte` with an ISO 8601 duration literal.
+ *   - `statusFilter` with multiple entries → OR of status shapes.
  *
  * @param legacy the deprecated top-level params.
- * @returns the equivalent filter expression, or undefined if none were set.
+ * @returns the equivalent filter, or undefined if none were set.
  */
-export function legacySearchParamsToFilter(
-  legacy: LegacySearchParams
-): Filter | undefined {
+export function legacyParamsToFilter(legacy: LegacyParams): Filter | undefined {
   const leaves: Filter[] = [];
 
+  if (legacy.userId) {
+    leaves.push({ field: "userId", operator: "eq", value: legacy.userId });
+  }
   if (legacy.collectionId) {
     leaves.push({
       field: "collectionId",
@@ -416,8 +365,14 @@ export function legacySearchParamsToFilter(
       value: legacy.collectionId,
     });
   }
-  if (legacy.userId) {
-    leaves.push({ field: "userId", operator: "eq", value: legacy.userId });
+  if (legacy.parentDocumentId === null) {
+    leaves.push({ field: "parentDocumentId", operator: "isNull" });
+  } else if (legacy.parentDocumentId) {
+    leaves.push({
+      field: "parentDocumentId",
+      operator: "eq",
+      value: legacy.parentDocumentId,
+    });
   }
   if (legacy.documentId) {
     leaves.push({

@@ -74,7 +74,6 @@ import {
   extractTopLevelEqValue,
   hasFieldInFilter,
   legacyParamsToFilter,
-  legacySearchParamsToFilter,
   mapFilterFields,
 } from "@server/models/helpers/Filters";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
@@ -251,15 +250,12 @@ router.post(
       where[Op.and].push({ id: documentIds });
     }
 
-    // Apply filter and re-run authorize() for any auth-bearing fields. Field
-    // names are mapped from the public API (e.g. `userId`) to the underlying
-    // column (e.g. `createdById`) only at the point of building the where clause.
+    // Apply filter and re-run authorize() for any auth-bearing fields. The
+    // public-API `documentId` field is renamed to the underlying `id` column;
+    // `userId` is handled inside `buildWhere` (maps to `collaboratorIds`).
     if (filter) {
       await authorizeFilterFields(user, filter);
-      const mapped = mapFilterFields(filter, {
-        userId: "createdById",
-        documentId: "id",
-      });
+      const mapped = mapFilterFields(filter, { documentId: "id" });
       where[Op.and].push(buildWhere<Document>(mapped));
     }
 
@@ -1099,7 +1095,7 @@ router.post(
     const { user } = ctx.state.auth;
     const filter =
       combineFilters(rawFilters) ??
-      legacySearchParamsToFilter({
+      legacyParamsToFilter({
         collectionId,
         userId,
         documentId,
@@ -1155,7 +1151,7 @@ router.post(
       ctx.input.body;
     const filter =
       combineFilters(rawFilters) ??
-      legacySearchParamsToFilter({
+      legacyParamsToFilter({
         collectionId,
         userId,
         documentId,
