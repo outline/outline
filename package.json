@@ -52,11 +52,11 @@
     "> 0.25%, not dead"
   ],
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1032.0",
-    "@aws-sdk/lib-storage": "^3.1032.0",
-    "@aws-sdk/s3-presigned-post": "^3.1032.0",
-    "@aws-sdk/s3-request-presigner": "^3.1032.0",
-    "@aws-sdk/signature-v4-crt": "^3.1032.0",
+    "@aws-sdk/client-s3": "^3.1045.0",
+    "@aws-sdk/lib-storage": "^3.1045.0",
+    "@aws-sdk/s3-presigned-post": "^3.1045.0",
+    "@aws-sdk/s3-request-presigner": "^3.1045.0",
+    "@aws-sdk/signature-v4-crt": "^3.1045.0",
     "@benrbray/prosemirror-math": "^0.2.2",
     "@bull-board/api": "^6.21.3",
     "@bull-board/koa": "^6.21.3",
