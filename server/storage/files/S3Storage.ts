@@ -262,6 +262,10 @@ export default class S3Storage extends BaseStorage {
       return env.AWS_S3_ACCELERATE_URL;
     }
 
+    if (!env.AWS_S3_UPLOAD_BUCKET_URL) {
+      return undefined;
+    }
+
     // support old path-style S3 uploads and new virtual host uploads by
     // checking for the bucket name in the endpoint url.
     if (env.AWS_S3_UPLOAD_BUCKET_NAME) {
