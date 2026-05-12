@@ -1,6 +1,6 @@
 import { isMatch } from "es-toolkit/compat";
 import { sanitizeUrl } from "../../utils/urls";
-import type { Token } from "markdown-it";
+import type Token from "markdown-it/lib/token.mjs";
 import type {
   NodeSpec,
   Node as ProsemirrorNode,

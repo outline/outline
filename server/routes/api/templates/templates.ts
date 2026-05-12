@@ -124,9 +124,7 @@ router.post(
       Template.count({ where }),
     ]);
 
-    const data = await Promise.all(
-      templates.map((template) => presentTemplate(template))
-    );
+    const data = templates.map((template) => presentTemplate(template));
     const policies = presentPolicies(user, templates);
 
     ctx.body = {

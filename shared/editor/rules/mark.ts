@@ -1,8 +1,9 @@
 // Adapted from:
 // https://github.com/markdown-it/markdown-it-mark/blob/master/index.js
 
-import type { StateInline } from "markdown-it";
 import type MarkdownIt from "markdown-it";
+import type StateInline from "markdown-it/lib/rules_inline/state_inline.mjs";
+import type { Delimiter } from "markdown-it/lib/rules_inline/state_inline.mjs";
 
 export default function (options: { delim: string; mark: string }) {
   const delimCharCode = options.delim.charCodeAt(0);
@@ -62,7 +63,7 @@ export default function (options: { delim: string; mark: string }) {
     //
     function postProcess(
       state: StateInline,
-      delimiters: StateInline.Delimiter[]
+      delimiters: Delimiter[]
     ) {
       let i = 0,
         j,

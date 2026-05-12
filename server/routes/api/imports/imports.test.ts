@@ -105,11 +105,11 @@ describe("#imports.list", () => {
   it("should list all imports", async () => {
     const admin = await buildAdmin();
     const [importOne, importTwo] = await Promise.all([
-      await buildImport({
+      buildImport({
         createdById: admin.id,
         teamId: admin.teamId,
       }),
-      await buildImport({
+      buildImport({
         createdById: admin.id,
         teamId: admin.teamId,
       }),

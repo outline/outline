@@ -1,5 +1,5 @@
 import { t } from "i18next";
-import type { Token } from "markdown-it";
+import type Token from "markdown-it/lib/token.mjs";
 import { InputRule } from "prosemirror-inputrules";
 import type {
   Node as ProsemirrorNode,

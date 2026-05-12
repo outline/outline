@@ -49,18 +49,18 @@ describe("permissions", () => {
       });
       const group = await buildGroup();
       await Promise.all([
-        await buildGroupUser({
+        buildGroupUser({
           groupId: group.id,
           userId: user.id,
           teamId: user.teamId,
         }),
-        await UserMembership.create({
+        UserMembership.create({
           createdById: user.id,
           documentId: document.id,
           userId: user.id,
           permission: DocumentPermission.Read,
         }),
-        await GroupMembership.create({
+        GroupMembership.create({
           createdById: user.id,
           documentId: document.id,
           groupId: group.id,
@@ -89,18 +89,18 @@ describe("permissions", () => {
       });
       const group = await buildGroup();
       await Promise.all([
-        await buildGroupUser({
+        buildGroupUser({
           groupId: group.id,
           userId: user.id,
           teamId: user.teamId,
         }),
-        await UserMembership.create({
+        UserMembership.create({
           createdById: user.id,
           documentId: document.id,
           userId: user.id,
           permission: DocumentPermission.Read,
         }),
-        await GroupMembership.create({
+        GroupMembership.create({
           createdById: user.id,
           documentId: document.id,
           groupId: group.id,
@@ -129,18 +129,18 @@ describe("permissions", () => {
       });
       const group = await buildGroup();
       await Promise.all([
-        await buildGroupUser({
+        buildGroupUser({
           groupId: group.id,
           userId: user.id,
           teamId: user.teamId,
         }),
-        await UserMembership.create({
+        UserMembership.create({
           createdById: user.id,
           documentId: document.id,
           userId: user.id,
           permission: DocumentPermission.Read,
         }),
-        await GroupMembership.create({
+        GroupMembership.create({
           createdById: user.id,
           documentId: document.id,
           groupId: group.id,
@@ -216,18 +216,18 @@ describe("permissions", () => {
       });
       const group = await buildGroup();
       await Promise.all([
-        await buildGroupUser({
+        buildGroupUser({
           groupId: group.id,
           userId: user.id,
           teamId: user.teamId,
         }),
-        await UserMembership.create({
+        UserMembership.create({
           createdById: user.id,
           documentId: document.id,
           userId: user.id,
           permission: DocumentPermission.Read,
         }),
-        await GroupMembership.create({
+        GroupMembership.create({
           createdById: user.id,
           documentId: document.id,
           groupId: group.id,
@@ -255,18 +255,18 @@ describe("permissions", () => {
       });
       const group = await buildGroup();
       const [, , groupMembership] = await Promise.all([
-        await buildGroupUser({
+        buildGroupUser({
           groupId: group.id,
           userId: user.id,
           teamId: user.teamId,
         }),
-        await UserMembership.create({
+        UserMembership.create({
           createdById: user.id,
           documentId: document.id,
           userId: user.id,
           permission: DocumentPermission.Read,
         }),
-        await GroupMembership.create({
+        GroupMembership.create({
           createdById: user.id,
           documentId: document.id,
           groupId: group.id,

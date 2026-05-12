@@ -1,5 +1,5 @@
-import type { Token } from "markdown-it";
 import type MarkdownIt from "markdown-it";
+import type Token from "markdown-it/lib/token.mjs";
 
 function isOldHardBreak(token: Token) {
   return token.type === "text" && token.content === "\\";

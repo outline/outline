@@ -363,7 +363,7 @@
     "msw": "^2.14.2",
     "nodemon": "^3.1.14",
     "oxlint": "1.50.0",
-    "oxlint-tsgolint": "0.14.2",
+    "oxlint-tsgolint": "0.22.1",
     "postinstall-postinstall": "^2.1.0",
     "prettier": "^3.6.2",
     "react-refresh": "^0.18.0",

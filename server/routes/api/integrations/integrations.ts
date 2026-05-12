@@ -49,7 +49,7 @@ router.post(
     };
 
     const [integrations, total] = await Promise.all([
-      await Integration.findAll({
+      Integration.findAll({
         where,
         order: [[sort, direction]],
         offset: ctx.state.pagination.offset,

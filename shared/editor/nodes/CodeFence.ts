@@ -1,6 +1,6 @@
 import copy from "copy-to-clipboard";
 import { t } from "i18next";
-import type { Token } from "markdown-it";
+import type Token from "markdown-it/lib/token.mjs";
 import { textblockTypeInputRule } from "prosemirror-inputrules";
 import type {
   NodeSpec,
