@@ -42,7 +42,7 @@ export function CounterCache<
 
     const computeCount = (id: unknown) =>
       modelClass.count({
-        where: { [options.foreignKey]: id, ...(options.where ?? {}) },
+        where: Object.assign({ [options.foreignKey]: id }, options.where),
         include: options.include,
         distinct: !!options.include,
       });

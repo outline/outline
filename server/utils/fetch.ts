@@ -158,12 +158,14 @@ export default async function fetch(
       );
     }
 
+    const headers = new Headers({ "User-Agent": outlineUserAgent });
+    new Headers(rest?.headers).forEach((value, key) => {
+      headers.set(key, value);
+    });
+
     const response = await nodeFetch(url, {
       ...rest,
-      headers: {
-        "User-Agent": outlineUserAgent,
-        ...rest?.headers,
-      },
+      headers,
       signal,
       agent: buildAgent(url, { signal, allowPrivateIPAddress }),
     });

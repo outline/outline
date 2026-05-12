@@ -71,11 +71,14 @@ class ApiClient {
     let isJson;
 
     if (this.shareId) {
-      // add to data
-      data = {
-        ...(data || {}),
-        shareId: this.shareId,
-      };
+      if (data instanceof FormData) {
+        data.append("shareId", this.shareId);
+      } else {
+        data = {
+          ...(data || {}),
+          shareId: this.shareId,
+        };
+      }
     }
 
     if (method === "GET") {

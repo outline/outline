@@ -168,13 +168,15 @@ class FileOperation extends ParanoidModel<
     where: WhereOptions<FileOperation> = {}
   ): Promise<number> {
     return this.count({
-      where: {
-        teamId,
-        createdAt: {
-          [Op.gt]: startDate,
+      where: Object.assign(
+        {
+          teamId,
+          createdAt: {
+            [Op.gt]: startDate,
+          },
         },
-        ...where,
-      },
+        where
+      ),
     });
   }
 

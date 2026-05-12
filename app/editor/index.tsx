@@ -223,7 +223,7 @@ export class Editor extends React.PureComponent<
     [name: string]: NodeViewConstructor;
   };
 
-  widgets: { [name: string]: (props: WidgetProps) => React.ReactElement };
+  widgets: { [name: string]: React.FC<WidgetProps> };
   renderers = observable.set<NodeViewRenderer<ComponentProps>>();
   nodes: { [name: string]: NodeSpec };
   marks: { [name: string]: MarkSpec };
@@ -367,13 +367,13 @@ export class Editor extends React.PureComponent<
     });
   }
 
-  private createNodeViews() {
-    return this.extensions.extensions
-      .filter((extension: ReactNode) => extension.component)
-      .reduce(
-        (nodeViews, extension: ReactNode) => ({
-          ...nodeViews,
-          [extension.name]: (
+  private createNodeViews(): { [name: string]: NodeViewConstructor } {
+    return Object.fromEntries(
+      this.extensions.extensions
+        .filter((extension: ReactNode) => extension.component)
+        .map((extension: ReactNode) => [
+          extension.name,
+          (
             node: ProsemirrorNode,
             view: EditorView,
             getPos: () => number,
@@ -387,9 +387,8 @@ export class Editor extends React.PureComponent<
               getPos,
               decorations,
             }),
-        }),
-        {}
-      );
+        ])
+    ) as { [name: string]: NodeViewConstructor };
   }
 
   private createCommands() {

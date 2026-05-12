@@ -255,8 +255,7 @@ export class ChangesetHelper {
           }
         }
 
-        return {
-          ...change,
+        return Object.assign({}, change, {
           deleted: change.deleted.filter(
             (_, index) => !matchedDeletionIndices.has(index)
           ),
@@ -264,7 +263,7 @@ export class ChangesetHelper {
             (_, index) => !matchedInsertionIndices.has(index)
           ),
           modified,
-        };
+        });
       });
 
       return {

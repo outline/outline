@@ -560,7 +560,7 @@ class Team extends ParanoidModel<
 
     return this.findOne({
       ...options,
-      where: { ...options?.where, domain: normalized },
+      where: Object.assign({}, options?.where, { domain: normalized }),
     });
   }
 

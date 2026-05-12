@@ -407,10 +407,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     for (const embed of embeds) {
       if (embed.title && embed.visible !== false && !embed.disabled) {
         embedItems.push(
-          new EmbedDescriptor({
-            ...embed,
-            name: "embed",
-          })
+          new EmbedDescriptor(Object.assign({}, embed, { name: "embed" }))
         );
       }
     }
