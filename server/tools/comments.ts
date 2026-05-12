@@ -1,7 +1,8 @@
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
-import { Op } from "sequelize";
+import { Op, Transaction } from "sequelize";
 import type { FindOptions, WhereOptions } from "sequelize";
+import { sequelize } from "@server/storage/database";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { CommentStatusFilter } from "@shared/types";
@@ -267,45 +268,57 @@ export function commentTools(server: McpServer, scopes: string[]) {
             const ctx = buildAPIContext(context);
             const { user } = ctx.state.auth;
 
-            const document = await Document.findByPk(documentId, {
-              userId: user.id,
-              // We only need to load the state binary if applying a comment mark
-              includeState: !!anchorText,
-            });
-            authorize(user, "comment", document);
-
             const data = commentParser.parse(text).toJSON();
             const commentId = uuidv4();
 
-            if (anchorText) {
-              if (!document.state) {
-                throw ValidationError("Cannot inline comment on this document");
+            const comment = await sequelize.transaction(async (transaction) => {
+              ctx.state.transaction = transaction;
+              ctx.context.transaction = transaction;
+
+              const document = await Document.findByPk(documentId, {
+                userId: user.id,
+                // We only need to load the state binary if applying a comment mark
+                includeState: !!anchorText,
+                transaction,
+                // Lock the row when anchoring so a concurrent comment-mark
+                // application can't overwrite our state update.
+                lock: anchorText ? Transaction.LOCK.UPDATE : undefined,
+              });
+              authorize(user, "comment", document);
+
+              if (anchorText) {
+                if (!document.state) {
+                  throw ValidationError(
+                    "Cannot inline comment on this document"
+                  );
+                }
+
+                const updatedState = ProsemirrorHelper.applyCommentMarkByText({
+                  docState: document.state,
+                  anchorText,
+                  commentId,
+                  userId: user.id,
+                  prefix: anchorPrefix,
+                  suffix: anchorSuffix,
+                });
+
+                if (updatedState) {
+                  await document.updateWithCtx(ctx, { state: updatedState });
+                }
               }
 
-              const updatedState = ProsemirrorHelper.applyCommentMarkByText({
-                docState: document.state,
-                anchorText,
-                commentId,
-                userId: user.id,
-                prefix: anchorPrefix,
-                suffix: anchorSuffix,
+              const created = await Comment.createWithCtx(ctx, {
+                id: commentId,
+                data,
+                createdById: user.id,
+                documentId,
+                parentCommentId,
               });
 
-              if (updatedState) {
-                await document.updateWithCtx(ctx, { state: updatedState });
-              }
-            }
-
-            const comment = await Comment.createWithCtx(ctx, {
-              id: commentId,
-              data,
-              createdById: user.id,
-              documentId,
-              parentCommentId,
+              created.createdBy = user;
+              created.document = document!;
+              return created;
             });
-
-            comment.createdBy = user;
-            comment.document = document!;
 
             const presented = presentCommentWithText(comment);
             return {
