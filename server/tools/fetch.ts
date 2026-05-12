@@ -3,6 +3,7 @@ import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { type CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { Attachment, Collection, Document, User } from "@server/models";
 import { authorize, can } from "@server/policies";
+import { AuthorizationError } from "@server/errors";
 import {
   presentCollection,
   presentDocument,
@@ -180,7 +181,12 @@ export function fetchTool(server: McpServer, scopes: string[]) {
               rejectOnEmpty: true,
             });
 
-            authorize(actor, "read", attachment);
+            // Private attachments are accessible to any member of the workspace they
+            // belong to. This is intentional and not a permission bypass – attachments
+            // are owned by the workspace (team), not by individual documents or users.
+            if (attachment.teamId !== actor?.teamId) {
+              throw AuthorizationError();
+            }
 
             return success({
               id: attachment.id,
