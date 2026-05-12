@@ -82,7 +82,20 @@ export default async function documentPermanentDeleter(documents: Document[]) {
   const BATCH_SIZE = 100;
 
   const documentIds = documents.map((document) => document.id);
-  const batches = chunk(documentIds, BATCH_SIZE);
+
+  // Re-check deletedAt in the database to exclude documents that were restored
+  // between the caller's query and now. Otherwise the parentDocumentId clear
+  // below would detach children of a restored parent, breaking the hierarchy.
+  const stillDeleted = await Document.unscoped().findAll({
+    attributes: ["id"],
+    where: {
+      id: documentIds,
+      deletedAt: { [Op.ne]: null },
+    },
+    paranoid: false,
+  });
+  const deletedIds = stillDeleted.map((document) => document.id);
+  const batches = chunk(deletedIds, BATCH_SIZE);
 
   for (const batch of batches) {
     await Document.update(

@@ -132,6 +132,27 @@ describe("documentPermanentDeleter", () => {
     ).toEqual(1);
   });
 
+  it("should not detach children of a document restored between query and destroy", async () => {
+    const parent = await buildDocument({
+      publishedAt: subDays(new Date(), 90),
+      deletedAt: subDays(new Date(), 60),
+    });
+    const child = await buildDocument({
+      teamId: parent.teamId,
+      parentDocumentId: parent.id,
+    });
+
+    await Document.unscoped().update(
+      { deletedAt: null },
+      { where: { id: parent.id }, paranoid: false }
+    );
+
+    await documentPermanentDeleter([parent]);
+
+    await child.reload();
+    expect(child.parentDocumentId).toEqual(parent.id);
+  });
+
   it("should not destroy attachments referenced in other documents", async () => {
     const document1 = await buildDocument();
     const document = await buildDocument({
