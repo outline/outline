@@ -1,5 +1,5 @@
-import type { StateInline } from "markdown-it";
 import type MarkdownIt from "markdown-it";
+import type StateInline from "markdown-it/lib/rules_inline/state_inline.mjs";
 import { full as emojiPlugin } from "markdown-it-emoji";
 import { isUUID } from "validator";
 import { nameToEmoji } from "../lib/emoji";

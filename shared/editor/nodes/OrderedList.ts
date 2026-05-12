@@ -1,4 +1,5 @@
-import type { PluginSimple, Token } from "markdown-it";
+import type { PluginSimple } from "markdown-it";
+import type Token from "markdown-it/lib/token.mjs";
 import type {
   NodeSpec,
   NodeType,

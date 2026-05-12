@@ -1,10 +1,12 @@
-import type { PluginSimple } from "markdown-it";
-import markdownit from "markdown-it";
+import markdownit, {
+  type Options as MarkdownItOptions,
+  type PluginSimple,
+} from "markdown-it";
 import type { Schema } from "prosemirror-model";
 
 type Options = {
   /** Markdown-it options. */
-  rules?: markdownit.Options;
+  rules?: MarkdownItOptions;
   /** Markdown-it plugins. */
   plugins?: PluginSimple[];
   /** The schema for associated editor. */

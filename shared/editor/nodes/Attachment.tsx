@@ -1,4 +1,4 @@
-import type { Token } from "markdown-it";
+import type Token from "markdown-it/lib/token.mjs";
 import { DownloadIcon } from "outline-icons";
 import type {
   NodeSpec,
