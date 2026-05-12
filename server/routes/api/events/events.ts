@@ -95,9 +95,7 @@ router.post(
 
     ctx.body = {
       pagination: ctx.state.pagination,
-      data: await Promise.all(
-        loadedEvents.map((event) => presentEvent(event, auditLog))
-      ),
+      data: loadedEvents.map((event) => presentEvent(event, auditLog)),
     };
   }
 );

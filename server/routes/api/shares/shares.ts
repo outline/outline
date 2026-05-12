@@ -80,27 +80,26 @@ router.post(
 
       const team = teamFromCtx?.id === share.teamId ? teamFromCtx : share.team;
 
-      const [serializedCollection, serializedDocument, serializedTeam] =
-        await Promise.all([
-          collection
-            ? await presentCollection(ctx, collection, {
-                isPublic: cannot(user, "read", collection),
-                shareId: share.id,
-                includeUpdatedAt: share.showLastUpdated,
-              })
-            : null,
-          document
-            ? await presentDocument(ctx, document, {
-                isPublic: cannot(user, "read", document),
-                shareId: share.id,
-                includeUpdatedAt: share.showLastUpdated,
-              })
-            : null,
-          presentPublicTeam(
-            team,
-            !!team.getPreference(TeamPreference.PublicBranding)
-          ),
-        ]);
+      const [serializedCollection, serializedDocument] = await Promise.all([
+        collection
+          ? presentCollection(ctx, collection, {
+              isPublic: cannot(user, "read", collection),
+              shareId: share.id,
+              includeUpdatedAt: share.showLastUpdated,
+            })
+          : Promise.resolve(null),
+        document
+          ? presentDocument(ctx, document, {
+              isPublic: cannot(user, "read", document),
+              shareId: share.id,
+              includeUpdatedAt: share.showLastUpdated,
+            })
+          : Promise.resolve(null),
+      ]);
+      const serializedTeam = presentPublicTeam(
+        team,
+        !!team.getPreference(TeamPreference.PublicBranding)
+      );
 
       ctx.body = {
         data: {

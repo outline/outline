@@ -130,7 +130,7 @@ function MultiplayerEditor(
           .fetchAuth()
           .then(() => {
             provider.setConfiguration({ token: auth.collaborationToken });
-            provider.connect();
+            void provider.connect();
             provider.shouldConnect = true;
           })
           .catch(() => {
@@ -284,7 +284,7 @@ function MultiplayerEditor(
       !isVisible &&
       remoteProvider.status === WebSocketStatus.Connected
     ) {
-      void remoteProvider.disconnect();
+      remoteProvider.disconnect();
     }
 
     if (
