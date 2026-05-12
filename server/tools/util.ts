@@ -1,5 +1,6 @@
 import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import { z } from "zod";
 import { Collection, type Team, type User } from "@server/models";
 import { addTags } from "@server/logging/tracer";
 import { traceFunction } from "@server/logging/tracing";
@@ -44,6 +45,23 @@ export function buildAPIContext(context: McpContext) {
     context: { auth, ip },
     cookies: { get: () => undefined, set: () => undefined },
   } as unknown as APIContext;
+}
+
+/**
+ * Builds a zod schema for an optional string MCP tool input that coerces
+ * empty strings to `undefined`. MCP clients sometimes send `""` for fields
+ * the caller intended to omit. Use this for identifier, query, and similar
+ * fields where `""` is not a meaningful value — keep `z.string().optional()`
+ * for content/text fields where an empty string is a valid input (e.g.
+ * clearing a description).
+ *
+ * @returns a zod schema accepting `string | undefined`, with `""` treated as `undefined`.
+ */
+export function optionalString() {
+  return z
+    .string()
+    .optional()
+    .transform((v) => (v === "" ? undefined : v));
 }
 
 /**

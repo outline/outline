@@ -5,7 +5,11 @@ import {
   buildTeam,
   buildUser,
 } from "@server/test/factories";
-import { buildBreadcrumb, getBreadcrumbsForDocuments } from "./util";
+import {
+  buildBreadcrumb,
+  getBreadcrumbsForDocuments,
+  optionalString,
+} from "./util";
 
 const node = (
   id: string,
@@ -59,6 +63,26 @@ describe("buildBreadcrumb", () => {
 
   it("returns just the collection name when the structure is empty", () => {
     expect(buildBreadcrumb("a", [], "Engineering")).toBe("Engineering");
+  });
+});
+
+describe("optionalString", () => {
+  const schema = optionalString();
+
+  it("returns undefined when input is omitted", () => {
+    expect(schema.parse(undefined)).toBeUndefined();
+  });
+
+  it("coerces an empty string to undefined", () => {
+    expect(schema.parse("")).toBeUndefined();
+  });
+
+  it("passes through a non-empty string", () => {
+    expect(schema.parse("hello")).toBe("hello");
+  });
+
+  it("preserves whitespace-only strings", () => {
+    expect(schema.parse(" ")).toBe(" ");
   });
 });
 

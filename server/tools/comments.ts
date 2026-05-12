@@ -18,6 +18,7 @@ import {
   success,
   buildAPIContext,
   getActorFromContext,
+  optionalString,
   withTracing,
 } from "./util";
 import { ValidationError } from "@server/errors";
@@ -65,18 +66,15 @@ export function commentTools(server: McpServer, scopes: string[]) {
           readOnlyHint: true,
         },
         inputSchema: {
-          documentId: z
-            .string()
-            .optional()
-            .describe("The document ID to list comments for."),
-          collectionId: z
-            .string()
-            .optional()
-            .describe("The collection ID to list comments for."),
-          parentCommentId: z
-            .string()
-            .optional()
-            .describe("A parent comment ID to list only its replies."),
+          documentId: optionalString().describe(
+            "The document ID to list comments for."
+          ),
+          collectionId: optionalString().describe(
+            "The collection ID to list comments for."
+          ),
+          parentCommentId: optionalString().describe(
+            "A parent comment ID to list only the replies in that thread."
+          ),
           statusFilter: z
             .array(z.enum(CommentStatusFilter))
             .optional()
@@ -238,30 +236,18 @@ export function commentTools(server: McpServer, scopes: string[]) {
           text: z
             .string()
             .describe("The markdown text content of the comment."),
-          parentCommentId: z
-            .string()
-            .optional()
-            .describe(
-              "The parent comment ID to reply to. Omit for a top-level comment."
-            ),
-          anchorText: z
-            .string()
-            .optional()
-            .describe(
-              "A plain text substring of the document to anchor this comment to as an inline comment. The first occurrence is used unless anchorPrefix or anchorSuffix is provided, omit for a general document comment."
-            ),
-          anchorPrefix: z
-            .string()
-            .optional()
-            .describe(
-              "Only provide this if anchorText appears more than once in the document and you need to target a specific occurrence. Plain text that immediately precedes anchorText."
-            ),
-          anchorSuffix: z
-            .string()
-            .optional()
-            .describe(
-              "Only provide this if anchorText appears more than once in the document and you need to target a specific occurrence. Plain text that immediately follows anchorText."
-            ),
+          parentCommentId: optionalString().describe(
+            "The parent comment ID to reply to. Omit for a top-level comment."
+          ),
+          anchorText: optionalString().describe(
+            "A plain text substring of the document to anchor this comment to as an inline comment. The first occurrence is used unless anchorPrefix or anchorSuffix is provided, omit for a general document comment."
+          ),
+          anchorPrefix: optionalString().describe(
+            "Only provide this if anchorText appears more than once in the document and you need to target a specific occurrence. Plain text that immediately precedes anchorText."
+          ),
+          anchorSuffix: optionalString().describe(
+            "Only provide this if anchorText appears more than once in the document and you need to target a specific occurrence. Plain text that immediately follows anchorText."
+          ),
         },
       },
       withTracing(
