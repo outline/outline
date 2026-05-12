@@ -1,8 +1,9 @@
 import { z } from "zod";
 import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { type CallToolResult } from "@modelcontextprotocol/sdk/types.js";
-import { Collection, Document, User } from "@server/models";
+import { Attachment, Collection, Document, User } from "@server/models";
 import { authorize, can } from "@server/policies";
+import { AuthorizationError } from "@server/errors";
 import {
   presentCollection,
   presentDocument,
@@ -32,8 +33,12 @@ const SELF_TOKENS = new Set(["self", "me", "current_user"]);
 function extractId(value: string): string {
   if (/^https?:\/\//.test(value)) {
     try {
-      const pathname = new URL(value).pathname;
-      const segments = pathname.split("/").filter(Boolean);
+      const url = new URL(value);
+      const queryId = url.searchParams.get("id");
+      if (queryId) {
+        return queryId;
+      }
+      const segments = url.pathname.split("/").filter(Boolean);
       return segments[segments.length - 1] ?? value;
     } catch {
       return value;
@@ -59,8 +64,17 @@ export function fetchTool(server: McpServer, scopes: string[]) {
     scopes
   );
   const canReadUsers = AuthenticationHelper.canAccess("users.info", scopes);
+  const canReadAttachments = AuthenticationHelper.canAccess(
+    "attachments.info",
+    scopes
+  );
 
-  if (!canReadDocuments && !canReadCollections && !canReadUsers) {
+  if (
+    !canReadDocuments &&
+    !canReadCollections &&
+    !canReadUsers &&
+    !canReadAttachments
+  ) {
     return;
   }
 
@@ -68,6 +82,7 @@ export function fetchTool(server: McpServer, scopes: string[]) {
     ...(canReadDocuments ? ["document"] : []),
     ...(canReadCollections ? ["collection"] : []),
     ...(canReadUsers ? ["user"] : []),
+    ...(canReadAttachments ? ["attachment"] : []),
   ] as [string, ...string[]];
 
   server.registerTool(
@@ -75,7 +90,7 @@ export function fetchTool(server: McpServer, scopes: string[]) {
     {
       title: "Fetch",
       description:
-        'Fetches a document, collection, or user by type and ID. When fetching a collection the response includes the full hierarchical document tree. For users, "current_user" can be used as the ID to get the authenticated user.',
+        'Fetches a document, collection, user, or attachment by type and ID. When fetching a collection the response includes the full hierarchical document tree. For users, "current_user" can be used as the ID to get the authenticated user. For attachments, the response includes a short-lived signed URL that can be used to download the file contents directly.',
       annotations: {
         idempotentHint: true,
         readOnlyHint: true,
@@ -159,6 +174,27 @@ export function fetchTool(server: McpServer, scopes: string[]) {
                 includeDetails: !!can(actor, "readDetails", user),
               })
             );
+          }
+
+          case "attachment": {
+            const attachment = await Attachment.findByPk(id, {
+              rejectOnEmpty: true,
+            });
+
+            // Private attachments are accessible to any member of the workspace they
+            // belong to. This is intentional and not a permission bypass – attachments
+            // are owned by the workspace (team), not by individual documents or users.
+            if (attachment.teamId !== actor?.teamId) {
+              throw AuthorizationError();
+            }
+
+            return success({
+              id: attachment.id,
+              name: attachment.name,
+              contentType: attachment.contentType,
+              size: attachment.size,
+              signedUrl: await attachment.signedUrl,
+            });
           }
 
           default:
