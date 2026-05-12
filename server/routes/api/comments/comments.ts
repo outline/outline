@@ -2,6 +2,7 @@ import Router from "koa-router";
 import { difference } from "es-toolkit/compat";
 import type { FindOptions, WhereOptions } from "sequelize";
 import { Op } from "sequelize";
+import { v4 as uuidv4 } from "uuid";
 import {
   CommentStatusFilter,
   TeamPreference,
@@ -52,6 +53,11 @@ router.post(
       transaction,
       // We only need to load the state binary if applying a comment mark
       includeState: !!anchorText,
+      // Lock the row when anchoring so a concurrent inline comment can't
+      // overwrite our state update.
+      lock: anchorText
+        ? { level: transaction.LOCK.UPDATE, of: Document }
+        : undefined,
     });
     authorize(user, "comment", document);
 
@@ -66,8 +72,7 @@ router.post(
       ? commentParser.parse(text).toJSON()
       : ctx.input.body.data;
 
-    // Generate comment ID if not provided
-    const commentId = id || require("uuid").v4();
+    const commentId = id || uuidv4();
 
     if (anchorText) {
       if (!document.state) {
@@ -83,12 +88,16 @@ router.post(
         suffix: anchorSuffix,
       });
 
-      if (updatedState) {
-        await document.update(
-          { state: updatedState },
-          { transaction, hooks: false, silent: true }
+      if (!updatedState) {
+        throw ValidationError(
+          "Could not anchor comment to the provided text in the document"
         );
       }
+
+      await document.update(
+        { state: updatedState },
+        { transaction, hooks: false, silent: true }
+      );
     }
 
     const comment = await Comment.createWithCtx(ctx, {
