@@ -1,13 +1,14 @@
+import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 import { Op } from "sequelize";
 import type { FindOptions, WhereOptions } from "sequelize";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { CommentStatusFilter } from "@shared/types";
-import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import type { CommentMark } from "@shared/utils/ProsemirrorHelper";
 import { commentParser } from "@server/editor";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { Comment, Collection, Document } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentComment } from "@server/presenters";
@@ -19,6 +20,7 @@ import {
   getActorFromContext,
   withTracing,
 } from "./util";
+import { ValidationError } from "@server/errors";
 
 /**
  * Presents a comment with a plain-text rendering of its content so that
@@ -242,23 +244,74 @@ export function commentTools(server: McpServer, scopes: string[]) {
             .describe(
               "The parent comment ID to reply to. Omit for a top-level comment."
             ),
+          anchorText: z
+            .string()
+            .optional()
+            .describe(
+              "A plain text substring of the document to anchor this comment to as an inline comment. The first occurrence is used unless anchorPrefix or anchorSuffix is provided, omit for a general document comment."
+            ),
+          anchorPrefix: z
+            .string()
+            .optional()
+            .describe(
+              "Only provide this if anchorText appears more than once in the document and you need to target a specific occurrence. Plain text that immediately precedes anchorText."
+            ),
+          anchorSuffix: z
+            .string()
+            .optional()
+            .describe(
+              "Only provide this if anchorText appears more than once in the document and you need to target a specific occurrence. Plain text that immediately follows anchorText."
+            ),
         },
       },
       withTracing(
         "create_comment",
-        async ({ documentId, text, parentCommentId }, context) => {
+        async (
+          {
+            documentId,
+            text,
+            parentCommentId,
+            anchorText,
+            anchorPrefix,
+            anchorSuffix,
+          },
+          context
+        ) => {
           try {
             const ctx = buildAPIContext(context);
             const { user } = ctx.state.auth;
 
             const document = await Document.findByPk(documentId, {
               userId: user.id,
+              // We only need to load the state binary if applying a comment mark
+              includeState: !!anchorText,
             });
             authorize(user, "comment", document);
 
             const data = commentParser.parse(text).toJSON();
+            const commentId = uuidv4();
+
+            if (anchorText) {
+              if (!document.state) {
+                throw ValidationError("Cannot inline comment on this document");
+              }
+
+              const updatedState = ProsemirrorHelper.applyCommentMarkByText({
+                docState: document.state,
+                anchorText,
+                commentId,
+                userId: user.id,
+                prefix: anchorPrefix,
+                suffix: anchorSuffix,
+              });
+
+              if (updatedState) {
+                await document.updateWithCtx(ctx, { state: updatedState });
+              }
+            }
 
             const comment = await Comment.createWithCtx(ctx, {
+              id: commentId,
               data,
               createdById: user.id,
               documentId,

@@ -1,8 +1,12 @@
 import { faker } from "@faker-js/faker";
+import { Node } from "prosemirror-model";
 import type { DeepPartial } from "utility-types";
+import { prosemirrorToYDoc, yDocToProsemirrorJSON } from "y-prosemirror";
+import * as Y from "yjs";
 import type { ProsemirrorData } from "@shared/types";
 import { MentionType } from "@shared/types";
 import { createContext } from "@server/context";
+import { schema } from "@server/editor";
 import { buildProseMirrorDoc, buildUser } from "@server/test/factories";
 import type { MentionAttrs } from "./ProsemirrorHelper";
 import { ProsemirrorHelper } from "./ProsemirrorHelper";
@@ -1095,6 +1099,472 @@ describe("ProsemirrorHelper", () => {
       );
 
       expect(result.toJSON()).toEqual(doc.toJSON());
+    });
+  });
+
+  describe("#applyCommentMarkByText", () => {
+    const buildDocState = (content: object[]) => {
+      const doc = Node.fromJSON(schema, { type: "doc", content });
+      const ydoc = prosemirrorToYDoc(doc, "default");
+      return Y.encodeStateAsUpdate(ydoc);
+    };
+
+    const getCommentMarks = (result: Uint8Array) => {
+      const ydoc = new Y.Doc();
+      Y.applyUpdate(ydoc, result);
+      const doc = Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));
+
+      const marks: { id: string; text: string }[] = [];
+      doc.descendants((node) => {
+        if (node.isText) {
+          const m = node.marks.find((mark) => mark.type.name === "comment");
+          if (m) {
+            marks.push({ id: m.attrs.id, text: node.text ?? "" });
+          }
+        }
+        return true;
+      });
+      return marks;
+    };
+
+    it("anchors a comment to a substring within a single paragraph", () => {
+      const docState = buildDocState([
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "The quick brown fox jumps" }],
+        },
+      ]);
+
+      const result = ProsemirrorHelper.applyCommentMarkByText({
+        docState,
+        anchorText: "brown fox",
+        commentId: "comment-1",
+        userId: "user-1",
+      });
+
+      expect(result).toBeInstanceOf(Uint8Array);
+      const marks = getCommentMarks(result!);
+      expect(marks).toHaveLength(1);
+      expect(marks[0]).toEqual({ id: "comment-1", text: "brown fox" });
+    });
+
+    it("anchors a comment to text spanning multiple top-level blocks", () => {
+      const docState = buildDocState([
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "first paragraph" }],
+        },
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "second paragraph" }],
+        },
+      ]);
+
+      const result = ProsemirrorHelper.applyCommentMarkByText({
+        docState,
+        anchorText: "paragraph\nsecond",
+        commentId: "comment-1",
+        userId: "user-1",
+      });
+
+      expect(result).toBeInstanceOf(Uint8Array);
+      const marks = getCommentMarks(result!);
+      expect(marks.map((m) => m.text)).toEqual(["paragraph", "second"]);
+      expect(marks.every((m) => m.id === "comment-1")).toBe(true);
+    });
+
+    it("matches anchorText that crosses a leaf node's leafText (e.g. a mention)", () => {
+      // Mention nodes are atoms whose plain-text content comes from
+      // spec.leafText — for a User mention this is "@<label>". Without
+      // textBetween's leaf handling the mention would be invisible to the
+      // matcher, so a span like "Hello @Alice, how" would not be found.
+      // The mention itself disallows marks (schema marks: "") so the
+      // comment mark only attaches to the surrounding text — but the
+      // search must still resolve and the surrounding marks must apply.
+      const docState = buildDocState([
+        {
+          type: "paragraph",
+          content: [
+            { type: "text", text: "Hello " },
+            {
+              type: "mention",
+              attrs: {
+                type: MentionType.User,
+                label: "Alice",
+                modelId: "00000000-0000-0000-0000-000000000001",
+                id: "00000000-0000-0000-0000-000000000002",
+              },
+            },
+            { type: "text", text: ", how are you?" },
+          ],
+        },
+      ]);
+
+      const result = ProsemirrorHelper.applyCommentMarkByText({
+        docState,
+        anchorText: "Hello @Alice, how",
+        commentId: "comment-1",
+        userId: "user-1",
+      });
+
+      expect(result).toBeInstanceOf(Uint8Array);
+
+      const marks = getCommentMarks(result!);
+      // Both text nodes flanking the mention should carry the comment mark,
+      // confirming the resolved range spans the leaf atom.
+      expect(marks.map((m) => m.text)).toEqual(["Hello ", ", how"]);
+      expect(marks.every((m) => m.id === "comment-1")).toBe(true);
+    });
+
+    it("throws when leaf text is not enabled (sanity check that the mention's leafText is visible to the matcher)", () => {
+      // Searching for the bare mention text "@Alice" should now succeed
+      // (it does not throw "not found"), proving textBetween surfaces the
+      // mention's leafText into the search corpus.
+      const docState = buildDocState([
+        {
+          type: "paragraph",
+          content: [
+            { type: "text", text: "before " },
+            {
+              type: "mention",
+              attrs: {
+                type: MentionType.User,
+                label: "Alice",
+                modelId: "00000000-0000-0000-0000-000000000003",
+                id: "00000000-0000-0000-0000-000000000004",
+              },
+            },
+            { type: "text", text: " after" },
+          ],
+        },
+      ]);
+
+      expect(() =>
+        ProsemirrorHelper.applyCommentMarkByText({
+          docState,
+          anchorText: "@Alice",
+          commentId: "comment-1",
+          userId: "user-1",
+        })
+      ).not.toThrow();
+    });
+
+    it("matches across inline marks (plain text ignores formatting)", () => {
+      const docState = buildDocState([
+        {
+          type: "paragraph",
+          content: [
+            { type: "text", text: "the " },
+            {
+              type: "text",
+              marks: [{ type: "strong" }],
+              text: "brown",
+            },
+            { type: "text", text: " fox" },
+          ],
+        },
+      ]);
+
+      const result = ProsemirrorHelper.applyCommentMarkByText({
+        docState,
+        anchorText: "the brown fox",
+        commentId: "comment-1",
+        userId: "user-1",
+      });
+
+      expect(result).toBeInstanceOf(Uint8Array);
+      const marks = getCommentMarks(result!);
+      expect(marks.map((m) => m.text).join("")).toBe("the brown fox");
+      expect(marks.every((m) => m.id === "comment-1")).toBe(true);
+    });
+
+    it("throws ValidationError when anchorText is not found", () => {
+      const docState = buildDocState([
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "hello world" }],
+        },
+      ]);
+
+      expect(() =>
+        ProsemirrorHelper.applyCommentMarkByText({
+          docState,
+          anchorText: "nonexistent",
+          commentId: "comment-1",
+          userId: "user-1",
+        })
+      ).toThrow(/not found/);
+    });
+
+    describe("with anchorPrefix and anchorSuffix", () => {
+      const fox = [
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: "the quick brown fox jumps over the lazy fox",
+            },
+          ],
+        },
+      ];
+
+      const findMarkedRange = (result: Uint8Array) => {
+        const ydoc = new Y.Doc();
+        Y.applyUpdate(ydoc, result);
+        const doc = Node.fromJSON(
+          schema,
+          yDocToProsemirrorJSON(ydoc, "default")
+        );
+
+        // Concatenate the doc's plain text and locate the comment-marked
+        // span by scanning for marked text nodes. Returns the [start, end]
+        // offsets in the plain text.
+        let plain = "";
+        let start = -1;
+        let end = -1;
+        doc.descendants((node) => {
+          if (node.isText) {
+            const len = (node.text ?? "").length;
+            const marked = node.marks.some((m) => m.type.name === "comment");
+            if (marked) {
+              if (start === -1) {
+                start = plain.length;
+              }
+              end = plain.length + len;
+            }
+            plain += node.text ?? "";
+            return false;
+          }
+          return true;
+        });
+        return { plain, start, end };
+      };
+
+      it("defaults to first occurrence when no prefix or suffix given", () => {
+        const docState = buildDocState(fox);
+        const result = ProsemirrorHelper.applyCommentMarkByText({
+          docState,
+          anchorText: "fox",
+          commentId: "comment-1",
+          userId: "user-1",
+        });
+        expect(result).toBeInstanceOf(Uint8Array);
+        const { plain, start, end } = findMarkedRange(result!);
+        expect(plain.slice(start, end)).toBe("fox");
+        expect(start).toBe(plain.indexOf("fox"));
+      });
+
+      it("selects occurrence matching the given prefix", () => {
+        const docState = buildDocState(fox);
+        const result = ProsemirrorHelper.applyCommentMarkByText({
+          docState,
+          anchorText: "fox",
+          commentId: "comment-1",
+          userId: "user-1",
+          prefix: "lazy ",
+        });
+        const { plain, start, end } = findMarkedRange(result!);
+        expect(plain.slice(start, end)).toBe("fox");
+        expect(start).toBe(plain.lastIndexOf("fox"));
+      });
+
+      it("selects occurrence matching the given suffix", () => {
+        const docState = buildDocState(fox);
+        const result = ProsemirrorHelper.applyCommentMarkByText({
+          docState,
+          anchorText: "fox",
+          commentId: "comment-1",
+          userId: "user-1",
+          suffix: " jumps",
+        });
+        const { plain, start, end } = findMarkedRange(result!);
+        expect(plain.slice(start, end)).toBe("fox");
+        expect(plain.slice(end, end + 6)).toBe(" jumps");
+      });
+
+      it("requires both prefix and suffix to match when both supplied", () => {
+        const docState = buildDocState([
+          {
+            type: "paragraph",
+            content: [
+              {
+                type: "text",
+                text: "alpha word beta word gamma word delta",
+              },
+            ],
+          },
+        ]);
+        const result = ProsemirrorHelper.applyCommentMarkByText({
+          docState,
+          anchorText: "word",
+          commentId: "comment-1",
+          userId: "user-1",
+          prefix: "beta ",
+          suffix: " gamma",
+        });
+        const { plain, start, end } = findMarkedRange(result!);
+        expect(plain.slice(start - 5, end + 6)).toBe("beta word gamma");
+      });
+
+      it("treats empty prefix and suffix as no constraint", () => {
+        const docState = buildDocState(fox);
+        const result = ProsemirrorHelper.applyCommentMarkByText({
+          docState,
+          anchorText: "fox",
+          commentId: "comment-1",
+          userId: "user-1",
+          prefix: "",
+          suffix: "",
+        });
+        const { plain, start } = findMarkedRange(result!);
+        expect(start).toBe(plain.indexOf("fox"));
+      });
+
+      it("matches an occurrence anchored at the start of the document", () => {
+        const docState = buildDocState([
+          {
+            type: "paragraph",
+            content: [{ type: "text", text: "fox runs and another fox runs" }],
+          },
+        ]);
+        const result = ProsemirrorHelper.applyCommentMarkByText({
+          docState,
+          anchorText: "fox",
+          commentId: "comment-1",
+          userId: "user-1",
+          prefix: "",
+        });
+        const { start } = findMarkedRange(result!);
+        expect(start).toBe(0);
+      });
+
+      it("matches an occurrence anchored at the end of the document", () => {
+        const docState = buildDocState([
+          {
+            type: "paragraph",
+            content: [{ type: "text", text: "fox runs and another fox" }],
+          },
+        ]);
+        const result = ProsemirrorHelper.applyCommentMarkByText({
+          docState,
+          anchorText: "fox",
+          commentId: "comment-1",
+          userId: "user-1",
+          suffix: "",
+        });
+        const { plain, start } = findMarkedRange(result!);
+        // With no suffix constraint we still get the first occurrence.
+        expect(start).toBe(plain.indexOf("fox"));
+      });
+
+      it("disambiguates across multiple top-level blocks via newline", () => {
+        const docState = buildDocState([
+          {
+            type: "paragraph",
+            content: [{ type: "text", text: "first fox here" }],
+          },
+          {
+            type: "paragraph",
+            content: [{ type: "text", text: "second fox here" }],
+          },
+        ]);
+        const result = ProsemirrorHelper.applyCommentMarkByText({
+          docState,
+          anchorText: "fox",
+          commentId: "comment-1",
+          userId: "user-1",
+          prefix: "second ",
+        });
+        const { plain, start, end } = findMarkedRange(result!);
+        expect(plain.slice(start - 7, end)).toBe("second fox");
+      });
+
+      it("throws when prefix matches no occurrence", () => {
+        const docState = buildDocState(fox);
+        expect(() =>
+          ProsemirrorHelper.applyCommentMarkByText({
+            docState,
+            anchorText: "fox",
+            commentId: "comment-1",
+            userId: "user-1",
+            prefix: "purple ",
+          })
+        ).toThrow(/not found/);
+      });
+
+      it("throws when suffix matches no occurrence", () => {
+        const docState = buildDocState(fox);
+        expect(() =>
+          ProsemirrorHelper.applyCommentMarkByText({
+            docState,
+            anchorText: "fox",
+            commentId: "comment-1",
+            userId: "user-1",
+            suffix: " sleeps",
+          })
+        ).toThrow(/not found/);
+      });
+
+      it("throws when prefix is longer than the text before any occurrence", () => {
+        const docState = buildDocState([
+          {
+            type: "paragraph",
+            content: [{ type: "text", text: "fox" }],
+          },
+        ]);
+        // Document has nothing before "fox", so a non-empty prefix can never
+        // match — guards against negative-index slice false positives.
+        expect(() =>
+          ProsemirrorHelper.applyCommentMarkByText({
+            docState,
+            anchorText: "fox",
+            commentId: "comment-1",
+            userId: "user-1",
+            prefix: "the lazy ",
+          })
+        ).toThrow(/not found/);
+      });
+
+      it("throws when suffix is longer than the text after any occurrence", () => {
+        const docState = buildDocState([
+          {
+            type: "paragraph",
+            content: [{ type: "text", text: "the fox" }],
+          },
+        ]);
+        expect(() =>
+          ProsemirrorHelper.applyCommentMarkByText({
+            docState,
+            anchorText: "fox",
+            commentId: "comment-1",
+            userId: "user-1",
+            suffix: " runs fast",
+          })
+        ).toThrow(/not found/);
+      });
+
+      it("considers overlapping candidates when needle can overlap itself", () => {
+        // 'aba' matches in 'ababa' at indices 0 and 2 (overlapping). The
+        // search must advance one position at a time, not past the previous
+        // candidate's end, to reach the second match via prefix.
+        const docState = buildDocState([
+          {
+            type: "paragraph",
+            content: [{ type: "text", text: "ababa" }],
+          },
+        ]);
+        const result = ProsemirrorHelper.applyCommentMarkByText({
+          docState,
+          anchorText: "aba",
+          commentId: "comment-1",
+          userId: "user-1",
+          prefix: "ab",
+        });
+        const { plain, start, end } = findMarkedRange(result!);
+        expect(plain.slice(start, end)).toBe("aba");
+        expect(start).toBe(2);
+      });
     });
   });
 });

@@ -15,6 +15,7 @@ import { feature } from "@server/middlewares/feature";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
+import { ValidationError } from "@server/errors";
 import { Document, Comment, Collection, Reaction, Emoji } from "@server/models";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
@@ -35,13 +36,22 @@ router.post(
   validate(T.CommentsCreateSchema),
   transaction(),
   async (ctx: APIContext<T.CommentsCreateReq>) => {
-    const { id, documentId, parentCommentId } = ctx.input.body;
+    const {
+      id,
+      documentId,
+      parentCommentId,
+      anchorText,
+      anchorPrefix,
+      anchorSuffix,
+    } = ctx.input.body;
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
 
     const document = await Document.findByPk(documentId, {
       userId: user.id,
       transaction,
+      // We only need to load the state binary if applying a comment mark
+      includeState: !!anchorText,
     });
     authorize(user, "comment", document);
 
@@ -56,8 +66,33 @@ router.post(
       ? commentParser.parse(text).toJSON()
       : ctx.input.body.data;
 
+    // Generate comment ID if not provided
+    const commentId = id || require("uuid").v4();
+
+    if (anchorText) {
+      if (!document.state) {
+        throw ValidationError("Cannot inline comment on this document");
+      }
+
+      const updatedState = ProsemirrorHelper.applyCommentMarkByText({
+        docState: document.state,
+        anchorText,
+        commentId,
+        userId: user.id,
+        prefix: anchorPrefix,
+        suffix: anchorSuffix,
+      });
+
+      if (updatedState) {
+        await document.update(
+          { state: updatedState },
+          { transaction, hooks: false, silent: true }
+        );
+      }
+    }
+
     const comment = await Comment.createWithCtx(ctx, {
-      id,
+      id: commentId,
       data,
       createdById: user.id,
       documentId,

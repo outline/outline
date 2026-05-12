@@ -41,10 +41,34 @@ export const CommentsCreateSchema = BaseSchema.extend({
 
       /** Create comment with this text */
       text: z.string().optional(),
+
+      /**
+       * Plain text substring to anchor the comment to as an inline comment.
+       * The first occurrence in the document's plain text is used.
+       */
+      anchorText: z.string().optional(),
+
+      /**
+       * Plain text immediately preceding `anchorText` in the document, used
+       * to select a specific occurrence when `anchorText` is ambiguous.
+       */
+      anchorPrefix: z.string().optional(),
+
+      /**
+       * Plain text immediately following `anchorText` in the document, used
+       * to select a specific occurrence when `anchorText` is ambiguous.
+       */
+      anchorSuffix: z.string().optional(),
     })
     .refine((obj) => !(isEmpty(obj.data) && isEmpty(obj.text)), {
       error: "One of data or text is required",
-    }),
+    })
+    .refine(
+      (obj) => !((obj.anchorPrefix || obj.anchorSuffix) && !obj.anchorText),
+      {
+        error: "anchorPrefix and anchorSuffix require anchorText",
+      }
+    ),
 });
 
 export type CommentsCreateReq = z.infer<typeof CommentsCreateSchema>;

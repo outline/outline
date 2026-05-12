@@ -10,11 +10,16 @@ import {
 import { Node, Fragment } from "prosemirror-model";
 import { renderToString } from "react-dom/server";
 import styled, { ServerStyleSheet, ThemeProvider } from "styled-components";
-import { prosemirrorToYDoc } from "y-prosemirror";
+import {
+  prosemirrorToYDoc,
+  updateYFragment,
+  yDocToProsemirrorJSON,
+} from "y-prosemirror";
 import * as Y from "yjs";
 import Diff from "@shared/editor/extensions/Diff";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import type { ExtendedChange } from "@shared/editor/lib/ChangesetHelper";
+import textBetween from "@shared/editor/lib/textBetween";
 import EditorContainer from "@shared/editor/components/Styles";
 import GlobalStyles from "@shared/styles/globals";
 import light from "@shared/styles/theme";
@@ -31,6 +36,7 @@ import { isInternalUrl } from "@shared/utils/urls";
 import attachmentCreator from "@server/commands/attachmentCreator";
 import { plugins, schema, parser } from "@server/editor";
 import env from "@server/env";
+import { ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
 import Attachment from "@server/models/Attachment";
@@ -1000,5 +1006,241 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
     };
 
     return doc.copy(transformFragment(doc.content));
+  }
+
+  /**
+   * Applies a comment mark to a document's Yjs state at the first occurrence
+   * of `anchorText` in the document's plain text content.
+   *
+   * Block boundaries are represented as a single newline; matches that span
+   * blocks apply the mark across the union of affected text ranges.
+   *
+   * `prefix` and `suffix` may be supplied to disambiguate when `anchorText`
+   * appears multiple times: the first occurrence whose immediately preceding
+   * text equals `prefix` and immediately following text equals `suffix` is
+   * used. Empty or omitted prefix/suffix imposes no constraint on that side.
+   *
+   * @param params.docState The current Yjs document state.
+   * @param params.anchorText The plain text substring to anchor the comment to.
+   * @param params.commentId The comment identifier.
+   * @param params.userId The user identifier.
+   * @param params.prefix Optional plain text immediately preceding the match.
+   * @param params.suffix Optional plain text immediately following the match.
+   * @returns Updated Yjs state, or null if the mark cannot be applied.
+   * @throws ValidationError when no match satisfies the prefix/suffix.
+   */
+  static applyCommentMarkByText({
+    docState,
+    anchorText,
+    commentId,
+    userId,
+    prefix,
+    suffix,
+  }: {
+    docState: Uint8Array;
+    anchorText: string;
+    commentId: string;
+    userId: string;
+    prefix?: string;
+    suffix?: string;
+  }): Buffer | null {
+    const yjsDoc = new Y.Doc();
+    Y.applyUpdate(yjsDoc, docState);
+    const doc = Node.fromJSON(schema, yDocToProsemirrorJSON(yjsDoc, "default"));
+    const range = ProsemirrorHelper.findTextRange(doc, anchorText, {
+      prefix,
+      suffix,
+    });
+
+    if (!range) {
+      throw ValidationError("anchorText was not found in the document");
+    }
+
+    try {
+      return ProsemirrorHelper.applyCommentMarkAtRange(
+        yjsDoc,
+        doc,
+        range.from,
+        range.to,
+        commentId,
+        userId
+      );
+    } catch (error) {
+      Logger.error("Error applying comment mark by text", error as Error);
+      return null;
+    }
+  }
+
+  private static applyCommentMarkAtRange(
+    yjsDoc: Y.Doc,
+    doc: Node,
+    rangeStart: number,
+    rangeEnd: number,
+    commentId: string,
+    userId: string
+  ): Buffer | null {
+    const docSize = doc.content.size;
+    if (rangeStart < 0 || rangeEnd > docSize || rangeStart > rangeEnd) {
+      Logger.warn("Invalid position range for comment anchor", {
+        rangeStart,
+        rangeEnd,
+        docSize,
+      });
+      return null;
+    }
+
+    const initialState = EditorState.create({
+      doc,
+      schema,
+    });
+
+    const markToAdd = schema.marks.comment.create({
+      id: commentId,
+      userId,
+      draft: false,
+    });
+    const stateTransform = initialState.tr.addMark(
+      rangeStart,
+      rangeEnd,
+      markToAdd
+    );
+    const transformedState = initialState.apply(stateTransform);
+
+    // Mutate the existing yjsDoc in place so the resulting state is a
+    // continuation of the original document — same client IDs, same operation
+    // history — rather than a fresh Y.Doc whose content would merge as
+    // duplicates against any client still holding the original state.
+    const yFragment = yjsDoc.get("default", Y.XmlFragment) as Y.XmlFragment;
+    if (!yFragment.doc) {
+      throw new Error("yFragment.doc not found");
+    }
+    updateYFragment(yFragment.doc, yFragment, transformedState.doc, {
+      mapping: new Map(),
+      isOMark: new Map(),
+    });
+
+    return Buffer.from(Y.encodeStateAsUpdate(yjsDoc));
+  }
+
+  /**
+   * Locates an occurrence of `needle` in the document's plain text and
+   * returns the matching ProseMirror position range, or null if no match.
+   * Plain text is built using the editor's `textBetween` so leaf nodes
+   * with `spec.leafText` (e.g. mentions) participate in matching.
+   *
+   * When `prefix` or `suffix` is provided, the first occurrence whose
+   * immediately preceding / following plain text matches is selected.
+   * Empty or omitted values impose no constraint on that side.
+   *
+   * Atom nodes (whose plain content comes from `leafText`) cannot be
+   * sliced into; matches that fall inside an atom are clamped to the
+   * atom's full PM range.
+   */
+  private static findTextRange(
+    doc: Node,
+    needle: string,
+    options: { prefix?: string; suffix?: string } = {}
+  ): { from: number; to: number } | null {
+    if (!needle.length) {
+      return null;
+    }
+
+    const plain = textBetween(doc, 0, doc.content.size);
+
+    // Mirror textBetween's traversal so segment.plainStart aligns with the
+    // characters in `plain`. If textBetween's algorithm changes, this walk
+    // must change with it.
+    type Segment = {
+      plainStart: number;
+      pmFrom: number;
+      pmTo: number;
+      length: number;
+      isAtom: boolean;
+    };
+    const segments: Segment[] = [];
+    let plainPos = 0;
+    let first = true;
+
+    doc.nodesBetween(0, doc.content.size, (node, pos) => {
+      let nodeText = "";
+      let isLeafText = false;
+
+      if (node.type.spec.leafText) {
+        nodeText = node.type.spec.leafText(node);
+        isLeafText = true;
+      } else if (node.isText) {
+        nodeText = node.text ?? "";
+      }
+
+      if (node.isBlock && ((node.isLeaf && nodeText) || node.isTextblock)) {
+        if (first) {
+          first = false;
+        } else {
+          plainPos += 1; // block separator '\n'
+        }
+      }
+
+      if (nodeText) {
+        segments.push({
+          plainStart: plainPos,
+          pmFrom: pos,
+          pmTo: pos + node.nodeSize,
+          length: nodeText.length,
+          isAtom: isLeafText,
+        });
+        plainPos += nodeText.length;
+      }
+
+      return !isLeafText;
+    });
+
+    const prefix = options.prefix ?? "";
+    const suffix = options.suffix ?? "";
+
+    let startIdx = -1;
+    let searchFrom = 0;
+    while (true) {
+      const candidate = plain.indexOf(needle, searchFrom);
+      if (candidate === -1) {
+        return null;
+      }
+      const candidateEnd = candidate + needle.length;
+      const prefixOk =
+        prefix.length === 0 ||
+        (candidate >= prefix.length &&
+          plain.substring(candidate - prefix.length, candidate) === prefix);
+      const suffixOk =
+        suffix.length === 0 ||
+        (candidateEnd + suffix.length <= plain.length &&
+          plain.substring(candidateEnd, candidateEnd + suffix.length) ===
+            suffix);
+      if (prefixOk && suffixOk) {
+        startIdx = candidate;
+        break;
+      }
+      searchFrom = candidate + 1;
+    }
+
+    const endIdx = startIdx + needle.length;
+
+    let from: number | null = null;
+    for (const s of segments) {
+      if (s.plainStart <= startIdx && startIdx < s.plainStart + s.length) {
+        from = s.isAtom ? s.pmFrom : s.pmFrom + (startIdx - s.plainStart);
+        break;
+      }
+    }
+    let to: number | null = null;
+    for (const s of segments) {
+      if (s.plainStart < endIdx && endIdx <= s.plainStart + s.length) {
+        to = s.isAtom ? s.pmTo : s.pmFrom + (endIdx - s.plainStart);
+      }
+    }
+
+    if (from === null || to === null) {
+      return null;
+    }
+
+    return { from, to };
   }
 }
