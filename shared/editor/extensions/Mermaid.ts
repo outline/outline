@@ -294,8 +294,11 @@ function getNewState({
   const decorations: Decoration[] = [];
   let newEditingId: string | undefined;
 
-  // Find all blocks that represent Mermaid diagrams (supports both "mermaid" and "mermaidjs")
-  const blocks = findBlockNodes(doc).filter((item) => isMermaid(item.node));
+  // Find all blocks that represent Mermaid diagrams (supports both "mermaid" and "mermaidjs"),
+  // descending into containers so diagrams inside toggle blocks are also discovered.
+  const blocks = findBlockNodes(doc, true).filter((item) =>
+    isMermaid(item.node)
+  );
 
   blocks.forEach((block) => {
     const existingDecorations = pluginState.decorationSet.find(
