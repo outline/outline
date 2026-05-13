@@ -954,7 +954,12 @@ export const printDocument = createAction({
   icon: <PrintIcon />,
   visible: ({ activeDocumentId }) => !!(activeDocumentId && window.print),
   perform: () => {
-    setTimeout(window.print, 0);
+    // Kick off the Mermaid light re-render before the print dialog opens —
+    // its async render won't finish in time if we wait for beforeprint.
+    window.dispatchEvent(
+      new CustomEvent("theme-changed", { detail: { isDark: false } })
+    );
+    setTimeout(window.print, 250);
   },
 });
 

@@ -31,6 +31,32 @@ const Theme: React.FC = ({ children }: Props) => {
     );
   }, [ui.resolvedTheme]);
 
+  // Mermaid SVGs are baked at render time with theme colors, so CSS overrides
+  // can't lighten them for print — re-emit theme-changed to force a re-render.
+  React.useEffect(() => {
+    const handleBeforePrint = () => {
+      window.dispatchEvent(
+        new CustomEvent("theme-changed", { detail: { isDark: false } })
+      );
+    };
+
+    const handleAfterPrint = () => {
+      window.dispatchEvent(
+        new CustomEvent("theme-changed", {
+          detail: { isDark: ui.resolvedTheme === "dark" },
+        })
+      );
+    };
+
+    window.addEventListener("beforeprint", handleBeforePrint);
+    window.addEventListener("afterprint", handleAfterPrint);
+
+    return () => {
+      window.removeEventListener("beforeprint", handleBeforePrint);
+      window.removeEventListener("afterprint", handleAfterPrint);
+    };
+  }, [ui]);
+
   return (
     <DirectionProvider dir={direction}>
       <ThemeProvider theme={theme}>
