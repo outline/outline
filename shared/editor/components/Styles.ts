@@ -2121,6 +2121,10 @@ table {
     /* fixes Firefox background color painting over border:
       * https://bugzilla.mozilla.org/show_bug.cgi?id=688556 */
     background-clip: padding-box;
+
+    @media print {
+      box-shadow: none;
+    }
   }
 
   .${EditorStyleHelper.tableAddRow},
