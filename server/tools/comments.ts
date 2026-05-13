@@ -275,16 +275,23 @@ export function commentTools(server: McpServer, scopes: string[]) {
               ctx.state.transaction = transaction;
               ctx.context.transaction = transaction;
 
+              if (anchorText) {
+                // Acquire the row lock on the document directly when
+                // anchoring so a concurrent comment-mark application can't
+                // overwrite our state update.
+                await Document.unscoped().findOne({
+                  where: { id: documentId },
+                  attributes: ["id"],
+                  transaction,
+                  lock: Transaction.LOCK.UPDATE,
+                });
+              }
+
               const document = await Document.findByPk(documentId, {
                 userId: user.id,
                 // We only need to load the state binary if applying a comment mark
                 includeState: !!anchorText,
                 transaction,
-                // Lock the row when anchoring so a concurrent comment-mark
-                // application can't overwrite our state update
-                lock: anchorText
-                  ? { level: Transaction.LOCK.UPDATE, of: Document }
-                  : undefined,
               });
               authorize(user, "comment", document);
 

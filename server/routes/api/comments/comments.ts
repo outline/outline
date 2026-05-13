@@ -48,16 +48,22 @@ router.post(
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
 
+    if (anchorText) {
+      // Acquire the row lock on the document directly when anchoring so a
+      // concurrent inline comment can't overwrite our state update.
+      await Document.unscoped().findOne({
+        where: { id: documentId },
+        attributes: ["id"],
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
+    }
+
     const document = await Document.findByPk(documentId, {
       userId: user.id,
       transaction,
       // We only need to load the state binary if applying a comment mark
       includeState: !!anchorText,
-      // Lock the row when anchoring so a concurrent inline comment can't
-      // overwrite our state update.
-      lock: anchorText
-        ? { level: transaction.LOCK.UPDATE, of: Document }
-        : undefined,
     });
     authorize(user, "comment", document);
 
