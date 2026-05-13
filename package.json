@@ -170,7 +170,7 @@
     "markdown-it": "^14.1.1",
     "markdown-it-container": "^3.0.0",
     "markdown-it-emoji": "^3.0.0",
-    "mermaid": "11.13.0",
+    "mermaid": "11.15.0",
     "mime-types": "^3.0.2",
     "mobx": "^4.15.7",
     "mobx-react": "^6.3.1",
