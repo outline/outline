@@ -281,8 +281,10 @@ export function commentTools(server: McpServer, scopes: string[]) {
                 includeState: !!anchorText,
                 transaction,
                 // Lock the row when anchoring so a concurrent comment-mark
-                // application can't overwrite our state update.
-                lock: anchorText ? Transaction.LOCK.UPDATE : undefined,
+                // application can't overwrite our state update
+                lock: anchorText
+                  ? { level: Transaction.LOCK.UPDATE, of: Document }
+                  : undefined,
               });
               authorize(user, "comment", document);
 
