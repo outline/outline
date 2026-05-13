@@ -43,14 +43,16 @@ router.get(
       throw AuthenticationError("Cannot extend token");
     }
 
-    const jwtToken = user.getJwtToken(undefined, service);
+    // Bind JWT expiry to the cookie so the token validator enforces it.
+    const expires = addMonths(new Date(), 3);
+    const jwtToken = user.getJwtToken(expires, service);
 
     // ensure that the lastActiveAt on user is updated to prevent replay requests
     await user.updateActiveAt(ctx, true);
 
     ctx.cookies.set("accessToken", jwtToken, {
       sameSite: "lax",
-      expires: addMonths(new Date(), 3),
+      expires,
     });
     const [team, collection, view] = await Promise.all([
       Team.findByPk(user.teamId),

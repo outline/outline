@@ -43,4 +43,32 @@ describe("auth/redirect", () => {
 
     expect(res.status).toEqual(401);
   });
+
+  it("should mint an accessToken JWT carrying an expiresAt claim", async () => {
+    const user = await buildUser();
+    const before = Date.now();
+
+    const res = await server.get(
+      `/auth/redirect?token=${user.getTransferToken()}`,
+      {
+        redirect: "manual",
+      }
+    );
+
+    expect(res.status).toEqual(302);
+
+    // Pull the `accessToken` cookie out of the Set-Cookie header(s).
+    const setCookie = res.headers.get("set-cookie") || "";
+    const match = setCookie.match(/accessToken=([^;,]+)/);
+    expect(match).not.toBeNull();
+    const jwt = match![1];
+
+    const payload = JSON.parse(
+      Buffer.from(jwt.split(".")[1], "base64url").toString()
+    );
+
+    expect(payload.expiresAt).toBeDefined();
+    const expiresMs = new Date(payload.expiresAt).getTime();
+    expect(expiresMs).toBeGreaterThan(before);
+  });
 });
