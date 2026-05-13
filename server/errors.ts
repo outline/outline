@@ -250,3 +250,12 @@ export function ClientClosedRequestError(
     isReportable: false,
   });
 }
+
+export function OptimisticLockError(
+  message = "The resource was modified by another request, please retry"
+) {
+  return httpErrors(409, message, {
+    id: "optimistic_lock",
+    isReportable: false,
+  });
+}

@@ -55,7 +55,7 @@ import { UrlHelper } from "@shared/utils/UrlHelper";
 import { sortNavigationNodes } from "@shared/utils/collections";
 import slugify from "@shared/utils/slugify";
 import { CollectionValidation } from "@shared/validations";
-import { ValidationError } from "@server/errors";
+import { OptimisticLockError, ValidationError } from "@server/errors";
 import type { APIContext } from "@server/types";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import { RedisPrefixHelper } from "@server/utils/RedisPrefixHelper";
@@ -265,6 +265,15 @@ class Collection extends ParanoidModel<
   @Default(null)
   @Column(DataType.JSONB)
   documentStructure: NavigationNode[] | null;
+
+  /**
+   * Monotonically increasing counter bumped on every write to
+   * `documentStructure`. Used for optimistic concurrency so that concurrent
+   * structural changes detect conflicts instead of serializing on a row lock.
+   */
+  @Default(0)
+  @Column
+  documentStructureVersion: number;
 
   @Default(true)
   @Column
@@ -1053,6 +1062,61 @@ class Collection extends ParanoidModel<
     }
 
     return this;
+  };
+
+  /**
+   * Persist the in-memory `documentStructure` using optimistic concurrency.
+   * An alternative to `save({ fields: ["documentStructure"] })` for callers
+   * that coordinate concurrent structural mutations via the
+   * `documentStructureVersion` column. The version is incremented atomically;
+   * if it has already moved since this instance was loaded the update affects
+   * zero rows and an `OptimisticLockError` is thrown for the caller to retry.
+   *
+   * @param options optional Sequelize options (currently only `transaction` is read).
+   * @throws OptimisticLockError if another writer has bumped the version.
+   */
+  saveDocumentStructure = async function (
+    this: Collection,
+    options?: { transaction?: Transaction | null }
+  ): Promise<void> {
+    if (!this.changed("documentStructure")) {
+      return;
+    }
+
+    const expectedVersion = this.documentStructureVersion;
+    const nextVersion = expectedVersion + 1;
+
+    const [affectedCount] = await (
+      this.constructor as typeof Collection
+    ).update(
+      {
+        documentStructure: this.documentStructure,
+        documentStructureVersion: nextVersion,
+      },
+      {
+        where: {
+          id: this.id,
+          documentStructureVersion: expectedVersion,
+        },
+        transaction: options?.transaction,
+        // Mirror the prior `paranoid: false` load semantics; documents may be
+        // moved out of soft-deleted collections during archive flows.
+        paranoid: false,
+      }
+    );
+
+    if (affectedCount === 0) {
+      throw OptimisticLockError();
+    }
+
+    this.setDataValue("documentStructureVersion", nextVersion);
+
+    // `Model.update` bypasses instance hooks, so invoke the AfterSave cache
+    // hook manually. The hook keys off `changed("documentStructure")`, which
+    // is still true on this instance.
+    await Collection.cacheDocumentStructure(this, {
+      transaction: options?.transaction ?? undefined,
+    });
   };
 
   /**
