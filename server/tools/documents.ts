@@ -300,6 +300,12 @@ export function documentTools(server: McpServer, scopes: string[]) {
             .describe(
               "Whether to publish the document. Defaults to true. Set to false to create as a draft."
             ),
+          fullWidth: z
+            .boolean()
+            .optional()
+            .describe(
+              "Whether the document should occupy full width of the screen. Defaults to false."
+            ),
         },
       },
       withTracing("create_document", async (input, context) => {
@@ -340,6 +346,7 @@ export function documentTools(server: McpServer, scopes: string[]) {
             parentDocumentId: parentDocumentId,
             publish: input.publish !== false,
             collectionId: collection?.id,
+            fullWidth: input.fullWidth,
           });
 
           const [{ text, ...attributes }, breadcrumb] = await Promise.all([
@@ -555,6 +562,12 @@ export function documentTools(server: McpServer, scopes: string[]) {
             .optional()
             .describe(
               "Set to true to publish a draft document, or false to convert a published document back to a draft."
+            ),
+          fullWidth: z
+            .boolean()
+            .optional()
+            .describe(
+              "Whether the document should occupy full width of the screen."
             ),
         },
       },
