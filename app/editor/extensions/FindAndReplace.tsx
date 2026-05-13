@@ -163,6 +163,7 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
 
       dispatch?.(state.tr.setMeta(pluginKey, {}));
       this.expandFoldedTogglesForCurrentMatch();
+      this.expandCollapsedCodeBlockForCurrentMatch();
       this.scrollToCurrentMatch();
 
       return true;
@@ -213,6 +214,7 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
 
       dispatch?.(state.tr.setMeta(pluginKey, {}));
       this.expandFoldedTogglesForCurrentMatch();
+      this.expandCollapsedCodeBlockForCurrentMatch();
       this.scrollToCurrentMatch();
       return true;
     };
@@ -296,6 +298,18 @@ export default class FindAndReplaceExtension extends Extension<FindAndReplaceOpt
         );
       }
     });
+  }
+
+  /**
+   * Expand a collapsed code block if it contains the current match.
+   */
+  private expandCollapsedCodeBlockForCurrentMatch() {
+    const result = this.results[this.currentResultIndex];
+    if (!result) {
+      return;
+    }
+
+    this.editor.commands.expandCodeBlockAt(result.from);
   }
 
   private rebaseNextResult(replace: string, index: number, lastOffset = 0) {

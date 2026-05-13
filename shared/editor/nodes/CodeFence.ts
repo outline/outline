@@ -244,6 +244,29 @@ export default class CodeFence extends Node<CodeFenceOptions> {
           ...attrs,
         });
       },
+      expandCodeBlockAt:
+        (pos: number): Command =>
+        (state, dispatch) => {
+          const $pos = state.doc.resolve(pos);
+          const codeBlock = findParentNodeClosestToPos($pos, isCode);
+          if (!codeBlock) {
+            return false;
+          }
+
+          const collapseState = CodeFence.collapseKey.getState(state);
+          if (!collapseState?.collapsedBlocks.has(codeBlock.pos)) {
+            return false;
+          }
+
+          if (dispatch) {
+            dispatch(
+              state.tr
+                .setMeta(CodeFence.collapseKey, { expand: codeBlock.pos })
+                .setMeta("addToHistory", false)
+            );
+          }
+          return true;
+        },
       toggleCodeBlockCollapse: (): Command => (state, dispatch) => {
         const codeBlock = findParentNode(isCode)(state.selection);
         if (!codeBlock) {
