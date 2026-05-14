@@ -1,7 +1,30 @@
 // eslint-disable no-restricted-imports
 import type { Response } from "node-fetch";
+import { Scope } from "@shared/types";
+import { buildAdmin, buildOAuthAuthentication, buildUser } from "./factories";
 
 let nextId = 1;
+
+/**
+ * Builds a user and an OAuth access token with read/write/create scopes for
+ * use with the MCP test helpers.
+ *
+ * @param overrides - optional team id and role overrides.
+ * @returns the created user and their access token.
+ */
+export async function buildOAuthUser(
+  overrides: { teamId?: string; role?: string } = {}
+) {
+  const user =
+    overrides.role === "admin"
+      ? await buildAdmin(overrides.teamId ? { teamId: overrides.teamId } : {})
+      : await buildUser(overrides.teamId ? { teamId: overrides.teamId } : {});
+  const auth = await buildOAuthAuthentication({
+    user,
+    scope: [Scope.Read, Scope.Write, Scope.Create],
+  });
+  return { user, accessToken: auth.accessToken! };
+}
 
 /**
  * Returns HTTP headers required for MCP requests with OAuth authentication.

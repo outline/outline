@@ -7,7 +7,7 @@ import documentUpdater from "@server/commands/documentUpdater";
 import { Op } from "sequelize";
 import { Collection, Document } from "@server/models";
 import { sequelize } from "@server/storage/database";
-import { authorize } from "@server/policies";
+import { authorize, can } from "@server/policies";
 import { presentDocument, presentNavigationNode } from "@server/presenters";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import { UrlHelper } from "@shared/utils/UrlHelper";
@@ -101,6 +101,9 @@ export function documentTools(server: McpServer, scopes: string[]) {
                 exactMatch = await Document.findByPk(query, {
                   userId: user.id,
                 });
+                if (exactMatch && !can(user, "read", exactMatch)) {
+                  exactMatch = null;
+                }
                 if (
                   exactMatch &&
                   collectionId &&
