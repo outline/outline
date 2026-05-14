@@ -121,7 +121,9 @@ export default class Multiplayer extends Extension<MultiplayerOptions> {
         awarenessStateFilter,
         selectionBuilder,
       }),
-      yUndoPlugin(),
+      yUndoPlugin({
+        captureTimeout: 500,
+      }),
       new Plugin({
         props: {
           handleScrollToSelection: (view) => isRemoteTransaction(view.state.tr),
