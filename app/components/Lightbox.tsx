@@ -2,7 +2,12 @@ import { observer } from "mobx-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import type { Keyframes } from "styled-components";
 import styled, { css, keyframes } from "styled-components";
-import type { ComponentProps, HTMLAttributes, ReactNode } from "react";
+import type {
+  ComponentProps,
+  HTMLAttributes,
+  ReactNode,
+  SyntheticEvent,
+} from "react";
 import {
   createContext,
   forwardRef,
@@ -91,6 +96,15 @@ type Animation = {
 };
 
 const ANIMATION_DURATION = 0.3 * Second.ms;
+
+/**
+ * Stops a React synthetic event from propagating to ancestor handlers, including
+ * Radix Dialog's outside-interaction detection and the editor's own click
+ * handlers, so the comments sidebar can manage its own focus.
+ */
+const stopPropagation = (event: SyntheticEvent) => {
+  event.stopPropagation();
+};
 
 type Props = {
   /** List of allowed images */
@@ -935,7 +949,14 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
               </Nav>
             )}
           {canShowComments && commentsOpen && contextDocument && (
-            <CommentsSidebar ref={setCommentsPortalEl}>
+            <CommentsSidebar
+              ref={setCommentsPortalEl}
+              onPointerDown={stopPropagation}
+              onPointerUp={stopPropagation}
+              onMouseDown={stopPropagation}
+              onMouseUp={stopPropagation}
+              onClick={stopPropagation}
+            >
               <PortalContext.Provider value={commentsPortalEl}>
                 <LightboxComments
                   document={contextDocument}
