@@ -466,6 +466,10 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
         status.image === ImageStatus.MAX_ZOOM
       )
     ) {
+      // Refresh the cached natural image position to account for any layout
+      // changes (e.g., the comments sidebar opening) since the image loaded.
+      rememberImagePosition();
+
       // in lightbox
       const lightboxImgDOMRect = imgRef.current.getBoundingClientRect();
       const {
