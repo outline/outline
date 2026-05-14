@@ -640,17 +640,30 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
   }, [activeImage, status.lightbox]);
 
   const handleKeyDown = (ev: React.KeyboardEvent<HTMLDivElement>) => {
-    ev.preventDefault();
+    // Don't intercept keys while typing into an input, textarea, or editor.
+    const target = ev.target as HTMLElement | null;
+    if (
+      target &&
+      target !== ev.currentTarget &&
+      (target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable)
+    ) {
+      return;
+    }
     switch (ev.key) {
       case "ArrowLeft": {
+        ev.preventDefault();
         prev();
         break;
       }
       case "ArrowRight": {
+        ev.preventDefault();
         next();
         break;
       }
       case "Escape": {
+        ev.preventDefault();
         close();
         break;
       }
@@ -918,15 +931,15 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
                 </NavButton>
               </Nav>
             )}
+          {canShowComments && commentsOpen && contextDocument && (
+            <CommentsSidebar>
+              <LightboxComments
+                document={contextDocument}
+                pos={activeImage.pos}
+              />
+            </CommentsSidebar>
+          )}
         </StyledContent>
-        {canShowComments && commentsOpen && contextDocument && (
-          <CommentsSidebar>
-            <LightboxComments
-              document={contextDocument}
-              pos={activeImage.pos}
-            />
-          </CommentsSidebar>
-        )}
       </Dialog.Portal>
     </Dialog.Root>
   );
