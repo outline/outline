@@ -955,6 +955,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
           {canShowComments && commentsOpen && contextDocument && (
             <CommentsSidebar
               ref={setCommentsPortalEl}
+              animation={animation.current}
               onPointerDown={stopPropagation}
               onPointerUp={stopPropagation}
               onMouseDown={stopPropagation}
@@ -1287,14 +1288,22 @@ const slideIn = keyframes`
   }
 `;
 
-const CommentsSidebar = styled.div`
+const CommentsSidebar = styled.div<{ animation: Animation | null }>`
   position: fixed;
   top: 0;
   right: 0;
   bottom: 0;
   z-index: ${depths.modal};
   display: flex;
-  animation: ${slideIn} 200ms ease-out;
+  ${(props) =>
+    props.animation?.fadeOut
+      ? css`
+          animation: ${props.animation.fadeOut.apply()}
+            ${props.animation.fadeOut.duration}ms;
+        `
+      : css`
+          animation: ${slideIn} 200ms ease-out;
+        `}
 `;
 
 const NavButton = styled(NudeButton)`
