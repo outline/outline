@@ -1,5 +1,6 @@
 import Router from "koa-router";
 import { UserRole } from "@shared/types";
+import env from "@server/env";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
@@ -98,7 +99,13 @@ router.post(
       await authenticationProvider.disable(ctx);
     }
 
-    await authenticationProvider.destroy({ transaction });
+    // On self-hosted, providers are typically registered via env vars and
+    // would re-appear on the login screen if the row was destroyed, so we
+    // keep the row with enabled=false. On cloud, destroy the row so the
+    // admin can reconnect with a different workspace.
+    if (env.isCloudHosted) {
+      await authenticationProvider.destroy({ transaction });
+    }
 
     ctx.body = {
       success: true,

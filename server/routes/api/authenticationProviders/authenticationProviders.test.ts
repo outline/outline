@@ -1,10 +1,16 @@
 import { randomUUID } from "node:crypto";
+import sharedEnv from "@shared/env";
+import env from "@server/env";
 import { buildUser, buildAdmin, buildTeam } from "@server/test/factories";
 import { getTestServer, setSelfHosted } from "@server/test/support";
 
 const server = getTestServer();
 
 beforeEach(setSelfHosted);
+
+function setCloudHosted() {
+  env.URL = sharedEnv.URL = "https://app.getoutline.com";
+}
 
 describe("#authenticationProviders.info", () => {
   it("should return auth provider", async () => {
@@ -154,7 +160,28 @@ describe("#authenticationProviders.list", () => {
 });
 
 describe("#authenticationProviders.delete", () => {
-  it("should allow admins to delete authentication provider", async () => {
+  it("should disable the provider on self-hosted and keep the row", async () => {
+    const team = await buildTeam();
+    const user = await buildAdmin({
+      teamId: team.id,
+    });
+    const googleProvider = await team.$create("authenticationProvider", {
+      name: "google",
+      providerId: randomUUID(),
+    });
+    const res = await server.post("/api/authenticationProviders.delete", {
+      body: {
+        id: googleProvider.id,
+        token: user.getJwtToken(),
+      },
+    });
+    expect(res.status).toEqual(200);
+    await googleProvider.reload();
+    expect(googleProvider.enabled).toBe(false);
+  });
+
+  it("should destroy the provider on cloud hosted", async () => {
+    setCloudHosted();
     const team = await buildTeam();
     const user = await buildAdmin({
       teamId: team.id,
