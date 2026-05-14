@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import sharedEnv from "@shared/env";
 import env from "@server/env";
+import { AuthenticationProvider } from "@server/models";
 import { buildUser, buildAdmin, buildTeam } from "@server/test/factories";
 import { getTestServer, setSelfHosted } from "@server/test/support";
 
@@ -176,8 +177,8 @@ describe("#authenticationProviders.delete", () => {
       },
     });
     expect(res.status).toEqual(200);
-    await googleProvider.reload();
-    expect(googleProvider.enabled).toBe(false);
+    const reloaded = await AuthenticationProvider.findByPk(googleProvider.id);
+    expect(reloaded?.enabled).toBe(false);
   });
 
   it("should destroy the provider on cloud hosted", async () => {
