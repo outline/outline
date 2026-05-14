@@ -31,31 +31,25 @@ const Theme: React.FC = ({ children }: Props) => {
     );
   }, [ui.resolvedTheme]);
 
-  // Mermaid SVGs are baked at render time with theme colors, so CSS overrides
-  // can't lighten them for print — re-emit theme-changed to force a re-render.
+  // Some editor elements such as Mermaid diagrams rely on theme-changed event
+  // to render the correct color.
+  // Listen on the print media query, which fires consistently for both the
+  // print dialog and print preview.
   React.useEffect(() => {
-    const handleBeforePrint = () => {
-      window.dispatchEvent(
-        new CustomEvent("theme-changed", { detail: { isDark: false } })
-      );
-    };
-
-    const handleAfterPrint = () => {
+    const mediaQuery = window.matchMedia("print");
+    const handleChange = (event: MediaQueryListEvent) => {
       window.dispatchEvent(
         new CustomEvent("theme-changed", {
-          detail: { isDark: ui.resolvedTheme === "dark" },
+          detail: {
+            isDark: event.matches ? false : ui.resolvedTheme === "dark",
+          },
         })
       );
     };
 
-    window.addEventListener("beforeprint", handleBeforePrint);
-    window.addEventListener("afterprint", handleAfterPrint);
-
-    return () => {
-      window.removeEventListener("beforeprint", handleBeforePrint);
-      window.removeEventListener("afterprint", handleAfterPrint);
-    };
-  }, [ui]);
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, [ui.resolvedTheme]);
 
   return (
     <DirectionProvider dir={direction}>
