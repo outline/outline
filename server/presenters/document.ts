@@ -18,6 +18,9 @@ type Options = {
   includeData?: boolean;
   /** Include the updatedAt timestamp for public documents. */
   includeUpdatedAt?: boolean;
+  /** Include the unresolved comment count. Each call triggers a Redis lookup
+   * so only enable when the consumer needs the signal (e.g. MCP). */
+  includeCommentCount?: boolean;
   /** Array of backlink document IDs to include in the response. */
   backlinkIds?: string[];
 };
@@ -112,6 +115,9 @@ async function presentDocument(
     res.templateId = document.templateId;
     res.insightsEnabled = document.insightsEnabled;
     res.popularityScore = document.popularityScore;
+    if (options.includeCommentCount) {
+      res.commentCount = await document.commentCount;
+    }
     res.sourceMetadata = document.sourceMetadata
       ? {
           importedAt: source?.createdAt ?? document.createdAt,

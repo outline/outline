@@ -1,4 +1,9 @@
-import { buildCollection, buildDocument } from "@server/test/factories";
+import {
+  buildCollection,
+  buildComment,
+  buildDocument,
+  buildResolvedComment,
+} from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 import { buildOAuthUser, callMcpTool } from "@server/test/McpHelper";
 
@@ -54,5 +59,39 @@ describe("fetch", () => {
 
     // Second content is markdown text
     expect(res!.result!.content![1].text).toContain("Hello");
+  });
+
+  it("returns unresolved commentCount on documents", async () => {
+    const { user, accessToken } = await buildOAuthUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const thread = await buildComment({
+      documentId: document.id,
+      userId: user.id,
+    });
+    await buildComment({
+      documentId: document.id,
+      userId: user.id,
+      parentCommentId: thread.id,
+    });
+    await buildResolvedComment(user, {
+      documentId: document.id,
+      userId: user.id,
+    });
+
+    const res = await callMcpTool(server, accessToken, "fetch", {
+      resource: "document",
+      id: document.id,
+    });
+
+    const metadata = JSON.parse(res!.result!.content![0].text ?? "{}");
+    expect(metadata.document.commentCount).toEqual(2);
   });
 });

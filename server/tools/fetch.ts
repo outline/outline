@@ -6,11 +6,11 @@ import { authorize, can } from "@server/policies";
 import { AuthorizationError } from "@server/errors";
 import {
   presentCollection,
-  presentDocument,
   presentNavigationNode,
   presentUser,
 } from "@server/presenters";
 import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
+import { presentDocument } from "./documents";
 import {
   error,
   success,
@@ -119,7 +119,7 @@ export function fetchTool(server: McpServer, scopes: string[]) {
             authorize(actor, "read", document);
 
             const [{ text, ...attributes }, breadcrumb] = await Promise.all([
-              presentDocument(undefined, document, {
+              presentDocument(document, {
                 includeData: false,
                 includeText: true,
                 includeUpdatedAt: true,

@@ -51,6 +51,7 @@ import { DocumentValidation } from "@shared/validations";
 import { InvalidRequestError, ValidationError } from "@server/errors";
 import { generateUrlId } from "@server/utils/url";
 import Collection from "./Collection";
+import Comment from "./Comment";
 import FileOperation from "./FileOperation";
 import Group from "./Group";
 import GroupMembership from "./GroupMembership";
@@ -64,6 +65,7 @@ import User from "./User";
 import UserMembership from "./UserMembership";
 import View from "./View";
 import ArchivableModel from "./base/ArchivableModel";
+import { CounterCache } from "./decorators/CounterCache";
 import Fix from "./decorators/Fix";
 import { DocumentHelper } from "./helpers/DocumentHelper";
 import IsHexColor from "./validators/IsHexColor";
@@ -677,6 +679,13 @@ class Document extends ArchivableModel<
 
   @HasMany(() => View)
   views: View[];
+
+  @CounterCache(() => Comment, {
+    as: "unresolvedComments",
+    foreignKey: "documentId",
+    where: { resolvedAt: { [Op.is]: null } },
+  })
+  commentCount: Promise<number>;
 
   /**
    * Returns an array of unique userIds that are members of a document
