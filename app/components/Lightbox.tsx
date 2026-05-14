@@ -58,6 +58,7 @@ import Desktop from "~/utils/Desktop";
 import { HStack } from "./primitives/HStack";
 import { useDocumentContext } from "./DocumentContext";
 import LightboxComments from "~/scenes/Document/components/Comments/LightboxComments";
+import { PortalContext } from "./Portal";
 
 export enum LightboxStatus {
   READY_TO_OPEN,
@@ -229,6 +230,8 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
   const contentRef = useRef<HTMLDivElement | null>(null);
   const [status, setStatus] = useState<Status>({ lightbox: null, image: null });
   const [commentsOpen, setCommentsOpen] = useState(false);
+  const [commentsPortalEl, setCommentsPortalEl] =
+    useState<HTMLDivElement | null>(null);
   const animation = useRef<Animation | null>(null);
   const finalImage = useRef<{
     center: { x: number; y: number };
@@ -932,11 +935,13 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
               </Nav>
             )}
           {canShowComments && commentsOpen && contextDocument && (
-            <CommentsSidebar>
-              <LightboxComments
-                document={contextDocument}
-                pos={activeImage.pos}
-              />
+            <CommentsSidebar ref={setCommentsPortalEl}>
+              <PortalContext.Provider value={commentsPortalEl}>
+                <LightboxComments
+                  document={contextDocument}
+                  pos={activeImage.pos}
+                />
+              </PortalContext.Provider>
             </CommentsSidebar>
           )}
         </StyledContent>
