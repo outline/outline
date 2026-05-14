@@ -168,7 +168,8 @@ class MermaidRenderer {
     renderElement.style.visibility = "hidden";
     renderElement.style.top = "0";
     renderElement.style.left = "0";
-    renderElement.style.width = "100%";
+    const width = this.editor.view?.dom.clientWidth ?? window.innerWidth;
+    renderElement.style.width = `${width}px`;
     renderElement.style.zIndex = "-1";
     document.body.appendChild(renderElement);
 
