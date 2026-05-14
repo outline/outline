@@ -166,4 +166,12 @@ export default createGlobalStyle<Props>`
   .drop-cursor {
     border-radius: 9999px;
   }
+
+  /* Block drag handle is appended to document.body, outside the styled
+     EditorContainer scope, so the print rule has to live globally. */
+  @media print {
+    .block-drag-handle {
+      display: none !important;
+    }
+  }
 `;

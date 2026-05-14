@@ -1110,8 +1110,8 @@ h6:not(.placeholder)::before {
 .heading-anchor,
 .heading-fold {
   display: inline-block;
-  color: ${props.theme.text};
-  opacity: .75;
+  color: ${props.theme.textTertiary};
+  opacity: 1;
   cursor: var(--pointer);
   background: none;
   outline: none;
@@ -1128,7 +1128,7 @@ h6:not(.placeholder)::before {
 
   &:focus,
   &:hover {
-    opacity: 1;
+    color: ${props.theme.text};
   }
 }
 
@@ -1146,7 +1146,7 @@ h6:not(.placeholder)::before {
   opacity: 0;
   user-select: none;
   background: ${props.theme.background};
-  margin-left: -26px;
+  margin-left: -52px;
   flex-direction: row;
   display: none;
   position: absolute;
@@ -1157,7 +1157,7 @@ h6:not(.placeholder)::before {
 
   &:dir(rtl) {
     margin-left: 0;
-    margin-right: -26px;
+    margin-right: -52px;
   }
 
   &.collapsed {
