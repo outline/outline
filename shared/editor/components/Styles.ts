@@ -1174,7 +1174,9 @@ h6:not(.placeholder):not([data-heading-prefix])::before {
   left: 0;
   top: 0;
   bottom: 0;
-  margin-left: -26px;
+  /* Offset further left than the default so the anchor clears the block
+     drag handle, which occupies the gutter immediately left of the heading. */
+  margin-left: -52px;
   width: 26px;
   align-items: center;
   justify-content: center;
@@ -1198,7 +1200,7 @@ h6:not(.placeholder):not([data-heading-prefix])::before {
 
   &:dir(rtl) {
     margin-left: 0;
-    margin-right: -26px;
+    margin-right: -52px;
   }
 }
 
