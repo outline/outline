@@ -163,10 +163,19 @@ class Comment extends ParanoidModel<
     if (!model.parentCommentId || model.resolvedAt) {
       return;
     }
-    const parent = await this.findByPk(model.parentCommentId, {
+    const parent = await this.unscoped().findOne({
+      where: {
+        id: model.parentCommentId,
+        documentId: model.documentId,
+      },
       transaction: options.transaction,
-      lock: options.transaction ? options.transaction.LOCK.UPDATE : undefined,
+      lock: options.transaction
+        ? { level: options.transaction.LOCK.UPDATE, of: this }
+        : undefined,
     });
+    if (!parent) {
+      throw ValidationError("Parent comment must belong to the same document");
+    }
     if (parent?.resolvedAt) {
       model.resolvedAt = parent.resolvedAt;
       model.resolvedById = parent.resolvedById;
@@ -191,7 +200,7 @@ class Comment extends ParanoidModel<
           resolvedById: model.resolvedById,
         },
         {
-          where: { parentCommentId: model.id },
+          where: { parentCommentId: model.id, documentId: model.documentId },
           transaction: options.transaction,
           hooks: false,
         }

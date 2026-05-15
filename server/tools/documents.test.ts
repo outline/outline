@@ -35,6 +35,9 @@ describe("list_documents", () => {
       (d: { document: { id: string } }) => d.document.id === document.id
     ) as { document: { url: string } };
     expect(match.document.url).toMatch(/^https?:\/\//);
+    expect(
+      (match.document as { commentCount?: number }).commentCount
+    ).toBeUndefined();
   });
 
   it("filters by collection", async () => {

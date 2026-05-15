@@ -123,6 +123,7 @@ export function fetchTool(server: McpServer, scopes: string[]) {
                 includeData: false,
                 includeText: true,
                 includeUpdatedAt: true,
+                includeCommentCount: true,
               }),
               getDocumentBreadcrumb(document, actor),
             ]);

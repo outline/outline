@@ -43,12 +43,10 @@ export function presentDocument(
     includeData?: boolean;
     includeText?: boolean;
     includeUpdatedAt?: boolean;
+    includeCommentCount?: boolean;
   } = {}
 ) {
-  return presentDocumentBase(undefined, document, {
-    ...options,
-    includeCommentCount: true,
-  });
+  return presentDocumentBase(undefined, document, options);
 }
 
 /**

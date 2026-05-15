@@ -260,5 +260,29 @@ describe("Comment", () => {
       expect(reply.resolvedAt).toEqual(thread.resolvedAt);
       expect(reply.resolvedById).toEqual(user.id);
     });
+
+    it("rejects replies to comments in a different document", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const otherDocument = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const thread = await buildComment({
+        userId: user.id,
+        documentId: otherDocument.id,
+      });
+
+      await expect(
+        buildComment({
+          userId: user.id,
+          documentId: document.id,
+          parentCommentId: thread.id,
+        })
+      ).rejects.toThrow("Parent comment must belong to the same document");
+    });
   });
 });
