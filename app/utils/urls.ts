@@ -4,12 +4,13 @@ import env from "~/env";
 import Desktop from "~/utils/Desktop";
 
 /**
- * If we're on a custom domain or a subdomain then the auth must point to the
- * apex (env.URL) for authentication so that the state cookie can be set and read.
- * We pass the host into the auth URL so that the server can redirect on error
- * and keep the user on the same page.
+ * Builds an absolute auth redirect URL against the apex (env.URL). When the
+ * user is on a custom domain or team subdomain the auth flow must start on the
+ * apex so that the OAuth state cookie can be set and later read by the
+ * callback. The originating host is forwarded as a query param so the server
+ * can return the user to the same page on error or after sign-in.
  *
- * @param authUrl The URL to redirect to after authentication
+ * @param authUrl The auth endpoint path to redirect to (e.g. "/auth/google").
  */
 export function getRedirectUrl(authUrl: string) {
   const { custom, teamSubdomain, host } = parseDomain(window.location.origin);
