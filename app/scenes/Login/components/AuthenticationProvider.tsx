@@ -11,7 +11,7 @@ import PluginIcon from "~/components/PluginIcon";
 import Tooltip from "~/components/Tooltip";
 import { client } from "~/utils/ApiClient";
 import Desktop from "~/utils/Desktop";
-import { getRedirectUrl } from "../urls";
+import { getRedirectUrl } from "~/utils/urls";
 import { CSRF } from "@shared/constants";
 import { getCookie } from "tiny-cookie";
 

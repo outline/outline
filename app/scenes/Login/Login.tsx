@@ -40,8 +40,9 @@ import { BackButton } from "./components/BackButton";
 import { Background } from "./components/Background";
 import { Centered } from "./components/Centered";
 import { Notices } from "./components/Notices";
-import { getRedirectUrl, navigateToSubdomain } from "./urls";
+import { navigateToSubdomain } from "./urls";
 import lazyWithRetry from "~/utils/lazyWithRetry";
+import { getRedirectUrl } from "~/utils/urls";
 
 const WorkspaceSetup = lazyWithRetry(
   () => import("./components/WorkspaceSetup")
