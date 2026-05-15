@@ -39,6 +39,10 @@ export default class ImportMarkdownZipTask extends ImportTask {
       return false;
     }
 
+    if (node.title.toLowerCase() === "attachments") {
+      return true;
+    }
+
     return node.children.every((child) => {
       // If child has children, it's a folder - recurse to check its contents
       if (child.children.length > 0) {
@@ -113,71 +117,69 @@ export default class ImportMarkdownZipTask extends ImportTask {
       collectionId: string,
       parentDocumentId?: string
     ): Promise<void> => {
-      await Promise.all(
-        children.map(async (child) => {
-          // special case for folders of attachments - detect by content
-          if (child.children.length > 0 && this.isAttachmentFolder(child)) {
-            this.parseAttachmentFolder(child, output);
-            return;
-          }
+      for (const child of children) {
+        // special case for folders of attachments - detect by content
+        if (child.children.length > 0 && this.isAttachmentFolder(child)) {
+          this.parseAttachmentFolder(child, output);
+          continue;
+        }
 
-          const id = randomUUID();
+        const id = randomUUID();
 
-          const { title, icon, text } = await sequelize.transaction(
-            async (transaction) =>
-              documentImporter({
-                mimeType: "text/markdown",
-                fileName: child.name,
-                content:
-                  child.children.length > 0
-                    ? ""
-                    : await fs.readFile(child.path, "utf8"),
-                user,
-                ctx: createContext({ user, transaction }),
-              })
-          );
-
-          const existingDocumentIndex = output.documents.findIndex(
-            (doc) =>
-              doc.title === title &&
-              doc.collectionId === collectionId &&
-              doc.parentDocumentId === parentDocumentId
-          );
-
-          const existingDocument = output.documents[existingDocumentIndex];
-
-          // When there is a file and a folder with the same name this handles
-          // the case by combining the two into one document with nested children
-          if (existingDocument) {
-            docPathToIdMap.set(child.path, existingDocument.id);
-
-            if (existingDocument.text === "") {
-              output.documents[existingDocumentIndex].text = text;
-            }
-
-            await parseNodeChildren(
-              child.children,
-              collectionId,
-              existingDocument.id
-            );
-          } else {
-            docPathToIdMap.set(child.path, id);
-
-            output.documents.push({
-              id,
-              title,
-              icon,
-              text,
-              collectionId,
-              parentDocumentId,
-              path: child.path,
+        const { title, icon, text } = await sequelize.transaction(
+          async (transaction) =>
+            documentImporter({
               mimeType: "text/markdown",
-            });
+              fileName: child.name,
+              content:
+                child.children.length > 0
+                  ? ""
+                  : await fs.readFile(child.path, "utf8"),
+              user,
+              ctx: createContext({ user, transaction }),
+            })
+        );
 
-            await parseNodeChildren(child.children, collectionId, id);
+        const existingDocumentIndex = output.documents.findIndex(
+          (doc) =>
+            doc.title === title &&
+            doc.collectionId === collectionId &&
+            doc.parentDocumentId === parentDocumentId
+        );
+
+        const existingDocument = output.documents[existingDocumentIndex];
+
+        // When there is a file and a folder with the same name this handles
+        // the case by combining the two into one document with nested children
+        if (existingDocument) {
+          docPathToIdMap.set(child.path, existingDocument.id);
+
+          if (existingDocument.text === "") {
+            output.documents[existingDocumentIndex].text = text;
           }
-        })
-      );
+
+          await parseNodeChildren(
+            child.children,
+            collectionId,
+            existingDocument.id
+          );
+        } else {
+          docPathToIdMap.set(child.path, id);
+
+          output.documents.push({
+            id,
+            title,
+            icon,
+            text,
+            collectionId,
+            parentDocumentId,
+            path: child.path,
+            mimeType: "text/markdown",
+          });
+
+          await parseNodeChildren(child.children, collectionId, id);
+        }
+      }
     };
 
     // All nodes in the root level should be collections
@@ -235,6 +237,24 @@ export default class ImportMarkdownZipTask extends ImportTask {
             new RegExp(`\\.?/?${escapeRegExp(genericNormalizedPath)}`, "g"),
             reference
           );
+
+        // Handle markdown links that reference attachments via a path rooted
+        // at an "attachments" folder, optionally prefixed with "./", e.g.
+        // ./attachments/foo.png or ./attachments/sub/foo.png.
+        const segments = attachment.path.split(path.sep);
+        const attachmentsIdx = segments.findIndex(
+          (seg) => seg.toLowerCase() === "attachments"
+        );
+        if (attachmentsIdx >= 0) {
+          const relFromAttachments = segments.slice(attachmentsIdx).join("/");
+          document.text = document.text.replace(
+            new RegExp(
+              `\\.?/?${escapeRegExp(encodeURI(relFromAttachments))}`,
+              "g"
+            ),
+            reference
+          );
+        }
       }
 
       const basePath = path.dirname(document.path);
