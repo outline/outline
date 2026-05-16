@@ -286,14 +286,18 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
         collectDocMap(c.children);
       }
 
-      // Append discovered collections to importModel.input so
-      // ImportsProcessor's persistence pass recognises them as collections.
+      // Replace (not append) anything past the create-time placeholder with
+      // the freshly discovered collections so a retried bootstrap doesn't
+      // accumulate duplicate entries with fresh UUIDs from a previous
+      // partial run. ImportsProcessor's persistence pass treats these as
+      // collections.
       const associatedImport = importTask.import;
+      const placeholder = associatedImport.input[0];
       associatedImport.input = [
-        ...associatedImport.input,
+        placeholder,
         ...collections.map((c) => ({
           externalId: c.id,
-          permission: associatedImport.input[0].permission,
+          permission: placeholder.permission,
         })),
       ];
       associatedImport.scratch = { storageKey, manifest };
