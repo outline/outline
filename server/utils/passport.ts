@@ -10,8 +10,9 @@ import { Client } from "@shared/types";
 import { getCookieDomain, parseDomain } from "@shared/utils/domains";
 import env from "@server/env";
 import { Team, User } from "@server/models";
+import Redis from "@server/storage/redis";
 import { InternalError, OAuthStateMismatchError } from "../errors";
-import { safeEqual } from "./crypto";
+import { hash, safeEqual } from "./crypto";
 import fetch from "./fetch";
 import { getUserForJWT } from "./jwt";
 import {
@@ -24,6 +25,8 @@ import {
 
 const FLOW_QUERY_PARAM = "flow";
 const OAUTH_CSRF_COOKIE = "oauth_csrf";
+const OAUTH_INTENT_PREFIX = "oauth:intent:";
+const OAUTH_INTENT_TTL_SECONDS = 10 * 60;
 
 /**
  * Middleware for OAuth start routes that bridges cookie scopes between custom
@@ -56,16 +59,15 @@ export async function startOAuthFlow(ctx: Context, next: Next) {
     const url = new URL(ctx.originalUrl, apex);
     const client = getClientFromInput(ctx);
     const actorId = await getOAuthActorId(ctx);
+    const flow = signOAuthIntent({
+      host: ctx.hostname,
+      actorId,
+      client,
+    });
 
     url.searchParams.delete(FLOW_QUERY_PARAM);
-    url.searchParams.set(
-      FLOW_QUERY_PARAM,
-      signOAuthIntent({
-        host: ctx.hostname,
-        actorId,
-        client,
-      })
-    );
+    url.searchParams.set(FLOW_QUERY_PARAM, flow);
+    await storeOAuthIntent(flow);
 
     return ctx.redirect(url.toString());
   }
@@ -73,7 +75,10 @@ export async function startOAuthFlow(ctx: Context, next: Next) {
   const flow = ctx.query[FLOW_QUERY_PARAM];
   if (onApex && typeof flow === "string" && flow) {
     try {
-      ctx.state.oauthIntent = verifyOAuthIntent(flow);
+      const intent = verifyOAuthIntent(flow);
+      if (await consumeOAuthIntent(flow)) {
+        ctx.state.oauthIntent = intent;
+      }
     } catch {
       // Invalid or expired intent — proceed without an actor.
       // The user can still complete the OAuth flow as a fresh sign-in.
@@ -334,6 +339,24 @@ async function getOAuthActorId(ctx: Context): Promise<string | undefined> {
   } catch {
     return undefined;
   }
+}
+
+async function storeOAuthIntent(token: string): Promise<void> {
+  await Redis.defaultClient.set(
+    getOAuthIntentKey(token),
+    "1",
+    "EX",
+    OAUTH_INTENT_TTL_SECONDS
+  );
+}
+
+async function consumeOAuthIntent(token: string): Promise<boolean> {
+  const result = await Redis.defaultClient.getdel(getOAuthIntentKey(token));
+  return result === "1";
+}
+
+function getOAuthIntentKey(token: string): string {
+  return `${OAUTH_INTENT_PREFIX}${hash(token)}`;
 }
 
 function getKoaContext(ctx: Context): Context {
