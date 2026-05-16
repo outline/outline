@@ -1,5 +1,6 @@
 import type { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
+  AllowNull,
   BelongsTo,
   Column,
   DataType,
@@ -66,11 +67,12 @@ class Import<T extends ImportableIntegrationService> extends ParanoidModel<
   // associations
 
   @BelongsTo(() => Integration, "integrationId")
-  integration: Integration;
+  integration: Integration | null;
 
+  @AllowNull
   @ForeignKey(() => Integration)
   @Column(DataType.UUID)
-  integrationId: string;
+  integrationId: string | null;
 
   @BelongsTo(() => User, "createdById")
   createdBy: User;

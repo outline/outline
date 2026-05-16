@@ -38,6 +38,10 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
   protected async process(
     importTask: ImportTask<IntegrationService.Notion>
   ): Promise<ProcessOutput<IntegrationService.Notion>> {
+    if (!importTask.import.integrationId) {
+      throw new Error("Notion import is missing integrationId");
+    }
+
     const integration = await Integration.scope("withAuthentication").findByPk(
       importTask.import.integrationId,
       { rejectOnEmpty: true }

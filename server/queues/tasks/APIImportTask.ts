@@ -4,7 +4,11 @@ import { Fragment, Node } from "prosemirror-model";
 import type { WhereOptions } from "sequelize";
 import { Transaction } from "sequelize";
 import { randomUUID } from "node:crypto";
-import type { ImportTaskInput, ImportTaskOutput } from "@shared/schema";
+import type {
+  BaseImportTaskInput,
+  ImportTaskInput,
+  ImportTaskOutput,
+} from "@shared/schema";
 import type {
   ImportableIntegrationService,
   ProsemirrorData,
@@ -136,29 +140,33 @@ export default abstract class APIImportTask<
   private async onProcess(importTask: ImportTask<T>) {
     const { taskOutput, childTasksInput } = await this.process(importTask);
 
-    const taskOutputWithReplacements = await Promise.all(
-      taskOutput.map(async (item) => ({
-        ...item,
-        content: await this.uploadAttachments({
-          doc: item.content,
-          externalId: item.externalId,
-          createdBy: importTask.import.createdBy,
-        }),
-      }))
-    );
+    const taskOutputWithReplacements = this.shouldUploadAttachmentsPerPage()
+      ? await Promise.all(
+          taskOutput.map(async (item) => ({
+            ...item,
+            content: await this.uploadAttachments({
+              doc: item.content,
+              externalId: item.externalId,
+              createdBy: importTask.import.createdBy,
+            }),
+          }))
+        )
+      : taskOutput;
 
     await sequelize.transaction(async (transaction) => {
       await Promise.all(
-        chunk(childTasksInput, PagePerImportTask).map(async (input) => {
-          await ImportTask.create(
-            {
-              state: ImportTaskState.Created,
-              input,
-              importId: importTask.importId,
-            },
-            { transaction }
-          );
-        })
+        chunk(childTasksInput as BaseImportTaskInput, PagePerImportTask).map(
+          async (input) => {
+            await ImportTask.create(
+              {
+                state: ImportTaskState.Created,
+                input: input as ImportTaskInput<T>,
+                importId: importTask.importId,
+              },
+              { transaction }
+            );
+          }
+        )
       );
 
       importTask.output = taskOutputWithReplacements;
@@ -206,7 +214,11 @@ export default abstract class APIImportTask<
       return await this.scheduleNextTask(nextImportTask);
     }
 
-    // All tasks for this import have been processed.
+    // All tasks for this import have been processed. Run the post-completion
+    // hook before flipping state so subclasses can perform work that must
+    // happen before "imports.processed" downstream handlers fire.
+    await this.onAllTasksCompleted(importTask);
+
     await sequelize.transaction(async (transaction) => {
       const associatedImport = importTask.import;
       associatedImport.state = ImportState.Processed;
@@ -219,6 +231,35 @@ export default abstract class APIImportTask<
         { name: "processed" }
       );
     });
+  }
+
+  /**
+   * Whether the base class should create Attachment rows and upload S3 blobs
+   * per page during `onProcess`. Defaults to `true` for sources whose
+   * attachments are addressable by per-task URLs (e.g. Notion). Sources where
+   * attachments are shared across pages or live in a single archive may
+   * override this and handle attachment persistence in `onAllTasksCompleted`.
+   *
+   * @returns true to enable the per-page attachment upload step.
+   */
+  protected shouldUploadAttachmentsPerPage(): boolean {
+    return true;
+  }
+
+  /**
+   * Hook invoked after the final import task has been processed but before the
+   * associated `Import` state transitions to `Processed`. Subclasses can
+   * override to perform cross-task finalization (e.g. uploading shared
+   * attachments) that must happen before the persistence pass.
+   *
+   * @param lastImportTask The most recently completed ImportTask for the import.
+   * @returns Promise that resolves when finalization is complete.
+   */
+  protected async onAllTasksCompleted(
+    // oxlint-disable-next-line @typescript-eslint/no-unused-vars
+    lastImportTask: ImportTask<T>
+  ): Promise<void> {
+    return;
   }
 
   /**

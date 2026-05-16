@@ -1,15 +1,16 @@
 import Router from "koa-router";
+import { randomUUID } from "node:crypto";
 import { truncate } from "es-toolkit/compat";
 import type { WhereOptions } from "sequelize";
 import type { IntegrationType } from "@shared/types";
-import { ImportState, UserRole } from "@shared/types";
+import { ImportState, IntegrationService, UserRole } from "@shared/types";
 import { ImportValidation } from "@shared/validations";
 import { UnprocessableEntityError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { Integration } from "@server/models";
+import { Attachment, Integration } from "@server/models";
 import Import from "@server/models/Import";
 import { authorize } from "@server/policies";
 import { presentImport, presentPolicies } from "@server/presenters";
@@ -27,7 +28,7 @@ router.post(
   validate(T.ImportsCreateSchema),
   transaction(),
   async (ctx: APIContext<T.ImportsCreateReq>) => {
-    const { integrationId, service, input } = ctx.input.body;
+    const body = ctx.input.body;
     const { user } = ctx.state.auth;
 
     authorize(user, "createImport", user.team);
@@ -47,9 +48,41 @@ router.post(
       throw UnprocessableEntityError("An import is already in progress");
     }
 
+    if (body.service === IntegrationService.Markdown) {
+      const attachment = await Attachment.findByPk(body.attachmentId, {
+        rejectOnEmpty: true,
+      });
+      authorize(user, "read", attachment);
+
+      const importModel = await Import.createWithCtx(ctx, {
+        name: truncate(attachment.name, {
+          length: ImportValidation.maxNameLength,
+        }),
+        service: IntegrationService.Markdown,
+        state: ImportState.Created,
+        input: [
+          {
+            externalId: randomUUID(),
+            permission: body.permission,
+            storageKey: attachment.key,
+          },
+        ],
+        integrationId: null,
+        createdById: user.id,
+        teamId: user.teamId,
+      });
+      importModel.createdBy = user;
+
+      ctx.body = {
+        data: presentImport(importModel),
+        policies: presentPolicies(user, [importModel]),
+      };
+      return;
+    }
+
     const integration = await Integration.findByPk<
       Integration<IntegrationType.Import>
-    >(integrationId, {
+    >(body.integrationId, {
       rejectOnEmpty: true,
     });
     authorize(user, "read", integration);
@@ -58,10 +91,10 @@ router.post(
 
     const importModel = await Import.createWithCtx(ctx, {
       name: truncate(name, { length: ImportValidation.maxNameLength }),
-      service,
+      service: body.service,
       state: ImportState.Created,
-      input,
-      integrationId,
+      input: body.input,
+      integrationId: body.integrationId,
       createdById: user.id,
       teamId: user.teamId,
     });

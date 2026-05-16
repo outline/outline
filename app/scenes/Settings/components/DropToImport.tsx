@@ -6,7 +6,12 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
 import { s } from "@shared/styles";
-import { AttachmentPreset, CollectionPermission } from "@shared/types";
+import {
+  AttachmentPreset,
+  CollectionPermission,
+  FileOperationFormat,
+  IntegrationService,
+} from "@shared/types";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
@@ -27,7 +32,7 @@ type Props = {
 
 function DropToImport({ disabled, onSubmit, children, format }: Props) {
   const { t } = useTranslation();
-  const { collections } = useStores();
+  const { collections, imports } = useStores();
   const [file, setFile] = useState<File | null>(null);
   const [isImporting, setImporting] = useState(false);
   const [permission, setPermission] = useState<CollectionPermission | null>(
@@ -53,7 +58,19 @@ function DropToImport({ disabled, onSubmit, children, format }: Props) {
         name: file.name,
         preset: AttachmentPreset.WorkspaceImport,
       });
-      await collections.import(attachment.id, { format, permission });
+
+      if (format === FileOperationFormat.MarkdownZip) {
+        await imports.create(
+          { service: IntegrationService.Markdown },
+          {
+            attachmentId: attachment.id,
+            permission: permission ?? undefined,
+          }
+        );
+      } else {
+        await collections.import(attachment.id, { format, permission });
+      }
+
       onSubmit();
       toast.message(file.name, {
         description: t(

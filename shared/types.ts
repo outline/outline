@@ -151,15 +151,17 @@ export enum IntegrationService {
   Linear = "linear",
   Figma = "figma",
   Notion = "notion",
+  Markdown = "markdown",
 }
 
 export type ImportableIntegrationService = Extract<
   IntegrationService,
-  IntegrationService.Notion
+  IntegrationService.Notion | IntegrationService.Markdown
 >;
 
 export const ImportableIntegrationService = {
   Notion: IntegrationService.Notion,
+  Markdown: IntegrationService.Markdown,
 } as const;
 
 export type IssueTrackerIntegrationService = Extract<

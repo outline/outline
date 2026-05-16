@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { NotionImportInputItemSchema } from "@shared/schema";
 import {
+  CollectionPermission,
   ImportableIntegrationService,
   IntegrationService,
 } from "@shared/types";
@@ -36,6 +37,11 @@ export const ImportsCreateSchema = BaseSchema.extend({
     BaseBodySchema.extend({
       service: z.literal(IntegrationService.Notion),
       input: z.array(NotionImportInputItemSchema),
+    }),
+    z.object({
+      service: z.literal(IntegrationService.Markdown),
+      attachmentId: z.uuid(),
+      permission: z.enum(CollectionPermission).optional(),
     }),
   ]),
 });

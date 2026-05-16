@@ -1,0 +1,41 @@
+import type { Transaction } from "sequelize";
+import type { ImportTaskInput } from "@shared/schema";
+import { IntegrationService } from "@shared/types";
+import type { Import, ImportTask } from "@server/models";
+import MarkdownAPIImportTask from "../tasks/MarkdownAPIImportTask";
+import ImportsProcessor from "./ImportsProcessor";
+
+export default class MarkdownImportsProcessor extends ImportsProcessor<IntegrationService.Markdown> {
+  protected canProcess(
+    importModel: Import<IntegrationService.Markdown>
+  ): boolean {
+    return importModel.service === IntegrationService.Markdown;
+  }
+
+  protected async buildTasksInput(
+    importModel: Import<IntegrationService.Markdown>,
+    _transaction: Transaction
+  ): Promise<ImportTaskInput<IntegrationService.Markdown>> {
+    const bootstrap = importModel.input[0];
+
+    if (!bootstrap?.storageKey) {
+      throw new Error(
+        "Markdown import is missing the bootstrap storage key in input[0]"
+      );
+    }
+
+    return [
+      {
+        type: "zip" as const,
+        externalId: bootstrap.externalId,
+        storageKey: bootstrap.storageKey,
+      },
+    ];
+  }
+
+  protected async scheduleTask(
+    importTask: ImportTask<IntegrationService.Markdown>
+  ): Promise<void> {
+    await new MarkdownAPIImportTask().schedule({ importTaskId: importTask.id });
+  }
+}

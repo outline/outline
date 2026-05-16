@@ -76,9 +76,11 @@ export const CollectionsImportSchema = BaseSchema.extend({
       .nullish()
       .transform((val) => (isUndefined(val) ? null : val)),
     attachmentId: z.uuid(),
+    // Markdown zip imports now run through `imports.create` →
+    // MarkdownAPIImportTask, so only JSON is accepted here.
     format: z
-      .enum(FileOperationFormat)
-      .prefault(FileOperationFormat.MarkdownZip),
+      .literal(FileOperationFormat.JSON)
+      .prefault(FileOperationFormat.JSON),
   }),
 });
 
