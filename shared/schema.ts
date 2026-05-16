@@ -72,19 +72,6 @@ export type MarkdownAttachmentManifestItem = z.infer<
 >;
 
 /**
- * Bootstrap task input — a placeholder item paired with the bootstrap
- * `ImportTask` row. The zip's `storageKey` and the cross-phase attachment
- * manifest both live on the parent `Import` (`input[0].storageKey` and
- * `scratch` respectively), so the bootstrap row itself carries nothing
- * source-specific.
- */
-const MarkdownZipImportTaskInputItemSchema = BaseImportTaskInputItemSchema;
-
-export type MarkdownZipImportTaskInputItem = z.infer<
-  typeof MarkdownZipImportTaskInputItemSchema
->;
-
-/**
  * Markdown importer scratch state. `storageKey` is set at import creation
  * (it's the only durable handle on the uploaded zip). `manifest` is added
  * by the bootstrap phase so the completion phase can re-download the zip
@@ -127,8 +114,13 @@ export interface MarkdownPageImportTaskInputItem {
   children?: MarkdownPageImportTaskInputItem[];
 }
 
+/**
+ * Markdown import task input — a bootstrap row carrying only the base
+ * placeholder item (the zip's `storageKey` lives on `Import.scratch`), or a
+ * page row carrying per-document content.
+ */
 export type MarkdownImportTaskInput = (
-  | MarkdownZipImportTaskInputItem
+  | BaseImportTaskInput[number]
   | MarkdownPageImportTaskInputItem
 )[];
 

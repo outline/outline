@@ -275,11 +275,8 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
         collectDocMap(c.children);
       }
 
-      // Append discovered collections to importModel.input so ImportsProcessor
-      // recognises them as collections during the persistence pass. Stash
-      // cross-phase state (zip storageKey + attachment manifest) on
-      // `import.scratch` so onAllTasksCompleted can rehydrate it without
-      // re-walking the tree.
+      // Append discovered collections to importModel.input so
+      // ImportsProcessor's persistence pass recognises them as collections.
       const associatedImport = importTask.import;
       associatedImport.input = [
         ...associatedImport.input,
