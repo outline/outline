@@ -71,15 +71,17 @@ export default function createMiddleware(providerName: string) {
             // same domain or subdomain that they originated from (found in state).
 
             // get original host
-            const stateString = ctx.cookies.get("state");
+            const stateString =
+              typeof ctx.query.state === "string" ? ctx.query.state : undefined;
             const state = stateString ? parseState(stateString) : undefined;
+            const oauthState = ctx.state.oauthState ?? state;
 
             // form a URL object with the err.redirectPath and replace the host
             const reqProtocol =
-              state?.client === Client.Desktop ? "outline" : ctx.protocol;
+              oauthState?.client === Client.Desktop ? "outline" : ctx.protocol;
 
             const requestHost = await getValidatedHost(
-              state?.host ?? ctx.hostname
+              oauthState?.host ?? ctx.hostname
             );
             const url = new URL(
               env.isCloudHosted

@@ -99,7 +99,7 @@ async function accountProvisioner(
   const actor = ctx.state.auth?.user;
 
   // If the user is already logged in and is an admin of the team then we
-  // allow them to connect a new authentication provider
+  // allow them to connect a new authentication provider.
   if (actor && actor.teamId === teamParams.teamId && actor.isAdmin) {
     const team = actor.team;
     const authenticationProvider = await AuthenticationProvider.findOne({

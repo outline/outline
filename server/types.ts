@@ -14,6 +14,7 @@ import type {
 } from "@shared/types";
 import type { BaseSchema } from "@server/routes/api/schema";
 import type { AccountProvisionerResult } from "./commands/accountProvisioner";
+import type { OAuthIntent, OAuthState } from "./utils/oauthState";
 import type {
   AccessRequest,
   ApiKey,
@@ -77,6 +78,8 @@ export type AppState = {
   transaction: Transaction;
   pagination: Pagination;
   oauthClient?: OAuthClient;
+  oauthIntent?: OAuthIntent;
+  oauthState?: OAuthState;
 };
 
 export type AppContext = ParameterizedContext<AppState, DefaultContext>;
