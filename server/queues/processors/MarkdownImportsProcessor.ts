@@ -20,20 +20,13 @@ export default class MarkdownImportsProcessor extends ImportsProcessor<Integrati
     importModel: Import<IntegrationService.Markdown>,
     _transaction: Transaction
   ): Promise<ImportTaskInput<IntegrationService.Markdown>> {
-    const bootstrap = importModel.input[0];
-
-    if (!bootstrap?.storageKey) {
+    if (!importModel.scratch?.storageKey) {
       throw new Error(
-        "Markdown import is missing the bootstrap storage key in input[0]"
+        "Markdown import is missing scratch.storageKey for the bootstrap phase"
       );
     }
 
-    return [
-      {
-        externalId: bootstrap.externalId,
-        storageKey: bootstrap.storageKey,
-      },
-    ];
+    return [{ externalId: importModel.input[0].externalId }];
   }
 
   protected async scheduleTask(

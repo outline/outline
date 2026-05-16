@@ -64,9 +64,9 @@ router.post(
           {
             externalId: randomUUID(),
             permission: body.permission,
-            storageKey: attachment.key,
           },
         ],
+        scratch: { storageKey: attachment.key },
         integrationId: null,
         createdById: user.id,
         teamId: user.teamId,

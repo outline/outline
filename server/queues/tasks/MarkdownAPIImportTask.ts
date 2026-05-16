@@ -9,15 +9,15 @@ import type {
   ImportTaskOutput,
   MarkdownAttachmentManifestItem,
   MarkdownPageImportTaskInputItem,
-  MarkdownZipImportTaskInputItem,
 } from "@shared/schema";
 import type { IntegrationService, ProsemirrorDoc } from "@shared/types";
-import { AttachmentPreset, ImportTaskPhase } from "@shared/types";
+import { AttachmentPreset } from "@shared/types";
 import attachmentCreator from "@server/commands/attachmentCreator";
 import { createContext } from "@server/context";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
-import { Attachment, ImportTask } from "@server/models";
+import type { ImportTask } from "@server/models";
+import { Attachment } from "@server/models";
 import { Buckets } from "@server/models/helpers/AttachmentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { sequelize } from "@server/storage/database";
@@ -167,24 +167,19 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
   protected async onAllTasksCompleted(
     lastImportTask: ImportTask<Markdown>
   ): Promise<void> {
-    const bootstrapTask = await this.findBootstrapTask(lastImportTask.importId);
-    if (!bootstrapTask) {
-      return;
-    }
-
-    const bootstrap = bootstrapTask.input[0] as MarkdownZipImportTaskInputItem;
-    if (!bootstrap?.storageKey || !bootstrap.manifest?.length) {
+    const scratch = lastImportTask.import.scratch;
+    if (!scratch?.storageKey || !scratch.manifest?.length) {
       return;
     }
 
     const { dirPath, cleanup } = await this.downloadAndExtract(
-      bootstrap.storageKey
+      scratch.storageKey
     );
 
     try {
       const createdBy = lastImportTask.import.createdBy;
 
-      for (const item of bootstrap.manifest) {
+      for (const item of scratch.manifest) {
         const filePath = path.join(dirPath, item.pathInZip);
         let buffer: Buffer;
         try {
@@ -221,14 +216,12 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
   protected async processBootstrap(
     importTask: ImportTask<Markdown>
   ): Promise<ProcessOutput<Markdown>> {
-    const first = importTask.input[0] as MarkdownZipImportTaskInputItem;
-    if (!first?.storageKey) {
-      throw new Error("Bootstrap task expected a zip input item");
+    const storageKey = importTask.import.scratch?.storageKey;
+    if (!storageKey) {
+      throw new Error("Markdown import is missing scratch.storageKey");
     }
 
-    const { dirPath, cleanup } = await this.downloadAndExtract(
-      first.storageKey
-    );
+    const { dirPath, cleanup } = await this.downloadAndExtract(storageKey);
 
     try {
       const tree = await ImportHelper.toFileTree(dirPath);
@@ -283,7 +276,10 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
       }
 
       // Append discovered collections to importModel.input so ImportsProcessor
-      // recognises them as collections during the persistence pass.
+      // recognises them as collections during the persistence pass. Stash
+      // cross-phase state (zip storageKey + attachment manifest) on
+      // `import.scratch` so onAllTasksCompleted can rehydrate it without
+      // re-walking the tree.
       const associatedImport = importTask.import;
       associatedImport.input = [
         ...associatedImport.input,
@@ -292,13 +288,13 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
           permission: associatedImport.input[0].permission,
         })),
       ];
+      associatedImport.scratch = { storageKey, manifest };
       await associatedImport.save();
 
-      // Stash the manifest on the bootstrap task's input so the completion
-      // phase can rehydrate it without re-walking the tree. Append collection
-      // placeholder items so ImportsProcessor iterates them during the
-      // bootstrap row (the earliest createdAt) — that guarantees collections
-      // land in the DB before any per-page document references them.
+      // Append collection placeholder items so ImportsProcessor iterates
+      // them during the bootstrap row (the earliest createdAt) — that
+      // guarantees collections land in the DB before any per-page document
+      // references them.
       const collectionInputItems: MarkdownPageImportTaskInputItem[] =
         collections.map((c) => ({
           externalId: c.id,
@@ -309,13 +305,7 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
           docMap: {},
         }));
 
-      importTask.input = [
-        {
-          ...first,
-          manifest,
-        },
-        ...collectionInputItems,
-      ];
+      importTask.input = [importTask.input[0], ...collectionInputItems];
 
       const collectionOutputs: ImportTaskOutput = collections.map((c) => ({
         externalId: c.id,
@@ -666,19 +656,5 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
       await handle.cleanup().catch(() => {});
       throw err;
     }
-  }
-
-  /**
-   * Locate the bootstrap ImportTask row for an import by phase.
-   *
-   * @param importId Id of the parent Import.
-   * @returns The bootstrap ImportTask, or null if not found.
-   */
-  private async findBootstrapTask(
-    importId: string
-  ): Promise<ImportTask<Markdown> | null> {
-    return ImportTask.findOne<ImportTask<Markdown>>({
-      where: { importId, phase: ImportTaskPhase.Bootstrap },
-    });
   }
 }

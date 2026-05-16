@@ -11,7 +11,7 @@ import {
   IsNumeric,
   Table,
 } from "sequelize-typescript";
-import { type ImportInput } from "@shared/schema";
+import { type ImportInput, type ImportScratch } from "@shared/schema";
 import { ImportableIntegrationService, ImportState } from "@shared/types";
 import { ImportValidation } from "@shared/validations";
 import Integration from "./Integration";
@@ -55,6 +55,10 @@ class Import<T extends ImportableIntegrationService> extends ParanoidModel<
 
   @Column(DataType.JSONB)
   input: ImportInput<T>;
+
+  @AllowNull
+  @Column(DataType.JSONB)
+  scratch: ImportScratch<T> | null;
 
   @IsNumeric
   @Default(0)

@@ -8,9 +8,14 @@ module.exports = {
       allowNull: false,
       defaultValue: "page",
     });
+    await queryInterface.addColumn("imports", "scratch", {
+      type: Sequelize.JSONB,
+      allowNull: true,
+    });
   },
 
   async down(queryInterface) {
+    await queryInterface.removeColumn("imports", "scratch");
     await queryInterface.removeColumn("import_tasks", "phase");
   },
 };
