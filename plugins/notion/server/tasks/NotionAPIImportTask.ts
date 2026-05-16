@@ -60,7 +60,7 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
     const taskOutput: ImportTaskOutput = validParsedPages.map((parsedPage) => ({
       externalId: parsedPage.externalId,
       title: parsedPage.title,
-      emoji: parsedPage.emoji,
+      icon: parsedPage.icon,
       content: parsedPage.content,
       author: parsedPage.author,
       createdAt: parsedPage.createdAt,
@@ -116,13 +116,14 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
     try {
       // Convert Notion database to an empty page with "pages in database" as its children.
       if (item.type === PageType.Database) {
-        const { pages, ...databaseInfo } = await client.fetchDatabase(
+        const { pages, emoji, ...databaseInfo } = await client.fetchDatabase(
           item.externalId,
           { titleMaxLength }
         );
 
         return {
           ...databaseInfo,
+          icon: emoji,
           externalId: item.externalId,
           content: ProsemirrorHelper.getEmptyDocument() as ProsemirrorDoc,
           collectionExternalId,
@@ -133,12 +134,14 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
         };
       }
 
-      const { blocks, ...pageInfo } = await client.fetchPage(item.externalId, {
-        titleMaxLength,
-      });
+      const { blocks, emoji, ...pageInfo } = await client.fetchPage(
+        item.externalId,
+        { titleMaxLength }
+      );
 
       return {
         ...pageInfo,
+        icon: emoji,
         externalId: item.externalId,
         content: NotionConverter.page({ children: blocks } as NotionPage),
         collectionExternalId,

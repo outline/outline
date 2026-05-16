@@ -379,8 +379,8 @@ export default abstract class ImportsProcessor<
               const collection = Collection.build({
                 id: internalId,
                 name: output.title,
-                icon: output.emoji ?? "collection",
-                color: output.emoji ? undefined : randomElement(colorPalette),
+                icon: output.icon ?? "collection",
+                color: output.icon ? undefined : randomElement(colorPalette),
                 content: transformedContent,
                 description: truncate(description, {
                   length: CollectionValidation.maxDescriptionLength,
@@ -421,7 +421,7 @@ export default abstract class ImportsProcessor<
 
             const defaults = {
               title: output.title,
-              icon: output.emoji,
+              icon: output.icon,
               content: transformedContent,
               text: await DocumentHelper.toMarkdown(transformedContent, {
                 includeTitle: false,

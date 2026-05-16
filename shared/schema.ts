@@ -134,7 +134,7 @@ export type ImportTaskInput<T extends ImportableIntegrationService> =
 export type ImportTaskOutput = {
   externalId: string;
   title: string;
-  emoji?: string;
+  icon?: string;
   author?: string;
   content: ProsemirrorDoc;
   createdAt?: Date;

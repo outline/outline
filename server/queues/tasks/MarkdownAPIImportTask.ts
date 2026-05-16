@@ -398,7 +398,7 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
         taskOutput.push({
           externalId: item.externalId,
           title: title || item.title,
-          emoji: icon,
+          icon,
           content: doc.toJSON() as ProsemirrorDoc,
         });
       }
