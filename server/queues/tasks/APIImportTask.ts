@@ -14,7 +14,12 @@ import type {
   ProsemirrorData,
   ProsemirrorDoc,
 } from "@shared/types";
-import { AttachmentPreset, ImportState, ImportTaskState } from "@shared/types";
+import {
+  AttachmentPreset,
+  ImportState,
+  ImportTaskPhase,
+  ImportTaskState,
+} from "@shared/types";
 import { createContext } from "@server/context";
 import { schema } from "@server/editor";
 import Logger from "@server/logging/Logger";
@@ -138,7 +143,10 @@ export default abstract class APIImportTask<
    * @returns Promise that resolves once processing has completed.
    */
   private async onProcess(importTask: ImportTask<T>) {
-    const { taskOutput, childTasksInput } = await this.process(importTask);
+    const { taskOutput, childTasksInput } =
+      importTask.phase === ImportTaskPhase.Bootstrap
+        ? await this.processBootstrap(importTask)
+        : await this.processPage(importTask);
 
     const taskOutputWithReplacements = this.shouldUploadAttachmentsPerPage()
       ? await Promise.all(
@@ -160,6 +168,7 @@ export default abstract class APIImportTask<
             await ImportTask.create(
               {
                 state: ImportTaskState.Created,
+                phase: ImportTaskPhase.Page,
                 input: input as ImportTaskInput<T>,
                 importId: importTask.importId,
               },
@@ -263,13 +272,34 @@ export default abstract class APIImportTask<
   }
 
   /**
-   * Process the import task.
-   * This fetches data from external source and converts it to task output.
+   * Bootstrap phase. Runs once per import on a worker that owns the source
+   * artifact (e.g. extracts a zip, walks the file tree, schedules child page
+   * tasks). Subclasses without a bootstrap step leave this unimplemented; the
+   * base only invokes it when an `ImportTask` is created with
+   * `phase === ImportTaskPhase.Bootstrap`.
    *
    * @param importTask ImportTask model to process.
    * @returns Promise with output that resolves once processing has completed.
    */
-  protected abstract process(
+  protected processBootstrap(
+    // oxlint-disable-next-line @typescript-eslint/no-unused-vars
+    importTask: ImportTask<T>
+  ): Promise<ProcessOutput<T>> {
+    throw new Error(
+      `${this.constructor.name} does not implement processBootstrap()`
+    );
+  }
+
+  /**
+   * Page phase. Runs for every `ImportTask` row with
+   * `phase === ImportTaskPhase.Page`, transforming a batch of source pages
+   * into ProseMirror output and optionally cascading descendants as the next
+   * wave of child tasks.
+   *
+   * @param importTask ImportTask model to process.
+   * @returns Promise with output that resolves once processing has completed.
+   */
+  protected abstract processPage(
     importTask: ImportTask<T>
   ): Promise<ProcessOutput<T>>;
 

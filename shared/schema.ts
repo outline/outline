@@ -81,11 +81,12 @@ export type MarkdownAttachmentManifestItem = z.infer<
  * uploaded zip. Produced by the import creation route and consumed by
  * MarkdownAPIImportTask. After the bootstrap phase completes, the task
  * mutates its own input to embed the discovered attachment manifest so the
- * completion phase can rehydrate it without a model schema change.
+ * completion phase can rehydrate it without a model schema change. The
+ * row's `phase` column (`ImportTaskPhase.Bootstrap`) tells the dispatcher
+ * which shape to expect; the input items themselves carry no discriminator.
  */
 const MarkdownZipImportTaskInputItemSchema =
   BaseImportTaskInputItemSchema.extend({
-    type: z.literal("zip"),
     storageKey: z.string(),
     manifest: z.array(MarkdownAttachmentManifestItemSchema).optional(),
   });
@@ -106,7 +107,6 @@ export type MarkdownZipImportTaskInputItem = z.infer<
  * cost here.
  */
 export interface MarkdownPageImportTaskInputItem {
-  type: "page";
   externalId: string;
   parentExternalId?: string;
   collectionExternalId?: string;

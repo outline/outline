@@ -29,13 +29,13 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
   ];
 
   /**
-   * Process the Notion import task.
+   * Process a Notion page-phase import task.
    * This fetches data from Notion and converts it to task output.
    *
    * @param importTask ImportTask model to process.
    * @returns Promise with output that resolves once processing has completed.
    */
-  protected async process(
+  protected async processPage(
     importTask: ImportTask<IntegrationService.Notion>
   ): Promise<ProcessOutput<IntegrationService.Notion>> {
     if (!importTask.import.integrationId) {
@@ -51,7 +51,7 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
 
     const parsedPages: (ParsePageOutput | null)[] = [];
     for (const item of importTask.input) {
-      parsedPages.push(await this.processPage({ item, client }));
+      parsedPages.push(await this.parsePage({ item, client }));
     }
 
     // Filter out any null results (from pages/databases that couldn't be accessed)
@@ -100,7 +100,7 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
    * @param client Notion client.
    * @returns Promise of parsed page output that resolves when the task is scheduled.
    */
-  private async processPage({
+  private async parsePage({
     item,
     client,
   }: {

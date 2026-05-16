@@ -1,6 +1,6 @@
 import type { Transaction } from "sequelize";
 import type { ImportTaskInput } from "@shared/schema";
-import { IntegrationService } from "@shared/types";
+import { ImportTaskPhase, IntegrationService } from "@shared/types";
 import type { Import, ImportTask } from "@server/models";
 import MarkdownAPIImportTask from "../tasks/MarkdownAPIImportTask";
 import ImportsProcessor from "./ImportsProcessor";
@@ -10,6 +10,10 @@ export default class MarkdownImportsProcessor extends ImportsProcessor<Integrati
     importModel: Import<IntegrationService.Markdown>
   ): boolean {
     return importModel.service === IntegrationService.Markdown;
+  }
+
+  protected getInitialPhase(): ImportTaskPhase {
+    return ImportTaskPhase.Bootstrap;
   }
 
   protected async buildTasksInput(
@@ -26,7 +30,6 @@ export default class MarkdownImportsProcessor extends ImportsProcessor<Integrati
 
     return [
       {
-        type: "zip" as const,
         externalId: bootstrap.externalId,
         storageKey: bootstrap.storageKey,
       },

@@ -17,7 +17,12 @@ import type {
   ProsemirrorDoc,
   SourceMetadata,
 } from "@shared/types";
-import { ImportState, ImportTaskState, MentionType } from "@shared/types";
+import {
+  ImportState,
+  ImportTaskPhase,
+  ImportTaskState,
+  MentionType,
+} from "@shared/types";
 import { colorPalette } from "@shared/utils/collections";
 import { CollectionValidation } from "@shared/validations";
 import { createContext } from "@server/context";
@@ -123,12 +128,14 @@ export default abstract class ImportsProcessor<
     }
 
     const tasksInput = await this.buildTasksInput(importModel, transaction);
+    const phase = this.getInitialPhase();
 
     const importTasks = await Promise.all(
       chunk(tasksInput as BaseImportTaskInput, PagePerImportTask).map(
         (input) => {
           const attrs = {
             state: ImportTaskState.Created,
+            phase,
             input,
             importId: importModel.id,
           } as ImportTaskCreationAttributes<T>;
@@ -612,6 +619,18 @@ export default abstract class ImportsProcessor<
    * @returns boolean.
    */
   protected abstract canProcess(importModel: Import<T>): boolean;
+
+  /**
+   * Phase assigned to the initial ImportTask rows created from
+   * `buildTasksInput`. Sources that begin with a bootstrap step (e.g.
+   * Markdown zip extraction) override this to return `Bootstrap`. Sources
+   * that fan out directly into page work (e.g. Notion) leave the default.
+   *
+   * @returns Phase for the first wave of ImportTask rows.
+   */
+  protected getInitialPhase(): ImportTaskPhase {
+    return ImportTaskPhase.Page;
+  }
 
   /**
    * Build task inputs which will be used for `APIImportTask`s.

@@ -9,9 +9,10 @@ import type {
   ImportTaskOutput,
   MarkdownAttachmentManifestItem,
   MarkdownPageImportTaskInputItem,
+  MarkdownZipImportTaskInputItem,
 } from "@shared/schema";
 import type { IntegrationService, ProsemirrorDoc } from "@shared/types";
-import { AttachmentPreset } from "@shared/types";
+import { AttachmentPreset, ImportTaskPhase } from "@shared/types";
 import attachmentCreator from "@server/commands/attachmentCreator";
 import { createContext } from "@server/context";
 import env from "@server/env";
@@ -159,19 +160,6 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
     return false;
   }
 
-  protected async process(
-    importTask: ImportTask<Markdown>
-  ): Promise<ProcessOutput<Markdown>> {
-    const first = importTask.input[0];
-    if (!first) {
-      return { taskOutput: [], childTasksInput: [] };
-    }
-
-    return first.type === "zip"
-      ? this.processBootstrap(importTask)
-      : this.processPages(importTask);
-  }
-
   protected async scheduleNextTask(importTask: ImportTask<Markdown>) {
     await new MarkdownAPIImportTask().schedule({ importTaskId: importTask.id });
   }
@@ -184,8 +172,8 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
       return;
     }
 
-    const bootstrap = bootstrapTask.input[0];
-    if (bootstrap.type !== "zip" || !bootstrap.manifest?.length) {
+    const bootstrap = bootstrapTask.input[0] as MarkdownZipImportTaskInputItem;
+    if (!bootstrap?.storageKey || !bootstrap.manifest?.length) {
       return;
     }
 
@@ -230,11 +218,11 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
     }
   }
 
-  private async processBootstrap(
+  protected async processBootstrap(
     importTask: ImportTask<Markdown>
   ): Promise<ProcessOutput<Markdown>> {
-    const first = importTask.input[0];
-    if (first.type !== "zip") {
+    const first = importTask.input[0] as MarkdownZipImportTaskInputItem;
+    if (!first?.storageKey) {
       throw new Error("Bootstrap task expected a zip input item");
     }
 
@@ -313,7 +301,6 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
       // land in the DB before any per-page document references them.
       const collectionInputItems: MarkdownPageImportTaskInputItem[] =
         collections.map((c) => ({
-          type: "page",
           externalId: c.id,
           title: c.title,
           path: c.title,
@@ -367,7 +354,6 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
     docMap: Record<string, string>
   ): MarkdownPageImportTaskInputItem {
     return {
-      type: "page",
       externalId: doc.id,
       parentExternalId: doc.parentDocumentId,
       collectionExternalId: doc.collectionId,
@@ -382,17 +368,14 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
     };
   }
 
-  private async processPages(
+  protected async processPage(
     importTask: ImportTask<Markdown>
   ): Promise<ProcessOutput<Markdown>> {
     const taskOutput: ImportTaskOutput = [];
     const childTasksInput: MarkdownPageImportTaskInputItem[] = [];
 
-    for (const item of importTask.input) {
-      if (item.type !== "page") {
-        continue;
-      }
-
+    const items = importTask.input as MarkdownPageImportTaskInputItem[];
+    for (const item of items) {
       // Empty markdown short-circuits — used by collection placeholders so
       // ImportsProcessor sees their externalId paired with empty content and
       // builds a Collection rather than a Document. (Currently collections
@@ -686,8 +669,7 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
   }
 
   /**
-   * Locate the bootstrap ImportTask row for an import. The bootstrap is the
-   * earliest-created task whose input contains a `type === "zip"` entry.
+   * Locate the bootstrap ImportTask row for an import by phase.
    *
    * @param importId Id of the parent Import.
    * @returns The bootstrap ImportTask, or null if not found.
@@ -695,14 +677,8 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
   private async findBootstrapTask(
     importId: string
   ): Promise<ImportTask<Markdown> | null> {
-    const tasks = await ImportTask.findAll<ImportTask<Markdown>>({
-      where: { importId },
-      order: [
-        ["createdAt", "ASC"],
-        ["id", "ASC"],
-      ],
-      limit: 1,
+    return ImportTask.findOne<ImportTask<Markdown>>({
+      where: { importId, phase: ImportTaskPhase.Bootstrap },
     });
-    return tasks[0] ?? null;
   }
 }
