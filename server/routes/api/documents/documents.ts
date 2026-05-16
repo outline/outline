@@ -549,7 +549,7 @@ router.post(
     const { user } = ctx.state.auth;
     const apiVersion = getAPIVersion(ctx);
     const teamFromCtx = await getTeamFromContext(ctx, {
-      includeStateCookie: false,
+      includeOAuthState: false,
     });
 
     let document: Document | null;
@@ -1103,7 +1103,7 @@ router.post(
 
     if (shareId) {
       const teamFromCtx = await getTeamFromContext(ctx, {
-        includeStateCookie: false,
+        includeOAuthState: false,
       });
       const result = await loadPublicShare({
         id: shareId,

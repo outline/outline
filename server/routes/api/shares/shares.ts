@@ -56,7 +56,7 @@ router.post(
     const { id, collectionId, documentId } = ctx.input.body;
     const { user } = ctx.state.auth;
     const teamFromCtx = await getTeamFromContext(ctx, {
-      includeStateCookie: false,
+      includeOAuthState: false,
     });
 
     // only public link loads will send "id".
@@ -440,7 +440,7 @@ router.get(
   validate(T.SharesSitemapSchema),
   async (ctx: APIContext<T.SharesSitemapReq>) => {
     const { id } = ctx.input.query;
-    const team = await getTeamFromContext(ctx, { includeStateCookie: false });
+    const team = await getTeamFromContext(ctx, { includeOAuthState: false });
 
     const { share, sharedTree } = await loadPublicShare({
       id,
@@ -473,7 +473,7 @@ router.post(
 
     const { shareId, documentId, email } = ctx.input.body;
     const { transaction } = ctx.state;
-    const team = await getTeamFromContext(ctx, { includeStateCookie: false });
+    const team = await getTeamFromContext(ctx, { includeOAuthState: false });
 
     // Validate the share exists and is published
     const { share, document } = await loadPublicShare({

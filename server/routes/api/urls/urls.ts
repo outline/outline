@@ -55,7 +55,7 @@ router.post(
         let teamId: string | undefined = actor?.teamId;
         if (!teamId && !isUUID(shareId)) {
           const teamFromCtx = await getTeamFromContext(ctx, {
-            includeStateCookie: false,
+            includeOAuthState: false,
           });
           teamId = teamFromCtx?.id;
         }

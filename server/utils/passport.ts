@@ -42,9 +42,10 @@ const OAUTH_INTENT_TTL_SECONDS = 10 * 60;
  *   2. On the apex — verify the signed intent and stash it on `ctx.state` so
  *      `StateStore.store` can fold it into the signed OAuth `state` parameter.
  *
- * Non-custom team subdomains skip the bounce because their cookies are shared
- * with the apex via the base domain. Self-hosted deployments have a single
- * domain and pass through.
+ * Non-custom team subdomains skip the bounce because the start route can read
+ * the host-scoped session and set the OAuth CSRF cookie on the base domain for
+ * the apex callback. Self-hosted deployments have a single domain and pass
+ * through.
  */
 export async function startOAuthFlow(ctx: Context, next: Next) {
   if (!env.isCloudHosted) {
@@ -58,10 +59,11 @@ export async function startOAuthFlow(ctx: Context, next: Next) {
   if (isCustom && !onApex) {
     const url = new URL(ctx.originalUrl, apex);
     const client = getClientFromInput(ctx);
-    const actorId = await getOAuthActorId(ctx);
+    const actor = await getOAuthActor(ctx);
     const flow = signOAuthIntent({
       host: ctx.hostname,
-      actorId,
+      actorId: actor?.id,
+      actorSessionHash: actor ? getActorSessionHash(actor) : undefined,
       client,
     });
 
@@ -128,9 +130,13 @@ export class StateStore {
       parseDomain(context.hostname).host;
     const actorId =
       context.state.oauthIntent?.actorId ?? getAuthenticatedUserId(context);
+    const actorSessionHash =
+      context.state.oauthIntent?.actorSessionHash ??
+      getAuthenticatedUserSessionHash(context);
     const state = signOAuthState({
       host,
       actorId,
+      actorSessionHash,
       client,
       codeVerifier,
       nonceHash: hashOAuthStateNonce(csrfNonce),
@@ -171,7 +177,7 @@ export class StateStore {
 
     if (!safeEqual(hashOAuthStateNonce(csrfNonce ?? ""), state.nonceHash)) {
       return callback(
-        OAuthStateMismatchError("Token in state mismatched"),
+        OAuthStateMismatchError("OAuth CSRF nonce mismatched"),
         false,
         providedToken
       );
@@ -236,21 +242,30 @@ export function getClientFromOAuthState(ctx: Context): Client {
 }
 
 /**
- * Returns the access token from the context if available. This is used
- * to restore the session during the OAuth flow when connecting additional
- * providers to an existing team.
+ * Returns the actor referenced by verified OAuth state, if available. This is
+ * used to restore the originating user during the OAuth flow when connecting
+ * additional providers to an existing team.
  *
  * @param ctx The Koa context
- * @returns The access token if available, otherwise undefined
+ * @returns The actor if available, otherwise undefined
  */
 export async function getUserFromOAuthState(ctx: Context) {
   const context = getKoaContext(ctx);
-  const actorId = context.state.oauthState?.actorId;
-  if (!actorId) {
+  const state = context.state.oauthState;
+  if (!state?.actorId || !state.actorSessionHash) {
     return undefined;
   }
 
-  return User.scope("withTeam").findByPk(actorId);
+  const user = await User.scope("withTeam").findByPk(state.actorId);
+  if (!user) {
+    return undefined;
+  }
+
+  if (!safeEqual(getActorSessionHash(user), state.actorSessionHash)) {
+    return undefined;
+  }
+
+  return user;
 }
 
 type TeamFromContextOptions = {
@@ -259,7 +274,7 @@ type TeamFromContextOptions = {
    * If true, OAuth state will be used to determine the host and infer the team
    * this should only be used in the authentication process.
    */
-  includeStateCookie?: boolean;
+  includeOAuthState?: boolean;
   /**
    * Whether to consider the host query parameter in the context when determining the team.
    * If true, the host query parameter will be used to determine the host and infer the team
@@ -268,7 +283,7 @@ type TeamFromContextOptions = {
 };
 
 /**
- * Infers the team from the context based on the hostname or state cookie.
+ * Infers the team from the context based on the hostname or OAuth state.
  *
  * @param ctx The Koa context
  * @param options Options for determining the team
@@ -276,12 +291,13 @@ type TeamFromContextOptions = {
  */
 export async function getTeamFromContext(
   ctx: Context,
-  options: TeamFromContextOptions = { includeStateCookie: true }
+  options: TeamFromContextOptions = { includeOAuthState: true }
 ) {
   const context = getKoaContext(ctx);
   // "domain" is the domain the user came from when attempting auth
   // we use it to infer the team they intend on signing into
-  const state = options.includeStateCookie
+  const includeOAuthState = options.includeOAuthState ?? true;
+  const state = includeOAuthState
     ? (context.state.oauthState ?? context.state.oauthIntent)
     : undefined;
   const queryHost =
@@ -316,16 +332,25 @@ function getClientFromInput(ctx: Context): Client {
   return clientInput === Client.Desktop ? Client.Desktop : Client.Web;
 }
 
-function getAuthenticatedUserId(ctx: Context): string | undefined {
+function getAuthenticatedUser(ctx: Context): User | undefined {
   return ctx.state.auth && "user" in ctx.state.auth
-    ? ctx.state.auth.user?.id
+    ? ctx.state.auth.user
     : undefined;
 }
 
-async function getOAuthActorId(ctx: Context): Promise<string | undefined> {
-  const authenticatedUserId = getAuthenticatedUserId(ctx);
-  if (authenticatedUserId) {
-    return authenticatedUserId;
+function getAuthenticatedUserId(ctx: Context): string | undefined {
+  return getAuthenticatedUser(ctx)?.id;
+}
+
+function getAuthenticatedUserSessionHash(ctx: Context): string | undefined {
+  const user = getAuthenticatedUser(ctx);
+  return user ? getActorSessionHash(user) : undefined;
+}
+
+async function getOAuthActor(ctx: Context): Promise<User | undefined> {
+  const authenticatedUser = getAuthenticatedUser(ctx);
+  if (authenticatedUser) {
+    return authenticatedUser;
   }
 
   const accessToken = ctx.cookies.get("accessToken");
@@ -335,10 +360,17 @@ async function getOAuthActorId(ctx: Context): Promise<string | undefined> {
 
   try {
     const { user } = await getUserForJWT(accessToken);
-    return user.id;
+    return user;
   } catch {
     return undefined;
   }
+}
+
+function getActorSessionHash(user: User): string {
+  return crypto
+    .createHmac("sha256", env.SECRET_KEY)
+    .update(user.jwtSecret)
+    .digest("hex");
 }
 
 async function storeOAuthIntent(token: string): Promise<void> {

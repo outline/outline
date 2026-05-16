@@ -194,7 +194,7 @@ router.post(
     } = ctx.input.body;
 
     const team = await getTeamFromContext(ctx, {
-      includeStateCookie: false,
+      includeOAuthState: false,
     });
     if (!team) {
       throw NotFoundError();

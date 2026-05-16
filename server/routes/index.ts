@@ -124,7 +124,7 @@ router.get(
     const origin = env.isCloudHosted
       ? ctx.request.URL.origin
       : new URL(env.URL).origin;
-    const team = await getTeamFromContext(ctx, { includeStateCookie: false });
+    const team = await getTeamFromContext(ctx, { includeOAuthState: false });
     const mcpEnabled = team?.getPreference(TeamPreference.MCP) ?? true;
 
     ctx.body = {
@@ -151,7 +151,7 @@ router.get(
     "/.well-known/oauth-protected-resource/mcp",
   ],
   async (ctx) => {
-    const team = await getTeamFromContext(ctx, { includeStateCookie: false });
+    const team = await getTeamFromContext(ctx, { includeOAuthState: false });
     const mcpEnabled = team?.getPreference(TeamPreference.MCP) ?? true;
 
     if (!mcpEnabled) {

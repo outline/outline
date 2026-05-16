@@ -19,6 +19,7 @@ describe("oauthState", () => {
     const token = signOAuthIntent({
       host: "docs.example.com",
       actorId: "user-id",
+      actorSessionHash: "session-hash",
       client: Client.Web,
     });
 
@@ -26,6 +27,7 @@ describe("oauthState", () => {
 
     expect(payload.host).toBe("docs.example.com");
     expect(payload.actorId).toBe("user-id");
+    expect(payload.actorSessionHash).toBe("session-hash");
     expect(payload.client).toBe(Client.Web);
     expect(payload.type).toBe("oauth_intent");
     expect(payload.exp).toBeGreaterThan(payload.iat);
@@ -35,6 +37,7 @@ describe("oauthState", () => {
     const token = signOAuthState({
       host: "team.outline.dev",
       actorId: "user-id",
+      actorSessionHash: "session-hash",
       client: Client.Desktop,
       codeVerifier: "pkce-verifier",
       nonceHash: hashOAuthStateNonce("csrf-nonce"),
@@ -44,6 +47,7 @@ describe("oauthState", () => {
 
     expect(payload.host).toBe("team.outline.dev");
     expect(payload.actorId).toBe("user-id");
+    expect(payload.actorSessionHash).toBe("session-hash");
     expect(payload.client).toBe(Client.Desktop);
     expect(payload.type).toBe("oauth_state");
     expect(payload.codeVerifier).toBe("pkce-verifier");
