@@ -1,7 +1,7 @@
 import {
   rewriteAttachmentPaths,
   rewriteInternalLinks,
-} from "./markdownAttachmentRewriter";
+} from "./MarkdownAPIImportTask";
 
 describe("rewriteAttachmentPaths", () => {
   it("replaces a direct encoded path with the placeholder", () => {

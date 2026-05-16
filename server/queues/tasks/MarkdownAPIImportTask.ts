@@ -1,5 +1,6 @@
 import path from "node:path";
 import { randomUUID } from "node:crypto";
+import { escapeRegExp } from "es-toolkit/compat";
 import fs from "fs-extra";
 import mime from "mime-types";
 import tmp from "tmp";
@@ -16,16 +17,13 @@ import { createContext } from "@server/context";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { Attachment, ImportTask } from "@server/models";
+import { Buckets } from "@server/models/helpers/AttachmentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { sequelize } from "@server/storage/database";
 import FileStorage from "@server/storage/files";
 import type { FileTreeNode } from "@server/utils/ImportHelper";
 import ImportHelper from "@server/utils/ImportHelper";
 import ZipHelper from "@server/utils/ZipHelper";
-import {
-  rewriteAttachmentPaths,
-  rewriteInternalLinks,
-} from "@server/utils/markdownAttachmentRewriter";
 import type { ProcessOutput } from "./APIImportTask";
 import APIImportTask from "./APIImportTask";
 import { DocumentConverter } from "@server/utils/DocumentConverter";
@@ -51,6 +49,109 @@ interface DiscoveredCollection {
   id: string;
   title: string;
   children: DiscoveredDocument[];
+}
+
+interface AttachmentRef {
+  id: string;
+  pathInZip: string;
+}
+
+/**
+ * Rewrites local attachment paths in markdown text into `<<attachmentId>>`
+ * placeholders. Supports legacy bucket layouts (`uploads/`, `public/`),
+ * arbitrary nested folder names, and `./attachments/...` rooted paths. Both
+ * encoded and unencoded path forms are matched.
+ *
+ * Exported for tests; not part of the module's public surface.
+ *
+ * @param markdown The raw markdown text from a single document.
+ * @param attachments Attachment manifest entries to substitute.
+ * @returns Markdown text with local paths replaced by `<<id>>` references.
+ */
+export function rewriteAttachmentPaths(
+  markdown: string,
+  attachments: AttachmentRef[]
+): string {
+  let text = markdown;
+
+  for (const attachment of attachments) {
+    const encodedPath = encodeURI(attachment.pathInZip);
+    const attachmentFileName = path.basename(attachment.pathInZip);
+    const reference = `<<${attachment.id}>>`;
+
+    const normalizedAttachmentPath = encodedPath
+      .replace(new RegExp(`(.*)/${Buckets.uploads}/`), `${Buckets.uploads}/`)
+      .replace(new RegExp(`(.*)/${Buckets.public}/`), `${Buckets.public}/`);
+
+    const attachmentDir = path.basename(path.dirname(attachment.pathInZip));
+    const genericNormalizedPath = `${attachmentDir}/${encodeURI(attachmentFileName)}`;
+
+    text = text
+      .replace(new RegExp(escapeRegExp(encodedPath), "g"), reference)
+      .replace(
+        new RegExp(`\\.?/?${escapeRegExp(normalizedAttachmentPath)}`, "g"),
+        reference
+      );
+
+    const segments = attachment.pathInZip.split(path.sep);
+    const attachmentsIdx = segments.findIndex(
+      (seg) => seg.toLowerCase() === "attachments"
+    );
+    if (attachmentsIdx >= 0) {
+      const relFromAttachments = segments.slice(attachmentsIdx).join("/");
+      text = text.replace(
+        new RegExp(`\\.?/?${escapeRegExp(encodeURI(relFromAttachments))}`, "g"),
+        reference
+      );
+    }
+
+    text = text.replace(
+      new RegExp(`\\.?/?${escapeRegExp(genericNormalizedPath)}`, "g"),
+      reference
+    );
+  }
+
+  return text;
+}
+
+/**
+ * Rewrites internal markdown links (`[label](./relative.md)`) into
+ * `<<documentId>>` placeholders, resolved against a path → id map built from
+ * the zip's full document tree.
+ *
+ * Exported for tests; not part of the module's public surface.
+ *
+ * @param markdown The raw markdown text from a single document.
+ * @param documentPath Zip-relative path of the document being rewritten
+ *                     (e.g. `Collection/parent.md`); used as the base for
+ *                     resolving relative link targets against docMap keys.
+ * @param docMap Map of document path (as it appeared in the zip) to its
+ *               pre-assigned externalId.
+ * @returns Markdown text with internal `.md` link targets replaced by
+ *          `<<id>>` references.
+ */
+export function rewriteInternalLinks(
+  markdown: string,
+  documentPath: string,
+  docMap: Record<string, string>
+): string {
+  const basePath = path.dirname(documentPath);
+  const internalLinks = [...markdown.matchAll(/\[[^\]]+\]\(([^)]+\.md)\)/g)];
+
+  let text = markdown;
+  for (const match of internalLinks) {
+    const referredDocPath = match[1];
+    const normalizedDocPath = decodeURI(
+      path.normalize(`${basePath}/${referredDocPath}`)
+    );
+
+    const referredDocId = docMap[normalizedDocPath];
+    if (referredDocId) {
+      text = text.replace(referredDocPath, `<<${referredDocId}>>`);
+    }
+  }
+
+  return text;
 }
 
 export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
@@ -552,25 +653,36 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
   private async downloadAndExtract(storageKey: string): Promise<ExtractedZip> {
     const handle = await FileStorage.getFileHandle(storageKey);
 
-    const dirPath = await new Promise<string>((resolve, reject) => {
-      tmp.dir({ unsafeCleanup: true }, (err, tmpDir) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        void ZipHelper.extract(handle.path, tmpDir)
-          .then(() => resolve(tmpDir))
-          .catch(reject);
+    let dirPath: string | undefined;
+    try {
+      dirPath = await new Promise<string>((resolve, reject) => {
+        tmp.dir({ unsafeCleanup: true }, (err, tmpDir) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+          resolve(tmpDir);
+        });
       });
-    });
 
-    return {
-      dirPath,
-      cleanup: async () => {
+      await ZipHelper.extract(handle.path, dirPath);
+
+      return {
+        dirPath,
+        cleanup: async () => {
+          await fs
+            .rm(dirPath!, { recursive: true, force: true })
+            .catch(() => {});
+          await handle.cleanup().catch(() => {});
+        },
+      };
+    } catch (err) {
+      if (dirPath) {
         await fs.rm(dirPath, { recursive: true, force: true }).catch(() => {});
-        await handle.cleanup().catch(() => {});
-      },
-    };
+      }
+      await handle.cleanup().catch(() => {});
+      throw err;
+    }
   }
 
   /**

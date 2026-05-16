@@ -66,7 +66,7 @@ export type NotionImportTaskInput = z.infer<
  * Attachment row id created during completion.
  */
 export const MarkdownAttachmentManifestItemSchema = z.object({
-  id: z.string(),
+  id: z.uuid(),
   name: z.string(),
   mimeType: z.string(),
   pathInZip: z.string(),
