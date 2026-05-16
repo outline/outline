@@ -25,6 +25,7 @@ import {
   getTeamFromContext,
   getUserFromOAuthState,
   StateStore,
+  startOAuthFlow,
 } from "@server/utils/passport";
 import { parseEmail } from "@shared/utils/email";
 import env from "../env";
@@ -134,7 +135,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
   strategy.name = providerName;
   passport.use(strategy);
 
-  router.get("slack", passport.authenticate(providerName));
+  router.get("slack", startOAuthFlow, passport.authenticate(providerName));
   router.get("slack.callback", passportMiddleware(providerName));
 
   router.get(

@@ -24,6 +24,7 @@ import {
   getClientFromOAuthState,
   getUserFromOAuthState,
   request,
+  startOAuthFlow,
 } from "@server/utils/passport";
 import config from "../../plugin.json";
 import env from "../env";
@@ -226,6 +227,7 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
 
   router.get(
     config.id,
+    startOAuthFlow,
     passport.authenticate(config.id, {
       scope,
     })

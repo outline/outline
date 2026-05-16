@@ -19,6 +19,7 @@ import {
   getTeamFromContext,
   getClientFromOAuthState,
   getUserFromOAuthState,
+  startOAuthFlow,
 } from "@server/utils/passport";
 import config from "../../plugin.json";
 import env from "../env";
@@ -151,7 +152,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
     )
   );
 
-  router.get(config.id, async (ctx, next) => {
+  router.get(config.id, startOAuthFlow, async (ctx, next) => {
     const team = await getTeamFromContext(ctx, {
       includeHostQueryParam: true,
     });

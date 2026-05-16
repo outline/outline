@@ -19,7 +19,6 @@ import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import SettingRow from "./components/SettingRow";
 import { setPostLoginPath } from "~/hooks/useLastVisitedPath";
-import { getRedirectUrl } from "~/utils/urls";
 import { settingsPath } from "~/utils/routeHelpers";
 import DomainManagement from "./components/DomainManagement";
 import Button from "~/components/Button";
@@ -98,7 +97,7 @@ function Authentication() {
 
   const handleConnectProvider = React.useCallback((name: string) => {
     setPostLoginPath(settingsPath("authentication"));
-    window.location.href = getRedirectUrl(`/auth/${name}`);
+    window.location.href = `/auth/${name}?host=${window.location.host}`;
   }, []);
 
   const handleToggleGroupSync = React.useCallback(

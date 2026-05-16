@@ -17,6 +17,7 @@ import {
   getTeamFromContext,
   getClientFromOAuthState,
   getUserFromOAuthState,
+  startOAuthFlow,
 } from "@server/utils/passport";
 import config from "../../plugin.json";
 import env from "../env";
@@ -143,6 +144,7 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
   passport.use(strategy);
   router.get(
     config.id,
+    startOAuthFlow,
     passport.authenticate(config.id, { prompt: "select_account" })
   );
   router.get(`${config.id}.callback`, passportMiddleware(config.id));

@@ -22,6 +22,7 @@ import {
   getClientFromOAuthState,
   getUserFromOAuthState,
   request,
+  startOAuthFlow,
 } from "@server/utils/passport";
 import config from "../../plugin.json";
 import env from "../env";
@@ -227,7 +228,7 @@ export function createOIDCRouter(
     )
   );
 
-  router.get(config.id, passport.authenticate(config.id));
+  router.get(config.id, startOAuthFlow, passport.authenticate(config.id));
   router.get(`${config.id}.callback`, passportMiddleware(config.id));
   router.post(`${config.id}.callback`, passportMiddleware(config.id));
 }

@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { addMinutes, subMinutes } from "date-fns";
-import type { Context } from "koa";
+import type { Context, Next } from "koa";
 import type {
   StateStoreStoreCallback,
   StateStoreVerifyCallback,
@@ -13,7 +13,107 @@ import { Team } from "@server/models";
 import { InternalError, OAuthStateMismatchError } from "../errors";
 import { safeEqual } from "./crypto";
 import fetch from "./fetch";
-import { getUserForJWT } from "./jwt";
+import { getJWTPayload, getUserForJWT } from "./jwt";
+
+const TRANSFER_QUERY_PARAM = "_t";
+const ACTOR_STATE_KEY = "oauthActorAccessToken";
+
+/**
+ * Middleware for OAuth start routes that bridges cookie scopes between custom
+ * team domains and the apex (env.URL) where the OAuth callback always lands.
+ *
+ * The OAuth `state` cookie must be set on the same eTLD+1 as the callback URL,
+ * and the user's `accessToken` session cookie is host-scoped to the team
+ * domain it was issued on. To make the "connect a new auth provider while
+ * signed in" flow work from a custom domain (whose cookies aren't shared with
+ * the apex):
+ *
+ *   1. On a custom team domain — mint a single-use transfer token from the
+ *      user's `accessToken` cookie and bounce to the apex with it in the
+ *      query string. Any pre-existing `_t` in the URL is stripped so an
+ *      attacker can't smuggle a token along the bounce.
+ *   2. On the apex with a transfer token — exchange it, but only if the
+ *      transfer's user belongs to the team that owns the host claimed in
+ *      `?host=`. This binding prevents an attacker who controls one team from
+ *      pinning their session into another visitor's OAuth flow. The actor's
+ *      session is stashed on `ctx.state` (not in a cookie) so that
+ *      `StateStore.store` can read it later in the same request — a cookie
+ *      `set` here wouldn't be visible to `get` on the same request anyway.
+ *
+ * Non-custom team subdomains skip the bounce because their `state` cookie is
+ * already shared with the apex via the base domain. Self-hosted deployments
+ * have a single domain and pass through.
+ */
+export async function startOAuthFlow(ctx: Context, next: Next) {
+  if (!env.isCloudHosted) {
+    return next();
+  }
+
+  const apex = new URL(env.URL);
+  const onApex = ctx.hostname === apex.hostname;
+  const isCustom = parseDomain(ctx.hostname).custom;
+
+  if (isCustom && !onApex) {
+    const url = new URL(ctx.originalUrl, apex);
+    if (!url.searchParams.has("host")) {
+      url.searchParams.set("host", ctx.hostname);
+    }
+    url.searchParams.delete(TRANSFER_QUERY_PARAM);
+
+    const accessToken = ctx.cookies.get("accessToken");
+    if (accessToken) {
+      try {
+        const { user } = await getUserForJWT(accessToken);
+        url.searchParams.set(TRANSFER_QUERY_PARAM, user.getTransferToken());
+      } catch {
+        // Stale or invalid session — proceed without; the user can still
+        // complete the OAuth flow as a fresh sign-in.
+      }
+    }
+
+    return ctx.redirect(url.toString());
+  }
+
+  if (!onApex) {
+    return next();
+  }
+
+  const transfer = ctx.query[TRANSFER_QUERY_PARAM];
+  const host = typeof ctx.query.host === "string" ? ctx.query.host : undefined;
+  if (typeof transfer !== "string" || !transfer || !host) {
+    return next();
+  }
+
+  try {
+    // Only accept transfer tokens here, not long-lived session JWTs.
+    if (getJWTPayload(transfer).type !== "transfer") {
+      return next();
+    }
+    const { user } = await getUserForJWT(transfer);
+    // Bind to the host claim: only honor the transfer when the user belongs
+    // to the team that owns the custom domain. Prevents an attacker who
+    // controls one team from pinning their session into another visitor's
+    // OAuth flow via a crafted link.
+    if (
+      user.team?.domain &&
+      user.team.domain.toLowerCase() === host.toLowerCase()
+    ) {
+      // Bump lastActiveAt so the just-used transfer token can't be replayed
+      // within its 1-min TTL.
+      await user.updateActiveAt(ctx, true);
+      ctx.state[ACTOR_STATE_KEY] = user.getJwtToken(addMinutes(new Date(), 10));
+    }
+  } catch {
+    // Invalid/expired transfer — proceed without.
+  }
+
+  return next();
+}
+
+function getOAuthActorAccessToken(ctx: Context): string | undefined {
+  const value = ctx.state?.[ACTOR_STATE_KEY];
+  return typeof value === "string" ? value : undefined;
+}
 
 export class StateStore {
   constructor(private pkce = false) {}
@@ -47,7 +147,8 @@ export class StateStore {
     const clientInput = ctx.query.client?.toString();
     const client = clientInput === Client.Desktop ? Client.Desktop : Client.Web;
     const host = ctx.query.host?.toString() || parseDomain(ctx.hostname).host;
-    const accessToken = ctx.cookies.get("accessToken");
+    const accessToken =
+      getOAuthActorAccessToken(ctx) ?? ctx.cookies.get("accessToken");
     const state = buildState({
       host,
       token,
