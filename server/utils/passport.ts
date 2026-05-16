@@ -27,6 +27,7 @@ const FLOW_QUERY_PARAM = "flow";
 const OAUTH_CSRF_COOKIE = "oauth_csrf";
 const OAUTH_INTENT_PREFIX = "oauth:intent:";
 const OAUTH_INTENT_TTL_SECONDS = 10 * 60;
+const ACTOR_SESSION_HASH_KEYLEN = 64;
 
 /**
  * Middleware for OAuth start routes that bridges cookie scopes between custom
@@ -368,9 +369,12 @@ async function getOAuthActor(ctx: Context): Promise<User | undefined> {
 
 function getActorSessionHash(user: User): string {
   return crypto
-    .createHmac("sha256", env.SECRET_KEY)
-    .update(user.jwtSecret)
-    .digest("hex");
+    .scryptSync(
+      user.jwtSecret,
+      `oauth-actor-session:${env.SECRET_KEY}:${user.id}`,
+      ACTOR_SESSION_HASH_KEYLEN
+    )
+    .toString("hex");
 }
 
 async function storeOAuthIntent(token: string): Promise<void> {
