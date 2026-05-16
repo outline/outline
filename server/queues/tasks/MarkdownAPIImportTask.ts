@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { escapeRegExp } from "es-toolkit/compat";
 import fs from "fs-extra";
 import mime from "mime-types";
+import { UniqueConstraintError } from "sequelize";
 import tmp from "tmp";
 import type {
   ImportTaskInput,
@@ -172,16 +173,6 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
       return;
     }
 
-    // Each attachment commits in its own transaction, so a retry of this
-    // hook must skip ids that already landed on a previous attempt —
-    // otherwise Attachment.create hits the unique-id constraint and the
-    // import becomes unresumable.
-    const existing = await Attachment.findAll({
-      attributes: ["id"],
-      where: { id: scratch.manifest.map((m) => m.id) },
-    });
-    const alreadyCreated = new Set(existing.map((a) => a.id));
-
     const { dirPath, cleanup } = await this.downloadAndExtract(
       scratch.storageKey
     );
@@ -190,10 +181,6 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
       const createdBy = lastImportTask.import.createdBy;
 
       for (const item of scratch.manifest) {
-        if (alreadyCreated.has(item.id)) {
-          continue;
-        }
-
         const filePath = path.join(dirPath, item.pathInZip);
         let buffer: Buffer;
         try {
@@ -206,21 +193,31 @@ export default class MarkdownAPIImportTask extends APIImportTask<Markdown> {
           continue;
         }
 
-        await sequelize.transaction(async (transaction) =>
-          attachmentCreator({
-            source: "import",
-            preset: AttachmentPreset.DocumentAttachment,
-            id: item.id,
-            name: item.name,
-            type: item.mimeType,
-            buffer,
-            user: createdBy,
-            ctx: createContext({ user: createdBy, transaction }),
-            fetchOptions: {
-              timeout: env.FILE_STORAGE_IMPORT_TIMEOUT,
-            },
-          })
-        );
+        try {
+          await sequelize.transaction(async (transaction) =>
+            attachmentCreator({
+              source: "import",
+              preset: AttachmentPreset.DocumentAttachment,
+              id: item.id,
+              name: item.name,
+              type: item.mimeType,
+              buffer,
+              user: createdBy,
+              ctx: createContext({ user: createdBy, transaction }),
+              fetchOptions: {
+                timeout: env.FILE_STORAGE_IMPORT_TIMEOUT,
+              },
+            })
+          );
+        } catch (err) {
+          // Each attachment commits in its own transaction, so a retry of
+          // this hook can re-encounter ids that already landed. Treat the
+          // unique-id collision as a no-op so the import remains resumable.
+          if (err instanceof UniqueConstraintError) {
+            continue;
+          }
+          throw err;
+        }
       }
     } finally {
       await cleanup();
