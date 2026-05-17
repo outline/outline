@@ -2,7 +2,12 @@ import { observer } from "mobx-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import type { Keyframes } from "styled-components";
 import styled, { css, keyframes } from "styled-components";
-import type { ComponentProps, HTMLAttributes, ReactNode } from "react";
+import type {
+  ComponentProps,
+  HTMLAttributes,
+  ReactNode,
+  SyntheticEvent,
+} from "react";
 import {
   createContext,
   forwardRef,
@@ -18,6 +23,7 @@ import { Error as ImageError } from "@shared/editor/components/Image";
 import {
   BackIcon,
   CloseIcon,
+  CommentIcon,
   CrossIcon,
   DownloadIcon,
   LinkIcon,
@@ -55,6 +61,9 @@ import { NodeSelection } from "prosemirror-state";
 import { ImageSource } from "@shared/editor/lib/FileHelper";
 import Desktop from "~/utils/Desktop";
 import { HStack } from "./primitives/HStack";
+import { useDocumentContext } from "./DocumentContext";
+import LightboxComments from "~/scenes/Document/components/Comments/LightboxComments";
+import { PortalContext } from "./Portal";
 
 export enum LightboxStatus {
   READY_TO_OPEN,
@@ -87,6 +96,15 @@ type Animation = {
 };
 
 const ANIMATION_DURATION = 0.3 * Second.ms;
+
+/**
+ * Stops a React synthetic event from propagating to ancestor handlers, including
+ * Radix Dialog's outside-interaction detection and the editor's own click
+ * handlers, so the comments sidebar can manage its own focus.
+ */
+const stopPropagation = (event: SyntheticEvent) => {
+  event.stopPropagation();
+};
 
 type Props = {
   /** List of allowed images */
@@ -225,6 +243,11 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
   const overlayRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
   const [status, setStatus] = useState<Status>({ lightbox: null, image: null });
+  const [commentsOpen, setCommentsOpen] = useState(false);
+  const [commentsRendered, setCommentsRendered] = useState(false);
+  const [commentsVisible, setCommentsVisible] = useState(false);
+  const [commentsPortalEl, setCommentsPortalEl] =
+    useState<HTMLDivElement | null>(null);
   const animation = useRef<Animation | null>(null);
   const finalImage = useRef<{
     center: { x: number; y: number };
@@ -233,6 +256,10 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
   } | null>(null);
   const zoomPanPinchRef = useRef<ReactZoomPanPinchRef>(null);
   const editor = useEditor();
+  const { document: contextDocument } = useDocumentContext();
+  const activeNode = editor?.view?.state?.doc?.nodeAt(activeImage.pos);
+  const canShowComments =
+    !!contextDocument && activeNode?.type.name === "image";
 
   const currentImageIndex = findIndex(
     images,
@@ -311,6 +338,19 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
       onUpdate(null);
     }
   }, [status.lightbox]);
+
+  useEffect(() => {
+    if (commentsOpen) {
+      setCommentsRendered(true);
+      const frame = window.requestAnimationFrame(() =>
+        setCommentsVisible(true)
+      );
+      return () => window.cancelAnimationFrame(frame);
+    }
+    setCommentsVisible(false);
+    const timer = window.setTimeout(() => setCommentsRendered(false), 200);
+    return () => window.clearTimeout(timer);
+  }, [commentsOpen]);
 
   useEffect(() => {
     if (status.image === ImageStatus.MIN_ZOOM) {
@@ -441,6 +481,10 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
         status.image === ImageStatus.MAX_ZOOM
       )
     ) {
+      // Refresh the cached natural image position to account for any layout
+      // changes (e.g., the comments sidebar opening) since the image loaded.
+      rememberImagePosition();
+
       // in lightbox
       const lightboxImgDOMRect = imgRef.current.getBoundingClientRect();
       const {
@@ -632,17 +676,30 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
   }, [activeImage, status.lightbox]);
 
   const handleKeyDown = (ev: React.KeyboardEvent<HTMLDivElement>) => {
-    ev.preventDefault();
+    // Don't intercept keys while typing into an input, textarea, or editor.
+    const target = ev.target as HTMLElement | null;
+    if (
+      target &&
+      target !== ev.currentTarget &&
+      (target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable)
+    ) {
+      return;
+    }
     switch (ev.key) {
       case "ArrowLeft": {
+        ev.preventDefault();
         prev();
         break;
       }
       case "ArrowRight": {
+        ev.preventDefault();
         next();
         break;
       }
       case "Escape": {
+        ev.preventDefault();
         close();
         break;
       }
@@ -698,14 +755,21 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
           onAnimationStart={handleFadeStart}
           onAnimationEnd={handleFadeEnd}
         />
-        <StyledContent onKeyDown={handleKeyDown} ref={contentRef}>
+        <StyledContent
+          onKeyDown={handleKeyDown}
+          ref={contentRef}
+          $commentsOpen={canShowComments && commentsOpen}
+        >
           <VisuallyHidden.Root>
             <Dialog.Title>{t("Lightbox")}</Dialog.Title>
             <Dialog.Description>
               {t("View, navigate, or download images in the document")}
             </Dialog.Description>
           </VisuallyHidden.Root>
-          <Actions animation={animation.current}>
+          <Actions
+            animation={animation.current}
+            $commentsOpen={canShowComments && commentsOpen}
+          >
             <Tooltip content={t("Zoom in")} placement="bottom">
               <ActionButton
                 tabIndex={-1}
@@ -788,7 +852,22 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
                   />
                 </Tooltip>
               )}
-            <Separator />
+            {canShowComments && (
+              <Tooltip content={t("Comments")} placement="bottom">
+                <ActionButton
+                  tabIndex={-1}
+                  onClick={() => setCommentsOpen((open) => !open)}
+                  aria-label={t("Comments")}
+                  aria-pressed={commentsOpen}
+                  size={32}
+                  icon={<CommentIcon />}
+                  borderOnHover
+                  neutral
+                />
+              </Tooltip>
+            )}
+          </Actions>
+          <CloseAction animation={animation.current}>
             <Dialog.Close asChild>
               <Tooltip content={t("Close")} shortcut="Esc" placement="bottom">
                 <ActionButton
@@ -802,7 +881,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
                 />
               </Tooltip>
             </Dialog.Close>
-          </Actions>
+          </CloseAction>
           {currentImageIndex > 0 &&
             !(
               status.image === ImageStatus.ZOOMED ||
@@ -878,12 +957,36 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
               status.image === ImageStatus.ZOOMED ||
               status.image === ImageStatus.MAX_ZOOM
             ) && (
-              <Nav dir="right" $hidden={isIdle} animation={animation.current}>
+              <Nav
+                dir="right"
+                $hidden={isIdle}
+                animation={animation.current}
+                $commentsOpen={canShowComments && commentsOpen}
+              >
                 <NavButton onClick={next} size={32} aria-label={t("Next")}>
                   <NextIcon size={32} />
                 </NavButton>
               </Nav>
             )}
+          {canShowComments && commentsRendered && contextDocument && (
+            <CommentsSidebar
+              ref={setCommentsPortalEl}
+              animation={animation.current}
+              $open={commentsVisible}
+              onPointerDown={stopPropagation}
+              onPointerUp={stopPropagation}
+              onMouseDown={stopPropagation}
+              onMouseUp={stopPropagation}
+              onClick={stopPropagation}
+            >
+              <PortalContext.Provider value={commentsPortalEl}>
+                <LightboxComments
+                  document={contextDocument}
+                  pos={activeImage.pos}
+                />
+              </PortalContext.Provider>
+            </CommentsSidebar>
+          )}
         </StyledContent>
       </Dialog.Portal>
     </Dialog.Root>
@@ -1090,7 +1193,7 @@ const StyledImg = styled.img<{
           : ""}
 `;
 
-const StyledContent = styled(Dialog.Content)`
+const StyledContent = styled(Dialog.Content)<{ $commentsOpen: boolean }>`
   position: fixed;
   inset: 0;
   z-index: ${depths.modal};
@@ -1098,6 +1201,8 @@ const StyledContent = styled(Dialog.Content)`
   justify-content: center;
   align-items: center;
   outline: none;
+  padding-inline-end: ${(props) => (props.$commentsOpen ? "360px" : "0")};
+  transition: padding-inline-end 200ms ease-out;
 `;
 
 const ActionButton = styled(Button)`
@@ -1106,12 +1211,42 @@ const ActionButton = styled(Button)`
 
 const Actions = styled(HStack)<{
   animation: Animation | null;
+  $commentsOpen: boolean;
 }>`
   position: absolute;
   top: 0;
-  right: 0;
+  right: ${(props) => (props.$commentsOpen ? "360px" : "44px")};
   margin: 16px 12px;
   z-index: ${depths.modal};
+  background: ${(props) => transparentize(0.2, props.theme.background)};
+  backdrop-filter: blur(4px);
+  border-radius: 6px;
+  transition: right 200ms ease-out;
+
+  ${(props) =>
+    props.animation === null
+      ? css`
+          opacity: 0;
+        `
+      : props.animation.fadeIn
+        ? css`
+            animation: ${props.animation.fadeIn.apply()}
+              ${props.animation.fadeIn.duration}ms;
+          `
+        : props.animation.fadeOut
+          ? css`
+              animation: ${props.animation.fadeOut.apply()}
+                ${props.animation.fadeOut.duration}ms;
+            `
+          : ""}
+`;
+
+const CloseAction = styled.div<{ animation: Animation | null }>`
+  position: fixed;
+  top: 0;
+  right: 0;
+  margin: 16px 12px;
+  z-index: ${depths.modal + 1};
   background: ${(props) => transparentize(0.2, props.theme.background)};
   backdrop-filter: blur(4px);
   border-radius: 6px;
@@ -1138,10 +1273,16 @@ const Nav = styled.div<{
   $hidden: boolean;
   dir: "left" | "right";
   animation: Animation | null;
+  $commentsOpen?: boolean;
 }>`
   position: absolute;
-  ${(props) => (props.dir === "left" ? "left: 0;" : "right: 0;")}
-  transition: opacity 500ms ease-in-out;
+  ${(props) =>
+    props.dir === "left"
+      ? "left: 0;"
+      : `right: ${props.$commentsOpen ? "360px" : "0"};`}
+  transition:
+    opacity 500ms ease-in-out,
+    right 200ms ease-out;
   z-index: ${depths.modal};
   ${(props) => props.$hidden && "opacity: 0;"}
   ${(props) =>
@@ -1181,6 +1322,27 @@ const StyledError = styled(ImageError)<{
                 ${props.animation.fadeOut.duration}ms;
             `
           : ""}
+`;
+
+const CommentsSidebar = styled.div<{
+  animation: Animation | null;
+  $open: boolean;
+}>`
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: ${depths.modal};
+  display: flex;
+  transform: translateX(${(props) => (props.$open ? "0" : "100%")});
+  transition: transform 200ms ease-out;
+  ${(props) =>
+    props.animation?.fadeOut
+      ? css`
+          animation: ${props.animation.fadeOut.apply()}
+            ${props.animation.fadeOut.duration}ms;
+        `
+      : ""}
 `;
 
 const NavButton = styled(NudeButton)`
