@@ -21,7 +21,7 @@ describe("Authentication middleware", () => {
         {
           // @ts-expect-error mock request
           request: {
-            get: vi.fn(() => `Bearer ${user.getJwtToken()}`),
+            get: vi.fn(() => `Bearer ${user.getSessionToken()}`),
           },
           state,
           cache: {},
@@ -41,7 +41,7 @@ describe("Authentication middleware", () => {
           {
             // @ts-expect-error mock request
             request: {
-              get: vi.fn(() => `Bearer ${user.getJwtToken()}error`),
+              get: vi.fn(() => `Bearer ${user.getSessionToken()}error`),
             },
             state,
             cache: {},
@@ -65,7 +65,7 @@ describe("Authentication middleware", () => {
           {
             // @ts-expect-error mock request
             request: {
-              get: vi.fn(() => `Bearer ${user.getJwtToken()}`),
+              get: vi.fn(() => `Bearer ${user.getSessionToken()}`),
             },
             state,
             cache: {},
@@ -295,7 +295,7 @@ describe("Authentication middleware", () => {
           // @ts-expect-error mock request
           get: vi.fn(() => null),
           query: {
-            token: user.getJwtToken(),
+            token: user.getSessionToken(),
           },
         },
         state,
@@ -316,7 +316,7 @@ describe("Authentication middleware", () => {
           // @ts-expect-error mock request
           get: vi.fn(() => null),
           body: {
-            token: user.getJwtToken(),
+            token: user.getSessionToken(),
           },
         },
         state,
@@ -342,7 +342,7 @@ describe("Authentication middleware", () => {
         {
           // @ts-expect-error mock request
           request: {
-            get: vi.fn(() => `Bearer ${user.getJwtToken()}`),
+            get: vi.fn(() => `Bearer ${user.getSessionToken()}`),
           },
           state,
           cache: {},
@@ -372,7 +372,7 @@ describe("Authentication middleware", () => {
         {
           // @ts-expect-error mock request
           request: {
-            get: vi.fn(() => `Bearer ${user.getJwtToken()}`),
+            get: vi.fn(() => `Bearer ${user.getSessionToken()}`),
           },
           state,
           cache: {},

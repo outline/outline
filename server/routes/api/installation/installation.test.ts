@@ -66,7 +66,7 @@ describe("installation.info", () => {
     const user = await buildUser();
     const res = await server.post("/api/installation.info", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
 

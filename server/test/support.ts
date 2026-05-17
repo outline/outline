@@ -64,7 +64,7 @@ export function withAPIContext<T>(
       auth: {
         user,
         type: AuthenticationType.APP,
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
       transaction,
     };

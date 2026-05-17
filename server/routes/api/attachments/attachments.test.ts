@@ -35,7 +35,7 @@ describe("#attachments.list", () => {
 
     const res = await server.post("/api/attachments.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
     const body = await res.json();
@@ -64,7 +64,7 @@ describe("#attachments.list", () => {
     const res = await server.post("/api/attachments.list", {
       body: {
         userId: user.id,
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
       },
     });
     const body = await res.json();
@@ -93,7 +93,7 @@ describe("#attachments.list", () => {
     const res = await server.post("/api/attachments.list", {
       body: {
         documentId: document.id,
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
     const body = await res.json();
@@ -115,7 +115,7 @@ describe("#attachments.list", () => {
 
     const res = await server.post("/api/attachments.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
     const body = await res.json();
@@ -145,7 +145,7 @@ describe("#attachments.create", () => {
           contentType: "image/png",
           size: 1000,
           preset: AttachmentPreset.Avatar,
-          token: user.getJwtToken(),
+          token: user.getSessionToken(),
         },
       });
       expect(res.status).toEqual(200);
@@ -171,7 +171,7 @@ describe("#attachments.create", () => {
           size: 1000,
           documentId: document.id,
           preset: AttachmentPreset.DocumentAttachment,
-          token: user.getJwtToken(),
+          token: user.getSessionToken(),
         },
       });
       expect(res.status).toEqual(200);
@@ -185,7 +185,7 @@ describe("#attachments.create", () => {
           contentType: "application/zip",
           size: 10000,
           preset: AttachmentPreset.WorkspaceImport,
-          token: user.getJwtToken(),
+          token: user.getSessionToken(),
         },
       });
       expect(res.status).toEqual(200);
@@ -208,7 +208,7 @@ describe("#attachments.create", () => {
           size: 1000,
           documentId: document.id,
           preset: AttachmentPreset.DocumentAttachment,
-          token: user.getJwtToken(),
+          token: user.getSessionToken(),
         },
       });
       expect(res.status).toEqual(403);
@@ -222,7 +222,7 @@ describe("#attachments.create", () => {
           contentType: "application/pdf",
           size: 1000,
           preset: AttachmentPreset.Avatar,
-          token: user.getJwtToken(),
+          token: user.getSessionToken(),
         },
       });
       expect(res.status).toEqual(400);
@@ -236,7 +236,7 @@ describe("#attachments.create", () => {
           contentType: "image/png",
           size: -1,
           preset: AttachmentPreset.Emoji,
-          token: user.getJwtToken(),
+          token: user.getSessionToken(),
         },
       });
       expect(res.status).toEqual(400);
@@ -250,7 +250,7 @@ describe("#attachments.create", () => {
           contentType: "image/png",
           size: 1.5,
           preset: AttachmentPreset.Emoji,
-          token: user.getJwtToken(),
+          token: user.getSessionToken(),
         },
       });
       expect(res.status).toEqual(400);
@@ -283,7 +283,7 @@ describe("#attachments.create", () => {
           size: 1000,
           documentId: document.id,
           preset: AttachmentPreset.DocumentAttachment,
-          token: user.getJwtToken(),
+          token: user.getSessionToken(),
         },
       });
       expect(res.status).toEqual(200);
@@ -300,7 +300,7 @@ describe("#attachments.create", () => {
           size: 1000,
           documentId: document.id,
           preset: AttachmentPreset.DocumentAttachment,
-          token: user.getJwtToken(),
+          token: user.getSessionToken(),
         },
       });
       expect(res.status).toEqual(403);
@@ -314,7 +314,7 @@ describe("#attachments.create", () => {
           contentType: "image/png",
           size: 1000,
           preset: AttachmentPreset.Avatar,
-          token: user.getJwtToken(),
+          token: user.getSessionToken(),
         },
       });
       expect(res.status).toEqual(200);
@@ -336,7 +336,7 @@ describe("#attachments.delete", () => {
     });
     const res = await server.post("/api/attachments.delete", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: attachment.id,
       },
     });
@@ -360,7 +360,7 @@ describe("#attachments.delete", () => {
     await attachment.save();
     const res = await server.post("/api/attachments.delete", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: attachment.id,
       },
     });
@@ -383,7 +383,7 @@ describe("#attachments.delete", () => {
     await attachment.save();
     const res = await server.post("/api/attachments.delete", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: attachment.id,
       },
     });
@@ -404,7 +404,7 @@ describe("#attachments.delete", () => {
     await attachment.save();
     const res = await server.post("/api/attachments.delete", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: attachment.id,
       },
     });
@@ -420,7 +420,7 @@ describe("#attachments.delete", () => {
     await attachment.save();
     const res = await server.post("/api/attachments.delete", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: attachment.id,
       },
     });
@@ -445,7 +445,7 @@ describe("#attachments.delete", () => {
     });
     const res = await server.post("/api/attachments.delete", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: attachment.id,
       },
     });
@@ -462,7 +462,7 @@ describe("#attachments.redirect", () => {
     });
     const res = await server.post("/api/attachments.redirect", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: attachment.id,
       },
       redirect: "manual",
@@ -480,7 +480,7 @@ describe("#attachments.redirect", () => {
       `/api/attachments.redirect?id=${attachment.id}`,
       {
         body: {
-          token: user.getJwtToken(),
+          token: user.getSessionToken(),
         },
         redirect: "manual",
       }
@@ -507,7 +507,7 @@ describe("#attachments.redirect", () => {
     });
     const res = await server.post("/api/attachments.redirect", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: attachment.id,
       },
       redirect: "manual",
@@ -534,7 +534,7 @@ describe("#attachments.redirect", () => {
     });
     const res = await server.post("/api/attachments.redirect", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: attachment.id,
       },
       redirect: "manual",
@@ -589,7 +589,7 @@ describe("#attachments.redirect", () => {
     });
     const res = await server.post("/api/attachments.redirect", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: attachment.id,
       },
     });
@@ -600,7 +600,7 @@ describe("#attachments.redirect", () => {
     const user = await buildUser();
     const res = await server.post("/api/attachments.redirect", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
     const body = await res.json();

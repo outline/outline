@@ -17,7 +17,7 @@ describe("teams.create", () => {
     const name = faker.company.name();
     const res = await server.post("/api/teams.create", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         name,
       },
     });
@@ -33,7 +33,7 @@ describe("teams.create", () => {
     const user = await buildAdmin({ teamId: team.id });
     const res = await server.post("/api/teams.create", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         name: faker.company.name(),
       },
     });
@@ -47,7 +47,7 @@ describe("#team.update", () => {
     const name = faker.company.name();
     const res = await server.post("/api/team.update", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         name,
       },
     });
@@ -61,7 +61,7 @@ describe("#team.update", () => {
     const admin = await buildAdmin({ teamId: team.id });
     const res = await server.post("/api/team.update", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         avatarUrl: "https://random-url.com",
       },
     });
@@ -75,7 +75,7 @@ describe("#team.update", () => {
     const admin = await buildAdmin({ teamId: team.id });
     const res = await server.post("/api/team.update", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         avatarUrl: null,
       },
     });
@@ -88,7 +88,7 @@ describe("#team.update", () => {
     const admin = await buildAdmin();
     const res = await server.post("/api/team.update", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         subdomain: null,
       },
     });
@@ -102,7 +102,7 @@ describe("#team.update", () => {
     const domain2 = faker.internet.domainName();
     const res = await server.post("/api/team.update", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         allowedDomains: [domain1, "", domain2, "", ""],
       },
     });
@@ -129,7 +129,7 @@ describe("#team.update", () => {
 
     const res = await server.post("/api/team.update", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         allowedDomains: [],
       },
     });
@@ -158,7 +158,7 @@ describe("#team.update", () => {
 
     const res = await server.post("/api/team.update", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         allowedDomains: [domain1, domain2],
       },
     });
@@ -179,14 +179,14 @@ describe("#team.update", () => {
     const admin = await buildAdmin();
     const res = await server.post("/api/team.update", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         defaultUserRole: "New name",
       },
     });
     expect(res.status).toEqual(400);
     const successRes = await server.post("/api/team.update", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         defaultUserRole: "viewer",
       },
     });
@@ -200,7 +200,7 @@ describe("#team.update", () => {
     const admin = await buildAdmin({ teamId: team.id });
     const res = await server.post("/api/team.update", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         name: team.name,
       },
     });
@@ -213,7 +213,7 @@ describe("#team.update", () => {
     const user = await buildUser();
     const res = await server.post("/api/team.update", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         name: faker.company.name(),
       },
     });
@@ -229,7 +229,7 @@ describe("#team.update", () => {
     const admin = await buildAdmin();
     const res = await server.post("/api/team.update", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         name: null,
       },
     });
@@ -246,7 +246,7 @@ describe("#team.update", () => {
 
     const res = await server.post("/api/team.update", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         defaultCollectionId: collection.id,
       },
     });
@@ -270,7 +270,7 @@ describe("#team.update", () => {
 
     const res = await server.post("/api/team.update", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         defaultCollectionId: collection.id,
       },
     });
@@ -281,7 +281,7 @@ describe("#team.update", () => {
 
     const updateRes = await server.post("/api/collections.update", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: collection.id,
         permission: null,
       },
@@ -291,7 +291,7 @@ describe("#team.update", () => {
 
     const res3 = await server.post("/api/auth.info", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
       },
     });
     const body3 = await res3.json();

@@ -55,7 +55,7 @@ describe("#urls.unfurl", () => {
   it("should fail with status 400 bad request when url is invalid", async () => {
     const res = await server.post("/api/urls.unfurl", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         url: "/doc/foo-bar",
       },
     });
@@ -68,7 +68,7 @@ describe("#urls.unfurl", () => {
   it("should fail with status 400 bad request when mention url is invalid", async () => {
     const res = await server.post("/api/urls.unfurl", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         url: "mention://1/foo/1",
       },
     });
@@ -81,7 +81,7 @@ describe("#urls.unfurl", () => {
   it("should fail with status 400 bad request when mention url is supplied without documentId", async () => {
     const res = await server.post("/api/urls.unfurl", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         url: "mention://2767ba0e-ac5c-4533-b9cf-4f5fc456600e/user/34095ac1-c808-45c0-8c6e-6c554497de64",
       },
     });
@@ -94,7 +94,7 @@ describe("#urls.unfurl", () => {
   it("should fail with status 404 not found when mention user does not exist", async () => {
     const res = await server.post("/api/urls.unfurl", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         url: "mention://2767ba0e-ac5c-4533-b9cf-4f5fc456600e/user/34095ac1-c808-45c0-8c6e-6c554497de64",
         documentId: "2767ba0e-ac5c-4533-b9cf-4f5fc456600e",
       },
@@ -112,7 +112,7 @@ describe("#urls.unfurl", () => {
 
     const res = await server.post("/api/urls.unfurl", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         url: `mention://2767ba0e-ac5c-4533-b9cf-4f5fc456600e/user/${mentionedUser.id}`,
         documentId: "2767ba0e-ac5c-4533-b9cf-4f5fc456600e",
       },
@@ -131,7 +131,7 @@ describe("#urls.unfurl", () => {
 
     const res = await server.post("/api/urls.unfurl", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         url: `mention://2767ba0e-ac5c-4533-b9cf-4f5fc456600e/user/${mentionedUser.id}`,
         documentId: document.id,
       },
@@ -149,7 +149,7 @@ describe("#urls.unfurl", () => {
 
     const res = await server.post("/api/urls.unfurl", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         url: `mention://2767ba0e-ac5c-4533-b9cf-4f5fc456600e/user/${mentionedUser.id}`,
         documentId: document.id,
       },
@@ -163,7 +163,7 @@ describe("#urls.unfurl", () => {
   it("should return 204 when internal document url points to non-existent document", async () => {
     const res = await server.post("/api/urls.unfurl", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         url: `${env.URL}/doc/non-existent-doc-abc123`,
       },
     });
@@ -177,7 +177,7 @@ describe("#urls.unfurl", () => {
 
     const res = await server.post("/api/urls.unfurl", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         url: `${env.URL}/${document.url}`,
         documentId: document.id,
       },
@@ -202,7 +202,7 @@ describe("#urls.unfurl", () => {
 
     const res = await server.post("/api/urls.unfurl", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         url: `${env.URL}/s/${share.id}/doc/${document.urlId}`,
       },
     });
@@ -227,7 +227,7 @@ describe("#urls.unfurl", () => {
 
     const res = await server.post("/api/urls.unfurl", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         url: `${env.URL}/s/${share.urlId}/doc/${document.urlId}`,
       },
     });
@@ -274,7 +274,7 @@ describe("#urls.unfurl", () => {
 
     const res = await server.post("/api/urls.unfurl", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         url: `${env.URL}/s/${share.id}/doc/${document.urlId}`,
       },
     });
@@ -296,7 +296,7 @@ describe("#urls.unfurl", () => {
 
     const res = await server.post("/api/urls.unfurl", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         url: `${env.URL}/s/${share.id}`,
       },
     });
@@ -339,7 +339,7 @@ describe("#urls.unfurl", () => {
 
     const res = await server.post("/api/urls.unfurl", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         url: "https://www.flickr.com",
       },
     });
@@ -370,7 +370,7 @@ describe("#urls.unfurl", () => {
 
     const res = await server.post("/api/urls.unfurl", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         url: "https://random.url",
       },
     });
@@ -388,7 +388,7 @@ describe("#urls.checkEmbed", () => {
   it("should fail with status 400 bad request when url is missing", async () => {
     const res = await server.post("/api/urls.checkEmbed", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
 
@@ -398,7 +398,7 @@ describe("#urls.checkEmbed", () => {
   it("should fail with status 400 bad request when url is not a valid URL", async () => {
     const res = await server.post("/api/urls.checkEmbed", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         url: "not-a-url",
       },
     });
@@ -410,7 +410,7 @@ describe("#urls.checkEmbed", () => {
     // Use a YouTube URL which matches a known embed pattern
     const res = await server.post("/api/urls.checkEmbed", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
       },
     });
@@ -427,7 +427,7 @@ describe("#urls.validateCustomDomain", () => {
     const user = await buildUser();
     const res = await server.post("/api/urls.validateCustomDomain", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         hostname: "valid.custom.domain",
       },
     });
@@ -438,7 +438,7 @@ describe("#urls.validateCustomDomain", () => {
     const user = await buildUser();
     const res = await server.post("/api/urls.validateCustomDomain", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         hostname: "google.com",
       },
     });

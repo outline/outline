@@ -23,7 +23,7 @@ describe("#authenticationProviders.info", () => {
     const res = await server.post("/api/authenticationProviders.info", {
       body: {
         id: authenticationProviders[0].id,
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
     const body = await res.json();
@@ -42,7 +42,7 @@ describe("#authenticationProviders.info", () => {
     const res = await server.post("/api/authenticationProviders.info", {
       body: {
         id: authenticationProviders[0].id,
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
     expect(res.status).toEqual(403);
@@ -73,7 +73,7 @@ describe("#authenticationProviders.update", () => {
       body: {
         id: authenticationProviders[0].id,
         isEnabled: false,
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
     expect(res.status).toEqual(400);
@@ -92,7 +92,7 @@ describe("#authenticationProviders.update", () => {
       body: {
         id: googleProvider.id,
         isEnabled: false,
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
     const body = await res.json();
@@ -110,7 +110,7 @@ describe("#authenticationProviders.update", () => {
       body: {
         id: authenticationProviders[0].id,
         isEnabled: false,
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
     expect(res.status).toEqual(403);
@@ -137,7 +137,7 @@ describe("#authenticationProviders.list", () => {
     });
     const res = await server.post("/api/authenticationProviders.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
     const body = await res.json();
@@ -173,7 +173,7 @@ describe("#authenticationProviders.delete", () => {
     const res = await server.post("/api/authenticationProviders.delete", {
       body: {
         id: googleProvider.id,
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
     expect(res.status).toEqual(200);
@@ -194,7 +194,7 @@ describe("#authenticationProviders.delete", () => {
     const res = await server.post("/api/authenticationProviders.delete", {
       body: {
         id: googleProvider.id,
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
     expect(res.status).toEqual(200);
@@ -216,7 +216,7 @@ describe("#authenticationProviders.delete", () => {
     const res = await server.post("/api/authenticationProviders.delete", {
       body: {
         id: googleProvider.id,
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
     expect(res.status).toEqual(403);

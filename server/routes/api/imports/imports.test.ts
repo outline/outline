@@ -42,7 +42,7 @@ describe("#imports.create", () => {
         integrationId: integration.id,
         service: IntegrationService.Notion,
         input,
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
       },
     });
     const body = await res.json();
@@ -75,7 +75,7 @@ describe("#imports.create", () => {
         integrationId: integration.id,
         service: ImportableIntegrationService.Notion,
         input,
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
       },
     });
 
@@ -93,7 +93,7 @@ describe("#imports.create", () => {
 
     const res = await server.post("/api/imports.create", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
 
@@ -118,7 +118,7 @@ describe("#imports.list", () => {
     const res = await server.post("/api/imports.list", {
       body: {
         service: IntegrationService.Notion,
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
       },
     });
     const body = await res.json();
@@ -145,7 +145,7 @@ describe("#imports.list", () => {
 
     const res = await server.post("/api/imports.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
 
@@ -164,7 +164,7 @@ describe("#imports.info", () => {
     const res = await server.post("/api/imports.info", {
       body: {
         id: importModel.id,
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
       },
     });
     const body = await res.json();
@@ -184,7 +184,7 @@ describe("#imports.info", () => {
 
     const res = await server.post("/api/imports.info", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
 
@@ -204,7 +204,7 @@ describe("#imports.delete", () => {
     const res = await server.post("/api/imports.delete", {
       body: {
         id: importModel.id,
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
       },
     });
     const body = await res.json();
@@ -224,7 +224,7 @@ describe("#imports.delete", () => {
     const res = await server.post("/api/imports.delete", {
       body: {
         id: importModel.id,
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
       },
     });
 
@@ -242,7 +242,7 @@ describe("#imports.delete", () => {
 
     const res = await server.post("/api/imports.delete", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
 
@@ -261,7 +261,7 @@ describe("#imports.cancel", () => {
     const res = await server.post("/api/imports.cancel", {
       body: {
         id: importModel.id,
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
       },
     });
     const body = await res.json();
@@ -282,7 +282,7 @@ describe("#imports.cancel", () => {
     const res = await server.post("/api/imports.cancel", {
       body: {
         id: importModel.id,
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
       },
     });
 
@@ -300,7 +300,7 @@ describe("#imports.cancel", () => {
 
     const res = await server.post("/api/imports.cancel", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
 

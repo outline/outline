@@ -32,7 +32,7 @@ describe("#userMemberships.list", () => {
     });
     await server.post("/api/documents.add_user", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: document.id,
         userId: member.id,
       },
@@ -41,7 +41,7 @@ describe("#userMemberships.list", () => {
     expect(users.length).toEqual(1);
     const res = await server.post("/api/userMemberships.list", {
       body: {
-        token: member.getJwtToken(),
+        token: member.getSessionToken(),
       },
     });
     const body = await res.json();
@@ -81,7 +81,7 @@ describe("#userMemberships.update", () => {
     });
     const resp = await server.post("/api/documents.add_user", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: document.id,
         userId: member.id,
       },
@@ -95,7 +95,7 @@ describe("#userMemberships.update", () => {
     expect(users.length).toEqual(1);
     const res = await server.post("/api/userMemberships.update", {
       body: {
-        token: member.getJwtToken(),
+        token: member.getSessionToken(),
         id: respBody.data.memberships[0].id,
         index: "V",
       },

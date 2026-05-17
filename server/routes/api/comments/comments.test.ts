@@ -38,7 +38,7 @@ describe("#comments.info", () => {
     });
     const res = await server.post("/api/comments.info", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: comment.id,
       },
     });
@@ -67,7 +67,7 @@ describe("#comments.info", () => {
     });
     const res = await server.post("/api/comments.info", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: comment.id,
       },
     });
@@ -113,7 +113,7 @@ describe("#comments.info", () => {
 
     const res = await server.post("/api/comments.info", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: comment.id,
         includeAnchorText: true,
       },
@@ -156,7 +156,7 @@ describe("#comments.info", () => {
 
     const res = await server.post("/api/comments.info", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: comment.id,
         includeAnchorText: true,
       },
@@ -196,7 +196,7 @@ describe("#comments.list", () => {
     });
     const res = await server.post("/api/comments.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         documentId: document.id,
       },
     });
@@ -246,7 +246,7 @@ describe("#comments.list", () => {
 
     const res = await server.post("/api/comments.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         documentId: document.id,
         includeAnchorText: true,
         sort: "createdAt",
@@ -281,7 +281,7 @@ describe("#comments.list", () => {
     });
     const res = await server.post("/api/comments.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         collectionId: collection.id,
       },
     });
@@ -313,7 +313,7 @@ describe("#comments.list", () => {
     });
     const res = await server.post("/api/comments.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         parentCommentId: comment.id,
       },
     });
@@ -344,7 +344,7 @@ describe("#comments.list", () => {
     });
     const res = await server.post("/api/comments.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         documentId: document.id,
         statusFilter: [CommentStatusFilter.Resolved],
       },
@@ -392,7 +392,7 @@ describe("#comments.list", () => {
     });
     const res = await server.post("/api/comments.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
     const body = await res.json();
@@ -427,7 +427,7 @@ describe("#comments.list", () => {
 
     const res = await server.post("/api/comments.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         documentId: document.id,
       },
     });
@@ -466,7 +466,7 @@ describe("#comments.create", () => {
 
     const res = await server.post("/api/comments.create", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         documentId: document.id,
         data: comment.data,
       },
@@ -493,7 +493,7 @@ describe("#comments.create", () => {
 
     const res = await server.post("/api/comments.create", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         documentId: document.id,
         text,
       },
@@ -517,7 +517,7 @@ describe("#comments.create", () => {
 
     const res = await server.post("/api/comments.create", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         documentId: document.id,
         data: null,
       },
@@ -525,7 +525,7 @@ describe("#comments.create", () => {
 
     const anotherRes = await server.post("/api/comments.create", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         documentId: document.id,
         data: {
           type: "doc",
@@ -548,7 +548,7 @@ describe("#comments.create", () => {
 
     const res = await server.post("/api/comments.create", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         documentId: document.id,
         data: {
           type: "doc",
@@ -575,7 +575,7 @@ describe("#comments.create", () => {
 
     const res = await server.post("/api/comments.create", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         documentId: document.id,
         data: {
           type: "doc",
@@ -610,7 +610,7 @@ describe("#comments.create", () => {
 
     const res = await server.post("/api/comments.create", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         documentId: document.id,
         data: {
           type: "doc",
@@ -645,7 +645,7 @@ describe("#comments.create", () => {
 
     const res = await server.post("/api/comments.create", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         documentId: document.id,
         data: {
           type: "nonsense",
@@ -666,7 +666,7 @@ describe("#comments.create", () => {
 
     const res = await server.post("/api/comments.create", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         documentId: document.id,
         data: {
           type: "doc",
@@ -694,7 +694,7 @@ describe("#comments.create", () => {
 
     const res = await server.post("/api/comments.create", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         documentId: document.id,
         data: {
           type: "doc",
@@ -732,7 +732,7 @@ describe("#comments.create", () => {
 
     const res = await server.post("/api/comments.create", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         documentId: document.id,
         data: {
           type: "doc",
@@ -798,7 +798,7 @@ describe("#comments.update", () => {
 
     const res = await server.post("/api/comments.update", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: comment.id,
         data: comment.data,
       },
@@ -827,7 +827,7 @@ describe("#comments.update", () => {
 
     const res = await server.post("/api/comments.update", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: comment.id,
         data: {
           type: "doc",
@@ -869,7 +869,7 @@ describe("#comments.resolve", () => {
 
     const res = await server.post("/api/comments.resolve", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: comment.id,
       },
     });
@@ -909,7 +909,7 @@ describe("#comments.resolve", () => {
 
     const res = await server.post("/api/comments.resolve", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: comment.id,
       },
     });
@@ -940,7 +940,7 @@ describe("#comments.unresolve", () => {
 
     const res = await server.post("/api/comments.unresolve", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: comment.id,
       },
     });
@@ -982,7 +982,7 @@ describe("#comments.add_reaction", () => {
 
     const res = await server.post("/api/comments.add_reaction", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: comment.id,
         emoji: "😄",
       },
@@ -1018,7 +1018,7 @@ describe("#comments.add_reaction", () => {
 
     const res = await server.post("/api/comments.add_reaction", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: comment.id,
         emoji: "😄",
       },
@@ -1057,7 +1057,7 @@ describe("#comments.add_reaction", () => {
 
     const res = await server.post("/api/comments.add_reaction", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: comment.id,
         emoji: emoji.id,
       },
@@ -1096,7 +1096,7 @@ describe("#comments.add_reaction", () => {
 
     const res = await server.post("/api/comments.add_reaction", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: comment.id,
         emoji: emoji.id,
       },
@@ -1136,7 +1136,7 @@ describe("#comments.remove_reaction", () => {
 
     const res = await server.post("/api/comments.remove_reaction", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: comment.id,
         emoji: "😄",
       },
@@ -1178,7 +1178,7 @@ describe("#comments.remove_reaction", () => {
 
     const res = await server.post("/api/comments.remove_reaction", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: comment.id,
         emoji: "😄",
       },

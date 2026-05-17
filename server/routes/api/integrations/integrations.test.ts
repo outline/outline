@@ -23,7 +23,7 @@ describe("#integrations.update", () => {
     const res = await server.post("/api/integrations.update", {
       body: {
         events: ["documents.update"],
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: integration.id,
       },
     });
@@ -40,7 +40,7 @@ describe("#integrations.update", () => {
     });
     const res = await server.post("/api/integrations.update", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: integration.id,
       },
     });
@@ -60,7 +60,7 @@ describe("#integrations.update", () => {
 
     const res = await server.post("/api/integrations.update", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: integration.id,
         settings: { url: "https://foo.bar" },
       },
@@ -84,7 +84,7 @@ describe("#integrations.update", () => {
 
     const res = await server.post("/api/integrations.update", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: integration.id,
         settings: { url: "https://grist.example.com" },
       },
@@ -102,7 +102,7 @@ describe("#integrations.create", () => {
 
     const res = await server.post("/api/integrations.create", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         type: IntegrationType.Embed,
         service: IntegrationService.Diagrams,
         settings: { url: "not a url" },
@@ -118,7 +118,7 @@ describe("#integrations.create", () => {
 
     const res = await server.post("/api/integrations.create", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         type: IntegrationType.Analytics,
         service: IntegrationService.GoogleAnalytics,
         settings: { measurementId: "123" },
@@ -137,7 +137,7 @@ describe("#integrations.create", () => {
 
     const res = await server.post("/api/integrations.create", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         type: IntegrationType.Embed,
         service: IntegrationService.Grist,
         settings: { url: "https://grist.example.com" },
@@ -173,7 +173,7 @@ describe("#integrations.delete", () => {
 
     const res = await server.post("/api/integrations.delete", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: integration.id,
       },
     });
@@ -183,7 +183,7 @@ describe("#integrations.delete", () => {
   it("should fail with status 400 bad request when id is not sent", async () => {
     const res = await server.post("/api/integrations.delete", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
       },
     });
 
@@ -204,7 +204,7 @@ describe("#integrations.delete", () => {
     });
     const res = await server.post("/api/integrations.delete", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: linkedAccount.id,
       },
     });
@@ -214,7 +214,7 @@ describe("#integrations.delete", () => {
   it("should succeed with status 200 ok when integration is deleted", async () => {
     const res = await server.post("/api/integrations.delete", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: integration.id,
       },
     });

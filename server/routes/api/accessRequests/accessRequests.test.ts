@@ -17,7 +17,7 @@ describe("#accessRequests.create", () => {
     const user = await buildUser();
     const res = await server.post("/api/accessRequests.create", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
     const body = await res.json();
@@ -39,7 +39,7 @@ describe("#accessRequests.create", () => {
     const user = await buildUser();
     const res = await server.post("/api/accessRequests.create", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         documentId: "a8f22c38-f4eb-4909-8c30-b927af36c5f3",
       },
     });
@@ -65,7 +65,7 @@ describe("#accessRequests.create", () => {
 
     const res = await server.post("/api/accessRequests.create", {
       body: {
-        token: requester.getJwtToken(),
+        token: requester.getSessionToken(),
         documentId: document.id,
       },
     });
@@ -87,7 +87,7 @@ describe("#accessRequests.create", () => {
 
     const res = await server.post("/api/accessRequests.create", {
       body: {
-        token: requester.getJwtToken(),
+        token: requester.getSessionToken(),
         documentId: document.id,
       },
     });
@@ -112,7 +112,7 @@ describe("#accessRequests.create", () => {
 
     const res = await server.post("/api/accessRequests.create", {
       body: {
-        token: requester.getJwtToken(),
+        token: requester.getSessionToken(),
         documentId: document.urlId,
       },
     });
@@ -137,7 +137,7 @@ describe("#accessRequests.create", () => {
     // Create first access request
     const res1 = await server.post("/api/accessRequests.create", {
       body: {
-        token: requester.getJwtToken(),
+        token: requester.getSessionToken(),
         documentId: document.id,
       },
     });
@@ -145,7 +145,7 @@ describe("#accessRequests.create", () => {
     // Try to create another
     const res2 = await server.post("/api/accessRequests.create", {
       body: {
-        token: requester.getJwtToken(),
+        token: requester.getSessionToken(),
         documentId: document.id,
       },
     });
@@ -191,7 +191,7 @@ describe("#accessRequests.create", () => {
     // Create new request
     const res2 = await server.post("/api/accessRequests.create", {
       body: {
-        token: requester.getJwtToken(),
+        token: requester.getSessionToken(),
         documentId: document.id,
       },
     });
@@ -213,7 +213,7 @@ describe("#accessRequests.info", () => {
     const user = await buildUser();
     const res = await server.post("/api/accessRequests.info", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
     expect(res.status).toEqual(400);
@@ -236,7 +236,7 @@ describe("#accessRequests.info", () => {
 
     const res = await server.post("/api/accessRequests.info", {
       body: {
-        token: requester.getJwtToken(),
+        token: requester.getSessionToken(),
         id: accessRequest.id,
       },
     });
@@ -264,7 +264,7 @@ describe("#accessRequests.info", () => {
 
     const res = await server.post("/api/accessRequests.info", {
       body: {
-        token: requester.getJwtToken(),
+        token: requester.getSessionToken(),
         documentId: document.urlId,
       },
     });
@@ -279,7 +279,7 @@ describe("#accessRequests.info", () => {
     const user = await buildUser();
     const res = await server.post("/api/accessRequests.info", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: "00000000-0000-0000-0000-000000000000",
       },
     });
@@ -311,7 +311,7 @@ describe("#accessRequests.approve", () => {
 
     const res = await server.post("/api/accessRequests.approve", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: accessRequest.id,
         permission: DocumentPermission.ReadWrite,
       },
@@ -357,7 +357,7 @@ describe("#accessRequests.approve", () => {
 
     const res = await server.post("/api/accessRequests.approve", {
       body: {
-        token: nonManager.getJwtToken(),
+        token: nonManager.getSessionToken(),
         id: accessRequest.id,
         permission: DocumentPermission.ReadWrite,
       },
@@ -391,7 +391,7 @@ describe("#accessRequests.approve", () => {
 
     const res = await server.post("/api/accessRequests.approve", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: accessRequest.id,
         permission: DocumentPermission.ReadWrite,
       },
@@ -431,7 +431,7 @@ describe("#accessRequests.approve", () => {
 
     const res = await server.post("/api/accessRequests.approve", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: accessRequest.id,
         permission: DocumentPermission.ReadWrite,
       },
@@ -465,7 +465,7 @@ describe("#accessRequests.dismiss", () => {
 
     const res = await server.post("/api/accessRequests.dismiss", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: accessRequest.id,
       },
     });
@@ -511,7 +511,7 @@ describe("#accessRequests.dismiss", () => {
 
     const res = await server.post("/api/accessRequests.dismiss", {
       body: {
-        token: nonManager.getJwtToken(),
+        token: nonManager.getSessionToken(),
         id: accessRequest.id,
       },
     });
@@ -541,7 +541,7 @@ describe("#accessRequests.dismiss", () => {
 
     const res = await server.post("/api/accessRequests.dismiss", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: accessRequest.id,
       },
     });

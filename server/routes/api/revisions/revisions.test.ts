@@ -23,7 +23,7 @@ describe("#revisions.info", () => {
     );
     const res = await server.post("/api/revisions.info", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: revision.id,
       },
     });
@@ -46,7 +46,7 @@ describe("#revisions.info", () => {
     const user = await buildUser();
     const res = await server.post("/api/revisions.info", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: revision.id,
       },
     });
@@ -68,7 +68,7 @@ describe("#revisions.update", () => {
 
     const res = await server.post("/api/revisions.update", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: revision.id,
         name: "new name",
       },
@@ -91,7 +91,7 @@ describe("#revisions.update", () => {
 
     const res = await server.post("/api/revisions.update", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: revision.id,
         name: null,
       },
@@ -114,7 +114,7 @@ describe("#revisions.update", () => {
 
     const res = await server.post("/api/revisions.update", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: revision.id,
         name: "",
       },
@@ -135,7 +135,7 @@ describe("#revisions.update", () => {
 
     const res = await server.post("/api/revisions.update", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: revision.id,
         name: "new name",
       },
@@ -158,7 +158,7 @@ describe("#revisions.update", () => {
     const user = await buildUser();
     const res = await server.post("/api/revisions.update", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: revision.id,
         name: "new name",
       },
@@ -177,7 +177,7 @@ describe("#revisions.list", () => {
     await Revision.createFromDocument(createContext({ user }), document);
     const res = await server.post("/api/revisions.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         documentId: document.id,
       },
     });
@@ -210,7 +210,7 @@ describe("#revisions.list", () => {
     });
     const res = await server.post("/api/revisions.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         documentId: document.id,
       },
     });
@@ -222,7 +222,7 @@ describe("#revisions.list", () => {
     const user = await buildUser();
     const res = await server.post("/api/revisions.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         documentId: document.id,
       },
     });
@@ -243,7 +243,7 @@ describe("#revisions.export", () => {
     );
     const res = await server.post("/api/revisions.export", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: revision.id,
       },
     });
@@ -264,7 +264,7 @@ describe("#revisions.export", () => {
     );
     const res = await server.post("/api/revisions.export", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: revision.id,
       },
       headers: {
@@ -288,7 +288,7 @@ describe("#revisions.export", () => {
     );
     const res = await server.post("/api/revisions.export", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: revision.id,
       },
       headers: {
@@ -332,7 +332,7 @@ describe("#revisions.export", () => {
     const user = await buildUser();
     const res = await server.post("/api/revisions.export", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: revision.id,
       },
     });

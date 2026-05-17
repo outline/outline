@@ -9,7 +9,7 @@ describe("#stars.create", () => {
 
     const res = await server.post("/api/stars.create", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
 
@@ -29,7 +29,7 @@ describe("#stars.create", () => {
 
     const res = await server.post("/api/stars.create", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         documentId: document.id,
       },
     });
@@ -57,7 +57,7 @@ describe("#stars.list", () => {
 
     const res = await server.post("/api/stars.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
 
@@ -78,7 +78,7 @@ describe("#stars.update", () => {
     const user = await buildUser();
     const res = await server.post("/api/stars.update", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
     const body = await res.json();
@@ -95,7 +95,7 @@ describe("#stars.update", () => {
     });
     const res = await server.post("/api/stars.update", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: star.id,
         index: "i",
       },
@@ -113,7 +113,7 @@ describe("#stars.delete", () => {
     const user = await buildUser();
     const res = await server.post("/api/stars.delete", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
     const body = await res.json();
@@ -132,7 +132,7 @@ describe("#stars.delete", () => {
     const res = await server.post("/api/stars.delete", {
       body: {
         id: star.id,
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
 

@@ -25,7 +25,7 @@ describe("#views.list", () => {
     });
     const res = await server.post("/api/views.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         documentId: document.id,
       },
     });
@@ -49,7 +49,7 @@ describe("#views.list", () => {
 
     const res = await server.post("/api/views.list", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         documentId: document.id,
       },
     });
@@ -84,7 +84,7 @@ describe("#views.list", () => {
     });
     const res = await server.post("/api/views.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         documentId: document.id,
       },
     });
@@ -111,7 +111,7 @@ describe("#views.list", () => {
     const user = await buildUser();
     const res = await server.post("/api/views.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         documentId: document.id,
       },
     });
@@ -128,7 +128,7 @@ describe("#views.create", () => {
     });
     const res = await server.post("/api/views.create", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         documentId: document.id,
       },
     });
@@ -159,7 +159,7 @@ describe("#views.create", () => {
     });
     const res = await server.post("/api/views.create", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         documentId: document.id,
       },
     });
@@ -185,7 +185,7 @@ describe("#views.create", () => {
     const user = await buildUser();
     const res = await server.post("/api/views.create", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         documentId: document.id,
       },
     });

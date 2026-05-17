@@ -16,7 +16,7 @@ describe("#apiKeys.create", () => {
 
     const res = await server.post("/api/apiKeys.create", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         name: "My API Key",
         expiresAt: now.toISOString(),
       },
@@ -34,7 +34,7 @@ describe("#apiKeys.create", () => {
 
     const res = await server.post("/api/apiKeys.create", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         name: "My API Key",
       },
     });
@@ -51,7 +51,7 @@ describe("#apiKeys.create", () => {
 
     const res = await server.post("/api/apiKeys.create", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         name: "My API Key",
         scope: [
           "/api/documents.list",
@@ -84,7 +84,7 @@ describe("#apiKeys.create", () => {
 
     const res = await server.post("/api/apiKeys.create", {
       body: {
-        token: viewer.getJwtToken(),
+        token: viewer.getSessionToken(),
         name: "My API Key",
       },
     });
@@ -99,7 +99,7 @@ describe("#apiKeys.create", () => {
 
     const res = await server.post("/api/apiKeys.create", {
       body: {
-        token: guest.getJwtToken(),
+        token: guest.getSessionToken(),
         name: "My API Key",
       },
     });
@@ -122,7 +122,7 @@ describe("#apiKeys.list", () => {
     const res = await server.post("/api/apiKeys.list", {
       body: {
         userId: user.id,
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
       },
     });
     const body = await res.json();
@@ -140,7 +140,7 @@ describe("#apiKeys.list", () => {
     const res = await server.post("/api/apiKeys.list", {
       body: {
         userId: admin.id,
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
       },
     });
     const body = await res.json();
@@ -158,7 +158,7 @@ describe("#apiKeys.list", () => {
 
     const res = await server.post("/api/apiKeys.list", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
       },
     });
 
@@ -176,7 +176,7 @@ describe("#apiKeys.list", () => {
 
     const res = await server.post("/api/apiKeys.list", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         query: "key",
       },
     });
@@ -198,7 +198,7 @@ describe("#apiKeys.list", () => {
 
     const res = await server.post("/api/apiKeys.list", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         query: "PRODUCTION",
       },
     });
@@ -215,7 +215,7 @@ describe("#apiKeys.list", () => {
 
     const res = await server.post("/api/apiKeys.list", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         query: "nonexistent",
       },
     });
@@ -231,7 +231,7 @@ describe("#apiKeys.list", () => {
 
     const res = await server.post("/api/apiKeys.list", {
       body: {
-        token: viewer.getJwtToken(),
+        token: viewer.getSessionToken(),
         userId: viewer.id,
       },
     });
@@ -257,7 +257,7 @@ describe("#apiKeys.delete", () => {
 
     const res = await server.post("/api/apiKeys.delete", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: apiKey.id,
       },
     });
@@ -275,7 +275,7 @@ describe("#apiKeys.delete", () => {
 
     const res = await server.post("/api/apiKeys.delete", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: apiKey.id,
       },
     });
@@ -293,7 +293,7 @@ describe("#apiKeys.delete", () => {
 
     const res = await server.post("/api/apiKeys.delete", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: apiKey.id,
       },
     });
@@ -307,7 +307,7 @@ describe("#apiKeys.delete", () => {
 
     const res = await server.post("/api/apiKeys.delete", {
       body: {
-        token: viewer.getJwtToken(),
+        token: viewer.getSessionToken(),
         id: apiKey.id,
       },
     });

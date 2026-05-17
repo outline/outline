@@ -29,7 +29,7 @@ describe("#collections.list", () => {
     });
     const res = await server.post("/api/collections.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
     const body = await res.json();
@@ -49,7 +49,7 @@ describe("#collections.list", () => {
     });
     const res = await server.post("/api/collections.list", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         statusFilter: [CollectionStatusFilter.Archived],
       },
     });
@@ -70,7 +70,7 @@ describe("#collections.list", () => {
     });
     const res = await server.post("/api/collections.list", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
       },
     });
     const body = await res.json();
@@ -91,7 +91,7 @@ describe("#collections.list", () => {
     });
     const res = await server.post("/api/collections.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
     const body = await res.json();
@@ -114,7 +114,7 @@ describe("#collections.list", () => {
     });
     const res = await server.post("/api/collections.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
     const body = await res.json();
@@ -151,7 +151,7 @@ describe("#collections.list", () => {
     });
     const res = await server.post("/api/collections.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
     const body = await res.json();
@@ -171,7 +171,7 @@ describe("#collections.list", () => {
     });
     const res = await server.post("/api/collections.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
     const body = await res.json();
@@ -189,7 +189,7 @@ describe("#collections.list", () => {
 
     const beforeArchiveRes = await server.post("/api/collections.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
     const beforeArchiveBody = await beforeArchiveRes.json();
@@ -199,7 +199,7 @@ describe("#collections.list", () => {
 
     const archiveRes = await server.post("/api/collections.archive", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: collection.id,
       },
     });
@@ -208,7 +208,7 @@ describe("#collections.list", () => {
 
     const afterArchiveRes = await server.post("/api/collections.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
 
@@ -223,7 +223,7 @@ describe("#collections.import", () => {
     const user = await buildUser();
     const res = await server.post("/api/collections.import", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
     expect(res.status).toEqual(400);
@@ -250,7 +250,7 @@ describe("#collections.move", () => {
     const collection = await buildCollection();
     const res = await server.post("/api/collections.move", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: collection.id,
         index: "P",
       },
@@ -264,7 +264,7 @@ describe("#collections.move", () => {
     const collection = await buildCollection({ teamId: team.id });
     const res = await server.post("/api/collections.move", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: collection.id,
         index: "P",
         icon: "flame",
@@ -281,7 +281,7 @@ describe("#collections.move", () => {
     const collection = await buildCollection({ teamId: team.id });
     const res = await server.post("/api/collections.move", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: collection.id,
         index: "P",
         icon: "😁",
@@ -298,7 +298,7 @@ describe("#collections.move", () => {
     const collection = await buildCollection({ teamId: team.id });
     const res = await server.post("/api/collections.move", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: collection.id,
         icon: "nonsRence",
       },
@@ -312,7 +312,7 @@ describe("#collections.move", () => {
     const collection = await buildCollection({ teamId: team.id });
     const res = await server.post("/api/collections.move", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: collection.id,
         index: "يونيكود",
       },
@@ -332,7 +332,7 @@ describe("#collections.move", () => {
       "/api/collections.create",
       {
         body: {
-          token: user.getJwtToken(),
+          token: user.getSessionToken(),
           name: "Test",
           sharing: false,
           index: "Q",
@@ -342,7 +342,7 @@ describe("#collections.move", () => {
     await createdCollectionResponse.json();
     const movedCollectionRes = await server.post("/api/collections.move", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: collection.id,
         index: "Q",
       },
@@ -362,7 +362,7 @@ describe("#collections.move", () => {
       "/api/collections.create",
       {
         body: {
-          token: user.getJwtToken(),
+          token: user.getSessionToken(),
           name: "A",
           sharing: false,
           index: "a",
@@ -373,7 +373,7 @@ describe("#collections.move", () => {
       "/api/collections.create",
       {
         body: {
-          token: user.getJwtToken(),
+          token: user.getSessionToken(),
           name: "B",
           sharing: false,
           index: "b",
@@ -384,7 +384,7 @@ describe("#collections.move", () => {
       "/api/collections.create",
       {
         body: {
-          token: user.getJwtToken(),
+          token: user.getSessionToken(),
           name: "C",
           sharing: false,
           index: "c",
@@ -398,7 +398,7 @@ describe("#collections.move", () => {
       "/api/collections.move",
       {
         body: {
-          token: admin.getJwtToken(),
+          token: admin.getSessionToken(),
           id: createdCollectionC.data.id,
           index: "a",
         },
@@ -422,7 +422,7 @@ describe("#collections.export", () => {
     });
     const res = await server.post("/api/collections.export", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: collection.id,
       },
     });
@@ -443,7 +443,7 @@ describe("#collections.export", () => {
     });
     const res = await server.post("/api/collections.export", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: collection.id,
       },
     });
@@ -472,7 +472,7 @@ describe("#collections.export", () => {
     });
     const res = await server.post("/api/collections.export", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: collection.id,
       },
     });
@@ -495,7 +495,7 @@ describe("#collections.export", () => {
     });
     const res = await server.post("/api/collections.export", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: collection.id,
       },
     });
@@ -509,7 +509,7 @@ describe("#collections.export", () => {
     });
     const res = await server.post("/api/collections.export", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: collection.id,
       },
     });
@@ -532,7 +532,7 @@ describe("#collections.export_all", () => {
     const user = await buildUser();
     const res = await server.post("/api/collections.export_all", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
     expect(res.status).toEqual(403);
@@ -542,7 +542,7 @@ describe("#collections.export_all", () => {
     const admin = await buildAdmin();
     const res = await server.post("/api/collections.export_all", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
       },
     });
     expect(res.status).toEqual(200);
@@ -568,7 +568,7 @@ describe("#collections.add_user", () => {
     });
     const res = await server.post("/api/collections.add_user", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: collection.id,
         userId: anotherUser.id,
       },
@@ -590,7 +590,7 @@ describe("#collections.add_user", () => {
     });
     const res = await server.post("/api/collections.add_user", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: collection.id,
         userId: anotherUser.id,
       },
@@ -608,7 +608,7 @@ describe("#collections.add_user", () => {
     });
     const res = await server.post("/api/collections.add_user", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: collection.id,
         userId: user.id,
       },
@@ -627,7 +627,7 @@ describe("#collections.add_user", () => {
     const anotherUser = await buildUser();
     const res = await server.post("/api/collections.add_user", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: collection.id,
         userId: anotherUser.id,
       },
@@ -650,7 +650,7 @@ describe("#collections.add_user", () => {
     });
     const res = await server.post("/api/collections.add_user", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: collection.id,
         userId: anotherUser.id,
       },
@@ -672,7 +672,7 @@ describe("#collections.add_group", () => {
     });
     const res = await server.post("/api/collections.add_group", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: collection.id,
         groupId: group.id,
       },
@@ -694,7 +694,7 @@ describe("#collections.add_group", () => {
     });
     const res = await server.post("/api/collections.add_group", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: collection.id,
         groupId: group.id,
         permission: null,
@@ -717,7 +717,7 @@ describe("#collections.add_group", () => {
     const group = await buildGroup();
     const res = await server.post("/api/collections.add_group", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: collection.id,
         groupId: group.id,
       },
@@ -740,7 +740,7 @@ describe("#collections.add_group", () => {
     });
     const res = await server.post("/api/collections.add_group", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: collection.id,
         groupId: group.id,
       },
@@ -762,7 +762,7 @@ describe("#collections.remove_group", () => {
     });
     await server.post("/api/collections.add_group", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: collection.id,
         groupId: group.id,
       },
@@ -771,7 +771,7 @@ describe("#collections.remove_group", () => {
     expect(groups.length).toEqual(1);
     const res = await server.post("/api/collections.remove_group", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: collection.id,
         groupId: group.id,
       },
@@ -790,7 +790,7 @@ describe("#collections.remove_group", () => {
     const group = await buildGroup();
     const res = await server.post("/api/collections.remove_group", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: collection.id,
         groupId: group.id,
       },
@@ -813,7 +813,7 @@ describe("#collections.remove_group", () => {
     });
     const res = await server.post("/api/collections.remove_group", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: collection.id,
         groupId: group.id,
       },
@@ -835,14 +835,14 @@ describe("#collections.remove_user", () => {
     });
     await server.post("/api/collections.add_user", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: collection.id,
         userId: anotherUser.id,
       },
     });
     const res = await server.post("/api/collections.remove_user", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: collection.id,
         userId: anotherUser.id,
       },
@@ -864,7 +864,7 @@ describe("#collections.remove_user", () => {
     });
     const res = await server.post("/api/collections.remove_user", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: collection.id,
         userId: nonMember.id,
       },
@@ -883,7 +883,7 @@ describe("#collections.remove_user", () => {
     const anotherUser = await buildUser();
     const res = await server.post("/api/collections.remove_user", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: collection.id,
         userId: anotherUser.id,
       },
@@ -906,7 +906,7 @@ describe("#collections.remove_user", () => {
     });
     const res = await server.post("/api/collections.remove_user", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: collection.id,
         userId: anotherUser.id,
       },
@@ -939,7 +939,7 @@ describe("#collections.group_memberships", () => {
     });
     const res = await server.post("/api/collections.group_memberships", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: collection.id,
       },
     });
@@ -989,7 +989,7 @@ describe("#collections.group_memberships", () => {
     });
     const res = await server.post("/api/collections.group_memberships", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: collection.id,
         query: "will",
       },
@@ -1032,7 +1032,7 @@ describe("#collections.group_memberships", () => {
     });
     const res = await server.post("/api/collections.group_memberships", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: collection.id,
         permission: CollectionPermission.Read,
       },
@@ -1058,7 +1058,7 @@ describe("#collections.group_memberships", () => {
     });
     const res = await server.post("/api/collections.group_memberships", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: collection.id,
       },
     });
@@ -1079,7 +1079,7 @@ describe("#collections.memberships", () => {
 
     const res = await server.post("/api/collections.memberships", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: collection.id,
       },
     });
@@ -1113,7 +1113,7 @@ describe("#collections.memberships", () => {
     });
     const res = await server.post("/api/collections.memberships", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: collection.id,
         query: user.name.slice(0, 3),
       },
@@ -1146,7 +1146,7 @@ describe("#collections.memberships", () => {
     });
     const res = await server.post("/api/collections.memberships", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: collection.id,
         permission: CollectionPermission.Read,
       },
@@ -1169,7 +1169,7 @@ describe("#collections.memberships", () => {
     const user = await buildUser();
     const res = await server.post("/api/collections.memberships", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: collection.id,
       },
     });
@@ -1189,7 +1189,7 @@ describe("#collections.info", () => {
     });
     const res = await server.post("/api/collections.info", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: collection.id,
       },
     });
@@ -1207,7 +1207,7 @@ describe("#collections.info", () => {
     });
     const res = await server.post("/api/collections.info", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: collection.id,
       },
     });
@@ -1225,7 +1225,7 @@ describe("#collections.info", () => {
     });
     const res = await server.post("/api/collections.info", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: `any-slug-${collection.urlId}`,
       },
     });
@@ -1252,7 +1252,7 @@ describe("#collections.info", () => {
     });
     const res = await server.post("/api/collections.info", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: collection.id,
       },
     });
@@ -1276,7 +1276,7 @@ describe("#collections.info", () => {
     });
     const res = await server.post("/api/collections.info", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: collection.id,
       },
     });
@@ -1297,7 +1297,7 @@ describe("#collections.info", () => {
     const user = await buildUser();
     const res = await server.post("/api/collections.info", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: collection.id,
       },
     });
@@ -1317,7 +1317,7 @@ describe("#collections.create", () => {
     const user = await buildUser();
     const res = await server.post("/api/collections.create", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         name: "Test",
       },
     });
@@ -1335,7 +1335,7 @@ describe("#collections.create", () => {
     const user = await buildUser();
     const res = await server.post("/api/collections.create", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         name: "Test",
         index: "يونيكود",
       },
@@ -1347,7 +1347,7 @@ describe("#collections.create", () => {
     const user = await buildUser();
     const res = await server.post("/api/collections.create", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         name: "Test",
         sharing: false,
       },
@@ -1362,7 +1362,7 @@ describe("#collections.create", () => {
     const user = await buildUser();
     const res = await server.post("/api/collections.create", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         name: "Test",
         permission: null,
       },
@@ -1383,13 +1383,13 @@ describe("#collections.create", () => {
 
     const resA = await server.post("/api/collections.create", {
       body: {
-        token: adminA.getJwtToken(),
+        token: adminA.getSessionToken(),
         name: "Test A",
       },
     });
     const resB = await server.post("/api/collections.create", {
       body: {
-        token: adminB.getJwtToken(),
+        token: adminB.getSessionToken(),
         name: "Test B",
       },
     });
@@ -1406,7 +1406,7 @@ describe("#collections.create", () => {
       "/api/collections.create",
       {
         body: {
-          token: user.getJwtToken(),
+          token: user.getSessionToken(),
           name: "A",
           sharing: false,
           index: "a",
@@ -1418,7 +1418,7 @@ describe("#collections.create", () => {
       "/api/collections.create",
       {
         body: {
-          token: user.getJwtToken(),
+          token: user.getSessionToken(),
           name: "C",
           sharing: false,
           index: "a",
@@ -1437,7 +1437,7 @@ describe("#collections.create", () => {
       "/api/collections.create",
       {
         body: {
-          token: user.getJwtToken(),
+          token: user.getSessionToken(),
           name: "A",
           sharing: false,
           index: "a",
@@ -1448,7 +1448,7 @@ describe("#collections.create", () => {
       "/api/collections.create",
       {
         body: {
-          token: user.getJwtToken(),
+          token: user.getSessionToken(),
           name: "B",
           sharing: false,
           index: "b",
@@ -1461,7 +1461,7 @@ describe("#collections.create", () => {
       "/api/collections.create",
       {
         body: {
-          token: user.getJwtToken(),
+          token: user.getSessionToken(),
           name: "C",
           sharing: false,
           index: "a",
@@ -1495,7 +1495,7 @@ describe("#collections.update", () => {
     const user = await buildUser();
     const res = await server.post("/api/collections.update", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: collection.id,
         name: "Test",
       },
@@ -1509,7 +1509,7 @@ describe("#collections.update", () => {
     const collection = await buildCollection({ teamId: team.id });
     const res = await server.post("/api/collections.update", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: collection.id,
         name: "Test",
       },
@@ -1526,7 +1526,7 @@ describe("#collections.update", () => {
     const collection = await buildCollection({ teamId: team.id });
     const res = await server.post("/api/collections.update", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: collection.id,
         description: "Test",
       },
@@ -1547,7 +1547,7 @@ describe("#collections.update", () => {
     const collection = await buildCollection({ teamId: team.id });
     const res = await server.post("/api/collections.update", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: collection.id,
         data: {
           content: [
@@ -1572,7 +1572,7 @@ describe("#collections.update", () => {
     };
     const res = await server.post("/api/collections.update", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: collection.id,
         sort,
       },
@@ -1589,7 +1589,7 @@ describe("#collections.update", () => {
     const collection = await buildCollection({ teamId: team.id });
     const res = await server.post("/api/collections.update", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: collection.id,
         permission: null,
       },
@@ -1606,7 +1606,7 @@ describe("#collections.update", () => {
     const collection = await buildCollection({ teamId: team.id });
     const res = await server.post("/api/collections.update", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: collection.id,
         permission: null,
         name: "  Test  ",
@@ -1635,7 +1635,7 @@ describe("#collections.update", () => {
     });
     const res = await server.post("/api/collections.update", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: collection.id,
         permission: CollectionPermission.ReadWrite,
         name: "Test",
@@ -1664,7 +1664,7 @@ describe("#collections.update", () => {
     });
     const res = await server.post("/api/collections.update", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: collection.id,
         name: "Test",
       },
@@ -1697,7 +1697,7 @@ describe("#collections.update", () => {
     });
     const res = await server.post("/api/collections.update", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: collection.id,
         name: "Test",
       },
@@ -1731,7 +1731,7 @@ describe("#collections.update", () => {
     );
     const res = await server.post("/api/collections.update", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: collection.id,
         name: "Test",
       },
@@ -1749,7 +1749,7 @@ describe("#collections.update", () => {
     };
     const res = await server.post("/api/collections.update", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: collection.id,
         sort,
       },
@@ -1767,7 +1767,7 @@ describe("#collections.update", () => {
     };
     const res = await server.post("/api/collections.update", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: collection.id,
         sort,
       },
@@ -1789,7 +1789,7 @@ describe("#collections.delete", () => {
     const user = await buildUser();
     const res = await server.post("/api/collections.delete", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: collection.id,
       },
     });
@@ -1802,7 +1802,7 @@ describe("#collections.delete", () => {
     const collection = await buildCollection({ teamId: team.id });
     const res = await server.post("/api/collections.delete", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: collection.id,
       },
     });
@@ -1817,7 +1817,7 @@ describe("#collections.delete", () => {
 
     const res = await server.post("/api/collections.delete", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: collection.id,
       },
     });
@@ -1842,7 +1842,7 @@ describe("#collections.delete", () => {
     });
     const res = await server.post("/api/collections.delete", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: collection.id,
       },
     });
@@ -1883,7 +1883,7 @@ describe("#collections.delete", () => {
     });
     const res = await server.post("/api/collections.delete", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: collection.id,
       },
     });
@@ -1909,7 +1909,7 @@ describe("#collections.archive", () => {
     expect(document.archivedAt).toBe(null);
     const res = await server.post("/api/collections.archive", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: collection.id,
       },
     });
@@ -1943,7 +1943,7 @@ describe("#collections.restore", () => {
     expect(collection.documentStructure).not.toBe(null);
     const archiveRes = await server.post("/api/collections.archive", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: collection.id,
       },
     });
@@ -1955,7 +1955,7 @@ describe("#collections.restore", () => {
     expect(archiveBody.data.archivedAt).not.toBe(null);
     const res = await server.post("/api/collections.restore", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: collection.id,
       },
     });
@@ -1984,7 +1984,7 @@ describe("#collections.restore", () => {
 
     const res = await server.post("/api/collections.restore", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: archivedCollection.id,
       },
     });

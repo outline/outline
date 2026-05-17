@@ -39,7 +39,7 @@ describe("#events.list", () => {
     });
     const res = await server.post("/api/events.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         collectionId: collection.id,
       },
     });
@@ -78,7 +78,7 @@ describe("#events.list", () => {
     });
     const res = await server.post("/api/events.list", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         auditLog: true,
       },
     });
@@ -118,7 +118,7 @@ describe("#events.list", () => {
     });
     const res = await server.post("/api/events.list", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         auditLog: true,
         actorId: admin.id,
       },
@@ -158,7 +158,7 @@ describe("#events.list", () => {
     });
     const res = await server.post("/api/events.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         actorId: admin.id,
       },
     });
@@ -195,7 +195,7 @@ describe("#events.list", () => {
     });
     const res = await server.post("/api/events.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         actorId: user.id,
         collectionId: collection.id,
       },
@@ -227,7 +227,7 @@ describe("#events.list", () => {
     });
     const res = await server.post("/api/events.list", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         documentId: document.id,
       },
     });
@@ -258,7 +258,7 @@ describe("#events.list", () => {
     });
     const res = await server.post("/api/events.list", {
       body: {
-        token: actor.getJwtToken(),
+        token: actor.getSessionToken(),
         documentId: document.id,
       },
     });
@@ -294,7 +294,7 @@ describe("#events.list", () => {
     });
     const res = await server.post("/api/events.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         name: "documents.publish",
         collectionId: collection.id,
       },
@@ -334,7 +334,7 @@ describe("#events.list", () => {
     });
     const res = await server.post("/api/events.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         events: ["documents.publish"],
         collectionId: collection.id,
       },
@@ -368,7 +368,7 @@ describe("#events.list", () => {
     await user.destroy({ hooks: false });
     const res = await server.post("/api/events.list", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
       },
     });
     const body = await res.json();
@@ -381,7 +381,7 @@ describe("#events.list", () => {
     const user = await buildUser();
     const res = await server.post("/api/events.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         auditLog: true,
       },
     });
@@ -423,7 +423,7 @@ describe("#events.list", () => {
     // user2 tries to list events without specifying documentId/collectionId
     const res = await server.post("/api/events.list", {
       body: {
-        token: user2.getJwtToken(),
+        token: user2.getSessionToken(),
       },
     });
 
@@ -433,7 +433,7 @@ describe("#events.list", () => {
     // Also verify user2 cannot see the draft when filtering by documentId
     const res2 = await server.post("/api/events.list", {
       body: {
-        token: user2.getJwtToken(),
+        token: user2.getSessionToken(),
         documentId: privateDraft.id,
       },
     });
@@ -464,7 +464,7 @@ describe("#events.list", () => {
     // admin lists events
     const res = await server.post("/api/events.list", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
       },
     });
 
@@ -499,7 +499,7 @@ describe("#events.list", () => {
     // user lists events for their collection
     const res = await server.post("/api/events.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         collectionId: collection.id,
       },
     });

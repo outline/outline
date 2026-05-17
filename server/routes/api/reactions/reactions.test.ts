@@ -35,7 +35,7 @@ describe("#reactions.list", () => {
 
     const res = await server.post("/api/reactions.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         commentId: comment.id,
       },
     });

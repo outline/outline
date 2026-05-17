@@ -11,7 +11,7 @@ describe("#slack.post", () => {
     const res = await server.get(
       `/auth/slack.post?state=${JSON.stringify(
         {}
-      )}&code=123&token=${user.getJwtToken()}`
+      )}&code=123&token=${user.getSessionToken()}`
     );
     expect(res.status).toEqual(400);
   });
@@ -19,7 +19,7 @@ describe("#slack.post", () => {
   it("should fail with status 400 bad request if query param state is not JSON", async () => {
     const user = await buildUser();
     const res = await server.get(
-      `/auth/slack.post?state=bad&code=123&token=${user.getJwtToken()}`
+      `/auth/slack.post?state=bad&code=123&token=${user.getSessionToken()}`
     );
     expect(res.status).toEqual(400);
   });
@@ -43,7 +43,7 @@ describe("#slack.post", () => {
     const res = await server.get(
       `/auth/slack.post?state=${encodeURIComponent(
         state
-      )}&code=123&token=${user.getJwtToken()}`,
+      )}&code=123&token=${user.getSessionToken()}`,
       { redirect: "manual" }
     );
     const body = await res.json();
@@ -60,7 +60,7 @@ describe("#slack.post", () => {
     const res = await server.get(
       `/auth/slack.post?state=${encodeURIComponent(
         state
-      )}&code=123&token=${user.getJwtToken()}`,
+      )}&code=123&token=${user.getSessionToken()}`,
       { redirect: "manual" }
     );
     expect(res.status).toEqual(400);

@@ -34,7 +34,7 @@ describe("POST /mcp/", () => {
       const { body } = mcpRequest("tools/list");
       const res = await server.post("/mcp/", {
         headers: {
-          Authorization: `Bearer ${user.getJwtToken()}`,
+          Authorization: `Bearer ${user.getSessionToken()}`,
           Accept: "application/json, text/event-stream",
         },
         body,

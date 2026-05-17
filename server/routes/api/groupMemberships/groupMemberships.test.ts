@@ -43,7 +43,7 @@ describe("groupMemberships.list", () => {
 
     await server.post("/api/documents.add_group", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: document.id,
         groupId: group.id,
       },
@@ -51,7 +51,7 @@ describe("groupMemberships.list", () => {
 
     const res = await server.post("/api/groupMemberships.list", {
       body: {
-        token: member.getJwtToken(),
+        token: member.getSessionToken(),
       },
     });
     const body = await res.json();
@@ -109,7 +109,7 @@ describe("groupMemberships.list", () => {
     for (const document of documents) {
       await server.post("/api/documents.add_group", {
         body: {
-          token: user.getJwtToken(),
+          token: user.getSessionToken(),
           id: document.id,
           groupId: group.id,
         },
@@ -118,7 +118,7 @@ describe("groupMemberships.list", () => {
 
     const res = await server.post("/api/groupMemberships.list", {
       body: {
-        token: member.getJwtToken(),
+        token: member.getSessionToken(),
       },
     });
     const body = await res.json();

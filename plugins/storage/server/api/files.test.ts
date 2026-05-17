@@ -27,7 +27,7 @@ describe("#files.create", () => {
     const user = await buildUser();
     const res = await server.post("/api/files.create", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         key: "public/foo/bar/baz.png",
       },
     });
@@ -52,7 +52,7 @@ describe("#files.create", () => {
     const form = new FormData();
     form.append("key", attachment.key);
     form.append("file", content, fileName);
-    form.append("token", user.getJwtToken());
+    form.append("token", user.getSessionToken());
 
     const res = await server.post(`/api/files.create`, {
       headers: form.getHeaders(),
@@ -89,7 +89,7 @@ describe("#files.create", () => {
     const form = new FormData();
     form.append("key", attachment.key);
     form.append("file", content, fileName);
-    form.append("token", user.getJwtToken());
+    form.append("token", user.getSessionToken());
 
     const res = await server.post(`/api/files.create`, {
       headers: form.getHeaders(),
@@ -118,7 +118,7 @@ describe("#files.create", () => {
     const form = new FormData();
     form.append("key", attachment.key);
     form.append("file", content, fileName);
-    form.append("token", user.getJwtToken());
+    form.append("token", user.getSessionToken());
 
     const res = await server.post(`/api/files.create`, {
       headers: form.getHeaders(),
@@ -150,7 +150,7 @@ describe("#files.create", () => {
     const form = new FormData();
     form.append("key", attachment.key);
     form.append("file", content, fileName);
-    form.append("token", user.getJwtToken());
+    form.append("token", user.getSessionToken());
 
     const res = await server.post(`/api/files.create`, {
       headers: form.getHeaders(),
@@ -181,7 +181,7 @@ describe("#files.create", () => {
     const form = new FormData();
     form.append("key", attachment.key);
     form.append("file", content, fileName);
-    form.append("token", user.getJwtToken());
+    form.append("token", user.getSessionToken());
 
     const res = await server.post(`/api/files.create`, {
       headers: form.getHeaders(),
@@ -262,7 +262,7 @@ describe("#files.get", () => {
     const form = new FormData();
     form.append("key", attachment.key);
     form.append("file", content, fileName);
-    form.append("token", user.getJwtToken());
+    form.append("token", user.getSessionToken());
 
     await server.post(`/api/files.create`, {
       headers: form.getHeaders(),
@@ -298,7 +298,7 @@ describe("#files.get", () => {
     const form = new FormData();
     form.append("key", attachment.key);
     form.append("file", content, fileName);
-    form.append("token", user.getJwtToken());
+    form.append("token", user.getSessionToken());
 
     await server.post(`/api/files.create`, {
       headers: form.getHeaders(),
@@ -432,7 +432,7 @@ describe("#files.get", () => {
     // Non-owner user should be able to access public-read attachment
     const res = await server.get(`/api/files.get?key=${key}`, {
       headers: {
-        Authorization: `Bearer ${otherUser.getJwtToken()}`,
+        Authorization: `Bearer ${otherUser.getSessionToken()}`,
       },
     });
     expect(res.status).toEqual(200);
@@ -467,7 +467,7 @@ describe("#files.get", () => {
     // Non-owner user should NOT be able to access private attachment
     const res = await server.get(`/api/files.get?key=${key}`, {
       headers: {
-        Authorization: `Bearer ${otherUser.getJwtToken()}`,
+        Authorization: `Bearer ${otherUser.getSessionToken()}`,
       },
     });
     expect(res.status).toEqual(403);

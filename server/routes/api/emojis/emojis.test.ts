@@ -35,7 +35,7 @@ describe("#emojis.update", () => {
 
     const res = await server.post("/api/emojis.update", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: emoji.id,
         attachmentId: newAttachment.id,
       },
@@ -71,7 +71,7 @@ describe("#emojis.update", () => {
 
     const res = await server.post("/api/emojis.update", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: emoji.id,
         attachmentId: newAttachment.id,
       },
@@ -99,7 +99,7 @@ describe("#emojis.update", () => {
 
     const res = await server.post("/api/emojis.update", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: emoji.id,
         attachmentId: newAttachment.id,
       },
@@ -123,7 +123,7 @@ describe("#emojis.update", () => {
 
     const res = await server.post("/api/emojis.update", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: emoji.id,
         attachmentId: newAttachment.id,
       },
@@ -141,7 +141,7 @@ describe("#emojis.update", () => {
 
     const res = await server.post("/api/emojis.update", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: "00000000-0000-0000-0000-000000000000",
         attachmentId: newAttachment.id,
       },
@@ -159,7 +159,7 @@ describe("#emojis.update", () => {
 
     const res = await server.post("/api/emojis.update", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: emoji.id,
         attachmentId: "00000000-0000-0000-0000-000000000000",
       },

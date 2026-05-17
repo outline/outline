@@ -28,7 +28,7 @@ describe("#fileOperations.info", () => {
     const res = await server.post("/api/fileOperations.info", {
       body: {
         id: exportData.id,
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
       },
     });
     const body = await res.json();
@@ -48,7 +48,7 @@ describe("#fileOperations.info", () => {
     const res = await server.post("/api/fileOperations.info", {
       body: {
         id: exportData.id,
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
     const body = await res.json();
@@ -68,7 +68,7 @@ describe("#fileOperations.info", () => {
     const res = await server.post("/api/fileOperations.info", {
       body: {
         id: exportData.id,
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
     expect(res.status).toEqual(403);
@@ -86,7 +86,7 @@ describe("#fileOperations.info", () => {
     const res = await server.post("/api/fileOperations.info", {
       body: {
         id: exportData.id,
-        token: admin2.getJwtToken(),
+        token: admin2.getSessionToken(),
       },
     });
     const body = await res.json();
@@ -106,7 +106,7 @@ describe("#fileOperations.info", () => {
     const res = await server.post("/api/fileOperations.info", {
       body: {
         id: importOp.id,
-        token: admin2.getJwtToken(),
+        token: admin2.getSessionToken(),
       },
     });
     const body = await res.json();
@@ -128,7 +128,7 @@ describe("#fileOperations.info", () => {
     const res = await server.post("/api/fileOperations.info", {
       body: {
         id: exportData.id,
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
       },
     });
     expect(res.status).toEqual(403);
@@ -148,7 +148,7 @@ describe("#fileOperations.list", () => {
     });
     const res = await server.post("/api/fileOperations.list", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         type: FileOperationType.Export,
       },
     });
@@ -178,7 +178,7 @@ describe("#fileOperations.list", () => {
     });
     const res = await server.post("/api/fileOperations.list", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         type: FileOperationType.Export,
       },
     });
@@ -212,7 +212,7 @@ describe("#fileOperations.list", () => {
     expect(isCollectionPresent).toBe(null);
     const res = await server.post("/api/fileOperations.list", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         type: FileOperationType.Export,
       },
     });
@@ -249,7 +249,7 @@ describe("#fileOperations.list", () => {
     expect(isAdminPresent).toBe(null);
     const res = await server.post("/api/fileOperations.list", {
       body: {
-        token: admin2.getJwtToken(),
+        token: admin2.getSessionToken(),
         type: FileOperationType.Export,
       },
     });
@@ -267,7 +267,7 @@ describe("#fileOperations.list", () => {
     const user = await buildUser();
     const res = await server.post("/api/fileOperations.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         type: FileOperationType.Export,
       },
     });
@@ -288,7 +288,7 @@ describe("#fileOperations.redirect", () => {
     });
     const res = await server.post("/api/fileOperations.redirect", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: exportData.id,
       },
     });
@@ -309,7 +309,7 @@ describe("#fileOperations.redirect", () => {
     });
     const res = await server.post("/api/fileOperations.redirect", {
       body: {
-        token: admin2.getJwtToken(),
+        token: admin2.getSessionToken(),
         id: exportData.id,
       },
       redirect: "manual",
@@ -328,7 +328,7 @@ describe("#fileOperations.redirect", () => {
     });
     const res = await server.post("/api/fileOperations.redirect", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: exportData.id,
       },
       redirect: "manual",
@@ -348,7 +348,7 @@ describe("#fileOperations.redirect", () => {
     });
     const res = await server.post("/api/fileOperations.redirect", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: exportData.id,
       },
     });
@@ -367,7 +367,7 @@ describe("#fileOperations.redirect", () => {
     });
     const res = await server.post("/api/fileOperations.redirect", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: exportData.id,
       },
     });
@@ -389,7 +389,7 @@ describe("#fileOperations.delete", () => {
     });
     const deleteResponse = await server.post("/api/fileOperations.delete", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: exportData.id,
       },
     });
@@ -422,7 +422,7 @@ describe("#fileOperations.delete", () => {
     });
     const res = await server.post("/api/fileOperations.delete", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: exportData.id,
       },
     });

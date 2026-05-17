@@ -43,7 +43,7 @@ describe("oauthClients.list", () => {
 
     const res = await server.post("/api/oauthClients.list", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
       },
     });
 
@@ -80,7 +80,7 @@ describe("oauthClients.info", () => {
 
     const res = await server.post("/api/oauthClients.info", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: client.id,
       },
     });
@@ -107,7 +107,7 @@ describe("oauthClients.info", () => {
 
     const res = await server.post("/api/oauthClients.info", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: client.id,
       },
     });
@@ -134,7 +134,7 @@ describe("oauthClients.info", () => {
 
     const res = await server.post("/api/oauthClients.info", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: client.id,
       },
     });
@@ -162,7 +162,7 @@ describe("oauthClients.info", () => {
 
     const res = await server.post("/api/oauthClients.info", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         clientId: client.clientId,
       },
     });
@@ -194,7 +194,7 @@ describe("oauthClients.info", () => {
     // Test with valid redirectUri
     const validRes = await server.post("/api/oauthClients.info", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         clientId: client.clientId,
         redirectUri: "https://example.com/callback",
       },
@@ -207,7 +207,7 @@ describe("oauthClients.info", () => {
     // Test with invalid redirectUri
     const invalidRes = await server.post("/api/oauthClients.info", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         clientId: client.clientId,
         redirectUri: "https://malicious.com/callback",
       },
@@ -230,7 +230,7 @@ describe("oauthClients.create", () => {
 
     const res = await server.post("/api/oauthClients.create", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         name: "Test Client",
         redirectUris: ["https://example.com/callback"],
       },
@@ -266,7 +266,7 @@ describe("oauthclients.update", () => {
 
     const res = await server.post("/api/oauthClients.update", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: client.id,
         published: false,
         name: "Renamed",
@@ -303,7 +303,7 @@ describe("oauthClients.rotate_secret", () => {
 
     const res = await server.post("/api/oauthClients.rotate_secret", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: client.id,
       },
     });
@@ -337,7 +337,7 @@ describe("oauthClients.delete", () => {
 
     const res = await server.post("/api/oauthClients.delete", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: client.id,
       },
     });

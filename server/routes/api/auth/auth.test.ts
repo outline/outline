@@ -29,7 +29,7 @@ describe("#auth.info", () => {
     });
     const res = await server.post("/api/auth.info", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
     const body = await res.json();
@@ -54,7 +54,7 @@ describe("#auth.info", () => {
     await team.destroy();
     const res = await server.post("/api/auth.info", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
     expect(res.status).toEqual(401);
@@ -71,14 +71,14 @@ describe("#auth.delete", () => {
     const user = await buildUser();
     const res = await server.post("/api/auth.delete", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
     expect(res.status).toEqual(200);
 
     const res2 = await server.post("/api/auth.info", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
     expect(res2.status).toEqual(401);

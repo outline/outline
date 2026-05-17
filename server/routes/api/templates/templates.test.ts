@@ -22,7 +22,7 @@ describe("#templates.list", () => {
 
     const res = await server.post("/api/templates.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
 
@@ -47,7 +47,7 @@ describe("#templates.list", () => {
 
     const res = await server.post("/api/templates.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         collectionId: collection.id,
       },
     });
@@ -74,7 +74,7 @@ describe("#templates.info", () => {
 
     const res = await server.post("/api/templates.info", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: template.id,
       },
     });
@@ -94,7 +94,7 @@ describe("#templates.info", () => {
     const user = await buildUser();
     const res = await server.post("/api/templates.info", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: "invalid",
       },
     });
@@ -114,7 +114,7 @@ describe("#templates.update", () => {
 
     const res = await server.post("/api/templates.update", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: template.id,
         title: "New title",
       },
@@ -150,7 +150,7 @@ describe("#templates.update", () => {
 
     const res = await server.post("/api/templates.update", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: template.id,
         data,
       },
@@ -175,7 +175,7 @@ describe("#templates.update", () => {
 
     const res = await server.post("/api/templates.update", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: template.id,
         collectionId: targetCollection.id,
       },
@@ -201,7 +201,7 @@ describe("#templates.update", () => {
 
     const res = await server.post("/api/templates.update", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: template.id,
         collectionId: inaccessibleCollection.id,
       },
@@ -224,7 +224,7 @@ describe("#templates.update", () => {
 
     const res = await server.post("/api/templates.update", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: template.id,
         collectionId: null,
       },
@@ -242,7 +242,7 @@ describe("#templates.update", () => {
 
     const res = await server.post("/api/templates.update", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: template.id,
         collectionId: null,
       },
@@ -257,7 +257,7 @@ describe("#templates.update", () => {
     const user = await buildUser();
     const res = await server.post("/api/templates.update", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         title: "New title",
       },
     });
@@ -283,7 +283,7 @@ describe("#templates.duplicate", () => {
 
     const res = await server.post("/api/templates.duplicate", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: template.id,
       },
     });
@@ -304,7 +304,7 @@ describe("#templates.duplicate", () => {
 
     const res = await server.post("/api/templates.duplicate", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: template.id,
         title: "New title",
       },
@@ -331,7 +331,7 @@ describe("#templates.duplicate", () => {
 
     const res = await server.post("/api/templates.duplicate", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: template.id,
         collectionId: targetCollection.id,
       },
@@ -357,7 +357,7 @@ describe("#templates.duplicate", () => {
 
     const res = await server.post("/api/templates.duplicate", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: template.id,
         collectionId: inaccessibleCollection.id,
       },
@@ -378,7 +378,7 @@ describe("#templates.duplicate", () => {
 
     const res = await server.post("/api/templates.duplicate", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: template.id,
         collectionId: null,
       },
@@ -396,7 +396,7 @@ describe("#templates.duplicate", () => {
 
     const res = await server.post("/api/templates.duplicate", {
       body: {
-        token: admin.getJwtToken(),
+        token: admin.getSessionToken(),
         id: template.id,
         collectionId: null,
       },
@@ -416,7 +416,7 @@ describe("#templates.duplicate", () => {
 
     const res = await server.post("/api/templates.duplicate", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: template.id,
       },
     });
@@ -435,7 +435,7 @@ describe("#templates.duplicate", () => {
     const user = await buildUser();
     const res = await server.post("/api/templates.duplicate", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: "invalid",
       },
     });
@@ -454,7 +454,7 @@ describe("#templates.delete", () => {
 
     const res = await server.post("/api/templates.delete", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: template.id,
       },
     });
@@ -468,7 +468,7 @@ describe("#templates.delete", () => {
     const user = await buildUser();
     const res = await server.post("/api/templates.delete", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
     const body = await res.json();
@@ -496,7 +496,7 @@ describe("templateManagement", () => {
 
       const res = await server.post("/api/templates.create", {
         body: {
-          token: member.getJwtToken(),
+          token: member.getSessionToken(),
           collectionId: collection.id,
           title: "Member template",
           data: {
@@ -529,7 +529,7 @@ describe("templateManagement", () => {
 
       const res = await server.post("/api/templates.create", {
         body: {
-          token: member.getJwtToken(),
+          token: member.getSessionToken(),
           collectionId: collection.id,
           title: "Member template",
           data: {
@@ -566,7 +566,7 @@ describe("templateManagement", () => {
 
       const res = await server.post("/api/templates.create", {
         body: {
-          token: member.getJwtToken(),
+          token: member.getSessionToken(),
           collectionId: collection.id,
           title: "Member template",
           data: {
@@ -605,7 +605,7 @@ describe("templateManagement", () => {
 
       const res = await server.post("/api/templates.create", {
         body: {
-          token: member.getJwtToken(),
+          token: member.getSessionToken(),
           collectionId: collection.id,
           title: "Member template",
           data: {
@@ -642,7 +642,7 @@ describe("templateManagement", () => {
 
       const res = await server.post("/api/templates.update", {
         body: {
-          token: member.getJwtToken(),
+          token: member.getSessionToken(),
           id: template.id,
           title: "Updated by member",
         },
@@ -670,7 +670,7 @@ describe("templateManagement", () => {
 
       const res = await server.post("/api/templates.update", {
         body: {
-          token: member.getJwtToken(),
+          token: member.getSessionToken(),
           id: template.id,
           title: "Updated by member",
         },
@@ -698,7 +698,7 @@ describe("templateManagement", () => {
 
       const res = await server.post("/api/templates.duplicate", {
         body: {
-          token: member.getJwtToken(),
+          token: member.getSessionToken(),
           id: template.id,
         },
       });
@@ -725,7 +725,7 @@ describe("templateManagement", () => {
 
       const res = await server.post("/api/templates.duplicate", {
         body: {
-          token: member.getJwtToken(),
+          token: member.getSessionToken(),
           id: template.id,
         },
       });
@@ -753,7 +753,7 @@ describe("templateManagement", () => {
 
       const res = await server.post("/api/templates.restore", {
         body: {
-          token: member.getJwtToken(),
+          token: member.getSessionToken(),
           id: template.id,
         },
       });
@@ -781,7 +781,7 @@ describe("templateManagement", () => {
 
       const res = await server.post("/api/templates.restore", {
         body: {
-          token: member.getJwtToken(),
+          token: member.getSessionToken(),
           id: template.id,
         },
       });
@@ -808,7 +808,7 @@ describe("templateManagement", () => {
 
       const res = await server.post("/api/templates.delete", {
         body: {
-          token: member.getJwtToken(),
+          token: member.getSessionToken(),
           id: template.id,
         },
       });
@@ -835,7 +835,7 @@ describe("templateManagement", () => {
 
       const res = await server.post("/api/templates.delete", {
         body: {
-          token: member.getJwtToken(),
+          token: member.getSessionToken(),
           id: template.id,
         },
       });

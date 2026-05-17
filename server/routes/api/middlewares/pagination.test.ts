@@ -8,7 +8,7 @@ describe("#pagination", () => {
     const user = await buildUser();
     const res = await server.post("/api/users.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         limit: 1,
         offset: 1,
       },
@@ -20,7 +20,7 @@ describe("#pagination", () => {
     const user = await buildUser();
     const res = await server.post("/api/users.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         limit: -1,
       },
     });
@@ -31,7 +31,7 @@ describe("#pagination", () => {
     const user = await buildUser();
     const res = await server.post("/api/users.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         limit: "blah",
       },
     });
@@ -42,7 +42,7 @@ describe("#pagination", () => {
     const user = await buildUser();
     const res = await server.post("/api/users.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         offset: -1,
       },
     });
@@ -53,7 +53,7 @@ describe("#pagination", () => {
     const user = await buildUser();
     const res = await server.post("/api/users.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         offset: "blah",
       },
     });

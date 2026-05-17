@@ -34,7 +34,7 @@ describe("oauthAuthentications.list", () => {
 
     const res = await server.post("/api/oauthAuthentications.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
 
@@ -65,7 +65,7 @@ describe("oauthAuthentications.list", () => {
 
     const res = await server.post("/api/oauthAuthentications.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
 
@@ -89,7 +89,7 @@ describe("oauthAuthentications.delete", () => {
 
     const res = await server.post("/api/oauthAuthentications.delete", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         oauthClientId: "",
       },
     });
@@ -115,7 +115,7 @@ describe("oauthAuthentications.delete", () => {
 
     const res = await server.post("/api/oauthAuthentications.delete", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         oauthClientId: oauthClient.id,
       },
     });
@@ -156,7 +156,7 @@ describe("oauthAuthentications.delete", () => {
 
     const res = await server.post("/api/oauthAuthentications.delete", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         oauthClientId: oauthClient.id,
         scope: ["read"],
       },
@@ -195,7 +195,7 @@ describe("oauthAuthentications.delete", () => {
 
     await server.post("/api/oauthAuthentications.delete", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         oauthClientId: oauthClient.id,
         scope: "read",
       },

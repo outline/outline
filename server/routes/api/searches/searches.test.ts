@@ -33,7 +33,7 @@ describe("#searches.list", () => {
   it("should succeed with status 200 ok returning results", async () => {
     const res = await server.post("/api/searches.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
     const body = await res.json();
@@ -48,7 +48,7 @@ describe("#searches.list", () => {
   it("should allow filtering by source", async () => {
     const res = await server.post("/api/searches.list", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         source: "api",
       },
     });
@@ -74,7 +74,7 @@ describe("#searches.update", () => {
   it("should fail with status 400 bad request when an invalid id is provided", async () => {
     const res = await server.post("/api/searches.update", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: "id",
         score: 1,
       },
@@ -85,7 +85,7 @@ describe("#searches.update", () => {
   it("should fail with status 400 bad request when an invalid score is provided", async () => {
     const res = await server.post("/api/searches.update", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: searchQuery.id,
         score: 2,
       },
@@ -96,7 +96,7 @@ describe("#searches.update", () => {
   it("should succeed with status 200 ok and successfully update the query", async () => {
     const res = await server.post("/api/searches.update", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: searchQuery.id,
         score: 1,
       },
@@ -125,7 +125,7 @@ describe("#searches.delete", () => {
   it("should fail with status 400 bad request when no id or query is provided", async () => {
     const res = await server.post("/api/searches.delete", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
       },
     });
 
@@ -137,7 +137,7 @@ describe("#searches.delete", () => {
   it("should fail with status 400 bad request when an invalid id is provided", async () => {
     const res = await server.post("/api/searches.delete", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: "id",
       },
     });
@@ -158,7 +158,7 @@ describe("#searches.delete", () => {
 
     const res = await server.post("/api/searches.delete", {
       body: {
-        token: user.getJwtToken(),
+        token: user.getSessionToken(),
         id: searchQuery.id,
       },
     });
