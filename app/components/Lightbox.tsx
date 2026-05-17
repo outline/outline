@@ -244,6 +244,8 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
   const contentRef = useRef<HTMLDivElement | null>(null);
   const [status, setStatus] = useState<Status>({ lightbox: null, image: null });
   const [commentsOpen, setCommentsOpen] = useState(false);
+  const [commentsRendered, setCommentsRendered] = useState(false);
+  const [commentsVisible, setCommentsVisible] = useState(false);
   const [commentsPortalEl, setCommentsPortalEl] =
     useState<HTMLDivElement | null>(null);
   const animation = useRef<Animation | null>(null);
@@ -336,6 +338,19 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
       onUpdate(null);
     }
   }, [status.lightbox]);
+
+  useEffect(() => {
+    if (commentsOpen) {
+      setCommentsRendered(true);
+      const frame = window.requestAnimationFrame(() =>
+        setCommentsVisible(true)
+      );
+      return () => window.cancelAnimationFrame(frame);
+    }
+    setCommentsVisible(false);
+    const timer = window.setTimeout(() => setCommentsRendered(false), 200);
+    return () => window.clearTimeout(timer);
+  }, [commentsOpen]);
 
   useEffect(() => {
     if (status.image === ImageStatus.MIN_ZOOM) {
@@ -851,7 +866,8 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
                 />
               </Tooltip>
             )}
-            <Separator />
+          </Actions>
+          <CloseAction animation={animation.current}>
             <Dialog.Close asChild>
               <Tooltip content={t("Close")} shortcut="Esc" placement="bottom">
                 <ActionButton
@@ -865,7 +881,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
                 />
               </Tooltip>
             </Dialog.Close>
-          </Actions>
+          </CloseAction>
           {currentImageIndex > 0 &&
             !(
               status.image === ImageStatus.ZOOMED ||
@@ -952,10 +968,11 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
                 </NavButton>
               </Nav>
             )}
-          {canShowComments && commentsOpen && contextDocument && (
+          {canShowComments && commentsRendered && contextDocument && (
             <CommentsSidebar
               ref={setCommentsPortalEl}
               animation={animation.current}
+              $open={commentsVisible}
               onPointerDown={stopPropagation}
               onPointerUp={stopPropagation}
               onMouseDown={stopPropagation}
@@ -1198,13 +1215,41 @@ const Actions = styled(HStack)<{
 }>`
   position: absolute;
   top: 0;
-  right: ${(props) => (props.$commentsOpen ? "360px" : "0")};
+  right: ${(props) => (props.$commentsOpen ? "360px" : "44px")};
   margin: 16px 12px;
   z-index: ${depths.modal};
   background: ${(props) => transparentize(0.2, props.theme.background)};
   backdrop-filter: blur(4px);
   border-radius: 6px;
   transition: right 200ms ease-out;
+
+  ${(props) =>
+    props.animation === null
+      ? css`
+          opacity: 0;
+        `
+      : props.animation.fadeIn
+        ? css`
+            animation: ${props.animation.fadeIn.apply()}
+              ${props.animation.fadeIn.duration}ms;
+          `
+        : props.animation.fadeOut
+          ? css`
+              animation: ${props.animation.fadeOut.apply()}
+                ${props.animation.fadeOut.duration}ms;
+            `
+          : ""}
+`;
+
+const CloseAction = styled.div<{ animation: Animation | null }>`
+  position: fixed;
+  top: 0;
+  right: 0;
+  margin: 16px 12px;
+  z-index: ${depths.modal + 1};
+  background: ${(props) => transparentize(0.2, props.theme.background)};
+  backdrop-filter: blur(4px);
+  border-radius: 6px;
 
   ${(props) =>
     props.animation === null
@@ -1279,31 +1324,25 @@ const StyledError = styled(ImageError)<{
           : ""}
 `;
 
-const slideIn = keyframes`
-  from {
-    transform: translateX(100%);
-  }
-  to {
-    transform: translateX(0);
-  }
-`;
-
-const CommentsSidebar = styled.div<{ animation: Animation | null }>`
+const CommentsSidebar = styled.div<{
+  animation: Animation | null;
+  $open: boolean;
+}>`
   position: fixed;
   top: 0;
   right: 0;
   bottom: 0;
   z-index: ${depths.modal};
   display: flex;
+  transform: translateX(${(props) => (props.$open ? "0" : "100%")});
+  transition: transform 200ms ease-out;
   ${(props) =>
     props.animation?.fadeOut
       ? css`
           animation: ${props.animation.fadeOut.apply()}
             ${props.animation.fadeOut.duration}ms;
         `
-      : css`
-          animation: ${slideIn} 200ms ease-out;
-        `}
+      : ""}
 `;
 
 const NavButton = styled(NudeButton)`

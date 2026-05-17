@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
@@ -47,8 +47,12 @@ function LightboxComments({ document, pos }: Props) {
       (comment) => commentIds.includes(comment.id) && !comment.isResolved
     );
 
+  const draftCommentIdRef = useRef<string | null>(null);
+
   // When submitting a new comment from the bottom form, anchor it to the image
-  // by adding a comment mark to the image node's `attrs.marks`.
+  // by adding a draft comment mark to the image node's `attrs.marks`. The mark
+  // is flipped to `draft: false` in `handleSubmit` once the comment has been
+  // persisted on the server.
   const handleBeforeCreate = useCallback(
     (commentId: string) => {
       if (!editor) {
@@ -66,7 +70,7 @@ function LightboxComments({ document, pos }: Props) {
         attrs: {
           id: commentId,
           userId: user.id,
-          draft: false,
+          draft: true,
         },
       };
       const newAttrs = {
@@ -74,9 +78,19 @@ function LightboxComments({ document, pos }: Props) {
         marks: [...existingMarks, newMark],
       };
       dispatch(state.tr.setNodeMarkup(pos, undefined, newAttrs));
+      draftCommentIdRef.current = commentId;
     },
     [editor, pos, user.id]
   );
+
+  const handleSubmit = useCallback(() => {
+    setFocusedCommentId(null);
+    const commentId = draftCommentIdRef.current;
+    if (commentId) {
+      editor?.updateComment(commentId, { draft: false });
+      draftCommentIdRef.current = null;
+    }
+  }, [editor, setFocusedCommentId]);
 
   const focusedComment =
     focusedCommentId && commentIds.includes(focusedCommentId)
@@ -117,7 +131,7 @@ function LightboxComments({ document, pos }: Props) {
           autoFocus={false}
           standalone
           onBeforeCreate={handleBeforeCreate}
-          onSubmit={() => setFocusedCommentId(null)}
+          onSubmit={handleSubmit}
         />
       )}
     </Wrapper>
